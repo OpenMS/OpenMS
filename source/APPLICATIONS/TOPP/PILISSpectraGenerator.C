@@ -223,7 +223,7 @@ class TOPPPILISSpectraGenerator
 			vector<vector<ProteinIdentification> > prot_ids;
 			vector<vector<PeptideIdentification> > pep_ids;
 
-			if (in.size() != 0)
+      if ( !in.empty() )
 			{
 				FileTypes::Type in_file_type = FileHandler().getType(in[0]);
 				writeDebug_("File type of parameter 'in' estimated as '" + FileHandler::typeToName(in_file_type) + "'", 1);
@@ -257,7 +257,7 @@ class TOPPPILISSpectraGenerator
 				}
 			}
 
-			if (id_in.size() != 0)
+      if ( !id_in.empty() )
 			{
 				prot_ids.resize(id_in.size());
 				pep_ids.resize(id_in.size());
@@ -268,7 +268,7 @@ class TOPPPILISSpectraGenerator
 				}
 			}
 
-			if (id_in.size() != 0 && in.size() != 0)
+      if ( !id_in.empty() && !in.empty() )
 			{
 				// map the
 				if (id_in.size() != in.size())

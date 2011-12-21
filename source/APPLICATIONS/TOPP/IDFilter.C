@@ -271,9 +271,9 @@ class TOPPIDFilter
 			IdXML_file.load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion, document_id);
 			for (Size i = 0; i < identifications_exclusion.size(); i++)
 			{
-				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getHits().begin();
+        for ( vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getHits().begin();
 						it != identifications_exclusion[i].getHits().end();
-						it++)
+            ++it )
 				{
 					exclusion_peptides.insert(it->getSequence().toString());
 				}

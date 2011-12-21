@@ -162,14 +162,14 @@ namespace OpenMS
 
       // get amino acid before
       String pre(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("pre")))));
-      if (pre.size() != 0)
+      if ( !pre.empty() )
       {
         hit.setAABefore(pre[pre.size() - 1]);
       }
 
       // get amino acid after
       String post(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("post")))));
-      if (post.size() != 0)
+      if ( !post.empty() )
       {
         hit.setAAAfter(post[0]);
       }
@@ -338,7 +338,7 @@ namespace OpenMS
 									}
 								}
 							}
-							if (new_possible_mods.size() != 0)
+              if ( !new_possible_mods.empty() )
 							{
 								possible_mods = new_possible_mods;
 							}

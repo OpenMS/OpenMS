@@ -99,8 +99,8 @@ namespace OpenMS
 				
 				// if several PeptideIdentifications (==Spectra) were assigned to current ConsensusElement
 				// --> take the best (as above), e.g. in SILAC this could happen
-				// TODO better idea?
-				if (peptide_hits.size()>0)
+        // TODO: better idea?
+        if ( !peptide_hits.empty() )
 				{
 					if (sortByUnique_(peptide_hits, consensus_map[i_cm].getPeptideIdentifications()[0].isHigherScoreBetter() ))
 					{ //found a unique peptide for current ConsensusElement

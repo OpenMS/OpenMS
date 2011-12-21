@@ -234,7 +234,7 @@ class TOPPEICExtractor
           
             if ((SignedSize)mz.size() > (low+high+1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low+high+1 << "]\n";
           
-            if (mz.size() > 0)
+            if ( !mz.empty() )
             {
               DoubleReal avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / DoubleReal(mz.size());
               ppm = (avg_mz - cm[i].getMZ())/cm[i].getMZ() * 1e6;

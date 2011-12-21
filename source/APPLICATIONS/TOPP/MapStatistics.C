@@ -92,7 +92,7 @@ namespace OpenMS
 		SomeStatistics& operator()(vector<double>& data)
 		{
 			// Sanity check: avoid core dump if no data points present.
-			if (data.size() > 0)
+      if ( !data.empty() )
 			{
 				sort(data.begin(), data.end());
 				mean = gsl_stats_mean(&data.front(), 1, data.size());
@@ -352,7 +352,7 @@ class TOPPMapStatistics
 
 				// file descriptions
 				const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
-				if (descs.size() != 0)
+        if ( !descs.empty() )
 				{
 					os << endl <<
 						"File descriptions:" << endl;

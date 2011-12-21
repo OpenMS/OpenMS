@@ -182,7 +182,7 @@ namespace OpenMS
 		
 		
 		// add computed stats about meta infos in the FloatDataArrays of the spectra to the table
-		for(std::map<String, MetaStatsValue_>::const_iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
+    for(std::map<String, MetaStatsValue_>::const_iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); ++it)
 		{
 			table_->setRowCount(table_->rowCount()+1);
 			String name = it->first;
@@ -374,7 +374,7 @@ namespace OpenMS
 	{
 		vector<UInt> new_meta_keys;
 		meta_interface.getKeys(new_meta_keys);
-		for(vector<UInt>::iterator it_meta_index = new_meta_keys.begin(); it_meta_index != new_meta_keys.end(); it_meta_index++)
+    for(vector<UInt>::iterator it_meta_index = new_meta_keys.begin(); it_meta_index != new_meta_keys.end(); ++it_meta_index)
 		{
 			const DataValue& next_value = meta_interface.getMetaValue(*it_meta_index);
 			MetaIterator_ it = meta_stats_.find(*it_meta_index);
@@ -416,7 +416,7 @@ namespace OpenMS
 				it->second.avg /= (DoubleReal)it->second.count;
 			}
 		}
-		for(std::map<String, MetaStatsValue_>::iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); it++)
+    for(std::map<String, MetaStatsValue_>::iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); ++it)
 		{
 			if(it->second.count != 0)
 			{

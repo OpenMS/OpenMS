@@ -1086,11 +1086,11 @@ namespace OpenMS
 					os << "\t\t\t\t\t<spectrumInstrument msLevel=\"" << spec.getMSLevel() << "\"";
 					level_id[spec.getMSLevel()] = spectrum_id;
 					
-					if (iset.getScanWindows().size() > 0)
+          if ( !iset.getScanWindows().empty() )
 					{
 						os << " mzRangeStart=\"" << iset.getScanWindows()[0].begin << "\" mzRangeStop=\"" << iset.getScanWindows()[0].end << "\"";
 					}
-					if (iset.getScanWindows().size() > 1)
+          if ( iset.getScanWindows().size() > 1 )
 					{
 						warning(STORE, "The MzData format can store only one scan window for each scan. Only the first one is stored!");
 					}

@@ -792,7 +792,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
     for(Size i = 0; i!= map.size(); ++i)
     {
-      if (map[i].getPeptideIdentifications().size() != 0)
+      if ( !map[i].getPeptideIdentifications().empty())
       {
         return true;
       }
@@ -3945,7 +3945,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     {
       watcher_->removeFile(filename);  // remove watcher
       return;
-    } else if (needs_update.size()!=0)  // at least one layer references data of filename
+    } else if ( !needs_update.empty() )  // at least one layer references data of filename
     {
       //std::cout << "Number of Layers that need update: " << needs_update.size() << std::endl;
       pair<const SpectrumWidget *, Size>& slp = needs_update[0];

@@ -82,7 +82,7 @@ namespace OpenMS
 
     // special behavior
     vector<PeptideIdentification> pi = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
-    if (pi.size() != 0)
+    if ( !pi.empty() )
     {
       Size best_i_index = 0;
       Size best_j_index = 0;
@@ -125,7 +125,7 @@ namespace OpenMS
      if (ms_level == 2)  // show theoretical spectrum with automatic alignment
      {
        vector<PeptideIdentification> pi = cl.getCurrentSpectrum().getPeptideIdentifications();
-       if (pi.size() != 0)
+       if ( !pi.empty() )
        {
          Size best_i_index = 0;
          Size best_j_index = 0;

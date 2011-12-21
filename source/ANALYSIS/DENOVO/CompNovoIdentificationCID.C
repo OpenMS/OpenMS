@@ -136,7 +136,7 @@ namespace OpenMS
 
 		Size charge(2);
 		DoubleReal precursor_weight(0); // [M+H]+
-		if (CID_spec.getPrecursors().size() > 0)
+    if ( !CID_spec.getPrecursors().empty() )
 		{
 			// believe charge of spectrum?
 			if (CID_spec.getPrecursors().begin()->getCharge() != 0)

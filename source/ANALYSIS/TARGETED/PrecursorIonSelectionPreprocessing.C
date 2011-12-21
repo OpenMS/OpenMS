@@ -1040,8 +1040,16 @@ namespace OpenMS
       }
       if(parts[1].hasSubstring(".")) parts[1] = parts[1].prefix(11);
       prot_masses_.insert(make_pair(parts[1],masses));
-      if(rts.size()>0) rt_prot_map_.insert(make_pair(parts[1],rts));
-      if(pts.size()>0)	pt_prot_map_.insert(make_pair(parts[1],pts));
+
+      if ( !rts.empty() )
+      {
+        rt_prot_map_.insert( make_pair( parts[1], rts ) );
+      }
+
+      if ( !pts.empty() )
+      {
+        pt_prot_map_.insert( make_pair( parts[1], pts ) );
+      }
 
 #ifdef PISP_DEBUG
       std::cout << parts[1] << " "<< masses.size()<< std::endl;

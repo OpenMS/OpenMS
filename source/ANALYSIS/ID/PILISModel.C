@@ -1657,7 +1657,7 @@ namespace OpenMS
       vector<String> split;
       line.split(' ', split, true);
 
-      if (split.size() > 0)
+      if ( !split.empty() )
       {
         String id = split[0];
 

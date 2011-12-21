@@ -378,7 +378,7 @@ namespace OpenMS
 										std::cout << "Isotopic pattern found ! " << std::endl;
 										std::cout << "We are at: " << (peak_it+curr_peak)->getMZ()  << " " << curr_mz << std::endl;
 #endif      
-										if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
+                    if ( !iso_last_scan.empty() )  // Did we find any isotopic cluster in the last scan?
 											{
 												std::sort(iso_last_scan.begin(), iso_last_scan.end());
 												// there were some isotopic clustures in the last scan...
@@ -480,7 +480,7 @@ namespace OpenMS
 									} // end of if (dist2nextpeak <= max_peak_distance_)
 								else
 									{
-										if (iso_last_scan.size() > 0)  // Did we find any isotopic cluster in the last scan?
+                    if ( !iso_last_scan.empty() )  // Did we find any isotopic cluster in the last scan?
 											{
 												std::sort(iso_last_scan.begin(), iso_last_scan.end());
 												// there were some isotopic clusters in the last scan...

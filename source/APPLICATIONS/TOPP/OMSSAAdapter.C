@@ -503,7 +503,7 @@ class TOPPOMSSAAdapter
         	for (Size i = 2; i != split.size(); ++i)
         	{
           	String tmp(split[i].trim());
-          	if (tmp.size() != 0)
+            if (!tmp.empty())
           	{
 							mods_map[tmp] = split[0].trim().toInt();
           	}
@@ -517,7 +517,7 @@ class TOPPOMSSAAdapter
 			UInt user_mod_num(119);
 			vector<pair<UInt, String> > user_mods;
 			// fixed modifications
-			if (getStringList_("fixed_modifications").size() != 0)
+      if ( !getStringList_("fixed_modifications").empty())
 			{
 				set<String> mod_names = mod_set.getFixedModificationNames();
 				StringList mod_list;
@@ -541,7 +541,7 @@ class TOPPOMSSAAdapter
 				}
 			}
 
-			if (getStringList_("variable_modifications").size() != 0)
+      if ( !getStringList_("variable_modifications").empty() )
 			{
 				set<String> mod_names = mod_set.getVariableModificationNames();
 				StringList mod_list;
@@ -569,7 +569,7 @@ class TOPPOMSSAAdapter
 
       String additional_user_mods_filename = getStringOption_("omssa_user_mods");
 			// write unknown modifications to user mods file
-      if (user_mods.size() != 0 || additional_user_mods_filename != "")
+      if ( !user_mods.empty() || additional_user_mods_filename != "")
 			{
 				writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
 				parameters += " -mux " + (File::absolutePath(unique_usermod_name));
@@ -716,7 +716,7 @@ class TOPPOMSSAAdapter
 					QFile(unique_input_name.toQString()).remove();
 					QFile(unique_output_name.toQString()).remove();
 				}
-        if (user_mods.size() != 0 || additional_user_mods_filename!="")
+        if ( !user_mods.empty() || additional_user_mods_filename!="")
 				{
 					QFile(unique_usermod_name.toQString()).remove();
 				}
@@ -784,7 +784,7 @@ class TOPPOMSSAAdapter
 			  writeDebug_("Removing temporary files", 10);
   			QFile(unique_input_name.toQString()).remove();
 	  		QFile(unique_output_name.toQString()).remove();
-		  	if (user_mods.size() != 0)
+        if ( !user_mods.empty() )
 		  	{
 		  		QFile(unique_usermod_name.toQString()).remove();
 	  		}

@@ -243,7 +243,7 @@ namespace OpenMS
 						MzXMLFile f;
 						f.getOptions() = options_;
 						f.setLogType(log);
-						if (exp.getChromatograms().size() != 0)
+            if ( !exp.getChromatograms().empty() )
 						{
 							MSExperiment<PeakType> exp2 = exp;
 							ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
@@ -260,7 +260,7 @@ namespace OpenMS
 						MzDataFile f;
 						f.getOptions() = options_;
 						f.setLogType(log);
-						if (exp.getChromatograms().size() != 0)
+            if ( !exp.getChromatograms().empty() )
 						{
 							MSExperiment<PeakType> exp2 = exp;
 							ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);

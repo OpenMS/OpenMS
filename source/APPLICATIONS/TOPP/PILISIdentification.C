@@ -295,7 +295,7 @@ class TOPPPILISIdentification
 
 					ids.push_back(id);
 
-					if (id.getHits().size() != 0)
+          if ( !id.getHits().empty() )
 					{
 						cerr << it->getPrecursors()[0].getMZ() << " " << AASequence(id.getHits().begin()->getSequence()).getAverageWeight() << endl;
 						writeDebug_(id.getHits().begin()->getSequence().toString() + " (z=" + id.getHits().begin()->getCharge() + "), score=" + String(id.getHits().begin()->getScore()) , 10);

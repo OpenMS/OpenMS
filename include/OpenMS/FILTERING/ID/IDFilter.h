@@ -80,7 +80,7 @@ namespace OpenMS
 					}	
 				}
 
-				if (filtered_hits.size() > 0)
+        if ( !filtered_hits.empty() )
 				{
 		  		filtered_identification.setHits(filtered_hits);																						
 					filtered_identification.assignRanks();  																								
@@ -124,7 +124,7 @@ namespace OpenMS
 					}	
 				}
 
-				if (filtered_hits.size() > 0)
+        if ( !filtered_hits.empty() )
 				{
 		  		filtered_identification.setHits(filtered_hits);																						
 					filtered_identification.assignRanks();  																								
@@ -161,7 +161,7 @@ namespace OpenMS
 					++count;	
 				}
 
-				if (filtered_hits.size() > 0)
+        if ( !filtered_hits.empty() )
 				{
 		  		filtered_identification.setHits(filtered_hits);																						
 					filtered_identification.assignRanks();  																								

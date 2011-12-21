@@ -315,7 +315,7 @@ namespace OpenMS
             //init vector
             intensity_thresholds_[rt][mz].assign(21, 0.0);
             //store quantiles (20)
-            if (tmp.size() != 0)
+            if ( !tmp.empty() )
             {
               std::sort(tmp.begin(), tmp.end());
               for (Size i = 0 ; i < 21 ; ++i)
@@ -1599,7 +1599,7 @@ namespace OpenMS
       }
 
       //previous spectrum
-      if (spectrum_index != 0 && map_[spectrum_index-1].size() > 0)
+      if (spectrum_index != 0 && !map_[spectrum_index-1].empty() )
       {
         const SpectrumType& spectrum_before = map_[spectrum_index-1];
         Size index_before = spectrum_before.findNearest(pos);
@@ -1619,7 +1619,7 @@ namespace OpenMS
         }
       }
       //next spectrum
-      if (spectrum_index != map_.size()-1 && map_[spectrum_index+1].size() > 0)
+      if ( spectrum_index != map_.size()-1 && !map_[spectrum_index+1].empty() )
       {
         const SpectrumType& spectrum_after = map_[spectrum_index+1];
         Size index_after = spectrum_after.findNearest(pos);
@@ -1947,7 +1947,7 @@ namespace OpenMS
         DoubleReal fit_score = 0.0;
         DoubleReal correlation = 0.0;
         DoubleReal final_score = 0.0;
-        if (new_trace.peaks.size() != 0)
+        if ( !new_trace.peaks.empty() )
         {
           fit_score = deviation / new_trace.peaks.size();
           correlation = std::max(0.0, Math::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end()));

@@ -1121,7 +1121,7 @@ namespace OpenMS
 				os << "\" retentionTime=\"";
 				if (spec.getRT()<0) os << "-";
 				os << "PT"<< std::fabs(spec.getRT()) << "S\"";
-				if (spec.getInstrumentSettings().getScanWindows().size() > 0)
+        if ( !spec.getInstrumentSettings().getScanWindows().empty() )
 				{
 					os << " startMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].begin << "\" endMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].end << "\"";
 				}
@@ -1145,7 +1145,7 @@ namespace OpenMS
 					os << "\">" << precursor.getMZ() << "</precursorMz>\n";
 				}
 	
-				if (spec.size() > 0)
+        if ( !spec.empty() )
 				{
 					os << String(ms_level+2,'\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
 					

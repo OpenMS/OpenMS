@@ -28,7 +28,6 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-
 #include <cmath>
 
 using namespace std;
@@ -73,7 +72,7 @@ namespace OpenMS
 		filtered_identification = identification;		
 		filtered_identification.setHits(vector<PeptideHit>());
 		
-		if (identification.getHits().size() > 0)
+    if ( !identification.getHits().empty() )
 		{
 			Real optimal_value = identification.getHits()[0].getScore();
 			new_peptide_indices.push_back(0);
@@ -106,7 +105,7 @@ namespace OpenMS
 			}
 		}
 
-		if (filtered_peptide_hits.size() > 0)
+    if ( !filtered_peptide_hits.empty() )
 		{
   		filtered_identification.setHits(filtered_peptide_hits);
 			filtered_identification.assignRanks();  																								
@@ -137,7 +136,7 @@ namespace OpenMS
 		{
 			filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
 		}
-		if (filtered_peptide_hits.size() > 0)
+    if ( !filtered_peptide_hits.empty() )
 		{
   		filtered_identification.setHits(filtered_peptide_hits);
 			filtered_identification.assignRanks();  																								
@@ -250,7 +249,7 @@ namespace OpenMS
 	  		filtered_peptide_hits.push_back(identification.getHits()[i]);
 	  	}
 		}
-		if (filtered_peptide_hits.size() > 0)
+    if ( !filtered_peptide_hits.empty() )
 		{
   		filtered_identification.setHits(filtered_peptide_hits);
 			filtered_identification.assignRanks();
@@ -271,8 +270,8 @@ namespace OpenMS
 		
     Size missing_meta_value=0;
 
-		for (Size i = 0; i < identification.getHits().size(); i++)
-		{
+    for ( Size i = 0; i < identification.getHits().size(); ++i )
+    {
 			if (identification.getHits()[i].metaValueExists("predicted_RT_p_value_first_dim"))
       {
 			  if ((DoubleReal)(identification.getHits()[i].getMetaValue("predicted_RT_p_value_first_dim")) <= border )
@@ -284,7 +283,7 @@ namespace OpenMS
 		}
     if (missing_meta_value>0) LOG_WARN << "Filtering identifications by p-value did not work on " << missing_meta_value << " of " << identification.getHits().size() << " hits. Your data is missing a meta-value ('predicted_RT_p_value_first_dim') from RTPredict!\n";
 
-		if (filtered_peptide_hits.size() > 0)
+    if ( !filtered_peptide_hits.empty() )
 		{
   		filtered_identification.setHits(filtered_peptide_hits);		
   		filtered_identification.assignRanks();											
@@ -318,7 +317,7 @@ namespace OpenMS
 		}
     if (missing_meta_value>0) LOG_WARN << "Filtering identifications by p-value did not work on " << missing_meta_value << " of " << identification.getHits().size() << " hits. Your data is missing a meta-value ('predicted_RT_p_value') from RTPredict!\n";
 
-    if (filtered_peptide_hits.size() > 0)
+    if ( !filtered_peptide_hits.empty() )
 		{
   		filtered_identification.setHits(filtered_peptide_hits);		
   		filtered_identification.assignRanks();											
@@ -348,7 +347,7 @@ namespace OpenMS
 				{
 					temp_peptide_hits.clear();
 					peptide_identifications[i].getReferencingHits(temp_protein_hits[j].getAccession(), temp_peptide_hits);
-					if (temp_peptide_hits.size() > 0)
+          if ( !temp_peptide_hits.empty() )
 					{
 						filtered_protein_hits.push_back(temp_protein_hits[j]);
 						found = true;

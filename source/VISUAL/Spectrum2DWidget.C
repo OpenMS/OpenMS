@@ -198,7 +198,7 @@ namespace OpenMS
 			{
 				if (s_it->getMSLevel()!=1) continue;
 				//float arrays
-				for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it=s_it->getFloatDataArrays().begin(); it!=s_it->getFloatDataArrays().end(); it++)
+        for ( ExperimentType::SpectrumType::FloatDataArrays::const_iterator it=s_it->getFloatDataArrays().begin(); it!=s_it->getFloatDataArrays().end(); ++it )
 				{
 					if (it->getName()==name)
 					{
@@ -211,7 +211,7 @@ namespace OpenMS
 					}
 				}
 				//integer arrays
-				for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it=s_it->getIntegerDataArrays().begin(); it!=s_it->getIntegerDataArrays().end(); it++)
+        for ( ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it=s_it->getIntegerDataArrays().begin(); it!=s_it->getIntegerDataArrays().end(); ++it )
 				{
 					if (it->getName()==name)
 					{
@@ -232,7 +232,7 @@ namespace OpenMS
 			{
 				if (s_it->getMSLevel()!=1) continue;
 				//float arrays
-				for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it=s_it->getFloatDataArrays().begin(); it!=s_it->getFloatDataArrays().end(); it++)
+        for ( ExperimentType::SpectrumType::FloatDataArrays::const_iterator it=s_it->getFloatDataArrays().begin(); it!=s_it->getFloatDataArrays().end(); ++it )
 				{
 					if (it->getName()==name)
 					{
@@ -244,7 +244,7 @@ namespace OpenMS
 					}
 				}
 				//integer arrays
-				for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it=s_it->getIntegerDataArrays().begin(); it!=s_it->getIntegerDataArrays().end(); it++)
+        for ( ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it=s_it->getIntegerDataArrays().begin(); it!=s_it->getIntegerDataArrays().end(); ++it )
 				{
 					if (it->getName()==name)
 					{

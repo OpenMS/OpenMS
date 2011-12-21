@@ -156,7 +156,7 @@ class TOPPFFEval
 		DoubleReal rt_tol = getDoubleOption_("rt_tol_abs");
 		if (rt_tol<0.0)
 		{
-			if (rt_spans.size()!=0)
+      if ( !rt_spans.empty() )
 			{
 				sort(rt_spans.begin(), rt_spans.end());
 				rt_tol = getDoubleOption_("rt_tol")*rt_spans[rt_spans.size()/2];

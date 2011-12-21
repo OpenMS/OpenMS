@@ -381,7 +381,7 @@ class TOPPFileInfo
 
 			// file descriptions
 			const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
-			if (descs.size() != 0)
+      if ( !descs.empty() )
 			{
 				os << "File descriptions:" << endl;
 				for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it != descs.end(); ++it)
@@ -523,7 +523,7 @@ class TOPPFileInfo
 			writeRangesMachineReadable_(exp,os_tsv);
 
 			os << "MS levels: ";
-			if (levels.size() != 0)
+      if ( !levels.empty() )
 			{
 				os << *(levels.begin());
 				for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
@@ -609,7 +609,7 @@ class TOPPFileInfo
 			}
 
 			// some chromatogram information
-			if (exp.getChromatograms().size() != 0)
+      if ( !exp.getChromatograms().empty() )
 			{
 				os << "Number of chromatograms: "	<< exp.getChromatograms().size() << endl;
 				os_tsv << "number of chromatograms" << "\t"	<< exp.getChromatograms().size() << endl;
@@ -945,7 +945,7 @@ class TOPPFileInfo
 			}
 			else //peaks
 			{
-				if (exp.size() != 0)
+        if ( !exp.empty())
 				{
 					os << "Note: The data is taken from the first spectrum!" << endl << endl;
 					dp = exp[0].getDataProcessing();

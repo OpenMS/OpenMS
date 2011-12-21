@@ -222,7 +222,7 @@ class TOPPIDExtractor
 						{
               temp_peptide_hits.clear();
 							temp_identifications[k].getReferencingHits(temp_protein_hits[j].getAccession(), temp_peptide_hits);
-							if (temp_peptide_hits.size() > 0 && !already_chosen)
+              if ( !temp_peptide_hits.empty() && !already_chosen )
 							{
 								chosen_protein_hits.push_back(temp_protein_hits[j]);
 								already_chosen = true;

@@ -832,7 +832,7 @@ namespace OpenMS
 
 				query.str("");
 
-				if (result.size() > 0)
+        if ( result.size() > 0)
 				{
 					parent_id = result.value(0).toInt();
 					new_entry = false;

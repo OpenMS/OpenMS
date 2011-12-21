@@ -277,7 +277,7 @@ namespace OpenMS
     }
     else
     {
-     	if (mods.size() > 0)
+      if ( !mods.empty() )
       {
        	String mod_str = mods[0];
         for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)

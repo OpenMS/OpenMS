@@ -96,7 +96,7 @@ protected:
         MSExperiment<Peak1D> ms_peakmap;
         mz_data_file.load(in,ms_peakmap);
 
-        if (ms_peakmap.size()==0)
+        if ( ms_peakmap.empty() )
         {
             LOG_WARN << "The given file does not contain any conventional peak data, but might"
                     " contain chromatograms. This tool currently cannot handle them, sorry.";

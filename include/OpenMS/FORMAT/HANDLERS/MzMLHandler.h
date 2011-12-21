@@ -4528,7 +4528,7 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					//precursor list
 					//--------------------------------------------------------------------------------------------
-					if (spec.getPrecursors().size() != 0)
+          if ( !spec.getPrecursors().empty() )
 					{
 						os  << "      <precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
 						for (Size p = 0; p != spec.getPrecursors().size(); ++p)
@@ -4799,7 +4799,7 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			//chromatograms
 			//--------------------------------------------------------------------------------------------			
-			if (exp.getChromatograms().size() != 0)
+      if ( !exp.getChromatograms().empty() )
 			{
 				os	<< "		<chromatogramList count=\"" << exp.getChromatograms().size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n"; 
 				for (Size c = 0; c != exp.getChromatograms().size(); ++c)

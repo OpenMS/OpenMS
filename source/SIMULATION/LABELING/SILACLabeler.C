@@ -77,7 +77,7 @@ bool SILACLabeler::canModificationBeApplied_(const String& modification_id, cons
     throw ex;
   }
 
-  return (modifications.size() != 0);
+  return ( !modifications.empty() );
 }
 
 SILACLabeler::~SILACLabeler()

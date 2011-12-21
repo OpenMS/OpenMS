@@ -71,7 +71,7 @@ namespace OpenMS
 
 		String search_engine_name;
 		ProteinIdentification::SearchParameters search_params;
-		if (protein_ids.size() != 0)
+    if ( !protein_ids.empty() )
 		{
 			if (protein_ids.size() > 1)
 			{
@@ -304,7 +304,7 @@ namespace OpenMS
     }
     else
     {
-     	if (mods.size() > 0)
+      if ( !mods.empty() )
       {
        	String mod_str = mods[0];
         for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
@@ -385,7 +385,10 @@ namespace OpenMS
 				{ 
 					DoubleReal prec_mz = 0, prec_rt = 0;
 					vector<Precursor> precursors = spec.getPrecursors();
-					if (precursors.size()) prec_mz = precursors[0].getMZ(); // assume only one precursor
+          if ( !precursors.empty() )
+          {
+            prec_mz = precursors[0].getMZ(); // assume only one precursor
+          }
 					MSExperiment<>::ConstIterator it = experiment_->getPrecursorSpectrum(experiment_->begin() + scan);
 					if (it != experiment_->end())
 					{

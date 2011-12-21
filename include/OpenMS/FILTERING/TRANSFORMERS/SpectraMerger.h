@@ -324,7 +324,7 @@ namespace OpenMS
         DoubleReal rt_average=consensus_spec.getRT();
         DoubleReal precursor_mz_average = 0.0;
         Size precursor_count(0);
-        if (consensus_spec.getPrecursors().size() > 0)
+        if ( !consensus_spec.getPrecursors().empty() )
         {
           precursor_mz_average = consensus_spec.getPrecursors()[0].getMZ();
           ++precursor_count;

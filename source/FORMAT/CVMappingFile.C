@@ -94,7 +94,7 @@ namespace OpenMS
 				element_path = "";
 				for (vector<String>::const_iterator it = slash_split.begin(); it != slash_split.end(); ++it)
 				{
-					if (it->size() == 0)
+          if ( it->empty() )
 					{
 						continue;
 					}

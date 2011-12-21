@@ -129,7 +129,7 @@ namespace OpenMS
 		fixed_mods_.clear();
 		variable_mods_.clear();
 
-		if (fixed_modifications.size() != 0)
+    if ( !fixed_modifications.empty() )
 		{
 			for (StringList::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
 			{
@@ -140,7 +140,7 @@ namespace OpenMS
 			}
 		}
 
-		if (variable_modifications.size() != 0)
+    if ( !variable_modifications.empty() )
 		{
 			for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
 			{
@@ -228,7 +228,7 @@ namespace OpenMS
 		}
 
 		// check whether the fixed modifications are fulfilled
-		if (fixed_names.size() != 0)
+    if ( !fixed_names.empty() )
 		{
 			for (set<String>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
 			{

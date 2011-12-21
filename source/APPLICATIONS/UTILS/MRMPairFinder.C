@@ -234,7 +234,7 @@ class TOPPMRMPairFinder
 							heavy.push_back(MatchedFeature(*fit, idx));
 						}
 
-						if (heavy.size() != 0 && light.size() != 0)
+            if ( !heavy.empty() && !light.empty() )
 						{
 							writeDebug_("Finding best feature pair out of " + String(light.size()) + " light and " + String(heavy.size()) + " heavy matching features.", 1);
 							// now find "good" matches, means the pair with the smallest m/z deviation

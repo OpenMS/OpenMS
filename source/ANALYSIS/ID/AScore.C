@@ -358,7 +358,7 @@ namespace OpenMS
 		spectrum_generator.addPeaks(prefix_with_phospho_second, pref_with_phospho_second, Residue::BIon,charge);
 		spectrum_generator.addPeaks(suffix_with_phospho_first, suf_with_phospho_first, Residue::YIon,charge);
 		spectrum_generator.addPeaks(suffix_with_phospho_second, suf_with_phospho_second, Residue::YIon,charge);
-		if(prefix.size() > 0)
+    if( !prefix.empty() )
 		{
 			for(RichPeakSpectrum::iterator it = prefix_with_phospho_first.begin(); it < prefix_with_phospho_first.end(); ++it)
 			{
@@ -380,7 +380,7 @@ namespace OpenMS
 				site_determining_ions[1].push_back(*it);
 			}				
 		}
-		if(suffix.size() > 0)
+    if( !suffix.empty() )
 		{
 			for(RichPeakSpectrum::iterator it = suffix_with_phospho_first.begin(); it < suffix_with_phospho_first.end(); ++it)
 			{
@@ -395,7 +395,7 @@ namespace OpenMS
 		{
 			RichPeakSpectrum::iterator it1 = suffix_with_phospho_first.begin();
 			RichPeakSpectrum::iterator it2 = suffix_with_phospho_second.begin();
-			if(suf.size() > 0)
+      if( !suf.empty() )
 			{	
 				++it1;
 				++it2;

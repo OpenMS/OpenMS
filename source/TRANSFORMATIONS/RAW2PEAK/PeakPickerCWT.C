@@ -1451,7 +1451,7 @@ namespace OpenMS
 		std::cout << "Try the optimization run... with " << peak_shapes.size() << std::endl;
 #endif
 
-		if (peak_shapes.size() > 0)
+    if ( !peak_shapes.empty() )
 			{
 				// overlapping peaks are mostly broad or asymmetric
 				// we distinguish them from broad or asymmetric isotopic peaks 

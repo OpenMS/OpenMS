@@ -425,7 +425,7 @@ namespace OpenMS
         Size best_score = pi[0].getHits()[0].getScore();
         is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
 
-        if (ph.size()!=0)
+        if ( !ph.empty() )
         {
           for(Size pi_index=0; pi_index!=id_count; ++pi_index)
           {

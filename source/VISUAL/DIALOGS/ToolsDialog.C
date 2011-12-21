@@ -307,7 +307,7 @@ void ToolsDialog::loadINI_()
   for (Param::ParamIterator iter=arg_param_.begin();iter!=arg_param_.end();++iter)
   {
     str = iter.getName().substr(iter.getName().rfind("1:")+2, iter.getName().size());
-    if(str.size() != 0 && str.find(":") == String::npos)
+    if( !str.empty() && str.find(":") == String::npos)
     {
       arg_map_.insert(make_pair(str,iter.getName()));
       arg_list << QStringList(str.c_str());

@@ -359,7 +359,7 @@ class TOPPFeatureFinderRaw
 
       for (vector<vector<SILACPattern> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
       {
-        if (data_it->size() != 0)
+        if ( !data_it->empty() )
         {
           data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
         }
@@ -380,7 +380,7 @@ class TOPPFeatureFinderRaw
 
         while (data_it_1 < data_it_end)      // check for combining as long as first DataPoint is not second last elment of "data"
         {          
-          while (data_it_1->size() == 0 && data_it_1 < data_it_end)
+          while ( data_it_1->empty() && data_it_1 < data_it_end )
           {
             ++data_it_1;      // get next first DataPoint
             data_it_2 = data_it_1 + 1;      // reset second iterator
@@ -391,7 +391,7 @@ class TOPPFeatureFinderRaw
             break;      // stop combining
           }
 
-          while (data_it_2 < data.end() && data_it_2->size() == 0)      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
+          while ( data_it_2 < data.end() && data_it_2->empty() )      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
           {
             ++data_it_2;      // get next second DataPoint
           }
@@ -405,7 +405,7 @@ class TOPPFeatureFinderRaw
           it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
 
           // check if DataPoints are not empty
-          if (data_it_1->size() != 0 && data_it_2->size() != 0)
+          if ( !data_it_1->empty() && !data_it_2->empty() )
           {
             // check if DataPoints have the same charge state and mass shifts
             if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
@@ -460,7 +460,7 @@ class TOPPFeatureFinderRaw
 
         for (vector<vector<SILACPattern> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
         {
-          if (data_it->size() != 0)
+          if ( !data_it->empty() )
           {
             data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
           }

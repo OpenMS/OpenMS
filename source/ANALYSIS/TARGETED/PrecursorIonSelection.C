@@ -602,7 +602,7 @@ namespace OpenMS
 																// add only if this protein doesn't exist as a hit yet 
 																if(!exists)
 																	{ 
-																		if(all_prot_ids.size()>0)
+                                    if ( !all_prot_ids.empty() )
 																			{
 																				all_prot_ids[0].insertHit(prot_hits[prot_hit]);
 																				//std::cout << "enter prot id "<< prot_hits[prot_hit].getAccession()<<std::endl;
@@ -614,7 +614,7 @@ namespace OpenMS
 																				all_prot_ids[0].insertHit(prot_hits[prot_hit]);
 																								//	std::cout << "enter prot id "<< prot_hits[prot_hit].getAccession()<<std::endl;
 																			}
-																		if(curr_prot_ids.size()>0)
+                                    if ( !curr_prot_ids.empty() )
 																			{
 																				curr_prot_ids[0].insertHit(prot_hits[prot_hit]);
 																			}

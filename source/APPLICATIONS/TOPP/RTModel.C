@@ -547,7 +547,7 @@ class TOPPRTModel
 					 String(sigma_step_size);
 				writeDebug_(debug_string, 1);			
 			}
-			if (start_values.size() > 0)
+      if ( !start_values.empty() )
 			{
  				number_of_runs = getIntOption_("number_of_runs");
 				writeDebug_(String("Number of CV runs: ") + String(number_of_runs), 1);
@@ -657,9 +657,9 @@ class TOPPRTModel
 							writeLog_("For one spectrum there should not be more than one peptide."
 									      "Please use the IDFilter with the -best:strict option to achieve this. Aborting!");
 							writeLog_("Hits: ");
-							for(vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); 
+              for ( vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin();
 									it != identifications[i].getHits().end(); 
-									it++)
+                  ++it )
 							{
 								writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
 							}
@@ -820,9 +820,9 @@ class TOPPRTModel
 							writeLog_("For one spectrum there should not be more than one peptide."
 									      "Please use the IDFilter with the -best:strict option to achieve this. Aborting!");
 							writeLog_("Hits: ");
-							for(vector<PeptideHit>::const_iterator it = identifications_negative[i].getHits().begin(); 
+              for ( vector<PeptideHit>::const_iterator it = identifications_negative[i].getHits().begin();
 									it != identifications_negative[i].getHits().end(); 
-									it++)
+                  ++it )
 							{
 								writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
 							}
@@ -858,7 +858,7 @@ class TOPPRTModel
 				training_sample.labels = training_retention_times;
 			}
 			
-			if (!skip_cv && start_values.size() > 0)
+      if ( !skip_cv && !start_values.empty() )
 			{	
 				String digest = "";
 				bool output_flag = false;
@@ -912,9 +912,9 @@ class TOPPRTModel
 				}												 												
 				String debug_string = "Best parameters found in cross validation:";
 
-				for(parameters_iterator = optimized_parameters.begin();
+        for( parameters_iterator = optimized_parameters.begin();
 						parameters_iterator != optimized_parameters.end();
-						parameters_iterator++)
+            ++parameters_iterator )
 				{
 					svm.setParameter(parameters_iterator->first,
 													 parameters_iterator->second);

@@ -86,7 +86,7 @@ namespace OpenMS
 			PeakSpectrum CID_spec(*it);
 			DoubleReal cid_rt(it->getRT());
 			DoubleReal cid_mz(0);
-			if (it->getPrecursors().size() > 0)
+      if ( !it->getPrecursors().empty() )
 			{
 				cid_mz = it->getPrecursors().begin()->getMZ();
 			}
@@ -102,8 +102,7 @@ namespace OpenMS
 			DoubleReal etd_rt(0);
 			DoubleReal etd_mz(0);
 
-			if ((it+1) != exp.end() && 
-					(it+1)->getPrecursors().size() > 0)
+      if ( (it+1) != exp.end() && !(it+1)->getPrecursors().empty() )
 			{
 				etd_rt = (it+1)->getRT();
 				etd_mz = (it+1)->getPrecursors().begin()->getMZ();

@@ -364,7 +364,7 @@ namespace OpenMS
           mz_spacing.push_back(current_mz_spacing);
         }
         sort(mz_spacing.begin(), mz_spacing.end());
-        min_spacing_mz = mz_spacing.size() != 0 ? mz_spacing[0] : 1.0;
+        min_spacing_mz = !mz_spacing.empty() ? mz_spacing[0] : 1.0;
 
 #ifdef DEBUG_TOPPVIEW
         cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
@@ -866,7 +866,7 @@ namespace OpenMS
 
 		for (; pep_begin != pep_end; ++pep_begin)
 		{
-			if (pep_begin->getHits().size() != 0)
+      if ( !pep_begin->getHits().empty() )
 			{
 				if (!pep_begin->metaValueExists("RT") || 
 						!pep_begin->metaValueExists("MZ"))
@@ -1133,8 +1133,8 @@ namespace OpenMS
 		{
 			projection_mz_[0][i].setMZ(it->second/cit->second);
 			projection_mz_[0][i].setIntensity(intit->second);
-			intit++;
-			cit++;
+      ++intit;
+      ++cit;
 			++i;
 		}
 
@@ -2382,7 +2382,7 @@ namespace OpenMS
       QMenu* msn_chromatogram  = 0;
       QMenu* msn_chromatogram_meta = 0;
 
-      if (map_precursor_to_chrom_idx.size() != 0)
+      if ( !map_precursor_to_chrom_idx.empty() )
       {
         msn_chromatogram = context_menu->addMenu("Chromatogram");
         msn_chromatogram_meta = context_menu->addMenu("Chromatogram meta data");

@@ -54,7 +54,7 @@ namespace OpenMS
 		Size sum = 0;
 		number_of_max_aa_ = 0;
 		// only one aa type?
-		if (split.size() != 0)
+    if ( !split.empty() )
 		{
 			for (Size i = 0; i != split.size(); ++i)
 			{

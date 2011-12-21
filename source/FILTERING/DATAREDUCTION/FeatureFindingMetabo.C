@@ -337,7 +337,7 @@ namespace OpenMS
             }
         }
 
-        if (x.size() == 0 || y.size() == 0)
+        if ( x.empty() || y.empty() )
         {
             return 0.0;
         }

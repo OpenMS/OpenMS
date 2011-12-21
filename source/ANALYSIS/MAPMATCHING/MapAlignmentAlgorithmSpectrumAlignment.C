@@ -412,7 +412,7 @@ namespace OpenMS
 		peakmap.updateRanges(-1);
 		pattern=peakmap.getMSLevels();
 		
-		if(pattern.size()!=0)
+    if( !pattern.empty() )
 		{	
 			for (Size i=0; i< peakmap.size();++i)
 			{
@@ -675,7 +675,10 @@ namespace OpenMS
 			std::sort(temp.begin(),temp.end(),Compare(false));
  			//Int anchor=(Int)(size*anchorPoints_/100);
 			Real anchor=(temp.size()*anchorPoints_/100);
-			if(anchor<=0 && temp.size() >0) anchor =1;
+      if( anchor<=0 && !temp.empty() )
+      {
+        anchor = 1;
+      }
  			
  			//std::cout << anchor << " anchorpoints "  << anchorPoints_<< std::endl;
  			/*for(UInt i=0; i< temp.size();++i)
