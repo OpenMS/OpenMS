@@ -1,12 +1,11 @@
 
 -- General information --
 
-File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_6_input.mzData
+File name: /home/sachsenb/Development/open-ms/OpenMS/source/TEST/TOPP/FileInfo_6_input.mzData
 File type: mzData
 
 Peak type (metadata): Peak data
-Peak type (estimated): Raw data
-Estimated raw data spacing: 0.994568 (min: 0.922302, max: 1.08313)
+Peak type (estimated): Unknown
 
 Number of spectra: 2
 Number of peaks: 9
