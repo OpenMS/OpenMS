@@ -1883,7 +1883,7 @@ namespace OpenMS
 	  PeakIndex near_peak = findNearestPeak_(pos);
 
 		//highlight current peak and display peak coordinates
-    if (action_mode_ == AM_MEASURE || (action_mode_ == AM_TRANSLATE && !e->buttons() & Qt::LeftButton))
+    if (action_mode_ == AM_MEASURE || (action_mode_ == AM_TRANSLATE && !(e->buttons() & Qt::LeftButton)))
 		{
 			//highlight peak
 			selected_peak_ = near_peak;
