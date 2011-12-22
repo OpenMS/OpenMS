@@ -707,8 +707,8 @@ set_tests_properties("TOPP_SILACAnalyzer_2" PROPERTIES WILL_FAIL 1)
 add_test("TOPP_SILACAnalyzer_3" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.mzML -out SILACAnalyzer_negativ.consensusXML.tmp)
 add_test("TOPP_SILACAnalyzer_3_out1" ${DIFF} -in1 SILACAnalyzer_negativ.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.consensusXML )
 set_tests_properties("TOPP_SILACAnalyzer_3_out1" PROPERTIES DEPENDS "TOPP_SILACAnalyzer_3")
-add_test("TOPP_FeatureFinderRaw_1" ${TOPP_BIN_PATH}/FeatureFinderRaw -test -ini ${DATA_DIR_TOPP}/FeatureFinderRaw.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer.mzML -out FeatureFinderRaw.featureXML.tmp)
-add_test("TOPP_FeatureFinderRaw_1_out" ${DIFF} -in1 FeatureFinderRaw.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderRaw.featureXML )
+add_test("TOPP_FeatureFinderRaw_1" ${TOPP_BIN_PATH}/FeatureFinderRaw -test -ini ${DATA_DIR_TOPP}/FeatureFinderRaw.ini -in ${DATA_DIR_TOPP}/FeatureFinderRaw_1.mzML -out FeatureFinderRaw_1.featureXML.tmp)
+add_test("TOPP_FeatureFinderRaw_1_out" ${DIFF} -in1 FeatureFinderRaw_1.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderRaw_1.featureXML )
 set_tests_properties("TOPP_FeatureFinderRaw_1_out" PROPERTIES DEPENDS "TOPP_FeatureFinderRaw_1")
 
 
