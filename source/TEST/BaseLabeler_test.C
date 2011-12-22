@@ -159,14 +159,14 @@ START_SECTION((virtual void setRnd(const SimRandomNumberGenerator &rng)))
 }
 END_SECTION
 
-START_SECTION((virtual void preCheck(Param &) const ))
+START_SECTION((virtual void preCheck(Param &param) const =0))
 {
   Param p;
   TEST_EXCEPTION(Exception::NotImplemented, labeler.preCheck(p))
 }
 END_SECTION
 
-START_SECTION((const ConsensusMap& getConsensus() const ))
+START_SECTION((const ConsensusMap& getConsensus() ))
 {
   ConsensusMap cm;
   TEST_EQUAL(labeler.getConsensus(), cm) // Consensus should be empty

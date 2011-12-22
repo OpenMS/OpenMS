@@ -734,7 +734,7 @@ namespace OpenMS
 
           // choose fitter
           double egh_tau = 0.0;
-          TraceFitter<PeakType> * fitter = chooseTraceFitter_(traces, egh_tau);
+          TraceFitter<PeakType> * fitter = chooseTraceFitter_(egh_tau);
 
           fitter->setParameters(trace_fitter_params);
           fitter->fit(traces);
@@ -1844,11 +1844,9 @@ namespace OpenMS
       @brief Choose a the best trace fitter for the current mass traces based on the user parameter
              (symmetric, asymmetric) or based on an inspection of the mass trace (auto)
 
-      @param traces MassTraces that need to be fitted
-
       @return A pointer to the trace fitter that should be used.
     */
-    TraceFitter<PeakType> * chooseTraceFitter_(MassTraces & /*traces*/, double& tau)
+    TraceFitter<PeakType> * chooseTraceFitter_(double& tau)
     {
       // choose fitter
       if (param_.getValue("feature:rt_shape") == "asymmetric")
