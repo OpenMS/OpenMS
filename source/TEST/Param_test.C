@@ -200,7 +200,7 @@ START_SECTION(([Param::ParamNode] bool operator==(const ParamNode& rhs) const))
 	TEST_EQUAL(n1==n2,true)	
 END_SECTION
 
-START_SECTION(([Param::ParamNode] String suffix(const String& key)))
+START_SECTION(([Param::ParamNode] String suffix(const String &key) const ))
 	Param::ParamNode node;
 	TEST_EQUAL(node.suffix(""),"")
 	TEST_EQUAL(node.suffix("A"),"A")
@@ -257,7 +257,7 @@ START_SECTION(([Param::ParamNode] NodeIterator findNode(const String& name)))
 	TEST_EQUAL(pn.findNode("H")==pn.nodes.end(),true)
 END_SECTION
 
-START_SECTION(([Param::ParamNode] Param::ParamNode* findParentOf(const String& name)))
+START_SECTION(([Param::ParamNode] ParamNode* findParentOf(const String &name)))
   TEST_EQUAL(pn.findParentOf("A"),pn_nullPointer)
 	TEST_EQUAL(pn.findParentOf("B"),&pn)
 	TEST_EQUAL(pn.findParentOf("C"),&pn)
@@ -489,7 +489,7 @@ START_SECTION(([Param::ParamIterator] ParamIterator& operator++()))
 	++it2;
 END_SECTION
 
-START_SECTION(([Param::ParamIterator] ParamIterator operator++(Int)))
+START_SECTION(([Param::ParamIterator] ParamIterator operator++(int)))
 	Param::ParamNode node;
 	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
 	node.entries.push_back(Param::ParamEntry("name2","value2","description2"));
@@ -1762,7 +1762,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
 END_SECTION
 
-START_SECTION((void update(const Param& old_version, const bool report_new_params=false)))
+START_SECTION((void update(const Param &old_version, const bool report_new_params=false, const bool only_update_old=false, Logger::LogStream &stream=LOG_WARN)))
 	Param common;
 	common.setValue("float",1.0f,"float");	
 	common.setValue("float2",2.0f,"float2");

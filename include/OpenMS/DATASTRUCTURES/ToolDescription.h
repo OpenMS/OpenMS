@@ -42,7 +42,10 @@ namespace OpenMS
 
 	namespace Internal
 	{
+    /**
+      @brief Maps input/output files to filenames for the external program
 
+    */
     struct FileMapping
     {
       String location; // a regex/macro mix; to be expanded by tool;
@@ -58,6 +61,10 @@ namespace OpenMS
       }
     };
 
+    /**
+      @brief Filename mappings for all input/output files
+
+    */
     struct MappingParam
     {
       std::map<Int, String> mapping;
