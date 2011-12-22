@@ -49,7 +49,7 @@ namespace OpenMS
 			One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
 			@note All paremters are stored in GaussFitResult. In the case of the gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
 
-			@htmlinclude OpenMS_PosteriorErrorProbabilityModel.parameters
+      @htmlinclude OpenMS_Math::PosteriorErrorProbabilityModel.parameters
 
 			@ingroup Math
 		*/

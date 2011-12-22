@@ -38,7 +38,7 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page TOPP_SpectraFilterThresholdMower SpectraFilterThresholdMower
+  @page TOPP_SpectraFilterScaler SpectraFilterScaler
 
 	@brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
 	

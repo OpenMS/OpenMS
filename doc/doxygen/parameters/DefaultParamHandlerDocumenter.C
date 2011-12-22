@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 #include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
+#include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
@@ -375,6 +376,7 @@ int main (int argc , char** argv)
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
 	DOCME(PILISScoring);
+  DOCME(PILISIdentification);
 	DOCME(ParentPeakMower);
 	DOCME(PeakAlignment);
 	DOCME(PeakPickerCWT);
