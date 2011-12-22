@@ -53,7 +53,7 @@ using namespace std;
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PILISModel </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PILISModelTrainer </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
 		</tr>
 		<tr>
@@ -72,7 +72,7 @@ using namespace std;
 	with weight and charge in the second and third column.
 
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_PILISIdentification.cli
+  @verbinclude TOPP_PILISIdentification.cli
 
 	@todo Check for missing precursors (Hiwi)
 */

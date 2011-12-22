@@ -84,6 +84,8 @@ namespace OpenMS
 		 *	@brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
 		 *	
 		 *	@param db_path Path to database file (fasta)
+     *	@param rt_model_path
+     *	@param dt_model_path
 		 *	@param save Flag if preprocessing should be stored.
 		 *
 		 *	@throws Exception::FileNotFound if file with preprocessing or db can't be found
@@ -98,7 +100,7 @@ namespace OpenMS
 		 *	@throws Exception::FileNotFound if file with preprocessing can't be found
 		 *	@throws Exception::InvalidParameter if precursor_mass_tolerance_unit is ppm and
 		 *  file containing bin borders can't be found
-		 */
+     */
 		void loadPreprocessing();
 
 		/// get the weighted frequency of a mass

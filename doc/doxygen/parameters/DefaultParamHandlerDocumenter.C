@@ -83,6 +83,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
@@ -382,6 +383,7 @@ int main (int argc , char** argv)
 	DOCME(PoseClusteringShiftSuperimposer);
 	DOCME(QTClusterFinder);
 	DOCME(SavitzkyGolayFilter);
+  DOCME(LowessSmoothing);
 	DOCME(SimplePairFinder);
 	DOCME(StablePairFinder);
 	DOCME(SpectrumAlignment);

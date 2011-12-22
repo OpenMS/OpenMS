@@ -422,7 +422,7 @@ svn propset svn:eol-style native MyClass.C
 	 			<OL>
 					<LI>Go to the HEAD and update it:<BR>
 						<TT>cd OpenMS/</TT> (HEAD)<br>
-						<TT>svn update<br>
+						<TT>svn update</TT><br>
 					<LI>Merge the changes in the branch into the HEAD:
 	      		<TT>svn merge -r 10:25 https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/[source]/</TT>
 	      	<LI> Resolve conflicts and run tests

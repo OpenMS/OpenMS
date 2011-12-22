@@ -59,8 +59,8 @@ using namespace std;
 	Input files are a MSMS spectrum file as well as the corresponding identification file. Firstly, the two files are mapped. Secondly, The tools uses at the moment an implementation of the Ascore according to Beausoleil et al. in order to localize the most probable phosphorylation sites.
 For details: Beausoleil et al.
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude UTILS_PhosphoScoring.cli
+  <!-- <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_PhosphoScoring.cli -->
 */
 
 

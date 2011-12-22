@@ -90,7 +90,7 @@ using namespace std;
 
 	This wrapper has been tested successfully with OMSSA, version 2.x.
 
-  @hint OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
+  @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_OMSSAAdapter.cli

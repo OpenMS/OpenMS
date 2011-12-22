@@ -68,20 +68,20 @@ namespace OpenMS
     RTSimulation& operator = (const RTSimulation& source);
     
     /** 
-     @brief Predict retention times for given peptide features based for HPLC or CE
-     
-     @param features Feature map for which the retention times will be predicted
-     */
+      @brief Predict retention times for given peptide features based for HPLC or CE
+
+      @param features Feature map for which the retention times will be predicted
+    */
     void predictRT(FeatureMapSim & features);
  
     /**
-     @brief Set retention times randomly for given contaminants
-     */
+      @brief Set retention times randomly for given contaminants
+    */
     void predictContaminantsRT(FeatureMapSim &);
     
     /**
-     @brief Returns true if a RT column was simulated
-     */
+      @brief Returns true if a RT column was simulated
+    */
     bool isRTColumnOn() const;
 
 		/// Wrapper for the SVM RT Prediction (HPLC) using AASequences
@@ -105,9 +105,14 @@ namespace OpenMS
 		/// smoothes the simulated distortion for the elution profiles with a moving average filter of size 3
 		void smoothRTDistortion_(MSSimExperiment & experiment);
 
-		/// Wrapper for the Migration time calculation (CE)
-    /// @param features will get modified with metavalue "RT_CE_width_factor", describing widening of MT shape
-		void calculateMT_(FeatureMapSim & features,std::vector<DoubleReal>& predicted_retention_times);
+    /**
+      Wrapper for the Migration time calculation (CE)
+
+      @param features will get modified with metavalue "RT_CE_width_factor",
+             describing widening of MT shape.
+      @param predicted_retention_times will contain afterwards the predicted retention times.
+    */
+    void calculateMT_(FeatureMapSim & features, std::vector<DoubleReal> & predicted_retention_times);
 
 		void getChargeContribution_(Map< String, double> & q_cterm, 
 															  Map< String, double> & q_nterm,

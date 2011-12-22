@@ -68,7 +68,15 @@
   - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
   - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
   - @subpage TOPP_Resampler - Transforms an LC/MS map into an equally-spaced (in RT and m/z) map.
-  - @subpage TOPP_SpectraFilter - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterBernNorm - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterMarkerMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterNLargest - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterNormalizer - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterParentPeakMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterScaler - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterSqrtMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterThresholdMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterWindowMower - Applies a filter to peak spectra.
   - @subpage TOPP_TOFCalibration - Applies time of flight calibration.
 
   <b>Quantitation</b>

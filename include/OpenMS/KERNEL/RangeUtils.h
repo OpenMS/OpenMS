@@ -381,7 +381,7 @@ namespace OpenMS
 			/**
 				@brief Constructor
 				
-				@param methods List of charges that is compared against precursor charge
+        @param charges List of charges that is compared against precursor charge
 				@param reverse if @p reverse is true, operator() returns true if the spectrum has not one of the specified precursor charges
 			*/
 			HasPrecursorCharge(const IntList& charges, bool reverse = false)
