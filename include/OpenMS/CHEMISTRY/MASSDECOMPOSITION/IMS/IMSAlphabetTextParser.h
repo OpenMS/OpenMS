@@ -58,7 +58,7 @@ namespace OpenMS {
       virtual ContainerType& getElements() { return elements_; }
 
       /**
-        Parses the input stream \c is \c.
+        Parses the input stream @c is.
 
         @param is The input stream to be parsed
       */

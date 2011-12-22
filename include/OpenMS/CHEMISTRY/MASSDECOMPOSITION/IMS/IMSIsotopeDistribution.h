@@ -310,14 +310,14 @@ namespace OpenMS {
       /**
         Gets a nominal mass of distribution.
 
-        @return A nominal mass of distribution.
+        @return The nominal mass of the distribution.
       */
       nominal_mass_type getNominalMass() const { return nominal_mass_; }
 
       /**
         Sets a nominal mass for distribution.
 
-        @param A new nominal mass for distributoin.
+        @param nominalMass The new nominal mass for the distributoin.
       */
       void setNominalMass(nominal_mass_type nominalMass)
       {

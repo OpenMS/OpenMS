@@ -92,7 +92,7 @@ namespace OpenMS {
 
         @param alphabet Weights over which masses to be decomposed.
       */
-      IntegerMassDecomposer(const Weights& alphabet_);
+      IntegerMassDecomposer(const Weights& alphabet);
 
       /**
         Returns true if decomposition over the @c mass exists, otherwise - false.
@@ -194,7 +194,7 @@ namespace OpenMS {
         @param mass Mass to be decomposed.
         @param alphabetMassIndex An index of the mass in alphabet that is used on this step of recursion.
         @param decomposition Decomposition which is calculated on this step of recursion.
-        @param decompositionStore Container where decompositions are collected.
+        @param decompositionsStore Container where decompositions are collected.
       */
       void collectDecompositionsRecursively_(value_type mass, size_type alphabetMassIndex,
                                             decomposition_type decomposition, decompositions_type& decompositionsStore);

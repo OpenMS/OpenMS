@@ -38,67 +38,70 @@
 
 namespace OpenMS {
 
-namespace ims {
+  namespace ims {
 
-/**
- * @brief An abstract templatized parser to load the data that is used to initialize @c Alphabet objects.
- *
- * @c AlphabetParser reads the input source, which is given as a template parameter @c InputSource , by
- * @c load (const std::string& fname) function where @c fname is the source name.
- * Loaded data can be retrieved by calling @c getElements().
- *
- * @see Alphabet
- */
-template <typename AlphabetElementType = double, 
-          typename Container = std::map<std::string, AlphabetElementType>,
-          typename InputSource = std::istream>
-class IMSAlphabetParser
-{
-public:
-  /**
-   * Type of data to be loaded.
-   */
-  typedef Container ContainerType;
+    /**
+      @brief An abstract templatized parser to load the data that is used to initialize @c Alphabet objects.
 
-  /**
-   * Loads the data from the InputSource with the name @c fname.
-   * If there is an error occurred while reading data from InputSource,
-   * @c IOException is thrown.
-   *
-   * @param fname The name of the input source.
-   */
-  void load(const std::string& fname);
+      @c AlphabetParser reads the input source, which is given as a template parameter @c InputSource , by
+      @c load (const std::string& fname) function where @c fname is the source name.
+      Loaded data can be retrieved by calling @c getElements().
 
-  /**
-   * Gets the data that was loaded.
-   *
-   * @return The data.
-   */
-  virtual ContainerType& getElements() = 0;
+      @see Alphabet
+    */
+    template <typename AlphabetElementType = double,
+              typename Container = std::map<std::string, AlphabetElementType>,
+              typename InputSource = std::istream>
+    class IMSAlphabetParser
+    {
+    public:
+      /**
+        Type of data to be loaded.
+      */
+      typedef Container ContainerType;
 
-  /**
-   * Parses the the given input source \c is \c.
-   */
-  virtual void parse(InputSource& is) = 0;
+      /**
+        Loads the data from the InputSource with the name @c fname.
+        If there is an error occurred while reading data from InputSource,
+        @c IOException is thrown.
 
-  /**
-   * Destructor.
-   */
-  virtual ~IMSAlphabetParser() {}
-};
+        @param fname The name of the input source.
+      */
+      void load(const std::string& fname);
 
-template <typename AlphabetElementType, typename Container, typename InputSource>
-void IMSAlphabetParser<AlphabetElementType, Container, InputSource>::load(const std::string& fname)
-{
-  std::ifstream ifs(fname.c_str());
-  if (!ifs)
-  {
-    throw Exception::IOException(__FILE__, __LINE__, __PRETTY_FUNCTION__,fname);
-  }
-  this->parse(ifs);
-}
+      /**
+        Gets the data that was loaded.
 
-} // namespace ims
+        @return The data.
+      */
+      virtual ContainerType& getElements() = 0;
+
+      /**
+        Parses the the given input source @c is .
+
+        @param is The InputSource
+
+      */
+      virtual void parse(InputSource& is) = 0;
+
+      /**
+        Destructor.
+      */
+      virtual ~IMSAlphabetParser() {}
+    };
+
+    template <typename AlphabetElementType, typename Container, typename InputSource>
+    void IMSAlphabetParser<AlphabetElementType, Container, InputSource>::load(const std::string& fname)
+    {
+      std::ifstream ifs(fname.c_str());
+      if (!ifs)
+      {
+        throw Exception::IOException(__FILE__, __LINE__, __PRETTY_FUNCTION__,fname);
+      }
+      this->parse(ifs);
+    }
+
+  } // namespace ims
 
 } // namespace OpenMS
 

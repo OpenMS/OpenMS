@@ -124,7 +124,7 @@ namespace OpenMS {
         Gets the element with index @c index.
         @note Operation takes constant time.
 
-        @param Index of the element
+        @param index of the element
         @return Element with the given index in alphabet
       */
       const element_type& getElement(size_type index) const
@@ -165,7 +165,7 @@ namespace OpenMS {
       /**
         Gets the symbol of the element with an index @c index in alphabet.
 
-        @param Index of the element.
+        @param index of the element.
         @return Name of the element.
       */
       const name_type& getName(size_type index) const;
@@ -182,7 +182,7 @@ namespace OpenMS {
       mass_type getMass(const name_type& name) const;
 
       /**
-        Gets mass of the element with an index @index in alphabet.
+        Gets mass of the element with an index @c index in alphabet.
 
         @param index Index of the element.
         @return Mass of the element.
