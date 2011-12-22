@@ -87,6 +87,10 @@ namespace OpenMS
 						 ConsensusMap& consensus_map_out
 						 );
 		
+    /**
+      @brief Statistics for quantitation performance and comparison of NNLS vs. naive method (aka matrix inversion)
+
+    */
     struct ItraqQuantifierStats
     {
       ItraqQuantifierStats()

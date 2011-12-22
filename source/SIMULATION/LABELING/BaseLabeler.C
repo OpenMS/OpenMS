@@ -57,6 +57,8 @@ namespace OpenMS
     Size channel_index = 1;
     for(FeatureMapSimVector::const_iterator maps_iterator = maps.begin() ; maps_iterator != maps.end() ; ++maps_iterator)
     {
+      if (maps_iterator->getProteinIdentifications().size() == 0) continue;
+
       for(std::vector<ProteinHit>::const_iterator protein_hit = (*maps_iterator).getProteinIdentifications()[0].getHits().begin();
         protein_hit != (*maps_iterator).getProteinIdentifications()[0].getHits().end();
         ++protein_hit)
@@ -101,18 +103,18 @@ namespace OpenMS
     std::vector<String> source_acc (source.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
 
     std::set<String> unique_acc;
-    std::pair<std::set<String>::iterator, bool> result;
 
+    // all from 'target'
     for(vector<String>::iterator target_acc_iterator = target_acc.begin() ; target_acc_iterator != target_acc.end() ; ++target_acc_iterator)
     {
       unique_acc.insert(*target_acc_iterator);
     }
 
+    //  + some from 'source', which are not present yet
     for(vector<String>::iterator source_acc_iterator = source_acc.begin() ; source_acc_iterator != source_acc.end() ; ++source_acc_iterator)
     {
-      result = unique_acc.insert(*source_acc_iterator);
-
-      if(result.second)
+      std::pair<std::set<String>::iterator, bool> result = unique_acc.insert(*source_acc_iterator);
+      if (result.second)
       {
         target_acc.push_back(*source_acc_iterator);
       }

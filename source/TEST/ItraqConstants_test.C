@@ -139,9 +139,29 @@ START_SECTION((static Matrix<double> translateIsotopeMatrix(const int &itraq_typ
 	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
   Matrix<double> channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::FOURPLEX, ic);
 	
-	std::cout << "CF: " << channel_frequency << "\n";
+	std::cout << "CF: \n" << channel_frequency << "\n";
 	TEST_REAL_SIMILAR(channel_frequency.getValue(0,0), 0.929)
 	TEST_REAL_SIMILAR(channel_frequency.getValue(3,0), 0)
+
+  channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::EIGHTPLEX, ic);
+
+  std::cout << "CF: \n" << channel_frequency << "\n";
+  /*
+    0.9289 0.0094      0      0      0      0      0      0
+    0.0689   0.93 0.0188      0      0      0      0      0
+    0.0022  0.059 0.9312 0.0282 0.0006      0      0      0
+         0 0.0016  0.049 0.9321 0.0377 0.0009      0      0
+         0      0  0.001  0.039 0.9329 0.0471 0.0014      0
+         0      0      0 0.0007 0.0288 0.9332 0.0566      0
+         0      0      0      0      0 0.0188 0.9333 0.0027
+         0      0      0      0      0      0      0 0.9211
+
+  */
+  // test lower right triangle
+  TEST_REAL_SIMILAR(channel_frequency.getValue(6,7), 0.0027)
+  TEST_REAL_SIMILAR(channel_frequency.getValue(7,7), 0.9211)
+  TEST_REAL_SIMILAR(channel_frequency.getValue(7,6), 0.0000)
+
 }
 END_SECTION
 

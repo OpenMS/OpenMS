@@ -275,6 +275,14 @@ START_SECTION((ItraqQuantifierStats getStats() const))
 }
 END_SECTION
 
+START_SECTION([ItraqQuantifier::ItraqQuantifierStats] ItraqQuantifierStats())
+
+  ItraqQuantifier::ItraqQuantifierStats stats;
+
+  // ... this is an unimportant test, as values are filled during run() method. Test it there...
+  TEST_EQUAL(stats.channel_count, 0)
+  TEST_EQUAL(stats.number_ms2_empty, 0)
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -90,7 +90,65 @@ END_SECTION
 
 START_SECTION((void postDigestHook(FeatureMapSimVector &)))
 {
-  // TODO
+  ITRAQLabeler i;
+  
+  FeatureMapSimVector f_maps;
+  FeatureMap<> fm1, fm2, fm3;
+
+  // create peptide
+  PeptideHit pep_hit(1.0, 1, 0, "AAHJK");
+  std::vector<String> prot_accessions;
+  prot_accessions.push_back("p1");
+  pep_hit.setProteinAccessions(prot_accessions);
+  PeptideIdentification pep_id;
+  pep_id.insertHit(pep_hit);
+  // --
+  PeptideHit pep_hit2(1.0, 1, 0, "EEEEPPPK");
+  std::vector<String> prot_accessions2;
+  prot_accessions2.push_back("p2");
+  pep_hit2.setProteinAccessions(prot_accessions2);
+  PeptideIdentification pep_id2;
+  pep_id2.insertHit(pep_hit2);
+  // --
+  PeptideHit pep_hit3(1.0, 1, 0, "EEEEPPPK"); // same peptide as #2, but from different protein
+  std::vector<String> prot_accessions3;
+  prot_accessions3.push_back("p3");
+  pep_hit3.setProteinAccessions(prot_accessions3);
+  PeptideIdentification pep_id3;
+  pep_id3.insertHit(pep_hit3);
+
+  // generate Feature 
+  Feature f1;        
+  f1.getPeptideIdentifications().push_back(pep_id);
+  fm1.push_back(f1);
+  fm2.push_back(f1);
+
+  // generate Feature 
+  Feature f2;        
+  f2.getPeptideIdentifications().push_back(pep_id2);
+  fm3.push_back(f2);
+
+  // generate Feature 
+  Feature f3;        
+  f3.getPeptideIdentifications().push_back(pep_id3);
+  fm3.push_back(f3);
+
+  // merge
+  f_maps.push_back(fm1);
+  f_maps.push_back(fm2);
+  f_maps.push_back(fm3);
+
+  i.postDigestHook(f_maps);
+
+
+  // one merged map
+  TEST_EQUAL(f_maps.size(), 1)
+
+  TEST_EQUAL(f_maps[0].size(), 2)
+  
+  TEST_EQUAL(f_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size(), 1)
+  TEST_EQUAL(f_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size(), 2)
+
 }
 END_SECTION
 
@@ -120,7 +178,107 @@ END_SECTION
 
 START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
 {
-  // TODO
+  ITRAQLabeler i;
+  SimRandomNumberGenerator rnd_gen;
+  rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
+  rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
+  i.setRnd(rnd_gen);
+
+  FeatureMapSimVector f_maps;
+  FeatureMap<> fm1;
+
+  MSSimExperiment exp;
+  MSSpectrum<> spec;
+  IntList il;
+  il.push_back(0);
+  spec.setMetaValue("parent_feature_ids",  il);
+  spec.setRT(600);
+  spec.setMSLevel(2);
+  exp.push_back(spec);
+
+  MSSimExperiment exp2=exp;
+  
+  std::vector<DoubleReal> eb(4);
+  DoubleList elution_bounds(eb);
+  elution_bounds[0] = 100; elution_bounds[1] = 509.2; elution_bounds[2] = 120; elution_bounds[3] = 734.3;
+  std::vector<DoubleReal> ei(5, 0.5); // 50% elution profile
+  DoubleList elution_ints(ei);
+  Feature f;
+  f.setMetaValue("elution_profile_bounds", elution_bounds);
+  f.setMetaValue("elution_profile_intensities", elution_ints);
+  f.setIntensity(100); // should result in 100 * 0.5 = 50 intensity
+  f.setMZ(400);
+  f.setRT(601);
+  f.getConvexHull().addPoint(DPosition<2>(509.2, 398));
+  f.getConvexHull().addPoint(DPosition<2>(734.3, 402));
+  f.setMetaValue(i.getChannelIntensityName(0), 100);
+  f.setMetaValue(i.getChannelIntensityName(1), 100);
+  f.setMetaValue(i.getChannelIntensityName(2), 100);
+  f.setMetaValue(i.getChannelIntensityName(3), 100);
+
+
+  fm1.push_back(f);
+
+  f_maps.push_back(fm1);
+  Param p;
+  p = i.getParameters();
+  // no isotope skewing
+  StringList iso = StringList::create("114:0/0/100/0,115:0/0/0/0,116:0/0/0/0,117:0/100/0/0");
+  p.setValue("isotope_correction_values_4plex", iso);
+  StringList ch = StringList::create("114:c1,115:c2,116:c3,117:c4");
+  p.setValue("channel_active_4plex", ch);
+  p.setValue("iTRAQ", "4plex");
+  i.setParameters(p);
+  i.postRawTandemMSHook(f_maps, exp);
+
+  TEST_EQUAL(exp.size(), 1)
+  Size count(0);
+  double expected_val4[4] = {0, 100, 100, 0};
+  for (MSSpectrum<>::const_iterator it=exp[0].begin(); it!=exp[0].end() && it->getMZ()<118.0; ++it)
+  {
+    TEST_REAL_SIMILAR(it->getIntensity(), expected_val4[count]);
+    ++count;
+  }
+  TEST_EQUAL(count, 4)
+  exp=exp2;//revert
+
+  // with isotope skewing
+  iso = StringList::create("113:0/0/100/0,"
+                           "114:0/0/50 /0,"
+                           "115:0/100/0/0,"
+                           "116:0/0/100/0,"
+                           "117:0/0/0/100,"
+                           "118:0/0/100/0,"
+                           "119:0/0/100/0,"
+                           "121:0/100/0/0");
+  p.setValue("isotope_correction_values_8plex", iso);
+  ch = StringList::create("113:ch0,114:c1,115:c2,116:c3,117:c4,118:c5,119:c6,121:c7");
+  p.setValue("channel_active_8plex", ch);
+  p.setValue("iTRAQ", "8plex");
+  i.setParameters(p);
+
+  f.setMetaValue(i.getChannelIntensityName(4), 100);
+  f.setMetaValue(i.getChannelIntensityName(5), 100);
+  f.setMetaValue(i.getChannelIntensityName(6), 100);
+  f.setMetaValue(i.getChannelIntensityName(7), 100);
+  fm1.clear();
+  fm1.push_back(f);
+  f_maps.clear();
+  f_maps.push_back(fm1);
+
+  i.postRawTandemMSHook(f_maps, exp);
+
+  TEST_EQUAL(exp.size(), 1)
+  count=0;
+  double expected_val8[8] = {0, 125, 25, 0, 50, 0, 100, 0};
+  MSSpectrum<>::const_iterator it=exp[0].begin();
+  for (; it!=exp[0].end(); ++it)
+  {
+    TEST_REAL_SIMILAR(it->getIntensity(),  expected_val8[count]);
+    ++count;
+  }
+  TEST_EQUAL(count, 8)
+
 }
 END_SECTION
 
