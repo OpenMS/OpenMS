@@ -307,7 +307,7 @@ namespace OpenMS
 
       painter.save();
       painter.translate(QPoint(y_axis_->pos()));
-      dynamic_cast<AxisWidget*>(y_axis_)->paint(&painter, new QPaintEvent(y_axis_->contentsRect()));
+      y_axis_->paint(&painter, new QPaintEvent(y_axis_->contentsRect()));
       painter.restore();
 
       painter.save();
@@ -317,7 +317,7 @@ namespace OpenMS
 
       painter.save();
       painter.translate(QPoint(x_axis_->pos()));
-      dynamic_cast<AxisWidget*>(x_axis_)->paint(&painter, new QPaintEvent(x_axis_->contentsRect()));
+      x_axis_->paint(&painter, new QPaintEvent(x_axis_->contentsRect()));
       painter.restore();
 
       painter.end();
