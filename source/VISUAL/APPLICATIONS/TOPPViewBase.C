@@ -276,9 +276,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           help->addAction(QWhatsThis::createAction(help));
           help->addSeparator();
           QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
-          action->setData("http://open-ms.sourceforge.net/news.php");
-          action = help->addAction("Tutorials and documentation (online)",this,SLOT(showURL()), Qt::Key_F1);
-          action->setData("http://open-ms.sourceforge.net/documentation.php");
+          action->setData("http://www.OpenMS.de");
+          action = help->addAction("Tutorials and documentation",this,SLOT(showURL()), Qt::Key_F1);
+          action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/index.html").toQString());
 
           help->addSeparator();
           help->addAction("&About",this,SLOT(showAboutDialog()));
