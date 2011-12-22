@@ -400,7 +400,7 @@ namespace OpenMS
 					elution_profile_intensities.push_back(features[feat].getMetaValue("elution_profile_intensities"));
 					isotope_intensities.push_back(features[feat].getMetaValue("isotope_intensities"));
 				}
-				meta_values_present=true;
+        meta_values_present = true;
 			}
 
 			//for each feature cache for which scans it has to be considered
@@ -415,7 +415,7 @@ namespace OpenMS
 					typename MSExperiment<InputPeakType>::ConstIterator it;
 					for(it = experiment.RTBegin(lower_rt); it!=experiment.RTEnd(upper_rt); ++it)
 					{
-						scan_features[it-experiment.begin()].push_back(feat);
+            scan_features[it - experiment.begin()].push_back(feat);
 					}
 				}
 			}
@@ -433,7 +433,7 @@ namespace OpenMS
 			//cache bounding boxes of features and mass traces (mass trace bb are also widened for effective discovery of enclosing peaks in intervalls)
 			std::map<Size , typename OpenMS::DBoundingBox<2> >bounding_boxes_f;
 			std::map<std::pair<Size, Size> , typename OpenMS::DBoundingBox<2> >bounding_boxes;
-			for(Size feature_num=0; feature_num<features.size(); ++feature_num)
+      for (Size feature_num = 0; feature_num < features.size(); ++feature_num)
 			{
 				if(charges_set.count(features[feature_num].getCharge()))
 				{
@@ -483,27 +483,31 @@ namespace OpenMS
 
 					DoubleReal local_mz = peak_mz;
 					//std::cerr<<"MZ pos: "<<local_mz<<std::endl;
-					for(Size scan_feat_id=0; scan_feat_id<scan_features[i].size(); ++scan_feat_id)
+          for (Size scan_feat_id=0; scan_feat_id<scan_features[i].size(); ++scan_feat_id)
 					{
 						Size feature_num = scan_features[i][scan_feat_id];
-						if(bounding_boxes_f[feature_num].encloses(peak_rt, local_mz))
+            if (bounding_boxes_f[feature_num].encloses(peak_rt, local_mz))
 						{
 							//find a mass trace enclosing the point
 							DoubleReal feature_intensity=0;
-							for(Size mass_trace_num=0; mass_trace_num<features[feature_num].getConvexHulls().size(); ++mass_trace_num)
+              for (Size mass_trace_num=0; mass_trace_num<features[feature_num].getConvexHulls().size(); ++mass_trace_num)
 							{
-								if(bounding_boxes[std::make_pair(feature_num, mass_trace_num)].encloses(DPosition<2>(peak_rt, local_mz)))
+                if (bounding_boxes[std::make_pair(feature_num, mass_trace_num)].encloses(DPosition<2>(peak_rt, local_mz)))
 								{
-									DoubleReal elu_factor=1.0, iso_factor=1.0;
+                  DoubleReal elu_factor = 1.0, iso_factor = 1.0;
 									//get the intensity factor for the position in the elution profile
 									if (meta_values_present)
 									{
 										DoubleList xxx = elution_profile_intensities[feature_num];
-										DoubleList yyy = feature_elution_bounds[feature_num];
+                    DoubleList yyy = feature_elution_bounds[feature_num];                    
+//                    std::cout << "PEAKRT: " << peak_rt << std::endl;
+//                    std::cout << "Max: " << yyy[3] << "  vs.  " << bounding_boxes_f[feature_num].maxX() << std::endl;
+//                    std::cout << "Min: " << yyy[1] << "  vs.  " << bounding_boxes_f[feature_num].minX() << std::endl;
+                    OPENMS_PRECONDITION(i - yyy[0] < xxx.size(), "Tried to access invalid index for elution factor");
 										elu_factor = xxx[i - yyy[0]]; // segfault here: "i-yyy[0]" yields invalid index
 										iso_factor = isotope_intensities[feature_num][mass_trace_num];
 									}
-									feature_intensity+=features[feature_num].getIntensity() * iso_factor * elu_factor;
+                  feature_intensity += features[feature_num].getIntensity() * iso_factor * elu_factor;
 								}
 							}
 							Precursor p;
@@ -515,7 +519,7 @@ namespace OpenMS
 						}
 					}
 
-					if(!pcs.empty())
+          if (!pcs.empty())
 					{
 						//std::cerr<<"scan "<<i<<"  added spectrum for features:  "<<parent_feature_ids<<std::endl;
 						ms2_spec.setPrecursors(pcs);
@@ -526,7 +530,7 @@ namespace OpenMS
 					}
 
 					//add m/z window to exclusion list
-					exclusion_list.insert(std::make_pair(std::make_pair(peak_mz-excl_window, peak_mz+excl_window), exclusion_specs+1));
+          exclusion_list.insert(std::make_pair(std::make_pair(peak_mz - excl_window, peak_mz + excl_window), exclusion_specs + 1));
 
 					++j;
 				}
