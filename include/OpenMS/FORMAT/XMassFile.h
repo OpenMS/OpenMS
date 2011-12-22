@@ -68,7 +68,8 @@ namespace OpenMS
 			/**
 				@brief Loads a spectrum from a XMass file.
 
-				@param spectrum has to be a MSSpectrum or have the same interface.
+        @param filename Name of the XMass file which should be loaded.
+        @param spectrum Spectrum in which the data loaded from the file should be stored.
 
 				@exception Exception::FileNotFound is thrown if the file could not be read
 			*/      
@@ -165,9 +166,10 @@ namespace OpenMS
 			/**
 				@brief Import settings from a XMass file.
 
-				@param exp has to be a MSExperiment or have the same interface.
+        @param filename File from which the experimental settings should be loaded.
+        @param exp MSExperiment where the experimental settings will be stored.
 
-				@exception Exception::FileNotFound is thrown if the file could not be opened
+        @exception Exception::FileNotFound is thrown if the file could not be opened.
 			*/              
       template <class PeakType>
       void importExperimentalSettings(const String& filename, MSExperiment<PeakType>& exp)
