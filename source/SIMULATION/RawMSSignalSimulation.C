@@ -824,10 +824,8 @@ namespace OpenMS {
       elutionmodel->setParameters(p); // does the calculation
       //----------------------------------------------------------------------
 
-      // Hack away constness :-P   We know what we want.
-      EGHModel::ContainerType &data = const_cast<EGHModel::ContainerType &>(elutionmodel->getInterpolation().getData());
-
       SimCoordinateType rt_em_start = elutionmodel->getInterpolation().supportMin();
+      SimCoordinateType rt_em_end = elutionmodel->getInterpolation().supportMax();
 
       // find scan in experiment at which our elution starts
       MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
@@ -841,11 +839,11 @@ namespace OpenMS {
       elution_bounds[2] = elution_bounds[0];
       elution_bounds[3] = elution_bounds[1];
 
-      for ( Size i = 0; (i < data.size()) && exp_it!=experiment.end(); ++i, ++exp_it )
+      for ( ; (exp_it->getRT() <= rt_em_end) && (exp_it!=experiment.end());++exp_it )
       { // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
-        data[i] *= (DoubleReal) exp_it->getMetaValue("distortion");
+        DoubleReal intensity = (DoubleReal) exp_it->getMetaValue("distortion") * elutionmodel->getInterpolation().value(exp_it->getRT());
         // store elution profile in feature MetaValue
-        elution_intensities.push_back(data[i]);
+        elution_intensities.push_back( intensity );
         elution_bounds[2] = std::distance(experiment.begin(), exp_it);
         elution_bounds[3] = exp_it->getRT();
       }
