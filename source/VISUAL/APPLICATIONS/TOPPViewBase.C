@@ -153,15 +153,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
             (int)(0.8 * screen_geometry.height())
             );
 
-          //set temporary path
-          toppas_tmp_path_ = File::getTempDirectory().toQString() + QDir::separator();
+          //set & create temporary path -- make sure its a new subdirectory, as TOPPASScene will delete it when its done
+          toppas_tmp_path_ =  (File::getTempDirectory() + String(QDir::separator()) + File::getUniqueName()).toQString();
+          QDir qd;
+          qd.mkpath(toppas_tmp_path_);
+
+          toppas_tmp_path_ = File::getTempDirectory().toQString() + QDir::separator(); 
 
           // create dummy widget (to be able to have a layout), Tab bar and workspace
           QWidget* dummy = new QWidget(this);
           setCentralWidget(dummy);
           QVBoxLayout* box_layout = new QVBoxLayout(dummy);
 
-          // create empty tab bar and workspace which will hold the main visualization widgets (e.g. spectrawidgets...)
+          // create empty tab bar and workspace which will hold the main visualization widgets (e.g. spectra widgets...)
           tab_bar_ = new EnhancedTabBar(dummy);
           tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.<BR>The tab bar accepts drag-and-drop from the layer bar.");
           tab_bar_->addTab("dummy",4710);
