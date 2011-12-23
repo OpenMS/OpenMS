@@ -106,15 +106,17 @@ class TOPPEICExtractor
 
     void registerOptionsAndFlags_()
     {
-	  	registerInputFileList_("in","<file>",StringList::create(""),"input raw data file");
-			setValidFormats_("in",StringList::create("mzML"));
-      registerInputFile_("pos","<file>","","input config file stating where to find signal");
-      setValidFormats_("pos",StringList::create("edta"));
+	  	registerInputFileList_("in","<file>", StringList::create(""),"Input raw data file");
+			setValidFormats_("in", StringList::create("mzML"));
+      registerInputFile_("pos", "<file>", "", "Input config file stating where to find signal");
+      setValidFormats_("pos", StringList::create("edta"));
       registerDoubleOption_("rt_tol", "", 3, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
       registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
       registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
-			registerOutputFile_("out","<file>","","output quantitation file (summed intensities by master compounds)");
-      registerOutputFile_("out_detail","<file>","","output quantitation file");
+			registerOutputFile_("out","<file>", "", "Output quantitation file (summed intensities by master compounds)");
+      setValidFormats_("out", StringList::create("txt"));
+      registerOutputFile_("out_detail","<file>", "", "Output quantitation file");
+      setValidFormats_("out_detail", StringList::create("txt"));
     }
 
     ExitCodes main_(int , const char**)

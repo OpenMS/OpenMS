@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer:  $
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow, Marc Sturm, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -386,10 +386,8 @@ namespace OpenMS
 		void registerOptionsAndFlags_()
       {
         registerInputFile_("in", "<file>", "", "Input file ");
-        setValidFormats_("in", StringList::create(
-          "featureXML,consensusXML,idXML,mzML"));
-        registerOutputFile_("out", "<file>", "",
-          "Output file (mandatory for featureXML and idXML)", false);
+        setValidFormats_("in", StringList::create("featureXML,consensusXML,idXML,mzML"));
+        registerOutputFile_("out", "<file>", "", "Output file (mandatory for featureXML and idXML)", false);
         registerStringOption_("separator", "<sep>", "\t", "The used separator character(s); if not set the 'tab' character is used", false);
 				registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
 				registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
