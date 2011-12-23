@@ -35,7 +35,7 @@
     <LI>have a Visual Studio 2005/2008/2010 installed (The C++ Express editions should work as well, we tested VSE2008). VS2003 is not supported!
     <br>64-bit tools are not available on Visual C++ Express Edition by default. To enable 64-bit tools on Visual C++ Express Edition, install the .NET Framework SDK in addition to Visual C++ Express Edition.
     <br> If you work with VS 2008, installation of the Service Pack 1 (SP1) is required,
-    otherwise VS might crash during the compilation of the contrib package (i.e. imslib will not compile).
+    otherwise VS might crash during the compilation of the contrib package.
     <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org) - for VS2010 you'll need CMake 2.8.2 or later.
     <LI>If you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
@@ -83,7 +83,7 @@
 	@subsection install_win_contrib Contrib installation
 		In order to make the
 		installation of the remaining required libraries easier, we composed a
-		"contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, COINOR, imslib, zlib, libbz2 and XERCES-C.
+		"contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C.
 		This contrib package has several advantages over manual installation
 		<ul>
 			<li>You get all the libraries in versions tested with %OpenMS.</li>

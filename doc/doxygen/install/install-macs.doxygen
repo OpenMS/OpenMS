@@ -1,6 +1,6 @@
 /**
  	
-  @page install_mac Building OpenMS on Mac OS X
+  @page install_mac Building %OpenMS on Mac OS X
 
   @section install_mac_read Read this section first!
   
@@ -34,7 +34,7 @@
  @section install_mac_contrib Installing the contrib package
 
   In order to facilitate the installation of the libraries required for %OpenMS, we composed a
-  "contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, COINOR, zlib, bzip2 and XERCES-C. 
+  "contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, glpk, zlib, bzip2 and Xerces-C. 
     
   The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
   
@@ -86,7 +86,7 @@ cmake ~/openms-development/contrib
 
 <HR>
 
- @section install_mac_openms Installing OpenMS/TOPP
+ @section install_mac_openms Installing %OpenMS/TOPP
  
 		If you have not installed the libraries which %OpenMS requires,
 		please refer to the section @ref install_win_contrib above.
@@ -136,7 +136,7 @@ cmake -D CMAKE_FIND_ROOT_PATH="~/openms-development/contrib_build" "~/openms-dev
           Please use this option to point CMake to the location %OpenMS should
           be installed to.
 					
-					Install prefixes are not supported for developing with OpenMS. OpenMS must
+					Install prefixes are not supported for developing with %OpenMS. %OpenMS must
           be built in place!
 					</td>
     </tr>
@@ -188,7 +188,7 @@ make install
 
 <HR>
 
- @section install_mac_testing_openms Testing your OpenMS/TOPP installation  
+ @section install_mac_testing_openms Testing your %OpenMS/TOPP installation  
   
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
 
@@ -207,7 +207,7 @@ make test
   
 <HR>
  
- @section install_mac_64bit Building OpenMS/TOPP with 64bit support
+ @section install_mac_64bit Building %OpenMS/TOPP with 64bit support
 
  Building %OpenMS with 64bit support requires Qt 4.5 (or higher) build with 64bit support. You need to specify the architecture, by adding the option
  

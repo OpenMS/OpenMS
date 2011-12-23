@@ -1,6 +1,6 @@
 /**
   
-  @page install_linux Building OpenMS on Linux
+  @page install_linux Building %OpenMS on Linux
   
   @section install_linux_read Read this section first!
   
@@ -81,7 +81,7 @@
   @section install_linux_contrib Installing the contrib package
 
   In order to facilitate the installation of the libraries required for %OpenMS, we composed a
-  "contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, COINOR, zlib, libbz2 and XERCES-C. 
+  "contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C. 
     
   The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
   
@@ -113,7 +113,7 @@
 
 <HR>
   
-  @section install_linux_openms Installing OpenMS/TOPP
+  @section install_linux_openms Installing %OpenMS/TOPP
  
    You need to get the %OpenMS source package from our website. The latest stable version of %OpenMS can be found in the 
   <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
@@ -195,7 +195,7 @@
   
 <HR>
 
-  @section install_linux_testing_openms Testing your OpenMS/TOPP installation  
+  @section install_linux_testing_openms Testing your %OpenMS/TOPP installation  
   
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
   <pre>
