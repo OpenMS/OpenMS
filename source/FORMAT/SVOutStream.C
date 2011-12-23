@@ -98,8 +98,8 @@ SVOutStream& SVOutStream::operator<<(const string& str)
 
 SVOutStream& SVOutStream::operator<<(ostream& (*fp)(ostream&))
 {
-	if (fp == static_cast<ostream&(*)(ostream&)>(endl))
-		newline_ = true;
+	ostream& (* const endlPointer) (ostream&) = &endl;
+	if (fp == endlPointer)	newline_ = true;
 	(ostream&)*this << fp;
 	return *this;
 }
