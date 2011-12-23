@@ -233,7 +233,8 @@ namespace OpenMS
     //set current path
 		current_path_ = param_.getValue("preferences:default_path");
 		
-    //set & create temporary path -- make sure its a new subdirectory, as TOPPASScene will delete it when its done		tmp_path_ =  File::getTempDirectory() + String(QDir::separator()) + File::getUniqueName();
+    //set & create temporary path -- make sure its a new subdirectory, as TOPPASScene will delete it when its done		
+		tmp_path_ =  File::getTempDirectory() + String(QDir::separator()) + File::getUniqueName();
     QDir qd;
     qd.mkpath(tmp_path_.toQString());
 		
