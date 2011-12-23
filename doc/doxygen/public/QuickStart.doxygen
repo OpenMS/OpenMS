@@ -40,7 +40,7 @@
 	@b TOPP tools: A set of command line tools, each of which is a building block of an analysis pipeline. 
 	         These tools chained together in a way that fits the requirements of the user.
 					 Accessible from a command prompt/shell or via TOPPAS.
-					 See also: @subpage TOPP_documentation<br>
+					 See also: @subpage TOPP_tutorial and @subpage TOPP_documentation<br>
 	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a productive pipeline - but rather during pipeline construction or
 						parameter optimization.
 						See also: @subpage UTILS_documentation
@@ -48,7 +48,7 @@
 	@section run_tool How to run a tool
 	
 					We'd recommend using TOPPAS. A good start are the example pipelines (see "File" --> "Open example file" within TOPPAS).
-					In parallel you can read the documentation of the tools (see @subpage TOPP_documentation) 
+					In parallel you can read the documentation of the tools (see @subpage TOPP_tutorial, @subpage TOPP_documentation) 
 					and the one of TOPPAS (@subpage TOPPAS_tutorial).
 					
 					Alternatively, you can use the command line and call tools directly. In this case you'll probably want
@@ -62,21 +62,21 @@
 		@subsection parameters_where Where do you change them?!
 	
 		@b TOPPAS: Double-click the node of which you want to change the parameters. A short docu for each parameter will show up once you select it.
-		        All parameters which would be available on the command line and .ini are shown here as well.
+		        All parameters which would be available on the command line and in the INI file are shown here as well.
 		
 		@b Command line: Very basic parameters can be set on the command line, e.g. <tt>FileFilter -rt 1000:2000 ....</tt>.<br>
 									Doing this for all parameters would create a very long list, thus, we use so-called ".ini" files to provide full parameter sets to TOPP tools.
-		              If no .ini file is given, default parameters are used.
+		              If no INI file is given, default parameters are used.
 									To get a default .ini use
 									<p>
-									<tt>[tool] -write_ini [file]</tt>
+									<tt>&lt;tool&gt; -write_ini &lt;file&gt;</tt>
 									</p>
 									<p>
 									e.g. <br>
 									<tt>FileFilter -write_ini filefilter.ini</tt>
 									</p>
 									
-									Now, you can edit the .ini file (which is a XML file) using our @subpage TOPP_INIFileEditor, which is another GUI tool shipped with %OpenMS
+									Now, you can edit the INI file (which is a XML file) using our @subpage TOPP_INIFileEditor, which is another GUI tool shipped with %OpenMS
 									and similar to the one build into TOPPAS.
 
 		@subsection parameters_where How do I feed the INI file to a tool?!
@@ -86,7 +86,7 @@
 		
 		@b Command line: Simply supply the INI file via the <tt>-ini</tt> flag, e.g.,
 									<p>
-									<tt>[tool] -ini [file]</tt>
+									<tt>&lt;tool&gt; -ini &lt;file&gt;</tt>
 									</p>
 									<p>
 									e.g. <br>
