@@ -158,8 +158,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           QDir qd;
           qd.mkpath(toppas_tmp_path_);
 
-          toppas_tmp_path_ = File::getTempDirectory().toQString() + QDir::separator(); 
-
           // create dummy widget (to be able to have a layout), Tab bar and workspace
           QWidget* dummy = new QWidget(this);
           setCentralWidget(dummy);
