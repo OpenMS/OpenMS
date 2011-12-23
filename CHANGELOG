@@ -50,7 +50,7 @@ TOPP tools:
   - FeatureLinker: split into FeatureLinkerLabeled, FeatureLinkerUnlabeled, FeatureLinkerUnlabeledQT
   - FeatureLinker tools remove unneeded data after loading featureXML files to conserve memory
   - MapAligner: split into MapAlignerIdentification, MapAlignerPoseClustering, MapAlignerSpectrum, and MapRTTransformer
-  - model parameters of MapAligner tools are now set in the .ini file
+  - model parameters of MapAligner tools are now set in the INI file
   - NoiseFilter: split into NoiseFilterGaussian and NoiseFilterSGolay
   - PeakPicker: split into PeakPickerWavelet and PeakPickerHiRes
   - PILISModel: split into PILISModelCV, PILISModelTrainer, and PILISSpectraGenerator
@@ -70,7 +70,7 @@ UTIL tools:
   - HistView
 	 
 OpenMS library improvements:
-
+- lots ... too much to list
 	 
 Changes to the Build System: 
 - TOPPAS now requires Qt's Webkit library
