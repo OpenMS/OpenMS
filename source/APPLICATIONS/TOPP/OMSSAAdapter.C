@@ -162,23 +162,23 @@ class TOPPOMSSAAdapter
 			addEmptyLine_();
 			addText_("Common Identification engine options");
 
-			registerInputFile_("in", "<file>", "", "input file ");
+			registerInputFile_("in", "<file>", "", "Input file ");
 			setValidFormats_("in",StringList::create("mzML"));
-      registerOutputFile_("out", "<file>", "", "output file ");
+      registerOutputFile_("out", "<file>", "", "Output file ");
 	  	setValidFormats_("out",StringList::create("idXML"));
 
-      registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance (Default: Dalton)", false);
+      registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance (Default: Dalton)", false);
       registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
-      registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error in Dalton", false);
+      registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error in Dalton", false);
       registerInputFile_("database", "<psq-file>", "", "NCBI formatted FASTA files. Only the .psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end in '.psq' the suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
-      setValidFormats_("database",StringList::create("psq"));
-			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
-      registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
+      //setValidFormats_("database",StringList::create("psq")); // 'psq' not supported yet, and not required in this case
+			registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor ion charge", false);
+      registerIntOption_("max_precursor_charge", "<charge>", 3, "Maximum precursor ion charge", false);
 			vector<String> all_mods;
 			ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-      registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+      registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			setValidStrings_("fixed_modifications", all_mods);
-      registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+      registerStringList_("variable_modifications", "<mods>", StringList::create(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			setValidStrings_("variable_modifications", all_mods);
 
 			addEmptyLine_();

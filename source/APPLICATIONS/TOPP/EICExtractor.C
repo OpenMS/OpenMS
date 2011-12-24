@@ -114,9 +114,9 @@ class TOPPEICExtractor
       registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
       registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
 			registerOutputFile_("out","<file>", "", "Output quantitation file (summed intensities by master compounds)");
-      setValidFormats_("out", StringList::create("txt"));
+      //setValidFormats_("out", StringList::create("txt")); // 'txt' not supported yet
       registerOutputFile_("out_detail","<file>", "", "Output quantitation file");
-      setValidFormats_("out_detail", StringList::create("txt"));
+      //setValidFormats_("out_detail", StringList::create("txt")); // 'txt' not supported yet
     }
 
     ExitCodes main_(int , const char**)
