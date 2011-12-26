@@ -163,6 +163,7 @@ namespace OpenMS
         void paintDots_(Size layer_index, QPainter& p);
 
         void paintAllIntensities_(Size layer_index, DoubleReal average_spacing_mz, DoubleReal average_spacing_rt, QPainter& painter);
+        
         /**
         @brief Paints maximum intensity of individual peaks.
 
@@ -178,7 +179,7 @@ namespace OpenMS
         @brief Paints the precursor peaks.
 
         @param layer_index The index of the layer.
-        @param p The QPainter to paint on.
+        @param painter The QPainter to paint on.
        */
         void paintPrecursorPeaks_(Size layer_index, QPainter& painter);
 

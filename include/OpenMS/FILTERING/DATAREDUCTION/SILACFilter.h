@@ -188,7 +188,7 @@ namespace OpenMS
       bool correlationFilter2_(const SILACFiltering::SpectrumInterpolation &, DoubleReal mz, const SILACFiltering &);
 
       /**
-       * @brief Checks peak intensities against the averagene model
+       * @brief Checks peak intensities against the averagine model
        */
       bool averageneFilter_(DoubleReal mz);
 
@@ -198,7 +198,10 @@ namespace OpenMS
        * @param mass_separations all mass shifts of the filter
        * @param charge charge of the ions to search for
        * @param model_deviation maximum deviation from the averagine model
-       * @param isotopes_per_peptide number of peaks per petide to search for
+       * @param isotopes_per_peptide number of peaks per peptide to search for
+       * @param intensity_cutoff ...
+       * @param intensity_correlation minimal intensity correlation between regions of different peaks
+       * @param allow_missing_peaks flag for missing peaks
        */
       SILACFilter(std::vector<DoubleReal> mass_separations, Int charge, DoubleReal model_deviation, Int isotopes_per_peptide,
           DoubleReal intensity_cutoff, DoubleReal intensity_correlation, bool allow_missing_peaks);

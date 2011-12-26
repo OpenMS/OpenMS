@@ -133,7 +133,7 @@ namespace OpenMS
       @brief Writes the windows to the given file
 
       Format for each window is:
-      &lt;mz&gt;\t&lt;rt_start&gt;\t&lt;rt_stop&gt;\n
+      &lt;mz&gt;\\t&lt;rt_start&gt;\\t&lt;rt_stop&gt;\\n
 
       @throws Exception::UnableToCreateFile when file cannot be created
 

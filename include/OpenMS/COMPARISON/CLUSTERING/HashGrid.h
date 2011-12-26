@@ -47,7 +47,7 @@ namespace OpenMS
    *
    * This container implements most parts of the C++ standard map interface.
    *
-   * @tparam Cluster Type to be stored in the hash grid. (e.g. @ref{HierarchicalClustering::Cluster})
+   * @tparam Cluster Type to be stored in the hash grid. (e.g. HierarchicalClustering::Cluster)
    */
   template <typename Cluster>
   class HashGrid
@@ -287,7 +287,7 @@ namespace OpenMS
 
       /**
        * @brief Erases elements matching the 2-dimensional coordinate.
-       * @param x Key of element to be erased.
+       * @param key Key of element to be erased.
        * @return Number of elements erased.
        */
       size_type erase(const key_type &key)
