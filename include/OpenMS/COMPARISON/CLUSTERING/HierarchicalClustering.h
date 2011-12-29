@@ -121,7 +121,7 @@ namespace OpenMS
 
       /**
        * @brief Set of points.
-       * Describes a cluster on the grid. A point consists of a @link PointCoordinate and a @link PointRef.
+       * Describes a cluster on the grid. A point consists of a PointCoordinate and a PointRef.
        */
       class Cluster
         : public boost::unordered_multimap<PointCoordinate, PointRef>
