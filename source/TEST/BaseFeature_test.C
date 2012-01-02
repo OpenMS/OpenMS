@@ -171,7 +171,7 @@ START_SECTION((BaseFeature(const Peak2D& point)))
 	Peak2D point;
 	point.setRT(1.23);
 	point.setMZ(4.56);
-	point.setIntensity(7.89);
+	point.setIntensity(OpenMS::Peak2D::IntensityType(7.89));
 
 	BaseFeature copy(point);
 	TEST_REAL_SIMILAR(copy.getRT(), 1.23);
@@ -189,7 +189,7 @@ START_SECTION((BaseFeature(const RichPeak2D& point)))
 	RichPeak2D point;
 	point.setRT(1.23);
 	point.setMZ(4.56);
-	point.setIntensity(7.89);
+	point.setIntensity(OpenMS::Peak2D::IntensityType(7.89));
 	point.setMetaValue("meta", "test");
 
 	BaseFeature copy(point);
