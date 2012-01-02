@@ -25,6 +25,7 @@
 // $Authors: Bastian Blank $
 // --------------------------------------------------------------------------
 
+#include <climits>
 #include <iterator>
 
 #include <boost/array.hpp>
@@ -403,7 +404,12 @@ namespace OpenMS
         CellIndex ret;
         typename CellIndex::iterator it = ret.begin();
         typename ClusterCenter::const_iterator lit = key.begin(), rit = cell_dimension.begin();
-        for (; it != ret.end(); ++it, ++lit, ++rit) *it = *lit / *rit;
+        for (; it != ret.end(); ++it, ++lit, ++rit)
+        {
+          DoubleReal t = *lit / *rit;
+          if (t < 0 || t > INT_MAX) throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+          *it = static_cast<UInt> (t);
+        }
         return ret;
       }
 
