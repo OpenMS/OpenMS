@@ -349,7 +349,7 @@ namespace OpenMS
     DoubleReal offset = MS2_RT_time - elution_bounds[1];
     Int index = floor(offset / (width / (elution_ints.size()-1)) + 0.5);
 
-    OPENMS_POSTCONDITION(index < elution_ints.size(), "Wrong index computation! (Too large)")
+    OPENMS_POSTCONDITION(index < (Int)elution_ints.size(), "Wrong index computation! (Too large)")
 
     return elution_ints[index];
   }
