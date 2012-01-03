@@ -44,7 +44,7 @@
   
   @image html TOPPAS_simple_example.png
   
-  More information about TOPPAS can be found in the @ref TOPP_tutorial.
+  More information about TOPPAS can be found in the @ref TOPPAS_tutorial.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_TOPPAS.cli
