@@ -28,12 +28,6 @@ if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_
 	#disable optimization for tests
 	set(CMAKE_CXX_FLAGS_RELEASE_SAVED ${CMAKE_CXX_FLAGS_RELEASE})
 	set(CMAKE_CXX_FLAGS_RELEASE "-O0")
-	if(MT_ENABLE_OPENMP AND ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	  # disable OPENMP for Mac OS X/gcc, see
-	  # https://sourceforge.net/apps/trac/open-ms/ticket/280
-	  # bug for details
-	  STRING(REPLACE "-fopenmp" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-	endif()
 endif()
 
 ### CONCEPT

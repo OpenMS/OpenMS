@@ -29,10 +29,7 @@
 
 ///////////////////////////
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
-#ifdef _OPENMP
-	#include <omp.h>
-#endif
-
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -40,12 +37,8 @@ using namespace std;
 
 START_TEST(IonizationSimulation, "$Id$")
 
-#ifdef __APPLE__
-// needed to disable OpenMP multithreading in the library
-#include <stdlib.h>
-setenv("OMP_NUM_THREADS" , "1", 1);
-#endif
-
+// to avoid parallel random number issues
+TOPPBase::setMaxNumberOfThreads(1);
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -60,11 +53,6 @@ rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
 gsl_rng_set(rnd_gen.technical_rng, 0);
 rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
 gsl_rng_set(rnd_gen.biological_rng, 0);
-
-#ifdef _OPENMP
-omp_set_num_threads(1);
-#endif
-
 
 START_SECTION(IonizationSimulation())
 {

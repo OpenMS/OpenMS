@@ -63,6 +63,18 @@ namespace OpenMS
 
 	String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
 
+  void TOPPBase::setMaxNumberOfThreads(int
+#ifdef _OPENMP
+                                       num_threads  // to avoid the unused warning we enable this
+                                                    // argument only if openmp is available
+#endif
+                                       )
+  {
+#ifdef _OPENMP
+    omp_set_num_threads(num_threads);
+#endif
+  }
+
   TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool id_tag_support, const String& version)
   	: tool_name_(tool_name),
   		tool_description_(tool_description),
@@ -365,10 +377,8 @@ namespace OpenMS
 			//----------------------------------------------------------
 			//threads
 			//----------------------------------------------------------
-			#ifdef _OPENMP
-			Int threads = getParamAsInt_("threads", 1);
-			omp_set_num_threads(threads);
-			#endif
+      Int threads = getParamAsInt_("threads", 1);
+      TOPPBase::setMaxNumberOfThreads(threads);
 
 			//----------------------------------------------------------
 			//main

@@ -268,6 +268,14 @@ namespace OpenMS
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
 
+      /**
+        @brief Sets the maximal number of usable threads
+
+        @param num_threads The number of threads that should be usable.
+
+        @note This method only works if %OpenMS is compiled with %OpenMP support.
+      */
+      static void setMaxNumberOfThreads(int num_threads);
 
     private:
 
