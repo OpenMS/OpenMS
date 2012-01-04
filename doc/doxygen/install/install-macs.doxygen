@@ -188,7 +188,7 @@ make install
 
 <HR>
 
- @section install_mac_testing_openms Testing your %OpenMS/TOPP installation  
+ @section install_mac_testing_openms Testing your %OpenMS / TOPP installation  
   
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
 
@@ -207,7 +207,7 @@ make test
   
 <HR>
  
- @section install_mac_64bit Building %OpenMS/TOPP with 64bit support
+ @section install_mac_64bit Building %OpenMS / TOPP with 64bit support
 
  Building %OpenMS with 64bit support requires Qt 4.5 (or higher) build with 64bit support. You need to specify the architecture, by adding the option
  

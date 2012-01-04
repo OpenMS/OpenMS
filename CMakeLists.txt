@@ -497,9 +497,11 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
 	add_subdirectory(source/TEST EXCLUDE_FROM_ALL) ## configure the Test project (but do not add it to OpenMS itself)
 
   ## CppCheck testing
-  find_package(cppcheck)
-  if( CPPCHECK_FOUND )
-    include( cmake/cppcheck.cmake )
+  if(NOT CMAKE_COMPILER_IS_CLANG) ## cppcheck does not support clang output
+    find_package(cppcheck)
+    if( CPPCHECK_FOUND )
+      include( cmake/cppcheck.cmake )
+    endif()
   endif()
 endif()
 
