@@ -421,7 +421,9 @@ foreach(i ${GUI_executables})
 		# extra work for pseudo-mac-bundle
 		# move prepared package to RUNTIME_OUTPUT
 		file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app"
-		DESTINATION "${PROJECT_BINARY_DIR}/bin")
+		DESTINATION "${PROJECT_BINARY_DIR}/bin"
+		PATTERN ".svn" EXCLUDE
+		PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 	else()
 		add_executable(${i} ${GUI_DIR}/${i}.C)
 	endif()
