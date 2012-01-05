@@ -78,7 +78,7 @@ Changes to the Build System:
 - OpenMS now supports ctests functionality for optimized and parallel testing (see ticket #363)
 	
 Fixed Issues: (see also http://sourceforge.net/apps/trac/open-ms/report)
- #341 	Move IMS Mass Decomposition Code to OpenMS and remove IMS from contrib
+	#341 	Move IMS Mass Decomposition Code to OpenMS and remove IMS from contrib
 	#330 	Remove static references to 10.5 SDK in OpenMS and contrib builds
 	#301 	IDExtractor has no documentation
 	#78 	Write generic Nightly Testing Script
@@ -86,6 +86,7 @@ Fixed Issues: (see also http://sourceforge.net/apps/trac/open-ms/report)
 	#348 	Update TOPP tool names in documentation
 	#333 	CMake returning incorrect configurations
 	#264 	PrecursorIonSelector crashs (SegFault) with minimal input
+	#280	IonizationSimulation_test can not be compiled with OpenMP support on Mac OS X 
 	#322 	PeakPicker (wavelet) writes lots of "dataProcessing" junk to mzML file
 	#327 	Feature width not stored in featureXML
 	#372 	Calculation of rank correlation coefficient buggy
