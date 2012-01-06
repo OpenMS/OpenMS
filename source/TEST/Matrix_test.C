@@ -308,9 +308,9 @@ START_SECTION((bool operator<(Matrix const &rhs) const))
 	Matrix<int> mi3(5,4,6);
 	Matrix<int> mi4(4,4,6);
 	Matrix<int> mi5(5,5,6);
-  TEST_PRECONDITION_VIOLATED((mi1==mi3) == true);
-  TEST_PRECONDITION_VIOLATED((mi1==mi4) == true);
-  TEST_PRECONDITION_VIOLATED((mi1==mi5) == true);
+	TEST_PRECONDITION_VIOLATED(mi1==mi3);
+	TEST_PRECONDITION_VIOLATED(mi1==mi4);
+	TEST_PRECONDITION_VIOLATED(mi1==mi5);
 }
 END_SECTION
 
