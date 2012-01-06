@@ -157,7 +157,8 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile  DESTINATION 
 # install background image for the folder
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share/OpenMS/ COMPONENT share)
 
+# we fix this later by an external script
 # copy DS_store file into folder
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store DESTINATION . RENAME .DS_store COMPONENT share)
+# install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store DESTINATION . RENAME .DS_store COMPONENT share)
 
 include(CPack)
