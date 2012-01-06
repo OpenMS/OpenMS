@@ -851,7 +851,11 @@ namespace OpenMS
           f.setIntensity(
                 fitter->getFeatureIntensityContribution() // was 2.5 * fitter->getHeight() * sigma
                 / getIsotopeDistribution_(f.getMZ()).max);
-          //add convex hulls of mass traces
+         
+					// we do not need the fitter anymore
+					delete fitter;
+					
+					//add convex hulls of mass traces
           for (Size j = 0; j < traces.size(); ++j)
           {
             f.getConvexHulls().push_back(traces[j].getConvexhull());
