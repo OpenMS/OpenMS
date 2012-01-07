@@ -1621,7 +1621,7 @@ namespace OpenMS
 				action.insert("Resume");
 				action.insert("Open files in TOPPView");
         action.insert("Open containing folder");
-        action.insert("Toggle breakpoint");
+        //action.insert("Toggle breakpoint");
 			}
 
 			if (found_input)

@@ -38,8 +38,8 @@
 	@page TOPPAS_tutorial TOPPAS tutorial
 	
 	@b TOPPAS allows to create, edit, open, save, and run TOPP workflows. Pipelines
-	can be created conveniently in a GUI by means of mouse interactions. The
-	parameters of all involved tools can be edited within the application
+	can be created conveniently in a GUI. The
+	parameters of all involved tools can be edited within TOPPAS
 	and are also saved as part of the pipeline definition in the @a .toppas file.
 
 	- @subpage TOPPAS_general
