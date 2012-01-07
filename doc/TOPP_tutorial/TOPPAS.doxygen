@@ -229,7 +229,7 @@
 		This section describes an example identification pipeline contained in the 
 		example directory, @a Ecoli_Identification.toppas. It is shipped together
         with a reduced example mzML file containing 139 MS2 spectra from an E. coli
-        run as well as an E. coli target-decoy database.
+        run on an Orbitrap instrument as well as an E. coli target-decoy database.
         
         We use the search engine
 		OMSSA (Geer et al., 2004) for peptide identification. Therefore, 
