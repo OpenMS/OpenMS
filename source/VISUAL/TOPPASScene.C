@@ -729,9 +729,12 @@ namespace OpenMS
 	
 	void TOPPASScene::load(const String& file)
   {
+    //cd to directory containing the toppas file for proper resolution of relative paths below
+    String workflow_dir = File::path(file);
+    QDir::setCurrent(workflow_dir.toQString());
+
     Param load_param;
     load_param.load(file);
-
 
     // check for TOPPAS file version. Deny loading if too old or too new
     // get version of TOPPAS file
