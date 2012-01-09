@@ -729,10 +729,6 @@ namespace OpenMS
 	
 	void TOPPASScene::load(const String& file)
   {
-    //cd to directory containing the toppas file for proper resolution of relative paths below
-    String workflow_dir = File::path(file);
-    QDir::setCurrent(workflow_dir.toQString());
-
     Param load_param;
     load_param.load(file);
 
@@ -817,9 +813,15 @@ namespace OpenMS
 				{
 					StringList file_names = vertices_param.getValue(current_id + ":file_names");
 					QStringList file_names_qt;
+
 					for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
 					{
-						file_names_qt.push_back(QDir::cleanPath(str_it->toQString()));
+            QString f = str_it->toQString();
+            if (QDir::isRelativePath(f)) // prepend path of toppas file to relative path of the input files
+            {
+              f = File::path(file).toQString() + "/" + f;
+            }
+						file_names_qt.push_back(QDir::cleanPath(f));
 					}
 					TOPPASInputFileListVertex* iflv = new TOPPASInputFileListVertex(file_names_qt);
 					current_vertex = iflv;
