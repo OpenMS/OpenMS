@@ -74,7 +74,8 @@ namespace OpenMS
 			user_specified_out_dir_(false),
 			clipboard_(0),
       dry_run_(true),
-      threads_active_(0)
+      threads_active_(0),
+      allowed_threads_(1)
 	{
 		/*	ATTENTION!
 			 
@@ -1522,10 +1523,11 @@ namespace OpenMS
 		{
 			if (always_ask || !user_specified_out_dir_)
 			{
-				TOPPASOutputFilesDialog tofd(out_dir_);
+				TOPPASOutputFilesDialog tofd(out_dir_, allowed_threads_);
 				if (tofd.exec())
 				{
-          setOutDir( tofd.getDirectory() );
+          setOutDir(tofd.getDirectory());
+          setAllowedThreads(tofd.getNumJobs());
 				}
 				else
 				{
@@ -1829,9 +1831,7 @@ namespace OpenMS
     
     used = true;
 
-    int allowed_threads = 1; // change as desired
-
-		while (!topp_processes_queue_.empty() && threads_active_ < allowed_threads)
+    while (!topp_processes_queue_.empty() && threads_active_ < allowed_threads_)
 		{
       ++threads_active_; // will be decreased, once the tool finishes
 			TOPPProcess tp = topp_processes_queue_.first();
@@ -2117,12 +2117,18 @@ namespace OpenMS
 		
 		return change;
 	}
-  
+
+  void TOPPASScene::setAllowedThreads(int num_jobs)
+  {
+    if (num_jobs < 1) return;
+    allowed_threads_ = num_jobs;
+  }
+
   bool TOPPASScene::isDryRun() const
   {
     return dry_run_;
   }
-
+  
   void TOPPASScene::quitWithError()
   {
     exit(1);

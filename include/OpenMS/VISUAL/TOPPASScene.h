@@ -213,6 +213,8 @@ namespace OpenMS
       QString getDescription() const;
       /// when description is updated by user, use this to update the description for later storage in file
       void setDescription(const QString& desc);
+      /// sets the maximum number of jobs
+      void setAllowedThreads(int num_threads);
 
 
 		public slots:
@@ -323,6 +325,8 @@ namespace OpenMS
       int threads_active_;
       /// description text
       QString description_text_;
+      /// maximum number of allowed threads
+      int allowed_threads_;
 
 
 			/// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.

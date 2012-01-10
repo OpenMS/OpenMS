@@ -97,6 +97,8 @@ class TOPPExecutePipeline
 		registerInputFile_("in", "<file>", "", "The workflow to be executed (valid formats: \"toppas\")");
     registerStringOption_ ("out_dir", "<directory>", "", "Directory for output files (default: user's home directory)", false);
 		registerStringOption_ ("resource_file", "<file>", "", "A TOPPAS resource file (*.trf) specifying the files this workflow is to be applied to", false);
+    registerIntOption_("num_jobs", "<integer>", 1, "Maximum number of jobs running in parallel", false, false);
+    setMinInt_("num_jobs", 1);
 	}
 
 	ExitCodes main_(int argc, const char** argv)
@@ -104,6 +106,7 @@ class TOPPExecutePipeline
 		QString toppas_file = getStringOption_("in").toQString();
 		QString out_dir_name = getStringOption_("out_dir").toQString();
 		QString resource_file = getStringOption_("resource_file").toQString();
+    int num_jobs = getIntOption_("num_jobs");
 
 		QApplication a(argc, const_cast<char**>(argv), false);
     //set & create temporary path
@@ -115,6 +118,7 @@ class TOPPExecutePipeline
     if (!a.connect (&ts, SIGNAL(pipelineExecutionFailed()), &ts, SLOT(quitWithError()))) return UNKNOWN_ERROR;  // ... thus we use this
     
 		ts.load(toppas_file);
+    ts.setAllowedThreads(num_jobs);
 
 		if (resource_file != "")
 		{

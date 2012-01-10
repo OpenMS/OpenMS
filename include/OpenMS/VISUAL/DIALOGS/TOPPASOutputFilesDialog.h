@@ -49,10 +49,13 @@ namespace OpenMS
 		public:
 			
 			/// Constructor
-			TOPPASOutputFilesDialog(const QString& dir_name);
+			TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs);
 			
 			/// Returns the name of the directory
 			QString getDirectory();
+
+      /// Returns the maximum number of jobs in the spinbox
+      int getNumJobs();
 			
 			/// Returns if the directory is valid (is a directory and writable)
 			static bool dirNameValid(const QString& dir_name);
