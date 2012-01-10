@@ -46,15 +46,12 @@ public:
     /// Default destructor
     virtual ~MassTraceDetection();
 
-
+    /// helper methods
     void updateIterativeWeightedMeanMZ(const DoubleReal&, const DoubleReal&, DoubleReal&, DoubleReal&, DoubleReal&);
     void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
 
     /// main method of MassTraceDetection
     void run(const MSExperiment<Peak1D>&, std::vector<MassTrace>&);
-
-
-
 
 
 protected:
@@ -69,7 +66,6 @@ private:
     DoubleReal chrom_fwhm_;
 
     DoubleReal min_sample_rate_;
-
 };
 
 

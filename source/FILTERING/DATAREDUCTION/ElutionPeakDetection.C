@@ -163,7 +163,7 @@ namespace OpenMS
 
         std::vector<Size> maxes, mins;
 
-        // std::cout << "winsize: " << window_size_/2 << std::endl;
+        std::cout << "winsize: " << win_size/2 << " trace length: " << mt.getSize() << std::endl;
 
         mt.findLocalExtrema(win_size/2, maxes, mins);
         //        mt.findLocalExtrema(window_size_/2, maxes, mins);

@@ -417,6 +417,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
 
         if (current_trace.size() >= 2*min_data_points + 1)
         {
+
+            // std::cout << "CURR: " << current_trace.size() << " " << fwhm_counter_up+fwhm_counter_down+1 << std::endl;
             // mark all peaks as visited
             for (Size i = 0; i < gathered_idx.size(); ++i)
             {

@@ -221,16 +221,16 @@ protected:
             f.setOverallQuality(1 - (1.0/tmp_mt.getSize()));
             f.getConvexHulls().push_back(tmp_mt.getConvexhull());
 
-            Size mtr_idx(0);
+//            Size mtr_idx(0);
 
-            for (MassTrace::const_iterator c_it = m_traces_final[i].begin(); c_it != m_traces_final[i].end(); ++c_it)
-            {
-                DoubleReal p_int(m_traces_final[i].getSmoothedIntensities()[mtr_idx]);
-                if (p_int > 0.0) {
-                    out_map[c_it->getRT()][c_it->getMZ()] = p_int;
-                }
-                ++mtr_idx;
-            }
+//            for (MassTrace::const_iterator c_it = m_traces_final[i].begin(); c_it != m_traces_final[i].end(); ++c_it)
+//            {
+//                DoubleReal p_int(m_traces_final[i].getSmoothedIntensities()[mtr_idx]);
+//                if (p_int > 0.0) {
+//                    out_map[c_it->getRT()][c_it->getMZ()] = p_int;
+//                }
+//                ++mtr_idx;
+//            }
 
 
             ms_feat_map.push_back(f);

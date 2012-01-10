@@ -151,7 +151,8 @@ namespace OpenMS
 
         /// addMassTrace
         void addMassTrace(MassTrace&);
-        DoubleReal computeFeatureIntensity();
+        DoubleReal getMonoisotopicFeatureIntensity();
+        DoubleReal getSummedFeatureIntensity();
 
 
         Size getNumFeatPoints() const;
@@ -195,9 +196,6 @@ namespace OpenMS
         void run(std::vector<MassTrace>&, FeatureMap<>&);
 
 
-
-
-
     protected:
         virtual void updateMembers_();
 
@@ -218,7 +216,7 @@ namespace OpenMS
         Size charge_upper_bound_;
         DoubleReal mass_error_ppm_;
         DoubleReal chrom_fwhm_;
-
+        bool report_summed_ints_;
     };
 
 
