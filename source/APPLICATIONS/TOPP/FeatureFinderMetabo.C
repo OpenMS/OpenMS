@@ -51,7 +51,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureFinderMetabo
-    : public TOPPBase
+        : public TOPPBase
 {
 public:
     TOPPFeatureFinderMetabo()
@@ -63,19 +63,43 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-      registerInputFile_("in","<file>", "", "input centroided mzML file");
-      setValidFormats_("in",StringList::create("mzML"));
-      registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
-      setValidFormats_("out",StringList::create("featureXML"));
+        registerInputFile_("in","<file>", "", "input centroided mzML file");
+        setValidFormats_("in",StringList::create("mzML"));
+        registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
+        setValidFormats_("out",StringList::create("featureXML"));
 
-      addEmptyLine_();
-      addText_("Parameters for the mass trace detection algorithm can be given in the 'algorithm' part of INI file.");
-      registerSubsection_("algorithm","Algorithm parameters section");
+        addEmptyLine_();
+        addText_("Parameters for the mass trace detection algorithm can be given in the 'algorithm' part of INI file.");
+        registerSubsection_("algorithm","Algorithm parameters section");
     }
 
     Param getSubsectionDefaults_(const String& /*section*/) const
     {
-        return MassTraceDetection().getDefaults();
+        Param combined;
+        Param p_com;
+        p_com.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");
+        p_com.setValue("chrom_fwhm" , 3.0 , "Lower bound for a chromatographic peak's FWHM (in seconds)");
+
+        combined.insert("common:", p_com);
+
+        Param p_mtd = MassTraceDetection().getDefaults();
+        p_mtd.remove("mass_error_ppm");
+        p_mtd.remove("chrom_fwhm");
+
+        combined.insert("mtd:", p_mtd);
+
+        Param p_epd = ElutionPeakDetection().getDefaults();
+        p_epd.setValue("enabled", "true", "Do post-filtering of detected mass traces?");
+        p_epd.setValidStrings("enabled", StringList::create("true,false"));
+        combined.insert("epd:", p_epd);
+
+        Param p_ffm = FeatureFindingMetabo().getDefaults();
+        p_ffm.remove("mass_error_ppm");
+        p_ffm.remove("chrom_fwhm");
+
+        combined.insert("ffm:", p_ffm);
+
+        return combined;
     }
 
     ExitCodes main_(int , const char**)
@@ -99,71 +123,89 @@ protected:
         if ( ms_peakmap.empty() )
         {
             LOG_WARN << "The given file does not contain any conventional peak data, but might"
-                    " contain chromatograms. This tool currently cannot handle them, sorry.";
+                        " contain chromatograms. This tool currently cannot handle them, sorry.";
             return INCOMPATIBLE_INPUT_DATA;
         }
 
 
-        //-------------------------------------------------------------
-        // set parameters and start extraction
-        //-------------------------------------------------------------
         FeatureMap<> ms_feat_map;
         vector<MassTrace> m_traces;
 
-        Param mt_ext_param = getParam_().copy("algorithm:",true);
-        writeDebug_("Parameters passed to FeatureFinderMetabo", mt_ext_param,3);
+        //-------------------------------------------------------------
+        // set parameters
+        //-------------------------------------------------------------
 
-        MassTraceDetection mt_ext;
-        // mt_ext.setLogType(log_type_);
-        mt_ext.setParameters(mt_ext_param);
+        Param common_param = getParam_().copy("algorithm:common:", true);
+        writeDebug_("Common parameters passed to all sub-algorithms", common_param,3);
 
-        mt_ext.run(ms_peakmap, m_traces);
+        Param mtdet_param = getParam_().copy("algorithm:mtd:",true);
+        writeDebug_("Parameters passed to MassTraceDetection", mtdet_param,3);
 
-        DoubleReal fwhm(mt_ext.getParameters().getValue("chrom_fwhm"));
-        DoubleReal scan_rt_diff ((ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/(ms_peakmap.size()));
-        Size min_datapoints = std::floor(fwhm/scan_rt_diff);
+        Param epd_param = getParam_().copy("algorithm:epd:",true);
+        writeDebug_("Parameters passed to ElutionPeakDetection", epd_param,3);
 
-        ElutionPeakDetection ep_det;
+        Param ffm_param = getParam_().copy("algorithm:ffm:", true);
+        writeDebug_("Parameters passed to FeatureFindingMetabo", ffm_param,3);
 
-        Param ep_det_param;
-        ep_det_param.setValue("window_size", min_datapoints);
-        ep_det.setParameters(ep_det_param);
+        //-------------------------------------------------------------
+        // configure and run mass trace detection
+        //-------------------------------------------------------------
+
+        MassTraceDetection mtdet;
+        mtdet_param.insert("", common_param);
+        // std::cout << "errppm ffm:" << mtdet_param.getValue("mass_error_ppm") << std::endl;
+        mtdet.setParameters(mtdet_param);
+
+        mtdet.run(ms_peakmap, m_traces);
+
+
+        //-------------------------------------------------------------
+        // configure and run elution peak detection
+        //-------------------------------------------------------------
+
+        //        DoubleReal fwhm(mtdet.getParameters().getValue("chrom_fwhm"));
+        //        DoubleReal scan_rt_diff ((ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/(ms_peakmap.size()));
+        //        Size min_datapoints = std::floor(fwhm/scan_rt_diff);
+
+        ElutionPeakDetection epdet;
+        epdet.setParameters(epd_param);
 
         std::vector<MassTrace> splitted_mtraces;
         std::vector<MassTrace> filtered_mtraces;
 
-
-        ep_det.detectPeaks(m_traces, splitted_mtraces);
-        ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces);
-
-        FeatureFindingMetabo ff_met;
-
-        Param ff_met_param;
-        ff_met_param.setValue("mass_error_ppm", mt_ext.getParameters().getValue("mass_error_ppm"));
-        ff_met_param.setValue("chrom_fwhm", mt_ext.getParameters().getValue("chrom_fwhm"));
-
-        ff_met.setParameters(ff_met_param);
-        // ff_met.run(splitted_mtraces, ms_feat_map);
-        ff_met.run(filtered_mtraces, ms_feat_map);
+        epdet.detectPeaks(m_traces, splitted_mtraces);
+        epdet.filterByPeakWidth(splitted_mtraces, filtered_mtraces);
 
 
+        //-------------------------------------------------------------
+        // configure and run feature finding
+        //-------------------------------------------------------------
 
-//        for (Size i = 0; i < splitted_mtraces.size(); ++i)
-//        {
-//            MassTrace tmp_mt(splitted_mtraces[i]);
+        FeatureFindingMetabo ffmet;
+        ffm_param.insert("", common_param);
 
-//            Feature f;
-//            f.setMetaValue(3,tmp_mt.getLabel());
-//            f.setCharge(0);
-//            f.setMZ(tmp_mt.getCentroidMZ());
-//            f.setIntensity(tmp_mt.computePeakArea());
-//            f.setRT(tmp_mt.getSmoothedMaxRT());
-//            f.setWidth(tmp_mt.estimateFWHM());
-//            f.setOverallQuality(0.0);
-//            f.getConvexHulls().push_back(tmp_mt.getConvexhull());
+        ffmet.setParameters(ffm_param);
+        // ffmet.run(splitted_mtraces, ms_feat_map);
+        ffmet.run(filtered_mtraces, ms_feat_map);
 
-//            ms_feat_map.push_back(f);
-//        }
+
+
+        //        for (Size i = 0; i < splitted_mtraces.size(); ++i)
+        //        {
+        //            MassTrace tmp_mt(splitted_mtraces[i]);
+
+        //            Feature f;
+        //            f.setMetaValue(3,tmp_mt.getLabel());
+        //            f.setCharge(0);
+        //            f.setMZ(tmp_mt.getCentroidMZ());
+        //            f.setIntensity(tmp_mt.computePeakArea());
+        //            f.setRT(tmp_mt.getSmoothedMaxRT());
+        //            f.setWidth(tmp_mt.estimateFWHM());
+        //            f.setOverallQuality(0.0);
+        //            f.getConvexHulls().push_back(tmp_mt.getConvexhull());
+
+        //            ms_feat_map.push_back(f);
+        //        }
 
         //-------------------------------------------------------------
         // writing output

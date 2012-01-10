@@ -43,11 +43,11 @@ MassTraceDetection::MassTraceDetection()
     : DefaultParamHandler("MassTraceDetection"), ProgressLogger()
 {
     // defaults_.setValue( "name" , 1 , "descript" );
-    defaults_.setValue( "mass_error_ppm" , 20.0 , "Allowed mass deviation (in ppm)");
-    defaults_.setValue( "noise_threshold_int" , 10.0 , "Intensity threshold below which peaks are removed as noise");
-    defaults_.setValue( "chrom_apex_snt" , 3.0 , "Minimum signal-to-noise a mass trace should have");
-    defaults_.setValue( "chrom_fwhm" , 3.0 , "Lower bound for FWHM (in seconds) of a chromatographic peak");
-    defaults_.setValue( "min_sample_rate" , 0.5 , "Minimum sampling rate of a mass trace");
+    defaults_.setValue("mass_error_ppm" , 20.0 , "Allowed mass deviation (in ppm)");
+    defaults_.setValue("noise_threshold_int" , 10.0 , "Intensity threshold below which peaks are removed as noise");
+    defaults_.setValue("chrom_apex_snt" , 3.0 , "Minimum signal-to-noise a mass trace should have");
+    defaults_.setValue("chrom_fwhm" , 3.0 , "Lower bound for FWHM (in seconds) of a chromatographic peak");
+    defaults_.setValue("min_sample_rate" , 0.5 , "Minimum sampling rate of a mass trace");
 
     defaultsToParam_();
 
@@ -88,9 +88,10 @@ void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::
 {
     std::multimap<Size, Size> histo_map;
 
+
     for (Size i = 0; i < mt_vec.size(); ++i)
     {
-        DoubleReal fwhm(mt_vec[i].getRoughFWHMsize());
+        DoubleReal fwhm(mt_vec[i].estimateFWHM(false));
 
         if (fwhm > chrom_fwhm_) {
             histo_map.insert(std::make_pair(fwhm, i));
@@ -222,7 +223,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
 
     if (spectra_count < 5)
     {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input map consists of too few spectra (lesser than 5!). Aborting...", String(spectra_count));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input map consists of too few spectra (less than 5!). Aborting...", String(spectra_count));
     }
 
 
@@ -418,7 +419,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
         if (current_trace.size() >= 2*min_data_points + 1)
         {
 
-            // std::cout << "CURR: " << current_trace.size() << " " << fwhm_counter_up+fwhm_counter_down+1 << std::endl;
+            // std::cout << "CURR: " << current_trace.size() << " " << fwhm_counter_up + fwhm_counter_down+1 << std::endl;
             // mark all peaks as visited
             for (Size i = 0; i < gathered_idx.size(); ++i)
             {
@@ -435,6 +436,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
 
             new_trace.setLabel("T" + tr_num);
             new_trace.setRoughFWHMsize(fwhm_counter_down + fwhm_counter_up + 1);
+
+            // std::cout << "CURR2: " << new_trace.estimateFWHM(false) << std::endl;
 
             peaks_detected += new_trace.getSize();
             this->setProgress(peaks_detected);

@@ -194,8 +194,8 @@ namespace OpenMS
         /// Return a pointer to the mass trace's highest peak (based either on raw or smoothed intensities)
         Size findMaxByIntPeak(bool);
 
-        /// Estimate FWHM of chromatographic peak (based on smoothed intensities)
-        DoubleReal estimateFWHM();
+        /// Estimate FWHM of chromatographic peak (based on either raw or smoothed intensities)
+        DoubleReal estimateFWHM(bool);
 
         /// Find local extrema in mass trace
         void findLocalExtrema(const Size&, std::vector<Size>&, std::vector<Size>&);
@@ -240,7 +240,7 @@ namespace OpenMS
         std::vector<DoubleReal> smoothed_intensities_;
 
         /// Rough estimate of a chromatographic peak's width (can be set while collecting the mass trace)
-        Size rough_fwhm_points_;
+        DoubleReal rough_fwhm_points_;
     };
 
 }

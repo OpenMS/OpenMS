@@ -78,7 +78,7 @@ namespace OpenMS
 
         for (Size i = 0; i < mt_vec.size(); ++i)
         {
-            DoubleReal fwhm(mt_vec[i].estimateFWHM());
+            DoubleReal fwhm(mt_vec[i].estimateFWHM(true));
 
             if (fwhm >= chrom_fwhm_) {
                 histo_map.insert(std::make_pair(fwhm, i));

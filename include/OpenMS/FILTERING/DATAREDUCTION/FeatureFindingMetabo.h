@@ -138,14 +138,14 @@ namespace OpenMS
             return iso_pattern_[0]->getCentroidRT();
         }
 
-        DoubleReal getFWHM()
+        DoubleReal getFWHM(bool use_smoothed_ints = false)
         {
             if (iso_pattern_.empty())
             {
                 return 0.0;
             }
 
-            return iso_pattern_[0]->estimateFWHM();
+            return iso_pattern_[0]->estimateFWHM(use_smoothed_ints);
         }
 
 
