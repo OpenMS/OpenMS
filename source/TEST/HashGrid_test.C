@@ -74,7 +74,7 @@ START_SECTION(cell_iterator insert(const value_type &v))
   }
 
   {
-    const TestGrid::ClusterCenter key(0, 1. + INT_MAX);
+    const TestGrid::ClusterCenter key(0, 20000000000000000000.);
     TEST_EXCEPTION(Exception::OutOfRange, t.insert(std::make_pair(key, TestGrid::mapped_type())));
   }
 }
