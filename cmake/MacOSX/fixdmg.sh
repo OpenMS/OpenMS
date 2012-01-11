@@ -4,8 +4,8 @@
 # based on http://stackoverflow.com/questions/96882/how-do-i-create-a-nice-looking-dmg-for-mac-os-x-using-command-line-tools
 # bash script to further customize the OpenMS dmg
 
-DMG_NAME=OpenMS-1.9.0-Darwin.dmg
 DISK_NAME=OpenMS-1.9.0-Darwin
+DMG_NAME=${DISK_NAME}.dmg
 OPENMS_NAME=OpenMS-1.9.0
 backgroundPictureName=.background.png
 
@@ -47,5 +47,5 @@ end tell
 # be sure that everything is done
 sleep 10
 
-hdiutil convert temp.dmg -format UDZO -imagekey zlib-level=9 -o ${DMG_NAME}_final.dmg
+hdiutil convert temp.dmg -format UDZO -imagekey zlib-level=9 -o ${DISK_NAME}_final.dmg
 rm -f temp.dmg
