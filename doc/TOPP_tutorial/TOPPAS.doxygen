@@ -93,12 +93,34 @@
 			input node has the actual MS2 experiments (which is usually more than one). Then the database input node would be set to "recycle" the database file, i.e. use it for every
 			run of the MascotAdapter node. The input list can be recycled an arbitrary number of times, but the recycling has to be @em complete, i.e. the number of rounds of the
 			downstream node have to be a multiple of the number of input files. Recycling mode can be actived by right-clicking the input node and selecting the according entry from the context menu.
-			Finally, if you have
-			input and output nodes at every end of your pipeline and all connections are green, chances are good that the pipeline will run properly.
-			In order to find that out, select @a Pipeline @a > @a Run in the menu bar or press @a F5. You will be asked for an output file directory where
-			a sub-directory, @a TOPPAS_out, will be created. If everything goes well, it will contain your desired output files.
-			Also a @a TOPPAS_tmp directory in the OpenMS temp path (call the @em OpenMSInfo tool to see where exactly)  will contain all
-			temporary files that are passed from tool to tool within the pipeline.<br>
+
+      Finally, if you have
+      input and output nodes at every end of your pipeline and all connections are green,
+      you can select @a Pipeline @a > @a Run in the menu bar or just press @a F5.
+
+      @image html TOPPAS_run_options.png
+      @image latex TOPPAS_run_options.png "" width=14cm
+
+      You will be asked for an output file directory where
+      a sub-directory, @a TOPPAS_out, will be created. This directory will contain your output files.
+      You can also specify the number of jobs TOPPAS is allowed to run in parallel. If a number greater than 1
+      is selected, TOPPAS will parallelize the pipeline execution in the following scenarios:
+
+      - A tool has to process more than one file. In this case, multiple files can be processed in parallel.
+      - The pipeline contains multiple branches that are independent of each other. In this case, multiple tools can run in parallel.
+
+      Be careful with this setting, however, as some of the TOPP tools require large amounts of RAM (depending
+      on the size of your dataset). Running too many parallel jobs on a machine with not enough memory will cause problems.
+      Also, do not confuse this setting with the @em threads parameter of the individual TOPP tools: every TOPP tool has this
+      parameter specifying the maximum number of threads the tool is allowed to use (although only a subset of the TOPP tools make use
+      of this parameter, since there are tasks that cannot be computed in parallel). Be especially careful with combinations
+      of both parameters! If you have a pipeline containing the @em FeatureFinderCentroided, for example, and set its @em threads parameter
+      to 8, and you additionally set the number of parallel jobs in @b TOPPAS to 8, then you end up using 64 threads in parallel, which
+      might not be what you intended to do.
+
+      In addition to @a TOPPAS_out, a @a TOPPAS_tmp directory will be created in the OpenMS temp path (call the @em OpenMSInfo tool to see where exactly).
+      It will contain all
+      temporary files that are passed from tool to tool within the pipeline.
 			Both folders contain further sub-directories which are named after the number in the top-left corner of the node they
 			belong to (plus the name of the tool for temporary files). During pipeline execution, the status lights in the top-right corner of the
 			tools indicate if the tool has finished successfully (green), is currently running (yellow), has not done anything so far (gray), or has crashed (red).
