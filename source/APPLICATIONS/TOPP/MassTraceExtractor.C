@@ -216,7 +216,7 @@ protected:
             //              f.setRT(tmp_mt.getCentroidRT());
             //            }
             f.setRT(tmp_mt.getCentroidRT());
-            f.setWidth(tmp_mt.estimateFWHM());
+            f.setWidth(tmp_mt.estimateFWHM(true));
 
             f.setOverallQuality(1 - (1.0/tmp_mt.getSize()));
             f.getConvexHulls().push_back(tmp_mt.getConvexhull());
