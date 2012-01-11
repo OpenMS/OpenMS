@@ -385,10 +385,12 @@ namespace OpenMS
 
       static bool coordElemGreater_(const PointCoordinate &lhs, const PointCoordinate &rhs)
       {
-        UInt ret = 0;
         typename PointCoordinate::const_iterator lit = lhs.begin(), rit = rhs.begin();
-        for (; lit != lhs.end(); ++lit, ++rit) ret += *lit > *rit;
-        return ret;
+        for (; lit != lhs.end(); ++lit, ++rit) 
+        {
+          if (*lit > *rit) return true;
+        }
+        return false;
       }
 
       static DoubleReal coordDist_(const PointCoordinate &lhs, const PointCoordinate &rhs)
