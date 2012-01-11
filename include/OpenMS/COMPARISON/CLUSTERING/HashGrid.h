@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <iterator>
+#include <limits>
 
 #include <boost/array.hpp>
 #include <boost/functional/hash.hpp>
@@ -406,8 +407,7 @@ namespace OpenMS
         for (; it != ret.end(); ++it, ++lit, ++rit)
         {
           DoubleReal t = *lit / *rit;
-          // UINT64_MAX
-          if (t < 0 || t > 18446744073709551615ULL) throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+          if (t < 0 || t > std::numeric_limits<UInt64>::max()) throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
           *it = static_cast<UInt64> (t);
         }
         return ret;
