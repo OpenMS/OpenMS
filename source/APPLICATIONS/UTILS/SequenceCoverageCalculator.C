@@ -73,15 +73,13 @@ class TOPPSequenceCoverageCalculator
 		{
 			indices.first = 0;
 			indices.second = 0;
-			Size temp_index = 0;
-			Size temp_count = 0;
 			
 			if (sequence.hasSubstring(substring))
 			{
 				for (Size i = 0; i <= sequence.size() - substring.size(); ++i)
 				{
-					temp_index = i;
-					temp_count = 0;
+          Size temp_index = i;
+          Size temp_count = 0;
 					while(temp_index < sequence.size()								 
 								&& temp_count < substring.size()
 								&& sequence.at(temp_index) == substring.at(temp_index - i))
