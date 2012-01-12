@@ -98,12 +98,12 @@ namespace OpenMS
 		/// Mutable access to the data point intensity (height)
 		inline void setIntensity(IntensityType intensity) { intensity_ = intensity; }
 
-		/// Non-mutable access to m/z
+		/// Non-mutable access to RT
 		inline CoordinateType getRT() const
 		{
 			return position_[0];
 		}
-		/// Mutable access to m/z
+		/// Mutable access to RT
 		inline void setRT(CoordinateType rt)
 		{
 			position_[0] = rt;
@@ -118,6 +118,17 @@ namespace OpenMS
 		inline void setPos(CoordinateType pos)
 		{
 			position_[0] = pos;
+		}
+
+		/// Alias for getRT()
+		inline CoordinateType getMZ() const
+		{
+			return position_[0];
+		}
+		/// Alias for setRT()
+		inline void setMZ(CoordinateType rt)
+		{
+			position_[0] = rt;
 		}
 
     /// Non-mutable access to the position
