@@ -35,11 +35,11 @@
 
 namespace OpenMS
 {
-class OPENMS_DLLAPI MassTraceDetection :
-        public DefaultParamHandler,
-        public ProgressLogger
-{
-public:
+  class OPENMS_DLLAPI MassTraceDetection :
+      public DefaultParamHandler,
+      public ProgressLogger
+  {
+  public:
     /// Default constructor
     MassTraceDetection();
 
@@ -53,25 +53,20 @@ public:
     /// main method of MassTraceDetection
     void run(const MSExperiment<Peak1D>&, std::vector<MassTrace>&);
 
+    /// mass trace detection on subregion
+    void run(MSExperiment<Peak1D>::ConstAreaIterator& begin, MSExperiment<Peak1D>::ConstAreaIterator& end, std::vector<MassTrace>& found_masstraces);
 
-protected:
+  protected:
     virtual void updateMembers_();
 
-
-private:
+  private:
     /// parameter stuff
     DoubleReal mass_error_ppm_;
     DoubleReal noise_threshold_int_;
     DoubleReal chrom_apex_snt_;
     DoubleReal chrom_fwhm_;
-
     DoubleReal min_sample_rate_;
-};
-
-
+  };
 }
-
-
-
 
 #endif // OPENMS_MASSTRACEDETECTION_H
