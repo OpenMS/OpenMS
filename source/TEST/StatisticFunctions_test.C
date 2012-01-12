@@ -77,11 +77,20 @@ START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal median(
 	TEST_EQUAL(Math::median(x, x + 5, TRUE), 1);
 	TEST_EXCEPTION(Exception::InvalidRange, Math::median(x, x));
 
+  // unsorted
 	DoubleList y;
 	y << 1.0 << -0.5 << 2.0 << 0.5 << -1.0 << 1.5 << 0.0;
 	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.5);
 	y << -1.5; // even length
 	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.25);
+
+  // sorted
+  DoubleList z_odd;
+  z_odd << -1.0 << -0.5 << 0.0 << 0.5 << 1.0 << 1.5 << 2.0;
+  TEST_REAL_SIMILAR(Math::median(z_odd.begin(), z_odd.end(), true), 0.5);
+  DoubleList z_even;
+  z_even << -1.5 << -1.0 << -0.5 << 0.0 << 0.5 << 1.0 << 1.5 << 2.0;
+  TEST_REAL_SIMILAR(Math::median(z_even.begin(), z_even.end(), true), 0.25);
 }
 END_SECTION
 
