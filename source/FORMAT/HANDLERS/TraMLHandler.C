@@ -757,6 +757,8 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 				}
 				os << " >" << "\n";
 
+				writeCVParams_(os, (CVTermList)*it, 3);
+
 				os << "      <Precursor>" << "\n"; 
 				os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
 				writeCVParams_(os, it->getPrecursorCVTermList(), 4);
@@ -1160,6 +1162,10 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			// TODO handle checksum type...
 			actual_sourcefile_.addCVTerm(cv_term);
 		} 
+		else if (parent_tag == "Transition")
+		{
+			actual_transition_.addCVTerm(cv_term);
+		}
 		else 
 		{
 			warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
