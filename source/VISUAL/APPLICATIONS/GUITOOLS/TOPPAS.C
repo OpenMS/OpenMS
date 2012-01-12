@@ -134,10 +134,8 @@ int main( int argc, const char** argv )
     }
 	}
 
-#ifndef DEBUG_TOPP	
 	try
 	{
-#endif
 
 	 	if (param.exists("execute") || param.exists("out_dir"))
 		{
@@ -187,7 +185,7 @@ int main( int argc, const char** argv )
 		}
 
 		// We are about to show the application. 
-		// Proper time to  remove the splashscreen, if at least 1.5 seconds have passed...
+		// Proper time to  remove the splash screen, if at least 1.5 seconds have passed...
 		while(stop_watch.getClockTime()<1.5) {/*wait*/};
 		stop_watch.stop();
 		splash_screen->close();
@@ -201,46 +199,37 @@ int main( int argc, const char** argv )
 	  int result = a.exec();
 	  delete(mw);
 	  return result;
-#ifndef DEBUG_TOPP
 	}
 	//######################## ERROR HANDLING #################################
 
 	catch(Exception::UnableToCreateFile& e)
 	{
 		cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}	
 	catch(Exception::FileNotFound& e)
 	{
 		cout << String("Error: File not found (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::FileNotReadable& e)
 	{
 		cout << String("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::FileEmpty& e)
 	{
 		cout << String("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::ParseError& e)
 	{
 		cout << String("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::InvalidValue& e)
 	{
 		cout << String("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::BaseException& e)
 	{
 		cout << String("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
-#endif
 	
 	return 1;
 }
