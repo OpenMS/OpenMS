@@ -39,8 +39,8 @@ namespace OpenMS
         : DefaultParamHandler("ElutionPeakDetection"), ProgressLogger()
     {
         defaults_.setValue( "chrom_fwhm" , 3.0 , "Lower bound for FWHM (in seconds) of a chromatographic peak");
-        defaults_.setValue("width_filtering", "false", "Enable filtering of unlikely peak widths");
-        defaults_.setValidStrings("width_filtering", StringList::create(("false,true")));
+        defaults_.setValue("width_filtering", "true", "Enable filtering of unlikely peak widths");
+        defaults_.setValidStrings("width_filtering", StringList::create(("true,false")));
 
         defaultsToParam_();
 
@@ -53,20 +53,26 @@ namespace OpenMS
 
     void ElutionPeakDetection::detectPeaks(MassTrace& mt, std::vector<MassTrace>& single_mtraces)
     {
+        // make sure that single_mtraces is empty
+        single_mtraces.clear();
+
         detectElutionPeaks_(mt, single_mtraces);
         return ;
     }
 
     void ElutionPeakDetection::detectPeaks(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& single_mtraces)
     {
-        // std::cout << "total mtraces: " << mt_vec.size() << std::endl;
+        // make sure that single_mtraces is empty
+        single_mtraces.clear();
+
         this->startProgress(0, mt_vec.size(), "elution peak detection");
+
         for (Size i = 0; i < mt_vec.size(); ++i)
         {
             this->setProgress(i);
             detectElutionPeaks_(mt_vec[i], single_mtraces);
-            // std::cout << "trace: " << mt_vec[i].getLabel() << " finished." << std::endl;
         }
+
         this->endProgress();
 
         return ;
@@ -154,7 +160,6 @@ namespace OpenMS
         Size win_size = mt.getRoughFWHMsize();
 
         lowess_params.setValue("window_size", win_size);
-        // lowess_params.setValue("window_size", window_size_);
         lowess_smooth.setParameters(lowess_params);
 
         lowess_smooth.smoothData(rts, ints, smoothed_data);
@@ -163,12 +168,9 @@ namespace OpenMS
 
         std::vector<Size> maxes, mins;
 
-        std::cout << "winsize: " << win_size/2 << " trace length: " << mt.getSize() << std::endl;
-
         mt.findLocalExtrema(win_size/2, maxes, mins);
-        //        mt.findLocalExtrema(window_size_/2, maxes, mins);
 
-        // only one maximum: finished!
+        // if only one maximum exists: finished!
         if (maxes.size() == 1)
         {
             single_mtraces.push_back(mt);
@@ -196,7 +198,6 @@ namespace OpenMS
                 }
 
                 MassTrace new_mt(tmp_mt);
-
 
                 // copy smoothed ints
                 new_mt.setSmoothedIntensities(smoothed_tmp);

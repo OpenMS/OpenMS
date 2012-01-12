@@ -118,7 +118,9 @@ protected:
         MzMLFile mz_data_file;
         mz_data_file.setLogType(log_type_);
         MSExperiment<Peak1D> ms_peakmap;
-        mz_data_file.load(in,ms_peakmap);
+        std::vector<Int> ms_level(1, 1);
+        (mz_data_file.getOptions()).setMSLevels(ms_level);
+        mz_data_file.load(in, ms_peakmap);
 
         if ( ms_peakmap.empty() )
         {
@@ -136,10 +138,10 @@ protected:
         //-------------------------------------------------------------
 
         Param common_param = getParam_().copy("algorithm:common:", true);
-        writeDebug_("Common parameters passed to all sub-algorithms", common_param,3);
+        writeDebug_("Common parameters passed to all subalgorithms (mtd, epd, and ffm)", common_param,3);
 
-        Param mtdet_param = getParam_().copy("algorithm:mtd:",true);
-        writeDebug_("Parameters passed to MassTraceDetection", mtdet_param,3);
+        Param mtd_param = getParam_().copy("algorithm:mtd:",true);
+        writeDebug_("Parameters passed to MassTraceDetection", mtd_param,3);
 
         Param epd_param = getParam_().copy("algorithm:epd:",true);
         writeDebug_("Parameters passed to ElutionPeakDetection", epd_param,3);
@@ -152,9 +154,9 @@ protected:
         //-------------------------------------------------------------
 
         MassTraceDetection mtdet;
-        mtdet_param.insert("", common_param);
-        // std::cout << "errppm ffm:" << mtdet_param.getValue("mass_error_ppm") << std::endl;
-        mtdet.setParameters(mtdet_param);
+        mtd_param.insert("", common_param);
+        // std::cout << "errppm ffm:" << mtd_param.getValue("mass_error_ppm") << std::endl;
+        mtdet.setParameters(mtd_param);
 
         mtdet.run(ms_peakmap, m_traces);
 
@@ -163,18 +165,30 @@ protected:
         // configure and run elution peak detection
         //-------------------------------------------------------------
 
-        //        DoubleReal fwhm(mtdet.getParameters().getValue("chrom_fwhm"));
-        //        DoubleReal scan_rt_diff ((ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/(ms_peakmap.size()));
-        //        Size min_datapoints = std::floor(fwhm/scan_rt_diff);
+        bool use_epd = epd_param.getValue("enabled").toBool();
 
-        ElutionPeakDetection epdet;
-        epdet.setParameters(epd_param);
+        std::vector<MassTrace> m_traces_final = m_traces;
 
-        std::vector<MassTrace> splitted_mtraces;
-        std::vector<MassTrace> filtered_mtraces;
+        if (use_epd)
+        {
 
-        epdet.detectPeaks(m_traces, splitted_mtraces);
-        epdet.filterByPeakWidth(splitted_mtraces, filtered_mtraces);
+            ElutionPeakDetection epdet;
+            epdet.setParameters(epd_param);
+
+            std::vector<MassTrace> splitted_mtraces;
+            epdet.detectPeaks(m_traces, splitted_mtraces);
+
+
+            if (epdet.getParameters().getValue("width_filtering").toBool())
+            {
+                m_traces_final.clear();
+                epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
+            }
+            else
+            {
+                m_traces_final = splitted_mtraces;
+            }
+        }
 
 
         //-------------------------------------------------------------
@@ -185,27 +199,8 @@ protected:
         ffm_param.insert("", common_param);
 
         ffmet.setParameters(ffm_param);
-        // ffmet.run(splitted_mtraces, ms_feat_map);
-        ffmet.run(filtered_mtraces, ms_feat_map);
+        ffmet.run(m_traces_final, ms_feat_map);
 
-
-
-        //        for (Size i = 0; i < splitted_mtraces.size(); ++i)
-        //        {
-        //            MassTrace tmp_mt(splitted_mtraces[i]);
-
-        //            Feature f;
-        //            f.setMetaValue(3,tmp_mt.getLabel());
-        //            f.setCharge(0);
-        //            f.setMZ(tmp_mt.getCentroidMZ());
-        //            f.setIntensity(tmp_mt.computePeakArea());
-        //            f.setRT(tmp_mt.getSmoothedMaxRT());
-        //            f.setWidth(tmp_mt.estimateFWHM());
-        //            f.setOverallQuality(0.0);
-        //            f.getConvexHulls().push_back(tmp_mt.getConvexhull());
-
-        //            ms_feat_map.push_back(f);
-        //        }
 
         //-------------------------------------------------------------
         // writing output

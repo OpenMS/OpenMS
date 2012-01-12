@@ -28,6 +28,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <vector>
 #include <map>
@@ -47,7 +48,7 @@ MassTraceDetection::MassTraceDetection()
     defaults_.setValue("noise_threshold_int" , 10.0 , "Intensity threshold below which peaks are removed as noise");
     defaults_.setValue("chrom_apex_snt" , 3.0 , "Minimum signal-to-noise a mass trace should have");
     defaults_.setValue("chrom_fwhm" , 3.0 , "Lower bound for FWHM (in seconds) of a chromatographic peak");
-    defaults_.setValue("min_sample_rate" , 0.5 , "Minimum sampling rate of a mass trace");
+    defaults_.setValue("min_sample_rate" , 0.5 , "Minimum fraction of scans along the mass trace that must contain a peak");
 
     defaultsToParam_();
 
@@ -62,15 +63,6 @@ MassTraceDetection::~MassTraceDetection()
 
 void MassTraceDetection::updateIterativeWeightedMeanMZ(const DoubleReal& added_mz, const DoubleReal& added_int, DoubleReal& centroid_mz, DoubleReal& prev_counter, DoubleReal& prev_denom)
 {
-    //        if (first_time)
-    //        {
-    //              centroid_mz = added_mz;
-    //            prev_counter = added_int * added_mz;
-    //            prev_denom = added_int;
-
-    //            return ;
-    //        }
-
     DoubleReal new_weight(added_int);
     DoubleReal new_mz(added_mz);
 
@@ -93,9 +85,11 @@ void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::
     {
         DoubleReal fwhm(mt_vec[i].estimateFWHM(false));
 
-        if (fwhm > chrom_fwhm_) {
+        //if (fwhm > chrom_fwhm_) {
+
+        std::cout << "DONUT: " << fwhm << std::endl;
             histo_map.insert(std::make_pair(fwhm, i));
-        }
+        //}
     }
 
     // compute median peak width
@@ -108,17 +102,11 @@ void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::
         pw_idx_vec.push_back(c_it->second);
     }
 
-    //        Size pw_vec_size = pw_vec.size();
-    //        DoubleReal pw_median(0.0);
+    Size pw_vec_size = pw_vec.size();
+    DoubleReal pw_median(Math::median(pw_vec.begin(), pw_vec.end(), true));
 
-    //        if ((pw_vec_size % 2) == 0)
-    //        {
-    //            pw_median = (pw_vec[std::floor(pw_vec_size/2.0) - 1] +  pw_vec[std::floor(pw_vec_size/2.0)])/2;
-    //        }
-    //        else
-    //        {
-    //            pw_median = pw_vec[std::floor(pw_vec_size/2.0)];
-    //        }
+
+
 
     // compute 97,725% quantile
 

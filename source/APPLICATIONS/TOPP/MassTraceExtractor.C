@@ -65,7 +65,7 @@ using namespace std;
 
 
         Annotates mass traces in centroided LC/MS maps.
-        Useful for metabolomics and top-down proteomics. 
+        Useful for metabolomics and top-down proteomics.
         Use FeatureFinder<xxx> tools for peptide data.
 */
 
@@ -73,7 +73,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPMassTraceExtractor
-    : public TOPPBase
+        : public TOPPBase
 {
 public:
     TOPPMassTraceExtractor()
@@ -99,9 +99,18 @@ protected:
     Param getSubsectionDefaults_(const String& /*section*/) const
     {
         Param combined;
-        combined.insert("mtd:", MassTraceDetection().getDefaults());
+
+        Param p_com;
+        p_com.setValue("chrom_fwhm" , 3.0 , "Lower bound for a chromatographic peak's FWHM (in seconds)");
+        combined.insert("common:", p_com);
+
+        Param p_mtd = MassTraceDetection().getDefaults();
+        p_mtd.remove("chrom_fwhm");
+        combined.insert("mtd:", p_mtd);
+
         Param p_epd = ElutionPeakDetection().getDefaults();
-        p_epd.setValue("enabled", "true", "Do post-filtering of detected mass traces?!");
+        p_epd.remove("chrom_fwhm");
+        p_epd.setValue("enabled", "true", "Switches on/off the detection of elution peaks");
         p_epd.setValidStrings("enabled", StringList::create("true,false"));
         combined.insert("epd:", p_epd);
 
@@ -131,70 +140,69 @@ protected:
         if (ms_peakmap.size()==0)
         {
             LOG_WARN << "The given file does not contain any conventional peak data, but might"
-                    " contain chromatograms. This tool currently cannot handle them, sorry.";
+                        " contain chromatograms. This tool currently cannot handle them, sorry.";
             return INCOMPATIBLE_INPUT_DATA;
         }
 
 
-        //-------------------------------------------------------------
-        // set parameters and start extraction
-        //-------------------------------------------------------------
         FeatureMap<> ms_feat_map;
         vector<MassTrace> m_traces;
 
-        Param mt_ext_param = getParam_().copy("algorithm:mtd:",true);
-        writeDebug_("Parameters passed to MassTraceDetection", mt_ext_param,3);
+        //-------------------------------------------------------------
+        // get params for MTD and EPD algorithms
+        //-------------------------------------------------------------
+        Param com_param = getParam_().copy("algorithm:common:",true);
+        writeDebug_("Common parameters passed to both subalgorithms (mtd and epd)", com_param,3);
+
+        Param mtd_param = getParam_().copy("algorithm:mtd:",true);
+        writeDebug_("Parameters passed to MassTraceDetection", mtd_param,3);
 
         Param epd_param = getParam_().copy("algorithm:epd:",true);
         writeDebug_("Parameters passed to ElutionPeakDetection", epd_param,3);
 
 
-        MassTraceDetection mt_ext;
-        // mt_ext.setLogType(log_type_);
-        mt_ext.setParameters(mt_ext_param);
+        //-------------------------------------------------------------
+        // configure and run MTD
+        //-------------------------------------------------------------
 
+        MassTraceDetection mt_ext;
+        mtd_param.insert("", com_param);
+        mt_ext.setParameters(mtd_param);
         mt_ext.run(ms_peakmap, m_traces);
         
         vector<MassTrace> m_traces_final = m_traces;
 
-        bool use_epd = epd_param.getValue("enabled") == "true";
+        bool use_epd = epd_param.getValue("enabled").toBool();
 
         if (use_epd)
         {
-            DoubleReal fwhm(mt_ext.getParameters().getValue("chrom_fwhm"));
-            //DoubleReal scan_rt_diff ((ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/(ms_peakmap.size()));
-            //Size min_datapoints = std::floor(fwhm/scan_rt_diff);
-
             ElutionPeakDetection ep_det;
 
             epd_param.remove("enabled"); // artificially added above
-            epd_param.setValue("chrom_fwhm", fwhm);
+            epd_param.insert("", com_param);
 
             ep_det.setParameters(epd_param);
 
             std::vector<MassTrace> splitted_mtraces;
 
-            std::vector<MassTrace> filtered_mtraces;
-
             ep_det.detectPeaks(m_traces, splitted_mtraces);
 
-            if (ep_det.getParameters().getValue("width_filtering") == "true")
+            if (ep_det.getParameters().getValue("width_filtering").toBool())
             {
-                ep_det.filterByPeakWidth(splitted_mtraces, filtered_mtraces);
+                m_traces_final.clear();
+                ep_det.filterByPeakWidth(splitted_mtraces, m_traces_final);
 
-                LOG_INFO << "After filtering: " << filtered_mtraces.size() << " of " << splitted_mtraces.size() << std::endl;
-
-                splitted_mtraces = filtered_mtraces;
+                LOG_INFO << "After peakwidth filtering: " << m_traces_final.size() << " of " << splitted_mtraces.size() << std::endl;
             }
-
-            m_traces_final = splitted_mtraces;
+            else
+            {
+                m_traces_final = splitted_mtraces;
+            }
         }
 
         //-----------------------------------------------------------
         // convert mass traces to features
         //-----------------------------------------------------------
-
-        std::map<DoubleReal, map<DoubleReal, DoubleReal> > out_map;
 
         for (Size i = 0; i < m_traces_final.size(); ++i)
         {
@@ -206,60 +214,16 @@ protected:
             f.setCharge(0);
             f.setMZ(tmp_mt.getCentroidMZ());
             f.setIntensity(tmp_mt.computePeakArea());
-            //            if (use_epd)
-            //            {
-            //              f.setRT(tmp_mt.getSmoothedMaxRT());
-            //              f.setWidth(tmp_mt.estimateFWHM());
-            //            }
-            //            else
-            //            {
-            //              f.setRT(tmp_mt.getCentroidRT());
-            //            }
             f.setRT(tmp_mt.getCentroidRT());
-            f.setWidth(tmp_mt.estimateFWHM(true));
-
+            f.setWidth(tmp_mt.estimateFWHM(use_epd));
             f.setOverallQuality(1 - (1.0/tmp_mt.getSize()));
             f.getConvexHulls().push_back(tmp_mt.getConvexhull());
-
-//            Size mtr_idx(0);
-
-//            for (MassTrace::const_iterator c_it = m_traces_final[i].begin(); c_it != m_traces_final[i].end(); ++c_it)
-//            {
-//                DoubleReal p_int(m_traces_final[i].getSmoothedIntensities()[mtr_idx]);
-//                if (p_int > 0.0) {
-//                    out_map[c_it->getRT()][c_it->getMZ()] = p_int;
-//                }
-//                ++mtr_idx;
-//            }
-
 
             ms_feat_map.push_back(f);
         }
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
-
-
-//        MSExperiment<Peak1D> out_msexp;
-
-//        for (std::map<DoubleReal, map<DoubleReal, DoubleReal> >::const_iterator m_it = out_map.begin(); m_it != out_map.end(); ++m_it)
-//        {
-//            MSSpectrum<Peak1D> tmp_spec;
-//            tmp_spec.setRT(m_it->first);
-
-//            for (std::map<DoubleReal, DoubleReal>::const_iterator c_it = m_it->second.begin(); c_it != m_it->second.end(); ++c_it)
-//            {
-//                Peak1D tmp_peak;
-//                tmp_peak.setMZ(c_it->first);
-//                tmp_peak.setIntensity(c_it->second);
-//                tmp_spec.push_back(tmp_peak);
-//            }
-
-//            out_msexp.push_back(tmp_spec);
-//        }
-
-
-//        MzMLFile().store("raw_out.mzML", out_msexp);
 
         //annotate output with data processing info TODO
         // addDataProcessing_(ms_featmap, getProcessingInfo_(DataProcessing::PEAK_PICKING));

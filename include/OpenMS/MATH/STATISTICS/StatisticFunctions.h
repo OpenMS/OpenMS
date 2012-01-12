@@ -85,7 +85,7 @@ namespace OpenMS
 														 bool sorted=FALSE)
 		{
 			Size size = std::distance(begin, end);
-			if (size <= 0)
+                        if (size == 0)
 			{
 				throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
