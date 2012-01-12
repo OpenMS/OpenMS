@@ -74,38 +74,39 @@ namespace OpenMS
 
 			 @param begin Start of range
 			 @param end End of range (past-the-end iterator)
-			 @param sorted Is the range already sorted? (If not, it may be reordered.)
+       @param sorted Is the range already sorted? If not, it will be sorted.
 
 			 @exception Exception::InvalidRange is thrown if the range is empty
 			 
 			 @ingroup MathFunctionsStatistics
 		*/
 		template <typename IteratorType>
-		static DoubleReal median(IteratorType begin, IteratorType end, 
-														 bool sorted=FALSE)
+    static DoubleReal median(IteratorType begin, IteratorType end, bool sorted = FALSE)
 		{
 			Size size = std::distance(begin, end);
-                        if (size == 0)
+
+      if (size == 0)
 			{
 				throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
+
+      if (!sorted)
+      {
+        std::sort(begin, end);
+      }
+
 			if (size % 2 == 0)  // even size => average two middle values
 			{
-				IteratorType it1 = begin, it2;
+        IteratorType it1 = begin;
 				std::advance(it1, size / 2 - 1);
-				if (!sorted)
-				{
-					std::nth_element(begin, it1, end); // partition: smaller, nth, greater
-					it2 = it1++;
-					it1 = std::min_element(it1, end); // smallest in the greater partition
-				}
-				return (*it1 + *it2) / 2.0;
+        IteratorType it2 = it1;
+        std::advance(it2, 1);
+        return (*it1 + *it2) / 2.0;
 			}
 			else 
 			{
 				IteratorType it = begin;
 				std::advance(it, (size - 1) / 2);
-				if (!sorted) std::nth_element(begin, it, end);
 				return *it;
 			}
 		}
