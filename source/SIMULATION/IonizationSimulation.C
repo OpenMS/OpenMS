@@ -441,7 +441,7 @@ namespace OpenMS {
 		{
 			// before leaving: free
 			gsl_ran_discrete_free (gsl_ran_lookup_esi_charge_impurity);
-			throw e;
+      throw;
 		}
 
 		// all ok: free
@@ -543,7 +543,7 @@ namespace OpenMS {
 		{
 			// before leaving: free
 			gsl_ran_discrete_free (gsl_ran_lookup_maldi);
-			throw e;
+      throw;
 		}
 
 		// all ok: free

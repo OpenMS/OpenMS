@@ -712,7 +712,7 @@ void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, Si
 			cerr << tabs_ << CID_spec[left].getPosition()[0] << " " << CID_spec[right].getPosition()[0] << " " << peptide_weight << endl;
 			cerr << tabs_ << "Reducing #sequences from " << new_sequences.size() << " to " << max_subscore_number_ << "(prefix=" << offset_prefix  << ", suffix=" << offset_suffix << ")...";
 #endif
-			if (offset_prefix > precursor_mass_tolerance_ || offset_prefix > precursor_mass_tolerance_)
+      if (offset_prefix > precursor_mass_tolerance_ || offset_suffix > precursor_mass_tolerance_)
 			{
 				reducePermuts_(new_sequences, CID_spec, offset_prefix, offset_suffix);
 			}

@@ -74,19 +74,20 @@ namespace OpenMS
   {
     initializedMaps_ = true;
 
-    Int index = 0;
     if (aa_to_index_.empty())
     {
       ResidueDB* res_db;
       res_db = ResidueDB::getInstance();
-      std::set<const Residue*>all_aa = res_db->getResidues("Natural20");
-      std::set<String>residues;
+      std::set<const Residue*> all_aa = res_db->getResidues("Natural20");
+      std::set<String> residues;
       std::set<const Residue*>::const_iterator aa_it;
       for (aa_it = all_aa.begin(); aa_it != all_aa.end(); ++aa_it)
       {
         residues.insert((*aa_it)->getOneLetterCode());
       }
       std::set<String>::const_iterator aa2_it;
+      Int index = 0;
+
       for (aa2_it = residues.begin(); aa2_it != residues.end(); ++aa2_it)
       {
         aa_to_index_[*aa2_it] = index;

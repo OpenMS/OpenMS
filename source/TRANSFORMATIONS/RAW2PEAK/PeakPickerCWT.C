@@ -1233,7 +1233,6 @@ namespace OpenMS
 				if(p_w == 0.)
 					{
             throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"estimatePeakWidth()","Peak width could not be determined from data!");
-						return;
 					}
 				else
 					{

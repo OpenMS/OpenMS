@@ -353,7 +353,7 @@ namespace OpenMS
     catch (Exception::FileNotFound& e)
     {
       LOG_ERROR << "Input database '" + db_name + "' not found. Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!";
-      throw e;
+      throw;
     }
 
     return full_db_name;

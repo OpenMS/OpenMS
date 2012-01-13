@@ -622,7 +622,6 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 					{
 						DoubleReal a=0;
 						UInt SumIonSeries=2;
-						UInt IonSeries=0;
 						DoubleReal zz=0;
 						vector<DoubleReal> z;
 						z.push_back((double)hit->getScore());
@@ -683,7 +682,6 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 									{
 										SumIonSeries=sum_tmp;
 										a=c;
-										IonSeries=Bs;
 										if(a >=common)
 										{
 											z.push_back((double)tt->getScore());

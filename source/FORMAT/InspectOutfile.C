@@ -135,7 +135,7 @@ namespace OpenMS
 		{
 			result_file.close();
 			result_file.clear();
-			throw p_e;
+      throw;
 		}
 		
 		while ( getline(result_file, line) )

@@ -363,9 +363,8 @@ namespace OpenMS
 			SignedSize start_index_in_text = getOccurrence(*it_);
 			char start_char = s_[start_index_in_text];
 			char next_char = ((Size)start_index_in_text == length(s_) - 1)?'R':s_[start_index_in_text+1];
-			DoubleReal subm = 0;
-			DoubleReal mm = 0;
-			// br indicates if break was used
+
+      // br indicates if break was used
 			bool br = false;
 			map<DoubleReal, SignedSize> modification_map (history.top());
 
@@ -378,6 +377,10 @@ namespace OpenMS
 				SignedSize length_till_node = length(representative(*it_))-edge_length;
 				char cc;
 				char ccn;
+
+        DoubleReal subm = 0;
+        DoubleReal mm = 0;
+
 				for (SignedSize i = 0; i<edge_length;++i)
 				{
 					// actual character is start_index_in_text + length_till_node + how many steps i walked
