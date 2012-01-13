@@ -248,7 +248,6 @@ namespace OpenMS
     Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
 
     const Param& tv_params = tv_->getParameters();
-    Int charge = 1;
 
     if (aa_sequence.isValid())
     {
@@ -273,6 +272,8 @@ namespace OpenMS
 
       try
       {
+        Int charge = 1;
+
         if (tv_params.getValue("preferences:idview:show_a_ions").toBool()) // "A-ions"
         {
           generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
