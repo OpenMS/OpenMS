@@ -215,13 +215,10 @@ class TOPPPTModel
 			DoubleReal sigma_stop = 0;
 			UInt number_of_partitions = 0;
 			UInt number_of_runs = 0;
-			DoubleReal cv_quality = 0;
 			map<SVMWrapper::SVM_parameter_type, DoubleReal> optimized_parameters;
 			map<SVMWrapper::SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
-			UInt maximum_sequence_length = 50;
 			bool additive_cv = true;
 			Param additional_parameters;
-			pair<DoubleReal, DoubleReal> sigmas;
 			Int temp_type = POLY;
 			String debug_string = "";
 			DoubleReal sigma = 0.1;
@@ -323,49 +320,36 @@ class TOPPPTModel
 					}
 			}			
 			
-			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC)
+      if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC && !skip_cv)
 			{			
-				DoubleReal c_start = 0.;
-				DoubleReal c_step_size = 0.;
-				DoubleReal c_stop = 0.;
-	
-				if (!skip_cv)
-				{
-					c_start = getDoubleOption_("c_start");
-					c_step_size = getDoubleOption_("c_step_size");
-					if (!additive_cv && c_step_size <= 1)
-					{
-						writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					c_stop = getDoubleOption_("c_stop");
-	
-					start_values.insert(make_pair(SVMWrapper::C, c_start));
-					step_sizes.insert(make_pair(SVMWrapper::C, c_step_size));
-					end_values.insert(make_pair(SVMWrapper::C, c_stop));	
-				}			
-			}
+        DoubleReal c_start = getDoubleOption_("c_start");
+        DoubleReal c_step_size = getDoubleOption_("c_step_size");
+        if (!additive_cv && c_step_size <= 1)
+        {
+          writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
+          return ILLEGAL_PARAMETERS;
+        }
+        DoubleReal c_stop = getDoubleOption_("c_stop");
 
-			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
+        start_values.insert(make_pair(SVMWrapper::C, c_start));
+        step_sizes.insert(make_pair(SVMWrapper::C, c_step_size));
+        end_values.insert(make_pair(SVMWrapper::C, c_stop));
+      }
+
+      if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC && !skip_cv)
 			{			
-				DoubleReal nu_start = 0.;
-				DoubleReal nu_step_size = 0.;
-				DoubleReal nu_stop = 0.;
-				if (!skip_cv)
-				{
-					nu_start = getDoubleOption_("nu_start");
-					nu_step_size = getDoubleOption_("nu_step_size");
-					if (!additive_cv && nu_step_size <= 1)
-					{
-						writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
-						return ILLEGAL_PARAMETERS;
-					}
-					nu_stop = getDoubleOption_("nu_stop");
+        DoubleReal nu_start = getDoubleOption_("nu_start");
+        DoubleReal nu_step_size = getDoubleOption_("nu_step_size");
+        if (!additive_cv && nu_step_size <= 1)
+        {
+          writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
+          return ILLEGAL_PARAMETERS;
+        }
+        DoubleReal nu_stop = getDoubleOption_("nu_stop");
 
-					start_values.insert(make_pair(SVMWrapper::NU, nu_start));
-					step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
-					end_values.insert(make_pair(SVMWrapper::NU, nu_stop));	
-				}			
+        start_values.insert(make_pair(SVMWrapper::NU, nu_start));
+        step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
+        end_values.insert(make_pair(SVMWrapper::NU, nu_stop));
 			}			
 
 			border_length = getIntOption_("border_length");
@@ -508,24 +492,25 @@ class TOPPPTModel
 			writeDebug_(debug_string, 1);							
 			temp_training_peptides.clear();
 
-			if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
-			{
-				encoded_training_sample = 
-					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
-																																	training_labels,
-																																	allowed_amino_acid_characters,
-																																	maximum_sequence_length);
-			}
-			else if (temp_type == SVMWrapper::OLIGO)
-			{
-				encoded_training_sample = 
-					encoder.encodeLibSVMProblemWithOligoBorderVectors(training_peptides,
-																														training_labels,
-																														k_mer_length,
-																														allowed_amino_acid_characters,
-																														svm.getIntParameter(SVMWrapper::BORDER_LENGTH));
-			}			
-																													
+      if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
+      {
+        UInt maximum_sequence_length = 50;
+        encoded_training_sample =
+            encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
+                                                                       training_labels,
+                                                                       allowed_amino_acid_characters,
+                                                                       maximum_sequence_length);
+      }
+      else if (temp_type == SVMWrapper::OLIGO)
+      {
+        encoded_training_sample =
+            encoder.encodeLibSVMProblemWithOligoBorderVectors(training_peptides,
+                                                              training_labels,
+                                                              k_mer_length,
+                                                              allowed_amino_acid_characters,
+                                                              svm.getIntParameter(SVMWrapper::BORDER_LENGTH));
+      }
+
       if ( !start_values.empty() )
 			{	
 				String digest = "";
@@ -545,7 +530,7 @@ class TOPPPTModel
 					}
 				}				
         SVMData dummy;
-				cv_quality = svm.performCrossValidation(encoded_training_sample,
+        DoubleReal cv_quality = svm.performCrossValidation(encoded_training_sample,
                                                 dummy,
                                                 false,
 																								start_values,
