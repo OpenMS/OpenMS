@@ -86,7 +86,8 @@ namespace OpenMS
         {
             DoubleReal fwhm(mt_vec[i].estimateFWHM(true));
 
-            if (fwhm >= chrom_fwhm_) {
+            if (fwhm >= chrom_fwhm_)
+            {
                 histo_map.insert(std::make_pair(fwhm, i));
             }
         }
@@ -100,20 +101,6 @@ namespace OpenMS
             pw_vec.push_back(c_it->first);
             pw_idx_vec.push_back(c_it->second);
         }
-
-        //        Size pw_vec_size = pw_vec.size();
-        //        DoubleReal pw_median(0.0);
-
-        //        if ((pw_vec_size % 2) == 0)
-        //        {
-        //            pw_median = (pw_vec[std::floor(pw_vec_size/2.0) - 1] +  pw_vec[std::floor(pw_vec_size/2.0)])/2;
-        //        }
-        //        else
-        //        {
-        //            pw_median = pw_vec[std::floor(pw_vec_size/2.0)];
-        //        }
-
-        // compute 97,725% quantile
 
         Size lower_idx(0);
         Size upper_idx(pw_vec.size());
@@ -135,7 +122,6 @@ namespace OpenMS
         }
 
         return ;
-
     }
 
 
@@ -157,7 +143,9 @@ namespace OpenMS
         Param lowess_params;
 
         // use dynamically computed window sizes
-        Size win_size = mt.getRoughFWHMsize();
+
+        mt.estimateFWHM(false); // estimate FWHM
+        Size win_size = mt.getFWHMScansNum();
 
         lowess_params.setValue("window_size", win_size);
         lowess_smooth.setParameters(lowess_params);

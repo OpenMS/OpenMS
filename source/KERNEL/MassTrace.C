@@ -37,7 +37,7 @@ MassTrace::MassTrace()
       centroid_rt_(),
       label_(),
       smoothed_intensities_(),
-      rough_fwhm_points_()
+      fwhm_num_scans_()
 {
 }
 
@@ -74,7 +74,7 @@ MassTrace::MassTrace(const MassTrace& mt)
       centroid_rt_(mt.centroid_rt_),
       label_(mt.label_),
       smoothed_intensities_(mt.smoothed_intensities_),
-      rough_fwhm_points_(mt.rough_fwhm_points_)
+      fwhm_num_scans_(mt.fwhm_num_scans_)
 {
 }
 
@@ -87,7 +87,7 @@ MassTrace& MassTrace::operator= (const MassTrace& rhs)
     centroid_rt_ = rhs.centroid_rt_;
     label_ = rhs.label_;
     smoothed_intensities_ = rhs.smoothed_intensities_;
-    rough_fwhm_points_ = rhs.rough_fwhm_points_;
+    fwhm_num_scans_ = rhs.fwhm_num_scans_;
 
     return *this;
 }
@@ -169,25 +169,19 @@ DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints = false)
 
     Size left_border(max_idx), right_border(max_idx);
 
-    while (left_border > 0)
+    while (left_border > 0 && tmp_ints[left_border] >= half_max_int)
     {
         --left_border;
-
-        if (tmp_ints[left_border] <= half_max_int)
-        {
-            break ;
-        }
     }
 
-    while (right_border+1 < tmp_ints.size())
+    while (right_border + 1 < tmp_ints.size() && tmp_ints[right_border] >= half_max_int)
     {
         ++right_border;
-
-        if (tmp_ints[right_border] <= half_max_int)
-        {
-            break ;
-        }
     }
+
+    // side effect: record number of peaks/scans that span the fwhm of the mass trace; useful for smoothing techniques (window size)
+
+    fwhm_num_scans_ = right_border - left_border + 1;
 
     return std::fabs(trace_peaks_[right_border].getRT() - trace_peaks_[left_border].getRT());
 }
@@ -295,15 +289,13 @@ void MassTrace::findLocalExtrema(const Size& num_neighboring_peaks, std::vector<
         }
 #endif
 
-        // binary search
+        // bisection
         Size left_bound(chrom_maxes[i] + 1);
         Size right_bound(chrom_maxes[i + 1] - 1);
 
-        // Size binary_steps(0);
 
         while ((left_bound + 1) < right_bound)
         {
-            //                std::cout << left_bound << "___" << right_bound << std::endl;
             DoubleReal mid_dist((right_bound - left_bound)/2.0);
 
             Size mid_element_idx(left_bound + std::floor(mid_dist));
@@ -319,7 +311,6 @@ void MassTrace::findLocalExtrema(const Size& num_neighboring_peaks, std::vector<
                 left_bound = mid_element_idx;
             }
 
-            // ++binary_steps;
         }
 
         Size min_rt((smoothed_intensities_[left_bound] < smoothed_intensities_[right_bound]) ? left_bound : right_bound);

@@ -112,6 +112,7 @@ set(kernel_executables_list
 	DRichPeak_test
 	FeatureMap_test
 	Feature_test
+	MassTrace_test
 	MSChromatogram_test
 	MSExperiment_test
 	MSSpectrum_test

@@ -172,15 +172,15 @@ namespace OpenMS
         }
 
         /// Return estimated number of peaks spanning the full-width-at-half-maximum (previous estimation needed!)
-        inline Size getRoughFWHMsize()
+        inline Size getFWHMScansNum()
         {
-            return rough_fwhm_points_;
+            return fwhm_num_scans_;
         }
 
         /// Set estimated number of peaks spanning the full-width-at-half-maximum
-        inline void setRoughFWHMsize(Size r_fwhm)
+        inline void setFWHMScansNum(Size r_fwhm)
         {
-            rough_fwhm_points_ = r_fwhm;
+            fwhm_num_scans_ = r_fwhm;
         }
 
 
@@ -191,7 +191,7 @@ namespace OpenMS
         /// Sum up mass trace peak intensities for chromatographic peak area estimation
         DoubleReal computePeakArea();
 
-        /// Return a pointer to the mass trace's highest peak (based either on raw or smoothed intensities)
+        /// Return the index of the mass trace's highest peak (based either on raw or smoothed intensities)
         Size findMaxByIntPeak(bool);
 
         /// Estimate FWHM of chromatographic peak (based on either raw or smoothed intensities)
@@ -240,7 +240,7 @@ namespace OpenMS
         std::vector<DoubleReal> smoothed_intensities_;
 
         /// Rough estimate of a chromatographic peak's width (can be set while collecting the mass trace)
-        DoubleReal rough_fwhm_points_;
+        Size fwhm_num_scans_;
     };
 
 }
