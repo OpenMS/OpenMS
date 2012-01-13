@@ -107,17 +107,10 @@ namespace OpenMS
 
 		/// Score threshold for peptide hits
 		DoubleReal score_threshold_;
-		
-		/**
-			 @brief Compute the median of a list of values
-			 
-			 @param values Input values (will be sorted)
-			 @param sorted Are values already sorted? (sorting step can be saved)
-			 
-			 @throw Exception::IllegalArgument if the input list is empty
-		*/
-		DoubleReal median_(DoubleList& values, bool sorted = false);
 
+		/// Minimum number of runs a peptide must occur in
+		Size min_run_occur_;
+		
 		/**
 			 @brief Compute the median retention time for each peptide sequence
 			 
