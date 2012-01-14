@@ -51,8 +51,8 @@ MassTrace::MassTrace(const std::list<PeakType>& tmp_lst)
     }
 
     // update centroid RT & m/z
-    updateWeightedMeanRT();
-    updateWeightedMeanMZ();
+    // updateWeightedMeanRT();
+    // updateWeightedMeanMZ();
 }
 
 MassTrace::MassTrace(const std::vector<PeakType>& tmp_vec)
@@ -60,8 +60,8 @@ MassTrace::MassTrace(const std::vector<PeakType>& tmp_vec)
     trace_peaks_ = tmp_vec;
 
     // update centroid RT & m/z
-    updateWeightedMeanRT();
-    updateWeightedMeanMZ();
+    // updateWeightedMeanRT();
+    // updateWeightedMeanMZ();
 }
 
 MassTrace::~MassTrace()
@@ -341,7 +341,17 @@ ConvexHull2D MassTrace::getConvexhull() const
 
 void MassTrace::updateWeightedMeanRT()
 {
+    if (trace_peaks_.empty())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid RT undefined!", String(trace_peaks_.size()));
+    }
+
     DoubleReal trace_area(this->computePeakArea());
+
+    if (trace_area < std::numeric_limits<DoubleReal>::epsilon())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peak area equals to zero... impossible to compute weights!", String(trace_peaks_.size()));
+    }
 
     DoubleReal wmean_rt(0.0);
 
@@ -358,7 +368,7 @@ void MassTrace::updateMedianRT()
 {
     if (trace_peaks_.empty())
     {
-        return ;
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid RT undefined!", String(trace_peaks_.size()));
     }
 
     if (trace_peaks_.size() == 1)
@@ -398,7 +408,7 @@ void MassTrace::updateMedianMZ()
 {
     if (trace_peaks_.empty())
     {
-        return ;
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
     }
 
     if (trace_peaks_.size() == 1)
@@ -433,11 +443,14 @@ void MassTrace::updateMedianMZ()
 }
 
 
-void MassTrace::updateMeanMZ() {
-    Size trace_size = trace_peaks_.size();
+void MassTrace::updateMeanMZ()
+{
+    if (trace_peaks_.empty())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
+    }
 
-    if (trace_size == 0)
-        return ;
+    Size trace_size = trace_peaks_.size();
 
     DoubleReal sum_mz(0.0);
 
@@ -453,6 +466,11 @@ void MassTrace::updateMeanMZ() {
 
 void MassTrace::updateWeightedMeanMZ()
 {
+    if (trace_peaks_.empty())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
+    }
+
     DoubleReal weighted_sum(0.0);
     DoubleReal total_weight(0.0);
 
@@ -463,7 +481,7 @@ void MassTrace::updateWeightedMeanMZ()
         weighted_sum += w_i * (*l_it).getMZ();
     }
 
-    if (total_weight == 0.0)
+    if (total_weight < std::numeric_limits<DoubleReal>::epsilon())
     {
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "All weights were equal to zero! Empty trace? Aborting...", String(total_weight));
     }

@@ -98,7 +98,7 @@ void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::
         pw_idx_vec.push_back(c_it->second);
     }
 
-    Size pw_vec_size = pw_vec.size();
+    // Size pw_vec_size = pw_vec.size();
     DoubleReal pw_median(Math::median(pw_vec.begin(), pw_vec.end(), true));
 
 
@@ -110,16 +110,17 @@ void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::
         abs_devs.push_back(std::fabs(pw_vec[pw_i] - pw_median));
     }
 
-    Size abs_devs_size = abs_devs.size();
+    // Size abs_devs_size = abs_devs.size();
     DoubleReal pw_mad(Math::median(abs_devs.begin(), abs_devs.end(), false));
 
-    Size lower_pw_bound(0.0);
+    DoubleReal lower_pw_bound(0.0);
 
     if (pw_median - 2*pw_mad > 0.0)
     {
         lower_pw_bound = pw_median - 2*pw_mad;
     }
-    Size upper_pw_bound(std::floor(pw_median + 2*pw_mad));
+
+    DoubleReal upper_pw_bound(std::floor(pw_median + 2*pw_mad));
 
     for (Size i = 0; i < mt_vec.size(); ++i)
     {
@@ -128,13 +129,13 @@ void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::
         {
             if (mt_vec[pw_idx_vec[i]].getSize() >= lower_pw_bound)
             {
-                mt_vec[pw_idx_vec[i]].setFWHMScansNum(std::floor(lower_pw_bound)); // override "false" pw estimation
+                mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)lower_pw_bound); // override "false" pw estimation
                 filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
             }
         }
         else if (pw_vec[i] > upper_pw_bound)
         {
-            mt_vec[pw_idx_vec[i]].setFWHMScansNum(std::floor(upper_pw_bound)); // override "false" pw estimation
+            mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)upper_pw_bound); // override "false" pw estimation
             filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
         }
         else
@@ -439,6 +440,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
 
             // create new MassTrace object and store collected peaks from list current_trace
             MassTrace new_trace(current_trace);
+            new_trace.updateWeightedMeanRT();
+            new_trace.updateWeightedMeanMZ();
 
             new_trace.setLabel("T" + tr_num);
             new_trace.setFWHMScansNum(fwhm_counter_down + fwhm_counter_up + 1);

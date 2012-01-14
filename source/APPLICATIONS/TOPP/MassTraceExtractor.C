@@ -206,18 +206,17 @@ protected:
 
         for (Size i = 0; i < m_traces_final.size(); ++i)
         {
-            MassTrace tmp_mt(m_traces_final[i]);
-            if (tmp_mt.getSize() == 0) continue;
+            if (m_traces_final[i].getSize() == 0) continue;
 
             Feature f;
-            f.setMetaValue(3,tmp_mt.getLabel());
+            f.setMetaValue(3, m_traces_final[i].getLabel());
             f.setCharge(0);
-            f.setMZ(tmp_mt.getCentroidMZ());
-            f.setIntensity(tmp_mt.computePeakArea());
-            f.setRT(tmp_mt.getCentroidRT());
-            f.setWidth(tmp_mt.estimateFWHM(use_epd));
-            f.setOverallQuality(1 - (1.0/tmp_mt.getSize()));
-            f.getConvexHulls().push_back(tmp_mt.getConvexhull());
+            f.setMZ(m_traces_final[i].getCentroidMZ());
+            f.setIntensity(m_traces_final[i].computePeakArea());
+            f.setRT(m_traces_final[i].getCentroidRT());
+            f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
+            f.setOverallQuality(1 - (1.0/m_traces_final[i].getSize()));
+            f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
 
             ms_feat_map.push_back(f);
         }

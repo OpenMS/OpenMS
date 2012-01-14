@@ -56,18 +56,18 @@ namespace OpenMS
         MassTrace();
 
         /// Detailed constructor 1
-        MassTrace(const std::list<PeakType>& );
+        MassTrace(const std::list<PeakType>&);
 
         /// Detailed constructor 2
-        MassTrace(const std::vector<PeakType>& );
+        MassTrace(const std::vector<PeakType>&);
 
 
         /// Default destructor
         ~MassTrace();
         /// Copy constructor
-        MassTrace(const MassTrace &tr_obj);
+        MassTrace(const MassTrace&);
 
-        MassTrace& operator= (const MassTrace& rhs);
+        MassTrace& operator= (const MassTrace&);
 
         /** @name Iterators
         */
@@ -120,48 +120,48 @@ namespace OpenMS
         */
 
         /// Returns the number of peaks contained in the mass trace
-        inline Size getSize() const
+        Size getSize() const
         {
             return trace_peaks_.size();
         }
 
         /// Get label of mass trace
-        inline String getLabel()
+        String getLabel()
         {
             return label_;
         }
 
         /// Set label of mass trace
-        inline void setLabel(const String& label)
+        void setLabel(const String& label)
         {
             label_ = label;
         }
 
         /// Return the centroid m/z
-        inline DoubleReal getCentroidMZ()
+        DoubleReal getCentroidMZ()
         {
             return centroid_mz_;
         }
 
         /// Return the centroid RT
-        inline DoubleReal getCentroidRT()
+        DoubleReal getCentroidRT()
         {
             return centroid_rt_;
         }
 
         /// Get smoothed intensities (empty if no smoothing was explicitly done beforehand!)
-        inline std::vector<DoubleReal> getSmoothedIntensities()
+        std::vector<DoubleReal> getSmoothedIntensities()
         {
             return smoothed_intensities_;
         }
 
-        inline std::vector<DoubleReal> getSmoothedIntensities() const
+        std::vector<DoubleReal> getSmoothedIntensities() const
         {
             return smoothed_intensities_;
         }
 
         /// Set smoothed intensities
-        inline void setSmoothedIntensities(const std::vector<DoubleReal>& db_vec)
+        void setSmoothedIntensities(const std::vector<DoubleReal>& db_vec)
         {
             if (trace_peaks_.size() != db_vec.size())
             {
@@ -172,13 +172,13 @@ namespace OpenMS
         }
 
         /// Return estimated number of peaks spanning the full-width-at-half-maximum (previous estimation needed!)
-        inline Size getFWHMScansNum()
+        Size getFWHMScansNum()
         {
             return fwhm_num_scans_;
         }
 
         /// Set estimated number of peaks spanning the full-width-at-half-maximum
-        inline void setFWHMScansNum(Size r_fwhm)
+        void setFWHMScansNum(Size r_fwhm)
         {
             fwhm_num_scans_ = r_fwhm;
         }

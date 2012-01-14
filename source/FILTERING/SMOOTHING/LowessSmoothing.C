@@ -56,7 +56,7 @@ namespace OpenMS
     }
 
     // unable to smooth over 2 or less data points (we need at least 3)
-    if (input_x.size()<=2)
+    if (input_x.size() <= 2)
     {
       smoothed_output = input_y;
       return;

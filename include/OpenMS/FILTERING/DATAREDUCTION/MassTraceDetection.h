@@ -25,8 +25,8 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MASSTRACEDETECTION_H
-#define OPENMS_MASSTRACEDETECTION_H
+#ifndef OPENMS_FILTERING_DATAREDUCTION_MASSTRACEDETECTION_H
+#define OPENMS_FILTERING_DATAREDUCTION_MASSTRACEDETECTION_H
 
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -69,4 +69,4 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_MASSTRACEDETECTION_H
+#endif // OPENMS_FILTERING_DATAREDUCTION_MASSTRACEDETECTION_H
