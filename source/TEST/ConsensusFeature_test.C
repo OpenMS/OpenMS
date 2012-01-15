@@ -238,24 +238,6 @@ START_SECTION((void insert(UInt64 map_index, const BaseFeature &element)))
   }
 END_SECTION
 
-
-START_SECTION((ConsensusFeature(const Peak2D &point)))
-  ConsensusFeature cons(static_cast<Peak2D>(tmp_feature));
-  TEST_REAL_SIMILAR(cons.getRT(),1.0)
-  TEST_REAL_SIMILAR(cons.getMZ(),2.0)
-  TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
-  TEST_EQUAL(cons.empty(), true)
-END_SECTION
-
-START_SECTION((ConsensusFeature(const RichPeak2D &point)))
-
-  ConsensusFeature cons(static_cast<RichPeak2D>(tmp_feature));
-  TEST_REAL_SIMILAR(cons.getRT(),1.0)
-  TEST_REAL_SIMILAR(cons.getMZ(),2.0)
-  TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
-  TEST_EQUAL(cons.empty(), true)
-END_SECTION
-
 START_SECTION((ConsensusFeature(const BaseFeature &feature)))
   BaseFeature f;
   f.setCharge(-17);

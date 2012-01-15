@@ -33,7 +33,7 @@
 
 ///////////////////////////
 
-START_TEST(MassTrace, "$Id: MassTrace_test.C 8215 2011-03-29 14:18:26Z aiche $")
+START_TEST(MassTrace, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -356,6 +356,7 @@ test_mt2.updateWeightedMeanMZ();
 START_SECTION((void setFWHMScansNum(Size r_fwhm)))
 {
     test_mt.setFWHMScansNum(2);
+    TEST_EQUAL(test_mt.getFWHMScansNum(), 2);
 }
 END_SECTION
 
@@ -363,8 +364,7 @@ END_SECTION
 
 START_SECTION((Size getFWHMScansNum()))
 {
-    Size scans_num = test_mt.getFWHMScansNum();
-    TEST_EQUAL(scans_num, 2);
+    NOT_TESTABLE; // see setFWHMScansNum
 }
 END_SECTION
 

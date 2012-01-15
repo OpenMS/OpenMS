@@ -59,7 +59,7 @@ START_SECTION(([Param::ParamEntry] ~ParamEntry()))
 	delete pe_ptr;
 END_SECTION
 
-START_SECTION(([Param::ParamEntry] ParamEntry(const String& n, const DataValue& v, const String& d, bool u)))
+START_SECTION(([Param::ParamEntry] ParamEntry(const String &n, const DataValue &v, const String &d, const StringList &t=StringList())))
 	Param::ParamEntry pe("n","v","d",StringList::create("advanced"));
 	TEST_EQUAL(pe.name,"n")
 	TEST_EQUAL(pe.description,"d")
@@ -1271,6 +1271,14 @@ START_SECTION((void store(const String& filename) const))
 	TEST_EQUAL(p4.isValid(filename),true)
 END_SECTION
 
+        START_SECTION((void writeXMLToStream(std::ostream *os_ptr) const ))
+        {
+            NOT_TESTABLE;
+            // TODO: Testing needed!
+
+        }
+        END_SECTION
+
 
 START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", bool showMessage=false)))
 	Param defaults;
@@ -1799,13 +1807,13 @@ START_SECTION((void update(const Param &old_version, const bool report_new_param
   // update()
   defaults.update(old);
   
-  TEST_EQUAL(defaults,expected)
+  TEST_EQUAL(defaults,expected);
   
 END_SECTION
 
 
 START_SECTION((ParamIterator begin() const))
-	NOT_TESTABLE
+        NOT_TESTABLE;
 END_SECTION
 
 START_SECTION((ParamIterator end() const))

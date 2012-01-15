@@ -86,7 +86,7 @@ for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 param.setValue("signal_to_noise",0.0);
 pp_hires.setParameters(param);   
 
-START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)))
+START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output) const ))
 MSSpectrum<Peak1D> tmp_spec;
 pp_hires.pick(input[0],tmp_spec);
 
@@ -98,7 +98,7 @@ for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
 }
 END_SECTION
 
-START_SECTION((template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
+START_SECTION((template < typename PeakType > void pickExperiment(const MSExperiment< PeakType > &input, MSExperiment< PeakType > &output) const ))
 MSExperiment<Peak1D> tmp_exp;
 pp_hires.pickExperiment(input,tmp_exp);
 

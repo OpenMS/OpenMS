@@ -846,15 +846,19 @@ $GLOBALS["all_tests"] = array(
 							
 						exec("svn proplist -v $src_path/$testname",$out);
 						$kw = false;
+						$kw_id = false;
 						foreach ($out as $line)
 						{
+							
 							if (strpos($line,"svn:keywords")!==FALSE)
 							{
 								$kw = true;
-								if (strpos($line,"Id")===FALSE)
-								{
-									realOutput("svn:keyword 'Id' not set for '$testname'",$user,$testname);
-								}
+								
+							}
+
+							if (strpos($line,"Id")!==FALSE)
+							{
+								$kw_id = true;
 							}
 						}
 
@@ -892,8 +896,14 @@ $GLOBALS["all_tests"] = array(
 						*/
 						if (!$kw)
 						{
+							realOutput("svn:keywords section does not exist for '$testname'",$user,$testname);
+						}
+
+						if (!$kw_id)
+						{
 							realOutput("svn:keyword 'Id' not set for '$testname'",$user,$testname);
 						}
+
 					}
 				}
 			}
