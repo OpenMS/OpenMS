@@ -30,13 +30,20 @@ include(CppcheckTargets)
 if(CPPCHECK_FOUND)
   set(SOURCE_FILE_REGEX "\\.C$")
 
+  # certain files need to be excluded, since they cause internal errors
+  set(EXCLUDE_FILE_REGEX "ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.C$|FILTERING/DATAREDUCTION/DataFilters.C$")
+  set(CPPCHECK_INCLUDEPATH_ARG ${OPENMS_INCLUDE_DIRS})
+
   # library checks
   set(OpenMS_cppcheck_sources)
   foreach(i ${OpenMS_sources})
     string( REGEX MATCH ${SOURCE_FILE_REGEX} is_source_file ${i} )
-    if(is_source_file)
+    string( REGEX MATCH ${EXCLUDE_FILE_REGEX} is_excluded_file ${i} )
+    if(is_source_file AND NOT is_excluded_file)
       #add_cppcheck_sources(${i} ${i} STYLE FAIL_ON_WARNINGS)
       list(APPEND OpenMS_cppcheck_sources ${i})
+    elseif(is_source_file AND is_excluded_file)
+      message(STATUS "Excluded ${i} from cppcheck tests")
     endif()
   endforeach()
 
