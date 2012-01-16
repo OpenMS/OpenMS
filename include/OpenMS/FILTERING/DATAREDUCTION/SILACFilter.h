@@ -136,10 +136,15 @@ namespace OpenMS
       std::vector<std::vector<DoubleReal> > exact_shifts_;
 
       /**
+       * @brief m/z positions mz + exact_shifts in a SILAC pattern, where mz is the m/z of the mono-isotopic peak of light peptide
+       */
+      std::vector<std::vector<DoubleReal> > exact_mz_positions_;
+      
+      /**
        * @brief intensities at mz + exact_shifts in a SILAC pattern, where mz is the m/z of the mono-isotopic peak of light peptide
        */
       std::vector<std::vector<DoubleReal> > exact_intensities_;
-
+      
       /**
        * @brief expected m/z shift of isotopic peaks in a SILAC pattern relative to the mono-isotopic peak of the light peptide, peptides (row) x isotope (column)
        */
