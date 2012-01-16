@@ -120,7 +120,7 @@ void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::
         lower_pw_bound = pw_median - 2*pw_mad;
     }
 
-    DoubleReal upper_pw_bound(std::floor(pw_median + 2*pw_mad));
+    // DoubleReal upper_pw_bound(std::floor(pw_median + 2*pw_mad));
 
     for (Size i = 0; i < mt_vec.size(); ++i)
     {
@@ -129,14 +129,17 @@ void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::
         {
             if (mt_vec[pw_idx_vec[i]].getSize() >= lower_pw_bound)
             {
-                mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)lower_pw_bound); // override "false" pw estimation
+                if (mt_vec[pw_idx_vec[i]].getSize() >= pw_median)
+                {
+                    mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)pw_median);
+                }
+                else
+                {
+                    mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)lower_pw_bound); // override "false" pw estimation
+                }
+
                 filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
             }
-        }
-        else if (pw_vec[i] > upper_pw_bound)
-        {
-            mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)upper_pw_bound); // override "false" pw estimation
-            filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
         }
         else
         {

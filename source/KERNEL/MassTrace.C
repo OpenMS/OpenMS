@@ -49,19 +49,11 @@ MassTrace::MassTrace(const std::list<PeakType>& tmp_lst)
     {
         trace_peaks_.push_back((*l_it));
     }
-
-    // update centroid RT & m/z
-    // updateWeightedMeanRT();
-    // updateWeightedMeanMZ();
 }
 
 MassTrace::MassTrace(const std::vector<PeakType>& tmp_vec)
 {
     trace_peaks_ = tmp_vec;
-
-    // update centroid RT & m/z
-    // updateWeightedMeanRT();
-    // updateWeightedMeanMZ();
 }
 
 MassTrace::~MassTrace()

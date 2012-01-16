@@ -101,7 +101,7 @@ protected:
         Param combined;
 
         Param p_com;
-        p_com.setValue("chrom_fwhm" , 3.0 , "Lower bound for a chromatographic peak's FWHM (in seconds)");
+        p_com.setValue("chrom_fwhm" , 0.0 , "Allows filtering of mass traces with peak width (in seconds) less than this threshold. Disabled by default (set to 0.0).");
         combined.insert("common:", p_com);
 
         Param p_mtd = MassTraceDetection().getDefaults();
@@ -192,7 +192,7 @@ protected:
                 m_traces_final.clear();
                 ep_det.filterByPeakWidth(splitted_mtraces, m_traces_final);
 
-                LOG_INFO << "After peakwidth filtering: " << m_traces_final.size() << " of " << splitted_mtraces.size() << std::endl;
+                LOG_INFO << "Notice: " << splitted_mtraces.size() - m_traces_final.size() << " of total " << splitted_mtraces.size() << " were dropped because of too low peak width." << std::endl;
             }
             else
             {
@@ -217,6 +217,7 @@ protected:
             f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
             f.setOverallQuality(1 - (1.0/m_traces_final[i].getSize()));
             f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
+            f.setUniqueId();
 
             ms_feat_map.push_back(f);
         }
@@ -226,6 +227,7 @@ protected:
 
         //annotate output with data processing info TODO
         // addDataProcessing_(ms_featmap, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+        ms_feat_map.setUniqueId();
 
         FeatureXMLFile().store(out, ms_feat_map);
 

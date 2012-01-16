@@ -239,7 +239,8 @@ set(filtering_executables_list
   LinearResampler_test
   LowessSmoothing_test
   MarkerMower_test
-  MorphologicalFilter_test
+MassTraceDetection_test  
+MorphologicalFilter_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
