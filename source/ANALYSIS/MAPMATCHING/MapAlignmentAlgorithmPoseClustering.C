@@ -184,7 +184,7 @@ namespace OpenMS
 				setProgress(10 * i + 5);
 				TransformationDescription trafo(data);
 				transformations.push_back(trafo);
-				setProgress(10*i+6);
+				setProgress(10 * i + 6);
 			}
 
 			else if (reference_file_.empty())
@@ -210,7 +210,7 @@ namespace OpenMS
 		transformations.clear();
 
 		// reference map:
-		Size reference_index(0);
+		Size reference_index = reference_index_ - 1;
 		if (!reference_file_.empty())
 		{
 			if (FileHandler::getType(reference_file_) != FileTypes::FEATUREXML)

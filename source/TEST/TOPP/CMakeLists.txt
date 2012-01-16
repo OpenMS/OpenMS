@@ -428,6 +428,12 @@ add_test("TOPP_MapAlignerPoseClustering_3_out1" ${DIFF} -in1 MapAlignerPoseClust
 set_tests_properties("TOPP_MapAlignerPoseClustering_3_out1" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_3")
 add_test("TOPP_MapAlignerPoseClustering_3_out2" ${DIFF} -in1 MapAlignerPoseClustering_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_output3.featureXML )
 set_tests_properties("TOPP_MapAlignerPoseClustering_3_out2" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_3")
+# "reference:index" option:
+add_test("TOPP_MapAlignerPoseClustering_4" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input2.featureXML -trafo_out MapAlignerPoseClustering_4_trafo1.tmp MapAlignerPoseClustering_4_trafo2.tmp -reference:index 2)
+add_test("TOPP_MapAlignerPoseClustering_4_out1" ${DIFF} -in1 MapAlignerPoseClustering_4_trafo1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_4_trafo1.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_4_out1" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_4")
+add_test("TOPP_MapAlignerPoseClustering_4_out2" ${DIFF} -in1 MapAlignerPoseClustering_4_trafo2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo1.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_4_out2" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_4")
 
 ### MapAlignerIdentification tests:
 add_test("TOPP_MapAlignerIdentification_1" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML -out MapAlignerIdentification_1_output1.tmp MapAlignerIdentification_1_output2.tmp)
