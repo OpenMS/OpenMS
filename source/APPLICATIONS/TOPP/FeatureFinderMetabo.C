@@ -171,6 +171,7 @@ protected:
         {
 
             ElutionPeakDetection epdet;
+            epd_param.remove("enabled"); // artificially added above
             epdet.setParameters(epd_param);
 
             std::vector<MassTrace> splitted_mtraces;

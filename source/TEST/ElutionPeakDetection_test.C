@@ -67,9 +67,8 @@ test_mtd.run(input, output_mt);
 ElutionPeakDetection test_epd;
 
 String mt_labels[] = {"T6", "T7", "T9", "T3", "T4", "T8", "T5", "T2", "T1"};
-String split_labels[] = {"T6_0", "T6_1", "T6_2", "T6_3", "T7_0", "T7_1", "T7_2", "T7_3", "T7_4", "T9_0", "T9_1", "T9_2", "T3_0", "T3_1", "T3_2", "T3_3", "T3_4", "T3_5", "T3_6", "T3_7", "T3_8", "T3_9", "T3_10", "T3_11", "T3_12", "T4_0", "T4_1", "T4_2", "T8_0", "T8_1", "T5", "T2", "T1_0", "T1_1", "T1_2"};
-String filt_labels[] = {"T6_0", "T6_1", "T7_3", "T3_1", "T3_2", "T3_3", "T3_5", "T3_7", "T3_8", "T3_9", "T4_1", "T1_0", "T6_3", "T3_0", "T3_4", "T3_11", "T4_0", "T4_2", "T8_1", "T6_2", "T7_1", "T7_2", "T9_0", "T3_10", "T8_0", "T7_0", "T5", "T9_1", "T2", "T1_1", "T1_2", "T3_6"};
-
+String split_labels[] = {"T6.1", "T6.2", "T6.3", "T6.4", "T7.1", "T7.2", "T7.3", "T7.4", "T7.5", "T9.1", "T9.2", "T9.3", "T3.1", "T3.2", "T3.3", "T3.4", "T3.5", "T3.6", "T3.7", "T3.8", "T3.9", "T3.10", "T3.11", "T3.12", "T3.13", "T4.1", "T4.2", "T4.3", "T8.1", "T8.2", "T5", "T2", "T1.1", "T1.2", "T1.3"};
+String filt_labels[] = {"T6.1", "T6.2", "T7.4", "T3.2", "T3.3", "T3.4", "T3.6", "T3.8", "T3.9", "T3.10", "T4.2", "T1.1", "T6.4", "T3.1", "T3.5", "T3.12", "T4.1", "T4.3", "T8.2", "T6.3", "T7.2", "T7.3", "T9.1", "T3.11", "T8.1", "T7.1", "T5", "T9.2", "T2", "T1.2", "T1.3", "T3.7"};
 
 
 START_SECTION((void detectPeaks(std::vector< MassTrace > &, std::vector< MassTrace > &)))
@@ -78,6 +77,7 @@ START_SECTION((void detectPeaks(std::vector< MassTrace > &, std::vector< MassTra
 
     for (Size i = 0; i < output_mt.size(); ++i)
     {
+
         TEST_EQUAL(output_mt[i].getLabel(), mt_labels[i]);
     }
 

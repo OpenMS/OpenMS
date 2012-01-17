@@ -44,11 +44,11 @@ MassTraceDetection::MassTraceDetection()
     : DefaultParamHandler("MassTraceDetection"), ProgressLogger()
 {
     // defaults_.setValue( "name" , 1 , "descript" );
-    defaults_.setValue("mass_error_ppm" , 20.0 , "Allowed mass deviation (in ppm)");
-    defaults_.setValue("noise_threshold_int" , 10.0 , "Intensity threshold below which peaks are removed as noise");
-    defaults_.setValue("chrom_apex_snt" , 3.0 , "Minimum signal-to-noise a mass trace should have");
-    defaults_.setValue("chrom_fwhm" , 3.0 , "Lower bound for FWHM (in seconds) of a chromatographic peak");
-    defaults_.setValue("min_sample_rate" , 0.5 , "Minimum fraction of scans along the mass trace that must contain a peak");
+    defaults_.setValue("mass_error_ppm" , 20.0 , "Allowed mass deviation (in ppm).");
+    defaults_.setValue("noise_threshold_int" , 10.0 , "Intensity threshold below which peaks are removed as noise.");
+    defaults_.setValue("chrom_apex_snt" , 3.0 , "Minimum signal-to-noise a mass trace should have.");
+    defaults_.setValue("chrom_fwhm" , 0.0 , "Allows filtering of mass traces with peak width (in seconds) less than this threshold. Disabled by default (set to 0.0).", StringList::create("advanced"));
+    defaults_.setValue("min_sample_rate" , 0.5 , "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
 
     defaultsToParam_();
 

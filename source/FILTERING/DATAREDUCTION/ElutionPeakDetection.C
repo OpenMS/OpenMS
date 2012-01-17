@@ -39,7 +39,7 @@ namespace OpenMS
 ElutionPeakDetection::ElutionPeakDetection()
     : DefaultParamHandler("ElutionPeakDetection"), ProgressLogger()
 {
-    defaults_.setValue( "chrom_fwhm" , 0.0 , "Allows filtering of mass traces with peak width less than this threshold. Disabled by default (set to 0.0).");
+    defaults_.setValue( "chrom_fwhm" , 0.0 , "Allows filtering of mass traces with peak width less than this threshold. Disabled by default (set to 0.0).", StringList::create("advanced"));
     defaults_.setValue("width_filtering", "true", "Enable filtering of unlikely peak widths.");
     defaults_.setValidStrings("width_filtering", StringList::create(("true,false")));
 

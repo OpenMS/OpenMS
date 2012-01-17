@@ -149,13 +149,13 @@ FeatureFindingMetabo::FeatureFindingMetabo()
     : DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
 {
     // defaults_.setValue( "name" , 1 , "descript" );
-    defaults_.setValue("local_rt_range" , 5.0 , "RT range where to look for coeluting mass traces"); // 5.0
-    defaults_.setValue("local_mz_range" , 6.5 , "MZ range where to look for isotopic mass traces");    // 6.5
+    defaults_.setValue("local_rt_range" , 5.0 , "RT range where to look for coeluting mass traces", StringList::create("advanced")); // 5.0
+    defaults_.setValue("local_mz_range" , 6.5 , "MZ range where to look for isotopic mass traces", StringList::create("advanced"));    // 6.5
     defaults_.setValue("charge_lower_bound" , 1 , "Lowest charge state to consider");    // 1
     defaults_.setValue("charge_upper_bound" , 5 , "Highest charge state to consider");    // 5
     defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");  // 20.0
     defaults_.setValue("chrom_sigma" , 3.0 , "Expected shift in RT (in seconds) between the apeces of mass traces that putatively belong to the same feature.");    // 3.0
-    defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.");
+    defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", StringList::create("advanced"));
     defaults_.setValidStrings("report_summed_ints", StringList::create(("false,true")));
 
     defaultsToParam_();

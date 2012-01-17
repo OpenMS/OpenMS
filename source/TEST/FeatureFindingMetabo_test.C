@@ -26,6 +26,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 
 ///////////////////////////
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
@@ -54,9 +58,37 @@ START_SECTION(~FeatureFindingMetabo())
 }
 END_SECTION
 
+// load a mzML file for testing the algorithm
+MSExperiment<Peak1D> input;
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_input1.mzML"), input);
+
+FeatureMap<> exp_fm, test_fm;
+FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML"), exp_fm);
+
+std::vector<MassTrace> output_mt, splitted_mt, filtered_mt;
+
+MassTraceDetection test_mtd;
+test_mtd.run(input, output_mt);
+
+ElutionPeakDetection test_epd;
+test_epd.detectPeaks(output_mt, splitted_mt);
+test_epd.filterByPeakWidth(splitted_mt, filtered_mt);
+
+
 START_SECTION((void run(std::vector< MassTrace > &, FeatureMap<> &)))
 {
-  // TODO
+    FeatureFindingMetabo test_ffm;
+    test_ffm.run(filtered_mt, test_fm);
+
+    TEST_EQUAL(exp_fm.size(), test_fm.size());
+
+    for (Size i = 0; i < exp_fm.size(); ++i)
+    {
+        TEST_EQUAL(exp_fm[i].getMetaValue(3), test_fm[i].getMetaValue(3));
+        TEST_REAL_SIMILAR(exp_fm[i].getRT(), test_fm[i].getRT());
+        TEST_REAL_SIMILAR(exp_fm[i].getMZ(), test_fm[i].getMZ());
+        TEST_REAL_SIMILAR(exp_fm[i].getIntensity(), test_fm[i].getIntensity());
+    }
 }
 END_SECTION
 
