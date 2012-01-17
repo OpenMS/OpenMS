@@ -264,9 +264,6 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
 
             }
         }
-
-
-
     }
 
     return ;
@@ -298,11 +295,6 @@ DoubleReal FeatureFindingMetabo::scoreMZ_(DoubleReal mz1, DoubleReal mz2, Size i
     DoubleReal diff_mz(std::fabs(mz2 - mz1)/iso_pos);
 
     DoubleReal mu(std::pow(1.0029316*iso_pos, -0.0002107)/charge);
-    // DoubleReal mu = (1.0033/charge);
-    std::cout << "---- " << diff_mz << " --- " << mu << std::endl;
-
-
-    // DoubleReal mu((1.003355*iso_pos)/charge);
     DoubleReal err_ppm((mz2/1000000)*mass_error_ppm_);
     DoubleReal sigma((4*err_ppm)/2.3548);
 
@@ -311,13 +303,7 @@ DoubleReal FeatureFindingMetabo::scoreMZ_(DoubleReal mz1, DoubleReal mz2, Size i
         return 0.0;
     }
 
-    //  DoubleReal sigma(0.01);
     DoubleReal mz_score(std::exp(-0.5*((diff_mz - mu)/sigma)*((diff_mz - mu)/sigma)));
-
-    //        if (mz_score < std::numeric_limits<DoubleReal>::epsilon())
-    //        {
-    //            return -100.0;
-    //        }
 
     return mz_score;
 }
@@ -325,8 +311,6 @@ DoubleReal FeatureFindingMetabo::scoreMZ_(DoubleReal mz1, DoubleReal mz2, Size i
 DoubleReal FeatureFindingMetabo::scoreRT_(DoubleReal rt1, DoubleReal rt2) {
 
     DoubleReal diff_rt(std::fabs(rt2 - rt1));
-
-    // DoubleReal mu_rt = (1.003355/charge)*iso_pos;
 
     DoubleReal sigma(chrom_fwhm_/2.3548);
 
@@ -427,11 +411,6 @@ DoubleReal FeatureFindingMetabo::scoreIntRatio_(DoubleReal int1, DoubleReal int2
 
 
     DoubleReal int_score(std::exp(-0.5*((int_ratio - mu)/sigma)*((int_ratio - mu)/sigma)));
-
-    //        if (int_score < std::numeric_limits<DoubleReal>::epsilon())
-    //        {
-    //            return -100.0;
-    //        }
 
     return int_score;
 }

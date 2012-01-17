@@ -227,7 +227,9 @@ set(filtering_executables_list
   ComplementFilter_test
   ComplementMarker_test
   DataFilters_test
-  FilterFunctor_test
+ElutionPeakDetection_test
+FeatureFindingMetabo_test  
+FilterFunctor_test
   GaussFilter_test
   GoodDiffFilter_test
   IDFilter_test

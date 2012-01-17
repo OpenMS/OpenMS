@@ -152,8 +152,15 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
 
     // use dynamically computed window sizes
 
-    // mt.estimateFWHM(false); // estimate FWHM
+
     Size win_size = mt.getFWHMScansNum();
+
+    // if there is no previous FWHM estimation... do it now
+    if (win_size == 0)
+    {
+        mt.estimateFWHM(false); // estimate FWHM
+        win_size = mt.getFWHMScansNum();
+    }
 
     lowess_params.setValue("window_size", win_size);
     lowess_smooth.setParameters(lowess_params);
