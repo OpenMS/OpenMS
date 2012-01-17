@@ -75,9 +75,15 @@ namespace OpenMS
         {
             String label;
 
-            for (Size i = 0; i < iso_pattern_.size(); ++i)
+            if (iso_pattern_.size() > 0)
             {
-                label += iso_pattern_[i]->getLabel();
+                label = iso_pattern_[0]->getLabel();
+            }
+
+            for (Size i = 1; i < iso_pattern_.size(); ++i)
+            {
+                String tmp_str = "_" + iso_pattern_[i]->getLabel();
+                label += tmp_str;
             }
 
             return label;
@@ -215,7 +221,7 @@ namespace OpenMS
         Size charge_lower_bound_;
         Size charge_upper_bound_;
         DoubleReal mass_error_ppm_;
-        DoubleReal chrom_fwhm_;
+        DoubleReal chrom_sigma_;
         bool report_summed_ints_;
     };
 

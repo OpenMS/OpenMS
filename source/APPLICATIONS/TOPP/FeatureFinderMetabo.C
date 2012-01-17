@@ -77,25 +77,24 @@ protected:
     {
         Param combined;
         Param p_com;
-        p_com.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");
-        p_com.setValue("chrom_fwhm" , 3.0 , "Lower bound for a chromatographic peak's FWHM (in seconds)");
+        p_com.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm (used in MTD and FFM algorithms)");
+        // p_com.setValue("chrom_fwhm" , 3.0 , "Lower bound for a chromatographic peak's FWHM (in seconds)");
 
         combined.insert("common:", p_com);
 
         Param p_mtd = MassTraceDetection().getDefaults();
         p_mtd.remove("mass_error_ppm");
-        p_mtd.remove("chrom_fwhm");
+        // p_mtd.remove("chrom_fwhm");
 
         combined.insert("mtd:", p_mtd);
 
         Param p_epd = ElutionPeakDetection().getDefaults();
-        p_epd.setValue("enabled", "true", "Do post-filtering of detected mass traces?");
+        p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
         p_epd.setValidStrings("enabled", StringList::create("true,false"));
         combined.insert("epd:", p_epd);
 
         Param p_ffm = FeatureFindingMetabo().getDefaults();
         p_ffm.remove("mass_error_ppm");
-        p_ffm.remove("chrom_fwhm");
 
         combined.insert("ffm:", p_ffm);
 
@@ -138,7 +137,7 @@ protected:
         //-------------------------------------------------------------
 
         Param common_param = getParam_().copy("algorithm:common:", true);
-        writeDebug_("Common parameters passed to all subalgorithms (mtd, epd, and ffm)", common_param,3);
+        writeDebug_("Common parameters passed to subalgorithms (mtd and ffm)", common_param,3);
 
         Param mtd_param = getParam_().copy("algorithm:mtd:",true);
         writeDebug_("Parameters passed to MassTraceDetection", mtd_param,3);
@@ -155,7 +154,6 @@ protected:
 
         MassTraceDetection mtdet;
         mtd_param.insert("", common_param);
-        // std::cout << "errppm ffm:" << mtd_param.getValue("mass_error_ppm") << std::endl;
         mtdet.setParameters(mtd_param);
 
         mtdet.run(ms_peakmap, m_traces);
@@ -201,13 +199,14 @@ protected:
         ffmet.setParameters(ffm_param);
         ffmet.run(m_traces_final, ms_feat_map);
 
+        ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
 
-        //annotate output with data processing info TODO
-        // addDataProcessing_(ms_featmap, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+        // annotate output with data processing info
+        addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
         FeatureXMLFile().store(out, ms_feat_map);
 

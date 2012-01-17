@@ -154,7 +154,7 @@ FeatureFindingMetabo::FeatureFindingMetabo()
     defaults_.setValue("charge_lower_bound" , 1 , "Lowest charge state to consider");    // 1
     defaults_.setValue("charge_upper_bound" , 5 , "Highest charge state to consider");    // 5
     defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");  // 20.0
-    defaults_.setValue("chrom_fwhm" , 3.0 , "Minimum FWHM (in seconds) a chromatographic peak should have");    // 3.0
+    defaults_.setValue("chrom_sigma" , 3.0 , "Expected shift in RT (in seconds) between the apeces of mass traces that putatively belong to the same feature.");    // 3.0
     defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.");
     defaults_.setValidStrings("report_summed_ints", StringList::create(("false,true")));
 
@@ -177,10 +177,12 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
 
     std::vector<FeatureHypothesis> feat_hypos;
 
+    this->startProgress(0, input_mtraces.size(), "assembling mass traces to features");
+
     if (input_mtraces.size() > 1) {
         for (Size i = 0; i < input_mtraces.size(); ++i)
         {
-            // std::cout << input_mtraces[i].getCentroidMZ() << " " << input_mtraces[i].getSmoothedMaxRT() << std::endl;
+            this->setProgress(i);
             std::vector<MassTrace*> local_traces;
 
             DoubleReal ref_trace_mz(input_mtraces[i].getCentroidMZ());
@@ -205,12 +207,9 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
                 ++ext_idx;
             }
 
-
-            // std::cout << "look at " << local_traces.size() << std::endl;
-
             findLocalFeatures_(local_traces, feat_hypos);
         }
-
+        this->endProgress();
 
         // sort feature candidates by their score
         std::sort(feat_hypos.begin(), feat_hypos.end(), CmpHypothesesByScore());
@@ -219,8 +218,6 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
 
         for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
         {
-            // std::cout << feat_hypos[hypo_idx].getLabel() << " " << feat_hypos[hypo_idx].getScore() << std::endl;
-
             std::vector<String> labels(feat_hypos[hypo_idx].getLabels());
 
             bool trace_coll = false;
@@ -281,7 +278,7 @@ void FeatureFindingMetabo::updateMembers_()
     local_rt_range_ = (DoubleReal)param_.getValue("local_rt_range");
     local_mz_range_ = (DoubleReal)param_.getValue("local_mz_range");
     mass_error_ppm_ = (DoubleReal)param_.getValue("mass_error_ppm");
-    chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
+    chrom_sigma_ = (DoubleReal)param_.getValue("chrom_sigma");
 
     charge_lower_bound_ = (Size)param_.getValue("charge_lower_bound");
     charge_upper_bound_ = (Size)param_.getValue("charge_upper_bound");
@@ -312,7 +309,7 @@ DoubleReal FeatureFindingMetabo::scoreRT_(DoubleReal rt1, DoubleReal rt2) {
 
     DoubleReal diff_rt(std::fabs(rt2 - rt1));
 
-    DoubleReal sigma(chrom_fwhm_/2.3548);
+    DoubleReal sigma(chrom_sigma_/2.3548);
 
     if (diff_rt > 2*sigma)
     {
@@ -424,12 +421,8 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
 
     output_hypos.push_back(tmp_hypo);
 
-    for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge) {
-
-        // std::cout << "looking at charge state " << charge << std::endl;
-        // std::cout << "-----------------------" << std::endl;
-
-
+    for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge)
+    {
         FeatureHypothesis fh_tmp;
         fh_tmp.setScore(0.0);
 
@@ -437,9 +430,7 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
 
         DoubleReal mono_iso_rt(candidates[0]->getCentroidRT());
         DoubleReal mono_iso_mz(candidates[0]->getCentroidMZ());
-        DoubleReal mono_iso_int(candidates[0]->computePeakArea());
-
-        // std::cout << candidates[0]->getLabel() << " with ";
+        // DoubleReal mono_iso_int(candidates[0]->computePeakArea());
 
         Size last_iso_idx(0);
 
@@ -449,21 +440,16 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
             DoubleReal best_so_far(0.0);
             Size best_idx(0);
 
-            // std::cout << "iso_pos" << iso_pos << std::endl;
-
             for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
             {
                 DoubleReal tmp_iso_rt(candidates[mt_idx]->getCentroidRT());
                 DoubleReal tmp_iso_mz(candidates[mt_idx]->getCentroidMZ());
-                DoubleReal tmp_iso_int(candidates[mt_idx]->computePeakArea());
+                // DoubleReal tmp_iso_int(candidates[mt_idx]->computePeakArea());
 
 
                 DoubleReal rt_score(scoreRT_(mono_iso_rt, tmp_iso_rt));
 
-                // DoubleReal rt_score(scoreTraceSim_(*candidates[0], *candidates[mt_idx]));
-
                 DoubleReal mz_score(scoreMZ_(mono_iso_mz, tmp_iso_mz, iso_pos, charge));
-                // DoubleReal int_score(scoreIntRatio_(mono_iso_int, tmp_iso_int, iso_pos));
 
                 // disable intensity scoring for now...
                 DoubleReal int_score(1.0);
@@ -479,12 +465,8 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
                 {
                     best_so_far = total_pair_score;
                     best_idx = mt_idx;
-                    //                        fh_tmp.addMassTrace(*candidates[mt_idx]);
-                    //                        fh_tmp.setScore(fh_tmp.getScore() + total_pair_score);
+
                 }
-
-                std::cout << candidates[mt_idx]->getLabel() << "\n\tscore: " << mz_score << " " << rt_score << std::endl;
-
             } // end mt_idx
 
             if (best_so_far > 0.0)

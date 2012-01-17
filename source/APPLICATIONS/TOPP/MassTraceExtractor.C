@@ -217,16 +217,18 @@ protected:
             f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
             f.setOverallQuality(1 - (1.0/m_traces_final[i].getSize()));
             f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
-            f.setUniqueId();
 
             ms_feat_map.push_back(f);
         }
+
+        ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
 
         //annotate output with data processing info TODO
-        // addDataProcessing_(ms_featmap, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+        addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
         ms_feat_map.setUniqueId();
 
         FeatureXMLFile().store(out, ms_feat_map);

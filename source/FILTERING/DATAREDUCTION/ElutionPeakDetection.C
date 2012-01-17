@@ -208,8 +208,8 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
             // set label of subtrace
             String tr_num;
             std::stringstream read_in;
-            read_in << min_idx;
-            tr_num = "_" + read_in.str();
+            read_in << (min_idx + 1);
+            tr_num = "." + read_in.str();
 
             new_mt.setLabel(mt.getLabel() + tr_num);
             new_mt.updateWeightedMeanRT();
@@ -239,8 +239,8 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
         // set label of subtrace
         String tr_num;
         std::stringstream read_in;
-        read_in << mins.size();
-        tr_num = "_" + read_in.str();
+        read_in << (mins.size() + 1);
+        tr_num = "." + read_in.str();
 
         new_mt.setLabel(mt.getLabel() + tr_num);
         new_mt.updateWeightedMeanRT();
