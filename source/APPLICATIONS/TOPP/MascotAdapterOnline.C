@@ -76,6 +76,10 @@ using namespace std;
 	It support Mascot security features and has also proxy server
 	support. This minimal version of Mascot support by this wrapper
 	is version 2.2.x. Mascot 2.3 works as well, but has not been tested extensively.
+  @note Some Mascot server instances seem to fail without reporting back an error message.
+        Thus, try to run the search on another Mascot server or change/validate search parameters
+        (e.g., using modifications in the INI file, which are unknown to Mascot, but known to OpenMS might be a problem).
+
 
   @note Be aware that Mascot returns incomplete/incorrect protein assignments for most identified peptides (why ever that is). 
         Thus we do not forward any protein assignments, only peptide sequences. You should run PeptideIndexer after this tool to get correct assignments.
