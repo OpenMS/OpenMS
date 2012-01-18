@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_13792689163938650045" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<dataProcessing completion_time="2012-01-17T15:15:18">
+<featureMap version="1.6" id="fm_7686543548085906776" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2012-01-18T16:02:08">
 		<software name="FeatureFinderMetabo" version="1.9.0" />
 		<processingAction name="Quantitation" />
 		<userParam type="string" name="parameter: in" value="FeatureFindingMetabo_input1.mzML"/>
@@ -26,7 +26,7 @@
 		<userParam type="string" name="parameter: algorithm:ffm:report_summed_ints" value="false"/>
 	</dataProcessing>
 	<featureList count="73">
-		<feature id="f_590034400594676551">
+		<feature id="f_7258204612759959893">
 			<position dim="0">308.588678181978</position>
 			<position dim="1">219.060419740494</position>
 			<intensity>9.34152e+06</intensity>
@@ -1041,7 +1041,7 @@
 			<userParam type="string" name="label" value="T42_T93_T23_T59_T79_T149"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_3247044593465848744">
+		<feature id="f_10833375065049723106">
 			<position dim="0">267.26063944211</position>
 			<position dim="1">163.0773678981</position>
 			<intensity>9.41087e+08</intensity>
@@ -1826,7 +1826,7 @@
 			<userParam type="string" name="label" value="T3_T12_T45_T58_T95"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_3346984090912039995">
+		<feature id="f_13004564666739151643">
 			<position dim="0">308.067486116973</position>
 			<position dim="1">237.07028733581</position>
 			<intensity>4.15452e+08</intensity>
@@ -2205,7 +2205,7 @@
 			<userParam type="string" name="label" value="T5_T15_T24_T63"/>
 			<userParam type="float" name="FWHM" value="7"/>
 		</feature>
-		<feature id="f_10525702405411349001">
+		<feature id="f_17803195692769763025">
 			<position dim="0">274.821914600295</position>
 			<position dim="1">252.107530103247</position>
 			<intensity>5.52165e+08</intensity>
@@ -2690,7 +2690,7 @@
 			<userParam type="string" name="label" value="T6_T18_T43_T111"/>
 			<userParam type="float" name="FWHM" value="10.75"/>
 		</feature>
-		<feature id="f_17634607244928526417">
+		<feature id="f_16688706101135878523">
 			<position dim="0">256.886640539569</position>
 			<position dim="1">204.142080509223</position>
 			<intensity>7.09207e+07</intensity>
@@ -3247,7 +3247,7 @@
 			<userParam type="string" name="label" value="T16_T47_T67_T132"/>
 			<userParam type="float" name="FWHM" value="10.25"/>
 		</feature>
-		<feature id="f_18394034350859269636">
+		<feature id="f_14367226127027588318">
 			<position dim="0">315.458030736781</position>
 			<position dim="1">225.077863276215</position>
 			<intensity>3.87731e+07</intensity>
@@ -3550,7 +3550,7 @@
 			<userParam type="string" name="label" value="T19.2_T52.2_T107_T181"/>
 			<userParam type="float" name="FWHM" value="7.25"/>
 		</feature>
-		<feature id="f_17178025449858911844">
+		<feature id="f_8443765922021054069">
 			<position dim="0">235.179201045264</position>
 			<position dim="1">152.05742008023</position>
 			<intensity>5.59466e+06</intensity>
@@ -4025,7 +4025,7 @@
 			<userParam type="string" name="label" value="T51_T124_T194_T55_T123_T188"/>
 			<userParam type="float" name="FWHM" value="9"/>
 		</feature>
-		<feature id="f_6509117529039689215">
+		<feature id="f_1797129463467493092">
 			<position dim="0">289.260440516808</position>
 			<position dim="1">193.054187019016</position>
 			<intensity>2.90132e+09</intensity>
@@ -4492,7 +4492,7 @@
 			<userParam type="string" name="label" value="T1.2_T7.2_T21"/>
 			<userParam type="float" name="FWHM" value="9"/>
 		</feature>
-		<feature id="f_5617656566002056472">
+		<feature id="f_9992738213567696090">
 			<position dim="0">284.724447755241</position>
 			<position dim="1">193.088121125693</position>
 			<intensity>8.03775e+08</intensity>
@@ -4819,7 +4819,7 @@
 			<userParam type="string" name="label" value="T2.2_T11_T36"/>
 			<userParam type="float" name="FWHM" value="6"/>
 		</feature>
-		<feature id="f_6679096605925813847">
+		<feature id="f_948223209271247878">
 			<position dim="0">245.679363938095</position>
 			<position dim="1">188.072911692933</position>
 			<intensity>2.2665e+08</intensity>
@@ -5248,7 +5248,7 @@
 			<userParam type="string" name="label" value="T9_T30_T78"/>
 			<userParam type="float" name="FWHM" value="11.25"/>
 		</feature>
-		<feature id="f_6723130378846152681">
+		<feature id="f_4121174411199157272">
 			<position dim="0">245.68417620045</position>
 			<position dim="1">205.09756756394</position>
 			<intensity>2.03182e+08</intensity>
@@ -5661,7 +5661,7 @@
 			<userParam type="string" name="label" value="T8_T28_T75"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_11935694709147491034">
+		<feature id="f_18107120501676816999">
 			<position dim="0">274.842216609998</position>
 			<position dim="1">234.097646308602</position>
 			<intensity>8.91934e+06</intensity>
@@ -6010,7 +6010,7 @@
 			<userParam type="string" name="label" value="T44_T94_T104"/>
 			<userParam type="float" name="FWHM" value="9.25"/>
 		</feature>
-		<feature id="f_4634321557074728776">
+		<feature id="f_16506637318727309587">
 			<position dim="0">308.314474525088</position>
 			<position dim="1">160.075018056482</position>
 			<intensity>1.55825e+08</intensity>
@@ -6309,7 +6309,7 @@
 			<userParam type="string" name="label" value="T10_T33_T89"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 		</feature>
-		<feature id="f_7237811055181553227">
+		<feature id="f_12460076020286159009">
 			<position dim="0">234.906684535858</position>
 			<position dim="1">175.120754056372</position>
 			<intensity>2.68583e+07</intensity>
@@ -6536,7 +6536,7 @@
 			<userParam type="string" name="label" value="T22_T70_T141"/>
 			<userParam type="float" name="FWHM" value="7"/>
 		</feature>
-		<feature id="f_8190329655757540799">
+		<feature id="f_14188927877804697876">
 			<position dim="0">316.721480004236</position>
 			<position dim="1">207.063747674714</position>
 			<intensity>6.6388e+06</intensity>
@@ -6703,7 +6703,7 @@
 			<userParam type="string" name="label" value="T25.2_T88_T156"/>
 			<userParam type="float" name="FWHM" value="5.25"/>
 		</feature>
-		<feature id="f_1141784421849626475">
+		<feature id="f_7221992987039722093">
 			<position dim="0">264.155555943029</position>
 			<position dim="1">195.06705973651</position>
 			<intensity>4.78434e+07</intensity>
@@ -7112,7 +7112,7 @@
 			<userParam type="string" name="label" value="T17_T53_T114"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 		</feature>
-		<feature id="f_17539442995804593517">
+		<feature id="f_4373436673636353318">
 			<position dim="0">238.806425499499</position>
 			<position dim="1">162.058215356937</position>
 			<intensity>1.58016e+07</intensity>
@@ -7473,7 +7473,7 @@
 			<userParam type="string" name="label" value="T31_T76_T151"/>
 			<userParam type="float" name="FWHM" value="7"/>
 		</feature>
-		<feature id="f_12032124796401800828">
+		<feature id="f_14517674815399466259">
 			<position dim="0">284.736586866105</position>
 			<position dim="1">161.060231929007</position>
 			<intensity>9.21792e+08</intensity>
@@ -7940,7 +7940,7 @@
 			<userParam type="string" name="label" value="T4_T13_T46_T97"/>
 			<userParam type="float" name="FWHM" value="10"/>
 		</feature>
-		<feature id="f_4679546043191552756">
+		<feature id="f_17884842559177356833">
 			<position dim="0">302.71704470695</position>
 			<position dim="1">243.087732299184</position>
 			<intensity>9.59906e+06</intensity>
@@ -8199,7 +8199,7 @@
 			<userParam type="string" name="label" value="T38_T84_T144"/>
 			<userParam type="float" name="FWHM" value="7.25"/>
 		</feature>
-		<feature id="f_16172888767421463371">
+		<feature id="f_13547692019906817985">
 			<position dim="0">302.714919954792</position>
 			<position dim="1">155.072512499249</position>
 			<intensity>2.46488e+07</intensity>
@@ -8550,7 +8550,7 @@
 			<userParam type="string" name="label" value="T29.1_T77.1_T147"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_4690257613879529332">
+		<feature id="f_11709438506801037158">
 			<position dim="0">248.248863793579</position>
 			<position dim="1">158.083358357044</position>
 			<intensity>2.32763e+07</intensity>
@@ -9039,7 +9039,7 @@
 			<userParam type="string" name="label" value="T34_T85_T157"/>
 			<userParam type="float" name="FWHM" value="11.5"/>
 		</feature>
-		<feature id="f_12825759138245990362">
+		<feature id="f_9096434033071158731">
 			<position dim="0">235.731934398854</position>
 			<position dim="1">233.150667053605</position>
 			<intensity>3.0866e+06</intensity>
@@ -9340,7 +9340,7 @@
 			<userParam type="string" name="label" value="T69_T130_T189"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_3255585325024768592">
+		<feature id="f_14628334727225749998">
 			<position dim="0">274.51706780853</position>
 			<position dim="1">179.07404505713</position>
 			<intensity>7.70785e+06</intensity>
@@ -9785,7 +9785,7 @@
 			<userParam type="string" name="label" value="T48_T110_T68_T133"/>
 			<userParam type="float" name="FWHM" value="9.75"/>
 		</feature>
-		<feature id="f_16409876061772793288">
+		<feature id="f_8726658674517087125">
 			<position dim="0">284.808819507153</position>
 			<position dim="1">211.09802620505</position>
 			<intensity>9.28884e+07</intensity>
@@ -10130,7 +10130,7 @@
 			<userParam type="string" name="label" value="T14_T40_T90"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_13915019011036871476">
+		<feature id="f_302414084861923885">
 			<position dim="0">314.298073138184</position>
 			<position dim="1">160.134470512512</position>
 			<intensity>1.0317e+07</intensity>
@@ -10545,7 +10545,7 @@
 			<userParam type="string" name="label" value="T41_T102_T177_T66_T131"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_6435223412172534608">
+		<feature id="f_2337110678540919790">
 			<position dim="0">283.886186302778</position>
 			<position dim="1">225.077863346953</position>
 			<intensity>5.16764e+07</intensity>
@@ -10946,7 +10946,7 @@
 			<userParam type="string" name="label" value="T19.1_T52.1_T113"/>
 			<userParam type="float" name="FWHM" value="10.75"/>
 		</feature>
-		<feature id="f_18195460731527472950">
+		<feature id="f_1948449378189238527">
 			<position dim="0">303.358878455916</position>
 			<position dim="1">211.059804837141</position>
 			<intensity>4.92574e+06</intensity>
@@ -11365,7 +11365,7 @@
 			<userParam type="string" name="label" value="T62_T127_T183"/>
 			<userParam type="float" name="FWHM" value="12"/>
 		</feature>
-		<feature id="f_893506749440401975">
+		<feature id="f_4467736855007132074">
 			<position dim="0">246.965983050064</position>
 			<position dim="1">155.034291661529</position>
 			<intensity>1.36424e+06</intensity>
@@ -11578,7 +11578,7 @@
 			<userParam type="string" name="label" value="T50.2_T169"/>
 			<userParam type="float" name="FWHM" value="8.5"/>
 		</feature>
-		<feature id="f_9520526731533406464">
+		<feature id="f_9029547777189319324">
 			<position dim="0">300.211304942853</position>
 			<position dim="1">217.098484699323</position>
 			<intensity>2.03753e+07</intensity>
@@ -11829,7 +11829,7 @@
 			<userParam type="string" name="label" value="T32_T73"/>
 			<userParam type="float" name="FWHM" value="9.25"/>
 		</feature>
-		<feature id="f_6633142929033613121">
+		<feature id="f_13351735865168496064">
 			<position dim="0">233.295412067273</position>
 			<position dim="1">165.05629076752</position>
 			<intensity>818516</intensity>
@@ -11988,7 +11988,7 @@
 			<userParam type="string" name="label" value="T92_T166"/>
 			<userParam type="float" name="FWHM" value="5.75"/>
 		</feature>
-		<feature id="f_11072367165006539165">
+		<feature id="f_15628938511101123654">
 			<position dim="0">314.844058352006</position>
 			<position dim="1">219.102853187346</position>
 			<intensity>2.40648e+07</intensity>
@@ -12219,7 +12219,7 @@
 			<userParam type="string" name="label" value="T27_T61"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 		</feature>
-		<feature id="f_16706331326600133188">
+		<feature id="f_5511665584457049586">
 			<position dim="0">233.760680061315</position>
 			<position dim="1">197.084216141952</position>
 			<intensity>767726</intensity>
@@ -12390,7 +12390,7 @@
 			<userParam type="string" name="label" value="T98_T168"/>
 			<userParam type="float" name="FWHM" value="6.75"/>
 		</feature>
-		<feature id="f_15287717762599677810">
+		<feature id="f_8675202052313957323">
 			<position dim="0">269.290730339227</position>
 			<position dim="1">192.107192843466</position>
 			<intensity>3.28344e+06</intensity>
@@ -12553,7 +12553,7 @@
 			<userParam type="string" name="label" value="T57_T121"/>
 			<userParam type="float" name="FWHM" value="6.5"/>
 		</feature>
-		<feature id="f_5940013033406615641">
+		<feature id="f_9529132852970834706">
 			<position dim="0">283.895252927949</position>
 			<position dim="1">207.063747560109</position>
 			<intensity>3.17334e+07</intensity>
@@ -12826,7 +12826,7 @@
 			<userParam type="string" name="label" value="T25.1_T65"/>
 			<userParam type="float" name="FWHM" value="9.75"/>
 		</feature>
-		<feature id="f_15394705407293374728">
+		<feature id="f_9981152373775336875">
 			<position dim="0">260.487916308478</position>
 			<position dim="1">193.054185137599</position>
 			<intensity>1.34669e+07</intensity>
@@ -13129,7 +13129,7 @@
 			<userParam type="string" name="label" value="T1.1_T7.1"/>
 			<userParam type="float" name="FWHM" value="8.5"/>
 		</feature>
-		<feature id="f_280116628757552764">
+		<feature id="f_13000109828740389511">
 			<position dim="0">254.203866090046</position>
 			<position dim="1">179.036786891226</position>
 			<intensity>2.59985e+06</intensity>
@@ -13346,7 +13346,7 @@
 			<userParam type="string" name="label" value="T72_T137"/>
 			<userParam type="float" name="FWHM" value="8.75"/>
 		</feature>
-		<feature id="f_6285821589916865017">
+		<feature id="f_2333077605465006206">
 			<position dim="0">299.662066682215</position>
 			<position dim="1">174.059099726944</position>
 			<intensity>694194</intensity>
@@ -13499,7 +13499,7 @@
 			<userParam type="string" name="label" value="T109_T175"/>
 			<userParam type="float" name="FWHM" value="9"/>
 		</feature>
-		<feature id="f_3002321310197539233">
+		<feature id="f_5377614467648953805">
 			<position dim="0">256.950588155614</position>
 			<position dim="1">193.087947435366</position>
 			<intensity>784330</intensity>
@@ -13666,7 +13666,7 @@
 			<userParam type="string" name="label" value="T103_T171"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 		</feature>
-		<feature id="f_17345423999911246597">
+		<feature id="f_9356649697603010788">
 			<position dim="0">272.133936758355</position>
 			<position dim="1">155.034293347512</position>
 			<intensity>6.07868e+06</intensity>
@@ -13891,7 +13891,7 @@
 			<userParam type="string" name="label" value="T50.3_T120"/>
 			<userParam type="float" name="FWHM" value="9.25"/>
 		</feature>
-		<feature id="f_11813635989064243915">
+		<feature id="f_1300003436021585239">
 			<position dim="0">235.308122300469</position>
 			<position dim="1">171.069488733802</position>
 			<intensity>770522</intensity>
@@ -14094,7 +14094,7 @@
 			<userParam type="string" name="label" value="T108.1_T179"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_1786878450236870896">
+		<feature id="f_12080439162632360058">
 			<position dim="0">314.893480240822</position>
 			<position dim="1">177.057304693587</position>
 			<intensity>766905</intensity>
@@ -14255,7 +14255,7 @@
 			<userParam type="string" name="label" value="T20.3_T173"/>
 			<userParam type="float" name="FWHM" value="8.5"/>
 		</feature>
-		<feature id="f_2500910922344051033">
+		<feature id="f_5049967700231771046">
 			<position dim="0">302.94057759938</position>
 			<position dim="1">182.085193533739</position>
 			<intensity>1.19336e+06</intensity>
@@ -14444,7 +14444,7 @@
 			<userParam type="string" name="label" value="T91_T164"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 		</feature>
-		<feature id="f_4191176406568640712">
+		<feature id="f_15383703462286670387">
 			<position dim="0">264.377652471051</position>
 			<position dim="1">177.057589896883</position>
 			<intensity>4.28982e+07</intensity>
@@ -14641,7 +14641,7 @@
 			<userParam type="string" name="label" value="T20.1_T49"/>
 			<userParam type="float" name="FWHM" value="10.5"/>
 		</feature>
-		<feature id="f_4312814361127455817">
+		<feature id="f_14993069662508277668">
 			<position dim="0">279.400121335454</position>
 			<position dim="1">178.051033400723</position>
 			<intensity>3.3888e+07</intensity>
@@ -14906,7 +14906,7 @@
 			<userParam type="string" name="label" value="T26.2_T71"/>
 			<userParam type="float" name="FWHM" value="11"/>
 		</feature>
-		<feature id="f_10900620790716536273">
+		<feature id="f_16972143622262690574">
 			<position dim="0">305.421151706474</position>
 			<position dim="1">188.073492381736</position>
 			<intensity>1.54778e+06</intensity>
@@ -15137,7 +15137,7 @@
 			<userParam type="string" name="label" value="T87_T155"/>
 			<userParam type="float" name="FWHM" value="10"/>
 		</feature>
-		<feature id="f_10869142112268645392">
+		<feature id="f_15413122093412731558">
 			<position dim="0">275.829601167592</position>
 			<position dim="1">211.059730296663</position>
 			<intensity>632836</intensity>
@@ -15242,7 +15242,7 @@
 			<userParam type="string" name="label" value="T115"/>
 			<userParam type="float" name="FWHM" value="9.75"/>
 		</feature>
-		<feature id="f_4109063093762856297">
+		<feature id="f_7513499832608617162">
 			<position dim="0">301.013890940321</position>
 			<position dim="1">225.150042134232</position>
 			<intensity>102109</intensity>
@@ -15315,7 +15315,7 @@
 			<userParam type="string" name="label" value="T159"/>
 			<userParam type="float" name="FWHM" value="7.5"/>
 		</feature>
-		<feature id="f_16571249514993128645">
+		<feature id="f_4515975469329868085">
 			<position dim="0">272.52306431888</position>
 			<position dim="1">233.082587022595</position>
 			<intensity>117062</intensity>
@@ -15372,7 +15372,7 @@
 			<userParam type="string" name="label" value="T148"/>
 			<userParam type="float" name="FWHM" value="5.5"/>
 		</feature>
-		<feature id="f_16751842459848412016">
+		<feature id="f_3361721221122718783">
 			<position dim="0">284.340143430984</position>
 			<position dim="1">163.039974930808</position>
 			<intensity>9.49034e+06</intensity>
@@ -15491,7 +15491,7 @@
 			<userParam type="string" name="label" value="T39"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 		</feature>
-		<feature id="f_5374189201369990812">
+		<feature id="f_16889128248061487883">
 			<position dim="0">289.297927230824</position>
 			<position dim="1">165.056236579879</position>
 			<intensity>5.09024e+06</intensity>
@@ -15680,7 +15680,7 @@
 			<userParam type="string" name="label" value="T56.1"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_10445793217554585346">
+		<feature id="f_1879576850653416650">
 			<position dim="0">255.771912715333</position>
 			<position dim="1">168.067544075404</position>
 			<intensity>535004</intensity>
@@ -15827,7 +15827,7 @@
 			<userParam type="string" name="label" value="T125"/>
 			<userParam type="float" name="FWHM" value="12.25"/>
 		</feature>
-		<feature id="f_15326422158327317763">
+		<feature id="f_1032000129005024074">
 			<position dim="0">291.643712314597</position>
 			<position dim="1">169.05235014966</position>
 			<intensity>3.58713e+06</intensity>
@@ -15986,7 +15986,7 @@
 			<userParam type="string" name="label" value="T64"/>
 			<userParam type="float" name="FWHM" value="9.25"/>
 		</feature>
-		<feature id="f_10095907807387883247">
+		<feature id="f_928788105043569900">
 			<position dim="0">256.186339167595</position>
 			<position dim="1">171.06948653446</position>
 			<intensity>465976</intensity>
@@ -16117,7 +16117,7 @@
 			<userParam type="string" name="label" value="T108.2"/>
 			<userParam type="float" name="FWHM" value="11"/>
 		</feature>
-		<feature id="f_5141668448508297318">
+		<feature id="f_16912645583878168453">
 			<position dim="0">282.822902776479</position>
 			<position dim="1">175.040063661983</position>
 			<intensity>1.60749e+06</intensity>
@@ -16238,7 +16238,7 @@
 			<userParam type="string" name="label" value="T81"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_14019259273991137137">
+		<feature id="f_9242820795248404911">
 			<position dim="0">316.775736725342</position>
 			<position dim="1">175.040066023653</position>
 			<intensity>50031.9</intensity>
@@ -16303,7 +16303,7 @@
 			<userParam type="string" name="label" value="T176"/>
 			<userParam type="float" name="FWHM" value="6.5"/>
 		</feature>
-		<feature id="f_10846655404190513501">
+		<feature id="f_16325913911421830654">
 			<position dim="0">260.446700035197</position>
 			<position dim="1">151.042465205975</position>
 			<intensity>136142</intensity>
@@ -16376,7 +16376,7 @@
 			<userParam type="string" name="label" value="T150"/>
 			<userParam type="float" name="FWHM" value="7"/>
 		</feature>
-		<feature id="f_7952950022619495986">
+		<feature id="f_2773364714812653631">
 			<position dim="0">293.516878548797</position>
 			<position dim="1">151.042468871585</position>
 			<intensity>795058</intensity>
@@ -16497,7 +16497,7 @@
 			<userParam type="string" name="label" value="T100"/>
 			<userParam type="float" name="FWHM" value="7.5"/>
 		</feature>
-		<feature id="f_14751810581757666744">
+		<feature id="f_13990960966563287881">
 			<position dim="0">291.309312657373</position>
 			<position dim="1">152.057301994844</position>
 			<intensity>2.64049e+06</intensity>
@@ -16668,7 +16668,7 @@
 			<userParam type="string" name="label" value="T74"/>
 			<userParam type="float" name="FWHM" value="10"/>
 		</feature>
-		<feature id="f_4742409698654740885">
+		<feature id="f_10224022902012102334">
 			<position dim="0">278.687741669661</position>
 			<position dim="1">160.07500553926</position>
 			<intensity>152173</intensity>
@@ -16731,7 +16731,7 @@
 			<userParam type="string" name="label" value="T140"/>
 			<userParam type="float" name="FWHM" value="6.25"/>
 		</feature>
-		<feature id="f_562016739372592020">
+		<feature id="f_3717606497921291541">
 			<position dim="0">259.87958582247</position>
 			<position dim="1">161.132412915305</position>
 			<intensity>79550.6</intensity>
@@ -16790,7 +16790,7 @@
 			<userParam type="string" name="label" value="T162"/>
 			<userParam type="float" name="FWHM" value="5.75"/>
 		</feature>
-		<feature id="f_13020247119639727767">
+		<feature id="f_16191815793602264885">
 			<position dim="0">258.218850271188</position>
 			<position dim="1">189.041219314868</position>
 			<intensity>340034</intensity>
@@ -16869,7 +16869,7 @@
 			<userParam type="string" name="label" value="T117"/>
 			<userParam type="float" name="FWHM" value="6.75"/>
 		</feature>
-		<feature id="f_11188950909024156239">
+		<feature id="f_16368499306351281485">
 			<position dim="0">289.457873887879</position>
 			<position dim="1">191.037043219287</position>
 			<intensity>5.20437e+06</intensity>
@@ -17060,7 +17060,7 @@
 			<userParam type="string" name="label" value="T60"/>
 			<userParam type="float" name="FWHM" value="10.75"/>
 		</feature>
-		<feature id="f_12230665154759365672">
+		<feature id="f_2800853273554338018">
 			<position dim="0">277.544383050096</position>
 			<position dim="1">199.101345618327</position>
 			<intensity>155861</intensity>
@@ -17127,7 +17127,7 @@
 			<userParam type="string" name="label" value="T145"/>
 			<userParam type="float" name="FWHM" value="6.75"/>
 		</feature>
-		<feature id="f_9649074331199565531">
+		<feature id="f_15887358048089162223">
 			<position dim="0">242.073555211391</position>
 			<position dim="1">201.0420616492</position>
 			<intensity>176268</intensity>
@@ -17256,7 +17256,7 @@
 			<userParam type="string" name="label" value="T152"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 		</feature>
-		<feature id="f_2737513286090092706">
+		<feature id="f_981939318759485900">
 			<position dim="0">238.362064003396</position>
 			<position dim="1">175.079192914405</position>
 			<intensity>176663</intensity>
@@ -17389,7 +17389,7 @@
 			<userParam type="string" name="label" value="T158"/>
 			<userParam type="float" name="FWHM" value="12"/>
 		</feature>
-		<feature id="f_7535652801750025961">
+		<feature id="f_11713722471683665251">
 			<position dim="0">313.24447761361</position>
 			<position dim="1">176.092992494682</position>
 			<intensity>543336</intensity>
@@ -17496,7 +17496,7 @@
 			<userParam type="string" name="label" value="T116"/>
 			<userParam type="float" name="FWHM" value="10"/>
 		</feature>
-		<feature id="f_13397777047129420281">
+		<feature id="f_13421647738162474463">
 			<position dim="0">284.411001728869</position>
 			<position dim="1">177.057180113523</position>
 			<intensity>1.81143e+06</intensity>
@@ -17611,7 +17611,7 @@
 			<userParam type="string" name="label" value="T20.2"/>
 			<userParam type="float" name="FWHM" value="10"/>
 		</feature>
-		<feature id="f_8431951113525051712">
+		<feature id="f_634340067310561483">
 			<position dim="0">258.667007862071</position>
 			<position dim="1">178.052920489736</position>
 			<intensity>6.84258e+06</intensity>
@@ -17708,7 +17708,7 @@
 			<userParam type="string" name="label" value="T26.1"/>
 			<userParam type="float" name="FWHM" value="13.75"/>
 		</feature>
-		<feature id="f_16214227366655188242">
+		<feature id="f_7543764713252608430">
 			<position dim="0">301.874524670758</position>
 			<position dim="1">181.053264027021</position>
 			<intensity>185258</intensity>
@@ -17791,7 +17791,7 @@
 			<userParam type="string" name="label" value="T143"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 		</feature>
-		<feature id="f_7203915761361469901">
+		<feature id="f_14594330264806163207">
 			<position dim="0">255.862320520709</position>
 			<position dim="1">182.085196626734</position>
 			<intensity>293640</intensity>
@@ -17906,7 +17906,7 @@
 			<userParam type="string" name="label" value="T138"/>
 			<userParam type="float" name="FWHM" value="10.5"/>
 		</feature>
-		<feature id="f_14797734861374591731">
+		<feature id="f_14467461583675151331">
 			<position dim="0">316.752150641997</position>
 			<position dim="1">183.066167361631</position>
 			<intensity>43596.7</intensity>
@@ -17971,7 +17971,7 @@
 			<userParam type="string" name="label" value="T182"/>
 			<userParam type="float" name="FWHM" value="6.5"/>
 		</feature>
-		<feature id="f_835836446247352709">
+		<feature id="f_11750357729843244692">
 			<position dim="0">286.52500057158</position>
 			<position dim="1">187.079254792612</position>
 			<intensity>2.30018e+06</intensity>
@@ -18160,7 +18160,7 @@
 			<userParam type="string" name="label" value="T80"/>
 			<userParam type="float" name="FWHM" value="11.5"/>
 		</feature>
-		<feature id="f_5934450501126181017">
+		<feature id="f_9498482668312659470">
 			<position dim="0">309.00066146247</position>
 			<position dim="1">187.087646767822</position>
 			<intensity>1.83342e+06</intensity>

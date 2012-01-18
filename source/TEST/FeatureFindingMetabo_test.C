@@ -64,6 +64,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_input1.mzML"), i
 
 FeatureMap<> exp_fm, test_fm;
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML"), exp_fm);
+exp_fm.sortByMZ();
 
 std::vector<MassTrace> output_mt, splitted_mt, filtered_mt;
 
@@ -79,6 +80,7 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap<> &)))
 {
     FeatureFindingMetabo test_ffm;
     test_ffm.run(filtered_mt, test_fm);
+    test_fm.sortByMZ();
 
     TEST_EQUAL(exp_fm.size(), test_fm.size());
 
