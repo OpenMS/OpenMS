@@ -1,0 +1,2427 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.6" id="fm_12109152977906834816" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2012-01-17T15:06:32">
+		<software name="FeatureFinderMetabo" version="1.9.0" />
+		<processingAction name="Quantitation" />
+		<userParam type="string" name="parameter: no_progress" value="false"/>
+		<userParam type="string" name="parameter: in" value="FeatureFinderMetabo_1_input.mzML"/>
+		<userParam type="string" name="parameter: out" value="FeatureFinderMetabo_1_output.featureXML"/>
+		<userParam type="string" name="parameter: ini" value="FeatureFinderMetabo.ini"/>
+		<userParam type="string" name="parameter: log" value=""/>
+		<userParam type="int" name="parameter: debug" value="0"/>
+		<userParam type="int" name="parameter: threads" value="1"/>
+		<userParam type="string" name="parameter: test" value="false"/>
+		<userParam type="float" name="parameter: algorithm:common:mass_error_ppm" value="20"/>
+		<userParam type="float" name="parameter: algorithm:mtd:noise_threshold_int" value="10"/>
+		<userParam type="float" name="parameter: algorithm:mtd:chrom_apex_snt" value="3"/>
+		<userParam type="float" name="parameter: algorithm:mtd:chrom_fwhm" value="0"/>
+		<userParam type="float" name="parameter: algorithm:mtd:min_sample_rate" value="0.5"/>
+		<userParam type="float" name="parameter: algorithm:epd:chrom_fwhm" value="0"/>
+		<userParam type="string" name="parameter: algorithm:epd:width_filtering" value="true"/>
+		<userParam type="string" name="parameter: algorithm:epd:enabled" value="true"/>
+		<userParam type="float" name="parameter: algorithm:ffm:local_rt_range" value="5"/>
+		<userParam type="float" name="parameter: algorithm:ffm:local_mz_range" value="6.5"/>
+		<userParam type="int" name="parameter: algorithm:ffm:charge_lower_bound" value="1"/>
+		<userParam type="int" name="parameter: algorithm:ffm:charge_upper_bound" value="5"/>
+		<userParam type="float" name="parameter: algorithm:ffm:chrom_sigma" value="3"/>
+		<userParam type="string" name="parameter: algorithm:ffm:report_summed_ints" value="false"/>
+	</dataProcessing>
+	<featureList count="96">
+		<feature id="f_17323135231390610692">
+			<position dim="0">2064.00112995946</position>
+			<position dim="1">1284.05032255961</position>
+			<intensity>24350.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.000515866</overallquality>
+			<charge>5</charge>
+			<convexhull nr="0">
+				<pt x="2055.8863" y="1284.06068081203" />
+				<pt x="2061.2051" y="1284.05647903671" />
+				<pt x="2062.9985" y="1284.03829757835" />
+				<pt x="2066.5774" y="1284.02491386068" />
+				<pt x="2070.2042" y="1284.05392508801" />
+				<pt x="2073.8759" y="1284.0589640235" />
+				<pt x="2077.5722" y="1284.05184490609" />
+				<pt x="2073.8759" y="1284.0589640235" />
+				<pt x="2070.2042" y="1284.05392508801" />
+				<pt x="2066.5774" y="1284.02491386068" />
+				<pt x="2062.9985" y="1284.03829757835" />
+				<pt x="2061.2051" y="1284.05647903671" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="2059.4295" y="1284.09736657956" />
+				<pt x="2061.2051" y="1284.06412766281" />
+				<pt x="2064.7811" y="1284.08337022236" />
+				<pt x="2068.3845" y="1284.07528107715" />
+				<pt x="2072.0327" y="1284.07874125182" />
+				<pt x="2068.3845" y="1284.07528107715" />
+				<pt x="2064.7811" y="1284.08337022236" />
+				<pt x="2061.2051" y="1284.06412766281" />
+			</convexhull>
+			<userParam type="string" name="label" value="T70_T93"/>
+			<userParam type="float" name="FWHM" value="10.6911001205444"/>
+		</feature>
+		<feature id="f_16794274981819990893">
+			<position dim="0">2409.03118859581</position>
+			<position dim="1">1634.30005023499</position>
+			<intensity>37650.7</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2403.2204" y="1634.29079900842" />
+				<pt x="2406.691" y="1634.30243663784" />
+				<pt x="2408.4245" y="1634.27240621469" />
+				<pt x="2410.1664" y="1634.31185378647" />
+				<pt x="2413.6647" y="1634.32031801335" />
+				<pt x="2418.9377" y="1634.30222333949" />
+				<pt x="2413.6647" y="1634.32031801335" />
+				<pt x="2410.1664" y="1634.31185378647" />
+				<pt x="2408.4245" y="1634.27240621469" />
+				<pt x="2406.691" y="1634.30243663784" />
+			</convexhull>
+			<userParam type="string" name="label" value="T42"/>
+			<userParam type="float" name="FWHM" value="15.7173004150391"/>
+		</feature>
+		<feature id="f_11305549399731974740">
+			<position dim="0">2266.64964959548</position>
+			<position dim="1">1624.31251482341</position>
+			<intensity>28449.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2262.3631" y="1624.3381999632" />
+				<pt x="2264.0944" y="1624.28271362656" />
+				<pt x="2267.5597" y="1624.31537135315" />
+				<pt x="2269.2999" y="1624.32374671751" />
+				<pt x="2272.7709" y="1624.29160879174" />
+				<pt x="2269.2999" y="1624.32374671751" />
+				<pt x="2267.5597" y="1624.31537135315" />
+				<pt x="2264.0944" y="1624.28271362656" />
+			</convexhull>
+			<userParam type="string" name="label" value="T71"/>
+			<userParam type="float" name="FWHM" value="10.4077997207642"/>
+		</feature>
+		<feature id="f_14635163851993277284">
+			<position dim="0">2259.11197403898</position>
+			<position dim="1">1624.23244941614</position>
+			<intensity>27440.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2255.4493" y="1624.23573916436" />
+				<pt x="2257.1777" y="1624.236869026" />
+				<pt x="2258.9136" y="1624.24921683739" />
+				<pt x="2260.6347" y="1624.21612788944" />
+				<pt x="2265.8264" y="1624.20906130526" />
+				<pt x="2260.6347" y="1624.21612788944" />
+				<pt x="2258.9136" y="1624.24921683739" />
+				<pt x="2257.1777" y="1624.236869026" />
+			</convexhull>
+			<userParam type="string" name="label" value="T59"/>
+			<userParam type="float" name="FWHM" value="10.3770999908447"/>
+		</feature>
+		<feature id="f_12288621091600725474">
+			<position dim="0">2295.43711630502</position>
+			<position dim="1">1622.22443161059</position>
+			<intensity>59756.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2288.5056" y="1622.19794304514" />
+				<pt x="2291.9613" y="1622.22390766639" />
+				<pt x="2295.4041" y="1622.2319301143" />
+				<pt x="2297.1265" y="1622.21467390721" />
+				<pt x="2300.5738" y="1622.24178705335" />
+				<pt x="2297.1265" y="1622.21467390721" />
+				<pt x="2295.4041" y="1622.2319301143" />
+				<pt x="2291.9613" y="1622.22390766639" />
+			</convexhull>
+			<userParam type="string" name="label" value="T10"/>
+			<userParam type="float" name="FWHM" value="12.0682001113892"/>
+		</feature>
+		<feature id="f_11109679408081571165">
+			<position dim="0">2309.24348231414</position>
+			<position dim="1">1622.19101633917</position>
+			<intensity>48648.7</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2304.0212" y="1622.19690194279" />
+				<pt x="2307.4789" y="1622.1742751438" />
+				<pt x="2309.2118" y="1622.2052812668" />
+				<pt x="2314.4472" y="1622.18687139131" />
+				<pt x="2316.1886" y="1622.19102447454" />
+				<pt x="2317.9356" y="1622.17929750636" />
+				<pt x="2316.1886" y="1622.19102447454" />
+				<pt x="2314.4472" y="1622.18687139131" />
+				<pt x="2309.2118" y="1622.2052812668" />
+				<pt x="2307.4789" y="1622.1742751438" />
+			</convexhull>
+			<userParam type="string" name="label" value="T8"/>
+			<userParam type="float" name="FWHM" value="10.4259996414185"/>
+		</feature>
+		<feature id="f_2514045062241323628">
+			<position dim="0">2228.32362987631</position>
+			<position dim="1">1618.65910592108</position>
+			<intensity>32040.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2224.2378" y="1618.65449468371" />
+				<pt x="2227.7823" y="1618.65016070166" />
+				<pt x="2231.2626" y="1618.66977187214" />
+				<pt x="2227.7823" y="1618.65016070166" />
+			</convexhull>
+			<userParam type="string" name="label" value="T19.2"/>
+			<userParam type="float" name="FWHM" value="7.02479982376099"/>
+		</feature>
+		<feature id="f_5157187151457287907">
+			<position dim="0">2280.49426403783</position>
+			<position dim="1">1618.30589990836</position>
+			<intensity>35854.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2276.2524" y="1618.30976942993" />
+				<pt x="2278.0007" y="1618.31991341355" />
+				<pt x="2279.7614" y="1618.29667186498" />
+				<pt x="2281.5072" y="1618.30364585381" />
+				<pt x="2283.2674" y="1618.30724282901" />
+				<pt x="2288.5056" y="1618.29140105769" />
+				<pt x="2283.2674" y="1618.30724282901" />
+				<pt x="2281.5072" y="1618.30364585381" />
+				<pt x="2279.7614" y="1618.29667186498" />
+				<pt x="2278.0007" y="1618.31991341355" />
+			</convexhull>
+			<userParam type="string" name="label" value="T47"/>
+			<userParam type="float" name="FWHM" value="12.2531995773315"/>
+		</feature>
+		<feature id="f_16043957514835953278">
+			<position dim="0">2268.12889461595</position>
+			<position dim="1">1618.20696499497</position>
+			<intensity>23270.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2264.0944" y="1618.21790592742" />
+				<pt x="2269.2999" y="1618.20357106809" />
+				<pt x="2271.0304" y="1618.19929519133" />
+				<pt x="2269.2999" y="1618.20357106809" />
+			</convexhull>
+			<userParam type="string" name="label" value="T39.1"/>
+			<userParam type="float" name="FWHM" value="6.93599987030029"/>
+		</feature>
+		<feature id="f_8490952656967616508">
+			<position dim="0">2387.95796623512</position>
+			<position dim="1">1603.35004083246</position>
+			<intensity>52725.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2378.745" y="1603.33370244748" />
+				<pt x="2384.0293" y="1603.33650200084" />
+				<pt x="2385.791" y="1603.37574457702" />
+				<pt x="2387.5374" y="1603.35287233037" />
+				<pt x="2391.0357" y="1603.34158073643" />
+				<pt x="2394.5305" y="1603.34807631331" />
+				<pt x="2391.0357" y="1603.34158073643" />
+				<pt x="2387.5374" y="1603.35287233037" />
+				<pt x="2385.791" y="1603.37574457702" />
+				<pt x="2384.0293" y="1603.33650200084" />
+			</convexhull>
+			<userParam type="string" name="label" value="T13"/>
+			<userParam type="float" name="FWHM" value="15.7854995727539"/>
+		</feature>
+		<feature id="f_7709824995855815588">
+			<position dim="0">2456.24000121896</position>
+			<position dim="1">1593.0295816212</position>
+			<intensity>108148</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2446.9015" y="1593.00677041483" />
+				<pt x="2448.6193" y="1593.00886191778" />
+				<pt x="2450.3192" y="1593.04412047975" />
+				<pt x="2453.7277" y="1593.03108431757" />
+				<pt x="2457.1369" y="1593.02450398259" />
+				<pt x="2458.847" y="1593.04681541625" />
+				<pt x="2462.2518" y="1593.01897348168" />
+				<pt x="2465.6642" y="1593.03615742187" />
+				<pt x="2467.3734" y="1593.05652925073" />
+				<pt x="2470.7948" y="1593.01517751011" />
+				<pt x="2467.3734" y="1593.05652925073" />
+				<pt x="2465.6642" y="1593.03615742187" />
+				<pt x="2462.2518" y="1593.01897348168" />
+				<pt x="2458.847" y="1593.04681541625" />
+				<pt x="2457.1369" y="1593.02450398259" />
+				<pt x="2453.7277" y="1593.03108431757" />
+				<pt x="2450.3192" y="1593.04412047975" />
+				<pt x="2448.6193" y="1593.00886191778" />
+			</convexhull>
+			<userParam type="string" name="label" value="T5"/>
+			<userParam type="float" name="FWHM" value="18.7626991271973"/>
+		</feature>
+		<feature id="f_1450803058644118072">
+			<position dim="0">2476.15538669939</position>
+			<position dim="1">1580.21368314475</position>
+			<intensity>69443.1</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2469.0914" y="1580.1969217806" />
+				<pt x="2472.5095" y="1580.21607222098" />
+				<pt x="2475.9407" y="1580.23938914078" />
+				<pt x="2479.3861" y="1580.19834278508" />
+				<pt x="2482.8308" y="1580.22828867681" />
+				<pt x="2484.5555" y="1580.19925681024" />
+				<pt x="2488.0138" y="1580.23135241506" />
+				<pt x="2484.5555" y="1580.19925681024" />
+				<pt x="2482.8308" y="1580.22828867681" />
+				<pt x="2479.3861" y="1580.19834278508" />
+				<pt x="2475.9407" y="1580.23938914078" />
+				<pt x="2472.5095" y="1580.21607222098" />
+			</convexhull>
+			<userParam type="string" name="label" value="T14.1"/>
+			<userParam type="float" name="FWHM" value="10.2946996688843"/>
+		</feature>
+		<feature id="f_2322157505230105446">
+			<position dim="0">2458.11347761824</position>
+			<position dim="1">1580.18833093702</position>
+			<intensity>115396</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2450.3192" y="1580.18000310345" />
+				<pt x="2453.7277" y="1580.17610663391" />
+				<pt x="2455.4355" y="1580.16714263129" />
+				<pt x="2457.1369" y="1580.18310798158" />
+				<pt x="2460.5445" y="1580.211402818" />
+				<pt x="2463.9564" y="1580.19648867128" />
+				<pt x="2460.5445" y="1580.211402818" />
+				<pt x="2457.1369" y="1580.18310798158" />
+				<pt x="2455.4355" y="1580.16714263129" />
+				<pt x="2453.7277" y="1580.17610663391" />
+			</convexhull>
+			<userParam type="string" name="label" value="T1"/>
+			<userParam type="float" name="FWHM" value="13.6372003555298"/>
+		</feature>
+		<feature id="f_10019958116922826776">
+			<position dim="0">2057.40825476744</position>
+			<position dim="1">1575.65329711257</position>
+			<intensity>127266</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2045.2429" y="1575.66462689195" />
+				<pt x="2048.7927" y="1575.64627665704" />
+				<pt x="2050.5696" y="1575.61840072475" />
+				<pt x="2052.3418" y="1575.65723584446" />
+				<pt x="2054.1124" y="1575.66619034845" />
+				<pt x="2055.8863" y="1575.65020830882" />
+				<pt x="2057.6541" y="1575.68004880652" />
+				<pt x="2059.4295" y="1575.65500390559" />
+				<pt x="2061.2051" y="1575.63420415726" />
+				<pt x="2070.2042" y="1575.67599733168" />
+				<pt x="2073.8759" y="1575.6465067005" />
+				<pt x="2081.286" y="1575.67158313316" />
+				<pt x="2083.147" y="1575.62478192368" />
+				<pt x="2085.0373" y="1575.64524470824" />
+				<pt x="2090.6838" y="1575.6710126991" />
+				<pt x="2085.0373" y="1575.64524470824" />
+				<pt x="2083.147" y="1575.62478192368" />
+				<pt x="2081.286" y="1575.67158313316" />
+				<pt x="2073.8759" y="1575.6465067005" />
+				<pt x="2070.2042" y="1575.67599733168" />
+				<pt x="2061.2051" y="1575.63420415726" />
+				<pt x="2059.4295" y="1575.65500390559" />
+				<pt x="2057.6541" y="1575.68004880652" />
+				<pt x="2055.8863" y="1575.65020830882" />
+				<pt x="2054.1124" y="1575.66619034845" />
+				<pt x="2052.3418" y="1575.65723584446" />
+				<pt x="2050.5696" y="1575.61840072475" />
+				<pt x="2048.7927" y="1575.64627665704" />
+			</convexhull>
+			<userParam type="string" name="label" value="T16"/>
+			<userParam type="float" name="FWHM" value="24.9612998962402"/>
+		</feature>
+		<feature id="f_16446534795964721549">
+			<position dim="0">2158.87142772256</position>
+			<position dim="1">1572.67264758598</position>
+			<intensity>150373</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2135.693" y="1572.67109332322" />
+				<pt x="2141.1918" y="1572.68066957359" />
+				<pt x="2144.8095" y="1572.64840392151" />
+				<pt x="2146.596" y="1572.65925994143" />
+				<pt x="2148.3686" y="1572.70144250072" />
+				<pt x="2151.9172" y="1572.69873215504" />
+				<pt x="2153.7001" y="1572.67163695914" />
+				<pt x="2155.4741" y="1572.6775285347" />
+				<pt x="2157.2435" y="1572.6567129351" />
+				<pt x="2160.7929" y="1572.68046175276" />
+				<pt x="2162.577" y="1572.66444673817" />
+				<pt x="2166.1232" y="1572.67235605436" />
+				<pt x="2167.8941" y="1572.65279032578" />
+				<pt x="2169.6775" y="1572.67578831471" />
+				<pt x="2173.2572" y="1572.66999310767" />
+				<pt x="2175.0676" y="1572.68723716072" />
+				<pt x="2178.7097" y="1572.64611437407" />
+				<pt x="2184.2134" y="1572.69913342139" />
+				<pt x="2193.3189" y="1572.66073838542" />
+				<pt x="2184.2134" y="1572.69913342139" />
+				<pt x="2178.7097" y="1572.64611437407" />
+				<pt x="2175.0676" y="1572.68723716072" />
+				<pt x="2173.2572" y="1572.66999310767" />
+				<pt x="2169.6775" y="1572.67578831471" />
+				<pt x="2167.8941" y="1572.65279032578" />
+				<pt x="2166.1232" y="1572.67235605436" />
+				<pt x="2162.577" y="1572.66444673817" />
+				<pt x="2160.7929" y="1572.68046175276" />
+				<pt x="2157.2435" y="1572.6567129351" />
+				<pt x="2155.4741" y="1572.6775285347" />
+				<pt x="2153.7001" y="1572.67163695914" />
+				<pt x="2151.9172" y="1572.69873215504" />
+				<pt x="2148.3686" y="1572.70144250072" />
+				<pt x="2146.596" y="1572.65925994143" />
+				<pt x="2144.8095" y="1572.64840392151" />
+				<pt x="2141.1918" y="1572.68066957359" />
+			</convexhull>
+			<userParam type="string" name="label" value="T20"/>
+			<userParam type="float" name="FWHM" value="32.0653991699219"/>
+		</feature>
+		<feature id="f_6559197509180905444">
+			<position dim="0">2264.04673633005</position>
+			<position dim="1">1550.53413659585</position>
+			<intensity>31367.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2257.1777" y="1550.53819773988" />
+				<pt x="2258.9136" y="1550.54279185504" />
+				<pt x="2262.3631" y="1550.54195905428" />
+				<pt x="2267.5597" y="1550.5250082479" />
+				<pt x="2269.2999" y="1550.54630679518" />
+				<pt x="2271.0304" y="1550.5117295227" />
+				<pt x="2269.2999" y="1550.54630679518" />
+				<pt x="2267.5597" y="1550.5250082479" />
+				<pt x="2262.3631" y="1550.54195905428" />
+				<pt x="2258.9136" y="1550.54279185504" />
+			</convexhull>
+			<userParam type="string" name="label" value="T74"/>
+			<userParam type="float" name="FWHM" value="13.8527002334595"/>
+		</feature>
+		<feature id="f_17967557824585391734">
+			<position dim="0">2229.69043504531</position>
+			<position dim="1">1545.10798819666</position>
+			<intensity>73222</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2218.8696" y="1545.12288799063" />
+				<pt x="2220.6669" y="1545.11585715713" />
+				<pt x="2222.456" y="1545.09424393595" />
+				<pt x="2226.0058" y="1545.10450077712" />
+				<pt x="2227.7823" y="1545.09103602899" />
+				<pt x="2231.2626" y="1545.09476073318" />
+				<pt x="2234.7232" y="1545.11545869833" />
+				<pt x="2236.4495" y="1545.12283897083" />
+				<pt x="2234.7232" y="1545.11545869833" />
+				<pt x="2231.2626" y="1545.09476073318" />
+				<pt x="2227.7823" y="1545.09103602899" />
+				<pt x="2226.0058" y="1545.10450077712" />
+				<pt x="2222.456" y="1545.09424393595" />
+				<pt x="2220.6669" y="1545.11585715713" />
+			</convexhull>
+			<userParam type="string" name="label" value="T7"/>
+			<userParam type="float" name="FWHM" value="13.9934997558594"/>
+		</feature>
+		<feature id="f_1553890951815312365">
+			<position dim="0">2266.61046141076</position>
+			<position dim="1">1544.74629845848</position>
+			<intensity>56862.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2258.9136" y="1544.74483925706" />
+				<pt x="2260.6347" y="1544.76372968546" />
+				<pt x="2264.0944" y="1544.73579423927" />
+				<pt x="2267.5597" y="1544.76825405706" />
+				<pt x="2269.2999" y="1544.74310249096" />
+				<pt x="2271.0304" y="1544.73903324195" />
+				<pt x="2274.5086" y="1544.73200712677" />
+				<pt x="2271.0304" y="1544.73903324195" />
+				<pt x="2269.2999" y="1544.74310249096" />
+				<pt x="2267.5597" y="1544.76825405706" />
+				<pt x="2264.0944" y="1544.73579423927" />
+				<pt x="2260.6347" y="1544.76372968546" />
+			</convexhull>
+			<userParam type="string" name="label" value="T34"/>
+			<userParam type="float" name="FWHM" value="15.5950002670288"/>
+		</feature>
+		<feature id="f_7642805244822536195">
+			<position dim="0">2300.38974139749</position>
+			<position dim="1">1541.15101596275</position>
+			<intensity>173816</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2286.7695" y="1541.13031875539" />
+				<pt x="2288.5056" y="1541.161550938" />
+				<pt x="2290.2434" y="1541.14601913674" />
+				<pt x="2291.9613" y="1541.14098050705" />
+				<pt x="2293.6847" y="1541.1413927765" />
+				<pt x="2295.4041" y="1541.13435910266" />
+				<pt x="2297.1265" y="1541.16516866549" />
+				<pt x="2298.845" y="1541.13931468733" />
+				<pt x="2302.294" y="1541.16439852065" />
+				<pt x="2304.0212" y="1541.15670407075" />
+				<pt x="2305.7472" y="1541.15141495534" />
+				<pt x="2309.2118" y="1541.17059248924" />
+				<pt x="2312.6974" y="1541.15787044304" />
+				<pt x="2314.4472" y="1541.16547839765" />
+				<pt x="2321.4271" y="1541.15610484001" />
+				<pt x="2323.1737" y="1541.17231067586" />
+				<pt x="2326.6997" y="1541.14031083078" />
+				<pt x="2333.8036" y="1541.13032991653" />
+				<pt x="2326.6997" y="1541.14031083078" />
+				<pt x="2323.1737" y="1541.17231067586" />
+				<pt x="2321.4271" y="1541.15610484001" />
+				<pt x="2314.4472" y="1541.16547839765" />
+				<pt x="2312.6974" y="1541.15787044304" />
+				<pt x="2309.2118" y="1541.17059248924" />
+				<pt x="2305.7472" y="1541.15141495534" />
+				<pt x="2304.0212" y="1541.15670407075" />
+				<pt x="2302.294" y="1541.16439852065" />
+				<pt x="2298.845" y="1541.13931468733" />
+				<pt x="2297.1265" y="1541.16516866549" />
+				<pt x="2295.4041" y="1541.13435910266" />
+				<pt x="2293.6847" y="1541.1413927765" />
+				<pt x="2291.9613" y="1541.14098050705" />
+				<pt x="2290.2434" y="1541.14601913674" />
+				<pt x="2288.5056" y="1541.161550938" />
+			</convexhull>
+			<userParam type="string" name="label" value="T4"/>
+			<userParam type="float" name="FWHM" value="25.9279003143311"/>
+		</feature>
+		<feature id="f_9650415679530527937">
+			<position dim="0">2394.08094735111</position>
+			<position dim="1">1527.03734866079</position>
+			<intensity>32253.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2389.288" y="1527.03893760903" />
+				<pt x="2392.784" y="1527.05041258532" />
+				<pt x="2394.5305" y="1527.02025097194" />
+				<pt x="2398.0174" y="1527.05761908341" />
+				<pt x="2401.4906" y="1527.0228275863" />
+				<pt x="2398.0174" y="1527.05761908341" />
+				<pt x="2394.5305" y="1527.02025097194" />
+				<pt x="2392.784" y="1527.05041258532" />
+			</convexhull>
+			<userParam type="string" name="label" value="T36"/>
+			<userParam type="float" name="FWHM" value="12.2025995254517"/>
+		</feature>
+		<feature id="f_4513912210229275435">
+			<position dim="0">2457.2197459865</position>
+			<position dim="1">1517.18524099242</position>
+			<intensity>69246.5</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2450.3192" y="1517.19161970177" />
+				<pt x="2452.0246" y="1517.17441289848" />
+				<pt x="2455.4355" y="1517.18218396505" />
+				<pt x="2458.847" y="1517.17109599424" />
+				<pt x="2463.9564" y="1517.19094513184" />
+				<pt x="2467.3734" y="1517.20878523248" />
+				<pt x="2463.9564" y="1517.19094513184" />
+				<pt x="2458.847" y="1517.17109599424" />
+				<pt x="2455.4355" y="1517.18218396505" />
+				<pt x="2452.0246" y="1517.17441289848" />
+			</convexhull>
+			<userParam type="string" name="label" value="T17"/>
+			<userParam type="float" name="FWHM" value="17.05419921875"/>
+		</feature>
+		<feature id="f_1154151083294107771">
+			<position dim="0">2067.8923451211</position>
+			<position dim="1">1507.21522810928</position>
+			<intensity>48308.9</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2059.4295" y="1507.21733069201" />
+				<pt x="2062.9985" y="1507.21267140359" />
+				<pt x="2066.5774" y="1507.2239155333" />
+				<pt x="2068.3845" y="1507.21036402901" />
+				<pt x="2072.0327" y="1507.22775108722" />
+				<pt x="2073.8759" y="1507.19972387431" />
+				<pt x="2077.5722" y="1507.2197359071" />
+				<pt x="2085.0373" y="1507.20641722272" />
+				<pt x="2088.7975" y="1507.20955375062" />
+				<pt x="2085.0373" y="1507.20641722272" />
+				<pt x="2077.5722" y="1507.2197359071" />
+				<pt x="2073.8759" y="1507.19972387431" />
+				<pt x="2072.0327" y="1507.22775108722" />
+				<pt x="2068.3845" y="1507.21036402901" />
+				<pt x="2066.5774" y="1507.2239155333" />
+				<pt x="2062.9985" y="1507.21267140359" />
+			</convexhull>
+			<userParam type="string" name="label" value="T23"/>
+			<userParam type="float" name="FWHM" value="12.6031999588013"/>
+		</feature>
+		<feature id="f_7995218851185086651">
+			<position dim="0">2052.39360181799</position>
+			<position dim="1">1507.1615253189</position>
+			<intensity>107683</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2034.4055" y="1507.15784373677" />
+				<pt x="2036.2596" y="1507.16974502807" />
+				<pt x="2039.875" y="1507.16285695604" />
+				<pt x="2041.6855" y="1507.13754554588" />
+				<pt x="2047.0178" y="1507.16879850641" />
+				<pt x="2050.5696" y="1507.15656125787" />
+				<pt x="2052.3418" y="1507.14086940959" />
+				<pt x="2055.8863" y="1507.16858059728" />
+				<pt x="2057.6541" y="1507.18343158691" />
+				<pt x="2061.2051" y="1507.1812511155" />
+				<pt x="2064.7811" y="1507.14257620499" />
+				<pt x="2070.2042" y="1507.1697274874" />
+				<pt x="2073.8759" y="1507.18736211164" />
+				<pt x="2070.2042" y="1507.1697274874" />
+				<pt x="2064.7811" y="1507.14257620499" />
+				<pt x="2061.2051" y="1507.1812511155" />
+				<pt x="2057.6541" y="1507.18343158691" />
+				<pt x="2055.8863" y="1507.16858059728" />
+				<pt x="2052.3418" y="1507.14086940959" />
+				<pt x="2050.5696" y="1507.15656125787" />
+				<pt x="2047.0178" y="1507.16879850641" />
+				<pt x="2041.6855" y="1507.13754554588" />
+				<pt x="2039.875" y="1507.16285695604" />
+				<pt x="2036.2596" y="1507.16974502807" />
+			</convexhull>
+			<userParam type="string" name="label" value="T22"/>
+			<userParam type="float" name="FWHM" value="33.9445991516113"/>
+		</feature>
+		<feature id="f_9056111857854224135">
+			<position dim="0">2472.53207604897</position>
+			<position dim="1">1505.00005862257</position>
+			<intensity>63878.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2469.0914" y="1504.98058797517" />
+				<pt x="2470.7948" y="1504.99670722751" />
+				<pt x="2472.5095" y="1505.00467371642" />
+				<pt x="2477.6586" y="1505.02854662627" />
+				<pt x="2479.3861" y="1505.01027803044" />
+				<pt x="2477.6586" y="1505.02854662627" />
+				<pt x="2472.5095" y="1505.00467371642" />
+				<pt x="2470.7948" y="1504.99670722751" />
+			</convexhull>
+			<userParam type="string" name="label" value="T66"/>
+			<userParam type="float" name="FWHM" value="10.2946996688843"/>
+		</feature>
+		<feature id="f_5271371302658077271">
+			<position dim="0">2457.30755325743</position>
+			<position dim="1">1504.99960834756</position>
+			<intensity>101658</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2446.9015" y="1505.00834798781" />
+				<pt x="2450.3192" y="1504.98577680425" />
+				<pt x="2452.0246" y="1505.01563531279" />
+				<pt x="2455.4355" y="1504.99938583065" />
+				<pt x="2457.1369" y="1504.9839383617" />
+				<pt x="2462.2518" y="1504.9911952149" />
+				<pt x="2463.9564" y="1505.01345617699" />
+				<pt x="2462.2518" y="1504.9911952149" />
+				<pt x="2457.1369" y="1504.9839383617" />
+				<pt x="2455.4355" y="1504.99938583065" />
+				<pt x="2452.0246" y="1505.01563531279" />
+				<pt x="2450.3192" y="1504.98577680425" />
+			</convexhull>
+			<userParam type="string" name="label" value="T2"/>
+			<userParam type="float" name="FWHM" value="13.6372003555298"/>
+		</feature>
+		<feature id="f_6492396435264655786">
+			<position dim="0">2059.85896099934</position>
+			<position dim="1">1925.54703769008</position>
+			<intensity>13999.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2055.8863" y="1925.54071306372" />
+				<pt x="2057.6541" y="1925.57106051576" />
+				<pt x="2059.4295" y="1925.51309896696" />
+				<pt x="2061.2051" y="1925.57562779146" />
+				<pt x="2070.2042" y="1925.51766214398" />
+				<pt x="2061.2051" y="1925.57562779146" />
+				<pt x="2059.4295" y="1925.51309896696" />
+				<pt x="2057.6541" y="1925.57106051576" />
+			</convexhull>
+			<userParam type="string" name="label" value="T80"/>
+			<userParam type="float" name="FWHM" value="14.3178997039795"/>
+		</feature>
+		<feature id="f_1301377886626829878">
+			<position dim="0">2047.51337270926</position>
+			<position dim="1">1925.48777106002</position>
+			<intensity>13654.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2039.875" y="1925.45935036325" />
+				<pt x="2043.4598" y="1925.47545727088" />
+				<pt x="2047.0178" y="1925.49705880608" />
+				<pt x="2050.5696" y="1925.48808555882" />
+				<pt x="2052.3418" y="1925.50672184827" />
+				<pt x="2050.5696" y="1925.48808555882" />
+				<pt x="2047.0178" y="1925.49705880608" />
+				<pt x="2043.4598" y="1925.47545727088" />
+			</convexhull>
+			<userParam type="string" name="label" value="T91"/>
+			<userParam type="float" name="FWHM" value="12.4667997360229"/>
+		</feature>
+		<feature id="f_15838784390050149793">
+			<position dim="0">2231.33698402143</position>
+			<position dim="1">1888.28590823578</position>
+			<intensity>23445.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2227.7823" y="1888.28136515922" />
+				<pt x="2229.5196" y="1888.28998307627" />
+				<pt x="2231.2626" y="1888.29429441845" />
+				<pt x="2232.9951" y="1888.26905571147" />
+				<pt x="2234.7232" y="1888.29709107925" />
+				<pt x="2232.9951" y="1888.26905571147" />
+				<pt x="2231.2626" y="1888.29429441845" />
+				<pt x="2229.5196" y="1888.28998307627" />
+			</convexhull>
+			<userParam type="string" name="label" value="T72"/>
+			<userParam type="float" name="FWHM" value="6.94089984893799"/>
+		</feature>
+		<feature id="f_8705082719861576502">
+			<position dim="0">2454.87749207824</position>
+			<position dim="1">1858.88341392983</position>
+			<intensity>44285.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2446.9015" y="1858.86082135529" />
+				<pt x="2448.6193" y="1858.90698457431" />
+				<pt x="2450.3192" y="1858.8546735985" />
+				<pt x="2453.7277" y="1858.89911685617" />
+				<pt x="2455.4355" y="1858.89025672131" />
+				<pt x="2457.1369" y="1858.90297955235" />
+				<pt x="2460.5445" y="1858.87026528943" />
+				<pt x="2457.1369" y="1858.90297955235" />
+				<pt x="2455.4355" y="1858.89025672131" />
+				<pt x="2453.7277" y="1858.89911685617" />
+				<pt x="2450.3192" y="1858.8546735985" />
+				<pt x="2448.6193" y="1858.90698457431" />
+			</convexhull>
+			<userParam type="string" name="label" value="T24"/>
+			<userParam type="float" name="FWHM" value="6.81680011749268"/>
+		</feature>
+		<feature id="f_13063119601546914000">
+			<position dim="0">2058.05536184762</position>
+			<position dim="1">1824.36219240739</position>
+			<intensity>26705.5</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2052.3418" y="1824.37242625977" />
+				<pt x="2055.8863" y="1824.36815317821" />
+				<pt x="2057.6541" y="1824.36606515434" />
+				<pt x="2059.4295" y="1824.3481877641" />
+				<pt x="2066.5774" y="1824.3578326094" />
+				<pt x="2059.4295" y="1824.3481877641" />
+				<pt x="2057.6541" y="1824.36606515434" />
+				<pt x="2055.8863" y="1824.36815317821" />
+			</convexhull>
+			<userParam type="string" name="label" value="T55"/>
+			<userParam type="float" name="FWHM" value="14.2356004714966"/>
+		</feature>
+		<feature id="f_9893746404870673699">
+			<position dim="0">2045.14541928749</position>
+			<position dim="1">1824.33963422869</position>
+			<intensity>24034.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2039.875" y="1824.37325643794" />
+				<pt x="2041.6855" y="1824.34307292282" />
+				<pt x="2043.4598" y="1824.34320319654" />
+				<pt x="2045.2429" y="1824.32031651207" />
+				<pt x="2054.1124" y="1824.33094043065" />
+				<pt x="2045.2429" y="1824.32031651207" />
+				<pt x="2043.4598" y="1824.34320319654" />
+				<pt x="2041.6855" y="1824.34307292282" />
+			</convexhull>
+			<userParam type="string" name="label" value="T86"/>
+			<userParam type="float" name="FWHM" value="14.2374000549316"/>
+		</feature>
+		<feature id="f_8087429776589718918">
+			<position dim="0">2300.85777772033</position>
+			<position dim="1">1812.92501195696</position>
+			<intensity>60677.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2288.5056" y="1812.91055608607" />
+				<pt x="2293.6847" y="1812.92646422112" />
+				<pt x="2295.4041" y="1812.92674457797" />
+				<pt x="2297.1265" y="1812.91128500507" />
+				<pt x="2300.5738" y="1812.91886613415" />
+				<pt x="2302.294" y="1812.9430658994" />
+				<pt x="2304.0212" y="1812.92681043957" />
+				<pt x="2305.7472" y="1812.92416351495" />
+				<pt x="2307.4789" y="1812.94062721044" />
+				<pt x="2309.2118" y="1812.91288969489" />
+				<pt x="2319.6713" y="1812.91515477286" />
+				<pt x="2309.2118" y="1812.91288969489" />
+				<pt x="2307.4789" y="1812.94062721044" />
+				<pt x="2305.7472" y="1812.92416351495" />
+				<pt x="2304.0212" y="1812.92681043957" />
+				<pt x="2302.294" y="1812.9430658994" />
+				<pt x="2300.5738" y="1812.91886613415" />
+				<pt x="2297.1265" y="1812.91128500507" />
+				<pt x="2295.4041" y="1812.92674457797" />
+				<pt x="2293.6847" y="1812.92646422112" />
+			</convexhull>
+			<userParam type="string" name="label" value="T54"/>
+			<userParam type="float" name="FWHM" value="31.1657009124756"/>
+		</feature>
+		<feature id="f_15995003357507491526">
+			<position dim="0">2243.25595183455</position>
+			<position dim="1">1788.89217945523</position>
+			<intensity>43066.5</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2236.4495" y="1788.89808403653" />
+				<pt x="2238.1823" y="1788.89148881936" />
+				<pt x="2241.627" y="1788.89879764718" />
+				<pt x="2245.0807" y="1788.86891007643" />
+				<pt x="2248.5422" y="1788.90559355452" />
+				<pt x="2250.2648" y="1788.89388524918" />
+				<pt x="2248.5422" y="1788.90559355452" />
+				<pt x="2245.0807" y="1788.86891007643" />
+				<pt x="2241.627" y="1788.89879764718" />
+				<pt x="2238.1823" y="1788.89148881936" />
+			</convexhull>
+			<userParam type="string" name="label" value="T48"/>
+			<userParam type="float" name="FWHM" value="13.815299987793"/>
+		</feature>
+		<feature id="f_1976877158665224105">
+			<position dim="0">2470.91272656032</position>
+			<position dim="1">1755.65484496754</position>
+			<intensity>111133</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2460.5445" y="1755.64246669321" />
+				<pt x="2462.2518" y="1755.6489959432" />
+				<pt x="2463.9564" y="1755.68273861578" />
+				<pt x="2467.3734" y="1755.65002647949" />
+				<pt x="2469.0914" y="1755.63295532101" />
+				<pt x="2470.7948" y="1755.66731925487" />
+				<pt x="2474.2214" y="1755.64843360118" />
+				<pt x="2477.6586" y="1755.68223223848" />
+				<pt x="2479.3861" y="1755.63363894437" />
+				<pt x="2482.8308" y="1755.63333275574" />
+				<pt x="2484.5555" y="1755.68004557817" />
+				<pt x="2489.7476" y="1755.63739378386" />
+				<pt x="2498.3931" y="1755.64574572995" />
+				<pt x="2489.7476" y="1755.63739378386" />
+				<pt x="2484.5555" y="1755.68004557817" />
+				<pt x="2482.8308" y="1755.63333275574" />
+				<pt x="2479.3861" y="1755.63363894437" />
+				<pt x="2477.6586" y="1755.68223223848" />
+				<pt x="2474.2214" y="1755.64843360118" />
+				<pt x="2470.7948" y="1755.66731925487" />
+				<pt x="2469.0914" y="1755.63295532101" />
+				<pt x="2467.3734" y="1755.65002647949" />
+				<pt x="2463.9564" y="1755.68273861578" />
+				<pt x="2462.2518" y="1755.6489959432" />
+			</convexhull>
+			<userParam type="string" name="label" value="T6"/>
+			<userParam type="float" name="FWHM" value="13.6768999099731"/>
+		</feature>
+		<feature id="f_5764724577098270752">
+			<position dim="0">2479.27212784325</position>
+			<position dim="1">1748.47708887174</position>
+			<intensity>35705.7</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2474.2214" y="1748.5065886252" />
+				<pt x="2477.6586" y="1748.45953378824" />
+				<pt x="2479.3861" y="1748.47689324666" />
+				<pt x="2481.1011" y="1748.46612248067" />
+				<pt x="2482.8308" y="1748.48903820219" />
+				<pt x="2481.1011" y="1748.46612248067" />
+				<pt x="2479.3861" y="1748.47689324666" />
+				<pt x="2477.6586" y="1748.45953378824" />
+			</convexhull>
+			<userParam type="string" name="label" value="T64"/>
+			<userParam type="float" name="FWHM" value="8.60939979553223"/>
+		</feature>
+		<feature id="f_14956133279964469070">
+			<position dim="0">2154.75442209123</position>
+			<position dim="1">1747.35096469954</position>
+			<intensity>67955.1</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2135.693" y="1747.36175124998" />
+				<pt x="2141.1918" y="1747.35970475423" />
+				<pt x="2143.0003" y="1747.35107078451" />
+				<pt x="2144.8095" y="1747.33835575207" />
+				<pt x="2148.3686" y="1747.37034234775" />
+				<pt x="2151.9172" y="1747.35569431569" />
+				<pt x="2153.7001" y="1747.34029441442" />
+				<pt x="2157.2435" y="1747.36288734989" />
+				<pt x="2159.018" y="1747.35879941246" />
+				<pt x="2164.3413" y="1747.32281797163" />
+				<pt x="2167.8941" y="1747.37454148923" />
+				<pt x="2169.6775" y="1747.31987129089" />
+				<pt x="2167.8941" y="1747.37454148923" />
+				<pt x="2164.3413" y="1747.32281797163" />
+				<pt x="2159.018" y="1747.35879941246" />
+				<pt x="2157.2435" y="1747.36288734989" />
+				<pt x="2153.7001" y="1747.34029441442" />
+				<pt x="2151.9172" y="1747.35569431569" />
+				<pt x="2148.3686" y="1747.37034234775" />
+				<pt x="2144.8095" y="1747.33835575207" />
+				<pt x="2143.0003" y="1747.35107078451" />
+				<pt x="2141.1918" y="1747.35970475423" />
+			</convexhull>
+			<userParam type="string" name="label" value="T43"/>
+			<userParam type="float" name="FWHM" value="26.6772003173828"/>
+		</feature>
+		<feature id="f_3088049177051045922">
+			<position dim="0">2405.65106115144</position>
+			<position dim="1">1745.74004340158</position>
+			<intensity>16308.9</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2398.0174" y="1745.72044828926" />
+				<pt x="2403.2204" y="1745.77105779691" />
+				<pt x="2406.691" y="1745.72414865998" />
+				<pt x="2408.4245" y="1745.7316764308" />
+				<pt x="2411.915" y="1745.7581455475" />
+				<pt x="2408.4245" y="1745.7316764308" />
+				<pt x="2406.691" y="1745.72414865998" />
+				<pt x="2403.2204" y="1745.77105779691" />
+			</convexhull>
+			<userParam type="string" name="label" value="T97"/>
+			<userParam type="float" name="FWHM" value="13.8976001739502"/>
+		</feature>
+		<feature id="f_2894615133444644663">
+			<position dim="0">2066.30239381861</position>
+			<position dim="1">1733.10782199133</position>
+			<intensity>26806.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2061.2051" y="1733.09317688895" />
+				<pt x="2064.7811" y="1733.13210390821" />
+				<pt x="2066.5774" y="1733.11747897855" />
+				<pt x="2072.0327" y="1733.08194151106" />
+				<pt x="2073.8759" y="1733.11517877544" />
+				<pt x="2072.0327" y="1733.08194151106" />
+				<pt x="2066.5774" y="1733.11747897855" />
+				<pt x="2064.7811" y="1733.13210390821" />
+			</convexhull>
+			<userParam type="string" name="label" value="T82"/>
+			<userParam type="float" name="FWHM" value="10.8275995254517"/>
+		</feature>
+		<feature id="f_17790956332935582884">
+			<position dim="0">2045.41963991522</position>
+			<position dim="1">1733.10215439138</position>
+			<intensity>57570.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2024.9281" y="1733.07955569454" />
+				<pt x="2030.6544" y="1733.08126686071" />
+				<pt x="2038.0804" y="1733.13525769384" />
+				<pt x="2039.875" y="1733.09322846579" />
+				<pt x="2041.6855" y="1733.11991312994" />
+				<pt x="2045.2429" y="1733.08533640477" />
+				<pt x="2048.7927" y="1733.09207214638" />
+				<pt x="2050.5696" y="1733.12047133759" />
+				<pt x="2052.3418" y="1733.08028774424" />
+				<pt x="2050.5696" y="1733.12047133759" />
+				<pt x="2048.7927" y="1733.09207214638" />
+				<pt x="2045.2429" y="1733.08533640477" />
+				<pt x="2041.6855" y="1733.11991312994" />
+				<pt x="2039.875" y="1733.09322846579" />
+				<pt x="2038.0804" y="1733.13525769384" />
+				<pt x="2030.6544" y="1733.08126686071" />
+			</convexhull>
+			<userParam type="string" name="label" value="T28"/>
+			<userParam type="float" name="FWHM" value="21.6874008178711"/>
+		</feature>
+		<feature id="f_3680124374036044029">
+			<position dim="0">2062.97265590881</position>
+			<position dim="1">1733.04176682845</position>
+			<intensity>35674.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2057.6541" y="1733.03957483072" />
+				<pt x="2059.4295" y="1733.05845871606" />
+				<pt x="2062.9985" y="1733.04482628505" />
+				<pt x="2068.3845" y="1733.03315965354" />
+				<pt x="2070.2042" y="1733.01499154933" />
+				<pt x="2075.7091" y="1733.04023947505" />
+				<pt x="2070.2042" y="1733.01499154933" />
+				<pt x="2068.3845" y="1733.03315965354" />
+				<pt x="2062.9985" y="1733.04482628505" />
+				<pt x="2059.4295" y="1733.05845871606" />
+			</convexhull>
+			<userParam type="string" name="label" value="T30.1"/>
+			<userParam type="float" name="FWHM" value="10.7304000854492"/>
+		</feature>
+		<feature id="f_5534424700698805644">
+			<position dim="0">2397.16373632754</position>
+			<position dim="1">1725.06096512396</position>
+			<intensity>9467.63</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2392.784" y="1725.07296156272" />
+				<pt x="2398.0174" y="1725.06784956392" />
+				<pt x="2399.7595" y="1725.038845935" />
+				<pt x="2398.0174" y="1725.06784956392" />
+			</convexhull>
+			<userParam type="string" name="label" value="T68.1"/>
+			<userParam type="float" name="FWHM" value="6.97550010681152"/>
+		</feature>
+		<feature id="f_1690836364090404877">
+			<position dim="0">2297.66231277252</position>
+			<position dim="1">1712.23006080288</position>
+			<intensity>73208.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2286.7695" y="1712.25633108467" />
+				<pt x="2288.5056" y="1712.20481519668" />
+				<pt x="2290.2434" y="1712.23562543946" />
+				<pt x="2297.1265" y="1712.23030081944" />
+				<pt x="2298.845" y="1712.25055461015" />
+				<pt x="2300.5738" y="1712.22987194164" />
+				<pt x="2304.0212" y="1712.20306623318" />
+				<pt x="2307.4789" y="1712.23177044071" />
+				<pt x="2304.0212" y="1712.20306623318" />
+				<pt x="2300.5738" y="1712.22987194164" />
+				<pt x="2298.845" y="1712.25055461015" />
+				<pt x="2297.1265" y="1712.23030081944" />
+				<pt x="2290.2434" y="1712.23562543946" />
+				<pt x="2288.5056" y="1712.20481519668" />
+			</convexhull>
+			<userParam type="string" name="label" value="T11"/>
+			<userParam type="float" name="FWHM" value="18.9733009338379"/>
+		</feature>
+		<feature id="f_356249259036297042">
+			<position dim="0">2234.57359339006</position>
+			<position dim="1">1699.44409240514</position>
+			<intensity>73559.1</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2220.6669" y="1699.4123034562" />
+				<pt x="2226.0058" y="1699.45069658071" />
+				<pt x="2231.2626" y="1699.41910798116" />
+				<pt x="2232.9951" y="1699.46655744614" />
+				<pt x="2234.7232" y="1699.45598028161" />
+				<pt x="2236.4495" y="1699.46008867397" />
+				<pt x="2239.8997" y="1699.44555183999" />
+				<pt x="2241.627" y="1699.42674212331" />
+				<pt x="2239.8997" y="1699.44555183999" />
+				<pt x="2236.4495" y="1699.46008867397" />
+				<pt x="2234.7232" y="1699.45598028161" />
+				<pt x="2232.9951" y="1699.46655744614" />
+				<pt x="2231.2626" y="1699.41910798116" />
+				<pt x="2226.0058" y="1699.45069658071" />
+			</convexhull>
+			<userParam type="string" name="label" value="T25"/>
+			<userParam type="float" name="FWHM" value="20.9601001739502"/>
+		</feature>
+		<feature id="f_11713628525067373877">
+			<position dim="0">2479.00553983077</position>
+			<position dim="1">1663.29398453346</position>
+			<intensity>80467.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2469.0914" y="1663.30963088059" />
+				<pt x="2472.5095" y="1663.28892679233" />
+				<pt x="2474.2214" y="1663.28144491272" />
+				<pt x="2477.6586" y="1663.28938512405" />
+				<pt x="2479.3861" y="1663.27325761117" />
+				<pt x="2482.8308" y="1663.30409405758" />
+				<pt x="2484.5555" y="1663.2856035061" />
+				<pt x="2486.2845" y="1663.31565892336" />
+				<pt x="2493.2047" y="1663.29909224568" />
+				<pt x="2498.3931" y="1663.29640715709" />
+				<pt x="2493.2047" y="1663.29909224568" />
+				<pt x="2486.2845" y="1663.31565892336" />
+				<pt x="2484.5555" y="1663.2856035061" />
+				<pt x="2482.8308" y="1663.30409405758" />
+				<pt x="2479.3861" y="1663.27325761117" />
+				<pt x="2477.6586" y="1663.28938512405" />
+				<pt x="2474.2214" y="1663.28144491272" />
+				<pt x="2472.5095" y="1663.28892679233" />
+			</convexhull>
+			<userParam type="string" name="label" value="T21"/>
+			<userParam type="float" name="FWHM" value="15.4640998840332"/>
+		</feature>
+		<feature id="f_1568413193881303169">
+			<position dim="0">2158.57557409974</position>
+			<position dim="1">1655.41778939708</position>
+			<intensity>50936.5</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2151.9172" y="1655.42561509343" />
+				<pt x="2157.2435" y="1655.42900959412" />
+				<pt x="2159.018" y="1655.39466199867" />
+				<pt x="2162.577" y="1655.43385557188" />
+				<pt x="2164.3413" y="1655.40528091466" />
+				<pt x="2162.577" y="1655.43385557188" />
+				<pt x="2159.018" y="1655.39466199867" />
+				<pt x="2157.2435" y="1655.42900959412" />
+			</convexhull>
+			<userParam type="string" name="label" value="T44"/>
+			<userParam type="float" name="FWHM" value="12.4240999221802"/>
+		</feature>
+		<feature id="f_17690150835027938806">
+			<position dim="0">2146.07844222324</position>
+			<position dim="1">1655.36613051591</position>
+			<intensity>36184</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2139.3675" y="1655.39472101815" />
+				<pt x="2143.0003" y="1655.34554870891" />
+				<pt x="2144.8095" y="1655.38227805272" />
+				<pt x="2148.3686" y="1655.34740231181" />
+				<pt x="2150.1436" y="1655.36674376511" />
+				<pt x="2148.3686" y="1655.34740231181" />
+				<pt x="2144.8095" y="1655.38227805272" />
+				<pt x="2143.0003" y="1655.34554870891" />
+			</convexhull>
+			<userParam type="string" name="label" value="T29"/>
+			<userParam type="float" name="FWHM" value="10.7761001586914"/>
+		</feature>
+		<feature id="f_8876816634498403856">
+			<position dim="0">2059.0709143728</position>
+			<position dim="1">1650.64139735395</position>
+			<intensity>81650.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2050.5696" y="1650.64278593399" />
+				<pt x="2052.3418" y="1650.66962050456" />
+				<pt x="2054.1124" y="1650.63142489696" />
+				<pt x="2055.8863" y="1650.64114049568" />
+				<pt x="2062.9985" y="1650.64762792082" />
+				<pt x="2064.7811" y="1650.63048465611" />
+				<pt x="2070.2042" y="1650.63017459313" />
+				<pt x="2075.7091" y="1650.61264808626" />
+				<pt x="2079.4235" y="1650.63340589783" />
+				<pt x="2075.7091" y="1650.61264808626" />
+				<pt x="2070.2042" y="1650.63017459313" />
+				<pt x="2064.7811" y="1650.63048465611" />
+				<pt x="2062.9985" y="1650.64762792082" />
+				<pt x="2055.8863" y="1650.64114049568" />
+				<pt x="2054.1124" y="1650.63142489696" />
+				<pt x="2052.3418" y="1650.66962050456" />
+			</convexhull>
+			<userParam type="string" name="label" value="T9"/>
+			<userParam type="float" name="FWHM" value="19.6345996856689"/>
+		</feature>
+		<feature id="f_4701761562033258325">
+			<position dim="0">2041.35049153638</position>
+			<position dim="1">1650.58619677372</position>
+			<intensity>37735.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2028.7329" y="1650.58132730977" />
+				<pt x="2034.4055" y="1650.58345976442" />
+				<pt x="2036.2596" y="1650.60096802608" />
+				<pt x="2039.875" y="1650.59538165098" />
+				<pt x="2043.4598" y="1650.56736902062" />
+				<pt x="2047.0178" y="1650.5877331974" />
+				<pt x="2043.4598" y="1650.56736902062" />
+				<pt x="2039.875" y="1650.59538165098" />
+				<pt x="2036.2596" y="1650.60096802608" />
+				<pt x="2034.4055" y="1650.58345976442" />
+			</convexhull>
+			<userParam type="string" name="label" value="T26"/>
+			<userParam type="float" name="FWHM" value="12.6122999191284"/>
+		</feature>
+		<feature id="f_10708032071365407863">
+			<position dim="0">2064.04384868347</position>
+			<position dim="1">1650.57695282871</position>
+			<intensity>38198.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2059.4295" y="1650.55619896155" />
+				<pt x="2061.2051" y="1650.59237932439" />
+				<pt x="2066.5774" y="1650.57866058167" />
+				<pt x="2068.3845" y="1650.59219916933" />
+				<pt x="2072.0327" y="1650.5752438773" />
+				<pt x="2068.3845" y="1650.59219916933" />
+				<pt x="2066.5774" y="1650.57866058167" />
+				<pt x="2061.2051" y="1650.59237932439" />
+			</convexhull>
+			<userParam type="string" name="label" value="T65"/>
+			<userParam type="float" name="FWHM" value="12.6031999588013"/>
+		</feature>
+		<feature id="f_2579331359066454972">
+			<position dim="0">2060.79454912108</position>
+			<position dim="1">1333.42277521604</position>
+			<intensity>28356.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2054.1124" y="1333.43505422733" />
+				<pt x="2059.4295" y="1333.4039111017" />
+				<pt x="2061.2051" y="1333.42431319975" />
+				<pt x="2062.9985" y="1333.44102270714" />
+				<pt x="2064.7811" y="1333.41986007853" />
+				<pt x="2068.3845" y="1333.40836863392" />
+				<pt x="2064.7811" y="1333.41986007853" />
+				<pt x="2062.9985" y="1333.44102270714" />
+				<pt x="2061.2051" y="1333.42431319975" />
+				<pt x="2059.4295" y="1333.4039111017" />
+			</convexhull>
+			<userParam type="string" name="label" value="T69"/>
+			<userParam type="float" name="FWHM" value="14.2721004486084"/>
+		</feature>
+		<feature id="f_5986731970489986975">
+			<position dim="0">2048.08532946654</position>
+			<position dim="1">1333.38304034882</position>
+			<intensity>30679.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2041.6855" y="1333.36049624255" />
+				<pt x="2043.4598" y="1333.36851942545" />
+				<pt x="2047.0178" y="1333.37713044873" />
+				<pt x="2048.7927" y="1333.38886625321" />
+				<pt x="2050.5696" y="1333.40781059913" />
+				<pt x="2052.3418" y="1333.38166138852" />
+				<pt x="2050.5696" y="1333.40781059913" />
+				<pt x="2048.7927" y="1333.38886625321" />
+				<pt x="2047.0178" y="1333.37713044873" />
+				<pt x="2043.4598" y="1333.36851942545" />
+			</convexhull>
+			<userParam type="string" name="label" value="T63"/>
+			<userParam type="float" name="FWHM" value="10.6562995910645"/>
+		</feature>
+		<feature id="f_984170070576766297">
+			<position dim="0">2145.78733390181</position>
+			<position dim="1">1310.79824769429</position>
+			<intensity>15579.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2137.5334" y="1310.80381391493" />
+				<pt x="2141.1918" y="1310.79599407891" />
+				<pt x="2143.0003" y="1310.78235071165" />
+				<pt x="2144.8095" y="1310.81849838545" />
+				<pt x="2146.596" y="1310.77742341537" />
+				<pt x="2153.7001" y="1310.80793480075" />
+				<pt x="2146.596" y="1310.77742341537" />
+				<pt x="2144.8095" y="1310.81849838545" />
+				<pt x="2143.0003" y="1310.78235071165" />
+				<pt x="2141.1918" y="1310.79599407891" />
+			</convexhull>
+			<userParam type="string" name="label" value="T99"/>
+			<userParam type="float" name="FWHM" value="16.1667003631592"/>
+		</feature>
+		<feature id="f_9205498952033283551">
+			<position dim="0">2155.72164013044</position>
+			<position dim="1">1310.67912325867</position>
+			<intensity>30229.1</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2148.3686" y="1310.67897686826" />
+				<pt x="2150.1436" y="1310.6861648327" />
+				<pt x="2151.9172" y="1310.68973202695" />
+				<pt x="2157.2435" y="1310.65746968009" />
+				<pt x="2159.018" y="1310.6782896986" />
+				<pt x="2160.7929" y="1310.6841558282" />
+				<pt x="2166.1232" y="1310.67359332053" />
+				<pt x="2160.7929" y="1310.6841558282" />
+				<pt x="2159.018" y="1310.6782896986" />
+				<pt x="2157.2435" y="1310.65746968009" />
+				<pt x="2151.9172" y="1310.68973202695" />
+				<pt x="2150.1436" y="1310.6861648327" />
+			</convexhull>
+			<userParam type="string" name="label" value="T76"/>
+			<userParam type="float" name="FWHM" value="17.7546005249023"/>
+		</feature>
+		<feature id="f_3223793106275461248">
+			<position dim="0">2231.92496972374</position>
+			<position dim="1">1307.58953354774</position>
+			<intensity>27151.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2226.0058" y="1307.59613675579" />
+				<pt x="2229.5196" y="1307.58660377132" />
+				<pt x="2232.9951" y="1307.60174886643" />
+				<pt x="2234.7232" y="1307.575759213" />
+				<pt x="2232.9951" y="1307.60174886643" />
+				<pt x="2229.5196" y="1307.58660377132" />
+			</convexhull>
+			<userParam type="string" name="label" value="T45.2"/>
+			<userParam type="float" name="FWHM" value="8.71739959716797"/>
+		</feature>
+		<feature id="f_10070312641260047897">
+			<position dim="0">2405.67491333657</position>
+			<position dim="1">1293.99850113143</position>
+			<intensity>32547.9</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2399.7595" y="1293.9926300838" />
+				<pt x="2403.2204" y="1293.98768337481" />
+				<pt x="2404.9536" y="1293.99750329057" />
+				<pt x="2406.691" y="1294.01897580196" />
+				<pt x="2408.4245" y="1293.99910265767" />
+				<pt x="2415.4186" y="1293.99667838896" />
+				<pt x="2408.4245" y="1293.99910265767" />
+				<pt x="2406.691" y="1294.01897580196" />
+				<pt x="2404.9536" y="1293.99750329057" />
+				<pt x="2403.2204" y="1293.98768337481" />
+			</convexhull>
+			<userParam type="string" name="label" value="T58"/>
+			<userParam type="float" name="FWHM" value="15.6590995788574"/>
+		</feature>
+		<feature id="f_4408217406839773551">
+			<position dim="0">2298.49614772047</position>
+			<position dim="1">1284.4765852043</position>
+			<intensity>41328.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2290.2434" y="1284.49815917619" />
+				<pt x="2293.6847" y="1284.46078692117" />
+				<pt x="2297.1265" y="1284.46705753647" />
+				<pt x="2298.845" y="1284.495935128" />
+				<pt x="2300.5738" y="1284.48590947057" />
+				<pt x="2302.294" y="1284.45601684684" />
+				<pt x="2304.0212" y="1284.47379316621" />
+				<pt x="2302.294" y="1284.45601684684" />
+				<pt x="2300.5738" y="1284.48590947057" />
+				<pt x="2298.845" y="1284.495935128" />
+				<pt x="2297.1265" y="1284.46705753647" />
+				<pt x="2293.6847" y="1284.46078692117" />
+			</convexhull>
+			<userParam type="string" name="label" value="T57"/>
+			<userParam type="float" name="FWHM" value="13.7777996063232"/>
+		</feature>
+		<feature id="f_9487060472998948441">
+			<position dim="0">2043.75917481321</position>
+			<position dim="1">1284.0489211075</position>
+			<intensity>22762.7</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2032.5456" y="1284.03943234888" />
+				<pt x="2038.0804" y="1284.06366716219" />
+				<pt x="2039.875" y="1284.03970980797" />
+				<pt x="2043.4598" y="1284.03236644449" />
+				<pt x="2045.2429" y="1284.06363267769" />
+				<pt x="2050.5696" y="1284.05182686832" />
+				<pt x="2045.2429" y="1284.06363267769" />
+				<pt x="2043.4598" y="1284.03236644449" />
+				<pt x="2039.875" y="1284.03970980797" />
+				<pt x="2038.0804" y="1284.06366716219" />
+			</convexhull>
+			<userParam type="string" name="label" value="T95"/>
+			<userParam type="float" name="FWHM" value="12.4891996383667"/>
+		</feature>
+		<feature id="f_4520971691037992447">
+			<position dim="0">2464.01517530688</position>
+			<position dim="1">1264.34613509874</position>
+			<intensity>42256.9</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2457.1369" y="1264.34532811712" />
+				<pt x="2460.5445" y="1264.36375383489" />
+				<pt x="2463.9564" y="1264.34141142097" />
+				<pt x="2465.6642" y="1264.34945787721" />
+				<pt x="2467.3734" y="1264.34227603638" />
+				<pt x="2472.5095" y="1264.33011965945" />
+				<pt x="2467.3734" y="1264.34227603638" />
+				<pt x="2465.6642" y="1264.34945787721" />
+				<pt x="2463.9564" y="1264.34141142097" />
+				<pt x="2460.5445" y="1264.36375383489" />
+			</convexhull>
+			<userParam type="string" name="label" value="T40"/>
+			<userParam type="float" name="FWHM" value="15.3725996017456"/>
+		</feature>
+		<feature id="f_1275049923471839466">
+			<position dim="0">2266.51191966888</position>
+			<position dim="1">1258.88790850813</position>
+			<intensity>19857.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2260.6347" y="1258.89973663742" />
+				<pt x="2265.8264" y="1258.87235854774" />
+				<pt x="2267.5597" y="1258.87633174266" />
+				<pt x="2269.2999" y="1258.88232839298" />
+				<pt x="2271.0304" y="1258.90565877873" />
+				<pt x="2269.2999" y="1258.88232839298" />
+				<pt x="2267.5597" y="1258.87633174266" />
+				<pt x="2265.8264" y="1258.87235854774" />
+			</convexhull>
+			<userParam type="string" name="label" value="T85"/>
+			<userParam type="float" name="FWHM" value="10.3957004547119"/>
+		</feature>
+		<feature id="f_7760210417513652620">
+			<position dim="0">2156.81804883188</position>
+			<position dim="1">1258.30179616109</position>
+			<intensity>10150.9</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2151.9172" y="1258.31043391415" />
+				<pt x="2159.018" y="1258.29353143019" />
+				<pt x="2162.577" y="1258.30007458679" />
+				<pt x="2159.018" y="1258.29353143019" />
+			</convexhull>
+			<userParam type="string" name="label" value="T96.1"/>
+			<userParam type="float" name="FWHM" value="10.6597995758057"/>
+		</feature>
+		<feature id="f_14874103127803739490">
+			<position dim="0">2043.3041095495</position>
+			<position dim="1">1238.27085936996</position>
+			<intensity>13749.5</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2036.2596" y="1238.29527159517" />
+				<pt x="2039.875" y="1238.28071310528" />
+				<pt x="2041.6855" y="1238.26671053016" />
+				<pt x="2045.2429" y="1238.26968475622" />
+				<pt x="2048.7927" y="1238.25678211107" />
+				<pt x="2045.2429" y="1238.26968475622" />
+				<pt x="2041.6855" y="1238.26671053016" />
+				<pt x="2039.875" y="1238.28071310528" />
+			</convexhull>
+			<userParam type="string" name="label" value="T98"/>
+			<userParam type="float" name="FWHM" value="12.5331001281738"/>
+		</feature>
+		<feature id="f_11018111517446378686">
+			<position dim="0">2069.52561810142</position>
+			<position dim="1">1238.25325819089</position>
+			<intensity>14417.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2064.7811" y="1238.25081718366" />
+				<pt x="2068.3845" y="1238.26172972692" />
+				<pt x="2070.2042" y="1238.25074634629" />
+				<pt x="2072.0327" y="1238.25311713891" />
+				<pt x="2073.8759" y="1238.25023792491" />
+				<pt x="2072.0327" y="1238.25311713891" />
+				<pt x="2070.2042" y="1238.25074634629" />
+				<pt x="2068.3845" y="1238.26172972692" />
+			</convexhull>
+			<userParam type="string" name="label" value="T92"/>
+			<userParam type="float" name="FWHM" value="9.09479999542236"/>
+		</feature>
+		<feature id="f_14665699506515945468">
+			<position dim="0">2055.87921426783</position>
+			<position dim="1">1238.21602085043</position>
+			<intensity>36754.1</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2047.0178" y="1238.23101460696" />
+				<pt x="2050.5696" y="1238.22248874894" />
+				<pt x="2052.3418" y="1238.22098011641" />
+				<pt x="2054.1124" y="1238.20437479454" />
+				<pt x="2055.8863" y="1238.20624509987" />
+				<pt x="2059.4295" y="1238.21611111532" />
+				<pt x="2061.2051" y="1238.22571300118" />
+				<pt x="2066.5774" y="1238.19719804786" />
+				<pt x="2075.7091" y="1238.22280926428" />
+				<pt x="2066.5774" y="1238.19719804786" />
+				<pt x="2061.2051" y="1238.22571300118" />
+				<pt x="2059.4295" y="1238.21611111532" />
+				<pt x="2055.8863" y="1238.20624509987" />
+				<pt x="2054.1124" y="1238.20437479454" />
+				<pt x="2052.3418" y="1238.22098011641" />
+				<pt x="2050.5696" y="1238.22248874894" />
+			</convexhull>
+			<userParam type="string" name="label" value="T62"/>
+			<userParam type="float" name="FWHM" value="14.1872997283936"/>
+		</feature>
+		<feature id="f_9773634329847440188">
+			<position dim="0">2476.92740781692</position>
+			<position dim="1">1215.79435324105</position>
+			<intensity>19210</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2472.5095" y="1215.78599054322" />
+				<pt x="2474.2214" y="1215.80898029029" />
+				<pt x="2475.9407" y="1215.7980088294" />
+				<pt x="2479.3861" y="1215.78847649722" />
+				<pt x="2484.5555" y="1215.7880023757" />
+				<pt x="2479.3861" y="1215.78847649722" />
+				<pt x="2475.9407" y="1215.7980088294" />
+				<pt x="2474.2214" y="1215.80898029029" />
+			</convexhull>
+			<userParam type="string" name="label" value="T78"/>
+			<userParam type="float" name="FWHM" value="12.0459995269775"/>
+		</feature>
+		<feature id="f_14619197306046475561">
+			<position dim="0">2056.97528677503</position>
+			<position dim="1">1195.58299032594</position>
+			<intensity>15642.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2050.5696" y="1195.58197326957" />
+				<pt x="2054.1124" y="1195.58299520906" />
+				<pt x="2055.8863" y="1195.58685036731" />
+				<pt x="2059.4295" y="1195.57388742202" />
+				<pt x="2061.2051" y="1195.60372214755" />
+				<pt x="2066.5774" y="1195.56149570247" />
+				<pt x="2061.2051" y="1195.60372214755" />
+				<pt x="2059.4295" y="1195.57388742202" />
+				<pt x="2055.8863" y="1195.58685036731" />
+				<pt x="2054.1124" y="1195.58299520906" />
+			</convexhull>
+			<userParam type="string" name="label" value="T84"/>
+			<userParam type="float" name="FWHM" value="16.0077991485596"/>
+		</feature>
+		<feature id="f_7799228357468988080">
+			<position dim="0">2406.30407242849</position>
+			<position dim="1">1194.53073887664</position>
+			<intensity>33583.5</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2401.4906" y="1194.5401984682" />
+				<pt x="2404.9536" y="1194.52197636487" />
+				<pt x="2406.691" y="1194.5122637899" />
+				<pt x="2408.4245" y="1194.5454214551" />
+				<pt x="2415.4186" y="1194.54562710019" />
+				<pt x="2408.4245" y="1194.5454214551" />
+				<pt x="2406.691" y="1194.5122637899" />
+				<pt x="2404.9536" y="1194.52197636487" />
+			</convexhull>
+			<userParam type="string" name="label" value="T46"/>
+			<userParam type="float" name="FWHM" value="13.9280004501343"/>
+		</feature>
+		<feature id="f_28827547509699988">
+			<position dim="0">2231.22359651335</position>
+			<position dim="1">1172.3872266974</position>
+			<intensity>17100.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2218.8696" y="1172.39022229667" />
+				<pt x="2222.456" y="1172.39559968753" />
+				<pt x="2231.2626" y="1172.3833258851" />
+				<pt x="2232.9951" y="1172.3994200735" />
+				<pt x="2234.7232" y="1172.38893187739" />
+				<pt x="2236.4495" y="1172.3731692985" />
+				<pt x="2234.7232" y="1172.38893187739" />
+				<pt x="2232.9951" y="1172.3994200735" />
+				<pt x="2231.2626" y="1172.3833258851" />
+				<pt x="2222.456" y="1172.39559968753" />
+			</convexhull>
+			<userParam type="string" name="label" value="T88"/>
+			<userParam type="float" name="FWHM" value="17.5799007415771"/>
+		</feature>
+		<feature id="f_5095988924318713830">
+			<position dim="0">2402.20484231416</position>
+			<position dim="1">1150.33527004451</position>
+			<intensity>35900.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2396.2808" y="1150.3477810435" />
+				<pt x="2398.0174" y="1150.33433314855" />
+				<pt x="2399.7595" y="1150.32122196566" />
+				<pt x="2401.4906" y="1150.32174288156" />
+				<pt x="2403.2204" y="1150.34800867348" />
+				<pt x="2413.6647" y="1150.34663571173" />
+				<pt x="2415.4186" y="1150.33892161977" />
+				<pt x="2413.6647" y="1150.34663571173" />
+				<pt x="2403.2204" y="1150.34800867348" />
+				<pt x="2401.4906" y="1150.32174288156" />
+				<pt x="2399.7595" y="1150.32122196566" />
+				<pt x="2398.0174" y="1150.33433314855" />
+			</convexhull>
+			<userParam type="string" name="label" value="T73"/>
+			<userParam type="float" name="FWHM" value="17.3838996887207"/>
+		</feature>
+		<feature id="f_10503840105960393402">
+			<position dim="0">2290.24887983215</position>
+			<position dim="1">1116.41922391566</position>
+			<intensity>15065.7</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2285.0205" y="1116.43142151519" />
+				<pt x="2288.5056" y="1116.41300791512" />
+				<pt x="2291.9613" y="1116.40839039457" />
+				<pt x="2293.6847" y="1116.42286239554" />
+				<pt x="2295.4041" y="1116.42415442822" />
+				<pt x="2293.6847" y="1116.42286239554" />
+				<pt x="2291.9613" y="1116.40839039457" />
+				<pt x="2288.5056" y="1116.41300791512" />
+			</convexhull>
+			<userParam type="string" name="label" value="T90"/>
+			<userParam type="float" name="FWHM" value="10.3836002349854"/>
+		</feature>
+		<feature id="f_55158615741276371">
+			<position dim="0">2402.24929371148</position>
+			<position dim="1">1109.33215429271</position>
+			<intensity>22352.5</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2396.2808" y="1109.35052886744" />
+				<pt x="2399.7595" y="1109.33433673986" />
+				<pt x="2401.4906" y="1109.32900561641" />
+				<pt x="2403.2204" y="1109.32433228841" />
+				<pt x="2406.691" y="1109.33198003306" />
+				<pt x="2403.2204" y="1109.32433228841" />
+				<pt x="2401.4906" y="1109.32900561641" />
+				<pt x="2399.7595" y="1109.33433673986" />
+			</convexhull>
+			<userParam type="string" name="label" value="T67"/>
+			<userParam type="float" name="FWHM" value="10.4102001190186"/>
+		</feature>
+		<feature id="f_11290063789533584697">
+			<position dim="0">2407.70523849462</position>
+			<position dim="1">1071.10860835382</position>
+			<intensity>15401.1</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2403.2204" y="1071.10658560933" />
+				<pt x="2404.9536" y="1071.12305388827" />
+				<pt x="2406.691" y="1071.0896327012" />
+				<pt x="2408.4245" y="1071.10632450678" />
+				<pt x="2410.1664" y="1071.11713813416" />
+				<pt x="2413.6647" y="1071.10345157003" />
+				<pt x="2410.1664" y="1071.11713813416" />
+				<pt x="2408.4245" y="1071.10632450678" />
+				<pt x="2406.691" y="1071.0896327012" />
+				<pt x="2404.9536" y="1071.12305388827" />
+			</convexhull>
+			<userParam type="string" name="label" value="T94"/>
+			<userParam type="float" name="FWHM" value="10.444299697876"/>
+		</feature>
+		<feature id="f_4816011251790188606">
+			<position dim="0">2475.0553428683</position>
+			<position dim="1">1498.87093699321</position>
+			<intensity>43341.7</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2469.0914" y="1498.87229303032" />
+				<pt x="2470.7948" y="1498.86767171575" />
+				<pt x="2472.5095" y="1498.8845974644" />
+				<pt x="2474.2214" y="1498.87256066226" />
+				<pt x="2477.6586" y="1498.85755266832" />
+				<pt x="2481.1011" y="1498.8718782008" />
+				<pt x="2477.6586" y="1498.85755266832" />
+				<pt x="2474.2214" y="1498.87256066226" />
+				<pt x="2472.5095" y="1498.8845974644" />
+				<pt x="2470.7948" y="1498.86767171575" />
+			</convexhull>
+			<userParam type="string" name="label" value="T32"/>
+			<userParam type="float" name="FWHM" value="10.306300163269"/>
+		</feature>
+		<feature id="f_3352009079836363165">
+			<position dim="0">2177.73888670216</position>
+			<position dim="1">1497.89877923802</position>
+			<intensity>20708.7</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2173.2572" y="1497.91443499432" />
+				<pt x="2176.8929" y="1497.88328696512" />
+				<pt x="2178.7097" y="1497.88324485491" />
+				<pt x="2180.5441" y="1497.90448067436" />
+				<pt x="2184.2134" y="1497.91342498448" />
+				<pt x="2180.5441" y="1497.90448067436" />
+				<pt x="2178.7097" y="1497.88324485491" />
+				<pt x="2176.8929" y="1497.88328696512" />
+			</convexhull>
+			<userParam type="string" name="label" value="T89"/>
+			<userParam type="float" name="FWHM" value="10.9561996459961"/>
+		</feature>
+		<feature id="f_7982270553333457065">
+			<position dim="0">2144.53834160866</position>
+			<position dim="1">1497.87513467771</position>
+			<intensity>34532</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2137.5334" y="1497.86082106897" />
+				<pt x="2139.3675" y="1497.87295730826" />
+				<pt x="2141.1918" y="1497.89176586418" />
+				<pt x="2144.8095" y="1497.89110479348" />
+				<pt x="2151.9172" y="1497.86247001514" />
+				<pt x="2144.8095" y="1497.89110479348" />
+				<pt x="2141.1918" y="1497.89176586418" />
+				<pt x="2139.3675" y="1497.87295730826" />
+			</convexhull>
+			<userParam type="string" name="label" value="T81"/>
+			<userParam type="float" name="FWHM" value="14.3837995529175"/>
+		</feature>
+		<feature id="f_12810898544110009279">
+			<position dim="0">2406.09435028338</position>
+			<position dim="1">1478.7001558739</position>
+			<intensity>60510.9</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2398.0174" y="1478.70184732382" />
+				<pt x="2399.7595" y="1478.71688011426" />
+				<pt x="2401.4906" y="1478.69106770398" />
+				<pt x="2403.2204" y="1478.68762640334" />
+				<pt x="2406.691" y="1478.66845199612" />
+				<pt x="2408.4245" y="1478.70591937843" />
+				<pt x="2410.1664" y="1478.71877815962" />
+				<pt x="2411.915" y="1478.71560426063" />
+				<pt x="2413.6647" y="1478.70826519269" />
+				<pt x="2417.1835" y="1478.70634225439" />
+				<pt x="2413.6647" y="1478.70826519269" />
+				<pt x="2411.915" y="1478.71560426063" />
+				<pt x="2410.1664" y="1478.71877815962" />
+				<pt x="2408.4245" y="1478.70591937843" />
+				<pt x="2406.691" y="1478.66845199612" />
+				<pt x="2403.2204" y="1478.68762640334" />
+				<pt x="2401.4906" y="1478.69106770398" />
+				<pt x="2399.7595" y="1478.71688011426" />
+			</convexhull>
+			<userParam type="string" name="label" value="T49"/>
+			<userParam type="float" name="FWHM" value="19.1660995483398"/>
+		</feature>
+		<feature id="f_9461859181269287469">
+			<position dim="0">2231.44434140362</position>
+			<position dim="1">1477.98088713402</position>
+			<intensity>61461.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2220.6669" y="1477.95891960499" />
+				<pt x="2222.456" y="1477.98525268267" />
+				<pt x="2224.2378" y="1477.97297474415" />
+				<pt x="2231.2626" y="1477.99127804263" />
+				<pt x="2232.9951" y="1477.96821389714" />
+				<pt x="2234.7232" y="1477.98647780053" />
+				<pt x="2236.4495" y="1477.98621836381" />
+				<pt x="2234.7232" y="1477.98647780053" />
+				<pt x="2232.9951" y="1477.96821389714" />
+				<pt x="2231.2626" y="1477.99127804263" />
+				<pt x="2224.2378" y="1477.97297474415" />
+				<pt x="2222.456" y="1477.98525268267" />
+			</convexhull>
+			<userParam type="string" name="label" value="T12"/>
+			<userParam type="float" name="FWHM" value="12.2117004394531"/>
+		</feature>
+		<feature id="f_4565021185268200726">
+			<position dim="0">2297.85805605487</position>
+			<position dim="1">1467.77292547413</position>
+			<intensity>86040.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2286.7695" y="1467.77555868701" />
+				<pt x="2288.5056" y="1467.76143674625" />
+				<pt x="2291.9613" y="1467.78064577451" />
+				<pt x="2293.6847" y="1467.79281443245" />
+				<pt x="2298.845" y="1467.77041132838" />
+				<pt x="2300.5738" y="1467.76244105103" />
+				<pt x="2304.0212" y="1467.76991922285" />
+				<pt x="2307.4789" y="1467.76542154752" />
+				<pt x="2304.0212" y="1467.76991922285" />
+				<pt x="2300.5738" y="1467.76244105103" />
+				<pt x="2298.845" y="1467.77041132838" />
+				<pt x="2293.6847" y="1467.79281443245" />
+				<pt x="2291.9613" y="1467.78064577451" />
+				<pt x="2288.5056" y="1467.76143674625" />
+			</convexhull>
+			<userParam type="string" name="label" value="T15"/>
+			<userParam type="float" name="FWHM" value="18.9733009338379"/>
+		</feature>
+		<feature id="f_15484895001804468676">
+			<position dim="0">2390.03951136486</position>
+			<position dim="1">1457.76160415822</position>
+			<intensity>35095.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2380.5096" y="1457.7495611504" />
+				<pt x="2387.5374" y="1457.75420923645" />
+				<pt x="2389.288" y="1457.76133317825" />
+				<pt x="2391.0357" y="1457.75834202692" />
+				<pt x="2392.784" y="1457.78485776931" />
+				<pt x="2394.5305" y="1457.75895103842" />
+				<pt x="2392.784" y="1457.78485776931" />
+				<pt x="2391.0357" y="1457.75834202692" />
+				<pt x="2389.288" y="1457.76133317825" />
+				<pt x="2387.5374" y="1457.75420923645" />
+			</convexhull>
+			<userParam type="string" name="label" value="T52"/>
+			<userParam type="float" name="FWHM" value="14.020899772644"/>
+		</feature>
+		<feature id="f_16914576375002183576">
+			<position dim="0">2460.08720566527</position>
+			<position dim="1">1448.20952708528</position>
+			<intensity>42839.5</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2457.1369" y="1448.21115766817" />
+				<pt x="2458.847" y="1448.22259384444" />
+				<pt x="2460.5445" y="1448.21640518899" />
+				<pt x="2462.2518" y="1448.19959835211" />
+				<pt x="2463.9564" y="1448.18861106442" />
+				<pt x="2462.2518" y="1448.19959835211" />
+				<pt x="2460.5445" y="1448.21640518899" />
+				<pt x="2458.847" y="1448.22259384444" />
+			</convexhull>
+			<userParam type="string" name="label" value="T27"/>
+			<userParam type="float" name="FWHM" value="6.81949996948242"/>
+		</feature>
+		<feature id="f_2510782653430802903">
+			<position dim="0">2062.85251098427</position>
+			<position dim="1">1444.41334453398</position>
+			<intensity>52235.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2054.1124" y="1444.41460565181" />
+				<pt x="2055.8863" y="1444.42134214113" />
+				<pt x="2057.6541" y="1444.40294808337" />
+				<pt x="2059.4295" y="1444.41818054712" />
+				<pt x="2066.5774" y="1444.41294289651" />
+				<pt x="2068.3845" y="1444.4255740715" />
+				<pt x="2073.8759" y="1444.39708770451" />
+				<pt x="2079.4235" y="1444.42230106304" />
+				<pt x="2081.286" y="1444.40076191032" />
+				<pt x="2083.147" y="1444.40648749241" />
+				<pt x="2081.286" y="1444.40076191032" />
+				<pt x="2079.4235" y="1444.42230106304" />
+				<pt x="2073.8759" y="1444.39708770451" />
+				<pt x="2068.3845" y="1444.4255740715" />
+				<pt x="2066.5774" y="1444.41294289651" />
+				<pt x="2059.4295" y="1444.41818054712" />
+				<pt x="2057.6541" y="1444.40294808337" />
+				<pt x="2055.8863" y="1444.42134214113" />
+			</convexhull>
+			<userParam type="string" name="label" value="T31.1"/>
+			<userParam type="float" name="FWHM" value="12.4650001525879"/>
+		</feature>
+		<feature id="f_15253929136784181282">
+			<position dim="0">2046.30607325285</position>
+			<position dim="1">1444.39395904614</position>
+			<intensity>37867.1</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2039.875" y="1444.42205294596" />
+				<pt x="2043.4598" y="1444.405225407" />
+				<pt x="2045.2429" y="1444.39014821548" />
+				<pt x="2047.0178" y="1444.38703419345" />
+				<pt x="2052.3418" y="1444.37986249245" />
+				<pt x="2047.0178" y="1444.38703419345" />
+				<pt x="2045.2429" y="1444.39014821548" />
+				<pt x="2043.4598" y="1444.405225407" />
+			</convexhull>
+			<userParam type="string" name="label" value="T50"/>
+			<userParam type="float" name="FWHM" value="12.4667997360229"/>
+		</feature>
+		<feature id="f_10173352453861868233">
+			<position dim="0">2480.76819077262</position>
+			<position dim="1">1436.65212056971</position>
+			<intensity>23056.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2475.9407" y="1436.67171506285" />
+				<pt x="2481.1011" y="1436.64711875111" />
+				<pt x="2482.8308" y="1436.64835247629" />
+				<pt x="2486.2845" y="1436.62707487121" />
+				<pt x="2482.8308" y="1436.64835247629" />
+				<pt x="2481.1011" y="1436.64711875111" />
+			</convexhull>
+			<userParam type="string" name="label" value="T61.1"/>
+			<userParam type="float" name="FWHM" value="10.3437995910645"/>
+		</feature>
+		<feature id="f_15353926418757868863">
+			<position dim="0">2464.41369590362</position>
+			<position dim="1">1436.60241631859</position>
+			<intensity>138888</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2450.3192" y="1436.61844027826" />
+				<pt x="2455.4355" y="1436.57866552583" />
+				<pt x="2460.5445" y="1436.60807673578" />
+				<pt x="2462.2518" y="1436.59347931585" />
+				<pt x="2463.9564" y="1436.61802591063" />
+				<pt x="2465.6642" y="1436.59468158077" />
+				<pt x="2469.0914" y="1436.57473234142" />
+				<pt x="2472.5095" y="1436.61492380391" />
+				<pt x="2474.2214" y="1436.62654058237" />
+				<pt x="2479.3861" y="1436.60507385841" />
+				<pt x="2474.2214" y="1436.62654058237" />
+				<pt x="2472.5095" y="1436.61492380391" />
+				<pt x="2469.0914" y="1436.57473234142" />
+				<pt x="2465.6642" y="1436.59468158077" />
+				<pt x="2463.9564" y="1436.61802591063" />
+				<pt x="2462.2518" y="1436.59347931585" />
+				<pt x="2460.5445" y="1436.60807673578" />
+				<pt x="2455.4355" y="1436.57866552583" />
+			</convexhull>
+			<userParam type="string" name="label" value="T3"/>
+			<userParam type="float" name="FWHM" value="29.0669002532959"/>
+		</feature>
+		<feature id="f_3121420032131387503">
+			<position dim="0">2478.85792654628</position>
+			<position dim="1">1430.79148291696</position>
+			<intensity>35580.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2470.7948" y="1430.77460284699" />
+				<pt x="2475.9407" y="1430.77363189927" />
+				<pt x="2477.6586" y="1430.81934620664" />
+				<pt x="2481.1011" y="1430.78788236349" />
+				<pt x="2484.5555" y="1430.79774243328" />
+				<pt x="2481.1011" y="1430.78788236349" />
+				<pt x="2477.6586" y="1430.81934620664" />
+				<pt x="2475.9407" y="1430.77363189927" />
+			</convexhull>
+			<userParam type="string" name="label" value="T56"/>
+			<userParam type="float" name="FWHM" value="13.7607002258301"/>
+		</feature>
+		<feature id="f_13158068235323276578">
+			<position dim="0">2160.72301477304</position>
+			<position dim="1">1429.79996422975</position>
+			<intensity>80394</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2148.3686" y="1429.8216571234" />
+				<pt x="2151.9172" y="1429.80120423443" />
+				<pt x="2153.7001" y="1429.78927742781" />
+				<pt x="2155.4741" y="1429.80286488386" />
+				<pt x="2157.2435" y="1429.79528164316" />
+				<pt x="2160.7929" y="1429.78397016243" />
+				<pt x="2162.577" y="1429.79419013356" />
+				<pt x="2167.8941" y="1429.81870354937" />
+				<pt x="2171.4628" y="1429.79604962708" />
+				<pt x="2173.2572" y="1429.80037640318" />
+				<pt x="2175.0676" y="1429.82534068393" />
+				<pt x="2178.7097" y="1429.77753528334" />
+				<pt x="2182.3749" y="1429.78961092553" />
+				<pt x="2178.7097" y="1429.77753528334" />
+				<pt x="2175.0676" y="1429.82534068393" />
+				<pt x="2173.2572" y="1429.80037640318" />
+				<pt x="2171.4628" y="1429.79604962708" />
+				<pt x="2167.8941" y="1429.81870354937" />
+				<pt x="2162.577" y="1429.79419013356" />
+				<pt x="2160.7929" y="1429.78397016243" />
+				<pt x="2157.2435" y="1429.79528164316" />
+				<pt x="2155.4741" y="1429.80286488386" />
+				<pt x="2153.7001" y="1429.78927742781" />
+				<pt x="2151.9172" y="1429.80120423443" />
+			</convexhull>
+			<userParam type="string" name="label" value="T35"/>
+			<userParam type="float" name="FWHM" value="24.888599395752"/>
+		</feature>
+		<feature id="f_1820188316003710671">
+			<position dim="0">2275.11055358895</position>
+			<position dim="1">1416.06856542991</position>
+			<intensity>21763.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2269.2999" y="1416.09021011154" />
+				<pt x="2274.5086" y="1416.04510463605" />
+				<pt x="2276.2524" y="1416.06495218019" />
+				<pt x="2278.0007" y="1416.07973673333" />
+				<pt x="2281.5072" y="1416.06227460735" />
+				<pt x="2278.0007" y="1416.07973673333" />
+				<pt x="2276.2524" y="1416.06495218019" />
+				<pt x="2274.5086" y="1416.04510463605" />
+			</convexhull>
+			<userParam type="string" name="label" value="T87"/>
+			<userParam type="float" name="FWHM" value="12.2073001861572"/>
+		</feature>
+		<feature id="f_18198252843523416810">
+			<position dim="0">2298.4278293272</position>
+			<position dim="1">1401.16103998995</position>
+			<intensity>60456.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2290.2434" y="1401.17956406994" />
+				<pt x="2291.9613" y="1401.16033585406" />
+				<pt x="2293.6847" y="1401.14947495114" />
+				<pt x="2300.5738" y="1401.1392696888" />
+				<pt x="2302.294" y="1401.17703685316" />
+				<pt x="2304.0212" y="1401.14727194769" />
+				<pt x="2309.2118" y="1401.18855301534" />
+				<pt x="2304.0212" y="1401.14727194769" />
+				<pt x="2302.294" y="1401.17703685316" />
+				<pt x="2300.5738" y="1401.1392696888" />
+				<pt x="2293.6847" y="1401.14947495114" />
+				<pt x="2291.9613" y="1401.16033585406" />
+			</convexhull>
+			<userParam type="string" name="label" value="T51"/>
+			<userParam type="float" name="FWHM" value="18.9683990478516"/>
+		</feature>
+		<feature id="f_2069866901600097542">
+			<position dim="0">2389.42224593048</position>
+			<position dim="1">1394.37961865915</position>
+			<intensity>24744.9</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2380.5096" y="1394.38670934062" />
+				<pt x="2382.2769" y="1394.38151331883" />
+				<pt x="2385.791" y="1394.36991587957" />
+				<pt x="2389.288" y="1394.37103731454" />
+				<pt x="2391.0357" y="1394.360032534" />
+				<pt x="2394.5305" y="1394.39456796958" />
+				<pt x="2396.2808" y="1394.39362841275" />
+				<pt x="2394.5305" y="1394.39456796958" />
+				<pt x="2391.0357" y="1394.360032534" />
+				<pt x="2389.288" y="1394.37103731454" />
+				<pt x="2385.791" y="1394.36991587957" />
+				<pt x="2382.2769" y="1394.38151331883" />
+			</convexhull>
+			<userParam type="string" name="label" value="T79"/>
+			<userParam type="float" name="FWHM" value="15.7712001800537"/>
+		</feature>
+		<feature id="f_15003433429733514294">
+			<position dim="0">2057.76904768478</position>
+			<position dim="1">1386.69679255635</position>
+			<intensity>70639.1</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2041.6855" y="1386.70616001249" />
+				<pt x="2043.4598" y="1386.6994761056" />
+				<pt x="2050.5696" y="1386.71179070202" />
+				<pt x="2052.3418" y="1386.67228906649" />
+				<pt x="2054.1124" y="1386.7106683735" />
+				<pt x="2055.8863" y="1386.68354768818" />
+				<pt x="2059.4295" y="1386.69786616168" />
+				<pt x="2061.2051" y="1386.7028269823" />
+				<pt x="2062.9985" y="1386.68019866712" />
+				<pt x="2066.5774" y="1386.71331374072" />
+				<pt x="2070.2042" y="1386.68553329395" />
+				<pt x="2072.0327" y="1386.6884727087" />
+				<pt x="2073.8759" y="1386.69691293993" />
+				<pt x="2075.7091" y="1386.71749644848" />
+				<pt x="2079.4235" y="1386.69392348512" />
+				<pt x="2083.147" y="1386.7060534365" />
+				<pt x="2079.4235" y="1386.69392348512" />
+				<pt x="2075.7091" y="1386.71749644848" />
+				<pt x="2073.8759" y="1386.69691293993" />
+				<pt x="2072.0327" y="1386.6884727087" />
+				<pt x="2070.2042" y="1386.68553329395" />
+				<pt x="2066.5774" y="1386.71331374072" />
+				<pt x="2062.9985" y="1386.68019866712" />
+				<pt x="2061.2051" y="1386.7028269823" />
+				<pt x="2059.4295" y="1386.69786616168" />
+				<pt x="2055.8863" y="1386.68354768818" />
+				<pt x="2054.1124" y="1386.7106683735" />
+				<pt x="2052.3418" y="1386.67228906649" />
+				<pt x="2050.5696" y="1386.71179070202" />
+				<pt x="2043.4598" y="1386.6994761056" />
+			</convexhull>
+			<userParam type="string" name="label" value="T38"/>
+			<userParam type="float" name="FWHM" value="21.3129997253418"/>
+		</feature>
+		<feature id="f_4879621828951268453">
+			<position dim="0">2455.46898945978</position>
+			<position dim="1">1385.3177431252</position>
+			<intensity>44083.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2446.9015" y="1385.31572038806" />
+				<pt x="2448.6193" y="1385.2963404147" />
+				<pt x="2452.0246" y="1385.30879386664" />
+				<pt x="2455.4355" y="1385.30733437744" />
+				<pt x="2457.1369" y="1385.32718127082" />
+				<pt x="2462.2518" y="1385.33248431046" />
+				<pt x="2465.6642" y="1385.33692652297" />
+				<pt x="2462.2518" y="1385.33248431046" />
+				<pt x="2457.1369" y="1385.32718127082" />
+				<pt x="2455.4355" y="1385.30733437744" />
+				<pt x="2452.0246" y="1385.30879386664" />
+				<pt x="2448.6193" y="1385.2963404147" />
+			</convexhull>
+			<userParam type="string" name="label" value="T37"/>
+			<userParam type="float" name="FWHM" value="18.7626991271973"/>
+		</feature>
+		<feature id="f_17098036107568874234">
+			<position dim="0">2464.63547532556</position>
+			<position dim="1">1374.21475007876</position>
+			<intensity>97083.7</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2452.0246" y="1374.20918655446" />
+				<pt x="2453.7277" y="1374.2398294207" />
+				<pt x="2455.4355" y="1374.20125419815" />
+				<pt x="2462.2518" y="1374.21060622324" />
+				<pt x="2463.9564" y="1374.22189550416" />
+				<pt x="2465.6642" y="1374.21852749991" />
+				<pt x="2467.3734" y="1374.19842546504" />
+				<pt x="2470.7948" y="1374.21601061186" />
+				<pt x="2472.5095" y="1374.22841891602" />
+				<pt x="2474.2214" y="1374.20029562343" />
+				<pt x="2472.5095" y="1374.22841891602" />
+				<pt x="2470.7948" y="1374.21601061186" />
+				<pt x="2467.3734" y="1374.19842546504" />
+				<pt x="2465.6642" y="1374.21852749991" />
+				<pt x="2463.9564" y="1374.22189550416" />
+				<pt x="2462.2518" y="1374.21060622324" />
+				<pt x="2455.4355" y="1374.20125419815" />
+				<pt x="2453.7277" y="1374.2398294207" />
+			</convexhull>
+			<userParam type="string" name="label" value="T18"/>
+			<userParam type="float" name="FWHM" value="22.1968002319336"/>
+		</feature>
+		<feature id="f_696455050953326614">
+			<position dim="0">2159.98536826919</position>
+			<position dim="1">1367.68318606952</position>
+			<intensity>28233.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2153.7001" y="1367.69014975489" />
+				<pt x="2155.4741" y="1367.66646486713" />
+				<pt x="2160.7929" y="1367.67685831189" />
+				<pt x="2164.3413" y="1367.68060469386" />
+				<pt x="2167.8941" y="1367.70338307028" />
+				<pt x="2164.3413" y="1367.68060469386" />
+				<pt x="2160.7929" y="1367.67685831189" />
+				<pt x="2155.4741" y="1367.66646486713" />
+			</convexhull>
+			<userParam type="string" name="label" value="T60"/>
+			<userParam type="float" name="FWHM" value="14.1940002441406"/>
+		</feature>
+		<feature id="f_17507848242829731144">
+			<position dim="0">2232.65773453284</position>
+			<position dim="1">1359.82090703065</position>
+			<intensity>46081.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2218.8696" y="1359.84439010834" />
+				<pt x="2226.0058" y="1359.83450210243" />
+				<pt x="2227.7823" y="1359.816029596" />
+				<pt x="2231.2626" y="1359.84074121389" />
+				<pt x="2234.7232" y="1359.80790065699" />
+				<pt x="2236.4495" y="1359.82623655027" />
+				<pt x="2238.1823" y="1359.80029848559" />
+				<pt x="2236.4495" y="1359.82623655027" />
+				<pt x="2234.7232" y="1359.80790065699" />
+				<pt x="2231.2626" y="1359.84074121389" />
+				<pt x="2227.7823" y="1359.816029596" />
+				<pt x="2226.0058" y="1359.83450210243" />
+			</convexhull>
+			<userParam type="string" name="label" value="T33"/>
+			<userParam type="float" name="FWHM" value="19.3127002716064"/>
+		</feature>
+		<feature id="f_11845206299465177394">
+			<position dim="0">2268.5585291831</position>
+			<position dim="1">1359.52050439193</position>
+			<intensity>30310.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2262.3631" y="1359.51311683415" />
+				<pt x="2264.0944" y="1359.50238630202" />
+				<pt x="2265.8264" y="1359.54202794212" />
+				<pt x="2269.2999" y="1359.51275329035" />
+				<pt x="2271.0304" y="1359.53871665168" />
+				<pt x="2274.5086" y="1359.52935967642" />
+				<pt x="2276.2524" y="1359.51184818918" />
+				<pt x="2274.5086" y="1359.52935967642" />
+				<pt x="2271.0304" y="1359.53871665168" />
+				<pt x="2269.2999" y="1359.51275329035" />
+				<pt x="2265.8264" y="1359.54202794212" />
+				<pt x="2264.0944" y="1359.50238630202" />
+			</convexhull>
+			<userParam type="string" name="label" value="T77"/>
+			<userParam type="float" name="FWHM" value="13.8893003463745"/>
+		</feature>
+		<feature id="f_1230013398980854488">
+			<position dim="0">2299.25505318529</position>
+			<position dim="1">1340.29182088293</position>
+			<intensity>44364.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2293.6847" y="1340.31438900643" />
+				<pt x="2295.4041" y="1340.30300464502" />
+				<pt x="2297.1265" y="1340.29830599257" />
+				<pt x="2298.845" y="1340.28427807364" />
+				<pt x="2304.0212" y="1340.2731916731" />
+				<pt x="2307.4789" y="1340.2857829736" />
+				<pt x="2304.0212" y="1340.2731916731" />
+				<pt x="2298.845" y="1340.28427807364" />
+				<pt x="2297.1265" y="1340.29830599257" />
+				<pt x="2295.4041" y="1340.30300464502" />
+			</convexhull>
+			<userParam type="string" name="label" value="T41"/>
+			<userParam type="float" name="FWHM" value="13.7941999435425"/>
+		</feature>
+		<feature id="f_5890814093726068272">
+			<position dim="0">2306.72822520821</position>
+			<position dim="1">1340.23709600127</position>
+			<intensity>36129.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="2300.5738" y="1340.24921291621" />
+				<pt x="2302.294" y="1340.23555574888" />
+				<pt x="2305.7472" y="1340.21524321527" />
+				<pt x="2309.2118" y="1340.23872209463" />
+				<pt x="2312.6974" y="1340.25089313378" />
+				<pt x="2314.4472" y="1340.25223165408" />
+				<pt x="2316.1886" y="1340.23199171549" />
+				<pt x="2314.4472" y="1340.25223165408" />
+				<pt x="2312.6974" y="1340.25089313378" />
+				<pt x="2309.2118" y="1340.23872209463" />
+				<pt x="2305.7472" y="1340.21524321527" />
+				<pt x="2302.294" y="1340.23555574888" />
+			</convexhull>
+			<userParam type="string" name="label" value="T53"/>
+			<userParam type="float" name="FWHM" value="13.8733997344971"/>
+		</feature>
+	</featureList>
+</featureMap>
