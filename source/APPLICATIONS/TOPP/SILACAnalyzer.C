@@ -832,28 +832,28 @@ class TOPPSILACAnalyzer
       out
         << std::fixed << std::setprecision(8)
         << "ID,RT,MZ_PEAK,CHARGE";
-      for (UInt i = 1; i <= massShifts[0].size(); ++i)
+      for (Size i = 1; i <= massShifts[0].size(); ++i)
       {
         out << ",DELTA_MASS_" << i + 1;
       }
-      for (UInt i = 0; i <= massShifts[0].size(); ++i)
+      for (Size i = 0; i <= massShifts[0].size(); ++i)
       {
-        for (UInt j = 1; j <= isotopes_per_peptide_max; ++j)
+        for (Int j = 1; j <= isotopes_per_peptide_max; ++j)
         {
           out << ",INT_PEAK_" << i + 1 << '_' << j;
         }
       }
       out << ",MZ_RAW";
-      for (UInt i = 0; i <= massShifts[0].size(); ++i)
+      for (Size i = 0; i <= massShifts[0].size(); ++i)
       {
-            for (UInt j = 1; j <= isotopes_per_peptide_max; ++j)
+            for (Int j = 1; j <= isotopes_per_peptide_max; ++j)
             {
                 out << ",INT_RAW_" << i + 1 << '_' << j;
             }
       }
-      for (UInt i = 0; i <= massShifts[0].size(); ++i)
+      for (Size i = 0; i <= massShifts[0].size(); ++i)
       {
-            for (UInt j = 1; j <= isotopes_per_peptide_max; ++j)
+            for (Int j = 1; j <= isotopes_per_peptide_max; ++j)
             {
                 out << ",MZ_RAW_" << i + 1 << '_' << j;
             }
@@ -1044,7 +1044,7 @@ void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap &out, con
     // for that we look at the first point in the first pattern
     const SILACPattern &firstPattern = *(cluster_it->second.begin())->second;
     const SILACPoint &firstPoint = *(firstPattern.points.begin());
-    UInt numberPeptides = firstPoint.intensities.size();
+    Size numberPeptides = firstPoint.intensities.size();
     UInt charge = firstPoint.charge;
 
     // sums for each peptide of the pair (triplet, singlet, ...)
@@ -1205,7 +1205,7 @@ void TOPPSILACAnalyzer::generateClusterDebug(std::ostream &out, const Clustering
            shift_inten_it != pattern.intensities.end();
            ++shift_inten_it)
       {
-        UInt peak_inten_id = 0;
+        Int peak_inten_id(0);
         for (std::vector<DoubleReal>::const_iterator peak_inten_it = shift_inten_it->begin();
              peak_inten_it != shift_inten_it->end();
              ++peak_inten_it, ++peak_inten_id)
@@ -1235,7 +1235,7 @@ void TOPPSILACAnalyzer::generateClusterDebug(std::ostream &out, const Clustering
              shift_inten_it != point.intensities.end();
              ++shift_inten_it)
         {
-          UInt peak_inten_id = 0;
+          Int peak_inten_id(0);
           for (std::vector<DoubleReal>::const_iterator peak_inten_it = shift_inten_it->begin();
                peak_inten_it != shift_inten_it->end();
                ++peak_inten_it, ++peak_inten_id)
@@ -1255,7 +1255,7 @@ void TOPPSILACAnalyzer::generateClusterDebug(std::ostream &out, const Clustering
                shift_mz_it != point.mz_positions.end();
                ++shift_mz_it)
           {
-              UInt peak_mz_id = 0;
+              Int peak_mz_id(0);
               for (std::vector<DoubleReal>::const_iterator peak_mz_it = shift_mz_it->begin();
                    peak_mz_it != shift_mz_it->end();
                    ++peak_mz_it, ++peak_mz_id)

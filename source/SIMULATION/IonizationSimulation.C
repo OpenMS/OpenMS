@@ -441,6 +441,7 @@ namespace OpenMS {
 		{
 			// before leaving: free
 			gsl_ran_discrete_free (gsl_ran_lookup_esi_charge_impurity);
+      LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
       throw;
 		}
 
@@ -543,6 +544,7 @@ namespace OpenMS {
 		{
 			// before leaving: free
 			gsl_ran_discrete_free (gsl_ran_lookup_maldi);
+      LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
       throw;
 		}
 
