@@ -58,7 +58,7 @@ using namespace std;
   <CENTER>
     <table>
      <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> ProteinQuantifier </td>
          <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MzTabExporter \f$ \longrightarrow \f$</td>
      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
     </tr>
@@ -71,11 +71,13 @@ using namespace std;
 
   See the mzTab specification for details on the format.
 
- <B>The command line parameters of this tool are:</B>
+  @experimental This algorithm and underlying format is work in progress and might change.
+
+  <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MzTabExporter.cli
  */
 
-// We do not want this class to show up in the docu:
+// For now, we do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 namespace OpenMS
