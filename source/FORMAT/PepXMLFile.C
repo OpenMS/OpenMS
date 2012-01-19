@@ -75,7 +75,7 @@ namespace OpenMS
 		{
 			if (protein_ids.size() > 1)
 			{
-				warning(STORE, "More than one protein identification defined, only first one is written into pepXML more are not supported.");
+				warning(STORE, "More than one protein identification defined; only first one is written into pepXML, more are not supported.");
 			}
 			search_params = protein_ids.begin()->getSearchParameters();
 			search_engine_name = protein_ids.begin()->getSearchEngine();
@@ -325,7 +325,7 @@ namespace OpenMS
 		for (MSExperiment<>::ConstIterator e_it = experiment_->begin(); e_it != experiment_->end(); ++e_it, ++scan)
 		{
 			String id = e_it->getNativeID();
-			bool error = false;
+			bool failed = false;
 			try
 			{
 				// expected format: "spectrum=#" (mzData) or "scan=#" (mzXML)
@@ -336,17 +336,17 @@ namespace OpenMS
 				}
 				else
 				{
-					error = true;
+					failed = true;
 				}
 			}
 			catch (Exception::ConversionError)
 			{
-				error = true;
+				failed = true;
 			}
-			if (error)
+			if (failed)
 			{
 				scan_map_.clear();
-				warning(LOAD, "Could not construct mapping of native scan numbers to indexes");
+				error(LOAD, "Could not construct mapping of native scan numbers to indexes");
 			}			
 		}
 	}
@@ -365,7 +365,7 @@ namespace OpenMS
 		{
 			if (!experiment_)
 			{
-				warning(LOAD, "Cannot get precursor information - no experiment given");
+				error(LOAD, "Cannot get precursor information - no experiment given");
 				return;
 			}
 
@@ -414,7 +414,7 @@ namespace OpenMS
 			}
 			if (!success)
 			{
-				warning(LOAD, "Cannot get precursor information - scan mapping is incorrect");
+				error(LOAD, "Cannot get precursor information - scan mapping is incorrect");
 			}
 		}
 	}
@@ -464,11 +464,12 @@ namespace OpenMS
 		}
 
 		wrong_experiment_ = false;
+		seen_experiment_ = exp_name_.empty(); // without experiment name, don't care
 		parse_(filename, this);
 		
-		if (peptides.empty())
+		if (!seen_experiment_)
 		{
-			warning(LOAD, "No data found for experiment name '" + experiment_name + "'");
+			fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'");
 		}
 
 		// clean up duplicate ProteinHits in ProteinIdentifications:
@@ -519,6 +520,7 @@ namespace OpenMS
 				wrong_experiment_ = !base_name.hasSuffix(exp_name_);
 			}
 			if (wrong_experiment_) return;
+			seen_experiment_ = true;
 
 			// create a ProteinIdentification in case "search_summary" is missing:
 			ProteinIdentification protein;
