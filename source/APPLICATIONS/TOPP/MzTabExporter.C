@@ -58,12 +58,12 @@ using namespace std;
   <CENTER>
     <table>
      <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> ProteinQuantifier </td>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
          <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MzTabExporter \f$ \longrightarrow \f$</td>
      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
     </tr>
     <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> almost any TOPP tool </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ProteinQuantifier </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools (MS Excel, OpenOffice, Notepad)</td>
     </tr>
    </table>
@@ -76,9 +76,6 @@ using namespace std;
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MzTabExporter.cli
  */
-
-// For now, we do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
 
 namespace OpenMS
 {
