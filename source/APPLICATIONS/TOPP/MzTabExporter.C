@@ -77,6 +77,9 @@ using namespace std;
   @verbinclude TOPP_MzTabExporter.cli
  */
 
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
 namespace OpenMS
 {
 class TOPPMzTabExporter : public TOPPBase
