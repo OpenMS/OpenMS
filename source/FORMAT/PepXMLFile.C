@@ -601,11 +601,7 @@ namespace OpenMS
 			current_peptide_.setMetaValue("RT", rt_);
 			current_peptide_.setMetaValue("MZ", mz_);
 			search_id_ = 1; // references "search_summary"
-			UInt tmp_id(0);
-			if (optionalAttributeAsUInt_(tmp_id, attributes, "search_id"))
-			{
-				search_id_ = tmp_id;
-			}
+			optionalAttributeAsUInt_(search_id_, attributes, "search_id");
 			current_peptide_.setIdentifier(current_proteins_[search_id_ - 1]->getIdentifier());
 		}
 
@@ -669,20 +665,16 @@ namespace OpenMS
 		else if (element == "aminoacid_modification") // parent: "search_summary"
 		{
 			AminoAcidModification aa_mod;
-			String description;
-			if (optionalAttributeAsString_(description, attributes, "description"))
-			{
-				aa_mod.description = description;
-			}
+			optionalAttributeAsString_(aa_mod.description, attributes, "description");
 			aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
 			aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
 			aa_mod.mass = attributeAsDouble_(attributes, "mass");
 			String is_variable = attributeAsString_(attributes, "variable");
 			if (is_variable == "Y")
 			{
-				if (description != "")
+				if (aa_mod.description != "")
 				{
-					params_.variable_modifications.push_back(description); // TODO
+					params_.variable_modifications.push_back(aa_mod.description); // TODO
 				}
 				else
 				{
@@ -701,9 +693,9 @@ namespace OpenMS
 			else
 			{
 				fixed_modifications_.push_back(aa_mod);
-				if (description != "")
+				if (aa_mod.description != "")
 				{
-					params_.fixed_modifications.push_back(description); // TODO
+					params_.fixed_modifications.push_back(aa_mod.description); // TODO
 				}
 				else
 				{
@@ -725,25 +717,17 @@ namespace OpenMS
 		{
 			// <terminal_modification terminus="n" massdiff="+108.05" mass="109.06" variable="N" protein_terminus="" description="dNIC (N-term)"/>
 			AminoAcidModification aa_mod;
-			String description;
-			if (optionalAttributeAsString_(description, attributes, "description"))
-			{
-				aa_mod.description = description;
-			}
+			optionalAttributeAsString_(aa_mod.description, attributes, "description");
 			aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
-			String aminoacid;
-			if (optionalAttributeAsString_(aminoacid, attributes, "aminoacid"))
-			{
-				aa_mod.aminoacid = aminoacid;
-			}
+			optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
       aa_mod.mass = attributeAsDouble_(attributes, "mass");
 			aa_mod.terminus = attributeAsString_(attributes, "terminus");
       String is_variable = attributeAsString_(attributes, "variable");
       if (is_variable == "Y")
       {
-      	if (description != "")
+      	if (aa_mod.description != "")
         {
-          params_.variable_modifications.push_back(description); // TODO
+          params_.variable_modifications.push_back(aa_mod.description); // TODO
         }
         else
         {
@@ -761,9 +745,9 @@ namespace OpenMS
       }
       else
       {
-				if (description != "")
+				if (aa_mod.description != "")
         {
-          params_.fixed_modifications.push_back(description); // TODO
+          params_.fixed_modifications.push_back(aa_mod.description); // TODO
         }
         else
         {
@@ -823,7 +807,8 @@ namespace OpenMS
 			// generate identifier from search engine and date:
 			prot_id_ = search_engine + "_" + date_.getDate();
 
-			search_id_ = asUInt_(attributeAsString_(attributes, "search_id"));
+			search_id_ = 1;
+			optionalAttributeAsUInt_(search_id_, attributes, "search_id");
 			vector<ProteinIdentification>::iterator prot_it;
 			if (search_id_ == 1)
 			{ // ProteinIdent. was already created for "msms_run_summary" -> add to it
