@@ -222,7 +222,7 @@ namespace OpenMS
 			Int charge_;
 	
 			/// ID of current search result
-			Size search_id_;
+			UInt search_id_;
 
 			/// Identifier linking PeptideIdentifications and ProteinIdentifications
 			String prot_id_;
