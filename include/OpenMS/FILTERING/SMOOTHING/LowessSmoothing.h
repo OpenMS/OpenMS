@@ -34,11 +34,11 @@
 namespace OpenMS
 {
   /**
-    @brief LOWESS (locally weighted scatterplot smoothing) filtering.
+    @brief LOWESS (locally weighted scatterplot smoothing).
 
-    Fitting simple models to localized subsets of the data to build up a
-    function that describes the deterministic part of the variation in the
-    data, point by point.
+    A smoothing technique that fits simple models (linear, quadratic) to localized subsets of the data, point by point.
+    This is particularly useful for smoothing intensities in spectra or chromatograms. In this case, the window size for the smoothing
+    should be setted proportional to the peak width (see LowessSmoothing parameters).
 
     @htmlinclude OpenMS_LowessSmoothing.parameters
 
@@ -48,7 +48,7 @@ namespace OpenMS
     : public DefaultParamHandler
   {
   public:
-    /// Constructor
+    /// Default constructor
     LowessSmoothing();
 
     /// Destructor
@@ -56,6 +56,7 @@ namespace OpenMS
 
     typedef std::vector<DoubleReal> DoubleVector;
 
+    /// Smoothing method that receives x and y coordinates (e.g., RT and intensities) and computes smoothed intensities.
     void smoothData(const DoubleVector&, const DoubleVector&, DoubleVector&);
 
   protected:

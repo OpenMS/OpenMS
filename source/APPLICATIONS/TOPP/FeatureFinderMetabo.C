@@ -44,7 +44,35 @@ using namespace std;
 /**
         @page TOPP_FeatureFinderMetabo FeatureFinderMetabo
 
-        @brief detects mass traces. Haha.
+        @brief FeatureFinderMetabo assembles metabolite features from singleton mass traces.
+
+        <CENTER>
+        <table>
+        <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MassTraceExtractor \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_TextExporter</td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+        </tr>
+        </table>
+        </CENTER>
+
+        Mass traces alone would allow for further analyses such as metabolite ID or statistical
+        evaluation. However, in general, monoisotopic mass traces are accompanied with satellite
+        C13 peaks and thus may render the analysis more difficult. @ref FeatureFinderMetabo fulfills
+        a further data reduction step by assembling compatible mass traces to metabolite features
+        (that is, mass traces all stemming from one metabolite). To this end, multiple metabolite
+        hypotheses are formulated and scored according to how well differences in RT and m/z or
+        intensity ratios match to those of theoretical isotope patterns.
+
+        <B>The command line parameters of this tool are:</B>
+        @verbinclude TOPP_FeatureFinderMetabo.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -55,7 +83,7 @@ class TOPPFeatureFinderMetabo
 {
 public:
     TOPPFeatureFinderMetabo()
-        : TOPPBase("FeatureFinderMetabo", "Detects mass traces in LC-MS data.")
+        : TOPPBase("FeatureFinderMetabo", "Assembles metabolite features from singleton mass traces.")
     {
     }
 
@@ -65,7 +93,7 @@ protected:
     {
         registerInputFile_("in","<file>", "", "input centroided mzML file");
         setValidFormats_("in",StringList::create("mzML"));
-        registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
+        registerOutputFile_("out", "<file>", "", "output featureXML file with metabolite features");
         setValidFormats_("out",StringList::create("featureXML"));
 
         addEmptyLine_();

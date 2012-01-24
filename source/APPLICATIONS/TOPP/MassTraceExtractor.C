@@ -44,7 +44,7 @@ using namespace std;
 /**
         @page TOPP_MassTraceExtractor MassTraceExtractor
 
-        @brief detects mass traces.
+        @brief MassTraceExtractor extracts mass traces from a @ref MSExperiment map and stores them into a @ref FeatureXMLFile.
 
         <CENTER>
         <table>
@@ -55,18 +55,24 @@ using namespace std;
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Decharger</td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo</td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
         </tr>
         </table>
         </CENTER>
 
 
-        Annotates mass traces in centroided LC/MS maps.
-        Useful for metabolomics and top-down proteomics.
-        Use FeatureFinder<xxx> tools for peptide data.
+        This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
+        a @ref FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
+        be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
+        the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
+        For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
+
+        <B>The command line parameters of this tool are:</B>
+        @verbinclude TOPP_MassTraceExtractor.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -77,7 +83,7 @@ class TOPPMassTraceExtractor
 {
 public:
     TOPPMassTraceExtractor()
-        : TOPPBase("MassTraceExtractor", "Detects mass traces in LC-MS data.")
+        : TOPPBase("MassTraceExtractor", "Detects mass traces in centroided LC-MS data.")
     {
     }
 

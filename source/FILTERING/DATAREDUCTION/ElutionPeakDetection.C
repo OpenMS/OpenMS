@@ -256,7 +256,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
 void ElutionPeakDetection::updateMembers_()
 {
     chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
-    pw_filtering_ = param_.getValue("width_filtering");
+    pw_filtering_ = param_.getValue("width_filtering").toBool();
 }
 
 

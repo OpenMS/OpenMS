@@ -63,8 +63,7 @@ public:
     /// Detailed constructor 2
     MassTrace(const std::vector<PeakType>&);
 
-
-    /// Default destructor
+    /// Destructor
     ~MassTrace();
 
     /// Copy constructor
