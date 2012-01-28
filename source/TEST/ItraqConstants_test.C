@@ -68,7 +68,7 @@ START_SECTION((static StringList getIsotopeMatrixAsStringList(const int itraq_ty
 	}
 	{	
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, ic);
-		StringList t_ics = StringList::create("113:0/0/6.89/0.22,114:0/0.94/5.9/0.16,115:0/1.88/4.9/0.1,116:0/2.82/3.9/0.07,117:0.06/3.77/2.88/0,118:0.09/4.71/1.88/0,119:0.14/5.66/0.87/0,121:0.27/7.44/0.18/0");
+		StringList t_ics = StringList::create("113:0/0/6.89/0.22,114:0/0.94/5.9/0.16,115:0/1.88/4.9/0.1,116:0/2.82/3.9/0.07,117:0.06/3.77/2.99/0,118:0.09/4.71/1.88/0,119:0.14/5.66/0.87/0,121:0.27/7.44/0.18/0");
 		TEST_EQUAL(ics, t_ics);
 	}	 
 }
