@@ -5,7 +5,7 @@ else()	## Linux & MacOS
 endif()
 
 ## CPack installation and packaging procedures
-install(TARGETS OpenMS EXPORT OpenMSLibExportGroup
+install(TARGETS OpenMS OpenMS_GUI EXPORT OpenMSLibExportGroup
   LIBRARY DESTINATION ${OPENMS_LIB_INSTALL_PATH}
   ARCHIVE DESTINATION ${OPENMS_LIB_INSTALL_PATH}
 	RUNTIME DESTINATION ${OPENMS_LIB_INSTALL_PATH}
