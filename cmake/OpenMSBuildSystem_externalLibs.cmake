@@ -131,6 +131,12 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include/)
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include/) ## for configured files, e.g. config.h
 INCLUDE_DIRECTORIES(${CONTRIB_INCLUDE_DIR})
 
+#except for the contrib libs, prefer shared libraries
+if(NOT MSVC AND NOT APPLE)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
+endif()
+
+
 ################################
 ## QT
 ################################
