@@ -5,7 +5,7 @@ if (OPENMS_64BIT_ARCHITECTURE)
 	set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
 endif()
 set(CPACK_GENERATOR "RPM")
-set(CPACK_RPM_PACKAGE_REQUIRES "Qt4")
+set(CPACK_RPM_PACKAGE_REQUIRES "qt, qt-webkit")
 set(CPACK_COMPONENTS_ALL applications library share)
 
 ## should be the last include
