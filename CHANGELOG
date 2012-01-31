@@ -56,6 +56,7 @@ TOPP tools:
   - PILISModel: split into PILISModelCV, PILISModelTrainer, and PILISSpectraGenerator
   - MascotAdapterOnline: now supports Mascot 2.3 servers
   - ProteinQuantifier: added support for writing idXML (suitable for export to mzTab)
+  - IDFileConverter: when reading pepXML, fail if the requested experiment (parameters "mz_file"/"mz_name") could not be found in the file
 - REMOVED:
   - AndiMS/NetCDF is no longer supported on any platform
   - removed IDDecoyProbability tool
@@ -167,7 +168,10 @@ Detailed list of changes to specific OpenMS classes:
   - AASequence: removed AASequence(ConstIterator, ConstIterator) constructor, since it ignored Terminal Modifications; since there was no way to enable correct construction from two Iterators, we removed it
   - MSSimulator: "type" parameter moved to "MSSim:Labeling:type"
   - Param: added new command line parser with improved functionality
-  - PepXMLFile: RT's of peptide identifications are now set based on MS2 spectra, not the MS1 precursors (flag "use_precursor_rt" switches to the old behavior)
+  - PepXMLFile:
+    - added reading support for pepXML version 1.17
+    - set RT's of peptide identifications based on MS2 spectra, not the MS1 precursors as before (flag "use_precursor_rt" switches to the old behavior)
+    - fail with ParseError if a requested experiment could not be found in a pepXML file
   - ProtXMLFile: set score type for peptides
   - TOPPBase: added methods to turn Param objects into command line parameters
   - TransformationModel: simplified handling of parameters
