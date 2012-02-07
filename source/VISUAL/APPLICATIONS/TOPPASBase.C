@@ -225,7 +225,7 @@ namespace OpenMS
     desc_->setTextColor ( Qt::black );
     desc_->setText("... put your workflow description here ...");
     desc_->setTextColor ( Qt::black );
-    desc_->document()->setDefaultFont(QFont("Verdana",12));
+    desc_->document()->setDefaultFont(QFont("Arial", 12));
     description_bar->setWidget(desc_);
     //windows->addAction("&Show log window",log_bar,SLOT(show()));
     windows->addAction(description_bar->toggleViewAction());
@@ -274,7 +274,16 @@ namespace OpenMS
     QByteArray data = r->readAll();
     r->deleteLater();
 
-    QString proposed_filename = QFileInfo(r->url().toString()).fileName();
+    QString proposed_filename;
+    if (r->url().hasQueryItem("file")) 
+    {
+      proposed_filename = r->url().queryItemValue("file");
+    }
+    else
+    {
+      proposed_filename = "Workflow.toppas";
+      LOG_WARN << "Format of expected URL of TOPPAS Repository has changed. Please notify developers!";
+    }
     QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
 
     // check if the user clicked cancel, to avoid saving .toppas somewhere
