@@ -899,6 +899,12 @@ namespace OpenMS
       desc_->blockSignals(false);
   		window->setFocus();
   	}
+    else
+    {
+      desc_->blockSignals(true);
+      desc_->setHtml("");
+      desc_->blockSignals(false);
+    }
   }
 
   void TOPPASBase::closeFile()
