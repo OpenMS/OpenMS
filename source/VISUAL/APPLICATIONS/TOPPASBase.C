@@ -225,6 +225,7 @@ namespace OpenMS
     desc_->setTextColor ( Qt::black );
     desc_->setText("... put your workflow description here ...");
     desc_->setTextColor ( Qt::black );
+    desc_->document()->setDefaultFont(QFont("Verdana",12));
     description_bar->setWidget(desc_);
     //windows->addAction("&Show log window",log_bar,SLOT(show()));
     windows->addAction(description_bar->toggleViewAction());
