@@ -36,7 +36,7 @@ echo '
 		set theViewOptions to the icon view options of container window
 		set arrangement of theViewOptions to not arranged
     -- if we have a fixed resolution we can also set this
-  	-- set icon size of theViewOptions to 72
+  	set icon size of theViewOptions to 72
 		set bgimg to "'${OPENMS_NAME}':share:OpenMS:background.png" as text
 		set background picture of theViewOptions to file bgimg
 		
