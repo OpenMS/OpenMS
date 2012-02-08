@@ -1480,8 +1480,32 @@ namespace OpenMS
           arg = files.join(" + ").split(" ", QString::SkipEmptyParts);
         }
       }
+#if defined(Q_WS_MAC)
+      // check if we can find the TOPPView.app
+      QString installed_app_path = (File::getExecutablePath() + "/../TOPPView.app").toQString();
+      QString developer_app_path = (File::getExecutablePath() + "/TOPPView.app").toQString();
 
+      if(File::exists(installed_app_path) || File::exists(developer_app_path))
+      {
+        // we found the app
+        QString app_path = (File::exists(installed_app_path) ? installed_app_path : developer_app_path);
+        QStringList app_args;
+        app_args.append(app_path);
+        app_args.append("--args");
+        app_args.append(arg);
+        p->start("open", app_args);
+      }
+      else
+      {
+        // we could not find the app, try it the linux way
+        p->start(toppview_executable, arg);
+      }
+#else
+      // LINUX+WIN
       p->start(toppview_executable, arg);
+#endif
+
+
       if (!p->waitForStarted())
       {
         // execution failed
