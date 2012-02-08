@@ -162,3 +162,15 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png DESTINATION Open
 # install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store DESTINATION . RENAME .DS_store COMPONENT share)
 
 include(CPack)
+
+## fix the background image of the generated dmg
+add_custom_target(final_package
+  COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
+  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+  COMMENT "Finalizing dmg image"
+  DEPENDS dmg)
+  
+add_custom_target(dmg
+  COMMAND cpack
+  COMMENT "Building intermediate dmg package"
+)

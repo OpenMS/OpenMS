@@ -9,8 +9,18 @@ DMG_NAME=${DISK_NAME}.dmg
 OPENMS_NAME=OpenMS-1.9.0
 backgroundPictureName=.background.png
 
+if [ ! -e ${DMG_NAME} ]
+then
+  echo "Please execute make package first"
+  exit 1
+fi
+
+# make dmg writable
 hdiutil convert ${DMG_NAME} -format UDRW -o temp.dmg
 hdiutil attach temp.dmg
+
+# remove original dmg
+rm -f ${DMG_NAME}
 
 # wait till package is open
 sleep 10
@@ -47,5 +57,5 @@ end tell
 # be sure that everything is done
 sleep 10
 
-hdiutil convert temp.dmg -format UDZO -imagekey zlib-level=9 -o ${DISK_NAME}_final.dmg
+hdiutil convert temp.dmg -format UDZO -imagekey zlib-level=9 -o ${DMG_NAME}
 rm -f temp.dmg
