@@ -86,7 +86,7 @@ class TOPPMzTabExporter : public TOPPBase
 {
 public:
   TOPPMzTabExporter() :
-    TOPPBase("MzTabExporter", "Exports various XML formats to a mzTab file.")
+    TOPPBase("MzTabExporter", "Exports various XML formats to an mzTab file.")
   {
   }
 

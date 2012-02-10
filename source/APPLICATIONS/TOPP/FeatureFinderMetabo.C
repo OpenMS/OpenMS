@@ -50,7 +50,7 @@ using namespace std;
         <table>
         <tr>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MassTraceExtractor \f$ \longrightarrow \f$</td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderMetabo \f$ \longrightarrow \f$</td>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
@@ -63,7 +63,7 @@ using namespace std;
         </table>
         </CENTER>
 
-        Mass traces alone would allow for further analyses such as metabolite ID or statistical
+        Mass traces alone would allow for further analyzes such as metabolite ID or statistical
         evaluation. However, in general, monoisotopic mass traces are accompanied with satellite
         C13 peaks and thus may render the analysis more difficult. @ref FeatureFinderMetabo fulfills
         a further data reduction step by assembling compatible mass traces to metabolite features

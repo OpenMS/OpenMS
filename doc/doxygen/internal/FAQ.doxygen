@@ -132,7 +132,7 @@
         Their description will be displayed when you call ccmake.
 
 			<LI><B>Can I use another solver than GLPK?!</B><BR>
-				Yes, but by default the build system only links against GLPK (this is how OpenMS binary packages must be build!).
+				Yes, but by default the build system only links against GLPK (this is how %OpenMS binary packages must be build!).
 				To use another solver try <code>cmake ... -D USE_COINOR=1 ....</code>
 				And look at the documentation of the LPWrapper class.
 
@@ -431,7 +431,7 @@ svn propset svn:eol-style native MyClass.C
 		
 				<LI><b>How do I speed up the SVN Repo and/or upgrade to a new SVN version on the server?</b><BR>
 
-				This should only be done if you are sure what you are doing! You might destroy the whole OpenMS SVN!!!
+				This should only be done if you are sure what you are doing! You might destroy the whole %OpenMS SVN!!!
 				Make a backup before (preferably not on SF servers, e.g. by using
 				
 				$ rsync -av open-ms.svn.sourceforge.net::svn/open-ms/* .
@@ -626,11 +626,11 @@ svn propset svn:eol-style native MyClass.C
 						<LI> Build the contrib libraries
 						<LI> Configure %OpenMS using
 						     @n <code>&gt; cmake -D INSTALL_PREFIX=/usr -D PACKAGE_TYPE=rpm/deb ...</code>
-            <LI> Set the environment variable 'OPENMS_DATA_PATH' to your OpenMS share directory, e.g. <tt>/home/myusername/binary_release/OpenMS/share/OpenMS</tt>.<br>
+            <LI> Set the environment variable 'OPENMS_DATA_PATH' to your %OpenMS share directory, e.g. <tt>/home/myusername/binary_release/OpenMS/share/OpenMS</tt>.<br>
                  Explanation follows (just read if interested):
-                 When using INSTALL_PREFIX, running any OpenMS executable before installation will result in an error because the SHARE/OpenMS directory will not be found
-                 (it is already hardcoded to the future install directory). As 'make doc' etc require OpenMS executables (TOPPDocumenter,...) this step is required.
-						<LI> Build OpenMS: <tt>make TOPP UTILS doc doc_tutorials</tt>
+                 When using INSTALL_PREFIX, running any %OpenMS executable before installation will result in an error because the SHARE/OpenMS directory will not be found
+                 (it is already hardcoded to the future install directory). As 'make doc' etc require %OpenMS executables (TOPPDocumenter,...) this step is required.
+						<LI> Build %OpenMS: <tt>make TOPP UTILS doc doc_tutorials</tt>
 						<LI> Build the package using <tt>make package</tt>
 						<LI> Rename the package to this naming schema:
 								 @n OpenMS-&lt;version&gt;-&lt;package-nr&gt;_&lt;dist&gt;-&lt;dist-version&gt;_&lt;dist-arch&gt;.&lt;rpm/deb&gt;

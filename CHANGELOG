@@ -1,5 +1,5 @@
 Glossary:
-OpenMS - Name of the project, but also C++ library
+OpenMS - Name of the project and our C++ library
 TOPP - "The OpenMS Proteomics Pipeline", collection of chainable tools for flexible HPLC/MS workflows
 TOPPAS - "The OpenMS Proteomics Pipeline Assistant", graphical tool to interactively build and run HPLC/MS workflows
 TOPPView - Versatile viewer for HPLC/MS data
@@ -9,9 +9,9 @@ INIFileEditor - graphical parameter editor for INI files
 ------------------------------------------------------------------------------------------ 
 ----                                  OpenMS 1.9                                      ---- 
 ------------------------------------------------------------------------------------------ 
-Release date: December 2011
+Release date: February 2012
 
-OpenMS 1.9 has some major changes in TOPP tool names and usage. Therefor all .ini files
+OpenMS 1.9 has some major changes in TOPP tool names and usage. Therefore all .ini files
 for "typed" TOPP tools (i.e. those with a "type" parameter) built with OpenMS 1.8 and below
 are incompatible! To fix your old .ini and .toppas files use the new
 INIUpdater tool (see its documentation and the TOPP documentation in general).
@@ -44,6 +44,7 @@ TOPP tools:
   - EICExtractor: quantify known RT, m/z locations in one or many LC/MS maps and align them
   - MassTraceExtractor: annotate mass traces in centroided LC/MS maps - useful for metabolomics and top-down proteomics (use FeatureFinder tools for peptides)
   - FeatureFinderRaw: feature finding on raw data
+	- FeatureFinderMetabo: feature finding for metabolites
   - IDConflictResolver: resolve ambiguous annotations of features with peptide identifications
 - MODIFIED:
   - FeatureFinder: split into FeatureFinderMRM, FeatureFinderCentroided, FeatureFinderIsotopeWavelet

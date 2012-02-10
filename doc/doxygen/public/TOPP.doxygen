@@ -55,7 +55,8 @@
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
   - @subpage TOPP_SpectraMerger - Merges spectra from an LC/MS map, either by precursor or by RT blocks
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
-
+	- @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file
+	
   <b>Signal Processing and Preprocessing</b>
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
   - @subpage TOPP_InternalCalibration - Applies an internal calibration.
@@ -83,9 +84,11 @@
   - @subpage TOPP_AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples.
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC/MS maps.
-  - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in LC-MS data.
-  - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in LC-MS data.
-  - @subpage TOPP_FeatureFinderMRM - Detects two-dimensional features in LC-MS data.
+  - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
+  - @subpage TOPP_FeatureFinderRaw - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
+  - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
+  - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
+  - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
   - @subpage TOPP_ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps
   - @subpage TOPP_SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
