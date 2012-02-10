@@ -69,7 +69,7 @@ using namespace std;
 /**
   @page TOPP_FeatureFinderRaw FeatureFinderRaw
 
-  @brief ...
+  @brief Identifies peptide features in raw (i.e. profile) LC-MS data.
 
 <CENTER>
   <table>
@@ -88,12 +88,36 @@ using namespace std;
   </table>
 </CENTER>
 
-  FeatureFinderRaw is a tool for the fully automated analysis of quantitative proteomics data.
-  ...
+  FeatureFinderRaw is a tool for the identification of peptide features in profile LC-MS data.
 
   <b>Algorithm</b>
 
-  ...
+  The underlying algorithm of the tool is equivalent to that of SILACAnalyzer.
+ 
+ <B>The command line parameters of this tool are:</B>
+ @verbinclude TOPP_FeatureFinderRaw.cli
+
+ <b>Parameter Tuning</b>
+ 
+ <i>input:</i>
+ - in [*.mzML] - LC-MS dataset to be analyzed
+ - ini [*.ini] - file containing all parameters (see discussion below)
+ 
+ <i>standard output:</i>
+ - out [*.consensusXML] - contains the list of identified peptides
+ 
+ <i>optional output:</i>
+ - out_clusters [*.consensusXML] - contains the complete set of data points passing the filters
+ 
+ The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
+ 
+ Parameters in section <i>algorithm:</i>
+ - <i>allow_missing_peaks</i> - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
+ - <i>rt_threshold</i> - Upper bound for the retention time [s] over which a characteristic peptide elutes.
+ - <i>rt_min</i> - Lower bound for the retentions time [s].
+ - <i>intensity_cutoff</i> - Lower bound for the intensity of isotopic peaks in a SILAC pattern.
+ - <i>intensity_correlation</i> - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
+ - <i>model_deviation</i> - Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).
   
 */
 
