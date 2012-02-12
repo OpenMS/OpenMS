@@ -71,7 +71,7 @@ namespace OpenMS
 		/**
 			@brief XML handler for MzMLFile
 			
-			MapType has to be a MSExperiment or have the same interface.
+			MapType has to be an MSExperiment or have the same interface.
 			
 			@note Do not use this class. It is only needed in MzMLFile.
 		*/
@@ -711,11 +711,19 @@ namespace OpenMS
 					fillData_();
 					exp_->push_back(spec_);
 					
-					//catch errors stemming from confusion about elution time and scan time
+					// catch errors stemming from confusion about elution time and scan time
 					if (exp_->back().getRT()==-1.0 && exp_->back().metaValueExists("elution time (seconds)"))
 					{
 						exp_->back().setRT(exp_->back().getMetaValue("elution time (seconds)"));
 					}
+          /* this is too hot (could be SRM as well? -- check!): 
+					// correct spectrum type if possible (i.e., make it more specific)
+          if (exp_->back().getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
+          {
+            if (exp_->back().getMSLevel() <= 1) exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
+            else                                exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+          }
+					*/
 				}
 				skip_spectrum_ = false;
 				logger_.setProgress(++scan_count);
@@ -1382,11 +1390,11 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000579") //MS1 spectrum
 				{
-					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
 				}
 				else if (accession=="MS:1000580") //MSn spectrum
 				{
-					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
 				}
 				else if (accession=="MS:1000581") //CRM spectrum
 				{
@@ -3458,12 +3466,20 @@ namespace OpenMS
 			Map<InstrumentSettings::ScanMode, UInt> file_content;
 			for (Size i=0; i<exp.size(); ++i)
 			{
-				file_content[exp[i].getInstrumentSettings().getScanMode()]++;
+				++file_content[exp[i].getInstrumentSettings().getScanMode()];
 			}
 			if (file_content.has(InstrumentSettings::MASSSPECTRUM))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
 			}
+      if (file_content.has(InstrumentSettings::MS1SPECTRUM))
+      {
+        os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\" />\n";
+      }
+      if (file_content.has(InstrumentSettings::MSNSPECTRUM))
+      {
+        os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+      }
 			if (file_content.has(InstrumentSettings::SIM))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
@@ -4036,7 +4052,8 @@ namespace OpenMS
 					os  << "				<analyzer order=\"" << ma.getOrder() << "\">\n";
 					
 					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000014\" name=\"accuracy\" value=\"" << ma.getAccuracy() << "\" unitAccession=\"UO:0000169\" unitName=\"parts per million\" unitCvRef=\"UO\" />\n";
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000022\" name=\"TOF Total Path Length\" value=\"" << ma.getTOFTotalPathLength() << "\" unitAccession=\"UO:0000008\" unitName=\"meter\" unitCvRef=\"UO\" />\n";
+					// @todo: the parameters below are instrument specific and should not be written every time
+          os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000022\" name=\"TOF Total Path Length\" value=\"" << ma.getTOFTotalPathLength() << "\" unitAccession=\"UO:0000008\" unitName=\"meter\" unitCvRef=\"UO\" />\n";
 					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000024\" name=\"final MS exponent\" value=\"" << ma.getFinalMSExponent() << "\" />\n";
 					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000025\" name=\"magnetic field strength\" value=\"" << ma.getMagneticFieldStrength() << "\" unitAccession=\"UO:0000228\" unitName=\"tesla\" unitCvRef=\"UO\" />\n";
 					
@@ -4394,11 +4411,19 @@ namespace OpenMS
 					}
 	
 					//spectrum type
-					if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::MASSSPECTRUM)
+          if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::MASSSPECTRUM)
 					{
-						os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
+            os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
 					}
-					else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::SIM)
+          else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::MS1SPECTRUM)
+          {
+            os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\" />\n";
+          }
+          else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::MSNSPECTRUM)
+          {
+            os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+          }
+          else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::SIM)
 					{
 						os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
 					}

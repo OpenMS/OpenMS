@@ -1095,6 +1095,8 @@ namespace OpenMS
 					case InstrumentSettings::UNKNOWN:
 						break;
 					case InstrumentSettings::MASSSPECTRUM:
+          case InstrumentSettings::MS1SPECTRUM:
+          case InstrumentSettings::MSNSPECTRUM:
 						if (spec.getInstrumentSettings().getZoomScan())
 						{
 							os << "\" scanType=\"zoom";

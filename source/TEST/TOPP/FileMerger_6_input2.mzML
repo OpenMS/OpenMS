@@ -119,7 +119,7 @@
         <cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1003.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
-	      <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+	      <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 	      <userParam name="name" value="spectrum2"/>
         <userParam name="name" value="scan2"/>
         <scanList count="1">

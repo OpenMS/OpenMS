@@ -1103,6 +1103,8 @@ namespace OpenMS
 							//do nothing here
 							break;
 						case InstrumentSettings::MASSSPECTRUM:
+            case InstrumentSettings::MS1SPECTRUM:
+            case InstrumentSettings::MSNSPECTRUM:
 							if (iset.getZoomScan())
 							{
 								os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"Zoom\"/>\n";

@@ -46,7 +46,9 @@ namespace OpenMS
       enum ScanMode
       {
       	UNKNOWN,					///< Unknown scan method
-      	MASSSPECTRUM,			///< Standard mass spectrum @n Synonyms: 'full scan', 'MSn scan'
+        MASSSPECTRUM,     ///< general spectrum type
+        MS1SPECTRUM,			///< full scan mass spectrum, is a "mass spectrum" @n Synonyms: 'full spectrum', 'Q1 spectrum', 'Q3 spectrum', 'Single-Stage Mass Spectrometry'
+        MSNSPECTRUM,      ///< MS2+ mass spectrum, is a "mass spectrum"
       	SIM,							///< Selected ion monitoring scan @n Synonyms: 'Multiple ion monitoring scan', 'SIM scan', 'MIM scan'
       	SRM,							///< Selected reaction monitoring scan @n Synonyms: 'Multiple reaction monitoring scan', 'SRM scan', 'MRM scan'
       	CRM,							///< Consecutive reaction monitoring scan @n Synonyms: 'CRM scan'
@@ -91,7 +93,7 @@ namespace OpenMS
 			
 			/// returns the polarity
       IonSource::Polarity getPolarity() const;
-      /// sets the polariy
+      /// sets the polarity
       void setPolarity(IonSource::Polarity polarity);
 			
 			/// returns a const reference to the m/z scan windows

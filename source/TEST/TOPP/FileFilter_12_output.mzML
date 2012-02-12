@@ -6,7 +6,8 @@
 	</cvList>
 	<fileDescription>
 		<fileContent>
-			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+			<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
+			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="2">
 			<sourceFile id="sf_ru_0" name="tiny1.RAW" location="file:///F:/data/Exp01">
@@ -189,7 +190,7 @@
 			<spectrum id="index=0" index="0" defaultArrayLength="15" dataProcessingRef="dp_sp_0">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
-				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
 					<userParam name="maldi_spot_id" type="xsd:string" value="M0"/>
 					<userParam name="lowest observed m/z" type="xsd:double" value="400.39"/>
@@ -251,7 +252,7 @@
 			<spectrum id="index=1" index="1" defaultArrayLength="10" sourceFileRef="sf_sp_1">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
-				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
 					<userParam name="maldi_spot_id" type="xsd:string" value="M1"/>
 					<userParam name="lowest observed m/z" type="xsd:double" value="320.39"/>
@@ -370,7 +371,7 @@
 			<spectrum id="index=2" index="2" defaultArrayLength="15" dataProcessingRef="dp_sp_1">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
-				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
 					<userParam name="maldi_spot_id" type="xsd:string" value="M2"/>
 					<userParam name="lowest observed m/z" type="xsd:double" value="400.39"/>
