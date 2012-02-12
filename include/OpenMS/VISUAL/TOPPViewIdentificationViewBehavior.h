@@ -37,6 +37,9 @@ namespace OpenMS
 {
   class TOPPViewBase;
 
+  /**
+  @brief Behavior of TOPPView in identification mode.
+  */
   class TOPPViewIdentificationViewBehavior :
       public TOPPViewBehaviorInterface
   {

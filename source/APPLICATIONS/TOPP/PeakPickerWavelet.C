@@ -40,21 +40,24 @@ using namespace std;
 /**
 	@page TOPP_PeakPickerWavelet PeakPickerWavelet
 
-	@brief A tool for peak detection in profile data. Executes the peak picking with selected algorithms choosable: @ref OpenMS::PeakPickerCWT "wavelet" (described in Lange et al. (2006) Proc. PSB-06) and @ref OpenMS::PeakPickerHiRes "high_res".
+  @brief A tool for peak detection in profile data. Executes the peak picking with the algorithm described in described in Lange et al. (2006) Proc. PSB-06.
 <CENTER>
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PeakPicker \f$ \longrightarrow \f$</td>
+      <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ PeakPickerWavelet \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> any tool operating on MS peak data @n (in mzML format)</td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilter </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterGaussian </td>
 		</tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
+    </tr>
 	</table>
 </CENTER>
 	The conversion of the ''raw'' ion count data acquired
@@ -71,11 +74,10 @@ using namespace std;
 	@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_PeakPicker.cli
+  @verbinclude TOPP_PeakPickerWavelet.cli
 
-	For the parameters of the algorithm section see the algorithms documentation: @n
-		@ref OpenMS::PeakPickerCWT "wavelet" @n
-		@ref OpenMS::PeakPickerHiRes "high_res" @n
+  For the parameters of the algorithm section see the algorithm documentation: @n
+    @ref OpenMS::PeakPickerCWT "PeakPickerCWT" @n
 
 	In the following table you, can find example values of the most important algorithm parameters for
 	different instrument types. @n These parameters are not valid for all instruments of that type,
@@ -98,7 +100,7 @@ using namespace std;
 		</tr>
 	</table>
 
-	In order to impove the results of the peak detection on low resolution data @ref TOPP_NoiseFilter and @ref TOPP_BaselineFilter can be applied.
+  In order to impove the results of the peak detection on low resolution data @ref TOPP_NoiseFilterSGolay or @ref TOPP_NoiseFilterGaussian and @ref TOPP_BaselineFilter can be applied.
 	For high resolution data this is not necessary.
 */
 
@@ -122,7 +124,7 @@ protected:
       setValidFormats_("in",StringList::create("mzML"));
       registerOutputFile_("out","<file>","","output peak file ");
       setValidFormats_("out",StringList::create("mzML"));
-
+      registerFlag_("write_peak_meta_data", "Write additional information about the picked peaks (maximal intensity, left and right area...) into the mzML-file.Attention: this can blow up files,as 7 arrays are stored per spectrum!",true);
       addEmptyLine_();
       addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
       registerSubsection_("algorithm","Algorithm parameters section");
@@ -142,7 +144,7 @@ protected:
 
         String in = getStringOption_("in");
         String out = getStringOption_("out");
-
+        bool write_meta_data_arrays(getFlag_("write_peak_meta_data"));
         //-------------------------------------------------------------
         // loading input
         //-------------------------------------------------------------
@@ -151,7 +153,7 @@ protected:
         MSExperiment<Peak1D > ms_exp_raw;
         mz_data_file.load(in,ms_exp_raw);
 
-        if (ms_exp_raw.size()==0)
+        if (ms_exp_raw.empty())
         {
             LOG_WARN << "The given file does not contain any conventional peak data, but might"
                     " contain chromatograms. This tool currently cannot handle them, sorry.";
@@ -193,7 +195,13 @@ protected:
             LOG_ERROR << "Exception catched: " << e.what() << "\n";
             return INTERNAL_ERROR;
         }
-
+        if(!write_meta_data_arrays)
+          {
+            for(Size i = 0; i < ms_exp_peaks.size(); ++i)
+              {
+                ms_exp_peaks[i].getFloatDataArrays().clear();
+              }
+          }
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------

@@ -4,7 +4,17 @@
     <ITEM name="version" value="1.9.0" type="string" description="" />
     <ITEM name="num_vertices" value="7" type="int" description="" />
     <ITEM name="num_edges" value="6" type="int" description="" />
-    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt; &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt; p, li { white-space: pre-wrap; } &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
+    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Arial&apos;; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;This workflow performs a simple quantification of three label-free bovine serum albumine (BSA) runs.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Node #1 contains three mzML files. Node #2 finds the features on these maps and passes on three featureXML files.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Corresponding peptide identifications in idXML format (obtained using OMSSA in advance) are mapped to each of these featureXML files by the IDMapper.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;The Collect node waits for all three rounds to finish, then runs FeatureLinkerUnlabeled once, with a list of all three annotated featureXML files as input, which creates a single consensusXML output file.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
   </NODE>
   <NODE name="vertices" description="">
     <NODE name="0" description="">
@@ -15,8 +25,8 @@
         <LISTITEM value="../BSA/BSA2.mzML"/>
         <LISTITEM value="../BSA/BSA3.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-140" type="float" description="" />
-      <ITEM name="y_pos" value="-160" type="float" description="" />
+      <ITEM name="x_pos" value="-320" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
     </NODE>
     <NODE name="1" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
@@ -25,7 +35,7 @@
       <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="-140" type="float" description="" />
       <ITEM name="y_pos" value="-40" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureFinderCentroided&apos;">
+      <NODE name="parameters" description="">
         <ITEM name="in" value="" type="string" description="input file" tags="input file,required" restrictions="*.mzML" />
         <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.featureXML" />
         <ITEM name="seeds" value="" type="string" description="User-specified seed list. This feature is not supported by all algorithms!" tags="input file" restrictions="*.featureXML" />
@@ -91,17 +101,17 @@
         <LISTITEM value="../BSA/BSA2_OMSSA.idXML"/>
         <LISTITEM value="../BSA/BSA3_OMSSA.idXML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="60" type="float" description="" />
-      <ITEM name="y_pos" value="-160" type="float" description="" />
+      <ITEM name="x_pos" value="-320" type="float" description="" />
+      <ITEM name="y_pos" value="120" type="float" description="" />
     </NODE>
     <NODE name="3" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="IDMapper" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="60" type="float" description="" />
-      <ITEM name="y_pos" value="-40" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;IDMapper&apos;">
+      <ITEM name="x_pos" value="-140" type="float" description="" />
+      <ITEM name="y_pos" value="120" type="float" description="" />
+      <NODE name="parameters" description="">
         <ITEM name="id" value="" type="string" description="Protein/peptide identifications file" tags="input file,required" restrictions="*.idXML" />
         <ITEM name="in" value="" type="string" description="Feature map/consensus map file" tags="input file,required" restrictions="*.featureXML,*.consensusXML" />
         <ITEM name="out" value="" type="string" description="Output file (the format depends on the input file format)." tags="output file,required" restrictions="*.featureXML,*.consensusXML" />
@@ -125,9 +135,9 @@
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FeatureLinkerUnlabeled" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="60" type="float" description="" />
-      <ITEM name="y_pos" value="260" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureLinkerUnlabeled&apos;">
+      <ITEM name="x_pos" value="180" type="float" description="" />
+      <ITEM name="y_pos" value="120" type="float" description="" />
+      <NODE name="parameters" description="">
         <ITEMLIST name="in" type="string" description="input files separated by blanks" tags="input file,required" restrictions="*.featureXML,*.consensusXML">
         </ITEMLIST>
         <ITEM name="out" value="" type="string" description="Output file" tags="output file,required" restrictions="*.consensusXML" />
@@ -162,14 +172,14 @@
     <NODE name="6" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
-      <ITEM name="x_pos" value="-120" type="float" description="" />
-      <ITEM name="y_pos" value="260" type="float" description="" />
+      <ITEM name="x_pos" value="180" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
     </NODE>
     <NODE name="4" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="merger" type="string" description="" />
-      <ITEM name="x_pos" value="60" type="float" description="" />
-      <ITEM name="y_pos" value="100" type="float" description="" />
+      <ITEM name="x_pos" value="20" type="float" description="" />
+      <ITEM name="y_pos" value="120" type="float" description="" />
       <ITEM name="round_based" value="false" type="string" description="" />
     </NODE>
   </NODE>

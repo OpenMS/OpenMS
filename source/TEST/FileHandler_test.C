@@ -77,7 +77,7 @@ START_SECTION((static FileTypes::Type nameToType(const String &name)))
   TEST_EQUAL(FileTypes::MS2, tmp.nameToType("ms2"));
 	TEST_EQUAL(FileTypes::PEPXML, tmp.nameToType("pepXML"));
 	TEST_EQUAL(FileTypes::PROTXML, tmp.nameToType("protXML"));
-	TEST_EQUAL(FileTypes::MZIDENTML, tmp.nameToType("mzIdentML"));
+	TEST_EQUAL(FileTypes::MZIDENTML, tmp.nameToType("mzid"));
 	TEST_EQUAL(FileTypes::GELML, tmp.nameToType("GelML"));
 	TEST_EQUAL(FileTypes::TRAML, tmp.nameToType("TraML"));
 	TEST_EQUAL(FileTypes::MSP, tmp.nameToType("MSP"));
@@ -115,7 +115,7 @@ START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename))
  	TEST_EQUAL(tmp.getTypeByFileName("test.pep.xml"), FileTypes::PEPXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.protXML"), FileTypes::PROTXML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.prot.xml"), FileTypes::PROTXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.mzIdentML"), FileTypes::MZIDENTML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.mzid"), FileTypes::MZIDENTML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.GELML"), FileTypes::GELML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.TRAML"), FileTypes::TRAML)
 	TEST_EQUAL(tmp.getTypeByFileName("test.MSP"), FileTypes::MSP)

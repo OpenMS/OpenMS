@@ -63,6 +63,18 @@ namespace OpenMS
 
 	String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
 
+  void TOPPBase::setMaxNumberOfThreads(int
+#ifdef _OPENMP
+                                       num_threads  // to avoid the unused warning we enable this
+                                                    // argument only if openmp is available
+#endif
+                                       )
+  {
+#ifdef _OPENMP
+    omp_set_num_threads(num_threads);
+#endif
+  }
+
   TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool id_tag_support, const String& version)
   	: tool_name_(tool_name),
   		tool_description_(tool_description),
@@ -365,10 +377,8 @@ namespace OpenMS
 			//----------------------------------------------------------
 			//threads
 			//----------------------------------------------------------
-			#ifdef _OPENMP
 			Int threads = getParamAsInt_("threads", 1);
-			omp_set_num_threads(threads);
-			#endif
+      TOPPBase::setMaxNumberOfThreads(threads);
 
 			//----------------------------------------------------------
 			//main
@@ -764,7 +774,7 @@ namespace OpenMS
 			break;
 		case DataValue::STRING_LIST:
 			if (input_file) type = ParameterInformation::INPUT_FILE_LIST;
-			else if (input_file) type = ParameterInformation::OUTPUT_FILE_LIST;
+      else if (output_file) type = ParameterInformation::OUTPUT_FILE_LIST;
 			else type = ParameterInformation::STRINGLIST;
 			break;
 		case DataValue::INT_LIST:
@@ -2075,10 +2085,12 @@ namespace OpenMS
 		{
 			//version
 			p.getSoftware().setVersion("version_string");
+
 			//time
 			DateTime date_time;
 			date_time.set("1999-12-31 23:59:59");
 			p.setCompletionTime(date_time);
+
 			//parameters
 			p.setMetaValue("parameter: mode" , "test_mode");
 		}

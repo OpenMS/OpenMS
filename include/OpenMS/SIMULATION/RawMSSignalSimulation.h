@@ -41,9 +41,9 @@ namespace OpenMS {
   class IsotopeModel;
 
   /**
-   @brief Simulates MS signales for a given set of peptides
+   @brief Simulates MS signals for a given set of peptides
 
-   Simulates MS signales for a given set of peptides, with charge annotation,
+   Simulates MS signals for a given set of peptides, with charge annotation,
    given detectabilities, predicted retention times and charge values.
 
    @htmlinclude OpenMS_RawMSSignalSimulation.parameters
@@ -114,39 +114,37 @@ namespace OpenMS {
     void add2DSignal_(Feature & feature, MSSimExperiment & experiment, MSSimExperiment & experiment_ct);
 
     /**
-     @brief Samples signales for the given 1D model
+     @brief Samples signals for the given 1D model
 
-     @param iso The isotope model from which the signales will be sampled
+     @param iso The isotope model from which the signals will be sampled
      @param mz_start Start coordinate (in m/z dimension) of the region where the signals will be sampled
      @param mz_end End coordinate (in m/z dimension) of the region where the signals will be sampled
-     @param experiment Experiment to which the sampled signales will be added
-     @param experiment_ct Experiment to which the centroided Ground Truth sampled signales will be added
+     @param experiment Experiment to which the sampled signals will be added
+     @param experiment_ct Experiment to which the centroided Ground Truth sampled signals will be added
      @param activeFeature The current feature that is simulated
      */
     void samplePeptideModel1D_(const IsotopeModel & iso,
                                const SimCoordinateType mz_start,
                                const SimCoordinateType mz_end,
-                               const SimCoordinateType mz_sampling_rate,
                                MSSimExperiment & experiment,
                                MSSimExperiment & experiment_ct,
                                Feature & activeFeature);
 
     /**
-     @brief Samples signales for the given 2D model
+     @brief Samples signals for the given 2D model
 
-     @param pm The product model from which the signales will be sampled
+     @param pm The product model from which the signals will be sampled
      @param mz_start Start coordinate (in m/z dimension) of the region where the signals will be sampled
      @param mz_end End coordinate (in m/z dimension) of the region where the signals will be sampled
      @param rt_start Start coordinate (in rt dimension) of the region where the signals will be sampled
      @param rt_end End coordinate (in rt dimension) of the region where the signals will be sampled
-     @param experiment Experiment to which the sampled signales will be added
-     @param experiment_ct Experiment to which the centroided Ground Truth sampled signales will be added
+     @param experiment Experiment to which the sampled signals will be added
+     @param experiment_ct Experiment to which the centroided Ground Truth sampled signals will be added
      @param activeFeature The current feature that is simulated
      */
     void samplePeptideModel2D_(const ProductModel<2> & pm,
                                const SimCoordinateType mz_start,
                                const SimCoordinateType mz_end,
-                               const SimCoordinateType mz_sampling_rate,
                                SimCoordinateType rt_start,
                                SimCoordinateType rt_end,
                                MSSimExperiment & experiment,
@@ -163,7 +161,7 @@ namespace OpenMS {
     */
     void createContaminants_(FeatureMapSim & contaminants, MSSimExperiment & exp, MSSimExperiment & exp_ct);
 
-    /// Add shot noise to the experimet
+    /// Add shot noise to the experiment
     void addShotNoise_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit);
 
     /// Add white noise to the experiment
@@ -214,7 +212,7 @@ namespace OpenMS {
     DoubleReal getResolution_(const DoubleReal query_mz, const DoubleReal resolution, const RESOLUTIONMODEL model) const;
 
     /**
-      @brief compute the peak's SD (gaussian) at a given m/z (internally the resolution model is used)
+      @brief compute the peak's SD (Gaussian) at a given m/z (internally the resolution model is used)
     */
     DoubleReal getPeakWidth_(const DoubleReal mz, const bool is_gaussian) const;
 
@@ -228,6 +226,8 @@ namespace OpenMS {
     RESOLUTIONMODEL res_model_;
     /// base resolution at 400 Th
     DoubleReal res_base_;
+    /// m/z sampling grid for all signals
+    std::vector<SimCoordinateType> grid_;
 
 		/// Random number generator
     SimRandomNumberGenerator const * rnd_gen_;

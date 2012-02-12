@@ -125,7 +125,7 @@ namespace OpenMS
 		TOPPASEdge* e = *inEdgesBegin();
 		TOPPASVertex* tv = e->getSourceVertex();
     RoundPackages pkg = tv->getOutputFiles();
-    if (pkg.size()==0)
+    if (pkg.empty())
     {
 			std::cerr << "A problem occured while grabbing files from the parent tool. This is a bug, please report it!" << std::endl;
 			__DEBUG_END_METHOD__
@@ -148,7 +148,7 @@ namespace OpenMS
 
     int param_index_src = e->getSourceOutParam();
     int param_index_me = e->getTargetInParam();
-    for (int round=0; round < pkg.size(); ++round)
+    for (Size round=0; round < pkg.size(); ++round)
     {
       foreach (const QString& f, pkg[round][param_index_src].filenames)
 		  {
@@ -188,9 +188,9 @@ namespace OpenMS
     }
     else
     {
-      for (int round=0; round < pkg.size(); ++round)
+      for (Size round=0; round < pkg.size(); ++round)
       {
-        round_counter_ = round; // for global update, in case someone asks
+        round_counter_ = (int)round; // for global update, in case someone asks
         for (int i = 0; i < pkg[round][param_index_src].filenames.size(); ++i)
 		    {
           QString file_from = pkg[round][param_index_src].filenames[i];

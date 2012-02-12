@@ -25,8 +25,9 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_PEAKWIDTHESTIMATOR_H
-#define OPENMS_TRANSFORMATIONS_PEAKWIDTHESTIMATOR_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKWIDTHESTIMATOR_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKWIDTHESTIMATOR_H
+
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>

@@ -630,12 +630,12 @@ namespace OpenMS
 	
 	bool Residue::hasNeutralLoss() const
 	{
-		return loss_formulas_.size() != 0;
+    return ( !loss_formulas_.empty() );
 	}
 
 	bool Residue::hasNTermNeutralLosses() const
   {
-		return NTerm_loss_formulas_.size() != 0;
+    return ( !NTerm_loss_formulas_.empty() );
 	}
 	
 	bool Residue::operator == (const Residue& residue) const

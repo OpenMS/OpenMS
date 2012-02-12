@@ -55,7 +55,7 @@ RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const SimRandomNumberGe
   defaults_.setValue("tandem_mode", 0, "Algorithm to generate the tandem-MS spectra. 0 - fixed intensities, 1 - SVC prediction (abundant/missing), 2 - SVR prediction of peak intensity \n");
   defaults_.setMinInt("tandem_mode",0);
   defaults_.setMaxInt("tandem_mode",2);
-  defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.dat", "File containing the Filenames of SVM Models for different charge variants");
+  defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.model", "File containing the Filenames of SVM Models for different charge variants");
 
   subsections_.push_back("TandemSim:");
   defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());
@@ -101,7 +101,7 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
   simple_generator.setParameters(simple_gen_params);
 
   SvmTheoreticalSpectrumGeneratorSet svm_spec_gen_set;
-  //this set will hold the precursor charages that have an Svm model
+  //this set will hold the precursor charges that have an Svm model
   std::set<Size>svm_model_charges;
 
   //if SVR or SVC shall be used
@@ -135,8 +135,8 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
   //guess sampling rate from two adjacent full scans:
   if (experiment.size()>=2) sampling_rate = experiment[1].getRT() - experiment[0].getRT();
 
-  MSSimExperiment single_ms2_spectra;
-  single_ms2_spectra.resize(features.size());
+  MSSimExperiment precomputed_MS2;
+  precomputed_MS2.resize(features.size());
 
 
   // preparation & validation of input
@@ -159,17 +159,17 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
     for(Size peak=0; peak<tmp_spec.size(); ++peak)
     {
       Peak1D p=tmp_spec[peak];
-      single_ms2_spectra[i_f].push_back(p);
+      precomputed_MS2[i_f].push_back(p);
     }
 
-    single_ms2_spectra[i_f].setMSLevel(2);
+    precomputed_MS2[i_f].setMSLevel(2);
     Precursor prec;
     prec.setMZ(features[i_f].getMZ());
-    single_ms2_spectra[i_f].setPrecursors(std::vector<Precursor>(1,prec));
-    single_ms2_spectra[i_f].setMetaValue("FeatureID",(String)features[i_f].getUniqueId());
+    precomputed_MS2[i_f].setPrecursors(std::vector<Precursor>(1,prec));
+    precomputed_MS2[i_f].setMetaValue("FeatureID",(String)features[i_f].getUniqueId());
 
 
-    // validate features Metavalues exist and are valid:
+    // validate features meta values exist and are valid:
     if (!features[i_f].metaValueExists("elution_profile_bounds")
         ||
         !features[i_f].metaValueExists("elution_profile_intensities"))
@@ -207,7 +207,7 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
       }
     }
 
-    if (features_fragmented.size()==0) continue;
+    if (features_fragmented.empty()) continue;
 
     // now we have all features that elute in this scan -> create MS2 scans
     MSSimExperiment MS2_spectra;
@@ -217,15 +217,15 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
     {
       Size i_f = features_fragmented[index];
       // create spectrum
-      MS2_spectra[index] = single_ms2_spectra[i_f];
+      MS2_spectra[index] = precomputed_MS2[i_f];
       MS2_spectra[index].setRT(experiment[i].getRT() + sampling_rate*(double(index+1) / double(features_fragmented.size()+2)));
       // adjust intensity of single MS2 spectra by feature intensity
       const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
       const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
-      DoubleReal factor = elution_ints [i - elution_bounds[0] ];
+      DoubleReal factor = elution_ints [i - elution_bounds[0] ] * features[i_f].getIntensity();
       for (MSSimExperiment::SpectrumType::iterator it=MS2_spectra[index].begin();it!=MS2_spectra[index].end();++it)
       {
-        it->setIntensity(it->getIntensity() * factor * features[i_f].getIntensity());
+        it->setIntensity(it->getIntensity() * factor );
       }
     }
 
@@ -262,6 +262,8 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
   ps.setParameters(param);
   // different selection strategies for MALDI and ESI
   bool is_MALDI = (String)param_.getValue("ionization_type") == "MALDI";
+
+  // fill 'ms2' with precursor information, but leave spectra empty
   ps.makePrecursorSelectionForKnownLCMSMap(features, experiment, ms2, qs_set, is_MALDI);
 
 
@@ -276,7 +278,7 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
   Size tandem_mode=param_.getValue("tandem_mode");
 
   SvmTheoreticalSpectrumGeneratorSet svm_spec_gen_set;
-  //this set will hold the precursor charages that have an Svm model
+  //this set will hold the precursor charges that have an SVM model
   std::set<Size>svm_model_charges;
 
   if(tandem_mode)
@@ -302,13 +304,18 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
   for (Size i = 0; i < ms2.size(); ++i)
   {
     IntList ids = (IntList) ms2[i].getMetaValue("parent_feature_ids");
-    DoubleReal prec_intens = ms2[i].getPrecursors()[0].getIntensity();
+    
+    OPENMS_POSTCONDITION(ids.size()==ms2[i].getPrecursors().size(), "#parent features should be equal to # of precursors")
+
     MSSimExperiment tmp_spectra;
+    tmp_spectra.resize(ids.size());
+
     for(Size id =0; id<ids.size();++id)
     {
+      DoubleReal prec_intens = ms2[i].getPrecursors()[id].getIntensity();
       AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
       RichPeakSpectrum tmp_spec;
-      std::cerr<<"generate Spec for peptide: "<<seq<<std::endl;
+
       Int prec_charge=features[ids[id]].getCharge();
 
       if(tandem_mode && svm_model_charges.count(prec_charge))
@@ -319,20 +326,31 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
       {
         simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
       }
-      //svm_spec_gen.simulate(tmp_spec, seq, rnd_gen_->biological_rng, features[ids[id]].getCharge());
-      //TODO: work around RichPeak1D restriction
+
       for(Size peak=0; peak<tmp_spec.size(); ++peak)
       {
         Peak1D p=tmp_spec[peak];
         p.setIntensity(p.getIntensity()*prec_intens);
-        ms2[i].push_back(p);
+        tmp_spectra[id].push_back(p);
       }
+      tmp_spectra[id].sortByPosition();
     }
-    ms2[i].sortByPosition();
+    
+    if (tmp_spectra.size() > 1)
+    {
+      Param p;
+      p.setValue("block_method:rt_block_size", ids.size()); // merge all single spectra from (multiple) precursors
+      p.setValue("block_method:ms_levels", IntList::create("2"));
+      SpectraMerger sm;
+      sm.setParameters(p);
+      sm.mergeSpectraBlockWise(tmp_spectra);
   }
+    // preserve precursor information etc and just insert peaks
+    ms2[i].insert(ms2[i].begin(), tmp_spectra[0].begin(), tmp_spectra[0].end());
+}
 }
 
-void RawTandemMSSignalSimulation::generateRawTandemSignals(FeatureMapSim & features, MSSimExperiment & experiment)
+void RawTandemMSSignalSimulation::generateRawTandemSignals(const FeatureMapSim & features, MSSimExperiment & experiment)
 {
   LOG_INFO << "Tandem MS Simulation ... ";
 

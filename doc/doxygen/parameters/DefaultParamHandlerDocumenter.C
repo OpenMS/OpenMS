@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 #include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
+#include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
@@ -55,18 +56,23 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
+//#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorSet.h>
+#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
@@ -78,6 +84,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
@@ -115,7 +122,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -155,6 +161,7 @@
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -162,11 +169,11 @@ using namespace OpenMS;
 //**********************************************************************************
 //Helper method - use this method to generate the actual parameter documentation
 //**********************************************************************************
-void writeParameters(const String& class_name, const Param& param)
+void writeParameters(const String& class_name, const Param& param, bool table_only=false)
 {
 	ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
 
-	f << "<B>Parameters of this class are:</B><BR><BR>\n";
+	if (!table_only) f << "<B>Parameters of this class are:</B><BR><BR>\n";
 	f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
 	f <<"<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
 	String type, description, restrictions;
@@ -278,13 +285,16 @@ void writeParameters(const String& class_name, const Param& param)
       << "  <td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td>\n"
       << "</tr>\n";
 	}
-	f << "</table>" << "\n"
-	  << "<br>" << "\n"
+	f << "</table>" << "\n";
+	if (!table_only)
+	{
+		f << "<br>" << "\n"
     << "<b>Note:</b>" << "\n"
 	  << "<UL style=\"margin-top:0px;\">" << "\n"
 	  << "  <LI> If a section name is documented, the documentation is displayed as tooltip." << "\n"
 	  << "  <LI> Advanced parameter names are italic." << "\n"
 	  << "</UL>" << "\n";
+	}
   f.close();
 }
 
@@ -332,7 +342,9 @@ int main (int argc , char** argv)
 	DOCME(FalseDiscoveryRate);
 	DOCME(FeatureDeconvolution);
 	DOCME(FeatureDistance);
+	DOCME(FeatureGroupingAlgorithmIdentification); // deprecated
 	DOCME(FeatureGroupingAlgorithmLabeled);
+	DOCME(FeatureGroupingAlgorithmQT);
 	DOCME(FeatureGroupingAlgorithmUnlabeled);
 	DOCME(GaussFilter);
 	DOCME(GaussFitter1D);
@@ -364,6 +376,7 @@ int main (int argc , char** argv)
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
 	DOCME(PILISScoring);
+  DOCME(PILISIdentification);
 	DOCME(ParentPeakMower);
 	DOCME(PeakAlignment);
 	DOCME(PeakPickerCWT);
@@ -372,6 +385,7 @@ int main (int argc , char** argv)
 	DOCME(PoseClusteringShiftSuperimposer);
 	DOCME(QTClusterFinder);
 	DOCME(SavitzkyGolayFilter);
+  DOCME(LowessSmoothing);
 	DOCME(SimplePairFinder);
 	DOCME(StablePairFinder);
 	DOCME(SpectrumAlignment);
@@ -380,6 +394,9 @@ int main (int argc , char** argv)
 	DOCME(SpectrumPrecursorComparator);
 	DOCME(SteinScottImproveScore);
 	DOCME(SpectraMerger);
+        DOCME(SvmTheoreticalSpectrumGenerator);
+        //DOCME(SvmTheoreticalSpectrumGeneratorSet);
+        DOCME(SvmTheoreticalSpectrumGeneratorTrainer);
 	DOCME(TICFilter);
 	DOCME(TheoreticalSpectrumGenerator);
 	DOCME(ThresholdMower);
@@ -414,7 +431,13 @@ int main (int argc , char** argv)
 	DOCME(ITRAQLabeler);
   DOCME(SILACLabeler);
   DOCME(ICPLLabeler);
+	DOCME(PeptideAndProteinQuant);
 	DOCME(Math::PosteriorErrorProbabilityModel);
+	// workarounds for documenting model parameters in MapAligners:
+	writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("b_spline"), true);
+	writeParameters("MapAlignerPoseClusteringModel", TOPPMapAlignerBase::getModelDefaults("linear"), true);
+	writeParameters("MapAlignerSpectrumModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
+	writeParameters("MapRTTransformerModel", TOPPMapAlignerBase::getModelDefaults("none"), true);
 
 	//////////////////////////////////
 	// More complicated cases
@@ -438,7 +461,6 @@ int main (int argc , char** argv)
 	DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(OpenMS::SimRandomNumberGenerator() ));
 	DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(OpenMS::SimRandomNumberGenerator() ))
 	DOCME2(RTSimulation, RTSimulation(OpenMS::SimRandomNumberGenerator() ))
-	DOCME2(TraceFitter,(TraceFitter<Peak1D>()))
 	DOCME2(GaussTraceFitter,(GaussTraceFitter<Peak1D>()))
 	DOCME2(EGHTraceFitter,(EGHTraceFitter<Peak1D>()))
 

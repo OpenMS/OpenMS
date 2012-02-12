@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -55,8 +55,6 @@ using namespace std;
 	The documentation of each value is shown in the text area on the bottom of the widget.
 
 	@image html INIFileEditor.png
-
-	More information about TOPPAS can be found in the @ref TOPP_tutorial.
 */
 
 int main(int argc, const char** argv)

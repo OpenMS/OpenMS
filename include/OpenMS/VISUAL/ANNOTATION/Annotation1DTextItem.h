@@ -25,8 +25,8 @@
 // $Authors: Johannes Junker, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION1DTEXTITEM_H
-#define OPENMS_VISUAL_ANNOTATION1DTEXTITEM_H
+#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATION1DTEXTITEM_H
+#define OPENMS_VISUAL_ANNOTATION_ANNOTATION1DTEXTITEM_H
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 

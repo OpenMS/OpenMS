@@ -49,10 +49,10 @@ message(STATUS "Contrib include directories: ${CONTRIB_INCLUDE_DIR}")
 
 #set which library extensions are preferred (we want static libraries)
 if(NOT MSVC)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 endif()
 if (APPLE)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib;.a")
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.dylib")
 endif()
 
 OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
@@ -62,11 +62,11 @@ OPENMS_CHECKLIB(CONTRIB_GSL "gsl" "gsl_d;gsl" "GSL")
 OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
 
 ## BOOST
-if (WIN32)
+#if (WIN32 OR APPLE)
 	set(Boost_USE_STATIC_LIBS  ON)
-else()
-	set(Boost_USE_STATIC_LIBS  OFF)
-endif()
+#else()
+#	set(Boost_USE_STATIC_LIBS  OFF)
+#endif()
 set(Boost_USE_MULTITHREADED  ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
@@ -130,6 +130,12 @@ endif()
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include/)
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include/) ## for configured files, e.g. config.h
 INCLUDE_DIRECTORIES(${CONTRIB_INCLUDE_DIR})
+
+#except for the contrib libs, prefer shared libraries
+if(NOT MSVC AND NOT APPLE)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
+endif()
+
 
 ################################
 ## QT

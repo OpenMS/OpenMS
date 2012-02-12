@@ -65,6 +65,7 @@ namespace OpenMS
 				@param default_dir The default directory for loading and storing INI files
 				@param tool_name The name of the tool
 				@param tool_type The type of the tool
+        @param hidden_entries List of entries that are used already in edges etc and should not be shown
 			*/
 			TOPPASToolConfigDialog(QWidget* parent, Param& param, String default_dir, String tool_name, String tool_type, QVector<String> hidden_entries);
 			///Destructor

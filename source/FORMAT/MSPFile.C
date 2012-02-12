@@ -366,7 +366,7 @@ namespace OpenMS
 			
 				String mods;
 				mods.concatenate(modifications.begin(), modifications.end(), "/");
-				if (mods.size() != 0)
+        if ( !mods.empty() )
 				{
 					out << " Mods=" << String(num_mods)  << "/" << mods;
 				}

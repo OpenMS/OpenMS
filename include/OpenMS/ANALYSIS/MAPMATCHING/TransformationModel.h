@@ -183,6 +183,8 @@ namespace OpenMS
 
 		 In the range of the data points, the transformation is evaluated from a cubic smoothing spline fit to the points. The number of breakpoints is given as a parameter (@p num_breakpoints). Outside of this range, linear extrapolation through the last point with the slope of the spline at that point is used.
 
+		 Positioning of the breakpoints is controlled by the parameter @p break_positions. Valid choices are "uniform" (equidistant spacing on the data range) and "quantiles" (equal numbers of data points in every interval).
+
 		 @ingroup MapAlignment
 	*/
 	class OPENMS_DLLAPI TransformationModelBSpline: public TransformationModel

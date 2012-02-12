@@ -160,7 +160,7 @@ namespace OpenMS
 		Histogram<> tmp;
 		//float arrays
                 const ExperimentType::SpectrumType::FloatDataArrays& f_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getFloatDataArrays();
-		for(ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = f_arrays.begin(); it != f_arrays.end(); it++)
+    for ( ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = f_arrays.begin(); it != f_arrays.end(); ++it)
 		{
 			if (it->getName()==name)
 			{
@@ -183,7 +183,7 @@ namespace OpenMS
 		}
 		//integer arrays
                 const ExperimentType::SpectrumType::IntegerDataArrays& i_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getIntegerDataArrays();
-		for(ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = i_arrays.begin(); it != i_arrays.end(); it++)
+    for ( ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = i_arrays.begin(); it != i_arrays.end(); ++it )
 		{
 			if (it->getName()==name)
 			{
@@ -307,7 +307,7 @@ namespace OpenMS
 
       painter.save();
       painter.translate(QPoint(y_axis_->pos()));
-      dynamic_cast<AxisWidget*>(y_axis_)->paint(&painter, new QPaintEvent(y_axis_->contentsRect()));
+      y_axis_->paint(&painter, new QPaintEvent(y_axis_->contentsRect()));
       painter.restore();
 
       painter.save();
@@ -317,7 +317,7 @@ namespace OpenMS
 
       painter.save();
       painter.translate(QPoint(x_axis_->pos()));
-      dynamic_cast<AxisWidget*>(x_axis_)->paint(&painter, new QPaintEvent(x_axis_->contentsRect()));
+      x_axis_->paint(&painter, new QPaintEvent(x_axis_->contentsRect()));
       painter.restore();
 
       painter.end();

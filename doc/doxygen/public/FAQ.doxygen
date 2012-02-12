@@ -42,7 +42,7 @@
         You can now either:<br>
         <UL>
           <LI>switch to the 64bit Version of OpenMS. Be aware though that your Operating System also needs to have 64bit. Furthermore your PC should have sufficient RAM, to hold the data. Otherwise your harddrive will be used extensively for swapping and processing will take longer.
-          <LI>on 32bit Windows systems you can try the increase the allowed amount of memory from 2GB to 3GB by using the <it>"/3GB"</it> boot switch (boot.ini). This might already do
+          <LI>on 32bit Windows systems you can try the increase the allowed amount of memory from 2GB to 3GB by using the <i>"/3GB"</i> boot switch (boot.ini). This might already do
     the trick. However, if your data again gets bigger, this solution will only help temporarily. Google "3GB windows". This trick does not depend on the amount of memory installed on your system! You can use it even if you have only 1GB or 2GB of RAM, although you hard drive will be used for swapping then.
           <LI>on 32bit Linux systems: sorry, we cannot do anything. Use a 64bit system or reduce the amount of data.
         </UL>

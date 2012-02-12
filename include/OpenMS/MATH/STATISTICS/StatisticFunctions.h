@@ -22,12 +22,15 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Authors: Clemens Groepl, Johannes Junker$
 // --------------------------------------------------------------------------
 
 #include <numeric>
 #include <algorithm>
 #include <OpenMS/CONCEPT/Types.h>
+#include <boost/lambda/lambda.hpp>
+#include <boost/lambda/casts.hpp>
+#include <boost/function/function_base.hpp>
 
 #ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
 #define OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
@@ -69,38 +72,41 @@ namespace OpenMS
 		/**
 			 @brief Calculates the median of a range of values
 
-			 @param sorted Is the range already sorted? (If not, it may be reordered.)
+			 @param begin Start of range
+			 @param end End of range (past-the-end iterator)
+       @param sorted Is the range already sorted? If not, it will be sorted.
 
 			 @exception Exception::InvalidRange is thrown if the range is empty
 			 
 			 @ingroup MathFunctionsStatistics
 		*/
 		template <typename IteratorType>
-		static DoubleReal median(IteratorType begin, IteratorType end, 
-														 bool sorted=FALSE)
+    static DoubleReal median(IteratorType begin, IteratorType end, bool sorted = FALSE)
 		{
 			Size size = std::distance(begin, end);
-			if (size <= 0)
+
+      if (size == 0)
 			{
 				throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
+
+      if (!sorted)
+      {
+        std::sort(begin, end);
+      }
+
 			if (size % 2 == 0)  // even size => average two middle values
 			{
-				IteratorType it1 = begin, it2;
+        IteratorType it1 = begin;
 				std::advance(it1, size / 2 - 1);
-				if (!sorted)
-				{
-					std::nth_element(begin, it1, end); // partition: smaller, nth, greater
-					it2 = it1++;
-					it1 = std::min_element(it1, end); // smallest in the greater partition
-				}
+        IteratorType it2 = it1;
+        std::advance(it2, 1);
 				return (*it1 + *it2) / 2.0;
 			}
 			else 
 			{
 				IteratorType it = begin;
 				std::advance(it, (size - 1) / 2);
-				if (!sorted) std::nth_element(begin, it, end);
 				return *it;
 			}
 		}
@@ -260,36 +266,55 @@ namespace OpenMS
 			return numerator / sqrt(denominator_a * denominator_b);
 		}
 
-    /// Computes the rank of the sorted vector @p w
+    /// Replaces the elements in vector @p w by their ranks
     template <typename Value>
     static void computeRank(std::vector<Value>& w)
     {
+      using namespace boost::lambda;
       Size i = 0; // main index
       Size z  = 0;	// "secondary" index
       Value rank = 0;
       Size n = (w.size() - 1);
-
+      //store original indices for later
+      std::vector<std::pair<Size, Value> > w_idx;
+      for (Size j = 0; j < w.size(); ++j)
+      {
+        w_idx.push_back(std::make_pair(j, w[j]));
+      }
+      //sort
+      std::sort(w_idx.begin(), w_idx.end(),
+								ret<bool>((&_1 ->* &std::pair<Size, Value>::second) < (&_2 ->* &std::pair<Size, Value>::second)));
+      //replace pairs <orig_index, value> in w_idx by pairs <orig_index, rank>
       while (i < n)
       {
 				// test for equality with tolerance:
-        if (fabs(w[i+1] - w[i]) > 0.0000001 * fabs(w[i+1])) // no tie
+        if (fabs(w_idx[i+1].second - w_idx[i].second) > 0.0000001 * fabs(w_idx[i+1].second)) // no tie
         {
-          w[i] = Value(i);
+          w_idx[i].second = Value(i+1);
           ++i;
         }
         else // tie, replace by mean rank
         {
 					// count number of ties
-          for (z = i + 1; z <= n && fabs(w[z] - w[i]) <= 0.0000001 * fabs(w[z]) ; ++z);
+          for (z = i + 1; (z <= n) && fabs(w_idx[z].second - w_idx[i].second) <= 0.0000001 * fabs(w_idx[z].second); ++z)
+					{
+					}
 					// compute mean rank of tie
-          rank = 0.5 * (i + z - 1);
+          rank = 0.5 * (i + z + 1);
 					// replace intensities by rank
-          for (Size v = i; v <= z - 1 ; ++v) w[v] = rank;
-
+          for (Size v = i; v <= z - 1 ; ++v)	
+					{
+						w_idx[v].second = rank;
+					}
           i = z;
         }
       }
-      if (i == n) w[n] = Value(n);
+      if (i == n) w_idx[n].second = Value(n+1);
+      //restore original order and replace elements of w with their ranks
+      for (Size j = 0; j < w.size(); ++j)
+      {
+        w[w_idx[j].first] = w_idx[j].second;
+    }
     }
 
     /**
@@ -327,11 +352,7 @@ namespace OpenMS
         ++begin_b;
       }
 
-      // sort ranks
-      std::sort(ranks_data.begin(), ranks_data.end());
-      std::sort(ranks_model.begin(), ranks_model.end());
-
-      // compute rank
+      // replace entries by their ranks
       computeRank(ranks_data);
       computeRank(ranks_model);
 

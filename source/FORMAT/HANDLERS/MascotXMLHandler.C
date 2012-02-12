@@ -109,7 +109,7 @@ namespace OpenMS
  	{
  		tag_ = String(sm_.convert(qname)).trim();
  		
-		if (tags_open_.size() == 0)
+		if (tags_open_.empty())
 		{
 			fatalError(LOAD, String("Closing tag ")+tag_+" not matched by opening tag", __LINE__);
 		}
@@ -259,7 +259,7 @@ namespace OpenMS
 			AASequence temp_aa_sequence = AASequence(((String) sm_.convert(chars)).trim());
 				
 			// If everything is just read from the MascotXML file
-			if (modified_peptides_.size() == 0)
+			if (modified_peptides_.empty())
 			{			
 				// fixed modifications
 				for (vector<String>::const_iterator it = search_parameters_.fixed_modifications.begin(); it != search_parameters_.fixed_modifications.end(); ++it)
@@ -495,7 +495,7 @@ namespace OpenMS
 		{
 			// if the modifications are listed in the variable_modifications section, read
 			// from there, because sometimes mods are forced to be variable (from user set fixed)
-			if (search_parameters_.variable_modifications.size() == 0)
+			if (search_parameters_.variable_modifications.empty())
 			{
 				String temp_string = (((String) sm_.convert(chars)).trim());
 			

@@ -50,7 +50,12 @@ namespace OpenMS
       DoubleReal rt;
 
       /**
-       * @brief intensity at RT and m/z
+       * @brief exact m/z positions at which the intensities are read
+       */
+      std::vector<std::vector<DoubleReal> > mz_positions;
+      
+      /**
+       * @brief intensities at RT and the exact m/z positions
        */
       std::vector<std::vector<DoubleReal> > intensities;
 

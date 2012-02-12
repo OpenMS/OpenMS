@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_DATASTRUCTURES_LPWRAPPER_H
 #define OPENMS_DATASTRUCTURES_LPWRAPPER_H
@@ -94,6 +94,13 @@ namespace OpenMS
       MAX
     };
     
+    enum WriteFormat
+    {
+      FORMAT_LP =0,
+      FORMAT_MPS,
+      FORMAT_GLPK
+    };
+
     enum SOLVER
     {
       SOLVER_GLPK = 0
@@ -120,16 +127,29 @@ namespace OpenMS
     Int addColumn();
     /// adds a column to the LP matrix, returns index
     Int addColumn(std::vector<Int> column_indices,std::vector<DoubleReal> column_values,const String& name);
-    /*
+
+    /**
       @brief Adds a row with boundaries to the LP matrix, returns index
 
       If you have a fixed variable, GLPK requires to use the "fixed" type, instead of "double-bounded" with equal bounds.
 
-      @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
+      @param row_indices
+      @param row_values
+      @param name
+      @param lower_bound
+      @param upper_bound
+      @param type Type of the row 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
     Int addRow(std::vector<Int>& row_indices,std::vector<DoubleReal>& row_values,const String& name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
-    /*
+
+    /**
       @brief Adds a column with boundaries to the LP matrix, returns index
+
+      @param column_indices
+      @param column_values
+      @param name
+      @param lower_bound
+      @param upper_bound
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
     Int addColumn(std::vector<Int>& column_indices,std::vector<DoubleReal>& column_values,const String& name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
@@ -156,41 +176,56 @@ namespace OpenMS
     DoubleReal getRowLowerBound(Int index);
     /// sets name of the index-th row
     void setRowName(Int index,const String& name);
+
     /**
-     *	@brief Set column bounds.
-     *	
-     *	@param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
+      @brief Set column bounds.
+
+      @param index
+      @param lower_bound
+      @param upper_bound
+      @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
      */
     void setColumnBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
+
     /**
-     *	@brief Set row bounds.
-     *	
-     *	@param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed constraint
+      @brief Set row bounds.
+
+      @param index
+      @param lower_bound
+      @param upper_bound
+      @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed constraint
      */
     void setRowBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
+
     /**
-     *	@brief Set column/variable type.
-     *	
-     *	@param type 1- continuous, 2- integer, 3- binary variable
+      @brief Set column/variable type.
+
+      @param index
+      @param type 1- continuous, 2- integer, 3- binary variable
      */
     void setColumnType(Int index, VariableType type);
+
     /**
-     *	@brief Get column/variable type.
-     *	
-     *	@return 1- continuous, 2- integer, 3- binary variable
+      @brief Get column/variable type.
+
+      @param index
+      @return 1- continuous, 2- integer, 3- binary variable
      */
     VariableType getColumnType(Int index);
+
     /// set objective value for column with index
     void setObjective(Int index, DoubleReal obj_value);
     /// get objective value for column with index
     DoubleReal getObjective(Int index);
+
     /**
-     *	@brief Set objective direction.
-     *	
-     *	@param sense 1- minimize, 2- maximize
+      @brief Set objective direction.
+
+      @param sense 1- minimize, 2- maximize
      */
     void setObjectiveSense(Sense sense);
     Sense getObjectiveSense();
+
     /// get number of columns
     Int getNumberOfColumns();
     /// get number of rows
@@ -201,42 +236,49 @@ namespace OpenMS
     
     // problem reading/writing
     /**
-     *	@brief Read LP from file
-     *	
-     *	@param format LP, MPS or GLPK
+      @brief Read LP from file
+
+      @param filename Filename where to store the LP problem.
+      @param format LP, MPS or GLPK.
      */
     void readProblem(String filename,String format); 
+
     /**
-     *	@brief Write LP formulation to a file.
-     *	
-     *	@param filename output filename, if the filename ends with '.gz' it will be compressed
-		 *  @param format can be LP, MPS or GLPK
+      @brief Write LP formulation to a file.
+
+      @param filename output filename, if the filename ends with '.gz' it will be compressed
+      @param format MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
      */
-    void writeProblem(String filename,String format);// format=(LP,MPS,GLPK)
+    void writeProblem(const String& filename, const WriteFormat format) const;
     
-    /* @brief solve problems, parameters like enabled heuristics can be given via solver_param
+    /**
+      @brief solve problems, parameters like enabled heuristics can be given via solver_param
 
       The verbose level (0,1,2) determines if the solver prints status messages and internals.
+
+      @param solver_param
+      @param verbose_level
 
       @return solver dependent (todo: fix)
     */
     Int solve(SolverParam& solver_param, const Size verbose_level = 0); 
     
     /**
-     *	@brief Get solution status.
-     *	
-     *	@return status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
+      @brief Get solution status.
+
+      @return status: 1 - undefined, 2 - integer optimal, 3- integer feasible (no optimality proven), 4- no integer feasible solution
      */
     SolverStatus getStatus();
+
     // solution access
     DoubleReal getObjectiveValue();
     DoubleReal getColumnValue(Int index);
 
-    // choose solver; by default, only GLPK is available
-    // set this only at the very beginning of building your model, as otherwise your model is incomplete
+    /// choose solver; by default, only GLPK is available
+    /// set this only at the very beginning of building your model, as otherwise your model is incomplete
     void setSolver(const SOLVER s);
 
-    // get currently active solver
+    /// get currently active solver
     SOLVER getSolver() const;
 
 	protected:
@@ -251,8 +293,6 @@ namespace OpenMS
 
 
   }; // class
-
-
 
 } // namespace
 

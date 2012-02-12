@@ -82,15 +82,15 @@ namespace OpenMS
 		/// Compare by quality
 		struct QualityLess: std::binary_function<BaseFeature, BaseFeature, bool>
 		{
-			bool operator()(BaseFeature const& left, BaseFeature const& right) const
+			bool operator()(const BaseFeature& left, const BaseFeature& right) const
 			{
 				return (left.getQuality() < right.getQuality());
 			}
-			bool operator()(BaseFeature const& left, const QualityType& right) const
+			bool operator()(const BaseFeature& left, const QualityType& right) const
 			{
 				return (left.getQuality() < right);
 			}
-			bool operator()(const QualityType& left, BaseFeature const& right) const
+			bool operator()(const QualityType& left, const BaseFeature& right) const
 			{
 				return (left < right.getQuality());
 			}

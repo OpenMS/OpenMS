@@ -194,6 +194,9 @@ namespace OpenMS
 			/// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
 			bool wrong_experiment_;
 
+			/// Have we seen the experiment of interest at all?
+			bool seen_experiment_;
+
 			/// References to currently active ProteinIdentifications
 			std::vector<std::vector<ProteinIdentification>::iterator> current_proteins_;
 						
@@ -219,7 +222,7 @@ namespace OpenMS
 			Int charge_;
 	
 			/// ID of current search result
-			Size search_id_;
+			UInt search_id_;
 
 			/// Identifier linking PeptideIdentifications and ProteinIdentifications
 			String prot_id_;

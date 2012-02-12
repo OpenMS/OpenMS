@@ -567,7 +567,7 @@ namespace OpenMS
 		{
 			succ.insert(it->first->getSuccessorStates().begin(), it->first->getSuccessorStates().end());
 		
-			while (succ.size() != 0)
+      while ( !succ.empty() )
 			{
 				set<HMMState*> succ_new;
 				for (set<HMMState*>::const_iterator it = succ.begin(); it != succ.end(); ++it)
@@ -609,7 +609,7 @@ namespace OpenMS
 			#endif
 			pre.insert(it->first->getPredecessorStates().begin(), it->first->getPredecessorStates().end());
 		
-			while (pre.size() != 0)
+      while ( !pre.empty())
 			{
 				set <HMMState*> pre_new;
 				for (set<HMMState*>::const_iterator it = pre.begin(); it != pre.end(); ++it)
@@ -761,7 +761,7 @@ namespace OpenMS
 	{
 		Map<HMMState*, DoubleReal> states = init_prob_;
 
-		while (states.size() != 0)
+    while ( !states.empty() )
 		{
 			Map<HMMState*, DoubleReal> tmp = states;
 			for (Map<HMMState*, DoubleReal>::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
@@ -811,7 +811,7 @@ namespace OpenMS
 				cout << it->first->getName() << " -> " << it1->first->getName() << " " << it1->second << " " << training_steps_count_[it->first][it1->first] << ": ";
 				vector<DoubleReal> all_trans = train_count_trans_all_[it->first][it1->first];
 				
-				if (all_trans.size() != 0)
+        if ( !all_trans.empty() )
 				{
 					DoubleReal sum = accumulate(all_trans.begin(), all_trans.end(), 0.0);
 					DoubleReal avg(sum/DoubleReal(all_trans.size()));
@@ -839,7 +839,7 @@ namespace OpenMS
     {
       succ.insert(it->first->getSuccessorStates().begin(), it->first->getSuccessorStates().end());
 
-      while (succ.size() != 0)
+      while ( !succ.empty() )
       {
         set<HMMState*> succ_new;
         for (set<HMMState*>::const_iterator it = succ.begin(); it != succ.end(); ++it)

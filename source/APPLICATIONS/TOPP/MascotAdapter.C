@@ -256,8 +256,6 @@ class TOPPMascotAdapter
 
 		ExitCodes main_(int , const char**)
 		{
-			// instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
-			String ini_location;
 			// path to the log file
 			String logfile = "mascot.log";
 			// log filestream (as long as the real logfile is not determined yet)
@@ -276,11 +274,9 @@ class TOPPMascotAdapter
 			String pepXML_file_name = "";
 			MzDataFile mzdata_infile;
 			MSExperiment<> experiment;
-			IDFilter filter;
 			MascotXMLFile mascotXML_file;
 			PepXMLFileMascot pepXML_file;
 			MascotInfile mascot_infile;
-			ContactPerson contact_person;
 			StringList mods;
 			StringList variable_mods;
 			ProteinIdentification protein_identification;
@@ -297,7 +293,7 @@ class TOPPMascotAdapter
 			string cleavage;
 			UInt missed_cleavages;
 			string mass_type;
-			Int status = 0;
+
 			bool mascot_in = false;
 			bool mascot_out = false;
 			DateTime date_time;
@@ -395,7 +391,7 @@ class TOPPMascotAdapter
 							charges.push_back(temp_charge.toInt());
 						}
 					}
-				if (charges.size() == 0)
+				if (charges.empty())
 				{
 					writeLog_("No charge states specified for Mascot search. Aborting!");
 					return ILLEGAL_PARAMETERS;
@@ -525,7 +521,7 @@ class TOPPMascotAdapter
 						" >> " + tmp + ";";
 					#endif
 					writeDebug_("CALLING: nph-mascot.exe" + call + "\nCALL Done!    ", 10);
-          status = qp.execute("nph-mascot.exe", QStringList() << call.toQString());
+          Int status = qp.execute("nph-mascot.exe", QStringList() << call.toQString());
 					if (status != 0)
 					{
 						writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");

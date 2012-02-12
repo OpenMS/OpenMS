@@ -1,28 +1,33 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////Users/lars/Software/OpenMS_release1.9/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.5" id="cm_16627578304933075941" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="2">
-		<map id="0" name="" label="" size="2">
+		<map id="0" name="" label="" size="3">
 		</map>
-		<map id="1" name="" label="" size="2">
+		<map id="1" name="" label="" size="3">
 		</map>
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_13229490167902618598" quality="8" charge="2">
-			<centroid rt="6635.48577943288" mz="670.89446537198" it="5.7699e+07"/>
+			<centroid rt="6632.409" mz="668.32420994068" it="1.00231e+06"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="6635.48577943288" mz="670.89446537198" it="1.78409e+07" charge="2"/>
-				<element map="1" id="0" rt="6635.48577943288" mz="674.901584466854" it="3.98581e+07" charge="2"/>
+				<element map="0" id="0" rt="6632.409" mz="668.32420994068" it="1.00231e+06" charge="2"/>
+				<element map="1" id="0" rt="6632.409" mz="672.33130934728" it="2.47309e+06" charge="2"/>
 			</groupedElementList>
-			<userParam type="string" name="Mass shifts [Da]" value="0.0000;8.0142"/>
 		</consensusElement>
 		<consensusElement id="e_5024549519481199379" quality="8" charge="2">
-			<centroid rt="6654.99266152475" mz="668.826307831988" it="2.09709e+07"/>
+			<centroid rt="6637.8146" mz="670.894241350385" it="1.77616e+08"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="6654.99266152475" mz="668.826307831988" it="6.25767e+06" charge="2"/>
-				<element map="1" id="0" rt="6654.99266152475" mz="672.833370960576" it="1.47132e+07" charge="2"/>
+				<element map="0" id="0" rt="6637.8146" mz="670.894241350385" it="1.77616e+08" charge="2"/>
+				<element map="1" id="0" rt="6635.2151" mz="674.901340756983" it="4.04058e+08" charge="2"/>
 			</groupedElementList>
-			<userParam type="string" name="Mass shifts [Da]" value="0.0000;8.0142"/>
+		</consensusElement>
+		<consensusElement id="e_6211693768620736135" quality="8" charge="2">
+			<centroid rt="6660.1986" mz="668.826220450772" it="6.54134e+07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="6660.1986" mz="668.826220450772" it="6.54134e+07" charge="2"/>
+				<element map="1" id="0" rt="6662.3176" mz="672.833319857372" it="1.50153e+08" charge="2"/>
+			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

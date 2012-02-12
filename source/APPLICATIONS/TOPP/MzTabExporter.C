@@ -58,18 +58,20 @@ using namespace std;
   <CENTER>
     <table>
      <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
          <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MzTabExporter \f$ \longrightarrow \f$</td>
      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
     </tr>
     <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> almost any TOPP tool </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ProteinQuantifier </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools (MS Excel, OpenOffice, Notepad)</td>
     </tr>
    </table>
   </CENTER>
 
   See the mzTab specification for details on the format.
+
+  @experimental This algorithm and underlying format is work in progress and might change.
 
  <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MzTabExporter.cli
@@ -84,7 +86,7 @@ class TOPPMzTabExporter : public TOPPBase
 {
 public:
   TOPPMzTabExporter() :
-    TOPPBase("MzTabExporter", "Exports various XML formats to a mzTab file.")
+    TOPPBase("MzTabExporter", "Exports various XML formats to an mzTab file.")
   {
   }
 
@@ -151,24 +153,30 @@ protected:
 
   static String mapSearchEngineToCvParam_(const String& openms_search_engine_name)
   {
-    if (openms_search_engine_name == "OMSSA")
+    String s = openms_search_engine_name;
+    s.toUpper();
+
+    if (s == "OMSSA")
     {
       return "[MS,MS:1001475,OMSSA,]";
-    } else if (openms_search_engine_name == "Mascot")
+    } else if (s == "MASCOT")
     {
       return "[MS,MS:1001207,MASCOT,]";
-    } else if (openms_search_engine_name == "XTandem")
+    } else if (s == "XTANDEM")
     {
       return "[MS,MS:1001476,xtandem,]";
-    } else if (openms_search_engine_name == "SEQUEST")
+    } else if (s == "SEQUEST")
     {
       return "[MS,MS:1001208,Sequest,]";
-    } else if (openms_search_engine_name == "CompNovo")
+    } else if (s == "COMPNOVO")
     {
-      return "[MS,MS:UNKOWN,CompNovo,]";
+      return "[,,CompNovo,]";
+    } else if (s == "PROTEINPROPHET")
+    {
+      return "[,,ProteinProphet,]";
     } else
     {
-      return "--";
+      return "[,,,]";
     }
     /*
     TODO:
@@ -188,7 +196,7 @@ protected:
 
     if (score_type.hasSubstring("Consensus"))
     {
-      s = "[MS,MS:UNKNOWN,Consensus:score,";
+      s = "[,,Consensus:score,";
     } else if (score_type == "q-value")
     {
       s = "[MS,MS:1001364,pep:global FDR,";
@@ -197,10 +205,10 @@ protected:
       s = "[MS,MS:1001364,pep:global FDR,";
     } else if (score_type == "Posterior Error Probability")
     {
-      s = "[MS,MS:UNKOWN,PEP,";
+      s = "[,,PEP,";
     } else if (score_type == "PhosphoScore")
     {
-      s = "[MS,MS:UNKOWN,PhosphoScore,";
+      s = "[,,PhosphoScore,";
     } else if (openms_search_engine_name == "OMSSA")
     {
       s = "[MS,MS:1001328,OMSSA:evalue,";
@@ -215,10 +223,14 @@ protected:
       s = "[MS,MS:1001155,Sequest:xcorr,";
     } else if (openms_search_engine_name == "CompNovo")
     {
-      s = "[MS,MS:UNKOWN,CompNovo,";
-    } else
+      s = "[,,CompNovo,";
+    } else if (score_type == "ProteinProphet probability")
     {
-      return "--";
+      s = "[,,ProteinProphet,";
+    }
+    else
+    {
+      return "[,,,]";
     }
 
     s += String::number(score, 8) + "]";
@@ -355,13 +367,111 @@ protected:
     return ret;
   }
 
-  static void writeProteinHeader_(SVOutStream& output)
+  static map<String, Size> extractNumberOfSubSamples_(const map<String, vector<ProteinIdentification> >& map_run_to_proids)
+  {
+    map<String, set<Size> > map_run_to_subsamples_id;
+
+    // for each run...
+    for (map<String, vector<ProteinIdentification> >::const_iterator run_it = map_run_to_proids.begin();
+         run_it != map_run_to_proids.end(); ++run_it)
+    {
+      String run = run_it->first;
+      const vector<ProteinIdentification>& protein_ids = run_it->second;
+      // note: per run there should only exist one protein identification
+      for ( vector<ProteinIdentification>::const_iterator prot_it = protein_ids.begin();
+            prot_it != protein_ids.end(); ++prot_it)
+      {               
+        const ProteinIdentification& protein_id = *prot_it;
+        const vector< ProteinHit >& protein_hits = protein_id.getHits();
+        // for each ProteinHit...
+        for ( vector< ProteinHit >::const_iterator pit = protein_hits.begin(); pit != protein_hits.end(); ++pit)
+        {
+          vector< String > metainfo_keys;
+          pit->getKeys(metainfo_keys);
+          // find meta values starting with mzTab:protein_abundance_sub
+          for ( vector<String>::const_iterator s_it = metainfo_keys.begin(); s_it != metainfo_keys.end(); ++s_it)
+          {
+            //cout << *s_it << endl;
+            if (s_it->hasPrefix("mzTab:protein_abundance_sub"))
+            {
+              String s = *s_it;
+              s = s.substitute("mzTab:protein_abundance_sub", "").remove('[').remove(']');
+              Size subsample_number = (Size) s.toInt();
+              map_run_to_subsamples_id[run].insert(subsample_number);
+            }
+          }
+        }
+      }
+    }
+
+    // count and return subsample set sizes
+    map<String, Size> map_run_to_nsubsamples;
+    for ( map<String, set<Size> >::const_iterator sub_it = map_run_to_subsamples_id.begin();
+          sub_it != map_run_to_subsamples_id.end(); ++sub_it)
+    {
+      map_run_to_nsubsamples[sub_it->first] = sub_it->second.size();
+    }
+
+    return map_run_to_nsubsamples;
+  }
+
+  static void writePeptideHeader_( SVOutStream& output, map<String, Size> n_sub_samples)
+  {
+    output << "PEH" << "sequence" << "accession" << "unit_id" << "unique" << "database"
+           << "database_version" << "search_engine" << "search_engine_score"
+           << "modifications" << "retention_time" << "charge"
+           << "mass_to_charge" << "uri" << "spectra_ref";
+
+    // to generate sufficient number of columns the maximum of sub samples in all runs is used
+    Size max_subsamples = 0;
+    for (map<String, Size>::const_iterator run_it = n_sub_samples.begin();
+         run_it != n_sub_samples.end(); ++run_it)
+    {
+      if (run_it->second > max_subsamples)
+      {
+        max_subsamples = run_it->second;
+      }
+    }
+
+    // print column headers
+    for (Size i = 1; i <= max_subsamples; ++i)
+    {
+      output << String("peptide_abundance_sub[") + String(i) + String("]") <<
+                String("peptide_abundance_stdev_sub[") + String(i) + String("]") <<
+                String("peptide_abundance_std_error_sub[") + String(i) + String("]");
+    }
+
+    output << endl;
+  }
+
+  static void writeProteinHeader_( SVOutStream& output, map<String, Size> n_sub_samples)
   {
     output << "PRH" << "accession" << "unit_id" << "description" << "taxid"
            << "species" << "database" << "database_version" << "search_engine"
            << "search_engine_score" << "reliability" << "num_peptides" << "num_peptides_distinct"
            << "num_peptides_unambiguous" << "ambiguity_members" << "modifications" << "uri"
-           << "go_terms" << "protein_coverage" << endl;
+           << "go_terms" << "protein_coverage";
+
+    // to generate sufficient number of columns the maximum of sub samples in all runs is used
+    Size max_subsamples = 0;
+    for (map<String, Size>::const_iterator run_it = n_sub_samples.begin();
+         run_it != n_sub_samples.end(); ++run_it)
+    {
+      if (run_it->second > max_subsamples)
+      {
+        max_subsamples = run_it->second;
+  }
+    }
+
+    // print column headers
+    for (Size i = 1; i <= max_subsamples; ++i)
+    {
+      output << String("protein_abundance_sub[") + String(i) + String("]") <<
+                String("protein_abundance_stdev_sub[") + String(i) + String("]") <<
+                String("protein_abundance_std_error_sub[") + String(i) + String("]");
+    }
+
+    output << endl;
   }
 
   static void writeProteinData_(SVOutStream& output,
@@ -369,7 +479,8 @@ protected:
                                 Size run_count,
                                 String input_filename,
                                 bool has_coverage,
-                                const MapAccPepType& map_run_accesion_to_peptides
+                                const MapAccPepType& map_run_accesion_to_peptides,
+                                const map<String, Size>& map_run_to_num_sub
                                 )
   {
     // TODO: maybe save these ProteinIdentification run properties in meta data
@@ -394,7 +505,7 @@ protected:
     String UNIT_ID_String = File::basename(input_filename) + "-" + String(run_count);
     String database_String = (sp.db != "" ? sp.db : "--");
     String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
-    String species_String =  (sp.taxonomy != "0" ? sp.taxonomy : "--");
+    String species_String =  (sp.taxonomy == "0" || sp.taxonomy == ""  ? "--" : sp.taxonomy);
     String search_engine_cvParams = mapSearchEngineToCvParam_(prot_id.getSearchEngine());
     String openms_search_engine_name = prot_id.getSearchEngine();
     //
@@ -414,7 +525,7 @@ protected:
                                                                   prot_id.getScoreType());
 
       String reliability = "--";
-      String num_peptides = extractNumPeptides(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
+      String num_peptides;
       String num_peptides_distinct = extractNumPeptidesDistinct(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
       String num_peptides_unambiguous = extractNumPeptidesUnambiguous(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
       String ambiguity_members = "NA";  //TODO
@@ -431,11 +542,54 @@ protected:
         protein_coverage = "NA";
       }
 
+      if ( protein_hit_it->metaValueExists("num_peptides") )
+      {
+        num_peptides = protein_hit_it->getMetaValue("num_peptides");
+      } else
+      {
+        num_peptides = extractNumPeptides(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
+      }
+
       output << "PRT" << accession << unit_id << description << taxid
              << species << database << database_version << search_engine
              << search_engine_score << reliability << num_peptides << num_peptides_distinct
              << num_peptides_unambiguous << ambiguity_members << modifications << uri
-             << go_terms << protein_coverage << endl;
+             << go_terms << protein_coverage;
+
+      // get number of sub samples for this run
+      map<String, Size>::const_iterator sub_it = map_run_to_num_sub.find(prot_id.getIdentifier());
+      Size n_subsamples = sub_it->second;
+      for (Size n = 1; n <= n_subsamples; ++n)
+      {
+        {
+          String key = "mzTab:protein_abundance_sub[" + String(n) + "]";
+          String abundancy_value = "--";
+          if (protein_hit_it->metaValueExists(key))
+          {
+            abundancy_value = protein_hit_it->getMetaValue(key);
+    }
+          output << abundancy_value;
+  }
+        {
+          String key = "mzTab:protein_abundance_stdev_sub[" + String(n) + "]";
+          String abundancy_value = "--";
+          if (protein_hit_it->metaValueExists(key))
+          {
+            abundancy_value = protein_hit_it->getMetaValue(key);
+          }
+          output << abundancy_value;
+        }
+        {
+          String key = "mzTab:protein_abundance_std_error_sub[" + String(n) + "]";
+          String abundancy_value = "--";
+          if (protein_hit_it->metaValueExists(key))
+          {
+            abundancy_value = protein_hit_it->getMetaValue(key);
+          }
+          output << abundancy_value;
+        }
+      }
+      output << endl;
     }
   }
 
@@ -548,7 +702,9 @@ protected:
         output << endl;
       }
 
-      writeProteinHeader_(output);
+      // determine the number of sub samples in each run from protein ids (it is assumed that peptide ids don't introduce new sub sample categories)
+      map<String, Size> map_run_to_n_subsamples = extractNumberOfSubSamples_(map_run_to_proids);
+      writeProteinHeader_(output, map_run_to_n_subsamples);
 
       // write protein table data
       run_count = 0;     
@@ -561,16 +717,14 @@ protected:
         for (vector<ProteinIdentification>::const_iterator prot_id_it = prot_ids.begin();
              prot_id_it != prot_ids.end(); ++prot_id_it, ++run_count)
         {
-          writeProteinData_(output, *prot_id_it, run_count, in, has_coverage, map_run_accesion_to_peptides);
+          writeProteinData_(output, *prot_id_it, run_count, in, has_coverage, map_run_accesion_to_peptides, map_run_to_n_subsamples);
         }
       }
 
       // write peptide header
       output << endl;
-      output << "PEH" << "sequence" << "accession" << "unit_id" << "unique" << "database"
-             << "database_version" << "search_engine" << "search_engine_score"
-             << "modifications" << "retention_time" << "charge"
-             << "mass_to_charge" << "uri" << endl;
+
+      writePeptideHeader_(output, map_run_to_n_subsamples);
 
       run_count = 0;
       mprot_it = map_run_to_proids.begin();
@@ -585,7 +739,7 @@ protected:
         for (vector<PeptideIdentification>::const_iterator pep_id_it = pep_ids.begin();
              pep_id_it != pep_ids.end(); ++pep_id_it)
         {
-          // TODO: bad design of Protein/PeptideIdentification as search engine parameters are stored in prot.
+          // TODO: check if bad design of Protein/PeptideIdentification as search engine parameters are stored in prot.
           String openms_search_engine_name = prot_ids[0].getSearchEngine();
           String search_engine_cvParams = mapSearchEngineToCvParam_(openms_search_engine_name);
 
@@ -609,6 +763,20 @@ protected:
                                                                         pep_id_it->getScoreType());
             String modifications = extractPeptideModifications_(*peptide_hit_it); //TODO: check if terminal mods work
 
+            String spectra_ref = "--";
+
+            if ( peptide_hit_it->metaValueExists("mzTab:unique") )
+            {
+              bool is_unique = peptide_hit_it->getMetaValue("mzTab:unique").toBool();
+              if ( is_unique )
+              {
+                unique = "1";
+              } else
+              {
+                unique = "0";
+              }
+            } else // no uniqueness annotation
+            {
             // if unique protein is present peptide can be assigned
             if (peptide_hit_it->getProteinAccessions().size() == 1)
             {
@@ -616,6 +784,7 @@ protected:
             } else
             {
               unique = "0";
+            }
             }
 
             String retention_time;
@@ -636,13 +805,55 @@ protected:
               mass_to_charge = "--";
             }
 
-            String charge = peptide_hit_it->getCharge();
+            String charge = "NA";
+            if (peptide_hit_it->getCharge() != 0)
+            {
+              charge = peptide_hit_it->getCharge();
+            }
+
             String uri = in;
 
             output << "PEP" << sequence << accession << unit_id << unique << database
                    << database_version << search_engine << search_engine_score
                    << modifications << retention_time << charge
-                   << mass_to_charge << uri << endl;
+                   << mass_to_charge << uri << spectra_ref;
+
+            // get number of sub samples for this run
+            map<String, Size>::const_iterator sub_it = map_run_to_n_subsamples.find(mpep_it->first);
+            Size n_subsamples = sub_it->second;
+
+            for (Size n = 1; n <= n_subsamples; ++n)
+            {
+              {
+                String key = "mzTab:peptide_abundance_sub[" + String(n) + "]";
+                String abundancy_value = "--";
+                if (peptide_hit_it->metaValueExists(key))
+                {
+                  abundancy_value = peptide_hit_it->getMetaValue(key);
+          }
+                output << abundancy_value;
+        }
+              {
+                String key = "mzTab:peptide_abundance_stdev_sub[" + String(n) + "]";
+                String abundancy_value = "--";
+                if (peptide_hit_it->metaValueExists(key))
+                {
+                  abundancy_value = peptide_hit_it->getMetaValue(key);
+      }
+                output << abundancy_value;
+              }
+              {
+                String key = "mzTab:peptide_abundance_std_error_sub[" + String(n) + "]";
+                String abundancy_value = "--";
+                if (peptide_hit_it->metaValueExists(key))
+                {
+                  abundancy_value = peptide_hit_it->getMetaValue(key);
+                }
+                output << abundancy_value;
+              }
+            }
+
+            output << endl;
 
           }
         }
@@ -724,13 +935,16 @@ protected:
       createProteinToPeptideLinks(map_run_to_pepids, map_run_accesion_to_peptides);
 
       // write protein table
-      writeProteinHeader_(output);
+      map<String, Size> map_run_to_nsubsamples = extractNumberOfSubSamples_(map_run_to_proids);
+      writeProteinHeader_(output, map_run_to_nsubsamples);
+
       for (vector<ProteinIdentification>::const_iterator prot_id_it = protein_ids.begin();
            prot_id_it != protein_ids.end(); ++prot_id_it, ++run_count)
       {
-        writeProteinData_(output, *prot_id_it, run_count, in, has_coverage, map_run_accesion_to_peptides);
+        writeProteinData_(output, *prot_id_it, run_count, in, has_coverage, map_run_accesion_to_peptides, map_run_to_nsubsamples);
       }
 
+      // writePeptideHeader_(output, n_sub_samples);
       txt_out.close();
     }
     return EXECUTION_OK;

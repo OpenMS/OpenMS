@@ -173,7 +173,7 @@ namespace OpenMS {
 
 		// parse possible ESI adducts
     StringList esi_charge_impurity = param_.getValue("esi:charge_impurity");
-    if (esi_charge_impurity.size() == 0) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
+    if (esi_charge_impurity.empty()) throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
     StringList components;
 		max_adduct_charge_ = 0;
 		// reset internal state:
@@ -357,7 +357,7 @@ namespace OpenMS {
 				}
 
         // no charges > 0 selected (this should be really rare)
-				if (charge_states.size()==0) 
+				if (charge_states.empty()) 
 				{
 					++uncharged_feature_count; // OMP!
 					continue;
@@ -441,7 +441,8 @@ namespace OpenMS {
 		{
 			// before leaving: free
 			gsl_ran_discrete_free (gsl_ran_lookup_esi_charge_impurity);
-			throw e;
+      LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
+      throw;
 		}
 
 		// all ok: free
@@ -543,7 +544,8 @@ namespace OpenMS {
 		{
 			// before leaving: free
 			gsl_ran_discrete_free (gsl_ran_lookup_maldi);
-			throw e;
+      LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
+      throw;
 		}
 
 		// all ok: free

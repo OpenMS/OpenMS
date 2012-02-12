@@ -34,9 +34,9 @@
 namespace OpenMS
 {
   /**
-  	@brief ThresholdMower removes all peaks below a Threshold
+    @brief ThresholdMower removes all peaks below a threshold.
    	
-   	@htmlinclude OpenMS_ThresholdMower.Intensitys
+    @htmlinclude OpenMS_ThresholdMower.parameters
 
 		@ingroup SpectraPreprocessers
   */
@@ -81,9 +81,6 @@ namespace OpenMS
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
 		void filterPeakMap(PeakMap& exp);
-		
-		DoubleReal getFilterIntensity();
-		void setFilterIntensity(DoubleReal p);
 		
 		//TODO reimplement DefaultParamHandler::updateMembers_()
 		

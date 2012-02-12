@@ -28,7 +28,7 @@
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureFinderCentroided&apos;">
         <ITEM name="in" value="" type="string" description="input file" tags="input file,required" restrictions="*.mzML" />
         <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.featureXML" />
-        <ITEM name="seeds" value="" type="string" description="User-specified seed list. This feature is not supported by all algorithms!" tags="input file" restrictions="*.featureXML" />
+        <ITEM name="seeds" value="" type="string" description="User specified seed list" tags="input file" restrictions="*.featureXML" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
@@ -42,7 +42,7 @@
           <NODE name="mass_trace" description="Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).">
             <ITEM name="mz_tolerance" value="0.005" type="float" description="Tolerated m/z deviation of peaks belonging to the same mass trace.#br#It should be larger than the m/z resolution of the instument.#br#This value must be smaller than that 1/charge_high!" restrictions="0:" />
             <ITEM name="min_spectra" value="7" type="int" description="Number of spectra that have to show a similar peak mass in a mass trace." restrictions="1:" />
-            <ITEM name="max_missing" value="1" type="int" description="Number of spectra where a high mass deviation or missing peak is acceptable.#br#This parameter should be well below &apos;min_spectra&apos;!" restrictions="0:" />
+            <ITEM name="max_missing" value="1" type="int" description="Number of consecutive spectra where a high mass deviation or missing peak is acceptable.#br#This parameter should be well below &apos;min_spectra&apos;!" restrictions="0:" />
             <ITEM name="slope_bound" value="0.5" type="float" description="The maximum slope of mass trace intensities when extending from the highest peak.#br#This parameter is important to seperate overlapping elution peaks.#br#It should be increased if feature elution profiles fluctuate a lot." restrictions="0:" />
           </NODE>
           <NODE name="isotopic_pattern" description="Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).">

@@ -397,7 +397,7 @@ SignedSize SuffixArrayTrypticCompressed::findFirst_ (const vector<DoubleReal> & 
 void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize,SignedSize>,DoubleReal > > >& candidates, const vector<DoubleReal> & spec )
 {
 	//time_t t0 (time(NULL));
-	if (spec.size() == 0)
+	if (spec.empty())
 	{
 		return;
 	}
@@ -650,7 +650,7 @@ const vector<String> & SuffixArrayTrypticCompressed::getTags ()
 void SuffixArrayTrypticCompressed::setUseTags (bool use_tags)
 {
 	use_tags_ = use_tags;
-	if (tags_.size()==0) use_tags_ = false;
+	if (tags_.empty()) use_tags_ = false;
 }
 
 bool SuffixArrayTrypticCompressed::getUseTags ()

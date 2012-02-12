@@ -57,6 +57,8 @@ namespace OpenMS
     Size channel_index = 1;
     for(FeatureMapSimVector::const_iterator maps_iterator = maps.begin() ; maps_iterator != maps.end() ; ++maps_iterator)
     {
+      if (maps_iterator->getProteinIdentifications().size() == 0) continue;
+
       for(std::vector<ProteinHit>::const_iterator protein_hit = (*maps_iterator).getProteinIdentifications()[0].getHits().begin();
         protein_hit != (*maps_iterator).getProteinIdentifications()[0].getHits().end();
         ++protein_hit)
@@ -101,17 +103,17 @@ namespace OpenMS
     std::vector<String> source_acc (source.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
 
     std::set<String> unique_acc;
-    std::pair<std::set<String>::iterator, bool> result;
 
+    // all from 'target'
     for(vector<String>::iterator target_acc_iterator = target_acc.begin() ; target_acc_iterator != target_acc.end() ; ++target_acc_iterator)
     {
       unique_acc.insert(*target_acc_iterator);
     }
 
+    //  + some from 'source', which are not present yet
     for(vector<String>::iterator source_acc_iterator = source_acc.begin() ; source_acc_iterator != source_acc.end() ; ++source_acc_iterator)
     {
-      result = unique_acc.insert(*source_acc_iterator);
-
+      std::pair<std::set<String>::iterator, bool> result = unique_acc.insert(*source_acc_iterator);
       if(result.second)
       {
         target_acc.push_back(*source_acc_iterator);
@@ -134,6 +136,7 @@ namespace OpenMS
 
     // build index for faster access
     Map<String, IntList> id_map;
+    Map<UInt64, Size> features_per_labeled_map;
     for(Size i = 0 ; i < simulated_features.size() ; ++i)
     {
       if(simulated_features[i].metaValueExists("parent_feature"))
@@ -142,7 +145,14 @@ namespace OpenMS
           << " with charge " << simulated_features[i].getCharge() << " (" << simulated_features[i].getMetaValue("charge_adducts") << ")"
           << " parent was " << simulated_features[i].getMetaValue("parent_feature") << std::endl;
         id_map[simulated_features[i].getMetaValue("parent_feature")].push_back((Int)i);
+
+        UInt64 map_index = 0;
+        if(simulated_features[i].metaValueExists("map_index"))
+        {
+          map_index = simulated_features[i].getMetaValue("map_index");
       }
+        ++features_per_labeled_map[map_index];
+    }
     }
 
     for(Map<String, IntList>::iterator it = id_map.begin() ; it != id_map.end() ; ++it)
@@ -152,6 +162,13 @@ namespace OpenMS
 
     // new consensus map
     ConsensusMap new_cm;
+
+    // initialize submaps in consensus map
+    for(Map<UInt64, Size>::Iterator it = features_per_labeled_map.begin() ; it != features_per_labeled_map.end() ; ++it)
+    {
+      new_cm.getFileDescriptions()[it->first].size = it->second;
+      new_cm.getFileDescriptions()[it->first].unique_id = simulated_features.getUniqueId();
+    }
 
     for(ConsensusMap::iterator cm_iter = consensus_.begin() ; cm_iter != consensus_.end() ; ++cm_iter)
     {
@@ -178,15 +195,22 @@ namespace OpenMS
 
           for(IntList::iterator it = feature_indices.begin() ; it != feature_indices.end() ; ++it)
           {
+            UInt64 map_index = 0;
+            if(simulated_features[*it].metaValueExists("map_index"))
+            {
+              map_index = simulated_features[*it].getMetaValue("map_index");
+            }
+
             if(charge_mapping.has(simulated_features[*it].getMetaValue("charge_adducts")))
             {
-              charge_mapping[simulated_features[*it].getMetaValue("charge_adducts")].insert(FeatureHandle(0, simulated_features[*it]));
+              charge_mapping[simulated_features[*it].getMetaValue("charge_adducts")].insert(FeatureHandle(map_index, simulated_features[*it]));
             }
             else
             {
               LOG_DEBUG << "Create new set with charge composition " << simulated_features[*it].getMetaValue("charge_adducts") << std::endl;
               std::set<FeatureHandle, FeatureHandle::IndexLess> fh_set;
-              fh_set.insert(FeatureHandle(0, simulated_features[*it]));
+
+              fh_set.insert(FeatureHandle(map_index, simulated_features[*it]));
               charge_mapping.insert(std::make_pair<String, std::set<FeatureHandle, FeatureHandle::IndexLess> > (simulated_features[*it].getMetaValue("charge_adducts"),fh_set));
             }
           }
@@ -226,7 +250,7 @@ namespace OpenMS
     consensus_.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
-  const ConsensusMap& BaseLabeler::getConsensus() const
+  ConsensusMap& BaseLabeler::getConsensus()
   {
     return consensus_;
   }

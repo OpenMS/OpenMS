@@ -46,7 +46,7 @@ namespace OpenMS
     Also q-values can be reported instead of p-values.
     q-values are basically only adjusted p-values, also ranging from 0 to 1, with lower values being preferable.
     When looking at the list of hits ordered by q-values, then a hit with q-value of @em x means that there is an
-    @x*100 percent chance that all hits with a q-value <= @em x are a false positive hit.
+    @em x*100 percent chance that all hits with a q-value <= @em x are a false positive hit.
 
 		@todo implement combined searches properly (Andreas)
 		@improvement implement charge state separated fdr/q-values (Andreas)
@@ -73,7 +73,7 @@ namespace OpenMS
 			/**
 				@brief Calculates the FDR of one run from a concatenated sequence db search
 
-				@param ids peptide identifications, containing target and decoy hits
+        @param id peptide identifications, containing target and decoy hits
 			*/
 			void apply(std::vector<PeptideIdentification>& id);
 

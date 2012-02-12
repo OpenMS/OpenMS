@@ -68,7 +68,7 @@ using namespace std;
    - delete old parameters which no longer have any effect
 
   The new INI files can be created in-place (with -i option), which will overwrite the
-  existing file, but create a backup copy with <filename>_<version>.ini,
+  existing file, but create a backup copy with [filename]_[version].ini,
   e.g.
   @code
   INIUpdater -in FileFilter.ini -i
@@ -96,8 +96,8 @@ class TOPPINIUpdater
 	public:
 	TOPPINIUpdater()
 		: TOPPBase("INIUpdater", "Update INI and TOPPAS files to new OpenMS version.", false),
-      tmp_files_(),
-      failed_()
+      failed_(),
+      tmp_files_()
 	{
 	}
   	
@@ -144,7 +144,7 @@ class TOPPINIUpdater
     // update sections
     writeDebug_("#Vertices: " + vertices, 1);
     bool update_success = true;
-    for (Size v=0; v<vertices; ++v)
+    for (Int v=0; v<vertices; ++v)
     {
       String sec_inst = "vertices:" + String(v) + ":";
       // check for default instance
@@ -218,8 +218,8 @@ class TOPPINIUpdater
 
     // update internal structure (e.g. edges format changed from 1.8 to 1.9)
     int argc = 1;
-    char* c = "IniUpdater";
-    char** argv = &c;
+    const char* c = "IniUpdater";
+    const char** argv = &c;
     QApplication app(argc, const_cast<char**>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
@@ -231,7 +231,7 @@ class TOPPINIUpdater
     p.load(tmp_ini_file);
 
     // STORE
-    if (outfile.size()==0)
+    if (outfile.empty())
     { // create a backup
       QFileInfo fi(infile.toQString());
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
@@ -259,7 +259,7 @@ class TOPPINIUpdater
     // get sections (usually there is only one - or the user has merged INI files manually)
     StringList sections = updater.getToolNamesFromINI(p);
 
-    if (sections.size()==0)
+    if (sections.empty())
     {
       writeLog_("Update for file " + infile + " failed because tool section does not exist. Check INI file for corruption!");
       failed_.push_back(infile);
@@ -332,7 +332,7 @@ class TOPPINIUpdater
     }
 
     // STORE
-    if (outfile.size()==0)
+    if (outfile.empty())
     { // create a backup
       QFileInfo fi(infile.toQString());
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".ini";
@@ -354,7 +354,7 @@ class TOPPINIUpdater
     bool inplace = getFlag_("i");
 
     // consistency checks
-    if (out.size()==0 && !inplace)
+    if (out.empty() && !inplace)
     {
       writeLog_("Cannot write output files, as neither -out nor -i are given. Use either of them, but not both!");
       return ILLEGAL_PARAMETERS;

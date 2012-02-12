@@ -37,11 +37,24 @@ namespace OpenMS
         centroid_rt_(),
         label_(),
         smoothed_intensities_(),
-        rough_fwhm_points_(),
-        prev_counter_(),
-        prev_denom_()
+      fwhm_num_scans_()
     {
     }
+
+MassTrace::MassTrace(const std::list<PeakType>& tmp_lst)
+{
+    trace_peaks_.clear();
+
+    for (std::list<PeakType>::const_iterator l_it = tmp_lst.begin(); l_it != tmp_lst.end(); ++l_it)
+    {
+        trace_peaks_.push_back((*l_it));
+    }
+}
+
+MassTrace::MassTrace(const std::vector<PeakType>& tmp_vec)
+{
+    trace_peaks_ = tmp_vec;
+}
 
     MassTrace::~MassTrace()
     {
@@ -53,9 +66,7 @@ namespace OpenMS
         centroid_rt_(mt.centroid_rt_),
         label_(mt.label_),
         smoothed_intensities_(mt.smoothed_intensities_),
-        rough_fwhm_points_(mt.rough_fwhm_points_),
-        prev_counter_(mt.prev_counter_),
-        prev_denom_(mt.prev_denom_)
+      fwhm_num_scans_(mt.fwhm_num_scans_)
     {
     }
 
@@ -68,51 +79,16 @@ namespace OpenMS
         centroid_rt_ = rhs.centroid_rt_;
         label_ = rhs.label_;
         smoothed_intensities_ = rhs.smoothed_intensities_;
-        rough_fwhm_points_ = rhs.rough_fwhm_points_;
-        prev_counter_ = rhs.prev_counter_;
-        prev_denom_ = rhs.prev_denom_;
+    fwhm_num_scans_ = rhs.fwhm_num_scans_;
 
         return *this;
     }
 
-    void MassTrace::prependPeak(PeakType p)
-    {
-        trace_peaks_.push_front(p);
-        updateMedianMZ_();
-        // updateIterativeWeightedMeanMZ_(p);
-        return ;
-    }
-
-    void MassTrace::appendPeak(PeakType p)
-    {
-        trace_peaks_.push_back(p);
-        updateMedianMZ_();
-        // updateIterativeWeightedMeanMZ_(p);
-        return ;
-    }
-
-    DoubleReal MassTrace::computeWeightedMeanMZ()
-    {
-        DoubleReal weighted_sum(0.0);
-        DoubleReal total_weight(0.0);
-
-        for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
-        {
-            DoubleReal w_i = (*l_it).getIntensity();
-            total_weight += w_i;
-            weighted_sum += w_i * (*l_it).getMZ();
-        }
-
-        if (total_weight == 0.0)
-            return 0.0;
-
-        return weighted_sum/total_weight;
-    }
 
     DoubleReal MassTrace::computePeakArea() {
         DoubleReal peak_area(0.0);
 
-        if (trace_peaks_.size() == 0)
+    if (trace_peaks_.empty())
             return peak_area;
 
         for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
@@ -124,89 +100,82 @@ namespace OpenMS
     }
 
 
-    Size MassTrace::findSmoothedMaxIdx()
+Size MassTrace::findMaxByIntPeak(bool use_smoothed_ints = false)
     {
-        if (trace_peaks_.size() != smoothed_intensities_.size())
+    if (use_smoothed_ints && smoothed_intensities_.empty())
         {
             throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
         }
 
+    if (trace_peaks_.empty())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace appears to be empty! Aborting...", String(trace_peaks_.size()));
+    }
 
-        DoubleReal max_int(smoothed_intensities_[0]);
-        DoubleReal max_idx(0);
+    DoubleReal max_int;
+    Size max_idx(0);
 
-        for (Size i = 0; i < smoothed_intensities_.size(); ++i)
+    if (use_smoothed_ints)
         {
-            if (smoothed_intensities_[i] > max_int)
+        max_int = smoothed_intensities_[0];
+    }
+    else
             {
-                max_int = smoothed_intensities_[i];
+        max_int = trace_peaks_.begin()->getIntensity();
+    }
+
+    for (Size i = 0; i < trace_peaks_.size(); ++i)
+    {
+        DoubleReal act_int = use_smoothed_ints ? smoothed_intensities_[i] : trace_peaks_[i].getIntensity();
+
+        if (act_int > max_int)
+        {
+            max_int = act_int;
                 max_idx = i;
             }
+
         }
 
         return max_idx;
     }
 
-    DoubleReal MassTrace::findMaxPeakRT()
+DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints = false)
     {
-        DoubleReal max_rt((*(trace_peaks_.begin())).getRT());
+    Size max_idx(this->findMaxByIntPeak(use_smoothed_ints ? true : false));
 
-        DoubleReal max_int(0.0);
+    std::vector<DoubleReal> tmp_ints;
 
-        for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+    if (use_smoothed_ints)
         {
-            if ((*l_it).getIntensity() > max_int) {
-                max_int = (*l_it).getIntensity();
-                max_rt = (*l_it).getRT();
+        tmp_ints = smoothed_intensities_;
             }
+    else
+    {
+        for (Size vec_idx = 0; vec_idx < trace_peaks_.size(); ++vec_idx)
+        {
+            tmp_ints.push_back(trace_peaks_[vec_idx].getIntensity());
         }
-
-        return max_rt;
     }
 
-
-    DoubleReal MassTrace::estimateFWHM()
-    {
-        Size max_idx(this->findSmoothedMaxIdx());
-        DoubleReal half_max_int(smoothed_intensities_[max_idx]/2.0);
+    DoubleReal half_max_int(tmp_ints[max_idx]/2.0);
 
         Size left_border(max_idx), right_border(max_idx);
 
-        while (left_border > 0)
+    while (left_border > 0 && tmp_ints[left_border] >= half_max_int)
         {
             --left_border;
-
-            if (smoothed_intensities_[left_border] <= half_max_int)
-            {
-                break ;
             }
-        }
 
-        while (right_border+1 < smoothed_intensities_.size())
+    while (right_border + 1 < tmp_ints.size() && tmp_ints[right_border] >= half_max_int)
         {
             ++right_border;
-
-            if (smoothed_intensities_[right_border] <= half_max_int)
-            {
-                break ;
             }
-        }
-        MassTrace::const_iterator l_it = trace_peaks_.begin();
-        MassTrace::const_iterator r_it = trace_peaks_.begin();
-        std::advance(l_it, left_border);
 
-        if (right_border < smoothed_intensities_.size())
-        {
-            std::advance(r_it, right_border);
-        }
-        else
-        {
-            std::advance(r_it, right_border - 1);
-        }
+    // side effect: record number of peaks/scans that span the fwhm of the mass trace; useful for smoothing techniques (window size)
 
+    fwhm_num_scans_ = right_border - left_border + 1;
 
-
-        return std::fabs(r_it->getRT() - l_it->getRT());
+    return std::fabs(trace_peaks_[right_border].getRT() - trace_peaks_[left_border].getRT());
     }
 
 
@@ -312,15 +281,13 @@ namespace OpenMS
             }
 #endif
 
-            // binary search
+        // bisection
             Size left_bound(chrom_maxes[i] + 1);
             Size right_bound(chrom_maxes[i + 1] - 1);
 
-            // Size binary_steps(0);
 
             while ((left_bound + 1) < right_bound)
             {
-                //                std::cout << left_bound << "___" << right_bound << std::endl;
                 DoubleReal mid_dist((right_bound - left_bound)/2.0);
 
                 Size mid_element_idx(left_bound + std::floor(mid_dist));
@@ -336,7 +303,6 @@ namespace OpenMS
                     left_bound = mid_element_idx;
                 }
 
-                // ++binary_steps;
             }
 
             Size min_rt((smoothed_intensities_[left_bound] < smoothed_intensities_[right_bound]) ? left_bound : right_bound);
@@ -365,9 +331,19 @@ namespace OpenMS
         return hull;
     }
 
-    void MassTrace::updateWeightedMeanRT_()
+void MassTrace::updateWeightedMeanRT()
     {
+    if (trace_peaks_.empty())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid RT undefined!", String(trace_peaks_.size()));
+    }
+
         DoubleReal trace_area(this->computePeakArea());
+
+    if (trace_area < std::numeric_limits<DoubleReal>::epsilon())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peak area equals to zero... impossible to compute weights!", String(trace_peaks_.size()));
+    }
 
         DoubleReal wmean_rt(0.0);
 
@@ -380,11 +356,11 @@ namespace OpenMS
     }
 
 
-    void MassTrace::updateMedianRT_()
+void MassTrace::updateMedianRT()
     {
-        if (trace_peaks_.size() == 0)
+    if (trace_peaks_.empty())
         {
-            return ;
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid RT undefined!", String(trace_peaks_.size()));
         }
 
         if (trace_peaks_.size() == 1)
@@ -420,11 +396,11 @@ namespace OpenMS
     }
 
 
-    void MassTrace::updateMedianMZ_()
+void MassTrace::updateMedianMZ()
     {
-        if (trace_peaks_.size() == 0)
+    if (trace_peaks_.empty())
         {
-            return ;
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
         }
 
         if (trace_peaks_.size() == 1)
@@ -459,11 +435,14 @@ namespace OpenMS
     }
 
 
-    void MassTrace::updateMeanMZ_() {
-        Size trace_size = trace_peaks_.size();
+void MassTrace::updateMeanMZ()
+{
+    if (trace_peaks_.empty())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
+    }
 
-        if (trace_size == 0)
-            return ;
+        Size trace_size = trace_peaks_.size();
 
         DoubleReal sum_mz(0.0);
 
@@ -477,28 +456,32 @@ namespace OpenMS
         return ;
     }
 
-    void MassTrace::updateIterativeWeightedMeanMZ_(const PeakType& added_peak) {
-        Size trace_size = trace_peaks_.size();
+void MassTrace::updateWeightedMeanMZ()
+{
+    if (trace_peaks_.empty())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
+    }
 
-        if (trace_size == 1) {
-            centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
-            prev_counter_ = (*(trace_peaks_.begin())).getIntensity() * (*(trace_peaks_.begin())).getMZ();
-            prev_denom_ = (*(trace_peaks_.begin())).getIntensity();
+    DoubleReal weighted_sum(0.0);
+    DoubleReal total_weight(0.0);
 
-            return ;
+    for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+    {
+        DoubleReal w_i = (*l_it).getIntensity();
+        total_weight += w_i;
+        weighted_sum += w_i * (*l_it).getMZ();
         }
 
-        DoubleReal new_weight = added_peak.getIntensity();
-        DoubleReal new_mz = added_peak.getMZ();
-
-        DoubleReal counter_tmp = (1 + (new_weight*new_mz)/prev_counter_);
-        DoubleReal denom_tmp = (1 + (new_weight)/prev_denom_);
-        centroid_mz_ = centroid_mz_ * (counter_tmp/denom_tmp);
-        prev_counter_ = prev_counter_ * counter_tmp;
-        prev_denom_ = prev_denom_ * denom_tmp;
-
-        return ;
+    if (total_weight < std::numeric_limits<DoubleReal>::epsilon())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "All weights were equal to zero! Empty trace? Aborting...", String(total_weight));
     }
+
+    centroid_mz_ = weighted_sum/total_weight;
+    }
+
+
 
 
 

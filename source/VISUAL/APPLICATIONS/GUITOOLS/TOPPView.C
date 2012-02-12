@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -129,10 +129,8 @@ int main( int argc, const char** argv )
     }
 	}
 
-#ifndef DEBUG_TOPP	
 	try
 	{
-#endif
 	  QApplication a( argc, const_cast<char**>(argv));
 	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
 	  		
@@ -187,46 +185,37 @@ int main( int argc, const char** argv )
 	  int result = a.exec();
 	  delete(mw);
 	  return result;
-#ifndef DEBUG_TOPP
 	}
 	//######################## ERROR HANDLING #################################
 
 	catch(Exception::UnableToCreateFile& e)
 	{
 		cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}	
 	catch(Exception::FileNotFound& e)
 	{
 		cout << String("Error: File not found (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::FileNotReadable& e)
 	{
 		cout << String("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::FileEmpty& e)
 	{
 		cout << String("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::ParseError& e)
 	{
 		cout << String("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::InvalidValue& e)
 	{
 		cout << String("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
 	catch(Exception::BaseException& e)
 	{
 		cout << String("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
-		return 1;
 	}
-#endif
 	
 	return 1;
 }

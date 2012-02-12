@@ -8,11 +8,14 @@
 ##  $1 -> QT_LIB_PATH
 ##  $2 -> target path
 ##  $3 -> install_name_tool
-
-for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest QtSvg
+for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest QtSvg QtWebKit QtXmlPatterns
 do
     # copy Qt library
     cp -Rf $1/$lib.framework $2
+
+    # update user rights on framework since we cannot be sure if we already have 
+    # write access
+    chmod -RH u+w $2/$lib.framework
 
     # fix the id's
     $3 -id @executable_path/../lib/$lib.framework/Versions/4/$lib \

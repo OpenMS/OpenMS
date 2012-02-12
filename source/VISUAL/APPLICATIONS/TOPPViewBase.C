@@ -153,8 +153,10 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
             (int)(0.8 * screen_geometry.height())
             );
 
-          //set temporary path
-          toppas_tmp_path_ = File::getTempDirectory().toQString() + QDir::separator();
+          //set & create temporary path -- make sure its a new subdirectory, as TOPPASScene will delete it when its done
+          toppas_tmp_path_ =  (File::getTempDirectory() + String(QDir::separator()) + File::getUniqueName()).toQString();
+          QDir qd;
+          qd.mkpath(toppas_tmp_path_);
 
           // create dummy widget (to be able to have a layout), Tab bar and workspace
           QWidget* dummy = new QWidget(this);
@@ -276,9 +278,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           help->addAction(QWhatsThis::createAction(help));
           help->addSeparator();
           QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
-          action->setData("http://open-ms.sourceforge.net/news.php");
-          action = help->addAction("Tutorials and documentation (online)",this,SLOT(showURL()), Qt::Key_F1);
-          action->setData("http://open-ms.sourceforge.net/documentation.php");
+          action->setData("http://www.OpenMS.de");
+          action = help->addAction("Tutorials and documentation",this,SLOT(showURL()), Qt::Key_F1);
+          action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/index.html").toQString());
 
           help->addSeparator();
           help->addAction("&About",this,SLOT(showAboutDialog()));
@@ -792,7 +794,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
     for(Size i = 0; i!= map.size(); ++i)
     {
-      if (map[i].getPeptideIdentifications().size() != 0)
+      if ( !map[i].getPeptideIdentifications().empty())
       {
         return true;
       }
@@ -919,7 +921,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     max_isotopes->setValue((Int)param_.getValue("preferences:idview:max_isotope"));
     charge->setValue((Int)param_.getValue("preferences:idview:charge"));
 
-    if(a_ions.size() == 0)
+    if(a_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'A-ions' doesn't exist in identification dialog.");
     } else
@@ -928,7 +930,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       a_ions[0]->setCheckState(state);
     }
 
-    if(b_ions.size() == 0)
+    if(b_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'B-ions' doesn't exist in identification dialog.");
     } else
@@ -937,7 +939,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       b_ions[0]->setCheckState(state);
     }
 
-    if(c_ions.size() == 0)
+    if(c_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'C-ions' doesn't exist in identification dialog.");
     } else
@@ -946,7 +948,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       c_ions[0]->setCheckState(state);
     }
 
-    if(x_ions.size() == 0)
+    if(x_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'X-ions' doesn't exist in identification dialog.");
     } else
@@ -955,7 +957,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       x_ions[0]->setCheckState(state);
     }
 
-    if(y_ions.size() == 0)
+    if(y_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'Y-ions' doesn't exist in identification dialog.");
     } else
@@ -964,7 +966,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       y_ions[0]->setCheckState(state);
     }
 
-    if(z_ions.size() == 0)
+    if(z_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'Z-ions' doesn't exist in identification dialog.");
     } else
@@ -973,7 +975,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       z_ions[0]->setCheckState(state);
     }
 
-    if(pc_ions.size() == 0)
+    if(pc_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'Precursor' doesn't exist in identification dialog.");
     } else
@@ -982,7 +984,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       pc_ions[0]->setCheckState(state);
     }
 
-    if(nl_ions.size() == 0)
+    if(nl_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'Neutral losses' doesn't exist in identification dialog.");
     } else
@@ -991,7 +993,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       nl_ions[0]->setCheckState(state);
     }
 
-    if(ic_ions.size() == 0)
+    if(ic_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'Isotope clusters' doesn't exist in identification dialog.");
     } else
@@ -1000,7 +1002,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       ic_ions[0]->setCheckState(state);
     }
 
-    if(ai_ions.size() == 0)
+    if(ai_ions.empty())
     {
       showLogMessage_(LS_ERROR,"", "String 'Abundant immonium-ions' doesn't exist in identification dialog.");
     } else
@@ -3941,11 +3943,11 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       }
     }
 
-    if (needs_update.size()==0) // no layer references data of filename
+    if (needs_update.empty()) // no layer references data of filename
     {
       watcher_->removeFile(filename);  // remove watcher
       return;
-    } else if (needs_update.size()!=0)  // at least one layer references data of filename
+    } else if ( !needs_update.empty() )  // at least one layer references data of filename
     {
       //std::cout << "Number of Layers that need update: " << needs_update.size() << std::endl;
       pair<const SpectrumWidget *, Size>& slp = needs_update[0];

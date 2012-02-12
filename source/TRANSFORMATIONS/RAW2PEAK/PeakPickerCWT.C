@@ -1233,7 +1233,6 @@ namespace OpenMS
 				if(p_w == 0.)
 					{
             throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"estimatePeakWidth()","Peak width could not be determined from data!");
-						return;
 					}
 				else
 					{
@@ -1451,7 +1450,7 @@ namespace OpenMS
 		std::cout << "Try the optimization run... with " << peak_shapes.size() << std::endl;
 #endif
 
-		if (peak_shapes.size() > 0)
+    if ( !peak_shapes.empty() )
 			{
 				// overlapping peaks are mostly broad or asymmetric
 				// we distinguish them from broad or asymmetric isotopic peaks 
@@ -1728,7 +1727,7 @@ namespace OpenMS
 			}
 		// average width over the three tested spectra
 		DoubleReal avg_width = 0.;
-		if(estimated_widths.size() == 0)
+		if(estimated_widths.empty())
 			{
 				std::cout <<"Couldn't estimate peak width!"<<std::endl;
 				return 0.;

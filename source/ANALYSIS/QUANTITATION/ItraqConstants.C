@@ -53,7 +53,7 @@ namespace OpenMS {
 		{0.00, 0.94, 5.90, 0.16},
 		{0.00, 1.88, 4.90, 0.10},
 		{0.00, 2.82, 3.90, 0.07},
-		{0.06, 3.77, 2.88, 0.00},
+		{0.06, 3.77, 2.99, 0.00},
 		{0.09, 4.71, 1.88, 0.00},
 		{0.14, 5.66, 0.87, 0.00},
 		{0.27, 7.44, 0.18, 0.00}		//121
@@ -189,6 +189,12 @@ namespace OpenMS {
 	Matrix<double> ItraqConstants::translateIsotopeMatrix(const int& itraq_type, const IsotopeMatrices& isotope_corrections)
 	{
 		// translate isotope_corrections to a channel_frequency matrix
+
+    /*
+      take special care of 8plex case, as ch-121 has a gap just before, thus matrix values need to be adapted
+
+    */
+
 		Matrix<double> channel_frequency(CHANNEL_COUNT[itraq_type], CHANNEL_COUNT[itraq_type]);
 		for (Int i=0; i < CHANNEL_COUNT[itraq_type]; ++i)
 		{
@@ -208,14 +214,28 @@ namespace OpenMS {
 				}
 				else
 				{ // from mass i to mass j (directly copy the deviation)
-					if (i-j<=2 && i-j>0)
+          if (i!=7 && j!=7)
 					{
+					  if (j<i && i<=j+2 ) // -2, -1 cases of row 'i'
+					  {
 						channel_frequency.setValue(j,i, isotope_corrections[itraq_type].getValue(i,j-i+2) / 100);
 					}
-					else if (j-i<=2 && j-i>0)
+					  else if (i<j && j<=i+2) // +1, +2 cases of row 'i'
 					{
 						channel_frequency.setValue(j,i, isotope_corrections[itraq_type].getValue(i,j-i+1) / 100);
 					}
+				}
+          else // special case of ch-121 for 8plex
+          { // make everything more 'extreme' by 1 index
+            if (i==7 && j==6 ) // -2 case of ch-121
+            {
+              channel_frequency.setValue(j,i, isotope_corrections[itraq_type].getValue(i, 0) / 100);
+			}
+            else if (i==6 && j==7) // +2 case of ch-121
+            {
+              channel_frequency.setValue(j,i, isotope_corrections[itraq_type].getValue(i, 3) / 100);
+		}
+          }
 				}
 			}
 		}

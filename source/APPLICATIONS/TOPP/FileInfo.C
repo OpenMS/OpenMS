@@ -381,7 +381,7 @@ class TOPPFileInfo
 
 			// file descriptions
 			const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
-			if (descs.size() != 0)
+      if ( !descs.empty() )
 			{
 				os << "File descriptions:" << endl;
 				for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it != descs.end(); ++it)
@@ -400,8 +400,8 @@ class TOPPFileInfo
 			Size peptide_hit_count = 0;
 			UInt runs_count = 0;
 			Size protein_hit_count = 0;
-			vector<String> peptides;
-			vector<String> proteins;
+      set<String> peptides;
+      set<String> proteins;
 
 			// reading input
 			IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
@@ -421,13 +421,10 @@ class TOPPFileInfo
 					const vector<PeptideHit>& temp_hits = id_data.peptides[i].getHits();
 					for (Size j = 0; j < temp_hits.size(); ++j)
 					{
-						if (find(peptides.begin(), peptides.end(), temp_hits[j].getSequence().toString()) == peptides.end())
-						{
-							peptides.push_back(temp_hits[j].getSequence().toString());
+            peptides.insert(temp_hits[j].getSequence().toString());
 						}
 					}
 				}
-			}
 			for (Size i = 0; i < id_data.proteins.size(); ++i)
 			{
 				++runs_count;
@@ -435,26 +432,25 @@ class TOPPFileInfo
 				const vector<ProteinHit>& temp_hits = id_data.proteins[i].getHits();
 				for (Size j = 0; j < temp_hits.size(); ++j)
 				{
-					if (find(proteins.begin(), proteins.end(), temp_hits[j].getAccession()) == proteins.end())
-					{
-						proteins.push_back(temp_hits[j].getAccession());
+          proteins.insert(temp_hits[j].getAccession());
 					}
 				}
-			}
 
 			os << "Number of:" << endl;
 			os << "  runs:                " << runs_count << endl;
 			os << "  protein hits:        " << protein_hit_count << endl;
-			os << "  unique protein hits: " << proteins.size() << endl;
+      os << "  non-redundant protein hits : " << proteins.size() << endl;
+      os << "  (only hits that differ in the accession)" << endl;
 			os << endl;
 			os << "  spectra:             " << spectrum_count << endl;
 			os << "  peptide hits:        " << peptide_hit_count << endl;
-			os << "  unique peptide hits: " << peptides.size() << endl;
+      os << "  non-redundant peptide hits: " << peptides.size() << endl;
+      os << "  (only hits that differ in sequence and/ or modifications)" << endl;
       
 			os_tsv << "peptide hits" << "\t" << peptide_hit_count << endl;
-			os_tsv << "unique peptide hits" << "\t" << peptides.size() << endl;
+      os_tsv << "non-redundant peptide hits (only hits that differ in sequence and/ or modifications): " << "\t" << peptides.size() << endl;
 			os_tsv << "protein hits" << "\t" << protein_hit_count << endl;
-			os_tsv << "unique protein hits" << "\t" << proteins.size() << endl;
+      os_tsv << "non-redundant protein hits (only hits that differ in the accession)" << "\t" << proteins.size() << endl;
 		}
 
 		else if (in_type == FileTypes::PEPXML)
@@ -527,7 +523,7 @@ class TOPPFileInfo
 			writeRangesMachineReadable_(exp,os_tsv);
 
 			os << "MS levels: ";
-			if (levels.size() != 0)
+      if ( !levels.empty() )
 			{
 				os << *(levels.begin());
 				for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
@@ -613,7 +609,7 @@ class TOPPFileInfo
 			}
 
 			// some chromatogram information
-			if (exp.getChromatograms().size() != 0)
+      if ( !exp.getChromatograms().empty() )
 			{
 				os << "Number of chromatograms: "	<< exp.getChromatograms().size() << endl;
 				os_tsv << "number of chromatograms" << "\t"	<< exp.getChromatograms().size() << endl;
@@ -741,7 +737,7 @@ class TOPPFileInfo
 						os << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << endl;
 					}
 					//scan size = 0
-					if (exp[s].size() == 0)
+					if (exp[s].empty())
 					{
 						os << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << endl;
 					}
@@ -949,7 +945,7 @@ class TOPPFileInfo
 			}
 			else //peaks
 			{
-				if (exp.size() != 0)
+        if ( !exp.empty())
 				{
 					os << "Note: The data is taken from the first spectrum!" << endl << endl;
 					dp = exp[0].getDataProcessing();
@@ -957,7 +953,7 @@ class TOPPFileInfo
 			}
 
 			//print data
-			if (dp.size() == 0)
+			if (dp.empty())
 			{
 					os << "No information about data processing available!" << endl << endl;
 			}

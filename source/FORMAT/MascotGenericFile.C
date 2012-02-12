@@ -344,7 +344,7 @@ namespace OpenMS
 							{
 								vector<String> split;
 								line.split(',', split);
-								if (split.size() > 0)
+                if ( !split.empty() )
 								{
 									for (Size i = 0; i != split.size(); ++i)
 									{
@@ -352,7 +352,7 @@ namespace OpenMS
 										{
 											vector<String> split2;
 											split[i].trim().split(' ', split2);
-											if (split2.size() > 0)
+                      if ( !split2.empty() )
 											{
 												rt = split2[0].trim().toDouble() * 60.0;
 											}
@@ -387,7 +387,7 @@ namespace OpenMS
 						do
 						{
 							line.trim();
-							if (line.size() == 0)
+							if (line.empty())
 							{
 								continue;
 							}

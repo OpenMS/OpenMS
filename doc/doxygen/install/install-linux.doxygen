@@ -1,6 +1,6 @@
 /**
   
-  @page install_linux Building OpenMS on Linux
+  @page install_linux Building %OpenMS on Linux
   
   @section install_linux_read Read this section first!
   
@@ -31,24 +31,26 @@
 	   
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
-    - doxygen (We recommend version 1.5.4)
+    - doxygen (we recommend version 1.5.4)
     - pdflatex or texlive or texlive-full
 
-  Depending on your linux distribution, you might have to install the following packages:
+  Here is a list of package names that might help you (might change
+	with newer distributions).
   
-  <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
+  <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" cellpadding="3px">
   	<tr>
-  		<td><B>Fedora 10</B></td>
+  		<td><B>Fedora</B></td>
   		<td><B>OpenSuse 11.1</B></td>
-  		<td><B>Ubuntu 8.10 or 9.4</B></td>
+  		<td><B>Ubuntu 8.10 and later</B></td>
 			<td><B>Debian (Lenny)</B></td>			
   	</tr>
   	<tr>
   		<td valign="top">
   			cmake
-  			@n gcc-g++
-  			@n autoconf
+  			@n gcc, gcc-g++
+  			@n autoconf, autoconf-2.6*
   			@n qt-devel
+				also look <a href="http://koji.fedoraproject.org/koji/packages">here</a>
   		</td>
   		<td valign="top">
 				cmake
@@ -81,7 +83,7 @@
   @section install_linux_contrib Installing the contrib package
 
   In order to facilitate the installation of the libraries required for %OpenMS, we composed a
-  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, libSVM, SeqAn, COINOR, imslib, zlib, libbz2 and XERCES-C. 
+  "contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C. 
     
   The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
   
@@ -113,7 +115,7 @@
 
 <HR>
   
-  @section install_linux_openms Installing OpenMS/TOPP
+  @section install_linux_openms Installing %OpenMS/TOPP
  
    You need to get the %OpenMS source package from our website. The latest stable version of %OpenMS can be found in the 
   <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
@@ -150,9 +152,9 @@
 					</td>
     </tr>
     <tr>
-      <td valign="top">CONTRIB_CUSTOM_DIR</td>
-      <td>search for the contrib libraries in this location.
-          If unset the the location is assumed to be <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.</td>
+      <td valign="top">CMAKE_FIND_ROOT_PATH</td>
+      <td>Additional search path for the contrib libraries.
+          If not set the the location is assumed to be <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.</td>
     </tr>
     <tr>
       <td valign="top">QT_QMAKE_EXECUTABLE</td>
@@ -193,11 +195,9 @@
   
   @note  The TOPP tools are ready to use in the <i>&lt;path_to_OpenMS&gt;/bin/</i> folder. To use the TOPP tools from TOPPView, you have to add this path to the environment variable <b>PATH</b> (do not use the tilde character @em ~ to abbreviate your home folder). 
   
-  @note The ANDI/MS library does not work on 64 bit machines. On these machines ANDI/MS (cdf) support is disabled automatically.
-
 <HR>
 
-  @section install_linux_testing_openms Testing your OpenMS/TOPP installation  
+  @section install_linux_testing_openms Testing your %OpenMS/TOPP installation  
   
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
   <pre>

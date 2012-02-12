@@ -129,7 +129,7 @@ namespace OpenMS
 		if(m.trim().length() !=0 )
 		{	
 			//check if eluent name already exists
-			for(iter = eluents_.begin(); iter < eluents_.end(); iter++)
+      for(iter = eluents_.begin(); iter < eluents_.end(); ++iter)
 			{
 				if(*iter == m )
 				{
@@ -243,7 +243,7 @@ namespace OpenMS
 		//Remove QLineEdits
 		std::vector<QLineEdit*>::iterator iter2; 
 		
-		for(iter2 = gradientdata_.begin(); iter2 < gradientdata_.end(); iter2++ ) 
+    for ( iter2 = gradientdata_.begin(); iter2 < gradientdata_.end(); ++iter2 )
 		{			
 			//Delete QLineEdit field from viewlayout_
 			viewlayout_->removeWidget((*iter2));
@@ -257,7 +257,7 @@ namespace OpenMS
 		//Remove QLabels
 		std::vector<QLabel*>::iterator iter_label; 
 		
-		for(iter_label = gradientlabel_.begin(); iter_label < gradientlabel_.end(); iter_label++ ) 
+    for ( iter_label = gradientlabel_.begin(); iter_label < gradientlabel_.end(); ++iter_label )
 		{
 			viewlayout_->removeWidget((*iter_label));
 			(*iter_label)->hide();

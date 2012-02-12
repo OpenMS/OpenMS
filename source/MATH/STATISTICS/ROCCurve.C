@@ -76,7 +76,7 @@ namespace OpenMS
 	
 	  double ROCCurve::AUC()
 	  {
-      if (score_clas_pairs_.size()==0)
+      if (score_clas_pairs_.empty())
       {
 	      cerr << "ROCCurve::AUC() : unsuitable dataset (no positives or no negatives)\n";
         return 0.5;

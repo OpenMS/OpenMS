@@ -133,13 +133,6 @@ namespace OpenMS
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
 		void filterPeakMap(PeakMap& exp);
-		
-		DoubleReal	getFilterThreshold();
-		void setFilterThreshold(DoubleReal& th);
-
-		std::pair<DoubleReal,DoubleReal> getFilterNormalizerCs();
-		void setFilterNormalizerCs(DoubleReal& c1,DoubleReal& c2);
-		
 		//TODO reimplement DefaultParamHandler::updateMembers_()
 		
 	private:

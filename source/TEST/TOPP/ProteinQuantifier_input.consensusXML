@@ -12,9 +12,9 @@
 	<mapList count="3">
 		<map id="0" name="sample1.featureXML" unique_id="0" label="" size="4">
 		</map>
-		<map id="1" name="sample2.featureXML" unique_id="1" label="" size="4">
+		<map id="1" name="sample2.featureXML" unique_id="1" label="" size="3">
 		</map>
-		<map id="2" name="sample3.featureXML" unique_id="2" label="" size="4">
+		<map id="2" name="sample3.featureXML" unique_id="2" label="" size="2">
 		</map>
 	</mapList>
 	<consensusElementList>

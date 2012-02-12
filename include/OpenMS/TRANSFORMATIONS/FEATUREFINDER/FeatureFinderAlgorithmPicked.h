@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Kohlbacher $
+// $Maintainer: Oliver Kohlbacher, Stephan Aiche $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -119,7 +119,7 @@ namespace OpenMS
 				defaults_.setMinFloat("mass_trace:mz_tolerance",0.0);
 				defaults_.setValue("mass_trace:min_spectra",10,"Number of spectra that have to show a similar peak mass in a mass trace.");
 				defaults_.setMinInt("mass_trace:min_spectra",1);
-				defaults_.setValue("mass_trace:max_missing",1,"Number of spectra where a high mass deviation or missing peak is acceptable.\nThis parameter should be well below 'min_spectra'!");
+      defaults_.setValue("mass_trace:max_missing",1,"Number of consecutive spectra where a high mass deviation or missing peak is acceptable.\nThis parameter should be well below 'min_spectra'!");
 				defaults_.setMinInt("mass_trace:max_missing",0);
 				defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak.\nThis parameter is important to seperate overlapping elution peaks.\nIt should be increased if feature elution profiles fluctuate a lot.");
 				defaults_.setMinFloat("mass_trace:slope_bound",0.0);
@@ -315,7 +315,7 @@ namespace OpenMS
 							//init vector
 							intensity_thresholds_[rt][mz].assign(21, 0.0);
 							//store quantiles (20)
-							if (tmp.size()!=0)
+            if ( !tmp.empty() )
 							{
 								std::sort(tmp.begin(), tmp.end());
 								for (Size i=0;i<21;++i)
@@ -426,16 +426,19 @@ namespace OpenMS
 						d.trimLeft(intensity_percentage_optional_);
 						isotope_distributions_[index].trimmed_left = size_before - d.size();
 						d.trimRight(intensity_percentage_optional_);
+
 						for (IsotopeDistribution::Iterator it=d.begin(); it!=d.end(); ++it)
 						{
 							isotope_distributions_[index].intensity.push_back(it->second);
 							//log_ << " - " << it->second << std::endl;
 						}
+
 						//determine the number of optional peaks at the beginning/end
 						Size begin = 0;
 						Size end = 0;
 						bool is_begin = true;
 						bool is_end = false;
+
 						for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
 						{
 							if (isotope_distributions_[index].intensity[i]<intensity_percentage_)
@@ -455,8 +458,11 @@ namespace OpenMS
 						DoubleReal max = 0.0;
 						for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
 						{
-							if (isotope_distributions_[index].intensity[i]>max) max = isotope_distributions_[index].intensity[i];
+            if (isotope_distributions_[index].intensity[i] > max)
+            {
+              max = isotope_distributions_[index].intensity[i];
 						}
+          }
 						isotope_distributions_[index].max = max;
 						for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
 						{
@@ -514,11 +520,13 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 							//Look up expected isotopic peaks (in the current spectrum or adjacent spectra)
 							Size peak_index = spectrum.findNearest(mz-((DoubleReal)(isotopes.size()+1)/c));
 							IsotopePattern pattern(isotopes.size());
+
 							for (Size i=0; i<isotopes.size(); ++i)
 							{
 								DoubleReal isotope_pos = mz + ((DoubleReal)i-max_isotope)/c;
 								findIsotope_(isotope_pos, s, pattern, i, false, peak_index);
 							}
+
 							DoubleReal pattern_score = isotopeScore_(isotopes, pattern, true, false);
 							
 							//update pattern scores of all contained peaks (if necessary)
@@ -568,6 +576,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 							FloatDataArrays& meta = map_[s].getFloatDataArrays();
 							DoubleReal overall_score = std::pow(meta[0][p]*meta[1][p]*meta[meta_index_isotope][p], 1.0f/3.0f);
 							meta[meta_index_overall][p] = overall_score;
+
 							//add seed to vector if certain conditions are fullfilled
 							if (meta[2][p]!=0.0) // local maximum of mass trace is prerequisite for all features
 							{
@@ -588,9 +597,13 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 									tmp.setMZ(map_[s][p].getMZ() - user_mz_tol);
 									for (typename FeatureMapType::const_iterator it = std::lower_bound(seeds_.begin(), seeds_.end(), tmp, typename FeatureType::MZLess()); it<seeds_.end(); ++it)
 									{
-										if (it->getMZ()>map_[s][p].getMZ() + user_mz_tol) break;
-										if (fabs(it->getMZ()-map_[s][p].getMZ())<user_mz_tol && fabs(it->getRT()-map_[s].getRT())<user_rt_tol)
+                  if (it->getMZ() > map_[s][p].getMZ() + user_mz_tol)
 										{
+                    break;
+                  }
+                  if ( fabs(it->getMZ()-map_[s][p].getMZ()) < user_mz_tol &&
+                       fabs(it->getRT()-map_[s].getRT()) < user_rt_tol)
+                  {
 										  Seed seed;
 											seed.spectrum = s;
 											seed.peak = p;
@@ -675,6 +688,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						//Find best fitting isotope pattern for this charge (using averagine)
 						IsotopePattern best_pattern(0);
 						DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], c, best_pattern);
+
 						if (isotope_fit_quality<min_isotope_fit_)
 						{
 							abort_(debug, seeds[i], "Could not find good enough isotope pattern containing the seed");
@@ -689,6 +703,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 
 						//check if the traces are still valid
 						DoubleReal seed_mz = map_[seeds[i].spectrum][seeds[i].peak].getMZ();
+
 						if (!traces.isValid(seed_mz, trace_tolerance_))
 						{
 							abort_(debug, seeds[i], "Could not extend seed");
@@ -719,7 +734,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 
             // choose fitter
             double egh_tau = 0.0;
-            TraceFitter<PeakType> * fitter = chooseTraceFitter_(traces, egh_tau);
+          TraceFitter<PeakType> * fitter = chooseTraceFitter_(egh_tau);
 
 						fitter->setParameters(trace_fitter_params);
 						fitter->fit(traces);
@@ -836,6 +851,10 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						f.setIntensity(
 						    fitter->getFeatureIntensityContribution() // was 2.5 * fitter->getHeight() * sigma
 						    / getIsotopeDistribution_(f.getMZ()).max);
+         
+					// we do not need the fitter anymore
+					delete fitter;
+					
 						//add convex hulls of mass traces
 						for (Size j = 0; j < traces.size(); ++j)
 						{
@@ -885,6 +904,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 				//precalculate BBs and maximum mz span
 				std::vector< DBoundingBox<2> > bbs(features_->size());
 				DoubleReal max_mz_span = 0.0;
+
 				for (Size i=0; i<features_->size(); ++i)
 				{
 					bbs[i] = features_->at(i).getConvexHull().getBoundingBox();
@@ -909,6 +929,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						if (!bbs[i].intersects(bbs[j])) continue;
 						//act depending on the intersection
 						DoubleReal intersection = intersection_(f1, f2);
+
 						if (intersection>=max_feature_intersection_)
 						{
 							log_ << " - Intersection (" << (i+1) << "/" << (j+1) << "): " << intersection << std::endl;
@@ -1135,19 +1156,23 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						DBoundingBox<2> bb2 = hulls2[j].getBoundingBox();
 						if (bb1.intersects(bb2))
 						{
-							if (bb1.minPosition()[0]<=bb2.minPosition()[0] && bb1.maxPosition()[0]>=bb2.maxPosition()[0]) //bb1 contains bb2
+            if (bb1.minPosition()[0] <= bb2.minPosition()[0] &&
+                bb1.maxPosition()[0] >= bb2.maxPosition()[0]) //bb1 contains bb2
 							{
 								overlap += bb2.width();
 							}
-							else if (bb2.minPosition()[0]<=bb1.minPosition()[0] && bb2.maxPosition()[0]>=bb1.maxPosition()[0]) //bb2 contains bb1
+            else if (bb2.minPosition()[0] <= bb1.minPosition()[0] &&
+                     bb2.maxPosition()[0] >= bb1.maxPosition()[0]) //bb2 contains bb1
 							{
 								overlap += bb1.width();
 							}
-							else if (bb1.minPosition()[0]<=bb2.minPosition()[0] && bb1.maxPosition()[0]<=bb2.maxPosition()[0]) //the end of bb1 overlaps with bb2
+            else if (bb1.minPosition()[0] <= bb2.minPosition()[0] &&
+                     bb1.maxPosition()[0] <= bb2.maxPosition()[0]) //the end of bb1 overlaps with bb2
 							{
 								overlap += bb1.maxPosition()[0]-bb2.minPosition()[0];
 							}
-							else if (bb2.minPosition()[0]<=bb1.minPosition()[0] && bb2.maxPosition()[0]<=bb1.maxPosition()[0]) //the end of bb2 overlaps with bb1
+            else if (bb2.minPosition()[0] <= bb1.minPosition()[0] &&
+                     bb2.maxPosition()[0] <= bb1.maxPosition()[0]) //the end of bb2 overlaps with bb1
 							{
 								overlap += bb2.maxPosition()[0]-bb1.minPosition()[0];
 							}
@@ -1191,14 +1216,17 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 				DoubleReal mass_window = (DoubleReal)(isotopes.size()+1) / (DoubleReal)charge;
 				log_ << " - Mass window: " << mass_window << std::endl;
 				Size end = center.peak;
-				while(end<spectrum.size() && spectrum[end].getMZ()<spectrum[center.peak].getMZ()+mass_window)
+      while(end < spectrum.size() &&
+            spectrum[end].getMZ() < spectrum[center.peak].getMZ() + mass_window)
 				{
 					++end;
 				}
 				--end;
+
 				//search begin
 				SignedSize begin = center.peak;
-				while(begin>=0 && spectrum[begin].getMZ()>spectrum[center.peak].getMZ()-mass_window)
+      while(begin >= 0 &&
+            spectrum[begin].getMZ() > spectrum[center.peak].getMZ() - mass_window)
 				{
 					--begin;
 				}
@@ -1242,7 +1270,8 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 					seed_contained = false;
 					for (Size iso=0; iso<pattern.peak.size(); ++iso)
 					{
-						if (pattern.peak[iso]==(Int)center.peak && pattern.spectrum[iso]==center.spectrum)
+          if (pattern.peak[iso]     == (Int)center.peak &&
+              pattern.spectrum[iso] == center.spectrum)
 						{
 							seed_contained = true;
 							break;
@@ -1266,7 +1295,13 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 				return max_score;
 			}
 			
-      /// Extends all mass traces of a isotope pattern in one step
+    /**
+      Extends all mass traces of an isotope pattern in one step
+
+      @param pattern The IsotopePattern that should be extended.
+      @param traces The MassTraces datastructure where the extended mass traces will be stored in.
+      @param meta_index_overall The index of the data array where the qualtiy scores for the given charge are stored.
+    */
 			void extendMassTraces_(const IsotopePattern& pattern, MassTraces& traces, Size meta_index_overall) const
 			{
 				//find index of the trace with the maximum intensity
@@ -1348,10 +1383,15 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						{
 							peak_index=-1;
 						}
+
 						if (peak_index<0 ||
 								map_[spectrum_index][peak_index].getIntensity()<=inte ||
 								std::fabs(mz-map_[spectrum_index][peak_index].getMZ())>=pattern_tolerance_
-							 ) continue;
+              )
+          {
+            continue;
+          }
+
 						starting_peak.spectrum = spectrum_index;
 						starting_peak.peak = peak_index;
 						inte = map_[spectrum_index][peak_index].getIntensity();
@@ -1392,15 +1432,23 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 				
 				How to use this method:
 				- Add the starting peak to the @p trace
-				- Extend in downstream direction
-				- extend in upstream direction
+        - Indicate using @c increase_rt whether to extend in downstream or upstream direction
+      @param trace The trace that should be extended
+      @param spectrum_index The index of the spectrum from which on the mass trace should be extended
+      @param mz The mz location (center) of the trace
+      @param increase_rt Indicator whether the extension is done in forward or backward direction (with respect to the current spectrum)
+      @param meta_index_overall The index of the overall score
+      @param min_rt The rt minimum up to which the trace will be extended.
+      @param max_rt The rt maximum up to which the trace will be extended.
 				
-				@note this method assumes that it extends from a local maximum.
+      @note This method assumes that it extends from a local maximum.
+      @note If @c min_rt or @c max_rt are set to 0.0 no boundary is assumed in the respective direction.
+
 			*/
-			void extendMassTrace_(MassTrace& trace, SignedSize spectrum_index, DoubleReal mz, bool inc_rt, Size meta_index_overall, DoubleReal min_rt=0.0, DoubleReal max_rt = 0.0) const
+    void extendMassTrace_(MassTrace& trace, SignedSize spectrum_index, DoubleReal mz, bool increase_rt, Size meta_index_overall, DoubleReal min_rt = 0.0, DoubleReal max_rt = 0.0) const
 			{
 				//Reverse peaks if we run the method for the second time (to keep them in chronological order)
-				if (inc_rt)
+      if (increase_rt)
 				{
 					++spectrum_index;
 					std::reverse(trace.peaks.begin(), trace.peaks.end());
@@ -1409,29 +1457,39 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 				{
 					--spectrum_index;
 				}
+
 				//check if boundaries are set
 				bool boundaries = false;
 				if (max_rt != min_rt)
 				{
 					boundaries = true;
 				}
+
 				//Relax slope theshold if there is a hard boundary for the extension
 				DoubleReal current_slope_bound = (1.0 + (DoubleReal)boundaries) * slope_bound_;
+
 				Size delta_count = min_spectra_;
-				DoubleReal last_int = trace.peaks.back().second->getIntensity();
 				std::vector<DoubleReal> deltas(delta_count-1, 0);
-				//deltas.reserve(2*delta_count);
+
+      DoubleReal last_observed_intensity = trace.peaks.back().second->getIntensity();
+
 				UInt missing_peaks = 0;
-				Size peaks_before = trace.peaks.size();
+      Size peaks_before_extension = trace.peaks.size();
 				String abort_reason = "";
-				while((!inc_rt && spectrum_index>=0) || (inc_rt && spectrum_index<(SignedSize)map_.size()))
+
+      while( (!increase_rt && spectrum_index >= 0) || (increase_rt && spectrum_index < (SignedSize)map_.size()) )
 				{
-					if(boundaries && ((!inc_rt && map_[spectrum_index].getRT()<min_rt) || (inc_rt && map_[spectrum_index].getRT()>max_rt)) )
+        if(boundaries &&
+           ( (!increase_rt && map_[spectrum_index].getRT() < min_rt) ||
+             (increase_rt && map_[spectrum_index].getRT() > max_rt) )
+           )
 					{
 						abort_reason = "Hit upper/lower boundary";
 						break;
 					}
+
 					SignedSize peak_index = -1;
+
 					try
 					{
 						peak_index = map_[spectrum_index].findNearest(mz);
@@ -1440,9 +1498,16 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 					{
 						peak_index=-1;
 					}
-					if (peak_index<0 || map_[spectrum_index].getFloatDataArrays()[meta_index_overall][peak_index]<0.01 || positionScore_( mz, map_[spectrum_index][peak_index].getMZ(), trace_tolerance_)==0.0)
+
+        // check if the peak is "missing"
+        if (
+            peak_index < 0 // no peak found
+            || map_[spectrum_index].getFloatDataArrays()[meta_index_overall][peak_index] < 0.01 // overall score is to low
+            || positionScore_( mz, map_[spectrum_index][peak_index].getMZ(), trace_tolerance_) == 0.0 // deviation of mz is too big
+            )
 					{
 						++missing_peaks;
+
 						if(missing_peaks>max_missing_trace_peaks_)
 						{
 							abort_reason = "too many peaks missing";
@@ -1452,27 +1517,32 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 					else
 					{
 						missing_peaks = 0;
-						//add last peak to trace
+
+          //add found peak to trace
 						trace.peaks.push_back(std::make_pair(map_[spectrum_index].getRT(),&(map_[spectrum_index][peak_index])));
-						//update ints and deltas 
-						deltas.push_back( (map_[spectrum_index][peak_index].getIntensity() - last_int) / last_int);
-						last_int = map_[spectrum_index][peak_index].getIntensity();
+
+          //update deltas and intensities
+          deltas.push_back( (map_[spectrum_index][peak_index].getIntensity() - last_observed_intensity) / last_observed_intensity);
+          last_observed_intensity = map_[spectrum_index][peak_index].getIntensity();
 
 						//Abort if the average delta is too big (as intensity increases then)
 						DoubleReal average_delta = std::accumulate(deltas.end()-delta_count,deltas.end(),0.0) / (DoubleReal)delta_count;
 						if ( average_delta > current_slope_bound)
 						{
 							abort_reason = String("Average delta above threshold: ")+average_delta+"/"+current_slope_bound;
+
 							//remove last peaks as we extended too far
-							Size remove = std::min((Size)(trace.peaks.size()-peaks_before),delta_count-1);
+            Size remove = std::min((Size)(trace.peaks.size() - peaks_before_extension) , delta_count - 1);
 							trace.peaks.erase(trace.peaks.end()-remove,trace.peaks.end());
 							break;
 						}
 					}
+
 					//increase/decrease scan index
-					if (inc_rt) ++spectrum_index; else --spectrum_index;
+        if (increase_rt) ++spectrum_index;
+        else --spectrum_index;
 				}
-				log_ << "   - Added " << (trace.peaks.size()-peaks_before) << " peaks (abort: " << abort_reason << ")" << std::endl;
+      log_ << "   - Added " << (trace.peaks.size() - peaks_before_extension) << " peaks (abort: " << abort_reason << ")" << std::endl;
 			}
 
 			/// Returns the index of the peak nearest to m/z @p pos in spectrum @p spec (linear search starting from index @p start)
@@ -1480,14 +1550,14 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 			Size nearest_(DoubleReal pos, const SpectrumType& spec, Size start) const
 			{
 				Size index = start;
-				DoubleReal dist = std::fabs(pos-spec[index].getMZ());
+      DoubleReal distance = std::fabs(pos - spec[index].getMZ());
 				++index;
 				while (index < spec.size())
 				{
-					DoubleReal new_dist = std::fabs(pos-spec[index].getMZ());
-					if (new_dist<dist)
+        DoubleReal new_distance = std::fabs(pos - spec[index].getMZ());
+        if (new_distance < distance)
 					{
-						dist = new_dist;
+          distance = new_distance;
 						++index;	
 					}
 					else
@@ -1521,6 +1591,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 				peak_index = nearest_(pos, spectrum, peak_index);
 				DoubleReal mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
 				pattern.theoretical_mz[pattern_index] = pos;
+
 				if (mz_score!=0.0)
 				{
 					if (debug) log_ << String::number(spectrum[peak_index].getIntensity(),1) << " ";
@@ -1532,7 +1603,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 				}
 				
 				//previous spectrum
-				if (spectrum_index!=0 && map_[spectrum_index-1].size()>0)
+      if (spectrum_index != 0 && !map_[spectrum_index-1].empty() )
 				{
 					const SpectrumType& spectrum_before = map_[spectrum_index-1];
 					Size index_before = spectrum_before.findNearest(pos);
@@ -1552,7 +1623,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 					}
 				}
 				//next spectrum
-				if (spectrum_index!=map_.size()-1 && map_[spectrum_index+1].size()>0)
+      if ( spectrum_index != map_.size()-1 && !map_[spectrum_index+1].empty() )
 				{
 					const SpectrumType& spectrum_after = map_[spectrum_index+1];
 					Size index_after = spectrum_after.findNearest(pos);
@@ -1643,7 +1714,9 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 					for (Size e=best_end; e<=isotopes.optional_end; ++e)
 					{
 						//Make sure we have more than 2 peaks (unless in the first loop interation, there we allow two points) 
-						if (isotopes.size()-b-e>2 || (b==best_begin && e==best_end && isotopes.size()-b-e>1))
+          if (isotopes.size() - b - e > 2 || (b == best_begin &&
+                                              e == best_end &&
+                                              isotopes.size() - b - e > 1))
 						{
 							DoubleReal int_score = Math::pearsonCorrelationCoefficient(isotopes.intensity.begin()+b, isotopes.intensity.end()-e, pattern.intensity.begin()+b, pattern.intensity.end()-e);	
 							if (boost::math::isnan(int_score)) int_score = 0.0;
@@ -1694,14 +1767,14 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 			}
 			
       /**
-       * @brief Compute the intensity score for the peak @p peak in spectrum @p spectrum.
-       *
-       * The intensity score is computed by interpolating the score between the 4 nearest intensity
-       * bins. The scores from the different bins are weighted by the distance of the bin center to
-       * the peak.
-       *
-       * @param spectrum Index of the spectrum we are currently looking at
-       * @param peak Index of the peak that should be scored inside the spectrum @p spectrum
+      @brief Compute the intensity score for the peak @p peak in spectrum @p spectrum.
+
+      The intensity score is computed by interpolating the score between the 4 nearest intensity
+      bins. The scores from the different bins are weighted by the distance of the bin center to
+      the peak.
+
+      @param spectrum Index of the spectrum we are currently looking at
+      @param peak Index of the peak that should be scored inside the spectrum @p spectrum
        */
 			DoubleReal intensityScore_(Size spectrum, Size peak) const
 			{
@@ -1772,14 +1845,12 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 			}
 
       /**
-       * @brief Choose a the best trace fitter for the current mass traces based on the user parameter
-       *        (symmetric, asymmetric) or based on an inspection of the mass trace (auto)
-       *
-       * @param traces MassTraces that need to be fitted
-       *
-       * @return A pointer to the trace fitter that should be used.
+      @brief Choose a the best trace fitter for the current mass traces based on the user parameter
+             (symmetric, asymmetric) or based on an inspection of the mass trace (auto)
+
+      @return A pointer to the trace fitter that should be used.
        */
-      TraceFitter<PeakType> * chooseTraceFitter_(MassTraces & /*traces*/, double& tau)
+    TraceFitter<PeakType> * chooseTraceFitter_(double& tau)
       {
         // choose fitter
         if (param_.getValue("feature:rt_shape") == "asymmetric")
@@ -1829,18 +1900,19 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 				return final;
 			}
 
-      /** @name Handling of fitted mass traces
-       *
-       * Methods to handle the results of the mass trace fitting process.
+    /**
+      @name Handling of fitted mass traces
+
+      Methods to handle the results of the mass trace fitting process.
        */
       //@{
       /**
-       * @brief Creates new mass traces @p new_traces based on the fitting result and the
-       *        orignal traces @p traces.
-       *
-       * @param fitter The TraceFitter containing the results from the rt profile fitting step.
-       * @param traces Original mass traces found in the experiment.
-       * @param new_traces Mass traces created by cropping the original mass traces.
+      @brief Creates new mass traces @p new_traces based on the fitting result and the
+             orignal traces @p traces.
+
+      @param fitter The TraceFitter containing the results from the rt profile fitting step.
+      @param traces Original mass traces found in the experiment.
+      @param new_traces Mass traces created by cropping the original mass traces.
        */
       void cropFeature_(TraceFitter<PeakType> * fitter,
                         const MassTraces & traces,
@@ -1877,7 +1949,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
           DoubleReal fit_score = 0.0;
           DoubleReal correlation = 0.0;
           DoubleReal final_score = 0.0;
-          if (new_trace.peaks.size()!=0)
+        if ( !new_trace.peaks.empty() )
           {
             fit_score = deviation / new_trace.peaks.size();
             correlation = std::max(0.0, Math::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end()));
@@ -1921,26 +1993,26 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
       }
 
       /**
-       * @brief Checks the feature based on different score thresholds and model constraints
-       *
-       * Feature can get invalid for following reasons:
-       * <ul>
-       *  <li>Invalid fit: Fitted model is bigger than 'max_rt_span'</li>
-       *  <li>Invalid feature after fit - too few traces or peaks left</li>
-       *  <li>Invalid fit: Center outside of feature bounds</li>
-       *  <li>Invalid fit: Less than 'min_rt_span' left after fit</li>
-       *  <li>Feature quality too low after fit</li>
-       * </ul>
-       *
-       * @param fitter The TraceFitter containing the results from the rt profile fitting step.
-       * @param feature_traces Cropped feature mass traces.
-       * @param seed_mz Mz of the seed
-       * @param min_feature_score Minimal required feature score
-       * @param error_msg Will be filled with the error message, if the feature is invalid
-       * @param fit_score Will be filled with the fit score
-       * @param correlation Will be filled with correlation between feature and model
-       * @param final_score Will be filled with the final score
-       * @return true if the feature is valid
+      @brief Checks the feature based on different score thresholds and model constraints
+
+      Feature can get invalid for following reasons:
+      <ul>
+       <li>Invalid fit: Fitted model is bigger than 'max_rt_span'</li>
+       <li>Invalid feature after fit - too few traces or peaks left</li>
+       <li>Invalid fit: Center outside of feature bounds</li>
+       <li>Invalid fit: Less than 'min_rt_span' left after fit</li>
+       <li>Feature quality too low after fit</li>
+      </ul>
+
+      @param fitter The TraceFitter containing the results from the rt profile fitting step.
+      @param feature_traces Cropped feature mass traces.
+      @param seed_mz Mz of the seed
+      @param min_feature_score Minimal required feature score
+      @param error_msg Will be filled with the error message, if the feature is invalid
+      @param fit_score Will be filled with the fit score
+      @param correlation Will be filled with correlation between feature and model
+      @param final_score Will be filled with the final score
+      @return true if the feature is valid
        */
       bool checkFeatureQuality_(TraceFitter<PeakType> * fitter,
                                 MassTraces & feature_traces,
@@ -1959,12 +2031,14 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
             error_msg = "Invalid fit: Fitted model is bigger than 'max_rt_span'";
           }
         }
+
         //check if the feature is valid
         if (!feature_traces.isValid(seed_mz, trace_tolerance_))
         {
           feature_ok = false;
           error_msg = "Invalid feature after fit - too few traces or peaks left";
         }
+
         //check if x0 is inside feature bounds
         if (feature_ok)
         {
@@ -1975,6 +2049,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
             error_msg = "Invalid fit: Center outside of feature bounds";
           }
         }
+
         //check if the remaining traces fill out at least 'min_rt_span' of the RT span
         if (feature_ok)
         {
@@ -2007,11 +2082,13 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
           fit_score = std::max(0.0, 1.0 - (deviation / feature_traces.getPeakCount()));
           correlation = std::max(0.0,Math::pearsonCorrelationCoefficient(v_theo.begin(),v_theo.end(),v_real.begin(), v_real.end()));
           final_score = std::sqrt(correlation * fit_score);
+
           if (final_score<min_feature_score)
           {
             feature_ok = false;
             error_msg = "Feature quality too low after fit";
           }
+
           //quality output
           log_ << "Quality estimation:" << std::endl;
           log_ << " - relative deviation: " << fit_score << std::endl;
@@ -2023,17 +2100,17 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
       }
 
       /**
-       * @brief Creates several files containing plots and viewable data of the fitted mass trace
-       *
-       * @param fitter The TraceFitter containing the results from the rt profile fitting step.
-       * @param traces Original mass traces found in the spectra
-       * @param new_traces Cropped feature mass traces
-       * @param feature_ok Status of the feature
-       * @param error_msg If the feature is invalid, @p error_msg contains the reason
-       * @param final_score Final score of the feature
-       * @param plot_nr Index of the feature
-       * @param peak The Seed Peak
-       * @param path The path where to put the debug files (default is debug/features)
+      @brief Creates several files containing plots and viewable data of the fitted mass trace
+
+      @param fitter The TraceFitter containing the results from the rt profile fitting step.
+      @param traces Original mass traces found in the spectra
+      @param new_traces Cropped feature mass traces
+      @param feature_ok Status of the feature
+      @param error_msg If the feature is invalid, @p error_msg contains the reason
+      @param final_score Final score of the feature
+      @param plot_nr Index of the feature
+      @param peak The Seed Peak
+      @param path The path where to put the debug files (default is debug/features)
        */
       void writeFeatureDebugInfo_(TraceFitter<PeakType> * fitter,
                                   const MassTraces & traces,
@@ -2066,8 +2143,10 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
               tf.push_back(String(pseudo_rt_shift*k+new_traces[k].peaks[j].first) + "	" + new_traces[k].peaks[j].second->getIntensity());
             }
           }
+
           tf.store(path + plot_nr + "_cropped.dta");
           script = script + ", \"" + path + plot_nr + "_cropped.dta\" title 'feature ";
+
           if (!feature_ok)
           {
             script = script + " - " + error_msg;
@@ -2088,6 +2167,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
           //tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + fitter->getGnuplotFormula(traces[k], pseudo_rt_shift * k));
           script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z: " + String::number(traces[k].getAvgMZ(),4) + ")'";
         }
+
         //output
         tf.push_back("set xlabel \"pseudo RT (mass traces side-by-side)\"");
         tf.push_back("set ylabel \"intensity\"");

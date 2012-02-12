@@ -57,13 +57,12 @@
 /**	
 	@page TOPPView_smoothing Smoothing raw data	
 	
-	To smooth your raw data call the NoiseFilter via the Tools-menu,
-	(@a Tools > @a Apply @a TOPP @a tool), then select NoiseFilter as TOPPtool (green rectangle).
-	Afterwards select the NoiseFilter type (red rectangle). You can choose between Savitzky-Golay and
-	Gaussian. The parameters for the filter type can be adapted (blue rectangle).
+	To smooth your raw data call one of the available NoiseFilters via the Tools-menu,
+	(@a Tools > @a Apply @a TOPP @a tool), then select NoiseFilterSGolay or NoiseFilterGaussian as TOPPtool (green rectangle).
+  The parameters for the filter type can be adapted (blue rectangle).
 	For the Savitzky-Golay filter you can set the frame length and the order of the polynomial that is fitted.
 	For the Gaussian filter the gaussian width and the ppm tolerance for a flexible gaussian width
-	depending on the m/z value can be adapted. Press Ok to run the NoiseFilter.
+	depending on the m/z value can be adapted. Press Ok to run the selected NoiseFilter.
 	
 	@image html TOPPView_tools_noisefilter.png 
 	@image latex TOPPView_tools_noisefilter.png "" width=14cm
@@ -81,26 +80,29 @@
 /**	
 	@page TOPPView_peakpicking Picking peaks 
 
-	If you have low resolution data you may consider to smooth your data first(@ref TOPPView_smoothing) and subtract
-	the baseline (@ref TOPPView_baseline_reduction) before peak picking.
+	If you have low resolution data you may consider to smooth your data first 
+	(@ref TOPPView_smoothing) and subtract the baseline (@ref TOPPView_baseline_reduction) before
+	peak picking.
 
-	We have two types of PeakPickers, the Wavelet-PeakPicker and one especially suited for
-	high resolution data (select type high_res). In this tutorial we consider the Wavelet-PeakPicker.
-	We use the file @a peakpicker_tutorial_2.mzML from the examples data (@a File > @a Open @a example @a data).
+	We have two types of PeakPickers, the PeakPickerWavelet and one especially suited for
+	high resolution data (PeakPickerHiRes). In this tutorial we consider the PeakPickerWavelet.
+	We use the file @a peakpicker_tutorial_2.mzML from the examples data (@a File > @a Open @a example
+	@a data).
 
+	The main parameters are the peak width and the minimal signal to noise ratio for a peak to be
+	picked. If you don't know the approximate fwhm of your peaks you can use the estimation included 
+	in the PeakPickerWavelet. Here you need to set the flag estimate_peak_width to true.After applying
+	the PeakPickerWavelet you can see which peak width was estimated and used for peak picking in the
+	log window.
 
-	The main parameters are the peak width and the minimal signal to noise ratio for a peak to be picked.
-	If you don't know the approximate fwhm of your peaks you can use the estimation included in the PeakPicker.
-	Here you need to set the flag estimate_peak_width to true.
-	After applying the PeakPicker you can see which peak width was estimated and used for peak picking in the log window.
+	If you want to estimate the peak width on your own, you may use the measuring tool 
+	(@ref TOPPView_views_use) to determine the fwhm of one or several representative peaks.
 	
-	If you want to estimate the peak width on your own, you may use the measuring tool (@ref TOPPView_views_use)
-	to determine the fwhm of one or several representative peaks.
+	If the peak picker delivers only a few peaks even though the the peak_with and signal_to_noise 
+	parameters are set to good values, you may consider changing the advanced parameter 
+	fwhm_lower_bound_factor to a lower value. All peaks with a lower fwhm than 
+	fwhm_lower_bound_factor * peak_width are discarded.
 	
-	If the peak picker delivers only a few peaks even though the the peak_with and signal_to_noise parameters are
-	set to good values, you may consider changing the advanced parameter fwhm_lower_bound_factor to a lower value.
-	All peaks with a lower fwhm than fwhm_lower_bound_factor * peak_width are discarded.
-
 	The following image shows a part of the spectrum with the picked peaks shown in green,
 	the estimated peak width in the log window and the measured peak width.
 
@@ -114,8 +116,8 @@
 /**	
 	@page TOPPView_feature_detection_centroided Feature detection on centroided data 
 
-	To quantify peptide features, TOPP offers the @b FeatureFinder tool. In this section the @b centroided algorithm is
-	used, which works on centroided data only. There are other FeatureFinder algorithms for profile data.
+	To quantify peptide features, TOPP offers the @b FeatureFinder tools. In this section the @b FeatureFinderCentroided is
+	used, which works on centroided data only. There are other FeatureFinders available that also work on profile data.
 	
 	For this example the file @a LCMS-centroided.mzML from the examples data is used (@a File > @a Open @a example @a data).
 	In order to adapt the algorithm to our data, some parameters have to be set.

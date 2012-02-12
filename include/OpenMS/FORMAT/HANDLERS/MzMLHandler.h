@@ -3207,7 +3207,7 @@ namespace OpenMS
 			os  << "		<dataProcessing id=\"" << id << "\">\n";
 			
 			//FORCED
-			if (dps.size()==0)
+			if (dps.empty())
 			{
 				os  << "			<processingMethod order=\"0\" softwareRef=\"so_default\">\n";
 				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\" />\n";
@@ -3411,7 +3411,7 @@ namespace OpenMS
               {
                 os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
               }
-              if (precursor.getActivationMethods().size()==0)
+              if (precursor.getActivationMethods().empty())
               {
                 os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
               }
@@ -4020,7 +4020,7 @@ namespace OpenMS
 					os  << "				</source>\n";				
 				}
 				//FORCED
-				if (component_count<3 && in.getIonSources().size()==0)
+				if (component_count<3 && in.getIonSources().empty())
 				{
 					os  << "				<source order=\"1234\">\n";
 					os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000446\" name=\"fast ion bombardment\" />\n";
@@ -4111,7 +4111,7 @@ namespace OpenMS
 					os  << "				</analyzer>\n";				
 				}
 				//FORCED
-				if (component_count<3 && in.getMassAnalyzers().size()==0)
+				if (component_count<3 && in.getMassAnalyzers().empty())
 				{
 					os  << "				<analyzer order=\"1234\">\n";
 					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000288\" name=\"cyclotron\" />\n";
@@ -4235,7 +4235,7 @@ namespace OpenMS
 					os  << "				</detector>\n";				
 				}
 				//FORCED
-				if (component_count<3 && in.getIonDetectors().size()==0)
+				if (component_count<3 && in.getIonDetectors().empty())
 				{
 					os  << "				<detector order=\"1234\">\n";
 					os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000107\" name=\"channeltron\" />\n";
@@ -4264,7 +4264,7 @@ namespace OpenMS
 
 			os  << "	<dataProcessingList count=\"" << (std::max)((Size)1, dps.size() + num_bi_dps) << "\">\n";
 			//default (first spectrum data or fictional data)
-			if (exp.size()==0)
+			if (exp.empty())
 			{
 				std::vector<DataProcessing> dummy;
 				writeDataProcessing_(os, "dp_sp_0" , dummy);
@@ -4504,7 +4504,7 @@ namespace OpenMS
 						os	<< "					</scan>\n";
 					}
 					//fallback if we have no acquisition information (a dummy scan is created for RT and so on)
-					if (spec.getAcquisitionInfo().size()==0)
+					if (spec.getAcquisitionInfo().empty())
 					{
 						os	<< "					<scan>\n";
 						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
@@ -4528,7 +4528,7 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					//precursor list
 					//--------------------------------------------------------------------------------------------
-					if (spec.getPrecursors().size() != 0)
+          if ( !spec.getPrecursors().empty() )
 					{
 						os  << "      <precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
 						for (Size p = 0; p != spec.getPrecursors().size(); ++p)
@@ -4628,7 +4628,7 @@ namespace OpenMS
 							{
 								os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
 							}
-							if (precursor.getActivationMethods().size()==0)
+							if (precursor.getActivationMethods().empty())
 							{
 								os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
 							}
@@ -4799,7 +4799,7 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			//chromatograms
 			//--------------------------------------------------------------------------------------------			
-			if (exp.getChromatograms().size() != 0)
+      if ( !exp.getChromatograms().empty() )
 			{
 				os	<< "		<chromatogramList count=\"" << exp.getChromatograms().size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n"; 
 				for (Size c = 0; c != exp.getChromatograms().size(); ++c)

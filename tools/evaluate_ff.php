@@ -41,7 +41,7 @@
 	{
 		print "\n";
 		print "Evaluate FeatureFinder algorithm using OpenMS TOPP tools (FeatureFinder,\n";
-		print "FeatureLinker, PeakPicker, TextExporter) and Gnuplot for data plotting. \n";
+		print "FeatureLinkerUnlabeled, PeakPicker, TextExporter) and Gnuplot for data plotting. \n";
 		print "Version: 1.0\n";
 		print "\n";
 		print "Usage:\n";
@@ -65,7 +65,7 @@
 		print "  -out_co <file>  -- Output consensus feature list (valid formats: 'consensusXML')\n";
     print "  -use_pp <n>     -- Use PeakPicker to find peaks in raw data before FeatureFinder (default: '0')\n";
 		print "  -ini_pp <file>  -- Use the given PeakPicker TOPP INI file\n";
-		print "  -ini_fl <file>  -- Use the given FeatureLinker TOPP INI file (mandatory if '-in_an' is given)\n";
+		print "  -ini_fl <file>  -- Use the given FeatureLinkerUnlabeled TOPP INI file (mandatory if '-in_an' is given)\n";
 		print "  -calibrate <n>  -- Parameter to calibrate the mass decimal values (default: '1', i.e. no calibration)\n";
     print "  -eval_ony <n>   -- Evaluation without feature finding (default: '0', i.e. feature finding before evaluation)\n";
 		print "  --help          -- Shows this help\n";
@@ -251,7 +251,7 @@
 		$ini_pp = $argv[array_search("-ini_pp",$argv)+1];
 	}
 
-	// ini_fl - FeatureLinker TOPP INI file
+	// ini_fl - FeatureLinkerUnlabeled TOPP INI file
 	$ini_fl = "";
 	if (in_array("-ini_fl",$argv))
 	{
@@ -261,7 +261,7 @@
 	{
 		if ($gold!="")
 		{
-			print "\nNo FeatureLinker TOPP INI file (-ini_fl) given (mandatory if '-in_an' is given). Aborting!\n\n";
+			print "\nNo FeatureLinkerUnlabeled TOPP INI file (-ini_fl) given (mandatory if '-in_an' is given). Aborting!\n\n";
 			printUsage();
 			exit;
 		}	
@@ -291,7 +291,7 @@
 	}
 
 	####################################################################################################################################
-	########################### Run OpenMS TOPP Tools (FeatureFinder, FeatureLinker, TextExporter) #####################################
+	########################### Run OpenMS TOPP Tools (FeatureFinder, FeatureLinkerUnlabeled, TextExporter) #####################################
 	####################################################################################################################################
 
 	// FeatureFinder running time
@@ -331,12 +331,12 @@
 	echo "Running TextExporter for ".$out_ff." ... \n";
 	passthru("TextExporter -in ".$out_ff." -out ".$out_ff_txt);
 
-	// run FeatureLinker
+	// run FeatureLinkerUnlabeled
 	if ($gold!="")
 	{
-		echo "Running FeatureLinker ... \n";
-		if ($ini_fl!="") passthru("FeatureLinker -ini ".$ini_fl." -type unlabeled -in ".$out_ff.",".$gold." -out ".$out_co);
-		else passthru("FeatureLinker -type unlabeled -in ".$out_ff.",".$gold." -out ".$out_co);
+		echo "Running FeatureLinkerUnlabeled ... \n";
+		if ($ini_fl!="") passthru("FeatureLinkerUnlabeled -ini ".$ini_fl." -in ".$out_ff.",".$gold." -out ".$out_co);
+		else passthru("FeatureLinkerUnlabeled -in ".$out_ff.",".$gold." -out ".$out_co);
 
 		// run TextExporter for annotated feature list
 		$gold_txt = $out_co.".txt";
@@ -592,7 +592,7 @@
 			if ($key > 0) $featureInAnnotated++;
 		}
 
-		// parse FeatureLinker output file
+		// parse FeatureLinkerUnlabeled output file
 		echo "Parse consensus XML file (".$out_co.") ...\n";
 		parseXmlFile($out_co);
 
@@ -887,7 +887,7 @@
 	{
 		fwrite($logFile, "  Annotated feature list:         ".$gold."\n");
 		fwrite($logFile, "    TextExporter output file:     ".$gold_txt."\n");
-		fwrite($logFile, "  FeatureLinker TOPP INI file:    ".$ini_fl."\n");
+		fwrite($logFile, "  FeatureLinkerUnlabeled TOPP INI file:    ".$ini_fl."\n");
 	}
 
 	fwrite($logFile, "\n");

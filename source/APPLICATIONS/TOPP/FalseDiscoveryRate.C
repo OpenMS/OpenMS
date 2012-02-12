@@ -100,6 +100,7 @@ class TOPPFalseDiscoveryRate
 			registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run", false);
 			setValidFormats_("rev_in", StringList::create("idXML"));
 			registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
+      setValidFormats_("out", StringList::create("idXML"));
 			registerFlag_("proteins_only", "If set, the FDR of the proteins only is calculated");
 			registerFlag_("peptides_only", "If set, the FDR of the peptides only is calculated");
 

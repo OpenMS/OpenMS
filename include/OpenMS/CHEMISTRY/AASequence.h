@@ -366,6 +366,9 @@ namespace OpenMS
 			/// assignment operator
 			AASequence& operator = (const AASequence& rhs);
 			
+      /// check if sequence is empty
+      bool empty() const;
+
 			/** @name Accessors
 			*/
 			//@{
@@ -476,11 +479,11 @@ namespace OpenMS
 			bool has(const String& name) const;
 			
 			/// returns true if the peptide contains the given peptide
-      /// @hint c-term and n-term mods are ignored
+      /// @note c-term and n-term mods are ignored
 			bool hasSubsequence(const AASequence& peptide) const;
 
 			/// returns true if the peptide contains the given peptide
-      /// @hint c-term and n-term mods are ignored
+      /// @note c-term and n-term mods are ignored
 			bool hasSubsequence(const String& peptide) const;
 			
 			/// returns true if the peptide has the given prefix

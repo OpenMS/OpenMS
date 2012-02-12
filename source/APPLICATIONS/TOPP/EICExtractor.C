@@ -56,9 +56,7 @@ using namespace std;
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter</td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> -none- </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> statistical tools, e.g., Excel, R, ... </td>
 		</tr>
 	</table>
 </CENTER>
@@ -106,15 +104,17 @@ class TOPPEICExtractor
 
     void registerOptionsAndFlags_()
     {
-	  	registerInputFileList_("in","<file>",StringList::create(""),"input raw data file");
+	  	registerInputFileList_("in","<file>", StringList::create(""),"Input raw data file");
 			setValidFormats_("in",StringList::create("mzML"));
-      registerInputFile_("pos","<file>","","input config file stating where to find signal");
+      registerInputFile_("pos", "<file>", "", "Input config file stating where to find signal");
       setValidFormats_("pos",StringList::create("edta"));
       registerDoubleOption_("rt_tol", "", 3, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
       registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
       registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
-			registerOutputFile_("out","<file>","","output quantitation file (summed intensities by master compounds)");
-      registerOutputFile_("out_detail","<file>","","output quantitation file");
+			registerOutputFile_("out","<file>", "", "Output quantitation file (summed intensities by master compounds)");
+      //setValidFormats_("out", StringList::create("txt")); // 'txt' not supported yet
+      registerOutputFile_("out_detail","<file>", "", "Output quantitation file");
+      //setValidFormats_("out_detail", StringList::create("txt")); // 'txt' not supported yet
     }
 
     ExitCodes main_(int , const char**)
@@ -173,7 +173,7 @@ class TOPPEICExtractor
       {
         mzml_file.load(in[fi], exp);
 
-			  if (exp.size()==0)
+			  if (exp.empty())
 			  {
 				  LOG_WARN << "The given file does not contain any conventional peak data, but might"
 					            " contain chromatograms. This tool currently cannot handle them, sorry.";
@@ -234,7 +234,7 @@ class TOPPEICExtractor
           
             if ((SignedSize)mz.size() > (low+high+1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low+high+1 << "]\n";
           
-            if (mz.size() > 0)
+            if ( !mz.empty() )
             {
               DoubleReal avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / DoubleReal(mz.size());
               ppm = (avg_mz - cm[i].getMZ())/cm[i].getMZ() * 1e6;

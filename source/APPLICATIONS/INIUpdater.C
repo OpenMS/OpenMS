@@ -43,7 +43,6 @@ namespace OpenMS
   {
     StringList tool_names;
     std::set <String> tool_names_set;
-    Size count(0);
     for (Param::ParamIterator it = ini.begin(); it!=ini.end(); ++it)
     {
       if (it.getName().toQString().count(':')==1 && it.getName().hasSuffix(":version"))
@@ -56,7 +55,7 @@ namespace OpenMS
 
   const ToolMapping& INIUpdater::getNameMapping()
   {
-    if (map_.size() == 0)
+    if (map_.empty())
     {
       map_[TDE("FeatureFinder",StringList::create("centroided"))] = TDE("FeatureFinderCentroided",StringList::create(""));
       map_[TDE("FeatureFinder",StringList::create("isotope_wavelet"))] = TDE("FeatureFinderIsotopeWavelet",StringList::create(""));
@@ -69,7 +68,7 @@ namespace OpenMS
       map_[TDE("NoiseFilter",StringList::create("gaussian"))] = TDE("NoiseFilterGaussian",StringList::create(""));
       map_[TDE("NoiseFilter",StringList::create("sgolay"))] = TDE("NoiseFilterSGolay",StringList::create(""));
 
-      map_[TDE("MapAligner",StringList::create("apply_given_trafo"))] = TDE("MapAlignerApplyTransformation",StringList::create(""));
+      map_[TDE("MapAligner",StringList::create("apply_given_trafo"))] = TDE("MapRTTransformer",StringList::create(""));
       map_[TDE("MapAligner",StringList::create("identification"))] = TDE("MapAlignerIdentification",StringList::create(""));
       map_[TDE("MapAligner",StringList::create("pose_clustering"))] = TDE("MapAlignerPoseClustering",StringList::create(""));
       map_[TDE("MapAligner",StringList::create("spectrum_alignment"))] = TDE("MapAlignerSpectrum",StringList::create(""));

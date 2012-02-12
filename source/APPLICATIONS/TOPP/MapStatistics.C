@@ -92,7 +92,7 @@ namespace OpenMS
 		SomeStatistics& operator()(vector<double>& data)
 		{
 			// Sanity check: avoid core dump if no data points present.
-			if (data.size() > 0)
+      if ( !data.empty() )
 			{
 				sort(data.begin(), data.end());
 				mean = gsl_stats_mean(&data.front(), 1, data.size());
@@ -192,10 +192,10 @@ class TOPPMapStatistics
 
 	virtual void registerOptionsAndFlags_()
 	{
-		registerInputFile_("in","<file>","","input file ");
+		registerInputFile_("in","<file>","","Input file");
 		setValidFormats_("in", StringList::create("featureXML,consensusXML"));
-		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
+		registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
+		setValidStrings_("in_type",StringList::create("featureXML,consensusXML"));
 		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
 
 		registerIntOption_("n", "<n>", 4, // 4 slices is the default 
@@ -352,7 +352,7 @@ class TOPPMapStatistics
 
 				// file descriptions
 				const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
-				if (descs.size() != 0)
+        if ( !descs.empty() )
 				{
 					os << endl <<
 						"File descriptions:" << endl;

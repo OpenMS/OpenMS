@@ -286,7 +286,7 @@ namespace OpenMS
             // get meta value keys
             vector<String> keys;
             phits_it->getKeys(keys);
-            if (common_keys.size() == 0) // first MS2 peptide hit found. Now insert keys.
+            if (common_keys.empty()) // first MS2 peptide hit found. Now insert keys.
             {
               for(vector<String>::iterator sit = keys.begin(); sit != keys.end(); ++sit)
               {
@@ -419,14 +419,15 @@ namespace OpenMS
           cout << "  peptide hits found: " << ph.size()<< endl;
         #endif
 
-        Size best_pi_index = 0;
-        Size best_j_index = 0;
         bool is_higher_score_better = false;
         Size best_score = pi[0].getHits()[0].getScore();
         is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
 
-        if (ph.size()!=0)
+        if ( !ph.empty() )
         {
+          Size best_pi_index = 0;
+          Size best_j_index = 0;
+
           for(Size pi_index=0; pi_index!=id_count; ++pi_index)
           {
             for(Size j=0; j!=pi[pi_index].getHits().size(); ++j)
@@ -493,9 +494,9 @@ namespace OpenMS
           table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
 
           // add additional meta value columns
-          Int current_col = 12;
           if (create_rows_for_commmon_metavalue_->isChecked())
           {
+            Int current_col = 12;
             for(set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
             {
               DataValue dv = best_ph.getMetaValue(*sit);
@@ -547,9 +548,9 @@ namespace OpenMS
         table_widget_->setItem(table_widget_->rowCount()-1 , 11, item);
 
         // add additional meta value columns
-        Int current_col = 12;
         if (create_rows_for_commmon_metavalue_->isChecked())
         {
+          Int current_col = 12;
           for(set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
           {
             item = table_widget_->itemPrototype()->clone();

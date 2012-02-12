@@ -93,7 +93,7 @@ namespace OpenMS
       /**
        * Isotope distributions
        */
-      IsotopeDistributionCache isotope_distribution_;
+      static IsotopeDistributionCache *isotope_distribution_;
 
       /**
        * @brief number of peptides [i.e. number of labelled peptides +1, e.g. for SILAC triplet =3]
@@ -135,6 +135,11 @@ namespace OpenMS
        */
       std::vector<std::vector<DoubleReal> > exact_shifts_;
 
+      /**
+       * @brief m/z positions mz + exact_shifts in a SILAC pattern, where mz is the m/z of the mono-isotopic peak of light peptide
+       */
+      std::vector<std::vector<DoubleReal> > exact_mz_positions_;
+      
       /**
        * @brief intensities at mz + exact_shifts in a SILAC pattern, where mz is the m/z of the mono-isotopic peak of light peptide
        */
@@ -188,7 +193,7 @@ namespace OpenMS
       bool correlationFilter2_(const SILACFiltering::SpectrumInterpolation &, DoubleReal mz, const SILACFiltering &);
 
       /**
-       * @brief Checks peak intensities against the averagene model
+       * @brief Checks peak intensities against the averagine model
        */
       bool averageneFilter_(DoubleReal mz);
 
@@ -198,7 +203,10 @@ namespace OpenMS
        * @param mass_separations all mass shifts of the filter
        * @param charge charge of the ions to search for
        * @param model_deviation maximum deviation from the averagine model
-       * @param isotopes_per_peptide number of peaks per petide to search for
+       * @param isotopes_per_peptide number of peaks per peptide to search for
+       * @param intensity_cutoff ...
+       * @param intensity_correlation minimal intensity correlation between regions of different peaks
+       * @param allow_missing_peaks flag for missing peaks
        */
       SILACFilter(std::vector<DoubleReal> mass_separations, Int charge, DoubleReal model_deviation, Int isotopes_per_peptide,
           DoubleReal intensity_cutoff, DoubleReal intensity_correlation, bool allow_missing_peaks);

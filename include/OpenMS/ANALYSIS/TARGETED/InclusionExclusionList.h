@@ -38,9 +38,8 @@ namespace OpenMS
      @brief
 
 
-		 @TODO allow modifications (fixed?)
+     @todo allow modifications (fixed?)
 
-     
   */
   class OPENMS_DLLAPI InclusionExclusionList
     : public DefaultParamHandler
@@ -60,12 +59,12 @@ namespace OpenMS
       DoubleReal MZ_;
     };
 
-    /* Determine distance between two spectra
+    /**
+      @brief Determine distance between two spectra
 
       Distance is determined as 
       
         (d_rt/rt_max_ + d_mz/mz_max_) / 2
-
     */
     class WindowDistance_
     {
@@ -108,9 +107,9 @@ namespace OpenMS
 
     protected:
       
-      DoubleReal rt_bridge_; // max rt distance between two windows in order to be considered overlapping
-      DoubleReal mz_max_;    // max m/z distance between two ...
-      bool mz_as_ppm_;       // m/z distance unit
+      DoubleReal rt_bridge_; ///< max rt distance between two windows in order to be considered overlapping
+      DoubleReal mz_max_;    ///< max m/z distance between two ...
+      bool mz_as_ppm_;       ///< m/z distance unit
 
     }; // end of WindowDistance_
 
@@ -134,7 +133,7 @@ namespace OpenMS
       @brief Writes the windows to the given file
 
       Format for each window is:
-      <mz>\t<rt_start>\t<rt_stop>\n
+      &lt;mz&gt;\\t&lt;rt_start&gt;\\t&lt;rt_stop&gt;\\n
 
       @throws Exception::UnableToCreateFile when file cannot be created
 

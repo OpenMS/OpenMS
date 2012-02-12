@@ -105,7 +105,7 @@ namespace OpenMS
 		painter.drawLine(start_p, end_p);
 
     // draw ticks
-    if (ticks_.size() != 0)
+    if ( !ticks_.empty() )
     {
       for(vector<DoubleReal>::iterator it = ticks_.begin(); it != ticks_.end(); ++it)
       {

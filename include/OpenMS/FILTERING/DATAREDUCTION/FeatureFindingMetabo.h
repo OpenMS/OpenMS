@@ -75,9 +75,15 @@ namespace OpenMS
         {
             String label;
 
-            for (Size i = 0; i < iso_pattern_.size(); ++i)
+            if (iso_pattern_.size() > 0)
             {
-                label += iso_pattern_[i]->getLabel();
+                label = iso_pattern_[0]->getLabel();
+            }
+
+            for (Size i = 1; i < iso_pattern_.size(); ++i)
+            {
+                String tmp_str = "_" + iso_pattern_[i]->getLabel();
+                label += tmp_str;
             }
 
             return label;
@@ -118,7 +124,7 @@ namespace OpenMS
 
         DoubleReal getCentroidMZ()
         {
-            if (iso_pattern_.size() == 0)
+            if (iso_pattern_.empty())
             {
                 throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
             }
@@ -128,28 +134,31 @@ namespace OpenMS
 
         DoubleReal getCentroidRT()
         {
-            if (iso_pattern_.size() == 0)
+            if (iso_pattern_.empty())
             {
                 throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
             }
 
-            return iso_pattern_[0]->getSmoothedMaxRT();
+            iso_pattern_[0]->updateWeightedMeanRT();
+
+            return iso_pattern_[0]->getCentroidRT();
         }
 
-        DoubleReal getFWHM()
+        DoubleReal getFWHM(bool use_smoothed_ints = false)
         {
-            if (iso_pattern_.size() == 0)
+            if (iso_pattern_.empty())
             {
                 return 0.0;
             }
 
-            return iso_pattern_[0]->estimateFWHM();
+            return iso_pattern_[0]->estimateFWHM(use_smoothed_ints);
         }
 
 
         /// addMassTrace
         void addMassTrace(MassTrace&);
-        DoubleReal computeFeatureIntensity();
+        DoubleReal getMonoisotopicFeatureIntensity();
+        DoubleReal getSummedFeatureIntensity();
 
 
         Size getNumFeatPoints() const;
@@ -193,9 +202,6 @@ namespace OpenMS
         void run(std::vector<MassTrace>&, FeatureMap<>&);
 
 
-
-
-
     protected:
         virtual void updateMembers_();
 
@@ -215,8 +221,8 @@ namespace OpenMS
         Size charge_lower_bound_;
         Size charge_upper_bound_;
         DoubleReal mass_error_ppm_;
-        DoubleReal chrom_fwhm_;
-
+        DoubleReal chrom_sigma_;
+        bool report_summed_ints_;
     };
 
 

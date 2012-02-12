@@ -89,13 +89,13 @@ namespace OpenMS
     FeatureMapSim const & getSimulatedFeatures() const;
 
 		/// Access the charge consensus map of simulated features
-    ConsensusMap const & getChargeConsensus() const;
+    ConsensusMap & getChargeConsensus();
 
 		/// Access the contaminants feature map of simulated features
     FeatureMapSim const & getContaminants() const;
 
     /// Access the labeling consensus map of simulated features
-    ConsensusMap const & getLabelingConsensus() const;
+    ConsensusMap & getLabelingConsensus();
 
     /// Access the labeling consensus map of simulated features
     MSSimExperiment const & getPeakMap() const;
@@ -108,7 +108,7 @@ namespace OpenMS
 		void syncParams_(Param& p, bool to_outer);
 		
 		/// Convert a list of peptides with given abundance values into a FeatureMap
-		void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features);
+    void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features, Size map_index);
 
   private:
     /// Synchronize members with param class

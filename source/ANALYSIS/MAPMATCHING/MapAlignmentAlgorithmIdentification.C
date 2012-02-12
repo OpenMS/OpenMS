@@ -26,11 +26,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <cmath> // for "abs"
 #include <limits> // for "max"
@@ -42,7 +44,7 @@ namespace OpenMS
 
 	MapAlignmentAlgorithmIdentification::MapAlignmentAlgorithmIdentification()
 		: MapAlignmentAlgorithm(), reference_index_(0), reference_(),
-			score_threshold_(0.0)
+			score_threshold_(0.0), min_run_occur_(0)
 	{
 		setName("MapAlignmentAlgorithmIdentification");
 
@@ -122,12 +124,13 @@ namespace OpenMS
 
 	void MapAlignmentAlgorithmIdentification::checkParameters_(Size runs)
 	{
-		Size min_run_occur = param_.getValue("min_run_occur");
+		min_run_occur_ = param_.getValue("min_run_occur");
 		// reference is not counted as a regular run:
 		if (!reference_.empty()) runs++;
-		if (min_run_occur > runs)
+		if (min_run_occur_ > runs)
 		{
-			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of parameter 'min_run_occur' (here: " + String(min_run_occur) + ") must not exceed the number of runs incl. reference (here: " + String(runs) + ")");
+			LOG_WARN << "Warning: Value of parameter 'min_run_occur' (here: " + String(min_run_occur_) + ") is higher than the number of runs incl. reference (here: " + String(runs) + "). Using " + String(runs) + " instead." << endl;
+			min_run_occur_ = runs;
 		}
 		
 		score_threshold_ = param_.getValue("peptide_score_threshold");		
@@ -253,26 +256,6 @@ namespace OpenMS
 	}
 	
 	
-	// "values" will be sorted (unless "sorted" is true)
-	DoubleReal MapAlignmentAlgorithmIdentification::median_(DoubleList& values,
-																													bool sorted)
-	{
-		Size size = values.size();
-		if (!size)
-		{
-			throw(Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-																			 "input sequence is empty"));
-		}		
-		if (!sorted) sort(values.begin(), values.end());
-		if (size % 2 == 0) // even size => average two middle values
-		{
-			size /= 2;
-			return (values[size - 1] + values[size]) / 2.0;
-		}
-		return values[(size - 1) / 2];
-	}
-
-
 	// RT lists in "rt_data" will be sorted (unless "sorted" is true)
 	void MapAlignmentAlgorithmIdentification::computeMedians_(SeqToList& rt_data,
 																														SeqToValue& medians,
@@ -283,7 +266,8 @@ namespace OpenMS
 		for (SeqToList::iterator rt_it = rt_data.begin();
 				 rt_it != rt_data.end(); ++rt_it)
 		{
-			DoubleReal median = median_(rt_it->second, sorted);
+			DoubleReal median = Math::median(rt_it->second.begin(), 
+																			 rt_it->second.end(), sorted);
 			medians.insert(pos,	make_pair(rt_it->first, median));
 			pos = --medians.end(); // would cause segfault if "medians" were empty
 		}
@@ -417,7 +401,6 @@ namespace OpenMS
 			}
 		}
 
-		Size min_run_occur = param_.getValue("min_run_occur");
 		// get reference retention time scale: either directly from reference file,
 		// or compute consensus time scale
 		bool reference_given = !reference_.empty(); // reference file given
@@ -432,7 +415,7 @@ namespace OpenMS
 			{
 				SeqToList::iterator med_it = medians_per_seq.find(ref_it->first);
 				if ((med_it != medians_per_seq.end()) && 
-						(med_it->second.size() + 1 >= min_run_occur))
+						(med_it->second.size() + 1 >= min_run_occur_))
 				{
 					temp.insert(pos, *ref_it);
 					pos = --temp.end(); // would cause segfault if "temp" was empty
@@ -451,7 +434,7 @@ namespace OpenMS
 			for (SeqToList::iterator med_it = medians_per_seq.begin();
 					 med_it != medians_per_seq.end(); ++med_it)
 			{
-				if (med_it->second.size() >= min_run_occur)
+				if (med_it->second.size() >= min_run_occur_)
 				{
 					temp.insert(pos, *med_it);
 					pos = --temp.end(); // would cause segfault if "temp" was empty

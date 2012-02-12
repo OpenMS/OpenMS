@@ -216,7 +216,7 @@ struct FloatsWithTolLess : public binary_function<DoubleReal , DoubleReal, bool>
 
 	bool EdwardsLippertIterator::begin ()
 	{
-		if (f_file_=="" || spec_.size()==0)
+		if (f_file_=="" || spec_.empty())
 		{
 			throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}

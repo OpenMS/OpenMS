@@ -113,7 +113,7 @@ namespace OpenMS
       std::cerr << __FILE__ << ": Warning! \"max_span_ > (q_max - q_min + 1)\" needed fixing!\n";
     }
 
-    if (adduct_base_.size() == 0)
+    if (adduct_base_.empty())
     {
       //default adducts are: H+, Na+, K+, NH4+
       // do NOT use "+" in empirical formula, as every + will add a proton weight!
@@ -263,7 +263,7 @@ namespace OpenMS
     // sort according to (in-order) net-charge, mass, probability
     std::sort(explanations_.begin(), explanations_.end());
 
-    // set Id´s of compomers, which allows to uniquely identify them (for later lookup)
+    // set Ids of compomers, which allows to uniquely identify them (for later lookup)
     for (size_t i=0;i<explanations_.size(); ++i) explanations_[i].setID(i);
 
     //#if DEBUG_FD

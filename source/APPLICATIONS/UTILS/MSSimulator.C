@@ -113,12 +113,19 @@ class TOPPMSSimulator
     {
       // I/O settings
       registerInputFileList_("in","<files>",StringList::create(""),"Input protein sequences in FASTA format",true,false);
-      registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",true);
+      setValidFormats_("in",StringList::create("fasta"));
+      registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",false);
+      setValidFormats_("out", StringList::create("mzML"));
       registerOutputFile_("out_pm","<file>","","output (simulated MS map) in mzML format (picked GT)",false);
+      setValidFormats_("out_pm", StringList::create("mzML"));
       registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
+      setValidFormats_("out_fm", StringList::create("featureXML"));
       registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)",false);
+      setValidFormats_("out_cm", StringList::create("consensusXML"));
       registerOutputFile_("out_lcm","<file>","","output (simulated MS map) in consensusXML format (grouping labeled variants)",false);
+      setValidFormats_("out_lcm", StringList::create("consensusXML"));
       registerOutputFile_("out_cntm","<file>","","output (simulated MS map) in featureXML format (contaminants)",false);
+      setValidFormats_("out_cntm", StringList::create("featureXML"));
       
 			addEmptyLine_();
   		addText_("To specify intensity values for certain proteins,\nadd an abundance tag for the corresponding protein\nin the FASTA input file:");
@@ -224,8 +231,24 @@ class TOPPMSSimulator
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
+
+      // check if at least one output file is
+      if(getStringOption_("out") == ""
+         && getStringOption_("out_pm") == ""
+         && getStringOption_("out_fm") == ""
+         && getStringOption_("out_cm") == ""
+         && getStringOption_("out_lcm") == ""
+         && getStringOption_("out_cntm") == "" )
+      {
+        LOG_ERROR << "Error: At least one output file needs to specified!" << std::endl;
+        return MISSING_PARAMETERS;
+      }
+
       StringList input_files = getStringList_("in");
 			String outputfile_name = getStringOption_("out");	
+
+
+
 
       MSSim ms_simulation;
       ms_simulation.setParameters(getParam_().copy("algorithm:MSSim:",true));
@@ -294,14 +317,30 @@ class TOPPMSSimulator
 			if (cxml_out != "")
 			{
         writeLog_(String("Storing charged consensus features in: ") + cxml_out);
-        ConsensusXMLFile().store(cxml_out, ms_simulation.getChargeConsensus());
+
+        ConsensusMap & charge_consensus = ms_simulation.getChargeConsensus();
+        charge_consensus.getFileDescriptions()[0].filename = fxml_out;
+        charge_consensus.getFileDescriptions()[0].size = ms_simulation.getSimulatedFeatures().size();
+        charge_consensus.getFileDescriptions()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
+
+        ConsensusXMLFile().store(cxml_out, charge_consensus);
 			}
       
       String lcxml_out = getStringOption_("out_lcm");
       if(lcxml_out != "")
       {
         writeLog_(String("Storing labeling consensus features in: ") + lcxml_out);
-        ConsensusXMLFile().store(lcxml_out, ms_simulation.getLabelingConsensus());
+
+        // set file name for all (sub)feature maps
+        ConsensusMap & labeling_consensus = ms_simulation.getLabelingConsensus();
+        for(ConsensusMap::FileDescriptions::Iterator fdI = labeling_consensus.getFileDescriptions().begin() ;
+            fdI != labeling_consensus.getFileDescriptions().end();
+            ++fdI)
+        {
+          fdI->second.filename = fxml_out;
+      }
+
+        ConsensusXMLFile().store(lcxml_out, labeling_consensus);
       }
 
       String cntxml_out = getStringOption_("out_cntm");

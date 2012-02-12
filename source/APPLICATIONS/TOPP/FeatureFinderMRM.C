@@ -47,17 +47,16 @@ using namespace std;
 <CENTER>
  <table>
   <tr>
-   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-   <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinder \f$ \longrightarrow \f$</td>
+   <td ALIGN = "center" BGCOLOR="#EBEBEB" ROWSPAN=1> pot. predecessor tools </td>
+   <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderMRM \f$ \longrightarrow \f$</td>
    <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker </td>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinker </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=2>  </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled @n (or another feature grouping tool) </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MapAligner </td>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_SeedListGenerator </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MapAlignerPoseClustering @n (or another alignment tool) </td>
   </tr>
  </table>
 </CENTER>
@@ -66,12 +65,6 @@ using namespace std;
  reveals a characteristic isotope distribution. The algorithm
  computes positions in rt and m/z dimension and a charge estimate
  of each peptide.
-
- The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
- In the next step, we iteratively fit a model of the isotope profile and the retention time to
- these data points. Data points with a low probability under this model are removed from the
- feature region. The intensity of the feature is then given by the sum of the data points included
- in its regions.
 
  How to find suitable parameters and details of the different algorithms implemented are described
  in the @ref TOPP_example_featuredetection "TOPP tutorial".
@@ -82,7 +75,8 @@ using namespace std;
  @verbinclude TOPP_FeatureFinderMRM.cli
 
  For the parameters of the algorithm section see the algorithms documentation: @n
-  @ref OpenMS::FeatureFinderAlgorithmMRM "mrm" @n
+
+ @ref OpenMS::FeatureFinderAlgorithmMRM FeatureFinderAlgorithmMRM
 
 */
 

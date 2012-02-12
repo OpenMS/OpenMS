@@ -38,6 +38,10 @@ namespace OpenMS
 {
 	/**
 		@brief Helper class for peptide and protein quantification based on feature data annotated with IDs
+
+		This class is used by @ref TOPP_ProteinQuantifier. See there for further documentation.
+
+		@htmlinclude OpenMS_PeptideAndProteinQuant.parameters
 	*/
 	class OPENMS_DLLAPI PeptideAndProteinQuant: public DefaultParamHandler
 	{
@@ -57,9 +61,15 @@ namespace OpenMS
 
 			/// protein accessions for this peptide
 			std::set<String> accessions;
+
+			/// number of identifications
+			Size id_count;
+
+			/// constructor
+			PeptideData(): id_count(0) {}
 		};
 		
-		/// Mapping: peptide sequence -> peptide data
+		/// Mapping: peptide sequence (modified) -> peptide data
 		typedef std::map<AASequence, PeptideData> PeptideQuant;
 
 		/// Quantitative and associated data for a protein
@@ -70,6 +80,12 @@ namespace OpenMS
 
 			/// mapping: sample -> total abundance
 			SampleAbundances total_abundances;
+
+			/// total number of identifications (of peptides mapping to this protein)
+			Size id_count;
+
+			/// constructor
+			ProteinData(): id_count(0) {}
 		};
 
 		/// Mapping: protein accession -> protein data
@@ -148,7 +164,7 @@ namespace OpenMS
 		/**
 			 @brief Get the "canonical" annotation (a single peptide hit) of a feature/consensus feature from the associated list of peptide identifications.
 
-			 Only the best-scoring peptide hit of each ID in @p peptides is taken into account. If there's more than one ID and the best hits are not identical by sequence, or if there's no peptide ID, an empty peptide hit (for "ambiguous/no annotation") is returned.
+			 Only the best-scoring peptide hit of each ID in @p peptides is taken into account. The hits of each ID must already be sorted! If there's more than one ID and the best hits are not identical by sequence, or if there's no peptide ID, an empty peptide hit (for "ambiguous/no annotation") is returned.
 			 Protein accessions from identical peptide hits are accumulated.
 		*/
 		PeptideHit getAnnotation_(std::vector<PeptideIdentification>& peptides);
@@ -180,6 +196,7 @@ namespace OpenMS
 				{
 					total += samp_it->second;
 				}
+				if (total <= 0.0) continue; // not quantified
 				PairType key = std::make_pair(ab_it->second.size(), total);
 				order.insert(std::make_pair(key, ab_it->first));
 			}
@@ -218,23 +235,12 @@ namespace OpenMS
 		String getAccession_(const std::set<String>& pep_accessions, 
 												 std::map<String, String>& accession_to_leader);
 
-		/// Collect peptide sequences of best hits from a list of peptide identifications.
-		void collectPeptideSequences_(std::vector<PeptideIdentification>& peptides,
-																	std::set<AASequence>& sequences);
+		/**
+			 @brief Count the number of identifications (best hits only) of each peptide sequence.
 
-		/// Get the number of distinct identified peptides in a feature map or consensus map.
-		template <typename MapType>
-		Size countPeptides_(MapType& map)
-		{
-			std::set<AASequence> sequences;
-			for (typename MapType::Iterator it = map.begin(); it != map.end(); ++it)
-			{
-				collectPeptideSequences_(it->getPeptideIdentifications(), sequences);
-			}
-			collectPeptideSequences_(map.getUnassignedPeptideIdentifications(),
-															 sequences);
-			return sequences.size();
-		}
+			 The peptide hits in @p peptides are sorted by score in the process.
+		*/
+		void countPeptides_(std::vector<PeptideIdentification>& peptides);
 
 		/// Clear all data when parameters are set
 		void updateMembers_();

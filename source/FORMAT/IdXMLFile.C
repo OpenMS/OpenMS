@@ -184,7 +184,7 @@ namespace OpenMS
 			os << "\t</SearchParameters>\n";
 		}
 		//empty search parameters
-		if (params.size()==0)
+		if (params.empty())
 		{
 			os << "<SearchParameters charges=\"+0, +0\" id=\"ID_1\" db_version=\"0\" mass_type=\"monoisotopic\" peak_mass_tolerance=\"0.0\" precursor_peak_tolerance=\"0.0\" db=\"Unknown\"/>\n";
 		}
@@ -234,6 +234,8 @@ namespace OpenMS
 				accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count++;
 				os << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" ";
 				os << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
+				// os << "coverage=\"" << protein_ids[i].getHits()[j].getCoverage() 
+				// 	 << "\" ";
 				os << "sequence=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getSequence()) << "\" >\n";
 				writeUserParam_("UserParam", os, protein_ids[i].getHits()[j], 4);
 				os << "\t\t\t</ProteinHit>\n";
@@ -331,7 +333,7 @@ namespace OpenMS
 			os << "\t</IdentificationRun>\n";
 		}
 		//empty protein ids  parameters
-		if (protein_ids.size()==0)
+		if (protein_ids.empty())
 		{
 			os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>\n";
 		}
@@ -599,7 +601,7 @@ namespace OpenMS
 				accession_string.trim();
 				vector<String> accessions;
 				accession_string.split(' ', accessions);
-				if (accession_string!="" && accessions.size()==0)
+				if (accession_string!="" && accessions.empty())
 				{
 					accessions.push_back(accession_string);
 				}

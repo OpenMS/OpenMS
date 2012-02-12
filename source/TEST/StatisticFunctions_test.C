@@ -71,17 +71,26 @@ START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal mean(It
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal mean(IteratorType begin, IteratorType end)))
+START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal median(IteratorType begin, IteratorType end)))
 {
 	int x[] = {-1, 0, 1, 2, 3};
 	TEST_EQUAL(Math::median(x, x + 5, TRUE), 1);
 	TEST_EXCEPTION(Exception::InvalidRange, Math::median(x, x));
 
+  // unsorted
 	DoubleList y;
 	y << 1.0 << -0.5 << 2.0 << 0.5 << -1.0 << 1.5 << 0.0;
 	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.5);
 	y << -1.5; // even length
 	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end()), 0.25);
+
+  // sorted
+  DoubleList z_odd;
+  z_odd << -1.0 << -0.5 << 0.0 << 0.5 << 1.0 << 1.5 << 2.0;
+  TEST_REAL_SIMILAR(Math::median(z_odd.begin(), z_odd.end(), true), 0.5);
+  DoubleList z_even;
+  z_even << -1.5 << -1.0 << -0.5 << 0.0 << 0.5 << 1.0 << 1.5 << 2.0;
+  TEST_REAL_SIMILAR(Math::median(z_even.begin(), z_even.end(), true), 0.25);
 }
 END_SECTION
 
@@ -298,15 +307,21 @@ START_SECTION([EXTRA](static void computeRank(std::vector<DoubleReal>& w)))
 
   TEST_REAL_SIMILAR(numbers1[0], 1.4);
   TEST_REAL_SIMILAR(numbers1[5], 2.2);
+  TEST_REAL_SIMILAR(numbers1[6], 1.5);
+  TEST_REAL_SIMILAR(numbers1[9], 1.5);
 
   Math::computeRank(numbers1);
 
-  TEST_REAL_SIMILAR(numbers1[0], 0);
-  TEST_REAL_SIMILAR(numbers1[1], 1);
-  TEST_REAL_SIMILAR(numbers1[2], 2);
-  TEST_REAL_SIMILAR(numbers1[3], 3);
-  TEST_REAL_SIMILAR(numbers1[4], 4);
-  TEST_REAL_SIMILAR(numbers1[5], 5);
+  TEST_REAL_SIMILAR(numbers1[0], 3);
+  TEST_REAL_SIMILAR(numbers1[1], 2);
+  TEST_REAL_SIMILAR(numbers1[2], 1);
+  TEST_REAL_SIMILAR(numbers1[3], 8);
+  TEST_REAL_SIMILAR(numbers1[4], 10);
+  TEST_REAL_SIMILAR(numbers1[5], 9);
+  TEST_REAL_SIMILAR(numbers1[6], 5.5);
+  TEST_REAL_SIMILAR(numbers1[7], 5.5);
+  TEST_REAL_SIMILAR(numbers1[8], 5.5);
+  TEST_REAL_SIMILAR(numbers1[9], 5.5);
 }
 END_SECTION
 
@@ -314,7 +329,14 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 {
   std::vector<DoubleReal> numbers1(10, 1.5);
   std::vector<DoubleReal> numbers2(10, 1.3);
+  std::vector<DoubleReal> numbers3(10, 0.42);
+  std::vector<DoubleReal> numbers4(10, 0.0);
   DoubleReal result = 0;
+
+  for (Size i = 0; i < numbers4.size(); ++i)
+  {
+    numbers4[i] = (DoubleReal)(i+1);
+  }
 
   numbers1[0] = 0.4;
   numbers2[0] = 0.5;
@@ -330,10 +352,23 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
   numbers2[5] = 3.0;
 
   result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
-  TEST_REAL_SIMILAR(result, 0.957142857142857);
+  TEST_REAL_SIMILAR(result, 0.858064516129032);
+	
 	result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(), 
 																						numbers2.rbegin(), numbers2.rend());
-  TEST_REAL_SIMILAR(result, -0.957142857142857);	
+  TEST_REAL_SIMILAR(result, 0.303225806451613);	
+  
+  result = Math::rankCorrelationCoefficient(numbers3.begin(), numbers3.end(), numbers4.begin(), numbers4.end());
+  TEST_REAL_SIMILAR(result, 0.0);
+  
+  result = Math::rankCorrelationCoefficient(numbers3.begin(), numbers3.end(), numbers3.begin(), numbers3.end());
+  TEST_REAL_SIMILAR(result, 0.0);
+  
+  result = Math::rankCorrelationCoefficient(numbers4.begin(), numbers4.end(), numbers4.begin(), numbers4.end());
+  TEST_REAL_SIMILAR(result, 1.0);
+
+  result = Math::rankCorrelationCoefficient(numbers4.begin(), numbers4.end(), numbers4.rbegin(), numbers4.rend());
+  TEST_REAL_SIMILAR(result, -1.0);
 }
 END_SECTION
 

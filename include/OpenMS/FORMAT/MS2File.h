@@ -102,7 +102,7 @@ namespace OpenMS
 					++line_number;
 					
 					line.trim();
-					if (line.size() == 0) continue;
+					if (line.empty()) continue;
 
 					// header
 					if (line[0] == 'H')

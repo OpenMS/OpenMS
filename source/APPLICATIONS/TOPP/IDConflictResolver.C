@@ -64,9 +64,13 @@ using namespace std;
 	</table>
 	</CENTER>
  	
-	The peptide identifications are filtered so that only one identification with a single hit (with the best score) is associated to each feature. (If two IDs have the same best score, either one of them may be selected.)
+	The peptide identifications are filtered so that only one identification
+	with a single hit (with the best score) is associated to each feature. (If
+	two IDs have the same best score, either one of them may be selected.)
 
-	This step may be useful before applying @ref TOPP_ProteinQuantifier "ProteinQuantifier", because features with ambiguous annotation are not considered for the quantification.
+	This step may be useful before applying @ref TOPP_ProteinQuantifier
+	"ProteinQuantifier", because features with ambiguous annotation are not
+	considered for the quantification.
   	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDConflictResolver.cli

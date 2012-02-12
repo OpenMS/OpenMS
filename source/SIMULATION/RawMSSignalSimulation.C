@@ -245,7 +245,7 @@ namespace OpenMS {
       const UInt COLS_EXPECTED = 8;
       for (Size i=0;i<tf.size();++i)
       {
-        if (tf[i].size()==0 || tf[i].hasPrefix("#")) continue; // skip comments
+        if (tf[i].empty() || tf[i].hasPrefix("#")) continue; // skip comments
         StringList cols;
         tf[i].removeWhitespaces().split(',', cols, true);
         if (cols.size()!=COLS_EXPECTED) throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__,tf[i],"Expected " + String(COLS_EXPECTED) + " components, got " + String(cols.size()));
@@ -314,6 +314,9 @@ namespace OpenMS {
 		SimCoordinateType minimal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
 		SimCoordinateType maximal_mz_measurement_limit = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
 		
+    // grid is constant over scans, so we compute it only once
+    getSamplingGrid_(grid_, minimal_mz_measurement_limit, maximal_mz_measurement_limit, 5); // every 5 Da we adjust the sampling width by local FWHM
+
     LOG_INFO << "  Simulating signal for " << features.size() << " features ..." << std::endl;
 
     this->startProgress(0,features.size(),"RawMSSignal");
@@ -508,9 +511,7 @@ namespace OpenMS {
     SimCoordinateType mz_start = isomodel.getInterpolation().supportMin();
     SimCoordinateType mz_end = isomodel.getInterpolation().supportMax();
     
-    SimCoordinateType mz_sampling_rate = fwhm / sampling_points_per_FWHM_;
-
-    samplePeptideModel1D_(isomodel, mz_start, mz_end, mz_sampling_rate, experiment, experiment_ct, active_feature);
+    samplePeptideModel1D_(isomodel, mz_start, mz_end, experiment, experiment_ct, active_feature);
   }
 
   void RawMSSignalSimulation::add2DSignal_(Feature & active_feature, MSSimExperiment & experiment, MSSimExperiment & experiment_ct)
@@ -576,17 +577,15 @@ namespace OpenMS {
     SimCoordinateType mz_start ( isomodel->getInterpolation().supportMin() );
     SimCoordinateType mz_end ( isomodel->getInterpolation().supportMax() );
 
-    SimCoordinateType mz_sampling_rate = fwhm / sampling_points_per_FWHM_;
     // add peptide to GLOBAL MS map
     // add CH and new intensity to feature
-    samplePeptideModel2D_(pm, mz_start, mz_end, mz_sampling_rate, rt_start, rt_end, experiment, experiment_ct, active_feature);
+    samplePeptideModel2D_(pm, mz_start, mz_end, rt_start, rt_end, experiment, experiment_ct, active_feature);
   }
 
 
   void RawMSSignalSimulation::samplePeptideModel1D_(const IsotopeModel & pm,
 																										const SimCoordinateType mz_start,
                                                     const SimCoordinateType mz_end,
-                                                    const SimCoordinateType mz_sampling_rate,
 																										MSSimExperiment & experiment,
                                                     MSSimExperiment & experiment_ct,
                                                     Feature & active_feature)
@@ -609,14 +608,15 @@ namespace OpenMS {
       experiment_ct[0].push_back(point);
     }
 
-    for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate)
+    std::vector<SimCoordinateType>::const_iterator it_grid = lower_bound(grid_.begin(), grid_.end(), mz_start);
+    for ( ; it_grid != grid_.end() && (*it_grid) < mz_end; ++it_grid)
     {
-      point.setMZ(mz);
-      point.setIntensity( pm.getIntensity( DPosition<1>( mz ) ) );
+      point.setMZ(*it_grid);
+      point.setIntensity( pm.getIntensity( DPosition<1>( *it_grid ) ) );
 
       if ( point.getIntensity() <= 0.0) continue;
 
-      // add gaussian distributed m/z error
+      // add Gaussian distributed m/z error
       double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
       point.setMZ( fabs(point.getMZ() + mz_err) );
 
@@ -630,7 +630,6 @@ namespace OpenMS {
   void RawMSSignalSimulation::samplePeptideModel2D_(const ProductModel<2> & pm,
                                                     const SimCoordinateType mz_start,
                                                     const SimCoordinateType mz_end,
-                                                    const SimCoordinateType mz_sampling_rate,
                                                     SimCoordinateType rt_start,
                                                     SimCoordinateType rt_end,
                                                     MSSimExperiment & experiment,
@@ -675,18 +674,19 @@ namespace OpenMS {
         exp_ct_iter->push_back(point);
       }
 
-      // RAW signal
-      for (SimCoordinateType mz = mz_start; mz < mz_end; mz += mz_sampling_rate)
+      // RAW signal (sample it on the grid)
+      std::vector<SimCoordinateType>::const_iterator it_grid = lower_bound(grid_.begin(), grid_.end(), mz_start);
+      for ( ; it_grid != grid_.end() && (*it_grid) < mz_end; ++it_grid)
       {
-        ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, mz) ) * distortion;
+        ProductModel<2>::IntensityType intensity = pm.getIntensity( DPosition<2>( rt, *it_grid) ) * distortion;
         if (intensity <= 0.0) continue; // intensity cutoff (below that we don't want to see a signal)
 
-        point.setMZ(mz);
+        point.setMZ(*it_grid);
         point.setIntensity(intensity);
 
         //LOG_ERROR << "Sampling " << rt << " , " << mz << " -> " << point.getIntensity() << std::endl;
 
-        // add gaussian distributed m/z error
+        // add Gaussian distributed m/z error
         double mz_err = 0.0;
 #ifdef _OPENMP
         int CURRENT_THREAD = omp_get_thread_num();
@@ -714,7 +714,7 @@ namespace OpenMS {
 
         mz_err = threaded_random_numbers_[CURRENT_THREAD][threaded_random_numbers_index_[CURRENT_THREAD]++];
 #else
-        // we can use the normal gaussian ran-gen if we do not use OPENMP
+        // we can use the normal Gaussian ran-gen if we do not use OPENMP
         mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
 #endif
         point.setMZ( fabs(point.getMZ() + mz_err ));
@@ -769,7 +769,7 @@ namespace OpenMS {
       }
       if (!has_data) continue;
 
-      // add four egde points of mass trace
+      // add four edge points of mass trace
       ConvexHull2D hull;
       vector< DPosition<2> > points;
       points.push_back( DPosition<2>(rt_min, mz-0.001));
@@ -824,10 +824,8 @@ namespace OpenMS {
       elutionmodel->setParameters(p); // does the calculation
       //----------------------------------------------------------------------
 
-      // Hack away constness :-P   We know what we want.
-      EGHModel::ContainerType &data = const_cast<EGHModel::ContainerType &>(elutionmodel->getInterpolation().getData());
-
       SimCoordinateType rt_em_start = elutionmodel->getInterpolation().supportMin();
+      SimCoordinateType rt_em_end = elutionmodel->getInterpolation().supportMax();
 
       // find scan in experiment at which our elution starts
       MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
@@ -841,11 +839,11 @@ namespace OpenMS {
       elution_bounds[2] = elution_bounds[0];
       elution_bounds[3] = elution_bounds[1];
 
-      for ( Size i = 0; (i < data.size()) && exp_it!=experiment.end(); ++i, ++exp_it )
+      for ( ; (exp_it->getRT() <= rt_em_end) && (exp_it!=experiment.end());++exp_it )
       { // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
-        data[i] *= (DoubleReal) exp_it->getMetaValue("distortion");
+        DoubleReal intensity = (DoubleReal) exp_it->getMetaValue("distortion") * elutionmodel->getInterpolation().value(exp_it->getRT());
         // store elution profile in feature MetaValue
-        elution_intensities.push_back(data[i]);
+        elution_intensities.push_back( intensity );
         elution_bounds[2] = std::distance(experiment.begin(), exp_it);
         elution_bounds[3] = exp_it->getRT();
       }
@@ -1033,20 +1031,14 @@ namespace OpenMS {
 			return;
 		}
 
-    // grid is constant over scans, so we compute it only once
-    std::vector<SimCoordinateType> grid;
-    SimCoordinateType min_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
-    SimCoordinateType max_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].end;
-    getSamplingGrid_(grid, min_mz, max_mz, 5); // every 5 Da we adjust the sampling width by local FWHM
-
     for(MSSimExperiment::iterator spectrum_it = experiment.begin() ; spectrum_it != experiment.end() ; ++spectrum_it)
     {
       MSSimExperiment::SpectrumType new_spec = (*spectrum_it);
       new_spec.clear(false);
 
-      std::vector<SimCoordinateType>::iterator grid_it = grid.begin();
+      std::vector<SimCoordinateType>::iterator grid_it = grid_.begin();
       MSSimExperiment::SpectrumType::iterator peak_it = spectrum_it->begin();
-      for( ; grid_it != grid.end() ;  ++grid_it)
+      for( ; grid_it != grid_.end() ;  ++grid_it)
       {
         // if peak is in grid
         if(peak_it != spectrum_it->end() && *grid_it == peak_it->getMZ())
@@ -1086,7 +1078,7 @@ namespace OpenMS {
     }
     grid.clear();
     SimCoordinateType mz = mz_min;
-    DoubleReal sampling_rate;
+    DoubleReal sampling_rate(0);
     while (mz <= mz_max)
     {
       SimCoordinateType fwhm = getPeakWidth_(mz, param_.getValue("peak_shape") == "Gaussian");

@@ -211,7 +211,7 @@ namespace OpenMS
 					BaseFeature bf;
 					bf.setRT(exp[i].getRT());
 					std::vector< Precursor > pcs = exp[i].getPrecursors();
-					if (pcs.size()==0) throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
+					if (pcs.empty()) throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
 					if (pcs.size()>1) LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
 					bf.setMZ(pcs[0].getMZ());
 					data.push_back(bf);
@@ -324,7 +324,7 @@ namespace OpenMS
         DoubleReal rt_average=consensus_spec.getRT();
         DoubleReal precursor_mz_average = 0.0;
         Size precursor_count(0);
-        if (consensus_spec.getPrecursors().size() > 0)
+        if ( !consensus_spec.getPrecursors().empty() )
         {
           precursor_mz_average = consensus_spec.getPrecursors()[0].getMZ();
           ++precursor_count;
@@ -388,7 +388,7 @@ namespace OpenMS
           consensus_spec.setPrecursors(pcs);
         }
 
-        if (consensus_spec.size()==0) continue;
+        if (consensus_spec.empty()) continue;
         else merged_spectra.push_back(consensus_spec);
 			}
 

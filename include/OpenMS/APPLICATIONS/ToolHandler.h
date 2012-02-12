@@ -40,10 +40,10 @@ namespace OpenMS
      Path's were *.ttd files are searched for:
 
      Default:
-       The OpenMS share directory (<OpenMS>/share/TOOLS/EXTERNAL)
+       The OpenMS share directory ([OpenMS]/share/TOOLS/EXTERNAL)
        OS specific directories 
-        - <OpenMS>/share/TOOLS/EXTERNAL/LINUX   (for Mac and Linux)
-        - <OpenMS>/share/TOOLS/EXTERNAL/WINDOWS (for Windows)
+        - [OpenMS]/share/TOOLS/EXTERNAL/LINUX   (for Mac and Linux)
+        - [OpenMS]/share/TOOLS/EXTERNAL/WINDOWS (for Windows)
      Environment:
        OPENMS_TTD_PATH  (use only one path here!)
 
@@ -61,8 +61,6 @@ namespace OpenMS
     Disadvantage:
                - when to library loads, we'd need to parse all the files. Making our start-up time even longer...
                - when files are broken/missing, we will have a hard time initializing the lib
-               - '-types' need to be stored somewhere. For factory derived tools it makes no sense to write
-                 these type lists into files, when they are easily grabable from the factory.
   */
   
   /// map each TOPP/UTIL to its ToolDescription

@@ -34,6 +34,52 @@
 using namespace OpenMS;
 using namespace std;
 
+class DerivedLabeler
+  : public BaseLabeler
+{
+	  public:
+	virtual void preCheck(Param &) const 
+  { 
+    throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
+	} 
+
+	virtual void setUpHook(FeatureMapSimVector & /* features */) 
+	{ 
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
+	} 
+
+	virtual void postDigestHook(FeatureMapSimVector & /* features_to_simulate */) 
+	{ 
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
+	} 
+
+	virtual void postRTHook(FeatureMapSimVector & /* features_to_simulate */) 
+	{ 
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
+	} 
+
+	virtual void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */) 
+	{ 
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
+	} 
+
+	virtual void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */) 
+	{ 
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
+	} 
+
+	virtual void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */) 
+	{ 
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
+	} 
+
+	virtual void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */) 
+	{ 
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
+	} 	
+
+};
+
 START_TEST(BaseLabeler, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -43,7 +89,7 @@ BaseLabeler* ptr = 0;
 BaseLabeler* nullPointer = 0;
 START_SECTION(BaseLabeler())
 {
-	ptr = new BaseLabeler();
+	ptr = new DerivedLabeler();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -54,7 +100,7 @@ START_SECTION(~BaseLabeler())
 }
 END_SECTION
 
-BaseLabeler labeler;
+DerivedLabeler labeler;
 FeatureMapSimVector empty_fmsv;
 MSSimExperiment empty_experiment;
 
@@ -113,14 +159,14 @@ START_SECTION((virtual void setRnd(const SimRandomNumberGenerator &rng)))
 }
 END_SECTION
 
-START_SECTION((virtual void preCheck(Param &) const ))
+START_SECTION((virtual void preCheck(Param &param) const =0))
 {
   Param p;
   TEST_EXCEPTION(Exception::NotImplemented, labeler.preCheck(p))
 }
 END_SECTION
 
-START_SECTION((const ConsensusMap& getConsensus() const ))
+START_SECTION((const ConsensusMap& getConsensus() ))
 {
   ConsensusMap cm;
   TEST_EQUAL(labeler.getConsensus(), cm) // Consensus should be empty

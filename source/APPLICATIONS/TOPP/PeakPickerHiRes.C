@@ -45,36 +45,36 @@ using namespace std;
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PeakPicker \f$ \longrightarrow \f$</td>
+      <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ PeakPickerHiRes \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format)</td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> any tool operating on MS peak data @n (in mzML format)</td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilter </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterGaussian </td>
 		</tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
+    </tr>
 	</table>
 </CENTER>
+
 	The conversion of the ''raw'' ion count data acquired
 	by the machine into peak lists for further processing
 	is usually called peak picking. The choice of the algorithm
 	should mainly depend on the resolution of the data.
 	As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
-	algorithm is fit for high resolution data whereas in case
-	of low-resoluted data the @ref OpenMS::PeakPickerCWT "wavelet"
-	algorithm offers the ability to resolve highly convoluted
-	and asymmetric signals, separation of overlapping peaks
-	and nonlinear optimization.
+  algorithm is fit for high resolution data.
 
 	@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_PeakPicker.cli
+  @verbinclude TOPP_PeakPickerHiRes.cli
 
 	For the parameters of the algorithm section see the algorithm documentation: @n
-		@ref OpenMS::PeakPickerHiRes "high_res" @n
+    @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes" @n
 
 	In the following table you, can find example values of the most important algorithm parameters for
 	different instrument types. @n These parameters are not valid for all instruments of that type,
@@ -90,15 +90,8 @@ using namespace std;
 			<td>2</td>
 			<td>0</td>
 		</tr>
-		<tr>
-		<td BGCOLOR="#EBEBEB"><b>peak_width ("wavelet" only)</b></td>
-			<td>0.1</td>
-			<td>0.012</td>
-		</tr>
 	</table>
 
-	In order to impove the results of the peak detection on low resolution data @ref TOPP_NoiseFilter and @ref TOPP_BaselineFilter can be applied.
-	For high resolution data this is not necessary.
 */
 
 // We do not want this class to show up in the docu:
@@ -134,7 +127,6 @@ protected:
 
     ExitCodes main_(int , const char**)
     {
-
         //-------------------------------------------------------------
         // parameter handling
         //-------------------------------------------------------------
@@ -150,12 +142,13 @@ protected:
         MSExperiment<Peak1D > ms_exp_raw;
         mz_data_file.load(in, ms_exp_raw);
 
-        if (ms_exp_raw.size()==0)
+        if (ms_exp_raw.empty())
         {
             LOG_WARN << "The given file does not contain any conventional peak data, but might"
                     " contain chromatograms. This tool currently cannot handle them, sorry.";
             return INCOMPATIBLE_INPUT_DATA;
         }
+
         //check for peak type (profile data required)
         if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
         {
@@ -188,10 +181,8 @@ protected:
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
-
         //annotate output with data processing info
         addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING));
-
         mz_data_file.store(out,ms_exp_peaks);
 
         return EXECUTION_OK;

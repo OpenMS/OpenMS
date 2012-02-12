@@ -55,6 +55,7 @@
 	- @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
   - @subpage TOPP_SpectraMerger - Merges spectra from an LC/MS map, either by precursor or by RT blocks
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
+	- @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file
 
   <b>Signal Processing and Preprocessing</b>
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
@@ -63,19 +64,31 @@
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC/MS maps.
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra by using different smoothing techniques.
   - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra by using different smoothing techniques.
-  - @subpage TOPP_PeakPicker - Finds mass spectrometric peaks in profile mass spectra.
+  - @subpage TOPP_PeakPickerHiRes - Finds mass spectrometric peaks in profile mass spectra.
+  - @subpage TOPP_PeakPickerWavelet - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
+  - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
   - @subpage TOPP_Resampler - Transforms an LC/MS map into an equally-spaced (in RT and m/z) map.
-  - @subpage TOPP_SpectraFilter - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterBernNorm - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterMarkerMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterNLargest - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterNormalizer - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterParentPeakMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterScaler - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterSqrtMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterThresholdMower - Applies a filter to peak spectra.
+  - @subpage TOPP_SpectraFilterWindowMower - Applies a filter to peak spectra.
   - @subpage TOPP_TOFCalibration - Applies time of flight calibration.
 
   <b>Quantitation</b>
   - @subpage TOPP_AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples.
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC/MS maps.
-  - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in LC-MS data.
-  - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in LC-MS data.
-  - @subpage TOPP_FeatureFinderMRM - Detects two-dimensional features in LC-MS data.
+  - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
+  - @subpage TOPP_FeatureFinderRaw - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
+  - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
+  - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
+  - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
   - @subpage TOPP_ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps
   - @subpage TOPP_SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
@@ -83,10 +96,10 @@
 
   <b>Map Alignment</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
-	- @subpage TOPP_MapAlignerApplyTransformation - Applies retention time transformations to maps.
 	- @subpage TOPP_MapAlignerIdentification - Corrects retention time distortions between maps based on common peptide identifications.
   - @subpage TOPP_MapAlignerPoseClustering - Corrects retention time distortions between maps using a pose clustering approach.
   - @subpage TOPP_MapAlignerSpectrum - Corrects retention time distortions between maps by spectrum alignment.
+  - @subpage TOPP_MapRTTransformer - Applies retention time transformations to maps.
   - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
   - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
   - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
@@ -107,7 +120,6 @@
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
 	- @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
-  - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
   - @subpage TOPP_IDFilter - Filters results from protein or peptide identification engines based on different criteria.
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
@@ -116,7 +128,9 @@
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
 <!--  %% removed from Docu (still available in TOPP) because of operability
 - @subpage TOPP_PILISIdentification - Trains the PILIS model using a given set of spectra and identifications.
-- @subpage TOPP_PILISModel - Trains the PILIS model using a given set of spectra and identifications.
+- @subpage TOPP_PILISModelCV - Perform a cross validation of the PILIS model parameters
+- @subpage TOPP_PILISModelTrainer - Train the PILIS model using a given set of spectra and identifications.
+- @subpage TOPP_PILISSpectraGenerator - Generate spectra given a list of peptides and a PILIS model
 -->
 
   <b>Targeted Experiments</b>

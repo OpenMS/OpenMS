@@ -74,7 +74,6 @@ namespace OpenMS
   {
     initializedMaps_ = true;
 
-    Int index = 0;
     if (aa_to_index_.empty())
     {
       ResidueDB* res_db;
@@ -87,6 +86,8 @@ namespace OpenMS
         residues.insert((*aa_it)->getOneLetterCode());
       }
       std::set<String>::const_iterator aa2_it;
+      Int index = 0;
+
       for (aa2_it = residues.begin(); aa2_it != residues.end(); ++aa2_it)
       {
         aa_to_index_[*aa2_it] = index;

@@ -167,7 +167,7 @@ class TOPPFileFilter
 			}
 			feature.setPeptideIdentifications(vector<PeptideIdentification> (1,temp));
 			// not filtering sequences or accessions
-      if (sequences.size() == 0 && accessions.size() == 0)
+      if (sequences.empty() && accessions.empty())
 			{
 				return true;
 			}
@@ -817,7 +817,7 @@ class TOPPFileFilter
 					  consensus_feature_new.computeConsensus(); // evaluate position of the consensus
 					  bool and_connective=getFlag_("map_and");
 
-					  if ((consensus_feature_new.size() != 0 && !and_connective) || (consensus_feature_new.size()==maps.size() && and_connective)) // add the consensus to the consensus map only if it is non-empty 
+            if ((!consensus_feature_new.empty() && !and_connective) || (consensus_feature_new.size()==maps.size() && and_connective)) // add the consensus to the consensus map only if it is non-empty
 					  {            
 						  cm_new.push_back(consensus_feature_new);
 					  }

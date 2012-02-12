@@ -71,7 +71,7 @@ namespace OpenMS
     open_tags_.push_back(tag_);
 
     static set<String> tags_to_ignore;
-    if (tags_to_ignore.size() == 0)
+    if ( tags_to_ignore.empty() )
     {
 			tags_to_ignore.insert("TraML"); // base node
       tags_to_ignore.insert("ContactList"); // contains only contact sections
@@ -292,7 +292,7 @@ namespace OpenMS
 		open_tags_.pop_back();
 
 		static set<String> tags_to_ignore;
-		if (tags_to_ignore.size() == 0)
+    if ( tags_to_ignore.empty() )
 		{
       tags_to_ignore.insert("TraML"); // base node
       tags_to_ignore.insert("ContactList"); // contains only contact sections
@@ -1102,10 +1102,6 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
     {
       actual_compound_.addCVTerm(cv_term);
     }
-		else if (parent_tag == "Peptide")
-		{
-			actual_peptide_.addCVTerm(cv_term);
-		}
 		else if (parent_tag == "Protein")
 		{
 			actual_protein_.addCVTerm(cv_term);

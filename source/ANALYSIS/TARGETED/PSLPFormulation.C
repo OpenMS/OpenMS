@@ -49,7 +49,9 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 	Int counter = 0;
   model_ = new LPWrapper();
   //#define DEBUG_OPS	
+#ifdef DEBUG_OPS
 	std::cout << "Feature Based: Build model: first objective"<<std::endl;
+#endif
 	///////////////////////////////////////////////////////////////////////
 	// add objective function
 	///////////////////////////////////////////////////////////////////////
@@ -67,7 +69,7 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 			std::cout << "feat: "<<i <<" charge "<<features[i].getCharge() << std::endl;
 #endif
 			if (charges_set.count(features[i].getCharge())<1) continue;
-			if(mass_ranges[i].size()==0) continue;
+			if(mass_ranges[i].empty()) continue;
 #ifdef DEBUG_OPS
 			if(mass_ranges[i].size() > 0)
 				{
@@ -97,15 +99,16 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
           Int index = model_->addColumn();
           triple.variable = index;
 					variable_indices.push_back(triple);
-          
+#ifdef DEBUG_OPS          
           std::cout << index << " variable index"<<std::endl;
+#endif
           model_->setColumnBounds(index,0,1,LPWrapper::DOUBLE_BOUNDED);
           model_->setColumnType(index,LPWrapper::BINARY); // binary variable
 					model_->setColumnName(index,(String("x_")+i+","+s));
-          //#ifdef DEBUG_OPS	
+#ifdef DEBUG_OPS	
 					std::cout << "feat "<<i << " scan "<< s << " intensity_weight "
 										<< intensity_weights[i][c] <<std::endl;
-          //#endif
+#endif
 					model_->setObjective(index,intensity_weights[i][c]);
 					++counter;
 					++c;
@@ -151,7 +154,9 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 				{
 					entries[c] = 1.;
 					indices[c] = (int) variable_indices[k].variable;
+#ifdef DEBUG_OPS
           std::cout << "indices["<<c<<"]= "<<indices[c]<<std::endl;
+#endif
 					++c;
 				}
 #ifdef DEBUG_OPS
@@ -200,7 +205,9 @@ void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features,std::vecto
 				{
 					entries[c] = 1.;
 					indices[c] = (int)  variable_indices[s].variable;
+#ifdef DEBUG_OPS
           std::cout << "indices["<<c<<"]= "<<indices[c]<<std::endl;
+#endif
 					++c;
 				}
 #ifdef DEBUG_OPS
@@ -318,7 +325,9 @@ void PSLPFormulation::solveILP_(std::vector<int>& solution_indices)
   for (Int column = 0; column < model_->getNumberOfColumns(); ++column)
   {
     double value = model_->getColumnValue(column);
+#ifdef DEBUG_OPS
     std::cout << value << " "<< model_->getColumnType(column) << std::endl;
+#endif
     if ((fabs(value) > 0.5 && model_->getColumnType(column) == LPWrapper::BINARY) ||
       (fabs(value) > 0.5 && model_->getColumnType(column) == LPWrapper::INTEGER))
     {

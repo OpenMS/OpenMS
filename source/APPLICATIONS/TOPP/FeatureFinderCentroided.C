@@ -48,16 +48,16 @@ using namespace std;
  <table>
   <tr>
    <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-   <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinder \f$ \longrightarrow \f$</td>
+   <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderCentroided \f$ \longrightarrow \f$</td>
    <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker </td>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinker </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled @n (or another feature grouping tool) </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MapAligner </td>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_SeedListGenerator </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_SeedListGenerator </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MapAlignerPoseClustering @n (or another alignment tool) </td>
   </tr>
  </table>
 </CENTER>
@@ -112,7 +112,7 @@ using namespace std;
   </tr>
  </table>
 
- For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPicker.
+ For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPickerWavelet.
 */
 
 // We do not want this class to show up in the docu:
@@ -217,6 +217,23 @@ protected:
     // write features to user specified output file
     FeatureXMLFile map_file;
     String out = getStringOption_("out");
+
+		// Remove detailed convex hull information and subordinate features
+		// (unless requested otherwise) to reduce file size of feature files 
+    // unless debugging is turned on.
+    if (debug_level_ < 5)
+		{
+			FeatureMap<>::Iterator it;
+			for (it = features.begin(); it != features.end(); ++it)
+			{
+				it->getConvexHull().expandToBoundingBox();
+				for (Size i = 0; i < it->getConvexHulls().size(); ++i)
+				{
+					it->getConvexHulls()[i].expandToBoundingBox();	
+				}
+				it->getSubordinates().clear();
+			}
+		}
 
 		map_file.store(out,features);
 

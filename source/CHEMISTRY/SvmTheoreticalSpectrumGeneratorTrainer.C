@@ -368,11 +368,12 @@ for the selected primary ion types. They can be used as input for LibSVM command
       step_sizes_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_step_size));
       end_values_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_stop));
 
+      if (wrap_reg.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
+      {
       UInt degree_start = 0;
       UInt degree_step_size = 0;
       UInt degree_stop = 0;
-      if (wrap_reg.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
-      {
+
         degree_start = (Int)param_.getValue("svm:svr:degree_start");
         degree_step_size = (Int)param_.getValue("svm:svr:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
@@ -385,11 +386,13 @@ for the selected primary ion types. They can be used as input for LibSVM command
         step_sizes_reg.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
         end_values_reg.insert(make_pair(SVMWrapper::DEGREE, degree_stop));
       }
+
+      if (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR)
+      {
       DoubleReal p_start = 0.;
       DoubleReal p_step_size = 0.;
       DoubleReal p_stop = 0.;
-      if (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR)
-      {
+
         p_start = (DoubleReal)param_.getValue("svm:svr:p_start");
         p_step_size = (DoubleReal)param_.getValue("svm:svr:p_step_size");
         if (!additive_cv && p_step_size <= 1)
@@ -402,6 +405,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
         step_sizes_reg.insert(make_pair(SVMWrapper::P, p_step_size));
         end_values_reg.insert(make_pair(SVMWrapper::P, p_stop));
       }
+
       DoubleReal c_start = 0.;
       DoubleReal c_step_size = 0.;
       DoubleReal c_stop = 0.;
@@ -418,12 +422,12 @@ for the selected primary ion types. They can be used as input for LibSVM command
       step_sizes_reg.insert(make_pair(SVMWrapper::C, c_step_size));
       end_values_reg.insert(make_pair(SVMWrapper::C, c_stop));
 
-
+      if ( (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
+      {
       DoubleReal nu_start = 0.;
       DoubleReal nu_step_size = 0.;
       DoubleReal nu_stop = 0.;
-      if ( (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
-      {
+
         nu_start = (DoubleReal)param_.getValue("svm:svr:nu_start");
         nu_step_size = (DoubleReal)param_.getValue("svm:svr:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)
@@ -454,11 +458,12 @@ for the selected primary ion types. They can be used as input for LibSVM command
       step_sizes_class.insert(make_pair(SVMWrapper::GAMMA, gamma_step_size));
       end_values_class.insert(make_pair(SVMWrapper::GAMMA, gamma_stop));
 
+      if (wrap_class.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
+      {
       UInt degree_start = 0;
       UInt degree_step_size = 0;
       UInt degree_stop = 0;
-      if (wrap_class.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
-      {
+
         degree_start = (Int)param_.getValue("svm:svc:degree_start");
         degree_step_size = (Int)param_.getValue("svm:svc:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
@@ -488,12 +493,12 @@ for the selected primary ion types. They can be used as input for LibSVM command
       step_sizes_class.insert(make_pair(SVMWrapper::C, c_step_size));
       end_values_class.insert(make_pair(SVMWrapper::C, c_stop));
 
+      if ( (wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
+      {
       DoubleReal nu_start = 0.;
       DoubleReal  nu_step_size = 0.;
       DoubleReal nu_stop = 0.;
 
-      if ( (wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
-      {
         nu_start = (DoubleReal)param_.getValue("svm:svc:nu_start");
         nu_step_size = (DoubleReal)param_.getValue("svm:svc:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)

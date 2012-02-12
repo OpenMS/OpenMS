@@ -215,14 +215,14 @@ namespace OpenMS
   	If you want to create a new TOPP tool, please take care of the following:
   	- derive a new class from this class
   	- implement the registerOptionsAndFlags_ and main_ methods
-  	- add a doxygen page for the tool and add the page to TOPP.doxygen
-  	- hide the derived class in the OpenMS documentation by using doxygen condition macros.
+  	- add a Doxygen page for the tool and add the page to TOPP.doxygen
+  	- hide the derived class in the OpenMS documentation by using Doxygen condition macros.
   
     @todo: replace writeLog_, writeDebug_ with a logger concept
-           we'd need something like -VLevels <LOGGERS> to specify which loggers shall print something
-           the '-log' flag should clone all output to the log-file (maybe with custom <LOGGERS), which can either be specified directly or is
+           we'd need something like -VLevels [LOGGERS] to specify which loggers shall print something
+           the '-log' flag should clone all output to the log-file (maybe with custom [LOGGERS]), which can either be specified directly or is
               equal to '-out' (if present) with a ".log" suffix
-           maybe a new LOGGER type (TOPP), which is only useable on TOPP level?
+           maybe a new LOGGER type (TOPP), which is only usable on TOPP level?
 
 
   */
@@ -268,6 +268,14 @@ namespace OpenMS
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
 
+      /**
+        @brief Sets the maximal number of usable threads
+
+        @param num_threads The number of threads that should be usable.
+
+        @note This method only works if %OpenMS is compiled with %OpenMP support.
+      */
+      static void setMaxNumberOfThreads(int num_threads);
 
     private:
 
@@ -516,7 +524,7 @@ namespace OpenMS
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
-      	@param advanced A list of tags, e.g. 'skipexists', specifying the handling of the input file (e.g. when its an executable)
+      	@param tags A list of tags, e.g. 'skipexists', specifying the handling of the input file (e.g. when its an executable)
                         Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for an executable in global PATH)
       */
       void registerInputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags=StringList() );

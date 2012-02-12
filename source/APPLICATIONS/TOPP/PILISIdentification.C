@@ -53,7 +53,7 @@ using namespace std;
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PILISModel </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PILISModelTrainer </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
 		</tr>
 		<tr>
@@ -295,7 +295,7 @@ class TOPPPILISIdentification
 
 					ids.push_back(id);
 
-					if (id.getHits().size() != 0)
+          if ( !id.getHits().empty() )
 					{
 						cerr << it->getPrecursors()[0].getMZ() << " " << AASequence(id.getHits().begin()->getSequence()).getAverageWeight() << endl;
 						writeDebug_(id.getHits().begin()->getSequence().toString() + " (z=" + id.getHits().begin()->getCharge() + "), score=" + String(id.getHits().begin()->getScore()) , 10);

@@ -651,7 +651,7 @@ namespace OpenMS
 				{
           String name = it->name;
           node_parent->nodes.erase(it); // will automatically delete subnodes
-          if (node_parent->nodes.size() == 0  && node_parent->entries.size() == 0)
+          if (node_parent->nodes.empty()  && node_parent->entries.empty())
           {
             // delete last section name (could be partial)
             remove( keyname.chop(name.size()) ); // keep last ':' to indicate deletion of a section
@@ -669,7 +669,7 @@ namespace OpenMS
 			  if (it!=node->entries.end())
 			  {
           node->entries.erase(it); // delete entry
-          if (node->nodes.size() == 0  && node->entries.size() == 0)
+          if (node->nodes.empty()  && node->entries.empty())
           {
             // delete if section is now empty
             remove( keyname.chop(entryname.size()) ); // keep last ':' to indicate deletion of a section
@@ -691,7 +691,7 @@ namespace OpenMS
 				{
           String name = it->name;
           node->nodes.erase(it); // will automatically delete subnodes
-          if (node->nodes.size() == 0  && node->entries.size() == 0)
+          if (node->nodes.empty()  && node->entries.empty())
           {
             // delete last section name (could be partial)
             removeAll(prefix.chop(name.size()+1)); // '+1' for the tailing ':'
@@ -729,7 +729,7 @@ namespace OpenMS
 					}
 				}
         // the parent node might now be empty (delete it as well - otherwise the trace might be broken)
-        if (node->nodes.size() == 0 && node->entries.size() == 0)
+        if (node->nodes.empty() && node->entries.empty())
         {
           // delete last section name (could be partial)
           removeAll(prefix.chop(suffix.size()));
@@ -1558,7 +1558,7 @@ namespace OpenMS
       trace_()
 	{
 		//Empty Param => begin == end iterator
-		if (root_->entries.size()==0 && root_->nodes.size()==0)
+		if (root_->entries.empty() && root_->nodes.empty())
 		{
 			root_ = 0;
 			return;

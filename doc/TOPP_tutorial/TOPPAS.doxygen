@@ -31,14 +31,14 @@
 	@page TOPPAS_general General introduction
 
 		@b TOPPAS allows to create, edit, open, save, and run TOPP workflows. Pipelines
-		can be created conveniently in a GUI by means of mouse interactions. The
-		parameters of all involved tools can be edited within the application
+		can be created conveniently in a GUI. The
+		parameters of all involved tools can be edited within TOPPAS
 		and are also saved as part of the pipeline definition in the @a .toppas file.
 		Furthermore, @b TOPPAS interactively performs validity checks during the pipeline
-		editing process and before execution,
-		in order to make it more difficult to create an invalid workflow.
+		editing process and before execution (i.e., a dry run of the entire pipeline),
+		in order to prevent the creation of invalid workflows.
 		Once set up and saved, a workflow can also be run without the GUI using
-		the @a ExecutePipeline @a -in @a \<file\> command line option.
+		@a ExecutePipeline @a -in @a \<file\>.
 		
 		The following figure shows a simple example pipeline that has just been created
 		and executed successfully:
@@ -52,31 +52,31 @@
 		
 			The following figure shows the @b TOPPAS main window and a pipeline which is just being created.
 			The user has added some tools by drag&dropping them from the TOPP tool list on the left
-			onto the central window. Additionally, he has added special nodes
+			onto the central window. Additionally, the user has added nodes
 			for input and output files.
 			
-			Next, the user has drawn some edges between the tools
-			which determine the data flow of the pipeline. Edges can be drawn by first @em deselecting the
+			Next, the user has drawn some connections between the tools
+			which determine the data flow of the pipeline. Connections can be drawn by first @em deselecting the
 			desired source node (by clicking anywhere but not on another node)
-			and then dragging the mouse from the source to the wished target node (if
+			and then dragging the mouse from the source to the target node (if
 			a @em selected node is dragged, it is moved on the canvas instead).
-			When an edge is created and the source (the target) has more than one output (input) parameter,
+			When a connection is created and the source (the target) has more than one output (input) parameter,
 			an input/output parameter
 			mapping dialog shows up and let's the user select the output parameter of the source node and the
 			input parameter of the target node for this data flow.
 			If the file types of the selected input and output parameters are not compatible with each other,
-			@b TOPPAS will refuse to add the edge. It will also refuse to add an edge, if this edge
+			@b TOPPAS will refuse to add the connection. It will also refuse to add a connection if it
 			would create a cycle in the workflow, or if it just would not make sense, e.g., if
-			its target is an input file node. The edge between the input file node and the BaselineFilter
+			its target is an input file node. The connection between the input file node and the BaselineFilter
 			tool is painted yellow which means it is not ready yet, because no input files have been
 			specified yet.
 			
 			@image html TOPPAS_edges.png
 			@image latex TOPPAS_edges.png "" width=14cm
 			
-			The input/output mapping of edges can be changed at any time during the editing process by double-clicking
-			an edge or by selecting @a Edit @a I/O @a mapping from the context menu which appears when an edge is right-clicked.
-			All visible items (i.e. edges and the different kinds of nodes) have such a context menu. For a detailed list
+			The input/output mapping of connections can be changed at any time during the editing process by double-clicking
+			an connections or by selecting @a Edit @a I/O @a mapping from the context menu which appears when a connection is right-clicked.
+			All visible items (i.e. connections and the different kinds of nodes) have such a context menu. For a detailed list
 			of the different menus and their entries, see @ref TOPPAS_interface_menus .
 			
 			The following figure shows a possible next step: the user has double-clicked one of the tool nodes in order
@@ -88,17 +88,39 @@
 			
 			Once the pipeline has been set up, the input files have to be specified before the pipeline can be executed.
 			This is done by double-clicking an input node and selecting the desired files in the dialog that appears. 
-			Input nodes have a special mode named "recycling mode", i.e., if the input node has fewer files than the following node has rounds (as it might have two incoming edges)
+			Input nodes have a special mode named "recycling mode", i.e., if the input node has fewer files than the following node has rounds (as it might have two incoming connections)
 			then the files are recycled until all rounds are satisfied. This might be useful if one input node specifies a single database file (for a Search-Adapter like Mascot) and another 
 			input node has the actual MS2 experiments (which is usually more than one). Then the database input node would be set to "recycle" the database file, i.e. use it for every
 			run of the MascotAdapter node. The input list can be recycled an arbitrary number of times, but the recycling has to be @em complete, i.e. the number of rounds of the
 			downstream node have to be a multiple of the number of input files. Recycling mode can be actived by right-clicking the input node and selecting the according entry from the context menu.
+
 			Finally, if you have
-			input and output nodes at every end of your pipeline and all edges are green, chances are good that the pipeline will run properly.
-			In order to find that out, select @a Pipeline @a > @a Run in the menu bar or press @a F5. You will be asked for an output file directory where
-			a sub-directory, @a TOPPAS_out, will be created. If everything goes well, it will contain your desired output files.
-			Also a @a TOPPAS_tmp directory in the OpenMS temp path (call the @em OpenMSInfo tool to see where exactly)  will contain all
-			temporary files that are passed from tool to tool within the pipeline.<br>
+      input and output nodes at every end of your pipeline and all connections are green,
+      you can select @a Pipeline @a > @a Run in the menu bar or just press @a F5.
+
+      @image html TOPPAS_run_options.png
+      @image latex TOPPAS_run_options.png "" width=14cm
+
+      You will be asked for an output file directory where
+      a sub-directory, @a TOPPAS_out, will be created. This directory will contain your output files.
+      You can also specify the number of jobs TOPPAS is allowed to run in parallel. If a number greater than 1
+      is selected, TOPPAS will parallelize the pipeline execution in the following scenarios:
+
+      - A tool has to process more than one file. In this case, multiple files can be processed in parallel.
+      - The pipeline contains multiple branches that are independent of each other. In this case, multiple tools can run in parallel.
+
+      Be careful with this setting, however, as some of the TOPP tools require large amounts of RAM (depending
+      on the size of your dataset). Running too many parallel jobs on a machine with not enough memory will cause problems.
+      Also, do not confuse this setting with the @em threads parameter of the individual TOPP tools: every TOPP tool has this
+      parameter specifying the maximum number of threads the tool is allowed to use (although only a subset of the TOPP tools make use
+      of this parameter, since there are tasks that cannot be computed in parallel). Be especially careful with combinations
+      of both parameters! If you have a pipeline containing the @em FeatureFinderCentroided, for example, and set its @em threads parameter
+      to 8, and you additionally set the number of parallel jobs in @b TOPPAS to 8, then you end up using 64 threads in parallel, which
+      might not be what you intended to do.
+
+      In addition to @a TOPPAS_out, a @a TOPPAS_tmp directory will be created in the OpenMS temp path (call the @em OpenMSInfo tool to see where exactly).
+      It will contain all
+      temporary files that are passed from tool to tool within the pipeline.
 			Both folders contain further sub-directories which are named after the number in the top-left corner of the node they
 			belong to (plus the name of the tool for temporary files). During pipeline execution, the status lights in the top-right corner of the
 			tools indicate if the tool has finished successfully (green), is currently running (yellow), has not done anything so far (gray), or has crashed (red).
@@ -108,7 +130,6 @@
 			@a Open @a files @a in @a TOPPView from its context menu (right click on the node).
 			
 			
-			
 			@section TOPPAS_interface_mk Mouse and keyboard
 			
 				Using the mouse, you can
@@ -116,13 +137,13 @@
 				- drag&drop tools from the TOPP tool list onto the workflow window (you can also double-click them instead)
 				- select items (by clicking)
 				- select multiple items (by holding down @a CTRL while clicking)
-				- select multiple items (by dragging the mouse in order to "catch" items with a selection rectangle)
+				- select multiple items (by holding down @a CTRL and dragging the mouse in order to "catch" items with a selection rectangle)
 				- move all selected items (by dragging one of them)
-				- draw a new edge from one node to another (by dragging; source must be deselected first)
+				- draw a new connection from one node to another (by dragging; source must be deselected first)
 				- specify input files (by double-clicking an input node)
 				- configure parameters of tools (by double-clicking a tool node)
-				- specify the input/output mapping of edges (by double-clicking an edge)
-				- translate the view (by holding down @a CTRL while dragging anywhere but not on an item)
+				- specify the input/output mapping of connections (by double-clicking a connection)
+				- translate the view (by dragging anywhere but on an item)
 				- zoom in and out (using the mousewheel)
 				- make the context menu of an item appear (by right-clicking it)
 				
@@ -144,9 +165,13 @@
 				- create a new, empty workflow (@a New)
 				- open an existing one (@a Open)
 				- open an example file (@a Open @a example @a file)
+                - include an existing workflow to the current workflow (@a Include)
+                - visit the online workflow repository (@a Online @a repository)
 				- save a workflow (@a Save / @a Save @a as)
+                - export the workflow as image (@a Export @a as @a image)
+                - refresh the parameter definitions of all tools contained in the workflow (@a Refresh @a parameters)
 				- close the current window (@a Close)
-				- quit the entire application (@a Quit)
+                - load and save TOPPAS resource files (.trf) (@a Load / @a Save @a TOPPAS @a resource @a file)
 				
 				@n
 				In the @a Pipeline menu, you can
@@ -157,7 +182,7 @@
 				@n
 				In the @a Windows menu, you can
 				
-				- make the TOPP tool list window on the left and the log message at the bottom (in)visible
+				- make the TOPP tool list window on the left, the description window on the right, and the log message at the bottom (in)visible.
 				
 				@n
 				In the @a Help menu, you can
@@ -174,8 +199,8 @@
 				- specify the input files
 				- open the specified files in TOPPView
 				- open the input files' folder in the window manager (explorer)
-				- set the input mode to "recycling", i.e., if the following node runs mode rounds, than this input node has files the files are recycled
-				- remove the node
+				- toggle the "recycling" mode
+				- copy, cut, and remove the node
 				
 				@n
 				In the context menu of a @a tool, you can
@@ -183,21 +208,22 @@
 				- configure the parameters of the tool
 				- resume the pipeline at this node
 				- open its temporary output files in TOPPView
-				- open the temporary output folder in the window manager (explorer)
-				- remove the node
+				- open the temporary output folder in the file manager (explorer)
+				- toggle the "recycling" mode
+				- copy, cut, and remove the node
 				
 				@n
-				In the context menu of a @a merger, you can
+				In the context menu of a @a Merger or @a Collector, you can
 				
-				- change its mode (round-based or waiting)
-				- remove the node
+				- toggle the "recycling" mode
+				- copy, cut, and remove the node
 				
 				@n
 				In the context menu of an @a output @a node, you can
 				
 				- open the output files in TOPPView
 				- open the output files' folder in the window manager (explorer)
-				- remove the node
+				- copy, cut, and remove the node
 			
 			
 	@page TOPPAS_examples Examples
@@ -211,7 +237,7 @@
 		
 		The file @a peakpicker_tutorial.toppas contains a simple pipeline representing a
 		common use case: starting with profile data, the noise is eliminated and the baseline
-		is subtracted. Then, the PeakPicker is used to find all peaks in the noise-filtered
+		is subtracted. Then, PeakPickerWavelet is used to find all peaks in the noise-filtered
 		and baseline-reduced profile data. This workflow is also described in the section
 		@ref TOPP_example_signalprocessing. The individual steps are explained in more
 		detail in the TOPPView tutorial: @ref TOPPView_smoothing, @ref TOPPView_baseline_reduction,
@@ -220,31 +246,27 @@
 		@image html TOPPAS_example_profile_data_processing.png
 		@image latex TOPPAS_example_profile_data_processing.png "" width=14cm
 		
-		@section TOPPAS_id_example Identification of BSA runs
+		@section TOPPAS_id_example Identification of E. coli peptides
 		
 		This section describes an example identification pipeline contained in the 
-		example directory, @a BSA_Identification.toppas.	We use the search engine
-		OMSSA (Geer et al., 2004) to perform an identification. Therefore, OMSSA must be 
-		installed on the machine and the respective parameters should be set in the 
-		OMSSAAdapter node. The example was executed using a database consisting 
-		of the 18 protein mixture proteins of the ISB Keller et al. dataset, sequences
-		of known contaminants and the proteome of Sorangium cellulosum. The database also
-		contains reversed versions of the protein sequences, to allow the calculation of 
-		false discovery rates. The database is
-		large enough to estimate the significance of the results. 
-		The dataset consists of three runs of a BSA protein standard on an Orbitrap
-		instrument. The measurements were done on different days, therefore the 
-		intensities and retention times might have shifted slightly. 
-		The identification 
-		is performed in the OMSSAAdapter node. The IDFilter then selects only the first
-		peptide per spectrum. The PeptideIndexer annotates for each search result whether
-		it is from the target or the decoy part of the sequence database. With this 
-		information the FalseDiscoveryRate node is able to estimate the false discovery
-		rate for each of the peptide spectrum matches. Finally, the IDFilter is used to
-		keep only the peptide spectrum matches with an FDR of 5% or better.
+		example directory, @a Ecoli_Identification.toppas. It is shipped together
+        with a reduced example mzML file containing 139 MS2 spectra from an E. coli
+        run on an Orbitrap instrument as well as an E. coli target-decoy database.
 
-		@image html TOPPAS_BSA_Identification.png
-		@image latex TOPPAS_BSA_Identification.png "" width=12cm
+        We use the search engine
+		OMSSA (Geer et al., 2004) for peptide identification. Therefore, 
+		OMSSA must be installed and the path to the OMSSA executable (omssacl) must
+        be set in the parameters of the OMSSAAdapter node.
+		
+        - Node #1 accepts mzML files containing MS2 spectra.
+        - Node #2 provides the database and is set to "recycling mode" to allow the database to be reused when there is more than one input file in node #1.
+        - OMSSAAdapter calls OMSSA which performs the actual search.
+        - PeptideIndexer annotates for each search result whether it is a target or a decoy hit.
+        - FalseDiscoveryRate computes q-values for the IDs.
+        - Finally, IDFilter selects only those IDs with a q-value of less than 1%.
+
+		@image html TOPPAS_Ecoli_Identification.png
+		@image latex TOPPAS_Ecoli_Identification.png "" width=12cm
 		
 		Extensions to this pipeline would be to do the annotation of the spectra with
 		multiple search engines and combine the results afterwards, using the ConsensusID
@@ -256,25 +278,24 @@
 		@section TOPPAS_quant_example Quantitation of BSA runs
 
 		The simple pipeline described in this section (@a BSA_Quantitation.toppas) can be used to quantify peptides
-		that occur on different runs. The used dataset is the same as in the BSA identification example.
-		First, the FeatureFinder is called. In our case
-		the dataset is centroided, so we can use the centroided feature finder. The
-		results of the feature finder are then annotated with the results of the 
-		identification pipeline in the previous section. For convenience, we provide search results
-		from OMSSA with peptides with a FDR of at least 5% in the BSA directory.
+		that occur on different runs. The example dataset contains three different bovine serum albumin (BSA) runs.
+		First, FeatureFinderCentroided is called since the dataset is centroided. The
+		results of the feature finding are then annotated with (existing) identification results.
+        For convenience, we provide these search results
+		from OMSSA with peptides with an FDR of 5% in the BSA directory.
 
 		@image html TOPPAS_BSA_Quantitation.png
 		@image latex TOPPAS_BSA_Quantitation.png "" width=8cm
 
-		The identifications are mapped at the features by the IDMapper. The last step
-		is the FeatureLinker, that links corresponding features which in turn can be 
-		used to calculate e.g. ratios. The data could also be exported to a text based
-		format using the TextExporter for further processing.
+		Identifications are mapped to features by the IDMapper. The last step
+		is performed by FeatureLinkerUnlabeled which links corresponding features. The results can be 
+		used to calculate ratios, for example. The data could also be exported to a text based
+		format using the TextExporter for further processing (e.g., in Microsoft Excel).
 	
 		The results can be opened in TOPPView. The next figures show the results in 2D 
 		and 3D view, together with the feature intermediate results. One can see
 		that the intensities and retention times are slightly different between
-		the runs. To correct for retention times shift, a map alignment can be done, 
+		the runs. To correct for retention times shift, a map alignment could be done, 
 		either on the spectral data or on the feature data.
 
 		@image html TOPPAS_BSA_results_2d.png
@@ -284,34 +305,24 @@
 		@image latex TOPPAS_BSA_results_3d.png "" width=10cm 
 
 
-		@section TOPPAS_merger_example Mergers
+		@section TOPPAS_merger_example Merger and Collect nodes
 		
 		The following example is actually not a useful workflow but is supposed
-		to demonstrate how merger nodes can be used in a pipeline. Have a look at
+		to demonstrate how merger and collector nodes can be used in a pipeline. Have a look at
 		@a merger_tutorial.toppas:
 		
 		@image html TOPPAS_example_merger.png
 		@image latex TOPPAS_example_merger.png "" width=14cm
 		
-		As its name suggests, a merger merges its incoming file lists. It can do that
-		in two different ways, depending on its mode (which can be changed in the context
-		menu).
+		As its name suggests, a merger merges its incoming file lists, i.e.,
+		files of all incoming egdes are appended into new lists (which
+		have as many elements as the merger has incoming connections). All tools this merger has outgoing
+		connections to are called with these merged lists as input files. All incoming connections should
+        pass the same number of files (unless the corresponding preceding tool is in recycling mode).
 		
-		In the standard mode, a merger
-		first takes all first files of all incoming file lists and merges them into a new list (which
-		has as many elements as the merger has incoming edges). All tools this merger has outgoing
-		edges to are called with this merged list as input files.
-		As soon as all files have been processed, the second files of each incoming list are merged
-		and the tools below the merger are called again, and so on.
-		If several mergers are nested, as in this example,
-		mergers further upstream wait until mergers further downstream
-		have performed all their merging rounds and then perform their own next merging round.
-		
-		In "merge all" mode, the merger first waits for all upstream mergers (if there are any)
-		to finish all
-		their merging rounds and then merges all files from all merging rounds for all
-		incoming edges into one single list and calls the next tool with this list of files as input.
-		This will happen exactly once during the entire pipeline run, as opposed to the standard mode.
+		A collector node, on the other hand, waits for all rounds to finish before concatenating all files from all
+		incoming connections into one single list. It then calls the next tool with this list of files as input.
+		This will happen exactly once during the entire pipeline run.
 		
 		In order to track what is happening, you can just open the example file and run it. When the
 		pipeline execution has finished, have a look at all input and output files (e.g., select

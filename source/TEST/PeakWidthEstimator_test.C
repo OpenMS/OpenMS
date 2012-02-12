@@ -29,21 +29,23 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
 
 START_TEST(PeakWidthEstimator, "$Id$")
 
 MSExperiment<> input;
-MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzData"), input);
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"), input);
+
+TOLERANCE_RELATIVE(1.001);
 
 START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> > &))
 {
   typedef std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> > Fwhm;
   Fwhm fwhm;
   PeakWidthEstimator::estimateSpectrumFWHM(input[0], fwhm);
-  TEST_EQUAL(fwhm.size(), 151);
+  TEST_EQUAL(fwhm.size(), 155);
   Fwhm::const_reverse_iterator it = fwhm.rbegin();
   TEST_REAL_SIMILAR(it->get<0>(), 202394.);
   TEST_REAL_SIMILAR(it->get<1>(), 591.358);

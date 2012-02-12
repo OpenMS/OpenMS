@@ -42,7 +42,6 @@ ProductModel.C
 SeedListGenerator.C
 SimpleExtender.C
 SimpleSeeder.C
-TraceFitter.C
 )
 
 ### add path to the filenames

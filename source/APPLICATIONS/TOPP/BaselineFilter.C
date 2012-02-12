@@ -50,8 +50,8 @@ using namespace std;
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilter </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker (or other ID engines) </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay, @n @ref TOPP_NoiseFilterGaussian </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet, @n @ref TOPP_PeakPickerHiRes @n (or ID engines on MS/MS data) </td>
 		</tr>
 	</table>
 	</CENTER>
@@ -117,7 +117,7 @@ class TOPPBaselineFilter
 		mz_data_file.setLogType(log_type_);
 		mz_data_file.load(in,ms_exp);
 
-		if (ms_exp.size()==0)
+		if (ms_exp.empty())
 		{
 			LOG_WARN << "The given file does not contain any conventional peak data, but might"
 				          " contain chromatograms. This tool currently cannot handle them, sorry.";

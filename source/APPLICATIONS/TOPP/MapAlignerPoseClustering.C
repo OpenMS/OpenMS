@@ -26,8 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-
-#include "MapAlignerBase.C"
+#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -50,22 +49,27 @@ using namespace std;
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided @n (or another feature finding algorithm) </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinker </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled or @n @ref TOPP_FeatureLinkerUnlabeledQT </td>
 		</tr>
 	</table>
 </CENTER>
 
-  This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them.
+  This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them. Retention time adjustment may be necessary to correct for chromatography differences e.g. before data from multiple LC-MS runs can be combined (feature grouping), or when one run should be annotated with peptide identifications obtained in a different run.
 
-	The alignment algorithm implemented here is the pose clustering algorithm as described in doi:10.1093/bioinformatics/btm209. It is used to find an affine transformation, which is further refined by a feature grouping step. This algorithm can be applied to features (featureXML) and peaks (mzML), but it has mostly been developed and tested on features.
-	For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
+	All map alignment tools (MapAligner...) collect retention time data from the input files and - by fitting a model to this data - compute transformations that map all runs to a common retention time scale. They can apply the transformations right away and return output files with aligned time scales (parameter @p out), and/or return descriptions of the transformations in trafoXML format (parameter @p trafo_out). Transformations stored as trafoXML can be applied to arbitrary files with the @ref TOPP_MapRTTransformer tool.
 
-	Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm - see the @p model section of the parameters. This algorithm has been tested mostly with the "linear" model. The different available models are:
+	The map alignment tools differ in how they obtain retention time data for the modeling of transformations, and consequently what types of data they can be applied to. The alignment algorithm implemented here is the pose clustering algorithm as described in doi:10.1093/bioinformatics/btm209. It is used to find an affine transformation, which is further refined by a feature grouping step. This algorithm can be applied to features (featureXML) and peaks (mzML), but it has mostly been developed and tested on features.
+	For more details and algorithm-specific parameters (set in the INI file) see "Detailed Description" in the @ref OpenMS::MapAlignmentAlgorithmPoseClustering "algorithm documentation".
+
+	@see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
+
+	Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "linear" model. The different available models are:
 	- @ref OpenMS::TransformationModelLinear "linear": Linear model.
 	- @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
 	- @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
 
-	@see @ref TOPP_MapAlignerIdentification @ref TOPP_MapAlignerSpectrum @ref TOPP_MapAlignerSpectrum
+	The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
+	@htmlinclude OpenMS_MapAlignerPoseClusteringModel.parameters @n
 
 	<B>The command line parameters of this tool are:</B> @n
 	@verbinclude TOPP_MapAlignerIdentification.cli
@@ -106,12 +110,11 @@ protected:
 			MapAlignmentAlgorithmPoseClustering algo;
 			return algo.getParameters();
 		}
-		Param params;
 		if (section == "model")
 		{
-			getModelDefaults_(params, "linear");
+			return getModelDefaults("linear");
 		}
-		return params;
+		return Param(); // shouldn't happen
 	}
 
 	ExitCodes main_(int, const char**)

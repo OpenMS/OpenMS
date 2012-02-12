@@ -114,6 +114,29 @@ START_SECTION((template < typename InputPeakType > void getMassRanges(const Feat
 	param.setValue("exclude_overlapping_peaks","false");
 	ptr->setParameters(param);
 	std::vector<std::vector<std::pair<Size,Size> > >  indices;
+  FeatureMap<> map2;
+  map2.push_back(map[1]);
+  /// test for empty experiment
+  MSExperiment<> empty_map;
+  TEST_EXCEPTION(Exception::InvalidSize, ptr->getMassRanges(map,empty_map,indices));
+  MSSpectrum<> spec;
+  Peak1D p;
+  p.setMZ(337.);
+  spec.push_back(p);
+  p.setMZ(338.);
+  spec.push_back(p);
+  p.setMZ(339.);
+  spec.push_back(p);
+  p.setMZ(478.2);
+  spec.push_back(p);
+  spec.setRT(44.);
+  empty_map.push_back(spec);
+  spec.setRT(45.);
+  empty_map.push_back(spec);
+  spec.setRT(46.);
+  empty_map.push_back(spec);
+  ptr->getMassRanges(map,empty_map,indices);  // led to a memory leak before
+  indices.clear();
 	ptr->getMassRanges(map,raw_data,indices);
 	TEST_EQUAL(indices.size(),3)
 	TEST_EQUAL(indices[0][0].first,0)

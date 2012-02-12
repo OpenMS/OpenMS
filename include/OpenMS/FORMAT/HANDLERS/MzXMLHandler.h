@@ -854,7 +854,7 @@ namespace OpenMS
 			//----------------------------------------------------------------------------------------
 			// parent files
 			//----------------------------------------------------------------------------------------
-			if (cexp_->getSourceFiles().size()==0)
+			if (cexp_->getSourceFiles().empty())
 			{
 					os << "\t\t<parentFile fileName=\"\" fileType=\"processedData\" fileSha1=\"0000000000000000000000000000000000000000\"/>\n";
 			}
@@ -898,7 +898,7 @@ namespace OpenMS
 				const Instrument& inst = cexp_->getInstrument();
 				os << "\t\t<msInstrument>\n"
 					 << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" <<	inst.getVendor() << "\"/>\n" << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
-				if (inst.getIonSources().size()==0 || !inst.getIonSources()[0].getIonizationMethod())
+				if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod())
 				{
 					os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
 				}
@@ -907,7 +907,7 @@ namespace OpenMS
 					os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
 				}
 				const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
-				if (analyzers.size()==0 || !analyzers[0].getResolutionMethod())
+				if (analyzers.empty() || !analyzers[0].getResolutionMethod())
 				{
 					os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"\"/>\n";
 				}
@@ -915,7 +915,7 @@ namespace OpenMS
 				{
 					os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][analyzers[0].getType()]  << "\"/>\n";
 				}
-				if (inst.getIonDetectors().size()==0 || !inst.getIonDetectors()[0].getType())
+				if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType())
 				{
 					os << "\t\t\t<msDetector category=\"msDetector\" value=\"\"/>\n";
 				}
@@ -924,7 +924,7 @@ namespace OpenMS
 					os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << cv_terms_[4][inst.getIonDetectors()[0].getType()] << "\"/>\n";					
 				}
 				os << "\t\t\t<software type=\"acquisition\" name=\"" << inst.getSoftware().getName() << "\" version=\"" << inst.getSoftware().getVersion() << "\"/>\n";
-				if (analyzers.size()==0 || !analyzers[0].getResolutionMethod())
+				if (analyzers.empty() || !analyzers[0].getResolutionMethod())
 				{
 					os << "\t\t\t<msResolution category=\"msResolution\" value=\"\"/>\n";
 				}
@@ -969,7 +969,7 @@ namespace OpenMS
 			//----------------------------------------------------------------------------------------
 			//data processing (the information of the first spectrum is assigned to the whole file)
 			//----------------------------------------------------------------------------------------
-			if (cexp_->size()==0 || (*cexp_)[0].getDataProcessing().size()==0)
+			if (cexp_->size()==0 || (*cexp_)[0].getDataProcessing().empty())
 			{
 				os << "\t\t<dataProcessing>\n"
 					 << "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
@@ -1121,7 +1121,7 @@ namespace OpenMS
 				os << "\" retentionTime=\"";
 				if (spec.getRT()<0) os << "-";
 				os << "PT"<< std::fabs(spec.getRT()) << "S\"";
-				if (spec.getInstrumentSettings().getScanWindows().size() > 0)
+        if ( !spec.getInstrumentSettings().getScanWindows().empty() )
 				{
 					os << " startMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].begin << "\" endMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].end << "\"";
 				}
@@ -1145,7 +1145,7 @@ namespace OpenMS
 					os << "\">" << precursor.getMZ() << "</precursorMz>\n";
 				}
 	
-				if (spec.size() > 0)
+        if ( !spec.empty() )
 				{
 					os << String(ms_level+2,'\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
 					

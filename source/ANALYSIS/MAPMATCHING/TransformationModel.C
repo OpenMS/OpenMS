@@ -257,8 +257,16 @@ namespace OpenMS
 		gsl_vector_minmax(x_, &xmin_, &xmax_);
 		
 		// set up cubic (k = 4) spline workspace:
-		if (num_breakpoints < 2) num_breakpoints = 2;
-		else if (num_breakpoints > size_ - 2) num_breakpoints = size_ - 2;
+		if (num_breakpoints < 2)
+		{
+			num_breakpoints = 2;
+			LOG_WARN << "Warning: Increased parameter 'num_breakpoints' to 2 (minimum)." << endl;
+		}
+		else if (num_breakpoints > size_ - 2)
+		{
+			num_breakpoints = size_ - 2;
+			LOG_WARN << "Warning: Decreased parameter 'num_breakpoints' to " + String(num_breakpoints) + " (maximum for this number of data points)." << endl;
+		}
 		workspace_ = gsl_bspline_alloc(4, num_breakpoints);
 		if (break_positions == "uniform")
 		{
@@ -361,7 +369,7 @@ namespace OpenMS
 			{                
 				// this SD seems on a much smaller scale than "yerr" in "evaluate"...
 				// see GSL's "multilinear.c::gsl_multifit_linear_est" for details
-				LOG_ERROR << "B-spline extrapolation is unreliable. Consider reducing 'num_breakpoints' or using another model." << endl;
+				LOG_WARN << "Warning: B-spline extrapolation is unreliable. Consider reducing 'num_breakpoints' or using another model." << endl;
 			}
 		}
 		gsl_matrix_free(deriv);

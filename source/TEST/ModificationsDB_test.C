@@ -116,7 +116,7 @@ START_SECTION((void searchModifications(std::set< const ResidueModification * > 
   ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::N_TERM);
 
   TEST_EQUAL(mods.size(), 0)
-  ABORT_IF(mods.size() != 0)
+  ABORT_IF( !mods.empty() )
 }
 END_SECTION
 

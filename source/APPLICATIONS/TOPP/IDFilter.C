@@ -273,7 +273,7 @@ class TOPPIDFilter
 			{
 				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getHits().begin();
 						it != identifications_exclusion[i].getHits().end();
-						it++)
+            ++it )
 				{
 					exclusion_peptides.insert(it->getSequence().toString());
 				}

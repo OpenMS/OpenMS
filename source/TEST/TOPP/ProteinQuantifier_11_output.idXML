@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:////OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2010-02-24T21:17:05" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="Protein0" score="0" sequence="" >
+				<UserParam type="float" name="mzTab:protein_abundance_sub[1]" value="13332"/>
+				<UserParam type="int" name="num_peptides" value="6"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="Protein1" score="0" sequence="" >
+				<UserParam type="float" name="mzTab:protein_abundance_sub[1]" value="8888"/>
+				<UserParam type="int" name="num_peptides" value="2"/>
+			</ProteinHit>
+			<UserParam type="string" name="mzTab:unit_id" value="OpenMS_16627578304933075941"/>
+			<UserParam type="string" name="mzTab:title" value="Quantification by OpenMS/ProteinQuantifier"/>
+			<UserParam type="string" name="mzTab:software[1]" value="[ProteinQuantifier,version_string]"/>
+			<UserParam type="string" name="mzTab:ms_file[1]-location" value="OpenMS/source/TEST/TOPP/ProteinQuantifier_input.featureXML"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0" sequence="AAAAA" charge="1" protein_refs="PH_0" >
+				<UserParam type="string" name="mzTab:unique" value="true"/>
+				<UserParam type="float" name="mzTab:peptide_abundance_sub[1]" value="3333"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0" sequence="CCCCC" charge="1" protein_refs="PH_0" >
+				<UserParam type="string" name="mzTab:unique" value="true"/>
+				<UserParam type="float" name="mzTab:peptide_abundance_sub[1]" value="3333"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0" sequence="CCCCC" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="mzTab:unique" value="true"/>
+				<UserParam type="float" name="mzTab:peptide_abundance_sub[1]" value="4444"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0" sequence="DDDDD" charge="1" protein_refs="PH_0" >
+				<UserParam type="string" name="mzTab:unique" value="true"/>
+				<UserParam type="float" name="mzTab:peptide_abundance_sub[1]" value="5555"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0" sequence="EEEEE" charge="1" >
+				<UserParam type="string" name="mzTab:unique" value="false"/>
+				<UserParam type="string" name="mzTab:peptide_abundance_sub[1]" value="--"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0" sequence="FFFFF" charge="1" >
+				<UserParam type="string" name="mzTab:unique" value="false"/>
+				<UserParam type="string" name="mzTab:peptide_abundance_sub[1]" value="--"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0" sequence="GGGGG" charge="1" >
+				<UserParam type="string" name="mzTab:unique" value="false"/>
+				<UserParam type="float" name="mzTab:peptide_abundance_sub[1]" value="7777"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0" sequence="HHHHH" charge="1" protein_refs="PH_1" >
+				<UserParam type="string" name="mzTab:unique" value="true"/>
+				<UserParam type="float" name="mzTab:peptide_abundance_sub[1]" value="8888"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

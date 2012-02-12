@@ -105,8 +105,13 @@ namespace OpenMS
 		/// smoothes the simulated distortion for the elution profiles with a moving average filter of size 3
 		void smoothRTDistortion_(MSSimExperiment & experiment);
 
-		/// Wrapper for the Migration time calculation (CE)
-    /// @param features will get modified with metavalue "RT_CE_width_factor", describing widening of MT shape
+    /**
+      Wrapper for the Migration time calculation (CE)
+
+      @param features will get modified with metavalue "RT_CE_width_factor",
+             describing widening of MT shape.
+      @param predicted_retention_times will contain afterwards the predicted retention times.
+    */
 		void calculateMT_(FeatureMapSim & features,std::vector<DoubleReal>& predicted_retention_times);
 
 		void getChargeContribution_(Map< String, double> & q_cterm, 

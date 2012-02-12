@@ -424,8 +424,9 @@ namespace OpenMS
         @param old_version Old version of param, which contains the useful settings to be rescued
         @param report_new_params Report params contained in this param, but not in old version
         @param only_update_old Delete all entries not contained in old, i.e. update old params when contained in this param and keep old ones
+        @param stream The stream where all the output is send to.
 
-      **/
+      */
       void update(const Param& old_version, const bool report_new_params=false, const bool only_update_old=false, Logger::LogStream& stream=LOG_WARN);
       
       //@}

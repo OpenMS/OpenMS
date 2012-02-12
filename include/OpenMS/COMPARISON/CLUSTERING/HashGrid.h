@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <iterator>
+#include <limits>
 
 #include <boost/array.hpp>
 #include <boost/functional/hash.hpp>
@@ -47,7 +48,7 @@ namespace OpenMS
    *
    * This container implements most parts of the C++ standard map interface.
    *
-   * @tparam Cluster Type to be stored in the hash grid. (e.g. @ref{HierarchicalClustering::Cluster})
+   * @tparam Cluster Type to be stored in the hash grid. (e.g. HierarchicalClustering::Cluster)
    */
   template <typename Cluster>
   class HashGrid
@@ -62,7 +63,7 @@ namespace OpenMS
       /**
        * @brief Index for cells.
        */
-      typedef DPosition<2, UInt> CellIndex;
+      typedef DPosition<2, UInt64> CellIndex;
 
       /**
        * @brief Contents of a cell.
@@ -287,7 +288,7 @@ namespace OpenMS
 
       /**
        * @brief Erases elements matching the 2-dimensional coordinate.
-       * @param x Key of element to be erased.
+       * @param key Key of element to be erased.
        * @return Number of elements erased.
        */
       size_type erase(const key_type &key)
@@ -403,7 +404,12 @@ namespace OpenMS
         CellIndex ret;
         typename CellIndex::iterator it = ret.begin();
         typename ClusterCenter::const_iterator lit = key.begin(), rit = cell_dimension.begin();
-        for (; it != ret.end(); ++it, ++lit, ++rit) *it = *lit / *rit;
+        for (; it != ret.end(); ++it, ++lit, ++rit)
+        {
+          DoubleReal t = *lit / *rit;
+          if (t < 0 || t > std::numeric_limits<UInt64>::max()) throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+          *it = static_cast<UInt64> (t);
+        }
         return ret;
       }
 

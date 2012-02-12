@@ -641,7 +641,7 @@ namespace OpenMS
 	void Spectrum1DCanvas::setDrawMode(DrawModes mode)
 	{
 		//no layers
-		if (layers_.size()==0) return;
+		if (layers_.empty()) return;
 			
 		if (draw_modes_[current_layer_]!=mode)
 		{
@@ -653,7 +653,7 @@ namespace OpenMS
 	Spectrum1DCanvas::DrawModes Spectrum1DCanvas::getDrawMode() const
 	{ 
 		//no layers
-		if (layers_.size()==0) return DM_PEAKS;
+		if (layers_.empty()) return DM_PEAKS;
 			
 		return draw_modes_[current_layer_]; 
 	}
@@ -1068,7 +1068,6 @@ namespace OpenMS
 		
 		//determine coordinates;
 		DoubleReal mz = 0.0;
-		DoubleReal rt = 0.0;
 		Real it = 0.0;
 		// only peak data is supported here
     if (getCurrentLayer().type!=LayerData::DT_PEAK)
@@ -1077,7 +1076,6 @@ namespace OpenMS
 			return;
     }
     mz = peak.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-    rt = peak.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
     it = peak.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
 
 		//draw text			
@@ -1106,7 +1104,7 @@ namespace OpenMS
 		
 		//determine coordinates;
 		DoubleReal mz = 0.0;
-		DoubleReal rt = 0.0;
+		//DoubleReal rt = 0.0;
 		Real it = 0.0;
 
     if (getCurrentLayer().type!=LayerData::DT_PEAK)
@@ -1118,14 +1116,14 @@ namespace OpenMS
 		if (end.isValid())
 		{
       mz = end.getPeak(*getCurrentLayer().getPeakData()).getMZ() - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-      rt = end.getSpectrum(*getCurrentLayer().getPeakData()).getRT() - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+      //rt = end.getSpectrum(*getCurrentLayer().getPeakData()).getRT() - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
       it = end.getPeak(*getCurrentLayer().getPeakData()).getIntensity() / start.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
 		}
 		else
 		{
 			PointType point = widgetToData_(last_mouse_pos_);
       mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-      rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+      //rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
 			it = std::numeric_limits<DoubleReal>::quiet_NaN();
 		}
 
@@ -1630,7 +1628,7 @@ namespace OpenMS
 			}
 
 			int x;
-			for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); it++) 
+      for ( std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); ++it)
 			{
 				x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
         painter.drawLine(x, yl, x, yh);
@@ -1656,7 +1654,7 @@ namespace OpenMS
 			}
 
 			int y;
-			for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); it++) 
+      for ( std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); ++it )
 			{
 				y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
 				if (!mirror_mode_)
@@ -1836,7 +1834,7 @@ namespace OpenMS
   void Spectrum1DCanvas::setCurrentLayerPeakPenStyle(Qt::PenStyle ps)
   {    
     // no layers
-    if (layers_.size() == 0)
+    if (layers_.empty())
     {
       return;
     }

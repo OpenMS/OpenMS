@@ -62,7 +62,7 @@ namespace OpenMS
     public:
       /**
        * @brief Coordinate of a point to be clustered.
-       *  @attention To be replaced by a OpenMS coordinate type.
+       *  @attention To be replaced by a %OpenMS coordinate type.
        */
       typedef DPosition<2, DoubleReal> PointCoordinate;
 
@@ -121,7 +121,7 @@ namespace OpenMS
 
       /**
        * @brief Set of points.
-       * Describes a cluster on the grid. A point consists of a @ref{PointCoordinate} and a @tref{PointRef}.
+       * Describes a cluster on the grid. A point consists of a PointCoordinate and a PointRef.
        */
       class Cluster
         : public boost::unordered_multimap<PointCoordinate, PointRef>
@@ -233,7 +233,7 @@ namespace OpenMS
     protected:
       /**
        * @brief Insert new Cluster into grid.
-       * @param d Point to insert.
+       * @param p Point to insert.
        * @return iterator to inserted cluster.
        */
       template <class P>
@@ -263,7 +263,7 @@ namespace OpenMS
        * @param cur Cell index.
        * @param cells List of cells.
        * @param center Is the given cell in the center.
-       * @oaram ignore_missing Defines if non-existant errors should be ignored.
+       * @param ignore_missing Defines if non-existent errors should be ignored.
        */
       void gridCell_(const typename Grid::CellIndex &cur, ClusterCells &cells, bool center = false, bool ignore_missing = true)
       {
@@ -385,10 +385,12 @@ namespace OpenMS
 
       static bool coordElemGreater_(const PointCoordinate &lhs, const PointCoordinate &rhs)
       {
-        UInt ret = 0;
         typename PointCoordinate::const_iterator lit = lhs.begin(), rit = rhs.begin();
-        for (; lit != lhs.end(); ++lit, ++rit) ret += *lit > *rit;
-        return ret;
+        for (; lit != lhs.end(); ++lit, ++rit) 
+        {
+          if (*lit > *rit) return true;
+      }
+        return false;
       }
 
       static DoubleReal coordDist_(const PointCoordinate &lhs, const PointCoordinate &rhs)

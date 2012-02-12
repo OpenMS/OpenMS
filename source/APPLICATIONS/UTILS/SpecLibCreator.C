@@ -122,8 +122,7 @@ class TOPPSpecLibCreator
 			Int peptide =-1;
 			Int measured_weight = -1;
 			//UInt first_scan;
-			UInt last_scan(0), charge_state(0), Experimental_id(0),//, 
-			modification(0);//,found_by, track, comment, vaccination_peptid,epitope, confident, hlaallele;
+			UInt charge_state(0), Experimental_id(0);//,found_by, track, comment, vaccination_peptid,epitope, confident, hlaallele;
 			const char* sepi = itemseperator.c_str();
 			char sepo = *sepi;
 			CsvFile csv_file(info,sepo,itemenclosed);
@@ -148,11 +147,11 @@ class TOPPSpecLibCreator
 				}
 				else if(list[0][i].toLower() == "last scan")
 				{
-					last_scan = i;
+					// last_scan = i;
 				}
 				else if(list[0][i].toLower() == "modification")
 				{
-					modification = i;
+					// modification = i;
 				}
 				else if(list[0][i].toLower().removeWhitespaces().compare("chargestate")==0 || list[0][i].toLower().removeWhitespaces().hasSubstring("charge") )
 				{

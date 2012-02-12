@@ -162,14 +162,14 @@ namespace OpenMS
 
       // get amino acid before
       String pre(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("pre")))));
-      if (pre.size() != 0)
+      if ( !pre.empty() )
       {
         hit.setAABefore(pre[pre.size() - 1]);
       }
 
       // get amino acid after
       String post(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("post")))));
-      if (post.size() != 0)
+      if ( !post.empty() )
       {
         hit.setAAAfter(post[0]);
       }
@@ -230,7 +230,7 @@ namespace OpenMS
 			}
 			
 			// if not found a terminal mod, try normal one
-			if (possible_mass_mods.size() == 0)
+      if (possible_mass_mods.empty())
 			{
 				ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
 			}
@@ -259,7 +259,7 @@ namespace OpenMS
 			//}
 			
 			// maybe we missed the real modification, even it is not terminal
-			if (possible_mods.size() == 0 && mod_pos == 0)
+      if (possible_mods.empty() && mod_pos == 0)
 			{
 				vector<String> new_possible_mass_mods;
 				ModificationsDB::getInstance()->getModificationsByDiffMonoMass(new_possible_mass_mods, type, modified.toDouble(), 0.01);
@@ -275,12 +275,12 @@ namespace OpenMS
 			
 
 			// use all possible mass mods, because the modification was not predefined
-			if (possible_mods.size() == 0)
+      if (possible_mods.empty())
 			{
 				possible_mods = possible_mass_mods;
 			}
 			
-			if (possible_mods.size() == 0)
+      if (possible_mods.empty())
 			{
 				error(LOAD, String("No modification found which fits residue '") + type + "' with mass '" + modified + "'!");
 			}
@@ -307,7 +307,7 @@ namespace OpenMS
 					}
 					else 
 					{
-						if (specific_ones.size() == 0)
+            if (specific_ones.empty())
 						{
 							// maybe there are terminal modifications but none of them has been selected
 							// search unspecific but terminal residues
@@ -324,7 +324,7 @@ namespace OpenMS
 								}
 							}
 
-							if (new_possible_mods.size() == 0)
+              if (new_possible_mods.empty())
 							{
 								// if we haven't found a generic terminal modification, we search for a specific terminal mods which fits
 								for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
@@ -338,7 +338,7 @@ namespace OpenMS
 									}
 								}
 							}
-							if (new_possible_mods.size() != 0)
+              if ( !new_possible_mods.empty() )
 							{
 								possible_mods = new_possible_mods;
 							}
@@ -346,7 +346,7 @@ namespace OpenMS
 						else
 						{
 							// also haven't found a non-specific terminal modification
-							//if (specific_ones.size() == 0)
+              //if (specific_ones.empty())
 							//{
 							// put the specific ones in front of the list
 							vector<String> new_possible_mods;

@@ -4,7 +4,15 @@
     <ITEM name="version" value="1.9.0" type="string" description="" />
     <ITEM name="num_vertices" value="5" type="int" description="" />
     <ITEM name="num_edges" value="4" type="int" description="" />
-    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt; &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt; p, li { white-space: pre-wrap; } &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; &lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Basic peak picking pipeline using type &amp;quot;wavelet&amp;quot; for all types of data - use the &amp;quot;high-res&amp;quot; type if you have high-res data as its much faster.&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;&quot;&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Using NoiseFilter (assuming low res data)&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;and BaselineFilter (for MALDI data).&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Remove either if your data differs.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
+    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Arial&apos;; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Basic peak picking pipeline using PeakPickerWavelet (use PeakPickerHiRes instead if you have high-resolution data as it is much faster).&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Using NoiseFilterSGolay (assuming low-res data) and BaselineFilter (for MALDI data).&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Depending on your data, either of the two filters may be removed or reconfigured with other parameters.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
   </NODE>
   <NODE name="vertices" description="">
     <NODE name="0" description="">
@@ -23,7 +31,7 @@
       <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="-140" type="float" description="" />
       <ITEM name="y_pos" value="0" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;NoiseFilterSGolay&apos;">
+      <NODE name="parameters" description="">
         <ITEM name="in" value="" type="string" description="input raw data file " tags="input file,required" restrictions="*.mzML" />
         <ITEM name="out" value="" type="string" description="output raw data file " tags="output file,required" restrictions="*.mzML" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
@@ -44,7 +52,7 @@
       <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="40" type="float" description="" />
       <ITEM name="y_pos" value="0" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;BaselineFilter&apos;">
+      <NODE name="parameters" description="">
         <ITEM name="in" value="" type="string" description="input raw data file " tags="input file,required" restrictions="*.mzML" />
         <ITEM name="out" value="" type="string" description="output raw data file " tags="output file,required" restrictions="*.mzML" />
         <ITEM name="struc_elem_length" value="3" type="float" description="Length of the structuring element (should be wider than maximal peak width - see documentation)." />
@@ -64,7 +72,7 @@
       <ITEM name="tool_type" value="" type="string" description="" />
       <ITEM name="x_pos" value="220" type="float" description="" />
       <ITEM name="y_pos" value="0" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;PeakPickerWavelet&apos;">
+      <NODE name="parameters" description="">
         <ITEM name="in" value="" type="string" description="input profile data file " tags="input file,required" restrictions="*.mzML" />
         <ITEM name="out" value="" type="string" description="output peak file " tags="output file,required" restrictions="*.mzML" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />

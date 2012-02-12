@@ -187,7 +187,7 @@ namespace OpenMS
 	void Base64::encode(std::vector<FromType>& in, ByteOrder to_byte_order, String& out, bool zlib_compression)
 	{
 		out.clear();
-		if (in.size() == 0) return;
+		if (in.empty()) return;
 
 		//initialize
 		const Size element_size = sizeof(FromType);
@@ -505,7 +505,7 @@ namespace OpenMS
 	void Base64::encodeIntegers(std::vector<FromType>& in, ByteOrder to_byte_order, String& out, bool zlib_compression)
 	{
 		out.clear();
-		if (in.size() == 0) return;
+		if (in.empty()) return;
 
 		//initialize
 		const Size element_size = sizeof(FromType);

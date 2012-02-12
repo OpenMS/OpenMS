@@ -680,7 +680,7 @@ The output of the program is:
 
 @section transformations_ff Feature detection
 
-The FeatureFinder implements algorithms for the detection and
+The FeatureFinders implement different algorithms for the detection and
 quantitation of peptides from LC-MS maps. In contrast to the
 previous step (peak picking), we do not only search for pronounced
 signals (peak) in the LC-MS map but search explicitly for peptides
@@ -688,8 +688,8 @@ which can be recognized by their isotopic pattern.
 
 %OpenMS offers different algorithms for this task. Details of how
 to apply them are given in the TOPP documentation. Please also refer
-to our publications on the %OpenMS web page. TOPP contains a command
-line program which allows to execute our algorithms without writing
+to our publications on the %OpenMS web page. TOPP contains multiple command
+line programs which allow to execute our algorithms without writing
 a single line of code.
 
 But you can also write your own FeatureFinder application. This gives you

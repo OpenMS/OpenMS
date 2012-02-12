@@ -250,7 +250,7 @@ namespace OpenMS
       estimateSpectrumFWHM(exp[scan_idx], fwhms);
     }
 
-    if (fwhms.size() == 0)
+    if (fwhms.empty())
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, fwhms.size());
     }

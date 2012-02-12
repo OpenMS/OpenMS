@@ -391,7 +391,7 @@ namespace OpenMS
 				for (Size i = 2; i != split.size(); ++i)
 				{
 					String tmp(split[i].trim());
-					if (tmp.size() != 0)
+          if ( !tmp.empty() )
 					{
 						ResidueModification mod = ModificationsDB::getInstance()->getModification(tmp);
 						mods.push_back(mod);

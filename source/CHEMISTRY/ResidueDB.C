@@ -372,7 +372,7 @@ namespace OpenMS
 			cerr << "unknown key: " << key << ", with value: " << value << endl;
 		}
 		
-		if (low_mass_ions.size() != 0)
+    if ( !low_mass_ions.empty() )
 		{
 			res_ptr->setLowMassIons(low_mass_ions);
 		}

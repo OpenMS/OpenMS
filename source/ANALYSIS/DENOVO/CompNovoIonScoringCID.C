@@ -124,7 +124,7 @@ namespace OpenMS
 #ifdef ION_SCORING_DEBUG
         cerr << "Decomps: " << it->first <<  " " << it->first - y_offset << " " << decomps.size() << " " << it->second.score << endl;
 #endif
-        if (decomps.size() == 0)
+        if (decomps.empty())
         {
           it->second.score = 0;
         }
@@ -143,7 +143,7 @@ namespace OpenMS
 #ifdef ION_SCORING_DEBUG
         cerr << "Decomps: " << it->first << " " << precursor_weight - it->first << " " << decomps.size() << " " << it->second.score << endl;
 #endif
-        if (decomps.size() == 0)
+        if (decomps.empty())
         {
           it->second.score = 0;
         }

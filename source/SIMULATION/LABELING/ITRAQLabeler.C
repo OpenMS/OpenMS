@@ -61,8 +61,10 @@ namespace OpenMS
 		defaults_.setValue("channel_active_4plex", StringList::create("114:myReference"), "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."); 
 		defaults_.setValue("channel_active_8plex", StringList::create("113:myReference"), "Eight-plex only: Each channel that was used in the experiment and its description (113-121) in format <channel>:<name>, e.g. \"113:myref\",\"115:liver\",\"118:lung\"."); 
 
-		StringList isotopes = ItraqConstants::getIsotopeMatrixAsStringList(itraq_type_, isotope_corrections_);
-		defaults_.setValue("isotope_correction_values", isotopes, "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
+		StringList isotopes = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, isotope_corrections_);
+		defaults_.setValue("isotope_correction_values_4plex", isotopes, "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
+    isotopes = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, isotope_corrections_);
+    defaults_.setValue("isotope_correction_values_8plex", isotopes, "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '113:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
 
     defaults_.setValue("Y_contamination", 0.3, "Efficiency of labeling tyrosine ('Y') residues. 0=off, 1=full labeling"); 
 		defaults_.setMinFloat ("Y_contamination", 0.0);
@@ -95,7 +97,15 @@ namespace OpenMS
 
 
 		// update isotope_corrections_ Matrix with custom values
-		StringList channels = param_.getValue("isotope_correction_values");
+		StringList channels;
+    if (itraq_type_ == ItraqConstants::FOURPLEX)
+    {
+      channels = param_.getValue("isotope_correction_values_4plex");
+    }
+    else
+    {
+      channels = param_.getValue("isotope_correction_values_8plex");
+    }
 		if (channels.size()>0)
 		{
 			ItraqConstants::updateIsotopeMatrixFromStringList(itraq_type_, channels, isotope_corrections_);
@@ -130,17 +140,18 @@ namespace OpenMS
   /// Labeling between digestion and rt simulation
   /// Join all peptides with the same sequence into one feature
   /// channels are retained via metavalues
-  void ITRAQLabeler::postDigestHook(FeatureMapSimVector & features_to_simulate )
+  /// if a peptide is not present in all channels, then there will be missing meta values! (so don't rely on them being present)
+  void ITRAQLabeler::postDigestHook(FeatureMapSimVector & channels)
   {
     // merge channels into a single feature map
-    FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
+    FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(channels);
 
     std::map<String, Size> peptide_to_feature;
 
-    for (Size i=0;i<features_to_simulate.size();++i)
+    for (Size i=0; i<channels.size(); ++i)
     {
-      for(FeatureMapSim::iterator it_f_o = features_to_simulate[i].begin() ;
-          it_f_o != features_to_simulate[i].end() ;
+      for(FeatureMapSim::iterator it_f_o = channels[i].begin() ;
+          it_f_o != channels[i].end() ;
           ++it_f_o)
       {
         // derive iTRAQ labeled features from original sequence (might be more than one due to partial labeling)
@@ -173,8 +184,8 @@ namespace OpenMS
       }
     }
 
-    features_to_simulate.clear();
-    features_to_simulate.push_back(final_feature_map);
+    channels.clear();
+    channels.push_back(final_feature_map);
   }
 
   /// Labeling between RT and Detectability
@@ -225,9 +236,9 @@ namespace OpenMS
 			IntList parent_fs = (IntList) it->getMetaValue("parent_feature_ids");
 			for (Size i_f=0; i_f < parent_fs.size(); ++i_f)
 			{
+        // get RT scaled iTRAQ intensities
+        gsl_matrix* row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT()).toGslMatrix();
 				// apply isotope matrix to active channels
-				gsl_matrix* row = getItraqIntensity_(fm[0][i_f]).toGslMatrix();
-  			// TODO: rescale intensities according to actual position of feature relative to precursor!
 				// row * channel_frequency = observed iTRAQ intensities
 				gsl_blas_dgemm (CblasNoTrans, CblasNoTrans,
 												1.0, channel_frequency, row,
@@ -245,7 +256,7 @@ namespace OpenMS
         DoubleReal rnd_shift = gsl_rng_uniform(rng_->technical_rng) * 2 * rep_shift - rep_shift;
 				p.setMZ(channel_names[itraq_type_].getValue(i_channel,0) + 0.1 + rnd_shift);
 				p.setIntensity(gsl_matrix_get(itraq_intensity_sum, i_channel, 0));
-				std::cout << "inserted iTRAQ peak: " << p << "\n";
+				//std::cout << "inserted iTRAQ peak: " << p << "\n";
 				it->push_back(p);
 			}
 		}
@@ -268,10 +279,10 @@ namespace OpenMS
 
   void ITRAQLabeler::labelPeptide_(const Feature& feature, FeatureMapSim& result) const
   {
-    // modify with iTRAQ modification (needed for mass calc and MS/MS signal)
+    // modify with iTRAQ modification (needed for mass calculation and MS/MS signal)
     //site="Y" - low abundance
     //site="N-term"
-    //site="K" - Lysin
+    //site="K" - lysine
     String modification = (itraq_type_==ItraqConstants::FOURPLEX ? "iTRAQ4plex" : "iTRAQ8plex");
     vector<PeptideHit> pep_hits(feature.getPeptideIdentifications()[0].getHits());
     AASequence seq(pep_hits[0].getSequence());
@@ -318,22 +329,50 @@ namespace OpenMS
 
   }
 
-
-  Matrix<SimIntensityType> ITRAQLabeler::getItraqIntensity_(const Feature & f) const
+  DoubleReal ITRAQLabeler::getRTProfileIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const
   {
+    // compute intensity correction factor for feature from RT profile
+    const DoubleList& elution_bounds = f.getMetaValue("elution_profile_bounds");
+    const DoubleList& elution_ints   = f.getMetaValue("elution_profile_intensities");
+
+    // check that RT is within the elution bound:
+    OPENMS_POSTCONDITION(f.getConvexHull().getBoundingBox().encloses(MS2_RT_time, f.getMZ()), "The MS2 spectrum has wrong parent features! The feature does not touch the spectrum's RT!")
+
+    if (MS2_RT_time < elution_bounds[1] || elution_bounds[3] < MS2_RT_time)
+  {
+      LOG_WARN << "Warn: requesting MS2 RT for " << MS2_RT_time << ", but bounds are only from [" <<elution_bounds[1] << "," << elution_bounds[3] << "]\n";
+      return 0;
+    }
+
+    // do linear interpolation
+    DoubleReal width = elution_bounds[3] - elution_bounds[1];
+    DoubleReal offset = MS2_RT_time - elution_bounds[1];
+    Int index = floor(offset / (width / (elution_ints.size()-1)) + 0.5);
+
+    OPENMS_POSTCONDITION(index < (Int)elution_ints.size(), "Wrong index computation! (Too large)")
+
+    return elution_ints[index];
+  }
+
+  Matrix<SimIntensityType> ITRAQLabeler::getItraqIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const
+  {
+
+    DoubleReal factor = getRTProfileIntensity_(f, MS2_RT_time);
+
+    //std::cerr << "\n\nfactor is: " << factor << "\n";
 		// fill map with values present (all missing ones remain 0)
 		Matrix<SimIntensityType> m(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1, 0);
-    Size ch=0, ch_internal=0;
+    Size ch(0);
+    Size ch_internal(0);
 		for (ChannelMapType::ConstIterator it=channel_map_.begin();it!=channel_map_.end();++it) 
     {
-      SimIntensityType intensity=0;
-      if (it->second.active)
-      {
-        OPENMS_PRECONDITION(f.metaValueExists(getChannelIntensityName(ch_internal)), "ITRAQLabeler::getItraqIntensity_() is missing a channel intensity meta-value!");
+      SimIntensityType intensity(0);
+      if (it->second.active && f.metaValueExists(getChannelIntensityName(ch_internal)))
+      { // peptide is present in this channel
         intensity = (DoubleReal) f.getMetaValue(getChannelIntensityName(ch_internal));
         ++ch_internal;
       }
-      m.setValue(ch, 0, intensity);
+      m.setValue(ch, 0, intensity * factor);
       ++ch;
     }
 

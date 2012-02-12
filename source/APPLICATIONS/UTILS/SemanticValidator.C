@@ -108,7 +108,7 @@ class TOPPSemanticValidator
       cout << "Error: " << errors[i] << endl;
     }
 
-		if (warnings.size() == 0 && errors.size() == 0)
+		if (warnings.empty() && errors.empty())
 		{
 			cout << "Congratulations, the file is valid!" << endl;
 		}

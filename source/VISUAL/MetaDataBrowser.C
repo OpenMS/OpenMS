@@ -149,7 +149,7 @@ namespace OpenMS
 	void MetaDataBrowser::showDetails_()
 	{
 		QList<QTreeWidgetItem *> list = treeview_->selectedItems();
-		if (list.size()==0) return;
+		if (list.empty()) return;
 		
 	  ws_->setCurrentIndex(list[0]->text(1).toInt());
 	}

@@ -136,7 +136,7 @@ namespace OpenMS
 
 		Size charge(2);
 		DoubleReal precursor_weight(0); // [M+H]+
-		if (CID_spec.getPrecursors().size() > 0)
+    if ( !CID_spec.getPrecursors().empty() )
 		{
 			// believe charge of spectrum?
 			if (CID_spec.getPrecursors().begin()->getCharge() != 0)
@@ -656,7 +656,7 @@ void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, Si
 		if (diff1 < diff2)
 		{
     	getDecompositionsDAC_(seq1, left, *it, peptide_weight, CID_spec, ion_scores);
-			if (seq1.size() == 0)
+			if (seq1.empty())
 			{
 #ifdef DAC_DEBUG
 				cerr << tabs_ << "first call produced 0 candidates (" << diff1 << ")" << endl;
@@ -669,7 +669,7 @@ void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, Si
 		else
 		{
 			getDecompositionsDAC_(seq2, *it, right, peptide_weight, CID_spec, ion_scores);
-			if (seq2.size() == 0)
+			if (seq2.empty())
 			{
 #ifdef DAC_DEBUG
 				cerr << tabs_ << "second call produced 0 candidates (" << diff2 << ")" << endl;
@@ -693,7 +693,7 @@ void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, Si
 		}
 		
 		// test if we found enough sequence candidates
-		if (seq1.size() == 0 || seq2.size() == 0)
+		if (seq1.empty() || seq2.empty())
 		{
 			continue;
 		}
@@ -712,7 +712,7 @@ void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, Si
 			cerr << tabs_ << CID_spec[left].getPosition()[0] << " " << CID_spec[right].getPosition()[0] << " " << peptide_weight << endl;
 			cerr << tabs_ << "Reducing #sequences from " << new_sequences.size() << " to " << max_subscore_number_ << "(prefix=" << offset_prefix  << ", suffix=" << offset_suffix << ")...";
 #endif
-			if (offset_prefix > precursor_mass_tolerance_ || offset_prefix > precursor_mass_tolerance_)
+      if (offset_prefix > precursor_mass_tolerance_ || offset_suffix > precursor_mass_tolerance_)
 			{
 				reducePermuts_(new_sequences, CID_spec, offset_prefix, offset_suffix);
 			}

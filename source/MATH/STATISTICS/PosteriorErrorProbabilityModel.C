@@ -58,11 +58,11 @@ namespace OpenMS
 		{
 		}
 				
-		void PosteriorErrorProbabilityModel::fit( std::vector<double>& search_engine_scores)
+		bool PosteriorErrorProbabilityModel::fit( std::vector<double>& search_engine_scores)
 		{	
 			if(search_engine_scores.empty())
 			{
-				return;
+				return false;
 			}
 			//-------------------------------------------------------------
 			// Initializing Parameters
@@ -164,7 +164,8 @@ namespace OpenMS
 				DoubleReal new_maxlike(computeMaxLikelihood(incorrect_density,correct_density));
         if(boost::math::isnan(new_maxlike - maxlike))
 				{
-					throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");					
+					return false;
+					//throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");					
 				}
         if(fabs(new_maxlike - maxlike) < 0.001)
         {
@@ -204,17 +205,21 @@ namespace OpenMS
 				file->store((String)param_.getValue("output_name"));
 				delete file;
 			}
+			return true;
 		}
 		
-		void PosteriorErrorProbabilityModel::fit(  std::vector<double>& search_engine_scores, vector<double>& probabilities)
+		bool PosteriorErrorProbabilityModel::fit(  std::vector<double>& search_engine_scores, vector<double>& probabilities)
 		{	
-			fit(search_engine_scores);
+			bool return_value;
+			return_value = fit(search_engine_scores);
+			if(!return_value) return false;
 			probabilities.resize(search_engine_scores.size());
 			vector<double>::iterator probs =probabilities.begin();
 			for(vector<double>::iterator scores = search_engine_scores.begin(); scores != search_engine_scores.end(); ++scores, ++probs)
 			{
 				*probs = computeProbability(*scores);
 			}
+			return true;
 		}
 		
 		void PosteriorErrorProbabilityModel::fillDensities(vector<double>& x_scores,vector<DoubleReal>& incorrect_density,vector<DoubleReal>& correct_density)

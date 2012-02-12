@@ -421,7 +421,9 @@ foreach(i ${GUI_executables})
 		# extra work for pseudo-mac-bundle
 		# move prepared package to RUNTIME_OUTPUT
 		file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app"
-		DESTINATION "${PROJECT_BINARY_DIR}/bin")
+		DESTINATION "${PROJECT_BINARY_DIR}/bin"
+		PATTERN ".svn" EXCLUDE
+		PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 	else()
 		add_executable(${i} ${GUI_DIR}/${i}.C)
 	endif()
@@ -497,10 +499,12 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
 	add_subdirectory(source/TEST EXCLUDE_FROM_ALL) ## configure the Test project (but do not add it to OpenMS itself)
 
   ## CppCheck testing
+  if(NOT CMAKE_COMPILER_IS_CLANG) ## cppcheck does not support clang output
   find_package(cppcheck)
   if( CPPCHECK_FOUND )
     include( cmake/cppcheck.cmake )
   endif()
+endif()
 endif()
 
 ########################################################

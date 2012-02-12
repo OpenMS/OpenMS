@@ -210,7 +210,7 @@ namespace OpenMS
 
 	void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge)
 	{
-		if (peptide.size() == 0)
+		if (peptide.empty())
 		{
 			return;
 		}

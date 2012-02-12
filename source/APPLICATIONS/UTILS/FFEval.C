@@ -156,12 +156,12 @@ class TOPPFFEval
 		DoubleReal rt_tol = getDoubleOption_("rt_tol_abs");
 		if (rt_tol<0.0)
 		{
-			if (rt_spans.size()!=0)
+      if ( !rt_spans.empty() )
 			{
 				sort(rt_spans.begin(), rt_spans.end());
 				rt_tol = getDoubleOption_("rt_tol")*rt_spans[rt_spans.size()/2];
 			}
-      else if (features_in.size() == 0)
+      else if (features_in.empty())
       {
         // do nothing, rt_tol does not really matter, as we will not find a match anyway, but we want to have the stats 
         // at the end, so we do not abort
@@ -322,7 +322,7 @@ class TOPPFFEval
 		cout << endl;
 		cout << "intensity statistics:" << endl;
 		cout << "=====================" << endl;
-		if (ints_i.size()==0)
+		if (ints_i.empty())
 		{
 			cout << "correlation of found features: nan" << endl;
 		}
@@ -330,7 +330,7 @@ class TOPPFFEval
 		{
 			cout << "correlation of found features: " << pearsonCorrelationCoefficient(ints_i.begin(),ints_i.end(),ints_t.begin(),ints_t.end()) << endl;
 		}
-		if (ints_found.size()==0)
+		if (ints_found.empty())
 		{
 			cout << "intensity distribution of found: 0.0 0.0 0.0 0.0 0.0" << endl;
 		}
@@ -338,7 +338,7 @@ class TOPPFFEval
 		{
 			cout << "intensity distribution of found: " << fiveNumbers(ints_found,1) << endl;
 		}
-		if (ints_missed.size()==0)
+		if (ints_missed.empty())
 		{
 			cout << "intensity distribution of missed: 0.0 0.0 0.0 0.0 0.0" << endl;
 		}

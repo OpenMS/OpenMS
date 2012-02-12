@@ -166,6 +166,44 @@ START_SECTION((BaseFeature(const BaseFeature &feature)))
 	TEST_REAL_SIMILAR(q2, 0.9)
 END_SECTION
 
+START_SECTION((BaseFeature(const Peak2D& point)))
+{
+	Peak2D point;
+	point.setRT(1.23);
+	point.setMZ(4.56);
+	point.setIntensity(OpenMS::Peak2D::IntensityType(7.89));
+
+	BaseFeature copy(point);
+	TEST_REAL_SIMILAR(copy.getRT(), 1.23);
+	TEST_REAL_SIMILAR(copy.getMZ(), 4.56);
+	TEST_REAL_SIMILAR(copy.getIntensity(), 7.89);
+	TEST_EQUAL(copy.getQuality(), 0.0);
+	TEST_EQUAL(copy.getCharge(), 0);
+	TEST_EQUAL(copy.getWidth(), 0.0);
+	TEST_EQUAL(copy.getPeptideIdentifications().empty(), true);
+}
+END_SECTION
+
+START_SECTION((BaseFeature(const RichPeak2D& point)))
+{
+	RichPeak2D point;
+	point.setRT(1.23);
+	point.setMZ(4.56);
+	point.setIntensity(OpenMS::Peak2D::IntensityType(7.89));
+	point.setMetaValue("meta", "test");
+
+	BaseFeature copy(point);
+	TEST_REAL_SIMILAR(copy.getRT(), 1.23);
+	TEST_REAL_SIMILAR(copy.getMZ(), 4.56);
+	TEST_REAL_SIMILAR(copy.getIntensity(), 7.89);
+	TEST_EQUAL(copy.getMetaValue("meta"), "test");
+	TEST_EQUAL(copy.getQuality(), 0.0);
+	TEST_EQUAL(copy.getCharge(), 0);
+	TEST_EQUAL(copy.getWidth(), 0.0);
+	TEST_EQUAL(copy.getPeptideIdentifications().empty(), true);
+}
+END_SECTION
+
 START_SECTION((BaseFeature& operator=(const BaseFeature& rhs)))
 	BaseFeature::PositionType pos;
 	pos[0] = 21.21;
@@ -214,7 +252,7 @@ START_SECTION((bool operator==(const BaseFeature &rhs) const))
 }
 END_SECTION
 
-START_SECTION([EXTRA](BaseFeature& operator!=(const BaseFeature& rhs)))
+START_SECTION((bool operator!=(const BaseFeature& rhs) const))
 	BaseFeature p1;
 	BaseFeature p2(p1);
 	TEST_EQUAL(p1 != p2, false)
@@ -258,7 +296,7 @@ START_SECTION(([EXTRA]meta info with assignment))
 	TEST_EQUAL(p2.getMetaValue(2), "bla")
 END_SECTION
 
-START_SECTION(([BaseFeature::QualityLess] bool operator()(BaseFeature const &left, BaseFeature const &right) const ))
+START_SECTION(([BaseFeature::QualityLess] bool operator()(const BaseFeature &left, const BaseFeature &right) const ))
 	BaseFeature f1, f2;
   f1.setQuality((QualityType)0.94);
   f2.setQuality((QualityType)0.78);
@@ -268,7 +306,7 @@ START_SECTION(([BaseFeature::QualityLess] bool operator()(BaseFeature const &lef
 	TEST_EQUAL(oql(f2, f1), 1);
 END_SECTION
 
-START_SECTION(([BaseFeature::QualityLess] bool operator()(BaseFeature const &left, const QualityType &right) const ))
+START_SECTION(([BaseFeature::QualityLess] bool operator()(const BaseFeature &left, const QualityType &right) const ))
 	BaseFeature f1, f2;
   f1.setQuality((QualityType)0.94);
   f2.setQuality((QualityType)0.78);

@@ -852,7 +852,7 @@ namespace OpenMS
 				os << "\t\t\t</contact>\n";
 			}
 			//no contacts given => add empty entry as there must be a contact entry
-			if (cexp_->getContacts().size()==0)
+			if (cexp_->getContacts().empty())
 			{
 				os << "\t\t\t<contact>\n"
 					 << "\t\t\t\t<name></name>\n"
@@ -879,7 +879,7 @@ namespace OpenMS
 			os << "\t\t\t</source>\n";
 						
 			//no analyzer given => add empty entry as there must be one entry
-			if (inst.getMassAnalyzers().size() == 0)
+			if (inst.getMassAnalyzers().empty())
 			{
 				os << "\t\t\t<analyzerList count=\"1\">\n"
 				   << "\t\t\t\t<analyzer>\n"
@@ -938,7 +938,7 @@ namespace OpenMS
 			os << "\t\t</instrument>\n";
 			
 			//the data processing information of the first spectrum is used for the whole file
-			if (cexp_->size()==0 || (*cexp_)[0].getDataProcessing().size()==0)
+			if (cexp_->size()==0 || (*cexp_)[0].getDataProcessing().empty())
 			{
 				os << "\t\t<dataProcessing>\n"
 					 << "\t\t\t<software>\n"
@@ -1086,7 +1086,7 @@ namespace OpenMS
 					os << "\t\t\t\t\t<spectrumInstrument msLevel=\"" << spec.getMSLevel() << "\"";
 					level_id[spec.getMSLevel()] = spectrum_id;
 					
-					if (iset.getScanWindows().size() > 0)
+          if ( !iset.getScanWindows().empty() )
 					{
 						os << " mzRangeStart=\"" << iset.getScanWindows()[0].begin << "\" mzRangeStop=\"" << iset.getScanWindows()[0].end << "\"";
 					}

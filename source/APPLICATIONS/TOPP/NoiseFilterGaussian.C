@@ -49,24 +49,25 @@ using namespace std;
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ NoiseFilter \f$ \longrightarrow \f$</td>
+      <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ NoiseFilterGaussian \f$ \longrightarrow \f$</td>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker</td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet</td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_Resampler </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
+    </tr>
+    <tr>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
 		</tr>
 	</table>
 </CENTER>
 
-
 	The Gaussian filter is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
 	sharp cutoffs, and low passband ripple.
-
 
 	@note The Gaussian filter works for uniform as well as for non-uniform data.
 
@@ -125,7 +126,7 @@ class TOPPNoiseFilterGaussian
       MSExperiment<Peak1D> exp;
       mz_data_file.load(in,exp);
 
-			if (exp.size()==0)
+			if (exp.empty())
 			{
 				LOG_WARN << "The given file does not contain any conventional peak data, but might"
 					          " contain chromatograms. This tool currently cannot handle them, sorry.";

@@ -40,11 +40,11 @@ IDRTCalibration
 ITRAQAnalyzer
 InspectAdapter
 InternalCalibration
-MapAlignerApplyTransformation
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
 MapNormalizer
+MapRTTransformer
 MapStatistics
 MascotAdapter
 MascotAdapterOnline
@@ -54,7 +54,9 @@ NoiseFilterSGolay
 OMSSAAdapter
 PhosphoScoring
 PILISIdentification
-PILISModel
+PILISModelCV
+PILISModelTrainer
+PILISSpectraGenerator
 PTModel
 PTPredict
 PeakPickerHiRes

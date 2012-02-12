@@ -98,11 +98,11 @@ namespace OpenMS {
         @param masses Original double values to be scaled.
         @param precision Precision to scale double values.
       */
-      Weights(const alphabet_masses_type& masses, alphabet_mass_type prec)
+      Weights(const alphabet_masses_type& masses, alphabet_mass_type precision)
         : alphabet_masses_(masses),
-          precision_(prec)
+          precision_(precision)
       {
-        setPrecision(prec);
+        setPrecision(precision);
       }
 
       /**
@@ -118,10 +118,10 @@ namespace OpenMS {
       /**
         Assignment operator.
 
-        @param weights Weights to be assigned.
+        @param other Weights to be assigned.
         @return Reference to this object.
       */
-      Weights& operator =(const Weights& weights_);
+      Weights& operator =(const Weights& other);
 
       /**
         Gets size of a set of weights.
@@ -140,10 +140,10 @@ namespace OpenMS {
 
       /**
         Sets a new precision to scale double values to integer.
-        *
+
         @param precision A new precision.
       */
-      void setPrecision(alphabet_mass_type precision_);
+      void setPrecision(alphabet_mass_type precision);
 
       /**
         Gets precision.

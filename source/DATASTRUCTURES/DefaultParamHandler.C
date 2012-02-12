@@ -93,7 +93,7 @@ namespace OpenMS
 		
 		if (check_defaults_)
 		{
-			if (defaults_.size()==0 && warn_empty_defaults_)
+			if (defaults_.empty() && warn_empty_defaults_)
 			{
 				LOG_WARN << "Warning: No default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
 			}

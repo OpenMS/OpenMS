@@ -58,7 +58,7 @@ namespace OpenMS
 
     protected:
       /**
-       * @bried Remove clusters smaller then rt_min
+       * @brief Remove clusters smaller then rt_min
        */
       void removeSmall_();
       /**

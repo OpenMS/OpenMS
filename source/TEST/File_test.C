@@ -175,7 +175,8 @@ START_SECTION(static String findDatabase(const String &db_name))
   
   TEST_EXCEPTION(Exception::FileNotFound, File::findDatabase("filedoesnotexists"))
   String db = File::findDatabase("./CV/unimod.obo");
-  TEST_EQUAL(db.hasSubstring("OpenMS/share"), true)
+  //TEST_EQUAL(db,"wtf")
+  TEST_EQUAL(db.hasSubstring("share/OpenMS"), true)
 
 END_SECTION
 /////////////////////////////////////////////////////////////

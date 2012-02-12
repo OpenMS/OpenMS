@@ -67,15 +67,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_FeatureFinderRaw SILACAnalyzer-based feature finder
+  @page TOPP_FeatureFinderRaw FeatureFinderRaw
 
-  @brief Identifies peptide pairs in LC-MS data and determines their relative abundance.
+  @brief Identifies peptide features in raw (i.e. profile) LC-MS data.
 
 <CENTER>
   <table>
     <tr>
       <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ SILACAnalyzer \f$ \longrightarrow \f$</td>
+      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderRaw \f$ \longrightarrow \f$</td>
       <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
     </tr>
     <tr>
@@ -88,51 +88,37 @@ using namespace std;
   </table>
 </CENTER>
 
-  SILACAnalyzer is a tool for the fully automated analysis of quantitative proteomics data. It identifies pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we first explain the algorithm and then discuss the tuning of its parameters.
+  FeatureFinderRaw is a tool for the identification of peptide features in profile LC-MS data.
 
   <b>Algorithm</b>
 
-  The algorithm is divided into three parts: filtering, clustering and linear fitting, see Fig. (d), (e) and (f). In the following discussion let us consider a particular mass spectrum at retention time 1350 s, see Fig. (a). It contains a peptide of mass 1492 Da and its 6 Da heavier labelled counterpart. Both are doubly charged in this instance. Their isotopic envelopes therefore appear at 746 and 749 in the spectrum. The isotopic peaks within each envelope are separated by 0.5. The spectrum was recorded at finite intervals. In order to read accurate intensities at arbitrary m/z we spline-fit over the data, see Fig. (b).
-
-  We would like to search for such peptide pairs in our LC-MS data set. As a warm-up let us consider a standard intensity cut-off filter, see Fig. (c). Scanning through the entire m/z range (red dot) only data points with intensities above a certain threshold pass the filter. Unlike such a local filter, the filter used in our algorithm takes intensities at a range of m/z positions into account, see Fig. (d). A data point (red dot) passes if
-  - all six intensities at m/z, m/z+0.5, m/z+1, m/z+3, m/z+3.5 and m/z+4 lie above a certain threshold,
-  - the intensity profiles in neighbourhoods around all six m/z positions show a good correlation and
-  - the relative intensity ratios within a peptide agree up to a factor with the ratios of a theoretic averagine model.
-
-  Let us now filter not only a single spectrum but all spectra in our data set. Data points that pass the filter form clusters in the t-m/z plane, see Fig. (e). Each cluster corresponds to the mono-isotopic mass trace of the lightest peptide of a SILAC pattern. We now use hierarchical clustering methods to assign each data point to a specific cluster. The optimum number of clusters is determined by maximizing the silhouette width of the partitioning. Each data point in a cluster corresponds to three pairs of intensities (at [m/z, m/z+3], [m/z+0.5, m/z+3.5] and [m/z+1, m/z+4]). A plot of all intensity pairs in a cluster shows a clear linear correlation, see Fig. (f). Using linear regression we can determine the relative amounts of labelled and unlabelled peptides in the sample.
-
-  @image html SILACAnalyzer_algorithm.png
+  The underlying algorithm of the tool is equivalent to that of SILACAnalyzer.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SILACAnalyzer.cli
+ @verbinclude TOPP_FeatureFinderRaw.cli
 
   <b>Parameter Tuning</b>
-
-  SILACAnalyzer can detect SILAC patterns of any number of peptides, i.e. doublets (pairs), triplets, quadruplets et cetera.
 
   <i>input:</i>
   - in [*.mzML] - LC-MS dataset to be analyzed
   - ini [*.ini] - file containing all parameters (see discussion below)
 
   <i>standard output:</i>
-  - out [*.featureXML] - contains the list of identified peptides (retention time and m/z of the lightest peptide, ratios)
+ - out [*.consensusXML] - contains the list of identified peptides
 
+ <i>optional output:</i>
+ - out_clusters [*.consensusXML] - contains the complete set of data points passing the filters
+ 
   The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
 
   Parameters in section <i>algorithm:</i>
+ - <i>allow_missing_peaks</i> - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
   - <i>rt_threshold</i> - Upper bound for the retention time [s] over which a characteristic peptide elutes.
   - <i>rt_min</i> - Lower bound for the retentions time [s].
   - <i>intensity_cutoff</i> - Lower bound for the intensity of isotopic peaks in a SILAC pattern.
   - <i>intensity_correlation</i> - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
   - <i>model_deviation</i> - Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).
 
-  Parameters in section <i>sample:</i>
-  - <i>charge</i> - Range of charge states in the sample, i.e. min charge : max charge.
-  - <i>missed_cleavages</i> - Maximum number of missed cleavages.
-  - <i>peaks_per_peptide</i> - Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.
-
- <b>References:</b>
-  @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard,  <a href="http://www.springerlink.com/content/u40057754100v71t">SILACAnalyzer - a tool for differential quantitation of stable isotope derived data</a>, in F. Masulli, L. Peterson, and R. Tagliaferri (Eds.): CIBB 2009, LNBI 6160, pp. 4555, 2010.
 */
 
 // We do not want this class to show up in the docu:
@@ -189,8 +175,6 @@ class TOPPFeatureFinderRaw
     registerOutputFile_("out", "<file>", "", "Set of all identified peptides. The m/z-RT positions correspond to the lightest peptide in each group.", false);
     setValidFormats_("out", StringList::create("featureXML"));
 
-    // create section "labels" for adjusting masses of labels
-    registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
     // create section "sample" for adjusting sample parameters
     registerSubsection_("sample", "Parameters describing the sample and its labels.");
     // create section "algorithm" for adjusting algorithm parameters
@@ -255,7 +239,7 @@ class TOPPFeatureFinderRaw
     //--------------------------------------------------
 
     // get selected missed_cleavages
-    missed_cleavages = getParam_().getValue("sample:missed_cleavages");
+    missed_cleavages = 0;
 
     // get selected charge range
     String charge_string = getParam_().getValue("sample:charge");
@@ -361,7 +345,7 @@ class TOPPFeatureFinderRaw
 
       for (vector<vector<SILACPattern> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
       {
-        if (data_it->size() != 0)
+        if ( !data_it->empty() )
         {
           data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
         }
@@ -382,7 +366,7 @@ class TOPPFeatureFinderRaw
 
         while (data_it_1 < data_it_end)      // check for combining as long as first DataPoint is not second last elment of "data"
         {          
-          while (data_it_1->size() == 0 && data_it_1 < data_it_end)
+          while ( data_it_1->empty() && data_it_1 < data_it_end )
           {
             ++data_it_1;      // get next first DataPoint
             data_it_2 = data_it_1 + 1;      // reset second iterator
@@ -393,7 +377,7 @@ class TOPPFeatureFinderRaw
             break;      // stop combining
           }
 
-          while (data_it_2 < data.end() && data_it_2->size() == 0)      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
+          while ( data_it_2 < data.end() && data_it_2->empty() )      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
           {
             ++data_it_2;      // get next second DataPoint
           }
@@ -407,7 +391,7 @@ class TOPPFeatureFinderRaw
           it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
 
           // check if DataPoints are not empty
-          if (data_it_1->size() != 0 && data_it_2->size() != 0)
+          if ( !data_it_1->empty() && !data_it_2->empty() )
           {
             // check if DataPoints have the same charge state and mass shifts
             if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
@@ -462,7 +446,7 @@ class TOPPFeatureFinderRaw
 
         for (vector<vector<SILACPattern> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
         {
-          if (data_it->size() != 0)
+          if ( !data_it->empty() )
           {
             data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
           }

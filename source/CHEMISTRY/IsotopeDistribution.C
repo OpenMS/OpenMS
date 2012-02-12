@@ -129,7 +129,7 @@ namespace OpenMS
 
 	Size IsotopeDistribution::getMax() const
 	{
-		if (distribution_.size() == 0)
+		if (distribution_.empty())
 		{
 			return 0;
 		}
@@ -138,7 +138,7 @@ namespace OpenMS
 
 	Size IsotopeDistribution::getMin() const
 	{
-		if (distribution_.size() == 0)
+		if (distribution_.empty())
 		{
 			return 0;
 		}
@@ -204,7 +204,7 @@ namespace OpenMS
 
 	void IsotopeDistribution::convolve_(ContainerType& result, const ContainerType& left, const ContainerType& right) const
 	{
-		if (left.size() == 0 || right.size() == 0)
+		if (left.empty() || right.empty())
 		{
 			result.clear();
 			return;

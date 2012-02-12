@@ -477,7 +477,7 @@ namespace OpenMS
         }
       }
 
-      for (std::set<Precursor, Precursor::MZLess>::const_iterator it = precursors.begin(); it != precursors.end(); it++)
+      for (std::set<Precursor, Precursor::MZLess>::const_iterator it = precursors.begin(); it != precursors.end(); ++it)
       {
         std::vector<Size>& current_chromatograms_idx = map_precursor_to_chrom_idx[*it];
 

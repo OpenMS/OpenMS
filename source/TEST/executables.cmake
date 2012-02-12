@@ -112,6 +112,7 @@ set(kernel_executables_list
 	DRichPeak_test
 	FeatureMap_test
 	Feature_test
+	MassTrace_test
 	MSChromatogram_test
 	MSExperiment_test
 	MSSpectrum_test
@@ -214,6 +215,7 @@ set(math_executables_list
   LinearInterpolation_test
   LinearRegression_test
   MathFunctions_test
+  NNLS_test
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
   ROCCurve_test
@@ -225,6 +227,8 @@ set(filtering_executables_list
   ComplementFilter_test
   ComplementMarker_test
   DataFilters_test
+ElutionPeakDetection_test
+FeatureFindingMetabo_test  
   FilterFunctor_test
   GaussFilter_test
   GoodDiffFilter_test
@@ -237,6 +241,7 @@ set(filtering_executables_list
   LinearResampler_test
   LowessSmoothing_test
   MarkerMower_test
+MassTraceDetection_test  
   MorphologicalFilter_test
   NLargest_test
   NeutralLossDiffFilter_test
@@ -353,7 +358,7 @@ set(analysis_executables_list
 	HiddenMarkovModel_test
 	IDMapper_test
   ILPDCWrapper_test
-	PSLPFormulation_test
+	InclusionExclusionList_test
 	ItraqChannelExtractor_test
 	ItraqConstants_test
 	ItraqQuantifier_test
@@ -371,6 +376,7 @@ set(analysis_executables_list
 	MassDecompositionAlgorithm_test
 	MassDecomposition_test
 	OfflinePrecursorIonSelection_test
+	PeptideAndProteinQuant_test
 	PILISModelGenerator_test
 	PILISModel_test
 	PILISScoring_test
@@ -383,6 +389,7 @@ set(analysis_executables_list
 	PrecursorIonSelection_test
 	ProteinInference_test
 	ProtonDistributionModel_test
+	PSLPFormulation_test
 	QTClusterFinder_test
 	ReactionMonitoringTransition_test
 	SVMWrapper_test
@@ -390,7 +397,6 @@ set(analysis_executables_list
 	StablePairFinder_test
 	TransformationDescription_test
 	TransformationModel_test
-	InclusionExclusionList_test
 )
 
 set(applications_executables_list

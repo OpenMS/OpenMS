@@ -60,6 +60,7 @@
 				<UL>
 					<LI> @subpage Quickstart
 				  <LI> @subpage TOPP_tutorial
+					<LI> @subpage TOPPAS_tutorial
 				  <LI> @subpage TOPP_documentation
 				  <LI> @subpage UTILS_documentation
 				</UL>
@@ -80,7 +81,7 @@
 					<LI style="margin-top: 3px;"> Stephan Aiche @n <i> Mac port, simulation, build system</i>
 					<LI style="margin-top: 3px;"> Sandro Andreotti @n <i> DeNovo identification, simulation</i>
 					<LI style="margin-top: 3px;"> Chris Bielow @n <i> Windows port, iTRAQ quantitation, decharging, simulation, build system</i>
-					<LI style="margin-top: 3px;"> Rene Hussong @n <i> feature finding, parallel computing</i>
+					<LI style="margin-top: 3px;"> Johannes Junker @n <i> Quantification, TOPPAS</i>
 					<LI style="margin-top: 3px;"> Erhan Kenar @n <i> metabolomics </i>
 					<LI style="margin-top: 3px;"> Lars Nilse @n <i> SILAC quantitation </i>
 					<LI style="margin-top: 3px;"> Timo Sachsenberg @n <i> Visualization/TOPPView </i>
@@ -93,7 +94,7 @@
 			<TD valign="top">
 
 				<BR>
-				Installation instructions:
+				Building instructions:
 				<UL>
 					<LI> @subpage install_linux
 					<LI> @subpage install_mac

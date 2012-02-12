@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer:  $
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow, Marc Sturm, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -113,7 +113,7 @@ using namespace std;
 	 - @p "..._cf" columns refer to the consensus feature, the other columns refer to the sub-feature
 
 	 Output format produced for the @p consensus_features parameter:
-	 - one line per consensus feature (suitable for processing with e.g. @link http://www.r-project.org R@endlink)
+   - one line per consensus feature (suitable for processing with e.g. <a href="http://www.r-project.org">R</a>)
 	 - columns: same as for a @p CONSENSUS line above, followed by additional columns for identification data
 	 - additional columns: @p peptide_N0, @p n_diff_peptides_N0, @p protein_N0, @p n_diff_proteins_N0, @p peptide_N1, ...
 	 - @p "..._Ni" columns refer to the identification run with index "Ni", @p n_diff_... stands for "number of different ..."; different peptides/proteins in one column are separated by "/"
@@ -386,10 +386,8 @@ namespace OpenMS
 		void registerOptionsAndFlags_()
       {
         registerInputFile_("in", "<file>", "", "Input file ");
-        setValidFormats_("in", StringList::create(
-          "featureXML,consensusXML,idXML,mzML"));
-        registerOutputFile_("out", "<file>", "",
-          "Output file (mandatory for featureXML and idXML)", false);
+        setValidFormats_("in", StringList::create("featureXML,consensusXML,idXML,mzML"));
+        registerOutputFile_("out", "<file>", "", "Output file (mandatory for featureXML and idXML)", false);
         registerStringOption_("separator", "<sep>", "\t", "The used separator character(s); if not set the 'tab' character is used", false);
 				registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
 				registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
@@ -1075,7 +1073,7 @@ namespace OpenMS
 					PeakMap exp;
 					FileHandler().loadExperiment(in, exp);
 
-          if (exp.getChromatograms().size()==0)
+          if (exp.getChromatograms().empty())
           {
             writeLog_("File does not contain chromatograms. No output was generated!");
             return INCOMPATIBLE_INPUT_DATA;

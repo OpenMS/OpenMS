@@ -358,7 +358,6 @@ class TOPPPepNovoAdapter
           ProteinIdentification protein_identification;
 
           PepNovoOutfile p_novo_outfile;
-          vector<PeptideIdentification>::iterator id_vec_it=peptide_identifications.begin();
 
           //resolve PTMs (match them back to the OpenMs Identifier String)
           std::vector<ProteinIdentification>prot_ids;

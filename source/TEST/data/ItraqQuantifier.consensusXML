@@ -4,7 +4,7 @@
 	<userParam type="int" name="itraq:scans_noquant" value="0"/>
 	<userParam type="int" name="itraq:scans_total" value="31"/>
 	<userParam type="int" name="itraq:quantifyable_ch114" value="29"/>
-	<userParam type="int" name="itraq:quantifyable_ch116" value="30"/>
+	<userParam type="int" name="itraq:quantifyable_ch116" value="24"/>
 	<mapList count="4">
 		<map id="0" name="" label="iTRAQ_114_ref" size="31">
 			<userParam type="int" name="channel_name" value="114"/>

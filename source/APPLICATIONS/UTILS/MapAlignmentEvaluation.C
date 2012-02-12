@@ -49,7 +49,7 @@ using namespace std;
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinker </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled or @n @ref TOPP_FeatureLinkerUnlabeledQT </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none (text output)</td>
 		</tr>
   </table>
@@ -122,9 +122,6 @@ protected:
 
 		bool use_charge = getFlag_("use_charge");
 
-		DoubleReal out1 = 0;
-		DoubleReal out2 = 0;
-
 		//-------------------------------------------------------------
 		// check for valid input
 		//-------------------------------------------------------------
@@ -165,24 +162,31 @@ protected:
 		{
 			MapAlignmentEvaluationAlgorithm* algorithm_p = Factory<MapAlignmentEvaluationAlgorithm>::create("precision");
 			MapAlignmentEvaluationAlgorithm* algorithm_r = Factory<MapAlignmentEvaluationAlgorithm>::create("recall");
+
+      DoubleReal precision = 0;
+      DoubleReal recall = 0;
+
 			//evaluate
-			algorithm_p->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, out1);
-			algorithm_r->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, out2);
+      algorithm_p->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, precision);
+      algorithm_r->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, recall);
 
 			//write output
-			cout << "precision" << ": " << out1 << "\n";
-			cout << "   recall" << ": " << out2 << "\n";
-			cout << "-->    F1" << ": " << (2*out1*out2)/(out1+out2) << " (2*precision*recall)/(precision+recall)\n";
+      cout << "precision" << ": " << precision << "\n";
+      cout << "   recall" << ": " << recall << "\n";
+      cout << "-->    F1" << ": " << (2*precision*recall)/(precision+recall) << " (2*precision*recall)/(precision+recall)\n";
 			
 		}
 		else
 		{
 			MapAlignmentEvaluationAlgorithm* algorithm = Factory<MapAlignmentEvaluationAlgorithm>::create(type);
+
+      DoubleReal result = 0;
+
 			//evaluate
-			algorithm->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, out1);
+      algorithm->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, result);
 
 			//write output
-			cout << type << ": " << out1 << "\n";
+      cout << type << ": " << result << "\n";
 		}
 
 		return EXECUTION_OK;

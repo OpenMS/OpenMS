@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -45,8 +45,11 @@ using namespace std;
 /**
 	@page UTILS_IDExtractor IDExtractor
 	
-	@brief Extracts n peptides randomly or best n from IdXML files.
+	@brief Extracts 'n' peptides randomly or best 'n' from IdXML files.
   	
+  Input and output format are 'idXML'. The tools allows you to extract subsets of peptides
+  from idXML files.
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_IDExtractor.cli
 */
@@ -59,7 +62,7 @@ class TOPPIDExtractor
 {
 	public:
 		TOPPIDExtractor()
-			: TOPPBase("IDExtractor","Extracts n peptides randomly or best n from IdXML files.",false)
+			: TOPPBase("IDExtractor","Extracts 'n' peptides randomly or best 'n' from IdXML files.",false)
 		{
 			
 		}
@@ -80,10 +83,12 @@ class TOPPIDExtractor
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file");
+      setValidFormats_("in", StringList::create("idXML"));
 			registerOutputFile_("out","<file>","","output file");
-			registerIntOption_("number_of_peptides","<int>",10,"number of randomly chosen peptides",false);
+			setValidFormats_("out", StringList::create("idXML"));
+      registerIntOption_("number_of_peptides","<int>",10,"Number of randomly chosen peptides",false);
 			setMinInt_("number_of_peptides", 1);
-			registerIntOption_("number_of_rand_invokations","<int>",0,"number of rand invokations before random draw", false);
+			registerIntOption_("number_of_rand_invokations","<int>",0,"Number of rand invocations before random draw", false);
 			setMinInt_("number_of_rand_invokations", 0);
 			registerFlag_("best_hits", "If this flag is set the best n peptides are chosen.");
 		}
@@ -222,14 +227,14 @@ class TOPPIDExtractor
 						{
               temp_peptide_hits.clear();
 							temp_identifications[k].getReferencingHits(temp_protein_hits[j].getAccession(), temp_peptide_hits);
-							if (temp_peptide_hits.size() > 0 && !already_chosen)
+              if ( !temp_peptide_hits.empty() && !already_chosen )
 							{
 								chosen_protein_hits.push_back(temp_protein_hits[j]);
 								already_chosen = true;
 							}
 						}
 					}
-					if (chosen_protein_hits.size() == 0)
+					if (chosen_protein_hits.empty())
 					{
 						cout << "No protein hits found for " << protein_identifications[i].getIdentifier() 
 							<< " although having " << temp_identifications.size() << " ids" << endl;

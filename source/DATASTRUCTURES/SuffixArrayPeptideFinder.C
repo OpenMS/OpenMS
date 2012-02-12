@@ -180,7 +180,7 @@ String SuffixArrayPeptideFinder::getModificationOutputMethod ()
 
 String SuffixArrayPeptideFinder::vToString_ (vector<String> v)
 {
-	if (v.size()==0) return ("");
+	if (v.empty()) return ("");
 	String res = "[";
 	for (Size i = 0; i < v.size();++i)
 	{

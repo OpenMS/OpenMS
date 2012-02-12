@@ -63,7 +63,7 @@ END_SECTION
 START_SECTION((const std::vector<Peak1D >& getSignal() const))
  ContinuousWaveletTransform cwt;
  
- TEST_EQUAL(cwt.getSignal().size() == 0, true)
+ TEST_EQUAL(cwt.getSignal().empty(), true)
 END_SECTION
 
 START_SECTION((DoubleReal getScale() const))

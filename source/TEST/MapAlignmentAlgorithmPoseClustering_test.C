@@ -85,7 +85,7 @@ END_SECTION
 
 START_SECTION((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std::vector< TransformationDescription > &)))
 {
-  // Tested extensively in TEST/TOPP.  See MapAligner_test.
+  // Tested extensively in TEST/TOPP
   NOT_TESTABLE;
 }
 END_SECTION

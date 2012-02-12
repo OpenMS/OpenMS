@@ -560,7 +560,7 @@ namespace OpenMS
     std::map<Size,std::vector<Size> >::iterator iter;
 	  for( iter = cluster_map.begin(); iter != cluster_map.end(); ++iter )
 		{
-      if (iter->second.size()==0) continue;
+      if (iter->second.empty()) continue;
 			std::vector<Size> actCluster=iter->second;
 			clusters.push_back(actCluster);
 		}
@@ -663,7 +663,7 @@ namespace OpenMS
 
 	std::vector< Real > ClusterAnalyzer::cohesion(const std::vector< std::vector<Size> >& clusters, const DistanceMatrix<Real>& original)
 	{
-		if(clusters.size()==0 || clusters.size() > original.dimensionsize())
+		if(clusters.empty() || clusters.size() > original.dimensionsize())
 		{
 			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "invalid clustering");
 		}

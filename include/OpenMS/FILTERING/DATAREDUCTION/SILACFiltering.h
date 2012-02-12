@@ -127,8 +127,6 @@ namespace OpenMS
        * @brief detailed constructor
        * @param exp raw data
        * @param intensity_cutoff minimal intensity of SILAC features
-       * @param intensity_correlation minimal intensity correlation between regions of different peaks
-       * @param allow_missing_peaks flag for missing peaks
        */
       SILACFiltering(MSExperiment<Peak1D>& exp, const PeakWidthEstimator::Result &, const DoubleReal intensity_cutoff, const String debug_filebase_ = "");
 

@@ -74,7 +74,8 @@ namespace OpenMS
 			user_specified_out_dir_(false),
 			clipboard_(0),
       dry_run_(true),
-      threads_active_(0)
+      threads_active_(0),
+      allowed_threads_(1)
 	{
 		/*	ATTENTION!
 			 
@@ -550,7 +551,7 @@ namespace OpenMS
 		update(sceneRect());
 		
 		//check if pipeline OK
-		if (!sanityCheck())
+		if (!sanityCheck_())
 		{
       if (!gui_) emit pipelineExecutionFailed(); // the user cannot interact. End processing.
 			return;
@@ -732,7 +733,6 @@ namespace OpenMS
     Param load_param;
     load_param.load(file);
 
-
     // check for TOPPAS file version. Deny loading if too old or too new
     // get version of TOPPAS file
     String file_version = "1.8.0"; // default (were we did not have the tag)
@@ -814,9 +814,15 @@ namespace OpenMS
 				{
 					StringList file_names = vertices_param.getValue(current_id + ":file_names");
 					QStringList file_names_qt;
+
 					for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
 					{
-						file_names_qt.push_back(QDir::cleanPath(str_it->toQString()));
+            QString f = str_it->toQString();
+            if (QDir::isRelativePath(f)) // prepend path of toppas file to relative path of the input files
+            {
+              f = File::path(file).toQString() + "/" + f;
+					}
+						file_names_qt.push_back(QDir::cleanPath(f));
 					}
 					TOPPASInputFileListVertex* iflv = new TOPPASInputFileListVertex(file_names_qt);
 					current_vertex = iflv;
@@ -1517,10 +1523,11 @@ namespace OpenMS
 		{
 			if (always_ask || !user_specified_out_dir_)
 			{
-				TOPPASOutputFilesDialog tofd(out_dir_);
+				TOPPASOutputFilesDialog tofd(out_dir_, allowed_threads_);
 				if (tofd.exec())
 				{
           setOutDir( tofd.getDirectory() );
+          setAllowedThreads(tofd.getNumJobs());
 				}
 				else
 				{
@@ -1621,7 +1628,7 @@ namespace OpenMS
 				action.insert("Resume");
 				action.insert("Open files in TOPPView");
         action.insert("Open containing folder");
-        action.insert("Toggle breakpoint");
+        //action.insert("Toggle breakpoint");
 			}
 
 			if (found_input)
@@ -1824,9 +1831,7 @@ namespace OpenMS
     
     used = true;
 
-    int allowed_threads = 1; // change as desired
-
-		while (!topp_processes_queue_.empty() && threads_active_ < allowed_threads)
+    while (!topp_processes_queue_.empty() && threads_active_ < allowed_threads_)
 		{
       ++threads_active_; // will be decreased, once the tool finishes
 			TOPPProcess tp = topp_processes_queue_.first();
@@ -1842,7 +1847,7 @@ namespace OpenMS
 
 	}
 	
-	bool TOPPASScene::sanityCheck()
+	bool TOPPASScene::sanityCheck_()
 	{
 		QStringList strange_vertices;
 		
@@ -2113,6 +2118,12 @@ namespace OpenMS
 		return change;
 	}
   
+  void TOPPASScene::setAllowedThreads(int num_jobs)
+  {
+    if (num_jobs < 1) return;
+    allowed_threads_ = num_jobs;
+  }
+
   bool TOPPASScene::isDryRun() const
   {
     return dry_run_;

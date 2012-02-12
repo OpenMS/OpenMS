@@ -25,8 +25,8 @@
 // $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_APPLICATIONS_TOPPVIEWBASE_H
-#define OPENMS_APPLICATIONS_TOPPVIEWBASE_H
+#ifndef OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
+#define OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
 
 //OpenMS
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -634,4 +634,4 @@ namespace OpenMS
 
 } //namespace
 
-#endif // OPENMS_APPLICATIONS_TOPPVIEWBASE_H
+#endif

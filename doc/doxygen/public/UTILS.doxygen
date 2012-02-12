@@ -37,7 +37,7 @@
  	The UTILS tools are divided into several subgroups:
 
 	<b>Maintenance</b>
-	- @subpage UTILS_INIUpdater - update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have changed
+	- @subpage UTILS_INIUpdater - Update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have changed
 	
   <b>File handling</b>
   - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
@@ -47,12 +47,11 @@
 	- @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
 
   <b>Algorithm evaluation</b>
-  - @subpage UTILS_FFEval - Evaluation tool for for feature detection algorithms.
+  - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
-	- @subpage UTILS_CaapConvert - Convert a CAAP ground truth file into consensusXML format.
 	- @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
 	- @subpage UTILS_IdXMLEvaluation - Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.
-	- @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by MapAligner).
+	- @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
 
   <b>Peptide identification</b>
 	- @subpage UTILS_Digestor - Digests a protein database in-silico.
@@ -64,19 +63,15 @@
   - @subpage UTILS_SpecLibCreator - Creates an MSP formated spectral library.
 
     <b>Quantitation</b>
-  - @subpage UTILS_ERPairFinder - Util which can be used to evaluate pair ratios on enhanced resolution (zoom) scans.
-  - @subpage UTILS_MRMPairFinder - Util which can be used to evaluate labeled pair ratios on MRM features.
+  - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
+  - @subpage UTILS_MRMPairFinder - Evaluate labeled pair ratios on MRM features.
 
 
 	<b>Misc</b>
   - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
-	- @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.<!--  
-	%% removed from Docu (still available in TOPP) because of lack of usage/support
-  - @subpage UTILS_HistView - A viewer for histograms.
--->
+	- @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
 	- @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
 	- @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for svm models as input for SvmTheoreticalSpectrumGenerator.
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
-  - @subpage UTILS_UniqueIdAssigner - Assign new unique ids to featureXML or consensusXML files.
 
 */

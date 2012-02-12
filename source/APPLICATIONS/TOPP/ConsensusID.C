@@ -91,6 +91,7 @@ struct IDData
 {
 	DoubleReal mz;
 	DoubleReal rt;
+	String sourcefile;
 	vector<PeptideIdentification> ids;
 };
 
@@ -168,6 +169,7 @@ class TOPPConsensusID
 				{
 					PeptideIdentification t;
 					t=*pep_id_it;
+					String file_origin = (String)pep_id_it->getMetaValue("file_origin");
 					String scoring = (String)pep_id_it->getIdentifier();
 					DoubleReal rt = (DoubleReal)(pep_id_it->getMetaValue("RT"));
 					DoubleReal mz = (DoubleReal)(pep_id_it->getMetaValue("MZ"));
@@ -175,7 +177,7 @@ class TOPPConsensusID
 					vector<IDData>::iterator pos = prec_data.begin();
 					while (pos != prec_data.end())
 					{
-						if (fabs(pos->rt - rt) < rt_delta && fabs(pos->mz - mz) < mz_delta )
+						if (fabs(pos->rt - rt) < rt_delta && fabs(pos->mz - mz) < mz_delta && pos->sourcefile == file_origin)
 						{
 							break;
 						}
@@ -190,7 +192,6 @@ class TOPPConsensusID
 						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
 							{
 								PeptideHit hit = *pit;
-								vector<PeptideHit>::const_iterator tip=pit+1;
 								if (hit.getSequence().size()>=min_length)
 								{
 									if (hit.metaValueExists("scoring"))
@@ -206,6 +207,7 @@ class TOPPConsensusID
 								}
 								}
 						t.setHits(hits);
+						pos->sourcefile=file_origin;
 						pos->ids.push_back(t);
 					}
 					//insert new entry
@@ -214,11 +216,11 @@ class TOPPConsensusID
 						IDData tmp;
 						tmp.mz = mz;
 						tmp.rt = rt;
+						tmp.sourcefile = file_origin;
 						vector<PeptideHit> hits;
 						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
 						{
 							PeptideHit hit = *pit;
-							vector<PeptideHit>::const_iterator tip=pit+1;
 							if (hit.getSequence().size()>=min_length)
 							{
 								if (hit.metaValueExists("scoring"))
@@ -247,6 +249,7 @@ class TOPPConsensusID
 					IDData tmp;
 					tmp.mz=fin->mz;
 					tmp.rt=fin->rt;
+					tmp.sourcefile = fin->sourcefile;
 					PeptideIdentification t;
 					vector<PeptideHit> P;
 
@@ -281,6 +284,7 @@ class TOPPConsensusID
 					pep_ids.push_back(it->ids[0]);
 					pep_ids.back().setMetaValue("RT",it->rt);
 					pep_ids.back().setMetaValue("MZ",it->mz);
+					pep_ids.back().setMetaValue("file_origin",it->sourcefile);
 				}
 
 				//create new identification run

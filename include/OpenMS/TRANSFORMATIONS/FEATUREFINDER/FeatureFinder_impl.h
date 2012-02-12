@@ -40,7 +40,7 @@ namespace OpenMS
 	void FeatureFinder::run(const String& algorithm_name, MSExperiment<PeakType> & input_map, FeatureMap<FeatureType> & features, const Param& param, const FeatureMap<FeatureType>& seeds)
 	{
 		// Nothing to do if there is no data
-		if ((algorithm_name != "mrm" && input_map.size()==0) || (algorithm_name == "mrm" && input_map.getChromatograms().size() == 0))
+		if ((algorithm_name != "mrm" && input_map.empty()) || (algorithm_name == "mrm" && input_map.getChromatograms().empty()))
 		{
 		  features.clear(true);
 			return;
@@ -69,7 +69,7 @@ namespace OpenMS
       }
 			for (Size s=0; s<input_map.size(); ++s)
 			{
-				if (input_map[s].size()==0) continue;
+				if (input_map[s].empty()) continue;
 				if (input_map[s][0].getMZ()<0)
 				{
 					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "FeatureFinder can only operate on spectra that contain peaks with positive m/z values. Filter the data accordingly beforehand! Aborting.");

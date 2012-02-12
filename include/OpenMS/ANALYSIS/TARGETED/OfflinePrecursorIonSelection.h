@@ -134,6 +134,7 @@ namespace OpenMS
                                                    const MSExperiment<InputPeakType>& experiment,
 																									 std::vector<std::vector<std::pair<Size,Size> > > & indices)
 	{
+    if(experiment.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
 		for(Size f = 0; f < features.size();++f)
 			{
 				std::vector<std::pair<Size,Size> > vec;
@@ -173,7 +174,7 @@ namespace OpenMS
 								vec.push_back(end);
 							}
 #ifdef DEBUG_OPS
-						else
+						else if(start_found || end_found)
 							{
 								std::cout << "start "<<start_found<<" end "<<end_found<<std::endl;
 								std::cout << "feature: "<<f << " rt: "<<rt<<std::endl;
@@ -194,8 +195,10 @@ namespace OpenMS
 #endif
         if(vec.empty())
 					{
+#ifdef DEBUG_OPS            
 						std::cout << "According to the convex hulls no mass traces found for this feature->estimate!"
 											<< features[f].getRT() << " "<<features[f].getMZ()<<" "<<features[f].getCharge()<<std::endl; 
+#endif
 						// we estimate the convex hull
 					  typename MSExperiment<InputPeakType>::ConstIterator spec_iter = experiment.RTBegin(features[f].getRT());
 						if(spec_iter == experiment.end()) --spec_iter;
@@ -226,9 +229,22 @@ namespace OpenMS
 
 						typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = spec_iter->MZBegin(features[f].getMZ());
 						typename MSSpectrum<InputPeakType>::ConstIterator mz_end = mz_iter;
-						while(mz_iter != spec_iter->begin() && features[f].getMZ()- mz_iter->getMZ() < 0.1) --mz_iter;
+						
+            if(mz_iter == spec_iter->end())
+              {
+                if(mz_iter != spec_iter->begin() && fabs((mz_iter-1)->getMZ() - features[f].getMZ()) < 0.5)
+                  {
+                    --mz_iter;
+                  }
+                else continue;
+              }
+            if(fabs(mz_iter->getMZ() - features[f].getMZ()) > 0.5) continue;
+            while (mz_iter != spec_iter->begin() && fabs(features[f].getMZ()- mz_iter->getMZ()) < 0.5) --mz_iter;
+            if(mz_iter != spec_iter->end()) ++mz_iter;
 						start.second = distance(spec_iter->begin(),mz_iter);
-						std::cout << "Start: "<<experiment[start.first].getRT()<<" "<<experiment[start.first][start.second].getMZ();
+#ifdef DEBUG_OPS
+            std::cout << features[f].getMZ() << " Start: "<<experiment[start.first].getRT()<<" "<<experiment[start.first][start.second].getMZ();
+#endif
 						Int charge = features[f].getCharge();
 						if(charge == 0) charge = 1;
 						while(mz_end != spec_iter->end() && mz_end->getMZ() - features[f].getMZ() < 3.0/(DoubleReal)charge)
@@ -236,8 +252,11 @@ namespace OpenMS
 								//	std::cout << mz_end->getMZ() << " - "<<features[f].getMZ() << " <? "<<3.0/(DoubleReal)charge<<std::endl;
 								++mz_end;
 							}
+            if (mz_end == spec_iter->end() && mz_end != spec_iter->begin() ) --mz_end; // mz_end must be a valid peak
 						end.second = distance(spec_iter->begin(),mz_end);
-						std::cout << "\tEnd: "<<experiment[end.first].getRT()<<" "<<experiment[end.first][end.second].getMZ()<<std::endl;;
+#ifdef DEBUG_OPS
+            std::cout << "\tEnd: "<<experiment[end.first].getRT()<<" "<<experiment[end.first][end.second].getMZ()<<std::endl;
+#endif
 						vec.push_back(start);
 						vec.push_back(end);
 					}
@@ -479,7 +498,13 @@ namespace OpenMS
 									//get the intensity factor for the position in the elution profile
 									if (meta_values_present)
 									{
-										elu_factor = elution_profile_intensities[feature_num][i -feature_elution_bounds[feature_num][0]];
+										DoubleList xxx = elution_profile_intensities[feature_num];
+                    DoubleList yyy = feature_elution_bounds[feature_num];                    
+//                    std::cout << "PEAKRT: " << peak_rt << std::endl;
+//                    std::cout << "Max: " << yyy[3] << "  vs.  " << bounding_boxes_f[feature_num].maxX() << std::endl;
+//                    std::cout << "Min: " << yyy[1] << "  vs.  " << bounding_boxes_f[feature_num].minX() << std::endl;
+                    OPENMS_PRECONDITION(i - yyy[0] < xxx.size(), "Tried to access invalid index for elution factor");
+										elu_factor = xxx[i - yyy[0]]; // segfault here: "i-yyy[0]" yields invalid index
 										iso_factor = isotope_intensities[feature_num][mass_trace_num];
 									}
 									feature_intensity+=features[feature_num].getIntensity() * iso_factor * elu_factor;

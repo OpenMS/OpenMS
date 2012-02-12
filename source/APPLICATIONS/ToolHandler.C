@@ -61,6 +61,7 @@ namespace OpenMS
     tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", "ID Processing");
 		tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", "Quantitation");
 		tools_map["FeatureFinderIsotopeWavelet"] = Internal::ToolDescription("FeatureFinderIsotopeWavelet", "Quantitation");
+                tools_map["FeatureFinderMetabo"] = Internal::ToolDescription("FeatureFinderMetabo", "Quantitation");
 		tools_map["FeatureFinderMRM"] = Internal::ToolDescription("FeatureFinderMRM", "Quantitation");
     tools_map["FeatureFinderRaw"] = Internal::ToolDescription("FeatureFinderRaw", "Quantitation");
 		tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", "Map Alignment");
@@ -82,7 +83,7 @@ namespace OpenMS
 		tools_map["InclusionExclusionListCreator"] = Internal::ToolDescription("InclusionExclusionListCreator", "Targeted Experiments");
     tools_map["InspectAdapter"] = Internal::ToolDescription("InspectAdapter", "Identification");
 		tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", "Signal processing and preprocessing");
-		tools_map["MapAlignerApplyTransformation"] = Internal::ToolDescription("MapAlignerApplyTransformation", "Map Alignment");
+		tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", "Map Alignment");
 		tools_map["MapAlignerIdentification"] = Internal::ToolDescription("MapAlignerIdentification", "Map Alignment");
 		tools_map["MapAlignerPoseClustering"] = Internal::ToolDescription("MapAlignerPoseClustering", "Map Alignment");
 		tools_map["MapAlignerSpectrum"] = Internal::ToolDescription("MapAlignerSpectrum", "Map Alignment");
@@ -91,11 +92,14 @@ namespace OpenMS
     tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", "Identification");
     tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", "Identification");
     tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", "Signal processing and preprocessing");
+    tools_map["MzTabExporter"] = Internal::ToolDescription("MzTabExporter", "File Handling");
 		tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", "Signal processing and preprocessing");
 		tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
     tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Identification");
     tools_map["PILISIdentification"] = Internal::ToolDescription("PILISIdentification", "Identification");
-    tools_map["PILISModel"] = Internal::ToolDescription("PILISModel", "ID Processing");
+    tools_map["PILISModelCV"] = Internal::ToolDescription("PILISModelCV", "ID Processing");
+    tools_map["PILISModelTrainer"] = Internal::ToolDescription("PILISModelTrainer", "ID Processing");
+    tools_map["PILISSpectraGenerator"] = Internal::ToolDescription("PILISSpectraGenerator", "ID Processing");
 		tools_map["PTModel"] = Internal::ToolDescription("PTModel", "Peptide property prediction");
 		tools_map["PTPredict"] = Internal::ToolDescription("PTPredict", "Peptide property prediction");
 		tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", "Signal processing and preprocessing");
@@ -159,14 +163,12 @@ namespace OpenMS
     util_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", "");
 		util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", "");
 		util_map["MapAlignmentEvaluation"] = Internal::ToolDescription("MapAlignmentEvaluation", "");
-		util_map["CaapConvert"] = Internal::ToolDescription("CaapConvert", "");
 		util_map["CVInspector"] = Internal::ToolDescription("CVInspector", "");
 		util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", "");
 		util_map["Digestor"] = Internal::ToolDescription("Digestor", "");
 		util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", "");
 		util_map["FFEval"] = Internal::ToolDescription("FFEval", "");
 		util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", "");
-		util_map["HistView"] = Internal::ToolDescription("HistView", "");
 		util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", "");
 		util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", "");
 		util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", "");
@@ -179,7 +181,6 @@ namespace OpenMS
 		util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", "");
 		util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", "");
 		util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", "");
-		util_map["UniqueIdAssigner"] = Internal::ToolDescription("UniqueIdAssigner", "");
 		util_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", "");
 		util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", "");
 		util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", "");

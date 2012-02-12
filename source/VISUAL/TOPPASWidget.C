@@ -192,7 +192,7 @@ namespace OpenMS
 #endif
   }
 	
-	void TOPPASWidget::resizeEvent(QResizeEvent* event)
+	void TOPPASWidget::resizeEvent(QResizeEvent* /*event*/)
 	{
 //		QGraphicsView::resizeEvent(event);
 //		if (scene_)

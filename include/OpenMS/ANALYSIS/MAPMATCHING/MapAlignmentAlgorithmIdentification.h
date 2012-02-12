@@ -108,16 +108,9 @@ namespace OpenMS
 		/// Score threshold for peptide hits
 		DoubleReal score_threshold_;
 		
-		/**
-			 @brief Compute the median of a list of values
+		/// Minimum number of runs a peptide must occur in
+		Size min_run_occur_;
 			 
-			 @param values Input values (will be sorted)
-			 @param sorted Are values already sorted? (sorting step can be saved)
-			 
-			 @throw Exception::IllegalArgument if the input list is empty
-		*/
-		DoubleReal median_(DoubleList& values, bool sorted = false);
-
 		/**
 			 @brief Compute the median retention time for each peptide sequence
 			 
@@ -158,7 +151,6 @@ namespace OpenMS
 			 Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
 
 			 @param features Input features for RT data
-			 @param unassigned List of unassigned peptide IDs
 			 @param rt_data Lists of RT values for diff. peptide sequences (output)
 		*/
 		template <typename MapType> void getRetentionTimes_(MapType& features,

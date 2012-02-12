@@ -60,7 +60,7 @@ using namespace std;
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> external tools @n e.g. for statistical analysis</td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinker </td>
+			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled @n (or another feature grouping tool) </td>
 		</tr>
 	</table>
 </CENTER>
@@ -360,9 +360,11 @@ protected:
 		out << endl;
 
 		bool filter_charge = algo_params_.getValue("filter_charge") == "true";
-		for (PeptideQuant::const_iterator q_it = quant.begin(); 
-				 q_it != quant.end(); ++q_it)
+		for (PeptideQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
+				 ++q_it)
 		{
+			if (q_it->second.total_abundances.empty()) continue; // not quantified
+
 			StringList accessions;
 			for (set<String>::const_iterator acc_it = 
 						 q_it->second.accessions.begin(); acc_it != 
@@ -562,21 +564,23 @@ protected:
 	}
 
 	
-	/// Annotate a ProteinHit with abundance values (for mzTab export).
-	void storeAbundances_(ProteinHit& hit, SampleAbundances& total_abundances)
+	/// Annotate a Protein-/PeptideHit with abundance values (for mzTab export).
+	template <typename HitType>
+	void storeAbundances_(HitType& hit, SampleAbundances& total_abundances, 
+												const String& what = "protein")
 	{
 		Size counter = 1;
 		for (ConsensusMap::FileDescriptions::iterator file_it = files_.begin(); 
-				 file_it != files_.end(); ++file_it)
+				 file_it != files_.end(); ++file_it, ++counter)
 		{
-			String field[2] = {"mzTab:protein_abundance_", 
+			String field[2] = {"mzTab:" + what + "_abundance_", 
 												 "sub[" + String(counter) + "]"};
 			DoubleReal value = total_abundances[file_it->first];
 			if (value > 0) hit.setMetaValue(field[0] + field[1], value);
 			else hit.setMetaValue(field[0] + field[1], "--"); // missing value
 			// TODO: compute std. deviations/std. errors (how?)
-			hit.setMetaValue(field[0] + "stdev_" + field[1], "--");
-			hit.setMetaValue(field[0] + "std_error_" + field[1], "--");
+			// hit.setMetaValue(field[0] + "stdev_" + field[1], "--");
+			// hit.setMetaValue(field[0] + "std_error_" + field[1], "--");
 		}
 	}
 
@@ -586,22 +590,14 @@ protected:
 										 vector<DataProcessing>& processing)
 	{
 		// proteins:
-		if (proteins_.getHits().empty()) // generate ProteinHits from scratch
+		// mapping: protein accession -> position in list of protein hits
+		typedef map<String, vector<ProteinHit>::iterator> AccessionMap;
+		AccessionMap accession_map;
+		for (vector<ProteinHit>::iterator ph_it = proteins_.getHits().begin();
+				 ph_it != proteins_.getHits().end(); ++ph_it)
 		{
-			for (ProteinQuant::const_iterator q_it = prot_quant.begin(); 
-					 q_it != prot_quant.end(); ++q_it)
-			{
-				if (q_it->second.total_abundances.empty()) continue; // not quantified
-				ProteinHit hit;
-				hit.setAccession(q_it->first); // no further data
-				SampleAbundances total_abundances = q_it->second.total_abundances;
-				storeAbundances_(hit, total_abundances);
-				proteins_.insertHit(hit);
+			accession_map[ph_it->getAccession()] = ph_it;
 			}
-		}
-		else // annotate quantified proteins, remove the rest
-		{
-			vector<ProteinHit> quantified;
 			// indistinguishable proteins:
 			map<String, StringList> leader_to_accessions;
 			for (vector<ProteinIdentification::ProteinGroup>::iterator group_it = 
@@ -615,33 +611,41 @@ protected:
 										 group_it->accessions.end()); // insert all but first
 				}
 			}
-			for (vector<ProteinHit>::iterator ph_it = proteins_.getHits().begin();
-					 ph_it != proteins_.getHits().end(); ++ph_it)
+		// annotate protein hits with abundances:
+		vector<ProteinHit> quantified_prot;
+		for (ProteinQuant::const_iterator q_it = prot_quant.begin(); 
+				 q_it != prot_quant.end(); ++q_it)
 			{
-				const String& accession = ph_it->getAccession();
-				ProteinQuant::const_iterator pos = prot_quant.find(accession);
-				if ((pos == prot_quant.end()) || pos->second.total_abundances.empty())
+			if (accession_map.empty()) // generate a new hit
 				{
-					continue; // protein not quantified
+				ProteinHit hit;
+				hit.setAccession(q_it->first); // no further data
+				quantified_prot.push_back(hit);
 				}
-				quantified.push_back(*ph_it);
-				// annotate with abundance values:
-				SampleAbundances total_abundances = pos->second.total_abundances;
-				storeAbundances_(quantified.back(), total_abundances);
+			else // copy existing hit
+			{
+				AccessionMap::iterator pos = accession_map.find(q_it->first);
+				if (pos == accession_map.end()) continue; // not in list, skip
+				quantified_prot.push_back(*(pos->second));
 				// annotate with indistinguishable proteins:
 				map<String, StringList>::iterator la_it = 
-					leader_to_accessions.find(accession);
+					leader_to_accessions.find(q_it->first);
 				if (la_it != leader_to_accessions.end()) // protein is group member
 				{
-					quantified.back().setMetaValue("mzTab:ambiguity_members", 
+					quantified_prot.back().setMetaValue("mzTab:ambiguity_members", 
 																				 la_it->second.concatenate(","));
 				}
 			}
-			proteins_.getHits().swap(quantified);
+			// annotate with abundance values:
+			SampleAbundances total_abundances = q_it->second.total_abundances;
+			storeAbundances_(quantified_prot.back(), total_abundances);
+			quantified_prot.back().setMetaValue("num_peptides", 
+																					q_it->second.id_count);
 		}
+		proteins_.getHits().swap(quantified_prot);
 		// set meta values:
 		UInt64 id = UniqueIdGenerator::getUniqueId();
-		proteins_.setMetaValue("mzTab:unit_id", "OpenMS" + String(id));
+		proteins_.setMetaValue("mzTab:unit_id", "OpenMS_" + String(id));
 		proteins_.setMetaValue("mzTab:title", 
 													 "Quantification by OpenMS/ProteinQuantifier");
 		processing.push_back(getProcessingInfo_(DataProcessing::QUANTITATION));
@@ -655,33 +659,99 @@ protected:
 		// input featureXML/consensusXML, or in MzTabExporter to input idXML?
 		for (Size i = 0; i < files_.size(); ++i)
 		{
-			String prefix = "mzTab:sub[" + String(i+1) + "]-";
-			String desc = "Source file: " + files_[i].filename;
-			proteins_.setMetaValue(prefix + "description", desc);
+			String loc = "mzTab:ms_file[" + String(i+1) + "]-location";
+			proteins_.setMetaValue(loc, files_[i].filename);
 			if (!files_[i].label.empty())
 			{
-				String label = "[label," + files_[i].label + "]";
-				proteins_.setMetaValue(prefix + "quantitation_reagent", label);
+				String desc =  "mzTab:sub[" + String(i+1) + "]-description";
+				proteins_.setMetaValue(desc, "label: " + files_[i].label);
 			}
 		}
-
 		// peptides:
-		if (peptides_.empty())
+		// mapping: unmodified peptide seq. -> position in list of peptide hits
+		typedef map<String, vector<PeptideHit>::const_iterator> SequenceMap;
+		SequenceMap sequence_map;
+		for (vector<PeptideHit>::const_iterator ph_it = peptides_.getHits().begin();
+				 ph_it != peptides_.getHits().end(); ++ph_it)
 		{
-			peptides_.setIdentifier(proteins_.getIdentifier());
+			// ProteinProphet results list unmodified sequences anyway...
+			sequence_map[ph_it->getSequence().toUnmodifiedString()] = ph_it;
+		}
+		map<String, String> pep2prot; // unmod. peptides used for protein quant.
+		for (ProteinQuant::const_iterator q_it = prot_quant.begin();
+				 q_it != prot_quant.end(); ++q_it)
+		{
+			for (map<String, SampleAbundances>::const_iterator ab_it = 
+						 q_it->second.abundances.begin(); ab_it != 
+						 q_it->second.abundances.end(); ++ ab_it)
+			{		
+				pep2prot[ab_it->first] = q_it->first;
+			}
+		}
+		// annotate peptide hits with abundances:
+		vector<PeptideHit> quantified_pep;
 			for (PeptideQuant::const_iterator q_it = pep_quant.begin(); 
 					 q_it != pep_quant.end(); ++q_it)
 			{
-				
+			if (sequence_map.empty()) // generate a new hit
+			{
+				PeptideHit hit;
+				quantified_pep.push_back(hit);
+			}
+			else // copy existing hit
+			{
+				SequenceMap::iterator pos = 
+					sequence_map.find(q_it->first.toUnmodifiedString());
+				if (pos == sequence_map.end()) continue; // not in list, skip
+				quantified_pep.push_back(*(pos->second));
+		}
+			quantified_pep.back().setSequence(q_it->first);
+			// set protein accession only for proteotypic peptides:
+			map<String, String>::iterator pos = 
+				pep2prot.find(q_it->first.toUnmodifiedString());
+			if (pos == pep2prot.end()) // not proteotypic
+		{
+				quantified_pep.back().setProteinAccessions(vector<String>());
+				quantified_pep.back().setMetaValue("mzTab:unique", "false");
+			}
+			else // proteotypic (therefore used for quantification)
+			{
+				vector<String> accessions(1, pos->second);
+				quantified_pep.back().setProteinAccessions(accessions);
+				quantified_pep.back().setMetaValue("mzTab:unique", "true");
+			}
+			if (algo_params_.getValue("filter_charge") != "true") // all charges
+			{
+				SampleAbundances total_abundances = q_it->second.total_abundances;
+				storeAbundances_(quantified_pep.back(), total_abundances, "peptide");
+			}
+			else // generate hits for individual charge states
+			{
+				for (map<Int, SampleAbundances>::const_iterator ab_it = 
+							 q_it->second.abundances.begin(); ab_it != 
+							 q_it->second.abundances.end(); ++ab_it)
+				{
+					if (ab_it != q_it->second.abundances.begin())
+					{
+						quantified_pep.push_back(quantified_pep.back()); // copy last entry
+					}
+					quantified_pep.back().setCharge(ab_it->first);
+					SampleAbundances charge_abundances = ab_it->second;
+					storeAbundances_(quantified_pep.back(), charge_abundances, "peptide");
+				}
 			}
 		}
-		else
-		{
+		peptides_.setHits(quantified_pep);
 			
-		}
 		// remove possibly outdated meta data:
 		proteins_.getProteinGroups().clear();
 		proteins_.getIndistinguishableProteins().clear();
+		// make sure identifiers match:
+		if (proteins_.getIdentifier().empty())
+		{
+			proteins_.setIdentifier(String(UniqueIdGenerator::getUniqueId()));
+	}
+		peptides_.setIdentifier(proteins_.getIdentifier());
 	}
 
 
@@ -794,10 +864,17 @@ protected:
 		}
 		if (!id_out.empty())
 		{
-			vector<ProteinIdentification> proteins(1, proteins_);
-			vector<PeptideIdentification> peptides(1, peptides_);
 			prepareMzTab_(quantifier.getProteinResults(), 
 										quantifier.getPeptideResults(), processing);
+			vector<ProteinIdentification> proteins(1, proteins_);
+			// create one peptide identification for each peptide hit:
+			PeptideIdentification temp = peptides_;
+			temp.setHits(vector<PeptideHit>());
+			vector<PeptideIdentification> peptides(peptides_.getHits().size(), temp);
+			for (Size i = 0; i < peptides.size(); ++i)
+			{
+				peptides[i].insertHit(peptides_.getHits()[i]);
+			}
 			IdXMLFile().store(id_out, proteins, peptides);
 		}
 		

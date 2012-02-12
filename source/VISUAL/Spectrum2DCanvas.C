@@ -306,7 +306,7 @@ namespace OpenMS
       const DoubleReal mz_max = visible_area_.maxPosition()[0];
 
       // skip empty peak maps
-      if (peak_map.size() == 0)
+      if (peak_map.empty())
       {
         return;
       }
@@ -364,7 +364,7 @@ namespace OpenMS
           mz_spacing.push_back(current_mz_spacing);
         }
         sort(mz_spacing.begin(), mz_spacing.end());
-        min_spacing_mz = mz_spacing.size() != 0 ? mz_spacing[0] : 1.0;
+        min_spacing_mz = !mz_spacing.empty() ? mz_spacing[0] : 1.0;
 
 #ifdef DEBUG_TOPPVIEW
         cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
@@ -641,7 +641,7 @@ namespace OpenMS
         }
         //cout << "  scans: " << scan_indices.size() << endl;
 
-        if (scan_indices.size()==0) continue;
+        if (scan_indices.empty()) continue;
 
         //iterate over all pixels (m/z dimension)
         for (Size mz=0; mz<mz_pixel_count; ++mz)
@@ -866,7 +866,7 @@ namespace OpenMS
 
 		for (; pep_begin != pep_end; ++pep_begin)
 		{
-			if (pep_begin->getHits().size() != 0)
+      if ( !pep_begin->getHits().empty() )
 			{
 				if (!pep_begin->metaValueExists("RT") || 
 						!pep_begin->metaValueExists("MZ"))
@@ -1133,8 +1133,8 @@ namespace OpenMS
 		{
 			projection_mz_[0][i].setMZ(it->second/cit->second);
 			projection_mz_[0][i].setIntensity(intit->second);
-			intit++;
-			cit++;
+      ++intit;
+      ++cit;
 			++i;
 		}
 
@@ -1225,7 +1225,7 @@ namespace OpenMS
 			update_buffer_ = true;
 
 			//Abort if no data points are contained
-      if (currentPeakData_()->getChromatograms().size()==0)
+      if (currentPeakData_()->getChromatograms().empty())
 			{
 				layers_.resize(getLayerCount()-1);
 				if (current_layer_!=0) current_layer_ = current_layer_-1;
@@ -1236,7 +1236,7 @@ namespace OpenMS
 		else if (layers_.back().type==LayerData::DT_IDENT) // identification data
 		{
 			//Abort if no data points are contained
-			if (getCurrentLayer_().peptides.size()==0)
+			if (getCurrentLayer_().peptides.empty())
 			{
 				layers_.resize(getLayerCount()-1);
 				if (current_layer_!=0) current_layer_ = current_layer_-1;
@@ -1883,7 +1883,7 @@ namespace OpenMS
 	  PeakIndex near_peak = findNearestPeak_(pos);
 
 		//highlight current peak and display peak coordinates
-    if (action_mode_ == AM_MEASURE || (action_mode_ == AM_TRANSLATE && !e->buttons() & Qt::LeftButton))
+    if (action_mode_ == AM_MEASURE || (action_mode_ == AM_TRANSLATE && !(e->buttons() & Qt::LeftButton)))
 		{
 			//highlight peak
 			selected_peak_ = near_peak;
@@ -2041,7 +2041,6 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::mouseReleaseEvent(QMouseEvent* e)
 	{
-		QPoint pos = e->pos();
 		if (e->button() == Qt::LeftButton)
 		{
 			if (action_mode_==AM_MEASURE)
@@ -2383,7 +2382,7 @@ namespace OpenMS
       QMenu* msn_chromatogram  = 0;
       QMenu* msn_chromatogram_meta = 0;
 
-      if (map_precursor_to_chrom_idx.size() != 0)
+      if ( !map_precursor_to_chrom_idx.empty() )
       {
         msn_chromatogram = context_menu->addMenu("Chromatogram");
         msn_chromatogram_meta = context_menu->addMenu("Chromatogram meta data");

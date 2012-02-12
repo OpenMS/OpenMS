@@ -99,6 +99,24 @@ START_SECTION((ChargeType getCharge() const))
 }
 END_SECTION
 
+
+START_SECTION((void setWidth(WidthType width)))
+{
+    FeatureHandle fh_tmp;
+    fh_tmp.setWidth(10.7);
+    TEST_REAL_SIMILAR(fh_tmp.getWidth(), 10.7);
+    fh_tmp.setWidth(-8.9);
+    TEST_REAL_SIMILAR(fh_tmp.getWidth(), -8.9);
+}
+END_SECTION
+
+START_SECTION((WidthType getWidth() const ))
+{
+    NOT_TESTABLE;
+}
+END_SECTION
+
+
 START_SECTION((FeatureHandle(UInt64 map_index, const Peak2D &point, UInt64 element_index)))
   ElementType e;
   FeatureHandle it(1,e,2);
@@ -108,7 +126,7 @@ START_SECTION((FeatureHandle(UInt64 map_index, const Peak2D &point, UInt64 eleme
   TEST_EQUAL(it.getPosition() == e.getPosition(), true)
 END_SECTION
 
-START_SECTION((FeatureHandle(UInt64 map_index, const Feature &point)))
+START_SECTION((FeatureHandle(UInt64 map_index, const BaseFeature& feature)))
 
   Feature f;
   f.setCharge(-17);
@@ -116,24 +134,6 @@ START_SECTION((FeatureHandle(UInt64 map_index, const Feature &point)))
   f.setMZ(867.4);
   f.setUniqueId(23);
   const Feature& f_cref = f;
-  FeatureHandle fh(99,f_cref);
-
-  TEST_EQUAL(fh.getMapIndex(),99);
-  TEST_EQUAL(fh.getUniqueId(),23);
-  TEST_EQUAL(fh.getRT(),44324.6);
-  TEST_EQUAL(fh.getMZ(),867.4);
-  TEST_EQUAL(fh.getCharge(),-17);
-
-END_SECTION
-
-START_SECTION((FeatureHandle(UInt64 map_index, const ConsensusFeature &point)))
-
-  ConsensusFeature f;
-  f.setCharge(-17);
-  f.setRT(44324.6);
-  f.setMZ(867.4);
-  f.setUniqueId(23);
-  const ConsensusFeature& f_cref = f;
   FeatureHandle fh(99,f_cref);
 
   TEST_EQUAL(fh.getMapIndex(),99);
@@ -184,16 +184,6 @@ START_SECTION((bool operator==(const FeatureHandle &i) const))
   TEST_EQUAL(it1 == it2, true)
 END_SECTION
 
-#if 0
-START_SECTION((UInt64 getUniqueId() const))
-  ElementType e;
-  e.setUniqueId(2);
-  FeatureHandle it(1,e);
-
-  TEST_EQUAL(it.getUniqueId() == 2, true)
-END_SECTION
-#endif 
-
 START_SECTION((UInt64 getMapIndex() const))
   ElementType e;
   e.setUniqueId(2);
@@ -201,16 +191,6 @@ START_SECTION((UInt64 getMapIndex() const))
 
   TEST_EQUAL(it.getMapIndex() == 1, true)
 END_SECTION
-
-#if 0
-START_SECTION((void setUniqueId(UInt64 e)))
-  FeatureHandle it;
-  it.setMapIndex(555);
-  it.setUniqueId(2);
-
-  TEST_EQUAL(it.getUniqueId() == 2, true)
-END_SECTION
-#endif
 
 START_SECTION((void setMapIndex(UInt64 i)))
   FeatureHandle it;

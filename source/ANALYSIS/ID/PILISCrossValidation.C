@@ -104,7 +104,7 @@ namespace OpenMS
 // generate parameter permutations
 void PILISCrossValidation::generateParameters_(const Param& param, const Map<String, Option>& options, vector<Param>& parameters)
 {
-	if (options.size() == 0)
+	if (options.empty())
 	{
 		parameters.push_back(param);
 		return;
@@ -350,7 +350,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 			{
 				for (Size j = 0; j != sim_spectra[i].size(); ++j)
 				{
-					if (sim_spectra[i][j].size() > 0)
+          if ( !sim_spectra[i][j].empty())
 					{
 						DoubleReal score = scoreSpectra_(sim_spectra[i][j][0], exp_spectra[i][j]);
 						top_scores.push_back(score);
@@ -376,7 +376,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
 				for (Size j = 0; j != sim_spectra[i].size(); ++j)
 				{
 					++num_all;
-					if (sim_spectra[i][j].size() > 0)
+          if ( !sim_spectra[i][j].empty() )
 					{
 						vector<RichPeak1D> exp_highest_peak, sim_highest_peak;
 						fragment_selection.selectFragments(exp_highest_peak, exp_spectra[i][j]);
@@ -430,7 +430,7 @@ void PILISCrossValidation::generateParameters_(const Param& param, const Map<Str
         for (Size j = 0; j != sim_spectra[i].size(); ++j)
         {
 					++num_all;
-          if (sim_spectra[i][j].size() > 0)
+          if ( !sim_spectra[i][j].empty() )
           {
             vector<RichPeak1D> sim_highest_peak;
 						//cerr << "Peptide: " << exp_spectra[i][j].getPeptideIdentifications().begin()->getHits().begin()->getSequence() << " "

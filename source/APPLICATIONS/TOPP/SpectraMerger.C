@@ -87,10 +87,10 @@ class TOPPSpectraMerger
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","Input mzML file containing the spectra.");
+			registerInputFile_("in","<file>","","Input mzML file.");
 			setValidFormats_("in", StringList::create("mzML"));
-			registerOutputFile_("out","<file>","","Output mzML file.");
-			setValidFormats_("in", StringList::create("mzML"));
+			registerOutputFile_("out","<file>","","Output mzML file with merged spectra.");
+			setValidFormats_("out", StringList::create("mzML"));
 
 			registerStringOption_("merging_method", "<method>", "block_method", "Method of merging which should be used.", false);
 			setValidStrings_("merging_method", StringList::create("precursor_method,block_method"));

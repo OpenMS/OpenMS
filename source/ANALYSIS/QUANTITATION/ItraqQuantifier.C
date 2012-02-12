@@ -22,20 +22,19 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 
-//#define ITRAQ_NAIVECORRECTION 1
-#ifdef ITRAQ_NAIVECORRECTION
+// default isotope correction (via A^-1)
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
-#else
+// NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
-#endif
+
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
@@ -102,7 +101,7 @@ namespace OpenMS
 	 *	@brief using the raw iTRAQ intensities we apply isotope correction and normalization (using median)
 	 *	
 	 *	@param consensus_map_in Raw iTRAQ intensities from previous step
-	 *	@param consensus_map_out Postprocessed iTRAQ ratios for peptides
+	 *	@param consensus_map_out Post-processed iTRAQ ratios for peptides
 	 *
 	 *	@throws Exception::FailedAPICall if least-squares fit fails
 	 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
@@ -111,8 +110,16 @@ namespace OpenMS
 					 ConsensusMap& consensus_map_out
 					 )
 	{
-		reconstructChannelInfo_(consensus_map_in);
+    // new stats
+    stats_ = ItraqQuantifierStats();
+    stats_.channel_count = CHANNEL_COUNT[itraq_type_];
+    if (consensus_map_in.empty())
+    {
+      LOG_WARN << "Warning: Empty iTRAQ container. No quantitative information available!" << std::endl;
+      return;
+    }
 
+		reconstructChannelInfo_(consensus_map_in);
 		consensus_map_out = consensus_map_in;
 
 		// first do isotope correction
@@ -125,28 +132,24 @@ namespace OpenMS
 			std::cout << "channel_frequency matrix: \n" << channel_frequency << "\n" << std::endl;
 			#endif
 
-#ifdef ITRAQ_NAIVECORRECTION
-			std::cout << "SOLVING isotope correction via Matrix\n";
-
-			// this solves the system naively
-			int gsl_status = 0;
+			// ISOTOPE CORRECTION: this solves the system naively via matrix inversion
 			gsl_matrix* gsl_m = channel_frequency.toGslMatrix();
 			gsl_permutation* gsl_p = gsl_permutation_alloc (channel_frequency.rows());
 			int* gsl_sign = new int(0);
 			gsl_vector* gsl_b = gsl_vector_alloc (CHANNEL_COUNT[itraq_type_]);
 			gsl_vector* gsl_x = gsl_vector_alloc (CHANNEL_COUNT[itraq_type_]);
 			// lets see if the matrix is invertible
-			gsl_status = gsl_linalg_LU_decomp (gsl_m, gsl_p, gsl_sign);
+			int  gsl_status = gsl_linalg_LU_decomp (gsl_m, gsl_p, gsl_sign);
 			if (gsl_status!=0)
 			{
 				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
 			}
-#else
+
 			std::cout << "SOLVING isotope correction via NNLS\n";
 
 			Matrix<double> m_b(CHANNEL_COUNT[itraq_type_], 1);
 			Matrix<double> m_x(CHANNEL_COUNT[itraq_type_], 1);
-#endif
+
 			// correct all consensus elements
 			for (size_t i=0; i< consensus_map_out.size(); ++i)
 			{
@@ -168,31 +171,52 @@ namespace OpenMS
 					std::cout << "	map_index " << it_elements->getMapIndex() << "-> id " << index << " with intensity " << it_elements->getIntensity() <<"\n" << std::endl;
 					#endif
 					
-					#ifdef ITRAQ_NAIVECORRECTION
 					// this is deprecated, but serves as quality measurement
 					gsl_vector_set (gsl_b, index, it_elements->getIntensity());
-					#else
 					m_b(index,0) = it_elements->getIntensity();
-					#endif
 				}
 
 				// solve
-				#ifdef ITRAQ_NAIVECORRECTION
 				gsl_status = gsl_linalg_LU_solve (gsl_m, gsl_p, gsl_b, gsl_x);
 				if (gsl_status!=0)
 				{
-					throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
+					throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");
 				}
-				#else
 				Int status = NonNegativeLeastSquaresSolver::solve(channel_frequency,m_b,m_x);
 				if (status!=NonNegativeLeastSquaresSolver::SOLVED)
 				{
-					throw Exception::FailedAPICall(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Failed to find least-square fit!");
+					throw Exception::FailedAPICall(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Failed to find least-squares fit!");
 				}
-				#endif
 
+        Size s_negative(0);
+        Size s_different_count(0); // happens when naive solution is negative in other channels
+        DoubleReal s_different_intensity(0);
+        // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
+        for (Size index = 0; index < (Size)CHANNEL_COUNT[itraq_type_]; ++index)
+        {
+          if (gsl_vector_get (gsl_x, index) < 0.0)
+          {
+            ++s_negative;
+          }
+          else if (std::fabs(m_x(index, 0) - gsl_vector_get (gsl_x, index)) > 0.000001)
+          {
+            ++s_different_count;
+            s_different_intensity += std::fabs(m_x(index, 0) - gsl_vector_get (gsl_x, index));
+          }
+        }
+
+        if (s_negative == 0 && s_different_count > 0)
+        { // solutions are inconsistent, despite being positive! This should not happen!
+          throw Exception::Postcondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Isotope correction values of alternative method differ!");
+        }
+
+        // update global stats
+        stats_.iso_number_reporter_negative += s_negative;
+        stats_.iso_number_reporter_different += s_different_count;
+        stats_.iso_solution_different_intensity += s_different_intensity;
+
+        // write back the values to the map
         Peak2D::IntensityType cf_intensity(0);
-				// write back the values to the map
 				for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[i].begin();
 						 it_elements != consensus_map_in[i].end();
 						 ++it_elements)
@@ -201,12 +225,7 @@ namespace OpenMS
 					//find channel_id of current element
 					Int index = Int(consensus_map_out.getFileDescriptions() [it_elements->getMapIndex()].getMetaValue("channel_id"));
 
-					#ifdef ITRAQ_NAIVECORRECTION
-					//this has become useless (even for comparison of methods)
-					handle.setIntensity ( Peak2D::IntensityType(gsl_vector_get (gsl_x, index)) );
-					#else
 					handle.setIntensity ( Peak2D::IntensityType( m_x(index, 0)) ); 
-					#endif
 
 					consensus_map_out[i].insert(handle);
 					
@@ -218,19 +237,65 @@ namespace OpenMS
 				}
         consensus_map_out[i].setIntensity(cf_intensity); // set overall intensity of CF (sum of all channels)
 
+        if (s_negative > 0)
+        {
+          ++stats_.iso_number_ms2_negative;
+          stats_.iso_total_intensity_negative += cf_intensity;
+			}
 			}
 			
-			#ifdef ITRAQ_NAIVECORRECTION
 			// clean up
 			gsl_matrix_free(gsl_m);
 			gsl_permutation_free(gsl_p);
 			delete gsl_sign;
 			gsl_vector_free(gsl_b);
 			gsl_vector_free(gsl_x);
-			#endif
-		} // ! isotope_correction
 
-		// ** find reference channel ** //
+		} // ! isotope_correction
+    else
+    {
+      LOG_WARN << "Warning: Due to deactivated isotope-correction labeling statistics will be based on raw intensities, which might give too optimistic results." << std::endl;
+    }
+
+    stats_.number_ms2_total = consensus_map_out.size();
+    // ------------------------------
+    // Labeling efficiency statistics
+    // ------------------------------
+    std::map<Size,Size> empty_channel;
+
+    for (size_t i=0; i< consensus_map_out.size(); ++i)
+    {
+      // is whole scan empty?!
+      if (consensus_map_out[i].getIntensity() == 0) ++stats_.number_ms2_empty;
+
+      // look at single reporters
+      for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_out[i].begin();
+        it_elements != consensus_map_out[i].end();
+        ++it_elements)
+      {
+        if (it_elements->getIntensity()==0)
+				{
+	        Int ch_index = consensus_map_out.getFileDescriptions() [it_elements->getMapIndex()].getMetaValue("channel_name");
+					++empty_channel[ch_index];
+				}
+      }
+    }
+    LOG_INFO <<   "iTRAQ: skipped " << stats_.number_ms2_empty << " of " << consensus_map_out.size() << " selected scans due to lack of iTRAQ information:\n";
+    consensus_map_out.setMetaValue("itraq:scans_noquant", stats_.number_ms2_empty);
+    consensus_map_out.setMetaValue("itraq:scans_total", consensus_map_out.size());
+
+    stats_.empty_channels = empty_channel;
+
+    LOG_INFO <<   "iTRAQ: channels with signal\n";
+    for (std::map<Size,Size>::const_iterator it_m=empty_channel.begin(); it_m!=empty_channel.end(); ++it_m)
+    {
+      LOG_INFO << "      channel " << it_m->first << ": " << (consensus_map_out.size()-it_m->second) << " / " <<  consensus_map_out.size() << " (" << ((consensus_map_out.size()-it_m->second)*100/consensus_map_out.size()) << "%)\n";
+      consensus_map_out.setMetaValue(String("itraq:quantifyable_ch") + it_m->first, (consensus_map_out.size()-it_m->second) );
+    }
+
+    // ****************************
+		// ** find reference channel **
+    // ****************************
 		Int reference_channel = Int(param_.getValue("channel_reference"));
     if (itraq_type_ == ItraqConstants::FOURPLEX && (reference_channel < 114 || reference_channel > 117))
     {
@@ -339,7 +404,7 @@ namespace OpenMS
 
 					// sort control (intensities)
 					std::sort(peptide_intensities[it_map->second].begin(), peptide_intensities[it_map->second].end());
-					// find MEDIAN of control-method (intentities) for each channel
+					// find MEDIAN of control-method (intensities) for each channel
 					peptide_intensities[it_map->second][0] = peptide_intensities[it_map->second][peptide_intensities[it_map->second].size()/2] /
 																									 peptide_intensities[ref_mapid][peptide_intensities[ref_mapid].size()/2];
 					//#ifdef ITRAQ_DEBUG
@@ -441,6 +506,12 @@ namespace OpenMS
 		return;
 	}
 
+  ItraqQuantifier::ItraqQuantifierStats ItraqQuantifier::getStats() const
+  {
+    return stats_;
+  }
+  
+
 	void ItraqQuantifier::setDefaultParams_()
 	{
 		defaults_.setValue("isotope_correction", "true", "enable isotope correction (highly recommended)", StringList::create("advanced")); 
@@ -518,6 +589,25 @@ namespace OpenMS
 			}
 		}
 	}
+ 
+  std::ostream& operator << (std::ostream& os, const ItraqQuantifier::ItraqQuantifierStats& stats)
+  {
+    os << "name\tvalue\t(value in %)\n";
+    os << "# channels\t" << stats.channel_count << "\tNA\n";
+    os << "# spectra total\t" << stats.number_ms2_total << "\tNA\n";
+    os << "# spectra negative\t" << stats.iso_number_reporter_negative << "\tNA\n";
+    os << "# negative reporter intensity\t" << stats.iso_number_reporter_negative << "\tNA\n";
+    os << "# alternative positive reporter intensity\t" << stats.iso_number_reporter_different << "\tNA\n";
+    os << "total intensity (affected spectra)\t" << stats.iso_total_intensity_negative << "\tNA\n";
+    os << "total intensity difference (affected spectra)\t" << stats.iso_solution_different_intensity << "\t" << (stats.iso_solution_different_intensity*100/stats.iso_total_intensity_negative) << "\n";
+
+    for (std::map<Size,Size>::const_iterator it_m=stats.empty_channels.begin(); it_m!=stats.empty_channels.end(); ++it_m)
+    {
+      os << "labeling_efficiency_channel_" << it_m->first << "\t" << (stats.number_ms2_total-it_m->second) << "\t" << ((stats.number_ms2_total-it_m->second)*100/stats.number_ms2_total) << "\n";
+}
+ 
+    return os;
+  }
  
 }
  

@@ -417,7 +417,7 @@ namespace OpenMS
 	}
 	
 	
-	void TOPPASVertex::reset(bool reset_all_files)
+	void TOPPASVertex::reset(bool /*reset_all_files*/)
 	{
 		__DEBUG_BEGIN_METHOD__
 		

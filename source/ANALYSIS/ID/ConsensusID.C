@@ -151,7 +151,7 @@ defaults_.setValidStrings("algorithm",StringList::create("ranked,average,PEPMatr
 	void ConsensusID::apply(vector<PeptideIdentification>& ids)
 	{
 		//Abort if no IDs present
-		if (ids.size()==0)
+		if (ids.empty())
 		{
 			return;
 		}
@@ -614,7 +614,6 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 				DoubleReal a_score=(double)hit->getScore();
 				DoubleReal a_sim=1;
 				DoubleReal NumberAnnots=1;
-				UInt IonSeries_out=0;
 
 				set<String> myset;
 				for(vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
@@ -623,7 +622,6 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 					{
 						DoubleReal a=0;
 						UInt SumIonSeries=2;
-						UInt IonSeries=0;
 						DoubleReal zz=0;
 						vector<DoubleReal> z;
 						z.push_back((double)hit->getScore());
@@ -684,7 +682,6 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 									{
 										SumIonSeries=sum_tmp;
 										a=c;
-										IonSeries=Bs;
 										if(a >=common)
 										{
 											z.push_back((double)tt->getScore());
@@ -701,7 +698,6 @@ void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
 							NumberAnnots+=1;
 							a_score+=zz;
 							a_sim+=a;
-							IonSeries_out=IonSeries;
 							myset.insert(t->getMetaValue("scoring"));
 						}
 					}

@@ -86,12 +86,12 @@ namespace OpenMS
 			PeakSpectrum CID_spec(*it);
 			DoubleReal cid_rt(it->getRT());
 			DoubleReal cid_mz(0);
-			if (it->getPrecursors().size() > 0)
+      if ( !it->getPrecursors().empty() )
 			{
 				cid_mz = it->getPrecursors().begin()->getMZ();
 			}
 			
-			if (it->getPrecursors().size() == 0 || cid_mz == 0)
+			if (it->getPrecursors().empty() || cid_mz == 0)
 			{
 				cerr << "CompNovoIdentification: Spectrum id=\"" << it->getNativeID() << "\" at RT=" << cid_rt << " does not have valid precursor information." << endl;
 				continue;
@@ -102,8 +102,7 @@ namespace OpenMS
 			DoubleReal etd_rt(0);
 			DoubleReal etd_mz(0);
 
-			if ((it+1) != exp.end() && 
-					(it+1)->getPrecursors().size() > 0)
+      if ( (it+1) != exp.end() && !(it+1)->getPrecursors().empty() )
 			{
 				etd_rt = (it+1)->getRT();
 				etd_mz = (it+1)->getPrecursors().begin()->getMZ();
@@ -159,7 +158,7 @@ namespace OpenMS
 
 		if (precursor_weight == 0 || charge == 0)
 		{
-			if (CID_spec.getPrecursors().size() == 0)
+			if (CID_spec.getPrecursors().empty())
 			{
 				cerr << "No precursors found, skipping identification." << endl;
 				return;
@@ -863,7 +862,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size 
 		if (diff1 < diff2)
 		{
     	getDecompositionsDAC_(seq1, left, *it, peptide_weight, CID_spec, ETD_spec, ion_scores);
-			if (seq1.size() == 0)
+			if (seq1.empty())
 			{
 #ifdef DAC_DEBUG
 				cerr << tabs_ << "first call produced 0 candidates (" << diff1 << ")" << endl;
@@ -876,7 +875,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size 
 		else
 		{
 			getDecompositionsDAC_(seq2, *it, right, peptide_weight, CID_spec, ETD_spec, ion_scores);
-			if (seq2.size() == 0)
+			if (seq2.empty())
 			{
 #ifdef DAC_DEBUG
 				cerr << tabs_ << "second call produced 0 candidates (" << diff2 << ")" << endl;
@@ -900,7 +899,7 @@ void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size 
 		}
 		
 		// test if we found enough sequence candidates
-		if (seq1.size() == 0 || seq2.size() == 0)
+		if (seq1.empty() || seq2.empty())
 		{
 			continue;
 		}

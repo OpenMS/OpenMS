@@ -61,7 +61,7 @@ using namespace std;
 		</tr>
 		<tr>
 		  <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-		  <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_MapAligner ("identification" algorithm) </td>
+		  <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_MapAlignerIdentification </td>
 		</tr>
 	</table>
 	</CENTER>

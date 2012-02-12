@@ -287,6 +287,71 @@ START_SECTION((Size compress()))
 }
 END_SECTION
 
+
+START_SECTION((void expandToBoundingBox()))
+{
+  ConvexHull2D tmp;
+
+  tmp.addPoint(DPosition<2>(1.,1.));
+  tmp.addPoint(DPosition<2>(1.,10.));
+  tmp.addPoint(DPosition<2>(2.,1.));
+  tmp.addPoint(DPosition<2>(2.,10.));
+  tmp.addPoint(DPosition<2>(3.,1.));
+  tmp.addPoint(DPosition<2>(3.,10.));
+  tmp.addPoint(DPosition<2>(4.,1.));
+  tmp.addPoint(DPosition<2>(4.,10.));
+  tmp.addPoint(DPosition<2>(5.,2.));
+  tmp.addPoint(DPosition<2>(5.,10.));
+  tmp.addPoint(DPosition<2>(6.,1.));
+  tmp.addPoint(DPosition<2>(6.,10.));
+
+  ConvexHull2D original(tmp);
+
+	// Make sure we are left with only four points afterwards.
+	tmp.expandToBoundingBox();
+	TEST_EQUAL(tmp.getHullPoints().size(), 4)
+
+  // second call should remove no points
+	tmp.expandToBoundingBox();
+	TEST_EQUAL(tmp.getHullPoints().size(), 4)
+
+	// Check that values agree with min/max of the 
+	// enclosed points.
+	Real min_x, min_y, max_x, max_y;
+	min_x = tmp.getHullPoints()[0][0];
+	min_y = tmp.getHullPoints()[0][1];
+	max_x = min_x;
+	max_y = min_y;
+	for (Size i = 0; i < tmp.getHullPoints().size(); ++i)
+	{
+		Real x = tmp.getHullPoints()[i][0];
+		Real y = tmp.getHullPoints()[i][1];
+		min_x = std::min(min_x, x);
+		max_x = std::max(max_x, x);
+		min_y = std::min(min_y, y);
+		max_y = std::max(max_y, y);
+	}
+	Real o_min_x, o_min_y, o_max_x, o_max_y;
+	o_min_x = original.getHullPoints()[0][0];
+	o_min_y = original.getHullPoints()[0][1];
+	o_max_x = o_min_x;
+	o_max_y = o_min_y;
+	for (Size i = 0; i < original.getHullPoints().size(); ++i)
+	{
+		Real x = original.getHullPoints()[i][0];
+		Real y = original.getHullPoints()[i][1];
+		o_min_x = std::min(o_min_x, x);
+		o_max_x = std::max(o_max_x, x);
+		o_min_y = std::min(o_min_y, y);
+		o_max_y = std::max(o_max_y, y);
+	}
+	TEST_REAL_SIMILAR(min_x, o_min_x)
+	TEST_REAL_SIMILAR(min_y, o_min_y)
+	TEST_REAL_SIMILAR(max_x, o_max_x)
+	TEST_REAL_SIMILAR(max_y, o_max_y)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -46,7 +46,7 @@ namespace OpenMS
 		@brief TOPP tool selection dialog
 		
 		In the dialog, the user can 
-	  - selelect a TOPP tool
+	  - select a TOPP tool
 	  - select the options used for the input and output file
 		- and set the parameters for the tool
 	
@@ -68,10 +68,10 @@ namespace OpenMS
 				@param parent Qt parent widget
 				@param ini_file The file name of the temporary INI file created by this dialog
 				@param default_dir The default directory for loading and storing INI files
-				@param type The type of data (determines that applicable tools)
+				@param layertype The type of data (determines the applicable tools)
 			*/
       ToolsDialog(QWidget* parent, String ini_file, String default_dir, LayerData::DataType layertype);
-			///Desctructor
+			///Destructor
 			~ToolsDialog();
 			
 			/// to get the parameter name for output. Empty if no output was selected.

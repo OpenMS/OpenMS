@@ -85,9 +85,12 @@ START_SECTION(size_t read(char *s, size_t n))
 		char buffer[30];
 	buffer[29] = '\0';
 	size_t len = 29;
-	gzip.read(buffer,10);
+#ifndef OPENMS_WINDOWSPLATFORM
+	TEST_EXCEPTION(Exception::ConversionError,gzip.read(buffer,10));
+#endif
 	//gzip.updateCRC32(buffer,10);
-	gzip.read(&buffer[9],10);
+	//Why does that throw a "naked" Exception instead of a ConversionError?
+	//~ TEST_EXCEPTION(Exception::BaseException,gzip.read(&buffer[9],10));
 //	gzip.updateCRC32(&buffer[9],19);
 //	TEST_EQUAL(gzip.isCorrupted(),true)
 	
@@ -99,7 +102,10 @@ START_SECTION(size_t read(char *s, size_t n))
 	TEST_EQUAL(gzip2.streamEnd(),true)
 	
 	gzip2.open(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1_corrupt.gz"));
-	 gzip2.read(buffer,30);
+
+#ifndef OPENMS_WINDOWSPLATFORM
+  TEST_EXCEPTION(Exception::ConversionError,gzip2.read(buffer,30));
+#endif
 	 //gzip2.updateCRC32(buffer,(size_t)30);
 	//TEST_EQUAL(gzip2.isCorrupted(),true )
 	gzip2.close();

@@ -116,13 +116,13 @@ START_SECTION((FeatureMapSim const& getSimulatedFeatures() const ))
 }
 END_SECTION
 
-START_SECTION((ConsensusMap const& getChargeConsensus() const ))
+START_SECTION((ConsensusMap& getChargeConsensus() ))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((ConsensusMap const& getLabelingConsensus() const ))
+START_SECTION((ConsensusMap& getLabelingConsensus() ))
 {
   // TODO
 }

@@ -83,7 +83,7 @@ namespace OpenMS
 	const ConvexHull2D::PointArrayType& ConvexHull2D::getHullPoints() const
 	{
 		// construct outer hull if required
-		if (outer_points_.size() == 0 && map_points_.size() > 0)
+		if (outer_points_.empty() && map_points_.size() > 0)
 		{
 
       // walk the outer hull
@@ -121,6 +121,17 @@ namespace OpenMS
 		outer_points_ = points;
 	}
 	
+	void ConvexHull2D::expandToBoundingBox()
+	{
+		DBoundingBox<2> bb(getBoundingBox());
+		typedef DBoundingBox<2>::PositionType Point;
+		clear();
+		addPoint(Point(bb.minPosition()[0], bb.minPosition()[1]));
+		addPoint(Point(bb.minPosition()[0], bb.maxPosition()[1]));
+		addPoint(Point(bb.maxPosition()[0], bb.minPosition()[1]));
+		addPoint(Point(bb.maxPosition()[0], bb.maxPosition()[1]));
+	}
+
 	/// returns the bounding box of the convex hull points
 	DBoundingBox<2> ConvexHull2D::getBoundingBox() const
 	{
@@ -212,7 +223,7 @@ namespace OpenMS
 
 	bool ConvexHull2D::encloses(const PointType& point) const
 	{
-		if ((map_points_.size()==0) && outer_points_.size()>0)
+		if ((map_points_.empty()) && outer_points_.size()>0)
 		{ // we cannot answer the query as we lack the internal data structure
 			// (if you need this you need to augment encloses() to work on outer_points_ only)
 			throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);

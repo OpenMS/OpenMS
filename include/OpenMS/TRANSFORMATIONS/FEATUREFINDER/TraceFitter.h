@@ -48,8 +48,6 @@ namespace OpenMS
    * This class provides the basic interface and some functionality to fit multiple mass traces to
    * a given RT shape model using the Levenberg-Marquardt algorithm.
    *
-   * @htmlinclude OpenMS_TraceFitter.parameters
-   *
    * @todo docu needs update
    *
    */
@@ -98,58 +96,40 @@ namespace OpenMS
     /**
      * Main method of the TraceFitter which triggers the actual fitting.
      */
-    virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & /* traces */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces ) = 0;
 
     /**
      * Returns the lower bound of the fitted RT model
      */
-    virtual DoubleReal getLowerRTBound() const
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual DoubleReal getLowerRTBound() const = 0;
 
     /**
      * Returns the upper bound of the fitted RT model
      */
-    virtual DoubleReal getUpperRTBound() const
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual DoubleReal getUpperRTBound() const = 0;
 
     /**
      * Returns the height of the fitted model
      */
-    virtual DoubleReal getHeight() const
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual DoubleReal getHeight() const = 0;
 
     /**
      * Returns the center position of the fitted model
      */
-    virtual DoubleReal getCenter() const
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual DoubleReal getCenter() const = 0;
 
     /**
      * Returns the mass trace width at half max (FWHM)
      */
-    virtual DoubleReal getFWHM() const
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual DoubleReal getFWHM() const = 0;
 
     /**
      * Returns the theoretical value of the fitted model at position k in the passed Mass Trace
+     *
+     * @param trace the mass trace for which the value should be computed
+     * @param k  use the position of the k-th peak to compute the value
      */
-    virtual DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & /* trace */, Size /* k */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace, Size k) = 0;
 
     /**
      * Checks if the fitted model fills out at least 'min_rt_span' of the RT span
@@ -157,29 +137,20 @@ namespace OpenMS
      * @param rt_bounds RT boundaries of the fitted model
      * @param min_rt_span Minimum RT span in relation to extended area that has to remain after model fitting
      */
-    virtual bool checkMinimalRTSpan(const std::pair<DoubleReal,DoubleReal> & /* rt_bounds */, const DoubleReal /* min_rt_span */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual bool checkMinimalRTSpan(const std::pair<DoubleReal,DoubleReal> & rt_bounds, const DoubleReal min_rt_span) = 0;
 
     /**
      * Checks if the fitted model is not to big
      *
      * @param max_rt_span Maximum RT span in relation to extended area that the model is allowed to have
      */
-    virtual bool checkMaximalRTSpan(const DoubleReal /* max_rt_span */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual bool checkMaximalRTSpan(const DoubleReal max_rt_span) = 0;
 
     /**
      * ???
      * @todo docu needs update
      */
-    virtual DoubleReal getFeatureIntensityContribution()
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual DoubleReal getFeatureIntensityContribution() = 0;
 
     /**
      * Returns a textual representation of the fitted model function, that can be plotted using Gnuplot
@@ -190,20 +161,17 @@ namespace OpenMS
      * @param rt_shift A shift value, that allows to plot all RT profiles side by side, even if they would overlap in reality.
      *                 This should be 0 for the first mass trace and increase by a fixed value for each mass trace.
      */
-    virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> const & /* trace */, const char /* function_name */, const DoubleReal /* baseline */, const DoubleReal /* rt_shift */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> const & trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift) = 0;
 
   protected:
 
     /**
+     * Prints the state of the current iteration (e.g., values of the parameters)
      *
+     * @param iter Number of current iteration.
+     * @param s The solver that also contains all the parameters.
      */
-    virtual void printState_(SignedSize /* iter */, gsl_multifit_fdfsolver * /* s */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void printState_(SignedSize iter, gsl_multifit_fdfsolver * s) = 0;
 
     virtual void updateMembers_()
     {
@@ -213,12 +181,11 @@ namespace OpenMS
     }
 
     /**
+     * Updates all member variables to the fitted values stored in the solver.
      *
+     * @param s The solver containing the fitted parameter values.
      */
-    virtual void getOptimizedParameters_(gsl_multifit_fdfsolver * /* s */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
+    virtual void getOptimizedParameters_(gsl_multifit_fdfsolver * s) = 0;
 
     /**
      * Optimize the given parameters using the Levenberg-Marquardt algorithm.
@@ -274,8 +241,7 @@ namespace OpenMS
     DoubleReal epsilon_rel_;
     /// Maximum number of iterations
     SignedSize max_iterations_;
-    /// Current status of the gsl fitting
-    //Int gsl_status_;
+
   };
 
 }

@@ -115,10 +115,10 @@ using namespace std;
   Allowed tokens are:
   <ul>
   <li>%TMP  --> The current temp directory, fetched using File::getTempDirectory()
-  <li>%BASENAME[file] --> the basename of a file, e.g. c:\tmp\myfile.mzML gives 'myfile'
-  <li>%RND --> generates a long random number, which can be used to generate unique filenames in a <file_pre> tag
-  <li>%WORKINGDIR --> expands to the current working directory (default is '.'), settable by <workingdirectory> tag in the .ttd file.
-  <li>%%<param> --> any param registered in the ini_param section, e.g. '%%in'
+  <li>%BASENAME[file] --> the basename of a file, e.g. c:/tmp/myfile.mzML gives 'myfile'
+  <li>%RND --> generates a long random number, which can be used to generate unique filenames in a &lt;file_pre&gt; tag
+  <li>%WORKINGDIR --> expands to the current working directory (default is '.'), settable by &lt;workingdirectory&gt; tag in the .ttd file.
+  <li>%%&lt;param&gt; --> any param registered in the ini_param section, e.g. '%%in'
   </ul>
 
   Example:
@@ -137,8 +137,6 @@ using namespace std;
   </td></tr>
 
   </table>
-
-
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_GenericWrapper.cli
@@ -305,7 +303,7 @@ class TOPPGenericWrapper
       {
         if ((it->tags).count("required")>0)
         {
-          if (it->value.toString().trim().size()==0 ) // any required parameter should have a value
+          if (it->value.toString().trim().empty() ) // any required parameter should have a value
           {
 					  LOG_ERROR << "The INI-parameter '"+it->name+"' is required, but was not given! Aborting ...";
             return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
@@ -432,7 +430,7 @@ class TOPPGenericWrapper
         // check if target already exists:
         String target_file = (String)p.getValue(target);
 
-        if (target_file.trim().size()==0) // if target was not given, we skip the copying step (usually for optional parameters)
+        if (target_file.trim().empty()) // if target was not given, we skip the copying step (usually for optional parameters)
 				{
 					LOG_INFO << "Parameter '"+target+"' not given. Skipping forwarding of files.\n";
 					continue;

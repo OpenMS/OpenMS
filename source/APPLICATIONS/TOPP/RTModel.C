@@ -299,10 +299,9 @@ class TOPPRTModel
 			DoubleReal sigma_stop = 0;
 			UInt number_of_partitions = 0;
 			UInt number_of_runs = 0;
-			DoubleReal cv_quality = 0;
 			map<SVMWrapper::SVM_parameter_type, DoubleReal> optimized_parameters;
 			map<SVMWrapper::SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
-			UInt maximum_sequence_length = 50;
+
 			bool additive_cv = true;
 			Param additional_parameters;
 			pair<DoubleReal, DoubleReal> sigmas;
@@ -428,84 +427,70 @@ class TOPPRTModel
 			}
 			
 			//grid search parameters
-			UInt degree_start = 0;
-			UInt degree_step_size = 0;
-			UInt degree_stop = 0;
 			if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
 			{
 				svm.setParameter(SVMWrapper::DEGREE, getIntOption_("degree"));
 
 				if (!skip_cv)
 				{
-					degree_start = getIntOption_("degree_start");
-					degree_step_size = getIntOption_("degree_step_size");
+          UInt degree_start = getIntOption_("degree_start");
+          UInt degree_step_size = getIntOption_("degree_step_size");
 					if (!additive_cv && degree_step_size <= 1)
 					{
 						writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
-					degree_stop = getIntOption_("degree_stop");
+          UInt degree_stop = getIntOption_("degree_stop");
 
 					start_values.insert(make_pair(SVMWrapper::DEGREE, degree_start));
 					step_sizes.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
 					end_values.insert(make_pair(SVMWrapper::DEGREE, degree_stop));	
 				}
 			}			
-			DoubleReal p_start = 0.;
-			DoubleReal p_step_size = 0.;
-			DoubleReal p_stop = 0.;
-			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR)
+
+      if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR && !skip_cv)
 			{							
-				if (!skip_cv)
-				{
-          p_start = getDoubleOption_("p_start");
-					p_step_size = getDoubleOption_("p_step_size");
+        DoubleReal p_start = getDoubleOption_("p_start");
+        DoubleReal p_step_size = getDoubleOption_("p_step_size");
 					if (!additive_cv && p_step_size <= 1)
 					{
 						writeLog_("Step size of p <= 1 and additive_cv is false. Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
-					p_stop = getDoubleOption_("p_stop");
+        DoubleReal p_stop = getDoubleOption_("p_stop");
 
 					start_values.insert(make_pair(SVMWrapper::P, p_start));
 					step_sizes.insert(make_pair(SVMWrapper::P, p_step_size));
 					end_values.insert(make_pair(SVMWrapper::P, p_stop));	
 				}
-			}
-			DoubleReal c_start = 0.;
-			DoubleReal c_step_size = 0.;
-			DoubleReal c_stop = 0.;
 
 			if (!skip_cv)
 			{
-				c_start = getDoubleOption_("c_start");
-				c_step_size = getDoubleOption_("c_step_size");
+        DoubleReal c_start = getDoubleOption_("c_start");
+        DoubleReal c_step_size = getDoubleOption_("c_step_size");
 				if (!additive_cv && c_step_size <= 1)
 				{
 					writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				c_stop = getDoubleOption_("c_stop");
+        DoubleReal c_stop = getDoubleOption_("c_stop");
 
 				start_values.insert(make_pair(SVMWrapper::C, c_start));
 				step_sizes.insert(make_pair(SVMWrapper::C, c_step_size));
 				end_values.insert(make_pair(SVMWrapper::C, c_stop));	
 			}			
 
-			DoubleReal nu_start = 0.;
-			DoubleReal nu_step_size = 0.;
-			DoubleReal nu_stop = 0.;
 			if ( (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
 				&& !skip_cv)
 			{
-        nu_start = getDoubleOption_("nu_start");
-				nu_step_size = getDoubleOption_("nu_step_size");
+        DoubleReal nu_start = getDoubleOption_("nu_start");
+        DoubleReal nu_step_size = getDoubleOption_("nu_step_size");
 				if (!additive_cv && nu_step_size <= 1)
 				{
 					writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
 					return ILLEGAL_PARAMETERS;
 				}
-				nu_stop = getDoubleOption_("nu_stop");
+        DoubleReal nu_stop = getDoubleOption_("nu_stop");
 
 				start_values.insert(make_pair(SVMWrapper::NU, nu_start));
 				step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
@@ -547,7 +532,7 @@ class TOPPRTModel
 					 String(sigma_step_size);
 				writeDebug_(debug_string, 1);			
 			}
-			if (start_values.size() > 0)
+      if ( !start_values.empty() )
 			{
  				number_of_runs = getIntOption_("number_of_runs");
 				writeDebug_(String("Number of CV runs: ") + String(number_of_runs), 1);
@@ -659,7 +644,7 @@ class TOPPRTModel
 							writeLog_("Hits: ");
 							for(vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin(); 
 									it != identifications[i].getHits().end(); 
-									it++)
+                  ++it )
 							{
 								writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
 							}
@@ -822,7 +807,7 @@ class TOPPRTModel
 							writeLog_("Hits: ");
 							for(vector<PeptideHit>::const_iterator it = identifications_negative[i].getHits().begin(); 
 									it != identifications_negative[i].getHits().end(); 
-									it++)
+                  ++it )
 							{
 								writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
 							}
@@ -842,6 +827,7 @@ class TOPPRTModel
 
 			if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
 			{
+        UInt maximum_sequence_length = 50;
 				encoded_training_sample = 
 					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
 																																	training_retention_times,
@@ -858,7 +844,7 @@ class TOPPRTModel
 				training_sample.labels = training_retention_times;
 			}
 			
-			if (!skip_cv && start_values.size() > 0)
+      if ( !skip_cv && !start_values.empty() )
 			{	
 				String digest = "";
 				bool output_flag = false;
@@ -867,7 +853,7 @@ class TOPPRTModel
 					output_flag = true;
 					vector<String> parts;
 					inputfile_name.split('/', parts);
-					if (parts.size() == 0)
+					if (parts.empty())
 					{
 						digest = inputfile_name;
 					}
@@ -876,6 +862,8 @@ class TOPPRTModel
 						digest = parts[parts.size() - 1];
 					}
 				}
+        DoubleReal cv_quality = 0.0;
+
 				if (temp_type == SVMWrapper::OLIGO)
 				{
 					debug_string = String(training_sample.sequences.size()) + " sequences for training, "
@@ -914,7 +902,7 @@ class TOPPRTModel
 
 				for(parameters_iterator = optimized_parameters.begin();
 						parameters_iterator != optimized_parameters.end();
-						parameters_iterator++)
+            ++parameters_iterator )
 				{
 					svm.setParameter(parameters_iterator->first,
 													 parameters_iterator->second);

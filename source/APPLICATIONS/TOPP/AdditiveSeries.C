@@ -60,7 +60,7 @@ typedef Feature::CoordinateType CoordinateType;
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinder </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
 		</tr>
 		<tr>
@@ -396,7 +396,7 @@ class AdditiveSeries
 		cout << "Found feature pairs: " <<  intensities.size() << endl;
 		cout << "Spiked concentrations: " << sp_concentrations.size() << endl;
 
-		if (intensities.size() == 0 || sp_concentrations.size() == 0 )
+		if (intensities.empty() || sp_concentrations.empty() )
 		{
 
 			writeLog_("Did not find any data. Aborting!");

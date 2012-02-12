@@ -67,7 +67,7 @@ namespace OpenMS
 #endif
 
 
-		if (ids.size() == 0)
+		if (ids.empty())
 		{
       LOG_WARN << "No peptide identifications given to FalseDiscoveryRate! No calculation performed.\n";
 			return;
@@ -178,7 +178,7 @@ namespace OpenMS
 #endif
 
 				// check decoy scores
-				if (decoy_scores.size() == 0)
+				if (decoy_scores.empty())
 				{
 					String error_string = "FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0! ";
 					if (split_charge_variants || treat_runs_separately)
@@ -198,7 +198,7 @@ namespace OpenMS
 				}
 
 				// check target scores
-				if (target_scores.size() == 0)
+				if (target_scores.empty())
 				{	
 					String error_string = "FalseDiscoveryRate: #target sequences is zero! Ignoring. ";
           if (split_charge_variants || treat_runs_separately)
@@ -217,7 +217,7 @@ namespace OpenMS
           LOG_ERROR << error_string;
 				}
 
-				if (target_scores.size() == 0 || decoy_scores.size() == 0)
+				if (target_scores.empty() || decoy_scores.empty())
 				{
 					// no remove the the relevant entries, or put 'pseudo-scores' in
 	        for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
@@ -337,7 +337,7 @@ namespace OpenMS
 
 	void FalseDiscoveryRate::apply(vector<PeptideIdentification>& fwd_ids, vector<PeptideIdentification>& rev_ids)
 	{
-		if (fwd_ids.size() == 0 || rev_ids.size() == 0)
+		if (fwd_ids.empty() || rev_ids.empty())
 		{
 			return;
 		}
@@ -425,7 +425,7 @@ namespace OpenMS
 
 	void FalseDiscoveryRate::apply(vector<ProteinIdentification>& ids)
 	{
-		if (ids.size() == 0) 
+		if (ids.empty()) 
 		{
       LOG_WARN << "No protein identifications given to FalseDiscoveryRate! No calculation performed.\n";
       return;
@@ -482,7 +482,7 @@ namespace OpenMS
 
 	void FalseDiscoveryRate::apply(vector<ProteinIdentification>& fwd_ids, vector<ProteinIdentification>& rev_ids)
 	{
-    if (fwd_ids.size() == 0 || rev_ids.size() == 0)
+    if (fwd_ids.empty() || rev_ids.empty())
     {
       return;
     }
@@ -567,7 +567,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != target_scores.size(); ++i)
       {
-        if (decoy_scores.size()==0)
+        if (decoy_scores.empty())
         {
           // set FDR to 0 (done below automatically)
         }

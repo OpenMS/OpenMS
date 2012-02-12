@@ -74,10 +74,10 @@ bool SILACLabeler::canModificationBeApplied_(const String& modification_id, cons
   catch (Exception::ElementNotFound& ex)
   {
     ex.setMessage("The modification \"" + modification_id + "\" could not be found in the local UniMod DB! Please check if you used the correct format (e.g. UniMod:Accession#)");
-    throw ex;
+    throw;
   }
 
-  return (modifications.size() != 0);
+  return ( !modifications.empty() );
 }
 
 SILACLabeler::~SILACLabeler()

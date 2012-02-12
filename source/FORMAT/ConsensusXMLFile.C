@@ -120,8 +120,10 @@ namespace OpenMS
   {
     String tag = sm_.convert(qname);
     String parent_tag;
-    if ( open_tags_.size() != 0 )
+    if ( !open_tags_.empty() )
+    {
       parent_tag = open_tags_.back();
+    }
     open_tags_.push_back(tag);
 
     String tmp_str;
@@ -493,7 +495,7 @@ namespace OpenMS
         accession_string.trim();
         vector<String> accessions;
         accession_string.split(' ', accessions);
-        if ( accession_string != "" && accessions.size() == 0 )
+        if ( accession_string != "" && accessions.empty() )
         {
           accessions.push_back(accession_string);
         }
@@ -890,7 +892,7 @@ namespace OpenMS
       {
         os << " aa_after=\"" << id.getHits()[j].getAAAfter() << "\"";
       }
-      if ( (id.getHits()[j].getProteinAccessions().size() != 0) && (accession_to_id_.size() > 0) )
+      if ( (id.getHits()[j].getProteinAccessions().size() != 0) && (!accession_to_id_.empty()) )
       {
 						String accs = "";
 						for ( Size m = 0; m < id.getHits()[j].getProteinAccessions().size(); ++m )

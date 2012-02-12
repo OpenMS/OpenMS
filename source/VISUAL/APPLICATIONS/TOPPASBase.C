@@ -170,9 +170,9 @@ namespace OpenMS
 		menuBar()->addMenu(help);
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
-		action = help->addAction("TOPPAS tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
-		action->setData("http://www.openms.de/current_doxygen/TOPP_tutorial.html"); // do not change the base URL! Rather change the redirection rule for "www.openms.de/current_doxygen/" on homepage
-		help->addSeparator();
+		action = help->addAction("TOPPAS tutorial",this,SLOT(showURL()), Qt::Key_F1);
+    action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html").toQString());
+
 		help->addAction("&About",this,SLOT(showAboutDialog()));
 		
 		
@@ -225,6 +225,7 @@ namespace OpenMS
     desc_->setTextColor ( Qt::black );
     desc_->setText("... put your workflow description here ...");
     desc_->setTextColor ( Qt::black );
+    desc_->document()->setDefaultFont(QFont("Arial", 12));
     description_bar->setWidget(desc_);
     //windows->addAction("&Show log window",log_bar,SLOT(show()));
     windows->addAction(description_bar->toggleViewAction());
@@ -233,9 +234,10 @@ namespace OpenMS
     //set current path
 		current_path_ = param_.getValue("preferences:default_path");
 		
-		//set & create temporary path
+    //set & create temporary path -- make sure its a new subdirectory, as TOPPASScene will delete it when its done		
 		tmp_path_ =  File::getTempDirectory() + String(QDir::separator()) + File::getUniqueName();
-    QDir qd;qd.mkpath(tmp_path_.toQString());
+    QDir qd;
+    qd.mkpath(tmp_path_.toQString());
 		
     // online browser
     webview_ = new QWebView(parent);
@@ -272,7 +274,16 @@ namespace OpenMS
     QByteArray data = r->readAll();
     r->deleteLater();
 
-    QString proposed_filename = QFileInfo(r->url().toString()).fileName();
+    QString proposed_filename;
+    if (r->url().hasQueryItem("file")) 
+    {
+      proposed_filename = r->url().queryItemValue("file");
+    }
+    else
+    {
+      proposed_filename = "Workflow.toppas";
+      LOG_WARN << "The URL format of downloads from the TOPPAS Online-Repository has changed. Please notify developers!";
+    }
     QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
 
     // check if the user clicked cancel, to avoid saving .toppas somewhere
@@ -318,7 +329,7 @@ namespace OpenMS
 
   void TOPPASBase::openOnlinePipelineRepository()
   {
-    QUrl url = QUrl("http://www.OpenMS.de/TOPPAS/");
+    QUrl url = QUrl("http://www.OpenMS.de/TOPPASWorkflows/");
 
     static bool proxy_settings_checked = false;
     if (!proxy_settings_checked) // do only once because may take several seconds on windows
@@ -888,6 +899,12 @@ namespace OpenMS
       desc_->blockSignals(false);
   		window->setFocus();
   	}
+    else
+    {
+      desc_->blockSignals(true);
+      desc_->setHtml("");
+      desc_->blockSignals(false);
+  }
   }
 
   void TOPPASBase::closeFile()
@@ -1463,8 +1480,32 @@ namespace OpenMS
           arg = files.join(" + ").split(" ", QString::SkipEmptyParts);
         }
       }
+#if defined(Q_WS_MAC)
+      // check if we can find the TOPPView.app
+      QString installed_app_path = (File::getExecutablePath() + "/../TOPPView.app").toQString();
+      QString developer_app_path = (File::getExecutablePath() + "/TOPPView.app").toQString();
 
+      if(File::exists(installed_app_path) || File::exists(developer_app_path))
+      {
+        // we found the app
+        QString app_path = (File::exists(installed_app_path) ? installed_app_path : developer_app_path);
+        QStringList app_args;
+        app_args.append(app_path);
+        app_args.append("--args");
+        app_args.append(arg);
+        p->start("open", app_args);
+      }
+      else
+      {
+        // we could not find the app, try it the linux way
       p->start(toppview_executable, arg);
+      }
+#else
+      // LINUX+WIN
+      p->start(toppview_executable, arg);
+#endif
+
+
       if (!p->waitForStarted())
       {
         // execution failed

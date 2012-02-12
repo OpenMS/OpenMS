@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
-// $Authors: $
+// $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -63,7 +63,7 @@ std::vector<DoubleReal> values(2,0.5);
 std::vector<Int> indices;
 indices.push_back(0);
 indices.push_back(1);
-START_SECTION((Size addColumn()))
+START_SECTION((Int addColumn()))
 {
   lp.addColumn();
   TEST_EQUAL(lp.getNumberOfColumns(),1);  
@@ -72,7 +72,7 @@ END_SECTION
 
 
 
-START_SECTION((Size addRow(std::vector< Int > row_indices, std::vector< DoubleReal > row_values, String name)))
+START_SECTION((Int addRow(std::vector< Int > row_indices, std::vector< DoubleReal > row_values, const String &name)))
 {
   lp.addColumn();
   lp.addRow(indices,values,String("row1"));
@@ -82,7 +82,7 @@ START_SECTION((Size addRow(std::vector< Int > row_indices, std::vector< DoubleRe
 END_SECTION
 
 
-START_SECTION((Size addColumn(std::vector< Int > column_indices, std::vector< DoubleReal > column_values, String name)))
+START_SECTION((Int addColumn(std::vector< Int > column_indices, std::vector< DoubleReal > column_values, const String &name)))
 {
   lp.addRow(indices,values,String("row2"));
   lp.addColumn(indices,values,String("col3"));
@@ -91,7 +91,7 @@ START_SECTION((Size addColumn(std::vector< Int > column_indices, std::vector< Do
 }
 END_SECTION
 
-START_SECTION((Size addRow(std::vector< Int > &row_indices, std::vector< DoubleReal > &row_values, String name, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
+START_SECTION((Int addRow(std::vector< Int > &row_indices, std::vector< DoubleReal > &row_values, const String &name, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
 {
   lp.addRow(indices,values,String("row3"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfRows(),3);
@@ -99,7 +99,7 @@ START_SECTION((Size addRow(std::vector< Int > &row_indices, std::vector< DoubleR
 }
 END_SECTION
 
-START_SECTION((Size addColumn(std::vector< Int > &column_indices, std::vector< DoubleReal > &column_values, String name, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
+START_SECTION((Int addColumn(std::vector< Int > &column_indices, std::vector< DoubleReal > &column_values, const String &name, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
 {
   lp.addColumn(indices,values,String("col4"),0.2,1.2,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getNumberOfColumns(),4);
@@ -107,45 +107,45 @@ START_SECTION((Size addColumn(std::vector< Int > &column_indices, std::vector< D
 }
 END_SECTION
 
-START_SECTION((void setColumnName(Size index, String name)))
+START_SECTION((void setColumnName(Int index, const String &name)))
 {
   lp.setColumnName(0,"col1");
   TEST_EQUAL(lp.getColumnName(0),"col1");  
 }
 END_SECTION
 
-START_SECTION((String getColumnName(Size index)))
+START_SECTION((String getColumnName(Int index)))
 {
   TEST_EQUAL(lp.getColumnName(0),"col1"); 
 }
 END_SECTION
 
-START_SECTION((String getRowName(Size index)))
+START_SECTION((String getRowName(Int index)))
 {
   TEST_EQUAL(lp.getRowName(0),"row1"); 
 }
 END_SECTION
 
-START_SECTION((Size getRowIndex(String name)))
+START_SECTION((Int getRowIndex(const String &name)))
 {
   TEST_EQUAL(lp.getRowIndex("row1"),0); 
 }
 END_SECTION
 
-START_SECTION((Size getColumnIndex(String name)))
+START_SECTION((Int getColumnIndex(const String &name)))
 {
   TEST_EQUAL(lp.getColumnIndex("col1"),0); 
 }
 END_SECTION
 
-START_SECTION((void setRowName(Size index, String name)))
+START_SECTION((void setRowName(Int index, const String &name)))
 {
   lp.setRowName(0,"new_row1");
   TEST_EQUAL(lp.getRowName(0),"new_row1"); 
 }
 END_SECTION
 
-START_SECTION((void setColumnBounds(Size index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
+START_SECTION((void setColumnBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
 {
   lp.setColumnBounds(0,0.3,1.0,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getColumnUpperBound(0),1.0);
@@ -153,7 +153,7 @@ START_SECTION((void setColumnBounds(Size index, DoubleReal lower_bound, DoubleRe
 }
 END_SECTION
 
-START_SECTION((void setRowBounds(Size index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
+START_SECTION((void setRowBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)))
 {
   lp.setRowBounds(0,-0.3,1.0,LPWrapper::DOUBLE_BOUNDED);
   TEST_EQUAL(lp.getRowUpperBound(0),1.0);
@@ -161,14 +161,14 @@ START_SECTION((void setRowBounds(Size index, DoubleReal lower_bound, DoubleReal 
 }
 END_SECTION
 
-START_SECTION((void setColumnType(Size index, VariableType type)))
+START_SECTION((void setColumnType(Int index, VariableType type)))
 {
   lp.setColumnType(0,LPWrapper::INTEGER);
   TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER);
 }
 END_SECTION
 
-START_SECTION((VariableType getColumnType(Size index)))
+START_SECTION((VariableType getColumnType(Int index)))
 {
   lp.setColumnType(1,LPWrapper::BINARY);
   if (lp.getSolver()==LPWrapper::SOLVER_GLPK) TEST_EQUAL(lp.getColumnType(1),LPWrapper::BINARY)
@@ -176,14 +176,14 @@ START_SECTION((VariableType getColumnType(Size index)))
 }
 END_SECTION
 
-START_SECTION((void setObjective(Size index, DoubleReal obj_value)))
+START_SECTION((void setObjective(Int index, DoubleReal obj_value)))
 {
   lp.setObjective(0,3.5);
   TEST_EQUAL(lp.getObjective(0),3.5);
 }
 END_SECTION
 
-START_SECTION((DoubleReal getObjective(Size index)))
+START_SECTION((DoubleReal getObjective(Int index)))
 {
   lp.setObjective(1,2.5);
   TEST_EQUAL(lp.getObjective(1),2.5);
@@ -204,25 +204,25 @@ START_SECTION((Sense getObjectiveSense()))
 }
 END_SECTION
 
-START_SECTION((Size getNumberOfColumns()))
+START_SECTION((Int getNumberOfColumns()))
 {
   TEST_EQUAL(lp.getNumberOfColumns(),4)
 }
 END_SECTION
 
-START_SECTION((Size getNumberOfRows()))
+START_SECTION((Int getNumberOfRows()))
 {
   TEST_EQUAL(lp.getNumberOfRows(),3)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getColumnUpperBound(Size index)))
+START_SECTION((DoubleReal getColumnUpperBound(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getColumnUpperBound(0),1.0)
 }
 END_SECTION
 
-START_SECTION((void deleteRow(Size index)))
+START_SECTION((void deleteRow(Int index)))
 {
   lp.deleteRow(2);
   if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
@@ -241,26 +241,26 @@ START_SECTION((void deleteRow(Size index)))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getColumnLowerBound(Size index)))
+START_SECTION((DoubleReal getColumnLowerBound(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getColumnLowerBound(0),0.3)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getRowUpperBound(Size index)))
+START_SECTION((DoubleReal getRowUpperBound(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getRowUpperBound(0),1.0)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getRowLowerBound(Size index)))
+START_SECTION((DoubleReal getRowLowerBound(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getRowLowerBound(0),-0.3)  
 }
 END_SECTION
 
 
-START_SECTION((void setElement(Size row_index, Size column_index, DoubleReal value)))
+START_SECTION((void setElement(Int row_index, Int column_index, DoubleReal value)))
 {
   lp.setElement(1,2,0.5);
   TEST_REAL_SIMILAR(lp.getElement(1,2),0.5)  
@@ -268,7 +268,7 @@ START_SECTION((void setElement(Size row_index, Size column_index, DoubleReal val
 END_SECTION
 
 
-START_SECTION((DoubleReal getElement(Size row_index, Size column_index)))
+START_SECTION((DoubleReal getElement(Int row_index, Int column_index)))
 {
   lp.setElement(0,2,0.1);
   TEST_REAL_SIMILAR(lp.getElement(0,2),0.1)
@@ -306,13 +306,13 @@ START_SECTION((void readProblem(String filename, String format)))
 }
 END_SECTION
 
-START_SECTION((void writeProblem(String filename, String format)))
+START_SECTION((void writeProblem(const String &filename, const WriteFormat format) const ))
 {
   if(lp.getSolver() == LPWrapper::SOLVER_GLPK)
     {
       String tmp_filename;
       NEW_TMP_FILE(tmp_filename);
-      lp.writeProblem(tmp_filename,"LP");
+      lp.writeProblem(tmp_filename,LPWrapper::FORMAT_LP);
       LPWrapper lp2;
       lp2.setSolver(LPWrapper::SOLVER_GLPK);
       lp2.readProblem(tmp_filename,"LP");
@@ -335,13 +335,13 @@ START_SECTION((void writeProblem(String filename, String format)))
 #if COINOR_SOLVER==1
   else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
   {
-    TEST_EXCEPTION(Exception::NotImplemented, lp.writeProblem("/bla/bluff/blblb/sdfhsdjf/test.txt","LP"))
+    TEST_EXCEPTION(Exception::NotImplemented, lp.writeProblem("/bla/bluff/blblb/sdfhsdjf/test.txt",LPWrapper::FORMAT_LP))
   }
 #endif
 }
 END_SECTION
 
-START_SECTION((Int solve(SolverParam &solver_param)))
+START_SECTION((Int solve(SolverParam &solver_param, const Size verbose_level=0)))
 {
 #if COINOR_SOLVER==1
   if(lp.getSolver() ==LPWrapper::SOLVER_COINOR)   lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
@@ -374,7 +374,7 @@ START_SECTION((DoubleReal getObjectiveValue()))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getColumnValue(Size index)))
+START_SECTION((DoubleReal getColumnValue(Int index)))
 {
   TEST_REAL_SIMILAR(lp.getColumnValue(0),2)
   TEST_REAL_SIMILAR(lp.getColumnValue(1),2)

@@ -116,7 +116,7 @@ namespace OpenMS
 		open_tags_.push_back(tag_);
 
 		static set<String> to_ignore;
-		if (to_ignore.size() == 0)
+		if (to_ignore.empty())
 		{
 			to_ignore.insert("peptideSequence");
 		}
@@ -285,7 +285,7 @@ namespace OpenMS
 	void MzIdentMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
 		static set<String> to_ignore;
-		if (to_ignore.size() == 0)
+		if (to_ignore.empty())
 		{
 			to_ignore.insert("mzIdentML");
 			to_ignore.insert("cvParam");

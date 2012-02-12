@@ -254,36 +254,34 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 		@b Goal: You want to find all peaks in your profile data.
 
-		The first step shown here is the elimination of noise using the @b NoiseFilter. The
+		The first step shown here is the elimination of noise using a @b NoiseFilter. The
 		now smoothed profile data can be further processed by subtracting the baseline
-		with the @b BaselineFilter. Then use the @b PeakPicker to find all peaks in the
+		with the @b BaselineFilter. Then use one of the @b PeakPickers to find all peaks in the
 		baseline-reduced profile data.
 
 		@image html TOPP_raw_data.png
 		@image latex TOPP_raw_data.png "" width=10cm
 
-		We offer two different smoothing filters: a Gaussian filter and a Savitzky Golay filter,
-	  which can be selected by the option '<tt>type</tt>'. If you want to use the Savitzky Golay filter,
-	  or our @b BaselineFilter with non equally spaced profile data, e.g. TOF data, you have to generate equally spaced data using the
-	  @b Resampler tool.
+		We offer two different smoothing filters: NoiseFilterGaussian and NoiseFilterSGolay. If you want
+		to use the Savitzky Golay filter, or our @b BaselineFilter with non equally spaced profile data,
+		e.g. TOF data, you have to generate equally spaced data using the @b Resampler tool.
 
-		@section TOPP_example_signalprocessing_peakpicker Picking peaks with PeakPicker
+		@section TOPP_example_signalprocessing_peakpicker Picking peaks with a PeakPicker
 
-		The @b PeakPicker tool allows for picking peaks in profile data. Currently, there are two different algorithms.
-		With the option '<tt>type</tt>', the desired peak-picking algorithm can be selected.
+		The @b PeakPicker tools allow for picking peaks in profile data. Currently, there are two 
+		different TOPP tools available, PeakPickerWavelet and PeakPickerHiRes.
 
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> wavelet &nbsp;&nbsp; <b>Input data:</b> profile data (low/medium resolution) </TD>
+		<TD> <b>PeakPickerWavelet</b> &nbsp;&nbsp; <b>Input data:</b> profile data (low/medium resolution) </TD>
 	</TR>
 	<TR>
 		<TD>
 			@b Description: <br>			
 			This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
 			Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
-			are extracted.
-			In an optional step these parameters can be optimized using a non-linear opimization method. <br>
+			are extracted. In an optional step these parameters can be optimized using a non-linear opimization method. <br>
 			
 			The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
 		
@@ -299,15 +297,23 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> high_res &nbsp;&nbsp; <b>Input data:</b> profile data (high resolution) </TD>
+		<TD> <b>PeakPickerHiRes</b> &nbsp;&nbsp; <b>Input data:</b> profile data (high resolution) </TD>
 	</TR>
 	<TR>
 		<TD>
 			@b Description: <br>
-			This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by cubic spline interpolation. Signal detection depends on the signal-to-noise ratio which is adjustable by the user (see parameter @a signal_to_noise). A picked peak's m/z and intensity value is given by the maximum of the underlying peak spline. Please notice that this method is still @b experimental since it has not been tested thoroughly yet.<br>
+			This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding
+			peak shape by cubic spline interpolation. Signal detection depends on the signal-to-noise 
+			ratio which is adjustable by the user (see parameter @a signal_to_noise). A picked peak's m/z 
+			and intensity value is given by the maximum of the underlying peak spline. Please notice that 
+			this method is still @b experimental since it has not been tested thoroughly yet.<br>
 
 			<B>Application:</B>
-			<br>The algorithm is best suited for high-resolution MS data (FT-ICR-MS, Orbitrap). In high-resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals tend to show well-defined peak shapes with narrow peak width. These properties faciliate a fast computation of picked peaks so that even large data sets can be processed very quickly.
+			<br>The algorithm is best suited for high-resolution MS data (FT-ICR-MS, Orbitrap). In 
+			high-resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit 
+			little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals 
+			tend to show well-defined peak shapes with narrow peak width. These properties faciliate a 
+			fast computation of picked peaks so that even large data sets can be processed very quickly.
 
 			See the PeakPickerHiRes class documentation for a parameter list.
 		</TD>
@@ -315,14 +321,16 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	</TABLE>
 
 
-	@section TOPP_example_signalprocessing_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
+	@section TOPP_example_signalprocessing_parameters Finding the right parameters for the 
+	NoiseFilters, the BaselineFilter and the PeakPickers
 
 	Finding the right parameters is not trivial. The default parameters	will not work on most datasets.
 	In order to find good parameters, we propose the	following procedure:
 	-# Load the data in TOPPView
 	-# Extract a single scan from the middle of the HPLC gradient (Right click on scan)
 	-# Experiment with the parameters until you have found the proper settings
-		- You can find the @b NoiseFilter, the @b BaselineFilter, and the @b PeakPicker in @b TOPPView in the menu 'Layer' - 'Apply TOPP tool'
+	- You can find the @b NoiseFilters, the @b BaselineFilter, and the @b PeakPickers in @b TOPPView
+	  in the menu 'Layer' - 'Apply TOPP tool'
 */
 
 //##############################################################################
@@ -357,21 +365,20 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 /**
 	@page TOPP_example_mapalignment Map alignment
 	
-	The goal of map alignment is to transform different HPLC-MS maps to a common retention time axis.
+	The goal of map alignment is to transform different HPLC-MS maps (or derived maps) to a common retention time axis.
 	It corrects for shifted and scaled retention times, which may result from changes of the chromatography.
 	
-	The @b MapAligner tool takes @em n input maps, dewarps them and stores the @em n dewarped maps.
+	The different @b MapAligner tools take @em n input maps, dewarp them and store the @em n dewarped maps.
 	The following image shows the general procedure:
 	
 	@image html TOPP_alignment.png
 	@image latex TOPP_alignment.png "" width=14cm
 
-	There are different map alignment algorithms available. Which one is used, can be determined by 
-	the @em type parameter of the @b MapAligner tool. The following table gives a rough overview of the algorithms:
+	There are different map alignment tools available. The following table gives a rough overview of them:
 
 	<TABLE border=1>
 		<TR>
-			<TD> <b>Algorithm:</b> pose_clustering_affine &nbsp;&nbsp; <b>Applicable to:</b> feature maps, peak maps</TD>
+			<TD> <b>Application:</b> MapAlignerPoseClustering &nbsp;&nbsp; <b>Applicable to:</b> feature maps, peak maps</TD>
 		</TR>
 		<TR>
 			<TD>
@@ -386,39 +393,22 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 	<TABLE border=1>
 		<TR>
-			<TD> <b>Algorithm:</b> apply_given_trafo &nbsp;&nbsp; <b>Applicable to:</b> peak maps, feature maps, identifications</TD>
+			<TD> <b>Application:</b> MapAlignerIdentification &nbsp;&nbsp; <b>Applicable to:</b> feature maps, consensus maps, identifications</TD>
 		</TR>
 		<TR>
 			<TD>
 				@b Description: <br>
-				This algorithm merely <i>applies</i> a set of transformations that are read from files (in TransformationXML format).
-				These transformations might have been generated by a previous invocation of MapAligner.
-				For example, you might compute a transformation based on identifications and then apply it to the features or raw data.
-				The transformation file format is not very complicated,
-				so it is relatively easy to write (or generate) your own transformation files.
+				This algorithm utilizes peptide identifications, and is thus applicable to files containing peptide IDs
+			 	(idXML, annotated featureXML/consensusXML). It finds peptide sequences that different input files have in common
+				and uses them as points of correspondence.
+				From the retention times of these peptides, transformations are computed that convert each file to a consensus time scale.
 				</TD>
 		</TR>
 	</TABLE>
 
 	<TABLE border=1>
 		<TR>
-			<TD> <b>Algorithm:</b> identification &nbsp;&nbsp; <b>Applicable to:</b> peak maps, feature maps, identifications</TD>
-		</TR>
-		<TR>
-			<TD>
-				@b Description: <br>
-				This <i>experimental</i> algorithm utilizes peptide identifications, and thus is applicable to files containing peptide IDs
-			 	(idXML, annotated mzML, annotated featureXML). It finds peptide sequences that different input files have in common
-				and uses them as points of correspondence.
-				From the retention times of these peptides, smooth non-linear transformations are computed
-				that convert each file to a consensus time scale.
-			</TD>
-		</TR>
-	</TABLE>
-
-	<TABLE border=1>
-		<TR>
-			<TD> <b>Algorithm:</b> spectrum_alignment &nbsp;&nbsp; <b>Applicable to:</b> peak maps</TD>
+			<TD> <b>Application:</b> MapAlignerSpectrum &nbsp;&nbsp; <b>Applicable to:</b> peak maps</TD>
 		</TR>
 		<TR>
 			<TD>
@@ -430,6 +420,21 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		</TR>
 	</TABLE>
 
+	<TABLE border=1>
+		<TR>
+			<TD> <b>Application:</b> MapRTTransformer &nbsp;&nbsp; <b>Applicable to:</b> peak maps, feature maps, consensus maps, identifications</TD>
+		</TR>
+		<TR>
+			<TD>
+				@b Description: <br>
+				This algorithm merely <i>applies</i> a set of transformations that are read from files (in TransformationXML format).
+				These transformations might have been generated by a previous invocation of a MapAligner tool.
+				For example, you might compute a transformation based on identifications and then apply it to the features or raw data.
+				The transformation file format is not very complicated, so it is relatively easy to write (or generate) your own transformation files.
+			</TD>
+		</TR>
+	</TABLE>
+
 */
 
 //##############################################################################
@@ -437,14 +442,13 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 /**
 @page TOPP_example_featuredetection Feature detection
 
-	For quantitation, the @b FeatureFinder tool is used. It extracts the
-	features from profile data or centroided data. The @b FeatureFinder offers different
-	algorithms:
+	For quantitation, the @b FeatureFinder tools are used. They extract the
+	features from profile data or centroided data. TOPP offers different types of @b FeatureFinders:
 
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> isotope_wavelet &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
+		<TD> <b>FeatureFinderIsotopeWavelet</b> &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
 	</TR>
 	<TR>
 		<TD>
@@ -487,7 +491,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	<TABLE border=1>
 	
 	<TR>
-		<TD> <b>Algorithm:</b> centroided &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
+		<TD> <b>FeatureFinderCentroided</b> &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
 	</TR>
 	<TR>
 		<TD>
@@ -518,7 +522,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		</TD>
 	</TR>
 	</TABLE>
-
+<!--
 	<TABLE border=1>
 	<TR>
 		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> profile data </TD>
@@ -584,8 +588,8 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 			</TD>
 		</TR>
 	</TABLE>
+-->	
 	
-
 */
 //##############################################################################
 
@@ -593,7 +597,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	@page TOPP_example_featuregrouping Feature grouping
 
 	In order to quantify differences across maps (label-free) or within a map (isotope-labeled),
-	groups of corresponding features have to be found.  The TOPP tool @b FeatureLinker supports both approaches.
+	groups of corresponding features have to be found.  The @b FeatureLinker TOPP tools support both approaches.
 	These groups are represented by consensus features, which contain information about the constituting features
 	in the maps as well as average position, intensity, and charge.
 	
@@ -602,11 +606,11 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
 
 		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
-		application calculates the features from profile data or centroided data.
+		applications calculate the features from profile data or centroided data.
 
 		In the second step, the labeled pairs (e.g. light/heavy labels of ICAT) are determined by the 
-		@b FeatureLinker algorithm type @em labeled.
-		The @b FeatureLinker first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
+		@b FeatureLinkerLabeled application.
+		@b FeatureLinkerLabeled first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
 		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
 		The score of a pair is the product of:
 		- feature quality of feature 1
@@ -649,7 +653,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 	In a typical setting one would first pick the TOF-data, then perform the TOFCalibration and then the InternalCalibration:
 	@code
-	PeakPicker -in raw_tof.mzML -out picked_tof.mzML -ini pp.ini
+	PeakPickerWavelet -in raw_tof.mzML -out picked_tof.mzML -ini pp.ini
 	TOFCalibration -in picked_tof.mzML -out picked.mzML -ext_calibrants ext_cal.mzML
 	               -ref_masses ext_cal_masses
 	               -tof_const tof_conv_consts -peak_data

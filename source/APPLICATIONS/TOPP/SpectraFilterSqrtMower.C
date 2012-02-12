@@ -38,7 +38,7 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page TOPP_SpectraFilterThresholdMower SpectraFilterThresholdMower
+  @page TOPP_SpectraFilterSqrtMower SpectraFilterSqrtMower
 
 	@brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
 	
@@ -50,7 +50,7 @@ using namespace std;
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
 		</tr>
 		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPicker </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
 			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
 		</tr>
 	</table>

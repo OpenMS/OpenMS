@@ -96,7 +96,7 @@ namespace OpenMS
 	/// @throws Exception::MissingInformation if no scans present or MS² scan has no precursor
 	void ItraqChannelExtractor::run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
 	{
-		if (ms_exp_data.size()==0)
+		if (ms_exp_data.empty())
 		{
 			LOG_WARN << "The given file does not contain any conventional peak data, but might"
 				          " contain chromatograms. This tool currently cannot handle them, sorry.";
@@ -156,11 +156,7 @@ namespace OpenMS
 		Peak2D::CoordinateType allowed_deviation = (Peak2D::CoordinateType) param_.getValue("reporter_mass_shift");
 		// now we have picked data
 		// --> assign peaks to channels
-		UInt element_index = 0;
-		
-		// for statistics
-		StringList emtpy_scans;
-		Map<Int, Size> empty_channel;
+		UInt element_index(0);
 		
 		for (MSExperiment<>::ConstIterator it=ms_exp_MS2.begin(); it!=ms_exp_MS2.end(); ++it)
 		{
@@ -200,7 +196,6 @@ namespace OpenMS
 				}
 				
 				overall_intensity += channel_value.getIntensity();
-				if (channel_value.getIntensity() == 0) ++empty_channel[cm_it->second.name];
 
 				// add channel to ConsensusFeature
 				cf.insert (index++, channel_value, element_index);
@@ -211,39 +206,15 @@ namespace OpenMS
 			// check featureHandles are not empty
       if (overall_intensity==0)
 			{
-				emtpy_scans.push_back(String(cf.getRT()));
         cf.setMetaValue("all_empty", String("true"));
 			}
 			cf.setIntensity(overall_intensity);
 			consensus_map.push_back(cf);
 			
-
 			// the tandem-scan in the order they appear in the experiment
 			++element_index;
 		} // ! Experiment iterator
 
-		// ------------------------------
-    // Labeling efficiency statistics
-		// ------------------------------
-    LOG_INFO <<   "iTRAQ: skipped " << emtpy_scans.size() << " of " << ms_exp_MS2.size() << " selected scans due to lack of iTRAQ information:\n";
-    consensus_map.setMetaValue("itraq:scans_noquant", emtpy_scans.size());
-    consensus_map.setMetaValue("itraq:scans_total", ms_exp_MS2.size());
-    // print only up to 20 scans
-    for (Size i=0;i<emtpy_scans.size() && i<20;++i)
-    {
-      LOG_INFO << emtpy_scans[i] << ", ";
-    }
-    if (emtpy_scans.size() >= 20) LOG_INFO << emtpy_scans[19];
-    if (emtpy_scans.size() >  20) LOG_INFO << " ...";
-    LOG_INFO << "\n";
-
-    LOG_INFO <<   "iTRAQ: channels with signal\n";
-    for (Map<Int, Size>::ConstIterator it_ec=empty_channel.begin(); it_ec!=empty_channel.end();++it_ec)
-		{
-			LOG_INFO << "      channel " << it_ec->first << ": " << (ms_exp_MS2.size()-it_ec->second) << " / " <<  ms_exp_MS2.size() << " (" << ((ms_exp_MS2.size()-it_ec->second)*100/ms_exp_MS2.size()) << "%)\n";
-      consensus_map.setMetaValue(String("itraq:quantifyable_ch") + it_ec->first, (ms_exp_MS2.size()-it_ec->second) );
-    }
-    
 
 		#ifdef ITRAQ_DEBUG
 		std::cout << "processed " << element_index << " scans" << std::endl;
@@ -256,7 +227,7 @@ namespace OpenMS
 
 	void ItraqChannelExtractor::setDefaultParams_()
 	{
-		defaults_.setValue("select_activation",Precursor::NamesOfActivationMethod[Precursor::HCID],"Operate only on MSn scans where any of its percursors features a certain activation method (usually HCD for iTRAQ). Set to empty string if you want to disable filtering.\n");
+		defaults_.setValue("select_activation",Precursor::NamesOfActivationMethod[Precursor::HCID],"Operate only on MSn scans where any of its precursors features a certain activation method (usually HCD for iTRAQ). Set to empty string if you want to disable filtering.\n");
 		StringList activation_list(std::vector<std::string>(Precursor::NamesOfActivationMethod, &Precursor::NamesOfActivationMethod[Precursor::SIZE_OF_ACTIVATIONMETHOD-1]));
 		activation_list.push_back(""); // allow disabling this
 		defaults_.setValidStrings("select_activation",activation_list);

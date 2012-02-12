@@ -403,8 +403,6 @@ namespace OpenMS
 	
 	void SVMWrapper::predict(struct svm_problem* problem, vector<DoubleReal>& results)
 	{
-    DoubleReal          label = 0.0;
-    
     results.clear();
 
 		if (model_ == NULL)
@@ -432,7 +430,7 @@ namespace OpenMS
   		results.reserve(problem->l);
 	    for(Int i = 0; i < problem->l; i++)
 	    {
-				label = svm_predict(model_, problem->x[i]);
+        DoubleReal label = svm_predict(model_, problem->x[i]);
 				results.push_back(label);
 			}
 		
@@ -445,7 +443,6 @@ namespace OpenMS
 	
 	void SVMWrapper::predict(const SVMData& problem, vector<DoubleReal>& results)
 	{
-    DoubleReal          label = 0.0;
     struct svm_problem* prediction_problem = NULL;
     
     results.clear();
@@ -456,11 +453,11 @@ namespace OpenMS
 			{
 				cout << "Model is null" << endl;
 			}
-			else if (problem.sequences.size() == 0)
+			else if (problem.sequences.empty())
 			{
 				cout << "problem is empty" << endl;
 			}
-			else if (training_data_.sequences.size() == 0)
+			else if (training_data_.sequences.empty())
 			{
 				cout << "Training set is empty and kernel type == PRECOMPUTED" << endl;
 			}
@@ -469,7 +466,7 @@ namespace OpenMS
 	   		prediction_problem = computeKernelMatrix(problem, training_data_);
 		    for (Size i = 0; i < problem.sequences.size(); i++)
 		    {
-					label = svm_predict(model_, prediction_problem->x[i]);
+          DoubleReal label = svm_predict(model_, prediction_problem->x[i]);
 					results.push_back(label);
 				}
 			
@@ -483,8 +480,6 @@ namespace OpenMS
 																					vector<svm_problem*>& 	problems)
 	{
 		vector<Size> indices;
-		Size partition_count = 0;
-		Size actual_partition_size = 0; 
 		vector<Size>::iterator indices_iterator;
 		
 		for (Size i = 0; i < problems.size(); ++i)
@@ -519,9 +514,9 @@ namespace OpenMS
 					partition_index < number; 
 					partition_index++)
 			{
-				actual_partition_size = 0;
+        Size actual_partition_size = 0;
 				// determining the number of elements in this partition
-				partition_count = (problem->l / number);
+        Size partition_count = (problem->l / number);
 				if (problem->l % number > partition_index)
 				{
 					partition_count++;
@@ -552,8 +547,6 @@ namespace OpenMS
 																					vector<SVMData>& 				problems)
 	{
 		vector<Size> indices;
-		Size partition_count = 0;
-		Size actual_partition_size = 0; 
 		vector<Size>::iterator indices_iterator;
 		
 		for (Size i = 0; i < problems.size(); ++i)
@@ -589,9 +582,9 @@ namespace OpenMS
 					partition_index < number; 
 					partition_index++)
 			{
-				actual_partition_size = 0;
+        Size actual_partition_size = 0;
 				// determining the number of elements in this partition
-				partition_count = (problem.sequences.size() / number);
+        Size partition_count = (problem.sequences.size() / number);
 				if (problem.sequences.size() % number > partition_index)
 				{
 					partition_count++;
@@ -620,8 +613,6 @@ namespace OpenMS
 								 													 Size 											 except)
 	{
 		svm_problem* merged_problem = NULL;
-		int count = 0;
-		Size actual_index = 0;
 		
 		if (problems.size() == 1 && except == 0)
 		{
@@ -630,6 +621,8 @@ namespace OpenMS
 		
 		if (problems.size() > 0)
 		{
+      int count = 0;
+
 			merged_problem = new svm_problem();
 			for (Size i = 0; i < problems.size(); i++)
 			{
@@ -641,6 +634,9 @@ namespace OpenMS
 			merged_problem->l = count;
 			merged_problem->x = new svm_node*[count];
 			merged_problem->y = new DoubleReal[count];
+
+      Size actual_index = 0;
+
 			for (Size i = 0; i < problems.size(); i++)
 			{
 				if (i != except)
@@ -661,8 +657,8 @@ namespace OpenMS
 				 													 Size 								  except,
 				 													 SVMData&								merged_problem)
 	{
-		Size count = 0;
-		Size actual_index = 0;
+		
+
 		
 		merged_problem.sequences.clear();
 		merged_problem.labels.clear();
@@ -671,6 +667,7 @@ namespace OpenMS
 		{			
 			if (problems.size() > 0)
 			{
+        Size count = 0;
 				for (Size i = 0; i < problems.size(); i++)
 				{
 					if (i != except)
@@ -680,6 +677,9 @@ namespace OpenMS
 				}
 				merged_problem.sequences.resize(count, std::vector< std::pair<int, double> >());
 				merged_problem.labels.resize(count, 0.);
+
+        Size actual_index = 0;
+
 				for (Size i = 0; i < problems.size(); i++)
 				{
 					if (i != except)
@@ -698,11 +698,11 @@ namespace OpenMS
 	
 	void SVMWrapper::getLabels(svm_problem* problem, vector<DoubleReal>& labels)
 	{
-		int count = 0;
 		labels.clear();
 		
 		if (problem != NULL)
 		{		
+      int count = 0;
 			count = problem->l;
 			for (int i = 0; i < count; i++)
 			{
@@ -1166,15 +1166,13 @@ namespace OpenMS
 
 	void SVMWrapper::predict(const std::vector<svm_node*>& vectors, vector<DoubleReal>& results)
 	{
-    DoubleReal          label = 0.0;
-
 		results.clear();
 		
     if (model_ != NULL)
     {
 	    for (Size i = 0; i < vectors.size(); i++)
 	    {
-				label = svm_predict(model_, vectors[i]);
+        DoubleReal label = svm_predict(model_, vectors[i]);
 				results.push_back(label);
 			}
 		}
@@ -1201,7 +1199,6 @@ namespace OpenMS
 	  vector<int> labels;
 	  labels.push_back(-1);
 	  labels.push_back(1);
-	  DoubleReal temp_label = 0.;
 	  
 	  svm_get_labels(model_, &(labels[0]));
 
@@ -1219,7 +1216,7 @@ namespace OpenMS
   		} 
 			for(int i = 0; i < problem->l; ++i)
 			{
-				temp_label = svm_predict_probability(model_, problem->x[i], &(temp_prob_estimates[0]));
+        DoubleReal temp_label = svm_predict_probability(model_, problem->x[i], &(temp_prob_estimates[0]));
 				prediction_labels.push_back(temp_label);
 				if (labels[0] >= 0)
 				{
@@ -1524,7 +1521,7 @@ namespace OpenMS
 		DoubleReal temp = 0;
 		svm_problem* kernel_matrix;
 				
-		if (problem1.labels.size() == 0 || problem2.labels.size() == 0)
+		if (problem1.labels.empty() || problem2.labels.empty())
 		{
 			return NULL;
 		}

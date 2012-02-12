@@ -46,8 +46,6 @@ namespace OpenMS
    Please find trained models at: http://sourceforge.net/projects/open-ms/files/Supplementary/Simulation/.
    </p>
 
-   @htmlinclude OpenMS_SvmTheoreticalSpectrumGeneratorSet.parameters
-
    @ingroup Chemistry
    */
   class OPENMS_DLLAPI SvmTheoreticalSpectrumGeneratorSet

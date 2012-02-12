@@ -156,13 +156,13 @@ class TOPPMRMPairFinder
   		while (getline(is, line))
   		{
     		line.trim();
-    		if (line.size() == 0 || line[0] == '#')
+    		if (line.empty() || line[0] == '#')
     		{
       		continue;
    			}
     		vector<String> split;
     		line.split(' ', split);
-				if (split.size() == 0)
+				if (split.empty())
 				{
 					line.split('\t', split);
 				}
@@ -234,7 +234,7 @@ class TOPPMRMPairFinder
 							heavy.push_back(MatchedFeature(*fit, idx));
 						}
 
-						if (heavy.size() != 0 && light.size() != 0)
+            if ( !heavy.empty() && !light.empty() )
 						{
 							writeDebug_("Finding best feature pair out of " + String(light.size()) + " light and " + String(heavy.size()) + " heavy matching features.", 1);
 							// now find "good" matches, means the pair with the smallest m/z deviation
@@ -282,7 +282,7 @@ class TOPPMRMPairFinder
 
 					writeDebug_("Quantitation of pair " + String(it1->first) + " <-> " + String(it2->first) + " (#XIC pairs for quantation=" + String(quantlets.size()) + ")", 1);
 
-					if (quantlets.size() == 0)
+					if (quantlets.empty())
 					{
 						continue;
 					}

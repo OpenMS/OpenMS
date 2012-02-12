@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 /**
@@ -40,17 +40,21 @@
 	@b TOPP tools: A set of command line tools, each of which is a building block of an analysis pipeline. 
 	         These tools chained together in a way that fits the requirements of the user.
 					 Accessible from a command prompt/shell or via TOPPAS.
-					 See also: @subpage TOPP_documentation<br>
-	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a pipeline - but you could.
-						See also: @subpage UTILS
+					 See also: @subpage TOPP_tutorial and @subpage TOPP_documentation<br>
+	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a productive pipeline - but rather during pipeline construction or
+						parameter optimization.
+						See also: @subpage UTILS_documentation
 	
-	@section run_tool Run a tool
+	@section run_tool How to run a tool
 	
-					We'd recommend just starting TOPPAS and once in there to open the example pipelines (see "File" --> "Open example file" within TOPPAS).
-					In parallel you can read the documentation of the tools (see @subpage TOPP_documentation) 
-					and the one of TOPPAS (@subpage TOPP_tutorial --> TOPPAS).
+					We'd recommend using TOPPAS. A good start are the example pipelines (see "File" --> "Open example file" within TOPPAS).
+					In parallel you can read the documentation of the tools (see @subpage TOPP_tutorial, @subpage TOPP_documentation) 
+					and the one of TOPPAS (@subpage TOPPAS_tutorial).
 					
+					Alternatively, you can use the command line and call tools directly. In this case you'll probably want
+					to use some type of shell script for automation.
 					
+										
 	@section parameters Adapting your pipeline parameters
 	
 		The default parameters of each tool can usually be tweaked to fit your data and improve results.
@@ -58,11 +62,11 @@
 		@subsection parameters_where Where do you change them?!
 	
 		@b TOPPAS: Double-click the node of which you want to change the parameters. A short docu for each parameter will show up once you select it.
-		        All parameters which would be available on the command line and .ini are shown here as well.
+		        All parameters which would be available on the command line and in the INI file are shown here as well.
 		
-		@b Command-line: Very basic parameters can be set on the command line, e.g. <tt>FileFilter -rt 1000:2000 ....</tt>.<br>
+		@b Command line: Very basic parameters can be set on the command line, e.g. <tt>FileFilter -rt 1000:2000 ....</tt>.<br>
 									Doing this for all parameters would create a very long list, thus, we use so-called ".ini" files to provide full parameter sets to TOPP tools.
-		              If no .ini file is given, default parameters are used.
+		              If no INI file is given, default parameters are used.
 									To get a default .ini use
 									<p>
 									<tt>&lt;tool&gt; -write_ini &lt;file&gt;</tt>
@@ -72,9 +76,23 @@
 									<tt>FileFilter -write_ini filefilter.ini</tt>
 									</p>
 									
-									Now, you can edit the .ini file (which is a XML file) using our @subpage TOPP_INIFileEditor, which is another GUI tool shipped with %OpenMS
+									Now, you can edit the INI file (which is a XML file) using our @subpage TOPP_INIFileEditor, which is another GUI tool shipped with %OpenMS
 									and similar to the one build into TOPPAS.
 
+		@subsection parameters_where How do I feed the INI file to a tool?!
+
+		@b TOPPAS: Once you changed the parameters of a node and clicked "Ok", the parameters are in effect. Because they are part of the TOPPAS workflow, they are saved 
+		           together with the workflow.
+		
+		@b Command line: Simply supply the INI file via the <tt>-ini</tt> flag, e.g.,
+									<p>
+									<tt>&lt;tool&gt; -ini &lt;file&gt;</tt>
+									</p>
+									<p>
+									e.g. <br>
+									<tt>FileFilter -ini filefilter.ini</tt>
+									</p>
+									
     @subsection parameters_how What parameters need changing and to what value?!
 		
 		This is tricky and its not possible to give a general answer. In general, you should read the tool description, change the parameters

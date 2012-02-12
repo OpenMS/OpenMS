@@ -4,7 +4,13 @@
     <ITEM name="version" value="1.9.0" type="string" description="" />
     <ITEM name="num_vertices" value="16" type="int" description="" />
     <ITEM name="num_edges" value="15" type="int" description="" />
-    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt; &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt; p, li { white-space: pre-wrap; } &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
+    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Arial&apos;; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;A dummy workflow demonstrating how merger and collector nodes work.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;In order to track what is happening, just run the pipeline. When the execution has finished, have a look at all input and output files (e.g., select &amp;quot;Open in TOPPView&amp;quot; in the context menu of the input/output nodes). The input files are named rt_1.mzML, rt_2.mzML, ... and each contains a single spectrum with RT as indicated by the filename, so you can easily see which files have been merged together.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" />
   </NODE>
   <NODE name="vertices" description="">
     <NODE name="0" description="">
@@ -15,17 +21,17 @@
         <LISTITEM value="data/merger_tutorial/rt_2.mzML"/>
         <LISTITEM value="data/merger_tutorial/rt_3.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-580" type="float" description="" />
-      <ITEM name="y_pos" value="-240" type="float" description="" />
+      <ITEM name="x_pos" value="-480" type="float" description="" />
+      <ITEM name="y_pos" value="-260" type="float" description="" />
     </NODE>
     <NODE name="8" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FileMerger" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="-180" type="float" description="" />
-      <ITEM name="y_pos" value="120" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FileMerger&apos;">
+      <ITEM name="x_pos" value="-160" type="float" description="" />
+      <ITEM name="y_pos" value="60" type="float" description="" />
+      <NODE name="parameters" description="">
         <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
@@ -47,8 +53,8 @@
     <NODE name="5" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="merger" type="string" description="" />
-      <ITEM name="x_pos" value="-360" type="float" description="" />
-      <ITEM name="y_pos" value="120" type="float" description="" />
+      <ITEM name="x_pos" value="-320" type="float" description="" />
+      <ITEM name="y_pos" value="60" type="float" description="" />
       <ITEM name="round_based" value="true" type="string" description="" />
     </NODE>
     <NODE name="1" description="">
@@ -59,8 +65,8 @@
         <LISTITEM value="data/merger_tutorial/rt_5.mzML"/>
         <LISTITEM value="data/merger_tutorial/rt_6.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-580" type="float" description="" />
-      <ITEM name="y_pos" value="-120" type="float" description="" />
+      <ITEM name="x_pos" value="-480" type="float" description="" />
+      <ITEM name="y_pos" value="-140" type="float" description="" />
     </NODE>
     <NODE name="2" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
@@ -70,14 +76,14 @@
         <LISTITEM value="data/merger_tutorial/rt_11.mzML"/>
         <LISTITEM value="data/merger_tutorial/rt_12.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-580" type="float" description="" />
+      <ITEM name="x_pos" value="-480" type="float" description="" />
       <ITEM name="y_pos" value="60" type="float" description="" />
     </NODE>
     <NODE name="9" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="merger" type="string" description="" />
-      <ITEM name="x_pos" value="40" type="float" description="" />
-      <ITEM name="y_pos" value="-60" type="float" description="" />
+      <ITEM name="x_pos" value="0" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
       <ITEM name="round_based" value="true" type="string" description="" />
     </NODE>
     <NODE name="10" description="">
@@ -85,9 +91,9 @@
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FileMerger" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="240" type="float" description="" />
-      <ITEM name="y_pos" value="-60" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FileMerger&apos;">
+      <ITEM name="x_pos" value="160" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
+      <NODE name="parameters" description="">
         <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
@@ -109,15 +115,15 @@
     <NODE name="11" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="merger" type="string" description="" />
-      <ITEM name="x_pos" value="440" type="float" description="" />
-      <ITEM name="y_pos" value="-60" type="float" description="" />
+      <ITEM name="x_pos" value="320" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
       <ITEM name="round_based" value="false" type="string" description="" />
     </NODE>
     <NODE name="15" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
-      <ITEM name="x_pos" value="640" type="float" description="" />
-      <ITEM name="y_pos" value="320" type="float" description="" />
+      <ITEM name="x_pos" value="480" type="float" description="" />
+      <ITEM name="y_pos" value="120" type="float" description="" />
     </NODE>
     <NODE name="3" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
@@ -127,7 +133,7 @@
         <LISTITEM value="data/merger_tutorial/rt_8.mzML"/>
         <LISTITEM value="data/merger_tutorial/rt_9.mzML"/>
       </ITEMLIST>
-      <ITEM name="x_pos" value="-580" type="float" description="" />
+      <ITEM name="x_pos" value="-480" type="float" description="" />
       <ITEM name="y_pos" value="180" type="float" description="" />
     </NODE>
     <NODE name="6" description="">
@@ -135,9 +141,9 @@
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FileMerger" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="-180" type="float" description="" />
-      <ITEM name="y_pos" value="-180" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FileMerger&apos;">
+      <ITEM name="x_pos" value="-160" type="float" description="" />
+      <ITEM name="y_pos" value="-140" type="float" description="" />
+      <NODE name="parameters" description="">
         <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
@@ -159,17 +165,17 @@
     <NODE name="12" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
-      <ITEM name="x_pos" value="240" type="float" description="" />
-      <ITEM name="y_pos" value="320" type="float" description="" />
+      <ITEM name="x_pos" value="160" type="float" description="" />
+      <ITEM name="y_pos" value="120" type="float" description="" />
     </NODE>
     <NODE name="13" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="tool" type="string" description="" />
       <ITEM name="tool_name" value="FileMerger" type="string" description="" />
       <ITEM name="tool_type" value="" type="string" description="" />
-      <ITEM name="x_pos" value="640" type="float" description="" />
-      <ITEM name="y_pos" value="-60" type="float" description="" />
-      <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FileMerger&apos;">
+      <ITEM name="x_pos" value="480" type="float" description="" />
+      <ITEM name="y_pos" value="-40" type="float" description="" />
+      <NODE name="parameters" description="">
         <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
         <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
@@ -191,20 +197,20 @@
     <NODE name="7" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
-      <ITEM name="x_pos" value="-180" type="float" description="" />
-      <ITEM name="y_pos" value="-380" type="float" description="" />
+      <ITEM name="x_pos" value="-160" type="float" description="" />
+      <ITEM name="y_pos" value="-260" type="float" description="" />
     </NODE>
     <NODE name="14" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="output file list" type="string" description="" />
-      <ITEM name="x_pos" value="-180" type="float" description="" />
-      <ITEM name="y_pos" value="320" type="float" description="" />
+      <ITEM name="x_pos" value="-160" type="float" description="" />
+      <ITEM name="y_pos" value="180" type="float" description="" />
     </NODE>
     <NODE name="4" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" />
       <ITEM name="toppas_type" value="merger" type="string" description="" />
-      <ITEM name="x_pos" value="-360" type="float" description="" />
-      <ITEM name="y_pos" value="-180" type="float" description="" />
+      <ITEM name="x_pos" value="-320" type="float" description="" />
+      <ITEM name="y_pos" value="-140" type="float" description="" />
       <ITEM name="round_based" value="true" type="string" description="" />
     </NODE>
   </NODE>

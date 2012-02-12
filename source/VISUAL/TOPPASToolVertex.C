@@ -786,7 +786,7 @@ namespace OpenMS
 
     // use input names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)
     std::vector<QStringList> per_round_basenames;
-    for (int i = 0; i < pkg.size(); ++i)
+    for (Size i = 0; i < pkg.size(); ++i)
     {
       per_round_basenames.push_back( pkg[i].find(max_size_index)->second.filenames );
     }

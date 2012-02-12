@@ -60,6 +60,7 @@ namespace OpenMS
 
     }
 
+
     FeatureHypothesis& FeatureHypothesis::operator=(const FeatureHypothesis& rhs)
                                                    {
         if (this==&rhs) return *this;
@@ -71,7 +72,6 @@ namespace OpenMS
     }
 
 
-
     void FeatureHypothesis::addMassTrace(MassTrace& mt_ptr)
     {
         iso_pattern_.push_back(&mt_ptr);
@@ -79,8 +79,21 @@ namespace OpenMS
         return ;
     }
 
-    DoubleReal FeatureHypothesis::computeFeatureIntensity()
+
+DoubleReal FeatureHypothesis::getMonoisotopicFeatureIntensity()
     {
+    if (iso_pattern_.empty())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no traces contained!", String(iso_pattern_.size()));
+    }
+
+    return iso_pattern_[0]->computePeakArea();
+
+}
+
+
+DoubleReal FeatureHypothesis::getSummedFeatureIntensity()
+{
         DoubleReal int_sum(0.0);
 
         for (Size i = 0; i < iso_pattern_.size(); ++i)
@@ -136,17 +149,20 @@ namespace OpenMS
         : DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
     {
         // defaults_.setValue( "name" , 1 , "descript" );
-        defaults_.setValue( "local_rt_range" , 5.0 , "RT range where to look for coeluting mass traces"); // 3.0
-        defaults_.setValue( "local_mz_range" , 6.5 , "MZ range where to look for isotopic mass traces");    // 5.0
+    defaults_.setValue("local_rt_range" , 5.0 , "RT range where to look for coeluting mass traces", StringList::create("advanced")); // 5.0
+    defaults_.setValue("local_mz_range" , 6.5 , "MZ range where to look for isotopic mass traces", StringList::create("advanced"));    // 6.5
         defaults_.setValue( "charge_lower_bound" , 1 , "Lowest charge state to consider");    // 1
         defaults_.setValue( "charge_upper_bound" , 5 , "Highest charge state to consider");    // 5
-        defaults_.setValue( "mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");
-        defaults_.setValue( "chrom_fwhm" , 3.0 , "Minimum FWHM (in seconds) a chromatographic peak should have");
+    defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");  // 20.0
+    defaults_.setValue("chrom_sigma" , 3.0 , "Expected shift in RT (in seconds) between the apeces of mass traces that putatively belong to the same feature.");    // 3.0
+    defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", StringList::create("advanced"));
+    defaults_.setValidStrings("report_summed_ints", StringList::create(("false,true")));
 
         defaultsToParam_();
 
         this->setLogType(CMD);
     }
+
 
     FeatureFindingMetabo::~FeatureFindingMetabo()
     {
@@ -161,14 +177,16 @@ namespace OpenMS
 
         std::vector<FeatureHypothesis> feat_hypos;
 
+    this->startProgress(0, input_mtraces.size(), "assembling mass traces to features");
+
         if (input_mtraces.size() > 1) {
             for (Size i = 0; i < input_mtraces.size(); ++i)
             {
-                // std::cout << input_mtraces[i].getCentroidMZ() << " " << input_mtraces[i].getSmoothedMaxRT() << std::endl;
+            this->setProgress(i);
                 std::vector<MassTrace*> local_traces;
 
                 DoubleReal ref_trace_mz(input_mtraces[i].getCentroidMZ());
-                DoubleReal ref_trace_rt(input_mtraces[i].getSmoothedMaxRT());
+            DoubleReal ref_trace_rt(input_mtraces[i].getCentroidRT());
 
                 local_traces.push_back(&input_mtraces[i]);
 
@@ -179,7 +197,7 @@ namespace OpenMS
                 {
                     // update diff_mz and diff_rt
                     diff_mz = std::fabs(input_mtraces[ext_idx].getCentroidMZ() - ref_trace_mz);
-                    diff_rt = std::fabs(input_mtraces[ext_idx].getSmoothedMaxRT() - ref_trace_rt);
+                diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
 
                     if (diff_mz <= local_mz_range_ && diff_rt <= local_rt_range_)
                     {
@@ -189,12 +207,9 @@ namespace OpenMS
                     ++ext_idx;
                 }
 
-
-                // std::cout << "look at " << local_traces.size() << std::endl;
-
                 findLocalFeatures_(local_traces, feat_hypos);
             }
-
+        this->endProgress();
 
             // sort feature candidates by their score
             std::sort(feat_hypos.begin(), feat_hypos.end(), CmpHypothesesByScore());
@@ -203,8 +218,6 @@ namespace OpenMS
 
             for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
             {
-                std::cout << feat_hypos[hypo_idx].getLabel() << " " << feat_hypos[hypo_idx].getScore() << std::endl;
-
                 std::vector<String> labels(feat_hypos[hypo_idx].getLabels());
 
                 bool trace_coll = false;
@@ -217,11 +230,21 @@ namespace OpenMS
                     }
                 }
 
-                if (!trace_coll) {
+            if (!trace_coll)
+            {
                     Feature f;
                     f.setRT(feat_hypos[hypo_idx].getCentroidRT());
                     f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
-                    f.setIntensity(feat_hypos[hypo_idx].computeFeatureIntensity());
+
+                if (report_summed_ints_)
+                {
+                    f.setIntensity(feat_hypos[hypo_idx].getSummedFeatureIntensity());
+                }
+                else
+                {
+                    f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity());
+                }
+
                     f.setWidth(feat_hypos[hypo_idx].getFWHM());
                     f.setCharge(feat_hypos[hypo_idx].getCharge());
                     f.setMetaValue(3,feat_hypos[hypo_idx].getLabel());
@@ -238,9 +261,6 @@ namespace OpenMS
 
                 }
             }
-
-
-
         }
 
         return ;
@@ -258,10 +278,12 @@ namespace OpenMS
         local_rt_range_ = (DoubleReal)param_.getValue("local_rt_range");
         local_mz_range_ = (DoubleReal)param_.getValue("local_mz_range");
         mass_error_ppm_ = (DoubleReal)param_.getValue("mass_error_ppm");
-        chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
+    chrom_sigma_ = (DoubleReal)param_.getValue("chrom_sigma");
 
         charge_lower_bound_ = (Size)param_.getValue("charge_lower_bound");
         charge_upper_bound_ = (Size)param_.getValue("charge_upper_bound");
+
+    report_summed_ints_ = param_.getValue("report_summed_ints").toBool();
     }
 
 
@@ -270,11 +292,6 @@ namespace OpenMS
         DoubleReal diff_mz(std::fabs(mz2 - mz1)/iso_pos);
 
         DoubleReal mu(std::pow(1.0029316*iso_pos, -0.0002107)/charge);
-        // DoubleReal mu = (1.0033/charge);
-        std::cout << "---- " << diff_mz << " --- " << mu << std::endl;
-
-
-        // DoubleReal mu((1.003355*iso_pos)/charge);
         DoubleReal err_ppm((mz2/1000000)*mass_error_ppm_);
         DoubleReal sigma((4*err_ppm)/2.3548);
 
@@ -283,13 +300,7 @@ namespace OpenMS
             return 0.0;
         }
 
-        //  DoubleReal sigma(0.01);
         DoubleReal mz_score(std::exp(-0.5*((diff_mz - mu)/sigma)*((diff_mz - mu)/sigma)));
-
-        //        if (mz_score < std::numeric_limits<DoubleReal>::epsilon())
-        //        {
-        //            return -100.0;
-        //        }
 
         return mz_score;
     }
@@ -298,9 +309,7 @@ namespace OpenMS
 
         DoubleReal diff_rt(std::fabs(rt2 - rt1));
 
-        // DoubleReal mu_rt = (1.003355/charge)*iso_pos;
-
-        DoubleReal sigma(chrom_fwhm_/2.3548);
+    DoubleReal sigma(chrom_sigma_/2.3548);
 
         if (diff_rt > 2*sigma)
         {
@@ -337,7 +346,7 @@ namespace OpenMS
             }
         }
 
-        if (x.size() == 0 || y.size() == 0)
+    if ( x.empty() || y.empty() )
         {
             return 0.0;
         }
@@ -400,48 +409,28 @@ namespace OpenMS
 
         DoubleReal int_score(std::exp(-0.5*((int_ratio - mu)/sigma)*((int_ratio - mu)/sigma)));
 
-        //        if (int_score < std::numeric_limits<DoubleReal>::epsilon())
-        //        {
-        //            return -100.0;
-        //        }
-
         return int_score;
     }
 
 
     void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
     {
-        // check for singleton traces
-        //        if (candidates.size() == 1)
-        //        {
         FeatureHypothesis tmp_hypo;
         tmp_hypo.addMassTrace(*candidates[0]);
         tmp_hypo.setScore(0.0);
 
         output_hypos.push_back(tmp_hypo);
 
-        //            return ;
-        //        }
-
-
-        bool singleton_trace = true;
-
-        for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge) {
-
-            std::cout << "looking at charge state " << charge << std::endl;
-            std::cout << "-----------------------" << std::endl;
-
-
+    for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge)
+    {
             FeatureHypothesis fh_tmp;
             fh_tmp.setScore(0.0);
 
             fh_tmp.addMassTrace(*candidates[0]);
 
-            DoubleReal mono_iso_rt(candidates[0]->getSmoothedMaxRT());
+        DoubleReal mono_iso_rt(candidates[0]->getCentroidRT());
             DoubleReal mono_iso_mz(candidates[0]->getCentroidMZ());
-            DoubleReal mono_iso_int(candidates[0]->computePeakArea());
-
-            std::cout << candidates[0]->getLabel() << " with ";
+        // DoubleReal mono_iso_int(candidates[0]->computePeakArea());
 
             Size last_iso_idx(0);
 
@@ -451,21 +440,16 @@ namespace OpenMS
                 DoubleReal best_so_far(0.0);
                 Size best_idx(0);
 
-                std::cout << "iso_pos" << iso_pos << std::endl;
-
                 for (Size mt_idx = last_iso_idx + 1; mt_idx < candidates.size(); ++mt_idx)
                 {
-                    DoubleReal tmp_iso_rt(candidates[mt_idx]->getSmoothedMaxRT());
+                DoubleReal tmp_iso_rt(candidates[mt_idx]->getCentroidRT());
                     DoubleReal tmp_iso_mz(candidates[mt_idx]->getCentroidMZ());
-                    DoubleReal tmp_iso_int(candidates[mt_idx]->computePeakArea());
+                // DoubleReal tmp_iso_int(candidates[mt_idx]->computePeakArea());
 
 
                     DoubleReal rt_score(scoreRT_(mono_iso_rt, tmp_iso_rt));
 
-                    // DoubleReal rt_score(scoreTraceSim_(*candidates[0], *candidates[mt_idx]));
-
                     DoubleReal mz_score(scoreMZ_(mono_iso_mz, tmp_iso_mz, iso_pos, charge));
-                    // DoubleReal int_score(scoreIntRatio_(mono_iso_int, tmp_iso_int, iso_pos));
 
                     // disable intensity scoring for now...
                     DoubleReal int_score(1.0);
@@ -481,12 +465,8 @@ namespace OpenMS
                     {
                         best_so_far = total_pair_score;
                         best_idx = mt_idx;
-                        //                        fh_tmp.addMassTrace(*candidates[mt_idx]);
-                        //                        fh_tmp.setScore(fh_tmp.getScore() + total_pair_score);
-                    }
 
-                    std::cout << candidates[mt_idx]->getLabel() << "\n\tscore: " << mz_score << " " << rt_score << std::endl;
-
+                }
                 } // end mt_idx
 
                 if (best_so_far > 0.0)
@@ -494,11 +474,8 @@ namespace OpenMS
                     fh_tmp.addMassTrace(*candidates[best_idx]);
                     fh_tmp.setScore(fh_tmp.getScore() + best_so_far);
                     fh_tmp.setCharge(charge);
-
                     output_hypos.push_back(fh_tmp);
-
                     last_iso_idx = best_idx;
-                    singleton_trace = false;
                 }
                 else
                 {
@@ -508,24 +485,7 @@ namespace OpenMS
 
             } // end for iso_pos
 
-            //            if (fh_tmp.getSize() > 1)
-            //            {
-            //                output_hypos.push_back(fh_tmp);
-            //            }
-            // std::cout << fh_tmp.getLabel() << " " << fh_tmp.getScore() << std::endl;
         } // end for charge
-
-
-        //        if (singleton_trace)
-        //        {
-        //            FeatureHypothesis fh_tmp;
-        //            fh_tmp.setScore(0.0);
-
-        //            fh_tmp.addMassTrace(*candidates[0]);
-
-        //            output_hypos.push_back(fh_tmp);
-        //        }
-
 
         return ;
 

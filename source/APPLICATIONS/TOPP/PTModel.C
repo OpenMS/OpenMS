@@ -215,13 +215,10 @@ class TOPPPTModel
 			DoubleReal sigma_stop = 0;
 			UInt number_of_partitions = 0;
 			UInt number_of_runs = 0;
-			DoubleReal cv_quality = 0;
 			map<SVMWrapper::SVM_parameter_type, DoubleReal> optimized_parameters;
 			map<SVMWrapper::SVM_parameter_type, DoubleReal>::iterator parameters_iterator;
-			UInt maximum_sequence_length = 50;
 			bool additive_cv = true;
 			Param additional_parameters;
-			pair<DoubleReal, DoubleReal> sigmas;
 			Int temp_type = POLY;
 			String debug_string = "";
 			DoubleReal sigma = 0.1;
@@ -323,50 +320,37 @@ class TOPPPTModel
 					}
 			}			
 			
-			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC)
+      if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC && !skip_cv)
 			{			
-				DoubleReal c_start = 0.;
-				DoubleReal c_step_size = 0.;
-				DoubleReal c_stop = 0.;
-	
-				if (!skip_cv)
-				{
-					c_start = getDoubleOption_("c_start");
-					c_step_size = getDoubleOption_("c_step_size");
+        DoubleReal c_start = getDoubleOption_("c_start");
+        DoubleReal c_step_size = getDoubleOption_("c_step_size");
 					if (!additive_cv && c_step_size <= 1)
 					{
 						writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
-					c_stop = getDoubleOption_("c_stop");
+        DoubleReal c_stop = getDoubleOption_("c_stop");
 	
 					start_values.insert(make_pair(SVMWrapper::C, c_start));
 					step_sizes.insert(make_pair(SVMWrapper::C, c_step_size));
 					end_values.insert(make_pair(SVMWrapper::C, c_stop));	
 				}			
-			}
 
-			if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
+      if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC && !skip_cv)
 			{			
-				DoubleReal nu_start = 0.;
-				DoubleReal nu_step_size = 0.;
-				DoubleReal nu_stop = 0.;
-				if (!skip_cv)
-				{
-					nu_start = getDoubleOption_("nu_start");
-					nu_step_size = getDoubleOption_("nu_step_size");
+        DoubleReal nu_start = getDoubleOption_("nu_start");
+        DoubleReal nu_step_size = getDoubleOption_("nu_step_size");
 					if (!additive_cv && nu_step_size <= 1)
 					{
 						writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
 						return ILLEGAL_PARAMETERS;
 					}
-					nu_stop = getDoubleOption_("nu_stop");
+        DoubleReal nu_stop = getDoubleOption_("nu_stop");
 
 					start_values.insert(make_pair(SVMWrapper::NU, nu_start));
 					step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
 					end_values.insert(make_pair(SVMWrapper::NU, nu_stop));	
 				}			
-			}			
 
 			border_length = getIntOption_("border_length");
 			svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
@@ -401,7 +385,7 @@ class TOPPPTModel
 				writeDebug_(debug_string, 1);			
 			}
 
-			if (!skip_cv && start_values.size() > 0)
+      if (!skip_cv && !start_values.empty())
 			{
  				number_of_runs = getIntOption_("number_of_runs");
 				writeDebug_(String("Number of CV runs: ") + String(number_of_runs), 1);
@@ -510,6 +494,7 @@ class TOPPPTModel
 
 			if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
 			{
+        UInt maximum_sequence_length = 50;
 				encoded_training_sample = 
 					encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
 																																	training_labels,
@@ -526,7 +511,7 @@ class TOPPPTModel
 																														svm.getIntParameter(SVMWrapper::BORDER_LENGTH));
 			}			
 																													
-			if (start_values.size() > 0)
+      if ( !start_values.empty() )
 			{	
 				String digest = "";
 				bool output_flag = false;
@@ -535,7 +520,7 @@ class TOPPPTModel
 					output_flag = true;
 					vector<String> parts;
 					outputfile_name.split('/', parts);
-					if (parts.size() == 0)
+					if (parts.empty())
 					{
 						digest = outputfile_name;
 					}
@@ -545,7 +530,7 @@ class TOPPPTModel
 					}
 				}				
         SVMData dummy;
-				cv_quality = svm.performCrossValidation(encoded_training_sample,
+        DoubleReal cv_quality = svm.performCrossValidation(encoded_training_sample,
                                                 dummy,
                                                 false,
 																								start_values,
@@ -562,7 +547,7 @@ class TOPPPTModel
 
 				for(parameters_iterator = optimized_parameters.begin();
 						parameters_iterator != optimized_parameters.end();
-						parameters_iterator++)
+            ++parameters_iterator )
 				{
 					svm.setParameter(parameters_iterator->first,
 													 parameters_iterator->second);

@@ -1,4 +1,4 @@
-#// -*- mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -113,6 +113,7 @@ class TOPPIDPosteriorErrorProbability
 	  registerFlag_("split_charge", "The search enginge scores are splitted by charge if this flag is set. Thus, for each charge state a new model will be computed.");
 		registerFlag_("top_hits_only","If set only the top hits of every PeptideIdentification will be used");
 		registerDoubleOption_("fdr_for_targets_smaller","<value>",0.05,"Only used, when top_hits_only set. Additionally, target_decoy information should be available. The score_type must be q-value from an previous False Discovery Rate run.",false,true);
+	  registerFlag_("ignore_bad_data","If set errors will be written but ignored. Useful for pipelines with many datasets where only a few are bad, but the pipeline should run through.");
 	  registerSubsection_("fit_algorithm", "Algorithm parameter subsection");
 		addEmptyLine_();
 	}
@@ -160,9 +161,11 @@ class TOPPIDPosteriorErrorProbability
 		bool top_hits_only = getFlag_("top_hits_only");
 		DoubleReal fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
 		bool target_decoy_available = false;
+		bool ignore_bad_data = getFlag_("ignore_bad_data");
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
+		bool return_value;
 		IdXMLFile file;
 		vector< ProteinIdentification > protein_ids;
 		vector< PeptideIdentification > peptide_ids;
@@ -178,7 +181,6 @@ class TOPPIDPosteriorErrorProbability
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
-
 		if(split_charge)
 		{
 			for(vector< PeptideIdentification >::iterator it = peptide_ids.begin();it < peptide_ids.end(); ++it)
@@ -206,11 +208,13 @@ class TOPPIDPosteriorErrorProbability
 			}
 		}		
     
-    vector<Int>::iterator charge = charges.begin(); // charges can be empty, no problem
-    if (split_charge && charges.size()==0)
+    vector<Int>::iterator charge = charges.begin(); // charges can be empty, no problem if split_charge is not set
+    if (split_charge && charges.empty())
     {
-      throw Exception::Precondition(__FILE__,__LINE__, __PRETTY_FUNCTION__, "List of charge states is empty but should not be!");
+      throw Exception::Precondition(__FILE__,__LINE__, __PRETTY_FUNCTION__, "split_charge is set and the list of charge states is empty but should not be!");
     }
+		map<String,vector<vector<double> > > all_scores;
+		char splitter = ',';//to split the engine from the charge state later on
 		do
 		{
 			for(StringList::iterator engine = search_engines.begin(); engine < search_engines.end(); ++engine)
@@ -258,23 +262,73 @@ class TOPPIDPosteriorErrorProbability
 						}
 					}
 				}
-				if(split_charge && scores.size() > 0)
+				if(scores.size() > 2)
 				{
-					const static String output_name  = fit_algorithm.getValue("output_name");
-					fit_algorithm.setValue("output_name", output_name + "_charge_" + String(*charge) , "...",StringList::create("advanced,output file"));	
+					vector< vector <double > > tmp;
+					tmp.push_back(scores);
+					tmp.push_back(target);
+					tmp.push_back(decoy);
+					if(split_charge)
+					{
+						String engine_with_charge_state = *engine +String(splitter)+ String(*charge);
+						all_scores.insert(make_pair(engine_with_charge_state,tmp ));
+					}
+					else
+					{
+						all_scores.insert(make_pair(*engine,tmp));
+					}
+				}
+			
+				scores.clear();
+				target.clear();
+				decoy.clear();
+			}	
+
+      if(split_charge) ++charge;
+
+    } while(charge < charges.end());
+
+		if(all_scores.empty() )
+		{
+			writeLog_("No data collected. Check whether search engine is supported.");
+			if(!ignore_bad_data)return INPUT_FILE_EMPTY;
+		}
+		for(map<String, vector< vector<double> > >::iterator it =all_scores.begin(); it != all_scores.end();++it)
+		{	
+			
+			vector<String> engine_info;
+		  it->first.split(splitter, engine_info);
+			String engine = engine_info[0];
+			Int charge= -1;
+			if(engine_info.size() == 2)
+			{
+				charge = engine_info[1].toInt();
+			}
+			if(split_charge) 
+			{
+				String output_name  = fit_algorithm.getValue("output_name");
+				fit_algorithm.setValue("output_name", output_name + "_charge_" + String(charge) , "...",StringList::create("advanced,output file"));	
 					PEP_model.setParameters(fit_algorithm);
 				}
-				PEP_model.fit(scores);
+				
+			return_value = PEP_model.fit(it->second[0]);
+			if(!return_value )	 writeLog_("unable to fit data. Algorithm did not run through for the following search engine: "+ engine);
+			if(!return_value && !ignore_bad_data) return UNEXPECTED_RESULT;
 				//plot target_decoy
-				if(target_decoy_available && scores.size() > 0)
+			if(target_decoy_available && it->second[0].size() > 0 && return_value)
 				{
-					PEP_model.plotTargetDecoyEstimation(target,decoy);
+				PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]);//target, decoy
 				}					
+			if(return_value)
+			{
+				bool unable_to_fit_data =true;
+				bool data_might_not_be_well_fit = true;
 				for(vector< ProteinIdentification >::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
 				{
 					String searchengine_toUpper =  prot_iter->getSearchEngine();
 					searchengine_toUpper.toUpper();
-					if(*engine == prot_iter->getSearchEngine() || *engine == searchengine_toUpper)
+					
+					if(engine == prot_iter->getSearchEngine() || engine == searchengine_toUpper)
 					{
 						for(vector< PeptideIdentification >::iterator it = peptide_ids.begin();it < peptide_ids.end(); ++it)
 						{
@@ -283,10 +337,14 @@ class TOPPIDPosteriorErrorProbability
 								vector<PeptideHit> hits = it->getHits();
 									for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
 								{
-									if(!split_charge || hit->getCharge() == *charge)
+		 							if(!split_charge || hit->getCharge() == charge)
 									{
+										DoubleReal score;
 										hit->setMetaValue("Search engine score",hit->getScore());
-										hit->setScore(PEP_model.computeProbability(get_score_(*engine, *hit)));
+										score = PEP_model.computeProbability(get_score_(engine, *hit));
+										if(score > 0 && score < 1) unable_to_fit_data = false; //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
+										if(score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;//same as above
+										hit->setScore(score);
 									}
 								}
 								it->setHits(hits);
@@ -296,19 +354,14 @@ class TOPPIDPosteriorErrorProbability
 						}
 					}
 				}
-			
-				scores.clear();
-				target.clear();
-				decoy.clear();
+				if(unable_to_fit_data) writeLog_(String("unable to fit data for search engine: ")+ engine);
+				if(unable_to_fit_data && !ignore_bad_data) return UNEXPECTED_RESULT;
+				if(data_might_not_be_well_fit) writeLog_(String("data might not be well fitted for search engine: ")+engine);
 			}
-
-      if(split_charge) ++charge;
-
-    } while(charge < charges.end());
+ 		}
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-
 		file.store(outputfile_name, protein_ids, peptide_ids);
 		return EXECUTION_OK;
 	}

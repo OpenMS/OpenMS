@@ -61,13 +61,26 @@ using namespace std;
 	</table>
 </CENTER>
 
-	@experimental This tool has not been tested thoroughly and might behave not as expected!
-
   Extract the iTRAQ reporter ion intensities (4plex or 8plex) from
   raw MS2 data, does isotope corrections and stores the resulting quantitation as 
-  consensusXML, where each consensus centroid corresponds to one iTRAQ-MS2 scan (e.g. HCD).
+  consensusXML, where each consensus centroid corresponds to one iTRAQ MS2 scan (e.g., HCD).
   The position of the centroid is the precursor position, its sub-elements are the channels (thus having
   m/z's of 113-121).
+  
+  Isotope correction is done using non-negative least squares (NNLS), i.e.,
+
+  Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with 'contaminating'
+  isotope species), A is a correction matrix (as supplied by the manufacturer AB Sciex) and x is the desired vector of corrected (real)
+  reporter intensities.
+  Other software solves this problem using an inverse matrix multiplication, but this can yield entries in x which are negative. In a real sample,
+  this solution cannot possibly be true, so usually negative values (= negative reporter intensities) are set to 0.
+  However, a negative result usually means, that noise was not accounted for thus we use NNLS to get a non-negative solution, without the need to
+  truncate negative values. In (the usual) case that inverse matrix multiplication yields only positive values, our NNLS will give 
+  the exact same optimal solution.
+
+  The correction matrices can be found (and changed) in the INI file. However, these matrices for both 4plex and 8plex are now stable, and every
+  kit delivered should have the same isotope correction values. Thus, there should be no need to change them, but feel free to compare the values in the
+  INI file with your kit's Certificate.
   
   After this quantitation step, you might want to annotate the consensus elements with the respective identifications, obtained from
   an identification pipeline.
@@ -91,13 +104,16 @@ class TOPPITRAQAnalyzer
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("type","<name>","","iTRAQ experiment type\n",true);
+		registerStringOption_("type", "<mode>", "4plex", "iTRAQ experiment type\n", false);
 		setValidStrings_("type", StringList::create("4plex,8plex"));
 
 		registerInputFile_("in","<file>","","input raw/picked data file ");
 		setValidFormats_("in",StringList::create("mzML"));
 		registerOutputFile_("out","<file>","","output consensusXML file with quantitative information");
 		setValidFormats_("out",StringList::create("consensusXML"));
+
+    registerOutputFile_("out_stats", "<file>", "", "output statistics as tab-separated file (readable by R or Excel or ...)", false);
+    setValidFormats_("out_stats", StringList::create("tsv"));
 
 		addEmptyLine_();
 
@@ -120,6 +136,7 @@ class TOPPITRAQAnalyzer
 		//-------------------------------------------------------------
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
+    String out_stats = getStringOption_("out_stats");
 
 		Int itraq_type = (getStringOption_("type")=="4plex" ?  ItraqQuantifier::FOURPLEX : ItraqQuantifier::EIGHTPLEX );
 		//-------------------------------------------------------------
@@ -147,8 +164,7 @@ class TOPPITRAQAnalyzer
 
 		itraq_quant.run(consensus_map_raw, consensus_map_quant);
 
-
-		// assign unique ID to output file (this might throw an exception.. but thats ok, as we want the programm to quit then)
+		// assign unique ID to output file (this might throw an exception.. but thats ok, as we want the program to quit then)
 		if (getStringOption_("id_pool").trim().length()>0) getDocumentIDTagger_().tag(consensus_map_quant);
 
 		// annotate output file with MetaInformation
@@ -176,6 +192,15 @@ class TOPPITRAQAnalyzer
 
 		ConsensusXMLFile cm_file;
 		cm_file.store(out, consensus_map_quant);
+
+    std::cout << itraq_quant.getStats();
+    if (!out_stats.trim().empty())
+    {
+      ofstream f;
+      f.open(out_stats.c_str(), ios_base::out);
+      f << itraq_quant.getStats();
+      f.close();
+    }
 
 		return EXECUTION_OK;
 	}

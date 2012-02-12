@@ -68,7 +68,7 @@ START_SECTION((static StringList getIsotopeMatrixAsStringList(const int itraq_ty
 	}
 	{	
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, ic);
-		StringList t_ics = StringList::create("113:0/0/6.89/0.22,114:0/0.94/5.9/0.16,115:0/1.88/4.9/0.1,116:0/2.82/3.9/0.07,117:0.06/3.77/2.88/0,118:0.09/4.71/1.88/0,119:0.14/5.66/0.87/0,121:0.27/7.44/0.18/0");
+		StringList t_ics = StringList::create("113:0/0/6.89/0.22,114:0/0.94/5.9/0.16,115:0/1.88/4.9/0.1,116:0/2.82/3.9/0.07,117:0.06/3.77/2.99/0,118:0.09/4.71/1.88/0,119:0.14/5.66/0.87/0,121:0.27/7.44/0.18/0");
 		TEST_EQUAL(ics, t_ics);
 	}	 
 }
@@ -139,9 +139,29 @@ START_SECTION((static Matrix<double> translateIsotopeMatrix(const int &itraq_typ
 	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
   Matrix<double> channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::FOURPLEX, ic);
 	
-	std::cout << "CF: " << channel_frequency << "\n";
+	std::cout << "CF: \n" << channel_frequency << "\n";
 	TEST_REAL_SIMILAR(channel_frequency.getValue(0,0), 0.929)
 	TEST_REAL_SIMILAR(channel_frequency.getValue(3,0), 0)
+
+  channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::EIGHTPLEX, ic);
+
+  std::cout << "CF: \n" << channel_frequency << "\n";
+  /*
+    0.9289 0.0094      0      0      0      0      0      0
+    0.0689   0.93 0.0188      0      0      0      0      0
+    0.0022  0.059 0.9312 0.0282 0.0006      0      0      0
+         0 0.0016  0.049 0.9321 0.0377 0.0009      0      0
+         0      0  0.001  0.039 0.9329 0.0471 0.0014      0
+         0      0      0 0.0007 0.0288 0.9332 0.0566      0
+         0      0      0      0      0 0.0188 0.9333 0.0027
+         0      0      0      0      0      0      0 0.9211
+
+  */
+  // test lower right triangle
+  TEST_REAL_SIMILAR(channel_frequency.getValue(6,7), 0.0027)
+  TEST_REAL_SIMILAR(channel_frequency.getValue(7,7), 0.9211)
+  TEST_REAL_SIMILAR(channel_frequency.getValue(7,6), 0.0000)
+
 }
 END_SECTION
 

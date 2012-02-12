@@ -255,9 +255,10 @@ namespace OpenMS
 				{
 					line_wo_spaces.remove('\\');
 					//remove description (if present)
-					if (line_wo_spaces.has('!'))
+					// according to rev1165 of the cv comments are here quoted, see http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo?revision=1.165&view=markup
+					if (line_wo_spaces.has('\"'))
 					{
-						line_wo_spaces = line_wo_spaces.substr(0,line_wo_spaces.find('!'));
+						line_wo_spaces = line_wo_spaces.substr(0,line_wo_spaces.find('\"'));
 					}
 					//trim prefix
 					line_wo_spaces = line_wo_spaces.substr(22);

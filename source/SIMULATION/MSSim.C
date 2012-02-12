@@ -87,7 +87,7 @@ namespace OpenMS {
     }
     std::cout << "############## END DEBUG -- FEATURE MAPS ##############" << std::endl;
 #else
-		if (feature_maps.size()==0) std::cout << stage; // just to avoid warnings of unused parameters
+		if (feature_maps.empty()) std::cout << stage; // just to avoid warnings of unused parameters
 #endif
   }
 
@@ -193,7 +193,7 @@ namespace OpenMS {
     for(SampleChannels::const_iterator channel_iterator = channels.begin() ; channel_iterator != channels.end() ; ++channel_iterator)
     {
       FeatureMapSim map;
-      createFeatureMap_(*channel_iterator, map);
+      createFeatureMap_(*channel_iterator, map, feature_maps_.size());
       feature_maps_.push_back(map);
     }
 
@@ -288,7 +288,7 @@ namespace OpenMS {
     }
   }
 
-	void MSSim::createFeatureMap_(const SampleProteins& proteins, FeatureMapSim& feature_map)
+  void MSSim::createFeatureMap_(const SampleProteins& proteins, FeatureMapSim& feature_map, Size map_index)
 	{
     // clear feature map
     feature_map.clear(true);
@@ -302,9 +302,10 @@ namespace OpenMS {
       protHit=(it->second);
       // additional meta values:
       protHit.setMetaValue("description", it->first.description);
+      protHit.setMetaValue("map_index", map_index);
       protIdent.insertHit(protHit);
-
 		}
+
     std::vector<ProteinIdentification> vec_protIdent;
     vec_protIdent.push_back(protIdent);
     feature_map.setProteinIdentifications(vec_protIdent);
@@ -367,19 +368,19 @@ namespace OpenMS {
     return feature_maps_[0];
   }
 
-  ConsensusMap const & MSSim::getChargeConsensus() const
+  ConsensusMap & MSSim::getChargeConsensus()
   {
 		return consensus_map_;
   }
   
+  ConsensusMap & MSSim::getLabelingConsensus()
+  {
+    return labeler_->getConsensus();
+  }
+
   FeatureMapSim const & MSSim::getContaminants() const
   {
 		return contaminants_map_;
-  }
-
-  ConsensusMap const & MSSim::getLabelingConsensus() const
-  {
-    return labeler_->getConsensus();
   }
  
   MSSimExperiment const & MSSim::getPeakMap() const

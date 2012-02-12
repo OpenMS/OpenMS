@@ -406,7 +406,7 @@ namespace OpenMS
 								il_chargediff.push_back(q2-q1);
 							}
 						}
-						/*if (i_RT==429 && i_RT_window==432)
+						if (i_RT==429 && i_RT_window==432)
 						{
 							std::cout << "DEBUG reached\n hits: " << hits << " with delta_m: " << naive_mass_diff << " and thres: " << thresh_logp << "\n";
 						}
@@ -529,7 +529,7 @@ namespace OpenMS
 		out_q.close();
 #endif
 
-    if (feature_relation.size() == 0)
+    if (feature_relation.empty())
     {
       LOG_INFO << "Found NO putative edges. The output generated will be trivial (only singleton clusters and no pairings). "
                << "Your parameters might need revision or the input was ill-formed." << std::endl;
@@ -882,7 +882,7 @@ namespace OpenMS
 		for (ConsensusMap::Iterator it = cons_map.begin(); it!=cons_map.end(); ++it)
 		{
 			// skip if empty
-			if (it->getFeatures().size()==0) continue;
+			if (it->getFeatures().empty()) continue;
 			
 			// skip if no backbone
 			Size backbone_count=0;

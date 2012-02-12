@@ -135,7 +135,8 @@ namespace OpenMS
 		{
 			result_file.close();
 			result_file.clear();
-			throw p_e;
+      LOG_WARN << "ParseError (" << p_e.getMessage() << ") caught in " << __FILE__ << "\n";
+      throw;
 		}
 		
 		while ( getline(result_file, line) )
@@ -801,7 +802,7 @@ namespace OpenMS
 			// whoever wrote this code - please don't ever do this again.
 			// x86 does *not* have a monopoly, nor does little endian.
 			memcpy(record, &source_database_pos, db_pos_length_); // source database position
-			if (OPENMS_IS_BIG_ENDIAN == true)
+      if (OPENMS_IS_BIG_ENDIAN)
 			{
 				char tmp;
 				for (Size i = 0; i < db_pos_length_ / 2; i++)

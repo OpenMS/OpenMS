@@ -84,6 +84,8 @@ namespace OpenMS
 		 *	@brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
 		 *	
 		 *	@param db_path Path to database file (fasta)
+     *	@param rt_model_path
+     *	@param dt_model_path
 		 *	@param save Flag if preprocessing should be stored.
 		 *
 		 *	@throws Exception::FileNotFound if file with preprocessing or db can't be found

@@ -70,7 +70,7 @@ namespace OpenMS
 		return (RichPeak2D::operator==(rhs) 
 						&& (quality_ == rhs.quality_) 
 						&& (charge_ == rhs.charge_) 
-						&& (width_ == width_)
+            && (width_ == rhs.width_)
 						&& (peptides_ == rhs.peptides_));
 	}
 

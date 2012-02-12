@@ -181,10 +181,8 @@ false);
 	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Gln->pyro-Glu (Q)") != var_mods.end(), true)	
 	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Glu->pyro-Glu (E)") != var_mods.end(), true)	
 
-	// with the wrong "experiment_name", there are no results:
-	file.load(filename, proteins, peptides, "abcxyz");
-	TEST_EQUAL(proteins.empty(), true);
-	TEST_EQUAL(peptides.empty(), true);
+	// wrong "experiment_name" produces an exception:
+	TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));
 
 	// throw an exception if the pepXML file does not exist:
 	TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
