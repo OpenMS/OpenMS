@@ -42,7 +42,6 @@
 			<LI><B>I am new to %OpenMS. What should I do first?</B><BR>
 				<OL>
 					<LI> Check out the developement version of %OpenMS (see website).
-					<LI> (Linux) Build the internal documentation (use 'make doc_internal' instead of 'make doc').
 					<LI> Try and build %OpenMS according to the installation instructions.
 					<Li> Read the %OpenMS Coding Convention.
 					<LI> Read the %OpenMS Tutorial.
@@ -55,10 +54,9 @@
 
 			<LI><B>Is there a central URL for %OpenMS developers?</B><BR>
 				<BR>
-				http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/search/
+				@n https://sourceforge.net/apps/trac/open-ms/
 				<BR>
-				There you can search for %OpenMS classes and it links out to several
-				websites of interest.
+				In the TRAC has a Wiki with important links, the svn timeline and more.
 
 			<LI><B>How do I update the website?</B><BR>
 				 
@@ -102,7 +100,6 @@
         CMake builds BuildSystems for different platforms, e.g. VisualStudio Solutions on Windows, Makefiles on Linux etc.
         This allows us to define in one central location (namely CMakeLists.txt) how %OpenMS is build and have the platform specific stuff handled by CMake.
         See http://www.cmake.org for more information.<BR>
-        We require <b>CMake 2.6</b> and above!
 
       <LI><B>How do I use CMake?!</B><BR>
         See Installation instructions for your platform.
@@ -147,7 +144,8 @@
 				The 'Release' configuration disables debug information and enables optimization.
 				
       <LI><B>I changed the contrib path, but re-running CMake won't change the library paths?!</B><BR>
-      	Once a library is found and its location is stored in a cache variable, it will only be searched again if the corresponding entry in the cache file is set to false. You can simply delete the CMakeCache.txt, but all other custom settings will be lost as well.
+      	Once a library is found and its location is stored in a cache variable, it will only be searched again if the corresponding entry in the cache file is set to false. 
+				You can simply delete the CMakeCache.txt, but all other custom settings will be lost as well.
 
       <LI><B>What are the most useful (make) targets?!</B><BR>
         In Visual Studio you can see all targets on the left. For Makefiles type <TT>make help</TT>.<BR>
@@ -161,14 +159,10 @@
         You should only move/delete the offending Qt version if you know what you are doing!
         A save workaround is to edit the CMakeCache file (e.g. via ccmake) and set all paths relating to QT (e.g. QT_LIBRARY_DIR) manually.
 
-      <LI><B>Where is AndiMS working properly?! Do I need to disable it?!</B><BR>
-        AndiMS currently does not work on 64bit Linux and all Windows versions (we are planning a bugfix). CMake will *automatically*
-        disable AndiMS on those affected systems!
-
-      <LI><B>(Windows) Shall I use VisualStudio2008 or VisualStudio2005?</B><BR>
-        Use VS2008 if you can. It it much more convenient when reloading your Solution-File (VS2005 will
-        give you ~10e10 Messageboxes).
-        This happens whenever the Build-System calls CMake (which can be quite often, e.g. after svn-update).
+      <LI><B>(Windows) What version of Visual Studio should I use?</B><BR>
+        Use the latest if you can. Get the latest CMake, as its generator needs to support your VS.
+				If your VS is too new and there is no CMake for that yet, you're gonna be faced with a lot of
+				conversion issues. This happens whenever the Build-System calls CMake (which can be quite often, e.g., after changes to CMakeLists.txt).
 
       <LI><b>How do I add a new class <TT>MyClass</TT> to the build system?</b><BR>
         <OL>
@@ -200,10 +194,7 @@ svn propset svn:eol-style native MyClass.C
 		</OL>
 
 	    <LI><b>How do I add a new TOPP test?</b><BR>
-        <OL>
-          <LI> Add commands to @em %OpenMS/source/TEST/TOPP/CMakeLists.txt (where it fits alphabetically) and also add its name to the tools list at the top of the file, so
-          that the '-write_ini' functionality can be tested.
-        </OL>
+        Add commands to @em %OpenMS/source/TEST/TOPP/CMakeLists.txt (where it fits alphabetically).
 
 	    <LI><b>How do I add a new GUI test (for QT Gui classes) for the class <TT>MyClass</TT>?</b><BR>
         <OL>
@@ -223,16 +214,14 @@ svn propset svn:eol-style native MyClass.C
 	<H2 style="border-top:2px solid grey;">How can I speed up the compile process of %OpenMS?</H2>
 		<UL>
 		
-	    <LI><b>(Linux/Mac only) Use ccache.</b><BR>
-	    	<TT>ccache</TT> caches the preprocessor output and thereby speeds up the the compile
-	    	process if a file did not change since the last build.
-
-	    <LI><b>(Linux/Mac only) Build with several threads.</b><BR>
+	    <LI><b>Build with several threads.</b><BR>
 				If you have several pocessors/cores you can build %OpenMS classes/tests and TOPP tools
-				in in several threads using the @a make option @a -j:
-				- <code>make -j8 %OpenMS</code>
-				- <code>make -j8 TOPP</code>
-				- <code>make -j8 test_build</code>
+				in in several threads.
+				On Linux use the @a make option @a -j:
+				<code>make -j8 %OpenMS TOPP test_build</code>
+				
+				On Windows, Visual Studio solution files are automatically build with the /MP flag, such that VS uses all
+				available cores of the machine.
 		
 		</UL>
 	<H2 style="border-top:2px solid grey;">Working in IDE's</H2>
@@ -516,7 +505,7 @@ svn propset svn:eol-style native MyClass.C
 		
 			<LI><B>What is to do for a bugfix?</B>
 				<UL>
-					<LI> Submit the bug to the tracker
+					<LI> Submit the bug to the tracker (TRAC)
 					<LI> Fix the bug and add a test for it in the HEAD
 					<LI> Commit bugfix and test as a single commit and add the bug number to the comment.<BR>E.g.: "Fixed bug #123"
 					<LI> Close the bug in the tracker and add the the revision of the fix to the comment.<BR>E.g.: "Fixed in revision [3005]"
@@ -540,12 +529,13 @@ svn propset svn:eol-style native MyClass.C
               "<tool> -write_ini bla.ini -ini <previous.ini>" and look at output)
 					<LI> Check the test builds of the latest gcc/cl version for compiler warnings (32 and 64 bit)
 					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
+					<LI> Make sure the binary packages can be compiled for all platforms (see below). Between releases, the build system usually catches a bug, and you
+							 need to fix this!
 					<LI> Correct errors found by @a tools/checker.php.
 						<UL>
 							<LI> The option @a -u @a &lt;maintainer&gt; restricts the output to one maintainer
 							<LI> More options are given with @a --help
 						</UL>
-          <LI> [TODO] Valgrind?
 					<LI> Documentation:
 						<UL>
 							<LI> %OpenMS
@@ -567,16 +557,15 @@ svn propset svn:eol-style native MyClass.C
 			<LI><B>How is a major release done?</B>
 				<UL>
 					<LI> Create the binary/source release packages (see below)
-					<LI> Update the SourceForge files section:
+					<LI> Upload the Source and Binary packages to SourceForge:
 						<OL>
-							<LI> Login in the @a Admin section and create a folder for the new release
-							<LI> Upload to sourceforge, e.g. with
-							  <BR><TT>scp &lt;file&gt; &lt;login&gt;,open-ms@frs.sourceforge.net:/home/frs/project/o/op/openms/OpenMS/OpenMS-&lt;version&gt;/</TT>
+							<LI> Go to the OpenMS' sourceforge site & log in
+							<LI> Create a new folder for the release, e.g., OpenMS-1.9 and upload files to this folder
 						</OL>
-					<LI> Copy the HTML documentation and PDF tutorials of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/.
+					<LI> Copy the HTML documentation and PDF tutorials of the release to your own FTP server (e.g., @n http://ftp.mi.fu-berlin.de/OpenMS/doc-1.9-official).
+					<LI> Update the redirection rule on the website for @a http://www.openms.de/current_doxygen to point to the current documentation
 					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
-					<LI> Update the website (news, changelog, XML schema files)
-					<LI> Update the redirection rule for @a http://www.openms.de/current_doxygen to point to the current documentation
+					<LI> Update the website (news, changelog, XML schema files, links for docu and download)
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
 
@@ -584,8 +573,12 @@ svn propset svn:eol-style native MyClass.C
 					<OL>
 						<LI> Year numbers update in:
 							<OL>
-								<LI> License.txt
-								<LI> All headers
+								<LI> &lt;OpenMS&gt;/source/COPYRIGHT
+								<LI> All headers and C files and License.txt (adapt years accordingly)
+										<code>
+										cd &lt;OpenMS&gt;
+										find . -name "*.h" -o -name "*.C" -o -name "*.txt" | xargs sed -i 's/(C) 2003-2011/(C) 2003-2012/g' 
+										</code>
 							</OL>	
 						<LI> Version Number update in:
 							<OL>
@@ -603,20 +596,17 @@ svn propset svn:eol-style native MyClass.C
 								<LI> Check out a fresh working copy of %OpenMS
 								<LI> Build the library, and build the documentation using <TT>make doc</TT> (not <TT>doc_internal</TT>!).
 								<LI> Build the PDF tutorials using <TT>make doc_tutorials</TT>.
-								<LI> Make sure that the Parameter documentation was created.
+								<LI> Make sure that the Parameter documentation was created (see TOPP documentation of a arbitrary TOPP tool).
 								<LI> Make sure the include paths in the documentation are correct.
 							</OL>
-						<LI> Run the script <TT>tools/make_dist.sh</TT> according to the help shown when executed.
+						<LI> Run the script <TT>tools/make_source_package.sh</TT> according to the help shown when executed.
 						<LI> Test installation of contrib and %OpenMS from release package
 					</OL>
 				
 				<LI><B>How is the Windows binary release package created?</B>
 					<OL>
 						<LI> Check out the Windows installer scripts from <TT>https://open-ms.svn.sourceforge.net/svnroot/open-ms/win_installer</TT>
-						<LI> Update directories and version number in <TT>win_installer/OpenMS_installer.nsi</TT>
-						<LI> Commit the changes to the SVN repository
-						<LI> Run the script <TT>OpenMS_installer.nsi</TT> using the NSIS compiler
-						<LI> Verify the Installer itself and TOPP within a fresh Virtual Machine (see <TT>win_installer/README</TT>)
+						<LI> see <TT>win_installer/README</TT> for further instructions
 					</OL>
 
 				<LI><B>How are the binary release packages for different Linux distributions created?</B>
@@ -737,42 +727,7 @@ svn propset svn:eol-style native MyClass.C
 			</OL>
 
 		</UL>
-	<H2 style="border-top:2px solid grey;">Contrib libraries</H2>
-		<UL>
-    
-	    <LI><B>([deprecated] Linux) How to upgrade to a new snapshot version of SeqAn?</B>
-				<OL>
-	         <LI>If there is a recent SeqAn release that works, use it instead ;-) Otherwise:
-	         <LI>Checkout the lasted stuff from SVN.
-	         <LI>Create new generated forwards:<BR>
-	              <code>make Project=basic Platform=gcc clean</code><BR>
-	              <code>make Project=basic Platform=gcc</code><BR>
-	              You can obort the last command as soon as all forwards have been generated.
-	         <LI>Copy the suitable <code>platform.h</code> from <code>platforms/{gcc,mingw,...}/seqan/platform.h</code> to <code>projects/library/seqan/</code>.
-	             Note: currently the practice is to include \c gcc and support \c mingw through a patch.
-	         <LI>Optionally, fix the file permissions (.h, .gif, etc. should not be executable)
-	         <LI>Try the demos:<BR>
-	              <code>make -C projects/library/demos all</code><BR>
-	              (Now go there and call them one by one from the command line.)
-	         <LI>You can try out whether %OpenMS would work with it by replacing <code>seqan/contrib/include/seqan</code>
-	             with a symbolic link to <code>projects/library/seqan</code>.
-	         <LI>Create the snapshot (documentation is also generated, this will take some minutes):<BR>
-	              <code>make Project=basic Platform=gcc snapshot</code>
-	         <LI>Copy the snapshot to a new directory, named something like <code>SeqAn_snap_r2666_20080908/</code>,
-	             unzip the snapshot <i>inside there</i>, remove the <code>.zip</code> file, <code>cd ..</code>,
-	             and <code>tar czf</code> the directory.
-	         <LI>Copy the <code>.tar.gz</code> to <code>contrib/src/Seqan...tar.gz</code>
-	         <LI>Adapt in contrib/Makefile.in the line 'SEQAN_SRC_DIR=SeqAn_snap_r2666_20080908' accordingly
-	         <LI>In <code>contrib/</code>:<BR>
-	             <code>rm -Rf src/Seqan.../ src/Seqan....is_patched include/seqan</code><BR>
-	             <code>./configure</code><BR>
-	             <code>make seqan</code>
-	         <LI>In %OpenMS/: Make sure you have generated full <code>.Dependencies</code> (<code>make depend</code>, not <code>make depend_strip</code>).
-	             Rebuild the library: <code>make lib install test</code>; this should only affect a few classes.
-	         <LI>Commit everything, send an email do developers mentioning revision numbers (for %OpenMS, contrib, SeqAn)
-	         <LI>Consider updating this FAQ entry.
-	      </OL>
-		</UL>
+
 */
 
 /// @endcond
