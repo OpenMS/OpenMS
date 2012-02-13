@@ -4,9 +4,9 @@
 # based on http://stackoverflow.com/questions/96882/how-do-i-create-a-nice-looking-dmg-for-mac-os-x-using-command-line-tools
 # bash script to further customize the OpenMS dmg
 
-DISK_NAME=OpenMS-1.9.0-Darwin
+DISK_NAME=OpenMS-1.10.0-Darwin
 DMG_NAME=${DISK_NAME}.dmg
-OPENMS_NAME=OpenMS-1.9.0
+OPENMS_NAME=OpenMS-1.10.0
 backgroundPictureName=.background.png
 
 if [ ! -e ${DMG_NAME} ]

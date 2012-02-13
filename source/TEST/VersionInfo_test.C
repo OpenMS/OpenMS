@@ -90,7 +90,7 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator<(const VersionDetails
   VersionInfo::VersionDetails detail = VersionInfo::VersionDetails::create("1.9.2");
 	VersionInfo::VersionDetails c;
 	c.version_major = 1;
-	c.version_minor = 9;
+  c.version_minor = 9;
 	c.version_patch = 2;
 	TEST_EQUAL(detail < c, false)
 	c.version_patch = 3;
@@ -107,7 +107,7 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator==(const VersionDetail
   VersionInfo::VersionDetails detail = VersionInfo::VersionDetails::create("1.9.2");
 	VersionInfo::VersionDetails c;
 	c.version_major = 1;
-	c.version_minor = 9;
+  c.version_minor = 9;
 	c.version_patch = 2;
 	TEST_EQUAL(detail == c, true)
 	c.version_patch = 3;
@@ -124,7 +124,7 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator>(const VersionDetails
   VersionInfo::VersionDetails detail = VersionInfo::VersionDetails::create("1.9.2");
 	VersionInfo::VersionDetails c;
 	c.version_major = 1;
-	c.version_minor = 9;
+  c.version_minor = 9;
 	c.version_patch = 2;
 	TEST_EQUAL(detail > c, false)
 	c.version_patch = 3;
