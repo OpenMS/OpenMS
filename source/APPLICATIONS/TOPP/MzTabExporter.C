@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -73,7 +74,7 @@ using namespace std;
 
   @experimental This algorithm and underlying format is work in progress and might change.
 
- <B>The command line parameters of this tool are:</B>
+  <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MzTabExporter.cli
  */
 
@@ -121,34 +122,74 @@ protected:
   /// Extracts, modifications and positions of a peptide hit in mzTab format
   static String extractPeptideModifications_(const PeptideHit& peptide_hit)
   {
-    String mods;
+    String mods_string;
 
     const AASequence& aa_seq = peptide_hit.getSequence();
     bool first = true;
+
+    // check terminal modifications
+    if (aa_seq.hasNTerminalModification())
+    {
+      if ( !first )
+      {
+        mods_string +=  ",";
+      } else
+      {
+        first = false;
+      }
+      String position = "0";
+      String unimod_name = aa_seq.getNTerminalModification();
+      String unimod_accession =  ModificationsDB::getInstance()->getModification(unimod_name).getUniModAccession();
+      mods_string += position  + "-" + unimod_accession;
+    }
+
+    if (aa_seq.hasCTerminalModification())
+    {
+      if ( !first )
+      {
+        mods_string +=  ",";
+      } else
+      {
+        first = false;
+      }
+      String position = String(aa_seq.size() + 1);
+      String unimod_name = aa_seq.getCTerminalModification();
+      String unimod_accession =  ModificationsDB::getInstance()->getModification(unimod_name).getUniModAccession();
+      mods_string += position  + "-" + unimod_accession;
+    }
+
+    // check internal modifications
     for (Size i = 0; i != aa_seq.size(); ++i)
     {
       if ( aa_seq[i].isModified() )
       {
-        String position = String( i + 1 );
-        String reliability = "[1.0]";
-        String unimod_name = aa_seq[i].getModification();
         if ( !first )
         {
-          mods +=  ", ";
+          mods_string +=  ",";
         } else
         {
           first = false;
         }
-        mods += position + reliability + "UNIMOD:" + unimod_name;
+        String position = String(i + 1);
+        // find all modifications with the given name (but different residue/term specifity)
+        std::set< const ResidueModification * > modis;
+        ModificationsDB::getInstance()->searchModifications(modis, aa_seq[i].getModification(), ResidueModification::ANYWHERE);
+        if (!modis.empty())
+        {
+          // all have the same unimod accession (=record_id) so just take the first one
+          set<const ResidueModification*>::const_iterator mit = modis.begin();
+          String unimod_accession = (*mit)->getUniModAccession();
+          mods_string += position  + "-" + unimod_accession.c_str();
+        }
       }
     }
 
-    if (mods.length() == 0)
+    if (mods_string.length() == 0)
     {
       return "--";
     }
 
-    return mods;
+    return mods_string;
   }
 
   static String mapSearchEngineToCvParam_(const String& openms_search_engine_name)
@@ -176,7 +217,7 @@ protected:
       return "[,,ProteinProphet,]";
     } else
     {
-      return "[,,,]";
+      return "NA";
     }
     /*
     TODO:
@@ -230,7 +271,7 @@ protected:
     }
     else
     {
-      return "[,,,]";
+      return "NA";
     }
 
     s += String::number(score, 8) + "]";
@@ -318,7 +359,30 @@ protected:
     }
     return ret;
   }
-
+/*
+  static String extractModifications(const String& common_identifier, const String& protein_accession,
+                                   const MapAccPepType& map_run_accesion_to_peptides)
+  {
+    std::pair<String, String> key = make_pair(common_identifier, protein_accession);
+    String ret = "0";
+    MapAccPepType::const_iterator it = map_run_accesion_to_peptides.find(key);
+    if (it != map_run_accesion_to_peptides.end())
+    {
+      const std::vector<PeptideHit>& peptide_hits = it->second;
+      // extract all AASequences that contain modifications for the current protein
+      std::set<String> mod_sequences;
+      for (vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
+      {
+        if (pet->getSequence().isModified())
+        {
+          mod_sequences.insert(pet->getSequence().toString()); // AASequence including Modifications
+        }
+      }
+    }
+    return ret;
+  }
+*/
+  // mzTab definition of distinct
   static String extractNumPeptidesDistinct(String common_identifier, String protein_accession,
                                            const MapAccPepType& map_run_accesion_to_peptides)
   {
@@ -329,7 +393,7 @@ protected:
     {
       const std::vector<PeptideHit>& peptide_hits = it->second;
 
-      // mzTab distinct peptides are all peptides with different sequence or modification
+      // mzTab unambigous peptides are all peptides with different AA sequence OR Modifications
       std::set<String> sequences;
       for (vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
       {
@@ -342,6 +406,7 @@ protected:
     return ret;
   }
 
+  // same as distinct but additional constraint of uniquenes (=maps to exactly one Protein)
   static String extractNumPeptidesUnambiguous(String common_identifier, String protein_accession,
                                               const MapAccPepType& map_run_accesion_to_peptides)
   {
@@ -352,14 +417,14 @@ protected:
     {
       const std::vector<PeptideHit>& peptide_hits = it->second;
 
-      // mzTab unambigous peptides are all peptides with different AA sequence
+      // mzTab unambigous peptides are all peptides with different AA sequence OR Modifications
       std::set<String> sequences;
       for (vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
       {
         // only add sequences of unique peptides
         if (pet->getProteinAccessions().size() == 1)
         {
-          sequences.insert(pet->getSequence().toUnmodifiedString()); // AASequence without Modifications
+          sequences.insert(pet->getSequence().toString()); // AASequence with Modifications
         }
       }
       ret = String(sequences.size());
@@ -460,7 +525,7 @@ protected:
       if (run_it->second > max_subsamples)
       {
         max_subsamples = run_it->second;
-  }
+      }
     }
 
     // print column headers
@@ -504,6 +569,7 @@ protected:
     // in OpenMS global to a ProteinIdentification
     String UNIT_ID_String = File::basename(input_filename) + "-" + String(run_count);
     String database_String = (sp.db != "" ? sp.db : "--");
+    database_String = "file://" +  database_String;
     String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
     String species_String =  (sp.taxonomy == "0" || sp.taxonomy == ""  ? "--" : sp.taxonomy);
     String search_engine_cvParams = mapSearchEngineToCvParam_(prot_id.getSearchEngine());
@@ -530,7 +596,7 @@ protected:
       String num_peptides_unambiguous = extractNumPeptidesUnambiguous(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
       String ambiguity_members = "NA";  //TODO
       String modifications = "NA"; // TODO
-      String uri = input_filename;
+      String uri = "file://" + input_filename;
       String go_terms = "--";
       String protein_coverage;
 
@@ -567,9 +633,9 @@ protected:
           if (protein_hit_it->metaValueExists(key))
           {
             abundancy_value = protein_hit_it->getMetaValue(key);
-    }
+          }
           output << abundancy_value;
-  }
+        }
         {
           String key = "mzTab:protein_abundance_stdev_sub[" + String(n) + "]";
           String abundancy_value = "--";
@@ -746,6 +812,7 @@ protected:
           const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
           String UNIT_ID_String = File::basename(in) + "-" + String(run_count);
           String database_String = (sp.db != "" ? sp.db : "--");
+          database_String = "file://" + database_String;
           String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
 
           for (vector<PeptideHit>::const_iterator peptide_hit_it = pep_id_it->getHits().begin();
@@ -777,14 +844,14 @@ protected:
               }
             } else // no uniqueness annotation
             {
-            // if unique protein is present peptide can be assigned
-            if (peptide_hit_it->getProteinAccessions().size() == 1)
-            {
-              unique = "1";
-            } else
-            {
-              unique = "0";
-            }
+              // if unique protein is present peptide can be assigned
+              if (peptide_hit_it->getProteinAccessions().size() == 1)
+              {
+                unique = "1";
+              } else
+              {
+                unique = "0";
+              }
             }
 
             String retention_time;
@@ -811,7 +878,7 @@ protected:
               charge = peptide_hit_it->getCharge();
             }
 
-            String uri = in;
+            String uri = "file://" + in;
 
             output << "PEP" << sequence << accession << unit_id << unique << database
                    << database_version << search_engine << search_engine_score
@@ -830,16 +897,16 @@ protected:
                 if (peptide_hit_it->metaValueExists(key))
                 {
                   abundancy_value = peptide_hit_it->getMetaValue(key);
-          }
+                }
                 output << abundancy_value;
-        }
+              }
               {
                 String key = "mzTab:peptide_abundance_stdev_sub[" + String(n) + "]";
                 String abundancy_value = "--";
                 if (peptide_hit_it->metaValueExists(key))
                 {
                   abundancy_value = peptide_hit_it->getMetaValue(key);
-      }
+                }
                 output << abundancy_value;
               }
               {
