@@ -567,7 +567,7 @@ protected:
     // DoubleReal precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton)
 
     // in OpenMS global to a ProteinIdentification
-    String UNIT_ID_String = File::basename(input_filename) + "-" + String(run_count);
+    String UNIT_ID_String = "OpenMS_" + String(run_count);
     String database_String = (sp.db != "" ? sp.db : "--");
     database_String = "file://" +  database_String;
     String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
@@ -746,7 +746,7 @@ protected:
         const vector<ProteinIdentification>& prot_ids = mprot_it->second;
         for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
         {
-          String UNIT_ID = File::basename(in) + "-" + String(run_count);
+          String UNIT_ID = "OpenMS_" + String(run_count);
           String title = document_id;
           if ( title != "" )
           {
@@ -810,7 +810,7 @@ protected:
           String search_engine_cvParams = mapSearchEngineToCvParam_(openms_search_engine_name);
 
           const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
-          String UNIT_ID_String = File::basename(in) + "-" + String(run_count);
+          String UNIT_ID_String = "OpenMS_" + String(run_count);
           String database_String = (sp.db != "" ? sp.db : "--");
           database_String = "file://" + database_String;
           String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
