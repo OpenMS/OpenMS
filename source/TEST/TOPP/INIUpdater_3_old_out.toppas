@@ -3,7 +3,7 @@
   <NODE name="info" description="">
     <ITEM name="num_vertices" value="7" type="int" description="" />
     <ITEM name="num_edges" value="6" type="int" description="" />
-    <ITEM name="version" value="1.9.0" type="string" description="" />
+    <ITEM name="version" value="1.10.0" type="string" description="" />
     <ITEM name="description" value="&lt;![CDATA[]]&gt;" type="string" description="" />
   </NODE>
   <NODE name="vertices" description="">
