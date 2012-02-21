@@ -86,8 +86,8 @@ namespace OpenMS
 				//handler can throw parse error and other errors - catch those here - they are the cause for a parse error - report accordingly
 				try
 				{
-				parse_(filename, &handler);
-			}
+				  parse_(filename, &handler);
+			  }
 				catch (Exception::BaseException& e)
 				{
 					std::string expr;

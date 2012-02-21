@@ -331,27 +331,27 @@ namespace OpenMS
 		
 		String decompressed;
 
-			QByteArray qt_byte_array = QByteArray::fromRawData(in.c_str(), (int) in.size());
-			QByteArray bazip = QByteArray::fromBase64(qt_byte_array);
-			QByteArray czip;
-			czip.resize(4);
-			czip[0] = (bazip.size() & 0xff000000) >> 24;
-			czip[1] = (bazip.size() & 0x00ff0000) >> 16;
-			czip[2] = (bazip.size() & 0x0000ff00) >> 8;
-			czip[3] = (bazip.size()& 0x000000ff);
-			czip += bazip;
-			QByteArray base64_uncompressed = qUncompress(czip);
-			
-			if(base64_uncompressed.isEmpty())
-			{
-				throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Decompression error?");
-			}
-			decompressed.resize(base64_uncompressed.size());
-			
-			std::copy(base64_uncompressed.begin(),base64_uncompressed.end(),decompressed.begin());
+    QByteArray qt_byte_array = QByteArray::fromRawData(in.c_str(), (int) in.size());
+    QByteArray bazip = QByteArray::fromBase64(qt_byte_array);
+    QByteArray czip;
+    czip.resize(4);
+    czip[0] = (bazip.size() & 0xff000000) >> 24;
+    czip[1] = (bazip.size() & 0x00ff0000) >> 16;
+    czip[2] = (bazip.size() & 0x0000ff00) >> 8;
+    czip[3] = (bazip.size()& 0x000000ff);
+    czip += bazip;
+    QByteArray base64_uncompressed = qUncompress(czip);
 
-			byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
-			buffer_size = decompressed.size();
+    if(base64_uncompressed.isEmpty())
+    {
+      throw Exception::ConversionError (__FILE__,__LINE__,__PRETTY_FUNCTION__,"Decompression error?");
+    }
+    decompressed.resize(base64_uncompressed.size());
+
+    std::copy(base64_uncompressed.begin(),base64_uncompressed.end(),decompressed.begin());
+
+    byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
+    buffer_size = decompressed.size();
 		
 		//change endianness if necessary
 		if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))

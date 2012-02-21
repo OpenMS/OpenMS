@@ -158,7 +158,7 @@ namespace OpenMS
 			{
 				String base64;
 				enum{PRE_NONE,PRE_32,PRE_64} precision;
-				UInt size;
+				Size size;
 				bool compression;
 				enum{DT_NONE,DT_FLOAT,DT_INT,DT_STRING} data_type;
 				std::vector<Real> floats_32;
@@ -174,14 +174,14 @@ namespace OpenMS
 			/// map pointer for writing
 			const MapType* cexp_;
 			
-			///Options that can be set for loading/storing
+			/// Options that can be set for loading/storing
 			PeakFileOptions options_;
 		
 			/**@name temporary data structures to hold parsed data */
 			//@{
 			/// The current spectrum
 			SpectrumType spec_;
-			/// the current chromatogram
+			/// The current chromatogram
 			ChromatogramType chromatogram_;
 			/// The spectrum data (or chromatogram data)
 			std::vector<BinaryData> data_;
@@ -225,7 +225,7 @@ namespace OpenMS
 			/// Fills the current spectrum with peaks and meta data
 			void fillData_();
 
-			/// Fills the current chromatogram with datapoints and meta data
+			/// Fills the current chromatogram with data points and meta data
 			void fillChromatogramData_();
 
 			/// Handles CV terms
@@ -779,18 +779,20 @@ namespace OpenMS
 				{
 					if (data_[i].precision==BinaryData::PRE_64)
 					{
-						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64,data_[i].compression);
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64, data_[i].compression);
 						if (data_[i].size!=data_[i].floats_64.size())
 						{
 							warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
+              data_[i].size = data_[i].floats_64.size();
 						}
 					}
 					else if (data_[i].precision==BinaryData::PRE_32)
 					{
-						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32,data_[i].compression);
+						decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32, data_[i].compression);
 						if (data_[i].size!=data_[i].floats_32.size())
 						{
 							warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
+              data_[i].size = data_[i].floats_32.size();
 						}
 					}
 				}
@@ -802,6 +804,7 @@ namespace OpenMS
 						if (data_[i].size!=data_[i].ints_64.size())
 						{
 							warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
+              data_[i].size = data_[i].ints_64.size();
 						}
 					}
 					else if (data_[i].precision==BinaryData::PRE_32)
@@ -810,6 +813,7 @@ namespace OpenMS
 						if (data_[i].size!=data_[i].ints_32.size())
 						{
 							warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
+              data_[i].size = data_[i].ints_32.size();
 						}
 					}
 				}
@@ -819,6 +823,7 @@ namespace OpenMS
 					if (data_[i].size!=data_[i].decoded_char.size())
 					{
 						warning(LOAD, String("String binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
+            data_[i].size = data_[i].decoded_char.size();
 					}
 				}
 			}
@@ -854,7 +859,7 @@ namespace OpenMS
 			}
       
 
-      //Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
+      // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
       if ((data_[mz_index].ints_32.size() > 0) || (data_[mz_index].ints_64.size() > 0))
       {
         fatalError(LOAD, "Encoding m/z array as integer is not allowed!");
@@ -864,7 +869,7 @@ namespace OpenMS
         fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
       }
 
-      //Warn if the decoded data has a different size than the the defaultArrayLength
+      // Warn if the decoded data has a different size than the the defaultArrayLength
       Size mz_size = mz_precision_64 ? data_[mz_index].floats_64.size() : data_[mz_index].floats_32.size();
       Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
       // Check if int-size and mz-size are equal
@@ -927,8 +932,8 @@ namespace OpenMS
 				}
 			}
 			
-			//copy meta data from m/z and intensity binary
-			//We don't have this as a separate location => store it in spectrum
+			// Copy meta data from m/z and intensity binary
+			// We don't have this as a separate location => store it in spectrum
 			for (Size i=0; i<data_.size(); i++)
 			{
 				if (data_[i].meta.getName()=="m/z array" || data_[i].meta.getName()=="intensity array")
