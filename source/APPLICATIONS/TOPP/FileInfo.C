@@ -266,7 +266,7 @@ class TOPPFileInfo
 				valid = PepXMLFile().isValid(in, os);
 				break;
 			default:
-				os << endl << "Aborted: Validation of this file type is not supported!" << endl;
+				os << "\n" << "Aborted: Validation of this file type is not supported!" << endl;
 				return EXECUTION_OK;
 			};
 
@@ -284,13 +284,13 @@ class TOPPFileInfo
 			{
 				if (!valid)
 				{
-					os << endl 
-						 << "Semantic validation is not perfomed due to previous errors!" 
+					os << "\n" 
+						 << "Semantic validation is not performed due to previous errors!" 
 						 << endl;
 				}
 				else
 				{
-					os << endl << "Semantically validating " << fh.typeToName(in_type) 
+					os << "\n" << "Semantically validating " << fh.typeToName(in_type) 
 						 << " file";
 					if (in_type == FileTypes::MZDATA) os << " (EXPERIMENTAL)";
 					os << ":" << endl;
@@ -307,11 +307,11 @@ class TOPPFileInfo
 
 					for (Size i = 0; i < warnings.size(); ++i)
 					{
-						os << "Warning: " << warnings[i] << endl;
+						os << "Warning: " << warnings[i] << "\n";
 					}
 					for (Size i = 0; i < errors.size(); ++i)
 					{
-						os << "Error: " << errors[i] << endl;
+						os << "Error: " << errors[i] << "\n";
 					}
 					if (valid)
 					{
@@ -1211,14 +1211,14 @@ class TOPPFileInfo
     else if (out == "" && out_tsv != "")
     {
       ofstream os_tsv(out_tsv.c_str());
-      return outputTo_(std::cout, os_tsv);
+      return outputTo_(LOG_INFO, os_tsv);
     }
     else
     {
       // Output stream with null output
       boost::iostreams::filtering_ostream os_tsv;
       os_tsv.push(boost::iostreams::null_sink());
-      return outputTo_(std::cout, os_tsv);
+      return outputTo_(LOG_INFO, os_tsv);
     }
 	}
 };

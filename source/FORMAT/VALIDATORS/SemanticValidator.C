@@ -201,10 +201,10 @@ namespace OpenMS
 				{
 					if (match_count!=terms_count)
 					{
-						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', " + String(terms_count) + " should be present, " + String(match_count) + " found!");
+						errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', " + String(terms_count) + " term(s) should be present, " + String(match_count) + " found!");
 					}
 				}
-				//MUST / OR - at lest one terms must be matched
+				//MUST / OR - at least one terms must be matched
 				else if (rules[r].getRequirementLevel()==CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappingRule::OR)
 				{
 					if (match_count==0)

@@ -154,7 +154,7 @@ namespace OpenMS
 				}
 			}
 			
-			SemanticValidator::handleTerm_(path,parsed_term);
+			SemanticValidator::handleTerm_(path, parsed_term);
 		}
 
 	} // namespace Internal
