@@ -114,6 +114,7 @@ class TOPPIDPosteriorErrorProbability
 		registerFlag_("top_hits_only","If set only the top hits of every PeptideIdentification will be used");
 		registerDoubleOption_("fdr_for_targets_smaller","<value>",0.05,"Only used, when top_hits_only set. Additionally, target_decoy information should be available. The score_type must be q-value from an previous False Discovery Rate run.",false,true);
 	  registerFlag_("ignore_bad_data","If set errors will be written but ignored. Useful for pipelines with many datasets where only a few are bad, but the pipeline should run through.");
+	  registerFlag_("prob_correct","If set scores will be calculated as 1-ErrorProbabilities and can ba interpretet as probabilities for correct identifications.");
 	  registerSubsection_("fit_algorithm", "Algorithm parameter subsection");
 		addEmptyLine_();
 	}
@@ -162,6 +163,7 @@ class TOPPIDPosteriorErrorProbability
 		DoubleReal fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
 		bool target_decoy_available = false;
 		bool ignore_bad_data = getFlag_("ignore_bad_data");
+		bool prob_correct = getFlag_("prob_correct");
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
@@ -345,6 +347,14 @@ class TOPPIDPosteriorErrorProbability
 										if(score > 0 && score < 1) unable_to_fit_data = false; //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
 										if(score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;//same as above
 										hit->setScore(score);
+										if(prob_correct)
+										{
+											hit->setScore(1-score);
+										}
+										else
+										{
+											hit->setScore(score);
+										}
 									}
 								}
 								it->setHits(hits);
