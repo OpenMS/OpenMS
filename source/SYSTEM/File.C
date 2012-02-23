@@ -282,18 +282,35 @@ namespace OpenMS
   String File::getOpenMSDataPath()
   {
 		String path;
+    bool from_env(false);
 		if (getenv("OPENMS_DATA_PATH") != 0)
 		{
 			path = getenv("OPENMS_DATA_PATH");
+      from_env = true;
 		}
 		else
 		{
 			path = OPENMS_DATA_PATH;
 		}
-		
-		if (!exists(path))
+
+    // make its a proper path:
+		path.substitute("\\","/").ensureLastChar('/').chop(1);
+#ifdef OPENMS_WINDOWSPLATFORM
+    String share_dir = "c:\\Program Files\\OpenMS\\share\\OpenMS";
+#else
+    String share_dir = "/usr/share/OpenMS";
+#endif
+
+
+		if (!exists(path + "/CHEMISTRY/Elements.xml"))
 		{ // now we're in big trouble as './share' is not were its supposed to be...
-			std::cerr << "OpenMS FATAL ERROR!\nExpected shared data to be at '" << path << "'! OpenMS cannot function without it! Exiting now. To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory.\n";
+      std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
+      if (from_env)
+      {
+        std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << path << "', which is incorrect!\n";
+      }
+			std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
+      std::cerr << "Exiting now.\n";
 			exit(1);
 		}
 		
