@@ -217,7 +217,7 @@ class TOPPSILACAnalyzer
     registerOutputFile_("out_filters", "<file>", "", "Optional output file containing all points that passed the filters as txt. Suitable as input for \'in_filters\' to perform clustering without preceding filtering process.", false, true);
     setValidFormats_("out_filters", StringList::create("consensusXML"));
     // create optional flag for additional input file (.consensusXML) to load filter results
-    registerOutputFile_("in_filters", "<file>", "", "Optional input file containing all points that passed the filters as txt. Use output from \'out_filters\' to perform clustering only.", false, true);
+    registerInputFile_("in_filters", "<file>", "", "Optional input file containing all points that passed the filters as txt. Use output from \'out_filters\' to perform clustering only.", false, true);
     setValidFormats_("in_filters", StringList::create("consensusXML"));
     registerStringOption_("out_debug", "<filebase>", "", "Filename base for debug output.", false, true);
 
