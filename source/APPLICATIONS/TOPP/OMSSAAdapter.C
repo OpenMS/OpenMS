@@ -353,7 +353,7 @@ class TOPPOMSSAAdapter
 
 		ExitCodes main_(int , const char**)
 		{
-			String parameters;
+			StringList parameters;
 			// path to the log file
 			String logfile(getStringOption_("log"));
 			String omssa_executable(getStringOption_("omssa_executable"));
@@ -368,15 +368,14 @@ class TOPPOMSSAAdapter
 
 			// get version of OMSSA
       QProcess qp;
-      String call = omssa_executable + " -version";
-      qp.start(call.toQString(), QIODevice::ReadOnly); // does automatic escaping etc...
+      qp.start(omssa_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly); // does automatic escaping etc...
       bool success = qp.waitForFinished();
       String output (QString(qp.readAllStandardOutput ()));
 			String omssa_version;
       OMSSAVersion omssa_version_i;
       if (!success || qp.exitStatus() != 0 || qp.exitCode()!=0)
 			{
-        writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + call + "'. Make sure that the path to the OMSSA executable is correct!");
+        writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + omssa_executable + " -version'. Make sure that the path to the OMSSA executable is correct!");
         return ILLEGAL_PARAMETERS;
 			}
       else
@@ -422,10 +421,10 @@ class TOPPOMSSAAdapter
       
       db_name = db_name.substr(0,db_name.size()-4); // OMSSA requires the filename without the .psq part
 
-      parameters += " -d "  + String(db_name).quote('"', String::NONE);
-			parameters += " -to " + String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
-			parameters += " -hs " + String(getIntOption_("hs"));
-			parameters += " -te " + String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
+      parameters << "-d"  << String(db_name);
+			parameters << "-to" << String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
+			parameters << "-hs" << String(getIntOption_("hs"));
+			parameters << "-te" << String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
       if (getFlag_("precursor_mass_tolerance_unit_ppm"))
       {
         if (omssa_version_i < OMSSAVersion(2,1,8))
@@ -435,53 +434,53 @@ class TOPPOMSSAAdapter
                    +" Required version is 2.1.8 and above.\n");
           return ILLEGAL_PARAMETERS;
         }
-        parameters += " -teppm "; // only from OMSSA 2.1.8 on
+        parameters << "-teppm"; // only from OMSSA 2.1.8 on
       }
-			parameters += " -zl " +  String(getIntOption_("min_precursor_charge")); //String(getIntOption_("zl"));
-			parameters += " -zh " +  String(getIntOption_("max_precursor_charge")); //String(getIntOption_("zh"));
-			parameters += " -zt " +  String(getIntOption_("zt"));
-			parameters += " -zc " +  String(getIntOption_("zc"));
-			parameters += " -zcc " + String(getIntOption_("zcc"));
-			parameters += " -zoh " + String(getIntOption_("zoh"));
-			parameters += " -no " + String(getIntOption_("no"));
-			parameters += " -nox " + String(getIntOption_("nox"));
-			parameters += " -sp " + String(getIntOption_("sp"));
-			parameters += " -sb1 " + String(getIntOption_("sb1"));
-			parameters += " -sct " + String(getIntOption_("sct"));
-			parameters += " -x " + getStringOption_("x");
-			parameters += " -hl " + String(getIntOption_("hl"));
-			parameters += " -hm " + String(getIntOption_("hm"));
-			parameters += " -ht " +  String(getIntOption_("ht"));
-			parameters += " -tex " + String(getDoubleOption_("tex"));
-			parameters += " -i " + getStringOption_("i");
-			parameters += " -z1 " + String(getDoubleOption_("z1"));
-			parameters += " -v " +   String(getIntOption_("v"));
-			parameters += " -e " +   String(getIntOption_("e"));
-			parameters += " -tez " + String(getIntOption_("tez"));
+			parameters << "-zl" << String(getIntOption_("min_precursor_charge")); //String(getIntOption_("zl"));
+			parameters << "-zh" <<  String(getIntOption_("max_precursor_charge")); //String(getIntOption_("zh"));
+			parameters << "-zt" <<  String(getIntOption_("zt"));
+			parameters << "-zc" <<  String(getIntOption_("zc"));
+			parameters << "-zcc" << String(getIntOption_("zcc"));
+			parameters << "-zoh" << String(getIntOption_("zoh"));
+			parameters << "-no" << String(getIntOption_("no"));
+			parameters << "-nox" << String(getIntOption_("nox"));
+			parameters << "-sp" << String(getIntOption_("sp"));
+			parameters << "-sb1" << String(getIntOption_("sb1"));
+			parameters << "-sct" << String(getIntOption_("sct"));
+			parameters << "-x" << getStringOption_("x");
+			parameters << "-hl" << String(getIntOption_("hl"));
+			parameters << "-hm" << String(getIntOption_("hm"));
+			parameters << "-ht" <<  String(getIntOption_("ht"));
+			parameters << "-tex" << String(getDoubleOption_("tex"));
+			parameters << "-i" << getStringOption_("i");
+			parameters << "-z1" << String(getDoubleOption_("z1"));
+			parameters << "-v" << String(getIntOption_("v"));
+			parameters << "-e" << String(getIntOption_("e"));
+			parameters << "-tez" << String(getIntOption_("tez"));
 
 
-			parameters += " -tom " + String(getIntOption_("tom"));
-			parameters += " -tem " + String(getIntOption_("tem"));
+			parameters << "-tom" << String(getIntOption_("tom"));
+			parameters << "-tem" << String(getIntOption_("tem"));
 
-			parameters += " -mm " + String(getIntOption_("mm"));
-			parameters += " -is " + String(getDoubleOption_("is"));
-			parameters += " -ir " + String(getDoubleOption_("ir"));
-			parameters += " -ii " + String(getDoubleOption_("ii"));
-			parameters += " -nt " + String(getIntOption_("threads"));
+			parameters << "-mm" << String(getIntOption_("mm"));
+			parameters << "-is" << String(getDoubleOption_("is"));
+			parameters << "-ir" << String(getDoubleOption_("ir"));
+			parameters << "-ii" << String(getDoubleOption_("ii"));
+			parameters << "-nt" << String(getIntOption_("threads"));
 
 			if (getFlag_("mnm"))
 			{
-				parameters += " -mnm ";
+				parameters << "-mnm";
 			}
 
-      parameters += " -fm " + String(unique_input_name).quote('"', String::NONE);
-			parameters += " -ox " + String(unique_output_name).quote('"', String::NONE);
+      parameters << "-fm" << unique_input_name;
+			parameters << "-ox" << unique_output_name;
 
 			if (getIntOption_("debug") == 0)
 			{
-				parameters += " -ni ";
+				parameters << "-ni";
 			}
-			parameters += " -he " + String(getDoubleOption_("he"));
+			parameters << "-he" << String(getDoubleOption_("he"));
 
 
 			// read mapping for the modifications
@@ -538,7 +537,7 @@ class TOPPOMSSAAdapter
 				}
         if (mod_list.size() > 0)
 				{
-          parameters += " -mf " + mod_list.concatenate(",");
+          parameters << "-mf" << mod_list.concatenate(",");
 				}
 			}
 
@@ -564,7 +563,7 @@ class TOPPOMSSAAdapter
 
         if (mod_list.size() > 0)
 				{
-          parameters += " -mv " + mod_list.concatenate(",");
+          parameters << "-mv" << mod_list.concatenate(",");
 				}
 			}
 
@@ -573,7 +572,7 @@ class TOPPOMSSAAdapter
       if ( !user_mods.empty() || additional_user_mods_filename != "")
 			{
 				writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
-				parameters += " -mux " + (File::absolutePath(unique_usermod_name));
+				parameters << "-mux" << File::absolutePath(unique_usermod_name);
 				ofstream out(unique_usermod_name.c_str());
 				out << "<?xml version=\"1.0\"?>" << endl;
 				out << "<MSModSpecSet xmlns=\"http://www.ncbi.nlm.nih.gov\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov OMSSA.xsd\">" << endl;
@@ -706,8 +705,13 @@ class TOPPOMSSAAdapter
       // executable is stored in OpenMS_bin/share/OpenMS/3rdParty/OMSSA/omssacl(.exe)
       // or PATH
 
-			writeDebug_("omssa_executable " + parameters, 5);
-      Int status = QProcess::execute((omssa_executable+" "+parameters).toQString());
+      QStringList qparam;
+      for (Size i=0; i<parameters.size();++i)
+      {
+        qparam << parameters[i].toQString();
+      }
+			writeDebug_("omssa_executable " + parameters.concatenate(" "), 5);
+      Int status = QProcess::execute(omssa_executable.toQString(), qparam);
 			if (status != 0)
 			{
 				writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");

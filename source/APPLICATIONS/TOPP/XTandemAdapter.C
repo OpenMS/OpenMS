@@ -74,7 +74,7 @@ using namespace std;
   The last known version to work is 2009-04-01. We encountered problems with
   later versions (namely 2010-01-01).
 
-	To speed up computations, fasta databases can be compressed using the fasta_pro.exe
+	To speed up computations, FASTA databases can be compressed using the fasta_pro.exe
 	tool of @em X!Tandem. It is contained in the "bin" folder of the @em X!Tandem installation.
 	Refer to the docu of @em X!Tandem for further information about settings.
 
@@ -115,39 +115,39 @@ class TOPPXTandemAdapter
 			addEmptyLine_();
 			addText_("Common Identification engine options");
 
-			registerInputFile_("in", "<file>", "", "input file ");
+			registerInputFile_("in", "<file>", "", "Input file");
       setValidFormats_("in",StringList::create("mzML"));
-      registerOutputFile_("out", "<file>", "", "output file ");
+      registerOutputFile_("out", "<file>", "", "Output file");
       setValidFormats_("out",StringList::create("idXML"));
-			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "precursor mass tolerance", false);
-			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "fragment mass error", false);
+			registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance", false);
+			registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
 
-			registerStringOption_("precursor_error_units", "<unit>", "ppm", "parent monoisotopic mass error units", false);
-      registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
+			registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
+      registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
 			registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
       vector<String> valid_strings;
       valid_strings.push_back("ppm");
       valid_strings.push_back("Da");
       setValidStrings_("precursor_error_units", valid_strings);
       setValidStrings_("fragment_error_units", valid_strings);
-			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor charge", false);
-			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum precursor charge", false);
+			registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor charge", false);
+			registerIntOption_("max_precursor_charge", "<charge>", 4, "Maximum precursor charge", false);
 
-			registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+			registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			vector<String> all_mods;
 			ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 			setValidStrings_("fixed_modifications", all_mods);
-      registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+      registerStringList_("variable_modifications", "<mods>", StringList::create(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
 			setValidStrings_("variable_modifications", all_mods);
 			registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
 
 			addEmptyLine_();
 			addText_("X!Tandem specific options");
 			registerInputFile_("xtandem_executable", "<executable>", "tandem.exe", "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, StringList::create("skipexists"));
-			registerInputFile_("default_input_file", "<file>", "", "default parameters input file, if not given default parameters are used", false);
-			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "minimum fragment mz", false);
-			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "cleavage site", false);
-			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "maximal E-Value of a hit to be reported", false);
+			registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
+			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
+			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "Cleavage site", false);
+			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "Maximal E-Value of a hit to be reported", false);
 			registerFlag_("no_refinement", "Disable the refinement, especially useful for matching only peptides without proteins. For most applications it is recommended to set this flag.");
 			registerFlag_("no_semi_cleavage", "If set, all both termini must follow the cutting rule. For most applications it is recommended to set this flag.");
 		}
@@ -312,7 +312,7 @@ class TOPPXTandemAdapter
 			int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
 			if (status != 0)
 			{
-        writeLog_("XTandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename +"\"'.\nDoes the xtandem executable exist?");
+        writeLog_("XTandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename +"\"'.\nDoes the !XTandem executable exist?");
 				// clean temporary files
 				QFile(input_filename.toQString()).remove();
       	QFile(tandem_input_filename.toQString()).remove();
