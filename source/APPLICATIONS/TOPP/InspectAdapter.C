@@ -84,7 +84,7 @@ using namespace std;
 				(though with a bug) and may actually not use more than two
 				databases (one of them in trie format). Additionally you thus can
 				reuse the database without having Inspect done the conversion
-				everytime.
+				every time.
 				The drawback is, of course, that you need the same amount of space
 				for the trie database as well, which can, in case of large and/or many
 				databases, be a problem.
@@ -95,7 +95,7 @@ using namespace std;
 				<li>
 				Only the first part of the ProteinIdentification process is performed.
 				This means that an Inspect input file is generated and the given databases are
-				converted and merged Into one trie database. This file can be used
+				converted and merged into one trie database. This file can be used
 				directly with Inspect whereas the created database and the spectrum file(s)
 				have to remain at the given positions.
 				Calling an Inspect process should look like the following:
@@ -118,6 +118,10 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_InspectAdapter.cli
+
+  @todo rewrite the Adapter! It uses old formats and coding style, e.g. mzData input allowed, no input restrictions, manual (unneccessary file checking of input files) etc...
+        + the interface is not convenient, etc ...
+
 */
 
 // We do not want this class to show up in the docu -> cond
