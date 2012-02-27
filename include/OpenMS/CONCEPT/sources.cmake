@@ -9,6 +9,7 @@ Exception.h
 Factory.h
 FactoryBase.h
 FuzzyStringComparator.h
+GlobalExceptionHandler.h
 LogStream.h
 LogConfigHandler.h
 Macros.h

@@ -32,6 +32,7 @@
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 
 namespace OpenMS
 {
@@ -64,7 +65,7 @@ namespace OpenMS
 					index_(index)
 				{
 					what_ = String("there is no successor/predecessor for the given Index: ") + index_.first + "/" + index_.second;
-					Exception::globalHandler.setMessage(what_);
+          Exception::GlobalExceptionHandler::getInstance().setMessage(what_);
 				}
 				virtual ~NoSuccessor() throw()
 				{

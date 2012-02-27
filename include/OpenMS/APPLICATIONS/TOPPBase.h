@@ -30,6 +30,7 @@
 
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -66,7 +67,7 @@ namespace OpenMS
         UnregisteredParameter( const char* file, int line, const char* function, const String& parameter )
             : BaseException( file, line, function, "UnregisteredParameter", parameter )
         {
-          globalHandler.setMessage( what_ );
+          GlobalExceptionHandler::getInstance().setMessage( what_ );
         }
     };
     /// A parameter was accessed with the wrong type
@@ -77,7 +78,7 @@ namespace OpenMS
         WrongParameterType( const char* file, int line, const char* function, const String& parameter )
             : BaseException( file, line, function, "WrongParameterType", parameter )
         {
-          globalHandler.setMessage( what_ );
+          GlobalExceptionHandler::getInstance().setMessage( what_ );
         }
     };
     /// A required parameter was not given
@@ -88,7 +89,7 @@ namespace OpenMS
         RequiredParameterNotGiven( const char* file, int line, const char* function, const String& parameter )
             : BaseException( file, line, function, "RequiredParameterNotGiven", parameter )
         {
-          globalHandler.setMessage( what_ );
+          GlobalExceptionHandler::getInstance().setMessage( what_ );
         }
     };
   }

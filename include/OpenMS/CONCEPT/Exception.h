@@ -563,8 +563,6 @@ namespace OpenMS
         IOException(const char* file, int line, const char* function, const std::string& filename) throw();
     };
 
-
-
 		/**	
 			@brief File is empty.
 
@@ -689,125 +687,32 @@ namespace OpenMS
 		public:
 			DepletedIDPool(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw();
 		};
-
-
-		/**
-			@brief OpenMS global exception handler
 		
-			@ingroup Exceptions
-		*/
-		class OPENMS_DLLAPI GlobalExceptionHandler
-		{
-			public:
-				/**	@name	Constructors
-				*/
-				//@{
+  } // namespace Exception
 
-				/**	@brief Default constructor.
+  /**
+    @brief Output operator for exceptions.
 
-						This constructor installs the OPENMS specific handlers for
-						<tt>terminate</tt>, <tt>unexpected</tt>, and <tt>new_handler</tt>.
-						<tt>terminate</tt> or <tt>unexpected</tt> are called to abort a
-						program if an exception was not caught or a function exits via an
-						exception that is not allowed by its exception specification. Both
-						functions are replaced by a function of GlobalExceptionHandler that
-						tries to determine the last exception thrown. This mechanism only
-						works, if all exceptions are derived from Base.
+    All %OpenMS exceptions can be printed to an arbitrary output stream.
+    Information written contains the exception class, the error message,
+    and the location (file, line number). The following code block
+    can thus be used to catch any %OpenMS exceptions and convert them to
+    human readable information:
+    \code
+    try
+    {
+      .... // some code which potentially throws an exception
+    }
+    catch (Exception::Exception e)
+    {
+      Log.error() << "caught exception: " << e << std::endl;
+    }
+    \endcode
 
-						The default <tt>new_handler</tt> is replaced by #newHandler and
-						throws an exception of type OutOfMemory instead of
-						<tt>bad_alloc</tt> (the default behaviour defined in the ANSI C++
-						standard).
-				*/
-				GlobalExceptionHandler()
-					throw();
-				//@}
-				
-				/**	@name	Accessors
-				*/
-				//@{
-					
-				/**
-				*/
-				static void setName(const std::string& name)
-					throw();
-					
-				/**
-				*/
-				static void setMessage(const std::string& message)
-					throw();
+    @ingroup Exceptions
+  */
+  OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Exception::BaseException& e);
 
-				/**
-				*/
-				static void setLine(int line)
-					throw();
-
-				/**
-				*/
-				static void setFile(const std::string& file)
-					throw();
-
-				/**
-				*/
-				static void setFunction(const std::string& function)
-					throw();
-
-				/**
-				*/
-				static void set
-					(const std::string& file, int line, const std::string& function,
-					 const std::string& name, const std::string& message)
-					throw();
-				//@}	
-			
-			protected:
-
-				/// The OPENMS replacement for terminate
-				static void terminate()
-					throw();
-
-				/// The OPENMS new handler
-#ifdef OPENMS_COMPILER_MSVC
-				static void newHandler();
-#else
-				static void newHandler() throw(OutOfMemory);
-#endif
-				static std::string file_;
-				static int				 line_;
-				static std::string function_;
-				static std::string name_;
-				static std::string what_;
-		};
-
-		///Global static instance of GlobalExceptionHandler
-		extern GlobalExceptionHandler globalHandler;
-
-		}
-		
-		
-		/**	
-			@brief Output operator for exceptions.
-		
-			All %OpenMS exceptions can be printed to an arbitrary output stream.
-			Information written contains the exception class, the error message,
-			and the location (file, line number). The following code block
-			can thus be used to catch any %OpenMS exceptions and convert them to
-			human readable information:
-			\code
-			try
-			{
-				.... // some code which potentially throws an exception
-			}
-			catch (Exception::Exception e)
-			{
-				Log.error() << "caught exception: " << e << std::endl;
-			}
-			\endcode
-			
-			@ingroup Exceptions
-		*/
-		OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Exception::BaseException& e);
-	
 } // namespace OPENMS
 
 #endif // OPENMS_CONCEPT_EXCEPTION_H

@@ -9,6 +9,7 @@ Exception.C
 FuzzyStringComparator.C
 LogStream.C
 LogConfigHandler.C
+GlobalExceptionHandler.C
 ProgressLogger.C
 SingletonRegistry.C
 StreamHandler.C

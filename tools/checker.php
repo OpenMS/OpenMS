@@ -444,6 +444,7 @@ $GLOBALS["all_tests"] = array(
 			"XMLSchemes.h",
 			"Serialization.h",
 			"Exception.h",
+			"GlobalExceptionHandler.h"
 			"Types.h",
 			"Macros.h",
 			"Benchmark.h",
