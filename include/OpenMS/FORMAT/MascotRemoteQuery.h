@@ -125,6 +125,7 @@ namespace OpenMS
 
 			OPENMS_DLLAPI void getResults();
 		
+      OPENMS_DLLAPI void loginSuccess();
 
 		signals:
 		

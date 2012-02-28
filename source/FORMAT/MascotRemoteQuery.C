@@ -57,7 +57,7 @@ namespace OpenMS
 		defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "Boundary for the MIME section", StringList::create("advanced"));
 
 		// proxy settings
-		defaults_.setValue("use_proxy", "false", "Flag which enabled the proxy usage for the http requests, please specify at least 'proxy_host' and 'proxy_port'", StringList::create("advanced"));
+		defaults_.setValue("use_proxy", "false", "Flag which enables the proxy usage for the http requests, please specify at least 'proxy_host' and 'proxy_port'", StringList::create("advanced"));
 		defaults_.setValidStrings("use_proxy", StringList::create("true,false"));
 		defaults_.setValue("proxy_host", "", "Host where the proxy server runs on", StringList::create("advanced"));
 		defaults_.setValue("proxy_port", 0, "Port where the proxy server listens", StringList::create("advanced"));
@@ -103,7 +103,7 @@ namespace OpenMS
     connect(http_, SIGNAL(stateChanged(int)), this, SLOT(httpStateChanged(int)));
     connect(http_, SIGNAL(readyRead ( const QHttpResponseHeader & )), this, SLOT(readyReadSlot ( const QHttpResponseHeader & )) );
     connect(http_, SIGNAL(responseHeaderReceived(const QHttpResponseHeader &)), this, SLOT(readResponseHeader(const QHttpResponseHeader &)));
-    connect(this, SIGNAL(loginDone()), this, SLOT(execQuery()));
+    connect(this, SIGNAL(loginDone()), this, SLOT(loginSuccess()));
     connect(this, SIGNAL(queryDone()), this, SLOT(getResults()));
     connect(&timeout_, SIGNAL(timeout()), this, SLOT(timedOut()));
 
@@ -118,6 +118,11 @@ namespace OpenMS
 		return;
 	}
 
+void MascotRemoteQuery::loginSuccess() 
+{
+  LOG_INFO << "Login successful!" << std::endl;
+  execQuery(); 
+}
 
 void MascotRemoteQuery::login() 
 {
@@ -184,7 +189,7 @@ void MascotRemoteQuery::login()
   loginbytes.append("form-data; name=\"onerrdisplay\"\r\n");
   loginbytes.append("\r\n");
   loginbytes.append("login_prompt\r\n");
-  loginbytes.append("--" + boundary + "--\r\n");	
+  loginbytes.append("--" + boundary + "--\r\n");
 	
 #ifdef MASCOTREMOTEQUERY_DEBUG
 	cerr << ">>>> Header to send: " << "\n";
@@ -245,17 +250,19 @@ void MascotRemoteQuery::execQuery()
 	QByteArray querybytes;
 	querybytes.append(query_spectra_.c_str());
 	querybytes.replace("\n", "\r\n");
- 	header.setContentLength(querybytes.length());
-#ifdef MASCOTREMOTEQUERY_DEBUG
-	cerr << ">>>> Header to request:" << "\n";
-	cerr << header.toString().toStdString() << "\n";
-	cerr << "ended: " << "\n";
 
-	cerr << ">>>> Query:" << "\n";
-	cerr << querybytes.constData() << "\n";
-	cerr << "ended: " << "\n";
+  header.setContentLength(querybytes.length());
+
+#ifdef MASCOTREMOTEQUERY_DEBUG
+  cerr << ">>>> Header to request:" << "\n";
+  cerr << header.toString().toStdString() << "\n";
+  cerr << "ended: " << "\n";
+
+  cerr << ">>>> Query:" << "\n";
+  cerr << querybytes.constData() << "\n";
+  cerr << "ended: " << "\n";
 #endif
-  
+
   if (to_ > 0) timeout_.start();
 	http_->request(header, querybytes);
 }
@@ -422,7 +429,7 @@ void MascotRemoteQuery::httpDone(bool error)
   }
 
 	//Successful login? fire off the search
-	if (new_bytes.contains("Logged in successfuly")) // this is NOT a typo. Mascot writes 'successfuly' that way!
+	if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfuly', but that might change...
 	{
 		emit loginDone();
 	} 
@@ -474,6 +481,7 @@ void MascotRemoteQuery::httpDone(bool error)
 		QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");
 		if (response_text.contains(mascot_error_regex))
 		{
+	    LOG_INFO << "Received response with Mascot error message!" << std::endl;
 			QTextDocument doc;
 			doc.setHtml(response_text);
 			error_message_ = doc.toPlainText().toStdString();
