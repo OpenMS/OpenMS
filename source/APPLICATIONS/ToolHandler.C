@@ -185,6 +185,7 @@ namespace OpenMS
 		util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", "");
 		util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", "");
 		util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", "");
+		util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", "");
 
 		return util_map;
 	}
