@@ -624,7 +624,12 @@ protected:
 
       // get number of sub samples for this run
       map<String, Size>::const_iterator sub_it = map_run_to_num_sub.find(prot_id.getIdentifier());
-      Size n_subsamples = sub_it->second;
+      Size n_subsamples = 0;
+      if (sub_it != map_run_to_num_sub.end())
+      {
+        n_subsamples = sub_it->second;
+      }
+
       for (Size n = 1; n <= n_subsamples; ++n)
       {
         {
@@ -887,7 +892,12 @@ protected:
 
             // get number of sub samples for this run
             map<String, Size>::const_iterator sub_it = map_run_to_n_subsamples.find(mpep_it->first);
-            Size n_subsamples = sub_it->second;
+
+            Size n_subsamples = 0;
+            if (sub_it != map_run_to_n_subsamples.end())
+            {
+              n_subsamples = sub_it->second;
+            }
 
             for (Size n = 1; n <= n_subsamples; ++n)
             {
