@@ -14,6 +14,7 @@ FuzzyDiff
 IDExtractor
 IDMassAccuracy
 IDSplitter
+IDDecoyProbability
 IdXMLEvaluation
 ImageCreator
 INIUpdater
