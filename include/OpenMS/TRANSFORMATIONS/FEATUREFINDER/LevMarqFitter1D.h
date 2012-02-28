@@ -222,6 +222,7 @@ namespace OpenMS
           }
           
           gsl_multifit_fdfsolver_free (s);
+          gsl_matrix_free (covar);
        
        }       
 
