@@ -139,7 +139,10 @@ class TOPPIDPosteriorErrorProbability
 		else if (engine == "MASCOT")
 		{
 			return((-1)* log10(max((DoubleReal)hit.getMetaValue("EValue"),smallest_e_value_)));
-		}
+    } else if (engine == "SpectraST")
+    {
+      return (100*hit.getScore());  // SpectraST f-val
+    }
 		else
 		{
 			throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No parameters for choosen search engine","The choosen search engine is currently not supported");
@@ -179,7 +182,7 @@ class TOPPIDPosteriorErrorProbability
 		vector<Int> charges;
 		PosteriorErrorProbabilityModel PEP_model;
 		PEP_model.setParameters(fit_algorithm);
-		StringList search_engines = StringList::create("XTandem,OMSSA,MASCOT");
+    StringList search_engines = StringList::create("XTandem,OMSSA,MASCOT,SpectraST");
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
