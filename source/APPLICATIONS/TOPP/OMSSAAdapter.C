@@ -34,6 +34,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 #include <iostream>
@@ -683,12 +684,16 @@ class TOPPOMSSAAdapter
 			// reading input
 			//-------------------------------------------------------------
 
-			MzMLFile mzml_infile;
+      FileHandler fh;
+      FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap map;
-			mzml_infile.setLogType(log_type_);
-			ProteinIdentification protein_identification;
-			vector<PeptideIdentification> peptide_ids;
-			mzml_infile.load(inputfile_name, map);
+      fh.getOptions().setIntensityRange(DRange<1>(std::numeric_limits<DRange<1>::PositionType>::min(),std::numeric_limits<DRange<1>::PositionType>::max()));
+      // keep only Level2 and intensity>0
+      fh.getOptions().addMSLevel(2);
+      fh.loadExperiment(inputfile_name, map, in_type, log_type_);
+
+      ProteinIdentification protein_identification;
+      vector<PeptideIdentification> peptide_ids;
 
 			writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
 

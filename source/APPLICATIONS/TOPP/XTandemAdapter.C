@@ -208,18 +208,34 @@ class TOPPXTandemAdapter
 			// reading input
 			//-------------------------------------------------------------
 
+      String db_name(getStringOption_("database"));
+      if (!File::readable(db_name))
+      {
+        String full_db_name;
+        try
+        {
+          full_db_name = File::findDatabase(db_name);
+        }
+        catch (...)
+        {
+          printUsage_();
+          return ILLEGAL_PARAMETERS;
+        }
+        db_name = full_db_name;
+      }
+
 			// only load msLevel 2
-			MzMLFile mzdata_infile;
-			mzdata_infile.getOptions().addMSLevel(2);
-			mzdata_infile.setLogType(log_type_);
-			mzdata_infile.load(inputfile_name, exp);
+			MzMLFile mzml_file;
+			mzml_file.getOptions().addMSLevel(2);
+			mzml_file.setLogType(log_type_);
+			mzml_file.load(inputfile_name, exp);
 
 			// we need to replace the native id with a simple numbering schema, to be able to
-			// map the IDs back to the spectra (RT, and MZ infomration)
-			Size native_id(1);
+			// map the IDs back to the spectra (RT, and MZ information)
+			Size native_id(0);
 			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
-				it->setNativeID(native_id++);
+				it->setNativeID(++native_id);
 			}
 
 			// We store the file in mzData file format, because mgf file somehow produce in most
@@ -231,23 +247,6 @@ class TOPPXTandemAdapter
 
 			infile.setInputFilename(tandem_input_filename);
 			infile.setOutputFilename(tandem_output_filename);
-
-
-			String db_name(getStringOption_("database"));
-      if (!File::readable(db_name))
-      {
-        String full_db_name;
-        try
-        {
-          full_db_name = File::findDatabase(db_name);
-        }
-        catch (...)
-        {
-			    printUsage_();
-			    return ILLEGAL_PARAMETERS;
-        }
-        db_name = full_db_name;
-      }
 
 			ofstream tax_out(tandem_taxonomy_filename.c_str());
 			tax_out << "<?xml version=\"1.0\"?>" << endl;

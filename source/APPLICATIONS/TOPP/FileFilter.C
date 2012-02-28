@@ -468,6 +468,7 @@ class TOPPFileFilter
   			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
   			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
   			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
+        f.getOptions().setMSLevels(levels);
   			f.load(in,exp);
 
 			if (!no_chromatograms)
@@ -486,9 +487,6 @@ class TOPPFileFilter
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-
-			//remove ms level first (might be a lot of spectra)
-			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MapType::SpectrumType>(levels, true)), exp.end());
 
       //remove forbidden precursor charges
       IntList rm_pc_charge = getIntList_("rm_pc_charge");
