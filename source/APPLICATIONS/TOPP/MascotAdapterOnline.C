@@ -156,9 +156,7 @@ class TOPPMascotAdapterOnline
       //-------------------------------------------------------------
 
 			PeakMap exp;
-      // remove 0's
-      fh.getOptions().setIntensityRange(DRange<1>(std::numeric_limits<DRange<1>::PositionType>::min(),std::numeric_limits<DRange<1>::PositionType>::max()));
-      // keep only Level2 and intensity>0
+      // keep only Level2
       fh.getOptions().addMSLevel(2);
 			fh.loadExperiment(in, exp, in_type, log_type_);
       writeDebug_(String("Spectra loaded: ") + exp.size(), 2);

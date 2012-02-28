@@ -687,8 +687,6 @@ class TOPPOMSSAAdapter
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap map;
-      fh.getOptions().setIntensityRange(DRange<1>(std::numeric_limits<DRange<1>::PositionType>::min(),std::numeric_limits<DRange<1>::PositionType>::max()));
-      // keep only Level2 and intensity>0
       fh.getOptions().addMSLevel(2);
       fh.loadExperiment(inputfile_name, map, in_type, log_type_);
 
