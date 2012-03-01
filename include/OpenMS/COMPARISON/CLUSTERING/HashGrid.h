@@ -25,6 +25,7 @@
 // $Authors: Bastian Blank $
 // --------------------------------------------------------------------------
 
+#include <cmath>
 #include <iterator>
 #include <limits>
 
@@ -63,7 +64,7 @@ namespace OpenMS
       /**
        * @brief Index for cells.
        */
-      typedef DPosition<2, UInt64> CellIndex;
+      typedef DPosition<2, Int64> CellIndex;
 
       /**
        * @brief Contents of a cell.
@@ -406,9 +407,9 @@ namespace OpenMS
         typename ClusterCenter::const_iterator lit = key.begin(), rit = cell_dimension.begin();
         for (; it != ret.end(); ++it, ++lit, ++rit)
         {
-          DoubleReal t = *lit / *rit;
-          if (t < 0 || t > std::numeric_limits<UInt64>::max()) throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-          *it = static_cast<UInt64> (t);
+          DoubleReal t = std::floor(*lit / *rit);
+          if (t < std::numeric_limits<Int64>::min() || t > std::numeric_limits<Int64>::max()) throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+          *it = static_cast<Int64> (t);
         }
         return ret;
       }
