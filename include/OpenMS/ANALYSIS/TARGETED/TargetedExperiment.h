@@ -361,6 +361,14 @@ namespace OpenMS
 		void addSourceFile(const SourceFile& source_file);
 		//@}
 
+    ///@name Sorting peaks
+    //@{
+    /**
+      @brief Lexicographically sorts the transitions by their product m/z.
+    */
+    void sortTransitionsByProductMZ();
+    //@}
+
 		protected:
 
 		std::vector<CV> cvs_;

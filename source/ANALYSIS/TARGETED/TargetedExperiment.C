@@ -265,6 +265,12 @@ namespace OpenMS
 	{
 		source_files_.push_back(source_file);
 	}
+
+	void TargetedExperiment::sortTransitionsByProductMZ()
+	{
+		std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess() );
+	}
+
 }
 
 

@@ -149,6 +149,22 @@ namespace OpenMS
 		bool operator != (const ReactionMonitoringTransition& rhs) const;
 		//@}
 
+ 		/**	@name	Comparator classes.
+				These classes implement binary predicates that can be used 
+				to compare two transitions with respect to their product ions.
+		*/
+		//@{
+		/// Comparator by Product ion MZ
+		struct ProductMZLess
+			: std::binary_function < ReactionMonitoringTransition, ReactionMonitoringTransition, bool >
+		{
+			inline bool operator () ( ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right ) const
+			{
+				return ( left.getProductMZ() < right.getProductMZ() );
+			}
+		};
+		//@}
+
 		protected:
 
 		void updateMembers_();
