@@ -201,6 +201,7 @@ class TOPPIDFilter
                             redundant identifications from multiple charge states or concurrent CID+HCD spectra. \
                             If you are aiming towards quantitation, you probably do *not* want to use this flag!");
 		registerFlag_("unique_per_protein","Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
+    registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the idXML.");
 
     //setSectionDescription("RT", "Filters peptides using meta-data annotated by RT predict. The criterion is always the p-value (for having a deviation between observed and predicted RT equal or bigger than allowed).");
 
@@ -240,6 +241,7 @@ class TOPPIDFilter
 
 		Int best_n_peptide_hits = getIntOption_("best:n_peptide_hits");
 		Int best_n_protein_hits = getIntOption_("best:n_protein_hits");
+
 		bool best_strict = getFlag_("best:strict");
 		UInt min_length = getIntOption_("min_length");
 
@@ -254,6 +256,7 @@ class TOPPIDFilter
     bool unique = getFlag_("unique");
 		bool unique_per_protein = getFlag_("unique_per_protein");
 
+    bool keep_unreferenced_protein_hits = getFlag_("keep_unreferenced_protein_hits");
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
@@ -429,8 +432,11 @@ class TOPPIDFilter
 					filter.filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification);
 				}
 
-				ProteinIdentification temp_identification = filtered_protein_identification;
-				filter.removeUnreferencedProteinHits(temp_identification, filtered_peptide_identifications, filtered_protein_identification);
+        if (!keep_unreferenced_protein_hits)
+        {
+          ProteinIdentification temp_identification = filtered_protein_identification;
+          filter.removeUnreferencedProteinHits(temp_identification, filtered_peptide_identifications, filtered_protein_identification);
+        }
 
 				if(!(filtered_protein_identification.getHits().empty()))
 				{
