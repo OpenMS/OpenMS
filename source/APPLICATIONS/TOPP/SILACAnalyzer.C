@@ -284,7 +284,7 @@ class TOPPSILACAnalyzer
     if (section == "sample")
     {
       defaults.setValue("labels", "[Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'. If left empty the tool identifies singlets, i.e. acts as peptide feature finder.");
-      defaults.setValue("charge", "2:3", "Range of charge states in the sample, i.e. min charge : max charge.");
+      defaults.setValue("charge", "2:4", "Range of charge states in the sample, i.e. min charge : max charge.");
       defaults.setValue("missed_cleavages", 0 , "Maximum number of missed cleavages.");
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("peaks_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", StringList::create("advanced"));
@@ -297,16 +297,16 @@ class TOPPSILACAnalyzer
 
     if (section == "algorithm")
     {
-      defaults.setValue("rt_threshold", 50.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
+      defaults.setValue("rt_threshold", 30.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
       defaults.setMinFloat("rt_threshold", 0.0);
       defaults.setValue("rt_min", 0.0, "Lower bound for the retention time [s].");
       defaults.setMinFloat("rt_min", 0.0);
-      defaults.setValue("intensity_cutoff", 10000.0, "Lower bound for the intensity of isotopic peaks in a SILAC pattern.");
+      defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks in a SILAC pattern.");
       defaults.setMinFloat("intensity_cutoff", 0.0);
-      defaults.setValue("intensity_correlation", 0.9, "Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.");
+      defaults.setValue("intensity_correlation", 0.7, "Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.");
       defaults.setMinFloat("intensity_correlation", 0.0);
       defaults.setMaxFloat("intensity_correlation", 1.0);
-      defaults.setValue("model_deviation", 6.0, "Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).");
+      defaults.setValue("model_deviation", 3.0, "Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).");
       defaults.setMinFloat("model_deviation", 1.0);
     }
 
