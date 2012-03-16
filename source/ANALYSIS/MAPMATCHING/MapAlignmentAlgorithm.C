@@ -66,6 +66,11 @@ namespace OpenMS
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 	}
 
+	void MapAlignmentAlgorithm::alignCompactFeatureMaps(vector<std::vector<Peak2D> >&, vector<TransformationDescription>&)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
+	}
+
 	void MapAlignmentAlgorithm::alignFeatureMaps(vector< FeatureMap<> >&, vector<TransformationDescription>&)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				

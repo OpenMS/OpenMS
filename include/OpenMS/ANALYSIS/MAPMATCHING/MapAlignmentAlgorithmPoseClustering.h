@@ -64,6 +64,9 @@ namespace OpenMS
 		virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
 
 		// Docu in base class
+		virtual void alignCompactFeatureMaps(std::vector<std::vector<Peak2D> >&, std::vector<TransformationDescription>&);
+
+		// Docu in base class
 		virtual void alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&);
 
 		// Docu in base class

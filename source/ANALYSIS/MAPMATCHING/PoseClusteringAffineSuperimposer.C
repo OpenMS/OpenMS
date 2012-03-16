@@ -139,7 +139,7 @@ namespace OpenMS
     // Optionally, we will write dumps of the hash table buckets.
     bool do_dump_buckets = false;
     String dump_buckets_basename;
-    if ( param_.getValue("dump_buckets") != "" )
+    if (param_.getValue("dump_buckets") != "")
     {
       do_dump_buckets = true;
       dump_buckets_basename = param_.getValue("dump_buckets");
@@ -149,7 +149,7 @@ namespace OpenMS
     // Even more optionally, we will write dumps of the hashed pairs.
     bool do_dump_pairs = false;
     String dump_pairs_basename;
-    if ( param_.getValue("dump_pairs") != "" )
+    if (param_.getValue("dump_pairs") != "")
     {
       do_dump_pairs = true;
       dump_pairs_basename = param_.getValue("dump_pairs");

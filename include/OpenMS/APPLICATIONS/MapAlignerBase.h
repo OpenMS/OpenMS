@@ -238,21 +238,30 @@ protected:
 		else if (in_type == FileTypes::FEATUREXML)
 		{
 			// load input
-			std::vector< FeatureMap<> > feat_maps(ins.size());
+			std::vector<std::vector<Peak2D> > feat_maps(ins.size());
 			FeatureXMLFile f;
 			// f.setLogType(log_type_); // TODO
 			progresslogger.startProgress(0, ins.size(), "loading input files");
 			for (Size i = 0; i < ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
-		    f.load(ins[i], feat_maps[i]);
+				FeatureMap<> feature_map;
+		    f.load(ins[i], feature_map);
+				feat_maps[i].resize(feature_map.size());
+
+				FeatureMap<>::const_iterator it = feature_map.begin();
+				std::vector<Peak2D>::iterator c_it = feat_maps[i].begin();
+				for (; it != feature_map.end(); ++it, ++c_it)
+				{
+          *c_it = reinterpret_cast<const Peak2D&>(*it);
+				}				
 			}
 			progresslogger.endProgress();
 
 			// try to align
 			try
 			{
-				alignment->alignFeatureMaps(feat_maps, transformations);
+				alignment->alignCompactFeatureMaps(feat_maps, transformations);
 			}
 			catch (Exception::NotImplemented&)
 			{
@@ -263,18 +272,23 @@ protected:
 			{
 				alignment->fitModel(model_type, model_params, transformations);
 			}
-			alignment->transformFeatureMaps(feat_maps, transformations);
+			// alignment->transformFeatureMaps(feat_maps, transformations);
 
 			// write output
 			progresslogger.startProgress(0, outs.size(), "writing output files");
 			for (Size i = 0; i < outs.size(); ++i)
 			{
 				progresslogger.setProgress(i);
+
+				FeatureMap<> feature_map;
+		    f.load(ins[i], feature_map);
+
+				alignment->transformSingleFeatureMap(feature_map, transformations[i]);
 				
 				//annotate output with data processing info
-				addDataProcessing_(feat_maps[i], getProcessingInfo_(DataProcessing::ALIGNMENT));
+				addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::ALIGNMENT));
 
-		    f.store(outs[i], feat_maps[i]);
+		    f.store(outs[i], feature_map);
 			}
 			progresslogger.endProgress();
 		}

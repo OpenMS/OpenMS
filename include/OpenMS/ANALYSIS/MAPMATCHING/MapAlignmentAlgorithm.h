@@ -67,6 +67,13 @@ namespace OpenMS
 		virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
 
 		/**
+		@brief Aligns vectors of 2D peaks (memory efficient version of FeatureMap)
+
+		@exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
+		*/
+		virtual void alignCompactFeatureMaps(std::vector< std::vector<Peak2D> >&, std::vector<TransformationDescription>&);
+
+		/**
 		@brief Aligns feature maps
 
 		@exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps

@@ -55,7 +55,8 @@ namespace OpenMS
 
    @ingroup MapAlignment
    */
-  class OPENMS_DLLAPI PoseClusteringAffineSuperimposer : public BaseSuperimposer
+  class OPENMS_DLLAPI PoseClusteringAffineSuperimposer 
+		: public BaseSuperimposer
   {
   public:
 

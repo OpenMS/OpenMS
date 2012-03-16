@@ -427,6 +427,41 @@ namespace OpenMS
 				output_map.updateRanges();
 			}
 
+			/**
+				@brief Convert a vector of 2D Peaks (Peak2D) into a ConsensusMap.
+
+				Only the @p n most intense elements are copied.
+
+				Note: a new unique ID is generated for the consensus map.
+
+				@param input_map_index The index of the input map.
+				@param input_map The input map to be converted.
+				@param output_map The resulting ConsensusMap.
+				@param n The maximum number of elements to be copied.
+			*/
+			static void convert(UInt64 const input_map_index, std::vector<Peak2D>& input_map, ConsensusMap& output_map, Size n = -1)
+			{
+				// Clear the map and assign new ID.
+        output_map.setUniqueId();
+				output_map.clear(true);
+
+				// Determine the maximum size of the map and resize the output map accordingly.
+				if (n > input_map.size())
+				{
+					n = input_map.size();
+				}
+				output_map.reserve(n);
+
+				std::partial_sort(input_map.begin(), input_map.begin() + n, 
+													input_map.end(), reverseComparator(Peak2D::IntensityLess()));
+				for (Size element_index = 0; element_index < n; ++element_index)
+				{
+					output_map.push_back(ConsensusFeature(input_map_index, input_map[element_index], element_index));
+				}
+				output_map.getFileDescriptions()[input_map_index].size = n;
+				output_map.updateRanges();
+			}
+
       /**
 				@brief Convert a ConsensusMap to a FeatureMap (of any feature type).
 

@@ -63,7 +63,8 @@ namespace OpenMS
 		reference_file_ = reference_file;
 	}
 
-	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps(vector< MSExperiment<> >& maps, vector<TransformationDescription>& transformations)
+	void MapAlignmentAlgorithmPoseClustering::alignPeakMaps
+		(vector< MSExperiment<> >& maps, vector<TransformationDescription>& transformations)
 	{
 		// prepare transformations for output
 		transformations.clear();
@@ -104,9 +105,9 @@ namespace OpenMS
 
 
 	template <typename MapType>
-	void MapAlignmentAlgorithmPoseClustering::computeTransformations_(
-		vector<MapType>& maps, vector<TransformationDescription>& transformations,
-		Size reference_index, Size max_num_peaks_considered)
+	void MapAlignmentAlgorithmPoseClustering::computeTransformations_
+		(vector<MapType>& maps, vector<TransformationDescription>& transformations,
+		 Size reference_index, Size max_num_peaks_considered)
 	{
 		startProgress(0, 10 * maps.size(), "aligning input maps");
 
@@ -204,7 +205,8 @@ namespace OpenMS
 	}
 
 
-	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps(vector< FeatureMap<> >& maps, vector<TransformationDescription>& transformations)
+	void MapAlignmentAlgorithmPoseClustering::alignFeatureMaps
+		(vector< FeatureMap<> >& maps, vector<TransformationDescription>& transformations)
 	{
 		// prepare transformations for output
 		transformations.clear();
@@ -219,6 +221,48 @@ namespace OpenMS
 			}
 			maps.resize(maps.size() + 1);
 			FeatureXMLFile().load(reference_file_, maps.back());
+			reference_index = maps.size() - 1;
+		}
+    else if (reference_index_ == 0) // no reference given
+    {
+			// use map with highest number of features as reference:
+      Size max_count = 0;
+      for (Size m = 0; m < maps.size(); ++m)
+      {
+        if (maps[m].size() > max_count)
+        {
+          max_count = maps[m].size();
+          reference_index = m;
+        }
+      }
+    }
+
+		computeTransformations_(maps, transformations, reference_index);
+	}
+
+	void MapAlignmentAlgorithmPoseClustering::alignCompactFeatureMaps
+		(std::vector<std::vector<Peak2D> >& maps, std::vector<TransformationDescription>& transformations)
+	{
+		// prepare transformations for output
+		transformations.clear();
+
+		// reference map:
+		Size reference_index = reference_index_ - 1;
+		if (!reference_file_.empty())
+		{
+			if (FileHandler::getType(reference_file_) != FileTypes::FEATUREXML)
+			{
+				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "reference file must be of type featureXML in this case (same as input)");
+			}
+			maps.resize(maps.size() + 1);
+			FeatureMap<> feature_map;
+			FeatureXMLFile().load(reference_file_, feature_map);
+      FeatureMap<>::const_iterator it = feature_map.begin();
+			std::vector<Peak2D>::iterator c_it = maps.back().begin();
+      for (; it != feature_map.end(); ++it, ++c_it)
+      {
+        *c_it = reinterpret_cast<const Peak2D&>(*it);
+			}
 			reference_index = maps.size() - 1;
 		}
     else if (reference_index_ == 0) // no reference given
