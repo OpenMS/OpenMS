@@ -40,6 +40,7 @@ namespace OpenMS
     : BaseLabeler()
 	{
 		setName("ICPLLabeler");
+    channel_description_ = "ICPL labeling on MS1 level of lysines and n-term (on protein or peptide level) with either two or three channels.";
 
 		//defaults for RT-Fix and protein-labeling
 		defaults_.setValue("ICPL_fixed_rtshift", 0.0, "Fixed retention time shift between labeled pairs. If set to 0.0 only the retention times, computed by the RT model step are used.");

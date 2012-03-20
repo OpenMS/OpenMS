@@ -41,7 +41,9 @@ namespace OpenMS
     : BaseLabeler()
   {
     setName("O18Labeler");
-    defaults_.setValue("labeling_efficiency", 1.0, "Describes the distribution of the labeled peptide over the different states (unlabeled, mono- and dilabeled)");
+    channel_description_ = "18O labeling on MS1 level with 2 channels, requiring trypsin digestion.";
+
+    defaults_.setValue("labeling_efficiency", 1.0, "Describes the distribution of the labeled peptide over the different states (unlabeled, mono- and di-labeled)");
     defaults_.setMinFloat("labeling_efficiency", 0.0);
     defaults_.setMaxFloat("labeling_efficiency", 1.0);
     defaultsToParam_();
@@ -122,7 +124,7 @@ namespace OpenMS
 
           SimIntensityType total_intensity = (*lf_iter).getIntensity();
 
-          // dilabled
+          // di-labled
           addModificationToPeptideHit_(b2,"UniMod:193");
           b2.setIntensity(total_intensity * labeling_efficiency  * labeling_efficiency);
 
@@ -143,7 +145,7 @@ namespace OpenMS
           // generate consensus feature
           ConsensusFeature cf;
           cf.setUniqueId();
-          // add mono and &dilabeled variant to ConsensusFeature
+          // add mono & di-labeled variant to ConsensusFeature
           cf.insert(0, b1);
           cf.insert(0, b2);
 
@@ -162,7 +164,7 @@ namespace OpenMS
         {
           // generate labeled feature
           // labeling_efficiency is 100% so we transform the complete
-          // feature in a dilabeled feature
+          // feature in a di-labeled feature
           addModificationToPeptideHit_(*lf_iter, "UniMod:193");
           (*lf_iter).ensureUniqueId();
           final_feature_map.push_back(*lf_iter);

@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche$
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_SIMULATION_LABELING_BASELABELER_H
@@ -53,9 +53,7 @@ namespace OpenMS
     BaseLabeler();
 
     /// destructor
-    virtual ~BaseLabeler()
-    {
-    }
+    virtual ~BaseLabeler();
 
     /// register all derived classes here (implemented in file BaseLabeler_impl.h)
     static void registerChildren();    
@@ -65,15 +63,15 @@ namespace OpenMS
 
       Re-implement if you derive a class and have to incorporate sub-algorithm default parameters.
     */
-    virtual Param getDefaultParameters() const
-    {
-      return this->defaults_;
-    }
+    virtual Param getDefaultParameters() const;
 
-    virtual void setRnd(const SimRandomNumberGenerator& rng)
-    {
-      rng_ = &rng;
-    }
+    /**
+      @brief Set the random number generator
+
+      Internally a pointer to the RNG is stored.
+
+    */
+    virtual void setRnd(const SimRandomNumberGenerator& rng);
 
     /**
       @brief Checks the (simulation) params passed if they are consistent with
@@ -115,9 +113,17 @@ namespace OpenMS
     ConsensusMap& getConsensus();
 
     /**
-      @brief to ensure standardized metavalue names across labelers for channel intensity
+      @brief Get short description of the labeler (#channels)
 
-      Use this function to get the name of the metavalue which holds intensity for channel @p channel_index
+      Used to add a short description to the labeling section within the INI file. 
+
+    */
+    const String& getDescription() const;
+
+    /**
+      @brief to ensure standardized meta value names across labelers for channel intensity
+
+      Use this function to get the name of the meta value which holds intensity for channel @p channel_index
 
     */
     String getChannelIntensityName(const Size channel_index) const;
@@ -144,10 +150,6 @@ namespace OpenMS
     */
     void mergeProteinAccessions_(Feature& target, const Feature& source) const;
 
-    ConsensusMap consensus_;
-
-    SimRandomNumberGenerator const * rng_;
-
     /**
       @brief Based on the stored consensus recompute the associations for the passed features, assuming
              that the features where derived from the features stored in the consensus.
@@ -156,6 +158,14 @@ namespace OpenMS
                                 consensus
     */
     void recomputeConsensus_(const FeatureMapSim & simulated_features);
+
+
+    ConsensusMap consensus_;
+
+    SimRandomNumberGenerator const * rng_;
+
+    String channel_description_;
+
   };
 } // namespace OpenMS
 

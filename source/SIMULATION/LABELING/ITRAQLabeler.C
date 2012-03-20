@@ -44,6 +44,8 @@ namespace OpenMS
 
   {
     setName("ITRAQLabeler");
+    channel_description_ = "iTRAQ labeling on MS2 level with up to 4 (4plex) or 8 (8plex) channels.";
+
 
 		// this needs to come first!
 		isotope_corrections_.resize(2);
