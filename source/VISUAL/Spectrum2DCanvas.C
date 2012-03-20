@@ -353,7 +353,7 @@ namespace OpenMS
         vector<Real> mz_spacing;
         for (Size i = 0; i != n_scans; ++i)
         {
-          // skipp non MS1 and empty spectra
+          // skip non MS1 and empty spectra
           Size ms_level = peak_map[i].getMSLevel() ;
           Size n_peaks = peak_map[i].size();
           if (ms_level != 1 || n_peaks < 2)
@@ -375,7 +375,7 @@ namespace OpenMS
           vector<Real> rts;
           for(Size i = 0; i != n_scans; ++i)
           {
-            // skipp non MS1 and empty spectra
+            // skip non MS1 and empty spectra
             Size ms_level = peak_map[i].getMSLevel() ;
             Size n_peaks = peak_map[i].size();
             if (ms_level != 1 || n_peaks == 0)
