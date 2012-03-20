@@ -481,7 +481,7 @@ namespace OpenMS
 		for (Map<String, ResidueModification>::ConstIterator it = all_mods.begin(); it != all_mods.end(); ++it)
 		{
 
-			// check whether a unimod definition alread exists, then simply add synonyms to it
+			// check whether a unimod definition already exists, then simply add synonyms to it
 			if (it->second.getUniModAccession() != "")
 			{
 				//cerr << "Found UniMod PSI-MOD mapping: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
