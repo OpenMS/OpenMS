@@ -112,19 +112,19 @@ class TOPPMSSimulator
     void registerOptionsAndFlags_()
     {
       // I/O settings
-      registerInputFileList_("in","<files>",StringList::create(""),"Input protein sequences in FASTA format",true,false);
+      registerInputFileList_("in","<files>",StringList::create(""),"Input protein sequences in FASTA format", true, false);
       setValidFormats_("in",StringList::create("fasta"));
-      registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format",false);
+      registerOutputFile_("out","<file>","","output (simulated MS map) in mzML format", false);
       setValidFormats_("out", StringList::create("mzML"));
-      registerOutputFile_("out_pm","<file>","","output (simulated MS map) in mzML format (picked GT)",false);
+      registerOutputFile_("out_pm","<file>","","output (simulated MS map) in mzML format (picked GT)", false);
       setValidFormats_("out_pm", StringList::create("mzML"));
-      registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format",false);
+      registerOutputFile_("out_fm","<file>","","output (simulated MS map) in featureXML format", false);
       setValidFormats_("out_fm", StringList::create("featureXML"));
-      registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)",false);
+      registerOutputFile_("out_cm","<file>","","output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)", false);
       setValidFormats_("out_cm", StringList::create("consensusXML"));
-      registerOutputFile_("out_lcm","<file>","","output (simulated MS map) in consensusXML format (grouping labeled variants)",false);
+      registerOutputFile_("out_lcm","<file>","","output (simulated MS map) in consensusXML format (grouping labeled variants)", false);
       setValidFormats_("out_lcm", StringList::create("consensusXML"));
-      registerOutputFile_("out_cntm","<file>","","output (simulated MS map) in featureXML format (contaminants)",false);
+      registerOutputFile_("out_cntm","<file>","","output (simulated MS map) in featureXML format (contaminants)", false);
       setValidFormats_("out_cntm", StringList::create("featureXML"));
       
 			addEmptyLine_();
@@ -153,9 +153,9 @@ class TOPPMSSimulator
       // set parameters for the different types of random number generators
       // we support one for the technical and one for the biological variability
       tmp.setValue("RandomNumberGenerators:biological", "random", "Controls the 'biological' randomness of the generated data (e.g. systematic effects like deviations in RT). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
-      tmp.setValidStrings("RandomNumberGenerators:biological",StringList::create("reproducible,random"));
+      tmp.setValidStrings("RandomNumberGenerators:biological", StringList::create("reproducible,random"));
       tmp.setValue("RandomNumberGenerators:technical", "random", "Controls the 'technical' randomness of the generated data (e.g. noise in the raw signal). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
-      tmp.setValidStrings("RandomNumberGenerators:technical",StringList::create("reproducible,random"));
+      tmp.setValidStrings("RandomNumberGenerators:technical", StringList::create("reproducible,random"));
       tmp.setSectionDescription("RandomNumberGenerators", "Parameters for generating the random aspects (e.g. noise) in the simulated data. The generation is separated into two parts, the technical part, like noise in the raw signal, and the biological part, like systematic deviations in the predicted retention times.");
       return tmp;
     }
@@ -244,17 +244,12 @@ class TOPPMSSimulator
         return MISSING_PARAMETERS;
       }
 
-      StringList input_files = getStringList_("in");
-			String outputfile_name = getStringOption_("out");	
-
-
-
-
       MSSim ms_simulation;
       ms_simulation.setParameters(getParam_().copy("algorithm:MSSim:",true));
 			
       // read proteins 
       SampleChannels channels;
+      StringList input_files = getStringList_("in");
       for(Size i = 0 ; i < input_files.size() ; ++i)
       {
         SampleProteins proteins;
@@ -296,8 +291,12 @@ class TOPPMSSimulator
       w.stop();
 			writeLog_(String("Simulation took ") + String(w.getClockTime()) + String(" seconds"));   	  	
       
-      writeLog_(String("Storing simulated map in: ") + outputfile_name);
-      MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
+      String outputfile_name = getStringOption_("out");	
+      if (outputfile_name != "")
+      {
+        writeLog_(String("Storing simulated map in: ") + outputfile_name);
+        MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
+      }
       
       String pxml_out = getStringOption_("out_pm");
 			if (pxml_out != "")
