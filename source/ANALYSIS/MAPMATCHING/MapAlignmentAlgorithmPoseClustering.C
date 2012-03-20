@@ -254,14 +254,14 @@ namespace OpenMS
 			{
 				throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "reference file must be of type featureXML in this case (same as input)");
 			}
-			maps.resize(maps.size() + 1);
 			FeatureMap<> feature_map;
 			FeatureXMLFile().load(reference_file_, feature_map);
+      maps.resize(maps.size() + 1);
+      maps.back().reserve(feature_map.size());
       FeatureMap<>::const_iterator it = feature_map.begin();
-			std::vector<Peak2D>::iterator c_it = maps.back().begin();
-      for (; it != feature_map.end(); ++it, ++c_it)
+      for (; it != feature_map.end(); ++it)
       {
-        *c_it = reinterpret_cast<const Peak2D&>(*it);
+        maps.back().push_back(reinterpret_cast<const Peak2D&>(*it));
 			}
 			reference_index = maps.size() - 1;
 		}
