@@ -195,11 +195,6 @@ namespace OpenMS
 		Param edit_param(param_);
 		
 		QVector<String> hidden_entries;
-		// remove type (should not be edited)
-		if (edit_param.exists("type"))
-		{
-			hidden_entries.push_back("type");
-		}
 		// remove entries that are handled by edges already, user should not see them
 		QVector<IOInfo> input_infos;
 		getInputParameters(input_infos);
