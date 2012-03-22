@@ -6,8 +6,12 @@
 		<processingAction name="File format conversion" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
-	<mapList count="1">
-		<map id="0" name="FileConverter_16_input.edta" label="" size="6">
+	<mapList count="3">
+		<map id="0" name="FileConverter_16_input.edta" label="EDTA_Map 0" size="6">
+		</map>
+		<map id="1" name="FileConverter_16_input.edta" label="EDTA_Map 1" size="6">
+		</map>
+		<map id="2" name="FileConverter_16_input.edta" label="EDTA_Map 2" size="6">
 		</map>
 	</mapList>
 	<consensusElementList>

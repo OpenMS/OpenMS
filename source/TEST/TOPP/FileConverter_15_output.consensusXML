@@ -7,7 +7,7 @@
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<mapList count="1">
-		<map id="0" name="FileConverter_10_input.edta" label="" size="6">
+		<map id="0" name="FileConverter_10_input.edta" label="EDTA_Map 0" size="6">
 		</map>
 	</mapList>
 	<consensusElementList>

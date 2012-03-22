@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/EDTAFile.h>
+#include <cmath>
 
 using namespace std;
 
@@ -75,8 +76,7 @@ namespace OpenMS
 		TextFile input(filename);
 		
     // reset map
-    ConsensusMap cmap;
-    consensus_map = cmap;
+    consensus_map = ConsensusMap();
     consensus_map.setUniqueId();
 
     char separator = ' ';
@@ -244,6 +244,19 @@ namespace OpenMS
       //insert feature to map
       consensus_map.push_back(cf);
 		}
+    
+    // register FileDescriptions
+    ConsensusMap::FileDescription fd;
+    fd.filename = filename;
+    fd.size = consensus_map.size();
+    Size maps = std::max(input_features-1, Size(1)); // its either a simple feature or a consensus map
+                                               // (in this case the 'input_features' includes the centroid, which we do not count)
+    for (Size i = 0; i < maps; ++i)
+    {
+      fd.label = String("EDTA_Map ") + String(i);
+      consensus_map.getFileDescriptions()[i] = fd;
+    }
+
   }
 
   /**
