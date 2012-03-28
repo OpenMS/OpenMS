@@ -94,13 +94,13 @@ namespace OpenMS
       void openFileDialog();
 			/// shows the dialog for opening example files
 			void openExampleDialog();
-      /// shows the dialog for creating a new file
-      void newPipeline();
+      /// shows the dialog for creating a new file (pass IDINITIALUNTITLED as @p id if its the first call)
+      void newPipeline(const int id = -1);
       /// shows the dialog for including another workflow in the currently opened one
       void includePipeline();
 			/// shows the dialog for saving the current file and updates the current tab caption
       void saveCurrentPipelineAs();
-      /// saves the pipeline (determined by qt's sender mechanism)
+      /// saves the pipeline (determined by Qt's sender mechanism)
       void savePipeline();
       /// exports the current pipeline as image
       void exportAsImage();
@@ -174,8 +174,8 @@ namespace OpenMS
 		  
 		  /// enable/disable menu entries depending on the current state
     	void updateMenu();
-    	/// Shows the widget as window in the workspace
-    	void showAsWindow_(TOPPASWidget* sw, const String& caption);
+    	/// Shows the widget as window in the workspace (the special_id is only used for the first untitled widget (to be able to auto-close it later)
+    	void showAsWindow_(TOPPASWidget* sw, const String& caption, const int special_id = -1);
 			/// Inserts a new TOPP tool in the current window at (x,y)
 			void insertNewVertex_(double x, double y, QTreeWidgetItem* item = 0);
 			/// Inserts the @p item in the middle of the current window
@@ -264,8 +264,12 @@ namespace OpenMS
 			/// The clipboard
       TOPPASScene* clipboard_scene_;
 
+
     public:
-      /// @name common functions unsed in TOPPAS and TOPPView
+      /// use this for the first call to newPipeline(), to ensure that the first empty (and unmodified) workspace is closed iff existing workflows are loaded
+      static int const IDINITIALUNTITLED = 1000;
+
+      /// @name common functions used in TOPPAS and TOPPView
       //@{
       /// Creates and fills a tree widget with all available tools
       static TOPPASTreeView* createTOPPToolsTreeWidget(QWidget* parent_widget = 0);

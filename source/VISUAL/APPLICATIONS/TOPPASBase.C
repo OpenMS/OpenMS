@@ -478,72 +478,76 @@ namespace OpenMS
 
   void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
 	{
-		if (file_name != "")
+		if (file_name == "") return;
+    if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
 		{
-      if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
+			std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
+			return;
+		}
+		
+		TOPPASScene* scene = 0;
+		if (in_new_window)
+		{
+      if (activeWindow_())
+      {
+        TOPPASWidget* uninitialized_window = window_(IDINITIALUNTITLED);
+        if (uninitialized_window && !uninitialized_window->getScene()->wasChanged())
+            closeByTab(IDINITIALUNTITLED);
+      }
+			TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
+			scene = tw->getScene();
+      scene->load(file_name); // first load WF, including description etc
+      showAsWindow_(tw, File::basename(file_name)); // show it
+    }
+		else
+		{
+			if (!activeWindow_())
 			{
-				std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
 				return;
 			}
-		
-			TOPPASScene* scene = 0;
-			if (in_new_window)
-			{
-				TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
-				scene = tw->getScene();
-        scene->load(file_name); // first load WF, including description etc
-        showAsWindow_(tw, File::basename(file_name)); // show it
-      }
-			else
-			{
-				if (!activeWindow_())
-				{
-					return;
-				}
-				TOPPASScene* tmp_scene = new TOPPASScene(0, this->tmp_path_.toQString(), false);
-				tmp_scene->load(file_name);
-				scene = activeWindow_()->getScene();
-				scene->include(tmp_scene);
-				delete tmp_scene;
-			}
+			TOPPASScene* tmp_scene = new TOPPASScene(0, this->tmp_path_.toQString(), false);
+			tmp_scene->load(file_name);
+			scene = activeWindow_()->getScene();
+			scene->include(tmp_scene);
+			delete tmp_scene;
+		}
 			
-			//connect signals/slots for log messages
-			for (TOPPASScene::VertexIterator it = scene->verticesBegin(); it != scene->verticesEnd(); ++it)
+		//connect signals/slots for log messages
+		for (TOPPASScene::VertexIterator it = scene->verticesBegin(); it != scene->verticesEnd(); ++it)
+		{
+			TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
+			if (tv)
 			{
-				TOPPASToolVertex* tv = qobject_cast<TOPPASToolVertex*>(*it);
-				if (tv)
-				{
-					connect (tv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
-					connect (tv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
-					connect (tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
-					connect (tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
-          connect (tv, SIGNAL(toolFailed(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
-					// already done in ToppasScene:
-					//connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
-					continue;
-				}
+				connect (tv, SIGNAL(toolStarted()), this, SLOT(toolStarted()));
+				connect (tv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
+				connect (tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
+				connect (tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
+        connect (tv, SIGNAL(toolFailed(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+				// already done in ToppasScene:
+				//connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+				continue;
+			}
 
-        TOPPASMergerVertex* tmv = qobject_cast<TOPPASMergerVertex*>(*it);
-				if (tmv)
-				{
-          connect (tmv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
-          continue;
-        }
+      TOPPASMergerVertex* tmv = qobject_cast<TOPPASMergerVertex*>(*it);
+			if (tmv)
+			{
+        connect (tmv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
+        continue;
+      }
 
-				TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
-				if (oflv)
-				{
-					connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&))); 
-					continue;
-				}
+			TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
+			if (oflv)
+			{
+				connect (oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&))); 
+				continue;
 			}
 		}
 	}
 
-  void TOPPASBase::newPipeline()
+  void TOPPASBase::newPipeline(const int id)
   {
   	TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
-  	showAsWindow_(tw, "(Untitled)");
+  	showAsWindow_(tw, "(Untitled)", id);
   }
 	
   void TOPPASBase::savePipeline()
@@ -749,7 +753,7 @@ namespace OpenMS
 		savePreferences();
   }
 	
-	void TOPPASBase::showAsWindow_(TOPPASWidget* tw, const String& caption)
+	void TOPPASBase::showAsWindow_(TOPPASWidget* tw, const String& caption, const int special_id)
   {
   	ws_->addWindow(tw);
     connect(tw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
@@ -760,8 +764,11 @@ namespace OpenMS
 
 		//add tab with id
   	static int window_counter = 1337;
-    tw->setWindowId(window_counter);
     ++window_counter;
+
+    // use special_id if given (for first untitled tab), otherwise the running window_counter
+    int local_counter = special_id == -1 ? window_counter : special_id;
+    tw->setWindowId(local_counter);
 
     tab_bar_->addTab(caption.toQString(), tw->getWindowId());
 

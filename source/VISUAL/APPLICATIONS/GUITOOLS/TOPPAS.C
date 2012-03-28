@@ -180,12 +180,13 @@ int main( int argc, const char** argv )
  	  	mw->loadFiles((StringList)(param.getValue("misc")), splash_screen);
  	  }
 		else
-		{
-			mw->newPipeline();
+		{ // remember this new window as obsolete once a real workflow is loaded without this window being touched
+      // if this is not desired, simply call newPipeline() without arguments
+			mw->newPipeline(mw->IDINITIALUNTITLED);
 		}
 
 		// We are about to show the application. 
-		// Proper time to  remove the splashscreen, if at least 1.5 seconds have passed...
+		// Proper time to  remove the splash screen, if at least 1.5 seconds have passed...
 		while(stop_watch.getClockTime()<1.5) {/*wait*/};
 		stop_watch.stop();
 		splash_screen->close();
