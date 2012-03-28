@@ -127,7 +127,7 @@ namespace OpenMS
     RoundPackages pkg = tv->getOutputFiles();
     if (pkg.empty())
     {
-			std::cerr << "A problem occured while grabbing files from the parent tool. This is a bug, please report it!" << std::endl;
+			std::cerr << "A problem occurred while grabbing files from the parent tool. This is a bug, please report it!" << std::endl;
 			__DEBUG_END_METHOD__
 			return;
 		}
@@ -245,9 +245,17 @@ namespace OpenMS
     return QDir::cleanPath((dir.ensureLastChar('/') + getOutputDir()).toQString() );
   }
 
+  String TOPPASOutputFileListVertex::getName() const
+  {
+    return "OutputVertex";
+  }
+
 	String TOPPASOutputFileListVertex::getOutputDir() const
 	{
-    String dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_);
+    TOPPASEdge* e = *inEdgesBegin();
+    TOPPASVertex* tv = e->getSourceVertex();
+
+    String dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-" + tv->getName();
     return dir;
 	}
 	

@@ -70,6 +70,11 @@ namespace OpenMS
 		return *this;
 	}
 	
+  String TOPPASMergerVertex::getName() const
+  {
+    return "MergerVertex";
+  }
+
 	void TOPPASMergerVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
 	}
@@ -147,7 +152,7 @@ namespace OpenMS
 	{
 		//only mark as unreachable if all inputs are unreachable. otherwise the dead inputs will just be ignored.
 		bool some_input_reachable_ = false;
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getSourceVertex();
 			if (tv->isReachable())
@@ -204,8 +209,8 @@ namespace OpenMS
     round_counter_ = round_total_;
     finished_ = true;
     
-    // call all childs, proceed in pipeline
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+    // call all children, proceed in pipeline
+		for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getTargetVertex();
 			debugOut_(String("Starting child ") + tv->getTopoNr());

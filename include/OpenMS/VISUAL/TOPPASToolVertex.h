@@ -120,8 +120,8 @@ namespace OpenMS
 			/// Assignment operator
 			TOPPASToolVertex& operator= (const TOPPASToolVertex& rhs);
 			
-			/// Returns the name of the tool
-			const String& getName() const;
+      /// returns the name of the TOPP tool
+      virtual String getName() const;
 			/// Returns the type of the tool
 			const String& getType() const;
 			/// Fills @p input_infos with the required input file/list parameters together with their valid types.

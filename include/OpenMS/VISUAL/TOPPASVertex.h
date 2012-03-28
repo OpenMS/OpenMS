@@ -156,13 +156,13 @@ namespace OpenMS
 			/// Paints the item
 			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) = 0;
 			/// Returns begin() iterator of outgoing edges
-			EdgeIterator outEdgesBegin();
+			ConstEdgeIterator outEdgesBegin() const;
 			/// Returns end() iterator of outgoing edges
-			EdgeIterator outEdgesEnd();
+			ConstEdgeIterator outEdgesEnd() const;
 			/// Returns begin() iterator of incoming edges
-			EdgeIterator inEdgesBegin();
+			ConstEdgeIterator inEdgesBegin() const;
 			/// Returns end() iterator of incoming edges
-			EdgeIterator inEdgesEnd();
+			ConstEdgeIterator inEdgesEnd() const;
 			/// Returns the number of incoming edges
 			Size incomingEdgesCount();
 			/// Returns the number of outgoing edges
@@ -173,7 +173,7 @@ namespace OpenMS
 			void addOutEdge(TOPPASEdge* edge);
 			/// Removes an incoming edge
 			void removeInEdge(TOPPASEdge* edge);
-			/// Removes an outedge
+			/// Removes an outgoing edge
 			void removeOutEdge(TOPPASEdge* edge);
 			/// Returns the DFS color of this node
 			DFS_COLOR getDFSColor();
@@ -211,6 +211,9 @@ namespace OpenMS
       /// set status of recycling
       void setRecycling(const bool is_enabled);
       
+      // get the name of the vertex (to be overridden by derived classes)
+      virtual String getName() const = 0;
+
       /**
         @brief gets filenames for a certain output parameter (from this vertex), for a certain TOPPAS round
 

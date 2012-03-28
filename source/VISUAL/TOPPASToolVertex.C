@@ -198,7 +198,7 @@ namespace OpenMS
 		// remove entries that are handled by edges already, user should not see them
 		QVector<IOInfo> input_infos;
 		getInputParameters(input_infos);
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			int index = (*it)->getTargetInParam();
 			if (index < 0)
@@ -215,7 +215,7 @@ namespace OpenMS
 		
 		QVector<IOInfo> output_infos;
 		getOutputParameters(output_infos);
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			int index = (*it)->getSourceOutParam();
 			if (index < 0)
@@ -428,11 +428,11 @@ namespace OpenMS
 		return shape;
 	}
 	
-	const String& TOPPASToolVertex::getName() const
-	{
-		return name_;
-	}
-	
+  String TOPPASToolVertex::getName() const
+  {
+    return name_;
+  }
+
 	const String& TOPPASToolVertex::getType() const
 	{
 		return type_;
@@ -654,8 +654,8 @@ namespace OpenMS
 			
         if (!breakpoint_set_)
         {
-          // call all childs, proceed in pipeline
-          for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+          // call all children, proceed in pipeline
+          for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
           {
             TOPPASVertex* tv = (*it)->getTargetVertex();
             debugOut_(String("Starting child ") + tv->getTopoNr());
@@ -801,7 +801,7 @@ namespace OpenMS
       bool found(false);
       int param_index;
       TOPPASEdge* param_edge;
-			for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+			for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 			{
 				param_index = (*it)->getSourceOutParam();
 				if (i == param_index) // corresponding out edge found

@@ -63,6 +63,8 @@ namespace OpenMS
 			virtual ~TOPPASMergerVertex();
 			/// Assignment operator
 			TOPPASMergerVertex& operator= (const TOPPASMergerVertex& rhs);
+      /// returns "MergerVertex"
+      virtual String getName() const;
       /// check if upstream nodes are finished and call downstream nodes
       virtual void run();
 			/// Determines whether all inputs are ready (only a problem in mergers, when called from upstream)

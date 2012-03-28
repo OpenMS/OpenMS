@@ -80,6 +80,11 @@ namespace OpenMS
 		return *this;
 	}
 	
+  String TOPPASInputFileListVertex::getName() const
+  {
+    return "InputVertex";
+  }
+
 	void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
 	{
 		showFilesDialog();
@@ -198,7 +203,7 @@ namespace OpenMS
 
     //std::cerr << "#" << this->getTopoNr() << " set #rounds: " << round_total_ << "\n";
 
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getTargetVertex();
 			if (tv && !tv->isFinished()) // this tool might have already been called by another path, so do not call it again (as this will throw an error)

@@ -389,11 +389,11 @@ namespace OpenMS
 			if ((*it)->isSelected())
 			{
 				// also select all in and out edges (will be deleted below)
-				for (TOPPASVertex::EdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
+				for (TOPPASVertex::ConstEdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
 				{
 					(*e_it)->setSelected(true);
 				}
-				for (TOPPASVertex::EdgeIterator e_it = (*it)->outEdgesBegin(); e_it != (*it)->outEdgesEnd(); ++e_it)
+				for (TOPPASVertex::ConstEdgeIterator e_it = (*it)->outEdgesBegin(); e_it != (*it)->outEdgesEnd(); ++e_it)
 				{
 					(*e_it)->setSelected(true);
 				}
@@ -451,7 +451,7 @@ namespace OpenMS
 		}
 		
 		// does this edge already exist?
-		for (TOPPASVertex::EdgeIterator it = u->outEdgesBegin(); it != u->outEdgesEnd(); ++it)
+		for (TOPPASVertex::ConstEdgeIterator it = u->outEdgesBegin(); it != u->outEdgesEnd(); ++it)
 		{
 			if ((*it)->getTargetVertex() == v)
 			{
@@ -505,7 +505,7 @@ namespace OpenMS
 	bool TOPPASScene::dfsVisit_(TOPPASVertex* vertex)
 	{
 		vertex->setDFSColor(TOPPASVertex::DFS_GRAY);
-		for (TOPPASVertex::EdgeIterator it = vertex->outEdgesBegin(); it != vertex->outEdgesEnd(); ++it)
+		for (TOPPASVertex::ConstEdgeIterator it = vertex->outEdgesBegin(); it != vertex->outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* target = (*it)->getTargetVertex();
 			if (target->getDFSColor() == TOPPASVertex::DFS_WHITE)
@@ -531,7 +531,7 @@ namespace OpenMS
   {
     //reset all nodes
     vertex->reset(true);
-		for (TOPPASVertex::EdgeIterator it = vertex->outEdgesBegin(); it != vertex->outEdgesEnd(); ++it)
+		for (TOPPASVertex::ConstEdgeIterator it = vertex->outEdgesBegin(); it != vertex->outEdgesEnd(); ++it)
 		{
       TOPPASVertex* target = (*it)->getTargetVertex();
       this->resetDownstream(target);
@@ -1333,7 +1333,7 @@ namespace OpenMS
 				}
 				some_vertex_not_finished = true;
 				bool has_predecessors = false;
-				for (TOPPASVertex::EdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
+				for (TOPPASVertex::ConstEdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
 				{
 					TOPPASVertex* v = (*e_it)->getSourceVertex();
 					if (!(v->isTopoSortMarked()))
@@ -1398,11 +1398,11 @@ namespace OpenMS
 			{
 				continue;
 			}
-			for (TOPPASVertex::EdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
+			for (TOPPASVertex::ConstEdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
 			{
 				(*e_it)->prepareResize();
 			}
-			for (TOPPASVertex::EdgeIterator e_it = (*it)->outEdgesBegin(); e_it != (*it)->outEdgesEnd(); ++e_it)
+			for (TOPPASVertex::ConstEdgeIterator e_it = (*it)->outEdgesBegin(); e_it != (*it)->outEdgesEnd(); ++e_it)
 			{
 				(*e_it)->prepareResize();
 			}
@@ -1592,7 +1592,7 @@ namespace OpenMS
 				{
 					found_tool = true;
 					// all predecessor nodes finished successfully? if not, disable resuming
-					for (EdgeIterator it = tv->inEdgesBegin(); it != tv->inEdgesEnd(); ++it)
+					for (ConstEdgeIterator it = tv->inEdgesBegin(); it != tv->inEdgesEnd(); ++it)
 					{
 						TOPPASToolVertex* pred_ttv = qobject_cast<TOPPASToolVertex*>((*it)->getSourceVertex());
 						if (pred_ttv && (pred_ttv->getProgressColor() != Qt::green || !pred_ttv->isFinished()))

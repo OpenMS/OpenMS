@@ -53,7 +53,9 @@ namespace OpenMS
 			virtual ~TOPPASOutputFileListVertex();
 			/// Assignment operator
 			TOPPASOutputFileListVertex& operator= (const TOPPASOutputFileListVertex& rhs);
-			// documented in base class
+      /// returns "OutputVertex"
+      virtual String getName() const;
+      // documented in base class
 			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 			// documented in base class
 			virtual QRectF boundingRect() const;

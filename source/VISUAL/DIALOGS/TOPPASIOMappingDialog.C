@@ -161,7 +161,7 @@ namespace OpenMS
 				param_counter++;
 				// check if parameter occupied by another edge already
 				bool occupied = false;
-				for (TOPPASVertex::EdgeIterator it = target->inEdgesBegin(); it != target->inEdgesEnd(); ++it)
+				for (TOPPASVertex::ConstEdgeIterator it = target->inEdgesBegin(); it != target->inEdgesEnd(); ++it)
 				{
 					int param_index = (*it)->getTargetInParam();
 					if (*it != edge_ && param_index >= 0)

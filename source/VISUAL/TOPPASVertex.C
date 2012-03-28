@@ -114,7 +114,7 @@ namespace OpenMS
   
   bool TOPPASVertex::isUpstreamReady()
   {
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getSourceVertex();
 			if (!tv->isFinished())
@@ -144,7 +144,7 @@ namespace OpenMS
     // -- determine number of rounds from incoming edges
     int round_common = -1; // number of rounds common to all
     int no_recycle_count = 0; // number of edges that do NOT do recycling (there needs to be at least one)
-    for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{ // all incoming edges should have the same number of rounds (or should be set to 'recycle') !
 			TOPPASVertex* tv = (*it)->getSourceVertex();
       if (tv->allow_output_recycling_) continue;
@@ -169,7 +169,7 @@ namespace OpenMS
     }
 
     // -- check if rounds from recyling nodes are an integer part of total rounds, i.e. total_rounds = X * node_rounds, X from N+
-    for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{ // look at all all recycling edges 
 			TOPPASVertex* tv = (*it)->getSourceVertex();
       if (!tv->allow_output_recycling_) continue;
@@ -191,7 +191,7 @@ namespace OpenMS
     pkg.clear();
     pkg.resize(round_common);
 
-    for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{ // all incoming edges should have the same number of rounds!
 			TOPPASVertex* tv = (*it)->getSourceVertex();
 
@@ -310,22 +310,22 @@ namespace OpenMS
 		emit hoveringEdgePosChanged(mapToScene(pos));
 	}
 	
-	TOPPASVertex::EdgeIterator TOPPASVertex::outEdgesBegin()
+	TOPPASVertex::ConstEdgeIterator TOPPASVertex::outEdgesBegin() const
 	{
 		return out_edges_.begin();
 	}
 	
-	TOPPASVertex::EdgeIterator TOPPASVertex::outEdgesEnd()
+	TOPPASVertex::ConstEdgeIterator TOPPASVertex::outEdgesEnd() const
 	{
 		return out_edges_.end();
 	}
 	
-	TOPPASVertex::EdgeIterator TOPPASVertex::inEdgesBegin()
+	TOPPASVertex::ConstEdgeIterator TOPPASVertex::inEdgesBegin() const
 	{
 		return in_edges_.begin();
 	}
 	
-	TOPPASVertex::EdgeIterator TOPPASVertex::inEdgesEnd()
+	TOPPASVertex::ConstEdgeIterator TOPPASVertex::inEdgesEnd() const
 	{
 		return in_edges_.end();
 	}
@@ -464,7 +464,7 @@ namespace OpenMS
 	{
 		__DEBUG_BEGIN_METHOD__
 		
-		for (EdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+		for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
 		{
 		  TOPPASVertex* tv = qobject_cast<TOPPASVertex*>((*it)->getSourceVertex());
 		  if (tv && !tv->isFinished())
@@ -481,7 +481,7 @@ namespace OpenMS
 	void TOPPASVertex::markUnreachable()
 	{
 		reachable_ = false;
-		for (EdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+		for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
 		{
 			TOPPASVertex* tv = (*it)->getTargetVertex();
 			if (tv->reachable_)

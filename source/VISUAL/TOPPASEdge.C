@@ -475,7 +475,7 @@ namespace OpenMS
 		if (source_merger)
 		{
 			//check compatibility of source with all target nodes of merger
-			for (TOPPASVertex::EdgeIterator e_it = source_merger->inEdgesBegin(); e_it != source_merger->inEdgesEnd(); ++e_it)
+			for (TOPPASVertex::ConstEdgeIterator e_it = source_merger->inEdgesBegin(); e_it != source_merger->inEdgesEnd(); ++e_it)
 			{
 				TOPPASEdge* merger_in_edge = *e_it;
 				TOPPASToolVertex* merger_in_tool = qobject_cast<TOPPASToolVertex*>(merger_in_edge->getSourceVertex());
@@ -513,7 +513,7 @@ namespace OpenMS
 		if (target_merger)
 		{
 			//check compatibility of source with all target nodes of merger
-			for (TOPPASVertex::EdgeIterator e_it = target_merger->outEdgesBegin(); e_it != target_merger->outEdgesEnd(); ++e_it)
+			for (TOPPASVertex::ConstEdgeIterator e_it = target_merger->outEdgesBegin(); e_it != target_merger->outEdgesEnd(); ++e_it)
 			{
 				TOPPASEdge* merger_out_edge = *e_it;
 				TOPPASToolVertex* merger_out_tool = qobject_cast<TOPPASToolVertex*>(merger_out_edge->getTargetVertex());
