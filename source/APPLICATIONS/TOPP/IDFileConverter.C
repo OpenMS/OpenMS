@@ -67,9 +67,11 @@ using namespace std;
 </CENTER>
 
 
-Conversion from the TPP file formats pepXML and protXML to OpenMS' idXML is quite comprehensive, to the extent that the original data can be represented in the simpler idXML format.
+Conversion from the TPP file formats pepXML and protXML to OpenMS' idXML is quite comprehensive, to the extent that the original data can be
+represented in the simpler idXML format.
 
-In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant information for the use of ProteinProphet.
+In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant
+information for the use of ProteinProphet.
 
 
 Some information about the supported input types:
@@ -77,6 +79,9 @@ Some information about the supported input types:
   @ref OpenMS::PepXMLFile "PepXML"
   @ref OpenMS::ProtXMLFile "ProtXML"
   @ref OpenMS::IdXMLFile "idXML"
+  @ref OpenMS::MascotXML "mascotXML" / "xml"
+  @ref OpenMS::OMSSAFile "OMSSAXML"
+  @ref OpenMS::SequestOutfile ".out" directory
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDFileConverter.cli
@@ -103,7 +108,8 @@ protected:
       "Sequest: Directory containing the .out files\n"
       "pepXML: Single pepXML file.\n"
       "protXML: Single protXML file.\n"
-	    "xml: Single mascot XML file.\n"
+	    "xml: Single Mascot xml file.\n"
+      "OMSSAXML: Single OMSSA xml file.\n"
       "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
 		String formats("idXML,mzid,pepXML,FASTA");
@@ -279,10 +285,10 @@ protected:
 													exp_name, exp, use_precursor_data);
 			}
 		}
-		else if (in_type == FileTypes::IDXML)
-		{
-			IdXMLFile().load(in, protein_identifications, peptide_identifications);
-		}
+    else if (in_type == FileTypes::IDXML)
+    {
+      IdXMLFile().load(in, protein_identifications, peptide_identifications);
+    }
 		else if (in_type == FileTypes::PROTXML)
 		{
 			protein_identifications.resize(1);
@@ -292,13 +298,11 @@ protected:
 		else if (in_type == FileTypes::OMSSAXML)
 		{
 			protein_identifications.resize(1);
-			peptide_identifications.resize(1);
 			OMSSAXMLFile().load(in, protein_identifications[0], peptide_identifications, true);
 		}
 		else if (in_type == FileTypes::MASCOTXML)
 		{
 			protein_identifications.resize(1);
-			peptide_identifications.resize(1);
 			MascotXMLFile().load(in, protein_identifications[0], peptide_identifications);
 		}
 		else
