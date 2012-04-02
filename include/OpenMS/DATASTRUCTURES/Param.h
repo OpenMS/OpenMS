@@ -345,7 +345,8 @@ namespace OpenMS
 			bool empty() const;
 			/// Deletes all entries
 			void clear();
-			///Insert all values of @p param and adds the prefix @p prefix.
+			/// Insert all values of @p param and adds the prefix @p prefix.
+      /// You should append ':' to prefix manually when you want it to be a section.
 			void insert(const String& prefix, const Param& param);
 			/**
 				@brief Remove the entry @p key or a section @p key (when suffix is ':')
