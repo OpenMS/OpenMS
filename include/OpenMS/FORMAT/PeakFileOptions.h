@@ -124,6 +124,22 @@ namespace OpenMS
 		//returns @c true, if data should be compressed when writing
 		bool getCompression() const;
 		//@}
+
+		/**
+			@name Precision options
+
+			@note This option is ignored if the format does not support multiple precisions
+		*/
+		//@{
+		//Sets if mz-data should be stored with 32bit or 64bit precision
+		void setMz32Bit(bool mz_32_bit);
+		//returns @c true, if mz-data should be stored with 32bit precision
+		bool getMz32Bit() const;
+		//Sets if intensity data should be stored with 32bit or 64bit precision
+		void setIntensity32Bit(bool int_32_bit);
+		//returns @c true, if intensity data should be stored with 32bit precision
+		bool getIntensity32Bit() const;
+		//@}
 		
 	private:
 		bool metadata_only_;
@@ -131,6 +147,8 @@ namespace OpenMS
 		bool has_rt_range_;
 		bool has_mz_range_;
 		bool has_intensity_range_;
+		bool mz_32_bit_;
+		bool int_32_bit_;
 		DRange<1> rt_range_;
 		DRange<1> mz_range_;
 		DRange<1> intensity_range_;

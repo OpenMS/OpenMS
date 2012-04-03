@@ -4717,26 +4717,53 @@ namespace OpenMS
 						}
 						String encoded_string;
 						os	<< "				<binaryDataArrayList count=\"" << (2+spec.getFloatDataArrays().size()+spec.getStringDataArrays().size()+spec.getIntegerDataArrays().size()) << "\">\n";
-						//write m/z array (64 bit precision)
+						//write m/z array (default 64 bit precision)
 						{
-							std::vector<DoubleReal> data64_to_encode(spec.size());
-							for (Size p=0; p<spec.size(); ++p) data64_to_encode[p] = spec[p].getMZ();
-							decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-							os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+
+							if (options_.getMz32Bit())
+							{
+								std::vector<Real> data_to_encode(spec.size());
+								for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getMZ();
+								decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+								os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+								os	<< "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+								os	<< "						<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+							}
+							else
+							{
+								std::vector<DoubleReal> data_to_encode(spec.size());
+								for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getMZ();
+								decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+								os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+								os	<< "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+								os	<< "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+							}
+
 							os  << "						" << compression_term << "\n";
 							os	<< "						<binary>" << encoded_string << "</binary>\n";
 							os	<< "					</binaryDataArray>\n";
 						}
-						//write intensity array (32 bit precision)
+						//write intensity array (default 32 bit precision)
 						{
-							std::vector<Real> data32_to_encode(spec.size());
-							for (Size p=0; p<spec.size(); ++p) data32_to_encode[p] = spec[p].getIntensity();
-							decoder_.encode(data32_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-							os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+
+							if (options_.getIntensity32Bit())
+							{
+								std::vector<Real> data_to_encode(spec.size());
+								for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getIntensity();
+								decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+								os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+								os	<< "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
+								os	<< "						<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+							}
+							else
+							{
+								std::vector<DoubleReal> data_to_encode(spec.size());
+								for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getIntensity();
+								decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+								os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+								os	<< "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
+								os	<< "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+							}
 							os  << "						" << compression_term << "\n";
 							os	<< "						<binary>" << encoded_string << "</binary>\n";
 							os	<< "					</binaryDataArray>\n";
@@ -4896,26 +4923,52 @@ namespace OpenMS
             }
             String encoded_string;
             os  << "        <binaryDataArrayList count=\"" << (2+chromatogram.getFloatDataArrays().size()+chromatogram.getStringDataArrays().size()+chromatogram.getIntegerDataArrays().size()) << "\">\n";
-            //write m/z array (64 bit precision)
+            //write m/z array (default 64 bit precision)
             {
-              std::vector<DoubleReal> data64_to_encode(chromatogram.size());
-              for (Size p=0; p<chromatogram.size(); ++p) data64_to_encode[p] = chromatogram[p].getRT();
-              decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-              os  << "          <binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
-              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+
+              if (options_.getMz32Bit())
+              {
+                std::vector<Real> data_to_encode(chromatogram.size());
+                for (Size p=0; p<chromatogram.size(); ++p) data_to_encode[p] = chromatogram[p].getRT();
+                decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+                os  << "          <binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+              }
+              else
+              {
+                std::vector<DoubleReal> data_to_encode(chromatogram.size());
+                for (Size p=0; p<chromatogram.size(); ++p) data_to_encode[p] = chromatogram[p].getRT();
+                decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+                os  << "          <binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+              }
               os  << "            " << compression_term << "\n";
               os  << "            <binary>" << encoded_string << "</binary>\n";
               os  << "          </binaryDataArray>\n";
+
             }
-            //write intensity array (32 bit precision)
+            //write intensity array (default 32 bit precision)
             {
-              std::vector<Real> data32_to_encode(chromatogram.size());
-              for (Size p=0; p<chromatogram.size(); ++p) data32_to_encode[p] = chromatogram[p].getIntensity();
-              decoder_.encode(data32_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-              os  << "          <binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
-              os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+              if (options_.getIntensity32Bit())
+              {
+                std::vector<Real> data_to_encode(chromatogram.size());
+                for (Size p=0; p<chromatogram.size(); ++p) data_to_encode[p] = chromatogram[p].getIntensity();
+                decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+                os  << "          <binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+              }
+              else
+              {
+                std::vector<DoubleReal> data_to_encode(chromatogram.size());
+                for (Size p=0; p<chromatogram.size(); ++p) data_to_encode[p] = chromatogram[p].getIntensity();
+                decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+                os  << "          <binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
+                os  << "            <cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+              }
               os  << "            " << compression_term << "\n";
               os  << "            <binary>" << encoded_string << "</binary>\n";
               os  << "          </binaryDataArray>\n";

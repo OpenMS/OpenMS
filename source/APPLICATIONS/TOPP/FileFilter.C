@@ -255,6 +255,10 @@ class TOPPFileFilter
 		registerFlag_("sort_peaks","sorts the peaks according to m/z.");
 		registerFlag_("no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
 		registerFlag_("remove_chromatograms", "Removes chromatograms stored in a file.");
+    registerStringOption_("mz_precision","32 or 64", 64,"Store base64 encoded m/z data using 32 or 64 bit precision.", false);
+    setValidStrings_("mz_precision",StringList::create("32,64"));
+    registerStringOption_("int_precision","32 or 64", 32,"Store base64 encoded intensity data using 32 or 64 bit precision.", false);
+    setValidStrings_("int_precision",StringList::create("32,64"));
 
 		addEmptyLine_();
 		addText_("Remove spectra: ");
@@ -414,6 +418,9 @@ class TOPPFileFilter
 		size = getStringOption_("size");
 		q = getStringOption_("q");
 
+		int mz32 = getStringOption_("mz_precision").toInt();
+		int int32 = getStringOption_("int_precision").toInt();
+
 		//id-filtering parameters
 		bool remove_annotated_features = getFlag_("id:remove_annotated_features");
 		bool remove_unannotated_features = getFlag_("id:remove_unannotated_features");
@@ -469,6 +476,13 @@ class TOPPFileFilter
   			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
   			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
         f.getOptions().setMSLevels(levels);
+
+  			// set precision options
+  			if (mz32 == 32) { f.getOptions().setMz32Bit(true); }
+  			else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
+  			if (int32 == 32) { f.getOptions().setIntensity32Bit(true); }
+  			else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
+
   			f.load(in,exp);
 
 			if (!no_chromatograms)

@@ -39,7 +39,9 @@ namespace OpenMS
 			has_rt_range_(false),
 			has_mz_range_(false),
 			has_intensity_range_(false),
-			zlib_compression_(false)
+			zlib_compression_(false),
+			mz_32_bit_(false),
+			int_32_bit_(true)
 	{
 	}
 	
@@ -154,4 +156,25 @@ namespace OpenMS
 	{
 		return zlib_compression_;
 	}
+
+	void PeakFileOptions::setMz32Bit(bool mz_32_bit)
+	{
+		mz_32_bit_ = mz_32_bit;
+	}
+	
+	bool PeakFileOptions::getMz32Bit() const
+	{
+		return mz_32_bit_;
+	}
+	
+	void PeakFileOptions::setIntensity32Bit(bool int_32_bit)
+	{
+		int_32_bit_ = int_32_bit;
+	}
+	
+	bool PeakFileOptions::getIntensity32Bit() const
+	{
+		return int_32_bit_;
+	}
+	
 } // namespace OpenMS
