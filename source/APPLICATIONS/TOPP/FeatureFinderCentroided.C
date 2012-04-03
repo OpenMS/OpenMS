@@ -119,59 +119,59 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureFinderCentroided
-    : public TOPPBase
+  : public TOPPBase
 {
 public:
   TOPPFeatureFinderCentroided()
-    : TOPPBase("FeatureFinderCentroided","Detects two-dimensional features in LC-MS data.")
-	{
-	}
+    : TOPPBase("FeatureFinderCentroided", "Detects two-dimensional features in LC-MS data.")
+  {}
 
 protected:
 
-	void registerOptionsAndFlags_()
-	{
-		registerInputFile_("in","<file>","","input file");
-		setValidFormats_("in",StringList::create("mzML"));
-		registerOutputFile_("out","<file>","","output file");
-		setValidFormats_("out",StringList::create("featureXML"));
-		registerInputFile_("seeds","<file>","","User specified seed list", false);
-		setValidFormats_("seeds",StringList::create("featureXML"));
-		addEmptyLine_();
+  void registerOptionsAndFlags_()
+  {
+    registerInputFile_("in", "<file>", "", "input file");
+    setValidFormats_("in", StringList::create("mzML"));
+    registerOutputFile_("out", "<file>", "", "output file");
+    setValidFormats_("out", StringList::create("featureXML"));
+    registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
+    setValidFormats_("seeds", StringList::create("featureXML"));
+    addEmptyLine_();
     addText_("All other options of the FeatureFinder are set in the 'algorithm' section of the INI file.\n");
 
-		registerSubsection_("algorithm","Algorithm section");
-	}
+    registerSubsection_("algorithm", "Algorithm section");
+  }
 
-	Param getSubsectionDefaults_(const String& /*section*/) const
-	{
+  Param getSubsectionDefaults_(const String & /*section*/) const
+  {
     return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked<Peak1D, Feature>::getProductName());
-	}
+  }
 
-	ExitCodes main_(int , const char**)
-	{
+  ExitCodes main_(int, const char **)
+  {
     //input file names
-		String in = getStringOption_("in");
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
 
     //prevent loading of fragment spectra
     PeakFileOptions options;
-    options.setMSLevels(vector<Int>(1,1));
+    options.setMSLevels(vector<Int>(1, 1));
 
     //reading input data
     MzMLFile f;
     f.getOptions() = options;
-		f.setLogType(log_type_);
+    f.setLogType(log_type_);
 
     PeakMap exp;
     f.load(in, exp);
     exp.updateRanges();
 
-		//load seeds
-		FeatureMap<> seeds;
-		if (getStringOption_("seeds")!="")
-		{
-			FeatureXMLFile().load(getStringOption_("seeds"),seeds);
-		}
+    //load seeds
+    FeatureMap<> seeds;
+    if (getStringOption_("seeds") != "")
+    {
+      FeatureXMLFile().load(getStringOption_("seeds"), seeds);
+    }
 
     //setup of FeatureFinder
     FeatureFinder ff;
@@ -181,71 +181,71 @@ protected:
     FeatureMap<> features;
 
     // get parameters specific for the feature finder
-    Param feafi_param = getParam_().copy("algorithm:",true);
+    Param feafi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
     ff.run(FeatureFinderAlgorithmPicked<Peak1D, Feature>::getProductName(), exp, features, feafi_param, seeds);
-		features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-		// DEBUG
+    // DEBUG
     if (debug_level_ > 10)
     {
-		  FeatureMap<>::Iterator it;
-		  for (it = features.begin(); it != features.end(); ++it)
-		  {
-			  if (!it->isMetaEmpty())
-			  {
-				  vector<String> keys;
-				  it->getKeys(keys);
-				  LOG_INFO << "Feature " << it->getUniqueId() << endl;
-				  for (Size i = 0; i < keys.size(); i++)
-				  {
-					  LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
-				  }
-			  }
-		  }
+      FeatureMap<>::Iterator it;
+      for (it = features.begin(); it != features.end(); ++it)
+      {
+        if (!it->isMetaEmpty())
+        {
+          vector<String> keys;
+          it->getKeys(keys);
+          LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          for (Size i = 0; i < keys.size(); i++)
+          {
+            LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+          }
+        }
+      }
     }
 
-		//-------------------------------------------------------------
-		// writing files
-		//-------------------------------------------------------------
+    //-------------------------------------------------------------
+    // writing files
+    //-------------------------------------------------------------
 
-		//annotate output with data processing info
-		addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
+    //annotate output with data processing info
+    addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // write features to user specified output file
     FeatureXMLFile map_file;
-    String out = getStringOption_("out");
 
-		// Remove detailed convex hull information and subordinate features
-		// (unless requested otherwise) to reduce file size of feature files 
+    // Remove detailed convex hull information and subordinate features
+    // (unless requested otherwise) to reduce file size of feature files
     // unless debugging is turned on.
     if (debug_level_ < 5)
-		{
-			FeatureMap<>::Iterator it;
-			for (it = features.begin(); it != features.end(); ++it)
-			{
-				it->getConvexHull().expandToBoundingBox();
-				for (Size i = 0; i < it->getConvexHulls().size(); ++i)
-				{
-					it->getConvexHulls()[i].expandToBoundingBox();	
-				}
-				it->getSubordinates().clear();
-			}
-		}
+    {
+      FeatureMap<>::Iterator it;
+      for (it = features.begin(); it != features.end(); ++it)
+      {
+        it->getConvexHull().expandToBoundingBox();
+        for (Size i = 0; i < it->getConvexHulls().size(); ++i)
+        {
+          it->getConvexHulls()[i].expandToBoundingBox();
+        }
+        it->getSubordinates().clear();
+      }
+    }
 
-		map_file.store(out,features);
+    map_file.store(out, features);
 
-		return EXECUTION_OK;
-	}
+    return EXECUTION_OK;
+  }
+
 };
 
 
-int main( int argc, const char** argv )
+int main(int argc, const char ** argv)
 {
   TOPPFeatureFinderCentroided tool;
-	return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }
 
 /// @endcond

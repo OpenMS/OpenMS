@@ -42,49 +42,49 @@ using namespace std;
 /**
   @page TOPP_FeatureFinderIsotopeWavelet FeatureFinderIsotopeWavelet
 
-	@brief The feature detection application for quantitation.
+    @brief The feature detection application for quantitation.
 
 <CENTER>
-	<table>
-		<tr>
+    <table>
+        <tr>
       <td ALIGN = "center" BGCOLOR="#EBEBEB" ROWSPAN=1> pot. predecessor tools </td>
       <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIsotopeWavelet \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-		</tr>
-		<tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MapAlignerPoseClustering @n (or another alignment tool) </td>
-		</tr>
-		<tr>
+        </tr>
+        <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterGaussian </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled @n (or another feature grouping tool) </td>
-		</tr>
-	</table>
+        </tr>
+    </table>
 </CENTER>
 
-	This module identifies "features" in a LC/MS map. By feature, we understand a peptide in a MS sample that
-	reveals a characteristic isotope distribution. The algorithm
-	computes positions in rt and m/z dimension and a charge estimate
-	of each peptide.
+    This module identifies "features" in a LC/MS map. By feature, we understand a peptide in a MS sample that
+    reveals a characteristic isotope distribution. The algorithm
+    computes positions in rt and m/z dimension and a charge estimate
+    of each peptide.
 
-	The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
-	In the next step, we iteratively fit a model of the isotope profile and the retention time to
-	these data points. Data points with a low probability under this model are removed from the
-	feature region. The intensity of the feature is then given by the sum of the data points included
-	in its regions.
+    The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
+    In the next step, we iteratively fit a model of the isotope profile and the retention time to
+    these data points. Data points with a low probability under this model are removed from the
+    feature region. The intensity of the feature is then given by the sum of the data points included
+    in its regions.
 
-	How to find suitable parameters and details of the different algorithms implemented are described
-	in the @ref TOPP_example_featuredetection "TOPP tutorial".
+    How to find suitable parameters and details of the different algorithms implemented are described
+    in the @ref TOPP_example_featuredetection "TOPP tutorial".
 
-	@note that the wavelet transform is very slow on high-resolution spectra (i.e. FT, Orbitrap). We recommend
-	to use a noise or intensity filter to remove spurious points first and to speed-up the feature detection process.
+    @note that the wavelet transform is very slow on high-resolution spectra (i.e. FT, Orbitrap). We recommend
+    to use a noise or intensity filter to remove spurious points first and to speed-up the feature detection process.
 
-	Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
+    Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
 
-	<B>The command line parameters of this tool are:</B>
+    <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FeatureFinderIsotopeWavelet.cli
 
-	For the parameters of the algorithm section see the algorithms documentation: @n
+    For the parameters of the algorithm section see the algorithms documentation: @n
     @ref OpenMS::FeatureFinderAlgorithmIsotopeWavelet "isotope_wavelet" @n
 
 */
@@ -93,40 +93,40 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureFinderIsotopeWavelet
-	: public TOPPBase
+  : public TOPPBase
 {
- public:
+public:
   TOPPFeatureFinderIsotopeWavelet()
-    : TOPPBase("FeatureFinderIsotopeWavelet","Detects two-dimensional features in LC-MS data.")
-	{
-	}
+    : TOPPBase("FeatureFinderIsotopeWavelet", "Detects two-dimensional features in LC-MS data.")
+  {}
 
- protected:
-	void registerOptionsAndFlags_()
-	{
-		registerInputFile_("in","<file>","","input file");
-		setValidFormats_("in",StringList::create("mzML"));
-		registerOutputFile_("out","<file>","","output file");
-		setValidFormats_("out",StringList::create("featureXML"));
-		addEmptyLine_();
+protected:
+  void registerOptionsAndFlags_()
+  {
+    registerInputFile_("in", "<file>", "", "input file");
+    setValidFormats_("in", StringList::create("mzML"));
+    registerOutputFile_("out", "<file>", "", "output file");
+    setValidFormats_("out", StringList::create("featureXML"));
+    addEmptyLine_();
     addText_("All other options of the FeatureFinder are set in the 'algorithm' section of the INI file.\n");
 
-		registerSubsection_("algorithm","Algorithm section");
-	}
+    registerSubsection_("algorithm", "Algorithm section");
+  }
 
-	Param getSubsectionDefaults_(const String& /*section*/) const
-	{
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature>::getProductName());
-	}
-
-  ExitCodes main_(int , const char**)
+  Param getSubsectionDefaults_(const String & /*section*/) const
   {
-    //input file names
+    return FeatureFinder().getParameters(FeatureFinderAlgorithmIsotopeWavelet<Peak1D, Feature>::getProductName());
+  }
+
+  ExitCodes main_(int, const char **)
+  {
+    //input and output file names ..
     String in = getStringOption_("in");
+    String out = getStringOption_("out");
 
     //prevent loading of fragment spectra
     PeakFileOptions options;
-    options.setMSLevels(vector<Int>(1,1));
+    options.setMSLevels(vector<Int>(1, 1));
 
     //reading input data
     MzMLFile f;
@@ -148,7 +148,7 @@ class TOPPFeatureFinderIsotopeWavelet
     FeatureMap<> features;
 
     // get parameters specific for the feature finder
-    Param feafi_param = getParam_().copy("algorithm:",true);
+    Param feafi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
@@ -183,19 +183,18 @@ class TOPPFeatureFinderIsotopeWavelet
 
     // write features to user specified output file
     FeatureXMLFile map_file;
-    String out = getStringOption_("out");
-
-    map_file.store(out,features);
+    map_file.store(out, features);
 
     return EXECUTION_OK;
   }
+
 };
 
 
-int main( int argc, const char** argv )
+int main(int argc, const char ** argv)
 {
   TOPPFeatureFinderIsotopeWavelet tool;
-	return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }
 
 /// @endcond

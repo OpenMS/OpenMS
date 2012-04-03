@@ -84,106 +84,105 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureFinderMRM
-    : public TOPPBase
+  : public TOPPBase
 {
 public:
   TOPPFeatureFinderMRM()
-    : TOPPBase("FeatureFinderMRM","Detects two-dimensional features in LC-MS data.")
-	{
-	}
+    : TOPPBase("FeatureFinderMRM", "Detects two-dimensional features in LC-MS data.")
+  {}
 
 protected:
-	void registerOptionsAndFlags_()
-	{
-		registerInputFile_("in","<file>","","input file");
-		setValidFormats_("in",StringList::create("mzML"));
-		registerOutputFile_("out","<file>","","output file");
-		setValidFormats_("out",StringList::create("featureXML"));
-		addEmptyLine_();
+  void registerOptionsAndFlags_()
+  {
+    registerInputFile_("in", "<file>", "", "input file");
+    setValidFormats_("in", StringList::create("mzML"));
+    registerOutputFile_("out", "<file>", "", "output file");
+    setValidFormats_("out", StringList::create("featureXML"));
+    addEmptyLine_();
     addText_("All other options of the FeatureFinder are set in the 'algorithm' section of the INI file.\n");
 
-		registerSubsection_("algorithm","Algorithm section");
-	}
+    registerSubsection_("algorithm", "Algorithm section");
+  }
 
-	Param getSubsectionDefaults_(const String& /*section*/) const
-	{
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM<Peak1D,Feature>::getProductName());
-	}
+  Param getSubsectionDefaults_(const String & /*section*/) const
+  {
+    return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM<Peak1D, Feature>::getProductName());
+  }
 
-	ExitCodes main_(int , const char**)
-	{
-		//input file names and types
-		String in = getStringOption_("in");
-		String out = getStringOption_("out");
+  ExitCodes main_(int, const char **)
+  {
+    //input file names and types
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
 
-		Param feafi_param = getParam_().copy("algorithm:",true);
+    Param feafi_param = getParam_().copy("algorithm:", true);
 
-		writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
+    writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
-		//setup of FeatureFinder
-		FeatureFinder ff;
-		ff.setLogType(log_type_);
+    //setup of FeatureFinder
+    FeatureFinder ff;
+    ff.setLogType(log_type_);
 
-		//reading input data
-		PeakMap exp;
-		MzMLFile f;
-		f.setLogType(log_type_);
+    //reading input data
+    PeakMap exp;
+    MzMLFile f;
+    f.setLogType(log_type_);
 
     f.load(in, exp);
 
     //no seeds supported
     FeatureMap<> seeds;
 
-		//prevent loading of everything except MRM MS/MS spectra
+    //prevent loading of everything except MRM MS/MS spectra
     //exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<PeakMap::SpectrumType>(InstrumentSettings::SRM, true)), exp.end());
     // erase the spectra, we just need the chromatograms for the feature finder
     exp.erase(exp.begin(), exp.end());
 
-		// A map for the resulting features
-		FeatureMap<> features;
+    // A map for the resulting features
+    FeatureMap<> features;
 
-		// Apply the feature finder
-    ff.run(FeatureFinderAlgorithmMRM<Peak1D,Feature>::getProductName(), exp, features, feafi_param, seeds);
-		features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    // Apply the feature finder
+    ff.run(FeatureFinderAlgorithmMRM<Peak1D, Feature>::getProductName(), exp, features, feafi_param, seeds);
+    features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-		// DEBUG
+    // DEBUG
     if (debug_level_ > 10)
     {
-		  FeatureMap<>::Iterator it;
-		  for (it = features.begin(); it != features.end(); ++it)
-		  {
-			  if (!it->isMetaEmpty())
-			  {
-				  vector<String> keys;
-				  it->getKeys(keys);
-				  LOG_INFO << "Feature " << it->getUniqueId() << endl;
-				  for (Size i = 0; i < keys.size(); i++)
-				  {
-					  LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
-				  }
-			  }
-		  }
+      FeatureMap<>::Iterator it;
+      for (it = features.begin(); it != features.end(); ++it)
+      {
+        if (!it->isMetaEmpty())
+        {
+          vector<String> keys;
+          it->getKeys(keys);
+          LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          for (Size i = 0; i < keys.size(); i++)
+          {
+            LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+          }
+        }
+      }
     }
 
-		//-------------------------------------------------------------
-		// writing files
-		//-------------------------------------------------------------
+    //-------------------------------------------------------------
+    // writing files
+    //-------------------------------------------------------------
 
-		//annotate output with data processing info
-		addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
+    //annotate output with data processing info
+    addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
-		FeatureXMLFile map_file;
-		map_file.store(out,features);
+    FeatureXMLFile map_file;
+    map_file.store(out, features);
 
-		return EXECUTION_OK;
-	}
+    return EXECUTION_OK;
+  }
+
 };
 
-
-int main( int argc, const char** argv )
+int main(int argc, const char ** argv)
 {
   TOPPFeatureFinderMRM tool;
-	return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }
 
 /// @endcond
