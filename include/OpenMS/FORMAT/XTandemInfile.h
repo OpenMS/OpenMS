@@ -253,7 +253,7 @@ namespace OpenMS
 			// Sment
 			bool refine_;
 
-			//semi cleavae
+			//semi cleavage
 			bool semi_cleavage_;
 
 			double refine_max_valid_evalue_;
@@ -272,4 +272,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MASCOTINFILE_H
+#endif // OPENMS_FORMAT_XTANDEMINFILE_H

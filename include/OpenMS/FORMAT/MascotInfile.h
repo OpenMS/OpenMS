@@ -42,6 +42,9 @@ namespace OpenMS
 	/**
 		@brief Mascot input file adapter.
 		
+    @deprecated Use MascotGenericFile.h instead, which uses DefaultParamHandler, is more up to date and avoids weird behaviors of this class (especially in terms of
+                MIME boundaries when writing MGF....
+
 		Creates a file that can be used for Mascot search from a peak list or a whole experiment.
   	  	
   	@ingroup FileIO
