@@ -63,6 +63,10 @@ namespace OpenMS
   
   void MascotXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
 	{
+    static const XMLCh* s_protein_accession = xercesc::XMLString::transcode("accession");
+    static const XMLCh* s_queries_query_number = xercesc::XMLString::transcode("number");
+    static const XMLCh* s_peptide_query = xercesc::XMLString::transcode("query");
+
 
 		tag_ = String(sm_.convert(qname));
     
@@ -79,26 +83,19 @@ namespace OpenMS
     }
 		else if (tag_ == "protein")
 		{
-			String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
+      String attribute_value = attributeAsString_(attributes, s_protein_accession);
  	 		actual_protein_hit_.setAccession(attribute_value);
 		}
 		else if (tag_ == "query")
 		{
-			actual_query_ = (String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim()).toInt();
+      actual_query_ = attributeAsInt_(attributes, s_queries_query_number);
 		}
 		else if (tag_ == "peptide" || tag_ == "u_peptide" || tag_ == "q_peptide") 
 		{
-			if (tag_ == "peptide")
-			{
-				String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
-		  	peptide_identification_index_ = attribute_value.toInt() - 1;
-			}
-			else if (tag_ == "u_peptide" || tag_ == "q_peptide")
-			{
-				String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
-	  		peptide_identification_index_ = attribute_value.toInt() - 1;
-			}
-			if (peptide_identification_index_ > id_data_.size())
+			Int attribute_value = attributeAsInt_(attributes, s_peptide_query);
+		  peptide_identification_index_ = attribute_value - 1;
+
+      if (peptide_identification_index_ > id_data_.size())
 			{
 				fatalError(LOAD, "No header information present: use  the show_header=1 option in the ./export_dat.pl script");  			
   		}			
@@ -127,17 +124,17 @@ namespace OpenMS
  		}
  		else if (tag_ == "peptide")
  		{
-			bool already_stored = false;
-			vector<PeptideHit>::iterator it;
- 			
+			bool already_stored(false);
+			 			
 			vector<PeptideHit> temp_peptide_hits = id_data_[peptide_identification_index_].getHits();
 				
-			it = temp_peptide_hits.begin();
-			while(it != temp_peptide_hits.end() && !already_stored)
+			vector<PeptideHit>::iterator it = temp_peptide_hits.begin();
+			while(it != temp_peptide_hits.end())
 			{
 				if (it->getSequence() == actual_peptide_hit_.getSequence())
 				{
 					already_stored = true;
+          break;
 				}
 				++it;
 			}
@@ -149,7 +146,6 @@ namespace OpenMS
 			}
 			else
 			{
-				--it;
 				it->addProteinAccession(actual_protein_hit_.getAccession());
 				id_data_[peptide_identification_index_].setHits(temp_peptide_hits);
 			}
@@ -167,12 +163,18 @@ namespace OpenMS
  			protein_identification_.setIdentifier(identifier_);
  			protein_identification_.setSearchParameters(search_parameters_);
  		}
-		tag_ = "";
+
+    tag_ = ""; // reset tag, for the following characters() call (due to line break) of the parent tag
  	} 
 
   void MascotXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
-
+    if (tag_.empty()) return; // do not care about chars after internal tags, e.g.
+    // <header>
+    //   <COM>OpenMS_search</COM>
+    //   <Date>
+    // will trigger a characters() between </COM> and <Date>, which should be ignored
+      
 		if (tag_ == "NumQueries")
 		{
 			id_data_.resize(((String) sm_.convert(chars)).trim().toInt());
@@ -182,7 +184,6 @@ namespace OpenMS
 			{
 				it->setIdentifier(identifier_);
 			}
-			tag_ = "";
 		}
 		else if (tag_ == "prot_score")
 		{
@@ -191,12 +192,11 @@ namespace OpenMS
 		else if (tag_ == "pep_exp_mz")
 		{
 			id_data_[peptide_identification_index_].setMetaValue("MZ", ((String) sm_.convert(chars)).trim().toDouble());
-			tag_ = "";
 		}
 		else if (tag_ == "pep_scan_title") 
-		{
+		{ // extract mz and RT from title (if not already set)
 			String title = ((String) sm_.convert(chars)).trim();
-			if(title.hasSubstring("_")) 
+			if (title.hasSubstring("_")) 
 			{
 				DoubleReal rt(0), mz(0);
 				try 
@@ -208,8 +208,8 @@ namespace OpenMS
 				{
 				}
 			
-				id_data_[peptide_identification_index_].setMetaValue("RT", rt);
-				if (mz != 0)
+        if (!id_data_[peptide_identification_index_].metaValueExists("RT")) id_data_[peptide_identification_index_].setMetaValue("RT", rt);
+				if (!id_data_[peptide_identification_index_].metaValueExists("MZ") && (mz != 0))
 				{
 					id_data_[peptide_identification_index_].setMetaValue("MZ", mz); // overwrite value if available
 				}
@@ -218,30 +218,26 @@ namespace OpenMS
 		else if (tag_ == "pep_exp_z")
 		{
 			actual_peptide_hit_.setCharge(((String) sm_.convert(chars)).trim().toInt());
-			tag_ = "";
 		}
 		else if (tag_ == "pep_score")
 		{
 			actual_peptide_hit_.setScore(((String) sm_.convert(chars)).trim().toDouble());
-			tag_ = "";
 		}
 		else if (tag_ == "pep_expect")
 		{
 			actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", ""); /// @todo what E-value flag? (andreas)
 			actual_peptide_hit_.setMetaValue("EValue", ((String)sm_.convert(chars)).trim().toDouble());
-			tag_ = "";
 		}
 		else if (tag_ == "pep_homol")
 		{			
 			id_data_[peptide_identification_index_].setSignificanceThreshold(((String) sm_.convert(chars)).trim().toDouble());
-			tag_ = "";
 		}
 		else if (tag_ == "pep_ident")
 		{
 			DoubleReal temp_homology = 0;
 			DoubleReal temp_identity = 0;
 			
-			// According to matrixscience the homology threshold is only used if it exists and is
+			// According to Matrix Science the homology threshold is only used if it exists and is
 			// smaller than the identity threshold.
 			temp_homology = 
 				id_data_[peptide_identification_index_].getSignificanceThreshold();
@@ -252,7 +248,6 @@ namespace OpenMS
 			{
 				id_data_[peptide_identification_index_].setSignificanceThreshold(temp_identity);				
 			}
-			tag_ = "";
 		}
 		else if (tag_ == "pep_seq")
 		{
@@ -302,7 +297,6 @@ namespace OpenMS
 				}
 			}
 			actual_peptide_hit_.setSequence(temp_aa_sequence);
-			tag_ = "";
 		}
 		else if (tag_ == "pep_res_before")
 		{
@@ -311,7 +305,6 @@ namespace OpenMS
 			{
 				actual_peptide_hit_.setAABefore(temp_string[0]);
 			}
-			tag_ = "";
 		}
 		else if (tag_ == "pep_res_after")
 		{
@@ -320,7 +313,6 @@ namespace OpenMS
 			{
 				actual_peptide_hit_.setAAAfter(temp_string[0]);
 			}
-			tag_ = "";
 		}
 		else if (tag_ == "pep_var_mod_pos")
 		{
@@ -338,6 +330,7 @@ namespace OpenMS
 					if (temp_string[i] != '0')
 					{
 						UInt temp_modification_index = String(temp_string[i]).toInt() - 1;
+            OPENMS_PRECONDITION(temp_modification_index < search_parameters_.variable_modifications.size(), "Error when parsing variable modification string in <pep_var_mod_pos> (index too large)!");
 						String& temp_modification = search_parameters_.variable_modifications[temp_modification_index];
 
 						// e.g. Carboxymethyl (C)
@@ -439,12 +432,15 @@ namespace OpenMS
 					}
 				}
 				id_data_[actual_query_ - 1].setHits(temp_peptide_hits);
-			}	
-			title.split('_', parts);
-			if (parts.size() == 2)
-			{
-				id_data_[actual_query_ - 1].setMetaValue("RT", parts[1].toDouble());
 			}
+      if (!id_data_[actual_query_ - 1].metaValueExists("RT"))
+      {
+			  title.split('_', parts);
+			  if (parts.size() == 2)
+			  {
+				  id_data_[actual_query_ - 1].setMetaValue("RT", parts[1].toDouble());
+			  }
+      }
 		}
 		else if (tag_ == "RTINSECONDS")
 		{
@@ -488,17 +484,23 @@ namespace OpenMS
 		}
 		else if (tag_ == "MODS")
 		{
-			String temp_string = (((String) sm_.convert(chars)).trim());
-			temp_string.split(',', search_parameters_.fixed_modifications);
+      // if the modifications are listed in the fixed_modifications section, read
+      // from there
+      // If <fixed_modifications> was present it was already read
+      if (search_parameters_.fixed_modifications.empty())
+      {
+        String temp_string = (((String) sm_.convert(chars)).trim());
+			  temp_string.split(',', search_parameters_.fixed_modifications);
+      }
 		}
 		else if (tag_ == "IT_MODS")
 		{
 			// if the modifications are listed in the variable_modifications section, read
 			// from there, because sometimes mods are forced to be variable (from user set fixed)
+      // If <variable_modifications> was present it was already read
 			if (search_parameters_.variable_modifications.empty())
 			{
 				String temp_string = (((String) sm_.convert(chars)).trim());
-			
 				temp_string.split(',', search_parameters_.variable_modifications);
 			}
 		}
@@ -543,15 +545,23 @@ namespace OpenMS
 		}
 		else if (tag_ == "name")
 		{
-			if (
-					 (major_version_=="1")
+      //std::cerr << "name tag: " << ((String)sm_.convert(chars)).trim() << "\n";
+			if (  (major_version_=="1")
 				 // new since Mascot XML version 2.1 (at least): <fixed_mods> also have a subtag called <name>, thus we need to ensure we are in <variable_mods>
-				 || (tags_open_.size() >= 3 && tags_open_[tags_open_.size()-2]=="variable_mods") 
+				 || (tags_open_.size() >= 3 && tags_open_[tags_open_.size()-3]=="variable_mods") 
 				 )
 			{
 				search_parameters_.variable_modifications.push_back(((String)sm_.convert(chars)).trim());
+        //std::cerr << "var mod added: " << search_parameters_.variable_modifications.back() << "\n";
+
 			}
-		}
+      else if (tags_open_.size() >= 3 && tags_open_[tags_open_.size()-3]=="fixed_mods") 
+      {
+        search_parameters_.fixed_modifications.push_back(((String)sm_.convert(chars)).trim());
+        //std::cerr << "fixed mod added: " << search_parameters_.fixed_modifications.back() << "\n";
+
+      }
+    }
   }
 
 	} // namespace Internal

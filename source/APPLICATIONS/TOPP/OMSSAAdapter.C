@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
-#include <OpenMS/FORMAT/MascotInfile.h>
+#include <OpenMS/FORMAT/MascotGenericfile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -701,8 +701,8 @@ class TOPPOMSSAAdapter
 			//-------------------------------------------------------------
 
 			writeDebug_("Storing input file: " + unique_input_name, 5);
-			MascotInfile omssa_infile;
-			omssa_infile.store(unique_input_name, map, "OMSSA search tmp file");
+			MascotGenericFile omssa_infile;
+			omssa_infile.store(unique_input_name, map);
 
       // @todo find OMSSA if not given
       // executable is stored in OpenMS_bin/share/OpenMS/3rdParty/OMSSA/omssacl(.exe)

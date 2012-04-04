@@ -132,8 +132,10 @@ class TOPPMascotAdapterOnline
 
 			if (section == "Mascot_parameters")
 			{
-				MascotGenericFile mascot_infile;
-				return mascot_infile.getParameters();
+				MascotGenericFile mgf_file;
+				Param p = mgf_file.getParameters();
+        p.remove("internal:");
+        return p;
 			}
 
       return Param();
@@ -166,13 +168,18 @@ class TOPPMascotAdapterOnline
       //-------------------------------------------------------------
 
 			Param mascot_param = getParam_().copy("Mascot_parameters:", true);
-      MascotGenericFile mascot_infile;
-			mascot_infile.setParameters(mascot_param);
+      MascotGenericFile mgf_file;
+      Param p;
+      // TODO: switch this to mzML (much smaller)
+      p.setValue("internal:format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", StringList::create("advanced"));
+      p.setValue("internal:HTTP_format", "true", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", StringList::create("advanced"));
+      p.setValue("internal:content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", StringList::create("advanced"));
+			mgf_file.setParameters(mascot_param);
 
 			// get the spectra into string stream
-			writeDebug_("Writing Mascot mgf file to stringstream", 1);
+			writeDebug_("Writing Mascot MGF file to stringstream", 1);
 			stringstream ss;
-			mascot_infile.store(ss, in, exp);
+			mgf_file.store(ss, in, exp);
 
 			// Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
 			// QEventLoop to process the signals and slots and grab the results afterwards from

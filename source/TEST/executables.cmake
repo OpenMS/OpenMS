@@ -157,7 +157,6 @@ set(format_executables_list
   MSPFile_test
   MascotGenericFile_test
   MascotInfile_test
-  MascotOutfile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
   MsInspectFile_test

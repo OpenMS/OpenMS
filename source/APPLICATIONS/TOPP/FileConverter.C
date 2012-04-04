@@ -301,9 +301,6 @@ class TOPPFileConverter
 			addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
 																								 FORMAT_CONVERSION));
 			MascotGenericFile f;
-			Param p(f.getParameters());
-			p.setValue("peaklists_only", "true");
-			f.setParameters(p);
 			f.store(out, exp);
 		}
 

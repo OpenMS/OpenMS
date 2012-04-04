@@ -49,7 +49,6 @@ MS2File.h
 MSPFile.h
 MascotInfile.h
 MascotGenericFile.h
-MascotOutfile.h
 MascotRemoteQuery.h
 MascotXMLFile.h
 MsInspectFile.h

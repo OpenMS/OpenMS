@@ -200,6 +200,8 @@ using namespace std;
 		</ul>
 	</ul>
 
+
+  @todo This adapter is using antiquated internal methods and needs to be updated! E.g. use MascotGenericFile.h instead of MascotInfile.h....
 */
 
 // We do not want this class to show up in the docu:

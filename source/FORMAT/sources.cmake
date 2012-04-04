@@ -30,7 +30,6 @@ MS2File.C
 MSPFile.C
 MascotInfile.C
 MascotGenericFile.C
-MascotOutfile.C
 MascotRemoteQuery.C
 MascotXMLFile.C
 MsInspectFile.C

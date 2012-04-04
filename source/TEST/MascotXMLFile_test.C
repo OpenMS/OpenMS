@@ -26,11 +26,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+
 
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -65,11 +68,12 @@ START_SECTION((MascotXMLFile()))
 END_SECTION
 
 START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data)))
-
+  
 	xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
 							protein_identification, 
 				   		peptide_identifications);
-				   		
+  
+  {
 	ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
 	TEST_EQUAL(search_parameters.missed_cleavages, 1);
 	TEST_EQUAL(search_parameters.taxonomy, ". . Eukaryota (eucaryotes)");
@@ -80,9 +84,11 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 	TEST_EQUAL(search_parameters.peak_mass_tolerance, 0.2);
 	TEST_EQUAL(search_parameters.precursor_tolerance, 1.4);
 	TEST_EQUAL(search_parameters.charges, "1+, 2+ and 3+");
+  TEST_EQUAL(search_parameters.fixed_modifications.size(), 3);
 	TEST_EQUAL(search_parameters.fixed_modifications[0], "Carboxymethyl (C)");
 	TEST_EQUAL(search_parameters.fixed_modifications[1], "Deamidated (NQ)");
 	TEST_EQUAL(search_parameters.fixed_modifications[2], "Guanidinyl (K)");
+  TEST_EQUAL(search_parameters.variable_modifications.size(), 3);
 	TEST_EQUAL(search_parameters.variable_modifications[0], "Acetyl (Protein N-term)");
 	TEST_EQUAL(search_parameters.variable_modifications[1], "Biotin (K)");
 	TEST_EQUAL(search_parameters.variable_modifications[2], "Carbamyl (K)");
@@ -127,13 +133,86 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATN(MOD:00565)FK(MOD:00445)")
 	TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK(MOD:00445)")
 	TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "HSK(MOD:00445)LSAK(MOD:00445)")
-  
+  }
+
+
   /// for new MascotXML 2.1 as used by Mascot Server 2.3
 	xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_2.mascotXML"),
 							protein_identification, 
 				   		peptide_identifications);
-  // TODO more tests...
-  
+  {
+  ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
+  TEST_EQUAL(search_parameters.missed_cleavages, 7);
+  TEST_EQUAL(search_parameters.taxonomy, "All entries");
+  TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::MONOISOTOPIC);
+  TEST_EQUAL(search_parameters.enzyme, ProteinIdentification::TRYPSIN);
+  TEST_EQUAL(search_parameters.db, "IPI_human");
+  TEST_EQUAL(search_parameters.db_version, "ipi.HUMAN.v3.61.fasta");
+  TEST_EQUAL(search_parameters.peak_mass_tolerance, 0.3);
+  TEST_EQUAL(search_parameters.precursor_tolerance, 3);
+  TEST_EQUAL(search_parameters.charges, "");
+  TEST_EQUAL(search_parameters.fixed_modifications.size(), 1);
+  TEST_EQUAL(search_parameters.fixed_modifications[0], "Carbamidomethyl (C)");
+  TEST_EQUAL(search_parameters.variable_modifications.size(), 3);
+  TEST_EQUAL(search_parameters.variable_modifications[0], "Oxidation (M)");
+  TEST_EQUAL(search_parameters.variable_modifications[1], "Acetyl (N-term)");
+  TEST_EQUAL(search_parameters.variable_modifications[2], "Phospho (Y)");
+  // not necessarily equal to numQueries as some hits might not be contained, e.g. peptide's might start with <peptide rank="10"...> so 9 peptides are missing
+  // thus empty peptides are removed (see MascotXMLFile.C::load() ) after the handler() call
+  TEST_EQUAL(peptide_identifications.size(), 1112)
+  TOLERANCE_ABSOLUTE(0.0001)
+  TEST_REAL_SIMILAR(peptide_identifications[0].getMetaValue("MZ"), 304.6967)
+  TEST_REAL_SIMILAR(peptide_identifications[1].getMetaValue("MZ"), 314.1815)
+  TEST_REAL_SIMILAR(peptide_identifications[1111].getMetaValue("MZ"), 583.7948)
+  TOLERANCE_ABSOLUTE(0.00001)	
+  TEST_EQUAL(protein_identification.getHits().size(), 66)
+  TEST_EQUAL(protein_identification.getHits()[0].getAccession(), "IPI00745872")
+  TEST_EQUAL(protein_identification.getHits()[1].getAccession(), "IPI00908876")
+  TEST_REAL_SIMILAR(protein_identification.getHits()[0].getScore(), 122)
+  TEST_REAL_SIMILAR(protein_identification.getHits()[1].getScore(), 122)
+  TEST_EQUAL(protein_identification.getScoreType(), "Mascot")
+  TEST_EQUAL(protein_identification.getDateTime().get(), "2011-06-24 19:34:54")
+
+  TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 5)
+  TEST_EQUAL(peptide_identifications[0].getHits().size(), 1)
+
+  peptide_hit = peptide_identifications[0].getHits()[0];
+  TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions().size(), 0)
+  references = peptide_identifications[34].getHits()[0].getProteinAccessions(); // corresponds to <peptide query="35" ...>
+  ABORT_IF(references.size() != 5)
+  TEST_EQUAL(references[0], "IPI00745872")
+  TEST_EQUAL(references[4], "IPI00878517")
+
+  TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 5.34)
+  TEST_REAL_SIMILAR(peptide_identifications[49].getHits()[0].getScore(), 14.83)
+  TEST_REAL_SIMILAR(peptide_identifications[49].getHits()[1].getScore(), 17.5)
+  TEST_EQUAL(peptide_identifications[0].getScoreType(), "Mascot")
+  TEST_EQUAL(peptide_identifications[1].getScoreType(), "Mascot")
+  TEST_EQUAL(protein_identification.getDateTime().get() == "2011-06-24 19:34:54", true)	
+  TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "VVFIK")
+  TEST_EQUAL(peptide_identifications[49].getHits()[0].getSequence(), "LASYLDK")
+  TEST_EQUAL(peptide_identifications[49].getHits()[1].getSequence(), "(Acetyl)AAFESDK")
+  //for (int i=520;i<540;++i) std::cerr << "i: " << i << " " << peptide_identifications[i].getHits()[0].getSequence() << "\n";
+  TEST_EQUAL(peptide_identifications[522].getHits()[0].getSequence(), "(Acetyl)GALM(Oxidation)NEIQAAK")
+  TEST_EQUAL(peptide_identifications[67].getHits()[0].getSequence(), "SHY(Phospho)GGSR")
+  }
+
+  xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_3.mascotXML"),
+    protein_identification, 
+    peptide_identifications);
+  {
+    std::vector<ProteinIdentification> pids;
+    pids.push_back(protein_identification);
+    String filename;
+    NEW_TMP_FILE(filename)
+    IdXMLFile().store(filename, pids, peptide_identifications);
+    FuzzyStringComparator fuzzy;
+    fuzzy.setWhitelist(StringList::create("<?xml-stylesheet"));
+    fuzzy.setAcceptableAbsolute(0.0001);
+    bool result = fuzzy.compareFiles(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_out_3.idXML"), filename);
+    TEST_EQUAL(result, true);
+  }
+
 END_SECTION
 
 START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data, std::map< String, std::vector< AASequence > > &peptides)))

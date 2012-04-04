@@ -121,6 +121,14 @@ namespace OpenMS
 				}
       }
 
+      /**
+        @brief enclosing Strings of the peak list body for HTTP submission
+        
+          Can be used to embed custom content into HTTP submission (when writing only the MGF header in HTTP format and then
+          adding the peaks (in whatever format, e.g. mzXML) enclosed in this body.
+          The @p filename can later be found in the Mascot response.
+      */
+      std::pair<String,String> getHTTPPeakListEnclosure(const String& filename) const;
 
     protected:
 
@@ -142,4 +150,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MASCOTINFILE2_H
+#endif // OPENMS_FORMAT_MASCOTGENERICFILE_H

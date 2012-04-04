@@ -35,7 +35,7 @@ namespace OpenMS
 
 	MascotGenericFile::MascotGenericFile()
 		: ProgressLogger(),
-			DefaultParamHandler("MascotInfile")
+			DefaultParamHandler("MascotGenericFile")
 	{
 		defaults_.setValue("database", "MSDB", "Name of the sequence database");
 		defaults_.setValue("search_type", "MIS", "Name of the search type for the query", StringList::create("advanced"));
@@ -54,28 +54,34 @@ namespace OpenMS
 		defaults_.setValidStrings("fragment_error_units", StringList::create("mmu,Da"));
 		defaults_.setValue("charges", "1,2,3", "Allowed charge states, given as a comma separated list of integers");
 		defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
-		defaults_.setValue("fixed_modifications", StringList::create(""), "List of fixed modifications, according to UniMod definitions.");
 		vector<String> all_mods;
 		ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    defaults_.setValue("fixed_modifications", StringList::create(""), "List of fixed modifications, according to UniMod definitions.");
 		defaults_.setValidStrings("fixed_modifications", all_mods);
 		defaults_.setValue("variable_modifications", StringList::create(""), "Variable modifications given as UniMod definitions.");
 		defaults_.setValidStrings("variable_modifications", all_mods);
 	
 		defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
 		defaults_.setValidStrings("mass_type", StringList::create("monoisotopic,average"));
-		defaults_.setValue("number_of_hits", 10, "Number of hits which should be returned, if 0 AUTO mode is enabled.");
+		defaults_.setValue("number_of_hits", 0, "Number of hits which should be returned, if 0 AUTO mode is enabled.");
 		defaults_.setMinInt("number_of_hits", 0);
 		defaults_.setValue("skip_spectrum_charges", "false", "Sometimes precursor charges are given for each spectrum but are wrong, setting this to 'true' does not write any charge information to the spectrum, the general charge information is however kept.");
 		defaults_.setValidStrings("skip_spectrum_charges", StringList::create("true,false"));
 		
 		defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", StringList::create("advanced"));
 		defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", StringList::create("advanced"));
-		defaults_.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed.", StringList::create("advanced"));
-		defaults_.setValue("form_version", "1.01", "Sets the version of the peak list format, this should not be changed.", StringList::create("advanced"));
-		defaults_.setValue("peaklists_only", "false", "Skip the parameter header and the MIME parts; just write the peak lists", StringList::create("advanced"));
-		defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary", StringList::create("advanced"));
-		defaults_.setValidStrings("peaklists_only", StringList::create("true,false"));
 
+    // the next section should not be shown to TOPP users
+    Param p;
+    p.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", StringList::create("advanced"));
+    p.setValidStrings("format", StringList::create("Mascot generic,mzData (.XML),mzML (.mzML)")); // Mascot's HTTP interface supports more, but we don't :)
+    p.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary for parameter header (if using HTTP format)", StringList::create("advanced"));
+    p.setValue("HTTP_format", "false", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", StringList::create("advanced"));
+    p.setValidStrings("HTTP_format", StringList::create("true,false"));
+		p.setValue("content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", StringList::create("advanced"));
+    p.setValidStrings("content", StringList::create("all,peaklist_only,header_only"));
+    defaults_.insert("internal:", p);
+    
 		defaultsToParam_();
 	}
 	
@@ -97,22 +103,20 @@ namespace OpenMS
 
 	void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment)
 	{
-		if (!param_.getValue("peaklists_only").toBool())
-		{
-			writeHeader_(os);
-		}
-		writeMSExperiment_(os, filename, experiment);
-
-		//close file
-		if (!param_.getValue("peaklists_only").toBool())
-		{
-			os << "\n\n" << "--" << param_.getValue("boundary") << "--\n";
-		}
+		if (param_.getValue("internal:content")!="peaklist_only") writeHeader_(os);
+		if (param_.getValue("internal:content")!="header_only") writeMSExperiment_(os, filename, experiment);
 	}
 	
 	void MascotGenericFile::writeParameterHeader_(const String& name, ostream& os)
 	{
-		os << "--" << param_.getValue("boundary") << "\n" << "Content-Disposition: form-data; name=\"" << name << "\"" << "\n\n";
+    if (param_.getValue("internal:HTTP_format")=="true")
+    {
+      os << "--" << param_.getValue("internal:boundary") << "\n" << "Content-Disposition: form-data; name=\"" << name << "\"" << "\n\n";
+    }
+    else
+    {
+      os << name << "=";
+    }
 	}
 		
 	void MascotGenericFile::writeHeader_(ostream& os)
@@ -130,7 +134,7 @@ namespace OpenMS
 
 		// format
 		writeParameterHeader_("FORMAT", os);
-		os << param_.getValue("format") << "\n";
+		os << param_.getValue("internal:format") << "\n";
 
 		// precursor mass tolerance unit : Da
 		writeParameterHeader_("TOLU", os);
@@ -142,7 +146,7 @@ namespace OpenMS
 
 		// format version
 		writeParameterHeader_("FORMVER", os);
-		os << param_.getValue("form_version") << "\n";
+		os << "1.01" << "\n";
 		
 		//db name
 		writeParameterHeader_("DB", os);
@@ -224,6 +228,12 @@ namespace OpenMS
 		{
 			cerr << "Warning: The spectrum written to Mascot file has more than one precursor. The first precursor is used!\n";
 		}
+    if (spec.size() >= 10000)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum to be written as MGF has more than 10.000 peaks which is"
+                                                                             " the maximum upper limit. Only centroided data is allowed. This is most likely raw data.",
+                                                                             String(spec.size()));
+    }
 		DoubleReal mz(precursor.getMZ()), rt(spec.getRT());
 		int charge(precursor.getCharge());
 
@@ -259,11 +269,20 @@ namespace OpenMS
 		}
 	}
 
+  std::pair<String,String> MascotGenericFile::getHTTPPeakListEnclosure(const String& filename) const
+  {
+    std::pair<String,String> r;
+    r.first = String("--" + String(param_.getValue("internal:boundary")) + "\n" + "Content-Disposition: form-data; name=\"FILE\"; filename=\"" + filename + "\"\n\n");
+    r.second = String("\n\n--" + String(param_.getValue("internal:boundary")) + "--\n");
+    return r;
+  }
+
 	void MascotGenericFile::writeMSExperiment_(ostream& os, const String& filename, const PeakMap& experiment)
 	{
-		if (!param_.getValue("peaklists_only").toBool())
+    std::pair<String,String> enc = getHTTPPeakListEnclosure(filename);
+		if (param_.getValue("internal:HTTP_format").toBool())
 		{
-			os << "--" << param_.getValue("boundary") << "\n" << "Content-Disposition: form-data; name=\"FILE\"; filename=\"" << filename << "\"" << "\n" << "\n";
+			os << enc.first;
 		}
 
 		for (Size i = 0; i < experiment.size(); i++)
@@ -278,6 +297,12 @@ namespace OpenMS
 				writeSpectrum_(os, experiment[i]);
 			}
 		}
+
+    // close file
+    if (param_.getValue("internal:HTTP_format").toBool())
+    {
+      os << enc.second;
+    }
 	}
 
 	bool MascotGenericFile::getNextSpectrum_(istream& is, vector<pair<DoubleReal, DoubleReal> >& spectrum, UInt& charge, DoubleReal& precursor_mz, DoubleReal& precursor_int, DoubleReal& rt, String& title, Size& line_number)
