@@ -28,7 +28,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
-#include <OpenMS/FORMAT/MascotGenericfile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
