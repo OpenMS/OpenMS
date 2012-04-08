@@ -33,7 +33,6 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
-#include <coin/CoinMessageHandler.hpp>
 ///////////////////////////
 
 
