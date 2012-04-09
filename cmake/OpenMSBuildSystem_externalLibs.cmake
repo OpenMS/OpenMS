@@ -1,8 +1,8 @@
 
 ## contrib
 
-set(CONTRIB_CUSTOM_DIR CACHE DOC "DEPRECATED: User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib! Please use CMAKE_FIND_ROOT_PATH instead!")
-set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at custom_contrib_path. defaults to OpenMS/contrib")
+set(CONTRIB_CUSTOM_DIR CACHE DOC "DEPRECATED: Please use CMAKE_FIND_ROOT_PATH instead! User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
+set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at CMAKE_FIND_ROOT_PATH. Defaults to OpenMS/contrib")
 
 IF ("${CMAKE_FIND_ROOT_PATH}" STREQUAL "")
 	IF (NOT "${CONTRIB_CUSTOM_DIR}" STREQUAL "")
