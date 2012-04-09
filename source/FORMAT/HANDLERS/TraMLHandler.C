@@ -159,15 +159,11 @@ namespace OpenMS
 		else if (tag_ == "Modification")
 		{
 			TargetedExperiment::Peptide::Modification mod;
-      DoubleReal avg_mass_delta(0), mono_mass_delta(0);
-			if (optionalAttributeAsDouble_(avg_mass_delta, attributes, "averageMassDelta"))
-			{
-				mod.avg_mass_delta = avg_mass_delta;
-			}
-			if (optionalAttributeAsDouble_(mono_mass_delta, attributes, "monoMassDelta"))
-			{
-				mod.mono_mass_delta = mono_mass_delta;
-			}
+      DoubleReal avg_mass_delta(0), mono_mass_delta(0); // zero means no value
+      optionalAttributeAsDouble_(avg_mass_delta, attributes, "averageMassDelta");
+      optionalAttributeAsDouble_(mono_mass_delta, attributes, "monoisotopicMassDelta");
+      mod.avg_mass_delta = avg_mass_delta;
+      mod.mono_mass_delta = mono_mass_delta;
 
 			mod.location = attributeAsInt_(attributes, "location");
 			actual_peptide_.mods.push_back(mod);
@@ -680,20 +676,40 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 				{
 					os << "      <ProteinRef ref=\"" << *rit << "\"/>" << "\n";
 				}
+
+        if (it->mods.size() > 0)
+        {  
+          for (vector<TargetedExperiment::Peptide::Modification>::const_iterator mit = it->mods.begin(); mit != it->mods.end(); ++mit)
+          {
+            os << "      <Modification";  
+            os << " location=\"" << mit->location << "\""; // location is required
+            if(mit->mono_mass_delta != 0)
+            {
+              os << " monoisotopicMassDelta=\"" << mit->mono_mass_delta << "\"";
+            }
+            if(mit->avg_mass_delta != 0)
+            {
+              os << " averageMassDelta=\"" << mit->avg_mass_delta << "\"";
+            }
+            os << ">\n";  
+            writeCVParams_(os, (CVTermList)*mit, 4);
+            os << "      </Modification>\n";  
+          }
+        }
 			
 				if (it->rts.size() > 0)
 				{	
 					os << "      <RetentionTimeList>\n";	
 					for (vector<TargetedExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
 					{
-						os << "       <RetentionTime";
+						os << "        <RetentionTime";
 						if (rit->software_ref != "")
 						{
 							os << " softwareRef=\"" << rit->software_ref << "\"";
 						}
 						os << ">" << "\n";
 						writeCVParams_(os, (CVTermList)*rit, 5);
-						os << "       </RetentionTime>" << "\n";
+						os << "        </RetentionTime>" << "\n";
 					}
 					os << "      </RetentionTimeList>\n";	
 				}
