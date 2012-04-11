@@ -61,6 +61,7 @@ namespace OpenMS
      // create managed pointer to experiment data
      ExperimentType* chrom_exp = new ExperimentType();
      ExperimentSharedPtrType chrom_exp_sptr(chrom_exp);
+     chrom_exp->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
 
      const ExperimentType exp = *exp_sptr;
      SpectrumType spectrum;
@@ -160,6 +161,7 @@ namespace OpenMS
       // create managed pointer to experiment data
       ExperimentType* chrom_exp = new ExperimentType();
       ExperimentSharedPtrType chrom_exp_sptr(chrom_exp);
+      chrom_exp->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
 
       const ExperimentType exp = *exp_sptr;
       SpectrumType spectrum;

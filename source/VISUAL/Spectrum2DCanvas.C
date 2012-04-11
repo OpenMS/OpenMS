@@ -1429,6 +1429,7 @@ namespace OpenMS
 			new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
 			//cout << __PRETTY_FUNCTION__ << endl;
 			changeVisibleArea_(new_area);
+			emit layerZoomChanged(this);
 		}
 		else
 		{
@@ -1436,6 +1437,7 @@ namespace OpenMS
 			new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
 			//cout << __PRETTY_FUNCTION__ << endl;
 			changeVisibleArea_(new_area);
+			emit layerZoomChanged(this);
 		}
 	}
 
@@ -1448,6 +1450,7 @@ namespace OpenMS
 			new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
 			//cout << __PRETTY_FUNCTION__ << endl;
 			changeVisibleArea_(new_area);
+			emit layerZoomChanged(this);
 		}
 		else
 		{
@@ -1455,6 +1458,7 @@ namespace OpenMS
 			new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
 			//cout << __PRETTY_FUNCTION__ << endl;
 			changeVisibleArea_(new_area);
+			emit layerZoomChanged(this);
 		}
 	}
 
@@ -2033,6 +2037,7 @@ namespace OpenMS
 					//cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
 					//cout << __PRETTY_FUNCTION__ << endl;
 					changeVisibleArea_(AreaType(newLoX,newLoY,newHiX,newHiY));
+					emit layerZoomChanged(this);
 					last_mouse_pos_ = pos;
 				}
 			}
@@ -2061,6 +2066,7 @@ namespace OpenMS
 					AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
 					//cout << __PRETTY_FUNCTION__ << endl;
 					changeVisibleArea_(area, true, true);
+					emit layerZoomChanged(this);
 				}
 			}
 		}
@@ -2734,6 +2740,7 @@ namespace OpenMS
 		}
 		//change visible area
 		changeVisibleArea_(AreaType(newLo,visible_area_.minY(),newHi,visible_area_.maxY()));
+		emit layerZoomChanged(this);
 	}
 
 	void Spectrum2DCanvas::translateRight_()
@@ -2749,6 +2756,7 @@ namespace OpenMS
 		}
 		//change visible area
 		changeVisibleArea_(AreaType(newLo,visible_area_.minY(),newHi,visible_area_.maxY()));
+		emit layerZoomChanged(this);
 	}
 
 	void Spectrum2DCanvas::translateForward_()
@@ -2764,6 +2772,7 @@ namespace OpenMS
 		}
 		//change visible area
 		changeVisibleArea_(AreaType(visible_area_.minX(),newLo,visible_area_.maxX(),newHi));
+		emit layerZoomChanged(this);
 	}
 
 	void Spectrum2DCanvas::translateBackward_()
@@ -2779,6 +2788,7 @@ namespace OpenMS
 		}
 		//change visible area
 		changeVisibleArea_(AreaType(visible_area_.minX(),newLo,visible_area_.maxX(),newHi));
+		emit layerZoomChanged(this);
 	}
 
 
@@ -2846,6 +2856,7 @@ namespace OpenMS
 			{
 				AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
 				changeVisibleArea_(area, true, true);
+				emit layerZoomChanged(this);
 			}
 		}
 		else if (action_mode_==AM_MEASURE)

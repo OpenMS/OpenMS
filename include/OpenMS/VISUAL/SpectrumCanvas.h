@@ -590,6 +590,9 @@ namespace OpenMS
 		
 		/// Signal emitted whenever a new layer is activated within the current window
 		void layerActivated(QWidget* w);
+
+		/// Signal emitted whenever the zoom changed
+		void layerZoomChanged(QWidget* w);
 		
 		/**
 			@brief Change of the visible area

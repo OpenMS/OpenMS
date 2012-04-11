@@ -2308,6 +2308,89 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     updateCurrentPath();
   }
 
+  void TOPPViewBase::layerZoomChanged()
+  {
+    QWidgetList windows = ws_->windowList();
+    if ( !windows.count() ) return;
+
+    SpectrumWidget* w = getActiveSpectrumWidget();
+
+    // check if the calling layer is a chromatogram: 
+    // - either its type is DT_CHROMATOGRAM
+    // - or its peak data has a metavalue called "is_chromatogram" that is set to true
+    if(getActiveCanvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM || 
+        (getActiveCanvas()->getCurrentLayer().getPeakData()->size() > 0 && 
+         getActiveCanvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") && 
+         getActiveCanvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool() 
+         ) ) {
+      double minRT = -1, maxRT = -1;
+
+      // figure out whether active canvas is 2D (MSExperiment) or 1D (Iontrace)
+      // and get the corresponding RT values.
+      Spectrum1DWidget* sw1 = qobject_cast<Spectrum1DWidget*>(w);
+      Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(w);
+      if (sw1 != 0)
+      {
+        minRT = sw1->canvas()->getVisibleArea().minX();
+        maxRT = sw1->canvas()->getVisibleArea().maxX();
+      }
+      else if (sw2 != 0)
+      {
+        minRT = sw2->canvas()->getVisibleArea().minY();
+        maxRT = sw2->canvas()->getVisibleArea().maxY();
+      }
+
+      // go through all windows, adjust the visible area where necessary
+      for ( int i = 0; i < int(windows.count()); ++i )
+      {
+        QWidget *window = windows.at(i);
+        DRange<2> visible_area;
+        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
+
+        if(!specwidg) continue;
+        if(!(specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) && 
+           !(specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 && 
+             specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") && 
+             specwidg->canvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool() 
+             ) ) 
+        {
+          continue;
+        }
+
+        visible_area = specwidg->canvas()->getVisibleArea();
+
+        // if we found a min/max RT, change all windows of 1 dimension
+        if(minRT != -1 && maxRT != -1 && qobject_cast<Spectrum1DWidget*>(window))
+        {
+          visible_area.setMinX(minRT);
+          visible_area.setMaxX(maxRT);
+        }
+        specwidg->canvas()->setVisibleArea(visible_area);
+      }
+    }
+    else {
+      DRange<2> new_visible_area = w->canvas()->getVisibleArea();
+      // go through all windows, adjust the visible area where necessary
+      for(int i = 0; i < int(windows.count()); ++i)
+      {
+        QWidget *window = windows.at(i);
+        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
+        if(!specwidg) continue;
+        if((specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) || 
+           (specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 && 
+             specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") && 
+             specwidg->canvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool() 
+             ) ) 
+        {
+          continue;
+        }
+        specwidg->canvas()->setVisibleArea(new_visible_area);
+      }
+      return;
+    }
+
+  }
+
   void TOPPViewBase::layerDeactivated()
   {
 
@@ -2319,6 +2402,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     connect(sw->canvas(),SIGNAL(preferencesChange()),this,SLOT(updateLayerBar()));
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(layerActivated()));
     connect(sw->canvas(),SIGNAL(layerModficationChange(Size,bool)),this,SLOT(updateLayerBar()));
+    connect(sw->canvas(),SIGNAL(layerZoomChanged(QWidget*)),this,SLOT(layerZoomChanged()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double)),this,SLOT(showCursorStatus(double,double)));
     connect(sw,SIGNAL(dropReceived(const QMimeData*,QWidget*,int)),this,SLOT(copyLayer(const QMimeData*,QWidget*,int)));

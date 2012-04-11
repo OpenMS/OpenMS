@@ -245,6 +245,8 @@ namespace OpenMS
       void editMetadata();
       /// get's called if a layer got activated
       void layerActivated();
+      /// gets called when a layer changes in zoom
+      void layerZoomChanged(); 
       /// get's called if a layer got deactivated
       void layerDeactivated();
       /// Activation of 1D spectrum
