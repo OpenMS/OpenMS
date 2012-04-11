@@ -143,6 +143,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           //enable drag-and-drop
           setAcceptDrops(true);
 
+          //by default, linked zooming is turned off
+          zoom_together_ = false;
+
           // get geometry of first screen
           QRect screen_geometry = QApplication::desktop()->screenGeometry();
           // center main window
@@ -270,6 +273,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           windows->addAction("&Tile automatic",this->ws_,SLOT(tile()));
           windows->addAction(QIcon(":/tile_horizontal.png"),"Tile &vertical",this,SLOT(tileHorizontal()));
           windows->addAction(QIcon(":/tile_vertical.png"),"Tile &horizontal",this,SLOT(tileVertical()));
+          linkZoom_action_ = windows->addAction("Link &Zoom",this,SLOT(linkZoom()));
           windows->addSeparator();
 
           //Help menu
@@ -2301,6 +2305,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     }
   }
 
+  void TOPPViewBase::linkZoom()
+  {
+    zoom_together_ = !zoom_together_;
+    if(!zoom_together_)
+    {
+        linkZoom_action_->setText("Link &Zoom");
+    }
+    else
+    {
+      linkZoom_action_->setText("Unlink &Zoom");
+    }
+  }
+
   void TOPPViewBase::layerActivated()
   {
     updateToolBar();
@@ -2312,6 +2329,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
   {
     QWidgetList windows = ws_->windowList();
     if ( !windows.count() ) return;
+    if ( !zoom_together_ ) return;
 
     SpectrumWidget* w = getActiveSpectrumWidget();
 

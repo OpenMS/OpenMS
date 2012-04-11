@@ -247,6 +247,8 @@ namespace OpenMS
       void layerActivated();
       /// gets called when a layer changes in zoom
       void layerZoomChanged(); 
+      /// link the zoom of individual windows
+      void linkZoom();
       /// get's called if a layer got deactivated
       void layerDeactivated();
       /// Activation of 1D spectrum
@@ -485,6 +487,10 @@ namespace OpenMS
       /// Holds the messageboxes for each layer that are currently popped up (to avoid popping them up again, if file changes again before the messagebox is closed)
       bool watcher_msgbox_;
 
+      /// Stores whether the individual windows should zoom together (be linked) or not
+      bool zoom_together_;
+
+      QAction* linkZoom_action_;
 
       /// Log output window
       QTextEdit* log_;
