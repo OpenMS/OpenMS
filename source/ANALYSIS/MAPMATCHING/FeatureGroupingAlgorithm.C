@@ -73,25 +73,24 @@ namespace OpenMS
 		// accumulate file descriptions from the input maps:
 		// cout << "Updating file descriptions..." << endl;
 		out.getFileDescriptions().clear();
-		out.getFileDescriptions() = maps[0].getFileDescriptions();
-		vector<Size> offsets(maps.size(), 0);
-		for (Size i = 1; i < maps.size(); ++i)
+		// mapping: (map index, original id) -> new id
+		map<pair<Size, UInt64>, Size> mapid_table;
+		for (Size i = 0; i < maps.size(); ++i)
 		{
 			const ConsensusMap& consensus = maps[i];
-			Size offset = offsets[i - 1] + consensus.getFileDescriptions().size();
 			for (ConsensusMap::FileDescriptions::const_iterator desc_it =
 						 consensus.getFileDescriptions().begin(); desc_it !=
 						 consensus.getFileDescriptions().end(); ++desc_it)
 			{
-				out.getFileDescriptions()[desc_it->first + offset] = 
-					desc_it->second;
+				Size counter = mapid_table.size();
+				mapid_table[make_pair(i, desc_it->first)] = counter;
+				out.getFileDescriptions()[counter] = desc_it->second;
 			}
-			offsets[i] = offset;
 		}
 
 		// look-up table: input map -> unique ID -> consensus feature
 		// cout << "Creating look-up table..." << endl;
-		vector<map<UInt64, ConsensusMap::ConstIterator> > id_lookup(maps.size());
+		vector<map<UInt64, ConsensusMap::ConstIterator> > feat_lookup(maps.size());
 		for (Size i = 0; i < maps.size(); ++i)
 		{
 			const ConsensusMap& consensus = maps[i];
@@ -99,9 +98,9 @@ namespace OpenMS
 					 feat_it != consensus.end(); ++feat_it)
 			{
 				// do NOT use "id_lookup[i][feat_it->getUniqueId()] = feat_it;" here as
-				// you will get "attempt to copy- construct an iterator from a singular
+				// you will get "attempt to copy-construct an iterator from a singular
 				// iterator" in STL debug mode:
-				id_lookup[i].insert(make_pair(feat_it->getUniqueId(), feat_it));
+				feat_lookup[i].insert(make_pair(feat_it->getUniqueId(), feat_it));
 			}
 		}
 		// adjust the consensus features:
@@ -117,13 +116,14 @@ namespace OpenMS
 			{
 				UInt64 id = sub_it->getUniqueId();
 				Size map_index = sub_it->getMapIndex();
-				ConsensusMap::ConstIterator origin = id_lookup[map_index][id];
+				ConsensusMap::ConstIterator origin = feat_lookup[map_index][id];
 				for (ConsensusFeature::HandleSetType::const_iterator handle_it = 
 							 origin->getFeatures().begin(); handle_it != 
 							 origin->getFeatures().end(); ++handle_it)
 				{
 					FeatureHandle handle = *handle_it;
-					handle.setMapIndex(handle.getMapIndex() + offsets[map_index]);
+					Size new_id = mapid_table[make_pair(map_index, handle.getMapIndex())];
+					handle.setMapIndex(new_id);
 					adjusted.insert(handle);
 				}
 			}
