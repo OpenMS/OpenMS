@@ -513,6 +513,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
           connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
           connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
+          connect(spectra_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), this, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
           connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(int)));
           connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
 
@@ -524,6 +525,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
           connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
           connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
+          connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), this, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
           identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
           connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(DoubleReal, DoubleReal)), identificationview_behavior_, SLOT(setVisibleArea1D(DoubleReal, DoubleReal)));
 
@@ -2531,6 +2533,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     if (w)
     {
       view_behavior_->activate1DSpectrum(index);
+    }
+  }
+  void TOPPViewBase::activate1DSpectrum(std::vector<int, std::allocator<int> > indices)
+  {
+    Spectrum1DWidget* w = getActive1DWidget();
+    if (w)
+    {
+      view_behavior_->activate1DSpectrum(indices);
     }
   }
 

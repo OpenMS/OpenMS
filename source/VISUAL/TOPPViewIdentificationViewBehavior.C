@@ -239,6 +239,9 @@ namespace OpenMS
     }
   }
 
+  /// Behavior for activate1DSpectrum
+  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(std::vector<int, std::allocator<int> > indices)
+  {}
 
   void TOPPViewIdentificationViewBehavior::removeTemporaryAnnotations_(Size spectrum_index)
   {

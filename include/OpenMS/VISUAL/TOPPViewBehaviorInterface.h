@@ -29,6 +29,7 @@
 #define OPENMS_VISUAL_TOPPVIEWBEHAVIORINTERFACE_H
 
 #include <QtCore/QObject>
+#include <vector>
 
 namespace OpenMS
 {
@@ -51,6 +52,7 @@ namespace OpenMS
 
     /// Behavior for activate1DSpectrum
     virtual void activate1DSpectrum(int index) = 0;
+    virtual void activate1DSpectrum(std::vector<int, std::allocator<int> > indices) = 0;
 
     /// Behavior for deactivate1DSpectrum
     virtual void deactivate1DSpectrum(int index) = 0;

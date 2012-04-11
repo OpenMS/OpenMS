@@ -253,6 +253,8 @@ namespace OpenMS
       void layerDeactivated();
       /// Activation of 1D spectrum
       void activate1DSpectrum(int index);
+      /// Activation of 1D with multiple entries (e.g. chromatograms)
+      void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
       /// Deactivation of 1D spectrum
       void deactivate1DSpectrum(int index);
       /// closes the active window

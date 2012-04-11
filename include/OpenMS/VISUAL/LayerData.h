@@ -177,6 +177,18 @@ namespace OpenMS
         return peaks;
       }
 
+      /// Returns a const reference to the current chromatogram data
+      const ExperimentSharedPtrType& getChromatogramData() const
+      {
+        return chromatograms;
+      }
+
+      /// Returns a mutable reference to the current chromatogram data
+      ExperimentSharedPtrType& getChromatogramData()
+      {
+        return chromatograms;
+      }
+
       /// Returns a const reference to the annotations of the current spectrum (1d view)
       const Annotations1DContainer& getCurrentAnnotations() const
       {
@@ -267,6 +279,9 @@ namespace OpenMS
 
       /// peak data
       ExperimentSharedPtrType peaks;
+
+      /// chromatogram data
+      ExperimentSharedPtrType chromatograms;
 
       /// Index of the current spectrum
       Size current_spectrum_;

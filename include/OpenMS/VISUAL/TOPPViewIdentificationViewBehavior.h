@@ -75,6 +75,9 @@ namespace OpenMS
       /// Behavior for activate1DSpectrum
       virtual void activate1DSpectrum(int index);
 
+      /// Behavior for activate1DSpectrum
+      virtual void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
+
       /// Behavior for deactivate1DSpectrum
       virtual void deactivate1DSpectrum(int index);
 
