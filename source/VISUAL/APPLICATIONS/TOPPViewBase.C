@@ -2333,6 +2333,32 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
     SpectrumWidget* w = getActiveSpectrumWidget();
 
+    // figure out which dimension the active widget has: 2D (MSExperiment) or 1D (Iontrace)
+    // and get the corresponding RT values.
+    Spectrum1DWidget* sw1 = qobject_cast<Spectrum1DWidget*>(w);
+    Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(w);
+    Spectrum3DWidget* sw3 = qobject_cast<Spectrum3DWidget*>(w);
+    int widget_dimension = -1;
+    if (sw1 != 0)
+    {
+      widget_dimension = 1;
+    }
+    else if (sw2 != 0)
+    {
+      widget_dimension = 2;
+    }
+    else if (sw3 != 0)
+    {
+      // dont link 3D
+      widget_dimension = 3;
+      return;
+    }
+    else 
+    {
+      // Could not cast into any widget. 
+      return;
+    }
+
     // check if the calling layer is a chromatogram: 
     // - either its type is DT_CHROMATOGRAM
     // - or its peak data has a metavalue called "is_chromatogram" that is set to true
@@ -2343,16 +2369,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
          ) ) {
       double minRT = -1, maxRT = -1;
 
-      // figure out whether active canvas is 2D (MSExperiment) or 1D (Iontrace)
-      // and get the corresponding RT values.
-      Spectrum1DWidget* sw1 = qobject_cast<Spectrum1DWidget*>(w);
-      Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(w);
-      if (sw1 != 0)
+      // Get the corresponding RT values depending on whether it is 2D (MSExperiment) or 1D (Iontrace).
+      if (widget_dimension == 1)
       {
         minRT = sw1->canvas()->getVisibleArea().minX();
         maxRT = sw1->canvas()->getVisibleArea().maxX();
       }
-      else if (sw2 != 0)
+      else if (widget_dimension == 2)
       {
         minRT = sw2->canvas()->getVisibleArea().minY();
         maxRT = sw2->canvas()->getVisibleArea().maxY();
@@ -2365,12 +2388,18 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         DRange<2> visible_area;
         SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
 
+        // Skip if its not a SpectrumWidget, if it is not a chromatogram or if the dimensions don't match.
         if(!specwidg) continue;
         if(!(specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) && 
            !(specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 && 
              specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") && 
              specwidg->canvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool() 
              ) ) 
+        {
+          continue;
+        }
+        if( !(widget_dimension == 1 && qobject_cast<Spectrum1DWidget*>(specwidg)) && 
+            !(widget_dimension == 2 && qobject_cast<Spectrum2DWidget*>(specwidg))  )
         {
           continue;
         }
@@ -2393,12 +2422,19 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
       {
         QWidget *window = windows.at(i);
         SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
+
+        // Skip if its not a SpectrumWidget, if it is a chromatogram or if the dimensions don't match.
         if(!specwidg) continue;
         if((specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) || 
            (specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 && 
              specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") && 
              specwidg->canvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool() 
-             ) ) 
+             ) )
+        {
+          continue;
+        }
+        if( !(widget_dimension == 1 && qobject_cast<Spectrum1DWidget*>(specwidg)) && 
+            !(widget_dimension == 2 && qobject_cast<Spectrum2DWidget*>(specwidg))  )
         {
           continue;
         }
