@@ -2419,12 +2419,14 @@ namespace OpenMS
         {
           if (result->text() == "Show all")
           {
+            std::vector<int> chrom_indices;
             const QList<QVariant>& res = result->data().toList();
             for (Int i = 0; i != res.size(); ++i)
             {
-              // cout << "Show all:" << endl;
-              cout << res[i].toInt() << endl;
+              chrom_indices.push_back(res[i].toInt());
+              cout << "chrom_indices: " << res[i].toInt() << std::endl;
             }
+            emit showSpectrumAs1D(chrom_indices);
           } else // Show single chromatogram
           {
             //cout << "Chromatogram result " << result->data().toInt() << endl;

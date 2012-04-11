@@ -74,6 +74,7 @@ namespace OpenMS
 		connect(canvas(), SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(autoUpdateProjections()));
     // delegate signals from canvas
     connect(canvas(), SIGNAL(showSpectrumAs1D(int)), this, SIGNAL(showSpectrumAs1D(int)));
+    connect(canvas(), SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
     connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
 		// add projections box
 		projection_box_ = new QGroupBox("Projections",this);

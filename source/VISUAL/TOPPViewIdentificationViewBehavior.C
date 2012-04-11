@@ -54,6 +54,9 @@ namespace OpenMS
      const LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
      ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
+
+    if(layer.type == LayerData::DT_PEAK)
+    {
     //open new 1D widget with the current default parameters
     Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
     //add data
@@ -114,17 +117,26 @@ namespace OpenMS
     tv_->updateFilterBar();
     tv_->updateMenu();
    }
+    if(layer.type == LayerData::DT_CHROMATOGRAM)
+    {
+
+    }
+
+  }
 
    void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int index)
    {
-     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();     
+    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
      widget_1D->canvas()->activateSpectrum(index);
-     const LayerData& cl = widget_1D->canvas()->getCurrentLayer();
-     UInt ms_level = cl.getCurrentSpectrum().getMSLevel();
+    const LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
+
+    if(current_layer.type == LayerData::DT_PEAK)
+    {
+      UInt ms_level = current_layer.getCurrentSpectrum().getMSLevel();
 
      if (ms_level == 2)  // show theoretical spectrum with automatic alignment
      {
-       vector<PeptideIdentification> pi = cl.getCurrentSpectrum().getPeptideIdentifications();
+        vector<PeptideIdentification> pi = current_layer.getCurrentSpectrum().getPeptideIdentifications();
        if ( !pi.empty() )
        {
          Size best_i_index = 0;
@@ -155,28 +167,36 @@ namespace OpenMS
      {
        vector<Precursor> precursors;
        // collect all MS2 spectra precursor till next MS1 spectrum is encountered
-       for (Size i = index + 1; i < cl.getPeakData()->size(); ++i)
+        for (Size i = index + 1; i < current_layer.getPeakData()->size(); ++i)
        {
-         if ((*cl.getPeakData())[i].getMSLevel() == 1)
+          if ((*current_layer.getPeakData())[i].getMSLevel() == 1)
          {
            break;
          }
          // skip MS2 without precursor
-         if ((*cl.getPeakData())[i].getPrecursors().empty())
+          if ((*current_layer.getPeakData())[i].getPrecursors().empty())
          {
            continue;
          }
          // there should be only one precusor per MS2 spectrum.
-         vector<Precursor> pcs = (*cl.getPeakData())[i].getPrecursors();
+          vector<Precursor> pcs = (*current_layer.getPeakData())[i].getPrecursors();
          copy(pcs.begin(), pcs.end(), back_inserter(precursors));
        }
        addPrecursorLabels1D_(precursors);
      }
    }
+    if(current_layer.type == LayerData::DT_CHROMATOGRAM)
+    {
+
+    }
+  }
 
   void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor>& pcs)
   {
     LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+
+    if(current_layer.type == LayerData::DT_PEAK)
+    {
     SpectrumType& spectrum = current_layer.getCurrentSpectrum();
 
     for(vector<Precursor>::const_iterator it= pcs.begin(); it != pcs.end(); ++it)
@@ -213,6 +233,12 @@ namespace OpenMS
       current_layer.getCurrentAnnotations().push_front(item);  // for visualisation (ownership)
     }
   }
+    if(current_layer.type == LayerData::DT_CHROMATOGRAM)
+    {
+
+    }
+  }
+
 
   void TOPPViewIdentificationViewBehavior::removeTemporaryAnnotations_(Size spectrum_index)
   {

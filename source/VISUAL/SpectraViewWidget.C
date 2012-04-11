@@ -180,6 +180,7 @@ namespace OpenMS
       QAction* selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
       if (selected!=0 && selected->text()=="Show in 1D view")
       {
+        std::cout << "spectrum_index : " << spectrum_index << std::endl;
         emit showSpectrumAs1D(spectrum_index);
       }
       else if (selected!=0 && selected->text()=="Meta data")
@@ -440,85 +441,124 @@ namespace OpenMS
     }
     else if (cl.type == LayerData::DT_CHROMATOGRAM)
     {
-      spectra_treewidget_->setColumnCount(4);
+      spectra_treewidget_->setColumnCount(5);
       spectra_treewidget_->setColumnWidth(0,80);
-      spectra_treewidget_->setColumnWidth(1,80);
+      spectra_treewidget_->setColumnWidth(1,45);
       spectra_treewidget_->setColumnWidth(2,80);
       spectra_treewidget_->setColumnWidth(3,80);
+      spectra_treewidget_->setColumnWidth(4,80);
 
       QStringList header_labels;
       header_labels.append(QString(" m/z "));
-      header_labels.append(QString("RT start"));
-      header_labels.append(QString("RT end"));
-      header_labels.append(QString("Chromatogram type"));
+      header_labels.append(QString("index"));
+      header_labels.append(QString("rt start"));
+      header_labels.append(QString("rt end"));
+      header_labels.append(QString("chromatogram type"));
       spectra_treewidget_->setHeaderLabels(header_labels);
 
       MSExperiment<Peak1D> exp;
       exp = *cl.getPeakData();
+      int index_counter = 0;
 
-      // collect all precursors
-      typedef std::set<Precursor, Precursor::MZLess> PCSetType;
-      PCSetType precursors;
+      // collect all precursors in order of appearance in the sorted chromatograms
+      std::vector<float> precursors;
+      int precursor_index = 0;
+      float last_precursor = float(-1.0);
+
       for (std::vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
-        precursors.insert(iter->getPrecursor());
+        if (precursors.size() > 0)
+        {
+          if(precursors[precursor_index] != iter->getPrecursor().getMZ())
+          {
+            precursors.push_back(iter->getPrecursor().getMZ());
+      }
+
+        }
+        else if (precursors.size() == 0) //first Precursor
+        {
+          precursors.push_back(iter->getPrecursor().getMZ());
+        }
+        ++precursor_index;
       }
 
       // determine product chromatograms for each precursor
-      std::map<Precursor, std::vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
-      for (PCSetType::const_iterator pit = precursors.begin(); pit != precursors.end(); ++pit)
+      //      std::map<Precursor, std::vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
+      //      for (std::vector<float>::const_iterator pit = precursors.begin(); pit != precursors.end(); ++pit)
+      //      {
+      //        for (std::vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      //        {
+      //          if (iter->getPrecursor().getMZ() == *pit)
+      //          {
+      //            map_precursor_to_chrom_idx[*pit].push_back(iter - exp.getChromatograms().begin());
+      //          }
+      //        }
+      //      }
+
+      for (Size i = 0; i != precursors.size(); ++i)
       {
+        index_counter = 0;
         for (std::vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
         {
-          if (iter->getPrecursor() == *pit)
+          if (float(iter->getPrecursor().getMZ()) == precursors[i])
           {
-            map_precursor_to_chrom_idx[*pit].push_back(iter - exp.getChromatograms().begin());
+              if (float(iter->getPrecursor().getMZ()) != last_precursor)
+            {
+              // Top level precursor entry
+              item = new QTreeWidgetItem(0);
+              item->setText(0, QString::number(precursors[i]));
+              item->setText(2, QString::number(iter->front().getRT()));
+              item->setText(3, QString::number(iter->back().getRT()));
+              item->setText(4, QString("-"));
+
+              toplevel_items.push_back(item);
+
           }
+            if (float(iter->getPrecursor().getMZ()) == last_precursor)
+            {
+
         }
-      }
-
-      for (std::set<Precursor, Precursor::MZLess>::const_iterator it = precursors.begin(); it != precursors.end(); ++it)
+            else if (last_precursor == float(-1.0)) // first entry
       {
-        std::vector<Size>& current_chromatograms_idx = map_precursor_to_chrom_idx[*it];
-
         // Top level precursor entry
         item = new QTreeWidgetItem(0);
-        item->setText(0, QString::number(it->getMZ()));
-        item->setText(1, QString::number(exp.getChromatograms()[current_chromatograms_idx[0]].front().getRT()));
-        item->setText(2, QString::number(exp.getChromatograms()[current_chromatograms_idx[0]].back().getRT()));
-        item->setText(3, QString("-"));
-        item->setText(4, QString(".."));
-        item->setText(5, QString(".."));
-        item->setText(6, QString(".."));
+              item->setText(0, QString::number(precursors[i]));
+              item->setText(2, QString::number(iter->front().getRT()));
+              item->setText(3, QString::number(iter->back().getRT()));
+              item->setText(4, QString("-"));
+
         toplevel_items.push_back(item);
+            }
+
+            last_precursor = precursors[i];
 
         // Childen chromatogram entry
-        for (Size i = 0; i != current_chromatograms_idx.size(); ++i)
-        {
           QTreeWidgetItem* sub_item = new QTreeWidgetItem(item);
-          const MSChromatogram<>& current_chromatogram = exp.getChromatograms()[current_chromatograms_idx[i]];
-          sub_item->setText(0, QString::number(current_chromatogram.getMZ()));
-          sub_item->setText(1, QString::number(current_chromatogram.front().getRT()));
-          sub_item->setText(2, QString::number(current_chromatogram.back().getRT()));
+            //const MSChromatogram<>& current_chromatogram = exp.getChromatograms()[current_chromatograms_idx[i]];
+            sub_item->setText(0, QString::number(iter->getMZ()));
+            sub_item->setText(1, QString::number(index_counter));
+            sub_item->setText(2, QString::number(iter->front().getRT()));
+            sub_item->setText(3, QString::number(iter->back().getRT()));
 
-          switch (exp.getChromatograms()[current_chromatograms_idx[0]].getChromatogramType())
+            switch (iter->getChromatogramType())
           {
-          case ChromatogramSettings::MASS_CHROMATOGRAM:                         sub_item->setText(3, QString("Mass chromatogram")); break;
-          case ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM:            sub_item->setText(3, QString("Total ion chromatogram")); break;
-          case ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM:         sub_item->setText(3, QString("Selected ion current chromatogram")); break;
-          case ChromatogramSettings::BASEPEAK_CHROMATOGRAM:                     sub_item->setText(3, QString("Basepeak chromaogram")); break;
-          case ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM:      sub_item->setText(3, QString("Selected ion monitoring chromatogram")); break;
-          case ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM: sub_item->setText(3, QString("Selected reaction monitoring chromatogram")); break;
-          case ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM:    sub_item->setText(3, QString("Electromagnetic radiation chromatogram")); break;
-          case ChromatogramSettings::ABSORPTION_CHROMATOGRAM:                   sub_item->setText(3, QString("Absorption chromatogram")); break;
-          case ChromatogramSettings::EMISSION_CHROMATOGRAM:                     sub_item->setText(3, QString("Emission chromatogram")); break;
-          default: 								                                              sub_item->setText(3, QString("Unknown chromatogram")); break;
+            case ChromatogramSettings::MASS_CHROMATOGRAM:                         sub_item->setText(4, QString("Mass chromatogram")); break;
+            case ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM:            sub_item->setText(4, QString("Total ion chromatogram")); break;
+            case ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM:         sub_item->setText(4, QString("Selected ion current chromatogram")); break;
+            case ChromatogramSettings::BASEPEAK_CHROMATOGRAM:                     sub_item->setText(4, QString("Basepeak chromaogram")); break;
+            case ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM:      sub_item->setText(4, QString("Selected ion monitoring chromatogram")); break;
+            case ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM: sub_item->setText(4, QString("Selected reaction monitoring chromatogram")); break;
+            case ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM:    sub_item->setText(4, QString("Electromagnetic radiation chromatogram")); break;
+            case ChromatogramSettings::ABSORPTION_CHROMATOGRAM:                   sub_item->setText(4, QString("Absorption chromatogram")); break;
+            case ChromatogramSettings::EMISSION_CHROMATOGRAM:                     sub_item->setText(4, QString("Emission chromatogram")); break;
+            default: 								                                              sub_item->setText(4, QString("Unknown chromatogram")); break;
           }
-
-          sub_item->setText(4, QString(".."));
-          sub_item->setText(5, QString(".."));
-          sub_item->setText(6, QString(".."));
+            //sub_item->setText(5, QString(".."));
+            //sub_item->setText(6, QString(".."));
+            //sub_item->setText(7, QString(".."));
         }
+          index_counter++;
+      }
       }
       spectra_treewidget_->addTopLevelItems(toplevel_items);
     }

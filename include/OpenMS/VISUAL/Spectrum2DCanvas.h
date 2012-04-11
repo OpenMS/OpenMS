@@ -98,6 +98,7 @@ namespace OpenMS
         void toggleProjections();
         /// Requests to display the spectrum with index @p index in 1D
         void showSpectrumAs1D(int index);
+        void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
         /// Requests to display all spectra in 3D plot
         void showCurrentPeaksAs3D();
 
