@@ -81,6 +81,7 @@ namespace OpenMS
      {
        return;
      }
+     w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
 
    } else if (layer.type == LayerData::DT_PEAK)
    {
@@ -108,7 +109,18 @@ namespace OpenMS
      w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
    }
    } else if (layer.type == LayerData::DT_CHROMATOGRAM)
-   {}
+   {
+      // set visible area to visible area in 2D view
+      // switch X/Y because now we want to have RT on the x-axis and not m/z
+      DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
+      int tmp_x1 = visible_area.minX();
+      int tmp_x2 = visible_area.maxX();
+      visible_area.setMinX(visible_area.minY());
+      visible_area.setMaxX(visible_area.maxY());
+      visible_area.setMinY(tmp_x1);
+      visible_area.setMaxY(tmp_x2);
+      w->canvas()->setVisibleArea(visible_area);
+   }
 
    // basic behavior 2
    String caption = layer.name;
@@ -175,6 +187,17 @@ namespace OpenMS
         w->canvas()->activateSpectrum(*indices.begin());
         w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), chromatogram_caption);
         w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+
+        // set visible area to visible area in 2D view
+        // switch X/Y because now we want to have RT on the x-axis and not m/z
+        DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
+        int tmp_x1 = visible_area.minX();
+        int tmp_x2 = visible_area.maxX();
+        visible_area.setMinX(visible_area.minY());
+        visible_area.setMaxX(visible_area.maxY());
+        visible_area.setMinY(tmp_x1);
+        visible_area.setMaxY(tmp_x2);
+        w->canvas()->setVisibleArea(visible_area);
       }
     }
 
