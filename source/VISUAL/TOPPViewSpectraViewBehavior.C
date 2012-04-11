@@ -174,6 +174,7 @@ namespace OpenMS
         }
         w->canvas()->activateSpectrum(*indices.begin());
         w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), chromatogram_caption);
+        w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
       }
     }
 

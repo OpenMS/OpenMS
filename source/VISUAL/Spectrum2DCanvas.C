@@ -2340,13 +2340,15 @@ namespace OpenMS
       MSExperiment<Peak1D> exp;
       exp = *layer.getPeakData();
 
+      int CHROMATOGRAM_SHOW_MZ_RANGE = 10;
+
       // collect all precursor that fall into the mz rt window
       typedef std::set<Precursor, Precursor::MZLess> PCSetType;
       PCSetType precursor_in_rt_mz_window;
       for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
-        if ( mz + 10.0 >= iter->getPrecursor().getMZ() &&
-             mz - 10.0 <= iter->getPrecursor().getMZ() &&
+        if ( mz + CHROMATOGRAM_SHOW_MZ_RANGE >= iter->getPrecursor().getMZ() &&
+             mz - CHROMATOGRAM_SHOW_MZ_RANGE <= iter->getPrecursor().getMZ() &&
              rt >= iter->front().getRT() &&
              rt <= iter->back().getRT())
         {
@@ -2390,7 +2392,13 @@ namespace OpenMS
 
         for (map<Precursor, vector<Size>, Precursor::MZLess >::iterator mit = map_precursor_to_chrom_idx.begin(); mit != map_precursor_to_chrom_idx.end(); ++mit)
         {
-          QMenu* msn_precursor = msn_chromatogram->addMenu(QString("Precursor m/z: ") + QString::number(mit->first.getMZ()));  // neuer Eintrag für jeden Precursor
+          // Show the peptide sequence if available, otherwise show the m/z and charge only
+          QString precursor_string = QString("Precursor m/z: (")  + String(mit->first.getCharge() ).toQString() + ") " + QString::number(mit->first.getMZ() ); 
+          if(mit->first.metaValueExists("peptide_sequence"))
+          {
+            precursor_string = QString::number(mit->first.getMZ() ) + " : " + String(mit->first.getMetaValue("peptide_sequence")).toQString() + " (" + QString::number(mit->first.getCharge()) + "+)";
+          }
+          QMenu* msn_precursor = msn_chromatogram->addMenu(precursor_string);  // neuer Eintrag für jeden Precursor
 
           // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms
           a = msn_precursor->addAction(QString("Show all"));
