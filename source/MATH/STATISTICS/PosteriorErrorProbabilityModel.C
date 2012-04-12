@@ -44,7 +44,7 @@ namespace OpenMS
 			defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", StringList::create("advanced"));
 			defaults_.setValue("output_plots","false","If true every step of the EM-algorithm will be written to a file as a gnuplot formula",StringList::create("advanced"));
 			defaults_.setValidStrings("output_plots",StringList::create("true,false"));
-			defaults_.setValue("output_name","", "if output_plots is on, the output files will be saved in the following manner: <output_name>scores.txt for the scores and <output_name> which contains each step of the EM-algorithm e.g. output_name = /usr/home/OMSSA123 then /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.",StringList::create("advanced,output file"));
+			defaults_.setValue("output_name","", "If output_plots is on, the output files will be saved in the following manner: <output_name>scores.txt for the scores and <output_name> which contains each step of the EM-algorithm e.g. output_name = /usr/home/OMSSA123 then /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.",StringList::create("advanced,output file"));
 			defaults_.setValue("incorrectly_assigned","Gumbel", "for 'Gumbel', the Gumbel distribution is used to plot incorrectly assigned sequences. For 'Gauss', the Gauss distribution is used.",StringList::create("advanced"));
 			defaults_.setValidStrings("incorrectly_assigned",StringList::create("Gumbel,Gauss"));
 			defaultsToParam_();
@@ -322,19 +322,19 @@ namespace OpenMS
 			score = score + fabs(smallest_score_) + 0.001;
 			DoubleReal x_neg;
 			DoubleReal x_pos;
-			//the score is smaller than the peak of incorreclty assigned sequences. To ensure that the probabilies wont rise again use the incorrectly assigend peak for computation
+			// the score is smaller than the peak of incorrectly assigned sequences. To ensure that the probabilities wont rise again use the incorrectly assigned peak for computation
 			if(score < incorrectly_assigned_fit_param_.x0)
 			{
 				x_neg = max_incorrectly_;	
 				x_pos = ((this)->*(calc_correct_))(score, correctly_assigned_fit_param_ );
 			}
-			//same as above. However, this time to ensure that probabilities wont drop again.
+			// same as above. However, this time to ensure that probabilities wont drop again.
 			else if(score > correctly_assigned_fit_param_.x0)
 			{
 				x_neg = ((this)->*(calc_incorrect_))(score, incorrectly_assigned_fit_param_);
 				x_pos = max_correctly_;
 			}
-			//if its in between use the normal formula
+			// if its in between use the normal formula
 			else
 			{
 				x_neg = ((this)->*(calc_incorrect_))(score, incorrectly_assigned_fit_param_);
