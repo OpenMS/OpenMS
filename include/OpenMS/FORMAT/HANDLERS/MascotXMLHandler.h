@@ -32,6 +32,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
 
@@ -47,8 +48,15 @@ namespace OpenMS
     public XMLHandler
   {
     public:
+      
+      typedef Map<Size, Real> RTMapping;
+      
       /// Constructor
-      MascotXMLHandler(ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& identifications, const String& filename, std::map<String, std::vector<AASequence> >& peptides);
+      MascotXMLHandler(ProteinIdentification& protein_identification,
+                       std::vector<PeptideIdentification>& identifications,
+                       const String& filename,
+                       std::map<String, std::vector<AASequence> >& peptides,
+                       const RTMapping& rt_mapping = RTMapping());
 
       /// Destructor
       virtual ~MascotXMLHandler();
@@ -82,6 +90,10 @@ namespace OpenMS
 			StringList tags_open_; ///< tracking the current XML tree
 			String major_version_;
 			String minor_version_;
+
+      const RTMapping& rt_mapping_; ///< optional mapping of scan indices to RT's if scan numbers are given;
+                                    ///< without this mapping, other sources of RT information are used (if available); 
+                                    ///< if all fails, there will be no RT information for peptide hits
   };
 
 	} // namespace Internal

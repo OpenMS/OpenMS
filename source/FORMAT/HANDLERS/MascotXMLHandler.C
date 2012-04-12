@@ -40,7 +40,9 @@ namespace OpenMS
   MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
 								  									 vector<PeptideIdentification>& id_data, 
       								 							 const String& filename,
-      								 							 map<String, vector<AASequence> >& modified_peptides) :
+      								 							 map<String, vector<AASequence> >& modified_peptides,
+                                     const RTMapping& rt_mapping)
+   :
     XMLHandler(filename,""),
     protein_identification_(protein_identification),
     id_data_(id_data),
@@ -51,7 +53,8 @@ namespace OpenMS
 		date_(),
 		actual_title_(""),
 		modified_peptides_(modified_peptides),
-    warning_msg_("")
+    warning_msg_(""),
+    rt_mapping_(rt_mapping)
   {
   	
   }
@@ -204,16 +207,26 @@ namespace OpenMS
 					rt = title.suffix('_').toDouble();
 					mz = title.prefix('_').toDouble();
 				}
-				catch (Exception::BaseException& /*e*/)
-				{
-				}
+				catch (Exception::BaseException& /*e*/) {}
 			
         if (!id_data_[peptide_identification_index_].metaValueExists("RT")) id_data_[peptide_identification_index_].setMetaValue("RT", rt);
-				if (!id_data_[peptide_identification_index_].metaValueExists("MZ") && (mz != 0))
-				{
-					id_data_[peptide_identification_index_].setMetaValue("MZ", mz); // overwrite value if available
-				}
+				if (!id_data_[peptide_identification_index_].metaValueExists("MZ") && (mz != 0)) id_data_[peptide_identification_index_].setMetaValue("MZ", mz); // overwrite value if available
 			}
+      else if (title.hasPrefix("scan=")) // in Mascot 2.3 it might look like this: <pep_scan_title>scan=818</pep_scan_title>
+      {                                  //  (when manual submission was used and mascotXML was retrieved manually)
+        Int scan(0);
+        try 
+        {
+          scan = title.suffix('=').toDouble();
+        }
+        catch (Exception::BaseException& /*e*/) {}
+
+        if (!id_data_[peptide_identification_index_].metaValueExists("RT"))
+        {
+          if (rt_mapping_.has(scan)) id_data_[peptide_identification_index_].setMetaValue("RT", rt_mapping_[scan]);
+          else warning(LOAD, "MascotXML contains scan numbers, but no Scan->RT mapping was given. Ignoring scan numbers.");
+        }
+      }
 		}
 		else if (tag_ == "pep_exp_z")
 		{

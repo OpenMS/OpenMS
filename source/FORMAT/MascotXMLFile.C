@@ -26,7 +26,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 
@@ -43,23 +42,25 @@ namespace OpenMS
 
   void MascotXMLFile::load(const String& filename, 
 						      					ProteinIdentification& protein_identification, 
-						      					vector<PeptideIdentification>& id_data)
+						      					vector<PeptideIdentification>& id_data,
+                            const RTMapping& rt_mapping)
   {
   	map<String, vector<AASequence> > peptides;
   	
-  	load(filename, protein_identification, id_data, peptides);      
+  	load(filename, protein_identification, id_data, peptides, rt_mapping);      
   }  					 
   					 
   void MascotXMLFile::load(const String& filename, 
 						      					ProteinIdentification& protein_identification, 
 						      					vector<PeptideIdentification>& id_data,
-						      					map<String, vector<AASequence> >& peptides)
+						      					map<String, vector<AASequence> >& peptides,
+                            const RTMapping& rt_mapping)
   {
   	//clear
 		protein_identification = ProteinIdentification();
 		id_data.clear();
 
-		Internal::MascotXMLHandler handler(protein_identification, id_data, filename, peptides);
+		Internal::MascotXMLHandler handler(protein_identification, id_data, filename, peptides, rt_mapping);
 		parse_(filename, &handler);
 				
 		// Since the mascot xml can contain "peptides" without sequences the identifications 

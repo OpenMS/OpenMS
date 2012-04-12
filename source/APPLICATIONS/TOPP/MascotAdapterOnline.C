@@ -222,8 +222,19 @@ class TOPPMascotAdapterOnline
 			vector<PeptideIdentification> pep_ids;
 			ProteinIdentification prot_id;
 
-			// read the response
-			MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids);
+      // create mapping from scan indices to RT:
+      // (this should not be required, as the RT is directly contained in
+      // <pep_scan_title>305.147376424496_802.099</pep_scan_title>
+      // , but on user-generated mascotXML files on might find:
+      // <pep_scan_title>scan=18427</pep_scan_title>
+      // . Our query should return the correct version, but as we have the RT's available anyways, we provide them as fall back.
+      MascotXMLFile::RTMapping rt_mapping;
+      for (Size i=0; i<exp.size(); ++i)
+      {
+        rt_mapping[i+1] = exp[i].getRT();
+      }
+      // read the response
+			MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);
       writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
 
 			// for debugging errors relating to unexpected response files

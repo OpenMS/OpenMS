@@ -126,8 +126,8 @@ protected:
       "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
 
     addEmptyLine_();
-    addText_("pepXML options:");
-    registerStringOption_("mz_file", "<file>", "", "MS data file from which the pepXML was generated. Used to look up retention times (some pepXMLs contain only scan numbers) and/or to define what parts to extract (some pepXMLs contain results from multiple experiments).", false);
+    addText_("pepXML/mascotXML options:");
+    registerStringOption_("mz_file", "<file>", "", "MS data file from which the pepXML/mascotXML was generated. Used to look up retention times (some contain only scan numbers) and/or to define what parts to extract (some pepXMLs contain results from multiple experiments).", false);
 		registerStringOption_("mz_name", "<file>", "", "Experiment filename/path to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
 		registerFlag_("use_precursor_data", "Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
   }
@@ -302,8 +302,19 @@ protected:
 		}
 		else if (in_type == FileTypes::MASCOTXML)
 		{
+      String exp_name = getStringOption_("mz_file");
+      MascotXMLFile::RTMapping rt_mapping;
+      if (!exp_name.empty()) 
+      {
+        MSExperiment<> exp;
+        fh.loadExperiment(exp_name, exp);
+        for (Size i=0; i<exp.size(); ++i)
+        {
+          rt_mapping[i+1] = exp[i].getRT();
+        }
+      }
 			protein_identifications.resize(1);
-			MascotXMLFile().load(in, protein_identifications[0], peptide_identifications);
+			MascotXMLFile().load(in, protein_identifications[0], peptide_identifications, rt_mapping);
 		}
 		else
 		{
