@@ -555,9 +555,9 @@ namespace OpenMS
         }
       }
 
-      int precursor_idx = 0;
-      if (map_precursor_to_chrom_idx.size() != 0)
+      if (!map_precursor_to_chrom_idx.empty())
       {
+        int precursor_idx = 0;
         for (std::map<Precursor, std::vector<Size>, Precursor::MZLess >::iterator mit = map_precursor_to_chrom_idx.begin(); mit != map_precursor_to_chrom_idx.end(); ++mit)
         {
           // Show the peptide sequence if available, otherwise show the m/z and charge only
