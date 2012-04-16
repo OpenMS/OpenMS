@@ -505,6 +505,25 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
     include( cmake/cppcheck.cmake )
   endif()
 endif()
+
+  ## python and cpplint
+  set(ENABLE_CPPLINT OFF CACHE BOOL "Enable coding convention check.")
+  if (ENABLE_CPPLINT) 
+    find_program(PYTHON_EXECUTABLE
+             python
+             DOC "python executable used to performe coding convention test.")
+
+     if ("${PYTHON_EXECUTABLE}" STREQUAL "PYTHON_EXECUTABLE-NOTFOUND")
+	message(STATUS "Info: The programm python could not be found. Coding convention check will not be available! Add the location of python(.exe) to your PATH environment variable.")
+	set(OPENMS_HAS_PYTHON OFF CACHE INTERNAL "Python(.exe) present?")
+     else()
+	set(OPENMS_HAS_PYTHON ON CACHE INTERNAL "Python(.exe) present?")
+    endif()
+    if( PYTHON_EXECUTABLE )
+      include( cmake/createcpplinttests.cmake )
+    endif()
+  endif()
+  
 endif()
 
 ########################################################
