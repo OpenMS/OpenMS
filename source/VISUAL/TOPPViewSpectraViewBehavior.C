@@ -233,7 +233,7 @@ namespace OpenMS
       String fname = layer.filename;
       String lname = layer.name;
 
-      int layercount = widget_1d->canvas()->getLayerCount();
+      Size layercount = widget_1d->canvas()->getLayerCount();
       for(Size i = 0; i!= layercount; ++i)
       {
         widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
@@ -296,7 +296,7 @@ namespace OpenMS
       ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
       const ExperimentType exp = *exp_sptr;
 
-      int layercount = widget_1d->canvas()->getLayerCount();
+      Size layercount = widget_1d->canvas()->getLayerCount();
       for(Size i = 0; i!= layercount; ++i)
       {
         widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers

@@ -31,53 +31,11 @@ using namespace std;
 
 namespace OpenMS
 {
-
-#if 0
-	bool ConsensusMap::isValid(String& error_message) const
-	{
-		//store the size of the input files
-		Map<Size,Size> map_sizes;
-		for (FileDescriptions::const_iterator it=file_description_.begin(); it!=file_description_.end(); ++it)
-    {
-    	if (it->second.size==0)
-    	{
-    		map_sizes[it->first] = numeric_limits<Size>::max();
-			}
-			else
-			{
-    		map_sizes[it->first] = it->second.size;
-			}
-		}
-
-		//actual check
-		for (Size i = 0; i < size(); ++i)
-    {
-      const ConsensusFeature& f = operator[](i);
-      for (ConsensusFeature::HandleSetType::const_iterator it = f.begin(); it!=f.end(); ++it)
-      {
-      	//check if all map indices are registered
-      	if (!file_description_.has(it->getMapIndex()))
-      	{
-      		error_message = String("ConsensusFeature ") + i + ": Invalid map index " + it->getMapIndex();
-      		return false;
-      	}
-      	//check if the element indices are valid
-      	if (it->getElementIndex()>=map_sizes[it->getMapIndex()])
-      	{
-      		error_message = String("ConsensusFeature ") + i + ": Invalid element index " + it->getElementIndex() + " (size is " + map_sizes[it->getMapIndex()] + ")";
-      		return false;
-      	}
-      }
-    }
-    return true;
-	}
-#endif
-
-  ostream& operator << (ostream& os, const ConsensusMap& cons_map)
+  ostream & operator<<(ostream & os, const ConsensusMap & cons_map)
   {
-		for (ConsensusMap::FileDescriptions::const_iterator it=cons_map.getFileDescriptions().begin(); it!=cons_map.getFileDescriptions().end(); ++it)
+    for (ConsensusMap::FileDescriptions::const_iterator it = cons_map.getFileDescriptions().begin(); it != cons_map.getFileDescriptions().end(); ++it)
     {
-    	os << "Map " << it->first << ": " << it->second.filename << " - " << it->second.label << " - " << it->second.size << endl;
+      os << "Map " << it->first << ": " << it->second.filename << " - " << it->second.label << " - " << it->second.size << endl;
     }
 
     for (Size i = 0; i < cons_map.size(); ++i)
@@ -88,49 +46,48 @@ namespace OpenMS
     return os;
   }
 
-	void ConsensusMap::updateRanges()
-	{
-		clearRanges();
-		updateRanges_(begin(),end());
+  void ConsensusMap::updateRanges()
+  {
+    clearRanges();
+    updateRanges_(begin(), end());
 
-		//enlarge the range by the internal points of each feature
-		for (Size i=0; i<size(); ++i)
-		{
-			for (ConsensusFeature::HandleSetType::const_iterator it=operator[](i).begin(); it!=operator[](i).end(); ++it)
-			{
-				DoubleReal rt = it->getRT();
-				DoubleReal mz = it->getMZ();
-				DoubleReal intensity = it->getIntensity();
+    //enlarge the range by the internal points of each feature
+    for (Size i = 0; i < size(); ++i)
+    {
+      for (ConsensusFeature::HandleSetType::const_iterator it = operator[](i).begin(); it != operator[](i).end(); ++it)
+      {
+        DoubleReal rt = it->getRT();
+        DoubleReal mz = it->getMZ();
+        DoubleReal intensity = it->getIntensity();
 
-				//update RT
-				if (rt < pos_range_.minPosition()[Peak2D::RT])
-				{
-					pos_range_.setMinX(rt);
-				}
-				if (rt > pos_range_.maxPosition()[Peak2D::RT])
-				{
-					pos_range_.setMaxX(rt);
-				}
-				//update m/z
-				if (mz < pos_range_.minPosition()[Peak2D::MZ])
-				{
-					pos_range_.setMinY(mz);
-				}
-				if (mz > pos_range_.maxPosition()[Peak2D::MZ])
-				{
-					pos_range_.setMaxY(mz);
-				}
-				//update intensity
-				if (intensity <  int_range_.minX())
-				{
-					int_range_.setMinX(intensity);
-				}
-				if (intensity > int_range_.maxX())
-				{
-					int_range_.setMaxX(intensity);
-				}
-			}
-		}
-	}
-
+        //update RT
+        if (rt < pos_range_.minPosition()[Peak2D::RT])
+        {
+          pos_range_.setMinX(rt);
+        }
+        if (rt > pos_range_.maxPosition()[Peak2D::RT])
+        {
+          pos_range_.setMaxX(rt);
+        }
+        //update m/z
+        if (mz < pos_range_.minPosition()[Peak2D::MZ])
+        {
+          pos_range_.setMinY(mz);
+        }
+        if (mz > pos_range_.maxPosition()[Peak2D::MZ])
+        {
+          pos_range_.setMaxY(mz);
+        }
+        //update intensity
+        if (intensity <  int_range_.minX())
+        {
+          int_range_.setMinX(intensity);
+        }
+        if (intensity > int_range_.maxX())
+        {
+          int_range_.setMaxX(intensity);
+        }
+      }
+    }
+  }
 }

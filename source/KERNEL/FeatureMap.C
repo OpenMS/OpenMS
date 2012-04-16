@@ -29,5 +29,5 @@
 
 namespace OpenMS
 {
-	FeatureMap<Feature> default_dfeaturemap_2;
+  FeatureMap<Feature> default_dfeaturemap_2;
 }

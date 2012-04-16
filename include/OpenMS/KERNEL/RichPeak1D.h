@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -34,64 +34,61 @@
 namespace OpenMS
 {
 
-	/**	
-		@brief A 1-dimensional raw data point or peak mith meta information.
-	 
-		This datastructure is intended for continuous data or peak data.
-		If wou do not need to annotated single peaks with meta data, use Peak1D instead.
-	
-		@ingroup Kernel
-	*/
-	class OPENMS_DLLAPI RichPeak1D 
-		: public Peak1D, 
-			public MetaInfoInterface
-	{
-		public:
-		
+  /**
+    @brief A 1-dimensional raw data point or peak mith meta information.
+
+    This datastructure is intended for continuous data or peak data.
+    If wou do not need to annotated single peaks with meta data, use Peak1D instead.
+
+    @ingroup Kernel
+  */
+  class OPENMS_DLLAPI RichPeak1D :
+    public Peak1D,
+    public MetaInfoInterface
+  {
+public:
+
     /// Default constructor
-		inline RichPeak1D() 
-			: Peak1D(),
-				MetaInfoInterface()
-		{	
-		}
-		
-		/// Copy constructor
-		inline RichPeak1D(const RichPeak1D& p) 
-			: Peak1D(p),
-				MetaInfoInterface(p)
-		{
-		}
+    inline RichPeak1D() :
+      Peak1D(),
+      MetaInfoInterface()
+    {}
 
-		/// Destructor
-		~RichPeak1D() 
-		{
-		}
+    /// Copy constructor
+    inline RichPeak1D(const RichPeak1D & p) :
+      Peak1D(p),
+      MetaInfoInterface(p)
+    {}
 
-		/// Assignment operator
-		inline RichPeak1D& operator = (const RichPeak1D& rhs)
-		{
-			if (this==&rhs) return *this;
-			
-			Peak1D::operator = (rhs);
-			MetaInfoInterface::operator = (rhs);
-			
-			return *this;
-		}
+    /// Destructor
+    ~RichPeak1D()
+    {}
 
-		/// Equality operator
-		inline bool operator == (const RichPeak1D& rhs) const
-		{
-			return Peak1D::operator == (rhs) &&
-				     MetaInfoInterface::operator == (rhs)
-			       ;
-		}
+    /// Assignment operator
+    inline RichPeak1D & operator=(const RichPeak1D & rhs)
+    {
+      if (this == &rhs) return *this;
 
-		/// Equality operator
-		inline bool operator != (const RichPeak1D& rhs) const
-		{
-			return !(operator == (rhs));
-		}	
-	};
+      Peak1D::operator=(rhs);
+      MetaInfoInterface::operator=(rhs);
+
+      return *this;
+    }
+
+    /// Equality operator
+    inline bool operator==(const RichPeak1D & rhs) const
+    {
+      return Peak1D::operator==(rhs) &&
+             MetaInfoInterface::operator==(rhs);
+    }
+
+    /// Equality operator
+    inline bool operator!=(const RichPeak1D & rhs) const
+    {
+      return !(operator==(rhs));
+    }
+
+  };
 
 } // namespace OpenMS
 

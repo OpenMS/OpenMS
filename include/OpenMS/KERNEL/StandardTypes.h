@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -34,44 +34,44 @@
 
 namespace OpenMS
 {
-	//@{	
-	/**
-		@brief Spectrum consisting of raw data points or peaks.
-		
-		Meta information includes retention time and MS-level.
-		
-		@ingroup Kernel
-	*/
-	typedef MSSpectrum<Peak1D> PeakSpectrum;
-	/**
-		@brief Two-dimensional map of raw data points or peaks.
-		
-		@ingroup Kernel
-	*/
-	typedef MSExperiment<Peak1D> PeakMap;
+  //@{
+  /**
+      @brief Spectrum consisting of raw data points or peaks.
 
-	/**
-		@brief Spectrum consisting of raw data points or peaks with meta information.
-		
-		@ingroup Kernel
-	*/
-	typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
-	
-	/**
-		@brief  Two-dimensional map of raw data points or peaks with meta information.
-		
-		@ingroup Kernel
-	*/
-	typedef MSExperiment<RichPeak1D> RichPeakMap;
+      Meta information includes retention time and MS-level.
+
+      @ingroup Kernel
+  */
+  typedef MSSpectrum<Peak1D> PeakSpectrum;
+  /**
+      @brief Two-dimensional map of raw data points or peaks.
+
+      @ingroup Kernel
+  */
+  typedef MSExperiment<Peak1D> PeakMap;
+
+  /**
+      @brief Spectrum consisting of raw data points or peaks with meta information.
+
+      @ingroup Kernel
+  */
+  typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
+
+  /**
+      @brief  Two-dimensional map of raw data points or peaks with meta information.
+
+      @ingroup Kernel
+  */
+  typedef MSExperiment<RichPeak1D> RichPeakMap;
 
 
-	/**
-		@brief Chromatogram consisting of raw data points or peaks
+  /**
+      @brief Chromatogram consisting of raw data points or peaks
 
-		@ingroup Kernel
-	*/
-	typedef MSChromatogram<ChromatogramPeak> Chromatogram;
-	//@}
+      @ingroup Kernel
+  */
+  typedef MSChromatogram<ChromatogramPeak> Chromatogram;
+  //@}
 
 }
 

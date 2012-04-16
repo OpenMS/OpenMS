@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -29,10 +29,9 @@
 
 namespace OpenMS
 {
-	std::ostream& operator << (std::ostream& os, const ChromatogramPeak& point)
-	{
-		os << "POS: "<< point.getRT() << " INT: "<<point.getIntensity();
-		
-		return os;
-	}
+  std::ostream & operator<<(std::ostream & os, const ChromatogramPeak & point)
+  {
+    os << "POS: " << point.getRT() << " INT: " << point.getIntensity();
+    return os;
+  }
 }

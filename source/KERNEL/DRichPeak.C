@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -29,8 +29,8 @@
 
 namespace OpenMS
 {
-	DRichPeak<1> default_drichpeak_1;
-	DRichPeak<1>::Type default_drichpeak_1_type;
-	DRichPeak<2> default_drichpeak_2;
-	DRichPeak<2>::Type default_drichpeak_2_type;
+  DRichPeak<1> default_drichpeak_1;
+  DRichPeak<1>::Type default_drichpeak_1_type;
+  DRichPeak<2> default_drichpeak_2;
+  DRichPeak<2>::Type default_drichpeak_2_type;
 }

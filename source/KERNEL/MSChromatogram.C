@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	MSChromatogram<> default_mschromatogram_chromatogrampeak;
+  MSChromatogram<> default_mschromatogram_chromatogrampeak;
 }
 
 

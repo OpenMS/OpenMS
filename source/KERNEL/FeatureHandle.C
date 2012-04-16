@@ -30,14 +30,15 @@
 
 namespace OpenMS
 {
-  std::ostream& operator << (std::ostream& os, const FeatureHandle& cons)
+  std::ostream & operator<<(std::ostream & os, const FeatureHandle & cons)
   {
     os  << "---------- FeatureHandle -----------------\n"
-		    << "RT: " << cons.getRT()<< std::endl
-		    << "m/z: " << cons.getMZ()<< std::endl
-		    << "Intensity: " << cons.getIntensity() << std::endl
-		    << "Map Index: " << cons.getMapIndex() << std::endl
-		    << "Element Id: " << cons.getUniqueId() << std::endl;
+        << "RT: " << cons.getRT() << std::endl
+        << "m/z: " << cons.getMZ() << std::endl
+        << "Intensity: " << cons.getIntensity() << std::endl
+        << "Map Index: " << cons.getMapIndex() << std::endl
+        << "Element Id: " << cons.getUniqueId() << std::endl;
     return os;
   }
-} 
+
+}

@@ -31,107 +31,103 @@ using namespace std;
 
 namespace OpenMS
 {
-	BaseFeature::BaseFeature()
-		: RichPeak2D(), quality_(0.0), charge_(0), width_(0), peptides_()
-	{
-	}
+  BaseFeature::BaseFeature() :
+    RichPeak2D(), quality_(0.0), charge_(0), width_(0), peptides_()
+  {}
 
-	BaseFeature::BaseFeature(const BaseFeature& rhs)
-		: RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
-			peptides_(rhs.peptides_)
-	{
-	}
+  BaseFeature::BaseFeature(const BaseFeature & rhs) :
+    RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
+    peptides_(rhs.peptides_)
+  {}
 
-	BaseFeature::BaseFeature(const RichPeak2D& point)
-		: RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
-	{
-	}
+  BaseFeature::BaseFeature(const RichPeak2D & point) :
+    RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
+  {}
 
-	BaseFeature::BaseFeature(const Peak2D& point)
-		: RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
-	{
-	}
+  BaseFeature::BaseFeature(const Peak2D & point) :
+    RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
+  {}
 
-	BaseFeature& BaseFeature::operator=(const BaseFeature& rhs)
-	{
-		if (&rhs == this) return *this;
+  BaseFeature & BaseFeature::operator=(const BaseFeature & rhs)
+  {
+    if (&rhs == this)
+      return *this;
 
-		RichPeak2D::operator=(rhs);
-		quality_ = rhs.quality_;
-		charge_ = rhs.charge_;
-		width_ = rhs.width_;
-		peptides_ =  rhs.peptides_;
+    RichPeak2D::operator=(rhs);
+    quality_ = rhs.quality_;
+    charge_ = rhs.charge_;
+    width_ = rhs.width_;
+    peptides_ =  rhs.peptides_;
 
-		return *this;
-	}
+    return *this;
+  }
 
-	bool BaseFeature::operator==(const BaseFeature& rhs) const
-	{
-		return (RichPeak2D::operator==(rhs) 
-						&& (quality_ == rhs.quality_) 
-						&& (charge_ == rhs.charge_) 
-            && (width_ == rhs.width_)
-						&& (peptides_ == rhs.peptides_));
-	}
+  bool BaseFeature::operator==(const BaseFeature & rhs) const
+  {
+    return RichPeak2D::operator==(rhs)
+           && (quality_ == rhs.quality_)
+           && (charge_ == rhs.charge_)
+           && (width_ == rhs.width_)
+           && (peptides_ == rhs.peptides_);
+  }
 
-	bool BaseFeature::operator!=(const BaseFeature& rhs) const
-	{
-		return !operator==(rhs);
-	}
+  bool BaseFeature::operator!=(const BaseFeature & rhs) const
+  {
+    return !operator==(rhs);
+  }
 
-	BaseFeature::~BaseFeature()
-	{
-	}
-		
-	BaseFeature::QualityType BaseFeature::getQuality() const
-	{
-		return quality_;
-	}
+  BaseFeature::~BaseFeature()
+  {}
 
-	void BaseFeature::setQuality(BaseFeature::QualityType quality)
-	{
-		quality_ = quality;
-	}
-	
-	BaseFeature::WidthType BaseFeature::getWidth() const
-	{
-		return width_;
-	}
+  BaseFeature::QualityType BaseFeature::getQuality() const
+  {
+    return quality_;
+  }
 
-	void BaseFeature::setWidth(BaseFeature::WidthType fwhm)
-	{
-		// !!! Dirty hack: as long as featureXML doesn't support a width field,
+  void BaseFeature::setQuality(BaseFeature::QualityType quality)
+  {
+    quality_ = quality;
+  }
+
+  BaseFeature::WidthType BaseFeature::getWidth() const
+  {
+    return width_;
+  }
+
+  void BaseFeature::setWidth(BaseFeature::WidthType fwhm)
+  {
+    // !!! Dirty hack: as long as featureXML doesn't support a width field,
     // we abuse the meta information for this.
-		// See also FeatureXMLFile::readFeature_().
-		width_ = fwhm;
-		setMetaValue("FWHM", fwhm);
-	}
-	
-	const BaseFeature::ChargeType& BaseFeature::getCharge() const
-	{
-		return charge_;
-	}
-	
-	void BaseFeature::setCharge(const BaseFeature::ChargeType& charge)
-	{
-		charge_ = charge;
-	}
-	
-	const vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
-		const
-	{
-		return peptides_;
-	}
+    // See also FeatureXMLFile::readFeature_().
+    width_ = fwhm;
+    setMetaValue("FWHM", fwhm);
+  }
 
-	vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
-	{
-		return peptides_;
-	}
+  const BaseFeature::ChargeType & BaseFeature::getCharge() const
+  {
+    return charge_;
+  }
 
-	void BaseFeature::setPeptideIdentifications(
-		const vector<PeptideIdentification>& peptides)
-	{
-		peptides_ = peptides;
-	}
+  void BaseFeature::setCharge(const BaseFeature::ChargeType & charge)
+  {
+    charge_ = charge;
+  }
+
+  const vector<PeptideIdentification> & BaseFeature::getPeptideIdentifications()
+  const
+  {
+    return peptides_;
+  }
+
+  vector<PeptideIdentification> & BaseFeature::getPeptideIdentifications()
+  {
+    return peptides_;
+  }
+
+  void BaseFeature::setPeptideIdentifications(
+    const vector<PeptideIdentification> & peptides)
+  {
+    peptides_ = peptides;
+  }
 
 } // namespace OpenMS

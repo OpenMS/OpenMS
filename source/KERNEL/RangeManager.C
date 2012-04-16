@@ -29,5 +29,5 @@
 
 namespace OpenMS
 {
-	// No default instance because it hast a pure virtual method
+  // No default instance because it hast a pure virtual method
 }

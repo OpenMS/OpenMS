@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //cl
@@ -43,435 +43,428 @@
 namespace OpenMS
 {
 
-	/**	
-		@brief A container for features.
-		
-		A map is a container holding 2-dimensional features,
-		which in turn represent chemical entities (peptides, proteins, etc.) found
-		in a 2-dimensional experiment.
-		
-		Maps are implemented as vectors of features and have basically the same interface
-		as an STL vector has (model of Random Access Container and Back Insertion Sequence).
-		
-		Feature maps are typically created from peak data of 2D runs through the FeatureFinder.
-		
-		@ingroup Kernel
-	*/
-	template <typename FeatureT = Feature >
-	class FeatureMap
-		: public std::vector<FeatureT>,
-			public RangeManager<2>,
-			public DocumentIdentifier,
-			public UniqueIdInterface,
-			public UniqueIdIndexer<FeatureMap<FeatureT> >
-	{
-		public:
-			/**	
-				 @name Type definitions
-			*/
-			//@{
-			typedef FeatureT FeatureType;
-			typedef RangeManager<2> RangeManagerType;
-			typedef std::vector<FeatureType> Base;
-			typedef typename Base::iterator Iterator;
-			typedef typename Base::const_iterator ConstIterator;
-			typedef typename Base::reverse_iterator ReverseIterator;
-			typedef typename Base::const_reverse_iterator ConstReverseIterator;
-			typedef FeatureType& Reference;
-			typedef const FeatureType& ConstReference;
-			//@}
-			/**	
-				 @name Constructors and Destructor
-			*/
-			//@{
-			
-			/// Default constructor
-			FeatureMap()
-				: Base(),
-					RangeManagerType(),
-					DocumentIdentifier(),
-					UniqueIdInterface(),
-					UniqueIdIndexer< FeatureMap<FeatureT> >(),
-					protein_identifications_(),
-					unassigned_peptide_identifications_(),
-					data_processing_() 
-			{
-			}
-			
-			/// Copy constructor
-			FeatureMap(const FeatureMap& source) 
-				: Base(source),
-					RangeManagerType(source),
-					DocumentIdentifier(source),
-					UniqueIdInterface(source),
-					UniqueIdIndexer< FeatureMap<FeatureT> >(source),
-					protein_identifications_(source.protein_identifications_),
-					unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
-					data_processing_(source.data_processing_)
-			{
-			}
-			
-			/// Destructor
-			virtual ~FeatureMap()
-			{
-			}
-			
-			//@}
-				
-			/// Assignment operator
-			FeatureMap& operator = (const FeatureMap& rhs)
-			{
-				if (&rhs==this) return *this;
-					
-				Base::operator=(rhs);
-				RangeManagerType::operator=(rhs);
-				DocumentIdentifier::operator=(rhs);
-	      UniqueIdInterface::operator = (rhs);
-				protein_identifications_ = rhs.protein_identifications_;
-				unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
-				data_processing_ = rhs.data_processing_;
+  /**
+    @brief A container for features.
 
-				return *this;
-			}
-	
-			/// Equality operator
-			bool operator == (const FeatureMap& rhs) const
-			{
-				return
-					std::operator==(*this, rhs) &&
-					RangeManagerType::operator==(rhs) &&
-					DocumentIdentifier::operator==(rhs) &&
-					UniqueIdInterface::operator == (rhs) &&
-					protein_identifications_==rhs.protein_identifications_ &&
-					unassigned_peptide_identifications_==rhs.unassigned_peptide_identifications_ &&
-					data_processing_ == rhs.data_processing_
-					;
-			}
-				
-			/// Equality operator
-			bool operator != (const FeatureMap& rhs) const
-			{
-				return !(operator==(rhs));
-			}
+    A map is a container holding 2-dimensional features,
+    which in turn represent chemical entities (peptides, proteins, etc.) found
+    in a 2-dimensional experiment.
 
-			
-			/**
-				@brief Joins two feature maps.
-				
-				Features are merged into one container
-				(see operator+= for details)
-			
-			*/
-			FeatureMap operator + (const FeatureMap& rhs) const
-			{
-				FeatureMap tmp(*this);
-				tmp +=rhs;
-				return tmp;
-			}
+    Maps are implemented as vectors of features and have basically the same interface
+    as an STL vector has (model of Random Access Container and Back Insertion Sequence).
 
+    Feature maps are typically created from peak data of 2D runs through the FeatureFinder.
 
-			/**
-				@brief Add one feature map to another.
-				
-				Features are merged into one container, simply by appending.
-				UnassignedPeptides and ProteinIdentifications are appended.
-				Information on DocumentIdentifier, UniqueIdInterface (of container only)
-				are reset to default.
-			
-				For conflicting UID's, new UID's will be assigned.
-				
-				@param rhs The feature to add to this one.
-			*/
-			FeatureMap& operator+= (const FeatureMap& rhs)
-			{
-				FeatureMap empty_map;
-				// reset these:
-				RangeManagerType::operator=(empty_map);
-				
-				if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty()) LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
-				DocumentIdentifier::operator=(empty_map);
-				
-				UniqueIdInterface::operator =(empty_map);
-				
-				// merge these:
-				protein_identifications_.insert(protein_identifications_.end(),rhs.protein_identifications_.begin(),rhs.protein_identifications_.end());
-				unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(),rhs.unassigned_peptide_identifications_.end());
-				data_processing_.insert(data_processing_.end(),rhs.data_processing_.begin(), rhs.data_processing_.end());
-					
-				// append features:
-				this->insert(this->end(), rhs.begin(), rhs.end());
-				
-				// todo: check for double entries
-				// features, unassignedpeptides, proteins...
-				
-				// consistency
-				try
-				{
-					 UniqueIdIndexer<FeatureMap<FeatureT> >::updateUniqueIdToIndex();
-				}
-				catch (Exception::Postcondition /*&e*/)
-				{ // assign new UID's for conflicting entries
-					Size replaced_uids =  UniqueIdIndexer<FeatureMap<FeatureT> >::resolveUniqueIdConflicts();
-					LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
-				}
-				
-				return *this;
-			}
-			
-			/**	
-				@name Sorting.
-				These simplified sorting methods are supported in addition to	
-				the standard sorting methods of std::vector.
-			*/
-			//@{
-			/// Sorts the peaks according to ascending intensity.
-			void sortByIntensity(bool reverse=false)
-			{ 
-				if (reverse)
-				{
-					std::sort(this->begin(), this->end(), reverseComparator(typename FeatureType::IntensityLess()) );
-				}
-				else
-				{
-					std::sort(this->begin(), this->end(), typename FeatureType::IntensityLess() ); 
-				}
-			}
-				
-			///Sort features by position. Lexicographical comparison (first RT then m/z) is done.
-			void sortByPosition() 
-			{ 
-				std::sort(this->begin(), this->end(), typename FeatureType::PositionLess() );
-			}
-			
-			///Sort features by RT position.
-			void sortByRT() 
-			{ 
-				std::sort(this->begin(), this->end(), typename FeatureType::RTLess() );
-			}
+    @ingroup Kernel
+  */
+  template <typename FeatureT = Feature>
+  class FeatureMap :
+    public std::vector<FeatureT>,
+    public RangeManager<2>,
+    public DocumentIdentifier,
+    public UniqueIdInterface,
+    public UniqueIdIndexer<FeatureMap<FeatureT> >
+  {
+public:
+    /**
+      @name Type definitions
+    */
+    //@{
+    typedef FeatureT FeatureType;
+    typedef RangeManager<2> RangeManagerType;
+    typedef std::vector<FeatureType> Base;
+    typedef typename Base::iterator Iterator;
+    typedef typename Base::const_iterator ConstIterator;
+    typedef typename Base::reverse_iterator ReverseIterator;
+    typedef typename Base::const_reverse_iterator ConstReverseIterator;
+    typedef FeatureType & Reference;
+    typedef const FeatureType & ConstReference;
+    //@}
 
-			///Sort features by m/z position.
-			void sortByMZ() 
-			{ 
-				std::sort(this->begin(), this->end(), typename FeatureType::MZLess() );
-			}
-			
-			///Sort features by ascending overall quality.
-			void sortByOverallQuality(bool reverse=false) 
-			{
-				if (reverse)
-				{
-					std::sort(this->begin(), this->end(), reverseComparator(typename FeatureType::OverallQualityLess()) );
-				}
-				else
-				{
-					std::sort(this->begin(), this->end(), typename FeatureType::OverallQualityLess() );
-				}
-			}
-			//@}
-			
-			// Docu in base class
-			void updateRanges()
-			{
-				this->clearRanges();
-				updateRanges_(this->begin(),this->end());
-				
-				//enlarge the range by the convex hull points
-				for (Size i=0; i<this->size(); ++i)
-				{
-					DBoundingBox<2> box = this->operator[](i).getConvexHull().getBoundingBox();
-					if (!box.isEmpty())
-					{
-						//update RT
-						if (box.minPosition()[Peak2D::RT] < this->pos_range_.minPosition()[Peak2D::RT])
-						{
-							this->pos_range_.setMinX(box.minPosition()[Peak2D::RT]);
-						}
-						if (box.maxPosition()[Peak2D::RT] > this->pos_range_.maxPosition()[Peak2D::RT])
-						{
-							this->pos_range_.setMaxX(box.maxPosition()[Peak2D::RT]);
-						}
-						//update m/z
-						if (box.minPosition()[Peak2D::MZ] < this->pos_range_.minPosition()[Peak2D::MZ])
-						{
-							this->pos_range_.setMinY(box.minPosition()[Peak2D::MZ]);
-						}
-						if (box.maxPosition()[Peak2D::MZ] > this->pos_range_.maxPosition()[Peak2D::MZ])
-						{
-							this->pos_range_.setMaxY(box.maxPosition()[Peak2D::MZ]);
-						}
-					}
-				}
-			}
+    /**
+      @name Constructors and Destructor
+    */
+    //@{
 
-			/// Swaps the content of this map with the content of @p from
-			void swap(FeatureMap& from)
-			{
-				FeatureMap tmp;
+    /// Default constructor
+    FeatureMap() :
+      Base(),
+      RangeManagerType(),
+      DocumentIdentifier(),
+      UniqueIdInterface(),
+      UniqueIdIndexer<FeatureMap<FeatureT> >(),
+      protein_identifications_(),
+      unassigned_peptide_identifications_(),
+      data_processing_()
+    {}
 
-        // swap the actual features
-        Base::swap(from);
+    /// Copy constructor
+    FeatureMap(const FeatureMap & source) :
+      Base(source),
+      RangeManagerType(source),
+      DocumentIdentifier(source),
+      UniqueIdInterface(source),
+      UniqueIdIndexer<FeatureMap<FeatureT> >(source),
+      protein_identifications_(source.protein_identifications_),
+      unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
+      data_processing_(source.data_processing_)
+    {}
 
-				// swap range information
-				tmp.RangeManagerType::operator=(*this);
-				this->RangeManagerType::operator=(from);
-				from.RangeManagerType::operator=(tmp);
+    /// Destructor
+    virtual ~FeatureMap()
+    {}
+    //@}
 
-				// swap DocumentIdentifier
-				DocumentIdentifier::swap(from);
+    /// Assignment operator
+    FeatureMap & operator=(const FeatureMap & rhs)
+    {
+      if (&rhs == this) return *this;
 
-        // swap unique id
-        UniqueIdInterface::swap(from);
+      Base::operator=(rhs);
+      RangeManagerType::operator=(rhs);
+      DocumentIdentifier::operator=(rhs);
+      UniqueIdInterface::operator=(rhs);
+      protein_identifications_ = rhs.protein_identifications_;
+      unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
+      data_processing_ = rhs.data_processing_;
 
-        // swap unique id index
-        UniqueIdIndexer<FeatureMap<FeatureT> >::swap(from);
-				
-				// swap the remaining members
-				protein_identifications_.swap(from.protein_identifications_);
-				unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
-				data_processing_.swap(from.data_processing_);
-			}
-			
-			/// non-mutable access to the protein identifications
-		 	const std::vector<ProteinIdentification>& getProteinIdentifications() const
-		 	{
-		  	return protein_identifications_;	   		
-		 	}	
-		 		    	
-			/// mutable access to the protein identifications
-		  std::vector<ProteinIdentification>& getProteinIdentifications()
-		  {
-		  	return protein_identifications_;	
-		  }
+      return *this;
+    }
 
-			/// sets the protein identifications
-		  void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
-		  {
-		  	protein_identifications_ = protein_identifications;
-		  }
-		  
-			/// non-mutable access to the unassigned peptide identifications
-			const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const
-			{
-				return unassigned_peptide_identifications_;	   		
-			}	
-			
-			/// mutable access to the unassigned peptide identifications
-			std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()
-			{
-				return unassigned_peptide_identifications_;	
-			}
-			
-			/// sets the unassigned peptide identifications
-			void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)
-			{
-				unassigned_peptide_identifications_ = unassigned_peptide_identifications;
-			}
+    /// Equality operator
+    bool operator==(const FeatureMap & rhs) const
+    {
+      return std::operator==(*this, rhs) &&
+             RangeManagerType::operator==(rhs) &&
+             DocumentIdentifier::operator==(rhs) &&
+             UniqueIdInterface::operator==(rhs) &&
+             protein_identifications_ == rhs.protein_identifications_ &&
+             unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ &&
+             data_processing_ == rhs.data_processing_;
+    }
 
-			/// returns a const reference to the description of the applied data processing 
-			const std::vector<DataProcessing>& getDataProcessing() const
-			{
-				return data_processing_; 
-			}
+    /// Equality operator
+    bool operator!=(const FeatureMap & rhs) const
+    {
+      return !(operator==(rhs));
+    }
 
-			/// returns a mutable reference to the description of the applied data processing 
-			std::vector<DataProcessing>& getDataProcessing()
-			{
-				return data_processing_; 
-			}
-			
-			/// sets the description of the applied data processing 
-			void setDataProcessing(const std::vector<DataProcessing>& processing_method)
-			{
-				data_processing_ = processing_method; 
-			}
+    /**
+      @brief Joins two feature maps.
 
-			/**
-				@brief Clears all data and meta data
-				
-				@param clear_meta_data If @em true, all meta data is cleared in addition to the data.
-			*/ 
-			void clear(bool clear_meta_data = true)
-			{
-				Base::clear();
-				
-				if (clear_meta_data)
-				{
-					clearRanges();
-					this->DocumentIdentifier::operator=(DocumentIdentifier()); // no "clear" method
-					clearUniqueId();
-					protein_identifications_.clear();
-					unassigned_peptide_identifications_.clear();
-					data_processing_.clear();
-				}
-			}
-		
-      /**@brief Applies a member function of Type to the container itself and all features (including subordinates).
-         The returned values are accumulated.
+      Features are merged into one container (see operator+= for details).
+    */
+    FeatureMap operator+(const FeatureMap & rhs) const
+    {
+      FeatureMap tmp(*this);
+      tmp += rhs;
+      return tmp;
+    }
 
-         <b>Example:</b>  The following will print the number of features with invalid unique ids (plus 1 if the container has an invalid UID as well):
-         @code
-         FeatureMap<> fm;
-         (...)
-         std::cout << fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) << std::endl;
-         @endcode
-         See e.g. UniqueIdInterface for what else can be done this way.
-      */
-      template < typename Type >
-      Size applyMemberFunction( Size (Type::*member_function)() )
+    /**
+      @brief Add one feature map to another.
+
+      Features are merged into one container, simply by appending.
+      UnassignedPeptides and ProteinIdentifications are appended.
+      Information on DocumentIdentifier, UniqueIdInterface (of container only)
+      are reset to default.
+
+      For conflicting UID's, new UID's will be assigned.
+
+      @param rhs The feature to add to this one.
+    */
+    FeatureMap & operator+=(const FeatureMap & rhs)
+    {
+      FeatureMap empty_map;
+      // reset these:
+      RangeManagerType::operator=(empty_map);
+
+      if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty()) LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
+      DocumentIdentifier::operator=(empty_map);
+
+      UniqueIdInterface::operator=(empty_map);
+
+      // merge these:
+      protein_identifications_.insert(protein_identifications_.end(), rhs.protein_identifications_.begin(), rhs.protein_identifications_.end());
+      unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(), rhs.unassigned_peptide_identifications_.end());
+      data_processing_.insert(data_processing_.end(), rhs.data_processing_.begin(), rhs.data_processing_.end());
+
+      // append features:
+      this->insert(this->end(), rhs.begin(), rhs.end());
+
+      // todo: check for double entries
+      // features, unassignedpeptides, proteins...
+
+      // consistency
+      try
       {
-        Size assignments = 0;
-        assignments += ((*this).*member_function)();
-        for ( Iterator iter = this->begin(); iter != this->end(); ++iter)
-        {
-          assignments += iter->applyMemberFunction(member_function);
-        }
-        return assignments;
+        UniqueIdIndexer<FeatureMap<FeatureT> >::updateUniqueIdToIndex();
+      }
+      catch (Exception::Postcondition /*&e*/) // assign new UID's for conflicting entries
+      {
+        Size replaced_uids =  UniqueIdIndexer<FeatureMap<FeatureT> >::resolveUniqueIdConflicts();
+        LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
       }
 
-      /// The "const" variant.
-      template < typename Type >
-      Size applyMemberFunction( Size (Type::*member_function)() const ) const
+      return *this;
+    }
+
+    /**
+      @name Sorting.
+      These simplified sorting methods are supported in addition to
+      the standard sorting methods of std::vector.
+    */
+    //@{
+    /// Sorts the peaks according to ascending intensity.
+    void sortByIntensity(bool reverse = false)
+    {
+      if (reverse)
       {
-        Size assignments = 0;
-        assignments += ((*this).*member_function)();
-        for ( ConstIterator iter = this->begin(); iter != this->end(); ++iter)
-        {
-          assignments += iter->applyMemberFunction(member_function);
-        }
-        return assignments;
+        std::sort(this->begin(), this->end(), reverseComparator(typename FeatureType::IntensityLess()));
       }
+      else
+      {
+        std::sort(this->begin(), this->end(), typename FeatureType::IntensityLess());
+      }
+    }
 
-		protected:
+    ///Sort features by position. Lexicographical comparison (first RT then m/z) is done.
+    void sortByPosition()
+    {
+      std::sort(this->begin(), this->end(), typename FeatureType::PositionLess());
+    }
 
-			/// protein identifications
-			std::vector<ProteinIdentification> protein_identifications_;
+    ///Sort features by RT position.
+    void sortByRT()
+    {
+      std::sort(this->begin(), this->end(), typename FeatureType::RTLess());
+    }
 
-			/// peptide identifications not matched to a specific feature
-			std::vector<PeptideIdentification> unassigned_peptide_identifications_;
-			
-			/// applied data processing
-			std::vector<DataProcessing> data_processing_;
-	};
-	
-	/// Print content of a feature map to a stream.
-	template <typename FeatureType >
-	std::ostream& operator << (std::ostream& os, const FeatureMap<FeatureType>& map)
-	{
-		os << "# -- DFEATUREMAP BEGIN --"<< std::endl;
-		os << "# POS \tINTENS\tOVALLQ\tCHARGE\tUniqueID" << std::endl;
-		for (typename FeatureMap<FeatureType>::const_iterator iter = map.begin(); iter!=map.end(); iter++)
-		{
-			os << iter->getPosition() << '\t'
-				 << iter->getIntensity() << '\t'
-				 << iter->getOverallQuality() << '\t'
-				 << iter->getCharge() << '\t'
-				 << iter->getUniqueId()
-				 << std::endl;
-		}
-		os << "# -- DFEATUREMAP END --"<< std::endl;
-		return os;
-	}
-	
+    ///Sort features by m/z position.
+    void sortByMZ()
+    {
+      std::sort(this->begin(), this->end(), typename FeatureType::MZLess());
+    }
+
+    ///Sort features by ascending overall quality.
+    void sortByOverallQuality(bool reverse = false)
+    {
+      if (reverse)
+      {
+        std::sort(this->begin(), this->end(), reverseComparator(typename FeatureType::OverallQualityLess()));
+      }
+      else
+      {
+        std::sort(this->begin(), this->end(), typename FeatureType::OverallQualityLess());
+      }
+    }
+
+    //@}
+
+    // Docu in base class
+    void updateRanges()
+    {
+      this->clearRanges();
+      updateRanges_(this->begin(), this->end());
+
+      //enlarge the range by the convex hull points
+      for (Size i = 0; i < this->size(); ++i)
+      {
+        DBoundingBox<2> box = this->operator[](i).getConvexHull().getBoundingBox();
+        if (!box.isEmpty())
+        {
+          //update RT
+          if (box.minPosition()[Peak2D::RT] < this->pos_range_.minPosition()[Peak2D::RT])
+          {
+            this->pos_range_.setMinX(box.minPosition()[Peak2D::RT]);
+          }
+          if (box.maxPosition()[Peak2D::RT] > this->pos_range_.maxPosition()[Peak2D::RT])
+          {
+            this->pos_range_.setMaxX(box.maxPosition()[Peak2D::RT]);
+          }
+          //update m/z
+          if (box.minPosition()[Peak2D::MZ] < this->pos_range_.minPosition()[Peak2D::MZ])
+          {
+            this->pos_range_.setMinY(box.minPosition()[Peak2D::MZ]);
+          }
+          if (box.maxPosition()[Peak2D::MZ] > this->pos_range_.maxPosition()[Peak2D::MZ])
+          {
+            this->pos_range_.setMaxY(box.maxPosition()[Peak2D::MZ]);
+          }
+        }
+      }
+    }
+
+    /// Swaps the content of this map with the content of @p from
+    void swap(FeatureMap & from)
+    {
+      FeatureMap tmp;
+
+      // swap the actual features
+      Base::swap(from);
+
+      // swap range information
+      tmp.RangeManagerType::operator=(* this);
+      this->RangeManagerType::operator=(from);
+      from.RangeManagerType::operator=(tmp);
+
+      // swap DocumentIdentifier
+      DocumentIdentifier::swap(from);
+
+      // swap unique id
+      UniqueIdInterface::swap(from);
+
+      // swap unique id index
+      UniqueIdIndexer<FeatureMap<FeatureT> >::swap(from);
+
+      // swap the remaining members
+      protein_identifications_.swap(from.protein_identifications_);
+      unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
+      data_processing_.swap(from.data_processing_);
+    }
+
+    /// non-mutable access to the protein identifications
+    const std::vector<ProteinIdentification> & getProteinIdentifications() const
+    {
+      return protein_identifications_;
+    }
+
+    /// mutable access to the protein identifications
+    std::vector<ProteinIdentification> & getProteinIdentifications()
+    {
+      return protein_identifications_;
+    }
+
+    /// sets the protein identifications
+    void setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications)
+    {
+      protein_identifications_ = protein_identifications;
+    }
+
+    /// non-mutable access to the unassigned peptide identifications
+    const std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications() const
+    {
+      return unassigned_peptide_identifications_;
+    }
+
+    /// mutable access to the unassigned peptide identifications
+    std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications()
+    {
+      return unassigned_peptide_identifications_;
+    }
+
+    /// sets the unassigned peptide identifications
+    void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification> & unassigned_peptide_identifications)
+    {
+      unassigned_peptide_identifications_ = unassigned_peptide_identifications;
+    }
+
+    /// returns a const reference to the description of the applied data processing
+    const std::vector<DataProcessing> & getDataProcessing() const
+    {
+      return data_processing_;
+    }
+
+    /// returns a mutable reference to the description of the applied data processing
+    std::vector<DataProcessing> & getDataProcessing()
+    {
+      return data_processing_;
+    }
+
+    /// sets the description of the applied data processing
+    void setDataProcessing(const std::vector<DataProcessing> & processing_method)
+    {
+      data_processing_ = processing_method;
+    }
+
+    /**
+      @brief Clears all data and meta data
+
+      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+    */
+    void clear(bool clear_meta_data = true)
+    {
+      Base::clear();
+
+      if (clear_meta_data)
+      {
+        clearRanges();
+        this->DocumentIdentifier::operator=(DocumentIdentifier());             // no "clear" method
+        clearUniqueId();
+        protein_identifications_.clear();
+        unassigned_peptide_identifications_.clear();
+        data_processing_.clear();
+      }
+    }
+
+    /**
+      @brief Applies a member function of Type to the container itself and all features (including subordinates).
+      The returned values are accumulated.
+
+      <b>Example:</b>  The following will print the number of features with invalid unique ids (plus 1 if the container has an invalid UID as well):
+      @code
+      FeatureMap<> fm;
+      (...)
+      std::cout << fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) << std::endl;
+      @endcode
+      See e.g. UniqueIdInterface for what else can be done this way.
+    */
+    template <typename Type>
+    Size applyMemberFunction(Size (Type::* member_function)())
+    {
+      Size assignments = 0;
+      assignments += ((*this).*member_function)();
+      for (Iterator iter = this->begin(); iter != this->end(); ++iter)
+      {
+        assignments += iter->applyMemberFunction(member_function);
+      }
+      return assignments;
+    }
+
+    /// The "const" variant.
+    template <typename Type>
+    Size applyMemberFunction(Size (Type::* member_function)() const) const
+    {
+      Size assignments = 0;
+      assignments += ((*this).*member_function)();
+      for (ConstIterator iter = this->begin(); iter != this->end(); ++iter)
+      {
+        assignments += iter->applyMemberFunction(member_function);
+      }
+      return assignments;
+    }
+
+protected:
+
+    /// protein identifications
+    std::vector<ProteinIdentification> protein_identifications_;
+
+    /// peptide identifications not matched to a specific feature
+    std::vector<PeptideIdentification> unassigned_peptide_identifications_;
+
+    /// applied data processing
+    std::vector<DataProcessing> data_processing_;
+  };
+
+  /// Print content of a feature map to a stream.
+  template <typename FeatureType>
+  std::ostream & operator<<(std::ostream & os, const FeatureMap<FeatureType> & map)
+  {
+    os << "# -- DFEATUREMAP BEGIN --" << std::endl;
+    os << "# POS \tINTENS\tOVALLQ\tCHARGE\tUniqueID" << std::endl;
+    for (typename FeatureMap<FeatureType>::const_iterator iter = map.begin(); iter != map.end(); iter++)
+    {
+      os << iter->getPosition() << '\t'
+      << iter->getIntensity() << '\t'
+      << iter->getOverallQuality() << '\t'
+      << iter->getCharge() << '\t'
+      << iter->getUniqueId()
+      << std::endl;
+    }
+    os << "# -- DFEATUREMAP END --" << std::endl;
+    return os;
+  }
+
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_DFEATUREMAP_H

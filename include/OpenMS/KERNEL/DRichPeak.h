@@ -33,44 +33,43 @@
 
 namespace OpenMS
 {
-	
-	/**
-		@brief Metafunction to choose among RichPeak1D respectively RichPeak2D through a template argument.
-		
-		The result is accessible via typedef Type.
-		- @c DRichPeak<1>::Type is @c RichPeak1D
-		- @c DRichPeak<2>::Type is @c RichPeak2D
-	
-		Example:
-	  @code
-		template class BaseModel<UInt D>
-		{
-			// BaseModel<D>::PeakType is either RichPeak1D or RichPeak2D, depending on D
-			typedef typename DRichPeak<D>::Type PeakType;
-		};
-		@endcode
-	*/
-	template <UInt dimensions>
-	struct DRichPeak
-	{
-	};
-	
-	// We do not want these classes to show up in the docu
-	/// @cond HIDDENSTUFF
-	
-	template <>
-	struct DRichPeak <1>
-	{
-		typedef RichPeak1D Type;
-	};
 
-	template <>
-	struct DRichPeak <2>
-	{
-		typedef RichPeak2D Type;
-	};
-	
-	/// @endcond
+  /**
+    @brief Metafunction to choose among RichPeak1D respectively RichPeak2D through a template argument.
+
+    The result is accessible via typedef Type.
+      - @c DRichPeak<1>::Type is @c RichPeak1D
+      - @c DRichPeak<2>::Type is @c RichPeak2D
+
+    Example:
+    @code
+      template class BaseModel<UInt D>
+      {
+          // BaseModel<D>::PeakType is either RichPeak1D or RichPeak2D, depending on D
+          typedef typename DRichPeak<D>::Type PeakType;
+      };
+    @endcode
+  */
+  template <UInt dimensions>
+  struct DRichPeak
+  {};
+
+  // We do not want these classes to show up in the docu
+  /// @cond HIDDENSTUFF
+
+  template <>
+  struct DRichPeak<1>
+  {
+    typedef RichPeak1D Type;
+  };
+
+  template <>
+  struct DRichPeak<2>
+  {
+    typedef RichPeak2D Type;
+  };
+
+  /// @endcond
 
 } // namespace OpenMS
 

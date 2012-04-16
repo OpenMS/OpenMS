@@ -33,44 +33,43 @@
 
 namespace OpenMS
 {
-	
-	/**
-		@brief Metafunction to choose among Peak1D respectively Peak2D through a template argument.
-		
-		The result is accessible via typedef Type:
-		- @c DPeak<1>::Type is @c Peak1D
-		- @c DPeak<2>::Type is @c Peak2D
-	
-		Example:
-	  @code
-		template class BaseModel<UInt D>
-		{
-			// BaseModel<D>::PeakType is either Peak1D or Peak2D, depending on D
-			typedef typename DPeak<D>::Type PeakType;
-		};
-		@endcode
-	*/
-	template <UInt dimensions>
-	struct DPeak
-	{
-	};
 
-	// We do not want these classes to show up in the docu
-	/// @cond HIDDENSTUFF
-	
-	template <>
-	struct DPeak <1>
-	{
-		typedef Peak1D Type;
-	};
+  /**
+    @brief Metafunction to choose among Peak1D respectively Peak2D through a template argument.
 
-	template <>
-	struct DPeak <2>
-	{
-		typedef Peak2D Type;
-	};
+    The result is accessible via typedef Type:
+      - @c DPeak<1>::Type is @c Peak1D
+      - @c DPeak<2>::Type is @c Peak2D
 
-	/// @endcond
+    Example:
+    @code
+      template class BaseModel<UInt D>
+      {
+          // BaseModel<D>::PeakType is either Peak1D or Peak2D, depending on D
+          typedef typename DPeak<D>::Type PeakType;
+      };
+    @endcode
+  */
+  template <UInt dimensions>
+  struct DPeak
+  {};
+
+  // We do not want these classes to show up in the docu
+  /// @cond HIDDENSTUFF
+
+  template <>
+  struct DPeak<1>
+  {
+    typedef Peak1D Type;
+  };
+
+  template <>
+  struct DPeak<2>
+  {
+    typedef Peak2D Type;
+  };
+
+  /// @endcond
 
 } // namespace OpenMS
 

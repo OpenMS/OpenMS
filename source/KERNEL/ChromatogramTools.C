@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	ChromatogramTools default_chromatogramtools_mschromatogram_peakmap;
+  ChromatogramTools default_chromatogramtools_mschromatogram_peakmap;
 }
 
 
