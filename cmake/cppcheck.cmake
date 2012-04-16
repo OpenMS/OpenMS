@@ -27,64 +27,39 @@
 
 include(CppcheckTargets)
 
-if(CPPCHECK_FOUND)
-  set(SOURCE_FILE_REGEX "\\.C$")
+## we use only source files for cppcheck
+set(SOURCE_FILE_REGEX "\\.C$")
 
-  # certain files need to be excluded, since they cause internal errors
-  set(EXCLUDE_FILE_REGEX "ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.C$|FILTERING/DATAREDUCTION/DataFilters.C$")
-  set(CPPCHECK_INCLUDEPATH_ARG ${OPENMS_INCLUDE_DIRS})
+MACRO(ADD_CPPCHECK_TEST FILE_TO_TEST)
+  string( REGEX MATCH ${SOURCE_FILE_REGEX} is_source_file ${FILE_TO_TEST} )
+  if(is_source_file)
+    add_cppcheck_sources(${FILE_TO_TEST} ${FILE_TO_TEST} STYLE FAIL_ON_WARNINGS)
+  endif(is_source_file)
+ENDMACRO()
 
-  # library checks
-  set(OpenMS_cppcheck_sources)
-  foreach(i ${OpenMS_sources})
-    string( REGEX MATCH ${SOURCE_FILE_REGEX} is_source_file ${i} )
-    string( REGEX MATCH ${EXCLUDE_FILE_REGEX} is_excluded_file ${i} )
-    if(is_source_file AND NOT is_excluded_file)
-      #add_cppcheck_sources(${i} ${i} STYLE FAIL_ON_WARNINGS)
-      list(APPEND OpenMS_cppcheck_sources ${i})
-    elseif(is_source_file AND is_excluded_file)
-      message(STATUS "Excluded ${i} from cppcheck tests")
-    endif()
-  endforeach()
+set(CPPCHECK_INCLUDEPATH_ARG ${OPENMS_INCLUDE_DIRS})
 
-  add_cppcheck_sources("OpenMS" ${OpenMS_cppcheck_sources} STYLE FAIL_ON_WARNINGS)
+# library checks
+set(OpenMS_cppcheck_sources)
+foreach(i ${OpenMS_sources})
+  add_cppcheck_test(${i})
+endforeach()
 
-  # GUI library checks
-  set(OpenMSVisual_cppcheck_sources)
-  foreach(i ${OpenMSVisual_sources})
-    string( REGEX MATCH ${SOURCE_FILE_REGEX} is_source_file ${i} )
-    if(is_source_file)
-      list(APPEND OpenMSVisual_cppcheck_sources ${i})
-      # add_cppcheck_sources(${i} ${i} STYLE FAIL_ON_WARNINGS)
-    endif()
-  endforeach()
+# GUI library checks
+foreach(i ${OpenMSVisual_sources})
+  add_cppcheck_test(${i})
+endforeach()
 
-  add_cppcheck_sources("OpenMS_GUI" ${OpenMSVisual_cppcheck_sources} STYLE FAIL_ON_WARNINGS)
+# TOPP checks
+foreach(i ${TOPP_executables})
+  add_cppcheck_test(${TOPP_DIR}/${i}.C)
+endforeach()
 
-  # TOPP checks
-  set(TOPP_cppcheck_sources)
-  foreach(i ${TOPP_executables})
-    list(APPEND TOPP_cppcheck_sources ${TOPP_DIR}/${i}.C)
-  endforeach()
+# UTILS checks
+foreach(i ${UTILS_executables})
+  add_cppcheck_test(${UTILS_DIR}/${i}.C)
+endforeach()
 
-  add_cppcheck_sources("TOPP" ${TOPP_cppcheck_sources} STYLE FAIL_ON_WARNINGS)
-
-  # UTILS checks
-  set(UTILS_cppcheck_sources)
-  foreach(i ${UTILS_executables})
-    list(APPEND UTILS_cppcheck_sources ${UTILS_DIR}/${i}.C)
-  endforeach()
-
-  add_cppcheck_sources("UTILS" ${UTILS_cppcheck_sources} STYLE FAIL_ON_WARNINGS)
-
-  # GUI_TOOLS checks
-  set(GUI_TOOLS_cppcheck_sources)
-  foreach(i ${GUI_executables})
-    list(APPEND GUI_TOOLS_cppcheck_sources ${GUI_DIR}/${i}.C)
-  endforeach()
-
-  add_cppcheck_sources("GUI_TOOLS" ${GUI_TOOLS_cppcheck_sources} STYLE FAIL_ON_WARNINGS)
-
-else()
-  message(STATUS "Missing CPPCHECK executable .. Abort CppCheck")
-endif()
+foreach(i ${GUI_executables})
+  add_cppcheck_test(${GUI_DIR}/${i}.C)
+endforeach()

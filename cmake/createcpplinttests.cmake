@@ -22,128 +22,48 @@
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Timo Sachsenberg $
-# $Authors: Timo Sachsenberg $
+# $Authors: Timo Sachsenberg, Stephan Aiche $
 # --------------------------------------------------------------------------
 
-# build file list for cpplint
-set(OpenMS_cpplint_sources)
+set(DO_NOT_TEST_THESE_FILES_REGEX "/(moc|ui)_")
+set(IGNORE_FILES_IN_BUILD_DIRECTORY "^${PROJECT_BINARY_DIR}")
+
+MACRO(ADD_CPPLINT_TEST FILE_TO_TEST)
+  string( REGEX MATCH ${DO_NOT_TEST_THESE_FILES_REGEX} do_not_test ${FILE_TO_TEST} )
+  string( REGEX MATCH ${IGNORE_FILES_IN_BUILD_DIRECTORY} is_in_bin_dir ${FILE_TO_TEST})
+  if(NOT do_not_test AND NOT is_in_bin_dir)
+    add_test(${FILE_TO_TEST}_cpplint_test
+      "${PYTHON_EXECUTABLE}"
+      "${PROJECT_SOURCE_DIR}/cmake/cpplint.py"
+      "--verbose=5"
+      "${PROJECT_SOURCE_DIR}/${FILE_TO_TEST}")
+
+    set_tests_properties(
+      ${FILE_TO_TEST}_cpplint_test
+      PROPERTIES
+      FAIL_REGULAR_EXPRESSION
+      "${CPPLINT_FAIL_REGULAR_EXPRESSION}")
+  endif()
+ENDMACRO()
+
+## create tests for all files in the individual file groups
 foreach(i ${OpenMS_sources})
-if("1.${CMAKE_VERSION}" VERSION_LESS "1.2.8.0")
-# Older than CMake 2.8.0
-add_test(${i}_cpplint_test
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-else()
-# CMake 2.8.0 and newer
-add_test(NAME
-	${i}_cpplint_test
-	COMMAND
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-endif()
-set_tests_properties(${i}_cpplint_test
-PROPERTIES
-FAIL_REGULAR_EXPRESSION
-"${CPPLINT_FAIL_REGULAR_EXPRESSION}")
+  add_cpplint_test(${i})
 endforeach()
 
 foreach(i ${OpenMSVisual_sources})
-if("1.${CMAKE_VERSION}" VERSION_LESS "1.2.8.0")
-# Older than CMake 2.8.0
-add_test(${i}_visual_cpplint_test
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-else()
-# CMake 2.8.0 and newer
-add_test(NAME
-	${i}_visual_cpplint_test
-	COMMAND
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-endif()
-set_tests_properties(${i}_visual_cpplint_test
-PROPERTIES
-FAIL_REGULAR_EXPRESSION
-"${CPPLINT_FAIL_REGULAR_EXPRESSION}")
+  add_cpplint_test(${i})
 endforeach()
 
 foreach(i ${TOPP_executables})
-if("1.${CMAKE_VERSION}" VERSION_LESS "1.2.8.0")
-# Older than CMake 2.8.0
-add_test(${i}_TOPP_cpplint_test
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-else()
-# CMake 2.8.0 and newer
-add_test(NAME
-	${i}_TOPP_cpplint_test
-	COMMAND
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-endif()
-set_tests_properties(${i}_TOPP_cpplint_test
-PROPERTIES
-FAIL_REGULAR_EXPRESSION
-"${CPPLINT_FAIL_REGULAR_EXPRESSION}")
+  add_cpplint_test(${TOPP_DIR}/${i}.C)
 endforeach()
 
 foreach(i ${UTILS_executables})
-if("1.${CMAKE_VERSION}" VERSION_LESS "1.2.8.0")
-# Older than CMake 2.8.0
-add_test(${i}_UTILS_cpplint_test
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-else()
-# CMake 2.8.0 and newer
-add_test(NAME
-	${i}_UTILS_cpplint_test
-	COMMAND
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-endif()
-set_tests_properties(${i}_UTILS_cpplint_test
-PROPERTIES
-FAIL_REGULAR_EXPRESSION
-"${CPPLINT_FAIL_REGULAR_EXPRESSION}")
+  add_cpplint_test(${UTILS_DIR}/${i}.C)
 endforeach()
-  
+
 foreach(i ${GUI_executables})
-if("1.${CMAKE_VERSION}" VERSION_LESS "1.2.8.0")
-# Older than CMake 2.8.0
-add_test(${i}_GUI_cpplint_test
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-else()
-# CMake 2.8.0 and newer
-add_test(NAME
-	${i}_GUI_cpplint_test
-	COMMAND
-	"python"
-	"cmake/cpplint.py"
-	"--verbose=5"
-	${i})
-endif()
-set_tests_properties(${i}_GUI_cpplint_test
-PROPERTIES
-FAIL_REGULAR_EXPRESSION
-"${CPPLINT_FAIL_REGULAR_EXPRESSION}")
+  add_cpplint_test(${GUI_DIR}/${i}.C)
 endforeach()
 
