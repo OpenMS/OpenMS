@@ -224,7 +224,7 @@ namespace OpenMS
         if (!id_data_[peptide_identification_index_].metaValueExists("RT"))
         {
           if (rt_mapping_.has(scan)) id_data_[peptide_identification_index_].setMetaValue("RT", rt_mapping_[scan]);
-          else warning(LOAD, "MascotXML contains scan numbers, but no Scan->RT mapping was given. Ignoring scan numbers.");
+          else warning(LOAD, "MascotXML contains scan numbers, but no mapping for Scan->RT was given. Ignoring scan numbers.");
         }
       }
 		}
