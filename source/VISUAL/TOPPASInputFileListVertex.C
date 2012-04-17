@@ -127,13 +127,31 @@ namespace OpenMS
  		
  		pen.setColor(pen_color_);
  		painter->setPen(pen);
+
+    // display number of input files
     QString text = QString::number(getFileNames().size())
                    + " input file"
 									 + (getFileNames().size() == 1 ? "" : "s");
 		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
 		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
 
-		//topo sort number
+    // display file type(s)
+    Map<QString, Size> suffices;
+    foreach (QString fn, getFileNames())
+    {
+      ++suffices[QFileInfo(fn).completeSuffix()];
+    }
+    StringList text_l;
+    for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
+    {
+      if (suffices.size() > 1) text_l.push_back(String(".") + sit->first + "(" + String(sit->second) + ")");
+      else text_l.push_back(String(".") + sit->first);
+    }
+    text = text_l.concatenate(" | ").toQString();
+    text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
+    painter->drawText(-(int)(text_boundings.width()/2.0), 35 - (int)(text_boundings.height()/4.0), text);
+
+		// topological sort number
     qreal x_pos = -63.0;
     qreal y_pos = -19.0;
     painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
@@ -216,7 +234,6 @@ namespace OpenMS
 	void TOPPASInputFileListVertex::setKey(const QString& key)
 	{
 		key_ = key;
-		setToolTip(key);
 	}
 	
 	const QString& TOPPASInputFileListVertex::getKey()
@@ -232,6 +249,8 @@ namespace OpenMS
     {
       output_files_[f][-1].filenames << QDir::toNativeSeparators(files[f]);
     }
+
+    setToolTip(files.join("\n"));
 	}
 	
 }
