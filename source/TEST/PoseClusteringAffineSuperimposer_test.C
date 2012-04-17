@@ -77,8 +77,8 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
   feat1.setIntensity(100.0f);
   feat2.setPosition(pos2);
   feat2.setIntensity(100.0f);
-  input[0].push_back(feat1);
-  input[0].push_back(feat2);
+  input[0].push_back(ConsensusFeature(feat1));
+  input[0].push_back(ConsensusFeature(feat2));
   
   Feature feat3;
   Feature feat4;
@@ -88,8 +88,8 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
   feat3.setIntensity(100.0f);
   feat4.setPosition(pos4);
   feat4.setIntensity(100.0f);
-  input[1].push_back(feat3);
-  input[1].push_back(feat4);
+  input[1].push_back(ConsensusFeature(feat3));
+  input[1].push_back(ConsensusFeature(feat4));
 
   Param parameters;
   parameters.setValue(String("scaling_bucket_size"), 0.01);

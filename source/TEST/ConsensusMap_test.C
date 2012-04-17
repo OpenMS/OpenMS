@@ -212,8 +212,8 @@ START_SECTION((ConsensusMap& operator+=(const ConsensusMap &rhs)))
   m2.getDataProcessing().resize(2);
   m2.getProteinIdentifications().resize(2);
   m2.getUnassignedPeptideIdentifications().resize(2);
-  m2.push_back(Feature());
-  m2.push_back(Feature());
+  m2.push_back(ConsensusFeature());
+  m2.push_back(ConsensusFeature());
 
 
   m1+=m2;
@@ -475,7 +475,7 @@ START_SECTION((bool operator == (const ConsensusMap& rhs) const))
 	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
-	edit.push_back(feature1);
+	edit.push_back(ConsensusFeature(feature1));
 	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
@@ -507,8 +507,8 @@ START_SECTION((bool operator == (const ConsensusMap& rhs) const))
 	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
-	edit.push_back(feature1);
-	edit.push_back(feature2);
+	edit.push_back(ConsensusFeature(feature1));
+	edit.push_back(ConsensusFeature(feature2));
 	edit.updateRanges();
 	edit.clear(false);
 	TEST_EQUAL(empty==edit, false);
@@ -523,7 +523,7 @@ START_SECTION((bool operator != (const ConsensusMap& rhs) const))
 	TEST_EQUAL(empty!=edit, true);
 
 	edit = empty;
-	edit.push_back(feature1);
+	edit.push_back(ConsensusFeature(feature1));
 	TEST_EQUAL(empty!=edit, true);
 
 	edit = empty;
@@ -551,8 +551,8 @@ START_SECTION((bool operator != (const ConsensusMap& rhs) const))
 	TEST_EQUAL(empty!=edit, true);
 
 	edit = empty;
-	edit.push_back(feature1);
-	edit.push_back(feature2);
+	edit.push_back(ConsensusFeature(feature1));
+	edit.push_back(ConsensusFeature(feature2));
 	edit.updateRanges();
 	edit.clear(false);
 	TEST_EQUAL(empty!=edit, true);

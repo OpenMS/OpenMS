@@ -106,7 +106,7 @@ public:
     ConsensusFeature(const ConsensusFeature & rhs);
 
     /// Constructor from basic feature
-    ConsensusFeature(const BaseFeature & feature);
+    explicit ConsensusFeature(const BaseFeature & feature);
 
     /**
       @brief Constructor with map and element index for a singleton consensus
