@@ -310,7 +310,7 @@ protected:
         fh.loadExperiment(exp_name, exp);
         for (Size i=0; i<exp.size(); ++i)
         {
-          rt_mapping[i+1] = exp[i].getRT();
+          rt_mapping[exp[i].getNativeID()] = exp[i].getRT();
         }
       }
 			protein_identifications.resize(1);

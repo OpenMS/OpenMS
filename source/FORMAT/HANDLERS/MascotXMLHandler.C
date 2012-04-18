@@ -198,8 +198,18 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_scan_title") 
 		{ // extract mz and RT from title (if not already set)
-			String title = ((String) sm_.convert(chars)).trim();
-			if (title.hasSubstring("_")) 
+      // in Mascot 2.3 it might look like this: <pep_scan_title>scan=818</pep_scan_title>
+      // where "scan=818" is the nativeSpectrumID directly taken from the mzML (if mzML or similar was used for submission)
+      //  (when manual submission was used and mascotXML was retrieved manually)
+      String title = ((String) sm_.convert(chars)).trim();
+      if (rt_mapping_.size()>0)
+      {
+        if (rt_mapping_.has(title))
+        {
+          id_data_[peptide_identification_index_].setMetaValue("RT", rt_mapping_[title]);
+        }
+      }
+      else if (title.hasSubstring("_")) 
 			{
 				DoubleReal rt(0), mz(0);
 				try 
@@ -212,21 +222,6 @@ namespace OpenMS
         if (!id_data_[peptide_identification_index_].metaValueExists("RT")) id_data_[peptide_identification_index_].setMetaValue("RT", rt);
 				if (!id_data_[peptide_identification_index_].metaValueExists("MZ") && (mz != 0)) id_data_[peptide_identification_index_].setMetaValue("MZ", mz); // overwrite value if available
 			}
-      else if (title.hasPrefix("scan=")) // in Mascot 2.3 it might look like this: <pep_scan_title>scan=818</pep_scan_title>
-      {                                  //  (when manual submission was used and mascotXML was retrieved manually)
-        Int scan(0);
-        try 
-        {
-          scan = title.suffix('=').toDouble();
-        }
-        catch (Exception::BaseException& /*e*/) {}
-
-        if (!id_data_[peptide_identification_index_].metaValueExists("RT"))
-        {
-          if (rt_mapping_.has(scan)) id_data_[peptide_identification_index_].setMetaValue("RT", rt_mapping_[scan]);
-          else warning(LOAD, "MascotXML contains scan numbers, but no mapping for Scan->RT was given. Ignoring scan numbers.");
-        }
-      }
 		}
 		else if (tag_ == "pep_exp_z")
 		{
