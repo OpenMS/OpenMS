@@ -36,40 +36,40 @@ using namespace std;
 
 namespace OpenMS
 {
-	MassDecompositionAlgorithm::MassDecompositionAlgorithm()
-	: DefaultParamHandler("MassDecompositionAlgorithm"),
-		alphabet_(0),
-		decomposer_(0)
-	{
-		defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", StringList::create("advanced"));
-		defaults_.setValue("tolerance", 0.3, "tolerance which is allowed for the decompositions");
-		
-		vector<String> all_mods;
-		ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-		defaults_.setValue("fixed_modifications", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
-		defaults_.setValidStrings("fixed_modifications", all_mods);
-		defaults_.setValue("variable_modifications", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
-		defaults_.setValidStrings("variable_modifications", all_mods);
-		defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", StringList::create("advanced"));
-		set<String> residue_sets = ResidueDB::getInstance()->getResidueSets();
-		vector<String> valid_strings;
-		for (set<String>::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)
-		{
-			valid_strings.push_back(*it);
-		}
-		defaults_.setValidStrings("residue_set", valid_strings);
-		defaultsToParam_();
-	}
+  MassDecompositionAlgorithm::MassDecompositionAlgorithm() :
+    DefaultParamHandler("MassDecompositionAlgorithm"),
+    alphabet_(0),
+    decomposer_(0)
+  {
+    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", StringList::create("advanced"));
+    defaults_.setValue("tolerance", 0.3, "tolerance which is allowed for the decompositions");
 
-	MassDecompositionAlgorithm::~MassDecompositionAlgorithm()
-	{
-		delete alphabet_;
-		delete decomposer_;
-	}
+    vector<String> all_mods;
+    ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    defaults_.setValue("fixed_modifications", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValidStrings("fixed_modifications", all_mods);
+    defaults_.setValue("variable_modifications", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValidStrings("variable_modifications", all_mods);
+    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", StringList::create("advanced"));
+    set<String> residue_sets = ResidueDB::getInstance()->getResidueSets();
+    vector<String> valid_strings;
+    for (set<String>::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)
+    {
+      valid_strings.push_back(*it);
+    }
+    defaults_.setValidStrings("residue_set", valid_strings);
+    defaultsToParam_();
+  }
 
-	void MassDecompositionAlgorithm::getDecompositions(vector<MassDecomposition>& decomps, DoubleReal mass)
-	{
-		DoubleReal tolerance((DoubleReal)param_.getValue("tolerance"));
+  MassDecompositionAlgorithm::~MassDecompositionAlgorithm()
+  {
+    delete alphabet_;
+    delete decomposer_;
+  }
+
+  void MassDecompositionAlgorithm::getDecompositions(vector<MassDecomposition> & decomps, DoubleReal mass)
+  {
+    DoubleReal tolerance((DoubleReal) param_.getValue("tolerance"));
     ims::RealMassDecomposer::decompositions_type decompositions = decomposer_->getDecompositions(mass, tolerance);
 
     for (ims::RealMassDecomposer::decompositions_type::const_iterator pos = decompositions.begin(); pos != decompositions.end(); ++pos)
@@ -86,30 +86,30 @@ namespace OpenMS
       MassDecomposition decomp(d);
       decomps.push_back(decomp);
     }
-	
-		return;
-	}
 
-	void MassDecompositionAlgorithm::updateMembers_()
-	{
-		// todo add accessor to tolerance, it is called very often in CID mode
+    return;
+  }
+
+  void MassDecompositionAlgorithm::updateMembers_()
+  {
+    // todo add accessor to tolerance, it is called very often in CID mode
 
     Map<char, DoubleReal> aa_to_weight;
 
-		set<const Residue*> residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
+    set<const Residue *> residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
 
-		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
-		{
-			aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
-		}
+    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    {
+      aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
+    }
 
-		// now handle the modifications
-		ModificationDefinitionsSet mod_set((StringList)param_.getValue("fixed_modifications"), (StringList)param_.getValue("variable_modifications"));
-		set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
+    // now handle the modifications
+    ModificationDefinitionsSet mod_set((StringList) param_.getValue("fixed_modifications"), (StringList) param_.getValue("variable_modifications"));
+    set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
       ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
-      char aa=' ';
+      char aa = ' ';
       if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
       {
         cerr << "MassDecompositionAlgorithm: Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
@@ -138,13 +138,13 @@ namespace OpenMS
       }
     }
 
-		const StringList mod_names(StringList::create("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
+    const StringList mod_names(StringList::create("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
     vector<String>::const_iterator actual_mod_name = mod_names.begin();
     set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
     for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
     {
       ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
-			//cerr << it->getModification() << " " << mod.getOrigin() << " " << mod.getId() << " " << mod.getFullId() << " " << mod.getUniModAccession() << " " << mod.getPSIMODAccession() << endl;
+      //cerr << it->getModification() << " " << mod.getOrigin() << " " << mod.getId() << " " << mod.getFullId() << " " << mod.getUniModAccession() << " " << mod.getPSIMODAccession() << endl;
       char aa = (*actual_mod_name)[0];
       char origin_aa = ' ';
       ++actual_mod_name;
@@ -177,24 +177,24 @@ namespace OpenMS
       }
     }
 
-		if (alphabet_ != 0)
-		{
-			delete alphabet_;
-		}
-		if (decomposer_ != 0)
-		{
-			delete decomposer_;
-		}
+    if (alphabet_ != 0)
+    {
+      delete alphabet_;
+    }
+    if (decomposer_ != 0)
+    {
+      delete decomposer_;
+    }
 
     // init mass decomposer
     alphabet_ = new ims::IMSAlphabet();
-		for (Map<char, DoubleReal>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
-		{
-			alphabet_->push_back(String(it->first), it->second);
-		}
+    for (Map<char, DoubleReal>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+    {
+      alphabet_->push_back(String(it->first), it->second);
+    }
 
     // initializes weights
-    ims::Weights weights(alphabet_->getMasses(), (DoubleReal)param_.getValue("decomp_weights_precision"));
+    ims::Weights weights(alphabet_->getMasses(), (DoubleReal) param_.getValue("decomp_weights_precision"));
 
     // optimize alphabet by dividing by gcd
     weights.divideByGCD();
@@ -202,10 +202,7 @@ namespace OpenMS
     // decomposes real values
     decomposer_ = new ims::RealMassDecomposer(weights);
 
-		return;
-	}
-
-	
+    return;
+  }
 
 } // namespace OpenMS
-

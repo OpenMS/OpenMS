@@ -35,101 +35,77 @@
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
 
-namespace OpenMS {
-  namespace ims {
+namespace OpenMS
+{
+  namespace ims
+  {
 
     /**
-       @brief Represents a chemical atom with name and isotope distribution.
+      @brief Represents a chemical atom with name and isotope distribution.
 
-       Simulates a chemical atom with name and isotope distribution and can be
-       used as a base class for more complex structures that simulate non-trivial
-       bio-chemical molecules. @c Element 's name represents the atom's symbol
-       in a periodical table. Sequence is by default equal to name and
-       introduced for more complex molecules.
+      Simulates a chemical atom with name and isotope distribution and can be
+      used as a base class for more complex structures that simulate non-trivial
+      bio-chemical molecules. @c Element 's name represents the atom's symbol
+      in a periodical table. Sequence is by default equal to name and
+      introduced for more complex molecules.
 
-       @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
+      @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
      */
-    class OPENMS_DLLAPI IMSElement {
-    public:
-      /**
-        Type of element's name.
-      */
+    class OPENMS_DLLAPI IMSElement
+    {
+public:
+      /// Type of element's name.
       typedef std::string name_type;
 
-      /**
-        Type of element's isotope distribution.
-      */
+      /// Type of element's isotope distribution.
       typedef IMSIsotopeDistribution isotopes_type;
 
-      /**
-        Type of isotope mass.
-      */
+      /// Type of isotope mass.
       typedef isotopes_type::mass_type mass_type;
 
-      /**
-        Type of distribution nominal mass.
-      */
+      /// Type of distribution nominal mass.
       typedef isotopes_type::nominal_mass_type nominal_mass_type;
 
-      /**
-        Type of isotopes size.
-      */
+      /// Type of isotopes size.
       typedef isotopes_type::size_type size_type;
 
-      /**
-        Mass of electron.
-      */
+      /// Mass of electron.
       static const mass_type ELECTRON_MASS_IN_U;
 
-      /**
-        Empty constructor.
-      */
+      /// Empty constructor.
       IMSElement()
-      {
-      }
+      {}
 
-      /**
-        Copy constructor.
-      */
-      IMSElement(const IMSElement& element) :
+      /// Copy constructor.
+      IMSElement(const IMSElement & element) :
         name_(element.name_),
         sequence_(element.sequence_),
         isotopes_(element.isotopes_)
-      {
-      }
+      {}
 
-      /**
-        Constructor with name and isotope distribution.
-      */
-      IMSElement(const name_type& name,
-                 const isotopes_type& isotopes) :
+      /// Constructor with name and isotope distribution.
+      IMSElement(const name_type & name,
+                 const isotopes_type & isotopes) :
         name_(name),
         sequence_(name),
         isotopes_(isotopes)
-      {
-      }
+      {}
 
-      /**
-        Constructor with name and mass of single isotope.
-      */
-      IMSElement(	const name_type& name,
-                  mass_type mass):
+      /// Constructor with name and mass of single isotope.
+      IMSElement(const name_type & name,
+                 mass_type mass) :
         name_(name),
         sequence_(name),
         isotopes_(mass)
-      {
-      }
+      {}
 
-      /**
-        Constructor with name and nominal mass.
-      */
-      IMSElement(const name_type& name,
-                 nominal_mass_type nominal_mass = 0)
-        : name_(name),
-          sequence_(name),
-          isotopes_(nominal_mass)
-      {
-      }
+      /// Constructor with name and nominal mass.
+      IMSElement(const name_type & name,
+                 nominal_mass_type nominal_mass = 0) :
+        name_(name),
+        sequence_(name),
+        isotopes_(nominal_mass)
+      {}
 
       /**
         Gets element's name. @note Name represents
@@ -137,7 +113,7 @@ namespace OpenMS {
 
         @return Name of element.
       */
-      const name_type& getName() const
+      const name_type & getName() const
       {
         return name_;
       }
@@ -148,7 +124,7 @@ namespace OpenMS {
 
         @param name A new name to be set for element.
       */
-      void setName(const name_type& name)
+      void setName(const name_type & name)
       {
         this->name_ = name;
       }
@@ -158,7 +134,7 @@ namespace OpenMS {
 
         @return Sequence of element.
       */
-      const name_type& getSequence() const
+      const name_type & getSequence() const
       {
         return sequence_;
       }
@@ -168,7 +144,7 @@ namespace OpenMS {
 
         @param sequence A new sequence to be set for element.
       */
-      void setSequence(const name_type& sequence)
+      void setSequence(const name_type & sequence)
       {
         this->sequence_ = sequence;
       }
@@ -220,7 +196,8 @@ namespace OpenMS {
 
         @return Element's isotope distribution.
       */
-      const IMSIsotopeDistribution& getIsotopeDistribution() const {
+      const IMSIsotopeDistribution & getIsotopeDistribution() const
+      {
         return isotopes_;
       }
 
@@ -229,7 +206,8 @@ namespace OpenMS {
 
         @param isotopes A new isotope distribution to be set for element.
       */
-      void setIsotopeDistribution(const IMSIsotopeDistribution& isotopes) {
+      void setIsotopeDistribution(const IMSIsotopeDistribution & isotopes)
+      {
         this->isotopes_ = isotopes;
       }
 
@@ -239,7 +217,7 @@ namespace OpenMS {
         @param element Element to be assigned to this one.
         @return Reference to this object.
       */
-      IMSElement& operator =(const IMSElement& element);
+      IMSElement & operator=(const IMSElement & element);
 
       /**
         Equality operator. Returns true, if a given @c element is equal
@@ -248,7 +226,7 @@ namespace OpenMS {
         @return true, if a given element is equal to this one,
              false - otherwise
       */
-      bool operator ==(const IMSElement& element) const;
+      bool operator==(const IMSElement & element) const;
 
       /**
         Inequality operator. Returns true, if a given @c element is
@@ -257,27 +235,19 @@ namespace OpenMS {
         @return true, if a given element is unequal to this one,
            false - otherwise.
       */
-      bool operator !=(const IMSElement& element) const;
+      bool operator!=(const IMSElement & element) const;
 
-      /**
-        Default destructor.
-      */
+      /// Default destructor.
       virtual ~IMSElement() {}
 
-    private:
-      /**
-        Element's name.
-      */
+private:
+      /// Element's name.
       name_type name_;
 
-      /**
-        Element's sequence.
-      */
+      /// Element's sequence.
       name_type sequence_;
 
-      /**
-        Element's isotope distribution.
-      */
+      /// Element's isotope distribution.
       isotopes_type isotopes_;
     };
 
@@ -287,7 +257,7 @@ namespace OpenMS {
       @param os Output stream to which element is printed out.
       @param element Element to be printed out.
     */
-    OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const IMSElement& element);
+    OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const IMSElement & element);
 
   } // namespace ims
 } // namespace OpenMS

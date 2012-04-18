@@ -34,10 +34,10 @@
 
 #include <OpenMS/config.h>
 
-namespace OpenMS {
-
-  namespace ims {
-
+namespace OpenMS
+{
+  namespace ims
+  {
     /**
       @brief Represents a set of weights (double values and scaled with a certain
       precision their integer counterparts) with a quick access.
@@ -60,37 +60,24 @@ namespace OpenMS {
     */
     class OPENMS_DLLAPI Weights
     {
-    public:
-      /**
-        Type of integer values to be used.
-      */
+public:
+      /// Type of integer values to be used.
       typedef long unsigned int weight_type;
 
-      /**
-        Type of double values to be used.
-      */
+      /// Type of double values to be used.
       typedef double alphabet_mass_type;
 
-      /**
-        Type of container to store integer values.
-      */
+      /// Type of container to store integer values.
       typedef std::vector<weight_type> weights_type;
 
-      /**
-        Type of container to store double values.
-      */
+      /// Type of container to store double values.
       typedef std::vector<alphabet_mass_type> alphabet_masses_type;
 
-      /**
-        Type of container's size
-      */
+      /// Type of container's size
       typedef weights_type::size_type size_type;
 
-      /**
-        Empty constructor.
-      */
-      Weights() { }
-
+      /// Empty constructor.
+      Weights() {}
 
       /**
         Constructor with double values and precision.
@@ -98,9 +85,9 @@ namespace OpenMS {
         @param masses Original double values to be scaled.
         @param precision Precision to scale double values.
       */
-      Weights(const alphabet_masses_type& masses, alphabet_mass_type precision)
-        : alphabet_masses_(masses),
-          precision_(precision)
+      Weights(const alphabet_masses_type & masses, alphabet_mass_type precision) :
+        alphabet_masses_(masses),
+        precision_(precision)
       {
         setPrecision(precision);
       }
@@ -110,10 +97,10 @@ namespace OpenMS {
 
         @param other Weights to be copied.
       */
-      Weights(const Weights& other) :
+      Weights(const Weights & other) :
         alphabet_masses_(other.alphabet_masses_),
         precision_(other.precision_),
-        weights_(other.weights_) { }
+        weights_(other.weights_) {}
 
       /**
         Assignment operator.
@@ -121,14 +108,17 @@ namespace OpenMS {
         @param other Weights to be assigned.
         @return Reference to this object.
       */
-      Weights& operator =(const Weights& other);
+      Weights & operator=(const Weights & other);
 
       /**
         Gets size of a set of weights.
 
         @return Size of a set of weights.
       */
-      size_type size() const { return weights_.size(); }
+      size_type size() const
+      {
+        return weights_.size();
+      }
 
       /**
         Gets a scaled integer weight by index.
@@ -136,7 +126,10 @@ namespace OpenMS {
         @param i An index to access weights.
         @return An integer weight.
       */
-      weight_type getWeight(size_type i) const { return weights_[i]; }
+      weight_type getWeight(size_type i) const
+      {
+        return weights_[i];
+      }
 
       /**
         Sets a new precision to scale double values to integer.
@@ -150,7 +143,10 @@ namespace OpenMS {
 
         @return Precision to scale double values to integer.
       */
-      alphabet_mass_type getPrecision() const { return precision_; }
+      alphabet_mass_type getPrecision() const
+      {
+        return precision_;
+      }
 
       /**
         Operator to access weights by index.
@@ -160,14 +156,20 @@ namespace OpenMS {
 
         @see getWeight(size_type i)
       */
-      weight_type operator [](size_type i) const { return weights_[i]; }
+      weight_type operator[](size_type i) const
+      {
+        return weights_[i];
+      }
 
       /**
         Gets a last weight.
 
         @return a last weight.
       */
-      weight_type back() const { return weights_.back(); }
+      weight_type back() const
+      {
+        return weights_.back();
+      }
 
       /**
         Gets an original (double) alphabet mass by index.
@@ -176,12 +178,14 @@ namespace OpenMS {
         @return A double alphabet mass.
       */
       alphabet_mass_type getAlphabetMass(size_type i) const
-      { return alphabet_masses_[i]; }
+      {
+        return alphabet_masses_[i];
+      }
 
       /**
         Returns a parent mass for a given \c decomposition
       */
-      alphabet_mass_type getParentMass(const std::vector<unsigned int>& decomposition) const;
+      alphabet_mass_type getParentMass(const std::vector<unsigned int> & decomposition) const;
 
       /**
         Exchanges weight and mass at index1 with weight and mass at index2.
@@ -208,7 +212,7 @@ namespace OpenMS {
       alphabet_mass_type getMinRoundingError() const;
 
       alphabet_mass_type getMaxRoundingError() const;
-    private:
+private:
       /**
         Container to store original (double) alphabet masses.
       */
@@ -231,7 +235,7 @@ namespace OpenMS {
       @param os Output stream to which weights are written.
       @param weights Weights to be written.
     */
-    OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Weights& weights);
+    OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Weights & weights);
 
   } // namespace ims
 } // namespace OpenMS

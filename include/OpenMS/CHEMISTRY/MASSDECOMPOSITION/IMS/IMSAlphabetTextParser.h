@@ -31,9 +31,11 @@
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
-  namespace ims {
+  namespace ims
+  {
 
     /**
       @brief Implements abstract @c AlphabetParser to read data from the plain text format.
@@ -41,28 +43,28 @@ namespace OpenMS {
       @c AlphabetTextParser parses the data source using overriden @c parse(std::istream&)
       and stores the parsed data permanently. That can be retrieved by @c getElements() function.
     */
-    class OPENMS_DLLAPI IMSAlphabetTextParser 
-      : public IMSAlphabetParser<> 
+    class OPENMS_DLLAPI IMSAlphabetTextParser :
+      public IMSAlphabetParser<>
     {
-    private:
+private:
       /**
         The parsed data.
       */
       ContainerType elements_;
-    public:
+public:
       /**
         Gets the parsed data.
 
         @return The parsed data.
       */
-      virtual ContainerType& getElements() { return elements_; }
+      virtual ContainerType & getElements() { return elements_; }
 
       /**
         Parses the input stream @c is.
 
         @param is The input stream to be parsed
       */
-      virtual void parse(std::istream& is);
+      virtual void parse(std::istream & is);
     };
 
   } // namespace ims

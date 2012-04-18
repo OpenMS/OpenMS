@@ -35,9 +35,11 @@
 
 #include <OpenMS/config.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
-  namespace ims {
+  namespace ims
+  {
 
     /**
       @brief Represents a distribution of isotopes restricted to the first K elements.
@@ -79,153 +81,104 @@ namespace OpenMS {
     class OPENMS_DLLAPI IMSIsotopeDistribution
     {
 
-    public:
-      /**
-        Type of isotope mass.
-      */
+public:
+      /// Type of isotope mass.
       typedef double mass_type;
 
-      /**
-        Type of isotope abundance.
-      */
+      /// Type of isotope abundance.
       typedef double abundance_type;
 
-      /**
-        Type of isotope nominal mass.
-      */
+      /// Type of isotope nominal mass.
       typedef unsigned int nominal_mass_type;
 
-      /**
-        @brief Structure that represents an isotope peak - pair of mass and abundance.
-      */
+      /// @brief Structure that represents an isotope peak - pair of mass and abundance.
       struct Peak
       {
         Peak(mass_type mass = 0.0, abundance_type abundance = 0.0) :
           mass(mass), abundance(abundance)
-        { }
+        {}
 
-        bool operator ==(const Peak& peak) const
+        bool operator==(const Peak & peak) const
         {
-          return (peak.mass == mass && peak.abundance == abundance);
+          return peak.mass == mass && peak.abundance == abundance;
         }
 
         mass_type mass;
         abundance_type abundance;
       };
 
-      /**
-        Type of isotope peak.
-      */
+      /// Type of isotope peak.
       typedef Peak peak_type;
 
-      /**
-        Type of container to store peaks.
-      */
+      /// Type of container to store peaks.
       typedef std::vector<peak_type> peaks_container;
 
-      /**
-        Type of iterator over container with peaks.
-      */
+      /// Type of iterator over container with peaks.
       typedef peaks_container::iterator peaks_iterator;
 
-      /**
-        Type of const iterator over container with peaks.
-      */
+      /// Type of const iterator over container with peaks.
       typedef peaks_container::const_iterator const_peaks_iterator;
 
-      /**
-        Type of peaks container's size.
-      */
+      /// Type of peaks container's size.
       typedef peaks_container::size_type size_type;
 
-      /**
-        Type of container with isotope masses.
-      */
+      /// Type of container with isotope masses.
       typedef std::vector<mass_type> masses_container;
 
-      /**
-        Type of iterator over container with isotope masses.
-      */
+      /// Type of iterator over container with isotope masses.
       typedef masses_container::iterator masses_iterator;
 
-      /**
-        Type of const iterator over container with isotope masses.
-      */
+      /// Type of const iterator over container with isotope masses.
       typedef masses_container::const_iterator const_masses_iterator;
 
-      /**
-        Type of container with isotope abundances.
-      */
+      /// Type of container with isotope abundances.
       typedef std::vector<abundance_type> abundances_container;
 
-      /**
-        Type of iterator over container with isotope abundances.
-      */
+      /// Type of iterator over container with isotope abundances.
       typedef abundances_container::iterator abundances_iterator;
 
-      /**
-        Type of const iterator over container with isotope abundances.
-      */
+      /// Type of const iterator over container with isotope abundances.
       typedef abundances_container::const_iterator const_abundances_iterator;
 
-      /**
-        Error to be allowed for isotope distribution.
-      */
+      /// Error to be allowed for isotope distribution.
       static abundance_type ABUNDANCES_SUM_ERROR;
 
-      /**
-        Length of isotope distribution.
-      */
+      /// Length of isotope distribution.
       static size_type SIZE;
 
-      /**
-        Constructor with nominal mass.
-      */
-      IMSIsotopeDistribution(nominal_mass_type nominalMass = 0) :
+      /// Constructor with nominal mass.
+      explicit IMSIsotopeDistribution(nominal_mass_type nominalMass = 0) :
         nominal_mass_(nominalMass)
-      {
-      }
+      {}
 
-      /**
-        Constructor with single isotope.
-      */
-      IMSIsotopeDistribution(mass_type mass)
-        : nominal_mass_(0)
+      /// Constructor with single isotope.
+      explicit IMSIsotopeDistribution(mass_type mass) :
+        nominal_mass_(0)
       {
         peaks_.push_back(peaks_container::value_type(mass, 1.0));
       }
 
-
-      /**
-        Constructor with isotopes and nominal mass.
-      */
-      IMSIsotopeDistribution(const peaks_container& peaks,
+      /// Constructor with isotopes and nominal mass.
+      IMSIsotopeDistribution(const peaks_container & peaks,
                              nominal_mass_type nominalMass = 0) :
         peaks_(peaks),
         nominal_mass_(nominalMass)
-      {
-      }
+      {}
 
-      /**
-        Copy constructor.
-      */
-      IMSIsotopeDistribution(const IMSIsotopeDistribution& distribution) :
+      /// Copy constructor.
+      IMSIsotopeDistribution(const IMSIsotopeDistribution & distribution) :
         peaks_(distribution.peaks_),
         nominal_mass_(distribution.nominal_mass_)
-      {
-      }
+      {}
 
-      /**
-        Destructor.
-      */
+      /// Destructor.
       ~IMSIsotopeDistribution()
-      {
-      }
+      {}
 
       /**
         Gets size of isotope distribution. @note Size is not smaller than
         predefined @c SIZE.
-        *
+
         @return Size of isotope distribution.
       */
       size_type size() const { return std::min(peaks_.size(), SIZE); }
@@ -236,8 +189,8 @@ namespace OpenMS {
         @param distribution Isotope distribution to be assigned to this one.
         @return Reference to this object.
       */
-      IMSIsotopeDistribution& operator =(
-          const IMSIsotopeDistribution& distribution);
+      IMSIsotopeDistribution & operator=(
+        const IMSIsotopeDistribution & distribution);
 
       /**
         Equality operator. Returns true, if a given @c distribution is equal
@@ -246,7 +199,7 @@ namespace OpenMS {
         @return true, if a given distribution is equal to this distribution,
              false - otherwise
       */
-      bool operator ==(const IMSIsotopeDistribution& distribution) const;
+      bool operator==(const IMSIsotopeDistribution & distribution) const;
 
       /**
         Inequality operator. Returns true, if a given @c distribution is
@@ -255,7 +208,7 @@ namespace OpenMS {
         @return true, if a given distribution is unequal to this
              distribution, false - otherwise
       */
-      bool operator !=(const IMSIsotopeDistribution& distribution) const;
+      bool operator!=(const IMSIsotopeDistribution & distribution) const;
 
       /**
         Operator for folding this distributoin with a given @c distribution.
@@ -267,8 +220,8 @@ namespace OpenMS {
 
         @see IsotopeDistribution& operator *=(unsigned int)
       */
-      IMSIsotopeDistribution& operator *=(
-          const IMSIsotopeDistribution& distribution);
+      IMSIsotopeDistribution & operator*=(
+        const IMSIsotopeDistribution & distribution);
 
       /**
         Operator for folding this distribution with itself @c pow times.
@@ -280,7 +233,7 @@ namespace OpenMS {
 
         @see IsotopeDistribution& operator *=(const IsotopeDistribution&)
       */
-      IMSIsotopeDistribution& operator *=(unsigned int pow);
+      IMSIsotopeDistribution & operator*=(unsigned int pow);
 
       /**
         Gets a mass of isotope @c i.
@@ -289,7 +242,9 @@ namespace OpenMS {
         @return Mass of isotope @c i.
       */
       mass_type getMass(size_type i) const
-      { return peaks_[i].mass + nominal_mass_ + i; }
+      {
+        return peaks_[i].mass + nominal_mass_ + i;
+      }
 
       /**
         Gets an abundance of isotope @c i.
@@ -298,7 +253,9 @@ namespace OpenMS {
         @return An abundance of isotope @c i.
       */
       abundance_type getAbundance(size_type i) const
-      { return peaks_[i].abundance; }
+      {
+        return peaks_[i].abundance;
+      }
 
       /**
         Gets an average mass of all isotopes.
@@ -352,20 +309,14 @@ namespace OpenMS {
       */
       bool empty() const { return peaks_.empty(); }
 
-    private:
-      /**
-        Container for isotopes.
-      */
+private:
+      /// Container for isotopes.
       peaks_container peaks_;
 
-      /**
-        Nominal mass of distribution.
-      */
+      /// Nominal mass of distribution.
       nominal_mass_type nominal_mass_;
 
-      /**
-        Sets peaks/isotopes container minimum size.
-      */
+      /// Sets peaks/isotopes container minimum size.
       void setMinimumSize_();
     };
 
@@ -375,8 +326,8 @@ namespace OpenMS {
       @param os Output stream to which distribution is printed out.
       @param distribution Distribution to be printed out.
     */
-    OPENMS_DLLAPI std::ostream& operator <<(std::ostream& os,
-                              const IMSIsotopeDistribution& distribution);
+    OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os,
+                                            const IMSIsotopeDistribution & distribution);
 
   } // namespace ims
 } // namespace OpenMS

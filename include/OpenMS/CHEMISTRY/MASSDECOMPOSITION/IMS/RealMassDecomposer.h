@@ -35,9 +35,10 @@
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h>
 
-namespace OpenMS {
-
-  namespace ims {
+namespace OpenMS
+{
+  namespace ims
+  {
 
     /**
       @brief Handles decomposing of non-integer values/masses
@@ -57,28 +58,20 @@ namespace OpenMS {
 
       @author Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE>
     */
-    class OPENMS_DLLAPI RealMassDecomposer {
-    public:
+    class OPENMS_DLLAPI RealMassDecomposer
+    {
+public:
 
-      /**
-        Type of integer decomposer.
-      */
+      /// Type of integer decomposer.
       typedef IntegerMassDecomposer<> integer_decomposer_type;
 
-      /**
-        Type of integer values that are decomposed.
-      */
+      /// Type of integer values that are decomposed.
       typedef integer_decomposer_type::value_type integer_value_type;
 
-      /**
-        Type of result decompositions from integer decomposer.
-      */
-      typedef integer_decomposer_type::decompositions_type
-      decompositions_type;
+      /// Type of result decompositions from integer decomposer.
+      typedef integer_decomposer_type::decompositions_type decompositions_type;
 
-      /**
-        Type of the number of decompositions.
-      */
+      /// Type of the number of decompositions.
       typedef unsigned long long number_of_decompositions_type;
 
       typedef std::map<unsigned int, std::pair<unsigned int, unsigned int> > constraints_type;
@@ -88,7 +81,7 @@ namespace OpenMS {
 
         @param weights Weights over which values/masses to be decomposed.
       */
-      RealMassDecomposer(const Weights& weights);
+      explicit RealMassDecomposer(const Weights & weights);
 
       /**
         Gets all decompositions for a @c mass with an @c error allowed.
@@ -99,7 +92,7 @@ namespace OpenMS {
       */
       decompositions_type getDecompositions(double mass, double error);
 
-      decompositions_type getDecompositions(double mass, double error, const constraints_type& constraints);
+      decompositions_type getDecompositions(double mass, double error, const constraints_type & constraints);
 
       /**
        Gets a number of all decompositions for a @c mass with an @c error
@@ -112,20 +105,14 @@ namespace OpenMS {
       */
       number_of_decompositions_type getNumberOfDecompositions(double mass, double error);
 
-    private:
-      /**
-        Weights over which values/masses to be decomposed.
-      */
+private:
+      /// Weights over which values/masses to be decomposed.
       Weights weights_;
 
-      /**
-        Minimal and maximal rounding errors.
-      */
+      /// Minimal and maximal rounding errors.
       std::pair<double, double> rounding_errors_;
 
-      /**
-        Precision to scale double values to integer
-      */
+      /// Precision to scale double values to integer
       double precision_;
 
       /**

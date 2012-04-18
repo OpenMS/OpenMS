@@ -33,69 +33,73 @@
 
 // ims includes
 #ifdef OPENMS_COMPILER_MSVC
-	#pragma warning( push )
-	#pragma warning( disable : 4290 4267)
+    #pragma warning( push )
+    #pragma warning( disable : 4290 4267)
 #endif
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/RealMassDecomposer.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>
 #ifdef OPENMS_COMPILER_MSVC
-	#pragma warning( pop )
+    #pragma warning( pop )
 #endif
 
 #include <vector>
 
 namespace OpenMS
 {
-	/** @brief Mass decomposition algorithm, given a mass it suggests possible compositions
+  /**
+    @brief Mass decomposition algorithm, given a mass it suggests possible compositions
 
-			A mass decomposition algorithm decomposes a mass or a mass difference into
-			possible amino acids and frequencies of them, which add up to the given mass.
-			This class is a wrapper for the algorithm published in 
+    A mass decomposition algorithm decomposes a mass or a mass difference into
+    possible amino acids and frequencies of them, which add up to the given mass.
+    This class is a wrapper for the algorithm published in
 
-			@htmlinclude OpenMS_MassDecompositionAlgorithm.parameters
+    @htmlinclude OpenMS_MassDecompositionAlgorithm.parameters
 
-			@ingroup Analysis_DeNovo
-	*/
-	class OPENMS_DLLAPI MassDecompositionAlgorithm : public DefaultParamHandler
-	{
-		public:
-			
-			/** @name constructors and desctructor
-			*/
-			//@{
-			/// Default constructor
-			MassDecompositionAlgorithm();
+    @ingroup Analysis_DeNovo
+  */
+  class OPENMS_DLLAPI MassDecompositionAlgorithm :
+    public DefaultParamHandler
+  {
+public:
 
-			/// Destructor
-			virtual ~MassDecompositionAlgorithm();
-			//@}
+    /**
+      @name constructors and desctructor
+    */
+    //@{
+    /// Default constructor
+    MassDecompositionAlgorithm();
 
-			/** @name Operators
-			*/
-			//@{
-			/// returns the possible decompositions given the weight
-			void getDecompositions(std::vector<MassDecomposition>& decomps, DoubleReal weight);
-			//@}
+    /// Destructor
+    virtual ~MassDecompositionAlgorithm();
+    //@}
 
-		protected:
+    /**
+      @name Operators
+    */
+    //@{
+    /// returns the possible decompositions given the weight
+    void getDecompositions(std::vector<MassDecomposition> & decomps, DoubleReal weight);
+    //@}
 
-			void updateMembers_();
+protected:
 
-      ims::IMSAlphabet* alphabet_;
+    void updateMembers_();
 
-			ims::RealMassDecomposer* decomposer_;
+    ims::IMSAlphabet * alphabet_;
 
-		private: 
-			
-			// will not be implemented
-			/// Copy constructor
-			MassDecompositionAlgorithm(const MassDecompositionAlgorithm& deco);
+    ims::RealMassDecomposer * decomposer_;
 
-			/// assignment operator
-			MassDecompositionAlgorithm& operator = (const MassDecompositionAlgorithm& rhs);
-	};
+private:
+
+    // will not be implemented
+    /// Copy constructor
+    MassDecompositionAlgorithm(const MassDecompositionAlgorithm & deco);
+
+    /// assignment operator
+    MassDecompositionAlgorithm & operator=(const MassDecompositionAlgorithm & rhs);
+  };
 
 } // namespace OpenMS
 

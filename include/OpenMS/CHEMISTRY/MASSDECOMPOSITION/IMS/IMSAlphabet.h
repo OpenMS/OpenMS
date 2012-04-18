@@ -38,9 +38,11 @@
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
-  namespace ims {
+  namespace ims
+  {
 
     /**
       @brief Holds an indexed list of bio-chemical elements.
@@ -70,9 +72,10 @@ namespace OpenMS {
       error happened while loading data, @c IOException will be thrown.
     *
     */
-    class OPENMS_DLLAPI IMSAlphabet {
+    class OPENMS_DLLAPI IMSAlphabet
+    {
 
-    public:
+public:
       typedef IMSElement element_type;
       typedef element_type::mass_type mass_type;
       typedef element_type::name_type name_type;
@@ -91,7 +94,7 @@ namespace OpenMS {
       /**
         Empty constructor.
       */
-      IMSAlphabet() { }
+      IMSAlphabet() {}
 
 
       /**
@@ -99,9 +102,9 @@ namespace OpenMS {
 
         @param elements Elements to be set
       */
-      IMSAlphabet(const container& elements) :
+      explicit IMSAlphabet(const container & elements) :
         elements_(elements)
-      { }
+      {}
 
 
       /**
@@ -109,16 +112,19 @@ namespace OpenMS {
 
         @param alphabet Alphabet to be assigned
       */
-      IMSAlphabet(const IMSAlphabet &alphabet) :
+      IMSAlphabet(const IMSAlphabet & alphabet) :
         elements_(alphabet.elements_)
-      { }
+      {}
 
       /**
         Returns the alphabet size.
 
         @return The size of alphabet.
       */
-      size_type size() const { return elements_.size(); }
+      size_type size() const
+      {
+        return elements_.size();
+      }
 
       /**
         Gets the element with index @c index.
@@ -127,7 +133,7 @@ namespace OpenMS {
         @param index of the element
         @return Element with the given index in alphabet
       */
-      const element_type& getElement(size_type index) const
+      const element_type & getElement(size_type index) const
       {
         return elements_[index];
       }
@@ -142,7 +148,7 @@ namespace OpenMS {
         @param mass The new mass of the element in the alphabet.
         @param forced Indicates whether a new element should be created (if set to @c true) if there is no element with the name @c name or not (if set to @c false).
       */
-      void setElement(const name_type& name, mass_type mass, bool forced = false);
+      void setElement(const name_type & name, mass_type mass, bool forced = false);
 
       /**
         Removes the element with name @c name from the alphabet.
@@ -150,7 +156,7 @@ namespace OpenMS {
         @param name The name of the element to be removed from the alphabet.
         @return A boolean indicating whether an element was removed (@c true) or not (@c false).
       */
-      bool erase(const name_type& name);
+      bool erase(const name_type & name);
 
       /**
         Gets the element with the symbol @name. If there is
@@ -160,7 +166,7 @@ namespace OpenMS {
         @return Element with the given name, or if there are no such element
         @throws Exception::InvalidValue.
       */
-      const element_type& getElement(const name_type& name) const;
+      const element_type & getElement(const name_type & name) const;
 
       /**
         Gets the symbol of the element with an index @c index in alphabet.
@@ -168,7 +174,7 @@ namespace OpenMS {
         @param index of the element.
         @return Name of the element.
       */
-      const name_type& getName(size_type index) const;
+      const name_type & getName(size_type index) const;
 
       /**
         Gets mono isotopic mass of the element with the symbol @c name.
@@ -179,7 +185,7 @@ namespace OpenMS {
         @throws Exception::InvalidValue.
         @see getMass(size_type index)
       */
-      mass_type getMass(const name_type& name) const;
+      mass_type getMass(const name_type & name) const;
 
       /**
         Gets mass of the element with an index @c index in alphabet.
@@ -212,7 +218,7 @@ namespace OpenMS {
         @return True, if there is an element with symbol
                 @c name, false - otherwise.
       */
-      bool hasName(const name_type& name) const;
+      bool hasName(const name_type & name) const;
 
       /**
         Adds a new element with name @c name and mass @c value
@@ -223,7 +229,7 @@ namespace OpenMS {
 
         @see push_back(const element_type&)
       */
-      void push_back(const name_type& name, mass_type value)
+      void push_back(const name_type & name, mass_type value)
       {
         push_back(element_type(name, value));
       }
@@ -233,11 +239,10 @@ namespace OpenMS {
 
         @param element The @c Element to be added.
       */
-      void push_back(const element_type& element)
+      void push_back(const element_type & element)
       {
         elements_.push_back(element);
       }
-
 
       /**
         Clears the alphabet data.
@@ -246,7 +251,6 @@ namespace OpenMS {
       {
         elements_.clear();
       }
-
 
       /**
         Sorts the alphabet by names.
@@ -273,7 +277,7 @@ namespace OpenMS {
 
         @see load(const std::string& fname, AlphabetParser<>* parser)
       */
-      virtual void load(const std::string& fname);
+      virtual void load(const std::string & fname);
 
 
       /**
@@ -287,15 +291,15 @@ namespace OpenMS {
         @see load(const std::string& fname)
         @see AlphabetParser
       */
-      virtual void load(const std::string& fname, IMSAlphabetParser<>* parser);
+      virtual void load(const std::string & fname, IMSAlphabetParser<> * parser);
 
 
       /**
         Default destructor.
       */
-      virtual ~IMSAlphabet() { }
+      virtual ~IMSAlphabet() {}
 
-    private:
+private:
       /**
         Elements of the alphabet.
       */
@@ -304,13 +308,15 @@ namespace OpenMS {
       /**
         @brief Private class-functor to sort out elements in mass ascending order.
       */
-      class OPENMS_DLLAPI MassSortingCriteria_ {
-      public:
-        bool operator()(const element_type& el1,
-                        const element_type& el2) const
+      class OPENMS_DLLAPI MassSortingCriteria_
+      {
+public:
+        bool operator()(const element_type & el1,
+                        const element_type & el2) const
         {
           return el1.getMass() < el2.getMass();
         }
+
       };
 
     };
@@ -321,7 +327,7 @@ namespace OpenMS {
       @param os Output stream to which alphabet is written
       @param alphabet Alphabet to be written.
     */
-    OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const IMSAlphabet& alphabet);
+    OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const IMSAlphabet & alphabet);
 
   } // namespace ims
 

@@ -62,29 +62,19 @@ namespace OpenMS {
     class IntegerMassDecomposer :
         public MassDecomposer<ValueType,DecompositionValueType> {
     public:
-      /**
-        Type of value to be decomposed.
-      */
+      /// Type of value to be decomposed.
       typedef typename MassDecomposer<ValueType,DecompositionValueType>::value_type value_type;
 
-      /**
-        Type of decomposition value.
-      */
+      /// Type of decomposition value.
       typedef typename MassDecomposer<ValueType,DecompositionValueType>::decomposition_value_type decomposition_value_type;
 
-      /**
-        Type of decomposition.
-      */
+      /// Type of decomposition.
       typedef typename MassDecomposer<ValueType,DecompositionValueType>::decomposition_type decomposition_type;
 
-      /**
-        Type of container for many decompositions.
-      */
+      /// Type of container for many decompositions.
       typedef typename MassDecomposer<ValueType,DecompositionValueType>::decompositions_type decompositions_type;
 
-      /**
-        Type of decomposition's size.
-      */
+      /// Type of decomposition's size.
       typedef typename decomposition_type::size_type size_type;
 
       /**
@@ -92,7 +82,7 @@ namespace OpenMS {
 
         @param alphabet Weights over which masses to be decomposed.
       */
-      IntegerMassDecomposer(const Weights& alphabet);
+      explicit IntegerMassDecomposer(const Weights& alphabet);
 
       /**
         Returns true if decomposition over the @c mass exists, otherwise - false.
