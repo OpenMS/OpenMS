@@ -44,7 +44,7 @@
 #else
 #define V_(bla)
 #endif
-#define VV_(bla) V_(""#bla": " << bla)
+#define VV_(bla) V_("" # bla ": " << bla)
 
 namespace OpenMS
 {
@@ -55,60 +55,60 @@ namespace OpenMS
     setName(getProductName());
 
     defaults_.setValue("mz_pair_max_distance", 0.5, "Maximum of m/z deviation of corresponding elements in different maps.  "
-      "This condition applies to the pairs considered in hashing.");
-    defaults_.setMinFloat("mz_pair_max_distance",0.);
+                                                    "This condition applies to the pairs considered in hashing.");
+    defaults_.setMinFloat("mz_pair_max_distance", 0.);
 
     defaults_.setValue("rt_pair_distance_fraction", 0.1, "Within each of the two maps, the pairs considered for pose clustering "
-      "must be separated by at least this fraction of the total elution time "
-      "interval (i.e., max - min).  ", StringList::create("advanced"));
-    defaults_.setMinFloat("rt_pair_distance_fraction",0.);
-    defaults_.setMaxFloat("rt_pair_distance_fraction",1.);
+                                                         "must be separated by at least this fraction of the total elution time "
+                                                         "interval (i.e., max - min).  ", StringList::create("advanced"));
+    defaults_.setMinFloat("rt_pair_distance_fraction", 0.);
+    defaults_.setMaxFloat("rt_pair_distance_fraction", 1.);
 
     defaults_.setValue("num_used_points", 2000, "Maximum number of elements considered in each map "
-      "(selected by intensity).  Use this to reduce the running time "
-      "and to disregard weak signals during alignment.  For using all points, set this to -1.");
+                                                "(selected by intensity).  Use this to reduce the running time "
+                                                "and to disregard weak signals during alignment.  For using all points, set this to -1.");
     defaults_.setMinInt("num_used_points", -1);
 
     defaults_.setValue("scaling_bucket_size", 0.005, "The scaling of the retention time "
-      "interval is being hashed into buckets of this size during pose "
-      "clustering.  A good choice for this would be a bit smaller than the "
-      "error you would expect from repeated runs.");
-    defaults_.setMinFloat("scaling_bucket_size",0.);
+                                                     "interval is being hashed into buckets of this size during pose "
+                                                     "clustering.  A good choice for this would be a bit smaller than the "
+                                                     "error you would expect from repeated runs.");
+    defaults_.setMinFloat("scaling_bucket_size", 0.);
 
     defaults_.setValue("shift_bucket_size", 3.0, "The shift at the lower (respectively, higher) end of the retention time "
-      "interval is being hashed into buckets of this size during pose "
-      "clustering.  A good choice for this would be about "
-      "the time between consecutive MS scans.");
-    defaults_.setMinFloat("shift_bucket_size",0.);
+                                                 "interval is being hashed into buckets of this size during pose "
+                                                 "clustering.  A good choice for this would be about "
+                                                 "the time between consecutive MS scans.");
+    defaults_.setMinFloat("shift_bucket_size", 0.);
 
     defaults_.setValue("max_shift", 1000.0, "Maximal shift which is considered during histogramming.  "
-      "This applies for both directions.", StringList::create("advanced"));
-    defaults_.setMinFloat("max_shift",0.);
+                                            "This applies for both directions.", StringList::create("advanced"));
+    defaults_.setMinFloat("max_shift", 0.);
 
     defaults_.setValue("max_scaling", 2.0, "Maximal scaling which is considered during histogramming.  "
-      "The minimal scaling is the reciprocal of this.", StringList::create("advanced"));
-    defaults_.setMinFloat("max_scaling",1.);
+                                           "The minimal scaling is the reciprocal of this.", StringList::create("advanced"));
+    defaults_.setMinFloat("max_scaling", 1.);
 
     defaults_.setValue("dump_buckets", "", "[DEBUG] If non-empty, base filename where hash table buckets will be dumped to.  "
-      "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
+                                           "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
 
     defaults_.setValue("dump_pairs", "", "[DEBUG] If non-empty, base filename where the individual hashed pairs will be dumped to (large!).  "
-      "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
+                                         "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
 
     defaultsToParam_();
     return;
   }
 
   void
-  PoseClusteringAffineSuperimposer::run(const std::vector<ConsensusMap>& maps, std::vector<TransformationDescription>& transformations)
+  PoseClusteringAffineSuperimposer::run(const std::vector<ConsensusMap> & maps, std::vector<TransformationDescription> & transformations)
   {
 
-    if ( maps.size() != 2 )
+    if (maps.size() != 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Exactly two input maps are required");
     }
-    
-    if ( maps[0].empty() || maps[1].empty() )
+
+    if (maps[0].empty() || maps[1].empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "One of the input maps is empty! This is not allowed!");
     }
@@ -166,14 +166,14 @@ namespace OpenMS
     {
       // truncate the data as necessary
       const Size num_used_points = (Int) param_.getValue("num_used_points");
-      if ( model_map_ini.size() > num_used_points )
+      if (model_map_ini.size() > num_used_points)
       {
         model_map_ini.sortByIntensity(true);
         model_map_ini.resize(num_used_points);
       }
       model_map_ini.sortByComparator(Peak2D::MZLess());
       setProgress(++actual_progress);
-      if ( scene_map_ini.size() > num_used_points )
+      if (scene_map_ini.size() > num_used_points)
       {
         scene_map_ini.sortByIntensity(true);
         scene_map_ini.resize(num_used_points);
@@ -204,15 +204,15 @@ namespace OpenMS
       const Int scaling_buckets_num_half = (Int) ceil(log(max_scaling) / scaling_bucket_size) + 1;
 
       scaling_hash_1.getData().clear();
-      scaling_hash_1.getData().resize(2* scaling_buckets_num_half + 1);
+      scaling_hash_1.getData().resize(2 * scaling_buckets_num_half + 1);
       scaling_hash_1.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.);
 
       scaling_hash_2.getData().clear();
-      scaling_hash_2.getData().resize(2* scaling_buckets_num_half + 1);
+      scaling_hash_2.getData().resize(2 * scaling_buckets_num_half + 1);
       scaling_hash_2.setMapping(scaling_bucket_size, scaling_buckets_num_half, 0.);
 
       // (over)estimate the required number of buckets for shifting
-      const Int rt_buckets_num_half = 4 + 2 * (Int) ceil((max_shift*max_scaling) / shift_bucket_size);
+      const Int rt_buckets_num_half = 4 + 2 * (Int) ceil((max_shift * max_scaling) / shift_bucket_size);
       const Int rt_buckets_num = 1 + 2 * rt_buckets_num_half;
 
       rt_low_hash_.getData().clear();
@@ -231,13 +231,13 @@ namespace OpenMS
     do
     {
       DoubleReal total_int_model_map = 0;
-      for ( Size i = 0; i < model_map.size(); ++i )
+      for (Size i = 0; i < model_map.size(); ++i)
       {
         total_int_model_map += model_map[i].getIntensity();
       }
       setProgress(++actual_progress);
       DoubleReal total_int_scene_map = 0;
-      for ( Size i = 0; i < scene_map.size(); ++i )
+      for (Size i = 0; i < scene_map.size(); ++i)
       {
         total_int_scene_map += scene_map[i].getIntensity();
       }
@@ -245,7 +245,7 @@ namespace OpenMS
       // ... and finally ...
       total_intensity_ratio = total_int_model_map / total_int_scene_map;
     }
-    while ( 0 ); // (the extra syntax helps with code folding in eclipse!)
+    while (0);   // (the extra syntax helps with code folding in eclipse!)
     setProgress((actual_progress = 20));
 
     /// The serial number is incremented for each invocation of this, to avoid overwriting of hash table dumps.
@@ -278,7 +278,7 @@ namespace OpenMS
     {
       String dump_pairs_filename;
       std::ofstream dump_pairs_file;
-      if ( do_dump_pairs )
+      if (do_dump_pairs)
       {
         dump_pairs_filename = dump_pairs_basename + "_phase_one_" + String(dump_buckets_serial);
         dump_pairs_file.open(dump_pairs_filename.c_str());
@@ -287,32 +287,32 @@ namespace OpenMS
       setProgress(++actual_progress);
 
       // first point in model map
-      for ( Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i )
+      for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
       {
         setProgress(actual_progress + Real(i) / model_map_size * 10.f);
 
         // Adjust window around i in model map
-        while ( i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance )
+        while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++i_low;
-        while ( i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance )
+        while (i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
           ++i_high;
         DoubleReal i_winlength_factor = 1. / (i_high - i_low);
         i_winlength_factor -= winlength_factor_baseline;
-        if ( i_winlength_factor <= 0 )
+        if (i_winlength_factor <= 0)
           continue;
 
         // Adjust window around k in scene map
-        while ( k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance )
+        while (k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++k_low;
-        while ( k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance )
+        while (k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
           ++k_high;
 
         // first point in scene map
-        for ( Size k = k_low; k < k_high; ++k )
+        for (Size k = k_low; k < k_high; ++k)
         {
           DoubleReal k_winlength_factor = 1. / (k_high - k_low);
           k_winlength_factor -= winlength_factor_baseline;
-          if ( k_winlength_factor <= 0 )
+          if (k_winlength_factor <= 0)
             continue;
 
           // compute similarity of intensities i k
@@ -328,35 +328,35 @@ namespace OpenMS
           }
 
           // second point in model map
-          for ( Size j = i + 1, j_low = i_low, j_high = i_low, l_low = k_low, l_high = k_high; j < model_map_size; ++j )
+          for (Size j = i + 1, j_low = i_low, j_high = i_low, l_low = k_low, l_high = k_high; j < model_map_size; ++j)
           {
             // diff in model map
             DoubleReal diff_model = model_map[j].getRT() - model_map[i].getRT();
-            if ( fabs(diff_model) < rt_pair_min_distance )
+            if (fabs(diff_model) < rt_pair_min_distance)
               continue;
 
             // Adjust window around j in model map
-            while ( j_low < model_map_size && model_map[j_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance )
+            while (j_low < model_map_size && model_map[j_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
               ++j_low;
-            while ( j_high < model_map_size && model_map[j_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance )
+            while (j_high < model_map_size && model_map[j_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
               ++j_high;
             DoubleReal j_winlength_factor = 1. / (j_high - j_low);
             j_winlength_factor -= winlength_factor_baseline;
-            if ( j_winlength_factor <= 0 )
+            if (j_winlength_factor <= 0)
               continue;
 
             // Adjust window in scene map
-            while ( l_low < scene_map_size && scene_map[l_low].getMZ() < model_map[j].getMZ() - mz_pair_max_distance )
+            while (l_low < scene_map_size && scene_map[l_low].getMZ() < model_map[j].getMZ() - mz_pair_max_distance)
               ++l_low;
-            while ( l_high < scene_map_size && scene_map[l_high].getMZ() <= model_map[j].getMZ() + mz_pair_max_distance )
+            while (l_high < scene_map_size && scene_map[l_high].getMZ() <= model_map[j].getMZ() + mz_pair_max_distance)
               ++l_high;
 
             // second point in scene map
-            for ( Size l = l_low; l < l_high; ++l )
+            for (Size l = l_low; l < l_high; ++l)
             {
               DoubleReal l_winlength_factor = 1. / (l_high - l_low);
               l_winlength_factor -= winlength_factor_baseline;
-              if ( l_winlength_factor <= 0 )
+              if (l_winlength_factor <= 0)
                 continue;
 
               // diff in scene map
@@ -364,7 +364,7 @@ namespace OpenMS
 
               // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
               // and point pairs with equal retention times (e.g. i_rt == j_rt)
-              if ( fabs(diff_scene) < rt_pair_min_distance || ((diff_model > 0) != (diff_scene > 0)) )
+              if (fabs(diff_scene) < rt_pair_min_distance || ((diff_model > 0) != (diff_scene > 0)))
                 continue;
 
               // compute the transformation (i,j) -> (k,l)
@@ -398,18 +398,18 @@ namespace OpenMS
                 //  rt_high_hash_.addValue(rt_high_image, similarity_ik_jl);
               }
 
-              if ( do_dump_pairs )
+              if (do_dump_pairs)
               {
                 dump_pairs_file << i << ' ' << model_map[i].getRT() << ' ' << model_map[i].getMZ() << ' ' << j << ' ' << model_map[j].getRT() << ' '
-                    << model_map[j].getMZ() << ' ' << k << ' ' << scene_map[k].getRT() << ' ' << scene_map[k].getMZ() << ' ' << l << ' '
-                    << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << std::endl;
+                                << model_map[j].getMZ() << ' ' << k << ' ' << scene_map[k].getRT() << ' ' << scene_map[k].getMZ() << ' ' << l << ' '
+                                << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << std::endl;
               }
             } // l
           } // j
         } // k
       } // i
     }
-    while ( 0 ); // end of hashing (the extra syntax helps with code folding in eclipse!)
+    while (0);   // end of hashing (the extra syntax helps with code folding in eclipse!)
 
     setProgress((actual_progress = 30));
 
@@ -426,7 +426,7 @@ namespace OpenMS
       // optionally, dump before filtering
       String dump_buckets_filename;
       std::ofstream dump_buckets_file;
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_filename = dump_buckets_basename + "_scale_" + String(dump_buckets_serial);
         dump_buckets_file.open(dump_buckets_filename.c_str());
@@ -434,7 +434,7 @@ namespace OpenMS
 
         dump_buckets_file << "# rt scale hash table buckets dump ( scale, height ) : " << dump_buckets_filename << std::endl;
         dump_buckets_file << "# unfiltered hash data\n";
-        for ( Size index = 0; index < scaling_hash_1.getData().size(); ++index )
+        for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
         {
           const DoubleReal log_of_scale = scaling_hash_1.index2key(index);
           const DoubleReal height = scaling_hash_1.getData()[index];
@@ -459,10 +459,10 @@ namespace OpenMS
       setProgress(++actual_progress);
 
       // optionally, dump after filtering
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_file << "# tophat filtered hash data\n";
-        for ( Size index = 0; index < scaling_hash_1.getData().size(); ++index )
+        for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
         {
           const DoubleReal log_of_scale = scaling_hash_1.index2key(index);
           const DoubleReal height = scaling_hash_1.getData()[index];
@@ -482,8 +482,8 @@ namespace OpenMS
         std::sort(buffer.begin(), buffer.end(), std::greater<DoubleReal>());
         DoubleReal freq_intercept = scaling_hash_1.getData().front();
         DoubleReal freq_slope = (scaling_hash_1.getData().back() - scaling_hash_1.getData().front()) / DoubleReal(buffer.size())
-            / scaling_histogram_crossing_slope;
-        if ( !freq_slope || !buffer.size() )
+                                / scaling_histogram_crossing_slope;
+        if (!freq_slope || !buffer.size())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
           freq_cutoff = 0;
@@ -491,20 +491,20 @@ namespace OpenMS
         else
         {
           Size index = 1; // not 0 (!)
-          while ( buffer[index] >= freq_intercept + freq_slope * DoubleReal(index) )
+          while (buffer[index] >= freq_intercept + freq_slope * DoubleReal(index))
           {
             ++index;
           }
           freq_cutoff = buffer[--index]; // note that we have index >= 1
         }
       }
-      while ( 0 );
+      while (0);
       setProgress(++actual_progress);
 
       // apply freq_cutoff, setting smaller values to zero
-      for ( Size index = 0; index < scaling_hash_1.getData().size(); ++index )
+      for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
       {
-        if ( scaling_hash_1.getData()[index] < freq_cutoff )
+        if (scaling_hash_1.getData()[index] < freq_cutoff)
         {
           scaling_hash_1.getData()[index] = 0;
         }
@@ -512,10 +512,10 @@ namespace OpenMS
       setProgress(++actual_progress);
 
       // optionally, dump after noise filtering using freq_cutoff
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_file << "# after freq_cutoff, which is: " << freq_cutoff << '\n';
-        for ( Size index = 0; index < scaling_hash_1.getData().size(); ++index )
+        for (Size index = 0; index < scaling_hash_1.getData().size(); ++index)
         {
           const DoubleReal log_of_scale = scaling_hash_1.index2key(index);
           const DoubleReal height = scaling_hash_1.getData()[index];
@@ -533,7 +533,7 @@ namespace OpenMS
       Size data_range_end = data_size;
       DoubleReal mean;
       DoubleReal stdev;
-      for ( UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop ) // MAGIC ALERT: number of loops
+      for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
       {
         statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
         mean = statistics.mean() + data_range_begin;
@@ -545,23 +545,23 @@ namespace OpenMS
         scale_low_1 = exp(log_outside_mean - log_outside_stdev);
         scale_centroid_1 = exp(log_outside_mean);
         scale_high_1 = exp(log_outside_mean + log_outside_stdev);
-        if ( do_dump_buckets )
+        if (do_dump_buckets)
         {
           dump_buckets_file << "# loop: " << loop << "  mean: " << log_outside_mean << " [" << exp(log_outside_mean) << "]  stdev: " << log_outside_stdev
-              << " [" << scale_centroid_1 << "]  (mean-stdev): " << log_outside_mean - log_outside_stdev << " [" << scale_low_1 << "]  (mean+stdev): "
-              << log_outside_mean + log_outside_stdev << " [" << scale_high_1 << "]  data_range_begin: " << data_range_begin << "  data_range_end: "
-              << data_range_end << std::endl;
+                            << " [" << scale_centroid_1 << "]  (mean-stdev): " << log_outside_mean - log_outside_stdev << " [" << scale_low_1 << "]  (mean+stdev): "
+                            << log_outside_mean + log_outside_stdev << " [" << scale_high_1 << "]  data_range_begin: " << data_range_begin << "  data_range_end: "
+                            << data_range_end << std::endl;
         }
         setProgress(++actual_progress);
       }
 
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_file << "# EOF" << std::endl;
         dump_buckets_file.close();
       }
     }
-    while ( 0 );
+    while (0);
     setProgress((actual_progress = 40));
 
     ///////////////////////////////////////////////////////////////////
@@ -571,7 +571,7 @@ namespace OpenMS
     {
       String dump_pairs_filename;
       std::ofstream dump_pairs_file;
-      if ( do_dump_pairs )
+      if (do_dump_pairs)
       {
         dump_pairs_filename = dump_pairs_basename + "_phase_two_" + String(dump_buckets_serial);
         dump_pairs_file.open(dump_pairs_filename.c_str());
@@ -580,32 +580,32 @@ namespace OpenMS
       setProgress(++actual_progress);
 
       // first point in model map
-      for ( Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i )
+      for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
       {
         setProgress(actual_progress + Real(i) / model_map_size * 10.f);
 
         // Adjust window around i in model map
-        while ( i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance )
+        while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++i_low;
-        while ( i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance )
+        while (i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
           ++i_high;
         DoubleReal i_winlength_factor = 1. / (i_high - i_low);
         i_winlength_factor -= winlength_factor_baseline;
-        if ( i_winlength_factor <= 0 )
+        if (i_winlength_factor <= 0)
           continue;
 
         // Adjust window around k in scene map
-        while ( k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance )
+        while (k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++k_low;
-        while ( k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance )
+        while (k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
           ++k_high;
 
         // first point in scene map
-        for ( Size k = k_low; k < k_high; ++k )
+        for (Size k = k_low; k < k_high; ++k)
         {
           DoubleReal k_winlength_factor = 1. / (k_high - k_low);
           k_winlength_factor -= winlength_factor_baseline;
-          if ( k_winlength_factor <= 0 )
+          if (k_winlength_factor <= 0)
             continue;
 
           // compute similarity of intensities i k
@@ -621,35 +621,35 @@ namespace OpenMS
           }
 
           // second point in model map
-          for ( Size j = i + 1, j_low = i_low, j_high = i_low, l_low = k_low, l_high = k_high; j < model_map_size; ++j )
+          for (Size j = i + 1, j_low = i_low, j_high = i_low, l_low = k_low, l_high = k_high; j < model_map_size; ++j)
           {
             // diff in model map
             DoubleReal diff_model = model_map[j].getRT() - model_map[i].getRT();
-            if ( fabs(diff_model) < rt_pair_min_distance )
+            if (fabs(diff_model) < rt_pair_min_distance)
               continue;
 
             // Adjust window around j in model map
-            while ( j_low < model_map_size && model_map[j_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance )
+            while (j_low < model_map_size && model_map[j_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
               ++j_low;
-            while ( j_high < model_map_size && model_map[j_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance )
+            while (j_high < model_map_size && model_map[j_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
               ++j_high;
             DoubleReal j_winlength_factor = 1. / (j_high - j_low);
             j_winlength_factor -= winlength_factor_baseline;
-            if ( j_winlength_factor <= 0 )
+            if (j_winlength_factor <= 0)
               continue;
 
             // Adjust window in scene map
-            while ( l_low < scene_map_size && scene_map[l_low].getMZ() < model_map[j].getMZ() - mz_pair_max_distance )
+            while (l_low < scene_map_size && scene_map[l_low].getMZ() < model_map[j].getMZ() - mz_pair_max_distance)
               ++l_low;
-            while ( l_high < scene_map_size && scene_map[l_high].getMZ() <= model_map[j].getMZ() + mz_pair_max_distance )
+            while (l_high < scene_map_size && scene_map[l_high].getMZ() <= model_map[j].getMZ() + mz_pair_max_distance)
               ++l_high;
 
             // second point in scene map
-            for ( Size l = l_low; l < l_high; ++l )
+            for (Size l = l_low; l < l_high; ++l)
             {
               DoubleReal l_winlength_factor = 1. / (l_high - l_low);
               l_winlength_factor -= winlength_factor_baseline;
-              if ( l_winlength_factor <= 0 )
+              if (l_winlength_factor <= 0)
                 continue;
 
               // diff in scene map
@@ -657,7 +657,7 @@ namespace OpenMS
 
               // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
               // and point pairs with equal retention times (e.g. i_rt == j_rt)
-              if ( fabs(diff_scene) < rt_pair_min_distance || ((diff_model > 0) != (diff_scene > 0)) )
+              if (fabs(diff_scene) < rt_pair_min_distance || ((diff_model > 0) != (diff_scene > 0)))
                 continue;
 
               // compute the transformation (i,j) -> (k,l)
@@ -681,7 +681,7 @@ namespace OpenMS
               }
 
               // hash the images of scaling, rt_low and rt_high into their respective hash tables
-              if ( scaling >= scale_low_1 && scaling <= scale_high_1 )
+              if (scaling >= scale_low_1 && scaling <= scale_high_1)
               {
                 scaling_hash_2.addValue(log(scaling), similarity_ik_jl);
 
@@ -690,11 +690,11 @@ namespace OpenMS
                 const DoubleReal rt_high_image = shift + rt_high * scaling;
                 rt_high_hash_.addValue(rt_high_image, similarity_ik_jl);
 
-                if ( do_dump_pairs )
+                if (do_dump_pairs)
                 {
                   dump_pairs_file << i << ' ' << model_map[i].getRT() << ' ' << model_map[i].getMZ() << ' ' << j << ' ' << model_map[j].getRT() << ' '
-                      << model_map[j].getMZ() << ' ' << k << ' ' << scene_map[k].getRT() << ' ' << scene_map[k].getMZ() << ' ' << l << ' '
-                      << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << std::endl;
+                                  << model_map[j].getMZ() << ' ' << k << ' ' << scene_map[k].getRT() << ' ' << scene_map[k].getMZ() << ' ' << l << ' '
+                                  << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << std::endl;
                 }
               }
             } // l
@@ -702,7 +702,7 @@ namespace OpenMS
         } // k
       } // i
     }
-    while ( 0 ); // end of hashing (the extra syntax helps with code folding in eclipse!)
+    while (0);   // end of hashing (the extra syntax helps with code folding in eclipse!)
 
     setProgress((actual_progress = 50));
 
@@ -724,7 +724,7 @@ namespace OpenMS
       std::ofstream dump_buckets_low_file;
       String dump_buckets_high_filename;
       std::ofstream dump_buckets_high_file;
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_low_filename = dump_buckets_basename + "_low_" + String(dump_buckets_serial);
         dump_buckets_low_file.open(dump_buckets_low_filename.c_str());
@@ -732,7 +732,7 @@ namespace OpenMS
 
         dump_buckets_low_file << "# rt low hash table buckets dump ( scale, height ) : " << dump_buckets_low_filename << std::endl;
         dump_buckets_low_file << "# unfiltered hash data\n";
-        for ( Size index = 0; index < rt_low_hash_.getData().size(); ++index )
+        for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)
         {
           const DoubleReal rt_image = rt_low_hash_.index2key(index);
           const DoubleReal height = rt_low_hash_.getData()[index];
@@ -746,7 +746,7 @@ namespace OpenMS
 
         dump_buckets_high_file << "# rt high hash table buckets dump ( scale, height ) : " << dump_buckets_high_filename << std::endl;
         dump_buckets_high_file << "# unfiltered hash data\n";
-        for ( Size index = 0; index < rt_high_hash_.getData().size(); ++index )
+        for (Size index = 0; index < rt_high_hash_.getData().size(); ++index)
         {
           const DoubleReal rt_image = rt_high_hash_.index2key(index);
           const DoubleReal height = rt_high_hash_.getData()[index];
@@ -773,10 +773,10 @@ namespace OpenMS
       rt_high_hash_.getData().swap(buffer);
 
       // optionally, dump after filtering
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_low_file << "# tophat filtered hash data\n";
-        for ( Size index = 0; index < rt_low_hash_.getData().size(); ++index )
+        for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)
         {
           const DoubleReal rt_image = rt_low_hash_.index2key(index);
           const DoubleReal height = rt_low_hash_.getData()[index];
@@ -785,7 +785,7 @@ namespace OpenMS
         dump_buckets_low_file << '\n';
 
         dump_buckets_high_file << "# tophat filtered hash data\n";
-        for ( Size index = 0; index < rt_high_hash_.getData().size(); ++index )
+        for (Size index = 0; index < rt_high_hash_.getData().size(); ++index)
         {
           const DoubleReal rt_image = rt_high_hash_.index2key(index);
           const DoubleReal height = rt_high_hash_.getData()[index];
@@ -807,8 +807,8 @@ namespace OpenMS
           std::sort(buffer.begin(), buffer.end(), std::greater<DoubleReal>());
           DoubleReal freq_intercept = rt_low_hash_.getData().front();
           DoubleReal freq_slope = (rt_low_hash_.getData().back() - rt_low_hash_.getData().front()) / DoubleReal(buffer.size())
-              / scaling_histogram_crossing_slope;
-          if ( !freq_slope || !buffer.size() )
+                                  / scaling_histogram_crossing_slope;
+          if (!freq_slope || !buffer.size())
           {
             // in fact these conditions are actually impossible, but let's be really sure ;-)
             freq_cutoff_low = 0;
@@ -816,7 +816,7 @@ namespace OpenMS
           else
           {
             Size index = 1; // not 0 (!)
-            while ( buffer[index] >= freq_intercept + freq_slope * DoubleReal(index) )
+            while (buffer[index] >= freq_intercept + freq_slope * DoubleReal(index))
             {
               ++index;
             }
@@ -829,8 +829,8 @@ namespace OpenMS
           std::sort(buffer.begin(), buffer.end(), std::greater<DoubleReal>());
           DoubleReal freq_intercept = rt_high_hash_.getData().front();
           DoubleReal freq_slope = (rt_high_hash_.getData().back() - rt_high_hash_.getData().front()) / DoubleReal(buffer.size())
-              / scaling_histogram_crossing_slope;
-          if ( !freq_slope || !buffer.size() )
+                                  / scaling_histogram_crossing_slope;
+          if (!freq_slope || !buffer.size())
           {
             // in fact these conditions are actually impossible, but let's be really sure ;-)
             freq_cutoff_high = 0;
@@ -838,7 +838,7 @@ namespace OpenMS
           else
           {
             Size index = 1; // not 0 (!)
-            while ( buffer[index] >= freq_intercept + freq_slope * DoubleReal(index) )
+            while (buffer[index] >= freq_intercept + freq_slope * DoubleReal(index))
             {
               ++index;
             }
@@ -846,21 +846,21 @@ namespace OpenMS
           }
         }
       }
-      while ( 0 );
+      while (0);
       setProgress(++actual_progress);
 
       // apply freq_cutoff, setting smaller values to zero
-      for ( Size index = 0; index < rt_low_hash_.getData().size(); ++index )
+      for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)
       {
-        if ( rt_low_hash_.getData()[index] < freq_cutoff_low )
+        if (rt_low_hash_.getData()[index] < freq_cutoff_low)
         {
           rt_low_hash_.getData()[index] = 0;
         }
       }
       setProgress(++actual_progress);
-      for ( Size index = 0; index < rt_high_hash_.getData().size(); ++index )
+      for (Size index = 0; index < rt_high_hash_.getData().size(); ++index)
       {
-        if ( rt_high_hash_.getData()[index] < freq_cutoff_high )
+        if (rt_high_hash_.getData()[index] < freq_cutoff_high)
         {
           rt_high_hash_.getData()[index] = 0;
         }
@@ -868,10 +868,10 @@ namespace OpenMS
       setProgress(++actual_progress);
 
       // optionally, dump after noise filtering using freq_cutoff
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_low_file << "# after freq_cutoff, which is: " << freq_cutoff_low << '\n';
-        for ( Size index = 0; index < rt_low_hash_.getData().size(); ++index )
+        for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)
         {
           const DoubleReal rt_image = rt_low_hash_.index2key(index);
           const DoubleReal height = rt_low_hash_.getData()[index];
@@ -881,7 +881,7 @@ namespace OpenMS
         setProgress(++actual_progress);
 
         dump_buckets_high_file << "# after freq_cutoff, which is: " << freq_cutoff_high << '\n';
-        for ( Size index = 0; index < rt_high_hash_.getData().size(); ++index )
+        for (Size index = 0; index < rt_high_hash_.getData().size(); ++index)
         {
           const DoubleReal rt_image = rt_high_hash_.index2key(index);
           const DoubleReal height = rt_high_hash_.getData()[index];
@@ -900,7 +900,7 @@ namespace OpenMS
         Size data_range_end = data_size;
         DoubleReal mean;
         DoubleReal stdev;
-        for ( UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop ) // MAGIC ALERT: number of loops
+        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
           mean = statistics.mean() + data_range_begin;
@@ -912,11 +912,11 @@ namespace OpenMS
           rt_low_low = (outside_mean - outside_stdev);
           rt_low_centroid = (outside_mean);
           rt_low_high = (outside_mean + outside_stdev);
-          if ( do_dump_buckets )
+          if (do_dump_buckets)
           {
             dump_buckets_low_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): " << outside_mean
-                - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
-                << data_range_end << std::endl;
+            - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
+                                  << data_range_end << std::endl;
           }
         }
         setProgress(++actual_progress);
@@ -931,28 +931,28 @@ namespace OpenMS
         Size data_range_end = data_size;
         DoubleReal mean;
         DoubleReal stdev;
-        for ( UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop ) // MAGIC ALERT: number of loops
+        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
           mean = statistics.mean() + data_range_begin;
           stdev = sqrt(statistics.variance());
-          data_range_begin = floor(std::max<DoubleReal>(mean - scaling_cutoff_stdev_multiplier * stdev -1, 0));
+          data_range_begin = floor(std::max<DoubleReal>(mean - scaling_cutoff_stdev_multiplier * stdev - 1, 0));
           data_range_end = ceil(std::min<DoubleReal>(mean + scaling_cutoff_stdev_multiplier * stdev + 2, data_size));
           const DoubleReal outside_mean = rt_high_hash_.index2key(mean);
           const DoubleReal outside_stdev = stdev * rt_high_hash_.getScale();
           rt_high_low = (outside_mean - outside_stdev);
           rt_high_centroid = (outside_mean);
           rt_high_high = (outside_mean + outside_stdev);
-          if ( do_dump_buckets )
+          if (do_dump_buckets)
           {
             dump_buckets_high_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): " << outside_mean
-                - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
-                << data_range_end << std::endl;
+            - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
+                                   << data_range_end << std::endl;
           }
         }
         setProgress(++actual_progress);
       }
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_low_file << "# EOF" << std::endl;
         dump_buckets_low_file.close();
@@ -962,7 +962,7 @@ namespace OpenMS
       setProgress(80);
 
     }
-    while ( 0 );
+    while (0);
 
     //************************************************************************************
     // Estimate transform
@@ -975,11 +975,11 @@ namespace OpenMS
     rt_high_image = rt_high_centroid;
 #else // ooh, use maximum bins instead (Note: this is a fossil which would disregard most of the above computations!  The code is left here for developers/debugging only.)
     const Size rt_low_max_index = std::distance(rt_low_hash_.getData().begin(),
-        std::max_element(rt_low_hash_.getData().begin(), rt_low_hash_.getData().end()));
+                                                std::max_element(rt_low_hash_.getData().begin(), rt_low_hash_.getData().end()));
     rt_low_image = rt_low_hash_.index2key(rt_low_max_index);
 
     const Size rt_high_max_index = std::distance(rt_high_hash_.getData().begin(), std::max_element(rt_high_hash_.getData().begin(),
-            rt_high_hash_.getData().end()));
+                                                                                                   rt_high_hash_.getData().end()));
     rt_high_image = rt_high_hash_.index2key(rt_high_max_index);
 #endif
 
@@ -991,9 +991,9 @@ namespace OpenMS
     {
       transformations.clear();
 
-			Param params;
-      const DoubleReal slope = ((rt_high_image - rt_low_image) / 
-																(rt_high - rt_low));
+      Param params;
+      const DoubleReal slope = ((rt_high_image - rt_low_image) /
+                                (rt_high - rt_low));
       params.setValue("slope", slope);
 
       const DoubleReal intercept = rt_low_image - rt_low * slope;
@@ -1001,16 +1001,15 @@ namespace OpenMS
 
       if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Superimposer could not compute an initial transformation! You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept*slope));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Superimposer could not compute an initial transformation! You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
       }
 
-			TransformationDescription trafo;
-			trafo.fitModel("linear", params); // no data, but explicit parameters
-			transformations.push_back(trafo);
+      TransformationDescription trafo;
+      trafo.fitModel("linear", params);       // no data, but explicit parameters
+      transformations.push_back(trafo);
     }
 
     setProgress(++actual_progress);
-
     endProgress();
 
     return;

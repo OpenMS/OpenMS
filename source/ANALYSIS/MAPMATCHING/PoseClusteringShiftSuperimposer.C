@@ -42,7 +42,7 @@
 #else
 #define V_(bla)
 #endif
-#define VV_(bla) V_(""#bla": " << bla)
+#define VV_(bla) V_("" # bla ": " << bla)
 
 namespace OpenMS
 {
@@ -53,39 +53,38 @@ namespace OpenMS
     setName(getProductName());
 
     defaults_.setValue("mz_pair_max_distance", 0.5, "Maximum of m/z deviation of corresponding elements in different maps.  "
-      "This condition applies to the pairs considered in hashing.");
+                                                    "This condition applies to the pairs considered in hashing.");
     defaults_.setMinFloat("mz_pair_max_distance", 0.);
 
     defaults_.setValue("num_used_points", 2000, "Maximum number of elements considered in each map "
-      "(selected by intensity).  Use this to reduce the running time "
-      "and to disregard weak signals during alignment.  For using all points, set this to -1.");
+                                                "(selected by intensity).  Use this to reduce the running time "
+                                                "and to disregard weak signals during alignment.  For using all points, set this to -1.");
     defaults_.setMinInt("num_used_points", -1);
 
     defaults_.setValue("shift_bucket_size", 3.0, "The shift of the retention time "
-      "interval is being hashed into buckets of this size during pose "
-      "clustering.  A good choice for this would be about "
-      "the time between consecutive MS scans.");
+                                                 "interval is being hashed into buckets of this size during pose "
+                                                 "clustering.  A good choice for this would be about "
+                                                 "the time between consecutive MS scans.");
     defaults_.setMinFloat("shift_bucket_size", 0.);
 
     defaults_.setValue("max_shift", 1000.0, "Maximal shift which is considered during histogramming.  "
-      "This applies for both directions.", StringList::create("advanced"));
+                                            "This applies for both directions.", StringList::create("advanced"));
     defaults_.setMinFloat("max_shift", 0.);
 
     defaults_.setValue("dump_buckets", "", "[DEBUG] If non-empty, base filename where hash table buckets will be dumped to.  "
-      "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
+                                           "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
 
     defaults_.setValue("dump_pairs", "", "[DEBUG] If non-empty, base filename where the individual hashed pairs will be dumped to (large!).  "
-      "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
+                                         "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
 
     defaultsToParam_();
     return;
   }
 
-  void
-  PoseClusteringShiftSuperimposer::run(const std::vector<ConsensusMap>& maps, std::vector<TransformationDescription>& transformations)
+  void PoseClusteringShiftSuperimposer::run(const std::vector<ConsensusMap> & maps, std::vector<TransformationDescription> & transformations)
   {
 
-    if ( maps.size() != 2 )
+    if (maps.size() != 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Exactly two input maps are required");
     }
@@ -119,7 +118,7 @@ namespace OpenMS
     // Optionally, we will write dumps of the hash table buckets.
     bool do_dump_buckets = false;
     String dump_buckets_basename;
-    if ( param_.getValue("dump_buckets") != "" )
+    if (param_.getValue("dump_buckets") != "")
     {
       do_dump_buckets = true;
       dump_buckets_basename = param_.getValue("dump_buckets");
@@ -129,7 +128,7 @@ namespace OpenMS
     // Even more optionally, we will write dumps of the hashed pairs.
     bool do_dump_pairs = false;
     String dump_pairs_basename;
-    if ( param_.getValue("dump_pairs") != "" )
+    if (param_.getValue("dump_pairs") != "")
     {
       do_dump_pairs = true;
       dump_pairs_basename = param_.getValue("dump_pairs");
@@ -147,14 +146,14 @@ namespace OpenMS
       // truncate the data as necessary
       // casting to SignedSize is done on PURPOSE here! (num_used_points will be maximal if -1 is used)
       const Size num_used_points = (SignedSize) param_.getValue("num_used_points");
-      if ( model_map_ini.size() > num_used_points )
+      if (model_map_ini.size() > num_used_points)
       {
         model_map_ini.sortByIntensity(true);
         model_map_ini.resize(num_used_points);
       }
       model_map_ini.sortByComparator(Peak2D::MZLess());
       setProgress(++actual_progress);
-      if ( scene_map_ini.size() > num_used_points )
+      if (scene_map_ini.size() > num_used_points)
       {
         scene_map_ini.sortByIntensity(true);
         scene_map_ini.resize(num_used_points);
@@ -188,23 +187,23 @@ namespace OpenMS
       // actually the largest possible shift can be much smaller, depending on the data
       do
       {
-        if ( max_shift < 0 )
+        if (max_shift < 0)
           max_shift = -max_shift;
         //     ...ml@@@mh........    ,    ........ml@@@mh...
         //     ........sl@@@sh...    ,    ...sl@@@sh........
         DoubleReal diff;
         diff = model_high - scene_low;
-        if ( diff < 0 )
+        if (diff < 0)
           diff = -diff;
-        if ( max_shift > diff )
+        if (max_shift > diff)
           max_shift = diff;
         diff = model_low - scene_high;
-        if ( diff < 0 )
+        if (diff < 0)
           diff = -diff;
-        if ( max_shift > diff )
+        if (max_shift > diff)
           max_shift = diff;
       }
-      while ( 0 );
+      while (0);
 
       const Int shift_buckets_num_half = 4 + (Int) ceil((max_shift) / shift_bucket_size);
       const Int shift_buckets_num = 1 + 2 * shift_buckets_num_half;
@@ -221,13 +220,13 @@ namespace OpenMS
     do
     {
       DoubleReal total_int_model_map = 0;
-      for ( Size i = 0; i < model_map.size(); ++i )
+      for (Size i = 0; i < model_map.size(); ++i)
       {
         total_int_model_map += model_map[i].getIntensity();
       }
       setProgress(++actual_progress);
       DoubleReal total_int_scene_map = 0;
-      for ( Size i = 0; i < scene_map.size(); ++i )
+      for (Size i = 0; i < scene_map.size(); ++i)
       {
         total_int_scene_map += scene_map[i].getIntensity();
       }
@@ -235,7 +234,7 @@ namespace OpenMS
       // ... and finally ...
       total_intensity_ratio = total_int_model_map / total_int_scene_map;
     }
-    while ( 0 ); // (the extra syntax helps with code folding in eclipse!)
+    while (0);   // (the extra syntax helps with code folding in eclipse!)
     setProgress((actual_progress = 20));
 
     /// The serial number is incremented for each invocation of this, to avoid overwriting of hash table dumps.
@@ -266,7 +265,7 @@ namespace OpenMS
     {
       String dump_pairs_filename;
       std::ofstream dump_pairs_file;
-      if ( do_dump_pairs )
+      if (do_dump_pairs)
       {
         dump_pairs_filename = dump_pairs_basename + String(dump_buckets_serial);
         dump_pairs_file.open(dump_pairs_filename.c_str());
@@ -275,32 +274,32 @@ namespace OpenMS
       setProgress(++actual_progress);
 
       // first point in model map
-      for ( Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i )
+      for (Size i = 0, i_low = 0, i_high = 0, k_low = 0, k_high = 0; i < model_map_size - 1; ++i)
       {
         setProgress(actual_progress + Real(i) / model_map_size * 10.f);
 
         // Adjust window around i in model map
-        while ( i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance )
+        while (i_low < model_map_size && model_map[i_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++i_low;
-        while ( i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance )
+        while (i_high < model_map_size && model_map[i_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
           ++i_high;
         DoubleReal i_winlength_factor = 1. / (i_high - i_low);
         i_winlength_factor -= winlength_factor_baseline;
-        if ( i_winlength_factor <= 0 )
+        if (i_winlength_factor <= 0)
           continue;
 
         // Adjust window around k in scene map
-        while ( k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance )
+        while (k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
           ++k_low;
-        while ( k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance )
+        while (k_high < scene_map_size && scene_map[k_high].getMZ() <= model_map[i].getMZ() + mz_pair_max_distance)
           ++k_high;
 
         // first point in scene map
-        for ( Size k = k_low; k < k_high; ++k )
+        for (Size k = k_low; k < k_high; ++k)
         {
           DoubleReal k_winlength_factor = 1. / (k_high - k_low);
           k_winlength_factor -= winlength_factor_baseline;
-          if ( k_winlength_factor <= 0 )
+          if (k_winlength_factor <= 0)
             continue;
 
           // compute similarity of intensities i k
@@ -321,26 +320,26 @@ namespace OpenMS
           // hash the images of scaling, rt_low and rt_high into their respective hash tables
           shift_hash_.addValue(shift, similarity_ik);
 
-          if ( do_dump_pairs )
+          if (do_dump_pairs)
           {
             dump_pairs_file << i << ' ' << model_map[i].getRT() << ' ' << model_map[i].getMZ() << ' ' << k << ' ' << scene_map[k].getRT() << ' '
-                << scene_map[k].getMZ() << ' ' << similarity_ik << ' ' << std::endl;
+                            << scene_map[k].getMZ() << ' ' << similarity_ik << ' ' << std::endl;
           }
 
         } // k
       } // i
     }
-    while ( 0 ); // end of hashing (the extra syntax helps with code folding in eclipse!)
+    while (0);   // end of hashing (the extra syntax helps with code folding in eclipse!)
 
     setProgress((actual_progress = 30));
 
     ///////////////////////////////////////////////////////////////////
     // work on shift_hash_
-//    DoubleReal shift_low;
-//    DoubleReal shift_centroid;
-//    DoubleReal shift_high;
+    //   DoubleReal shift_low;
+    //   DoubleReal shift_centroid;
+    //   DoubleReal shift_high;
 
-// OLD STUFF
+    // OLD STUFF
     DoubleReal shift_low;
     DoubleReal shift_centroid;
     DoubleReal shift_high;
@@ -352,7 +351,7 @@ namespace OpenMS
       // optionally, dump before filtering
       String dump_buckets_filename;
       std::ofstream dump_buckets_file;
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_filename = dump_buckets_basename + "_" + String(dump_buckets_serial);
         dump_buckets_file.open(dump_buckets_filename.c_str());
@@ -360,7 +359,7 @@ namespace OpenMS
 
         dump_buckets_file << "# shift hash table buckets dump ( scale, height ) : " << dump_buckets_filename << std::endl;
         dump_buckets_file << "# unfiltered hash data\n";
-        for ( Size index = 0; index < shift_hash_.getData().size(); ++index )
+        for (Size index = 0; index < shift_hash_.getData().size(); ++index)
         {
           const DoubleReal image = shift_hash_.index2key(index);
           const DoubleReal height = shift_hash_.getData()[index];
@@ -385,10 +384,10 @@ namespace OpenMS
       shift_hash_.getData().swap(buffer);
 
       // optionally, dump after filtering
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_file << "# tophat filtered hash data\n";
-        for ( Size index = 0; index < shift_hash_.getData().size(); ++index )
+        for (Size index = 0; index < shift_hash_.getData().size(); ++index)
         {
           const DoubleReal image = shift_hash_.index2key(index);
           const DoubleReal height = shift_hash_.getData()[index];
@@ -409,8 +408,8 @@ namespace OpenMS
           std::sort(buffer.begin(), buffer.end(), std::greater<DoubleReal>());
           DoubleReal freq_intercept = shift_hash_.getData().front();
           DoubleReal freq_slope = (shift_hash_.getData().back() - shift_hash_.getData().front()) / DoubleReal(buffer.size())
-              / scaling_histogram_crossing_slope;
-          if ( !freq_slope || !buffer.size() )
+                                  / scaling_histogram_crossing_slope;
+          if (!freq_slope || !buffer.size())
           {
             // in fact these conditions are actually impossible, but let's be really sure ;-)
             freq_cutoff_low = 0;
@@ -418,7 +417,7 @@ namespace OpenMS
           else
           {
             Size index = 1; // not 0 (!)
-            while ( buffer[index] >= freq_intercept + freq_slope * DoubleReal(index) )
+            while (buffer[index] >= freq_intercept + freq_slope * DoubleReal(index))
             {
               ++index;
             }
@@ -426,13 +425,13 @@ namespace OpenMS
           }
         }
       }
-      while ( 0 );
+      while (0);
       setProgress(++actual_progress);
 
       // apply freq_cutoff, setting smaller values to zero
-      for ( Size index = 0; index < shift_hash_.getData().size(); ++index )
+      for (Size index = 0; index < shift_hash_.getData().size(); ++index)
       {
-        if ( shift_hash_.getData()[index] < freq_cutoff_low )
+        if (shift_hash_.getData()[index] < freq_cutoff_low)
         {
           shift_hash_.getData()[index] = 0;
         }
@@ -440,10 +439,10 @@ namespace OpenMS
       setProgress(++actual_progress);
 
       // optionally, dump after noise filtering using freq_cutoff
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_file << "# after freq_cutoff, which is: " << freq_cutoff_low << '\n';
-        for ( Size index = 0; index < shift_hash_.getData().size(); ++index )
+        for (Size index = 0; index < shift_hash_.getData().size(); ++index)
         {
           const DoubleReal image = shift_hash_.index2key(index);
           const DoubleReal height = shift_hash_.getData()[index];
@@ -462,7 +461,7 @@ namespace OpenMS
         Size data_range_end = data_size;
         DoubleReal mean;
         DoubleReal stdev;
-        for ( UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop ) // MAGIC ALERT: number of loops
+        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
           mean = statistics.mean() + data_range_begin;
@@ -474,16 +473,17 @@ namespace OpenMS
           shift_low = (outside_mean - outside_stdev);
           shift_centroid = (outside_mean);
           shift_high = (outside_mean + outside_stdev);
-          if ( do_dump_buckets )
+          if (do_dump_buckets)
           {
-            dump_buckets_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): " << outside_mean
-                - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
-                << data_range_end << std::endl;
+            dump_buckets_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): "
+                              << outside_mean - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev
+                              << "  data_range_begin: " << data_range_begin << "  data_range_end: "
+                              << data_range_end << std::endl;
           }
         }
         setProgress(++actual_progress);
       }
-      if ( do_dump_buckets )
+      if (do_dump_buckets)
       {
         dump_buckets_file << "# EOF" << std::endl;
         dump_buckets_file.close();
@@ -491,7 +491,7 @@ namespace OpenMS
       setProgress(80);
 
     }
-    while ( 0 );
+    while (0);
 
     //************************************************************************************
     // Estimate transform
@@ -502,7 +502,7 @@ namespace OpenMS
     intercept = shift_centroid;
 #else // ooh, use maximum bins instead (Note: this is a fossil which would disregard most of the above computations!  The code is left here for developers/debugging only.)
     const Size rt_low_max_index = std::distance(shift_hash_.getData().begin(),
-        std::max_element(shift_hash_.getData().begin(), shift_hash_.getData().end()));
+                                                std::max_element(shift_hash_.getData().begin(), shift_hash_.getData().end()));
     intercept = shift_hash_.index2key(rt_low_max_index);
 #endif
 
@@ -514,20 +514,18 @@ namespace OpenMS
     {
       transformations.clear();
 
-			Param params;
+      Param params;
       params.setValue("slope", 1.0);
       params.setValue("intercept", intercept);
 
-			TransformationDescription trafo;
-			trafo.fitModel("linear", params);
-			transformations.push_back(trafo);
-     }
+      TransformationDescription trafo;
+      trafo.fitModel("linear", params);
+      transformations.push_back(trafo);
+    }
 
     setProgress(++actual_progress);
-
     endProgress();
 
     return;
   } // run()
-
 } // namespace OpenMS

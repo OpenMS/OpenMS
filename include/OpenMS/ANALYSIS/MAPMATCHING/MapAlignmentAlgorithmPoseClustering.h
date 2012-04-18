@@ -34,82 +34,79 @@
 
 namespace OpenMS
 {
-	/**
-		@brief A map alignment algorithm based on pose clustering.
+  /**
+    @brief A map alignment algorithm based on pose clustering.
 
-		Pose clustering analyses pair distances to find the most probable transformation of retention times.
+    Pose clustering analyses pair distances to find the most probable transformation of retention times.
 
-		For further details see:
-		@n Eva Lange et.al
-		@n A Geometric Approach for the Alignment of Liquid Chromatography-Mass Spectrometry Data
-		@n ISMB/ECCB 2007
+    For further details see:
+    @n Eva Lange et.al
+    @n A Geometric Approach for the Alignment of Liquid Chromatography-Mass Spectrometry Data
+    @n ISMB/ECCB 2007
 
-	  @htmlinclude OpenMS_MapAlignmentAlgorithmPoseClustering.parameters
+    @htmlinclude OpenMS_MapAlignmentAlgorithmPoseClustering.parameters
 
-		@ingroup MapAlignment
+    @ingroup MapAlignment
 
-		@todo write test, work out the TODOs (Clemens)
-	*/
-	class OPENMS_DLLAPI MapAlignmentAlgorithmPoseClustering
-		: public MapAlignmentAlgorithm
-	{
-	 public:
-		/// Default constructor
-		MapAlignmentAlgorithmPoseClustering();
+    @todo write test, work out the TODOs (Clemens)
+  */
+  class OPENMS_DLLAPI MapAlignmentAlgorithmPoseClustering :
+    public MapAlignmentAlgorithm
+  {
+public:
+    /// Default constructor
+    MapAlignmentAlgorithmPoseClustering();
 
-		/// Destructor
-		virtual ~MapAlignmentAlgorithmPoseClustering();
+    /// Destructor
+    virtual ~MapAlignmentAlgorithmPoseClustering();
 
-		// Docu in base class
-		virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
+    // Docu in base class
+    virtual void alignPeakMaps(std::vector<MSExperiment<> > &, std::vector<TransformationDescription> &);
 
-		// Docu in base class
-		virtual void alignCompactFeatureMaps(std::vector<std::vector<Peak2D> >&, std::vector<TransformationDescription>&);
+    // Docu in base class
+    virtual void alignCompactFeatureMaps(std::vector<std::vector<Peak2D> > &, std::vector<TransformationDescription> &);
 
-		// Docu in base class
-		virtual void alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&);
+    // Docu in base class
+    virtual void alignFeatureMaps(std::vector<FeatureMap<> > &, std::vector<TransformationDescription> &);
 
-		// Docu in base class
-		virtual void setReference(Size reference_index=0, const String& reference_file="");
+    // Docu in base class
+    virtual void setReference(Size reference_index = 0, const String & reference_file = "");
 
-		/// Creates a new instance of this class (for Factory)
-		static MapAlignmentAlgorithm* create()
-		{
-			return new MapAlignmentAlgorithmPoseClustering();
-		}
+    /// Creates a new instance of this class (for Factory)
+    static MapAlignmentAlgorithm * create()
+    {
+      return new MapAlignmentAlgorithmPoseClustering();
+    }
 
-		/// Returns the product name (for the Factory)
-		static String getProductName()
-		{
-			return "pose_clustering";
-		}
+    /// Returns the product name (for the Factory)
+    static String getProductName()
+    {
+      return "pose_clustering";
+    }
 
-	 protected:
+protected:
 
-		/// Index of input file to use as reference (1-based!)
-		Size reference_index_;
+    /// Index of input file to use as reference (1-based!)
+    Size reference_index_;
 
-		/// Path to external reference file
-		String reference_file_;
+    /// Path to external reference file
+    String reference_file_;
 
-		/**
-			 Compute retention time transformations for feature maps or consensus maps
-		 */
-		template <typename MapType>
-			void computeTransformations_(std::vector<MapType>& maps, 
-																	 std::vector<TransformationDescription>& 
-																	 transformations, Size reference_index, 
-																	 Size max_num_peaks_considered = -1);
+    /**
+         Compute retention time transformations for feature maps or consensus maps
+     */
+    template <typename MapType>
+    void computeTransformations_(std::vector<MapType> & maps,
+                                 std::vector<TransformationDescription> &
+                                 transformations, Size reference_index,
+                                 Size max_num_peaks_considered = -1);
+private:
 
-	 private:
-
-		/// Copy constructor intentionally not implemented -> private
-		MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering& );
-		///Assignment operator intentionally not implemented -> private
-		MapAlignmentAlgorithmPoseClustering& operator=(const MapAlignmentAlgorithmPoseClustering& );
-
-	};
-
+    /// Copy constructor intentionally not implemented -> private
+    MapAlignmentAlgorithmPoseClustering(const MapAlignmentAlgorithmPoseClustering &);
+    ///Assignment operator intentionally not implemented -> private
+    MapAlignmentAlgorithmPoseClustering & operator=(const MapAlignmentAlgorithmPoseClustering &);
+  };
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMPOSECLUSTERING_H

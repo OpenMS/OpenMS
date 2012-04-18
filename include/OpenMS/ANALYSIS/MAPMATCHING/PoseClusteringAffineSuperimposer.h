@@ -35,30 +35,30 @@ namespace OpenMS
 {
 
   /**
-   @brief A superimposer that uses a voting scheme, also known as pose clustering,
-   to find a good affine transformation.
+    @brief A superimposer that uses a voting scheme, also known as pose clustering,
+    to find a good affine transformation.
 
-   This algorithm works on two consensus maps.  It computes an affine
-   transformation that maps the elements of second map as near as possible
-   to the elements in the first map.
+    This algorithm works on two consensus maps.  It computes an affine
+    transformation that maps the elements of second map as near as possible
+    to the elements in the first map.
 
-   The voting scheme hashes affine transformations between pairs of features in
-   map one and pairs of features in map two.  Each such pair of pairs defines a
-   (potential) "pose" of the second map relative to the first.
-   Then it finds a cluster in the parameter space of these poses.
-   The affine transformation is then computed from this
-   cluster of potential poses, hence the name pose clustering.
+    The voting scheme hashes affine transformations between pairs of features in
+    map one and pairs of features in map two.  Each such pair of pairs defines a
+    (potential) "pose" of the second map relative to the first.
+    Then it finds a cluster in the parameter space of these poses.
+    The affine transformation is then computed from this
+    cluster of potential poses, hence the name pose clustering.
 
-   @sa PoseClusteringShiftSuperimposer
+    @sa PoseClusteringShiftSuperimposer
 
-   @htmlinclude OpenMS_PoseClusteringAffineSuperimposer.parameters
+    @htmlinclude OpenMS_PoseClusteringAffineSuperimposer.parameters
 
-   @ingroup MapAlignment
-   */
-  class OPENMS_DLLAPI PoseClusteringAffineSuperimposer 
-		: public BaseSuperimposer
+    @ingroup MapAlignment
+  */
+  class OPENMS_DLLAPI PoseClusteringAffineSuperimposer :
+    public BaseSuperimposer
   {
-  public:
+public:
 
     /// Default ctor
     PoseClusteringAffineSuperimposer();
@@ -66,37 +66,37 @@ namespace OpenMS
     /// Destructor
     virtual
     ~PoseClusteringAffineSuperimposer()
-    {
-    }
+    {}
 
     /**
-     @brief Estimates the transformation and fills the given mapping function. (Has a precondition!)
+      @brief Estimates the transformation and fills the given mapping function. (Has a precondition!)
 
-     @note Exactly two input maps must be given.
+      @note Exactly two input maps must be given.
+      @pre For performance reasons, we trust that (the equivalent of:)
 
-     @pre  For performance reasons, we trust that (the equivalent of:) <code>maps[0].updateRanges(); maps[1].updateRanges();</code> has been done <i>before</i> calling this.  You have been warned!
+      <code>
+        maps[0].updateRanges();
+        maps[1].updateRanges();
+      </code>
 
-     @exception IllegalArgument is thrown if the input maps are invalid.
-     */
-    virtual void
-    run(const std::vector<ConsensusMap>& maps, std::vector<TransformationDescription>& transformations);
+      has been done <i>before</i> calling this.  You have been warned!
+
+      @exception IllegalArgument is thrown if the input maps are invalid.
+    */
+    virtual void run(const std::vector<ConsensusMap> & maps, std::vector<TransformationDescription> & transformations);
 
     /// Returns an instance of this class
-    static BaseSuperimposer*
-    create()
+    static BaseSuperimposer * create()
     {
       return new PoseClusteringAffineSuperimposer();
     }
 
     /// Returns the name of this module
-    static const String
-    getProductName()
+    static const String getProductName()
     {
       return "poseclustering_affine";
     }
-
   };
-
 } // namespace OpenMS
 
 #endif  // OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H

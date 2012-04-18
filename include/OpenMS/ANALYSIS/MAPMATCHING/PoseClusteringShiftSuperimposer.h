@@ -55,47 +55,46 @@ namespace OpenMS
 
    @ingroup MapAlignment
    */
-  class OPENMS_DLLAPI PoseClusteringShiftSuperimposer : public BaseSuperimposer
+  class OPENMS_DLLAPI PoseClusteringShiftSuperimposer :
+    public BaseSuperimposer
   {
-  public:
+public:
 
     /// Default ctor
     PoseClusteringShiftSuperimposer();
 
     /// Destructor
-    virtual
-    ~PoseClusteringShiftSuperimposer()
-    {
-    }
+    virtual ~PoseClusteringShiftSuperimposer()
+    {}
 
     /**
-     @brief Estimates the transformation and fills the given mapping function. (Has a precondition!)
+      @brief Estimates the transformation and fills the given mapping function. (Has a precondition!)
 
-     @note Exactly two input maps must be given.
+      @note Exactly two input maps must be given.
 
-     @pre  For performance reasons, we trust that (the equivalent of:) <code>maps[0].updateRanges(); maps[1].updateRanges();</code> has been done <i>before</i> calling this.  You have been warned!
+      @pre For performance reasons, we trust that (the equivalent of:)
+      <code>
+        maps[0].updateRanges();
+        maps[1].updateRanges();
+      </code>
+      has been done <i>before</i> calling this.  You have been warned!
 
-     @exception IllegalArgument is thrown if the input maps are invalid.
-     */
-    virtual void
-    run(const std::vector<ConsensusMap>& maps, std::vector<TransformationDescription>& transformations);
+      @exception IllegalArgument is thrown if the input maps are invalid.
+    */
+    virtual void run(const std::vector<ConsensusMap> & maps, std::vector<TransformationDescription> & transformations);
 
     /// Returns an instance of this class
-    static BaseSuperimposer*
-    create()
+    static BaseSuperimposer * create()
     {
       return new PoseClusteringShiftSuperimposer();
     }
 
     /// Returns the name of this module
-    static const String
-    getProductName()
+    static const String getProductName()
     {
       return "poseclustering_shift";
     }
-
   };
-
 } // namespace OpenMS
 
 #endif  // OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGSHIFTSUPERIMPOSER_H
