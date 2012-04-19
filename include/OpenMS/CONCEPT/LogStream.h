@@ -40,56 +40,58 @@
 
 namespace OpenMS
 {
+  /**	
+    @brief Log streams
+    
+    Logging, filtering, and storing messages.
+    Many programs emit warning messages, error messages, or simply
+    informations and remarks to their users. The  LogStream
+    class provides a convenient and straight-forward interface
+    to classify these messages according to their importance
+    (via the loglevel), filter and store them in files or
+    write them to streams. \par
+    As the LogStream class is derived from ostream, it behaves
+    as any ostream object. Additionally you may associate
+    streams with each LogStream object that catch only
+    messages of certain loglevels. So the user might decide to
+    redirect all error messages to cerr, all warning messages
+    to cout and all informations to a file. \par
+    Along with each message its time of creation and its loglevel
+    is stored. So the user might also decide to store all
+    errors he got in the last two hours or alike. \par
+    The LogStream class heavily relies on the LogStreamBuf
+    class, which does the actual buffering and storing, but is only
+    of interest if you want to implement a derived class, as the
+    actual user interface is implemented in the LogStream class.
+   
+    @ingroup Concept
+  */
   namespace Logger
   {
-
-    /**	@name Log streams
-            Logging, filtering, and storing messages.
-            Many programs emit warning messages, error messages, or simply
-            informations and remarks to their users. The  LogStream
-            class provides a convenient and straight-forward interface
-            to classify these messages according to their importance
-            (via the loglevel), filter and store them in files or
-            write them to streams. \par
-            As the LogStream class is derived from ostream, it behaves
-            as any ostream object. Additionally you may associate
-            streams with each LogStream object that catch only
-            messages of certain loglevels. So the user might decide to
-            redirect all error messages to cerr, all warning messages
-            to cout and all informations to a file. \par
-            Along with each message its time of creation and its loglevel
-            is stored. So the user might also decide to store all
-            errors he got in the last two hours or alike. \par
-            The LogStream class heavily relies on the LogStreamBuf
-            class, which does the actual buffering and storing, but is only
-            of interest if you want to implement a derived class, as the
-            actual user interface is implemented in the LogStream class.
-    *   \ingroup Common
-    */
-    //@{
-
     // forward declarations
     class LogStream;
     class LogStreamNotifier;
 
-    /** Stream buffer used by LogStream.
-            This class implements the low level behavior of
-            LogStream . It takes care of the buffers and stores
-            the lines written into the LogStream object.
-            It also contains a list of streams that are associated with
-            the LogStream object. This list contains pointers to the
-            streams and their minimum and maximum log level.
-            Each line entered in the LogStream is marked with its
-            time (in fact, the time LogStreamBuf::sync was called) and its
-            loglevel. The loglevel is determined by either the current
-            loglevel (as set by  LogStream::setLevel or a temporary
-            level (as set by LogStream::level for a single line only).
-            For each line stored, the list of associated streams is checked
-            whether the loglevel falls into the range declared by the
-            stream's minimum and maximum level. If this condition is met,
-            the logline (with its prefix, see  LogStream::setPrefix )
-            is also copied to the associated stream and this stream is
-            flushed, too.
+    /** 
+      @brief Stream buffer used by LogStream.
+        
+      This class implements the low level behavior of
+      LogStream . It takes care of the buffers and stores
+      the lines written into the LogStream object.
+      It also contains a list of streams that are associated with
+      the LogStream object. This list contains pointers to the
+      streams and their minimum and maximum log level.
+      Each line entered in the LogStream is marked with its
+      time (in fact, the time LogStreamBuf::sync was called) and its
+      loglevel. The loglevel is determined by either the current
+      loglevel (as set by  LogStream::setLevel or a temporary
+      level (as set by LogStream::level for a single line only).
+      For each line stored, the list of associated streams is checked
+      whether the loglevel falls into the range declared by the
+      stream's minimum and maximum level. If this condition is met,
+      the logline (with its prefix, see  LogStream::setPrefix )
+      is also copied to the associated stream and this stream is
+      flushed, too.
     */
     class OPENMS_DLLAPI LogStreamBuf :
       public std::streambuf
@@ -99,77 +101,72 @@ namespace OpenMS
 
 public:
 
-      /**	@name	Constants
-      */
+      ///	@name Constants
       //@{
       static const time_t MAX_TIME;
       static const std::string UNKNOWN_LOG_LEVEL;
       //@}
 
-      /**	@name Constructors and Destructors
-      */
+      ///	@name Constructors and Destructors
       //@{
 
       /**
-          Create a new LogStreamBuf object and set the level to log_level
-          @param log_level The log level of the LogStreamBuf (default is unknown)
+        Create a new LogStreamBuf object and set the level to log_level
+        @param log_level The log level of the LogStreamBuf (default is unknown)
       */
       explicit LogStreamBuf(std::string log_level = UNKNOWN_LOG_LEVEL);
 
-      /** Destructor.
-              Destruct the buffer and free all stored messages strings.
+      /** 
+        Destruct the buffer and free all stored messages strings.
       */
       virtual ~LogStreamBuf();
 
       //@}
 
-      /**	@name	Stream methods
-      */
+      ///	@name	Stream methods
       //@{
 
-      /**	Sync method.
-              This method is called as soon as the ostream is flushed
-              (especially this method is called by flush or endl).
-              It transfers the contents of the streambufs putbuffer
-              into a logline if a newline or linefeed character
-              is found in the buffer ("\n" or "\r" resp.).
-              The line is then removed from the putbuffer.
-              Incomplete lines (not terminated by "\n" / "\r" are
-              stored in incomplete_line_.
+      /**	
+        This method is called as soon as the ostream is flushed
+        (especially this method is called by flush or endl).
+        It transfers the contents of the streambufs putbuffer
+        into a logline if a newline or linefeed character
+        is found in the buffer ("\n" or "\r" resp.).
+        The line is then removed from the putbuffer.
+        Incomplete lines (not terminated by "\n" / "\r" are
+        stored in incomplete_line_.
       */
       virtual int sync();
 
-      /**	Overflow method.
-              This method calls sync and <tt>streambuf::overflow(c)</tt> to
-              prevent a buffer overflow.
+      /**	
+        This method calls sync and <tt>streambuf::overflow(c)</tt> to
+        prevent a buffer overflow.
       */
       virtual int overflow(int c = -1);
       //@}
 
 
-      /**
-       * @name Level methods
-       */
+      /// @name Level methods
       //@{
-
       /**
-       * Set the level of the LogStream
-       *
-       * @param level The new LogLevel
-       */
+        Set the level of the LogStream
+       
+        @param level The new LogLevel
+      */
       void setLevel(std::string level);
 
 
       /**
-       * Returns the LogLevel of this LogStream
-       */
+        Returns the LogLevel of this LogStream
+      */
       std::string getLevel();
       //@}
 
       /**
-       * @brief Holds a stream that is connected to the LogStream incl. the minimum and maximum
-       * level at which the LogStream redirects messages to this stream.
-       */
+        @brief Holds a stream that is connected to the LogStream.
+        It also includes the minimum and maximum level at which the 
+        LogStream redirects messages to this stream.
+      */
       OPENMS_DLLAPI struct StreamStruct
       {
         std::ostream * stream;
@@ -181,25 +178,25 @@ public:
           target(0)
         {}
 
-        // Delete the notification target.
+        /// Delete the notification target.
         ~StreamStruct()
         {}
 
       };
 
       /**
-       * Checks if some of the cached entries where sent more then once
-       * to the LogStream and (if necessary) prints a corresponding messages
-       * into all affected Logs
-       */
+        Checks if some of the cached entries where sent more then once
+        to the LogStream and (if necessary) prints a corresponding messages
+        into all affected Logs
+      */
       void clearCache();
 
 protected:
 
-      /// distribute a new message to connected streams
+      /// Distribute a new message to connected streams.
       void distribute_(std::string outstring);
 
-      // interpret the prefix format string and return the expanded prefix
+      /// Interpret the prefix format string and return the expanded prefix.
       std::string expandPrefix_(const std::string & prefix, time_t time) const;
 
       char * pbuf_;
@@ -207,14 +204,12 @@ protected:
       std::list<StreamStruct> stream_list_;
       std::string             incomplete_line_;
 
-      /**	@name Caching
-      */
+      ///	@name Caching
       //@{
 
       /**
-       * @brief Holds a counter of occurences and an index for the occurence sequence
-       * of the corresponding log message
-       */
+        @brief Holds a counter of occurences and an index for the occurence sequence of the corresponding log message
+      */
       struct LogCacheStruct
       {
         Size timestamp;
@@ -222,9 +217,9 @@ protected:
       };
 
       /**
-       * Sequential counter to remember the sequence of occurence
-       * of the cached log messages
-       */
+        Sequential counter to remember the sequence of occurence
+       of the cached log messages
+      */
       Size log_cache_counter_;
 
       /// Cache of the last two log messages
@@ -236,34 +231,30 @@ protected:
       bool isInCache_(std::string const & line);
 
       /**
-         Adds the new line to the cache and removes an old one
-         if necessary
+        Adds the new line to the cache and removes an old one
+        if necessary
 
-         @param line The Log message that should be added to the cache
-         @return An additional massage if a reoccuring message was removed
-         from the cache
-       */
+        @param line The Log message that should be added to the cache
+        @return An additional massage if a reoccuring message was removed
+        from the cache
+      */
       std::string addToCache_(std::string const & line);
 
-      /**
-       * Returns the next free index for a log message
-       */
+      /// Returns the next free index for a log message
       Size getNextLogCounter_();
 
       //@}
-
     };
-
 
     ///
     class OPENMS_DLLAPI LogStreamNotifier
     {
 public:
 
-      ///
+      /// Empty constructor.
       LogStreamNotifier();
 
-      ///
+      /// Destructor
       virtual ~LogStreamNotifier();
 
       ///
@@ -271,147 +262,147 @@ public:
 
       ///
       void registerAt(LogStream & log_stream);
+
       ///
       void unregister();
 
 protected:
-
       std::stringstream stream_;
 
       LogStream * registered_at_;
     };
 
 
+    /**	
+      @brief Log Stream Class.
 
-    /**	Log Stream Class.
+      Defines a log stream which features a cache and some formatting.
+      For the developer, however, only some macros are of interest which
+      will push the message that follows them into the
+      appropriate stream:
 
-    Defines a log stream which features a cache and some formatting.
-    For the developer, however, only some macros are of interest which
-    will push the message that follows them into the
-    appropriate stream:
-
-    Macros:
+      Macros:
         - LOG_FATAL_ERROR
         - LOG_ERROR (non-fatal error are reported (processing continues))
         - LOG_WARN  (warning, a piece of information which should be read by the user, should be logged)
         - LOG_INFO (information, e.g. a status should be reported)
         - LOG_DEBUG (general debugging information)
 
-            To use a specific logger of a log level simply
-            use it as cerr or cout: <br>
-            <code> LOG_ERROR << " A bad error occured ..."  </code> <br>
-            Which produces an error message in the log.
+      To use a specific logger of a log level simply use it as cerr or cout: <br>
+      <code> LOG_ERROR << " A bad error occured ..."  </code> 
+      <br>
+      Which produces an error message in the log.
     */
-
-
     class OPENMS_DLLAPI LogStream :
       public std::ostream
     {
 public:
 
-      /**	@name	Constructors and Destructors
-      */
+      /// @name Constructors and Destructors
       //@{
 
-      /** Constructor.
-              Creates a new LogStream object that is not associated with any stream.
-              If the argument <tt>stream</tt> is set to an output stream (e.g. <tt>cout</tt>)
-              all output is send to that stream.
-              @param	buf
-              @param  delete_buf
-              @param	stream
+      /**
+        Creates a new LogStream object that is not associated with any stream.
+        If the argument <tt>stream</tt> is set to an output stream (e.g. <tt>cout</tt>)
+        all output is send to that stream.
+        
+        @param	buf
+        @param  delete_buf
+        @param	stream
       */
       LogStream(LogStreamBuf * buf = 0, bool delete_buf = true, std::ostream * stream = 0);
 
-      /** Destructor.
-              Clears all message buffers.
-      */
+      /// Clears all message buffers.
       virtual ~LogStream();
-
       //@}
 
-      /**	@name	Stream Methods
-      */
+      /// @name Stream Methods
       //@{
 
-      /**	<tt>rdbuf</tt> method of ostream.
-              This method is needed to access the LogStreamBuf object.
+      /**	
+        rdbuf method of ostream.
+        This method is needed to access the LogStreamBuf object.
+       
+        @see std::ostream::rdbuf for more details.
       */
       LogStreamBuf * rdbuf();
 
-      /** Arrow operator.
-      */
+      /// Arrow operator.
       LogStreamBuf * operator->();
       //@}
 
 
-      /**
-       * @name Level methods
-       */
+      /// @name Level methods
       //@{
 
       /**
-       * Set the level of the LogStream
-       *
-       * @param level The new LogLevel
-       */
+        Set the level of the LogStream
+       
+       @param level The new LogLevel
+      */
       void setLevel(std::string level);
 
 
       /**
-       * Returns the LogLevel of this LogStream
-       */
+        Returns the LogLevel of this LogStream
+      */
       std::string getLevel();
       //@}
 
-      /**	@name Associating Streams
-      */
+      ///	@name Associating Streams
       //@{
 
-      /**	Associate a new stream with this logstream.
-              This method inserts a new stream into the list of
-              associated streams and sets the corresponding minimum
-              and maximum log levels.
-              Any message that is subsequently logged, will be copied
-              to this stream if its log level is between <tt>min_level</tt>
-              and <tt>max_level</tt>. If <tt>min_level</tt> and <tt>max_level</tt>
-              are omitted, all messages are copied to this stream.
-              If <tt>min_level</tt>	and <tt>max_level</tt> are equal, this function can be used
-              to listen to a specified channel.
-              @param	s a reference to the stream to be associated
+      /**	
+        Associate a new stream with this logstream.
+        This method inserts a new stream into the list of
+        associated streams and sets the corresponding minimum
+        and maximum log levels.
+        Any message that is subsequently logged, will be copied
+        to this stream if its log level is between <tt>min_level</tt>
+        and <tt>max_level</tt>. If <tt>min_level</tt> and <tt>max_level</tt>
+        are omitted, all messages are copied to this stream.
+        If <tt>min_level</tt> and <tt>max_level</tt> are equal, this function can be used
+        to listen to a specified channel.
+
+        @param s a reference to the stream to be associated
       */
       void insert(std::ostream & s);
 
-      /**	Remove an association with a stream.
-              Remove a stream from the stream list and avoid the copying of new messages to
-              this stream. \par
-              If the stream was not in the list of associated streams nothing will
-              happen.
-              @param	s the stream to be removed
+      /**	
+        Remove an association with a stream.
+        
+        Remove a stream from the stream list and avoid the copying of new messages to
+        this stream. \par
+        If the stream was not in the list of associated streams nothing will
+        happen.
+
+        @param s the stream to be removed
       */
       void remove(std::ostream & s);
 
-      /**	Add a notification target
-      */
+      ///	Add a notification target
       void insertNotification(std::ostream & s,
                               LogStreamNotifier & target);
 
-      /**	Set prefix for output to this stream.
-              Each line written to the stream will be prefixed by
-              this string. The string may also contain trivial
-              format specifiers to include loglevel and time/date
-              of the logged message. \par
-              The following format tags are recognized:
+      /**	
+        Set prefix for output to this stream.
+        Each line written to the stream will be prefixed by
+        this string. The string may also contain trivial
+        format specifiers to include loglevel and time/date
+        of the logged message. \par
+        The following format tags are recognized:
 
-                  - <b>%y</b>	message type ("Error", "Warning", "Information", "-")
-                  - <b>%T</b> time (HH:MM:SS)
-                  - <b>%t</b> time in short format (HH:MM)
-                  - <b>%D</b>	date (YYYY/MM/DD)
-                  - <b>%d</b> date in short format (MM/DD)
-                  - <b>%S</b> time and date (YYYY/MM/DD, HH:MM:SS)
-                  - <b>%s</b> time and date in short format (MM/DD, HH:MM)
-                  - <b>%%</b>	percent sign (escape sequence)
-
+        - <b>%y</b> message type ("Error", "Warning", "Information", "-")
+        - <b>%T</b> time (HH:MM:SS)
+        - <b>%t</b> time in short format (HH:MM)
+        - <b>%D</b>	date (YYYY/MM/DD)
+        - <b>%d</b> date in short format (MM/DD)
+        - <b>%S</b> time and date (YYYY/MM/DD, HH:MM:SS)
+        - <b>%s</b> time and date in short format (MM/DD, HH:MM)
+        - <b>%%</b>	percent sign (escape sequence)
+       
+        @param s The stream that will be prefixed.
+        @param prefix The prefix used for the stream.
       */
       void setPrefix(const std::ostream & s, const std::string & prefix);
 
@@ -422,7 +413,6 @@ public:
       ///
       void flush();
       //@}
-
 private:
 
       typedef std::list<LogStreamBuf::StreamStruct>::iterator StreamIterator;
@@ -439,15 +429,15 @@ private:
 
     }; //LogStream
 
-  }   // namespace Logger
+  } // namespace Logger
 
 
   /// Macro to be used if fatal error are reported (processing stops)
-    #define LOG_FATAL_ERROR \
+  #define LOG_FATAL_ERROR \
   Log_fatal << __FILE__ << "(" << __LINE__ << "): "
 
   /// Macro to be used if non-fatal error are reported (processing continues)
-    #define LOG_ERROR \
+  #define LOG_ERROR \
   Log_error
 
   /// Macro if a warning, a piece of information which should be read by the user, should be logged
