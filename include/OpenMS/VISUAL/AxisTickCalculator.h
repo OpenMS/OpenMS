@@ -33,42 +33,42 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Calculates ticks for a given value range.
-		
-		It has only static methods, that's why the constructor is private.
-	
-		@ingroup Visual
-	*/
-  class OPENMS_GUI_DLLAPI AxisTickCalculator 
-	{
-		public:
-	 
-		  /// Typedef for the grid vector
-			typedef std::vector<std::vector<double> > GridVector;
-	
-			/**
-				 @brief Returns a GridVector with ticks for linear scales.
-				 
-				 @param x1 minimum value
-				 @param x2 maximum value
-				 @param grid the grid_vector to fill
-			*/
-      static void calcGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid);
-			
-			/**
-				 @brief Returns a GridVector with ticks for logarithmic scales.
-				 
-				 @param x1 minimum value
-				 @param x2 maximum value
-				 @param grid the grid_vector to fill
-			*/
-			static void calcLogGridLines(DoubleReal x1, DoubleReal x2, GridVector& grid);
-			
-		private: 
-		
-			///Constructor: only static methods
-			AxisTickCalculator();
-	};
+  /**
+      @brief Calculates ticks for a given value range.
+
+      It has only static methods, that's why the constructor is private.
+
+      @ingroup Visual
+  */
+  class OPENMS_GUI_DLLAPI AxisTickCalculator
+  {
+public:
+
+    /// Typedef for the grid vector
+    typedef std::vector<std::vector<double> > GridVector;
+
+    /**
+         @brief Returns a GridVector with ticks for linear scales.
+
+         @param x1 minimum value
+         @param x2 maximum value
+         @param grid the grid_vector to fill
+    */
+    static void calcGridLines(DoubleReal x1, DoubleReal x2, GridVector & grid);
+
+    /**
+         @brief Returns a GridVector with ticks for logarithmic scales.
+
+         @param x1 minimum value
+         @param x2 maximum value
+         @param grid the grid_vector to fill
+    */
+    static void calcLogGridLines(DoubleReal x1, DoubleReal x2, GridVector & grid);
+
+private:
+
+    ///Constructor: only static methods
+    AxisTickCalculator();
+  };
 }
 #endif

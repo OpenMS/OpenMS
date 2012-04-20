@@ -39,15 +39,15 @@ namespace OpenMS
   */
   class EnhancedTabBarWidgetInterface
   {
-    public:
-      /// Destructor
-      virtual ~EnhancedTabBarWidgetInterface() {};
+public:
+    /// Destructor
+    virtual ~EnhancedTabBarWidgetInterface() {}
 
-      /// get the EnhancedTabBar unique window id
-      virtual Int getWindowId() = 0;
+    /// get the EnhancedTabBar unique window id
+    virtual Int getWindowId() = 0;
 
-      /// set the EnhancedTabBar unique window id
-      virtual void setWindowId(Int window_id) = 0;
+    /// set the EnhancedTabBar unique window id
+    virtual void setWindowId(Int window_id) = 0;
   };
 }  // namespace OpenMS
 

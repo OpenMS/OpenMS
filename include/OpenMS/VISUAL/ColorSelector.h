@@ -35,49 +35,48 @@
 class QPaintEvent;
 class QMouseEvent;
 
-namespace OpenMS 
+namespace OpenMS
 {
-	
-	/**
-		@brief A widget for selecting a color.
-		
-		It represents a color (displayed as background color) and allows changing the color.
-		
-		\image html ColorSelector.png
-		
-		The above example image shows four ColorSelector instances on the right side.
-		
-		@ingroup Visual
-	*/
-	class OPENMS_GUI_DLLAPI ColorSelector
-		: public QWidget
-	{
-		Q_OBJECT
-		
-		public:
-			/// Constructor
-			ColorSelector( QWidget * parent = 0);
 
-			/// Destructor
-			~ColorSelector();			
+  /**
+      @brief A widget for selecting a color.
 
-			/// Returns the selected color
-			const QColor& getColor();
+      It represents a color (displayed as background color) and allows changing the color.
 
-			/// Sets the selected color
-			void setColor(const QColor&);
-			
-			/// Qt size hint
-			QSize sizeHint () const;
-		protected:
-      ///@name Remplemented Qt events
-      //@{
-			void paintEvent(QPaintEvent * e);
-			void mousePressEvent(QMouseEvent* e);
-      //@}
-			QColor color_;
-	};
+      \image html ColorSelector.png
+
+      The above example image shows four ColorSelector instances on the right side.
+
+      @ingroup Visual
+  */
+  class OPENMS_GUI_DLLAPI ColorSelector :
+    public QWidget
+  {
+    Q_OBJECT
+
+public:
+    /// Constructor
+    ColorSelector(QWidget * parent = 0);
+
+    /// Destructor
+    ~ColorSelector();
+
+    /// Returns the selected color
+    const QColor & getColor();
+
+    /// Sets the selected color
+    void setColor(const QColor &);
+
+    /// Qt size hint
+    QSize sizeHint() const;
+protected:
+    ///@name Remplemented Qt events
+    //@{
+    void paintEvent(QPaintEvent * e);
+    void mousePressEvent(QMouseEvent * e);
+    //@}
+    QColor color_;
+  };
 
 }
 #endif // OPENMS_VISUAL_COLORSELECTOR_H
-

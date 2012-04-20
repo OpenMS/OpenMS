@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -35,24 +35,26 @@
 // ----------------------------------------
 
 #ifdef TOPPAS_DEBUG
-#define __DEBUG_BEGIN_METHOD__	{																																													\
-																		for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)	\
-																		{																																											\
-																			std::cout << "  ";																																	\
-																		}																																											\
-																		std::cout << "BEGIN [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;				\
-																		++global_debug_indent_;																																\
-																}
+#define __DEBUG_BEGIN_METHOD__ \
+  {                                                                                                                                                                                   \
+    for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)   \
+    {                                                                                                                                                                           \
+      std::cout << "  ";                                                                                                                                  \
+    }                                                                                                                                                                           \
+    std::cout << "BEGIN [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;             \
+    ++global_debug_indent_;                                                                                                                             \
+  }
 
-#define __DEBUG_END_METHOD__	{																																														\
-																		--global_debug_indent_;																																\
-																		if (global_debug_indent_ < 0) global_debug_indent_ = 0;																\
-																		for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)	\
-																		{																																											\
-																			std::cout << "  ";																																	\
-																		}																																											\
-																		std::cout << "END [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;					\
-																}
+#define __DEBUG_END_METHOD__ \
+  {                                                                                                                                                                                       \
+    --global_debug_indent_;                                                                                                                             \
+    if (global_debug_indent_ < 0) global_debug_indent_ = 0;                                                             \
+    for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)   \
+    {                                                                                                                                                                           \
+      std::cout << "  ";                                                                                                                                  \
+    }                                                                                                                                                                           \
+    std::cout << "END [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;                   \
+  }
 #else
 #define __DEBUG_BEGIN_METHOD__ {}
 #define __DEBUG_END_METHOD__ {}
@@ -73,256 +75,258 @@
 
 namespace OpenMS
 {
-	class TOPPASEdge;
+  class TOPPASEdge;
 
-	/**
-		@brief The base class of the different vertex classes.
-		
-		This class contains the common functionality (such as
-		event handling for mouse clicks and drags) and holds the common
-		members of all different kinds of vertices (e.g., containers
-		for all in and out edges, the vertex ID, the number of a 
-		topological sort of the whole graph, etc.)
-	
-		@ingroup TOPPAS_elements
-	*/
-	class OPENMS_GUI_DLLAPI TOPPASVertex
-		: public QObject,
-			public QGraphicsItem
-	{
-		Q_OBJECT
+  /**
+      @brief The base class of the different vertex classes.
+
+      This class contains the common functionality (such as
+      event handling for mouse clicks and drags) and holds the common
+      members of all different kinds of vertices (e.g., containers
+      for all in and out edges, the vertex ID, the number of a
+      topological sort of the whole graph, etc.)
+
+      @ingroup TOPPAS_elements
+  */
+  class OPENMS_GUI_DLLAPI TOPPASVertex :
+    public QObject,
+    public QGraphicsItem
+  {
+    Q_OBJECT
     //Q_INTERFACES(QGraphicsItem)  // works only >Qt4.6
 
-		public:
-			
-			/// The container for in/out edges
-			typedef QList<TOPPASEdge*> EdgeContainer;
-			/// A mutable iterator for in/out edges
-			typedef EdgeContainer::iterator EdgeIterator;
-			/// A const iterator for in/out edges
-			typedef EdgeContainer::const_iterator ConstEdgeIterator;
-			/// Info for one edge and round, to be passed to next node
-      struct VertexRoundPackage
+public:
+
+    /// The container for in/out edges
+    typedef QList<TOPPASEdge *> EdgeContainer;
+    /// A mutable iterator for in/out edges
+    typedef EdgeContainer::iterator EdgeIterator;
+    /// A const iterator for in/out edges
+    typedef EdgeContainer::const_iterator ConstEdgeIterator;
+    /// Info for one edge and round, to be passed to next node
+    struct VertexRoundPackage
+    {
+      VertexRoundPackage() :
+        filenames(),
+        edge(0)
       {
-        VertexRoundPackage()
-          : filenames(),
-            edge(0)
-        {
-        }
-        QStringList filenames; //< filenames passed from upstream node in this round
-        TOPPASEdge* edge; //< edge that connects the upstream node to the current one
-      };
+      }
 
-      /// all infos to process one round for a vertex (from all incoming vertices)
-      /// indexing via "parameter_index" of adjacent edge (could later be param_name) -> filenames
-      /// Index for input and output edges is (-1) implicitly, thus we need signed type
-      /// warning: the index refers to either input OR output (depending on if this structure is used for input files storage or output files storage)
-      typedef std::map<Int, VertexRoundPackage> RoundPackage;
-      typedef RoundPackage::const_iterator RoundPackageConstIt;
-      typedef RoundPackage::iterator RoundPackageIt;
+      QStringList filenames;   //< filenames passed from upstream node in this round
+      TOPPASEdge * edge;  //< edge that connects the upstream node to the current one
+    };
 
-      /// all information a node needs to process all rounds
-      typedef std::vector<RoundPackage> RoundPackages;
+    /// all infos to process one round for a vertex (from all incoming vertices)
+    /// indexing via "parameter_index" of adjacent edge (could later be param_name) -> filenames
+    /// Index for input and output edges is (-1) implicitly, thus we need signed type
+    /// warning: the index refers to either input OR output (depending on if this structure is used for input files storage or output files storage)
+    typedef std::map<Int, VertexRoundPackage> RoundPackage;
+    typedef RoundPackage::const_iterator RoundPackageConstIt;
+    typedef RoundPackage::iterator RoundPackageIt;
 
-			/// The color of a vertex during depth-first search
-			enum DFS_COLOR
-			{
-				DFS_WHITE,
-				DFS_GRAY,
-				DFS_BLACK
-			};
-			
-			/// Default Constructor
-			TOPPASVertex();
-			/// Copy constructor
-			TOPPASVertex(const TOPPASVertex& rhs);
-			/// Destructor
-			virtual ~TOPPASVertex();
-			/// Assignment operator
-			TOPPASVertex& operator= (const TOPPASVertex& rhs);
-			
-      /// get the round package for this node from upstream
-      /// -- indices in 'RoundPackage' mapping are thus referring to incoming edges of this node
-      /// returns false on failure
-      bool buildRoundPackages(RoundPackages& pkg, String& error_msg);
+    /// all information a node needs to process all rounds
+    typedef std::vector<RoundPackage> RoundPackages;
 
-      /// check if all upstream nodes are ready to go ( 'finished_' is true)
-      bool isUpstreamReady();
+    /// The color of a vertex during depth-first search
+    enum DFS_COLOR
+    {
+      DFS_WHITE,
+      DFS_GRAY,
+      DFS_BLACK
+    };
 
-			/// Returns the bounding rectangle of this item
-			virtual QRectF boundingRect() const = 0;
-			/// Returns a more precise shape
-			virtual QPainterPath shape () const = 0;
-			/// Paints the item
-			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) = 0;
-			/// Returns begin() iterator of outgoing edges
-			ConstEdgeIterator outEdgesBegin() const;
-			/// Returns end() iterator of outgoing edges
-			ConstEdgeIterator outEdgesEnd() const;
-			/// Returns begin() iterator of incoming edges
-			ConstEdgeIterator inEdgesBegin() const;
-			/// Returns end() iterator of incoming edges
-			ConstEdgeIterator inEdgesEnd() const;
-			/// Returns the number of incoming edges
-			Size incomingEdgesCount();
-			/// Returns the number of outgoing edges
-			Size outgoingEdgesCount();
-			/// Adds an incoming edge
-			void addInEdge(TOPPASEdge* edge);
-			/// Adds an outgoing edge
-			void addOutEdge(TOPPASEdge* edge);
-			/// Removes an incoming edge
-			void removeInEdge(TOPPASEdge* edge);
-			/// Removes an outgoing edge
-			void removeOutEdge(TOPPASEdge* edge);
-			/// Returns the DFS color of this node
-			DFS_COLOR getDFSColor();
-			/// Sets the DFS color of this node
-			void setDFSColor(DFS_COLOR color);
-			/// Returns the DFS parent of this node
-			TOPPASVertex* getDFSParent();
-			/// Sets the DFS parent of this node
-			void setDFSParent(TOPPASVertex* parent);
-			/// Sets whether all tools in the subtree below this node are finished
-			void setSubtreeFinished(bool b);
-			/// Returns whether the vertex has been marked already (during topological sort)
-			bool isTopoSortMarked();
-			/// (Un)marks the vertex (during topological sort)
-			void setTopoSortMarked(bool b);
-			/// Returns the topological sort number
-			UInt getTopoNr();
-			/// Sets the topological sort number (overridden in tool and output vertices)
-			virtual void setTopoNr(UInt nr);
-			/// Resets the status
-			virtual void reset(bool reset_all_files = false);
-			/// Marks this node (and everything further downstream) as unreachable. Overridden behavior in mergers.
-			virtual void markUnreachable();
-			/// Returns whether this node is reachable
-			bool isReachable();
-			/// Returns whether this node has already been processed during the current pipeline execution
-			bool isFinished();
-      /// run the tool (either ToolVertex, Merger, or OutputNode)
-      /// @exception NotImplemented
-      virtual void run();
-      /// invert status of recycling
-      bool invertRecylingMode();
-      /// get status of recycling
-      bool isRecyclingEnabled() const;
-      /// set status of recycling
-      void setRecycling(const bool is_enabled);
-      
-      // get the name of the vertex (to be overridden by derived classes)
-      virtual String getName() const = 0;
+    /// Default Constructor
+    TOPPASVertex();
+    /// Copy constructor
+    TOPPASVertex(const TOPPASVertex & rhs);
+    /// Destructor
+    virtual ~TOPPASVertex();
+    /// Assignment operator
+    TOPPASVertex & operator=(const TOPPASVertex & rhs);
 
-      /**
-        @brief gets filenames for a certain output parameter (from this vertex), for a certain TOPPAS round
+    /// get the round package for this node from upstream
+    /// -- indices in 'RoundPackage' mapping are thus referring to incoming edges of this node
+    /// returns false on failure
+    bool buildRoundPackages(RoundPackages & pkg, String & error_msg);
+
+    /// check if all upstream nodes are ready to go ( 'finished_' is true)
+    bool isUpstreamReady();
+
+    /// Returns the bounding rectangle of this item
+    virtual QRectF boundingRect() const = 0;
+    /// Returns a more precise shape
+    virtual QPainterPath shape() const = 0;
+    /// Paints the item
+    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) = 0;
+    /// Returns begin() iterator of outgoing edges
+    ConstEdgeIterator outEdgesBegin() const;
+    /// Returns end() iterator of outgoing edges
+    ConstEdgeIterator outEdgesEnd() const;
+    /// Returns begin() iterator of incoming edges
+    ConstEdgeIterator inEdgesBegin() const;
+    /// Returns end() iterator of incoming edges
+    ConstEdgeIterator inEdgesEnd() const;
+    /// Returns the number of incoming edges
+    Size incomingEdgesCount();
+    /// Returns the number of outgoing edges
+    Size outgoingEdgesCount();
+    /// Adds an incoming edge
+    void addInEdge(TOPPASEdge * edge);
+    /// Adds an outgoing edge
+    void addOutEdge(TOPPASEdge * edge);
+    /// Removes an incoming edge
+    void removeInEdge(TOPPASEdge * edge);
+    /// Removes an outgoing edge
+    void removeOutEdge(TOPPASEdge * edge);
+    /// Returns the DFS color of this node
+    DFS_COLOR getDFSColor();
+    /// Sets the DFS color of this node
+    void setDFSColor(DFS_COLOR color);
+    /// Returns the DFS parent of this node
+    TOPPASVertex * getDFSParent();
+    /// Sets the DFS parent of this node
+    void setDFSParent(TOPPASVertex * parent);
+    /// Sets whether all tools in the subtree below this node are finished
+    void setSubtreeFinished(bool b);
+    /// Returns whether the vertex has been marked already (during topological sort)
+    bool isTopoSortMarked();
+    /// (Un)marks the vertex (during topological sort)
+    void setTopoSortMarked(bool b);
+    /// Returns the topological sort number
+    UInt getTopoNr();
+    /// Sets the topological sort number (overridden in tool and output vertices)
+    virtual void setTopoNr(UInt nr);
+    /// Resets the status
+    virtual void reset(bool reset_all_files = false);
+    /// Marks this node (and everything further downstream) as unreachable. Overridden behavior in mergers.
+    virtual void markUnreachable();
+    /// Returns whether this node is reachable
+    bool isReachable();
+    /// Returns whether this node has already been processed during the current pipeline execution
+    bool isFinished();
+    /// run the tool (either ToolVertex, Merger, or OutputNode)
+    /// @exception NotImplemented
+    virtual void run();
+    /// invert status of recycling
+    bool invertRecylingMode();
+    /// get status of recycling
+    bool isRecyclingEnabled() const;
+    /// set status of recycling
+    void setRecycling(const bool is_enabled);
+
+    // get the name of the vertex (to be overridden by derived classes)
+    virtual String getName() const = 0;
+
+    /**
+      @brief gets filenames for a certain output parameter (from this vertex), for a certain TOPPAS round
 
 
-      */
-      QStringList getFileNames(int param_index, int round) const;
+    */
+    QStringList getFileNames(int param_index, int round) const;
 
-      /// get all output files for all parameters for all rounds
-      QStringList getFileNames() const;
+    /// get all output files for all parameters for all rounds
+    QStringList getFileNames() const;
 
-      // get the output structure directly
-      const RoundPackages& getOutputFiles() const;
+    // get the output structure directly
+    const RoundPackages & getOutputFiles() const;
 
 
-      /// check if all upstream nodes are finished
-      bool allInputsReady();
+    /// check if all upstream nodes are finished
+    bool allInputsReady();
 
-		
-		public slots:
-		
-			/// Called by an incoming edge when it has changed
-			virtual void inEdgeHasChanged();
-		
-		signals:
-			
-			/// Emitted when this item is clicked
-			void clicked();
-			/// Emitted when this item is released
-			void released();
-			/// Emitted when the position of the hovering edge changes
-			void hoveringEdgePosChanged(const QPointF& new_pos);
-			/// Emitted when a new out edge is supposed to be created
-			void newHoveringEdge(const QPointF& pos);
-			/// Emitted when the mouse is released after having dragged a new edge somewhere
-			void finishHoveringEdge();
-			/// Emitted when something has changed
-			void somethingHasChanged();
-			/// Emitted when the item is dragged
-			void itemDragged(qreal dx, qreal dy);
-			
-		protected:
-			
-			/// The list of incoming edges
-			EdgeContainer in_edges_;
-			/// The list of outgoing edges
-			EdgeContainer out_edges_;
-			/// Indicates whether a new out edge is currently being created
-			bool edge_being_created_;
-			/// The color of the pen
-			QColor pen_color_;
-			/// The color of the brush
-			QColor brush_color_;
-			/// The DFS color of this node
-			DFS_COLOR dfs_color_;
-			/// The DFS parent of this node
-			TOPPASVertex* dfs_parent_;
-			/// "marked" flag for topological sort
-			bool topo_sort_marked_;
-			/// The number in a topological sort of the entire graph
-			UInt topo_nr_;
-			/// Stores the current output file names for each output parameter
-			RoundPackages output_files_;
-      /// number of rounds this node will do ('Merge All' nodes will pass everything, thus do only one round)
-      int round_total_;
-      /// currently finished number of rounds (TODO: do we need that?)
-      int round_counter_;
-			/// Stores whether this node has already been processed during the current pipeline execution
-			bool finished_;
-			/// Indicates whether this node is reachable (i.e. there is an input node somewhere further upstream)
-			bool reachable_;
-      /// shall subsequent tools be allowed to recycle the output of this node to match the number of rounds imposed by other parent nodes?
-      bool allow_output_recycling_;
 
-			
-			#ifdef TOPPAS_DEBUG
-			// Indentation level for nicer debug output
-			static int global_debug_indent_;
-			#endif
-			
-			///@name reimplemented Qt events
-      //@{
-      void mouseReleaseEvent(QGraphicsSceneMouseEvent* e);
-      void mousePressEvent(QGraphicsSceneMouseEvent* e);
-      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
-      void mouseMoveEvent(QGraphicsSceneMouseEvent* e);
-      void contextMenuEvent(QGraphicsSceneContextMenuEvent* event);
-			//@}
-			
-			/// Moves the target pos of the edge which is just being created to @p pos
-			virtual void moveNewEdgeTo_(const QPointF& pos);
-			/// Returns a three character string (i.e. 001 instead of 1) for the given @p number
-			String get3CharsNumber_(UInt number) const;
-			
-			/// Displays the debug output @p message, if TOPPAS_DEBUG is defined
-			void debugOut_(const String&
-			#ifdef TOPPAS_DEBUG
-			message
-			#endif
-			)
-			{
-				#ifdef TOPPAS_DEBUG
-				for (int i = 0; i < global_debug_indent_; ++i)
-				{
-					std::cout << "  ";
-				}
-				std::cout << "[" << topo_nr_ << "] " << message << std::endl;
-				#endif
-			}
-	};
+public slots:
+
+    /// Called by an incoming edge when it has changed
+    virtual void inEdgeHasChanged();
+
+signals:
+
+    /// Emitted when this item is clicked
+    void clicked();
+    /// Emitted when this item is released
+    void released();
+    /// Emitted when the position of the hovering edge changes
+    void hoveringEdgePosChanged(const QPointF & new_pos);
+    /// Emitted when a new out edge is supposed to be created
+    void newHoveringEdge(const QPointF & pos);
+    /// Emitted when the mouse is released after having dragged a new edge somewhere
+    void finishHoveringEdge();
+    /// Emitted when something has changed
+    void somethingHasChanged();
+    /// Emitted when the item is dragged
+    void itemDragged(qreal dx, qreal dy);
+
+protected:
+
+    /// The list of incoming edges
+    EdgeContainer in_edges_;
+    /// The list of outgoing edges
+    EdgeContainer out_edges_;
+    /// Indicates whether a new out edge is currently being created
+    bool edge_being_created_;
+    /// The color of the pen
+    QColor pen_color_;
+    /// The color of the brush
+    QColor brush_color_;
+    /// The DFS color of this node
+    DFS_COLOR dfs_color_;
+    /// The DFS parent of this node
+    TOPPASVertex * dfs_parent_;
+    /// "marked" flag for topological sort
+    bool topo_sort_marked_;
+    /// The number in a topological sort of the entire graph
+    UInt topo_nr_;
+    /// Stores the current output file names for each output parameter
+    RoundPackages output_files_;
+    /// number of rounds this node will do ('Merge All' nodes will pass everything, thus do only one round)
+    int round_total_;
+    /// currently finished number of rounds (TODO: do we need that?)
+    int round_counter_;
+    /// Stores whether this node has already been processed during the current pipeline execution
+    bool finished_;
+    /// Indicates whether this node is reachable (i.e. there is an input node somewhere further upstream)
+    bool reachable_;
+    /// shall subsequent tools be allowed to recycle the output of this node to match the number of rounds imposed by other parent nodes?
+    bool allow_output_recycling_;
+
+
+            #ifdef TOPPAS_DEBUG
+    // Indentation level for nicer debug output
+    static int global_debug_indent_;
+            #endif
+
+    ///@name reimplemented Qt events
+    //@{
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent * e);
+    void mousePressEvent(QGraphicsSceneMouseEvent * e);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent * e);
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event);
+    //@}
+
+    /// Moves the target pos of the edge which is just being created to @p pos
+    virtual void moveNewEdgeTo_(const QPointF & pos);
+    /// Returns a three character string (i.e. 001 instead of 1) for the given @p number
+    String get3CharsNumber_(UInt number) const;
+
+    /// Displays the debug output @p message, if TOPPAS_DEBUG is defined
+    void debugOut_(const String &
+            #ifdef TOPPAS_DEBUG
+                   message
+            #endif
+                   )
+    {
+                #ifdef TOPPAS_DEBUG
+      for (int i = 0; i < global_debug_indent_; ++i)
+      {
+        std::cout << "  ";
+      }
+      std::cout << "[" << topo_nr_ << "] " << message << std::endl;
+                #endif
+    }
+
+  };
 }
 
 #endif

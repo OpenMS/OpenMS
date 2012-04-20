@@ -37,77 +37,77 @@
 
 namespace OpenMS
 {
-	class TOPPASScene;
-	class Param;
+  class TOPPASScene;
+  class Param;
 
   /**
-  	@brief Widget visualizing and allowing to edit TOPP pipelines.
-  	
-  	This class is a subclass of QGraphicsView and visualizes a TOPPASScene.
-  	Several TOPPASWidgets can be opened in TOPPAS at the same time,
-  	managed by a QWorkspace.
-		
-		@ingroup TOPPAS_elements
+    @brief Widget visualizing and allowing to edit TOPP pipelines.
+
+    This class is a subclass of QGraphicsView and visualizes a TOPPASScene.
+    Several TOPPASWidgets can be opened in TOPPAS at the same time,
+    managed by a QWorkspace.
+
+        @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASWidget
-    : public QGraphicsView,
-      public EnhancedTabBarWidgetInterface
+  class OPENMS_GUI_DLLAPI TOPPASWidget :
+    public QGraphicsView,
+    public EnhancedTabBarWidgetInterface
   {
-      Q_OBJECT
+    Q_OBJECT
 
-    public:
-    
-      /// Default constructor
-      TOPPASWidget(const Param& preferences, QWidget* parent = 0, const String& tmp_path = "");
+public:
 
-      /// Destructor
-      virtual ~TOPPASWidget();
+    /// Default constructor
+    TOPPASWidget(const Param & preferences, QWidget * parent = 0, const String & tmp_path = "");
 
-      /// setter from EnhancedTabBarWidgetInterface
-      virtual void setWindowId(Int id);
+    /// Destructor
+    virtual ~TOPPASWidget();
 
-      /// getter from EnhancedTabBarWidgetInterface
-      virtual Int getWindowId();
+    /// setter from EnhancedTabBarWidgetInterface
+    virtual void setWindowId(Int id);
 
-			/// Returns the scene
-			TOPPASScene* getScene();
-			/// Zooms in or out, depending on @p zoom_in
-			void zoom(bool zoom_in);
-		
-		signals:
-		
-			/// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
-			void sendStatusMessage(std::string message, OpenMS::UInt time);
-			/// Emitted when the cursor position changes (for displaying e.g. in status bar)
-			void sendCursorStatus(double x=0.0, double y=0.0);
-			/// Message about the destruction of this widget
-		  void aboutToBeDestroyed(int w_id);
-		  /// Emitted when a drop event occurs
-		  void toolDroppedOnWidget(double x = 0.0, double y = 0.0);
-		  /// Emitted when a drop event occurs
-      void pipelineDroppedOnWidget(const String& filename, bool new_window);
-		
-		protected:
-		
-			/// The scene visualized by this widget
-			TOPPASScene* scene_;
-			
-			///@name reimplemented QT events
-			//@{
-			void wheelEvent(QWheelEvent* event);
-			void keyPressEvent(QKeyEvent* e);
-			void keyReleaseEvent(QKeyEvent* e);
-			void leaveEvent(QEvent* e);
-			void enterEvent(QEvent* e);
-			void dragEnterEvent(QDragEnterEvent* event);
-			void dragMoveEvent(QDragMoveEvent* event);
-			void dropEvent(QDropEvent* event);
-			void resizeEvent(QResizeEvent* event);
-			void closeEvent(QCloseEvent* e);
-			//@}
+    /// getter from EnhancedTabBarWidgetInterface
+    virtual Int getWindowId();
 
-      /// Widget id used as identifier
-      Int window_id_;
+    /// Returns the scene
+    TOPPASScene * getScene();
+    /// Zooms in or out, depending on @p zoom_in
+    void zoom(bool zoom_in);
+
+signals:
+
+    /// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
+    void sendStatusMessage(std::string message, OpenMS::UInt time);
+    /// Emitted when the cursor position changes (for displaying e.g. in status bar)
+    void sendCursorStatus(double x = 0.0, double y = 0.0);
+    /// Message about the destruction of this widget
+    void aboutToBeDestroyed(int w_id);
+    /// Emitted when a drop event occurs
+    void toolDroppedOnWidget(double x = 0.0, double y = 0.0);
+    /// Emitted when a drop event occurs
+    void pipelineDroppedOnWidget(const String & filename, bool new_window);
+
+protected:
+
+    /// The scene visualized by this widget
+    TOPPASScene * scene_;
+
+    ///@name reimplemented QT events
+    //@{
+    void wheelEvent(QWheelEvent * event);
+    void keyPressEvent(QKeyEvent * e);
+    void keyReleaseEvent(QKeyEvent * e);
+    void leaveEvent(QEvent * e);
+    void enterEvent(QEvent * e);
+    void dragEnterEvent(QDragEnterEvent * event);
+    void dragMoveEvent(QDragMoveEvent * event);
+    void dropEvent(QDropEvent * event);
+    void resizeEvent(QResizeEvent * event);
+    void closeEvent(QCloseEvent * e);
+    //@}
+
+    /// Widget id used as identifier
+    Int window_id_;
   };
 }
 

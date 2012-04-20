@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -34,143 +34,144 @@
 
 namespace OpenMS
 {
-	TOPPASMergerVertex::TOPPASMergerVertex()
-		:	TOPPASVertex(),
-			round_based_mode_(true)
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-
-  TOPPASMergerVertex::TOPPASMergerVertex(bool round_based)
-    :	TOPPASVertex(),
-      round_based_mode_(round_based)
+  TOPPASMergerVertex::TOPPASMergerVertex() :
+    TOPPASVertex(),
+    round_based_mode_(true)
   {
     pen_color_ = Qt::black;
     brush_color_ = Qt::lightGray;
   }
-	
-	TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex& rhs)
-		:	TOPPASVertex(rhs),
-			round_based_mode_(rhs.round_based_mode_)
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
-	TOPPASMergerVertex::~TOPPASMergerVertex()
-	{
-	}
-	
-  TOPPASMergerVertex& TOPPASMergerVertex::operator= (const TOPPASMergerVertex& rhs)
-	{
-		TOPPASVertex::operator=(rhs);
-		round_based_mode_ = rhs.round_based_mode_;
 
-		return *this;
-	}
-	
+  TOPPASMergerVertex::TOPPASMergerVertex(bool round_based) :
+    TOPPASVertex(),
+    round_based_mode_(round_based)
+  {
+    pen_color_ = Qt::black;
+    brush_color_ = Qt::lightGray;
+  }
+
+  TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex & rhs) :
+    TOPPASVertex(rhs),
+    round_based_mode_(rhs.round_based_mode_)
+  {
+    pen_color_ = Qt::black;
+    brush_color_ = Qt::lightGray;
+  }
+
+  TOPPASMergerVertex::~TOPPASMergerVertex()
+  {
+  }
+
+  TOPPASMergerVertex & TOPPASMergerVertex::operator=(const TOPPASMergerVertex & rhs)
+  {
+    TOPPASVertex::operator=(rhs);
+    round_based_mode_ = rhs.round_based_mode_;
+
+    return *this;
+  }
+
   String TOPPASMergerVertex::getName() const
   {
     return "MergerVertex";
   }
 
-	void TOPPASMergerVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
-	{
-	}
+  void TOPPASMergerVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * /*e*/)
+  {
+  }
 
-	void TOPPASMergerVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
-	{
-		__DEBUG_BEGIN_METHOD__
-		
-		QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-		if (isSelected())
-		{
-			pen.setWidth(2);
-			painter->setBrush(brush_color_.darker(130));
-			pen.setColor(Qt::darkBlue);
-		}
-		else
-		{
-			painter->setBrush(brush_color_);
-		}
-		painter->setPen(pen);
-		
-		QPainterPath path;
-		path.addRoundRect(-40.0, -40.0, 80.0, 80.0, 20, 20);
- 		painter->drawPath(path);
- 		
- 		pen.setColor(pen_color_);
- 		painter->setPen(pen);
-		
+  void TOPPASMergerVertex::paint(QPainter * painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
+  {
+    __DEBUG_BEGIN_METHOD__
+
+    QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+    if (isSelected())
+    {
+      pen.setWidth(2);
+      painter->setBrush(brush_color_.darker(130));
+      pen.setColor(Qt::darkBlue);
+    }
+    else
+    {
+      painter->setBrush(brush_color_);
+    }
+    painter->setPen(pen);
+
+    QPainterPath path;
+    path.addRoundRect(-40.0, -40.0, 80.0, 80.0, 20, 20);
+    painter->drawPath(path);
+
+    pen.setColor(pen_color_);
+    painter->setPen(pen);
+
     QString text = round_based_mode_ ? "Merge" : "Collect";
-		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
-		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
-		
+    QRectF text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
+    painter->drawText(-(int)(text_boundings.width() / 2.0), (int)(text_boundings.height() / 4.0), text);
+
     if (round_total_ != -1) // draw round number
     {
-      text = QString::number(round_counter_)+" / "+QString::number(round_total_);
-  		text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
-	  	painter->drawText(-(int)(text_boundings.width()/2.0), 31, text);
+      text = QString::number(round_counter_) + " / " + QString::number(round_total_);
+      text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
+      painter->drawText(-(int)(text_boundings.width() / 2.0), 31, text);
     }
 
-		//topo sort number
-		qreal x_pos = -36.0;
-		qreal y_pos = -23.0; 
-		painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
-		
-		
-		// recycling status
+    //topo sort number
+    qreal x_pos = -36.0;
+    qreal y_pos = -23.0;
+    painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
+
+
+    // recycling status
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      QSvgRenderer * svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
       svg_renderer->render(painter, QRectF(-7, -32, 14, 14));
     }
 
     __DEBUG_END_METHOD__
-	}
-	
-	QRectF TOPPASMergerVertex::boundingRect() const
-	{
-		return QRectF(-41,-41,82,82);
-	}
-	
-	QPainterPath TOPPASMergerVertex::shape () const
-	{
-		QPainterPath shape;
-		shape.addRoundRect(-41.0, -41.0, 82.0, 82.0, 20, 20);
-		return shape;
-	}
-	
-	bool TOPPASMergerVertex::roundBasedMode()
-	{
-		return round_based_mode_;
-	}
-	
-	void TOPPASMergerVertex::markUnreachable()
-	{
-		//only mark as unreachable if all inputs are unreachable. otherwise the dead inputs will just be ignored.
-		bool some_input_reachable_ = false;
-		for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
-		{
-			TOPPASVertex* tv = (*it)->getSourceVertex();
-			if (tv->isReachable())
-			{
-				some_input_reachable_ = true;
-				break;
-			}
-		}
-		if (!some_input_reachable_)
-		{
-			TOPPASVertex::markUnreachable();
-		}
-	}
+  }
+
+  QRectF TOPPASMergerVertex::boundingRect() const
+  {
+    return QRectF(-41, -41, 82, 82);
+  }
+
+  QPainterPath TOPPASMergerVertex::shape() const
+  {
+    QPainterPath shape;
+    shape.addRoundRect(-41.0, -41.0, 82.0, 82.0, 20, 20);
+    return shape;
+  }
+
+  bool TOPPASMergerVertex::roundBasedMode()
+  {
+    return round_based_mode_;
+  }
+
+  void TOPPASMergerVertex::markUnreachable()
+  {
+    //only mark as unreachable if all inputs are unreachable. otherwise the dead inputs will just be ignored.
+    bool some_input_reachable_ = false;
+    for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
+    {
+      TOPPASVertex * tv = (*it)->getSourceVertex();
+      if (tv->isReachable())
+      {
+        some_input_reachable_ = true;
+        break;
+      }
+    }
+    if (!some_input_reachable_)
+    {
+      TOPPASVertex::markUnreachable();
+    }
+  }
 
   void TOPPASMergerVertex::run()
   {
     //check if everything ready
-		if (!isUpstreamReady())	return;
+    if (!isUpstreamReady())
+      return;
 
     RoundPackages pkg;
     String error_msg("");
@@ -184,11 +185,11 @@ namespace OpenMS
 
     /// update round status
     Size input_rounds = pkg.size();
-    round_total_ = (round_based_mode_ ? (int) input_rounds : 1) ; // for round based: take number of rounds from previous tool(s) - should all be equal
+    round_total_ = (round_based_mode_ ? (int) input_rounds : 1);  // for round based: take number of rounds from previous tool(s) - should all be equal
     round_counter_ = 0;        // once round_counter_ reaches round_total_, we are done
 
     // clear output file list
-		output_files_.clear();
+    output_files_.clear();
     output_files_.resize(round_total_); // #rounds
 
     // Do the virtual merging (nothing more than reorganizing filenames)
@@ -197,25 +198,26 @@ namespace OpenMS
       QStringList files;
       // warning: ite->first (i.e. target-in param could be -1,-2,... etc to cover all incoming edges (they all have -1 theoretically - see buildRoundPackages())
       for (RoundPackageConstIt ite = pkg[round].begin();
-                               ite!= pkg[round].end();
-                               ++ite)
-			{
-        files.append( ite->second.filenames ); // concat filenames from all incoming edges
+           ite != pkg[round].end();
+           ++ite)
+      {
+        files.append(ite->second.filenames);   // concat filenames from all incoming edges
       }
       Size round_index = (round_based_mode_ ? round : 0);
-      output_files_[round_index][-1].filenames.append ( files ); // concat over all rounds (if required)
+      output_files_[round_index][-1].filenames.append(files);    // concat over all rounds (if required)
     }
 
     round_counter_ = round_total_;
     finished_ = true;
-    
+
     // call all children, proceed in pipeline
-		for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-		{
-			TOPPASVertex* tv = (*it)->getTargetVertex();
-			debugOut_(String("Starting child ") + tv->getTopoNr());
-			tv->run();
-		}
+    for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+    {
+      TOPPASVertex * tv = (*it)->getTargetVertex();
+      debugOut_(String("Starting child ") + tv->getTopoNr());
+      tv->run();
+    }
 
   }
+
 }

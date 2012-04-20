@@ -41,56 +41,56 @@ namespace OpenMS
   @brief Behavior of TOPPView in spectra view mode.
   */
   class TOPPViewSpectraViewBehavior :
-      public TOPPViewBehaviorInterface
+    public TOPPViewBehaviorInterface
   {
     Q_OBJECT
     ///@name Type definitions
     //@{
-      //Feature map type
-      typedef LayerData::FeatureMapType FeatureMapType;
-      //Feature map managed type
-      typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
+    //Feature map type
+    typedef LayerData::FeatureMapType FeatureMapType;
+    //Feature map managed type
+    typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
-      //Consensus feature map type
-      typedef LayerData::ConsensusMapType ConsensusMapType;
-      //Consensus  map managed type
-      typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
+    //Consensus feature map type
+    typedef LayerData::ConsensusMapType ConsensusMapType;
+    //Consensus  map managed type
+    typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
-      //Peak map type
-      typedef LayerData::ExperimentType ExperimentType;
-      //Main managed data type (experiment)
-      typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
-      ///Peak spectrum type
-      typedef ExperimentType::SpectrumType SpectrumType;
+    //Peak map type
+    typedef LayerData::ExperimentType ExperimentType;
+    //Main managed data type (experiment)
+    typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    ///Peak spectrum type
+    typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
-    public:
-      /// Construct the behaviour with its parent
-      TOPPViewSpectraViewBehavior(TOPPViewBase* parent);
+public:
+    /// Construct the behaviour with its parent
+    TOPPViewSpectraViewBehavior(TOPPViewBase * parent);
 
-    public slots:
-      /// Behavior for showSpectrumAs1D
-      virtual void showSpectrumAs1D(int index);
+public slots:
+    /// Behavior for showSpectrumAs1D
+    virtual void showSpectrumAs1D(int index);
 
-      /// Behavior for showSpectrumAs1D
-      virtual void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    /// Behavior for showSpectrumAs1D
+    virtual void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
 
-      /// Behavior for activate1DSpectrum
-      virtual void activate1DSpectrum(int index);
+    /// Behavior for activate1DSpectrum
+    virtual void activate1DSpectrum(int index);
 
-      /// Behavior for activate1DSpectrum
-      virtual void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
+    /// Behavior for activate1DSpectrum
+    virtual void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
 
-      /// Behavior for deactivate1DSpectrum
-      virtual void deactivate1DSpectrum(int index);
+    /// Behavior for deactivate1DSpectrum
+    virtual void deactivate1DSpectrum(int index);
 
-      /// Slot for behavior activation
-      virtual void activateBehavior();
+    /// Slot for behavior activation
+    virtual void activateBehavior();
 
-      /// Slot for behavior deactivation
-      virtual void deactivateBehavior();
-    private:
-      TOPPViewBase* tv_;
+    /// Slot for behavior deactivation
+    virtual void deactivateBehavior();
+private:
+    TOPPViewBase * tv_;
   };
 }
 #endif // OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H

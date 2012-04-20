@@ -42,73 +42,72 @@ class QContextMenuEvent;
 //std lib
 #include <vector>
 
-namespace OpenMS 
+namespace OpenMS
 {
 
-	/**
-		@brief A widget witch allows constructing gradients of multiple colors.
-		
-		@image html MultiGradientSelector.png
-		
-		The above example image shows a MultiGradientSelector.
-		
-		@ingroup Visual
-	*/
-	class OPENMS_GUI_DLLAPI MultiGradientSelector
-		: public QWidget
-	{
-		Q_OBJECT
-		public:
-			///Constructor
-			MultiGradientSelector( QWidget* parent = 0);
-			///Desctructor
-			~MultiGradientSelector();
-			
-			///returns a const reference to the gradient
-			const MultiGradient& gradient() const;
-			///returns a mutable reference to the gradient
-			MultiGradient& gradient();
-		
-			/// sets the interploation mode
-			void setInterpolationMode(MultiGradient::InterpolationMode mode);
-			/// returns the interpolaion mode
-			MultiGradient::InterpolationMode getInterpolationMode() const;
-		
-			public slots:
-			/// sets what interpolation mode is used
-			void stairsInterpolation(bool state);
-	
-		protected:
-			///@name Reimpelented Qt events
-			//@{
-			void paintEvent(QPaintEvent* e);
-			void mousePressEvent(QMouseEvent* e);
-			void mouseMoveEvent(QMouseEvent* e);		
-			void mouseReleaseEvent(QMouseEvent* e);
-			void mouseDoubleClickEvent (QMouseEvent* e);
-			void keyPressEvent(QKeyEvent* e);
-			void contextMenuEvent(QContextMenuEvent* e);
-			//@}
-			
-			// the actual gradient
-			MultiGradient gradient_;
-			
-			// border margin
-			Int margin_;
-			// height of the gradient area
-			Int gradient_area_width_;
-			// heigth of the lever area
-			Int lever_area_height_;
-			
-			//position (0-100) in the vector of the selected lever
-			Int selected_;
-			//color of the selected lever
-			QColor selected_color_;  
-			
-			//stores if the left button is pressed
-			bool left_button_pressed_;
-	};
+  /**
+      @brief A widget witch allows constructing gradients of multiple colors.
+
+      @image html MultiGradientSelector.png
+
+      The above example image shows a MultiGradientSelector.
+
+      @ingroup Visual
+  */
+  class OPENMS_GUI_DLLAPI MultiGradientSelector :
+    public QWidget
+  {
+    Q_OBJECT
+public:
+    ///Constructor
+    MultiGradientSelector(QWidget * parent = 0);
+    ///Desctructor
+    ~MultiGradientSelector();
+
+    ///returns a const reference to the gradient
+    const MultiGradient & gradient() const;
+    ///returns a mutable reference to the gradient
+    MultiGradient & gradient();
+
+    /// sets the interploation mode
+    void setInterpolationMode(MultiGradient::InterpolationMode mode);
+    /// returns the interpolaion mode
+    MultiGradient::InterpolationMode getInterpolationMode() const;
+
+public slots:
+    /// sets what interpolation mode is used
+    void stairsInterpolation(bool state);
+
+protected:
+    ///@name Reimpelented Qt events
+    //@{
+    void paintEvent(QPaintEvent * e);
+    void mousePressEvent(QMouseEvent * e);
+    void mouseMoveEvent(QMouseEvent * e);
+    void mouseReleaseEvent(QMouseEvent * e);
+    void mouseDoubleClickEvent(QMouseEvent * e);
+    void keyPressEvent(QKeyEvent * e);
+    void contextMenuEvent(QContextMenuEvent * e);
+    //@}
+
+    // the actual gradient
+    MultiGradient gradient_;
+
+    // border margin
+    Int margin_;
+    // height of the gradient area
+    Int gradient_area_width_;
+    // heigth of the lever area
+    Int lever_area_height_;
+
+    //position (0-100) in the vector of the selected lever
+    Int selected_;
+    //color of the selected lever
+    QColor selected_color_;
+
+    //stores if the left button is pressed
+    bool left_button_pressed_;
+  };
 
 }
 #endif // OPENMS_VISUAL_MULTIGRADIENTSELECTOR_H
-

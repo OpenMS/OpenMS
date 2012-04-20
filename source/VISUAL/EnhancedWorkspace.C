@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -34,39 +34,38 @@
 #include <QtCore/QStringList>
 
 namespace OpenMS
-{	
-	
-	EnhancedWorkspace::EnhancedWorkspace(QWidget* parent)
-		:	QWorkspace(parent)
-	{
-		setAcceptDrops(true);
-	}
-	
-	EnhancedWorkspace::~EnhancedWorkspace()
-	{
-	}
-	
-	void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent* event)
-	{
-		if (event->mimeData()->hasUrls())
-		{
-			event->acceptProposedAction();
-		}
-	}
-	
-	void EnhancedWorkspace::dragMoveEvent(QDragMoveEvent* event)
-	{
-		if (event->mimeData()->hasUrls())
-		{
-			event->acceptProposedAction();
-		}
-	}
-	
-	void EnhancedWorkspace::dropEvent(QDropEvent* event)
-	{
-		emit dropReceived(event->mimeData(), event->source(), -1);
-		event->acceptProposedAction();
-	}
-	
-} //namespace
+{
 
+  EnhancedWorkspace::EnhancedWorkspace(QWidget * parent) :
+    QWorkspace(parent)
+  {
+    setAcceptDrops(true);
+  }
+
+  EnhancedWorkspace::~EnhancedWorkspace()
+  {
+  }
+
+  void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent * event)
+  {
+    if (event->mimeData()->hasUrls())
+    {
+      event->acceptProposedAction();
+    }
+  }
+
+  void EnhancedWorkspace::dragMoveEvent(QDragMoveEvent * event)
+  {
+    if (event->mimeData()->hasUrls())
+    {
+      event->acceptProposedAction();
+    }
+  }
+
+  void EnhancedWorkspace::dropEvent(QDropEvent * event)
+  {
+    emit dropReceived(event->mimeData(), event->source(), -1);
+    event->acceptProposedAction();
+  }
+
+} //namespace

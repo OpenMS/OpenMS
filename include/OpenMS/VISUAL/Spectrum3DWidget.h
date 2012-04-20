@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -32,54 +32,54 @@
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 
 namespace OpenMS
-{	
-	class Spectrum3DCanvas;
-	/**
-		@brief Widget for 3D-visualization of map data
-		
-		@image html Spectrum3DWidget.png
-		
-		@ingroup SpectrumWidgets
-	*/
-	class OPENMS_GUI_DLLAPI Spectrum3DWidget
-		: public SpectrumWidget
-	{
-		Q_OBJECT		
+{
+  class Spectrum3DCanvas;
+  /**
+      @brief Widget for 3D-visualization of map data
 
-		public:	
-			///Constructor
-			Spectrum3DWidget(const Param& preferences, QWidget* parent = 0);
-			
-			/// Destructor
-			virtual ~Spectrum3DWidget();
-			
-			/// This method is overwritten to make the class specific members accessable
-			inline Spectrum3DCanvas* canvas()
-			{
-				return static_cast<Spectrum3DCanvas*>(canvas_);
-			}
-		
-			// Docu in base class
-			virtual void recalculateAxes_();
-			// Docu in base class
-			virtual Math::Histogram<> createIntensityDistribution_() const;
-			// Docu in base class
-			virtual Math::Histogram<> createMetaDistribution_(const String& name) const;
-			
-			//docu in base class
-			bool isLegendShown() const;
-			//docu in base class
-			virtual void showLegend(bool show);
+      @image html Spectrum3DWidget.png
 
-    signals:
-      /// Requests to display all spectra in 2D plot
-      void showCurrentPeaksAs2D();
+      @ingroup SpectrumWidgets
+  */
+  class OPENMS_GUI_DLLAPI Spectrum3DWidget :
+    public SpectrumWidget
+  {
+    Q_OBJECT
 
-		public slots:
-			// Docu in base class
-	    virtual void showGoToDialog();
-	};
-	
-}//namespace
+public:
+    ///Constructor
+    Spectrum3DWidget(const Param & preferences, QWidget * parent = 0);
+
+    /// Destructor
+    virtual ~Spectrum3DWidget();
+
+    /// This method is overwritten to make the class specific members accessable
+    inline Spectrum3DCanvas * canvas()
+    {
+      return static_cast<Spectrum3DCanvas *>(canvas_);
+    }
+
+    // Docu in base class
+    virtual void recalculateAxes_();
+    // Docu in base class
+    virtual Math::Histogram<> createIntensityDistribution_() const;
+    // Docu in base class
+    virtual Math::Histogram<> createMetaDistribution_(const String & name) const;
+
+    //docu in base class
+    bool isLegendShown() const;
+    //docu in base class
+    virtual void showLegend(bool show);
+
+signals:
+    /// Requests to display all spectra in 2D plot
+    void showCurrentPeaksAs2D();
+
+public slots:
+    // Docu in base class
+    virtual void showGoToDialog();
+  };
+
+} //namespace
 
 #endif

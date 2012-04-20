@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -41,168 +41,168 @@
 
 namespace OpenMS
 {
-	TOPPASInputFileListVertex::TOPPASInputFileListVertex()
-		:	TOPPASVertex(),
-			key_()
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
-	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList& files)
-		:	TOPPASVertex(),
-			key_()
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex() :
+    TOPPASVertex(),
+    key_()
+  {
+    pen_color_ = Qt::black;
+    brush_color_ = Qt::lightGray;
+  }
+
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const QStringList & files) :
+    TOPPASVertex(),
+    key_()
+  {
+    pen_color_ = Qt::black;
+    brush_color_ = Qt::lightGray;
     setFilenames(files);
-	}
-	
-	TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs)
-		:	TOPPASVertex(rhs),
-			key_()
-	{
-		pen_color_ = Qt::black;
-		brush_color_ = Qt::lightGray;
-	}
-	
-	TOPPASInputFileListVertex::~TOPPASInputFileListVertex()
-	{
-	
-	}
-	
-	TOPPASInputFileListVertex& TOPPASInputFileListVertex::operator= (const TOPPASInputFileListVertex& rhs)
-	{
-		TOPPASVertex::operator=(rhs);
-		
-		key_ = rhs.key_;
-		
-		return *this;
-	}
-	
+  }
+
+  TOPPASInputFileListVertex::TOPPASInputFileListVertex(const TOPPASInputFileListVertex & rhs) :
+    TOPPASVertex(rhs),
+    key_()
+  {
+    pen_color_ = Qt::black;
+    brush_color_ = Qt::lightGray;
+  }
+
+  TOPPASInputFileListVertex::~TOPPASInputFileListVertex()
+  {
+
+  }
+
+  TOPPASInputFileListVertex & TOPPASInputFileListVertex::operator=(const TOPPASInputFileListVertex & rhs)
+  {
+    TOPPASVertex::operator=(rhs);
+
+    key_ = rhs.key_;
+
+    return *this;
+  }
+
   String TOPPASInputFileListVertex::getName() const
   {
     return "InputVertex";
   }
 
-	void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
-	{
-		showFilesDialog();
-	}
-	
-	void TOPPASInputFileListVertex::showFilesDialog()
-	{
-    TOPPASInputFilesDialog tifd(this->getFileNames());
-		if (tifd.exec())
-		{
-      QStringList updated_filelist;
-			tifd.getFilenames(updated_filelist);
-      this->setFilenames(updated_filelist); // to correct filenames (separators etc)
-			qobject_cast<TOPPASScene*>(scene())->setChanged(true);
-			qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
-			emit somethingHasChanged();
-		}
-	}
-	
+  void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * /*e*/)
+  {
+    showFilesDialog();
+  }
 
-	
-	void TOPPASInputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
-	{
-		QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-		if (isSelected())
-		{
-			pen.setWidth(2);
-			painter->setBrush(brush_color_.darker(130));
-			pen.setColor(Qt::darkBlue);
-		}
-		else
-		{
-			painter->setBrush(brush_color_);
-		}
-		painter->setPen(pen);
-		
-		QPainterPath path;
-		path.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);		
- 		painter->drawPath(path);
- 		
- 		pen.setColor(pen_color_);
- 		painter->setPen(pen);
+  void TOPPASInputFileListVertex::showFilesDialog()
+  {
+    TOPPASInputFilesDialog tifd(this->getFileNames());
+    if (tifd.exec())
+    {
+      QStringList updated_filelist;
+      tifd.getFilenames(updated_filelist);
+      this->setFilenames(updated_filelist); // to correct filenames (separators etc)
+      qobject_cast<TOPPASScene *>(scene())->setChanged(true);
+      qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+      emit somethingHasChanged();
+    }
+  }
+
+  void TOPPASInputFileListVertex::paint(QPainter * painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
+  {
+    QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+    if (isSelected())
+    {
+      pen.setWidth(2);
+      painter->setBrush(brush_color_.darker(130));
+      pen.setColor(Qt::darkBlue);
+    }
+    else
+    {
+      painter->setBrush(brush_color_);
+    }
+    painter->setPen(pen);
+
+    QPainterPath path;
+    path.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);
+    painter->drawPath(path);
+
+    pen.setColor(pen_color_);
+    painter->setPen(pen);
 
     // display number of input files
     QString text = QString::number(getFileNames().size())
                    + " input file"
-									 + (getFileNames().size() == 1 ? "" : "s");
-		QRectF text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
-		painter->drawText(-(int)(text_boundings.width()/2.0), (int)(text_boundings.height()/4.0), text);
+                   + (getFileNames().size() == 1 ? "" : "s");
+    QRectF text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
+    painter->drawText(-(int)(text_boundings.width() / 2.0), (int)(text_boundings.height() / 4.0), text);
 
     // display file type(s)
     Map<QString, Size> suffices;
-    foreach (QString fn, getFileNames())
+    foreach(QString fn, getFileNames())
     {
       ++suffices[QFileInfo(fn).completeSuffix()];
     }
     StringList text_l;
     for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
     {
-      if (suffices.size() > 1) text_l.push_back(String(".") + sit->first + "(" + String(sit->second) + ")");
-      else text_l.push_back(String(".") + sit->first);
+      if (suffices.size() > 1)
+        text_l.push_back(String(".") + sit->first + "(" + String(sit->second) + ")");
+      else
+        text_l.push_back(String(".") + sit->first);
     }
     text = text_l.concatenate(" | ").toQString();
-    text_boundings = painter->boundingRect(QRectF(0,0,0,0), Qt::AlignCenter, text);
-    painter->drawText(-(int)(text_boundings.width()/2.0), 35 - (int)(text_boundings.height()/4.0), text);
+    text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
+    painter->drawText(-(int)(text_boundings.width() / 2.0), 35 - (int)(text_boundings.height() / 4.0), text);
 
-		// topological sort number
+    // topological sort number
     qreal x_pos = -63.0;
     qreal y_pos = -19.0;
     painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
-	
-		// recycling status
+
+    // recycling status
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      QSvgRenderer * svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
       svg_renderer->render(painter, QRectF(-7, -32, 14, 14));
     }
-		
+
   }
-	
-	QRectF TOPPASInputFileListVertex::boundingRect() const
-	{
-		return QRectF(-71,-41,142,82);
-	}
-	
-	QPainterPath TOPPASInputFileListVertex::shape () const
-	{
-		QPainterPath shape;
-		shape.addRoundRect(-71.0, -41.0, 142.0, 81.0, 20, 20);
-		return shape;
-	}
-	
-	bool TOPPASInputFileListVertex::fileNamesValid()
-	{
+
+  QRectF TOPPASInputFileListVertex::boundingRect() const
+  {
+    return QRectF(-71, -41, 142, 82);
+  }
+
+  QPainterPath TOPPASInputFileListVertex::shape() const
+  {
+    QPainterPath shape;
+    shape.addRoundRect(-71.0, -41.0, 142.0, 81.0, 20, 20);
+    return shape;
+  }
+
+  bool TOPPASInputFileListVertex::fileNamesValid()
+  {
     QStringList fl = getFileNames();
-    foreach (const QString& file, fl)
-		{
+    foreach(const QString &file, fl)
+    {
       if (!File::exists(file))
       {
-				return false;
+        return false;
       }
-		}
+    }
     return true;
-	}
-	
-	void TOPPASInputFileListVertex::openContainingFolder()
-	{
+  }
+
+  void TOPPASInputFileListVertex::openContainingFolder()
+  {
     std::set<String> directories;
     QStringList fl = getFileNames();
-    for (int i = 0; i < fl.size(); ++i)
-    { // collect unique directories
+    for (int i = 0; i < fl.size(); ++i) // collect unique directories
+    {
       QFileInfo fi(fl[i]);
       directories.insert(String(QFileInfo(fi.canonicalFilePath()).path()));
     }
 
     // open them
-    for (std::set<String>::const_iterator it=directories.begin();it!=directories.end();++it)
+    for (std::set<String>::const_iterator it = directories.begin(); it != directories.end(); ++it)
     {
       QString path = QDir::toNativeSeparators(it->toQString());
       if (!QDir(path).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + path, QUrl::TolerantMode))))
@@ -210,10 +210,10 @@ namespace OpenMS
         QMessageBox::warning(0, "Open Folder Error", String("The folder " + path + " could not be opened!").toQString());
       }
     }
-	}
-	
-	void TOPPASInputFileListVertex::run()
-	{
+  }
+
+  void TOPPASInputFileListVertex::run()
+  {
     round_total_   = (int) output_files_.size(); // for now each file is one round; for the future we might allow to create blocks of files (e.g. for replicate measurements)
     round_counter_ = (int) round_total_;
 
@@ -221,36 +221,36 @@ namespace OpenMS
 
     //std::cerr << "#" << this->getTopoNr() << " set #rounds: " << round_total_ << "\n";
 
-		for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-		{
-			TOPPASVertex* tv = (*it)->getTargetVertex();
-			if (tv && !tv->isFinished()) // this tool might have already been called by another path, so do not call it again (as this will throw an error)
-			{
-				tv->run();
-			}
-		}
-	}
-	
-	void TOPPASInputFileListVertex::setKey(const QString& key)
-	{
-		key_ = key;
-	}
-	
-	const QString& TOPPASInputFileListVertex::getKey()
-	{
-		return key_;
-	}
-	
-	void TOPPASInputFileListVertex::setFilenames(const QStringList& files)
-	{
+    for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+    {
+      TOPPASVertex * tv = (*it)->getTargetVertex();
+      if (tv && !tv->isFinished())       // this tool might have already been called by another path, so do not call it again (as this will throw an error)
+      {
+        tv->run();
+      }
+    }
+  }
+
+  void TOPPASInputFileListVertex::setKey(const QString & key)
+  {
+    key_ = key;
+  }
+
+  const QString & TOPPASInputFileListVertex::getKey()
+  {
+    return key_;
+  }
+
+  void TOPPASInputFileListVertex::setFilenames(const QStringList & files)
+  {
     output_files_.clear();
     output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)
-    for (int f=0; f<files.size(); ++f)
+    for (int f = 0; f < files.size(); ++f)
     {
       output_files_[f][-1].filenames << QDir::toNativeSeparators(files[f]);
     }
 
     setToolTip(files.join("\n"));
-	}
-	
+  }
+
 }

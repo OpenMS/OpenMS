@@ -38,15 +38,15 @@ namespace OpenMS
    @ingroup TOPPView
    */
   class TOPPViewBehaviorInterface :
-      public QObject
+    public QObject
   {
     Q_OBJECT
 
-  public:
+public:
     /// Destructor
-    virtual ~TOPPViewBehaviorInterface() {};
+    virtual ~TOPPViewBehaviorInterface() {}
 
-  public slots:
+public slots:
     /// Behavior for showSpectraumAs1D
     virtual void showSpectrumAs1D(int index) = 0;
 

@@ -44,33 +44,33 @@ namespace OpenMS
   */
   class OPENMS_GUI_DLLAPI AxisPainter
   {
-    public:
-      /// Typedef for the grid vector
-      typedef std::vector<std::vector<double> > GridVector;
+public:
+    /// Typedef for the grid vector
+    typedef std::vector<std::vector<double> > GridVector;
 
-      /// Where the axis is placed
-      enum Alignment
-      {
-        TOP,
-        BOTTOM,
-        LEFT,
-        RIGHT
-      };
+    /// Where the axis is placed
+    enum Alignment
+    {
+      TOP,
+      BOTTOM,
+      LEFT,
+      RIGHT
+    };
 
-      /// Draws an axis
-      static void paint(QPainter* painter, QPaintEvent* e, const DoubleReal& min, const DoubleReal& max, const GridVector& grid,
-                              const Int width, const Int height, const Alignment alignment, const UInt margin,
-                              const bool show_legend, const String legend, const bool shorten_number,
-                              const bool is_log, const bool is_inverse_orientation);
-    private:
-      /// Constructor: only static methods
-      AxisPainter();
+    /// Draws an axis
+    static void paint(QPainter * painter, QPaintEvent * e, const DoubleReal & min, const DoubleReal & max, const GridVector & grid,
+                      const Int width, const Int height, const Alignment alignment, const UInt margin,
+                      const bool show_legend, const String legend, const bool shorten_number,
+                      const bool is_log, const bool is_inverse_orientation);
+private:
+    /// Constructor: only static methods
+    AxisPainter();
 
-      /// sets @p short_num to a shortened string representation ("123.4 k/M/G") of @p number
-      static void getShortenedNumber_(QString& short_num, DoubleReal number);
+    /// sets @p short_num to a shortened string representation ("123.4 k/M/G") of @p number
+    static void getShortenedNumber_(QString & short_num, DoubleReal number);
 
-      /// Scale axis values to correct value (i.e. reverse log, unit conversion)
-      static DoubleReal scale_(DoubleReal x, bool is_log);
+    /// Scale axis values to correct value (i.e. reverse log, unit conversion)
+    static DoubleReal scale_(DoubleReal x, bool is_log);
   };
 }
 #endif

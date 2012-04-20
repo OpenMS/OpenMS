@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
-// -------------------------------------------------------------------------- 
+// --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerData.h>
 
@@ -31,21 +31,21 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string LayerData::NamesOfLabelType[] = {"None","Index","Label meta data","Peptide identification","All peptide identifications"};
+  const std::string LayerData::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
 
-  const LayerData::ExperimentType::SpectrumType& LayerData::getCurrentSpectrum() const
+  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
   {
-      return (*peaks)[current_spectrum_];
+    return (*peaks)[current_spectrum_];
   }
 
-	std::ostream& operator << (std::ostream& os, const LayerData& rhs)
-	{
-		os << "--LayerData BEGIN--"<<std::endl;
-		os << "name: " << rhs.name << std::endl;
-		os << "visible: " << rhs.visible << std::endl;
-                os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
-		os << "--LayerData END--"<<std::endl;
-		return os;
-            }
-}//Namespace
+  std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
+  {
+    os << "--LayerData BEGIN--" << std::endl;
+    os << "name: " << rhs.name << std::endl;
+    os << "visible: " << rhs.visible << std::endl;
+    os << "number of peaks: " << rhs.getPeakData()->getSize() << std::endl;
+    os << "--LayerData END--" << std::endl;
+    return os;
+  }
 
+} //Namespace

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -39,79 +39,78 @@ using namespace std;
 namespace OpenMS
 {
 
-	TOPPASTreeView::TOPPASTreeView(QWidget* parent)
-		: QTreeWidget(parent)
-	{
-		// we drag by ourselves:
-		setDragEnabled(false);
-	}
-	
-	TOPPASTreeView::~TOPPASTreeView()
-	{
-		
-	}
-	
-	void TOPPASTreeView::mousePressEvent(QMouseEvent* event)
-	{
-		QTreeWidget::mousePressEvent(event);
-		
-		if (event->button() == Qt::LeftButton)
-		{
-			drag_start_pos_ = event->pos();
-		}
-	}
-	
-	void TOPPASTreeView::mouseMoveEvent(QMouseEvent* event)
-	{
-		QTreeWidget::mouseMoveEvent(event);
-		
-		if (!(event->buttons() & Qt::LeftButton))
-		{
-			return;
-		}
-		if ((event->pos() - drag_start_pos_).manhattanLength() < QApplication::startDragDistance())
-		{
-			return;
-		}
-		if (currentItem() && currentItem()->childCount() > 0)
-		{
-			// drag item is a category or a tool with types - one of the types must be selected
-			return;
-		}
-	
-		QDrag* drag = new QDrag(this);
-		QMimeData* mime_data = new QMimeData;
-		
+  TOPPASTreeView::TOPPASTreeView(QWidget * parent) :
+    QTreeWidget(parent)
+  {
+    // we drag by ourselves:
+    setDragEnabled(false);
+  }
+
+  TOPPASTreeView::~TOPPASTreeView()
+  {
+
+  }
+
+  void TOPPASTreeView::mousePressEvent(QMouseEvent * event)
+  {
+    QTreeWidget::mousePressEvent(event);
+
+    if (event->button() == Qt::LeftButton)
+    {
+      drag_start_pos_ = event->pos();
+    }
+  }
+
+  void TOPPASTreeView::mouseMoveEvent(QMouseEvent * event)
+  {
+    QTreeWidget::mouseMoveEvent(event);
+
+    if (!(event->buttons() & Qt::LeftButton))
+    {
+      return;
+    }
+    if ((event->pos() - drag_start_pos_).manhattanLength() < QApplication::startDragDistance())
+    {
+      return;
+    }
+    if (currentItem() && currentItem()->childCount() > 0)
+    {
+      // drag item is a category or a tool with types - one of the types must be selected
+      return;
+    }
+
+    QDrag * drag = new QDrag(this);
+    QMimeData * mime_data = new QMimeData;
+
     mime_data->setText(currentItem()->text(0));
-		drag->setMimeData(mime_data);
-		
-		// start drag
-		drag->exec(Qt::CopyAction);
-	}
-	
-	void TOPPASTreeView::keyPressEvent(QKeyEvent* e)
-	{
-		QTreeWidget::keyPressEvent(e);
-		if (currentItem() && e->key() == Qt::Key_Return)
-		{
-			e->accept();
-			emit itemDoubleClicked(currentItem(), 0);
-		}
-		else
-		{
-			e->ignore();
-		}
-	}
-	
-	void TOPPASTreeView::enterEvent(QEvent* /*e*/)
-	{
-		setFocus();
-	}
-	
-	void TOPPASTreeView::leaveEvent(QEvent* /*e*/)
-	{
-		
-	}
+    drag->setMimeData(mime_data);
 
-} //namespace OpenMS	
+    // start drag
+    drag->exec(Qt::CopyAction);
+  }
 
+  void TOPPASTreeView::keyPressEvent(QKeyEvent * e)
+  {
+    QTreeWidget::keyPressEvent(e);
+    if (currentItem() && e->key() == Qt::Key_Return)
+    {
+      e->accept();
+      emit itemDoubleClicked(currentItem(), 0);
+    }
+    else
+    {
+      e->ignore();
+    }
+  }
+
+  void TOPPASTreeView::enterEvent(QEvent * /*e*/)
+  {
+    setFocus();
+  }
+
+  void TOPPASTreeView::leaveEvent(QEvent * /*e*/)
+  {
+
+  }
+
+} //namespace OpenMS

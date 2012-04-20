@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -32,62 +32,62 @@
 
 namespace OpenMS
 {
-	/**
-		@brief A vertex representing an input file list
-	
-		@ingroup TOPPAS_elements
-	*/
-	class OPENMS_GUI_DLLAPI TOPPASInputFileListVertex
-		: public TOPPASVertex
-	{
-		Q_OBJECT
-		
-		public:
-			
-			/// Default constructor
-			TOPPASInputFileListVertex();
-			/// Constructor
-			TOPPASInputFileListVertex(const QStringList& files);
-			/// Copy constructor
-			TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs);
-			/// Destructor
-			virtual ~TOPPASInputFileListVertex();
-			/// Assignment operator
-			TOPPASInputFileListVertex& operator= (const TOPPASInputFileListVertex& rhs);
-      /// returns "InputVertex"
-      virtual String getName() const;
-      /// Sets the list of files
-			void setFilenames(const QStringList& files);
-			/// Starts all tools below this node
-			virtual void run();
-			// documented in base class
-			virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-			// documented in base class
-			virtual QRectF boundingRect() const;
-			// documented in base class
-			virtual QPainterPath shape () const;
-			/// Checks if the given list of file names is valid
-			bool fileNamesValid();
-			/// Shows the dialog for editing the files
-			void showFilesDialog();
-      /// Opens the folders of the input files
-      void openContainingFolder();
-			/// Returns the key (for applying resources from a resource file)
-			const QString& getKey();
-			/// Sets the key (for applying resources from a resource file)
-			void setKey(const QString& key);
-			
-		protected:
-		
-			/// The key of this input node (for applying resources from a resource file)
-			QString key_;
-		
-			///@name reimplemented Qt events
-      //@{
-      void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
-			//@}
-			
-	};
+  /**
+      @brief A vertex representing an input file list
+
+      @ingroup TOPPAS_elements
+  */
+  class OPENMS_GUI_DLLAPI TOPPASInputFileListVertex :
+    public TOPPASVertex
+  {
+    Q_OBJECT
+
+public:
+
+    /// Default constructor
+    TOPPASInputFileListVertex();
+    /// Constructor
+    TOPPASInputFileListVertex(const QStringList & files);
+    /// Copy constructor
+    TOPPASInputFileListVertex(const TOPPASInputFileListVertex & rhs);
+    /// Destructor
+    virtual ~TOPPASInputFileListVertex();
+    /// Assignment operator
+    TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs);
+    /// returns "InputVertex"
+    virtual String getName() const;
+    /// Sets the list of files
+    void setFilenames(const QStringList & files);
+    /// Starts all tools below this node
+    virtual void run();
+    // documented in base class
+    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget);
+    // documented in base class
+    virtual QRectF boundingRect() const;
+    // documented in base class
+    virtual QPainterPath shape() const;
+    /// Checks if the given list of file names is valid
+    bool fileNamesValid();
+    /// Shows the dialog for editing the files
+    void showFilesDialog();
+    /// Opens the folders of the input files
+    void openContainingFolder();
+    /// Returns the key (for applying resources from a resource file)
+    const QString & getKey();
+    /// Sets the key (for applying resources from a resource file)
+    void setKey(const QString & key);
+
+protected:
+
+    /// The key of this input node (for applying resources from a resource file)
+    QString key_;
+
+    ///@name reimplemented Qt events
+    //@{
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);
+    //@}
+
+  };
 }
 
 #endif

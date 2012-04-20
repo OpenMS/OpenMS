@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -39,120 +39,119 @@ using namespace std;
 namespace OpenMS
 {
 
-	TOPPASTabBar::TOPPASTabBar( QWidget * parent) 
-		: QTabBar(parent)
-	{
-		connect(this,SIGNAL(currentChanged(int)),this,SLOT(currentChanged_(int)));
-		
-		//set up drag-and-drop TODO
-		//setAcceptDrops(true);
-	}
-	
-	TOPPASTabBar::~TOPPASTabBar()
-	{
-		
-	}
+  TOPPASTabBar::TOPPASTabBar(QWidget * parent) :
+    QTabBar(parent)
+  {
+    connect(this, SIGNAL(currentChanged(int)), this, SLOT(currentChanged_(int)));
 
-// 	void TOPPASTabBar::dragEnterEvent(QDragEnterEvent* e)
-// 	{
-// 		e->acceptProposedAction();
-// 	}
-	
-// 	void TOPPASTabBar::dropEvent(QDropEvent* e)
-// 	{
-// 		int tab = tabAt_(e->pos());
-// 		if (tab!=-1)
-// 		{
-// 			emit dropOnTab(e->mimeData(), e->source(), tabData(tab).toInt());
-// 		}
-// 		else
-// 		{
-// 		  emit dropOnWidget(e->mimeData(), e->source());
-// 		}
-// 
-// 		e->acceptProposedAction();
-// 	}
+    //set up drag-and-drop TODO
+    //setAcceptDrops(true);
+  }
 
-	void TOPPASTabBar::contextMenuEvent(QContextMenuEvent* e)
-	{
-		int tab = tabAt_(e->pos());
-		if (tab!=-1)
-		{
-			QMenu menu(this);
-			menu.addAction("Close");
-			if (menu.exec(e->globalPos()))
-			{
-				emit aboutToCloseId(tabData(tab).toInt());
-			}
-		}
-	}
+  TOPPASTabBar::~TOPPASTabBar()
+  {
 
-	void TOPPASTabBar::mouseDoubleClickEvent(QMouseEvent* e)
-	{
-		if ( e->button() != Qt::LeftButton ) 
-		{
-			e->ignore();
-			return;
+  }
+
+//  void TOPPASTabBar::dragEnterEvent(QDragEnterEvent* e)
+//  {
+//      e->acceptProposedAction();
+//  }
+
+//  void TOPPASTabBar::dropEvent(QDropEvent* e)
+//  {
+//      int tab = tabAt_(e->pos());
+//      if (tab!=-1)
+//      {
+//          emit dropOnTab(e->mimeData(), e->source(), tabData(tab).toInt());
+//      }
+//      else
+//      {
+//        emit dropOnWidget(e->mimeData(), e->source());
+//      }
+//
+//      e->acceptProposedAction();
+//  }
+
+  void TOPPASTabBar::contextMenuEvent(QContextMenuEvent * e)
+  {
+    int tab = tabAt_(e->pos());
+    if (tab != -1)
+    {
+      QMenu menu(this);
+      menu.addAction("Close");
+      if (menu.exec(e->globalPos()))
+      {
+        emit aboutToCloseId(tabData(tab).toInt());
+      }
     }
-		int tab = tabAt_(e->pos());
-		if (tab!=-1)
-		{
-			emit aboutToCloseId(tabData(tab).toInt());
-		}
-	}
+  }
 
-	int TOPPASTabBar::addTab(const String& text, int id)
-	{
-		int tab_index = QTabBar::addTab(text.c_str());
+  void TOPPASTabBar::mouseDoubleClickEvent(QMouseEvent * e)
+  {
+    if (e->button() != Qt::LeftButton)
+    {
+      e->ignore();
+      return;
+    }
+    int tab = tabAt_(e->pos());
+    if (tab != -1)
+    {
+      emit aboutToCloseId(tabData(tab).toInt());
+    }
+  }
+
+  int TOPPASTabBar::addTab(const String & text, int id)
+  {
+    int tab_index = QTabBar::addTab(text.c_str());
     setTabData(tab_index, id);
-		
-		return tab_index;
-	}
-	
-	void TOPPASTabBar::removeId(int id)
-	{
-		for (int i=0; i<this->count(); ++i)
+
+    return tab_index;
+  }
+
+  void TOPPASTabBar::removeId(int id)
+  {
+    for (int i = 0; i < this->count(); ++i)
     {
-    	if (tabData(i).toInt()==id)
-    	{
-    		removeTab(i);
-    		break;
-    	}
+      if (tabData(i).toInt() == id)
+      {
+        removeTab(i);
+        break;
+      }
     }
-	}
+  }
 
-	void TOPPASTabBar::setCurrentId(int id)
-	{
-		for (int i=0; i<this->count(); ++i)
+  void TOPPASTabBar::setCurrentId(int id)
+  {
+    for (int i = 0; i < this->count(); ++i)
     {
-    	if (tabData(i).toInt()==id)
-    	{
-    		setCurrentIndex(i);
-    		break;
-    	}
+      if (tabData(i).toInt() == id)
+      {
+        setCurrentIndex(i);
+        break;
+      }
     }
-	}
+  }
 
-	void TOPPASTabBar::currentChanged_(int id)
-	{
-		emit currentIdChanged(tabData(id).toInt());
-	}
+  void TOPPASTabBar::currentChanged_(int id)
+  {
+    emit currentIdChanged(tabData(id).toInt());
+  }
 
-	int TOPPASTabBar::tabAt_(const QPoint& pos)
-	{
-		int tab = -1;
+  int TOPPASTabBar::tabAt_(const QPoint & pos)
+  {
+    int tab = -1;
 
-    for (int i=0; i<this->count(); ++i)
+    for (int i = 0; i < this->count(); ++i)
     {
-			if (tabRect(i).contains(pos))
-			{
-				tab = i;
-				break;
-			}
-		}
+      if (tabRect(i).contains(pos))
+      {
+        tab = i;
+        break;
+      }
+    }
 
-		return tab;
-	}
+    return tab;
+  }
 
-} //namespace OpenMS	
-
+} //namespace OpenMS

@@ -35,10 +35,10 @@
 
 namespace OpenMS
 {
-  SpectraViewWidget::SpectraViewWidget(QWidget* parent)
-    : QWidget(parent)
+  SpectraViewWidget::SpectraViewWidget(QWidget * parent) :
+    QWidget(parent)
   {
-    QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
+    QVBoxLayout * spectra_widget_layout = new QVBoxLayout(this);
     spectra_treewidget_ = new QTreeWidget(this);
     spectra_treewidget_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
 
@@ -46,15 +46,15 @@ namespace OpenMS
     //~ spectrum_selection_->setSortingEnabled(true);
     //~ spectrum_selection_->sortByColumn ( 1, Qt::AscendingOrder);
 
-    spectra_treewidget_->setColumnCount(7);/// @improvement make dependend from global "header_labels" to change only once (otherwise changes must be applied in several slots too!)
+    spectra_treewidget_->setColumnCount(7); /// @improvement make dependend from global "header_labels" to change only once (otherwise changes must be applied in several slots too!)
 
-    spectra_treewidget_->setColumnWidth(0,65);
-    spectra_treewidget_->setColumnWidth(1,45);
-    spectra_treewidget_->setColumnWidth(2,50);
-    spectra_treewidget_->setColumnWidth(3,55);
-    spectra_treewidget_->setColumnWidth(4,55);
-    spectra_treewidget_->setColumnWidth(5,45);
-    spectra_treewidget_->setColumnWidth(6,45);
+    spectra_treewidget_->setColumnWidth(0, 65);
+    spectra_treewidget_->setColumnWidth(1, 45);
+    spectra_treewidget_->setColumnWidth(2, 50);
+    spectra_treewidget_->setColumnWidth(3, 55);
+    spectra_treewidget_->setColumnWidth(4, 55);
+    spectra_treewidget_->setColumnWidth(5, 45);
+    spectra_treewidget_->setColumnWidth(6, 45);
 
     ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
@@ -72,14 +72,14 @@ namespace OpenMS
     spectra_treewidget_->setContextMenuPolicy(Qt::CustomContextMenu);
     spectra_treewidget_->header()->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(spectra_treewidget_, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTreeWidgetItem*, QTreeWidgetItem*)));
-    connect(spectra_treewidget_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(spectrumDoubleClicked_(QTreeWidgetItem*, int)));
-    connect(spectra_treewidget_, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(spectrumContextMenu_(const QPoint&)));
-    connect(spectra_treewidget_->header(), SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(spectrumBrowserHeaderContextMenu_(const QPoint&)));
+    connect(spectra_treewidget_, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *)));
+    connect(spectra_treewidget_, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(spectrumDoubleClicked_(QTreeWidgetItem *, int)));
+    connect(spectra_treewidget_, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(spectrumContextMenu_(const QPoint &)));
+    connect(spectra_treewidget_->header(), SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(spectrumBrowserHeaderContextMenu_(const QPoint &)));
 
     spectra_widget_layout->addWidget(spectra_treewidget_);
 
-    QHBoxLayout* tmp_hbox_layout = new QHBoxLayout();
+    QHBoxLayout * tmp_hbox_layout = new QHBoxLayout();
 
     spectra_search_box_ = new QLineEdit("", this);
 
@@ -93,40 +93,40 @@ namespace OpenMS
     spectra_combo_box_ = new QComboBox(this);
     spectra_combo_box_->addItems(qsl);
 
-    connect(spectra_search_box_, SIGNAL(textEdited ( const QString &)), this, SLOT(spectrumSelected_(const QString&)));
+    connect(spectra_search_box_, SIGNAL(textEdited(const QString &)), this, SLOT(spectrumSelected_(const QString &)));
 
     tmp_hbox_layout->addWidget(spectra_search_box_);
     tmp_hbox_layout->addWidget(spectra_combo_box_);
     spectra_widget_layout->addLayout(tmp_hbox_layout);
   }
 
-  QTreeWidget* SpectraViewWidget::getTreeWidget()
+  QTreeWidget * SpectraViewWidget::getTreeWidget()
   {
     return spectra_treewidget_;
   }
 
-  QComboBox* SpectraViewWidget::getComboBox()
+  QComboBox * SpectraViewWidget::getComboBox()
   {
     return spectra_combo_box_;
   }
 
-  void SpectraViewWidget::spectrumSelected_(const QString& text)
+  void SpectraViewWidget::spectrumSelected_(const QString & text)
   {
-    QTreeWidget* spectra_view_treewidget = spectra_treewidget_;
-    QComboBox* spectra_view_combobox = spectra_combo_box_;
-    if(text.size() > 0)
+    QTreeWidget * spectra_view_treewidget = spectra_treewidget_;
+    QComboBox * spectra_view_combobox = spectra_combo_box_;
+    if (text.size() > 0)
     {
-      int col(spectra_view_combobox->currentIndex()+1);
-      if(col>5)
+      int col(spectra_view_combobox->currentIndex() + 1);
+      if (col > 5)
       {
         col = 1;
       }
-      QList<QTreeWidgetItem *> searched = spectra_view_treewidget->findItems(text, Qt::MatchFixedString /* matchflag exact match */, col );
+      QList<QTreeWidgetItem *> searched = spectra_view_treewidget->findItems(text, Qt::MatchFixedString /* matchflag exact match */, col);
       QList<QTreeWidgetItem *> selected = spectra_view_treewidget->selectedItems();
 
-      if(searched.size() > 0)
+      if (searched.size() > 0)
       {
-        for(int i = 0; i < selected.size(); ++i)
+        for (int i = 0; i < selected.size(); ++i)
         {
           selected[i]->setSelected(false);
         }
@@ -141,7 +141,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraViewWidget::spectrumSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+  void SpectraViewWidget::spectrumSelectionChange_(QTreeWidgetItem * current, QTreeWidgetItem * previous)
   {
     /*	test for previous == 0 is important - without it,
         the wrong spectrum will be selected after finishing
@@ -154,8 +154,8 @@ namespace OpenMS
     int spectrum_index = current->text(1).toInt();
 
     std::vector<int> chrom_indices;
-    const QList<QVariant>& res = current->data(0,0).toList();
-    if(res.size() == 0)
+    const QList<QVariant> & res = current->data(0, 0).toList();
+    if (res.size() == 0)
     {
       emit spectrumSelected(spectrum_index);
     }
@@ -171,7 +171,7 @@ namespace OpenMS
 
   }
 
-  void SpectraViewWidget::spectrumDoubleClicked_(QTreeWidgetItem* current, int)
+  void SpectraViewWidget::spectrumDoubleClicked_(QTreeWidgetItem * current, int)
   {
     if (current == 0)
     {
@@ -181,28 +181,28 @@ namespace OpenMS
     emit spectrumDoubleClicked(spectrum_index);
   }
 
-  void SpectraViewWidget::spectrumContextMenu_(const QPoint& pos)
+  void SpectraViewWidget::spectrumContextMenu_(const QPoint & pos)
   {
-    QTreeWidgetItem* item = spectra_treewidget_->itemAt(pos);
+    QTreeWidgetItem * item = spectra_treewidget_->itemAt(pos);
     if (item)
     {
       //create menu
       int spectrum_index = item->text(1).toInt();
-      QMenu* context_menu = new QMenu(spectra_treewidget_);
+      QMenu * context_menu = new QMenu(spectra_treewidget_);
       context_menu->addAction("Show in 1D view");
       context_menu->addAction("Meta data");
       context_menu->addAction("Center here");
 
-      QAction* selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
-      if (selected!=0 && selected->text()=="Show in 1D view")
+      QAction * selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
+      if (selected != 0 && selected->text() == "Show in 1D view")
       {
         std::vector<int> chrom_indices;
-        const QList<QVariant>& res = item->data(0,0).toList();
-        if(res.size() == 0)
+        const QList<QVariant> & res = item->data(0, 0).toList();
+        if (res.size() == 0)
         {
           emit showSpectrumAs1D(spectrum_index);
         }
-        else 
+        else
         {
           // open several chromatograms at once
           for (Int i = 0; i != res.size(); ++i)
@@ -212,7 +212,7 @@ namespace OpenMS
           emit showSpectrumAs1D(chrom_indices);
         }
       }
-      else if (selected!=0 && selected->text()=="Meta data")
+      else if (selected != 0 && selected->text() == "Meta data")
       {
         emit showSpectrumMetaData(spectrum_index);
       }
@@ -226,10 +226,10 @@ namespace OpenMS
     }
   }
 
-  void SpectraViewWidget::spectrumBrowserHeaderContextMenu_(const QPoint& pos)
+  void SpectraViewWidget::spectrumBrowserHeaderContextMenu_(const QPoint & pos)
   {
     //create menu
-    QMenu* context_menu = new QMenu(spectra_treewidget_->header());
+    QMenu * context_menu = new QMenu(spectra_treewidget_->header());
 
     QStringList header_labels;
     header_labels.append(QString("MS level"));
@@ -239,31 +239,31 @@ namespace OpenMS
     header_labels.append(QString("dissociation"));
     header_labels.append(QString("scan type"));
     header_labels.append(QString("zoom"));
-    for(int i = 0; i < header_labels.size(); ++i)
+    for (int i = 0; i < header_labels.size(); ++i)
     {
-      QAction* tmp = new QAction(header_labels[i],context_menu);
+      QAction * tmp = new QAction(header_labels[i], context_menu);
       tmp->setCheckable(true);
       tmp->setChecked(!spectra_treewidget_->isColumnHidden(i));
       context_menu->addAction(tmp);
     }
 
     //(show and) execute menu
-    QAction* selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
-    if (selected!=0)
+    QAction * selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
+    if (selected != 0)
     {
-      for(int i = 0; i < header_labels.size(); ++i)
+      for (int i = 0; i < header_labels.size(); ++i)
       {
-        if(selected->text() == header_labels[i])
+        if (selected->text() == header_labels[i])
         {
-          selected->isChecked()? spectra_treewidget_->setColumnHidden(i,false)
-            :spectra_treewidget_->setColumnHidden(i,true);
+          selected->isChecked() ? spectra_treewidget_->setColumnHidden(i, false)
+          : spectra_treewidget_->setColumnHidden(i, true);
         }
       }
     }
     delete (context_menu);
   }
 
-  void SpectraViewWidget::updateEntries(const LayerData& cl)
+  void SpectraViewWidget::updateEntries(const LayerData & cl)
   {
     if (!spectra_treewidget_->isVisible())
     {
@@ -273,19 +273,19 @@ namespace OpenMS
     spectra_treewidget_->blockSignals(true);
     spectra_treewidget_->clear();
 
-    QTreeWidgetItem* item = 0;
-    QTreeWidgetItem* selected_item = 0;
-    QList<QTreeWidgetItem*> toplevel_items;
+    QTreeWidgetItem * item = 0;
+    QTreeWidgetItem * selected_item = 0;
+    QList<QTreeWidgetItem *> toplevel_items;
     bool more_than_one_spectrum = true;
 
-    if (cl.type == LayerData::DT_PEAK  && 
-        !(cl.getPeakData()->size() > 0 && 
-         cl.getPeakData()->metaValueExists("is_chromatogram") && 
-         cl.getPeakData()->getMetaValue("is_chromatogram").toBool() 
-         )
-         )
+    if (cl.type == LayerData::DT_PEAK  &&
+        !(cl.getPeakData()->size() > 0 &&
+          cl.getPeakData()->metaValueExists("is_chromatogram") &&
+          cl.getPeakData()->getMetaValue("is_chromatogram").toBool()
+          )
+        )
     {
-      std::vector<QTreeWidgetItem*> parent_stack;
+      std::vector<QTreeWidgetItem *> parent_stack;
       parent_stack.push_back(0);
       bool fail = false;
 
@@ -294,41 +294,41 @@ namespace OpenMS
         if (i > 0)
         {
           // current MS level = previous MS level + 1 (e.g. current: MS2, previous: MS1)
-          if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel() + 1)
+          if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i - 1].getMSLevel() + 1)
           {
             item = new QTreeWidgetItem(parent_stack.back());
-            parent_stack.resize(parent_stack.size()+1);
+            parent_stack.resize(parent_stack.size() + 1);
           }
           // current MS level = previous MS level (e.g. MS2,MS2 or MS1,MS1)
-          else if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i-1].getMSLevel())
+          else if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i - 1].getMSLevel())
           {
             if (parent_stack.size() == 1)
             {
-              item = new QTreeWidgetItem((QTreeWidget*)0);
+              item = new QTreeWidgetItem((QTreeWidget *)0);
             }
             else
             {
-              item = new QTreeWidgetItem(*(parent_stack.end()-2));
+              item = new QTreeWidgetItem(*(parent_stack.end() - 2));
             }
           }
           // current MS level < previous MS level (e.g. MS1,MS2)
-          else if ((*cl.getPeakData())[i].getMSLevel() < (*cl.getPeakData())[i-1].getMSLevel())
+          else if ((*cl.getPeakData())[i].getMSLevel() < (*cl.getPeakData())[i - 1].getMSLevel())
           {
-            Int level_diff = (*cl.getPeakData())[i-1].getMSLevel() - (*cl.getPeakData())[i].getMSLevel();
+            Int level_diff = (*cl.getPeakData())[i - 1].getMSLevel() - (*cl.getPeakData())[i].getMSLevel();
             Size parent_index = 0;
-            QTreeWidgetItem* parent = 0;
+            QTreeWidgetItem * parent = 0;
             if (parent_stack.size() - level_diff >= 2)
             {
               parent_index = parent_stack.size() - level_diff - 1;
               parent = parent_stack[parent_index];
 
-              item = new QTreeWidgetItem(parent, parent_stack[parent_index+1]);
+              item = new QTreeWidgetItem(parent, parent_stack[parent_index + 1]);
             }
             else
             {
-              item = new QTreeWidgetItem((QTreeWidget*)0);
+              item = new QTreeWidgetItem((QTreeWidget *)0);
             }
-            parent_stack.resize(parent_index+1);
+            parent_stack.resize(parent_index + 1);
           }
           else
           {
@@ -339,7 +339,7 @@ namespace OpenMS
         }
         else
         {
-          item = new QTreeWidgetItem((QTreeWidget*)0);
+          item = new QTreeWidgetItem((QTreeWidget *)0);
         }
 
         parent_stack.back() = item;
@@ -353,19 +353,19 @@ namespace OpenMS
         item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
         if (!(*cl.getPeakData())[i].getPrecursors().empty())
         {
-          item->setText(3,QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
+          item->setText(3, QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
           if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
           {
             QString t;
-            for(std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+            for (std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
             {
-              if(!t.isEmpty())
+              if (!t.isEmpty())
               {
                 t.append(",");
               }
               t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
             }
-            item->setText(4,t);
+            item->setText(4, t);
           }
           else
           {
@@ -377,9 +377,9 @@ namespace OpenMS
           item->setText(3, "-");
           item->setText(4, "-");
         }
-        if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
+        if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode() > 0)
         {
-          item->setText(5,QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
+          item->setText(5, QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
         }
         else
         {
@@ -387,7 +387,7 @@ namespace OpenMS
         }
         if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
         {
-          item->setText(6,"yes");
+          item->setText(6, "yes");
         }
         else
         {
@@ -413,24 +413,25 @@ namespace OpenMS
         selected_item = 0;
         for (Size i = 0; i < cl.getPeakData()->size(); ++i)
         {
-          item = new QTreeWidgetItem((QTreeWidget*)0);
+          item = new QTreeWidgetItem((QTreeWidget *)0);
           item->setText(0, QString("MS") + QString::number((*cl.getPeakData())[i].getMSLevel()));
           item->setText(1, QString::number(i));
           item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
           if (!(*cl.getPeakData())[i].getPrecursors().empty())
           {
-            item->setText(3,QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
+            item->setText(3, QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
             if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
             {
               QString t;
-              for(std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+              for (std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
               {
-                if(!t.isEmpty()){
+                if (!t.isEmpty())
+                {
                   t.append(",");
                 }
                 t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
               }
-              item->setText(4,t);
+              item->setText(4, t);
             }
             else
             {
@@ -442,9 +443,9 @@ namespace OpenMS
             item->setText(3, "-");
             item->setText(4, "-");
           }
-          if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode()>0)
+          if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode() > 0)
           {
-            item->setText(5,QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
+            item->setText(5, QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
           }
           else
           {
@@ -452,7 +453,7 @@ namespace OpenMS
           }
           if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
           {
-            item->setText(6,"yes");
+            item->setText(6, "yes");
           }
           else
           {
@@ -473,16 +474,16 @@ namespace OpenMS
         selected_item->setSelected(true);
         spectra_treewidget_->scrollToItem(selected_item);
       }
-      if(cl.getPeakData()->size() > 1)
+      if (cl.getPeakData()->size() > 1)
       {
         more_than_one_spectrum = false;
       }
     }
     else if (cl.type == LayerData::DT_CHROMATOGRAM ||
-      (cl.getPeakData()->size() > 0 && 
-       cl.getPeakData()->metaValueExists("is_chromatogram") && 
-       cl.getPeakData()->getMetaValue("is_chromatogram").toBool() 
-       ) )
+             (cl.getPeakData()->size() > 0 &&
+              cl.getPeakData()->metaValueExists("is_chromatogram") &&
+              cl.getPeakData()->getMetaValue("is_chromatogram").toBool()
+             ))
     {
 
       // We need to redraw the whole Widget because the we have changed all the layers.
@@ -491,21 +492,21 @@ namespace OpenMS
 
       bool multiple_select = false;
       int this_selected_item = -1;
-      if (cl.getPeakData()->size() > 0 && cl.getPeakData()->metaValueExists("multiple_select") ) 
+      if (cl.getPeakData()->size() > 0 && cl.getPeakData()->metaValueExists("multiple_select"))
       {
         multiple_select = cl.getPeakData()->getMetaValue("multiple_select").toBool();
       }
-      if (cl.getPeakData()->size() > 0 && cl.getPeakData()->metaValueExists("selected_chromatogram")) 
+      if (cl.getPeakData()->size() > 0 && cl.getPeakData()->metaValueExists("selected_chromatogram"))
       {
         this_selected_item = (int)cl.getPeakData()->getMetaValue("selected_chromatogram");
       }
 
       spectra_treewidget_->setColumnCount(5);
-      spectra_treewidget_->setColumnWidth(0,80);
-      spectra_treewidget_->setColumnWidth(1,45);
-      spectra_treewidget_->setColumnWidth(2,80);
-      spectra_treewidget_->setColumnWidth(3,80);
-      spectra_treewidget_->setColumnWidth(4,80);
+      spectra_treewidget_->setColumnWidth(0, 80);
+      spectra_treewidget_->setColumnWidth(1, 45);
+      spectra_treewidget_->setColumnWidth(2, 80);
+      spectra_treewidget_->setColumnWidth(3, 80);
+      spectra_treewidget_->setColumnWidth(4, 80);
 
       QStringList header_labels;
       header_labels.append(QString(" type "));
@@ -521,15 +522,15 @@ namespace OpenMS
       MSExperiment<Peak1D> exp;
       exp = *cl.getPeakData();
 
-      if( cl.getPeakData()->size() > 0 && 
-          cl.getPeakData()->metaValueExists("is_chromatogram") && 
-          cl.getPeakData()->getMetaValue("is_chromatogram").toBool() )
+      if (cl.getPeakData()->size() > 0 &&
+          cl.getPeakData()->metaValueExists("is_chromatogram") &&
+          cl.getPeakData()->getMetaValue("is_chromatogram").toBool())
       {
         exp = *cl.getChromatogramData();
       }
 
 
-      if(exp.getChromatograms().size() > 1)
+      if (exp.getChromatograms().size() > 1)
       {
         more_than_one_spectrum = false;
       }
@@ -539,7 +540,7 @@ namespace OpenMS
       PCSetType precursor_in_rt_mz_window;
       for (std::vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
-          precursor_in_rt_mz_window.insert(iter->getPrecursor());
+        precursor_in_rt_mz_window.insert(iter->getPrecursor());
       }
 
       // determine product chromatograms for each precursor
@@ -558,13 +559,13 @@ namespace OpenMS
       if (!map_precursor_to_chrom_idx.empty())
       {
         int precursor_idx = 0;
-        for (std::map<Precursor, std::vector<Size>, Precursor::MZLess >::iterator mit = map_precursor_to_chrom_idx.begin(); mit != map_precursor_to_chrom_idx.end(); ++mit)
+        for (std::map<Precursor, std::vector<Size>, Precursor::MZLess>::iterator mit = map_precursor_to_chrom_idx.begin(); mit != map_precursor_to_chrom_idx.end(); ++mit)
         {
           // Show the peptide sequence if available, otherwise show the m/z and charge only
           QString mz_string = QString::number(mit->first.getMZ());
           QString charge = QString::number(mit->first.getCharge());
           QString description = "";
-          if(mit->first.metaValueExists("peptide_sequence"))
+          if (mit->first.metaValueExists("peptide_sequence"))
           {
             description = String(mit->first.getMetaValue("peptide_sequence")).toQString();
           }
@@ -588,18 +589,19 @@ namespace OpenMS
           //item->setText(5, QString::number(prod_it->second[0].back().getRT()));
           item->setText(6, QString("-"));
           item->setText(7, charge);
-          item->setData(0,0, chroms_idx);
+          item->setData(0, 0, chroms_idx);
 
           toplevel_items.push_back(item);
 
           // Show single chromatogram: iterate over all chromatograms corresponding to the current precursor and add action for the single chromatogram
           for (std::vector<Size>::iterator vit = mit->second.begin(); vit != mit->second.end(); ++vit)
           {
-            const MSChromatogram<>& current_chromatogram = exp.getChromatograms()[*vit];
+            const MSChromatogram<> & current_chromatogram = exp.getChromatograms()[*vit];
 
             // Childen chromatogram entry
-            QTreeWidgetItem* sub_item = new QTreeWidgetItem(item);
-            if((int)*vit == this_selected_item) {
+            QTreeWidgetItem * sub_item = new QTreeWidgetItem(item);
+            if ((int)*vit == this_selected_item)
+            {
               one_selected = true;
               selected_item = sub_item;
             }
@@ -614,20 +616,29 @@ namespace OpenMS
 
             switch (current_chromatogram.getChromatogramType())
             {
-              case ChromatogramSettings::MASS_CHROMATOGRAM:                         sub_item->setText(6, QString("Mass chromatogram")); break;
-              case ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM:            sub_item->setText(6, QString("Total ion chromatogram")); break;
-              case ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM:         sub_item->setText(6, QString("Selected ion current chromatogram")); break;
-              case ChromatogramSettings::BASEPEAK_CHROMATOGRAM:                     sub_item->setText(6, QString("Basepeak chromaogram")); break;
-              case ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM:      sub_item->setText(6, QString("Selected ion monitoring chromatogram")); break;
-              case ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM: sub_item->setText(6, QString("Selected reaction monitoring chromatogram")); break;
-              case ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM:    sub_item->setText(6, QString("Electromagnetic radiation chromatogram")); break;
-              case ChromatogramSettings::ABSORPTION_CHROMATOGRAM:                   sub_item->setText(6, QString("Absorption chromatogram")); break;
-              case ChromatogramSettings::EMISSION_CHROMATOGRAM:                     sub_item->setText(6, QString("Emission chromatogram")); break;
-              default: 								                                              sub_item->setText(6, QString("Unknown chromatogram")); break;
+            case ChromatogramSettings::MASS_CHROMATOGRAM:                         sub_item->setText(6, QString("Mass chromatogram")); break;
+
+            case ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM:            sub_item->setText(6, QString("Total ion chromatogram")); break;
+
+            case ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM:         sub_item->setText(6, QString("Selected ion current chromatogram")); break;
+
+            case ChromatogramSettings::BASEPEAK_CHROMATOGRAM:                     sub_item->setText(6, QString("Basepeak chromaogram")); break;
+
+            case ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM:      sub_item->setText(6, QString("Selected ion monitoring chromatogram")); break;
+
+            case ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM: sub_item->setText(6, QString("Selected reaction monitoring chromatogram")); break;
+
+            case ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM:    sub_item->setText(6, QString("Electromagnetic radiation chromatogram")); break;
+
+            case ChromatogramSettings::ABSORPTION_CHROMATOGRAM:                   sub_item->setText(6, QString("Absorption chromatogram")); break;
+
+            case ChromatogramSettings::EMISSION_CHROMATOGRAM:                     sub_item->setText(6, QString("Emission chromatogram")); break;
+
+            default:                                                                            sub_item->setText(6, QString("Unknown chromatogram")); break;
             }
 
           }
-          if(one_selected && multiple_select)
+          if (one_selected && multiple_select)
           {
             selected_item = item;
           }
@@ -640,10 +651,10 @@ namespace OpenMS
         // now, select and scroll down to item
         spectra_treewidget_->setCurrentItem(selected_item);
         selected_item->setSelected(true);
-        spectra_treewidget_->scrollToItem(selected_item); 
+        spectra_treewidget_->scrollToItem(selected_item);
 
         // expand the item if necessary
-        if(!multiple_select)
+        if (!multiple_select)
         {
           selected_item->parent()->setExpanded(true);
         }
@@ -651,7 +662,7 @@ namespace OpenMS
     }
     else
     {
-      item = new QTreeWidgetItem((QTreeWidget*)0);
+      item = new QTreeWidgetItem((QTreeWidget *)0);
       item->setText(0, QString("No peak map"));
       item->setText(1, QString("-"));
       item->setText(2, QString("-"));

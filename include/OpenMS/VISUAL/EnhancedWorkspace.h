@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -39,32 +39,32 @@ class QDropEvent;
 
 namespace OpenMS
 {
-	class OPENMS_GUI_DLLAPI EnhancedWorkspace
-		: public QWorkspace
-	{
-		Q_OBJECT
-		
-		public:			
-			/// Constructor
-			EnhancedWorkspace(QWidget* parent);
-			
-			/// Destructor
-			virtual ~EnhancedWorkspace();
-		
-		signals:
-			
-			/// Signal that is emitted, when a drag-and-drop action ends on this widget
-			void dropReceived(const QMimeData* data, QWidget* source, int id);
-		
-		protected:
-			
-      ///@name Reimplemented Qt events
-      //@{
-     	void dragEnterEvent(QDragEnterEvent* event);
-			void dragMoveEvent(QDragMoveEvent* event);
-			void dropEvent(QDropEvent* event);
-			//@}
-	};
+  class OPENMS_GUI_DLLAPI EnhancedWorkspace :
+    public QWorkspace
+  {
+    Q_OBJECT
+
+public:
+    /// Constructor
+    EnhancedWorkspace(QWidget * parent);
+
+    /// Destructor
+    virtual ~EnhancedWorkspace();
+
+signals:
+
+    /// Signal that is emitted, when a drag-and-drop action ends on this widget
+    void dropReceived(const QMimeData * data, QWidget * source, int id);
+
+protected:
+
+    ///@name Reimplemented Qt events
+    //@{
+    void dragEnterEvent(QDragEnterEvent * event);
+    void dragMoveEvent(QDragMoveEvent * event);
+    void dropEvent(QDropEvent * event);
+    //@}
+  };
 }
 
 #endif

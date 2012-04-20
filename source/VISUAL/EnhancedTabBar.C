@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -39,122 +39,121 @@ using namespace std;
 namespace OpenMS
 {
 
-	EnhancedTabBar::EnhancedTabBar( QWidget * parent) 
-		: QTabBar(parent)
-	{
-		connect(this,SIGNAL(currentChanged(int)),this,SLOT(currentChanged_(int)));
-		
-		//set up drag-and-drop
-		setAcceptDrops(true);
-	}
-	
-	EnhancedTabBar::~EnhancedTabBar()
-	{
-		
-	}
+  EnhancedTabBar::EnhancedTabBar(QWidget * parent) :
+    QTabBar(parent)
+  {
+    connect(this, SIGNAL(currentChanged(int)), this, SLOT(currentChanged_(int)));
 
-	void EnhancedTabBar::dragEnterEvent(QDragEnterEvent* e)
-	{
-		e->acceptProposedAction();
-	}
-	
-	void EnhancedTabBar::dropEvent(QDropEvent* e)
-	{
-		int tab = tabAt_(e->pos());
-		if (tab!=-1)
-		{
-			emit dropOnTab(e->mimeData(), e->source(), tabData(tab).toInt());
-		}
-		else
-		{
-		  emit dropOnWidget(e->mimeData(), e->source());
-		}
+    //set up drag-and-drop
+    setAcceptDrops(true);
+  }
 
-		e->acceptProposedAction();
-	}
+  EnhancedTabBar::~EnhancedTabBar()
+  {
 
-	void EnhancedTabBar::contextMenuEvent(QContextMenuEvent* e)
-	{
-		int tab = tabAt_(e->pos());
-		if (tab!=-1)
-		{
-			QMenu menu(this);
-			menu.addAction("Close");
-			if (menu.exec(e->globalPos()))
-			{
-				emit aboutToCloseId(tabData(tab).toInt());
-				removeTab(tab);
-			}
-		}
-	}
+  }
 
-	void EnhancedTabBar::mouseDoubleClickEvent(QMouseEvent* e)
-	{
-		if ( e->button() != Qt::LeftButton ) 
-		{
-			e->ignore();
-			return;
+  void EnhancedTabBar::dragEnterEvent(QDragEnterEvent * e)
+  {
+    e->acceptProposedAction();
+  }
+
+  void EnhancedTabBar::dropEvent(QDropEvent * e)
+  {
+    int tab = tabAt_(e->pos());
+    if (tab != -1)
+    {
+      emit dropOnTab(e->mimeData(), e->source(), tabData(tab).toInt());
     }
-		int tab = tabAt_(e->pos());
-		if (tab!=-1)
-		{
-			emit aboutToCloseId(tabData(tab).toInt());
-			removeTab(tab);
-		}
-	}
+    else
+    {
+      emit dropOnWidget(e->mimeData(), e->source());
+    }
 
-	int EnhancedTabBar::addTab(const String& text, int id)
-	{
-		int tab_index = QTabBar::addTab(text.c_str());
+    e->acceptProposedAction();
+  }
+
+  void EnhancedTabBar::contextMenuEvent(QContextMenuEvent * e)
+  {
+    int tab = tabAt_(e->pos());
+    if (tab != -1)
+    {
+      QMenu menu(this);
+      menu.addAction("Close");
+      if (menu.exec(e->globalPos()))
+      {
+        emit aboutToCloseId(tabData(tab).toInt());
+        removeTab(tab);
+      }
+    }
+  }
+
+  void EnhancedTabBar::mouseDoubleClickEvent(QMouseEvent * e)
+  {
+    if (e->button() != Qt::LeftButton)
+    {
+      e->ignore();
+      return;
+    }
+    int tab = tabAt_(e->pos());
+    if (tab != -1)
+    {
+      emit aboutToCloseId(tabData(tab).toInt());
+      removeTab(tab);
+    }
+  }
+
+  int EnhancedTabBar::addTab(const String & text, int id)
+  {
+    int tab_index = QTabBar::addTab(text.c_str());
     setTabData(tab_index, id);
-		
-		return tab_index;
-	}
-	
-	void EnhancedTabBar::removeId(int id)
-	{
-		for (int i=0; i<this->count(); ++i)
+
+    return tab_index;
+  }
+
+  void EnhancedTabBar::removeId(int id)
+  {
+    for (int i = 0; i < this->count(); ++i)
     {
-    	if (tabData(i).toInt()==id)
-    	{
-    		removeTab(i);
-    		break;
-    	}
+      if (tabData(i).toInt() == id)
+      {
+        removeTab(i);
+        break;
+      }
     }
-	}
+  }
 
-	void EnhancedTabBar::setCurrentId(int id)
-	{
-		for (int i=0; i<this->count(); ++i)
+  void EnhancedTabBar::setCurrentId(int id)
+  {
+    for (int i = 0; i < this->count(); ++i)
     {
-    	if (tabData(i).toInt()==id)
-    	{
-    		setCurrentIndex(i);
-    		break;
-    	}
+      if (tabData(i).toInt() == id)
+      {
+        setCurrentIndex(i);
+        break;
+      }
     }
-	}
+  }
 
-	void EnhancedTabBar::currentChanged_(int id)
-	{
-		emit currentIdChanged(tabData(id).toInt());
-	}
+  void EnhancedTabBar::currentChanged_(int id)
+  {
+    emit currentIdChanged(tabData(id).toInt());
+  }
 
-	int EnhancedTabBar::tabAt_(const QPoint& pos)
-	{
-		int tab = -1;
+  int EnhancedTabBar::tabAt_(const QPoint & pos)
+  {
+    int tab = -1;
 
-    for (int i=0; i<this->count(); ++i)
+    for (int i = 0; i < this->count(); ++i)
     {
-			if (tabRect(i).contains(pos))
-			{
-				tab = i;
-				break;
-			}
-		}
+      if (tabRect(i).contains(pos))
+      {
+        tab = i;
+        break;
+      }
+    }
 
-		return tab;
-	}
+    return tab;
+  }
 
-} //namespace OpenMS	
-
+} //namespace OpenMS

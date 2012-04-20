@@ -41,98 +41,98 @@ class QMouseEvent;
 
 namespace OpenMS
 {
-	class AxisWidget;
-	class String;
-	
-	/**
-		@brief Widget which can visualize a histogram.
-		
-		@image html HistogramWidget.png
-		
-		It can also be used to define a left and right boundary inside the values.
-    It supports normal and log scaling via the context menu.
-		
-		@ingroup Visual
-	*/
-	class OPENMS_GUI_DLLAPI HistogramWidget
-		: public QWidget
-	{
-		Q_OBJECT
-		
-		public:
-			/// Constructor
-			HistogramWidget(const Math::Histogram<>& distribution, QWidget* parent = 0);
+  class AxisWidget;
+  class String;
 
-			/// Destructor
-			virtual ~HistogramWidget();
-			
-			/// Returns the value f the lower splitter
-			DoubleReal getLeftSplitter();
+  /**
+      @brief Widget which can visualize a histogram.
 
-			/// Returns the value of the upper splitter
-			DoubleReal getRightSplitter();
+      @image html HistogramWidget.png
 
-      /// Set axis legends
-			void setLegend(const String& legend);
+      It can also be used to define a left and right boundary inside the values.
+  It supports normal and log scaling via the context menu.
 
-		public slots:
-			/// Shows the splitters if @p on is true. Hides them otherwise.
-			void showSplitters(bool on);
+      @ingroup Visual
+  */
+  class OPENMS_GUI_DLLAPI HistogramWidget :
+    public QWidget
+  {
+    Q_OBJECT
 
-			/// Sets the value of the right splitter
-			void setRightSplitter(DoubleReal pos);
+public:
+    /// Constructor
+    HistogramWidget(const Math::Histogram<> & distribution, QWidget * parent = 0);
 
-			/// Sets the value of the left splitter
-			void setLeftSplitter(DoubleReal pos);
+    /// Destructor
+    virtual ~HistogramWidget();
 
-			/// Enables/disables log mode
-			void setLogMode(bool log_mode);
+    /// Returns the value f the lower splitter
+    DoubleReal getLeftSplitter();
 
-		protected:
-      /// The histogram to display
-			Math::Histogram<> dist_;
+    /// Returns the value of the upper splitter
+    DoubleReal getRightSplitter();
 
-			/// Flag that indicates if splitters are shown
-			bool show_splitters_;
+    /// Set axis legends
+    void setLegend(const String & legend);
 
-      /// Value of the right splitter
-			DoubleReal left_splitter_;
+public slots:
+    /// Shows the splitters if @p on is true. Hides them otherwise.
+    void showSplitters(bool on);
 
-      /// Value of the right splitter
-			DoubleReal right_splitter_;
+    /// Sets the value of the right splitter
+    void setRightSplitter(DoubleReal pos);
 
-      /// The splitter that is currently dragged (0=none, 1=left, 2=right)
-			UInt moving_splitter_;
+    /// Sets the value of the left splitter
+    void setLeftSplitter(DoubleReal pos);
 
-      /// X axis
-			AxisWidget *bottom_axis_;
+    /// Enables/disables log mode
+    void setLogMode(bool log_mode);
 
-      /// Margin around plot
-			UInt margin_;
+protected:
+    /// The histogram to display
+    Math::Histogram<> dist_;
 
-      /// Internal buffer for the double buffering
-			QPixmap buffer_;
+    /// Flag that indicates if splitters are shown
+    bool show_splitters_;
 
-      /// Flag that indicates the current mode
-			bool log_mode_;
+    /// Value of the right splitter
+    DoubleReal left_splitter_;
 
-      /// Repaints the contents to the buffer and calls update()
-			void invalidate_();
+    /// Value of the right splitter
+    DoubleReal right_splitter_;
 
-			///@name reimplemented Qt events
-			//@{
-			void paintEvent(QPaintEvent*);
-			void mousePressEvent(QMouseEvent*);
-			void mouseReleaseEvent(QMouseEvent*);
-			void mouseMoveEvent(QMouseEvent*);
-			void resizeEvent(QResizeEvent*);
-			//@}
+    /// The splitter that is currently dragged (0=none, 1=left, 2=right)
+    UInt moving_splitter_;
 
-		protected slots:
+    /// X axis
+    AxisWidget * bottom_axis_;
 
-      /// Context menu event
-			void showContextMenu(const QPoint& pos);
-	};
+    /// Margin around plot
+    UInt margin_;
+
+    /// Internal buffer for the double buffering
+    QPixmap buffer_;
+
+    /// Flag that indicates the current mode
+    bool log_mode_;
+
+    /// Repaints the contents to the buffer and calls update()
+    void invalidate_();
+
+    ///@name reimplemented Qt events
+    //@{
+    void paintEvent(QPaintEvent *);
+    void mousePressEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *);
+    void mouseMoveEvent(QMouseEvent *);
+    void resizeEvent(QResizeEvent *);
+    //@}
+
+protected slots:
+
+    /// Context menu event
+    void showContextMenu(const QPoint & pos);
+  };
 } // namespace OpenMS
 
 

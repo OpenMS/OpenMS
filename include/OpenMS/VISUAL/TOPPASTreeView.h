@@ -35,40 +35,39 @@
 #include <QtGui/QMouseEvent>
 #include <QtCore/QPoint>
 
-namespace OpenMS 
+namespace OpenMS
 {
-	class String;
+  class String;
 
-	/**
-		@brief Tree view implementation for the list of TOPP tools
-		
-		@ingroup Visual
-	*/
-	class OPENMS_GUI_DLLAPI TOPPASTreeView
-		: public QTreeWidget
-	{
-		Q_OBJECT
-		
-		public:
-			/// Constructor
-			TOPPASTreeView(QWidget* parent = 0);
-			/// Destructor
-			~TOPPASTreeView();
+  /**
+      @brief Tree view implementation for the list of TOPP tools
 
-		protected:
-			///@name Reimplemented Qt events
-			//@{
-			void mousePressEvent(QMouseEvent* e);
-			void mouseMoveEvent(QMouseEvent* e);
-			void keyPressEvent(QKeyEvent* e);
-			void leaveEvent(QEvent* e);
-			void enterEvent(QEvent* e);
-			//@}
-			
-			/// The drag start position
-			QPoint drag_start_pos_;
-	};
+      @ingroup Visual
+  */
+  class OPENMS_GUI_DLLAPI TOPPASTreeView :
+    public QTreeWidget
+  {
+    Q_OBJECT
+
+public:
+    /// Constructor
+    TOPPASTreeView(QWidget * parent = 0);
+    /// Destructor
+    ~TOPPASTreeView();
+
+protected:
+    ///@name Reimplemented Qt events
+    //@{
+    void mousePressEvent(QMouseEvent * e);
+    void mouseMoveEvent(QMouseEvent * e);
+    void keyPressEvent(QKeyEvent * e);
+    void leaveEvent(QEvent * e);
+    void enterEvent(QEvent * e);
+    //@}
+
+    /// The drag start position
+    QPoint drag_start_pos_;
+  };
 
 }
 #endif // OPENMS_VISUAL_TOPPASTREEVIEW_H
-
