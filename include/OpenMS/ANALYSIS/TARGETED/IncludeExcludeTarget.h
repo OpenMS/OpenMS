@@ -50,6 +50,7 @@ namespace OpenMS
 		public:
 
       typedef TargetedExperimentHelper::Configuration Configuration;
+      typedef TargetedExperimentHelper::RetentionTime RetentionTime;
 
 		/** @name Constructors and destructors
 		*/
@@ -120,6 +121,10 @@ namespace OpenMS
 		void addPredictionTerm(const CVTerm& prediction);
 
 		const CVTermList& getPrediction() const;
+
+    void setRetentionTime(RetentionTime rt) ;
+
+    const RetentionTime& getRetentionTime() const;
 		//@}
 
 		/** @name Predicates
@@ -155,6 +160,9 @@ namespace OpenMS
 		std::vector<Configuration> configurations_;
 
 		CVTermList prediction_;
+
+    RetentionTime rts;
+
 	};
 }
 

@@ -49,6 +49,10 @@ namespace OpenMS
 			: public XMLHandler
 		{
 		 public:
+
+      typedef std::vector<ReactionMonitoringTransition::Product> ProductListType;
+      typedef std::vector<ReactionMonitoringTransition::Configuration> ConfigurationListType;
+
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
@@ -88,13 +92,13 @@ namespace OpenMS
 
 			const TargetedExperiment* cexp_;
 
-			CVTermList actual_publication_;
+      TargetedExperiment::Publication actual_publication_;
 
-			CVTermList actual_contact_;
+      TargetedExperiment::Contact actual_contact_;
 
-			CVTermList actual_instrument_;
+      TargetedExperiment::Instrument actual_instrument_;
 
-			CVTermList actual_prediction_;
+      TargetedExperiment::Prediction actual_prediction_;
 			
 			Software actual_software_;
 
@@ -113,6 +117,10 @@ namespace OpenMS
 			CVTermList actual_validation_;
 	
 			CVTermList actual_interpretation_;
+
+      std::vector<ReactionMonitoringTransition::Product> actual_intermediate_products_;
+
+      ReactionMonitoringTransition::Product actual_product_;
 			
 			ReactionMonitoringTransition::Configuration actual_configuration_;
 
@@ -131,7 +139,12 @@ namespace OpenMS
 
 			void writeCVParams_(std::ostream& os, const CVTermList& cv_terms, UInt indent) const;
 
+      // subfunctions of write
       void write_target_ (std::ostream& os, const std::vector<IncludeExcludeTarget>::const_iterator& it) const;
+
+      void write_product_ (std::ostream& os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator& prod_it) const;
+
+      void write_configuration_ (std::ostream& os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator& cit) const;
 			
 			/// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
 			ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;

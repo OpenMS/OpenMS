@@ -63,6 +63,370 @@ namespace OpenMS
       }
     };
 
+    struct CV
+    {
+      CV(const String& new_id, const String& new_fullname, const String& new_version, const String& new_URI)
+        :  id(new_id),
+          fullname(new_fullname),
+          version(new_version),
+          URI(new_URI)
+      {
+
+      }
+      String id;
+      String fullname;
+      String version;
+      String URI;
+      
+      bool operator == (const CV& cv) const
+      {
+        return   id == cv.id &&
+                fullname == cv.fullname &&
+                version == cv.version &&
+                URI == cv.URI;
+      }
+
+    };
+
+    struct Protein
+      : public CVTermList
+    {
+      Protein()
+        : CVTermList()
+      {
+      }
+
+      String id;
+      String sequence;
+
+      bool operator == (const Protein& rhs) const
+      {
+        return  CVTermList::operator == (rhs) &&
+                id == rhs.id &&
+                sequence == rhs.sequence;
+      }
+
+      Protein& operator = (const Protein& rhs)
+      {
+        if (&rhs != this)
+        {
+          CVTermList::operator = (rhs);
+          id = rhs.id;
+          sequence = rhs.sequence;
+        }
+        return *this;
+      }
+
+    };
+
+    class OPENMS_DLLAPI RetentionTime
+      : public CVTermList
+    {
+      public: 
+
+      RetentionTime()
+        : CVTermList()
+      {
+      }
+
+      RetentionTime(const RetentionTime& rhs)
+        : CVTermList(rhs),
+          software_ref(rhs.software_ref)
+      {
+      }
+
+      virtual ~RetentionTime()
+      {
+      }
+
+      RetentionTime& operator = (const RetentionTime& rhs)
+      {
+        if (&rhs != this)
+        {
+          CVTermList::operator = (rhs);
+          software_ref = rhs.software_ref;
+        }
+        return *this;
+      }
+
+      bool operator == (const RetentionTime& rhs) const
+      {
+        return  CVTermList::operator == (rhs) && 
+                software_ref == rhs.software_ref;
+      }
+
+      String software_ref;
+    };
+
+    class OPENMS_DLLAPI Compound
+      : public CVTermList
+    {
+      public:
+        
+      Compound()
+        : CVTermList()
+      {
+      }
+
+      Compound(const Compound& rhs)
+        :  CVTermList(rhs),
+          id(rhs.id),
+          rts(rhs.rts)
+      {
+      }
+      
+      Compound& operator = (const Compound& rhs)
+      {
+        if (this != &rhs)
+        {
+          CVTermList::operator = (rhs);
+          id = rhs.id;
+          rts = rhs.rts;
+        }
+        return *this;
+      }
+
+      bool operator == (const Compound& rhs) const
+      {
+        return  CVTermList::operator == (rhs) && 
+                id == rhs.id &&
+                 rts == rhs.rts;
+      }
+
+      String id;
+      std::vector<RetentionTime> rts;
+    };
+    
+    class OPENMS_DLLAPI Peptide
+      : public CVTermList
+    {
+      public:
+
+      struct Modification
+        : public CVTermList
+      {
+        DoubleReal avg_mass_delta;
+        Size location;
+        DoubleReal mono_mass_delta;
+      };
+
+      Peptide()
+        : CVTermList()
+      {
+      }
+
+      Peptide(const Peptide& rhs)
+        : CVTermList(rhs),
+          rts(rhs.rts),
+          id(rhs.id),
+          protein_refs(rhs.protein_refs),
+          evidence(rhs.evidence),
+          sequence(rhs.sequence),
+          mods(rhs.mods)
+      {
+      }
+
+      Peptide& operator = (const Peptide& rhs)
+      {
+        if (this != &rhs)
+        {
+          CVTermList::operator = (rhs);
+          rts = rhs.rts;
+          id = rhs.id;
+          protein_refs = rhs.protein_refs;
+          evidence = rhs.evidence;
+          sequence = rhs.sequence;
+          mods = rhs.mods;
+        }
+        return *this;
+      }
+
+      bool operator == (const Peptide& rhs) const
+      {
+        return  CVTermList::operator == (rhs) && 
+                rts == rhs.rts &&
+                id == rhs.id &&
+                protein_refs == rhs.protein_refs &&
+                evidence == rhs.evidence &&
+                sequence == rhs.sequence &&
+                mods == rhs.mods;
+      }
+
+      std::vector<RetentionTime> rts;
+      String id;
+      std::vector<String> protein_refs;
+      CVTermList evidence;
+      String sequence;
+      std::vector<Modification> mods;
+    };
+
+    struct OPENMS_DLLAPI Contact
+      : public CVTermList
+    {
+      Contact()
+        : CVTermList()
+      {
+      }
+
+      String id;
+
+      bool operator == (const Contact& rhs) const
+      {
+        return  CVTermList::operator == (rhs) &&
+                id == rhs.id;
+      }
+
+      Contact& operator = (const Contact& rhs)
+      {
+        if (&rhs != this)
+        {
+          CVTermList::operator = (rhs);
+          id = rhs.id;
+        }
+        return *this;
+      }
+
+    };
+
+    struct OPENMS_DLLAPI Publication
+      : public CVTermList
+    {
+      Publication()
+        : CVTermList()
+      {
+      }
+
+      String id;
+
+      bool operator == (const Publication& rhs) const
+      {
+        return  CVTermList::operator == (rhs) &&
+                id == rhs.id;
+      }
+
+      Publication& operator = (const Publication& rhs)
+      {
+        if (&rhs != this)
+        {
+          CVTermList::operator = (rhs);
+          id = rhs.id;
+        }
+        return *this;
+      }
+
+    };
+
+    struct OPENMS_DLLAPI Instrument
+      : public CVTermList
+    {
+      Instrument()
+        : CVTermList()
+      {
+      }
+
+      String id;
+
+      bool operator == (const Instrument& rhs) const
+      {
+        return  CVTermList::operator == (rhs) &&
+                id == rhs.id;
+      }
+
+      Instrument& operator = (const Instrument& rhs)
+      {
+        if (&rhs != this)
+        {
+          CVTermList::operator = (rhs);
+          id = rhs.id;
+        }
+        return *this;
+      }
+
+    };
+
+    struct OPENMS_DLLAPI Prediction
+      : public CVTermList
+    {
+      Prediction()
+        : CVTermList()
+      {
+      }
+
+      String software_ref;
+      String contact_ref;
+
+      bool operator == (const Prediction& rhs) const
+      {
+        return  CVTermList::operator == (rhs) &&
+                contact_ref == rhs.contact_ref &&
+                software_ref == rhs.software_ref;
+      }
+
+      Prediction& operator = (const Prediction& rhs)
+      {
+        if (&rhs != this)
+        {
+          CVTermList::operator = (rhs);
+          software_ref = rhs.software_ref;
+          contact_ref = rhs.contact_ref;
+        }
+        return *this;
+      }
+
+    };
+
+    struct OPENMS_DLLAPI TraMLProduct
+      : public CVTermList
+    {
+      TraMLProduct()
+        : CVTermList()
+      {
+      }
+
+      bool operator == (const TraMLProduct& rhs) const
+      {
+        return  CVTermList::operator == (rhs) &&
+          configuration_list_ == rhs.configuration_list_ && 
+          interpretation_list_ == rhs.interpretation_list_;
+      }
+
+      TraMLProduct& operator = (const TraMLProduct& rhs)
+      {
+        if (&rhs != this)
+        {
+          CVTermList::operator = (rhs);
+          configuration_list_ = rhs.configuration_list_;
+          interpretation_list_ = rhs.interpretation_list_;
+        }
+        return *this;
+      }
+
+      const std::vector<Configuration>& getConfigurationList() const
+      {
+        return configuration_list_;
+      }
+      void addConfiguration(const Configuration configuration) 
+      {
+        return configuration_list_.push_back(configuration);
+      }
+
+      const std::vector<CVTermList>& getInterpretationList() const
+      {
+        return interpretation_list_; 
+      }
+      void addInterpretation(const CVTermList interpretation) 
+      {
+        return interpretation_list_.push_back(interpretation);
+      }
+
+      private:
+
+      std::vector<Configuration> configuration_list_;
+      std::vector<CVTermList> interpretation_list_;
+
+
+    };
+
   };
 }
 

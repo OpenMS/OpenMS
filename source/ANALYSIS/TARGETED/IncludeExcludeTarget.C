@@ -52,7 +52,8 @@ namespace OpenMS
 			peptide_ref_(rhs.peptide_ref_),
 			compound_ref_(rhs.compound_ref_),
 			configurations_(rhs.configurations_),
-			prediction_(rhs.prediction_)
+			prediction_(rhs.prediction_),
+			rts(rhs.rts)
 	{
 	}
 
@@ -75,6 +76,7 @@ namespace OpenMS
 			compound_ref_ = rhs.compound_ref_;
 			configurations_ = rhs.configurations_;
 			prediction_ = rhs.prediction_;
+			rts = rhs.rts;
 		}
 		return *this;
 	}
@@ -91,7 +93,8 @@ namespace OpenMS
 			      peptide_ref_ == rhs.peptide_ref_ &&
 			      compound_ref_ == rhs.compound_ref_ &&
 			      configurations_ == rhs.configurations_ &&
-						prediction_ == rhs.prediction_;
+						prediction_ == rhs.prediction_ &&
+						rts == rhs.rts;
 	}
 
 	bool IncludeExcludeTarget::operator != (const IncludeExcludeTarget& rhs) const
@@ -229,6 +232,16 @@ namespace OpenMS
   void IncludeExcludeTarget::updateMembers_()
 	{
 	}
+
+  void IncludeExcludeTarget::setRetentionTime(IncludeExcludeTarget::RetentionTime rt)
+  {
+    rts = rt;
+  }
+
+  const IncludeExcludeTarget::RetentionTime& IncludeExcludeTarget::getRetentionTime() const
+  {
+    return rts;
+  }
 }
 
 

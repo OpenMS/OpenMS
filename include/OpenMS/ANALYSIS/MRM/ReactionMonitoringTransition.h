@@ -49,7 +49,10 @@ namespace OpenMS
 
 		public:
 
-      typedef TargetedExperimentHelper::Configuration Configuration;
+    typedef TargetedExperimentHelper::Configuration Configuration;
+    typedef TargetedExperimentHelper::RetentionTime RetentionTime;
+    typedef TargetedExperimentHelper::TraMLProduct Product;
+    typedef TargetedExperimentHelper::Prediction Prediction;
 
 		/** @name Constructors and destructors
 		*/
@@ -73,6 +76,10 @@ namespace OpenMS
 		void setName(const String& name);
 
 		const String& getName() const;
+
+		void setNativeID(const String& name);
+
+		const String& getNativeID() const;
 
 		void setPeptideRef(const String& peptide_ref);
 
@@ -103,23 +110,25 @@ namespace OpenMS
 
 		const CVTermList& getProductCVTermList() const;
 
-		void setInterpretations(const std::vector<CVTermList>& interpretations);
+    const std::vector<Product>& getIntermediateProducts() const;
 
-		const std::vector<CVTermList>& getInterpretations() const;
+    void addIntermediateProduct(Product product);
 
-		void addInterpretation(const CVTermList& interpretation);
+    void setIntermediateProducts(std::vector<Product>& products);
 
-		void setConfigurations(const std::vector<Configuration>& configuration);
-		
-		const std::vector<Configuration>& getConfigurations() const;
+    void setProduct(Product product) ;
 
-		void addConfiguration(const Configuration& configuration);
+    const Product& getProduct() const;
 
-		void setPrediction(const CVTermList& prediction);
+    void setRetentionTime(RetentionTime rt) ;
+
+    const RetentionTime& getRetentionTime() const;
+
+		void setPrediction(const Prediction& prediction);
 
 		void addPredictionTerm(const CVTerm& prediction);
 
-		const CVTermList& getPrediction() const;
+		const Prediction& getPrediction() const;
 		//@}
 
 		/** @name Predicates
@@ -170,7 +179,15 @@ namespace OpenMS
 
 		std::vector<Configuration> configurations_;
 
-		CVTermList prediction_;
+		Prediction prediction_;
+
+    // A transition has one product but multiple intermediate products
+    Product product_;
+
+    std::vector<Product> intermediate_products_;
+
+    RetentionTime rts;
+
 	};
 }
 

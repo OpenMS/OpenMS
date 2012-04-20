@@ -100,32 +100,32 @@ namespace OpenMS
 		cvs_.push_back(cv);
 	}
 
-  void TargetedExperiment::setContacts(const vector<CVTermList>& contacts)
+  void TargetedExperiment::setContacts(const vector<Contact>& contacts)
   {
     contacts_ = contacts;
   }
 
-  const vector<CVTermList>& TargetedExperiment::getContacts() const
+  const vector<TargetedExperiment::Contact>& TargetedExperiment::getContacts() const
   {
     return contacts_;
   }
 
-  void TargetedExperiment::addContact(const CVTermList& contact)
+  void TargetedExperiment::addContact(const Contact& contact)
   {
     contacts_.push_back(contact);
   }
 
-	void TargetedExperiment::setPublications(const vector<CVTermList>& publications)
+	void TargetedExperiment::setPublications(const vector<Publication>& publications)
 	{
 		publications_ = publications;
 	}
 
-	const vector<CVTermList>& TargetedExperiment::getPublications() const
+	const vector<TargetedExperiment::Publication>& TargetedExperiment::getPublications() const
 	{
 		return publications_;
 	}
 
-	void TargetedExperiment::addPublication(const CVTermList& publication)
+	void TargetedExperiment::addPublication(const Publication& publication)
 	{
 		publications_.push_back(publication);
 	}
@@ -145,17 +145,22 @@ namespace OpenMS
     targets_.addCVTerm(cv_term);
   }
 
-  void TargetedExperiment::setInstruments(const vector<CVTermList>& instruments)
+  void TargetedExperiment::setTargetMetaValue(const String &name, const DataValue &value)
+  {
+    targets_.setMetaValue(name, value);
+  }
+
+  void TargetedExperiment::setInstruments(const vector<Instrument>& instruments)
   {
     instruments_ = instruments;
   }
 
-  const vector<CVTermList>& TargetedExperiment::getInstruments() const
+  const vector<TargetedExperiment::Instrument>& TargetedExperiment::getInstruments() const
   {
     return instruments_;
   }
 
-  void TargetedExperiment::addInstrument(const CVTermList& instrument)
+  void TargetedExperiment::addInstrument(const Instrument& instrument)
   {
     instruments_.push_back(instrument);
   }

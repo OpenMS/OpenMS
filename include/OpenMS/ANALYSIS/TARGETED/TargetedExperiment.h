@@ -34,6 +34,7 @@
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/Software.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
 #include <vector>
 
@@ -48,205 +49,15 @@ namespace OpenMS
 	{
 		public:
 
-		struct CV
-		{
-			CV(const String& new_id, const String& new_fullname, const String& new_version, const String& new_URI)
-				:	id(new_id),
-					fullname(new_fullname),
-					version(new_version),
-					URI(new_URI)
-			{
-
-			}
-			String id;
-			String fullname;
-			String version;
-			String URI;
-			
-			bool operator == (const CV& cv) const
-			{
-				return 	id == cv.id &&
-								fullname == cv.fullname &&
-								version == cv.version &&
-								URI == cv.URI;
-			}
-
-		};
-
-		struct Protein
-			: public CVTermList
-		{
-			Protein()
-				: CVTermList()
-			{
-			}
-
-			String id;
-			String sequence;
-
-			bool operator == (const Protein& rhs) const
-			{
-				return  CVTermList::operator == (rhs) &&
-								id == rhs.id &&
-								sequence == rhs.sequence;
-			}
-
-      Protein& operator = (const Protein& rhs)
-      {
-				if (&rhs != this)
-				{
-					CVTermList::operator = (rhs);
-        	id = rhs.id;
-          sequence = rhs.sequence;
-				}
-				return *this;
-      }
-
-		};
-
-		class OPENMS_DLLAPI RetentionTime
-			: public CVTermList
-		{
-			public: 
-
-			RetentionTime()
-				: CVTermList()
-			{
-			}
-
-			RetentionTime(const RetentionTime& rhs)
-        : CVTermList(rhs),
-					software_ref(rhs.software_ref)
-      {
-      }
-
-			virtual ~RetentionTime()
-			{
-			}
-
-			RetentionTime& operator = (const RetentionTime& rhs)
-			{
-				if (&rhs != this)
-				{
-					CVTermList::operator = (rhs);
-					software_ref = rhs.software_ref;
-				}
-				return *this;
-			}
-
-      bool operator == (const RetentionTime& rhs) const
-      {
-				return	CVTermList::operator == (rhs) && 
-          			software_ref == rhs.software_ref;
-      }
-
-
-			String software_ref;
-		};
-
-		class OPENMS_DLLAPI Compound
-			: public CVTermList
-		{
-			public:
-				
-			Compound()
-				: CVTermList()
-			{
-			}
-
-			Compound(const Compound& rhs)
-				:	CVTermList(rhs),
-					id(rhs.id),
-					rts(rhs.rts)
-			{
-			}
-			
-			Compound& operator = (const Compound& rhs)
-			{
-				if (this != &rhs)
-				{
-					CVTermList::operator = (rhs);
-					id = rhs.id;
-					rts = rhs.rts;
-				}
-				return *this;
-			}
-
-      bool operator == (const Compound& rhs) const
-      {
-				return	CVTermList::operator == (rhs) && 
-								id == rhs.id &&
-			         	rts == rhs.rts;
-      }
-
-			String id;
-			std::vector<RetentionTime> rts;
-		};
-		
-    class OPENMS_DLLAPI Peptide
-			: public CVTermList
-    {
-      public:
-
-			struct Modification
-				: public CVTermList
-			{
-				DoubleReal avg_mass_delta;
-				Size location;
-				DoubleReal mono_mass_delta;
-			};
-
-      Peptide()
-				: CVTermList()
-      {
-      }
-
-      Peptide(const Peptide& rhs)
-        : CVTermList(rhs),
-					rts(rhs.rts),
-					id(rhs.id),
-					protein_refs(rhs.protein_refs),
-					evidence(rhs.evidence),
-					sequence(rhs.sequence),
-					mods(rhs.mods)
-      {
-      }
-
-      Peptide& operator = (const Peptide& rhs)
-      {
-        if (this != &rhs)
-        {
-					CVTermList::operator = (rhs);
-          rts = rhs.rts;
-					id = rhs.id;
-					protein_refs = rhs.protein_refs;
-					evidence = rhs.evidence;
-					sequence = rhs.sequence;
-					mods = rhs.mods;
-        }
-        return *this;
-      }
-
-      bool operator == (const Peptide& rhs) const
-      {
-				return	CVTermList::operator == (rhs) && 
-								rts == rhs.rts &&
-          			id == rhs.id &&
-          			protein_refs == rhs.protein_refs &&
-          			evidence == rhs.evidence &&
-								sequence == rhs.sequence &&
-								mods == rhs.mods;
-      }
-
-
-
-      std::vector<RetentionTime> rts;
-			String id;
-			std::vector<String> protein_refs;
-			CVTermList evidence;
-			String sequence;
-			std::vector<Modification> mods;
-    };
+    typedef TargetedExperimentHelper::CV CV;
+    typedef TargetedExperimentHelper::Protein Protein;
+    typedef TargetedExperimentHelper::RetentionTime RetentionTime;
+    typedef TargetedExperimentHelper::Compound Compound;
+    typedef TargetedExperimentHelper::Peptide Peptide;
+    typedef TargetedExperimentHelper::Contact Contact;
+    typedef TargetedExperimentHelper::Publication Publication;
+    typedef TargetedExperimentHelper::Instrument Instrument;
+    typedef TargetedExperimentHelper::Prediction Prediction;
 
 		/** @name Constructors and destructors
 		*/
@@ -281,18 +92,18 @@ namespace OpenMS
 		void addCV(const CV& cv);
 
 		// contact list
-		void setContacts(const std::vector<CVTermList>& contacts);
+		void setContacts(const std::vector<Contact>& contacts);
 
-		const std::vector<CVTermList>& getContacts() const;
+		const std::vector<Contact>& getContacts() const;
 
-		void addContact(const CVTermList& contact);
+		void addContact(const Contact& contact);
 
 		// publication list
-    void setPublications(const std::vector<CVTermList>& publications);
+    void setPublications(const std::vector<Publication>& publications);
 
-    const std::vector<CVTermList>& getPublications() const;
+    const std::vector<Publication>& getPublications() const;
 
-    void addPublication(const CVTermList& publication);
+    void addPublication(const Publication& publication);
 
 		// target list
     void setTargetCVTerms(const CVTermList& cv_terms);
@@ -301,12 +112,14 @@ namespace OpenMS
 
     void addTargetCVTerm(const CVTerm& cv_term);
 
+    void setTargetMetaValue(const String &name, const DataValue &value);
+
 		// instrument list
-		void setInstruments(const std::vector<CVTermList>& instruments);
+		void setInstruments(const std::vector<Instrument>& instruments);
 
-		const std::vector<CVTermList>& getInstruments() const;
+		const std::vector<Instrument>& getInstruments() const;
 
-		void addInstrument(const CVTermList& instrument);
+		void addInstrument(const Instrument& instrument);
 
 		// software list
 		void setSoftware(const std::vector<Software>& software);
@@ -378,11 +191,11 @@ namespace OpenMS
 
 		std::vector<CV> cvs_;
 
-		std::vector<CVTermList> contacts_;
+		std::vector<Contact> contacts_;
 
-		std::vector<CVTermList> publications_;
+		std::vector<Publication> publications_;
 
-		std::vector<CVTermList> instruments_;
+		std::vector<Instrument> instruments_;
 
 		CVTermList targets_;
 

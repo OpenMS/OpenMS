@@ -67,15 +67,17 @@ namespace OpenMS
 
 	void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{
+
+    static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+    static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+    static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+
 		tag_ = sm_.convert(qname);
     open_tags_.push_back(tag_);
 
     static set<String> tags_to_ignore;
     if ( tags_to_ignore.empty() )
     {
-      //tags_to_ignore.insert("RetentionTime"); // TODO
-      //tags_to_ignore.insert("IntermediateProduct"); // TODO
-
 			tags_to_ignore.insert("TraML"); // base node
       tags_to_ignore.insert("ContactList"); // contains only contact sections
       tags_to_ignore.insert("CompoundList"); // contains only compounds
@@ -89,10 +91,11 @@ namespace OpenMS
       tags_to_ignore.insert("SourceFileList"); // contains only source files
       tags_to_ignore.insert("InterpretationList"); // contains only interpretations
 			tags_to_ignore.insert("Evidence"); // only cv terms
-			tags_to_ignore.insert("Validation"); // only cv terms
+			tags_to_ignore.insert("ValidationStatus"); // only cv terms
 			tags_to_ignore.insert("Sequence"); // only sequence as characters
 			tags_to_ignore.insert("Precursor"); // contains only cv terms
-			tags_to_ignore.insert("Product"); // contains only cv terms
+			tags_to_ignore.insert("Product"); // contains no attributes
+      tags_to_ignore.insert("IntermediateProduct"); // contains no attributes
 			tags_to_ignore.insert("TargetIncludeList");
 			tags_to_ignore.insert("TargetExcludeList");
 			tags_to_ignore.insert("TargetList");
@@ -104,7 +107,6 @@ namespace OpenMS
     {
       return;
     }
-
 
     //determine parent tag
     String parent_tag;
@@ -126,25 +128,32 @@ namespace OpenMS
       handleCVParam_(parent_parent_tag, parent_tag, cv_term);
 			return;
 		}
+	  else if (tag_=="userParam")
+	  {
+      String type = "";
+      optionalAttributeAsString_(type, attributes, s_type);
+      String value = "";
+      optionalAttributeAsString_(value, attributes, s_value);
+      handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value);
+	  }
 		else if (tag_ == "cv")
 		{
 			exp_->addCV(TargetedExperiment::CV(attributeAsString_(attributes, "id"), attributeAsString_(attributes, "fullName"), attributeAsString_(attributes, "version"), attributeAsString_(attributes, "URI")));
 		}
 		else if (tag_ == "Contact")
 		{
-			actual_contact_.setMetaValue("id", attributeAsString_(attributes, "id"));
+			actual_contact_.id = attributeAsString_(attributes, "id");
 		}
 		else if (tag_ == "Publication")
     {
-      actual_publication_.setMetaValue("id", attributeAsString_(attributes, "id"));
+      actual_publication_.id = attributeAsString_(attributes, "id");
     }
 		else if (tag_ == "Instrument")
     {
-			actual_instrument_.setMetaValue("id", attributeAsString_(attributes, "id"));
+			actual_instrument_.id = attributeAsString_(attributes, "id");
     }
 		else if (tag_ == "Software")
     {
-			actual_software_.setMetaValue("id", attributeAsString_(attributes, "id"));
 			actual_software_.setName(attributeAsString_(attributes, "id"));
 			actual_software_.setVersion(attributeAsString_(attributes, "version"));
     }
@@ -178,11 +187,11 @@ namespace OpenMS
 		}
 		else if (tag_ == "Prediction")
 		{
-			actual_prediction_.setMetaValue("softwareRef", attributeAsString_(attributes, "softwareRef"));
+			actual_prediction_.software_ref = attributeAsString_(attributes, "softwareRef");
 			String contact_ref;
 			if (optionalAttributeAsString_(contact_ref, attributes, "contactRef"))
 			{
-				actual_prediction_.setMetaValue("contactRef", contact_ref);
+				actual_prediction_.contact_ref = contact_ref;
 			}
 		}
 		else if (tag_ == "RetentionTime")
@@ -200,7 +209,7 @@ namespace OpenMS
 			String id;
 			if (optionalAttributeAsString_(id, attributes, "id"))
 			{
-				actual_transition_.setMetaValue("id", id);
+				actual_transition_.setName(id);
 			}
 			String peptide_ref;
 			if (optionalAttributeAsString_(peptide_ref, attributes, "peptideRef"))
@@ -215,11 +224,11 @@ namespace OpenMS
 		}
 		else if (tag_ == "Interpretation")
 		{
-			String primary;
-			if (optionalAttributeAsString_(primary, attributes, "primary"))
-			{
-				actual_interpretation_.setMetaValue("primary", primary);
-			}
+      String primary;
+      if (optionalAttributeAsString_(primary, attributes, "primary"))
+      {
+        actual_interpretation_.setMetaValue("primary", primary);
+      }
 		}
 		else if (tag_ == "Configuration")
 		{
@@ -232,7 +241,7 @@ namespace OpenMS
 		}
 		else if (tag_ == "SourceFile")
 		{
-			actual_sourcefile_.setMetaValue("id", attributeAsString_(attributes, "id"));
+			actual_sourcefile_.setNativeIDType(attributeAsString_(attributes, "id"));
 			actual_sourcefile_.setNameOfFile(attributeAsString_(attributes, "name"));
 			actual_sourcefile_.setPathToFile(attributeAsString_(attributes, "location"));
 		}
@@ -246,7 +255,7 @@ namespace OpenMS
       String id;
       if (optionalAttributeAsString_(id, attributes, "id"))
       {
-        actual_target_.setMetaValue("id", id);
+        actual_target_.setName(id);
       }
       String peptide_ref;
       if (optionalAttributeAsString_(peptide_ref, attributes, "peptideRef"))
@@ -306,10 +315,10 @@ namespace OpenMS
       tags_to_ignore.insert("InterpretationList"); // contains only interpretations
       tags_to_ignore.insert("Evidence"); // only cv terms
 			tags_to_ignore.insert("cvParam"); // already handled
+			tags_to_ignore.insert("userParam"); // already handled
 			tags_to_ignore.insert("cv"); // already handled
 			tags_to_ignore.insert("Sequence"); // already handled in characters
 			tags_to_ignore.insert("Precursor"); // contains only cv terms
-			tags_to_ignore.insert("Product"); // contains only cv terms
 			tags_to_ignore.insert("RetentionTimeList");
 			tags_to_ignore.insert("TargetList");
 			tags_to_ignore.insert("TargetIncludeList");
@@ -327,17 +336,17 @@ namespace OpenMS
 		else if (tag_ == "Contact")
 		{
 			exp_->addContact(actual_contact_);
-			actual_contact_ = CVTermList();
+			actual_contact_ = TargetedExperiment::Contact();
 		}
 		else if (tag_ == "Instrument")
 		{
 			exp_->addInstrument(actual_instrument_);
-			actual_instrument_ = CVTermList();
+			actual_instrument_ = TargetedExperiment::Instrument();
 		}
 		else if (tag_ == "Publication")
 		{
 			exp_->addPublication(actual_publication_);
-			actual_publication_ = CVTermList();
+			actual_publication_ = TargetedExperiment::Publication();
 		}
 		else if (tag_ == "Software")
 		{
@@ -360,9 +369,15 @@ namespace OpenMS
 				actual_compound_.rts.push_back(actual_rt_);
 				actual_rt_ = TargetedExperiment::RetentionTime();
 			}
-			else if (parent_parent_tag == "Target")
+			else if (parent_tag == "Target")
 			{
-				// TODO 
+        actual_target_.setRetentionTime(actual_rt_);
+				actual_rt_ = TargetedExperiment::RetentionTime();
+			}
+			else if (parent_tag == "Transition")
+			{
+        actual_transition_.setRetentionTime(actual_rt_);
+				actual_rt_ = TargetedExperiment::RetentionTime();
 			}
 			else 
 			{
@@ -384,29 +399,31 @@ namespace OpenMS
 			exp_->addTransition(actual_transition_);
 			actual_transition_ = ReactionMonitoringTransition();
 		}
+		else if (tag_ == "Product")
+		{
+			actual_transition_.setProduct(actual_product_);
+			actual_product_ = ReactionMonitoringTransition::Product();
+		}
+		else if (tag_ == "IntermediateProduct")
+		{
+			actual_transition_.addIntermediateProduct(actual_product_);
+			actual_product_ = ReactionMonitoringTransition::Product();
+		}
 		else if (tag_ == "Interpretation")
 		{
-			actual_transition_.addInterpretation(actual_interpretation_);
+			actual_product_.addInterpretation(actual_interpretation_);
 			actual_interpretation_ = CVTermList();
 		}
 		else if (tag_ == "Prediction")
 		{
 			actual_transition_.setPrediction(actual_prediction_);
-			actual_prediction_ = CVTermList();
+			actual_prediction_ = TargetedExperiment::Prediction();
 		}
 		else  if (tag_ == "Configuration")
 		{
-      if (parent_parent_tag == "IntermediateProduct")
+      if (parent_parent_tag == "IntermediateProduct" || parent_parent_tag == "Product")
       {
-        // TODO 
-      }
-      else if (parent_parent_tag == "Product")
-      {
-        // TODO 
-      }
-      else if (parent_parent_tag == "Transition")
-      {
-        actual_transition_.addConfiguration(actual_configuration_);
+        actual_product_.addConfiguration(actual_configuration_);
         actual_configuration_ = TargetedExperimentHelper::Configuration();
       }
       else if (parent_parent_tag == "Target")
@@ -418,9 +435,8 @@ namespace OpenMS
       {
         error(LOAD, "TraMLHandler: tag 'Configuration' not allowed at parent tag '" + parent_tag + "', ignoring!");
       }
-      actual_configuration_ = TargetedExperimentHelper::Configuration();
     }
-		else if (tag_ == "Validation")
+		else if (tag_ == "ValidationStatus")
 		{
 			actual_configuration_.validations.push_back(actual_validation_);
 			actual_validation_ = CVTermList();
@@ -557,7 +573,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
     const TargetedExperiment& exp = *(cexp_);
 
     os  << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
-    os  << "<TraML version=\"0.9.3\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML0.9.3.xsd\">" << "\n";
+    os  << "<TraML version=\"1.0.0\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML1.0.0.xsd\">" << "\n";
 
     //--------------------------------------------------------------------------------------------
     // CV list
@@ -585,11 +601,12 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
       for (vector<SourceFile>::const_iterator it = exp.getSourceFiles().begin(); it != exp.getSourceFiles().end(); ++it)
       {
         os << "    <SourceFile id=\"" 
-          << it->getMetaValue("id").toString() << "\" name=\"" 
+          << it->getNativeIDType() << "\" name=\"" 
           << it->getNameOfFile() << "\" location=\"" 
           << it->getPathToFile() << "\">" 
           << "\n";
         writeCVParams_(os, *it, 3);
+        writeUserParam_(os, (MetaInfoInterface)*it, 3);
         os << "    </SourceFile>" << "\n";
       }
       os << "  </SourceFileList>" << "\n";
@@ -599,10 +616,11 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		if (exp.getContacts().size() > 0)
 		{
 			os << "  <ContactList>" << "\n";
-			for (vector<CVTermList>::const_iterator it = exp.getContacts().begin(); it != exp.getContacts().end(); ++it)
+			for (vector<TargetedExperiment::Contact>::const_iterator it = exp.getContacts().begin(); it != exp.getContacts().end(); ++it)
       {
-        os << "    <Contact id=\"" << it->getMetaValue("id").toString() << "\">" << "\n";
+        os << "    <Contact id=\"" << it->id << "\">" << "\n";
         writeCVParams_(os, *it, 3);
+        writeUserParam_(os, (MetaInfoInterface)*it, 3);
         os << "    </Contact>" << "\n";
       }
       os << "  </ContactList>" << "\n";
@@ -612,10 +630,11 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		if (exp.getPublications().size() > 0)
 		{
 			os << "  <PublicationList>"  << "\n";
-			for (vector<CVTermList>::const_iterator it = exp.getPublications().begin(); it != exp.getPublications().end(); ++it)
+			for (vector<TargetedExperiment::Publication>::const_iterator it = exp.getPublications().begin(); it != exp.getPublications().end(); ++it)
 			{	
-				os << "    <Publication id=\"" << it->getMetaValue("id").toString() << "\">" << "\n";
+				os << "    <Publication id=\"" << it->id << "\">" << "\n";
 				writeCVParams_(os, *it, 3);
+        writeUserParam_(os, (MetaInfoInterface)*it, 3);
 				os << "    </Publication>" << "\n";
 			}
 			os << "  </PublicationList>" << "\n";
@@ -625,10 +644,11 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		if (exp.getInstruments().size() > 0)
 		{
 			os << "  <InstrumentList>" << "\n";
-			for (vector<CVTermList>::const_iterator it = exp.getInstruments().begin(); it != exp.getInstruments().end(); ++it)
+			for (vector<TargetedExperiment::Instrument>::const_iterator it = exp.getInstruments().begin(); it != exp.getInstruments().end(); ++it)
 			{
-				os << "    <Instrument id=\"" << it->getMetaValue("id").toString() << "\">" << "\n";
+				os << "    <Instrument id=\"" << it->id << "\">" << "\n";
 				writeCVParams_(os, *it, 3);
+        writeUserParam_(os, (MetaInfoInterface)*it, 3);
 				os << "    </Instrument>" << "\n";
 			}
 			os << "  </InstrumentList>" << "\n";
@@ -646,6 +666,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			{
 				os << "    <Software id=\"" << it->getName() << "\" version=\"" << it->getVersion() << "\">" << "\n";
 				writeCVParams_(os, (CVTermList)*it, 3);
+			  writeUserParam_(os, (MetaInfoInterface)*it, 3);
 				os << "    </Software>" << "\n";
 			}
 
@@ -657,7 +678,9 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			os << "  </SoftwareList>" << "\n";
 		}
 
+    //--------------------------------------------------------------------------------------------
     // protein list
+    //--------------------------------------------------------------------------------------------
 		if (exp.getProteins().size() > 0
 #ifdef WRITE_TARGET_INCLUDE_LIST
 || true
@@ -669,6 +692,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			{
 				os << "    <Protein id=\"" << it->id << "\">" << "\n";
 				writeCVParams_(os, (CVTermList)*it, 3);
+			  writeUserParam_(os, (MetaInfoInterface)*it, 3);
 				os << "      <Sequence>" << it->sequence << "</Sequence>" << "\n";
 				os << "    </Protein>" << "\n";
 			}
@@ -690,7 +714,9 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			os << "  </ProteinList>" << "\n";
 		}
 
+    //--------------------------------------------------------------------------------------------
     // compound list
+    //--------------------------------------------------------------------------------------------
 		if (exp.getCompounds().size()  + exp.getPeptides().size() > 0
 #ifdef WRITE_TARGET_INCLUDE_LIST
 || true
@@ -715,6 +741,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			{
 				os << "    <Peptide id=\"" << it->id << "\" sequence=\"" << it->sequence << "\">" << "\n";
 				writeCVParams_(os, (CVTermList)*it, 3);
+			  writeUserParam_(os, (MetaInfoInterface)*it, 3);
 
 				for (vector<String>::const_iterator rit = it->protein_refs.begin(); rit != it->protein_refs.end(); ++rit)
 				{
@@ -737,6 +764,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
             }
             os << ">\n";  
             writeCVParams_(os, (CVTermList)*mit, 4);
+			      writeUserParam_(os, (MetaInfoInterface)*mit, 4);
             os << "      </Modification>\n";  
           }
         }
@@ -753,6 +781,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 						}
 						os << ">" << "\n";
 						writeCVParams_(os, (CVTermList)*rit, 5);
+			      writeUserParam_(os, (MetaInfoInterface)*rit, 5);
 						os << "        </RetentionTime>" << "\n";
 					}
 					os << "      </RetentionTimeList>\n";	
@@ -762,6 +791,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 				{
 					os << "      <Evidence>" << "\n";
 					writeCVParams_(os, it->evidence, 4);
+			    writeUserParam_(os, (MetaInfoInterface)it->evidence, 4);
 					os << "      </Evidence>" << "\n";
 				}
 				os << "    </Peptide>" << "\n";
@@ -771,6 +801,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
       {
         os << "    <Compound id=\"" << it->id << "\">" << "\n";
         writeCVParams_(os, (CVTermList)*it, 3);
+        writeUserParam_(os, (MetaInfoInterface)*it, 3);
 
 				if (it->rts.size() > 0)
 				{	
@@ -784,6 +815,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
  	         	}
  	         	os << ">" << "\n";
  	         	writeCVParams_(os, (CVTermList)*rit, 5);
+            writeUserParam_(os, (MetaInfoInterface)*rit, 5);
  	         	os << "        </RetentionTime>" << "\n";
  	       	}
 					os << "      </RetentionTimeList>\n";	
@@ -794,17 +826,16 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			os << "  </CompoundList>" << "\n";
 		}
 
+    //--------------------------------------------------------------------------------------------
     // transition list
+    //--------------------------------------------------------------------------------------------
 		if (exp.getTransitions().size() > 0)
 		{
 			os << "  <TransitionList>" << "\n";
 			for (vector<ReactionMonitoringTransition>::const_iterator it = exp.getTransitions().begin(); it != exp.getTransitions().end(); ++it)
 			{
 				os << "    <Transition";
-				if (it->metaValueExists("id"))
-				{
-					os << " id=\"" << it->getMetaValue("id").toString() << "\"";
-				}
+			  os << " id=\"" << it->getName() << "\"";
 
 				if (it->getPeptideRef() != "")
 				{
@@ -818,81 +849,56 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 				os << ">" << "\n";
 
 				writeCVParams_(os, (CVTermList)*it, 3);
+        writeUserParam_(os, (MetaInfoInterface)*it, 3);
 
+        // Precursor is required
 				os << "      <Precursor>" << "\n"; 
 				os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
 				writeCVParams_(os, it->getPrecursorCVTermList(), 4);
+        writeUserParam_(os, (MetaInfoInterface)it->getPrecursorCVTermList(), 4);
 				os << "      </Precursor>" << "\n";
 			
+        for(ProductListType::const_iterator prod_it = it->getIntermediateProducts().begin(); prod_it != it->getIntermediateProducts().end(); prod_it++)
+        {
+          os << "      <IntermediateProduct>" << "\n";
+          write_product_ (os, prod_it);
+          os << "      </IntermediateProduct>" << "\n";
+        }
+
+        // Product is required
 				os << "      <Product>" << "\n";
-				os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getProductMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
-				writeCVParams_(os, it->getProductCVTermList(), 4);
+        ProductListType dummy_vector;
+        dummy_vector.push_back(it->getProduct());
+        write_product_ (os, dummy_vector.begin() );
 				os << "      </Product>" << "\n";
 
-				if (it->getInterpretations().size() != 0)
-				{
-					os << "      <InterpretationList>" << "\n";
-					for (vector<CVTermList>::const_iterator iit = it->getInterpretations().begin(); iit != it->getInterpretations().end(); ++iit)
-					{
-						if (it->metaValueExists("primary"))
-						{
-							String primary = it->getMetaValue("primary").toBool() ? "true" : "false";
-							os << "        <Interpretation primary=\"" << primary << "\">" << "\n";
-							writeCVParams_(os, *iit, 5);
-							os << "        </Interpretation>" << "\n";
-						}
-						else
-						{
-							os << "        <Interpretation>" << "\n";
-							writeCVParams_(os, *iit, 5);
-							os << "        </Interpretation>" << "\n";
-						}
-					}
-					os << "      </InterpretationList>" << "\n";
-				}
+        const IncludeExcludeTarget::RetentionTime* rit = &it->getRetentionTime();
+        if (!rit->getCVTerms().empty())
+        {
+          os << "      <RetentionTime";
+          if (rit->software_ref != "")
+          {
+            os << " softwareRef=\"" << rit->software_ref << "\"";
+          }
+          os << ">" << "\n";
+          writeCVParams_(os, (CVTermList)*rit, 5);
+          writeUserParam_(os, (MetaInfoInterface)*rit, 5);
+          os << "      </RetentionTime>" << "\n";
+        }
 
 				if (!it->getPrediction().empty())
 				{
-					os << "      <Prediction softwareRef=\"" << it->getPrediction().getMetaValue("softwareRef").toString() << "\"";
-					if (it->getPrediction().metaValueExists("contactRef"))
+					os << "      <Prediction softwareRef=\"" << it->getPrediction().software_ref << "\"";
+					if (!it->getPrediction().contact_ref.empty())
 					{
-						os << " contactRef=\"" << it->getPrediction().getMetaValue("contactRef").toString() << "\"";
+						os << " contactRef=\"" << it->getPrediction().contact_ref << "\"";
 					}
 					os << ">" << "\n";
 					writeCVParams_(os, it->getPrediction(), 4);
+          writeUserParam_(os, (MetaInfoInterface)it->getPrediction(), 4);
 					os << "      </Prediction>" << "\n";
 				}
 				
-				if (it->getConfigurations().size() > 0)
-				{
-					os << "      <ConfigurationList>" << "\n";
-					for (vector<ReactionMonitoringTransition::Configuration>::const_iterator cit = it->getConfigurations().begin(); cit != it->getConfigurations().end(); ++cit)
-					{
-						os << "       <Configuration instrumentRef=\"" << cit->instrument_ref << "\"";
-						if (cit->contact_ref != "")
-						{
-							os << " contactRef=\"" << cit->contact_ref << "\"";
-						}
-						os << ">" << "\n";
-
-						writeCVParams_(os, (CVTermList)*cit, 4);
-						if (cit->validations.size() != 0)
-						{
-							for (vector<CVTermList>::const_iterator iit = cit->validations.begin(); iit != cit->validations.end(); ++iit)
-							{
-								if (!iit->empty())
-								{
-									os << "        <Validation>" << "\n";
-									writeCVParams_(os, *iit, 5);
-									os << "        </Validation>" << "\n";
-								}
-							}
-						}
-
-						os << "       </Configuration>" << "\n";
-					}
-					os << "      </ConfigurationList>" << "\n";
-				}
 				os << "    </Transition>" << "\n";
 			}
 			os << "  </TransitionList>" << "\n";
@@ -965,8 +971,8 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
     if(!exp.getIncludeTargets().empty() || !exp.getExcludeTargets().empty() )
     {
       os << "  <TargetList>" << "\n";
-      //os << "    <cvParam cvRef=\"MS\" accession=\"MS:1000920\" name=\"includes supersede excludes\"/>\n";
       writeCVParams_(os, exp.getTargetCVTerms(), 3);
+      writeUserParam_(os, (MetaInfoInterface)exp.getTargetCVTerms(), 3);
 
       if(!exp.getIncludeTargets().empty())
       {
@@ -991,14 +997,13 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
       os << "  </TargetList>" << "\n";
     }
 
-
     os << "</TraML>" << "\n";
     return;
   }
 
   void TraMLHandler::write_target_ (std::ostream& os, const std::vector<IncludeExcludeTarget>::const_iterator& it) const
   {
-      os << "      <Target id=\"" << it->getMetaValue("id") << "\"";
+      os << "      <Target id=\"" << it->getName() << "\"";
       if (!it->getPeptideRef().empty())
       {
         os << " peptideRef=\"" << it->getPeptideRef() << "\"";
@@ -1010,25 +1015,29 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
       os << ">\n";
       os << "        <Precursor>\n";
       writeCVParams_(os, it->getPrecursorCVTermList(), 5);
+      writeUserParam_(os, (MetaInfoInterface)it->getPrecursorCVTermList(), 5);
       os << "        </Precursor>\n";
 
-      // TODO do retention times
+      const IncludeExcludeTarget::RetentionTime* rit = &it->getRetentionTime();
+      if (!rit->getCVTerms().empty())
+      {
+        os << "        <RetentionTime";
+        if (rit->software_ref != "")
+        {
+          os << " softwareRef=\"" << rit->software_ref << "\"";
+        }
+        os << ">" << "\n";
+        writeCVParams_(os, (CVTermList)*rit, 5);
+        writeUserParam_(os, (MetaInfoInterface)*rit, 5);
+        os << "        </RetentionTime>" << "\n";
+      }
 
       if (!it->getConfigurations().empty())
       {
         os << "        <ConfigurationList>\n";
         for (std::vector<TargetedExperimentHelper::Configuration>::const_iterator config_it = it->getConfigurations().begin(); config_it != it->getConfigurations().end(); ++config_it)
         {
-
-          os << "          <Configuration instrumentRef=\"" << config_it->instrument_ref << "\"";
-          if (!config_it->contact_ref.empty())
-          {
-            os << " contactRef=\"" << config_it->contact_ref << "\"";
-          }
-          os << ">\n";
-          writeCVParams_(os, *config_it, 6);
-          os << "          </Configuration>\n";
-
+          write_configuration_ (os, config_it);
         }
         os << "        </ConfigurationList>\n";
       }
@@ -1036,41 +1045,61 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 
   }
 
-/*
-	void TraMLHandler::writeUserParam_(ostream& os, const CVTermList& meta, UInt indent) const
-	{
-		vector<String> keys;
-		meta.getKeys(keys);
-		for (vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
-		{
-			String key = *it;
-			if (cv_.exists(key))
-			{
-				ControlledVocabulary::CVTerm term = cv_.getTerm(key);
-				os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << key.prefix(':') << "\" accession=\"" << key << "\" name=\"" << term.name << "\"";
-				if (term.xref_type != ControlledVocabulary::CVTerm::NONE)
-				{
-					os << " value=\"" << (String)meta.getMetaValue(key) << "\"";
-				}
-				os << " />" << "\n";
-			}
-			else
-			{
-				error(LOAD, "TraMLHandler: unknown CV term '" + key + "' ignoring!");
-			}
-		}
-	}
-*/
+  void TraMLHandler::write_product_ (std::ostream& os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator& prod_it) const
+  {
+    writeCVParams_(os, *prod_it, 4);
+    writeUserParam_(os, (MetaInfoInterface)*prod_it, 4);
 
-/*
-	void TraMLHandler::writeUserParams_(ostream& os, const vector<CVTermList>& meta, UInt indent) const
-	{
-		for (vector<CVTermList>::const_iterator it = meta.begin(); it != meta.end(); ++it)
-		{
-			writeUserParam_(os, *it, indent);
-		}
-	}
-*/
+    if (!prod_it->getInterpretationList().empty())
+    {
+      os << "        <InterpretationList>" << "\n";
+      for (std::vector<CVTermList>::const_iterator inter_it = prod_it->getInterpretationList().begin(); inter_it != prod_it->getInterpretationList().end(); inter_it++)
+      {
+        os << "          <Interpretation>" << "\n";
+        writeCVParams_(os, *inter_it, 7);
+        writeUserParam_(os, (MetaInfoInterface)*inter_it, 6);
+        os << "          </Interpretation>" << "\n";
+      }
+      os << "        </InterpretationList>" << "\n";
+    }
+    if (!prod_it->getConfigurationList().empty())
+    {
+      os << "        <ConfigurationList>" << "\n";
+      for (ConfigurationListType::const_iterator config_it = prod_it->getConfigurationList().begin(); config_it != prod_it->getConfigurationList().end(); config_it++)
+      {
+        write_configuration_ (os, config_it);
+      }
+      os << "        </ConfigurationList>" << "\n";
+    }
+  }
+
+  void TraMLHandler::write_configuration_ (std::ostream& os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator& cit) const
+  {
+    os << "          <Configuration instrumentRef=\"" << cit->instrument_ref << "\"";
+    if (cit->contact_ref != "")
+    {
+      os << " contactRef=\"" << cit->contact_ref << "\"";
+    }
+    os << ">" << "\n";
+
+    writeCVParams_(os, (CVTermList)*cit, 6);
+    writeUserParam_(os, (MetaInfoInterface)*cit, 6);
+    if (cit->validations.size() != 0)
+    {
+      for (vector<CVTermList>::const_iterator iit = cit->validations.begin(); iit != cit->validations.end(); ++iit)
+      {
+        if (!iit->empty())
+        {
+          os << "            <ValidationStatus>" << "\n";
+          writeCVParams_(os, *iit, 7);
+          writeUserParam_(os, (MetaInfoInterface)*iit, 7);
+          os << "            </ValidationStatus>" << "\n";
+        }
+      }
+    }
+
+    os << "          </Configuration>" << "\n";
+  }
 
 	void TraMLHandler::writeCVParams_(ostream& os, const CVTermList& cv_terms, UInt indent) const
 	{
@@ -1079,7 +1108,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			for (vector<CVTerm>::const_iterator cit = it->second.begin(); cit != it->second.end(); ++cit)
 			{
 				os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
-				if (cit->hasValue())
+				if (cit->hasValue() && !cit->getValue().isEmpty() && !cit->getValue().toString().empty())
 				{
 					os << " value=\"" << cit->getValue().toString() << "\"";
 				}
@@ -1246,7 +1275,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 		{
 			actual_interpretation_.addCVTerm(cv_term);
 		}
-		else if (parent_tag == "Validation")
+		else if (parent_tag == "ValidationStatus")
 		{
 			actual_validation_.addCVTerm(cv_term);
 		}
@@ -1276,6 +1305,10 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
         actual_target_.addPrecursorCVTerm(cv_term);
       }
     }
+    else if (parent_tag == "IntermediateProduct")
+    {
+			actual_product_.addCVTerm(cv_term);
+    }
     else if (parent_tag == "Product")
     {
       if (cv_term.getAccession() == "MS:1000827")
@@ -1286,6 +1319,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			{
 				actual_transition_.addProductCVTerm(cv_term);
 			}
+			actual_product_.addCVTerm(cv_term);
     }
 		else if (parent_tag == "SourceFile")
 		{
@@ -1301,9 +1335,148 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
 			warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
 		}
 		return;
+
 	}
 
-	} //namespace Internal
+  void TraMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
+  {
+    //create a DataValue that contains the data in the right type
+    DataValue data_value;
+    //float type
+    if (type=="xsd:double" || type=="xsd:float")
+    {
+      data_value = DataValue(value.toDouble());
+    }
+    //integer type
+    else if (type=="xsd:byte" || type=="xsd:decimal" || type=="xsd:int" || type=="xsd:integer" || type=="xsd:long" || type=="xsd:negativeInteger" || type=="xsd:nonNegativeInteger" || type=="xsd:nonPositiveInteger" || type=="xsd:positiveInteger" || type=="xsd:short" || type=="xsd:unsignedByte" || type=="xsd:unsignedInt" || type=="xsd:unsignedLong" || type=="xsd:unsignedShort")
+    {
+      data_value = DataValue(value.toInt());
+    }
+    //everything else is treated as a string
+    else
+    {
+      data_value = DataValue(value);
+    }
+    
+    //find the right MetaInfoInterface
+    if (parent_tag == "Software")
+    {
+      actual_software_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Publication")
+    {
+      actual_publication_.setMetaValue(name, data_value);
+    } 
+    else if (parent_tag == "Instrument")
+    {
+      actual_instrument_.setMetaValue(name, data_value);
+    } 
+    else if (parent_tag == "Contact")
+    {
+      actual_contact_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "RetentionTime")
+    {
+      actual_rt_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Evidence")
+    {
+      actual_peptide_.evidence.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Peptide")
+    {
+      actual_peptide_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Modification")
+    {
+      actual_peptide_.mods.back().setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Compound")
+    {
+      actual_compound_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Protein")
+    {
+      actual_protein_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Configuration")
+    {
+      actual_configuration_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Prediction")
+    {
+      actual_prediction_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Interpretation")
+    {
+      actual_interpretation_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "ValidationStatus")
+    {
+      actual_validation_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "TargetList")
+    {
+      exp_->setTargetMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Target")
+    {
+      actual_target_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "Precursor")
+    {
+       if (parent_parent_tag == "Transition")
+      {
+        actual_transition_.setMetaValue(name, data_value);
+      }
+      if (parent_parent_tag == "Target")
+      {
+        actual_target_.setMetaValue(name, data_value);
+      }
+    }
+    else if (parent_tag == "Product")
+    {
+      actual_transition_.setMetaValue(name, data_value);
+    }
+    else if (parent_tag == "SourceFile")
+    {
+      actual_sourcefile_.setMetaValue(name, data_value);
+    } 
+    else if (parent_tag == "Transition")
+    {
+      actual_transition_.setMetaValue(name, data_value);
+    }
+    else warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+  }
+
+  void TraMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
+  {
+    std::vector<String> keys;
+    meta.getKeys(keys);
+    
+    for (Size i = 0; i!=keys.size();++i)
+    {
+      os << String(indent,'\t') << "<userParam name=\"" << keys[i] << "\" type=\"";
+      
+      DataValue d = meta.getMetaValue(keys[i]);
+      //determine type
+      if (d.valueType()==DataValue::INT_VALUE)
+      {
+        os << "xsd:integer";
+      }
+      else if (d.valueType()==DataValue::DOUBLE_VALUE)
+      {
+        os << "xsd:double";
+      }
+      else //string or lists are converted to string
+      {
+        os << "xsd:string";
+      }
+      os << "\" value=\"" << (String)(d) << "\"/>" << "\n";
+    }
+  }
+
+  } //namespace Internal
 } // namespace OpenMS
 
 

@@ -52,7 +52,10 @@ namespace OpenMS
 			peptide_ref_(rhs.peptide_ref_),
 			compound_ref_(rhs.compound_ref_),
 			configurations_(rhs.configurations_),
-			prediction_(rhs.prediction_)
+			prediction_(rhs.prediction_),
+			product_(rhs.product_),
+			intermediate_products_(rhs.intermediate_products_),
+      rts(rhs.rts)
 	{
 	}
 
@@ -75,6 +78,9 @@ namespace OpenMS
 			compound_ref_ = rhs.compound_ref_;
 			configurations_ = rhs.configurations_;
 			prediction_ = rhs.prediction_;
+			product_ = rhs.product_;
+			intermediate_products_ = rhs.intermediate_products_;
+			rts = rhs.rts;
 		}
 		return *this;
 	}
@@ -91,7 +97,10 @@ namespace OpenMS
 			      peptide_ref_ == rhs.peptide_ref_ &&
 			      compound_ref_ == rhs.compound_ref_ &&
 			      configurations_ == rhs.configurations_ &&
-						prediction_ == rhs.prediction_;
+						prediction_ == rhs.prediction_ &&
+						product_ == rhs.product_ &&
+						intermediate_products_ == rhs.intermediate_products_ &&
+			      rts == rhs.rts;
 	}
 
 	bool ReactionMonitoringTransition::operator != (const ReactionMonitoringTransition& rhs) const
@@ -105,6 +114,16 @@ namespace OpenMS
 	}
 
 	const String& ReactionMonitoringTransition::getName() const
+	{
+		return name_;
+	}
+
+	void ReactionMonitoringTransition::setNativeID(const String& name)
+	{
+		name_ = name;
+	}
+
+	const String& ReactionMonitoringTransition::getNativeID() const
 	{
 		return name_;
 	}
@@ -180,42 +199,48 @@ namespace OpenMS
     return product_cv_terms_;
   }
 
-	void ReactionMonitoringTransition::setInterpretations(const vector<CVTermList>& interpretations)
-	{
-		interpretation_list_ = interpretations;
-	}
 
-	const vector<CVTermList>& ReactionMonitoringTransition::getInterpretations() const
-	{
-		return interpretation_list_;
-	}
+  const std::vector<ReactionMonitoringTransition::Product>& ReactionMonitoringTransition::getIntermediateProducts() const
+  {
+    return intermediate_products_;
+  }
 
-	void ReactionMonitoringTransition::addInterpretation(const CVTermList& interpretation)
-	{
-		interpretation_list_.push_back(interpretation);
-	}
+  void ReactionMonitoringTransition::addIntermediateProduct(ReactionMonitoringTransition::Product product)
+  {
+    intermediate_products_.push_back(product);
+  }
 
-	void ReactionMonitoringTransition::setConfigurations(const vector<Configuration>& configurations)
-	{
-		configurations_ = configurations;
-	}
+  void ReactionMonitoringTransition::setIntermediateProducts(std::vector<ReactionMonitoringTransition::Product>& intermediate_products)
+  {
+    intermediate_products_ = intermediate_products;
+  }
 
-	const vector<ReactionMonitoringTransition::Configuration>& ReactionMonitoringTransition::getConfigurations() const
-	{
-		return configurations_;
-	}
+  void ReactionMonitoringTransition::setProduct(ReactionMonitoringTransition::Product product) 
+  {
+    product_ = product;
+  }
 
-	void ReactionMonitoringTransition::addConfiguration(const Configuration& configuration)
-	{
-		configurations_.push_back(configuration);
-	}
+  const ReactionMonitoringTransition::Product& ReactionMonitoringTransition::getProduct() const
+  {
+    return product_;
+  }
 
-	void ReactionMonitoringTransition::setPrediction(const CVTermList& prediction)
+  void ReactionMonitoringTransition::setRetentionTime(ReactionMonitoringTransition::RetentionTime rt)
+  {
+    rts = rt;
+  }
+
+  const ReactionMonitoringTransition::RetentionTime& ReactionMonitoringTransition::getRetentionTime() const
+  {
+    return rts;
+  }
+
+	void ReactionMonitoringTransition::setPrediction(const Prediction& prediction)
 	{
 		prediction_ = prediction;
 	}
 
-	const CVTermList& ReactionMonitoringTransition::getPrediction() const
+	const ReactionMonitoringTransition::Prediction& ReactionMonitoringTransition::getPrediction() const
 	{
 		return prediction_;
 	}
@@ -225,10 +250,10 @@ namespace OpenMS
 		prediction_.addCVTerm(term);
 	}
 	
-
   void ReactionMonitoringTransition::updateMembers_()
 	{
 	}
+
 }
 
 
