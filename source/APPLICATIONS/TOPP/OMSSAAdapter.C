@@ -575,18 +575,18 @@ class TOPPOMSSAAdapter
 				writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
 				parameters << "-mux" << File::absolutePath(unique_usermod_name);
 				ofstream out(unique_usermod_name.c_str());
-				out << "<?xml version=\"1.0\"?>" << endl;
-				out << "<MSModSpecSet xmlns=\"http://www.ncbi.nlm.nih.gov\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov OMSSA.xsd\">" << endl;
+				out << "<?xml version=\"1.0\"?>" << "\n";
+				out << "<MSModSpecSet xmlns=\"http://www.ncbi.nlm.nih.gov\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema-instance\" xs:schemaLocation=\"http://www.ncbi.nlm.nih.gov OMSSA.xsd\">" << "\n";
 
 				UInt user_mod_count(1);
 				for (vector<pair<UInt, String> >::const_iterator it = user_mods.begin(); it != user_mods.end(); ++it)
 				{
 					writeDebug_("Writing information into user mod file of modification: " + it->second, 1);
-					out << "<MSModSpec>" << endl;
-					out << "\t<MSModSpec_mod>" << endl;
-					out << "\t\t<MSMod value=\"usermod" << user_mod_count++ << "\">" << it->first << "</MSMod>" << endl;
-					out << "\t</MSModSpec_mod>" << endl;
-					out << "\t<MSModSpec_type>" << endl;
+					out << "<MSModSpec>" << "\n";
+					out << "\t<MSModSpec_mod>" << "\n";
+					out << "\t\t<MSMod value=\"usermod" << user_mod_count++ << "\">" << it->first << "</MSMod>" << "\n";
+					out << "\t</MSModSpec_mod>" << "\n";
+					out << "\t<MSModSpec_type>" << "\n";
 
 					/*
 					    0 modaa	-  at particular amino acids
@@ -605,42 +605,42 @@ class TOPPOMSSAAdapter
 					String origin = ModificationsDB::getInstance()->getModification(it->second).getOrigin();
 					if (ts == ResidueModification::ANYWHERE)
 					{
-						out << "\t\t<MSModType value=\"modaa\">0</MSModType>" << endl;
+						out << "\t\t<MSModType value=\"modaa\">0</MSModType>" << "\n";
 					}
 					if (ts == ResidueModification::C_TERM)
 					{
 						if (origin == "" || origin == "X")
 						{
-							out << "\t\t<MSModType value=\"modcp\">7</MSModType>" << endl;
+							out << "\t\t<MSModType value=\"modcp\">7</MSModType>" << "\n";
 						}
 						else
 						{
-							out << "\t\t<MSModType value=\"modcpaa\">8</MSModType>" << endl;
+							out << "\t\t<MSModType value=\"modcpaa\">8</MSModType>" << "\n";
 						}
 					}
 					if (ts == ResidueModification::N_TERM)
 					{
 						if (origin == "" || origin == "X")
 						{
-							out << "\t\t<MSModType value=\"modnp\">5</MSModType>" << endl;
+							out << "\t\t<MSModType value=\"modnp\">5</MSModType>" << "\n";
 						}
 						else
 						{
-							out << "\t\t<MSModType value=\"modnpaa\">6</MSModType>" << endl;
+							out << "\t\t<MSModType value=\"modnpaa\">6</MSModType>" << "\n";
 						}
 					}
-					out << "\t</MSModSpec_type>" << endl;
+					out << "\t</MSModSpec_type>" << "\n";
 
-					out << "\t<MSModSpec_name>" << it->second << "</MSModSpec_name>" << endl;
-					out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffMonoMass()  << "</MSModSpec_monomass>" << endl;
-					out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffAverageMass() << "</MSModSpec_averagemass>" << endl;
-					out << "\t<MSModSpec_n15mass>0</MSModSpec_n15mass>" << endl;
+					out << "\t<MSModSpec_name>" << it->second << "</MSModSpec_name>" << "\n";
+					out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffMonoMass()  << "</MSModSpec_monomass>" << "\n";
+					out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
+					out << "\t<MSModSpec_n15mass>0</MSModSpec_n15mass>" << "\n";
 
 					if (origin != "")
 					{
-						out << "\t<MSModSpec_residues>" << endl;
-						out << "\t\t<MSModSpec_residues_E>" << origin << "</MSModSpec_residues_E>" << endl;
-						out << "\t</MSModSpec_residues>" << endl;
+						out << "\t<MSModSpec_residues>" << "\n";
+						out << "\t\t<MSModSpec_residues_E>" << origin << "</MSModSpec_residues_E>" << "\n";
+						out << "\t</MSModSpec_residues>" << "\n";
 
             /* TODO: Check why these are always 0
             DoubleReal neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
@@ -651,16 +651,16 @@ class TOPPOMSSAAdapter
 
             if (fabs(neutral_loss_mono) > 0.00001)
             {
-              out << "\t<MSModSpec_neutralloss>" << endl;
-              out << "\t\t<MSMassSet>" << endl;
-              out << "\t\t\t<MSMassSet_monomass>" << neutral_loss_mono << "</MSMassSet_monomass>" << endl;
-              out << "\t\t\t<MSMassSet_averagemass>" << neutral_loss_avg << "</MSMassSet_averagemass>" << endl;
-              out << "\t\t\t<MSMassSet_n15mass>0</MSMassSet_n15mass>" << endl;
-              out << "\t\t</MSMassSet>" << endl;
-              out << "\t</MSModSpec_neutralloss>" << endl;
+              out << "\t<MSModSpec_neutralloss>" << "\n";
+              out << "\t\t<MSMassSet>" << "\n";
+              out << "\t\t\t<MSMassSet_monomass>" << neutral_loss_mono << "</MSMassSet_monomass>" << "\n";
+              out << "\t\t\t<MSMassSet_averagemass>" << neutral_loss_avg << "</MSMassSet_averagemass>" << "\n";
+              out << "\t\t\t<MSMassSet_n15mass>0</MSMassSet_n15mass>" << "\n";
+              out << "\t\t</MSMassSet>" << "\n";
+              out << "\t</MSModSpec_neutralloss>" << "\n";
             }
 
-						out << "</MSModSpec>" << endl;
+						out << "</MSModSpec>" << "\n";
 					}
 				}
 
@@ -672,11 +672,11 @@ class TOPPOMSSAAdapter
           while (additional_user_mods_file.good())
           {
             getline(additional_user_mods_file, line);
-            out << line << endl;
+            out << line << "\n";
           }
           additional_user_mods_file.close();
         }
-				out << "</MSModSpecSet>" << endl;
+				out << "</MSModSpecSet>" << "\n";
 				out.close();
 			}
 

@@ -556,7 +556,7 @@ namespace OpenMS
 					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					exp_->back().setMSLevel(2);
 				}
-				else if (type=="ER") // Non-stanard type: Enhanced Resolution (ABI - Sashimi converter)
+				else if (type=="ER") // Non-standard type: Enhanced Resolution (ABI - Sashimi converter)
 				{
 					exp_->back().getInstrumentSettings().setZoomScan(true);
 					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
