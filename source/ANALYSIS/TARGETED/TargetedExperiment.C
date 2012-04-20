@@ -130,6 +130,21 @@ namespace OpenMS
 		publications_.push_back(publication);
 	}
 
+  void TargetedExperiment::setTargetCVTerms(const CVTermList& cv_terms)
+  {
+    targets_ = cv_terms;
+  }
+
+  const CVTermList& TargetedExperiment::getTargetCVTerms() const
+  {
+    return targets_;
+  }
+
+  void TargetedExperiment::addTargetCVTerm(const CVTerm& cv_term)
+  {
+    targets_.addCVTerm(cv_term);
+  }
+
   void TargetedExperiment::setInstruments(const vector<CVTermList>& instruments)
   {
     instruments_ = instruments;

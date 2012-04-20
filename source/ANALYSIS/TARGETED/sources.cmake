@@ -9,6 +9,7 @@ OfflinePrecursorIonSelection.C
 PSLPFormulation.C
 IncludeExcludeTarget.C
 TargetedExperiment.C
+TargetedExperimentHelper.C
 InclusionExclusionList.C
 )
 

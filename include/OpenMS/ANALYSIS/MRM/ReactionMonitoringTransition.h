@@ -28,6 +28,7 @@
 #ifndef OPENMS_ANALYSIS_MRM_REACTIONMONITORINGTRANSITION_H
 #define OPENMS_ANALYSIS_MRM_REACTIONMONITORINGTRANSITION_H
 
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
 
@@ -48,25 +49,7 @@ namespace OpenMS
 
 		public:
 
-		struct Configuration
-			: public CVTermList
-		{
-			String contact_ref;
-			String instrument_ref;
-			std::vector<CVTermList> validations;
-
-			Configuration& operator = (const Configuration& rhs)
-			{
-				if (this != &rhs)
-				{
-					CVTermList::operator = (rhs);
-					contact_ref = rhs.contact_ref;
-					instrument_ref = rhs.instrument_ref;
-					validations = rhs.validations;
-				}
-				return *this;
-			}
-		};
+      typedef TargetedExperimentHelper::Configuration Configuration;
 
 		/** @name Constructors and destructors
 		*/

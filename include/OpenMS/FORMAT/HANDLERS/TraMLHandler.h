@@ -131,6 +131,7 @@ namespace OpenMS
 
 			void writeCVParams_(std::ostream& os, const CVTermList& cv_terms, UInt indent) const;
 
+      void write_target_ (std::ostream& os, const std::vector<IncludeExcludeTarget>::const_iterator& it) const;
 			
 			/// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
 			ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;

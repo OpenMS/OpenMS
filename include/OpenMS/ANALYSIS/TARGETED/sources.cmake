@@ -9,6 +9,7 @@ OfflinePrecursorIonSelection.h
 PSLPFormulation.h
 IncludeExcludeTarget.h
 TargetedExperiment.h
+TargetedExperimentHelper.h
 InclusionExclusionList.h
 )
 

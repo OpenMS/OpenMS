@@ -183,7 +183,6 @@ namespace OpenMS
 			std::vector<RetentionTime> rts;
 		};
 		
-
     class OPENMS_DLLAPI Peptide
 			: public CVTermList
     {
@@ -249,7 +248,6 @@ namespace OpenMS
 			std::vector<Modification> mods;
     };
 
-
 		/** @name Constructors and destructors
 		*/
 		//@{
@@ -295,6 +293,13 @@ namespace OpenMS
     const std::vector<CVTermList>& getPublications() const;
 
     void addPublication(const CVTermList& publication);
+
+		// target list
+    void setTargetCVTerms(const CVTermList& cv_terms);
+
+    const CVTermList& getTargetCVTerms() const;
+
+    void addTargetCVTerm(const CVTerm& cv_term);
 
 		// instrument list
 		void setInstruments(const std::vector<CVTermList>& instruments);
@@ -378,6 +383,8 @@ namespace OpenMS
 		std::vector<CVTermList> publications_;
 
 		std::vector<CVTermList> instruments_;
+
+		CVTermList targets_;
 
 		std::vector<Software> software_;
 
