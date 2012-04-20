@@ -24,7 +24,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_SOFTWAREVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_SOFTWAREVISUALIZER_H
 
@@ -37,44 +37,44 @@
 namespace OpenMS
 {
 
-	class MetaDataBrowser;
-	
-	/**
-		@brief Class that displays all meta information for Software objects
-		
-		This class provides all functionality to view the meta information of an object of type Software.
-	*/
-	class OPENMS_GUI_DLLAPI SoftwareVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<Software>
-	{
-		Q_OBJECT
+  class MetaDataBrowser;
 
-		public:
-			
-			///Constructor 
-			SoftwareVisualizer(bool editable = false, QWidget* parent = 0);
-		  
-		public slots:
-			
-			//Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:
-			
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* software_name_;
-			QLineEdit* software_version_;
-	    //@}
-	    
-			//Docu in base class
-			void update_();
-	};
+  /**
+      @brief Class that displays all meta information for Software objects
+
+      This class provides all functionality to view the meta information of an object of type Software.
+  */
+  class OPENMS_GUI_DLLAPI SoftwareVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<Software>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    SoftwareVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * software_name_;
+    QLineEdit * software_version_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif

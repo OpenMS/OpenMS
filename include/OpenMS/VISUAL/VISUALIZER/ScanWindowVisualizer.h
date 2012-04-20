@@ -24,7 +24,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
 
@@ -37,44 +37,44 @@
 namespace OpenMS
 {
 
-	class MetaDataBrowser;
-	
-	/**
-		@brief Class that displays all meta information for ScanWindow objects
-		
-		This class provides all functionality to view the meta information of an object of type ScanWindow.
-	*/
-	class OPENMS_GUI_DLLAPI ScanWindowVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<ScanWindow>
-	{
-		Q_OBJECT
+  class MetaDataBrowser;
 
-		public:
-			
-			///Constructor 
-			ScanWindowVisualizer(bool editable = false, QWidget* parent = 0);
-		  
-		public slots:
-			
-			//Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:
-			
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* begin_;
-			QLineEdit* end_;
-	    //@}
-	    
-			//Docu in base class
-			void update_();
-	};
+  /**
+      @brief Class that displays all meta information for ScanWindow objects
+
+      This class provides all functionality to view the meta information of an object of type ScanWindow.
+  */
+  class OPENMS_GUI_DLLAPI ScanWindowVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<ScanWindow>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    ScanWindowVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * begin_;
+    QLineEdit * end_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif //OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H

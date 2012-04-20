@@ -24,7 +24,7 @@
 // $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_ACQUISITIONINFOVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_ACQUISITIONINFOVISUALIZER_H
 
@@ -37,40 +37,40 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for AcquisitionInfo objects
-		
-		This class provides all functionality to view the meta information of an object of type AcquisitionInfo.
-	*/
-	class OPENMS_GUI_DLLAPI AcquisitionInfoVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<AcquisitionInfo>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for AcquisitionInfo objects
 
-		public:
-			
-		   ///Constructor
-			AcquisitionInfoVisualizer(bool editable = false, QWidget* parent = 0);
-	
-		public slots:
-		  
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-			
-			/// Edit field for the method 
-	   	QLineEdit* acquisitioninfo_method_;
-	   	
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type AcquisitionInfo.
+  */
+  class OPENMS_GUI_DLLAPI AcquisitionInfoVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<AcquisitionInfo>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    AcquisitionInfoVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    /// Edit field for the method
+    QLineEdit * acquisitioninfo_method_;
+
+    //Docu in base class
+    void update_();
+  };
 
 }
 #endif

@@ -24,7 +24,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_INSTRUMENTSETTINGSVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_INSTRUMENTSETTINGSVISUALIZER_H
 
@@ -36,43 +36,43 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for InstrumentSettings objects
-		
-		This class provides all functionality to view the meta information of an object of type InstrumentSettings.
-	*/
-	class OPENMS_GUI_DLLAPI InstrumentSettingsVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<InstrumentSettings>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for InstrumentSettings objects
 
-		public:
-			
-		  ///Constructor
-			InstrumentSettingsVisualizer(bool editable = false, QWidget* parent = 0);
-			
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-		  
-			///@name Edit fields and buttons
-	    //@{
-	   	QComboBox* instrumentsettings_scan_mode_;
-			QComboBox* zoom_scan_;
-			QComboBox* instrumentsettings_polarity_;
-			//@}
-		
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type InstrumentSettings.
+  */
+  class OPENMS_GUI_DLLAPI InstrumentSettingsVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<InstrumentSettings>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    InstrumentSettingsVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QComboBox * instrumentsettings_scan_mode_;
+    QComboBox * zoom_scan_;
+    QComboBox * instrumentsettings_polarity_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif

@@ -24,7 +24,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_SAMPLEVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_SAMPLEVISUALIZER_H
 
@@ -36,49 +36,49 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information of sample objects.
-		
-		This class provides all functionality to view the meta information of an object of type Sample.
-	*/
-	class OPENMS_GUI_DLLAPI SampleVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<Sample>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information of sample objects.
 
-		public:
-			
-		  ///Constructor
-			SampleVisualizer(bool editable = false, QWidget* parent = 0);
-			
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-		  	
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* samplename_;
-			QLineEdit* samplenumber_;
-			QLineEdit* sampleorganism_;
-			QTextEdit* samplecomment_;
-			QComboBox* samplestate_;
-			QLineEdit* samplemass_;
-			QLineEdit* samplevolume_;
-			QLineEdit* sampleconcentration_;
-			//@}
-			
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type Sample.
+  */
+  class OPENMS_GUI_DLLAPI SampleVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<Sample>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    SampleVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * samplename_;
+    QLineEdit * samplenumber_;
+    QLineEdit * sampleorganism_;
+    QTextEdit * samplecomment_;
+    QComboBox * samplestate_;
+    QLineEdit * samplemass_;
+    QLineEdit * samplevolume_;
+    QLineEdit * sampleconcentration_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 
 }
 #endif

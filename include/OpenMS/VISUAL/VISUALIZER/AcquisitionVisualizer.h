@@ -36,40 +36,40 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for Acquisition objects
-		
-		This class provides all functionality to view the meta information of an object of type Acquisition.
-	*/
-	class OPENMS_GUI_DLLAPI AcquisitionVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<Acquisition>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for Acquisition objects
 
-		public:
-			
-		   ///Constructor
-			AcquisitionVisualizer(bool editable = false, QWidget* parent = 0);
-	
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-			
-			/// Edit field for the number 
-	   	QLineEdit* acquisitionnumber_;
-	   	
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type Acquisition.
+  */
+  class OPENMS_GUI_DLLAPI AcquisitionVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<Acquisition>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    AcquisitionVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    /// Edit field for the number
+    QLineEdit * acquisitionnumber_;
+
+    //Docu in base class
+    void update_();
+  };
 
 
 }

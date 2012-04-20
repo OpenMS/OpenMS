@@ -24,7 +24,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_SOURCEFILEVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_SOURCEFILEVISUALIZER_H
 
@@ -37,48 +37,48 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for SourceFile objects
-		
-		This class provides all functionality to view the meta information of an object of type SourceFile.
-	*/
-	class OPENMS_GUI_DLLAPI SourceFileVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<SourceFile>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for SourceFile objects
 
-		public:
-			
-			///Constructor
-			SourceFileVisualizer(bool editable = false, QWidget* parent = 0);
-			
-		public slots:
-			
-			//Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
+      This class provides all functionality to view the meta information of an object of type SourceFile.
+  */
+  class OPENMS_GUI_DLLAPI SourceFileVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<SourceFile>
+  {
+    Q_OBJECT
 
-		protected:  
-				
-			///@name Edit fields and buttons
-			//@{
-			QLineEdit* name_of_file_;
-			QLineEdit* path_to_file_;
-			QLineEdit* file_size_;
-			QLineEdit* file_type_;
-			QLineEdit* checksum_;
-			QComboBox* checksum_type_;
-		  QLineEdit* native_id_type_;
-		  //@}
-			
-			//Docu in base class
-			void update_();
-	};
+public:
+
+    ///Constructor
+    SourceFileVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * name_of_file_;
+    QLineEdit * path_to_file_;
+    QLineEdit * file_size_;
+    QLineEdit * file_type_;
+    QLineEdit * checksum_;
+    QComboBox * checksum_type_;
+    QLineEdit * native_id_type_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 
 }
 #endif

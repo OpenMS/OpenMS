@@ -37,42 +37,42 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for DocumentIdentifier objects
+  /**
+      @brief Class that displays all meta information for DocumentIdentifier objects
 
-		This class provides all functionality to view the meta information of an object of type DocumentIdentifier.
-	*/
-	class OPENMS_GUI_DLLAPI DocumentIdentifierVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<DocumentIdentifier>
-	{
-			Q_OBJECT
+      This class provides all functionality to view the meta information of an object of type DocumentIdentifier.
+  */
+  class OPENMS_GUI_DLLAPI DocumentIdentifierVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<DocumentIdentifier>
+  {
+    Q_OBJECT
 
-		public:
+public:
 
-		   ///Constructor
-			DocumentIdentifierVisualizer(bool editable = false, QWidget* parent = 0);
+    ///Constructor
+    DocumentIdentifierVisualizer(bool editable = false, QWidget * parent = 0);
 
-		public slots:
+public slots:
 
-		  //Docu in base class
-			void store();
+    //Docu in base class
+    void store();
 
-		protected slots:
+protected slots:
 
-			///Undo the changes made in the GUI.
-			void undo_();
+    ///Undo the changes made in the GUI.
+    void undo_();
 
-		protected:
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* identifier_;
-			QLineEdit* file_path_;
-			QLineEdit* file_type_;
-			//@}
+protected:
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * identifier_;
+    QLineEdit * file_path_;
+    QLineEdit * file_type_;
+    //@}
 
-			//Docu in base class
-			void update_();
-	};
+    //Docu in base class
+    void update_();
+  };
 }
 #endif

@@ -25,7 +25,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_TAGGINGVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_TAGGINGVISUALIZER_H
 
@@ -38,49 +38,49 @@ class QDoubleValidator;
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information of tagging objects.
-		
-		This class provides all functionality to view the meta information of an object of type Tagging.
-	*/
-	class OPENMS_GUI_DLLAPI TaggingVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<Tagging>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information of tagging objects.
 
-		public:
-			
-		  ///Constructor
-			TaggingVisualizer(bool editable = false, QWidget* parent = 0);
-	
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
+      This class provides all functionality to view the meta information of an object of type Tagging.
+  */
+  class OPENMS_GUI_DLLAPI TaggingVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<Tagging>
+  {
+    Q_OBJECT
 
-		protected:  
-			
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* treatmenttype_;
-			QTextEdit* treatmentcomment_;
-			QLineEdit* modificationname_;
-			QLineEdit* modificationmass_;
-			QComboBox* modificationspecificity_;
-			QLineEdit* modificationAA_;
-			QLineEdit* taggingmass_shift_;
-			QComboBox* taggingvariant_;
-			//@}
-			
-			//Docu in base class
-			void update_();
-	};
+public:
+
+    ///Constructor
+    TaggingVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * treatmenttype_;
+    QTextEdit * treatmentcomment_;
+    QLineEdit * modificationname_;
+    QLineEdit * modificationmass_;
+    QComboBox * modificationspecificity_;
+    QLineEdit * modificationAA_;
+    QLineEdit * taggingmass_shift_;
+    QComboBox * taggingvariant_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 
 }
 #endif

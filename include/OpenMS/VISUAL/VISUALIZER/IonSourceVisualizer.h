@@ -36,44 +36,44 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for IonSource objects
-		
-		This class provides all functionality to view the meta information of an object of type IonSource
-	*/
-	class OPENMS_GUI_DLLAPI IonSourceVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<IonSource>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for IonSource objects
 
-		public:
-			
-		  ///Constructor
-			IonSourceVisualizer(bool editable = false, QWidget* parent = 0);
-			 
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:
-			
-			///@name Edit fields and buttons
-	    //@{
-	    QLineEdit* order_;
-			QComboBox* inlet_type_;
-			QComboBox* ionization_method_;
-			QComboBox* polarity_;
-			//@}
-			
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type IonSource
+  */
+  class OPENMS_GUI_DLLAPI IonSourceVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<IonSource>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    IonSourceVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * order_;
+    QComboBox * inlet_type_;
+    QComboBox * ionization_method_;
+    QComboBox * polarity_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif

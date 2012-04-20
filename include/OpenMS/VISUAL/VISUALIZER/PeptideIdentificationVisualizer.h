@@ -24,7 +24,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_PEPTIDEIDENTIFICATIONVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_PEPTIDEIDENTIFICATIONVISUALIZER_H
 
@@ -36,61 +36,61 @@
 
 namespace OpenMS
 {
-	class MetaDataBrowser;
+  class MetaDataBrowser;
 
-	/**
-		@brief Class that displays all meta information for PeptideIdentification objects
+  /**
+      @brief Class that displays all meta information for PeptideIdentification objects
 
-		This class provides all functionality to view the meta information of an object of type PeptideIdentification.		
-	*/
-	class OPENMS_GUI_DLLAPI PeptideIdentificationVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<PeptideIdentification>
-	{
-		Q_OBJECT
+      This class provides all functionality to view the meta information of an object of type PeptideIdentification.
+  */
+  class OPENMS_GUI_DLLAPI PeptideIdentificationVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<PeptideIdentification>
+  {
+    Q_OBJECT
 
-		public:
-		  ///Constructor
-			PeptideIdentificationVisualizer(bool editable= FALSE, QWidget* parent =0, MetaDataBrowser* caller=0);
-			
-			/// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
-			void load(PeptideIdentification& s, int tree_item_id);
-			
-		public slots:
-			
-			//Docu in base class
-			void store();
+public:
+    ///Constructor
+    PeptideIdentificationVisualizer(bool editable = FALSE, QWidget * parent = 0, MetaDataBrowser * caller = 0);
 
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-			
-			/** 
-				@brief Updates the tree by calling MetaDataBrowser::updatePeptideHits(PeptideIdentification, int)
-					
-				Calls MetaDataBrowser::updatePeptideHits(PeptideIdentification, int).<br>
-				Updates the tree depending of the protein significance threshold.<br>
-				Only ProteinHits with a score superior or equal to the current threshold will be displayed.
-			*/
-			void updateTree_();
-			
-		protected:  	
-		  /// Pointer to MetaDataBrowser
-			MetaDataBrowser* pidv_caller_;
-			/// The id of the item in the tree
-			int tree_id_;
-			
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* identifier_;
-			QLineEdit* score_type_;
-			QComboBox* higher_better_;
-			QLineEdit* identification_threshold_;
-			//@}
-	
-	    /// Threshold for foltering by score
-			QLineEdit* filter_threshold_;
-	};
+    /// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
+    void load(PeptideIdentification & s, int tree_item_id);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+    /**
+        @brief Updates the tree by calling MetaDataBrowser::updatePeptideHits(PeptideIdentification, int)
+
+        Calls MetaDataBrowser::updatePeptideHits(PeptideIdentification, int).<br>
+        Updates the tree depending of the protein significance threshold.<br>
+        Only ProteinHits with a score superior or equal to the current threshold will be displayed.
+    */
+    void updateTree_();
+
+protected:
+    /// Pointer to MetaDataBrowser
+    MetaDataBrowser * pidv_caller_;
+    /// The id of the item in the tree
+    int tree_id_;
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * identifier_;
+    QLineEdit * score_type_;
+    QComboBox * higher_better_;
+    QLineEdit * identification_threshold_;
+    //@}
+
+    /// Threshold for foltering by score
+    QLineEdit * filter_threshold_;
+  };
 }
 #endif

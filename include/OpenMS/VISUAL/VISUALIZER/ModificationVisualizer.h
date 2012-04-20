@@ -24,7 +24,7 @@
 // $Maintainer:Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_MODIFICATIONVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_MODIFICATIONVISUALIZER_H
 
@@ -35,47 +35,47 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information of modification objects.
-		
-		This class provides all functionality to view the meta information of an object of type Modification.
-	*/
-	class OPENMS_GUI_DLLAPI ModificationVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<Modification>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information of modification objects.
 
-		public:
-			
-		  ///Constructor
-			ModificationVisualizer(bool editable = false, QWidget* parent = 0);
-			
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-			
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* treatmenttype_;
-			QTextEdit* treatmentcomment_;
-			QLineEdit* modificationname_;
-			QLineEdit* modificationmass_;
-			QComboBox* modificationspecificity_;
-			QLineEdit* modificationAA_;
-			//@}
-			
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type Modification.
+  */
+  class OPENMS_GUI_DLLAPI ModificationVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<Modification>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    ModificationVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * treatmenttype_;
+    QTextEdit * treatmentcomment_;
+    QLineEdit * modificationname_;
+    QLineEdit * modificationmass_;
+    QComboBox * modificationspecificity_;
+    QLineEdit * modificationAA_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 
 }
 #endif

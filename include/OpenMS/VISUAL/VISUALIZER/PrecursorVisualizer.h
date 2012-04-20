@@ -24,7 +24,7 @@
 // $Maintainer:Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_PRECURSORVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_PRECURSORVISUALIZER_H
 
@@ -36,46 +36,46 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for Precursor objects
-		
-		This class provides all functionality to view the meta information of an object of type Precursor.
-	*/
-	class OPENMS_GUI_DLLAPI PrecursorVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<Precursor>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for Precursor objects
 
-		public:
-			
-		  ///Constructor
-			PrecursorVisualizer(bool editable = false, QWidget* parent = 0);
-			
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* mz_;
-			QLineEdit* int_;
-			QLineEdit* charge_;
-			QLineEdit* window_up_;
-			QLineEdit* window_low_;
-			QListWidget* activation_methods_;
-			QLineEdit* activation_energy_;
-			//@}
-			
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type Precursor.
+  */
+  class OPENMS_GUI_DLLAPI PrecursorVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<Precursor>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    PrecursorVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * mz_;
+    QLineEdit * int_;
+    QLineEdit * charge_;
+    QLineEdit * window_up_;
+    QLineEdit * window_low_;
+    QListWidget * activation_methods_;
+    QLineEdit * activation_energy_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif

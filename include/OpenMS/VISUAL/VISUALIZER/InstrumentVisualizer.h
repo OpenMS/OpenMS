@@ -24,7 +24,7 @@
 // $Maintainer:Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_INSTRUMENTVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_INSTRUMENTVISUALIZER_H
 
@@ -36,45 +36,45 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for an MS instrument
-		
-		This class provides all functionality to view the meta information of an object of type Instrument.
-	*/
-	class OPENMS_GUI_DLLAPI InstrumentVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<Instrument>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for an MS instrument
 
-		public:
-			
-		  ///Constructor
-			InstrumentVisualizer(bool editable = false, QWidget* parent = 0);
-			
-		public slots:
-			
-			//Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
+      This class provides all functionality to view the meta information of an object of type Instrument.
+  */
+  class OPENMS_GUI_DLLAPI InstrumentVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<Instrument>
+  {
+    Q_OBJECT
 
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* name_;
-			QLineEdit* vendor_;
-			QLineEdit* model_;
-			QTextEdit* customizations_;
-			QComboBox* ion_optics_;
-	    //@}
-	    
-	    //Docu in base class
-			void update_();
-	};
+public:
+
+    ///Constructor
+    InstrumentVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * name_;
+    QLineEdit * vendor_;
+    QLineEdit * model_;
+    QTextEdit * customizations_;
+    QComboBox * ion_optics_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif

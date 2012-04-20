@@ -24,7 +24,7 @@
 // $Maintainer:Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_MASSANALYZERVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_MASSANALYZERVISUALIZER_H
 
@@ -36,55 +36,55 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for MassAnalyzer objects
-		
-		This class provides all functionality to view the meta information of an object of type MassAnalyzer.
-	*/
-	class OPENMS_GUI_DLLAPI MassAnalyzerVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<MassAnalyzer>
-	{
-		Q_OBJECT
-	
-		public:
-			
-		  ///Constructor
-			MassAnalyzerVisualizer(bool editable = false, QWidget* parent = 0);
-			
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-			
-		protected:  
-				
-			///@name edit fields to modify properties
-	    //@{
-	    QLineEdit* order_;
-			QLineEdit* res_;
-			QLineEdit* acc_;
-			QLineEdit* scan_rate_;
-			QLineEdit* scan_time_;
-			QLineEdit* TOF_;
-			QLineEdit* iso_;
-			QLineEdit* final_MS_;
-			QLineEdit* magnetic_fs_;
-			QComboBox* type_;
-			QComboBox* res_method_;
-			QComboBox* res_type_;
-			QComboBox* scan_dir_;
-			QComboBox* scan_law_;
-			QComboBox* reflectron_state_;
-			//@}
-			
-			//Docu in base class
-			void update_();
-	};
+  /**
+      @brief Class that displays all meta information for MassAnalyzer objects
+
+      This class provides all functionality to view the meta information of an object of type MassAnalyzer.
+  */
+  class OPENMS_GUI_DLLAPI MassAnalyzerVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<MassAnalyzer>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    MassAnalyzerVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name edit fields to modify properties
+    //@{
+    QLineEdit * order_;
+    QLineEdit * res_;
+    QLineEdit * acc_;
+    QLineEdit * scan_rate_;
+    QLineEdit * scan_time_;
+    QLineEdit * TOF_;
+    QLineEdit * iso_;
+    QLineEdit * final_MS_;
+    QLineEdit * magnetic_fs_;
+    QComboBox * type_;
+    QComboBox * res_method_;
+    QComboBox * res_type_;
+    QComboBox * scan_dir_;
+    QComboBox * scan_law_;
+    QComboBox * reflectron_state_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif

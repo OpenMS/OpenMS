@@ -36,47 +36,47 @@
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information of digestion objects.
-		
-		This class provides all functionality to view the meta information of an object of type Digestion.
-	*/
-	class OPENMS_GUI_DLLAPI DigestionVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<Digestion>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information of digestion objects.
 
-		public:
-			
-		  ///Constructor
-			DigestionVisualizer(bool editable = false, QWidget* parent = 0);
-			 
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-			
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* treatmenttype_;
-			QTextEdit* treatmentcomment_;
-			QLineEdit* digestionenzyme_;
-			QLineEdit* digestiontime_;
-			QLineEdit* digestiontemperature_;
-			QLineEdit* digestionPH_;
-			//@}
-			
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type Digestion.
+  */
+  class OPENMS_GUI_DLLAPI DigestionVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<Digestion>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    DigestionVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * treatmenttype_;
+    QTextEdit * treatmentcomment_;
+    QLineEdit * digestionenzyme_;
+    QLineEdit * digestiontime_;
+    QLineEdit * digestiontemperature_;
+    QLineEdit * digestionPH_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 
 }
 #endif

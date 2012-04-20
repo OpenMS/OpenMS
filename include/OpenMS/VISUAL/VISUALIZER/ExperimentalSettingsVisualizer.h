@@ -24,7 +24,7 @@
 // $Maintainer:Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_EXPERIMENTALSETTINGSVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_EXPERIMENTALSETTINGSVISUALIZER_H
 
@@ -33,47 +33,47 @@
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-namespace OpenMS 
+namespace OpenMS
 {
 
-	class MetaDataBrowser;
-	
-	/**
-		@brief Class that displays all meta information for ExperimentalSettings objects
-		
-		This class provides all functionality to view the meta information of an object of type ExperimentalSettings.
-	*/
-	class OPENMS_GUI_DLLAPI ExperimentalSettingsVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<ExperimentalSettings>
-	{
-		Q_OBJECT
+  class MetaDataBrowser;
 
-		public:
-			
-		  ///Constructor
-			ExperimentalSettingsVisualizer(bool editable = false, QWidget* parent = 0);
-			
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:
-			/// The date of this experiment
-			QLineEdit* datetime_;		
-			/// The comment to this experiment
-			QTextEdit* comment_;
-			/// Fraction identifier
-			QLineEdit* fraction_identifier_;
+  /**
+      @brief Class that displays all meta information for ExperimentalSettings objects
 
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type ExperimentalSettings.
+  */
+  class OPENMS_GUI_DLLAPI ExperimentalSettingsVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<ExperimentalSettings>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    ExperimentalSettingsVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+    /// The date of this experiment
+    QLineEdit * datetime_;
+    /// The comment to this experiment
+    QTextEdit * comment_;
+    /// Fraction identifier
+    QLineEdit * fraction_identifier_;
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif

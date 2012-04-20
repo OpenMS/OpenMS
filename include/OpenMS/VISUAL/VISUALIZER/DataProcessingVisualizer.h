@@ -24,7 +24,7 @@
 // $Maintainer:Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_DATAPROCESSINGVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_DATAPROCESSINGVISUALIZER_H
 
@@ -37,42 +37,42 @@ class QListWidget;
 
 namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for DataProcessing objects
-		
-		This class provides all functionality to view the meta information of an object of type DataProcessing.
-	*/
-	class OPENMS_GUI_DLLAPI DataProcessingVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<DataProcessing>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for DataProcessing objects
 
-		public:
-		  
-		  /// Constructor
-			DataProcessingVisualizer(bool editable = false, QWidget* parent = 0);
+      This class provides all functionality to view the meta information of an object of type DataProcessing.
+  */
+  class OPENMS_GUI_DLLAPI DataProcessingVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<DataProcessing>
+  {
+    Q_OBJECT
 
-		public slots:
-			
-			//Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:
+public:
 
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* completion_time_;
-			QListWidget* actions_;
-			//@}
-			
-			//Docu in base class
-			void update_();
-	};
+    /// Constructor
+    DataProcessingVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * completion_time_;
+    QListWidget * actions_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif

@@ -24,7 +24,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_PROTEINHITVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_PROTEINHITVISUALIZER_H
 
@@ -34,47 +34,47 @@
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 
-namespace OpenMS 
+namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for ProteinHit objects
-		
-		This class provides all functionality to view the meta information of an object of type ProteinHit.
-	*/
-	class OPENMS_GUI_DLLAPI ProteinHitVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<ProteinHit>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for ProteinHit objects
 
-		public:
-			
-		   ///Constructor
-			ProteinHitVisualizer(bool editable = false, QWidget* parent = 0);
-			
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-		
-			///@name Edit fields and buttons
-	    //@{
-			QLineEdit* proteinhit_score_;
-			QLineEdit* proteinhit_rank_;
-			QLineEdit* proteinhit_accession_;
-			QTextEdit* proteinhit_sequence_;
-			//@}
-			
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type ProteinHit.
+  */
+  class OPENMS_GUI_DLLAPI ProteinHitVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<ProteinHit>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    ProteinHitVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+
+    ///@name Edit fields and buttons
+    //@{
+    QLineEdit * proteinhit_score_;
+    QLineEdit * proteinhit_rank_;
+    QLineEdit * proteinhit_accession_;
+    QTextEdit * proteinhit_sequence_;
+    //@}
+
+    //Docu in base class
+    void update_();
+  };
 
 }
 #endif

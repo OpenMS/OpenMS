@@ -24,7 +24,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_SPECTRUMSETTINGSVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_SPECTRUMSETTINGSVISUALIZER_H
 
@@ -35,44 +35,44 @@
 
 class QTextEdit;
 
-namespace OpenMS 
+namespace OpenMS
 {
-	/**
-		@brief Class that displays all meta information for SpectrumSettings objects
-		
-		This class provides all functionality to view the meta information of an object of type SpectrumSettings.
-	*/
-	class OPENMS_GUI_DLLAPI SpectrumSettingsVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<SpectrumSettings>
-	{
-		Q_OBJECT
+  /**
+      @brief Class that displays all meta information for SpectrumSettings objects
 
-		public:
-			
-		  ///Constructor
-			SpectrumSettingsVisualizer(bool editable = false, QWidget* parent = 0);
-		  
-		public slots:
-			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
-			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-			/// The date of this experiment
-			QLineEdit* native_id_;
-			/// The type of this experiment
-	   	QComboBox* type_;
-			/// The date of this experiment
-			QTextEdit* comment_;
-			
-			//Docu in base class
-			void update_();
-	};
+      This class provides all functionality to view the meta information of an object of type SpectrumSettings.
+  */
+  class OPENMS_GUI_DLLAPI SpectrumSettingsVisualizer :
+    public BaseVisualizerGUI,
+    public BaseVisualizer<SpectrumSettings>
+  {
+    Q_OBJECT
+
+public:
+
+    ///Constructor
+    SpectrumSettingsVisualizer(bool editable = false, QWidget * parent = 0);
+
+public slots:
+
+    //Docu in base class
+    void store();
+
+protected slots:
+
+    ///Undo the changes made in the GUI.
+    void undo_();
+
+protected:
+    /// The date of this experiment
+    QLineEdit * native_id_;
+    /// The type of this experiment
+    QComboBox * type_;
+    /// The date of this experiment
+    QTextEdit * comment_;
+
+    //Docu in base class
+    void update_();
+  };
 }
 #endif
