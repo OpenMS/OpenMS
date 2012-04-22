@@ -21,44 +21,42 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Hannes Roest $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
 #include <algorithm>
-
-using namespace std;
-
 
 namespace OpenMS
 {
-	TargetedExperiment::TargetedExperiment()
-	{
-	}
+  TargetedExperiment::TargetedExperiment()
+  {
+  }
 
   TargetedExperiment::TargetedExperiment(const TargetedExperiment& rhs)
-		: cvs_(rhs.cvs_),
-			contacts_(rhs.contacts_),
-			publications_(rhs.publications_),
-			instruments_(rhs.instruments_),
-			software_(rhs.software_),
-			proteins_(rhs.proteins_),
-			compounds_(rhs.compounds_),
-			peptides_(rhs.peptides_),
-			transitions_(rhs.transitions_)
-	{
-	}
+    : cvs_(rhs.cvs_),
+      contacts_(rhs.contacts_),
+      publications_(rhs.publications_),
+      instruments_(rhs.instruments_),
+      software_(rhs.software_),
+      proteins_(rhs.proteins_),
+      compounds_(rhs.compounds_),
+      peptides_(rhs.peptides_),
+      transitions_(rhs.transitions_)
+  {
+  }
 
-	TargetedExperiment::~TargetedExperiment()
-	{
-	}
+  TargetedExperiment::~TargetedExperiment()
+  {
+  }
 
-	TargetedExperiment& TargetedExperiment::operator = (const TargetedExperiment& rhs)
-	{
-		if (&rhs != this)
-		{
-			cvs_ = rhs.cvs_;
+  TargetedExperiment& TargetedExperiment::operator = (const TargetedExperiment& rhs)
+  {
+    if (&rhs != this)
+    {
+      cvs_ = rhs.cvs_;
       contacts_ = rhs.contacts_;
       publications_ = rhs.publications_;
       instruments_ = rhs.instruments_;
@@ -66,46 +64,46 @@ namespace OpenMS
       proteins_ = rhs.proteins_;
       compounds_ = rhs.compounds_;
       peptides_ = rhs.peptides_;
-			transitions_ = rhs.transitions_;
-		}
-		return *this;
-	}
+      transitions_ = rhs.transitions_;
+    }
+    return *this;
+  }
 
 
-	bool TargetedExperiment::operator == (const TargetedExperiment& rhs) const
-	{
-		return 	cvs_ == rhs.cvs_ &&
-      			contacts_ == rhs.contacts_ &&
-			      publications_ == rhs.publications_ &&
-			      instruments_ == rhs.instruments_ &&
-      			software_ == rhs.software_ &&
-      			proteins_ == rhs.proteins_ &&
-      			compounds_ == rhs.compounds_ &&
-      			peptides_ == rhs.peptides_ &&
-      			transitions_ == rhs.transitions_;
-	}
+  bool TargetedExperiment::operator == (const TargetedExperiment& rhs) const
+  {
+    return   cvs_ == rhs.cvs_ &&
+            contacts_ == rhs.contacts_ &&
+            publications_ == rhs.publications_ &&
+            instruments_ == rhs.instruments_ &&
+            software_ == rhs.software_ &&
+            proteins_ == rhs.proteins_ &&
+            compounds_ == rhs.compounds_ &&
+            peptides_ == rhs.peptides_ &&
+            transitions_ == rhs.transitions_;
+  }
 
-	void TargetedExperiment::setCVs(const vector<CV>& cvs)
-	{
-		cvs_ = cvs;
-	}
+  void TargetedExperiment::setCVs(const std::vector<CV>& cvs)
+  {
+    cvs_ = cvs;
+  }
 
-	const vector<TargetedExperiment::CV>& TargetedExperiment::getCVs() const
-	{
-		return cvs_;
-	}
+  const std::vector<TargetedExperiment::CV>& TargetedExperiment::getCVs() const
+  {
+    return cvs_;
+  }
 
-	void TargetedExperiment::addCV(const CV& cv)
-	{
-		cvs_.push_back(cv);
-	}
+  void TargetedExperiment::addCV(const CV& cv)
+  {
+    cvs_.push_back(cv);
+  }
 
-  void TargetedExperiment::setContacts(const vector<Contact>& contacts)
+  void TargetedExperiment::setContacts(const std::vector<Contact>& contacts)
   {
     contacts_ = contacts;
   }
 
-  const vector<TargetedExperiment::Contact>& TargetedExperiment::getContacts() const
+  const std::vector<TargetedExperiment::Contact>& TargetedExperiment::getContacts() const
   {
     return contacts_;
   }
@@ -115,20 +113,20 @@ namespace OpenMS
     contacts_.push_back(contact);
   }
 
-	void TargetedExperiment::setPublications(const vector<Publication>& publications)
-	{
-		publications_ = publications;
-	}
+  void TargetedExperiment::setPublications(const std::vector<Publication>& publications)
+  {
+    publications_ = publications;
+  }
 
-	const vector<TargetedExperiment::Publication>& TargetedExperiment::getPublications() const
-	{
-		return publications_;
-	}
+  const std::vector<TargetedExperiment::Publication>& TargetedExperiment::getPublications() const
+  {
+    return publications_;
+  }
 
-	void TargetedExperiment::addPublication(const Publication& publication)
-	{
-		publications_.push_back(publication);
-	}
+  void TargetedExperiment::addPublication(const Publication& publication)
+  {
+    publications_.push_back(publication);
+  }
 
   void TargetedExperiment::setTargetCVTerms(const CVTermList& cv_terms)
   {
@@ -150,12 +148,12 @@ namespace OpenMS
     targets_.setMetaValue(name, value);
   }
 
-  void TargetedExperiment::setInstruments(const vector<Instrument>& instruments)
+  void TargetedExperiment::setInstruments(const std::vector<Instrument>& instruments)
   {
     instruments_ = instruments;
   }
 
-  const vector<TargetedExperiment::Instrument>& TargetedExperiment::getInstruments() const
+  const std::vector<TargetedExperiment::Instrument>& TargetedExperiment::getInstruments() const
   {
     return instruments_;
   }
@@ -165,12 +163,12 @@ namespace OpenMS
     instruments_.push_back(instrument);
   }
 
-	void TargetedExperiment::setSoftware(const vector<Software>& software)
+  void TargetedExperiment::setSoftware(const std::vector<Software>& software)
   {
     software_ = software;
   }
 
-  const vector<Software>& TargetedExperiment::getSoftware() const
+  const std::vector<Software>& TargetedExperiment::getSoftware() const
   {
     return software_;
   }
@@ -180,12 +178,12 @@ namespace OpenMS
     software_.push_back(software);
   }
 
-  void TargetedExperiment::setProteins(const vector<Protein>& proteins)
+  void TargetedExperiment::setProteins(const std::vector<Protein>& proteins)
   {
     proteins_ = proteins;
   }
 
-  const vector<TargetedExperiment::Protein>& TargetedExperiment::getProteins() const
+  const std::vector<TargetedExperiment::Protein>& TargetedExperiment::getProteins() const
   {
     return proteins_;
   }
@@ -195,27 +193,27 @@ namespace OpenMS
     proteins_.push_back(protein);
   }
 
-	void TargetedExperiment::setCompounds(const vector<Compound>& compounds)
-	{
-		compounds_ = compounds;
-	}
+  void TargetedExperiment::setCompounds(const std::vector<Compound>& compounds)
+  {
+    compounds_ = compounds;
+  }
 
-	const vector<TargetedExperiment::Compound>& TargetedExperiment::getCompounds() const
-	{
-		return compounds_;
-	}
+  const std::vector<TargetedExperiment::Compound>& TargetedExperiment::getCompounds() const
+  {
+    return compounds_;
+  }
 
-	void TargetedExperiment::addCompound(const Compound& rhs)
-	{
-		compounds_.push_back(rhs);
-	}
+  void TargetedExperiment::addCompound(const Compound& rhs)
+  {
+    compounds_.push_back(rhs);
+  }
 
-  void TargetedExperiment::setPeptides(const vector<Peptide>& peptides)
+  void TargetedExperiment::setPeptides(const std::vector<Peptide>& peptides)
   {
     peptides_ = peptides;
   }
 
-  const vector<TargetedExperiment::Peptide>& TargetedExperiment::getPeptides() const
+  const std::vector<TargetedExperiment::Peptide>& TargetedExperiment::getPeptides() const
   {
     return peptides_;
   }
@@ -225,42 +223,42 @@ namespace OpenMS
     peptides_.push_back(rhs);
   }
 
-	void TargetedExperiment::setTransitions(const vector<ReactionMonitoringTransition>& transitions)
-	{
-		transitions_ = transitions;
-	}
+  void TargetedExperiment::setTransitions(const std::vector<ReactionMonitoringTransition>& transitions)
+  {
+    transitions_ = transitions;
+  }
 
-	const vector<ReactionMonitoringTransition>& TargetedExperiment::getTransitions() const
-	{
-		return transitions_;
-	}
+  const std::vector<ReactionMonitoringTransition>& TargetedExperiment::getTransitions() const
+  {
+    return transitions_;
+  }
 
-	void TargetedExperiment::addTransition(const ReactionMonitoringTransition& transition)
-	{
-		transitions_.push_back(transition);
-	}
+  void TargetedExperiment::addTransition(const ReactionMonitoringTransition& transition)
+  {
+    transitions_.push_back(transition);
+  }
 
-	void TargetedExperiment::setIncludeTargets(const vector<IncludeExcludeTarget>& targets)
-	{
-		include_targets_ = targets;
-	}
+  void TargetedExperiment::setIncludeTargets(const std::vector<IncludeExcludeTarget>& targets)
+  {
+    include_targets_ = targets;
+  }
 
-	const vector<IncludeExcludeTarget>& TargetedExperiment::getIncludeTargets() const
-	{
-		return include_targets_;
-	}
+  const std::vector<IncludeExcludeTarget>& TargetedExperiment::getIncludeTargets() const
+  {
+    return include_targets_;
+  }
 
-	void TargetedExperiment::addIncludeTarget(const IncludeExcludeTarget& target)
-	{
-		include_targets_.push_back(target);
-	}
+  void TargetedExperiment::addIncludeTarget(const IncludeExcludeTarget& target)
+  {
+    include_targets_.push_back(target);
+  }
 
-  void TargetedExperiment::setExcludeTargets(const vector<IncludeExcludeTarget>& targets)
+  void TargetedExperiment::setExcludeTargets(const std::vector<IncludeExcludeTarget>& targets)
   {
     exclude_targets_ = targets;
   }
 
-  const vector<IncludeExcludeTarget>& TargetedExperiment::getExcludeTargets() const
+  const std::vector<IncludeExcludeTarget>& TargetedExperiment::getExcludeTargets() const
   {
     return exclude_targets_;
   }
@@ -270,26 +268,25 @@ namespace OpenMS
     exclude_targets_.push_back(target);
   }
 
+  void TargetedExperiment::setSourceFiles(const std::vector<SourceFile>& source_files)
+  {
+    source_files_ = source_files;
+  }
 
-	void TargetedExperiment::setSourceFiles(const vector<SourceFile>& source_files)
-	{
-		source_files_ = source_files;
-	}
+  const std::vector<SourceFile>& TargetedExperiment::getSourceFiles() const
+  {
+    return source_files_;
+  }
 
-	const vector<SourceFile>& TargetedExperiment::getSourceFiles() const
-	{
-		return source_files_;
-	}
+  void TargetedExperiment::addSourceFile(const SourceFile& source_file)
+  {
+    source_files_.push_back(source_file);
+  }
 
-	void TargetedExperiment::addSourceFile(const SourceFile& source_file)
-	{
-		source_files_.push_back(source_file);
-	}
-
-	void TargetedExperiment::sortTransitionsByProductMZ()
-	{
-		std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess() );
-	}
+  void TargetedExperiment::sortTransitionsByProductMZ()
+  {
+    std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess() );
+  }
 
 }
 

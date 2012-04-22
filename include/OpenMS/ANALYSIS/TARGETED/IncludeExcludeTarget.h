@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Hannes Roest $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -36,134 +36,134 @@
 
 namespace OpenMS
 {
-	/**
-		@brief This class stores a SRM/MRM transition
+  /**
+    @brief This class stores a SRM/MRM transition
 
-		The default values for precursor and product m/z values are
-		set to numeric_limits<DoubleReal>::max(). Default values for 
-		precursor an product charge is set to numeric_limits<Int>::max().
-	*/
-	class OPENMS_DLLAPI IncludeExcludeTarget 
-		: public CVTermList
-	{
+    The default values for precursor and product m/z values are
+    set to numeric_limits<DoubleReal>::max(). Default values for 
+    precursor an product charge is set to numeric_limits<Int>::max().
+  */
+  class OPENMS_DLLAPI IncludeExcludeTarget 
+    : public CVTermList
+  {
 
-		public:
+    public:
 
       typedef TargetedExperimentHelper::Configuration Configuration;
       typedef TargetedExperimentHelper::RetentionTime RetentionTime;
 
-		/** @name Constructors and destructors
-		*/
-		//@{
-		/// default constructor
-		IncludeExcludeTarget();
+    /** @name Constructors and destructors
+    */
+    //@{
+    /// default constructor
+    IncludeExcludeTarget();
 
-		/// copy constructor
-		IncludeExcludeTarget(const IncludeExcludeTarget& rhs);
+    /// copy constructor
+    IncludeExcludeTarget(const IncludeExcludeTarget& rhs);
 
-		/// destructor
-		virtual ~IncludeExcludeTarget();
-		//@}
+    /// destructor
+    virtual ~IncludeExcludeTarget();
+    //@}
 
-		/// assignment operator 
-		IncludeExcludeTarget& operator = (const IncludeExcludeTarget& rhs);
+    /// assignment operator 
+    IncludeExcludeTarget& operator = (const IncludeExcludeTarget& rhs);
 
-		/** @name Accessors
-		*/
-		//@{
-		void setName(const String& name);
+    /** @name Accessors
+    */
+    //@{
+    void setName(const String& name);
 
-		const String& getName() const;
+    const String& getName() const;
 
-		void setPeptideRef(const String& peptide_ref);
+    void setPeptideRef(const String& peptide_ref);
 
-		const String& getPeptideRef() const;
+    const String& getPeptideRef() const;
 
-		void setCompoundRef(const String& compound_ref);
+    void setCompoundRef(const String& compound_ref);
 
-		const String& getCompoundRef() const;
+    const String& getCompoundRef() const;
 
-		/// sets the precursor mz (Q1 value)
-		void setPrecursorMZ(DoubleReal mz);
+    /// sets the precursor mz (Q1 value)
+    void setPrecursorMZ(DoubleReal mz);
 
-		DoubleReal getPrecursorMZ() const;
+    DoubleReal getPrecursorMZ() const;
 
-		void setPrecursorCVTermList(const CVTermList& list);
+    void setPrecursorCVTermList(const CVTermList& list);
 
-		void addPrecursorCVTerm(const CVTerm& cv_term);
+    void addPrecursorCVTerm(const CVTerm& cv_term);
 
-		const CVTermList& getPrecursorCVTermList() const;
-		
-		void setProductMZ(DoubleReal mz);
+    const CVTermList& getPrecursorCVTermList() const;
+    
+    void setProductMZ(DoubleReal mz);
 
-		DoubleReal getProductMZ() const;
+    DoubleReal getProductMZ() const;
 
-		void setProductCVTermList(const CVTermList& list);
+    void setProductCVTermList(const CVTermList& list);
 
-		void addProductCVTerm(const CVTerm& cv_term);
+    void addProductCVTerm(const CVTerm& cv_term);
 
-		const CVTermList& getProductCVTermList() const;
+    const CVTermList& getProductCVTermList() const;
 
-		void setInterpretations(const std::vector<CVTermList>& interpretations);
+    void setInterpretations(const std::vector<CVTermList>& interpretations);
 
-		const std::vector<CVTermList>& getInterpretations() const;
+    const std::vector<CVTermList>& getInterpretations() const;
 
-		void addInterpretation(const CVTermList& interpretation);
+    void addInterpretation(const CVTermList& interpretation);
 
-		void setConfigurations(const std::vector<Configuration>& configuration);
-		
-		const std::vector<Configuration>& getConfigurations() const;
+    void setConfigurations(const std::vector<Configuration>& configuration);
+    
+    const std::vector<Configuration>& getConfigurations() const;
 
-		void addConfiguration(const Configuration& configuration);
+    void addConfiguration(const Configuration& configuration);
 
-		void setPrediction(const CVTermList& prediction);
+    void setPrediction(const CVTermList& prediction);
 
-		void addPredictionTerm(const CVTerm& prediction);
+    void addPredictionTerm(const CVTerm& prediction);
 
-		const CVTermList& getPrediction() const;
+    const CVTermList& getPrediction() const;
 
-    void setRetentionTime(RetentionTime rt) ;
+    void setRetentionTime(RetentionTime rt);
 
     const RetentionTime& getRetentionTime() const;
-		//@}
+    //@}
 
-		/** @name Predicates
-		*/
-		//@{
-		/// equality operator
-		bool operator == (const IncludeExcludeTarget& rhs) const;
-		
-		/// inequality operator
-		bool operator != (const IncludeExcludeTarget& rhs) const;
-		//@}
+    /** @name Predicates
+    */
+    //@{
+    /// equality operator
+    bool operator == (const IncludeExcludeTarget& rhs) const;
+    
+    /// inequality operator
+    bool operator != (const IncludeExcludeTarget& rhs) const;
+    //@}
 
-		protected:
+    protected:
 
-		void updateMembers_();
+    void updateMembers_();
 
-		String name_;
+    String name_;
 
-		DoubleReal precursor_mz_;
+    DoubleReal precursor_mz_;
 
-		CVTermList precursor_cv_terms_;
+    CVTermList precursor_cv_terms_;
 
-		DoubleReal product_mz_;
+    DoubleReal product_mz_;
 
-		CVTermList product_cv_terms_;
+    CVTermList product_cv_terms_;
 
-		std::vector<CVTermList> interpretation_list_;
-	
-		String peptide_ref_;
+    std::vector<CVTermList> interpretation_list_;
+  
+    String peptide_ref_;
 
-		String compound_ref_;
+    String compound_ref_;
 
-		std::vector<Configuration> configurations_;
+    std::vector<Configuration> configurations_;
 
-		CVTermList prediction_;
+    CVTermList prediction_;
 
     RetentionTime rts;
 
-	};
+  };
 }
 
 #endif // OPENMS_ANALYSIS_TARGETED_INCLUDEEXCLUDETARGET_H

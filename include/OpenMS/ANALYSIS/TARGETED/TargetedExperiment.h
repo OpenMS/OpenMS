@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Hannes Roest $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -40,14 +40,14 @@
 
 namespace OpenMS
 {
-	/**
-		@brief This class stores an prediction of an SRM/MRM transition
+  /**
+    @brief This class stores an prediction of an SRM/MRM transition
 
 
-	*/
-	class OPENMS_DLLAPI TargetedExperiment
-	{
-		public:
+  */
+  class OPENMS_DLLAPI TargetedExperiment
+  {
+    public:
 
     typedef TargetedExperimentHelper::CV CV;
     typedef TargetedExperimentHelper::Protein Protein;
@@ -59,53 +59,53 @@ namespace OpenMS
     typedef TargetedExperimentHelper::Instrument Instrument;
     typedef TargetedExperimentHelper::Prediction Prediction;
 
-		/** @name Constructors and destructors
-		*/
-		//@{
-		/// default constructor
-		TargetedExperiment();
+    /** @name Constructors and destructors
+    */
+    //@{
+    /// default constructor
+    TargetedExperiment();
 
-		/// copy constructor
-		TargetedExperiment(const TargetedExperiment& rhs);
+    /// copy constructor
+    TargetedExperiment(const TargetedExperiment& rhs);
 
-		/// destructor
-		virtual ~TargetedExperiment();
-		//@}
+    /// destructor
+    virtual ~TargetedExperiment();
+    //@}
 
-		/// assignment operator 
-		TargetedExperiment& operator = (const TargetedExperiment& rhs);
+    /// assignment operator 
+    TargetedExperiment& operator = (const TargetedExperiment& rhs);
 
-		/** @name Predicates
-		*/
-		//@{
-		bool operator == (const TargetedExperiment& rhs) const;
-		//@}
+    /** @name Predicates
+    */
+    //@{
+    bool operator == (const TargetedExperiment& rhs) const;
+    //@}
 
-		/** @name Accessors
-		*/
-		//@{
-		// cv list
-		void setCVs(const std::vector<CV>& cvs);
-	
-		const std::vector<CV>& getCVs() const;
+    /** @name Accessors
+    */
+    //@{
+    // cv list
+    void setCVs(const std::vector<CV>& cvs);
+  
+    const std::vector<CV>& getCVs() const;
 
-		void addCV(const CV& cv);
+    void addCV(const CV& cv);
 
-		// contact list
-		void setContacts(const std::vector<Contact>& contacts);
+    // contact list
+    void setContacts(const std::vector<Contact>& contacts);
 
-		const std::vector<Contact>& getContacts() const;
+    const std::vector<Contact>& getContacts() const;
 
-		void addContact(const Contact& contact);
+    void addContact(const Contact& contact);
 
-		// publication list
+    // publication list
     void setPublications(const std::vector<Publication>& publications);
 
     const std::vector<Publication>& getPublications() const;
 
     void addPublication(const Publication& publication);
 
-		// target list
+    // target list
     void setTargetCVTerms(const CVTermList& cv_terms);
 
     const CVTermList& getTargetCVTerms() const;
@@ -114,33 +114,33 @@ namespace OpenMS
 
     void setTargetMetaValue(const String &name, const DataValue &value);
 
-		// instrument list
-		void setInstruments(const std::vector<Instrument>& instruments);
+    // instrument list
+    void setInstruments(const std::vector<Instrument>& instruments);
 
-		const std::vector<Instrument>& getInstruments() const;
+    const std::vector<Instrument>& getInstruments() const;
 
-		void addInstrument(const Instrument& instrument);
+    void addInstrument(const Instrument& instrument);
 
-		// software list
-		void setSoftware(const std::vector<Software>& software);
+    // software list
+    void setSoftware(const std::vector<Software>& software);
 
-		const std::vector<Software>& getSoftware() const;
+    const std::vector<Software>& getSoftware() const;
 
-		void addSoftware(const Software& software);
+    void addSoftware(const Software& software);
 
-		// protein list
-	  void setProteins(const std::vector<Protein>& proteins);
+    // protein list
+    void setProteins(const std::vector<Protein>& proteins);
 
     const std::vector<Protein>& getProteins() const;
 
     void addProtein(const Protein& protein);
 
-		// compound list
-		void setCompounds(const std::vector<Compound>& rhs);
+    // compound list
+    void setCompounds(const std::vector<Compound>& rhs);
 
-		const std::vector<Compound>& getCompounds() const;
+    const std::vector<Compound>& getCompounds() const;
 
-		void addCompound(const Compound& rhs);
+    void addCompound(const Compound& rhs);
 
     void setPeptides(const std::vector<Peptide>& rhs);
 
@@ -148,36 +148,36 @@ namespace OpenMS
 
     void addPeptide(const Peptide& rhs);
 
-		/// set transition list
-		void setTransitions(const std::vector<ReactionMonitoringTransition>& transitions);
-		
-		/// returns the transition list
-		const std::vector<ReactionMonitoringTransition>& getTransitions() const;
+    /// set transition list
+    void setTransitions(const std::vector<ReactionMonitoringTransition>& transitions);
+    
+    /// returns the transition list
+    const std::vector<ReactionMonitoringTransition>& getTransitions() const;
 
-		/// adds a transition to the list
-		void addTransition(const ReactionMonitoringTransition& transition);
+    /// adds a transition to the list
+    void addTransition(const ReactionMonitoringTransition& transition);
 
-		void setIncludeTargets(const std::vector<IncludeExcludeTarget>& targets);
+    void setIncludeTargets(const std::vector<IncludeExcludeTarget>& targets);
 
-		const std::vector<IncludeExcludeTarget>& getIncludeTargets() const;
+    const std::vector<IncludeExcludeTarget>& getIncludeTargets() const;
 
-		void addIncludeTarget(const IncludeExcludeTarget& target);
+    void addIncludeTarget(const IncludeExcludeTarget& target);
 
-		void setExcludeTargets(const std::vector<IncludeExcludeTarget>& targets);
+    void setExcludeTargets(const std::vector<IncludeExcludeTarget>& targets);
 
-		const std::vector<IncludeExcludeTarget>& getExcludeTargets() const;
-	
-		void addExcludeTarget(const IncludeExcludeTarget& target);
+    const std::vector<IncludeExcludeTarget>& getExcludeTargets() const;
+  
+    void addExcludeTarget(const IncludeExcludeTarget& target);
 
-		/// sets the source files
-		void setSourceFiles(const std::vector<SourceFile>& source_files);
+    /// sets the source files
+    void setSourceFiles(const std::vector<SourceFile>& source_files);
 
-		/// returns the source file list
-		const std::vector<SourceFile>& getSourceFiles() const;
+    /// returns the source file list
+    const std::vector<SourceFile>& getSourceFiles() const;
 
-		/// adds a source file to the list
-		void addSourceFile(const SourceFile& source_file);
-		//@}
+    /// adds a source file to the list
+    void addSourceFile(const SourceFile& source_file);
+    //@}
 
     ///@name Sorting peaks
     //@{
@@ -187,35 +187,35 @@ namespace OpenMS
     void sortTransitionsByProductMZ();
     //@}
 
-		protected:
+    protected:
 
-		std::vector<CV> cvs_;
+    std::vector<CV> cvs_;
 
-		std::vector<Contact> contacts_;
+    std::vector<Contact> contacts_;
 
-		std::vector<Publication> publications_;
+    std::vector<Publication> publications_;
 
-		std::vector<Instrument> instruments_;
+    std::vector<Instrument> instruments_;
 
-		CVTermList targets_;
+    CVTermList targets_;
 
-		std::vector<Software> software_;
+    std::vector<Software> software_;
 
-		std::vector<Protein> proteins_;
-		
-		std::vector<Compound> compounds_;
+    std::vector<Protein> proteins_;
+    
+    std::vector<Compound> compounds_;
 
-		std::vector<Peptide> peptides_;
+    std::vector<Peptide> peptides_;
 
-		std::vector<ReactionMonitoringTransition> transitions_;
+    std::vector<ReactionMonitoringTransition> transitions_;
 
-		std::vector<IncludeExcludeTarget> include_targets_;
+    std::vector<IncludeExcludeTarget> include_targets_;
 
-		std::vector<IncludeExcludeTarget> exclude_targets_;
+    std::vector<IncludeExcludeTarget> exclude_targets_;
 
-		std::vector<SourceFile> source_files_;
+    std::vector<SourceFile> source_files_;
 
-	};
+  };
 }
 
 #endif // OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENT_H

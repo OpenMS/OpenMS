@@ -29,150 +29,146 @@
 
 #include <algorithm>
 
-using namespace std;
-
-
 namespace OpenMS
 {
-	ReactionMonitoringTransition::ReactionMonitoringTransition()
-		:	CVTermList(),
-			precursor_mz_(numeric_limits<DoubleReal>::max()),
-			product_mz_(numeric_limits<DoubleReal>::max())
-	{
-	}
+  ReactionMonitoringTransition::ReactionMonitoringTransition()
+    :  CVTermList(),
+      precursor_mz_(std::numeric_limits<DoubleReal>::max()),
+      product_mz_(std::numeric_limits<DoubleReal>::max())
+  {
+  }
 
   ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition& rhs)
-		: CVTermList(rhs),
-			name_(rhs.name_),
-			precursor_mz_(rhs.precursor_mz_),
+    : CVTermList(rhs),
+      name_(rhs.name_),
+      precursor_mz_(rhs.precursor_mz_),
       precursor_cv_terms_(rhs.precursor_cv_terms_),
       product_mz_(rhs.product_mz_),
       product_cv_terms_(rhs.product_cv_terms_),
       interpretation_list_(rhs.interpretation_list_),
-			peptide_ref_(rhs.peptide_ref_),
-			compound_ref_(rhs.compound_ref_),
-			configurations_(rhs.configurations_),
-			prediction_(rhs.prediction_),
-			product_(rhs.product_),
-			intermediate_products_(rhs.intermediate_products_),
+      peptide_ref_(rhs.peptide_ref_),
+      compound_ref_(rhs.compound_ref_),
+      configurations_(rhs.configurations_),
+      prediction_(rhs.prediction_),
+      product_(rhs.product_),
+      intermediate_products_(rhs.intermediate_products_),
       rts(rhs.rts)
-	{
-	}
+  {
+  }
 
-	ReactionMonitoringTransition::~ReactionMonitoringTransition()
-	{
-	}
+  ReactionMonitoringTransition::~ReactionMonitoringTransition()
+  {
+  }
 
-	ReactionMonitoringTransition& ReactionMonitoringTransition::operator = (const ReactionMonitoringTransition& rhs)
-	{
-		if (&rhs != this)
-		{
-			CVTermList::operator = (rhs);
-			name_ = rhs.name_;
-			precursor_mz_ = rhs.precursor_mz_;
-			precursor_cv_terms_ = rhs.precursor_cv_terms_;
-			product_mz_ = rhs.product_mz_;
-			product_cv_terms_ = rhs.product_cv_terms_;
-			interpretation_list_ = rhs.interpretation_list_;
-			peptide_ref_ = rhs.peptide_ref_;
-			compound_ref_ = rhs.compound_ref_;
-			configurations_ = rhs.configurations_;
-			prediction_ = rhs.prediction_;
-			product_ = rhs.product_;
-			intermediate_products_ = rhs.intermediate_products_;
-			rts = rhs.rts;
-		}
-		return *this;
-	}
+  ReactionMonitoringTransition& ReactionMonitoringTransition::operator = (const ReactionMonitoringTransition& rhs)
+  {
+    if (&rhs != this)
+    {
+      CVTermList::operator = (rhs);
+      name_ = rhs.name_;
+      precursor_mz_ = rhs.precursor_mz_;
+      precursor_cv_terms_ = rhs.precursor_cv_terms_;
+      product_mz_ = rhs.product_mz_;
+      product_cv_terms_ = rhs.product_cv_terms_;
+      interpretation_list_ = rhs.interpretation_list_;
+      peptide_ref_ = rhs.peptide_ref_;
+      compound_ref_ = rhs.compound_ref_;
+      configurations_ = rhs.configurations_;
+      prediction_ = rhs.prediction_;
+      product_ = rhs.product_;
+      intermediate_products_ = rhs.intermediate_products_;
+      rts = rhs.rts;
+    }
+    return *this;
+  }
 
-	bool ReactionMonitoringTransition::operator == (const ReactionMonitoringTransition& rhs) const
-	{
-		return  CVTermList::operator == (rhs) &&
-			      name_ == rhs.name_ &&
-			      precursor_mz_ == rhs.precursor_mz_ &&
-			      precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
-			      product_mz_ == rhs.product_mz_ &&
-			      product_cv_terms_ == rhs.product_cv_terms_ &&
-			      interpretation_list_ == rhs.interpretation_list_ &&
-			      peptide_ref_ == rhs.peptide_ref_ &&
-			      compound_ref_ == rhs.compound_ref_ &&
-			      configurations_ == rhs.configurations_ &&
-						prediction_ == rhs.prediction_ &&
-						product_ == rhs.product_ &&
-						intermediate_products_ == rhs.intermediate_products_ &&
-			      rts == rhs.rts;
-	}
+  bool ReactionMonitoringTransition::operator == (const ReactionMonitoringTransition& rhs) const
+  {
+    return  CVTermList::operator == (rhs) &&
+            name_ == rhs.name_ &&
+            precursor_mz_ == rhs.precursor_mz_ &&
+            precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
+            product_mz_ == rhs.product_mz_ &&
+            product_cv_terms_ == rhs.product_cv_terms_ &&
+            interpretation_list_ == rhs.interpretation_list_ &&
+            peptide_ref_ == rhs.peptide_ref_ &&
+            compound_ref_ == rhs.compound_ref_ &&
+            configurations_ == rhs.configurations_ &&
+            prediction_ == rhs.prediction_ &&
+            product_ == rhs.product_ &&
+            intermediate_products_ == rhs.intermediate_products_ &&
+            rts == rhs.rts;
+  }
 
-	bool ReactionMonitoringTransition::operator != (const ReactionMonitoringTransition& rhs) const
-	{
-		return !(*this == rhs);
-	}
+  bool ReactionMonitoringTransition::operator != (const ReactionMonitoringTransition& rhs) const
+  {
+    return !(*this == rhs);
+  }
 
-	void ReactionMonitoringTransition::setName(const String& name)
-	{
-		name_ = name;
-	}
+  void ReactionMonitoringTransition::setName(const String& name)
+  {
+    name_ = name;
+  }
 
-	const String& ReactionMonitoringTransition::getName() const
-	{
-		return name_;
-	}
+  const String& ReactionMonitoringTransition::getName() const
+  {
+    return name_;
+  }
 
-	void ReactionMonitoringTransition::setNativeID(const String& name)
-	{
-		name_ = name;
-	}
+  void ReactionMonitoringTransition::setNativeID(const String& name)
+  {
+    name_ = name;
+  }
 
-	const String& ReactionMonitoringTransition::getNativeID() const
-	{
-		return name_;
-	}
+  const String& ReactionMonitoringTransition::getNativeID() const
+  {
+    return name_;
+  }
 
-	void ReactionMonitoringTransition::setPeptideRef(const String& peptide_ref)
-	{
-		peptide_ref_ = peptide_ref;
-	}
+  void ReactionMonitoringTransition::setPeptideRef(const String& peptide_ref)
+  {
+    peptide_ref_ = peptide_ref;
+  }
 
-	const String& ReactionMonitoringTransition::getPeptideRef() const
-	{
-		return peptide_ref_;
-	}
+  const String& ReactionMonitoringTransition::getPeptideRef() const
+  {
+    return peptide_ref_;
+  }
 
-	void ReactionMonitoringTransition::setCompoundRef(const String& compound_ref)
-	{
-		compound_ref_ = compound_ref;
-	}
+  void ReactionMonitoringTransition::setCompoundRef(const String& compound_ref)
+  {
+    compound_ref_ = compound_ref;
+  }
 
-	const String& ReactionMonitoringTransition::getCompoundRef() const
-	{
-		return compound_ref_;
-	}
+  const String& ReactionMonitoringTransition::getCompoundRef() const
+  {
+    return compound_ref_;
+  }
 
-	void ReactionMonitoringTransition::setPrecursorMZ(DoubleReal mz)
-	{
-		precursor_mz_ = mz;
-	}
+  void ReactionMonitoringTransition::setPrecursorMZ(DoubleReal mz)
+  {
+    precursor_mz_ = mz;
+  }
 
-	DoubleReal ReactionMonitoringTransition::getPrecursorMZ() const
-	{
-		return precursor_mz_;
-	}
+  DoubleReal ReactionMonitoringTransition::getPrecursorMZ() const
+  {
+    return precursor_mz_;
+  }
 
-	void ReactionMonitoringTransition::setPrecursorCVTermList(const CVTermList& list)
-	{
-		precursor_cv_terms_ = list;
-	}
+  void ReactionMonitoringTransition::setPrecursorCVTermList(const CVTermList& list)
+  {
+    precursor_cv_terms_ = list;
+  }
 
-	void ReactionMonitoringTransition::addPrecursorCVTerm(const CVTerm& cv_term)
-	{
-		precursor_cv_terms_.addCVTerm(cv_term);
-	}
+  void ReactionMonitoringTransition::addPrecursorCVTerm(const CVTerm& cv_term)
+  {
+    precursor_cv_terms_.addCVTerm(cv_term);
+  }
 
-	const CVTermList& ReactionMonitoringTransition::getPrecursorCVTermList() const
-	{
-		return precursor_cv_terms_;
-	}
-
+  const CVTermList& ReactionMonitoringTransition::getPrecursorCVTermList() const
+  {
+    return precursor_cv_terms_;
+  }
 
   void ReactionMonitoringTransition::setProductMZ(DoubleReal mz)
   {
@@ -189,16 +185,15 @@ namespace OpenMS
     product_cv_terms_ = list;
   }
 
-	void ReactionMonitoringTransition::addProductCVTerm(const CVTerm& cv_term)
-	{
-		product_cv_terms_.addCVTerm(cv_term);
-	}
+  void ReactionMonitoringTransition::addProductCVTerm(const CVTerm& cv_term)
+  {
+    product_cv_terms_.addCVTerm(cv_term);
+  }
 
   const CVTermList& ReactionMonitoringTransition::getProductCVTermList() const
   {
     return product_cv_terms_;
   }
-
 
   const std::vector<ReactionMonitoringTransition::Product>& ReactionMonitoringTransition::getIntermediateProducts() const
   {
@@ -210,12 +205,12 @@ namespace OpenMS
     intermediate_products_.push_back(product);
   }
 
-  void ReactionMonitoringTransition::setIntermediateProducts(std::vector<ReactionMonitoringTransition::Product>& intermediate_products)
+  void ReactionMonitoringTransition::setIntermediateProducts(const std::vector<ReactionMonitoringTransition::Product>& intermediate_products)
   {
     intermediate_products_ = intermediate_products;
   }
 
-  void ReactionMonitoringTransition::setProduct(ReactionMonitoringTransition::Product product) 
+  void ReactionMonitoringTransition::setProduct(ReactionMonitoringTransition::Product product)
   {
     product_ = product;
   }
@@ -235,24 +230,24 @@ namespace OpenMS
     return rts;
   }
 
-	void ReactionMonitoringTransition::setPrediction(const Prediction& prediction)
-	{
-		prediction_ = prediction;
-	}
+  void ReactionMonitoringTransition::setPrediction(const Prediction& prediction)
+  {
+    prediction_ = prediction;
+  }
 
-	const ReactionMonitoringTransition::Prediction& ReactionMonitoringTransition::getPrediction() const
-	{
-		return prediction_;
-	}
+  const ReactionMonitoringTransition::Prediction& ReactionMonitoringTransition::getPrediction() const
+  {
+    return prediction_;
+  }
 
-	void ReactionMonitoringTransition::addPredictionTerm(const CVTerm& term)
-	{
-		prediction_.addCVTerm(term);
-	}
-	
+  void ReactionMonitoringTransition::addPredictionTerm(const CVTerm& term)
+  {
+    prediction_.addCVTerm(term);
+  }
+
   void ReactionMonitoringTransition::updateMembers_()
-	{
-	}
+  {
+  }
 
 }
 
