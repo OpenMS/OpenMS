@@ -237,6 +237,7 @@ class TOPPFileMerger
 				out.reserve(file_list.size());
 				UInt rt_auto = 0;
 				UInt native_id = 0;
+				std::vector<MSChromatogram<ChromatogramPeak> > all_chromatograms;
 				for (Size i = 0; i < file_list.size();++i)
 				{
 					String filename = file_list[i];
@@ -244,7 +245,7 @@ class TOPPFileMerger
 					//load file
 					MSExperiment<> in;
 					fh.loadExperiment(filename,in,force_type,log_type_);
-					if (in.empty())
+					if (in.empty() && in.getChromatograms().empty())
 					{
 						writeLog_(String("Warning: Empty file '") + filename +"'!");
 						continue;
@@ -323,12 +324,20 @@ class TOPPFileMerger
 						++native_id;
 					}
 
+          // also add the chromatograms
+          for (std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator it2 = in.getChromatograms().begin(); it2!=in.getChromatograms().end(); ++it2)
+          {
+            all_chromatograms.push_back(*it2);
+          }
+
 					// copy experimental settings from first file
 					if (i==0)
 					{
 						out.ExperimentalSettings::operator=(in);
 					}
 				}
+        // set the chromatograms 
+        out.setChromatograms(all_chromatograms);
 
 				//-------------------------------------------------------------
 				// writing output
