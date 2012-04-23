@@ -34,6 +34,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;
@@ -324,7 +325,9 @@ protected:
 		addEmptyLine_();
 		Param temp = PeptideAndProteinQuant().getParameters();
 		registerFullParam_(temp);
-
+		
+        registerFlag_("ratios","Prints the log2 ratios of the abundance value to the output file. (log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ....)",false);
+        registerFlag_("ratiosSILAC","Prints the SILAC log2 ratios for a triple SILAC experiment to the output file. Only performed if three maps are given, otherwise nothing will be seen in the output file. (log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)",false);
 		registerTOPPSubsection_("format", "Output formatting options");
 		registerStringOption_("format:separator", "<sep>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
 		registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
@@ -407,7 +410,7 @@ protected:
 					out << (pos != q_it->second.total_abundances.end() ? 
 									pos->second : 0.0);
 				}
-				out << endl;					
+				out << endl;
 			}
 		}
 	}
@@ -416,6 +419,8 @@ protected:
 	/// Write a table of protein results.
 	void writeProteinTable_(SVOutStream& out, const ProteinQuant& quant)
 	{
+		const bool print_ratios = getFlag_("ratios");
+        const bool print_SILACratios = getFlag_("ratiosSILAC");
 		// write header:
 		out << "protein" << "n_proteins" << "protein_score" << "n_peptides";
 		if (files_.size() <= 1)
@@ -428,7 +433,24 @@ protected:
 			{
 				out << "abundance_" + String(i);
 			}
+            // if ratios-flag is set to true, print log2-ratios. ratio_1 <sep> ratio_x ....
+			if(print_ratios)
+			{
+                for (Size i = 1; i <= files_.size(); ++i)
+				{
+					out << "ratio_" + String(i);
+				}
+			}
+            // if ratiosSILAC-flag is set to true, print SILAC log2-ratios, only if three
+            if(print_SILACratios && files_.size() == 3)
+            {
+                for(Size i = 1; i <= files_.size(); ++i)
+                {
+                    out << "SILACratio_" + String(i);
+                }
+            }
 		}
+		
 		out << endl;
 
 		map<String, StringList> leader_to_accessions;
@@ -481,6 +503,28 @@ protected:
 			{
 				out << total_abundances[file_it->first];
 			}
+            // if ratios-flag is set to true, print log2-ratios. ab1/ab0, ab2/ab0, .. , ab'n/ab0
+            if(print_ratios)
+			{
+				DoubleReal ref_abundance = total_abundances[files_.begin()->first];
+                for (ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
+						file_it != files_.end(); ++file_it)
+				{
+                    out << log(total_abundances[file_it->first] / ref_abundance) / log(2);
+				}
+			}
+            // if ratiosSILAC-flag is set to true, print log2-SILACratios. Only if three maps are provided (triple SILAC).
+            if(print_SILACratios && files_.size() == 3)
+            {
+                ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
+                DoubleReal light = total_abundances[file_it->first];++file_it;
+                DoubleReal middle = total_abundances[file_it->first];++file_it;
+                DoubleReal heavy = total_abundances[file_it->first];
+
+                out << log(heavy / light) / log(2)
+                    << log(heavy / middle) / log(2)
+                    << log(middle / light) / log(2);
+            }
 			out << endl;
 		}
 	}
@@ -892,3 +936,4 @@ int main(int argc, const char** argv)
 }
 
 /// @endcond
+	

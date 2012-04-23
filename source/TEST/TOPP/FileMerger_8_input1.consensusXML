@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////share/usr/luhn/thesis/OpenMS/svn/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.5" id="cm_16120198410702423709" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2012-03-02T15:44:17">
+		<software name="IDMapper" version="1.10.0" />
+		<processingAction name="Identification mapping" />
+		<userParam type="string" name="parameter: out" value="SILAC_1_1.consensusXML"/>
+		<userParam type="string" name="parameter: in" value="SILAC_1_1.consensusXML"/>
+		<userParam type="string" name="parameter: id" value="SILAC_1_1.idXML"/>
+		<userParam type="string" name="parameter: ini" value="IDMapper.ini"/>
+		<userParam type="float" name="parameter: rt_tolerance" value="60"/>
+		<userParam type="float" name="parameter: mz_tolerance" value="40"/>
+		<userParam type="string" name="parameter: mz_measure" value="ppm"/>
+		<userParam type="string" name="parameter: mz_reference" value="precursor"/>
+		<userParam type="string" name="parameter: ignore_charge" value="true"/>
+		<userParam type="string" name="parameter: use_centroid_rt" value="false"/>
+		<userParam type="string" name="parameter: use_centroid_mz" value="false"/>
+		<userParam type="string" name="parameter: use_subelements" value="false"/>
+		<userParam type="string" name="parameter: log" value=""/>
+		<userParam type="int" name="parameter: debug" value="0"/>
+		<userParam type="int" name="parameter: threads" value="8"/>
+		<userParam type="string" name="parameter: no_progress" value="false"/>
+		<userParam type="string" name="parameter: test" value="false"/>
+	</dataProcessing>
+	
+	<IdentificationRun id="PI_0" date="2012-02-24T16:27:55" search_engine="OMSSA" search_engine_version="2.1.8">
+		<SearchParameters db="sequences/human/ipi.HUMAN.v3.64.OpenMS_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="15" peak_mass_tolerance="0.7" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="IPI:CON_00009865.2|SWISS-PROT:P13645" score="0.872178077697754" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	
+	<IdentificationRun id="PI_1" date="2012-02-24T17:04:02" search_engine="OMSSA" search_engine_version="2.1.8">
+		<SearchParameters db="sequences/human/ipi.HUMAN.v3.64.OpenMS_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="15" peak_mass_tolerance="0.7" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:2H(4) (K)" />
+			<FixedModification name="Label:13C(6) (R)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_1" accession="IPI:CON_00694255.1|TREMBL:Q3SX14" score="0.872178077697754" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+		
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="473.579864501953" RT="1722.9376" >
+		<PeptideHit score="0.00125667609173735" sequence="M(Oxidation)YQPEDDNNSDVTSDDDMTR" charge="5" aa_after="N" protein_refs="">
+			<userParam type="float" name="OMSSA_score" value="0.00834062519686263"/>
+			<userParam type="string" name="target_decoy" value="target"/>
+			<userParam type="string" name="protein_references" value="non-unique"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+
+
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="949.4091796875" RT="2639.1951" >
+		<PeptideHit score="0" sequence="AADPPAENSSAPEAEQGGAE" charge="2" aa_before="K" protein_refs="">
+			<userParam type="float" name="OMSSA_score" value="1.07270560176463e-08"/>
+			<userParam type="string" name="target_decoy" value="target"/>
+			<userParam type="string" name="protein_references" value="non-unique"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+
+	<mapList count="2">
+		<map id="0" name="SILAC_1_1.mzML" label="" size="4">
+		</map>
+		<map id="1" name="SILAC_1_1.mzML" label="" size="4">
+		</map>
+	</mapList>
+
+	<consensusElementList>
+		<consensusElement id="e_7327145959475641104" quality="4" charge="2">
+			<centroid rt="2950.05168707037" mz="466.231173481377" it="7.94108e+07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="2950.05168707037" mz="466.231173481377" it="7.94108e+07" charge="2"/>
+				<element map="1" id="0" rt="2949.98007233843" mz="468.243992280111" it="5.7435e+07" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		
+		<consensusElement id="e_1636393963998310627" quality="6" charge="2">
+			<centroid rt="2951.66063481537" mz="480.243121669228" it="3.02089e+08"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="2951.66063481537" mz="480.243121669228" it="3.02089e+08" charge="2"/>
+				<element map="1" id="0" rt="2951.47603138247" mz="483.253183155651" it="2.06348e+08" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="480.242279052734" RT="2949.0893" >
+				<PeptideHit score="0" sequence="AADAVEDLR" charge="2" aa_before="R" aa_after="W" protein_refs="">
+					<userParam type="float" name="OMSSA_score" value="7.12408738455504e-05"/>
+					<userParam type="string" name="target_decoy" value="target"/>
+					<userParam type="string" name="protein_references" value="non-unique"/>
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		
+		<consensusElement id="e_15402369043947988621" quality="10" charge="2">
+			<centroid rt="2952.22220759792" mz="444.71575417598" it="6.19619e+08"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="2952.22220759792" mz="444.71575417598" it="6.19619e+08" charge="2"/>
+				<element map="1" id="0" rt="2951.29001038575" mz="449.738368328309" it="3.65047e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		
+		<consensusElement id="e_11251022421058326475" quality="6" charge="2">
+			<centroid rt="2954.09369806233" mz="702.341863441635" it="7.88044e+08"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="2954.09369806233" mz="702.341863441635" it="7.88044e+08" charge="2"/>
+				<element map="1" id="0" rt="2953.84905205979" mz="705.351965622825" it="5.59943e+08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

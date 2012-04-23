@@ -180,7 +180,10 @@ class TOPPFileMerger
 			else if (force_type == FileTypes::CONSENSUSXML)
 			{
 				ConsensusMap out;
-				for (Size i = 0; i < file_list.size(); ++i)
+                ConsensusXMLFile fh;
+                fh.load(file_list[0], out);
+                //skip first file
+                for (Size i = 1; i < file_list.size(); ++i)
 				{
 					ConsensusMap map;
 					ConsensusXMLFile fh;
@@ -190,7 +193,7 @@ class TOPPFileMerger
 					{
 						for(ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
 						{
-							it->setMetaValue("file_origin", DataValue(file_list[i]));
+                            it->setMetaValue("file_origin", DataValue(file_list[i]));
 						}
 					}
 					out += map;
