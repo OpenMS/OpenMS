@@ -59,6 +59,9 @@ namespace OpenMS
     typedef TargetedExperimentHelper::Instrument Instrument;
     typedef TargetedExperimentHelper::Prediction Prediction;
 
+    typedef std::map<String, const Protein *> ProteinReferenceMapType;
+    typedef std::map<String, const Peptide *> PeptideReferenceMapType;
+
     /** @name Constructors and destructors
     */
     //@{
@@ -133,6 +136,8 @@ namespace OpenMS
 
     const std::vector<Protein>& getProteins() const;
 
+    const Protein& getProteinByRef(const String& ref);
+
     void addProtein(const Protein& protein);
 
     // compound list
@@ -145,6 +150,8 @@ namespace OpenMS
     void setPeptides(const std::vector<Peptide>& rhs);
 
     const std::vector<Peptide>& getPeptides() const;
+
+    const Peptide& getPeptideByRef(const String& ref);
 
     void addPeptide(const Peptide& rhs);
 
@@ -189,6 +196,10 @@ namespace OpenMS
 
     protected:
 
+    void createProteinReferenceMap();
+
+    void createPeptideReferenceMap();
+
     std::vector<CV> cvs_;
 
     std::vector<Contact> contacts_;
@@ -214,6 +225,14 @@ namespace OpenMS
     std::vector<IncludeExcludeTarget> exclude_targets_;
 
     std::vector<SourceFile> source_files_;
+
+    ProteinReferenceMapType protein_reference_map_;
+
+    bool protein_reference_map_dirty_;
+
+    PeptideReferenceMapType peptide_reference_map_;
+
+    bool peptide_reference_map_dirty_;
 
   };
 }

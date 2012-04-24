@@ -44,7 +44,9 @@ namespace OpenMS
       proteins_(rhs.proteins_),
       compounds_(rhs.compounds_),
       peptides_(rhs.peptides_),
-      transitions_(rhs.transitions_)
+      transitions_(rhs.transitions_),
+      protein_reference_map_dirty_(true),
+      peptide_reference_map_dirty_(true)
   {
   }
 
@@ -65,10 +67,11 @@ namespace OpenMS
       compounds_ = rhs.compounds_;
       peptides_ = rhs.peptides_;
       transitions_ = rhs.transitions_;
+      protein_reference_map_dirty_ = true;
+      peptide_reference_map_dirty_ = true;
     }
     return *this;
   }
-
 
   bool TargetedExperiment::operator == (const TargetedExperiment& rhs) const
   {
@@ -180,6 +183,7 @@ namespace OpenMS
 
   void TargetedExperiment::setProteins(const std::vector<Protein>& proteins)
   {
+    protein_reference_map_dirty_ = true;
     proteins_ = proteins;
   }
 
@@ -188,8 +192,18 @@ namespace OpenMS
     return proteins_;
   }
 
+  const TargetedExperiment::Protein& TargetedExperiment::getProteinByRef(const String& ref)
+  {
+    if (protein_reference_map_dirty_)
+    {
+      createProteinReferenceMap();
+    }
+    return *(protein_reference_map_[ref]);
+  }
+
   void TargetedExperiment::addProtein(const Protein& protein)
   {
+    protein_reference_map_dirty_ = true;
     proteins_.push_back(protein);
   }
 
@@ -210,6 +224,7 @@ namespace OpenMS
 
   void TargetedExperiment::setPeptides(const std::vector<Peptide>& peptides)
   {
+    peptide_reference_map_dirty_ = true;
     peptides_ = peptides;
   }
 
@@ -218,8 +233,18 @@ namespace OpenMS
     return peptides_;
   }
 
+  const TargetedExperiment::Peptide& TargetedExperiment::getPeptideByRef(const String& ref)
+  {
+    if (peptide_reference_map_dirty_)
+    {
+      createPeptideReferenceMap();
+    }
+    return *(peptide_reference_map_[ref]);
+  }
+
   void TargetedExperiment::addPeptide(const Peptide& rhs)
   {
+    peptide_reference_map_dirty_ = true;
     peptides_.push_back(rhs);
   }
 
@@ -286,6 +311,23 @@ namespace OpenMS
   void TargetedExperiment::sortTransitionsByProductMZ()
   {
     std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess() );
+  }
+
+  void TargetedExperiment::createProteinReferenceMap() 
+  {
+    for (Size i = 0; i < getProteins().size(); i++)
+    {
+      protein_reference_map_[getProteins()[i].id] = &getProteins()[i];
+    }
+
+  }
+
+  void TargetedExperiment::createPeptideReferenceMap()
+  {
+    for (Size i = 0; i < getPeptides().size(); i++)
+    {
+      peptide_reference_map_[getPeptides()[i].id] = &getPeptides()[i];
+    }
   }
 
 }
