@@ -506,11 +506,12 @@ protected:
             // if ratios-flag is set to true, print log2-ratios. ab1/ab0, ab2/ab0, .. , ab'n/ab0
             if(print_ratios)
 			{
+                DoubleReal log2 = log(2.0);
 				DoubleReal ref_abundance = total_abundances[files_.begin()->first];
                 for (ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
 						file_it != files_.end(); ++file_it)
 				{
-                    out << log(total_abundances[file_it->first] / ref_abundance) / log(2);
+                    out << log(total_abundances[file_it->first] / ref_abundance) / log2;
 				}
 			}
             // if ratiosSILAC-flag is set to true, print log2-SILACratios. Only if three maps are provided (triple SILAC).
@@ -520,10 +521,11 @@ protected:
                 DoubleReal light = total_abundances[file_it->first];++file_it;
                 DoubleReal middle = total_abundances[file_it->first];++file_it;
                 DoubleReal heavy = total_abundances[file_it->first];
+                DoubleReal log2 = log(2.0);
 
-                out << log(heavy / light) / log(2)
-                    << log(heavy / middle) / log(2)
-                    << log(middle / light) / log(2);
+                out << log(heavy / light) / log2
+                    << log(heavy / middle) / log2
+                    << log(middle / light) / log2;
             }
 			out << endl;
 		}
