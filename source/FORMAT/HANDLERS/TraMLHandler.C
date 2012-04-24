@@ -1309,14 +1309,6 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
     }
     else if (parent_tag == "Product")
     {
-      if (cv_term.getAccession() == "MS:1000827")
-      {
-        actual_transition_.setProductMZ(cv_term.getValue().toString().toDouble());
-      }
-      else 
-      {
-        actual_transition_.addProductCVTerm(cv_term);
-      }
       actual_product_.addCVTerm(cv_term);
     }
     else if (parent_tag == "SourceFile")

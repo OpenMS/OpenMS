@@ -33,8 +33,7 @@ namespace OpenMS
 {
   ReactionMonitoringTransition::ReactionMonitoringTransition()
     :  CVTermList(),
-      precursor_mz_(std::numeric_limits<DoubleReal>::max()),
-      product_mz_(std::numeric_limits<DoubleReal>::max())
+      precursor_mz_(std::numeric_limits<DoubleReal>::max())
   {
   }
 
@@ -43,8 +42,6 @@ namespace OpenMS
       name_(rhs.name_),
       precursor_mz_(rhs.precursor_mz_),
       precursor_cv_terms_(rhs.precursor_cv_terms_),
-      product_mz_(rhs.product_mz_),
-      product_cv_terms_(rhs.product_cv_terms_),
       interpretation_list_(rhs.interpretation_list_),
       peptide_ref_(rhs.peptide_ref_),
       compound_ref_(rhs.compound_ref_),
@@ -68,8 +65,6 @@ namespace OpenMS
       name_ = rhs.name_;
       precursor_mz_ = rhs.precursor_mz_;
       precursor_cv_terms_ = rhs.precursor_cv_terms_;
-      product_mz_ = rhs.product_mz_;
-      product_cv_terms_ = rhs.product_cv_terms_;
       interpretation_list_ = rhs.interpretation_list_;
       peptide_ref_ = rhs.peptide_ref_;
       compound_ref_ = rhs.compound_ref_;
@@ -88,8 +83,6 @@ namespace OpenMS
             name_ == rhs.name_ &&
             precursor_mz_ == rhs.precursor_mz_ &&
             precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
-            product_mz_ == rhs.product_mz_ &&
-            product_cv_terms_ == rhs.product_cv_terms_ &&
             interpretation_list_ == rhs.interpretation_list_ &&
             peptide_ref_ == rhs.peptide_ref_ &&
             compound_ref_ == rhs.compound_ref_ &&
@@ -172,27 +165,35 @@ namespace OpenMS
 
   void ReactionMonitoringTransition::setProductMZ(DoubleReal mz)
   {
-    product_mz_ = mz;
+    CVTerm product_mz;
+    std::vector < CVTerm > product_cvterms;
+    product_mz.setCVIdentifierRef("MS");
+    product_mz.setAccession("MS:1000827"); 
+    product_mz.setName("isolation window target m/z");
+    product_mz.setValue(mz);  
+    product_cvterms.push_back(product_mz);
+
+    Map< String, std::vector < CVTerm > >  cvtermlist = product_.getCVTerms();
+    cvtermlist[product_mz.getAccession()] = product_cvterms;
+
+    product_.setCVTerms(product_cvterms);
   }
 
   DoubleReal ReactionMonitoringTransition::getProductMZ() const
   {
-    return product_mz_;
-  }
-
-  void ReactionMonitoringTransition::setProductCVTermList(const CVTermList& list)
-  {
-    product_cv_terms_ = list;
+    try 
+    {
+      return product_.getCVTerms()["MS:1000827"][0].getValue().toString().toDouble();
+    }
+    catch (char * str)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Product mz has never been set");
+    }
   }
 
   void ReactionMonitoringTransition::addProductCVTerm(const CVTerm& cv_term)
   {
-    product_cv_terms_.addCVTerm(cv_term);
-  }
-
-  const CVTermList& ReactionMonitoringTransition::getProductCVTermList() const
-  {
-    return product_cv_terms_;
+    product_.addCVTerm(cv_term);
   }
 
   const std::vector<ReactionMonitoringTransition::Product>& ReactionMonitoringTransition::getIntermediateProducts() const

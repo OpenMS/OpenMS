@@ -104,11 +104,11 @@ namespace OpenMS
 
     DoubleReal getProductMZ() const;
 
-    void setProductCVTermList(const CVTermList& list);
+    //void setProductCVTermList(const CVTermList& list);
 
     void addProductCVTerm(const CVTerm& cv_term);
 
-    const CVTermList& getProductCVTermList() const;
+    //const CVTermList& getProductCVTermList() const;
 
     const std::vector<Product>& getIntermediateProducts() const;
 
@@ -166,10 +166,6 @@ namespace OpenMS
     DoubleReal precursor_mz_;
 
     CVTermList precursor_cv_terms_;
-
-    DoubleReal product_mz_;
-
-    CVTermList product_cv_terms_;
 
     std::vector<CVTermList> interpretation_list_;
   
