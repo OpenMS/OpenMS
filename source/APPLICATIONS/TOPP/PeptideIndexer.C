@@ -289,9 +289,9 @@ class TOPPPeptideIndexer
       setValidFormats_("fasta", StringList::create("fasta"));
 			registerOutputFile_("out","<file>","","Output idXML file.");
 			setValidFormats_("out", StringList::create("IdXML"));
-			registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended to the accession of the protein database to indicate a decoy protein.", false);
+			registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accession of the protein database to indicate a decoy protein.", false);
 			registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
-			registerFlag_("prefix", "If set, the decoy_string is supposed to be appended as a prefix.");
+			registerFlag_("prefix", "If set, the database has protein accessions with 'decoy_string' as prefix.");
 			registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
       registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. not set) the program terminates with error status on unmatched peptides.");
       registerIntOption_("aaa_max", "<AA count>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein DB with AAA's. AAA's are 'B', 'Z', and 'X'", false);
