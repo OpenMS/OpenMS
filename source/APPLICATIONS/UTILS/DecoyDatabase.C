@@ -69,12 +69,22 @@ class TOPPDecoyDatabase
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","Input FASTA file containing the database.");
+      setValidFormats_("in", StringList::create("FASTA"));
 			registerOutputFile_("out","<file>","","Output FASTA file where the decoy database will be written to.");
+      setValidFormats_("out", StringList::create("FASTA"));
 			registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
-			registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
+      registerStringOption_("decoy_string_position", "<enum>", "suffix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
+      setValidStrings_("decoy_string_position", StringList::create("prefix,suffix"));
+      registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
 			registerFlag_("shuffle","If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
 			registerInputFile_("contaminants","<file>","","Input a FASTA file containing contaminants - if given they are included in the database (recommended)", false);
 		}
+
+    String getIdentifier_(const String& identifier, const String& decoy_string, const bool as_prefix)
+    {
+      if (as_prefix) return decoy_string + identifier;
+      else return identifier + decoy_string;
+    }
 
 		ExitCodes main_(int , const char**)
 		{
@@ -106,7 +116,7 @@ class TOPPDecoyDatabase
 			}
 			else
 			{
-				cerr << "Warning, no contaminant sequences have been included!"<<endl;
+				LOG_WARN << "Warning, no contaminant sequences have been included!"<<endl;
 			}
 			
 			//-------------------------------------------------------------
@@ -114,6 +124,7 @@ class TOPPDecoyDatabase
 			//-------------------------------------------------------------
 
 			String decoy_string(getStringOption_("decoy_string"));
+      bool decoy_string_position_prefix =	(String(getStringOption_("decoy_string_position")) == "prefix" ? true : false);
 			Size num_proteins = proteins.size();
 			set<String> identifiers;
 			if (shuffle)
@@ -122,7 +133,7 @@ class TOPPDecoyDatabase
 				{
 					if (identifiers.find(proteins[i].identifier) != identifiers.end())
 					{
-						cerr << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
+						LOG_WARN << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
 					}
 					identifiers.insert(proteins[i].identifier);
 
@@ -143,13 +154,13 @@ class TOPPDecoyDatabase
 
 					if (append)
 					{
-						entry.identifier += decoy_string;
+						entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
 						proteins.push_back(entry);
 					}
 					else
 					{
 						proteins[i].sequence = entry.sequence;
-						proteins[i].identifier += decoy_string;
+						proteins[i].identifier = getIdentifier_(proteins[i].identifier, decoy_string, decoy_string_position_prefix);
 					}
 				}
 			}
@@ -159,7 +170,7 @@ class TOPPDecoyDatabase
 				{
 					if (identifiers.find(proteins[i].identifier) != identifiers.end())
 					{
-						cerr << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
+						LOG_WARN << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
 					}
 					identifiers.insert(proteins[i].identifier);
 
@@ -167,13 +178,13 @@ class TOPPDecoyDatabase
 					{
 						FASTAFile::FASTAEntry entry = proteins[i];
 						entry.sequence.reverse();
-						entry.identifier += decoy_string;
+						entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
 						proteins.push_back(entry);
 					}
 					else
 					{
 						proteins[i].sequence.reverse();
-						proteins[i].identifier += decoy_string;
+						proteins[i].identifier = getIdentifier_(proteins[i].identifier, decoy_string, decoy_string_position_prefix);
 					}
 				}
 			}
