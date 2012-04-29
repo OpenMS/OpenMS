@@ -130,11 +130,29 @@ namespace OpenMS
   void MapAlignmentAlgorithm::transformSinglePeakMap( MSExperiment<>& msexp, const TransformationDescription& trafo )
   {
     msexp.clearRanges();
+
+    // Transform spectra
     for ( MSExperiment<>::iterator mse_iter = msexp.begin(); mse_iter != msexp.end(); ++mse_iter )
     {
       DoubleReal rt = mse_iter->getRT();
       mse_iter->setRT(trafo.apply(rt));
     }
+
+    // Also transform chromatograms
+    DoubleReal rt;
+    std::vector< MSChromatogram< ChromatogramPeak > > chromatograms;
+    for (Size i = 0; i < msexp.getChromatograms().size(); i++)
+    {
+      MSChromatogram< ChromatogramPeak > chromatogram = msexp.getChromatograms()[i];
+      for (Size j = 0; j < chromatogram.size(); j++)
+      {
+        rt = chromatogram[j].getRT();
+        chromatogram[j].setRT(trafo.apply(rt));
+      }
+      chromatograms.push_back(chromatogram);
+    }
+    msexp.setChromatograms(chromatograms);
+
     msexp.updateRanges();
     return;
   }
