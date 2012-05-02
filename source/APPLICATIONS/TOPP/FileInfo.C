@@ -128,14 +128,14 @@ namespace OpenMS
 	/// Write SomeStatistics to a stream.
 	static ostream& operator << (ostream& os, const SomeStatistics& rhs)
 	{
-		return os << "  num. of values: " << rhs.count << endl
-							<< "  mean:           " << rhs.mean << endl
-							<< "  minimum:        " << rhs.min << endl
-							<< "  lower quartile: " << rhs.lowerq << endl
-							<< "  median:         " << rhs.median << endl
-							<< "  upper quartile: " << rhs.upperq << endl
-							<< "  maximum:        " << rhs.max << endl
-							<< "  variance:       " << rhs.variance << endl;
+		return os << "  num. of values: " << rhs.count << "\n"
+							<< "  mean:           " << rhs.mean << "\n"
+							<< "  minimum:        " << rhs.min << "\n"
+							<< "  lower quartile: " << rhs.lowerq << "\n"
+							<< "  median:         " << rhs.median << "\n"
+							<< "  upper quartile: " << rhs.upperq << "\n"
+							<< "  maximum:        " << rhs.max << "\n"
+							<< "  variance:       " << rhs.variance << "\n";
 	}
 }
 
@@ -170,22 +170,22 @@ class TOPPFileInfo
 	template <class Map>
 	void writeRangesHumanReadable_(Map map, ostream& os)
 	{
-		os << "Ranges:" << endl
-    << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << endl
-    << "  mass-to-charge: " << String::number(map.getMin()[Peak2D::MZ], 2) << " .. " << String::number(map.getMax()[Peak2D::MZ], 2) << endl
-    << "  intensity:      " << String::number(map.getMinInt(), 2) << " .. " << String::number(map.getMaxInt(), 2) << endl
-    << endl;
+		os << "Ranges:" << "\n"
+    << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << "\n"
+    << "  mass-to-charge: " << String::number(map.getMin()[Peak2D::MZ], 2) << " .. " << String::number(map.getMax()[Peak2D::MZ], 2) << "\n"
+    << "  intensity:      " << String::number(map.getMinInt(), 2) << " .. " << String::number(map.getMaxInt(), 2) << "\n"
+    << "\n";
 	}
 
 	template <class Map>
 	void writeRangesMachineReadable_(Map map, ostream& os)
 	{
-		os << "retention time (min)" << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << endl
-				<< "retention time (max)" << "\t" << String::number(map.getMax()[Peak2D::RT], 2) << endl
-				<< "mass-to-charge (min)" << "\t" << String::number(map.getMin()[Peak2D::MZ], 2) << endl
-				<< "mass-to-charge (max)" << "\t" << String::number(map.getMax()[Peak2D::MZ], 2) << endl
-				<< "intensity (min)" << "\t" << String::number(map.getMinInt(), 2) << endl
-				<< "intensity (max)" << "\t" << String::number(map.getMaxInt(), 2) << endl;
+		os << "retention time (min)" << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << "\n"
+				<< "retention time (max)" << "\t" << String::number(map.getMax()[Peak2D::RT], 2) << "\n"
+				<< "mass-to-charge (min)" << "\t" << String::number(map.getMin()[Peak2D::MZ], 2) << "\n"
+				<< "mass-to-charge (max)" << "\t" << String::number(map.getMax()[Peak2D::MZ], 2) << "\n"
+				<< "intensity (min)" << "\t" << String::number(map.getMinInt(), 2) << "\n"
+				<< "intensity (max)" << "\t" << String::number(map.getMaxInt(), 2) << "\n";
 	}
 
 
@@ -214,14 +214,14 @@ class TOPPFileInfo
 			return PARSE_ERROR;
 		}
     
-		os << endl
-			 << "-- General information --" << endl
-			 << endl
-			 << "File name: " << in << endl
-			 << "File type: " << fh.typeToName(in_type) << endl;
+		os << "\n"
+			 << "-- General information --" << "\n"
+			 << "\n"
+			 << "File name: " << in << "\n"
+			 << "File type: " << fh.typeToName(in_type) << "\n";
 
-    os_tsv << "file name" << "\t" << in << endl
-        << "file type" << "\t" << fh.typeToName(in_type) << endl;
+    os_tsv << "file name" << "\t" << in << "\n"
+        << "file type" << "\t" << fh.typeToName(in_type) << "\n";
     
 		MSExperiment<Peak1D> exp;
 		FeatureMap<> feat;
@@ -234,49 +234,49 @@ class TOPPFileInfo
 		if (getFlag_("v"))
 		{
 			bool valid = true;
-			os << endl << "Validating " << fh.typeToName(in_type) << " file";
+			os << "\n" << "Validating " << fh.typeToName(in_type) << " file";
 			switch (in_type)
 			{
 			case FileTypes::MZDATA :
-				os << " against XML schema version " << MzDataFile().getVersion() << endl;
+				os << " against XML schema version " << MzDataFile().getVersion() << "\n";
 				valid = MzDataFile().isValid(in,os);
 				break;
 			case FileTypes::MZML :
-				os << " against XML schema version " << MzMLFile().getVersion() << endl;
+				os << " against XML schema version " << MzMLFile().getVersion() << "\n";
 				valid = MzMLFile().isValid(in,os);
 				break;
 			case FileTypes::FEATUREXML :
-				os << " against XML schema version " << FeatureXMLFile().getVersion() << endl;
+				os << " against XML schema version " << FeatureXMLFile().getVersion() << "\n";
 				valid = FeatureXMLFile().isValid(in,os);
 				break;
 			case FileTypes::IDXML :
-				os << " against XML schema version " << IdXMLFile().getVersion() << endl;
+				os << " against XML schema version " << IdXMLFile().getVersion() << "\n";
 				valid = IdXMLFile().isValid(in,os);
 				break;
 			case FileTypes::CONSENSUSXML :
-				os << " against XML schema version " << ConsensusXMLFile().getVersion() << endl;
+				os << " against XML schema version " << ConsensusXMLFile().getVersion() << "\n";
 				valid = ConsensusXMLFile().isValid(in,os);
 				break;
 			case FileTypes::MZXML :
-				os << " against XML schema version " << MzXMLFile().getVersion() << endl;
+				os << " against XML schema version " << MzXMLFile().getVersion() << "\n";
 				valid = MzXMLFile().isValid(in,os);
 				break;
 			case FileTypes::PEPXML:
-				os << " against XML schema version " << PepXMLFile().getVersion() << endl;
+				os << " against XML schema version " << PepXMLFile().getVersion() << "\n";
 				valid = PepXMLFile().isValid(in, os);
 				break;
 			default:
-				os << "\n" << "Aborted: Validation of this file type is not supported!" << endl;
+				os << "\n" << "Aborted: Validation of this file type is not supported!" << "\n";
 				return EXECUTION_OK;
 			};
 
 			if (valid)
 			{
-				os << "Success - the file is valid!" << endl;
+				os << "Success - the file is valid!" << "\n";
 			}
 			else
 			{
-				os << "Failed - errors are listed above!" << endl;
+				os << "Failed - errors are listed above!" << "\n";
 			}
 
 			// semantic validation:
@@ -286,14 +286,14 @@ class TOPPFileInfo
 				{
 					os << "\n" 
 						 << "Semantic validation is not performed due to previous errors!" 
-						 << endl;
+						 << "\n";
 				}
 				else
 				{
 					os << "\n" << "Semantically validating " << fh.typeToName(in_type) 
 						 << " file";
 					if (in_type == FileTypes::MZDATA) os << " (EXPERIMENTAL)";
-					os << ":" << endl;
+					os << ":" << "\n";
 
 					StringList errors, warnings;
 					if (in_type == FileTypes::MZML)
@@ -315,11 +315,11 @@ class TOPPFileInfo
 					}
 					if (valid)
 					{
-						os << "Success - the file is semantically valid!" << endl;
+						os << "Success - the file is semantically valid!" << "\n";
 					}
 					else
 					{
-						os << "Failed - errors are listed above!" << endl;
+						os << "Failed - errors are listed above!" << "\n";
 					}
 				}
 			}
@@ -336,8 +336,8 @@ class TOPPFileInfo
 			FeatureXMLFile().load(in,feat);
 			feat.updateRanges();
 
-			os << "Number of features: " << feat.size() << endl
-				 << endl;
+			os << "Number of features: " << feat.size() << "\n"
+				 << "\n";
 			writeRangesHumanReadable_(feat, os);
 			writeRangesMachineReadable_(feat,os_tsv);
 
@@ -350,11 +350,11 @@ class TOPPFileInfo
 				tic += feat[i].getIntensity();
 			}
 
-			os << "Total ion current in features: " << tic << endl;
-			os << "Charge distribution:" << endl;
+			os << "Total ion current in features: " << tic << "\n";
+			os << "Charge distribution:" << "\n";
 			for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
 			{
-				os << "  charge " << it->first << ": " << it->second << endl;
+				os << "  charge " << it->first << ": " << it->second << "\n";
 			}
 		}
 		else if (in_type == FileTypes::CONSENSUSXML) //consensus features
@@ -368,12 +368,12 @@ class TOPPFileInfo
 				++num_consfeat_of_size[cmit->size()];
 			}
 			Size field_width = num_consfeat_of_size.rbegin()->first / 10 + 1;
-			os << endl << "Number of consensus features:" << endl;
+			os << "\n" << "Number of consensus features:" << "\n";
 			for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
 			{
-				os << "  of size " << setw(field_width) << i->first << ": " << i->second << endl;
+				os << "  of size " << setw(field_width) << i->first << ": " << i->second << "\n";
 			}
-			os << "  total:    " << string(field_width, ' ') << cons.size() << endl << endl;
+			os << "  total:    " << string(field_width, ' ') << cons.size() << "\n" << "\n";
 
 			writeRangesHumanReadable_(cons, os);
 			writeRangesMachineReadable_(cons,os_tsv);
@@ -383,15 +383,15 @@ class TOPPFileInfo
 			const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
       if ( !descs.empty() )
 			{
-				os << "File descriptions:" << endl;
+				os << "File descriptions:" << "\n";
 				for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it != descs.end(); ++it)
 				{
-					os << "  " << it->second.filename << ":" << endl
-							 << "    identifier: " << it->first << endl
-							 << "    label:      " << it->second.label << endl
-							 << "    size:       " << it->second.size << endl;
+					os << "  " << it->second.filename << ":" << "\n"
+							 << "    identifier: " << it->first << "\n"
+							 << "    label:      " << it->second.label << "\n"
+							 << "    size:       " << it->second.size << "\n";
 				}
-				os << endl;
+				os << "\n";
 			}
 		}
 		else if (in_type == FileTypes::IDXML) //identifications
@@ -407,9 +407,9 @@ class TOPPFileInfo
 			IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
      
       // export metadata to second output stream
-      os_tsv << "database" << "\t" << id_data.proteins.at(0).getSearchParameters().db << endl
-          << "database version" << "\t" << id_data.proteins.at(0).getSearchParameters().db_version << endl
-          << "taxonomy" << "\t" << id_data.proteins.at(0).getSearchParameters().taxonomy << endl;
+      os_tsv << "database" << "\t" << id_data.proteins.at(0).getSearchParameters().db << "\n"
+          << "database version" << "\t" << id_data.proteins.at(0).getSearchParameters().db_version << "\n"
+          << "taxonomy" << "\t" << id_data.proteins.at(0).getSearchParameters().taxonomy << "\n";
 
 			// calculations
 			for (Size i = 0; i < id_data.peptides.size(); ++i)
@@ -436,26 +436,26 @@ class TOPPFileInfo
 					}
 				}
 
-			os << "Number of:" << endl;
-			os << "  runs:                " << runs_count << endl;
-			os << "  protein hits:        " << protein_hit_count << endl;
-      os << "  non-redundant protein hits : " << proteins.size() << endl;
-      os << "  (only hits that differ in the accession)" << endl;
-			os << endl;
-			os << "  spectra:             " << spectrum_count << endl;
-			os << "  peptide hits:        " << peptide_hit_count << endl;
-      os << "  non-redundant peptide hits: " << peptides.size() << endl;
-      os << "  (only hits that differ in sequence and/ or modifications)" << endl;
+			os << "Number of:" << "\n";
+			os << "  runs:                " << runs_count << "\n";
+			os << "  protein hits:        " << protein_hit_count << "\n";
+      os << "  non-redundant protein hits : " << proteins.size() << "\n";
+      os << "  (only hits that differ in the accession)" << "\n";
+			os << "\n";
+			os << "  spectra:             " << spectrum_count << "\n";
+			os << "  peptide hits:        " << peptide_hit_count << "\n";
+      os << "  non-redundant peptide hits: " << peptides.size() << "\n";
+      os << "  (only hits that differ in sequence and/ or modifications)" << "\n";
       
-			os_tsv << "peptide hits" << "\t" << peptide_hit_count << endl;
-      os_tsv << "non-redundant peptide hits (only hits that differ in sequence and/ or modifications): " << "\t" << peptides.size() << endl;
-			os_tsv << "protein hits" << "\t" << protein_hit_count << endl;
-      os_tsv << "non-redundant protein hits (only hits that differ in the accession)" << "\t" << proteins.size() << endl;
+			os_tsv << "peptide hits" << "\t" << peptide_hit_count << "\n";
+      os_tsv << "non-redundant peptide hits (only hits that differ in sequence and/ or modifications): " << "\t" << peptides.size() << "\n";
+			os_tsv << "protein hits" << "\t" << protein_hit_count << "\n";
+      os_tsv << "non-redundant protein hits (only hits that differ in the accession)" << "\t" << proteins.size() << "\n";
 		}
 
 		else if (in_type == FileTypes::PEPXML)
 		{
-			os << "\nFor pepXML files, only validation against the XML schema is implemented at this point." << endl;
+			os << "\nFor pepXML files, only validation against the XML schema is implemented at this point." << "\n";
 		}
 
 		else //peaks
@@ -490,9 +490,9 @@ class TOPPFileInfo
 			{
 				type = PeakTypeEstimator().estimateType(exp[i].begin(),exp[i].end());
 			}
-			os << endl
-				 << "Peak type (metadata): " << SpectrumSettings::NamesOfSpectrumType[meta_type] << endl
-				 << "Peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[type] << endl;
+			os << "\n"
+				 << "Peak type (metadata): " << SpectrumSettings::NamesOfSpectrumType[meta_type] << "\n"
+				 << "Peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[type] << "\n";
 			//if raw data, determine the spacing
 			if (type == SpectrumSettings::RAWDATA)
 			{
@@ -502,22 +502,22 @@ class TOPPFileInfo
 					spacing.push_back(exp[i][j].getMZ() - exp[i][j-1].getMZ());
 				}
 				sort(spacing.begin(), spacing.end());
-				os << "Estimated raw data spacing: " << spacing[spacing.size() / 2] << " (min: " << spacing[0] << ", max: " << spacing.back() << ")" << endl;
-        os_tsv << "estimated raw data spacing" << "\t" << spacing[spacing.size() / 2] << endl
-            << "estimated raw data spacing (min)" << "\t" << spacing[0] << endl
-            << "estimated raw data spacing (max)" << "\t" << spacing.back() << endl;
+				os << "Estimated raw data spacing: " << spacing[spacing.size() / 2] << " (min: " << spacing[0] << ", max: " << spacing.back() << ")" << "\n";
+        os_tsv << "estimated raw data spacing" << "\t" << spacing[spacing.size() / 2] << "\n"
+            << "estimated raw data spacing (min)" << "\t" << spacing[0] << "\n"
+            << "estimated raw data spacing (max)" << "\t" << spacing.back() << "\n";
 			}
-			os << endl;
+			os << "\n";
 
 			//basic info
 			exp.updateRanges();
 			vector<UInt> levels = exp.getMSLevels();
 
-			os << "Number of spectra: "	<< exp.size() << endl;
-			os << "Number of peaks: " << exp.getSize() << endl
-				 << endl;
-      os_tsv << "number of spectra" << "\t" << exp.size() << endl
-          << "number of peaks" << "\t" << exp.getSize() << endl;
+			os << "Number of spectra: "	<< exp.size() << "\n";
+			os << "Number of peaks: " << exp.getSize() << "\n"
+				 << "\n";
+      os_tsv << "number of spectra" << "\t" << exp.size() << "\n"
+          << "number of peaks" << "\t" << exp.getSize() << "\n";
 
 			writeRangesHumanReadable_(exp, os);
 			writeRangesMachineReadable_(exp,os_tsv);
@@ -531,7 +531,7 @@ class TOPPFileInfo
 					os << ", " << *it;
 				}
 			}
-			os << endl;
+			os << "\n";
 
 			//count how many spectra per MS level there are
 			map<Size, UInt> counts;
@@ -542,13 +542,13 @@ class TOPPFileInfo
 			//output
 			if (!counts.empty())
 			{      
-				os << "Number of spectra per MS level:" << endl;
+				os << "Number of spectra per MS level:" << "\n";
 				for (map<Size, UInt>::iterator it = counts.begin(); it != counts.end(); ++it)
 				{
-					os << "  level " << it->first << ": " << it->second << endl;
-          os_tsv << "number of MS" << it->first << " spectra" << "\t" << it->second << endl;
+					os << "  level " << it->first << ": " << it->second << "\n";
+          os_tsv << "number of MS" << it->first << " spectra" << "\t" << it->second << "\n";
 				}
-				os << endl;
+				os << "\n";
 			}
 
 			// show meta data array names
@@ -599,20 +599,20 @@ class TOPPFileInfo
 				{
 					if (it->first.size() > max_length) max_length = it->first.size();
 				}
-				os << "Meta data array:" << endl;
+				os << "Meta data array:" << "\n";
 				for (Map<String, int>::ConstIterator it = meta_names.begin(); it != meta_names.end(); ++it)
 				{
 					String padding(max_length - it->first.size(), ' ');
-					os << "  " << it->first << ": " << padding << it->second << " spectra" << endl;
+					os << "  " << it->first << ": " << padding << it->second << " spectra" << "\n";
 				}
-				os << endl;
+				os << "\n";
 			}
 
 			// some chromatogram information
       if ( !exp.getChromatograms().empty() )
 			{
-				os << "Number of chromatograms: "	<< exp.getChromatograms().size() << endl;
-				os_tsv << "number of chromatograms" << "\t"	<< exp.getChromatograms().size() << endl;
+				os << "Number of chromatograms: "	<< exp.getChromatograms().size() << "\n";
+				os_tsv << "number of chromatograms" << "\t"	<< exp.getChromatograms().size() << "\n";
 
 				Size num_chrom_peaks(0);
 				Map<ChromatogramSettings::ChromatogramType, Size> chrom_types;
@@ -628,65 +628,65 @@ class TOPPFileInfo
 						chrom_types[it->getChromatogramType()] = 1;
 					}
 				}
-				os << "Number of chromatographic peaks: " << num_chrom_peaks << endl << endl;
-				os_tsv << "number of chromatographic peaks" << "\t" << num_chrom_peaks << endl;
+				os << "Number of chromatographic peaks: " << num_chrom_peaks << "\n" << "\n";
+				os_tsv << "number of chromatographic peaks" << "\t" << num_chrom_peaks << "\n";
 
-				os << "Number of chromatograms per type: " << endl;
+				os << "Number of chromatograms per type: " << "\n";
 				for (Map<ChromatogramSettings::ChromatogramType, Size>::const_iterator it = chrom_types.begin(); it != chrom_types.end(); ++it)
 				{
 					switch (it->first)
 					{
 						case ChromatogramSettings::MASS_CHROMATOGRAM:
 							os << "  mass chromatogram:                         " 
-								 << it->second << endl; 
+								 << it->second << "\n"; 
 							break;
 						case ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM:
 							os << "  total ion current chromatogram:            " 
-								 << it->second << endl;
+								 << it->second << "\n";
 							break;
 						case ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM:
 							os << "  selected ion current chromatogram:         " 
-								 << it->second << endl; 
+								 << it->second << "\n"; 
 							break;
 						case ChromatogramSettings::BASEPEAK_CHROMATOGRAM:
 							os << "  base peak chromatogram:                    " 
-								 << it->second << endl; 
+								 << it->second << "\n"; 
 							break;
 						case ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM:
 							os << "  selected ion monitoring chromatogram:      " 
-								 << it->second << endl; 
+								 << it->second << "\n"; 
 							break;
 						case ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM: 
 							os << "  selected reaction monitoring chromatogram: " 
-								 << it->second << endl; 
+								 << it->second << "\n"; 
 							break;
 						case ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM:
 							os << "  electromagnetic radiation chromatogram:    "
-								 << it->second << endl; 
+								 << it->second << "\n"; 
 							break;
 						case ChromatogramSettings::ABSORPTION_CHROMATOGRAM:
 							os << "  absorption chromatogram:                   " 
-								 << it->second << endl; 
+								 << it->second << "\n"; 
 							break;
 						case ChromatogramSettings::EMISSION_CHROMATOGRAM:
 							os << "  emission chromatogram:                     " 
-								 << it->second << endl; 
+								 << it->second << "\n"; 
 							break;
 						default:
 							os << "  unknown chromatogram:                      " 
-								 << it->second << endl;
+								 << it->second << "\n";
 					}
 				}
 				if (getFlag_("d") && chrom_types.has(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM))
 				{
-					os << endl << " -- Detailed chromatogram listing -- " << endl;
-					os << "\nSelected Reaction Monitoring Transitions:" << endl;
-					os << "Q1 Q3 RT_begin RT_end name comment" << endl;
+					os << "\n" << " -- Detailed chromatogram listing -- " << "\n";
+					os << "\nSelected Reaction Monitoring Transitions:" << "\n";
+					os << "Q1 Q3 RT_begin RT_end name comment" << "\n";
 					for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
 					{
 						if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
 						{
-							os << it->getPrecursor().getMZ() << " " << it->getProduct().getMZ() << " " << it->front().getRT() << " " << it->back().getRT() << " " << it->getName() << " " << it->getComment() << endl;
+							os << it->getPrecursor().getMZ() << " " << it->getProduct().getMZ() << " " << it->front().getRT() << " " << it->back().getRT() << " " << it->getName() << " " << it->getComment() << "\n";
 						}
 					}
 				}
@@ -695,37 +695,37 @@ class TOPPFileInfo
 			// Detailed listing of scans
 			if (getFlag_("d") && exp.size() > 0)
 			{
-				os << endl
-					 << "-- Detailed spectrum listing --" << endl;
+				os << "\n"
+					 << "-- Detailed spectrum listing --" << "\n";
 				UInt count=0;
 				for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
 				{
 					++count;
-					os << endl
-						 << "Spectrum " << count << ":" << endl
-						 << "  mslevel:  " << it->getMSLevel() << endl
-						 << "  scanMode: " << InstrumentSettings::NamesOfScanMode[it->getInstrumentSettings().getScanMode()] << endl
-						 << "  peaks:    " << it->size() << endl
-						 << "  RT:       " << it->getRT() << endl
+					os << "\n"
+						 << "Spectrum " << count << ":" << "\n"
+						 << "  mslevel:  " << it->getMSLevel() << "\n"
+						 << "  scanMode: " << InstrumentSettings::NamesOfScanMode[it->getInstrumentSettings().getScanMode()] << "\n"
+						 << "  peaks:    " << it->size() << "\n"
+						 << "  RT:       " << it->getRT() << "\n"
 						 << "  m/z:      "; 
 					if (!it->empty())
 					{
 						os << it->begin()->getMZ() << " .. " << it->rbegin()->getMZ();
 					}
-					os << endl;
+					os << "\n";
 				}
 			}
 
 			//Check for corrupt data
 			if (getFlag_("c"))
 			{
-				os << endl
-						 << "-- Checking for corrupt data --" << endl
-						 << endl;
+				os << "\n"
+						 << "-- Checking for corrupt data --" << "\n"
+						 << "\n";
 				// RTs sorted?
 				if (!exp.isSorted(false))
 				{
-					os << "Error: Spectrum retention times are not sorted in ascending order" << endl;
+					os << "Error: Spectrum retention times are not sorted in ascending order" << "\n";
 				}
 				vector<DoubleReal> ms1_rts;
 				ms1_rts.reserve(exp.size());
@@ -734,12 +734,12 @@ class TOPPFileInfo
 					// ms level = 0
 					if (exp[s].getMSLevel() == 0)
 					{
-						os << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << endl;
+						os << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
 					}
 					//scan size = 0
 					if (exp[s].empty())
 					{
-						os << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << endl;
+						os << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
 					}
 					//duplicate meta data array names
 					Map<String, int> names;
@@ -748,7 +748,7 @@ class TOPPFileInfo
 						String name = exp[s].getFloatDataArrays()[m].getName();
 						if (names.has(name))
 						{
-							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << endl;
+							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
 						}
 						else
 						{
@@ -760,7 +760,7 @@ class TOPPFileInfo
 						String name = exp[s].getIntegerDataArrays()[m].getName();
 						if (names.has(name))
 						{
-							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << endl;
+							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
 						}
 						else
 						{
@@ -772,7 +772,7 @@ class TOPPFileInfo
 						String name = exp[s].getStringDataArrays()[m].getName();
 						if (names.has(name))
 						{
-							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << endl;
+							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
 						}
 						else
 						{
@@ -789,7 +789,7 @@ class TOPPFileInfo
 				sort(ms1_rts.begin(), ms1_rts.end());
 				for (Size i = 1; i < ms1_rts.size(); ++i)
 				{
-					if (ms1_rts[i-1]==ms1_rts[i]) os << "Error: Duplicate spectrum retention time: " << ms1_rts[i] << endl;
+					if (ms1_rts[i-1]==ms1_rts[i]) os << "Error: Duplicate spectrum retention time: " << ms1_rts[i] << "\n";
 				}
 				//check peaks
 				for (Size s = 0; s < exp.size(); ++s)
@@ -797,7 +797,7 @@ class TOPPFileInfo
 					//peaks sorted?
 					if (!exp[s].isSorted())
 					{
-						os << "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: " << exp[s].getRT() << ")" << endl;
+						os << "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
 					}
 					vector<DoubleReal> mzs;
 					mzs.reserve(exp[s].size());
@@ -806,7 +806,7 @@ class TOPPFileInfo
 						//negative intensity
 						if (exp[s][p].getIntensity() < 0.0)
 						{
-							os << "Warning: Negative peak intensity peak (RT: " << exp[s].getRT() << " MZ: " << exp[s][p].getMZ() << " intensity: " << exp[s][p].getIntensity() << ")" << endl;
+							os << "Warning: Negative peak intensity peak (RT: " << exp[s].getRT() << " MZ: " << exp[s][p].getMZ() << " intensity: " << exp[s][p].getIntensity() << ")" << "\n";
 						}
 						//duplicate m/z (part 1)
 						mzs.push_back(exp[s][p].getMZ());
@@ -815,7 +815,7 @@ class TOPPFileInfo
 					sort(mzs.begin(), mzs.end());
 					for (Size i = 1; i < mzs.size(); ++i)
 					{
-						if (mzs[i-1]==mzs[i]) os << "Error: Duplicate peak m/z " << mzs[i] << " in spectrum (RT: " << exp[s].getRT() << ")" << endl;
+						if (mzs[i-1]==mzs[i]) os << "Error: Duplicate peak m/z " << mzs[i] << " in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
 					}
 				}
 			}
@@ -828,21 +828,21 @@ class TOPPFileInfo
 		{
       
 			//basic info
-			os << endl
-					 << "-- Meta information --" << endl
-					 << endl;
+			os << "\n"
+					 << "-- Meta information --" << "\n"
+					 << "\n";
 
 			if (in_type == FileTypes::FEATUREXML) //features
 			{
-				os << "Document ID: " << feat.getIdentifier() << endl << endl;
+				os << "Document ID: " << feat.getIdentifier() << "\n" << "\n";
 			}
 			else if (in_type == FileTypes::CONSENSUSXML) //consensus features
 			{
-				os << "Document ID: " << cons.getIdentifier() << endl << endl;
+				os << "Document ID: " << cons.getIdentifier() << "\n" << "\n";
 			}
 			else if (in_type == FileTypes::IDXML) //identifications
 			{
-				os << "Document ID: " << id_data.identifier << endl << endl;
+				os << "Document ID: " << id_data.identifier << "\n" << "\n";
 			}
 			else if (in_type == FileTypes::PEPXML)
 			{
@@ -851,31 +851,31 @@ class TOPPFileInfo
 			else //peaks
 			{
 
-				os << "Document ID:        " << exp.getIdentifier() << endl
-					 << "Date:               " << exp.getDateTime().get() << endl;
-        os_tsv << "document id" << "\t" << exp.getIdentifier() << endl
-            << "date" << "\t" << exp.getDateTime().get() << endl;
+				os << "Document ID:        " << exp.getIdentifier() << "\n"
+					 << "Date:               " << exp.getDateTime().get() << "\n";
+        os_tsv << "document id" << "\t" << exp.getIdentifier() << "\n"
+            << "date" << "\t" << exp.getDateTime().get() << "\n";
 
 				//basic info
-				os << endl
-					 << "Sample:" << endl
-					 << "  name:             " << exp.getSample().getName() << endl
-					 << "  organism:         " << exp.getSample().getOrganism()  << endl
-					 << "  comment:          " << exp.getSample().getComment()  << endl;
-        os_tsv << "sample name" << "\t" << exp.getSample().getName() << endl
-            << "sample organism" << "\t" << exp.getSample().getOrganism() << endl
-            << "sample comment" << "\t" << exp.getSample().getComment() << endl;
+				os << "\n"
+					 << "Sample:" << "\n"
+					 << "  name:             " << exp.getSample().getName() << "\n"
+					 << "  organism:         " << exp.getSample().getOrganism()  << "\n"
+					 << "  comment:          " << exp.getSample().getComment()  << "\n";
+        os_tsv << "sample name" << "\t" << exp.getSample().getName() << "\n"
+            << "sample organism" << "\t" << exp.getSample().getOrganism() << "\n"
+            << "sample comment" << "\t" << exp.getSample().getComment() << "\n";
         
         //instrument info
-				os << endl
-					 << "Instrument:" << endl
-					 << "  name:             " << exp.getInstrument().getName() << endl
-					 << "  model:            " << exp.getInstrument().getModel() << endl
-					 << "  vendor:           " << exp.getInstrument().getVendor() << endl
+				os << "\n"
+					 << "Instrument:" << "\n"
+					 << "  name:             " << exp.getInstrument().getName() << "\n"
+					 << "  model:            " << exp.getInstrument().getModel() << "\n"
+					 << "  vendor:           " << exp.getInstrument().getVendor() << "\n"
 					 << "  ion source(s):    ";
-        os_tsv << "instrument name" << "\t" << exp.getInstrument().getName() << endl
-            << "instrument model" << "\t" << exp.getInstrument().getModel() << endl
-            << "instrument vendor" << "\t" << exp.getInstrument().getVendor() << endl;
+        os_tsv << "instrument name" << "\t" << exp.getInstrument().getName() << "\n"
+            << "instrument model" << "\t" << exp.getInstrument().getModel() << "\n"
+            << "instrument vendor" << "\t" << exp.getInstrument().getVendor() << "\n";
 				for (Size i = 0; i< exp.getInstrument().getIonSources().size(); ++i)
 				{
 					os << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSources()[i].getIonizationMethod()];
@@ -884,7 +884,7 @@ class TOPPFileInfo
 						os << ", ";
 					}
 				}
-				os << endl 
+				os << "\n" 
 					 << "  mass analyzer(s): ";
 				for (Size i = 0; i < exp.getInstrument().getMassAnalyzers().size(); ++i)
 				{
@@ -894,23 +894,23 @@ class TOPPFileInfo
 						os << ", ";
 					}
 				}
-				os << endl 
+				os << "\n" 
 					 << "  detector(s):      ";
 				for (Size i = 0; i < exp.getInstrument().getIonDetectors().size(); ++i)
 				{
 					os << IonDetector::NamesOfType[exp.getInstrument().getIonDetectors()[i].getType()];
 					if (i != exp.getInstrument().getIonDetectors().size() - 1) os << ", ";
 				}
-				os << endl << endl;
+				os << "\n" << "\n";
 
 				//contact persons
 				for (Size i = 0; i < exp.getContacts().size(); ++i)
 				{
-					os << "Contact person:" << endl
-						 << "  first name:     " << exp.getContacts()[i].getFirstName() << endl
-						 << "  last name:      " << exp.getContacts()[i].getLastName() << endl
-						 << "  email:          " << exp.getContacts()[i].getEmail() << endl
-						 << endl;
+					os << "Contact person:" << "\n"
+						 << "  first name:     " << exp.getContacts()[i].getFirstName() << "\n"
+						 << "  last name:      " << exp.getContacts()[i].getLastName() << "\n"
+						 << "  email:          " << exp.getContacts()[i].getEmail() << "\n"
+						 << "\n";
 				}
 			}
 		}
@@ -922,9 +922,9 @@ class TOPPFileInfo
 		if (getFlag_("p"))
 		{
 			//basic info
-			os << endl
-				 << "-- Data processing information --" << endl
-				 << endl;
+			os << "\n"
+				 << "-- Data processing information --" << "\n"
+				 << "\n";
 
 			//get data processing info
 			vector<DataProcessing> dp;
@@ -947,7 +947,7 @@ class TOPPFileInfo
 			{
         if ( !exp.empty())
 				{
-					os << "Note: The data is taken from the first spectrum!" << endl << endl;
+					os << "Note: The data is taken from the first spectrum!" << "\n" << "\n";
 					dp = exp[0].getDataProcessing();
 				}
 			}
@@ -955,16 +955,16 @@ class TOPPFileInfo
 			//print data
 			if (dp.empty())
 			{
-					os << "No information about data processing available!" << endl << endl;
+					os << "No information about data processing available!" << "\n" << "\n";
 			}
 			else
 			{
 				for (Size i = 0; i < dp.size(); ++i)
 				{
-					os << "Processing " << (i+1) << ":" << endl;
-					os << "  software name:    " << dp[i].getSoftware().getName() << endl;
-					os << "  software version: " << dp[i].getSoftware().getVersion() << endl;
-					os << "  completion time:  " << dp[i].getCompletionTime().get() << endl;
+					os << "Processing " << (i+1) << ":" << "\n";
+					os << "  software name:    " << dp[i].getSoftware().getName() << "\n";
+					os << "  software version: " << dp[i].getSoftware().getVersion() << "\n";
+					os << "  completion time:  " << dp[i].getCompletionTime().get() << "\n";
 					os << "  actions:          ";
 					for (set<DataProcessing::ProcessingAction>::const_iterator it = dp[i].getProcessingActions().begin(); 
 							 it != dp[i].getProcessingActions().end(); ++it)
@@ -972,7 +972,7 @@ class TOPPFileInfo
 						if (it != dp[i].getProcessingActions().begin()) os << ", ";
 						os << DataProcessing::NamesOfProcessingAction[*it];
 					}
-					os << endl << endl;
+					os << "\n" << "\n";
 				}
 			}
 		}
@@ -982,9 +982,9 @@ class TOPPFileInfo
 		//-------------------------------------------------------------
 		if (getFlag_("s"))
 		{
-			os << endl
-					 << "-- Statistics --" << endl
-					 << endl;
+			os << "\n"
+					 << "-- Statistics --" << "\n"
+					 << "\n";
 			OpenMS::SomeStatistics some_statistics;
 
 			if (in_type == FileTypes::FEATUREXML) //features
@@ -1009,19 +1009,19 @@ class TOPPFileInfo
 				}
 
 				os.precision(writtenDigits<>(Feature::IntensityType() ));
-				os << "Intensities:" << endl << some_statistics(intensities) << endl;
+				os << "Intensities:" << "\n" << some_statistics(intensities) << "\n";
 
 				os.precision(writtenDigits<>(Feature::QualityType()));
-				os << "Feature FWHM in RT dimension:" << endl << some_statistics(peak_widths) << endl;
+				os << "Feature FWHM in RT dimension:" << "\n" << some_statistics(peak_widths) << "\n";
 
 				os.precision(writtenDigits<>(Feature::QualityType() ));
-				os << "Overall qualities:" << endl << some_statistics(overall_qualities) << endl;
+				os << "Overall qualities:" << "\n" << some_statistics(overall_qualities) << "\n";
 
 				os.precision(writtenDigits<>(Feature::QualityType()));
-				os << "Qualities in retention time dimension:" << endl << some_statistics(rt_qualities) << endl;
+				os << "Qualities in retention time dimension:" << "\n" << some_statistics(rt_qualities) << "\n";
 
 				os.precision(writtenDigits<>(Feature::QualityType()));
-				os << "Qualities in mass-to-charge dimension:" << endl << some_statistics(mz_qualities) << endl;
+				os << "Qualities in mass-to-charge dimension:" << "\n" << some_statistics(mz_qualities) << "\n";
 
 			}
 			else if (in_type == FileTypes::CONSENSUSXML) //consensus features
@@ -1099,25 +1099,25 @@ class TOPPFileInfo
 				}
 
 				os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-				os << "Intensities of consensus features:" << endl << some_statistics(intensities) << endl;
+				os << "Intensities of consensus features:" << "\n" << some_statistics(intensities) << "\n";
 
 				os.precision(writtenDigits(ConsensusFeature::QualityType()));
-				os << "Qualities of consensus features:" << endl << some_statistics(qualities) << endl;
+				os << "Qualities of consensus features:" << "\n" << some_statistics(qualities) << "\n";
 
 				os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-				os << "Retention time differences (\"element - center\", weight 1 per element):" << endl << some_statistics(rt_delta_by_elems) << endl;
-				os << "Absolute retention time differences (\"|element - center|\", weight 1 per element):" << endl << some_statistics(rt_aad_by_elems) << endl;
-				os << "Average absolute differences of retention time within consensus features (\"|element - center|\", weight 1 per consensus features):" << endl << some_statistics(rt_aad_by_cfs) << endl;
+				os << "Retention time differences (\"element - center\", weight 1 per element):" << "\n" << some_statistics(rt_delta_by_elems) << "\n";
+				os << "Absolute retention time differences (\"|element - center|\", weight 1 per element):" << "\n" << some_statistics(rt_aad_by_elems) << "\n";
+				os << "Average absolute differences of retention time within consensus features (\"|element - center|\", weight 1 per consensus features):" << "\n" << some_statistics(rt_aad_by_cfs) << "\n";
 
 				os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-				os << "Mass-to-charge differences (\"element - center\", weight 1 per element):" << endl << some_statistics(mz_delta_by_elems) << endl;
-				os << "Absolute differences of mass-to-charge (\"|element - center|\", weight 1 per element):" << endl << some_statistics(mz_aad_by_elems) << endl;
-				os << "Average absolute differences of mass-to-charge within consensus features (\"|element - center|\", weight 1 per consensus features):" << endl << some_statistics(mz_aad_by_cfs) << endl;
+				os << "Mass-to-charge differences (\"element - center\", weight 1 per element):" << "\n" << some_statistics(mz_delta_by_elems) << "\n";
+				os << "Absolute differences of mass-to-charge (\"|element - center|\", weight 1 per element):" << "\n" << some_statistics(mz_aad_by_elems) << "\n";
+				os << "Average absolute differences of mass-to-charge within consensus features (\"|element - center|\", weight 1 per consensus features):" << "\n" << some_statistics(mz_aad_by_cfs) << "\n";
 
 				os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-				os << "Intensity ratios (\"element / center\", weight 1 per element):" << endl << some_statistics(it_delta_by_elems) << endl;
-				os << "Relative intensity error (\"max{(element / center), (center / element)}\", weight 1 per element):" << endl << some_statistics(it_aad_by_elems) << endl;
-				os << "Average relative intensity error within consensus features (\"max{(element / center), (center / element)}\", weight 1 per consensus features):" << endl << some_statistics(it_aad_by_cfs) << endl;
+				os << "Intensity ratios (\"element / center\", weight 1 per element):" << "\n" << some_statistics(it_delta_by_elems) << "\n";
+				os << "Relative intensity error (\"max{(element / center), (center / element)}\", weight 1 per element):" << "\n" << some_statistics(it_aad_by_elems) << "\n";
+				os << "Average relative intensity error within consensus features (\"max{(element / center), (center / element)}\", weight 1 per consensus features):" << "\n" << some_statistics(it_aad_by_cfs) << "\n";
 
 			}
 			else if (in_type == FileTypes::IDXML) //identifications
@@ -1149,7 +1149,7 @@ class TOPPFileInfo
 
 				sort(intensities.begin(),intensities.end());
 				os.precision(writtenDigits(Peak1D::IntensityType()));
-				os << "Intensities:" << endl << some_statistics(intensities) << endl;
+				os << "Intensities:" << "\n" << some_statistics(intensities) << "\n";
 
 				//Statistics for meta information
 				for (Map<String, int>::ConstIterator it = meta_names.begin(); it != meta_names.end(); ++it)
@@ -1178,13 +1178,13 @@ class TOPPFileInfo
 							}
 						}
 					}
-					os << "Meta data: " << name << endl
-						 << some_statistics(m_values) << endl;
+					os << "Meta data: " << name << "\n"
+						 << some_statistics(m_values) << "\n";
 				}
 			}
 		}
 
-		os << endl << endl;
+		os << "\n" << "\n";
 
 		return EXECUTION_OK;
 	}
@@ -1194,11 +1194,14 @@ class TOPPFileInfo
 		String out = getStringOption_("out");
 		String out_tsv = getStringOption_("out_tsv");
 
+    TOPPBase::ExitCodes ret;
     if (out != "" && out_tsv != "")
     {
       ofstream os(out.c_str());
       ofstream os_tsv(out_tsv.c_str());
-      return outputTo_(os, os_tsv);
+      ret = outputTo_(os, os_tsv);
+      os.close();
+      os_tsv.close();
     }
     else if (out != "" && out_tsv == "")
     {
@@ -1206,20 +1209,23 @@ class TOPPFileInfo
       // Output stream with null output
       boost::iostreams::filtering_ostream os_tsv;
       os_tsv.push(boost::iostreams::null_sink());
-      return outputTo_(os, os_tsv);
+      ret = outputTo_(os, os_tsv);
+      os.close();
     }
     else if (out == "" && out_tsv != "")
     {
       ofstream os_tsv(out_tsv.c_str());
-      return outputTo_(LOG_INFO, os_tsv);
+      ret = outputTo_(LOG_INFO, os_tsv);
+      os_tsv.close();
     }
     else
     {
       // Output stream with null output
       boost::iostreams::filtering_ostream os_tsv;
       os_tsv.push(boost::iostreams::null_sink());
-      return outputTo_(LOG_INFO, os_tsv);
+      ret = outputTo_(LOG_INFO, os_tsv);
     }
+    return ret;
 	}
 };
 
