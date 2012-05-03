@@ -345,7 +345,7 @@ namespace OpenMS
 							}
 							else
 							{
-								throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "cannot parse PEPMASS: " + line + " in line " + String(line_number), "");
+								throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot parse PEPMASS: '" + line + "' in line " + String(line_number) + " (expected 1 or 2 entries, but " + String(split.size()) + " were present!", "");
 							}
 						}
 					}
