@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="file:////Users/nilse/Software/OpenMS_Release1.8/share/OpenMS/XSL/IdXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/NIGHTLY/OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
 <IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-<SearchParameters charges="+0, +0" id="ID_1" db_version="0" mass_type="monoisotopic" peak_mass_tolerance="0.0" precursor_peak_tolerance="0.0" db="Unknown"/>
-<IdentificationRun date="1900-01-01T01:01:01.0Z" search_engine="Unknown" search_parameters_ref="ID_1" search_engine_version="0"/>
+	<SearchParameters id="SP_0" db="/raid/OpenMSTutorialPipelines20110216/basicIdentification/databases/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+		<FixedModification name="Carbamidomethyl (C)" />
+	</SearchParameters>
+	<IdentificationRun date="2011-02-16T18:43:03" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		</ProteinIdentification>
+	</IdentificationRun>
 </IdXML>
