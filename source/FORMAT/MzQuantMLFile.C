@@ -30,13 +30,13 @@
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-//~ #include <OpenMS/FORMAT/VALIDATORS/MzQuantMLValidator.h>
+#include <OpenMS/FORMAT/VALIDATORS/MzQuantMLValidator.h>
 
 namespace OpenMS
 {
 
 	MzQuantMLFile::MzQuantMLFile()
-		: XMLFile("/SCHEMAS/mzQuantML0.1.7.xsd","0.1.7")
+		: XMLFile("/SCHEMAS/mzQuantML_1_0_0-rc2","1.0.0")
 	{
 	}
 
@@ -55,28 +55,27 @@ namespace OpenMS
 		Internal::MzQuantMLHandler handler(cm, filename, schema_version_, *this);
 		save_(filename, &handler);
 	}
+	
+	bool MzQuantMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
+	{
+		//load mapping
+		CVMappings mapping;
+		CVMappingFile().load(File::find("/MAPPING/mzQuantML-mapping_1.0.0-rc2-general.xml"),mapping);
 
-	//~ TODO
-	//~ bool MzQuantMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
-	//~ {
-		//~ //load mapping
-		//~ CVMappings mapping;
-		//~ CVMappingFile().load(File::find("/MAPPING/mzQuantML-mapping.xml"),mapping);
+		//load cvs
+		ControlledVocabulary cv;
+		cv.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
+		cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
+		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
+		cv.loadFromOBO("BTO",File::find("/CV/brenda.obo"));
+		cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 
-		//~ //load cvs
-		//~ ControlledVocabulary cv;
-		//~ cv.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
-		//~ cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
-		//~ cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
-		//~ cv.loadFromOBO("BTO",File::find("/CV/brenda.obo"));
-		//~ cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
+		//validate TODO
+		Internal::MzQuantMLValidator v(mapping, cv);
+		bool result = v.validate(filename, errors, warnings);
 
-		//~ //validate
-		//~ Internal::MzQuantMLValidator v(mapping, cv);
-		//~ bool result = v.validate(filename, errors, warnings);
-
-		//~ return result;
-	//~ }
+		return result;
+	}
 
 }// namespace OpenMS
 

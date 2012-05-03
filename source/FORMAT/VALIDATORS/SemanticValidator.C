@@ -221,7 +221,7 @@ namespace OpenMS
 					}
 				}
 				//MAY(SHOULD) / AND - none or all terms must be matched
-				else if (rules[r].getRequirementLevel()!=CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappingRule::AND)
+				else if (rules[r].getRequirementLevel()!=CVMappingRule::SHOULD && rules[r].getCombinationsLogic()==CVMappingRule::AND)
 				{
 					if (match_count!=0 && match_count!=terms_count)
 					{
@@ -229,7 +229,7 @@ namespace OpenMS
 					}
 				}
 				//MAY(SHOULD) / XOR - zero or one terms must be matched
-				else if (rules[r].getRequirementLevel()!=CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappingRule::XOR)
+				else if (rules[r].getRequirementLevel()!=CVMappingRule::SHOULD && rules[r].getCombinationsLogic()==CVMappingRule::XOR)
 				{
 					if (match_count>1)
 					{

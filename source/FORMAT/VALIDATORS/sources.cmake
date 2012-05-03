@@ -8,6 +8,7 @@ MzMLValidator.C
 MzDataValidator.C
 SemanticValidator.C
 MzIdentMLValidator.C
+MzQuantMLValidator.C
 TraMLValidator.C
 )
 
