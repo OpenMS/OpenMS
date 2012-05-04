@@ -450,16 +450,15 @@ protected:
   template <typename FeatureType>
   std::ostream & operator<<(std::ostream & os, const FeatureMap<FeatureType> & map)
   {
-    os << "# -- DFEATUREMAP BEGIN --" << std::endl;
-    os << "# POS \tINTENS\tOVALLQ\tCHARGE\tUniqueID" << std::endl;
+    os << "# -- DFEATUREMAP BEGIN --" << "\n";
+    os << "# POS \tINTENS\tOVALLQ\tCHARGE\tUniqueID" << "\n";
     for (typename FeatureMap<FeatureType>::const_iterator iter = map.begin(); iter != map.end(); iter++)
     {
       os << iter->getPosition() << '\t'
-      << iter->getIntensity() << '\t'
-      << iter->getOverallQuality() << '\t'
-      << iter->getCharge() << '\t'
-      << iter->getUniqueId()
-      << std::endl;
+         << iter->getIntensity() << '\t'
+         << iter->getOverallQuality() << '\t'
+         << iter->getCharge() << '\t'
+         << iter->getUniqueId() << "\n";
     }
     os << "# -- DFEATUREMAP END --" << std::endl;
     return os;
