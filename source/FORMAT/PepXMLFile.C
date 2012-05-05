@@ -372,7 +372,7 @@ namespace OpenMS
 			// assume only one scan, i.e. ignore "end_scan":
 			Size scan = attributeAsInt_(attributes, "start_scan");
 			if (!scan_map_.empty()) scan = scan_map_[scan];
-			MSSpectrum<> spec = (*experiment_)[scan];
+			const MSSpectrum<>& spec = (*experiment_)[scan];
 			bool success = false;
 			if (spec.getMSLevel() == 2)
 			{
