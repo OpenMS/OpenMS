@@ -35,6 +35,7 @@ MascotXMLFile.C
 MsInspectFile.C
 MzDataFile.C
 MzMLFile.C
+MzTabFile.C
 MzXMLFile.C
 OMSSACSVFile.C
 OMSSAXMLFile.C
