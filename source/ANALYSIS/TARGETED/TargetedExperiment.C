@@ -40,11 +40,15 @@ namespace OpenMS
       contacts_(rhs.contacts_),
       publications_(rhs.publications_),
       instruments_(rhs.instruments_),
+      targets_(rhs.targets_),
       software_(rhs.software_),
       proteins_(rhs.proteins_),
       compounds_(rhs.compounds_),
       peptides_(rhs.peptides_),
       transitions_(rhs.transitions_),
+      include_targets_(rhs.include_targets_),
+      exclude_targets_(rhs.exclude_targets_),
+      source_files_(rhs.source_files_),
       protein_reference_map_dirty_(true),
       peptide_reference_map_dirty_(true)
   {
@@ -62,11 +66,15 @@ namespace OpenMS
       contacts_ = rhs.contacts_;
       publications_ = rhs.publications_;
       instruments_ = rhs.instruments_;
+      targets_ = rhs.targets_;
       software_ = rhs.software_;
       proteins_ = rhs.proteins_;
       compounds_ = rhs.compounds_;
       peptides_ = rhs.peptides_;
       transitions_ = rhs.transitions_;
+      include_targets_ = rhs.include_targets_;
+      exclude_targets_ = rhs.exclude_targets_;
+      source_files_ = rhs.source_files_;
       protein_reference_map_dirty_ = true;
       peptide_reference_map_dirty_ = true;
     }
@@ -79,11 +87,15 @@ namespace OpenMS
             contacts_ == rhs.contacts_ &&
             publications_ == rhs.publications_ &&
             instruments_ == rhs.instruments_ &&
+            targets_ == rhs.targets_ &&
             software_ == rhs.software_ &&
             proteins_ == rhs.proteins_ &&
             compounds_ == rhs.compounds_ &&
             peptides_ == rhs.peptides_ &&
-            transitions_ == rhs.transitions_;
+            transitions_ == rhs.transitions_ &&
+            include_targets_ == rhs.include_targets_ &&
+            exclude_targets_ == rhs.exclude_targets_ &&
+            source_files_ == rhs.source_files_;
   }
 
   void TargetedExperiment::setCVs(const std::vector<CV>& cvs)

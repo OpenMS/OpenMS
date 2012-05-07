@@ -120,6 +120,14 @@ namespace OpenMS
       exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
       source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
 
+      for (Map< String, std::vector < CVTerm > >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); targ_it++)
+      {
+        for (std::vector< CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); term_it++)
+        {
+          targets_.addCVTerm(*term_it);
+        }
+      }
+
       // todo: check for double entries
       // transitions, peptides, proteins
 

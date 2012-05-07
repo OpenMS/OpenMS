@@ -71,7 +71,7 @@
       <cvParam cvRef="MS" accession="MS:1000891" name="heavy labeled peptide"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="G1"/>
       <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value="1189.22" unitCvRef="UO" unitAccession="UO:0000221" unitName="dalton"/>
-			<userParam name="isomerization potential" type="xsd:double" value="0.583"/>
+      <userParam name="isomerization potential" type="xsd:double" value="0.583"/>
       <ProteinRef ref="Q12149"/>
       <ProteinRef ref="ENSP00000332698"/>
       <Modification location="0" monoisotopicMassDelta="127.063324">
@@ -286,6 +286,7 @@
     </Transition>
   </TransitionList>
   <TargetList>
+    <cvParam cvRef="MS" accession="MS:1000920" name="includes supersede excludes"/>
     <TargetIncludeList>
       <Target id="PEPTIDEC2+" peptideRef="PEPTIDEC">
         <Precursor>

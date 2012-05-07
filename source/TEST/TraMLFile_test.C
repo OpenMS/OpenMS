@@ -81,6 +81,57 @@ START_SECTION((void store(const String &filename, const TargetedExperiment &id) 
 	}
 END_SECTION
 
+START_SECTION((void equal()))
+	TraMLFile file;
+	
+	{
+		TargetedExperiment exp_original;
+		TargetedExperiment exp_second;
+		file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_original);
+		file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_second);
+	 	
+		TEST_EQUAL(exp_second == exp_original,true)
+	}
+END_SECTION
+
+START_SECTION((void assign()))
+	TraMLFile file;
+	
+	{
+		//load map
+		TargetedExperiment exp_original;
+		TargetedExperiment exp_added;
+		file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_original);
+	 	
+		//store map
+		std::string tmp_filename;
+	 	NEW_TMP_FILE(tmp_filename);
+    exp_added = exp_original;
+		TEST_EQUAL(exp_original.getTargetCVTerms().getCVTerms().size(),1)
+		TEST_EQUAL(exp_added.getTargetCVTerms().getCVTerms().size(),1)
+
+		TEST_EQUAL(exp_added == exp_original,true)
+	}
+END_SECTION
+
+START_SECTION((void add()))
+	TraMLFile file;
+	
+	{
+		//load map
+		TargetedExperiment exp_original;
+		TargetedExperiment exp_added;
+		file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_original);
+	 	
+		//store map
+		std::string tmp_filename;
+	 	NEW_TMP_FILE(tmp_filename);
+    exp_added += exp_original;
+
+		TEST_EQUAL(exp_added == exp_original,true)
+	}
+END_SECTION
+
 START_SECTION([EXTRA] bool isValid(const String& filename, std::ostream& os = std::cerr))
 	std::string tmp_filename;
   TraMLFile file;

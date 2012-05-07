@@ -759,8 +759,8 @@ namespace OpenMS
     if (!exp.getIncludeTargets().empty() || !exp.getExcludeTargets().empty() )
     {
       os << "  <TargetList>" << "\n";
-      writeCVParams_(os, exp.getTargetCVTerms(), 3);
-      writeUserParam_(os, (MetaInfoInterface)exp.getTargetCVTerms(), 3);
+      writeCVParams_(os, exp.getTargetCVTerms(), 2);
+      writeUserParam_(os, (MetaInfoInterface)exp.getTargetCVTerms(), 2);
 
       if (!exp.getIncludeTargets().empty())
       {
@@ -1236,7 +1236,7 @@ namespace OpenMS
     
     for (Size i = 0; i!=keys.size();++i)
     {
-      os << String(indent,'\t') << "<userParam name=\"" << keys[i] << "\" type=\"";
+      os << String(2 * indent, ' ') << "<userParam name=\"" << keys[i] << "\" type=\"";
       
       DataValue d = meta.getMetaValue(keys[i]);
       //determine type
