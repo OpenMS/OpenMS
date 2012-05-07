@@ -410,6 +410,11 @@ namespace OpenMS
         return configuration_list_.push_back(configuration);
       }
 
+      void replaceCVTerms(Map<String, std::vector<CVTerm> >& cv_terms) 
+      {
+        cv_terms_ = cv_terms;
+      }
+
       const std::vector<CVTermList>& getInterpretationList() const
       {
         return interpretation_list_; 

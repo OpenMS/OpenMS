@@ -176,7 +176,7 @@ namespace OpenMS
     Map< String, std::vector < CVTerm > >  cvtermlist = product_.getCVTerms();
     cvtermlist[product_mz.getAccession()] = product_cvterms;
 
-    product_.setCVTerms(product_cvterms);
+    product_.replaceCVTerms(cvtermlist);
   }
 
   DoubleReal ReactionMonitoringTransition::getProductMZ() const
