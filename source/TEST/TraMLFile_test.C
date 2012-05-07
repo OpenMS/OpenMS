@@ -77,49 +77,8 @@ START_SECTION((void store(const String &filename, const TargetedExperiment &id) 
 		file.load(tmp_filename, exp);
 
 		//test if everything worked
-		//TEST_EQUAL(exp == exp_original,true)
+		TEST_EQUAL(exp == exp_original,true)
 	}
-/*
-	//test with empty map
-	{
-		
-		MSExperiment<> empty, exp;
-		
-		//this will be set when writing (forced by mzML)
-		empty.getInstrument().getSoftware().setName("custom unreleased software tool");
-		
-		std::string tmp_filename;
-		NEW_TMP_FILE(tmp_filename);
-		file.store(tmp_filename,empty);
-		file.load(tmp_filename,exp);
-		TEST_EQUAL(exp==empty,true)
-	}
-	
-	//test with one empty spectrum
-	{
-		MSExperiment<> empty, exp;
-		empty.resize(1);
-		
-		//this will be set when writing (forced by mzML)
-		empty.getInstrument().getSoftware().setName("custom unreleased software tool");
-		empty[0].setNativeID("spectrum=0");
-		empty[0].getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
-		empty[0].getDataProcessing().resize(1);
-		empty[0].getDataProcessing()[0].getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
-		empty[0].getDataProcessing()[0].getSoftware().setName("custom unreleased software tool");
-		
-		std::string tmp_filename;
-		NEW_TMP_FILE(tmp_filename);
-		file.store(tmp_filename,empty);
-		file.load(tmp_filename,exp);
-		TEST_EQUAL(exp==empty,true)
-
-		TEST_EQUAL(exp.size()==empty.size(),true)
-		TEST_EQUAL(exp.ExperimentalSettings::operator==(empty),true)
-		TEST_EQUAL(exp[0].SpectrumSettings::operator==(empty[0]),true)
-		TEST_EQUAL(exp[0]==empty[0],true);
-	}
-*/
 END_SECTION
 
 START_SECTION([EXTRA] bool isValid(const String& filename, std::ostream& os = std::cerr))

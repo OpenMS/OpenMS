@@ -84,6 +84,80 @@ namespace OpenMS
     bool operator == (const TargetedExperiment& rhs) const;
     //@}
 
+    /**
+      @brief Joins two targeted experiments.
+
+      Proteins, peptides and transitions are merged (see operator+= for details).
+    */
+    TargetedExperiment operator+(const TargetedExperiment & rhs) const
+    {
+      TargetedExperiment tmp(*this);
+      tmp += rhs;
+      return tmp;
+    }
+
+    /**
+      @brief Add one targeted experiment to another.
+
+      @param rhs The targeted experiment to add to this one.
+    */
+    TargetedExperiment & operator+=(const TargetedExperiment & rhs)
+    {
+      protein_reference_map_dirty_ = true;
+      peptide_reference_map_dirty_ = true;
+
+      // merge these:
+      cvs_.insert(cvs_.end(), rhs.cvs_.begin(), rhs.cvs_.end());
+      contacts_.insert(contacts_.end(), rhs.contacts_.begin(), rhs.contacts_.end());
+      publications_.insert(publications_.end(), rhs.publications_.begin(), rhs.publications_.end());
+      instruments_.insert(instruments_.end(), rhs.instruments_.begin(), rhs.instruments_.end());
+      software_.insert(software_.end(), rhs.software_.begin(), rhs.software_.end());
+      proteins_.insert(proteins_.end(), rhs.proteins_.begin(), rhs.proteins_.end());
+      compounds_.insert(compounds_.end(), rhs.compounds_.begin(), rhs.compounds_.end());
+      peptides_.insert(peptides_.end(), rhs.peptides_.begin(), rhs.peptides_.end());
+      transitions_.insert(transitions_.end(), rhs.transitions_.begin(), rhs.transitions_.end());
+      include_targets_.insert(include_targets_.end(), rhs.include_targets_.begin(), rhs.include_targets_.end());
+      exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
+      source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
+
+      // todo: check for double entries
+      // transitions, peptides, proteins
+
+      return *this;
+    }
+
+    /**
+      @brief Clears all data and meta data
+
+      @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
+    */
+    void clear(bool clear_meta_data)
+    {
+      transitions_.clear();
+
+      if (clear_meta_data)
+      {
+        cvs_.clear();
+        contacts_.clear();
+        publications_.clear();
+        instruments_.clear();
+        targets_ = CVTermList();
+        software_.clear();
+        proteins_.clear();
+        compounds_.clear();
+        peptides_.clear();
+
+        include_targets_.clear();
+        exclude_targets_.clear();
+        source_files_.clear();
+        protein_reference_map_.clear();
+        peptide_reference_map_.clear();
+
+        protein_reference_map_dirty_ = true;
+        peptide_reference_map_dirty_ = true;
+      }
+    }
+
     /** @name Accessors
     */
     //@{

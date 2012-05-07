@@ -704,7 +704,7 @@ namespace OpenMS
 
         // Precursor is required
         os << "      <Precursor>" << "\n"; 
-        os << "       <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
+        os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
         writeCVParams_(os, it->getPrecursorCVTermList(), 4);
         writeUserParam_(os, (MetaInfoInterface)it->getPrecursorCVTermList(), 4);
         os << "      </Precursor>" << "\n";
@@ -732,8 +732,8 @@ namespace OpenMS
             os << " softwareRef=\"" << rit->software_ref << "\"";
           }
           os << ">" << "\n";
-          writeCVParams_(os, (CVTermList)*rit, 5);
-          writeUserParam_(os, (MetaInfoInterface)*rit, 5);
+          writeCVParams_(os, (CVTermList)*rit, 4);
+          writeUserParam_(os, (MetaInfoInterface)*rit, 4);
           os << "      </RetentionTime>" << "\n";
         }
 
@@ -844,7 +844,7 @@ namespace OpenMS
       for (std::vector<CVTermList>::const_iterator inter_it = prod_it->getInterpretationList().begin(); inter_it != prod_it->getInterpretationList().end(); inter_it++)
       {
         os << "          <Interpretation>" << "\n";
-        writeCVParams_(os, *inter_it, 7);
+        writeCVParams_(os, *inter_it, 6);
         writeUserParam_(os, (MetaInfoInterface)*inter_it, 6);
         os << "          </Interpretation>" << "\n";
       }

@@ -29,6 +29,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
@@ -93,11 +94,11 @@ class TOPPFileMerger
 		void registerOptionsAndFlags_()
 		{
 			registerInputFileList_("in","<files>",StringList(),"Input files separated by blank");
-			setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,fid"));
+			setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,fid,TraML"));
 			registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false);
-			setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,fid"));
+			setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,fid,TraML"));
 			registerOutputFile_("out","<file>","","output file");
-			setValidFormats_("out",StringList::create("mzML,featureXML,consensusXML"));
+			setValidFormats_("out",StringList::create("mzML,featureXML,consensusXML,TraML"));
 
 			registerFlag_("annotate_file_origin","Store the original filename in each feature (MetaValue: file_origin).");
 
@@ -209,6 +210,30 @@ class TOPPFileMerger
 				ConsensusXMLFile f;
 				f.store(out_file,out);
 			}
+      else if (force_type == FileTypes::TRAML)
+      {
+        TargetedExperiment out;
+        for (Size i = 0; i < file_list.size(); ++i)
+        {
+          TargetedExperiment map;
+          TraMLFile fh;
+          fh.load(file_list[i], map);
+          out += map;
+        }
+
+        //-------------------------------------------------------------
+        // writing output
+        //-------------------------------------------------------------
+
+        //annotate output with data processing info
+        Software software;
+        software.setName("FileMerger");
+        software.setVersion(VersionInfo::getVersion());
+        out.addSoftware(software);
+
+        TraMLFile f;
+        f.store(out_file,out);
+      }
 			else
 			{
 				// we might want to combine different types, thus we only
