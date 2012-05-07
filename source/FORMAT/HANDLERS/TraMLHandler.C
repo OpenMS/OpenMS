@@ -31,11 +31,6 @@
 
 #include <iostream>
 
-// This is generate simple examples of
-// inclusion and exclusion lists
-//#define WRITE_TARGET_INCLUDE_LIST
-//#define WRITE_TARGET_EXCLUDE_LIST
-
 namespace OpenMS
 {
   namespace Internal
@@ -470,104 +465,6 @@ namespace OpenMS
   
   void TraMLHandler::writeTo(std::ostream& os)
   {
-
-#ifdef WRITE_TARGET_INCLUDE_LIST
-StringList bsa_peptides = StringList::create("ADLAKYICDNQDTISSK,AEFVEVTK,AEFVEVTKLVTDLTK,AFDEKLFTFHADICTLPDTEK,ALKAWSVAR,ATEEQLK,ATEEQLKTVMENFVAFVDK,AWSVAR,AWSVARLSQK,CASIQK,CASIQKFGER,CCAADDK,CCAADDKEACFAVEGPK,CCTESLVNR,CCTESLVNRRPCFSALTPDETYVPK,CCTKPESER,CCTKPESERMPCTEDYLSLILNR,DAFLGSFLYEYSR,DAFLGSFLYEYSRR,DAIPENLPPLTADFAEDK,DAIPENLPPLTADFAEDKDVCK,DDPHACYSTVFDK,DDPHACYSTVFDKLK,DDSPDLPK,DDSPDLPKLKPDPNTLCDEFK,DLGEEHFK,DLGEEHFKGLVLIAFSQYLQQCPFDEHVK,DTHKSEIAHR,DVCKNYQEAK,EACFAVEGPK,EACFAVEGPKLVVSTQTALA,ECCDKPLLEK,ECCDKPLLEKSHCIAEVEK,ECCHGDLLECADDR,ECCHGDLLECADDRADLAK,EKVLASSAR,ETYGDMADCCEK,ETYGDMADCCEKQEPER,EYEATLEECCAK,EYEATLEECCAKDDPHACYSTVFDK,FGERALK,FKDLGEEHFK,FPKAEFVEVTK,FWGKYLYEIAR,GACLLPK,GACLLPKIETMR,GLVLIAFSQYLQQCPFDEHVK,GLVLIAFSQYLQQCPFDEHVKLVNELTEFAK,HKPKATEEQLK,HLVDEPQNLIK,HLVDEPQNLIKQNCDQFEK,HPEYAVSVLLR,HPEYAVSVLLRLAK,HPYFYAPELLYYANK,HPYFYAPELLYYANKYNGVFQECCQAEDK,IETMREK,KQTALVELLK,KVPQVSTPTLVEVSR,LAKEYEATLEECCAK,LCVLHEK,LCVLHEKTPVSEK,LFTFHADICTLPDTEK,LFTFHADICTLPDTEKQIK,LGEYGFQNALIVR,LGEYGFQNALIVRYTR,LKECCDKPLLEK,LKHLVDEPQNLIK,LKPDPNTLCDEFK,LKPDPNTLCDEFKADEK,LRCASIQK,LSQKFPK,LVNELTEFAK,LVNELTEFAKTCVADESHAGCEK,LVTDLTK,LVTDLTKVHK,LVVSTQTALA,MKWVTFISLLLLFSSAYSR,MPCTEDYLSLILNR,MPCTEDYLSLILNRLCVLHEK,NECFLSHK,NECFLSHKDDSPDLPK,NYQEAK,NYQEAKDAFLGSFLYEYSR,QEPERNECFLSHK,QNCDQFEK,QNCDQFEKLGEYGFQNALIVR,QTALVELLK,QTALVELLKHKPK,RHPEYAVSVLLR,RHPYFYAPELLYYANK,RPCFSALTPDETYVPK,RPCFSALTPDETYVPKAFDEK,SEIAHR,SEIAHRFK,SHCIAEVEK,SHCIAEVEKDAIPENLPPLTADFAEDK,SLGKVGTR,SLHTLFGDELCK,SLHTLFGDELCKVASLR,TCVADESHAGCEK,TCVADESHAGCEKSLHTLFGDELCK,TPVSEK,TPVSEKVTK,TVMENFVAFVDK,TVMENFVAFVDKCCAADDK,VASLRETYGDMADCCEK,VGTRCCTKPESER,VHKECCHGDLLECADDR,VLASSAR,VLASSARQR,VPQVSTPTLVEVSR,VPQVSTPTLVEVSRSLGK,VTKCCTESLVNR,WVTFISLLLLFSSAYSR,WVTFISLLLLFSSAYSRGVFR,YICDNQDTISSK,YICDNQDTISSKLK,YLYEIAR,YLYEIARR,YNGVFQECCQAEDK,YNGVFQECCQAEDKGACLLPK");
-
-StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDEAPR,MPEAAPPVAPAPAAPTPAAPAPAPSWPLSSSVPSQK,TYQGSYGFR,LGFLHSGTAK,SVTCTYSPALNK,MFCQLAK,TCPVQLWVDSTPPPGTR,AMAIYK,QSQHMTEVVR,CPHHER,CSDSDGLAPPQHLIR,VEGNLR,VEYLDDR,HSVVVPYEPPEVGSDCTTIHYNYMCNSSCMGGMNR,RPILTIITLEDSSGNLLGR,NSFEVR,VCACPGR,TEEENLR,GEPHHELPPGSTK,ALPNNTSSSPQPK,KPLDGEYFTLQIR,ELNEALELK,DAQAGK,EPGGSR,AHSSHLK,GQSTSR,TEGPDSD,TYQGSYGFRLGFLHSGTAK,LGFLHSGTAKSVTCTYSPALNK,SVTCTYSPALNKMFCQLAK,MFCQLAKTCPVQLWVDSTPPPGTR,TCPVQLWVDSTPPPGTRVR,VRAMAIYK,AMAIYKQSQHMTEVVR,QSQHMTEVVRR,RCPHHER,CPHHERCSDSDGLAPPQHLIR,CSDSDGLAPPQHLIRVEGNLR,VEGNLRVEYLDDR,VEYLDDRNTFR,RPILTIITLEDSSGNLLGRNSFEVR,NSFEVRVCACPGR,VCACPGRDR,RTEEENLR,TEEENLRK,KGEPHHELPPGSTK,GEPHHELPPGSTKR,RALPNNTSSSPQPK,ALPNNTSSSPQPKK,KKPLDGEYFTLQIR,KPLDGEYFTLQIRGR,ERFEMFR,FEMFRELNEALELK,ELNEALELKDAQAGK,DAQAGKEPGGSR,EPGGSRAHSSHLK,AHSSHLKSK,KGQSTSR,GQSTSRHK,LMFKTEGPDSD");
-
-  Map<String, TargetedExperiment::Peptide> include_target_peptides, exclude_target_peptides;
-  for (StringList::const_iterator it = bsa_peptides.begin(); it != bsa_peptides.end(); ++it)
-  {
-    TargetedExperiment::RetentionTime retention_time;
-    /// <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-    CVTerm rt;
-    rt.setCVIdentifierRef("MS");
-    rt.setAccession("MS:1000897");
-    rt.setName("predicted retention time");
-    rt.setValue(AASequence(*it).getMonoWeight() / 50.0); // just guess some RT
-    CVTerm::Unit rt_unit;
-    rt_unit.cv_ref = "UO";
-    rt_unit.accession = "UO:0000031";
-    rt_unit.name = "minute";
-    rt.setUnit(rt_unit);
-    retention_time.addCVTerm(rt);
-    retention_time.software_ref = "GUESSING1.0";
-    TargetedExperiment::Peptide peptide;
-    peptide.rts.push_back(retention_time);
-    peptide.protein_refs.push_back("BSA");
-
-    //<cvParam cvRef="MS" accession="MS:1000888" name="unmodified peptide sequence" value="ADTHFLLNIYDQLR"/>
-    //<cvParam cvRef="MS" accession="MS:1000889" name="modified peptide sequence" value="ADTHFLLNIYDQLR[162.10111]"/>
-    CVTerm unmod_seq;
-    unmod_seq.setCVIdentifierRef("MS");
-    unmod_seq.setAccession("MS:1000888");
-    unmod_seq.setName("unmodified peptide sequence");
-    unmod_seq.setValue(DataValue(*it));
-    peptide.addCVTerm(unmod_seq);
-    unmod_seq.setAccession("MS:1000889");
-    unmod_seq.setName("modified peptide sequence");
-    peptide.addCVTerm(unmod_seq);
-    
-    //<cvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
-    CVTerm evidence;
-    evidence.setCVIdentifierRef("MS");
-    evidence.setAccession("MS:1001100");
-    evidence.setName("confident peptide");
-    evidence.setValue(DataValue(6));
-    peptide.evidence.addCVTerm(evidence);
-    
-    peptide.id = *it;
-    exclude_target_peptides[*it] = peptide;  
-  }
-
-  for (StringList::const_iterator it = p53_peptides.begin(); it != p53_peptides.end(); ++it)
-  {
-    TargetedExperiment::RetentionTime retention_time;
-    /// <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-    CVTerm rt;
-    rt.setCVIdentifierRef("MS");
-    rt.setAccession("MS:1000897");
-    rt.setName("predicted retention time");
-    rt.setValue(AASequence(*it).getMonoWeight() / 50.0); // just guess some RT
-    CVTerm::Unit rt_unit;
-    rt_unit.cv_ref = "UO";
-    rt_unit.accession = "UO:0000031";
-    rt_unit.name = "minute";
-    rt.setUnit(rt_unit);
-    retention_time.addCVTerm(rt);
-    retention_time.software_ref = "GUESSING1.0";
-    TargetedExperiment::Peptide peptide;
-    peptide.rts.push_back(retention_time);
-    peptide.protein_refs.push_back("BSA");
-
-    //<cvParam cvRef="MS" accession="MS:1000888" name="unmodified peptide sequence" value="ADTHFLLNIYDQLR"/>
-    //<cvParam cvRef="MS" accession="MS:1000889" name="modified peptide sequence" value="ADTHFLLNIYDQLR[162.10111]"/>
-    CVTerm unmod_seq;
-    unmod_seq.setCVIdentifierRef("MS");
-    unmod_seq.setAccession("MS:1000888");
-    unmod_seq.setName("unmodified peptide sequence");
-    unmod_seq.setValue(DataValue(*it));
-    peptide.addCVTerm(unmod_seq);
-    unmod_seq.setAccession("MS:1000889");
-    unmod_seq.setName("modified peptide sequence");
-    peptide.addCVTerm(unmod_seq);
-
-    //<cvParam cvRef="MS" accession="MS:1001100" name="confident peptide" value="6"/>
-    CVTerm evidence;
-    evidence.setCVIdentifierRef("MS");
-    evidence.setAccession("MS:1001100");
-    evidence.setName("confident peptide");
-    evidence.setValue(DataValue(6));
-    peptide.evidence.addCVTerm(evidence);
-
-    peptide.id = *it;
-    include_target_peptides[*it] = peptide;
-  }
-
-
-#endif
-
     const TargetedExperiment& exp = *(cexp_);
 
     os  << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
@@ -653,11 +550,7 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
     }
 
     // software list
-    if (exp.getSoftware().size() > 0
-#ifdef WRITE_TARGET_INCLUDE_LIST
-|| true
-#endif
-)
+    if (exp.getSoftware().size() > 0)
     {
       os << "  <SoftwareList>" << "\n";
       for (std::vector<Software>::const_iterator it = exp.getSoftware().begin(); it != exp.getSoftware().end(); ++it)
@@ -667,23 +560,13 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
         writeUserParam_(os, (MetaInfoInterface)*it, 3);
         os << "    </Software>" << "\n";
       }
-
-#ifdef WRITE_TARGET_INCLUDE_LIST
-        os << "    <Software id=\"GUESSING1.0\" version=\"1.0\">" << "\n";
-        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000874\" name=\"SSRCalc\"/>\n";
-        os << "    </Software>" << "\n";
-#endif
       os << "  </SoftwareList>" << "\n";
     }
 
     //--------------------------------------------------------------------------------------------
     // protein list
     //--------------------------------------------------------------------------------------------
-    if (exp.getProteins().size() > 0
-#ifdef WRITE_TARGET_INCLUDE_LIST
-|| true
-#endif
-)
+    if (exp.getProteins().size() > 0)
     {
       os << "  <ProteinList>" << "\n";
       for (std::vector<TargetedExperiment::Protein>::const_iterator it = exp.getProteins().begin(); it != exp.getProteins().end(); ++it)
@@ -694,47 +577,17 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
         os << "      <Sequence>" << it->sequence << "</Sequence>" << "\n";
         os << "    </Protein>" << "\n";
       }
-#ifdef WRITE_TARGET_INCLUDE_LIST
-        os << "    <Protein id=\"BSA\">" << "\n";
-        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000885\" name=\"protein accession\" value=\"gi|162648|gb|AAA51411.1|\"/>" << "\n";
-        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000883\" name=\"protein short name\" value=\"BSA\"/>" << "\n";
-        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000886\" name=\"protein name\" value=\"albumin [Bos taurus]\"/>" << "\n";
-        os << "      <Sequence>MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA</Sequence>" << "\n";
-        os << "    </Protein>" << "\n";
-
-        os << "    <Protein id=\"p53_human\">" << "\n";
-        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000885\" name=\"protein accession\" value=\"sp|P04637|P53_HUMAN\"/>" << "\n";
-        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000883\" name=\"protein short name\" value=\"P53_HUMAN\"/>" << "\n";
-        os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000886\" name=\"protein name\" value=\"Cellular tumor antigen p53\"/>" << "\n";
-        os << "      <Sequence>MEEPQSDPSVEPPLSQETFSDLWKLLPENNVLSPLPSQAMDDLMLSPDDIEQWFTEDPGPDEAPRMPEAAPPVAPAPAAPTPAAPAPAPSWPLSSSVPSQKTYQGSYGFRLGFLHSGTAKSVTCTYSPALNKMFCQLAKTCPVQLWVDSTPPPGTRVRAMAIYKQSQHMTEVVRRCPHHERCSDSDGLAPPQHLIRVEGNLRVEYLDDRNTFRHSVVVPYEPPEVGSDCTTIHYNYMCNSSCMGGMNRRPILTIITLEDSSGNLLGRNSFEVRVCACPGRDRRTEEENLRKKGEPHHELPPGSTKRALPNNTSSSPQPKKKPLDGEYFTLQIRGRERFEMFRELNEALELKDAQAGKEPGGSRAHSSHLKSKKGQSTSRHKKLMFKTEGPDSD</Sequence>" << "\n";
-        os << "    </Protein>" << "\n";
-#endif
       os << "  </ProteinList>" << "\n";
     }
 
     //--------------------------------------------------------------------------------------------
     // compound list
     //--------------------------------------------------------------------------------------------
-    if (exp.getCompounds().size()  + exp.getPeptides().size() > 0
-#ifdef WRITE_TARGET_INCLUDE_LIST
-|| true
-#endif
-)
+    if (exp.getCompounds().size()  + exp.getPeptides().size() > 0)
     {
       os << "  <CompoundList>" << "\n";
       std::vector<TargetedExperiment::Peptide> exp_peptides = exp.getPeptides();
       
-#ifdef WRITE_TARGET_INCLUDE_LIST
-      for (Map<String, TargetedExperiment::Peptide>::ConstIterator it = include_target_peptides.begin(); it != include_target_peptides.end(); ++it)
-      {
-        exp_peptides.push_back(it->second);
-      }
-      for (Map<String, TargetedExperiment::Peptide>::ConstIterator it = exclude_target_peptides.begin(); it != exclude_target_peptides.end(); ++it)
-      {
-        exp_peptides.push_back(it->second);
-      }
-#endif
-
       for (std::vector<TargetedExperiment::Peptide>::const_iterator it = exp_peptides.begin(); it != exp_peptides.end(); ++it)
       {
         os << "    <Peptide id=\"" << it->id << "\" sequence=\"" << it->sequence << "\">" << "\n";
@@ -902,69 +755,6 @@ StringList p53_peptides = StringList::create("MEEPQSDPSVEPPLSQETFSDLWK,LLPENNVLS
       os << "  </TransitionList>" << "\n";
     
     }
-
-    #ifdef WRITE_TARGET_INCLUDE_LIST
-
-    // create and include list for all the peptides listed above
-    os << "  <TargetList>" << "\n";
-    os << "    <cvParam cvRef=\"MS\" accession=\"MS:1000920\" name=\"includes supersede excludes\"/>\n";
-
-    os << "    <TargetIncludeList>" << "\n";
-    for (StringList::const_iterator it = p53_peptides.begin(); it != p53_peptides.end(); ++it)
-    {
-      for (Size i = 2; i <= 3; ++i)
-      {
-        DoubleReal weight = AASequence(*it).getMonoWeight();
-        os << "      <Target id=\"" << *it << i << "+\" peptideRef=\"" << *it << "\">" << "\n";
-        os << "       <Precursor>\n";
-        CVTerm mz;
-        mz.setAccession("MS:1000040");
-        mz.setCVIdentifierRef("MS");
-        mz.setName("m/z");
-        mz.setValue(DataValue((weight + (DoubleReal)i * Constants::PROTON_MASS_U) / (DoubleReal)i));
-        CVTermList cv_list;
-        CVTerm charge;
-        charge.setAccession("MS:1000041");
-        charge.setCVIdentifierRef("MS");
-        charge.setName("charge state");
-        charge.setValue(DataValue(i));
-        cv_list.addCVTerm(mz);
-        cv_list.addCVTerm(charge);
-        writeCVParams_(os, cv_list, 5);
-        os << "       </Precursor>\n";
-        os << "      </Target>" << "\n";
-      }
-    }
-    os << "    </TargetIncludeList>" << "\n";
-    os << "    <TargetExcludeList>" << "\n";
-    for (StringList::const_iterator it = bsa_peptides.begin(); it != bsa_peptides.end(); ++it)
-    {
-      for (Size i = 2; i <= 3; ++i)
-      {
-        DoubleReal weight = AASequence(*it).getMonoWeight();
-        os << "      <Target id=\"" << *it << i << "+\" peptideRef=\"" << *it << "\">" << "\n";
-        os << "       <Precursor>\n";
-        CVTerm mz;
-        mz.setAccession("MS:1000040");
-        mz.setCVIdentifierRef("MS");
-        mz.setName("m/z");
-        mz.setValue(DataValue((weight + (DoubleReal)i * Constants::PROTON_MASS_U) / (DoubleReal)i));
-        CVTermList cv_list;
-        CVTerm charge;
-        charge.setAccession("MS:1000041");
-        charge.setCVIdentifierRef("MS");
-        charge.setName("charge state");
-        charge.setValue(DataValue(i));
-        cv_list.addCVTerm(mz);
-        cv_list.addCVTerm(charge);
-        writeCVParams_(os, cv_list, 5);
-        os << "       </Precursor>\n";
-        os << "      </Target>" << "\n";
-      }
-    }
-    os << "    </TargetExcludeList>" << "\n";
-    os << "  </TargetList>" << "\n";
-    #endif
 
     if (!exp.getIncludeTargets().empty() || !exp.getExcludeTargets().empty() )
     {
