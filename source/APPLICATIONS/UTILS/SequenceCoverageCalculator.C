@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -65,8 +65,11 @@ class TOPPSequenceCoverageCalculator
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in_database","<file>","","input file containing the database in fasta format");
+			registerInputFile_("in_database","<file>","","input file containing the database in FASTA format");
+      setValidFormats_("in_database", StringList::create("FASTA"));
 			registerInputFile_("in_peptides","<file>","","input file containing the identified peptides");
+      setValidFormats_("in_peptides", StringList::create("idXML"), true);
+      registerOutputFile_("out","<file>","","Optional output file. If left out, the output is written to the command line.", false);
 		}
 
 		void getStartAndEndIndex(const String& sequence, const String& substring, pair<Size, Size>& indices)
@@ -97,7 +100,7 @@ class TOPPSequenceCoverageCalculator
 			}
 		}
 
-		ExitCodes main_(int , const char**)
+    ExitCodes outputTo_(ostream& os)
 		{
 			IdXMLFile idXML_file;
 			vector<ProteinIdentification> protein_identifications;
@@ -149,8 +152,8 @@ class TOPPSequenceCoverageCalculator
 					{
 						if (identifications[i].getHits().size() > 1)
 						{
-							cout << "Spectrum with more than one identification found, which is not allowed"
-									 << endl << "use the IDFilter with the -best_hits option to filter for best hits." << endl;
+							LOG_ERROR << "Spectrum with more than one identification found, which is not allowed.\n"
+									      << "Use the IDFilter with the -best_hits option to filter for best hits." << endl;
 							return ILLEGAL_PARAMETERS;
             }
             temp_hits.clear();
@@ -166,7 +169,7 @@ class TOPPSequenceCoverageCalculator
 							}
 							if (indices.first != indices.second)
 							{
-//								cout <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
+//								os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
 							}
 							++spectrum_count;
 							if (unique_peptides.find(temp_hits[0].getSequence().toString()) == unique_peptides.end())
@@ -184,27 +187,34 @@ class TOPPSequenceCoverageCalculator
 						}
 					}					
 				}
-/*				cout << proteins[j].sequence << endl;
+/*				os << proteins[j].sequence << endl;
 				for (Size k = 0; k < coverage.size(); ++k)
 				{
-					cout << coverage[k];
+					os << coverage[k];
 				}
-				cout << endl;
+				os << endl;
 */
 				//				statistics[j] = make_pair(, 
 				//													accumulate(coverage.begin(), coverage.end(), 0) / proteins[j].sequence.size());
 				statistics[j] = ((DoubleReal) accumulate(coverage.begin(), coverage.end(), Size(0))) / proteins[j].sequence.size();
 				counts[j] = temp_unique_peptides.size();
 				mod_counts[j] = temp_modified_unique_peptides.size();
-//				cout << statistics[j] << endl;
+
+        // details for this protein
+        if (counts[j] > 0)
+        {
+          os << proteins[j].identifier << "(coverage%, #unique hits): " <<  statistics[j]*100 << "%, " << counts[j] << "\n";
+        }
+
+//				os << statistics[j] << endl;
 			}
 
-//			cout << "Sum of coverage is " << accumulate(statistics.begin(), statistics.end(), 0.) << endl;
-			cout << "Average coverage per protein is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
-			cout << "Average number of peptides per protein is " << (((DoubleReal) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
-			cout << "Average number of un/modified peptides per protein is " << (((DoubleReal) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
-			cout << "Number of identified spectra: " << spectrum_count << endl;
-			cout << "Number of unique identified peptides: " << unique_peptides.size() << endl;
+//			os << "Sum of coverage is " << accumulate(statistics.begin(), statistics.end(), 0.) << endl;
+			os << "Average coverage per protein is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
+			os << "Average number of peptides per protein is " << (((DoubleReal) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
+			os << "Average number of un/modified peptides per protein is " << (((DoubleReal) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
+			os << "Number of identified spectra: " << spectrum_count << endl;
+			os << "Number of unique identified peptides: " << unique_peptides.size() << endl;
 			
 			vector<DoubleReal>::iterator it = statistics.begin(); 
 			vector<Size>::iterator it2 = counts.begin(); 
@@ -224,12 +234,31 @@ class TOPPSequenceCoverageCalculator
 					++it3;
 				}
 			}
-			cout << "Average coverage per found protein (" << statistics.size() << ") is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
-			cout << "Average number of peptides per found protein is " << (((DoubleReal) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
-			cout << "Average number of un/modified peptides per protein is " << (((DoubleReal) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
+			os << "Average coverage per found protein (" << statistics.size() << ") is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
+			os << "Average number of peptides per found protein is " << (((DoubleReal) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
+			os << "Average number of un/modified peptides per protein is " << (((DoubleReal) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;
 			
 			return EXECUTION_OK;
 		}
+
+    ExitCodes main_(int , const char**)
+    {
+      String out = getStringOption_("out");
+
+      TOPPBase::ExitCodes ret;
+      if (out != "")
+      {
+        ofstream os(out.c_str());
+        ret = outputTo_(os);
+        os.close();
+      }
+      else
+      {
+        ret = outputTo_(LOG_INFO);
+      }
+
+      return ret;
+    }
 };
 
 

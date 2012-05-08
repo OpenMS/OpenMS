@@ -156,7 +156,7 @@ class TOPPFileInfo
 		setValidFormats_("in", StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
-		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
+		registerOutputFile_("out","<file>","","Optional output file. If left out, the output is written to the command line.", false);
 		registerOutputFile_("out_tsv","<file>","","Second optional output file. Tab separated flat text file.", false, true);
 		registerFlag_("m", "Show meta information about the whole experiment");
 		registerFlag_("p", "Shows data processing information");
