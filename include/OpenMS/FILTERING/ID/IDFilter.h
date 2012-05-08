@@ -192,6 +192,10 @@ namespace OpenMS
 
 			/// if a peptide hit occurs more than once, only one instance is kept
 		  void filterIdentificationsUnique(const PeptideIdentification& identification, PeptideIdentification& filtered_identification);
+
+      /// filter identifications by deviation to the theoretical mass
+      void filterIdentificationsByMzError(const PeptideIdentification& identification, DoubleReal mass_error, bool unit_ppm, PeptideIdentification& filtered_identification);
+
 		  /**
 				@brief Filters the peptide hits according to their predicted rt p-values
 				
@@ -350,6 +354,7 @@ namespace OpenMS
 					}
 				}				
 			}
+
   };
  
 } // namespace OpenMS
