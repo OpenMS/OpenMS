@@ -44,96 +44,96 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TOPP_IDFilter IDFilter
+ @page TOPP_IDFilter IDFilter
 
-	@brief Filters protein identification engine results by different criteria.
+ @brief Filters protein identification engine results by different criteria.
 <CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=5> \f$ \longrightarrow \f$ IDFilter \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinInference </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
-		</tr>
-	</table>
+ <table>
+  <tr>
+   <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+   <td VALIGN="middle" ROWSPAN=5> \f$ \longrightarrow \f$ IDFilter \f$ \longrightarrow \f$</td>
+   <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+  </tr>
+  <tr>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
+  </tr>
+  <tr>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinInference </td>
+  </tr>
+  <tr>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper </td>
+  </tr>
+  <tr>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+  </tr>
+ </table>
 </CENTER>
 
-	This tool is used to filter the identifications found by
-	a peptide/protein identification tool like Mascot. Different filters can be applied:
+ This tool is used to filter the identifications found by
+ a peptide/protein identification tool like Mascot. Different filters can be applied:
 
-	<ul>
+ <ul>
 
-		<li>
-			<b>score:pep</b>:<br> This parameter
-			specifies which score a peptide hit should have to be kept.
-		</li>
-		<li>
-			<b>score:prot</b>:<br> This parameter
-			specifies which score a protein hit should have to be kept.
-		</li>
-		<li>
-			<b>thresh:pep</b>:<br> This parameter
-			specifies which amount of the significance threshold should
-			be reached by a peptide to be kept. If for example a peptide
-			has score 30 and the significance threshold is 40, the
-			peptide will only be kept by the filter if the significance
-			threshold fraction is set to 0.75 or lower.
-		</li>
-		<li>
-			<b>thresh:prot</b>:<br> This parameter
-			behaves in the same way as the peptide significance threshold
-			fraction parameter. The only difference is that it is used
-			to filter protein hits.
-		</li>
-		<li>
-			<b>whitelist:proteins</b>:<br> If you know which proteins
-			are in the measured sample you can specify a FASTA file
-			which contains the protein sequences of those proteins. All
-			peptides which are not a substring of a protein contained
-			in the sequences file will be filtered out. The filtering is based on the
+  <li>
+   <b>score:pep</b>:<br> This parameter
+   specifies which score a peptide hit should have to be kept.
+  </li>
+  <li>
+   <b>score:prot</b>:<br> This parameter
+   specifies which score a protein hit should have to be kept.
+  </li>
+  <li>
+   <b>thresh:pep</b>:<br> This parameter
+   specifies which amount of the significance threshold should
+   be reached by a peptide to be kept. If for example a peptide
+   has score 30 and the significance threshold is 40, the
+   peptide will only be kept by the filter if the significance
+   threshold fraction is set to 0.75 or lower.
+  </li>
+  <li>
+   <b>thresh:prot</b>:<br> This parameter
+   behaves in the same way as the peptide significance threshold
+   fraction parameter. The only difference is that it is used
+   to filter protein hits.
+  </li>
+  <li>
+   <b>whitelist:proteins</b>:<br> If you know which proteins
+   are in the measured sample you can specify a FASTA file
+   which contains the protein sequences of those proteins. All
+   peptides which are not a substring of a protein contained
+   in the sequences file will be filtered out. The filtering is based on the
       protein identifiers attached to the peptide hits. Protein Hits not matching
       any FASTA protein are also removed.<br>
       If you want filtering using the sequence alone, then use the flag @em WhiteList:by_seq_only.
-		</li>
-		<li>
-			<b>blacklist:peptides</b>:<br> For this option you specify an IdXML file.
-			All peptides that are present in both files (in-file and exclusion peptides
-			file) will be dropped. Protein Hits are not affected.
-		</li>
-		<li><b>rt</b>:<br> To filter identifications according to their
-			predicted retention times you have to set 'rt:p_value' and/or 'rt:p_value_1st_dim' larger than 0, depending which RT
+  </li>
+  <li>
+   <b>blacklist:peptides</b>:<br> For this option you specify an IdXML file.
+   All peptides that are present in both files (in-file and exclusion peptides
+   file) will be dropped. Protein Hits are not affected.
+  </li>
+  <li><b>rt</b>:<br> To filter identifications according to their
+   predicted retention times you have to set 'rt:p_value' and/or 'rt:p_value_1st_dim' larger than 0, depending which RT
       dimension you want to filter.
-			This filter can only be applied to IdXML files produced by @ref TOPP_RTPredict.
-		</li>
-		<li>
-			<b>best:n_peptide_hits</b>:<br> Only the best n peptide hits of a spectrum are kept. If two hits have the same score, their order is random.
-		</li>
-		<li>
-			<b>best:n_protein_hits</b>:<br> Only the best n protein hits of a spectrum are kept. If two hits have the same score, their order is random.
-		</li>
-		<li>
-			<b>best:strict</b>:<br> Only the best hit of a spectrum is kept.
-			If there is more than one hit for a spectrum with the maximum score, then
-			none of the hits will be kept. This is similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.
-		</li>
-	</ul>
+   This filter can only be applied to IdXML files produced by @ref TOPP_RTPredict.
+  </li>
+  <li>
+   <b>best:n_peptide_hits</b>:<br> Only the best n peptide hits of a spectrum are kept. If two hits have the same score, their order is random.
+  </li>
+  <li>
+   <b>best:n_protein_hits</b>:<br> Only the best n protein hits of a spectrum are kept. If two hits have the same score, their order is random.
+  </li>
+  <li>
+   <b>best:strict</b>:<br> Only the best hit of a spectrum is kept.
+   If there is more than one hit for a spectrum with the maximum score, then
+   none of the hits will be kept. This is similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.
+  </li>
+ </ul>
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_IDFilter.cli
+ <B>The command line parameters of this tool are:</B>
+ @verbinclude TOPP_IDFilter.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -141,16 +141,16 @@ using namespace std;
 
 
 class TOPPIDFilter
-	: public TOPPBase
+    : public TOPPBase
 {
- public:
+public:
 	TOPPIDFilter()
 		: TOPPBase("IDFilter","Filters results from protein or peptide identification engines based on different criteria.")
 	{
 
 	}
 
- protected:
+protected:
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","","input file ");
@@ -170,8 +170,8 @@ class TOPPIDFilter
 
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only instances also present in a whitelist file can pass)");
     registerInputFile_("whitelist:proteins","<file>","","filename of a FASTA file containing protein sequences.\n"
-																											 "All peptides that are not a substring of a sequence in this file are removed\n"
-                                                       "All proteins whose accession is not present in this file are removed.",false);
+                       "All peptides that are not a substring of a sequence in this file are removed\n"
+                       "All proteins whose accession is not present in this file are removed.",false);
 		setValidFormats_("whitelist:proteins",StringList::create("FASTA"));
     registerFlag_("whitelist:by_seq_only","Match peptides with FASTA file by sequence instead of accession and disable protein filtering.");
 
@@ -180,12 +180,17 @@ class TOPPIDFilter
 		setValidFormats_("blacklist:peptides",StringList::create("idXML"));
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
-    registerDoubleOption_("rt:p_value","<float>",0.0,"Retention time filtering by the p-value predicted by RTPredict.",false);
-    registerDoubleOption_("rt:p_value_1st_dim","<float>",0.0,"Retention time filtering by the p-value predicted by RTPredict for first dimension.",false);
+    registerDoubleOption_("rt:p_value","<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.",false);
+    registerDoubleOption_("rt:p_value_1st_dim","<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict for first dimension.",false);
     setMinFloat_("rt:p_value",0);
     setMaxFloat_("rt:p_value",1);
     setMinFloat_("rt:p_value_1st_dim",0);
     setMaxFloat_("rt:p_value_1st_dim",1);
+
+    registerTOPPSubsection_("mz", "Filtering by mz");
+    registerDoubleOption_("mz:error", "<float>", -1, "Filtering by deviation to theoretical mass (disabled for negative values).", false);
+    registerStringOption_("mz:unit", "<String>", "ppm", "Absolute or relativ error.", false);
+    setValidStrings_("mz:unit", StringList::create("Da,ppm"));
 
     registerTOPPSubsection_("best", "Filtering best hits per spectrum (for peptides) or from proteins");
     registerIntOption_("best:n_peptide_hits","<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n>0).", false);
@@ -193,15 +198,15 @@ class TOPPIDFilter
     registerIntOption_("best:n_protein_hits","<integer>", 0, "Keep only the 'n' highest scoring protein hits (for n>0).", false);
     setMinInt_("best:n_protein_hits", 0);
     registerFlag_("best:strict","Keep only the highest scoring peptide hit.\n"
-															"Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
+                  "Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
 		registerIntOption_("min_length","<integer>", 0, "Keep only peptide hits with a length greater or equal this value.", false);
 		setMinInt_("min_length", 0);
 
     registerFlag_("unique","If a peptide hit occurs more than once, only one instance is kept. This will (for instance) remove \
-                            redundant identifications from multiple charge states or concurrent CID+HCD spectra. \
-                            If you are aiming towards quantitation, you probably do *not* want to use this flag!");
-		registerFlag_("unique_per_protein","Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
-    registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the idXML.");
+                  redundant identifications from multiple charge states or concurrent CID+HCD spectra. \
+                  If you are aiming towards quantitation, you probably do *not* want to use this flag!");
+                  registerFlag_("unique_per_protein","Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
+        registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the idXML.");
 
     //setSectionDescription("RT", "Filters peptides using meta-data annotated by RT predict. The criterion is always the p-value (for having a deviation between observed and predicted RT equal or bigger than allowed).");
 
@@ -257,6 +262,11 @@ class TOPPIDFilter
 		bool unique_per_protein = getFlag_("unique_per_protein");
 
     bool keep_unreferenced_protein_hits = getFlag_("keep_unreferenced_protein_hits");
+
+    DoubleReal mz_error = getDoubleOption_("mz:error");
+    bool mz_error_filtering = (mz_error < 0) ? false : true;
+    bool mz_error_unit_ppm = (getStringOption_("mz:unit") == "ppm") ? true : false;
+
 		//-------------------------------------------------------------
 		// reading input
 		//-------------------------------------------------------------
@@ -385,6 +395,13 @@ class TOPPIDFilter
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification);
 			}
+
+      if (mz_error_filtering)
+      {
+        applied_filters.insert("Filtering by mass error ...\n");
+        PeptideIdentification temp_identification = filtered_identification;
+        filter.filterIdentificationsByMzError(temp_identification, mz_error, mz_error_unit_ppm, filtered_identification);
+      }
 
 			if(!filtered_identification.getHits().empty())
 			{
