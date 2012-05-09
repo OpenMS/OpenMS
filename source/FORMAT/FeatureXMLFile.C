@@ -323,7 +323,9 @@ namespace OpenMS
 		}
 		else if (tag=="featureList")
 		{
-			if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+      Size count = attributeAsInt_(attributes, "count");
+      map_->reserve(std::min(Size(1e5), count)); // reserve vector for faster push_back, but with upper boundary of 1e5 (as >1e5 is most likely an invalid feature count)
 		}
 		else if (tag=="quality" || tag=="hposition" || tag=="position")
 		{
