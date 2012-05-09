@@ -264,14 +264,21 @@ namespace OpenMS
                 incomplete_line_ = "";
                 outstring += &(buf[0]);
 
-                // check if we already have that in line in our cache
-                if (!isInCache_(outstring))
+                // avoid adding empty lines to the cache                  
+                if (outstring.empty())
+                {
+                  distribute_(outstring);
+                }
+                // check if we have already seen this log message
+                else if (!isInCache_(outstring))
                 {
                   // add line to the log cache
                   std::string extra_message = addToCache_(outstring);
 
-                  if (extra_message.size() > 0)
+                  // send outline (and extra_message) to attached streams
+                  if (!extra_message.empty())
                     distribute_(extra_message);
+                    
                   distribute_(outstring);
                 }
 

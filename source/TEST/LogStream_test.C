@@ -511,7 +511,18 @@ START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
 }
 END_SECTION
 
-
+START_SECTION(([EXTRA] Test caching of empty lines))
+{
+  ostringstream stream_by_logger;
+  {
+		LogStream l1(new LogStreamBuf());
+		l1.insert(stream_by_logger);
+		l1 << "No caching for the following empty lines" << std::endl;
+		l1 << "\n\n\n" << std::endl;
+	}
+	TEST_EQUAL(stream_by_logger.str(), "No caching for the following empty lines\n\n\n\n\n")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
