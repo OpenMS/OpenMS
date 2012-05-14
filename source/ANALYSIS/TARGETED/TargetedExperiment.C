@@ -331,7 +331,7 @@ namespace OpenMS
     {
       protein_reference_map_[getProteins()[i].id] = &getProteins()[i];
     }
-
+    protein_reference_map_dirty_ = false;
   }
 
   void TargetedExperiment::createPeptideReferenceMap()
@@ -340,6 +340,7 @@ namespace OpenMS
     {
       peptide_reference_map_[getPeptides()[i].id] = &getPeptides()[i];
     }
+    peptide_reference_map_dirty_ = false;
   }
 
 }
