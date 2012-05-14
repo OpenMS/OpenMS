@@ -326,6 +326,7 @@ namespace OpenMS
       if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
       Size count = attributeAsInt_(attributes, "count");
       map_->reserve(std::min(Size(1e5), count)); // reserve vector for faster push_back, but with upper boundary of 1e5 (as >1e5 is most likely an invalid feature count)
+      startProgress(0,count,"loading featureXML file");
 		}
 		else if (tag=="quality" || tag=="hposition" || tag=="position")
 		{
@@ -754,6 +755,10 @@ namespace OpenMS
 			pep_id_.insertHit(pep_hit_);
 			last_meta_ = &pep_id_;
 		}
+		else if (tag == "featureList")
+		{
+			endProgress();
+		}
 	}
 
 	void FeatureXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
@@ -953,6 +958,7 @@ namespace OpenMS
 		{
 			if (create)
 			{
+				setProgress(map_->size());
 				map_->push_back(Feature());
 				current_feature_ = &map_->back();
 				last_meta_ =  &map_->back();

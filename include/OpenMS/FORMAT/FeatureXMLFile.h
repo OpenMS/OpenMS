@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <iostream>
 
@@ -50,7 +51,8 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI FeatureXMLFile
   	: protected Internal::XMLHandler,
-  		public Internal::XMLFile
+  		public Internal::XMLFile, 
+  		public ProgressLogger
   {
 
 		public:
