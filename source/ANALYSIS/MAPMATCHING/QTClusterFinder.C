@@ -188,7 +188,7 @@ namespace OpenMS
 		// iterate over all grid cells:
 		for (Grid::iterator it = grid.begin(); it != grid.end(); ++it)
 		{
-      const Grid::CellIndex act_coords = it.index();
+      const Grid::CellIndex& act_coords = it.index();
       const Int x = act_coords[0], y = act_coords[1];
 
       GridFeature* center_feature = it->second;
