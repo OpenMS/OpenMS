@@ -142,7 +142,7 @@ namespace OpenMS
 		*/
 		inline static bool approximatelyEqual(DoubleReal a, DoubleReal b, DoubleReal tol)
 		{
-			return std::abs(a - b) <= tol;
+      return std::fabs(a - b) <= tol;
 		}
 
     /**
