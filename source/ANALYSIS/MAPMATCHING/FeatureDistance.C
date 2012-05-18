@@ -129,12 +129,10 @@ namespace OpenMS
 	}
 
 
-	DoubleReal FeatureDistance::distance_(DoubleReal diff, 
-																				const DistanceParams_* params)
+  DoubleReal FeatureDistance::distance_(DoubleReal diff, const DistanceParams_* params)
 	{
 		return pow(diff * params->norm_factor, params->exponent) * params->weight;
 	}
-
 
 	pair<bool, DoubleReal> FeatureDistance::operator()(const BaseFeature& left, 
 																										 const BaseFeature& right)
@@ -142,44 +140,52 @@ namespace OpenMS
 		if (!ignore_charge_)
 		{
 			Int charge_left = left.getCharge(), charge_right = right.getCharge();
-			if ((charge_left != 0) && (charge_right != 0) && 
-					(charge_left != charge_right))
+      if (charge_left != charge_right)
 			{
-				return make_pair(false, infinity);
+        if ((charge_left != 0) && (charge_right != 0))
+        {
+          return make_pair(false, infinity);
+        }
 			}
 		}
 
 		bool valid = true;
-		DoubleReal dist_rt = 0.0, dist_mz = 0.0, dist_intensity = 0.0;
-		
+
+    // check m/z difference constraint:
+    DoubleReal left_mz = left.getMZ(), right_mz = right.getMZ();
+    DoubleReal dist_mz = fabs(left_mz - right_mz);
+    DoubleReal max_diff_mz = params_mz_->max_difference;
+    if (params_mz_->max_diff_ppm) // compute absolute difference (in Da/Th)
+    {
+      max_diff_mz *= left_mz * 1e-6;
+      // overwrite this parameter - it will be recomputed each time anyway:
+      params_mz_->norm_factor = 1 / max_diff_mz;
+    }
+
+    if (dist_mz > max_diff_mz)
+    {
+      if (force_constraints_)
+      {
+        return make_pair(false, infinity);
+      }
+      valid = false;
+    }
+
 		// check RT difference constraint:
-		dist_rt = abs(left.getRT() - right.getRT());
+    DoubleReal dist_rt = abs(left.getRT() - right.getRT());
 		if (dist_rt > params_rt_->max_difference)
 		{
-			if (force_constraints_) return make_pair(false, infinity);
+      if (force_constraints_)
+      {
+        return make_pair(false, infinity);
+      }
 			valid = false;
 		}
 
-		// check m/z difference constraint:
-		DoubleReal left_mz = left.getMZ(), right_mz = right.getMZ();
-		dist_mz = abs(left_mz - right_mz);
-		DoubleReal max_diff_mz = params_mz_->max_difference;
-		if (params_mz_->max_diff_ppm) // compute absolute difference (in Da/Th)
-		{
-			max_diff_mz *= left_mz * 1e-6;
-			// overwrite this parameter - it will be recomputed each time anyway:
-			params_mz_->norm_factor = 1 / max_diff_mz;
-		}
-		if (dist_mz > max_diff_mz)
-		{
-			if (force_constraints_) return make_pair(false, infinity);
-			valid = false;
-		}
-		
 		dist_rt = distance_(dist_rt, params_rt_);
-
 		dist_mz = distance_(dist_mz, params_mz_);
 
+    DoubleReal dist_intensity = 0.0;
 		if (params_intensity_->relevant) // not by default, so worth checking
 		{
 			dist_intensity = abs(left.getIntensity() - right.getIntensity());

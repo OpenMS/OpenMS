@@ -200,9 +200,14 @@ namespace OpenMS
         // iterate over neighboring grid cells (2nd dimension):
         for (int j = y - 1; j <= y + 1; ++j)
         {
+          if (i == x && j == y)
+          {
+            continue;
+          }
+
           try
           { 
-            const Grid::CellContent act_pos = grid.grid_at(Grid::CellIndex(i, j));
+            const Grid::CellContent& act_pos = grid.grid_at(Grid::CellIndex(i, j));
 
             for (Grid::const_cell_iterator it_cell = act_pos.begin(); it_cell != act_pos.end(); ++it_cell)
 						{
