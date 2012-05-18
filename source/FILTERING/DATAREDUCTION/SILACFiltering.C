@@ -279,7 +279,7 @@ namespace OpenMS
                   bool inBlacklistEntry = blacklist_check_it->second.range.encloses(*expectedMZshifts_it + mz, rt);
                   bool exception = (charge == blacklist_check_it->second.charge)
                                    && (mass_separations == blacklist_check_it->second.mass_separations)
-                                   && (abs(*expectedMZshifts_it - blacklist_check_it->second.relative_peak_position) < 0.1);
+                                   && (fabs(*expectedMZshifts_it - blacklist_check_it->second.relative_peak_position) < 0.1);
 
                   if (inBlacklistEntry && !exception )
                   {

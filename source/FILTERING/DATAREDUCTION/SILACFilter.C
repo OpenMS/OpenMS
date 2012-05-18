@@ -107,7 +107,7 @@ namespace OpenMS
         DoubleReal nearest_peak_mz = s[nearest_peak_idx].getMZ();
 
         // calculate error between expected and actual position
-        DoubleReal nearestPeakError = abs( nearest_peak_mz - next_peak_expected);
+        DoubleReal nearestPeakError = fabs( nearest_peak_mz - next_peak_expected);
 
         DoubleReal deltaMZ;
 
@@ -206,7 +206,7 @@ namespace OpenMS
 
 
         // calculate error between expected and actual position
-        DoubleReal nearestPeakError = abs( nearest_peak_mz - next_peak_expected);
+        DoubleReal nearestPeakError = fabs( nearest_peak_mz - next_peak_expected);
 
         DoubleReal deltaMZ;
 
