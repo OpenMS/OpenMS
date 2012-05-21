@@ -27,6 +27,7 @@
 
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <cmath>

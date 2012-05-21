@@ -26,19 +26,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 
 namespace OpenMS
 {
-	
-
-		
+			
   std::ostream& operator << (std::ostream& os, const ChargePair& cp)
   {
     os  << "---------- ChargePair -----------------\n"
-		    << "Mass Diff: " << cp.getMassDiff()<< std::endl
-		    << "Compomer: " << cp.getCompomer() << std::endl
-		    << "Charge: " << cp.getCharge(0) << " : " << cp.getCharge(1) << std::endl
-		    << "Element Index: " << cp.getElementIndex(0) << " : " << cp.getElementIndex(1) << std::endl;
+		    << "Mass Diff: " << cp.getMassDiff() << "\n"
+		    << "Compomer: " << cp.getCompomer() << "\n"
+		    << "Charge: " << cp.getCharge(0) << " : " << cp.getCharge(1) << "\n"
+		    << "Element Index: " << cp.getElementIndex(0) << " : " << cp.getElementIndex(1) << "\n";
     return os;
   }
 }

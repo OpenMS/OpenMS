@@ -22,31 +22,29 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $ 
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_DATASTRUCTURES_COMPOMER_H
 #define OPENMS_DATASTRUCTURES_COMPOMER_H
 
 #include <vector>
-#include <map>
-#include <set>
-#include <cstdlib>
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 namespace OpenMS
 {
 
+  class String;
+  class StringList;
+  class Adduct;
+
 /**
-	@brief Holds information on an egde connecting two features from a (putative) charge ladder
+	@brief Holds information on an edge connecting two features from a (putative) charge ladder
 	
 	A compomer is storing information on the adducts used on LEFT and RIGHT nodes (Features) that are connected by the egde (i.e. ChargePair)
-	holding the compomer. Additonally meta information on the edge (net_charge, edge score, id)
+	holding the compomer. Additionally meta information on the edge (net_charge, edge score, id)
 	which is kept up-to-date when adducts are added to either side is stored.
 	
 */
@@ -56,8 +54,8 @@ public:
 	/// side of compomer (LEFT ^ substract; RIGHT ^ add)
 	enum SIDE {LEFT, RIGHT, BOTH};
 	
-	typedef Map<String,Adduct> CompomerSide; /// adducts and their abundance etc
-	typedef std::vector< CompomerSide > CompomerComponents; /// container for the two sides [0]=left, [1]=right
+	typedef Map<String, Adduct> CompomerSide; /// adducts and their abundance etc
+	typedef std::vector<CompomerSide> CompomerComponents; /// container for the two sides [0]=left, [1]=right
 	
 	/// Default Constructor
 	Compomer();

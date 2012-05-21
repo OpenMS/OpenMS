@@ -22,10 +22,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
+
+#include <cmath>
 
 using namespace std;
 
@@ -258,7 +262,7 @@ namespace OpenMS
 				tmp.mass_ -= amount *a.getSingleMass()*mult[side];
 				tmp.pos_charges_ -=  std::max(amount *a.getCharge()*mult[side],0);
 				tmp.neg_charges_ -= -std::min(amount *a.getCharge()*mult[side],0);
-				tmp.log_p_ -= std::abs((Real)amount) *a.getLogProb();
+				tmp.log_p_ -= std::fabs((Real)amount) *a.getLogProb();
 				tmp.rt_shift_ -= amount*a.getRTShift()*mult[side];
 			}
 			// remove entry from map
