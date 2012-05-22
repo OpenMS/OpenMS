@@ -31,6 +31,7 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 
 using namespace OpenMS;
 using namespace std;
