@@ -44,15 +44,15 @@ namespace OpenMS
 	{
 	}
 
-	void MzQuantMLFile::load(const String& filename, ConsensusMap& cm)
+	void MzQuantMLFile::load(const String& filename, MSQuantifications& msq)
 	{
-		Internal::MzQuantMLHandler handler(cm, filename, schema_version_, *this);
+		Internal::MzQuantMLHandler handler(msq, filename, schema_version_, *this);
 		parse_(filename, &handler);
 	}
 
-	void MzQuantMLFile::store(const String& filename, const ConsensusMap& cm) const
+	void MzQuantMLFile::store(const String& filename, const MSQuantifications& cmsq) const
 	{
-		Internal::MzQuantMLHandler handler(cm, filename, schema_version_, *this);
+		Internal::MzQuantMLHandler handler(cmsq, filename, schema_version_, *this);
 		save_(filename, &handler);
 	}
 	

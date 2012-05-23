@@ -31,7 +31,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/MSQuantifications.h>
 
 namespace OpenMS
 {
@@ -52,10 +52,10 @@ namespace OpenMS
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler
-      MzQuantMLHandler(const ConsensusMap& consensus_map, /* const FeatureMap& feature_map, */ const String& filename, const String& version, const ProgressLogger& logger);
+      MzQuantMLHandler(const MSQuantifications& msq, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler
-      MzQuantMLHandler(ConsensusMap& consensus_map, /* FeatureMap& feature_map, */ const String& filename, const String& version, const ProgressLogger& logger);
+      MzQuantMLHandler(MSQuantifications& msq, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
       virtual ~MzQuantMLHandler();
@@ -84,11 +84,9 @@ namespace OpenMS
 
 			String tag_;
 
-			//~ FeatureMap* fm_;
-			ConsensusMap* cm_;
+			MSQuantifications* msq_;
 
-			//~ const FeatureMap* cfm_;
-			const ConsensusMap* ccm_;
+			const MSQuantifications* cmsq_;
 
 			/// Handles CV terms
 			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref/* ,  const String& unit_accession="" */);
@@ -96,10 +94,14 @@ namespace OpenMS
 			/// Handles user terms
 			void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
 
+		 /// Write CV term
+		 //~ TODO rewirte writeCVParams_ in baseclass to be more convenient
+		 //~ void MzQuantMLHandler::writeCVParams_(std::ostream& os, const Map< String, std::vector < CVTerm > > & , UInt indent);
+		 void writeCVParams_(String& s, const Map< String, std::vector < CVTerm > > & , UInt indent);
+		 
 			/// Writes user terms
-			void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent);
-
-			void writeUserParam_(String& s, const MetaInfoInterface& meta, UInt indent);
+			void writeUserParams_(std::ostream& os, const MetaInfoInterface& meta, UInt indent);
+			void writeUserParams_(String& s, const MetaInfoInterface& meta, UInt indent);
 
 			/// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
 			ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
@@ -116,8 +118,12 @@ namespace OpenMS
 				MzQuantMLHandler();
 				MzQuantMLHandler(const MzQuantMLHandler& rhs);
 				MzQuantMLHandler& operator = (const MzQuantMLHandler& rhs);
-				enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES};
+				
 
+				//~ Map<String, AASequence> pep_sequences_;
+				SourceFile actual_inputfile_;
+				//~ Int current_mod_location_;
+				//~ ProteinHit actual_protein_;
 				//~ Double ratio_;
 
 		};

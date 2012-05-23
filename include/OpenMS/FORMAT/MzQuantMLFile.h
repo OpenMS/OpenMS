@@ -31,7 +31,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/MSQuantifications.h>
 
 namespace OpenMS
 {
@@ -58,15 +58,18 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(const String& filename, ConsensusMap& id);
+			void load(const String& filename, MSQuantifications& msq);
 
 			/**
 				@brief Stores a map in a MzQuantML file.
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(const String& filename, const ConsensusMap& id) const;
+			void store(const String& filename, const MSQuantifications& cmsq) const;
 
+			//~ this is not overwritten, XMLFile version works fine
+			//~ bool isValid(const String& filename, std::ostream& os = std::cerr);
+		
 			/**
 				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 

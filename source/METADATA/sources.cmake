@@ -43,6 +43,7 @@ IdentificationHit.C
 ChromatogramSettings.C
 CVTerm.C
 CVTermList.C
+MSQuantifications.C
 )
 
 ### add path to the filenames
