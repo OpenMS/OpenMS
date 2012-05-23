@@ -3626,7 +3626,9 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		qobject_cast<QWidget *>(log_->parent())->show();
 
 		//update log_
-		log_->append(topp_.process->readAllStandardOutput());
+    log_->moveCursor(QTextCursor::End,QTextCursor::MoveAnchor); // move cursor to end, since text is inserted at cursor
+    log_->insertPlainText(topp_.process->readAllStandardOutput());
+		
 	}
 
   Param TOPPViewBase::getSpectrumParameters(UInt dim)
@@ -4498,7 +4500,8 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
     qobject_cast<QWidget*>(log_->parent())->show();
 
     //update log_
-    log_->append(text);
+    log_->moveCursor(QTextCursor::End,QTextCursor::MoveAnchor); // move cursor to end, since text is inserted at cursor
+		log_->insertPlainText(text);
   }
 
   void TOPPViewBase::openFilesInTOPPView(QStringList files)

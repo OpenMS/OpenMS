@@ -1382,7 +1382,8 @@ namespace OpenMS
 		qobject_cast<QWidget*>(log_->parent())->show();
 
 		//update log_
-		log_->append(text);
+    log_->moveCursor(QTextCursor::End,QTextCursor::MoveAnchor); // move cursor to end, since text is inserted at cursor
+		log_->insertPlainText(text);
 	}
 	
   void TOPPASBase::showPipelineFinishedLogMessage()
