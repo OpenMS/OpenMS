@@ -1,0 +1,10 @@
+MOD	OpenMS_0-title	0
+
+PRH	accession	unit_id	description	taxid	species	database	database_version	search_engine	search_engine_score	reliability	num_peptides	num_peptides_distinct	num_peptides_unambiguous	ambiguity_members	modifications	uri	go_terms	protein_coverage	protein_abundance_sub[1]	protein_abundance_stdev_sub[1]	protein_abundance_std_error_sub[1]	protein_abundance_sub[2]	protein_abundance_stdev_sub[2]	protein_abundance_std_error_sub[2]	protein_abundance_sub[3]	protein_abundance_stdev_sub[3]	protein_abundance_std_error_sub[3]
+PRT	Protein	OpenMS_0	--	--	--	file://--	--	[MS,MS:1001207,MASCOT,]	[MS,MS:1001171,MASCOT:score,0.00000000]	--	4	4	4	NA	NA	file://test	--	NA	1234	--	--	234	--	--	1030	--	--
+
+PEH	sequence	accession	unit_id	unique	database	database_version	search_engine	search_engine_score	modifications	retention_time	charge	mass_to_charge	uri	spectra_ref	peptide_abundance_sub[1]	peptide_abundance_stdev_sub[1]	peptide_abundance_std_error_sub[1]	peptide_abundance_sub[2]	peptide_abundance_stdev_sub[2]	peptide_abundance_std_error_sub[2]	peptide_abundance_sub[3]	peptide_abundance_stdev_sub[3]	peptide_abundance_std_error_sub[3]
+PEP	AAA	Protein	OpenMS_0	1	file://--	--	[MS,MS:1001207,MASCOT,]	[MS,MS:1001171,MASCOT:score,0.00000000]	--	--	NA	--	file://test	--	1000	--	--	--	--	--	1000	--	--
+PEP	CCC	Protein	OpenMS_0	1	file://--	--	[MS,MS:1001207,MASCOT,]	[MS,MS:1001171,MASCOT:score,0.00000000]	--	--	NA	--	file://test	--	200	--	--	200	--	--	--	--	--
+PEP	EEE	Protein	OpenMS_0	1	file://--	--	[MS,MS:1001207,MASCOT,]	[MS,MS:1001171,MASCOT:score,0.00000000]	--	--	NA	--	file://test	--	30	--	--	30	--	--	30	--	--
+PEP	GGG	Protein	OpenMS_0	1	file://--	--	[MS,MS:1001207,MASCOT,]	[MS,MS:1001171,MASCOT:score,0.00000000]	--	--	NA	--	file://test	--	4	--	--	4	--	--	--	--	--

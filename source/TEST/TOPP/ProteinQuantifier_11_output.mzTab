@@ -1,0 +1,15 @@
+MOD	OpenMS_0-title	0
+
+PRH	accession	unit_id	description	taxid	species	database	database_version	search_engine	search_engine_score	reliability	num_peptides	num_peptides_distinct	num_peptides_unambiguous	ambiguity_members	modifications	uri	go_terms	protein_coverage	protein_abundance_sub[1]	protein_abundance_stdev_sub[1]	protein_abundance_std_error_sub[1]
+PRT	Protein0	OpenMS_0	--	--	--	file://--	--	NA	NA	--	6	3	3	NA	NA	file://test	--	NA	13332	--	--
+PRT	Protein1	OpenMS_0	--	--	--	file://--	--	NA	NA	--	2	1	1	NA	NA	file://test	--	NA	8888	--	--
+
+PEH	sequence	accession	unit_id	unique	database	database_version	search_engine	search_engine_score	modifications	retention_time	charge	mass_to_charge	uri	spectra_ref	peptide_abundance_sub[1]	peptide_abundance_stdev_sub[1]	peptide_abundance_std_error_sub[1]
+PEP	AAAAA	Protein0	OpenMS_0	1	file://--	--	NA	NA	--	--	1	--	file://test	--	3333	--	--
+PEP	CCCCC	Protein0	OpenMS_0	1	file://--	--	NA	NA	--	--	1	--	file://test	--	3333	--	--
+PEP	CCCCC	Protein0	OpenMS_0	1	file://--	--	NA	NA	--	--	2	--	file://test	--	4444	--	--
+PEP	DDDDD	Protein0	OpenMS_0	1	file://--	--	NA	NA	--	--	1	--	file://test	--	5555	--	--
+PEP	EEEEE	NA	OpenMS_0	0	file://--	--	NA	NA	--	--	1	--	file://test	--	--	--	--
+PEP	FFFFF	NA	OpenMS_0	0	file://--	--	NA	NA	--	--	1	--	file://test	--	--	--	--
+PEP	GGGGG	NA	OpenMS_0	0	file://--	--	NA	NA	--	--	1	--	file://test	--	7777	--	--
+PEP	HHHHH	Protein1	OpenMS_0	1	file://--	--	NA	NA	--	--	1	--	file://test	--	8888	--	--
