@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -318,8 +319,7 @@ protected:
 		setValidFormats_("protxml", StringList::create("idXML"));
 		registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
 		registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances", false);
-		registerOutputFile_("id_out", "<file>", "", "Output file for peptide and protein abundances (annotated idXML) - suitable for export to mzTab.\nEither 'out', 'peptide_out', or 'id_out' are required. They can be used together.", false);
-		setValidFormats_("id_out", StringList::create("idXML"));
+		registerOutputFile_("mzTab_out", "<file>", "", "Export to mzTab.\nEither 'out', 'peptide_out', or 'mzTab_out' are required. They can be used together.", false);
 
 		// algorithm parameters:
 		addEmptyLine_();
@@ -590,7 +590,7 @@ protected:
 						 << "\n...peptides: "  << stats.quant_peptides 
 						 << " quantified, " << stats.total_peptides 
 						 << " identified (considering best hits only)";
-		if (!getStringOption_("out").empty() || !getStringOption_("id_out").empty())
+		if (!getStringOption_("out").empty() || !getStringOption_("mzTab_out").empty())
 		{
 			bool include_all = algo_params_.getValue("include_all") == "true";
 			Size top = algo_params_.getValue("top");
@@ -806,13 +806,13 @@ protected:
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
 		String peptide_out = getStringOption_("peptide_out");
-		String id_out = getStringOption_("id_out");
+		String mzTab_out = getStringOption_("mzTab_out");
 
-		if (out.empty() && peptide_out.empty() && id_out.empty())
+		if (out.empty() && peptide_out.empty() && mzTab_out.empty())
 		{
 			throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__,
 																								 __PRETTY_FUNCTION__, 
-																								 "out/peptide_out/id_out");
+																								 "out/peptide_out/mzTab_out");
 		}
 
 		String protxml = getStringOption_("protxml");
@@ -832,7 +832,7 @@ protected:
 		{
 			FeatureMap<> features;
 			FeatureXMLFile().load(in, features);
-			if (!id_out.empty()) 
+			if (!mzTab_out.empty()) 
 			{
 				processing = features.getDataProcessing();
 			}
@@ -851,7 +851,7 @@ protected:
 			ConsensusMap consensus;
 			ConsensusXMLFile().load(in, consensus);
 			files_ = consensus.getFileDescriptions(); 
-			if (!id_out.empty()) processing = consensus.getDataProcessing();
+			if (!mzTab_out.empty()) processing = consensus.getDataProcessing();
 			// ProteinProphet results in the consensusXML?
 			if (protxml.empty() && 
 					(consensus.getProteinIdentifications().size() == 1) &&
@@ -862,7 +862,7 @@ protected:
 			quantifier.quantifyPeptides(consensus);
 		}
 
-		if (!out.empty() || !id_out.empty()) // quantify on protein level
+		if (!out.empty() || !mzTab_out.empty()) // quantify on protein level
 		{
 			if (!protxml.empty()) // read ProteinProphet data
 			{
@@ -908,7 +908,7 @@ protected:
 			writeProteinTable_(output, quantifier.getProteinResults());
 			outstr.close();
 		}
-		if (!id_out.empty())
+		if (!mzTab_out.empty())
 		{
 			prepareMzTab_(quantifier.getProteinResults(), 
 										quantifier.getPeptideResults(), processing);
@@ -921,7 +921,8 @@ protected:
 			{
 				peptides[i].insertHit(peptides_.getHits()[i]);
 			}
-			IdXMLFile().store(id_out, proteins, peptides);
+      MzTabFile mztab;
+			mztab.store(mzTab_out, proteins, peptides, mzTab_out, String("0"));
 		}
 		
 		writeStatistics_(quantifier.getStatistics());
