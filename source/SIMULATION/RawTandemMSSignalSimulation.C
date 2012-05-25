@@ -46,16 +46,16 @@ RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const SimRandomNumberGe
   subsections_.push_back("Precursor:");
   defaults_.insert("Precursor:", OfflinePrecursorIonSelection().getDefaults());
   defaults_.remove("Precursor:peptides_per_protein");
-  defaults_.setValue("Precursor:charge_filter",IntList::create(StringList::create("2,3")), "Charges considered for MS2 fragmentation.");
-  defaults_.setMinInt("Precursor:charge_filter",1);
-  defaults_.setMaxInt("Precursor:charge_filter",5);
+  defaults_.setValue("Precursor:charge_filter", IntList::create(StringList::create("2,3")), "Charges considered for MS2 fragmentation.");
+  defaults_.setMinInt("Precursor:charge_filter", 1);
+  defaults_.setMaxInt("Precursor:charge_filter", 5);
 
-  defaults_.setValue("MS_E:add_single_spectra","false","If true, the MS2 spectra for each peptide signal are included in the output (might be a lot). They will have a meta value 'MS_E_debug_spectra' attached, so they can be filtered out. Full MS_E spectra will have 'MS_E_FullSpectrum' instead.");
+  defaults_.setValue("MS_E:add_single_spectra","false", "If true, the MS2 spectra for each peptide signal are included in the output (might be a lot). They will have a meta value 'MSE_DebugSpectrum' attached, so they can be filtered out. Native MS_E spectra will have 'MSE_Spectrum' instead.");
   defaults_.setValidStrings("MS_E:add_single_spectra", StringList::create("true,false"));
   defaults_.setValue("tandem_mode", 0, "Algorithm to generate the tandem-MS spectra. 0 - fixed intensities, 1 - SVC prediction (abundant/missing), 2 - SVR prediction of peak intensity \n");
-  defaults_.setMinInt("tandem_mode",0);
-  defaults_.setMaxInt("tandem_mode",2);
-  defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.model", "File containing the Filenames of SVM Models for different charge variants");
+  defaults_.setMinInt("tandem_mode", 0);
+  defaults_.setMaxInt("tandem_mode", 2);
+  defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.model", "File containing the filenames of SVM Models for different charge variants");
 
   subsections_.push_back("TandemSim:");
   defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());
@@ -213,6 +213,8 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
     MSSimExperiment MS2_spectra;
     MS2_spectra.resize(features_fragmented.size());
 
+    StringList feature_seq;
+    IntList feature_intensities;
     for (Size index=0;index<features_fragmented.size();++index)
     {
       Size i_f = features_fragmented[index];
@@ -225,8 +227,13 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
       DoubleReal factor = elution_ints [i - elution_bounds[0] ] * features[i_f].getIntensity();
       for (MSSimExperiment::SpectrumType::iterator it=MS2_spectra[index].begin();it!=MS2_spectra[index].end();++it)
       {
-        it->setIntensity(it->getIntensity() * factor );
+        it->setIntensity(it->getIntensity() * factor);
       }
+      // store true sequence of spectrum
+      feature_seq.push_back(features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence().toString() + ":" + features[i_f].getCharge());
+      MS2_spectra[index].setMetaValue("sequence", feature_seq.back());
+      feature_intensities.push_back(factor);
+      MS2_spectra[index].setMetaValue("intensity factor", factor);
     }
 
     // debug: also add single spectra
@@ -235,7 +242,7 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
       for (Size ii=0;ii<MS2_spectra.size();++ii)
       {
         ms2.push_back(MS2_spectra[ii]); // DEBUG
-        ms2.back().setMetaValue("MS_E_debug_spectra","true");
+        ms2.back().setMetaValue("MSE_DebugSpectrum","true");
       }
     }
 
@@ -243,7 +250,9 @@ void RawTandemMSSignalSimulation::generateMSESpectra_(const FeatureMapSim & feat
     sm.mergeSpectraBlockWise(MS2_spectra);
     if (MS2_spectra.size()!=1) throw Exception::InvalidSize(__FILE__,__LINE__,__PRETTY_FUNCTION__,MS2_spectra.size() );
     // store merged spectrum
-    MS2_spectra[0].setMetaValue("MS_E_FullSpectrum","true");
+    MS2_spectra[0].setMetaValue("MSE_Spectrum", "true");
+    MS2_spectra[0].setMetaValue("MSE_sequences", feature_seq);
+    MS2_spectra[0].setMetaValue("MSE_intensities", feature_intensities);
     ms2.push_back(MS2_spectra[0]);
 
   }
@@ -350,7 +359,7 @@ void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim 
 }
 }
 
-void RawTandemMSSignalSimulation::generateRawTandemSignals(const FeatureMapSim & features, MSSimExperiment & experiment)
+void RawTandemMSSignalSimulation::generateRawTandemSignals(const FeatureMapSim & features, MSSimExperiment & experiment, MSSimExperiment & experiment_ct)
 {
   LOG_INFO << "Tandem MS Simulation ... ";
 
@@ -375,6 +384,8 @@ void RawTandemMSSignalSimulation::generateRawTandemSignals(const FeatureMapSim &
 
   // append MS2 to experiment
   experiment.insert(experiment.end(), ms2.begin(), ms2.end());
+  // .. and to picked experiment (if we ever simulate MS2 data with raw peaks, this needs to be adapted)
+  experiment_ct.insert(experiment_ct.end(), ms2.begin(), ms2.end());
 
 }
 

@@ -264,7 +264,7 @@ namespace OpenMS {
 
     RawTandemMSSignalSimulation raw_tandemsim(rnd_gen);
     raw_tandemsim.setParameters(param_.copy("RawTandemSignal:", true));
-    raw_tandemsim.generateRawTandemSignals(feature_maps_.front(), experiment_);
+    raw_tandemsim.generateRawTandemSignals(feature_maps_.front(), experiment_, peak_map_);
 
     labeler_->postRawTandemMSHook(feature_maps_,experiment_);
 
@@ -286,11 +286,16 @@ namespace OpenMS {
     // re-index spectra to avoid naming conflicts
     Size id = 1;
     experiment_.sortSpectra();
-    for(MSSimExperiment::Iterator spectrum_iterator = experiment_.begin() ; spectrum_iterator != experiment_.end() ; ++spectrum_iterator)
+    peak_map_.sortSpectra();
+    if (experiment_.size() != peak_map_.size())
     {
-      MSSimExperiment::SpectrumType& spectrum = *spectrum_iterator;
+      throw Exception::InvalidSize(__FILE__,__LINE__,__PRETTY_FUNCTION__, peak_map_.size()-experiment_.size());
+    }
+    for(MSSimExperiment::Iterator it_e = experiment_.begin(), it_ep = peak_map_.begin() ; it_e != experiment_.end() ; ++it_e, ++it_ep)
+    {
       String spec_id = String("scan=") + id++;
-      spectrum.setNativeID(spec_id);
+      it_e->setNativeID(spec_id);
+      it_ep->setNativeID(spec_id);
     }
   }
 

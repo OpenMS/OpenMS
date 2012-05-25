@@ -66,7 +66,7 @@ namespace OpenMS {
     /**
 
      */
-    void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &);
+    void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &, MSSimExperiment &);
 
   private:
 		/// Default constructor (hidden)
