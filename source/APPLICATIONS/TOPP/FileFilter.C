@@ -292,7 +292,7 @@ class TOPPFileFilter
     addText_("Feature&Consensus data options:");
     registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
     registerStringOption_("size","[min]:[max]",":","size range to extract", false);
-    registerStringList_("remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple, i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value!", false);
+    registerStringList_("remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
 
 
 		addText_("Feature data options:");
@@ -342,18 +342,17 @@ class TOPPFileFilter
     else if (v_data.valueType() == DataValue::INT_LIST) v_user = IntList::create(meta_info[2]);
     else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = DoubleList::create(meta_info[2]);
     else if (v_data.valueType() == DataValue::EMPTY_VALUE) v_user = DataValue::EMPTY;
-
     if (meta_info[1]=="lt")
     {
-      return v_data < v_user;
+      return !(v_data < v_user);
     }
     else if (meta_info[1]=="eq")
     {
-      return v_data == v_user;
+      return !(v_data == v_user);
     }
     else if (meta_info[1]=="gt")
     {
-      return v_data > v_user;
+      return !(v_data > v_user);
     }
     else
     {
@@ -459,9 +458,26 @@ class TOPPFileFilter
 			return ILLEGAL_PARAMETERS;
 		}
 
-		//sort by RT and m/z
+		// sort by RT and m/z
  		bool sort = getFlag_("sort");
 		writeDebug_("Sorting output data: " + String(sort),3);
+
+    // handle remove_meta
+    bool meta_ok = true; // assume true by default (as meta might not be checked below)
+    StringList meta_info = getStringList_("remove_meta");
+    bool remove_meta_enabled = (meta_info.size()>0);
+    if (remove_meta_enabled && meta_info.size()!=3)
+    {
+      writeLog_("Param 'remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+    if (remove_meta_enabled && !(meta_info[1]=="lt" || meta_info[1]=="eq" || meta_info[1]=="gt"))
+    {
+      writeLog_("Param 'remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
 
 		if (in_type == FileTypes::MZML)
 		{
@@ -469,21 +485,34 @@ class TOPPFileFilter
 			// loading input
 			//-------------------------------------------------------------
 
-  			MapType exp;
-  			MzMLFile f;
-  			f.setLogType(log_type_);
-  			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
-  			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
-  			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
-        f.getOptions().setMSLevels(levels);
+  		MzMLFile f;
+  		f.setLogType(log_type_);
+  		f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
+  		f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
+  		f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
+      f.getOptions().setMSLevels(levels);
 
-  			// set precision options
-  			if (mz32 == 32) { f.getOptions().setMz32Bit(true); }
-  			else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
-  			if (int32 == 32) { f.getOptions().setIntensity32Bit(true); }
-  			else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
+  		// set precision options
+  		if (mz32 == 32) { f.getOptions().setMz32Bit(true); }
+  		else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
+  		if (int32 == 32) { f.getOptions().setIntensity32Bit(true); }
+  		else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
 
-  			f.load(in,exp);
+      MapType exp;
+  		f.load(in, exp);
+
+      // remove spectra with meta values:
+      if (remove_meta_enabled)
+      {
+        MapType exp_tmp;
+        for (MapType::ConstIterator it=exp.begin();it!=exp.end();++it)
+        {
+          if (checkMetaOk(*it, meta_info)) exp_tmp.push_back(*it);
+        }
+        exp.clear(false);
+        exp.insert(exp.begin(), exp_tmp.begin(), exp_tmp.end());
+      }
+        
 
 			if (!no_chromatograms)
 			{
@@ -621,22 +650,6 @@ class TOPPFileFilter
 
 		else if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::CONSENSUSXML)
     {
-      bool meta_ok = true; // assume true by default (as meta might not be checked below)
-      StringList meta_info = getStringList_("remove_meta");
-      bool check_meta = (meta_info.size()>0);
-      if (check_meta && meta_info.size()!=3)
-      {
-        writeLog_("Param 'remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
-      if (check_meta && !(meta_info[1]=="lt" || meta_info[1]=="eq" || meta_info[1]=="gt"))
-      {
-        writeLog_("Param 'remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
-
 		  if (in_type == FileTypes::FEATUREXML)
       {
 			  //-------------------------------------------------------------
@@ -674,7 +687,7 @@ class TOPPFileFilter
 				  size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
 				  q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
 				  annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
-          if (check_meta) meta_ok = checkMetaOk(*fm_it, meta_info);
+          if (remove_meta_enabled) meta_ok = checkMetaOk(*fm_it, meta_info);
 
 				  if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok && annotation_ok && meta_ok)
 				  {
@@ -734,7 +747,7 @@ class TOPPFileFilter
 				  charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
 				  size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
 				  annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
-          if (check_meta) meta_ok = checkMetaOk(*cm_it, meta_info);
+          if (remove_meta_enabled) meta_ok = checkMetaOk(*cm_it, meta_info);
 
 				  if (charge_ok && size_ok && annotation_ok && meta_ok)
 				  {
