@@ -33,15 +33,13 @@ namespace OpenMS
 {
 			/// Constructor
 			MSQuantifications::MSQuantifications() :
-				ExperimentalSettings(),
-				PersistentObject()
+				ExperimentalSettings()
 			{
 			}
 
 			/// Copy constructor
 			MSQuantifications::MSQuantifications(const MSQuantifications& source) :
-				ExperimentalSettings(source),
-				PersistentObject(source)
+				ExperimentalSettings(source)
 			{
 			}
 			
@@ -55,7 +53,7 @@ namespace OpenMS
 				if (&source == this) return *this;
 
 				ExperimentalSettings::operator=(source);
-				PersistentObject::operator=(source);
+				//~ PersistentObject::operator=(source);
 
 				//~ reassign members
 				
@@ -74,7 +72,7 @@ namespace OpenMS
 				return !(operator==(rhs));
 			}
 			
-			std::vector<DataProcessing> MSQuantifications::getDataProcessingList() const
+			const std::vector<DataProcessing> MSQuantifications::getDataProcessingList() const
 			{
 				std::vector<DataProcessing> list; 
 				for (std::vector<FeatureMap<> >::const_iterator fit = feature_maps_.begin(); fit != feature_maps_.end(); ++fit)
@@ -90,24 +88,53 @@ namespace OpenMS
 				return list;				
 			}
 			
-			std::vector<MSQuantifications::Assay> MSQuantifications::getAssays() const
+			const std::vector<MSQuantifications::Assay>& MSQuantifications::getAssays() const
 			{
 				return assays_;
 			}
 
-			std::vector<FeatureMap<> > MSQuantifications::getFeatureMaps() const
+			const std::vector<FeatureMap<> >& MSQuantifications::getFeatureMaps() const
 			{
 				return feature_maps_;
 			}			
 			
-			std::vector<ConsensusMap> MSQuantifications::getConsensusMaps() const
+			const std::vector<ConsensusMap>& MSQuantifications::getConsensusMaps() const
 			{
 				return consensus_maps_;
 			}			
 
-			MSQuantifications::AnalysisSummary MSQuantifications::getAnalysisSummary() const
+			const MSQuantifications::AnalysisSummary& MSQuantifications::getAnalysisSummary() const
 			{
 				return analysis_summary_;
+			}
+			
+			void MSQuantifications::setAnalysisSummaryQuantType(MSQuantifications::QUANT_TYPES r)
+			{
+				analysis_summary_.quant_type_ = r;
+			}
+
+			void MSQuantifications::addConsensusMap(ConsensusMap& m)
+			{
+				consensus_maps_.push_back(m);
+			}
+			
+			void MSQuantifications::assignUIDs()
+			{
+				for(std::vector<Assay>::iterator ait = assays_.begin(); ait != assays_.end(); ++ait)
+				{
+					ait->uid_ = UniqueIdGenerator::getUniqueId();
+				}
+			}
+			
+			void MSQuantifications::registerExperiment(MSExperiment<Peak1D> & exp, std::vector< std::vector< std::pair<String, DoubleReal> > > label)
+			{
+				for (std::vector< std::vector< std::pair<String, DoubleReal> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
+				{
+					Assay a;
+					a.mods_ = (*lit);
+					a.raw_files_.push_back(exp.getExperimentalSettings());
+					assays_.push_back(a);
+				}
 			}
 
 }//namespace OpenMS

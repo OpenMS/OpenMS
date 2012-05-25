@@ -32,14 +32,16 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+
 #include <vector>
 #include <map>
 
 namespace OpenMS
 {	
 	class OPENMS_DLLAPI MSQuantifications
-		:	public ExperimentalSettings,
-			public PersistentObject
+		:	public ExperimentalSettings
 	{
 		public:
 			/// @name Base type definitions
@@ -121,7 +123,8 @@ namespace OpenMS
 
 				Assay(const Assay& rhs)
 				{
-					label_type_ = rhs.label_type_;
+					uid_ = rhs.uid_;
+					mods_ = rhs.mods_;
 					raw_files_ = rhs.raw_files_;
 					feature_maps_ = rhs.feature_maps_;
 				}
@@ -134,14 +137,16 @@ namespace OpenMS
 				{
 					if (&rhs != this)
 					{
-						label_type_ = rhs.label_type_;
+						uid_ = rhs.uid_;
+						mods_ = rhs.mods_;
 						raw_files_ = rhs.raw_files_;
 						feature_maps_ = rhs.feature_maps_;
 					}
 					return *this;
 				}
 				
-				LABEL_TYPES label_type_;
+				UInt64 uid_;
+				std::vector< std::pair<String, DoubleReal> > mods_;
 				std::vector<ExperimentalSettings> raw_files_;
 				std::map<size_t, FeatureMap<> > feature_maps_; // iTRAQ needs no FeatureMaps so ExperimentalSettings are not directly mapped to FeatureMaps
 			};
@@ -165,9 +170,6 @@ namespace OpenMS
 					//~ }
 			//~ }
 			//~ QUANT_TYPES experiment_type = MS1LABEL; 
-
-		
-			
 			
 			/// Constructor
 			MSQuantifications();
@@ -200,19 +202,22 @@ namespace OpenMS
 			*/
 			void load(const String& filename, bool trim_lines=false, Int first_n=-1);
 			
-			std::vector<DataProcessing> getDataProcessingList() const;
-			std::vector<Assay> getAssays() const;
-			std::vector<ConsensusMap> getConsensusMaps() const;
-			std::vector<FeatureMap<> > getFeatureMaps() const;
-			AnalysisSummary getAnalysisSummary() const;
+			const std::vector<DataProcessing> getDataProcessingList() const;
+			const std::vector<Assay>& getAssays() const;
+			const std::vector<ConsensusMap>& getConsensusMaps() const;
+			const std::vector<FeatureMap<> >& getFeatureMaps() const;
+			const AnalysisSummary& getAnalysisSummary() const;
+			void setAnalysisSummaryQuantType(QUANT_TYPES r);
+			void addConsensusMap(ConsensusMap& m);
+			void assignUIDs();
+			void registerExperiment(MSExperiment<Peak1D> & exp, std::vector< std::vector< std::pair<String, DoubleReal> > > labels);
 
 		private:
 			AnalysisSummary analysis_summary_;
 			std::vector<MetaInfo> bibliographic_reference_;
 			std::vector<ConsensusMap> consensus_maps_;
 			std::vector<FeatureMap<> > feature_maps_;
-			std::vector<Assay> assays_;
-							
+			std::vector<Assay> assays_;							
 		};
 
 } // namespace OpenMS

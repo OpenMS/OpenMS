@@ -63,6 +63,7 @@ namespace OpenMS
 			PEPXML,							///< TPP pepXML file (.pepXML)
 			PROTXML,						///< TPP protXML file (.protXML)
 			MZIDENTML,					///< mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
+			MZQUANTML,					///< mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
 			GELML,							///< GelML (HUPO PSI format) (.GelML)
 			TRAML,							///< TraML (HUPO PSI format) for transitions (.TraML)
 			MSP,								///< NIST spectra library file format (.msp)

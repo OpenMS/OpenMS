@@ -40,6 +40,8 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/FORMAT/MzQuantMLFile.h>
+#include <OpenMS/METADATA/MSQuantifications.h>
 
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
@@ -156,6 +158,7 @@ class TOPPSILACAnalyzer
     String out;
     String out_clusters;    
     String out_features;    
+    String out_mzq;    
 
     String out_filters;
     String in_filters;
@@ -187,6 +190,7 @@ class TOPPSILACAnalyzer
     vector<vector<SILACPattern> > data;
     vector<Clustering *> cluster_data;
 
+	MSQuantifications msq;
 
   public:
     TOPPSILACAnalyzer()
@@ -212,6 +216,8 @@ class TOPPSILACAnalyzer
     setValidFormats_("out_clusters", StringList::create("consensusXML"));
     registerOutputFile_("out_features", "<file>", "", "Optional output file containing the individual peptide features in \'out\'.", false, true);
     setValidFormats_("out_features", StringList::create("featureXML"));
+    registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
+    setValidFormats_("out_mzq", StringList::create("mzq"));
 
     // create optional flag for additional output file (.consensusXML) to store filter results
     registerOutputFile_("out_filters", "<file>", "", "Optional output file containing all points that passed the filters as txt. Suitable as input for \'in_filters\' to perform clustering without preceding filtering process.", false, true);
@@ -327,6 +333,7 @@ class TOPPSILACAnalyzer
     // get name of additional clusters output file (.consensusXML)
     out_clusters = getStringOption_("out_clusters");
     out_features = getStringOption_("out_features");
+    out_mzq = getStringOption_("out_mzq");
 
     // get name of additional filters output file (.consensusXML)
     out_filters = getStringOption_("out_filters");
@@ -763,6 +770,25 @@ class TOPPSILACAnalyzer
     // sort according to RT and MZ
     exp.sortSpectra();
 
+    if (out_mzq != "")
+    {
+			std::vector< std::vector< std::pair<String, DoubleReal> > > labels;
+			//add none label
+			labels.push_back(std::vector< std::pair<String, DoubleReal> > (1,std::make_pair<String,DoubleReal>(String("none"),DoubleReal(0)))); 
+			for (Size i = 0; i < SILAClabels.size(); ++i) //SILACLabels MUST be in weight order!!!
+			{
+				std::vector< std::pair<String, DoubleReal> > one_label;
+				for (UInt j = 0; j < SILAClabels[i].size(); ++j)
+				{
+					one_label.push_back(*(label_identifiers.find( SILAClabels[i][j] ) )); // this dereferencing would break if all SILAClabels would not have been checked before!
+				}
+				labels.push_back(one_label);
+			}
+			msq.registerExperiment(exp, labels); //add assays
+			msq.assignUIDs();
+		}
+		MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
+		msq.setAnalysisSummaryQuantType(quant_type);//add analysis_summary_
 
     //--------------------------------------------------
     // estimate peak width
@@ -797,7 +823,9 @@ class TOPPSILACAnalyzer
       {
         ConsensusMap map;
         for (std::vector<std::vector<SILACPattern> >::const_iterator it = data.begin(); it != data.end(); ++it)
-          generateFilterConsensusByPattern(map, *it);
+				{        
+					generateFilterConsensusByPattern(map, *it);
+				}
         writeConsensus(out_filters, map);
       }
     }
@@ -887,6 +915,13 @@ class TOPPSILACAnalyzer
       }
 
       writeConsensus(out, map);
+			if (out_mzq != "")
+			{
+				msq.addConsensusMap(map);//add SILACAnalyzer result
+				//~ msq.addFeatureMap();//add SILACAnalyzer evidencetrail
+				//~ add AuditCollection - no such concept in TOPPTools yet
+				writeMzQuantML(out_mzq,msq);
+			}
     }
 
     if (out_clusters != "")
@@ -983,6 +1018,21 @@ private:
     c_file.store(filename, out);
   }
 
+	
+	  /**
+   * @brief Write MzQuantML from ConsensusMap to file
+   */
+  void writeMzQuantML(const String &filename, MSQuantifications &msq) const
+  {
+		//~ TODO apply above to ConsensusMap befor putting into Msq
+    //~ out.sortByPosition();
+    //~ out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    //~ out.setExperimentType("SILAC");
+
+    MzQuantMLFile file;
+    file.store(filename, msq);
+  }
+	
   /**
    * @brief Write featureXML from FeatureMap to file
    */
@@ -1332,7 +1382,7 @@ ConsensusFeature TOPPSILACAnalyzer::generateSingleConsensusByPattern(const SILAC
     // Remove the last delimiter
     std::string outs = out.str(); outs.erase(outs.end() - 1);
     consensus.setQuality(std::floor(pattern.mass_shifts.at(1) * charge));
-    consensus.setMetaValue("Mass shifts [Da]", outs);
+    consensus.setMetaValue("SILAC", outs);
   }
 
   // Output all intensities per peptide as list
