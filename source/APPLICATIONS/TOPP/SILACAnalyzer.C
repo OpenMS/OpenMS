@@ -899,6 +899,7 @@ class TOPPSILACAnalyzer
     if (out != "")
     {
       ConsensusMap map;
+			
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {
         generateClusterConsensusByCluster(map, **it);
@@ -913,12 +914,28 @@ class TOPPSILACAnalyzer
         // XXX: Write correct label
         // it->second.label = id;
       }
-
+			
+			DataProcessing data_processing;
+      Software software; //TODO CVTerm adding
+      software.setName("OpenMS SILACAnalyzer");
+      software.setVersion("1.9");
+			data_processing.setSoftware(software);      
+			std::set<DataProcessing::ProcessingAction> actions;
+      actions.insert(DataProcessing::DATA_PROCESSING);
+      actions.insert(DataProcessing::PEAK_PICKING);
+      actions.insert(DataProcessing::FILTERING);
+      actions.insert(DataProcessing::QUANTITATION);
+      data_processing.setProcessingActions(actions);
+      data_processing.setCompletionTime(DateTime::now());
+			std::vector<DataProcessing> data_processing_vector;
+			data_processing_vector.push_back(data_processing);
+      map.setDataProcessing(data_processing_vector);
+			
       writeConsensus(out, map);
 			if (out_mzq != "")
 			{
 				msq.addConsensusMap(map);//add SILACAnalyzer result
-				//~ msq.addFeatureMap();//add SILACAnalyzer evidencetrail
+				//~ msq.addFeatureMap();//add SILACAnalyzer evidencetrail as soon as clear what is realy contained in the featuremap
 				//~ add AuditCollection - no such concept in TOPPTools yet
 				writeMzQuantML(out_mzq,msq);
 			}

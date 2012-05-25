@@ -199,14 +199,19 @@ namespace OpenMS
 			dataprocessinglist_tag += "\t<DataProcessingList>\n";
 			// TODO Software DefaultTag for each file: OpenMS
 			Size order_d = 0;
-			for (std::vector<DataProcessing>::const_iterator dit = cmsq_->getDataProcessingList().begin(); dit != cmsq_->getDataProcessingList().end(); ++dit)
+
+			std::vector<DataProcessing> pl = cmsq_->getDataProcessingList();
+			for (std::vector<DataProcessing>::const_iterator dit = pl.begin(); dit != pl.end(); ++dit)
+			//~ for (std::vector<DataProcessing>::const_iterator dit = cmsq_->getDataProcessingList().begin(); dit != cmsq_->getDataProcessingList().end(); ++dit) // soome wierd bug is making this impossible resulting in segfault - to tired to work this one out right now
 			{
 				String sw_ref;
 				sw_ref = "sw_" + String(UniqueIdGenerator::getUniqueId());
 				softwarelist_tag += "\t\t<Software id=\"" +  sw_ref + "\" version=\"" + String(dit->getSoftware().getVersion()) + "\"/>\n";
 				writeCVParams_(softwarelist_tag, dit->getSoftware().getCVTerms(), UInt(3));
-				writeUserParams_(softwarelist_tag, dit->getSoftware(), UInt(3));
-				// TODO if no CV == name write userParam with Software.getName()!!!
+				if (dit->getSoftware().getCVTerms().empty())
+				{
+					softwarelist_tag += "\t\t\t<userParam name=\""+ String(dit->getSoftware().getName()) +"\"/>\n";
+				}
 				softwarelist_tag += "\t\t</Software>\n";
 				++order_d;		
 				dataprocessinglist_tag += "\t\t<DataProcessing id=\"dp_" + String(UniqueIdGenerator::getUniqueId()) + "\" software_Ref=\"" + sw_ref + "\" order=\"" + String(order_d) + "\">\n";
@@ -214,12 +219,12 @@ namespace OpenMS
 				for (std::set<DataProcessing::ProcessingAction>::const_iterator pit = dit->getProcessingActions().begin(); pit != dit->getProcessingActions().end(); ++pit)
 				{
 					//~ TODO rewrite OpenMS::DataProcessing
+					//~ TODO add CVTermList/MetaInfoInterfaceObject to DataProcessing and ParamGroup/Order to "ProcessingAction" or document implicit ordering
 					++order_c;
 					dataprocessinglist_tag += "\t\t\t<ProcessingMethod order=\"" + String(order_c) + "\">\n";
-					//~ TODO add CVTermList/MetaInfoInterfaceObject and Order to "ProcessingAction" 
 					//~ writeUserParam_(dataprocessinglist_tag, pit->getUserParams(), UInt(4));  //writeUserParam_(String& s, const MetaInfoInterface& meta, UInt indent)
 					//~ writeCVParams_(dataprocessinglist_tag, (pit->getCVParams.getCVTerms(), UInt(4));  //writeCVParams_(String& s, const Map< String, std::vector < CVTerm > > & , UInt indent)
-					dataprocessinglist_tag += "\t\t\t\t<userParam name=\"" + DataProcessing::NamesOfProcessingAction[*pit] + "\" value=\"" + dit->getSoftware().getName() + "\" />\n";
+					dataprocessinglist_tag += "\t\t\t\t<userParam name=\"" + String(DataProcessing::NamesOfProcessingAction[*pit]) + "\" value=\"" + String(dit->getSoftware().getName()) + "\" />\n";
 					dataprocessinglist_tag += "\t\t\t</ProcessingMethod>\n";
 				}
 				dataprocessinglist_tag += "\t\t</DataProcessing>\n";
@@ -244,23 +249,37 @@ namespace OpenMS
 			
 			// Assay & StudyVariables: each  "channel" gets its assay
 			String assay_xml("\t<AssayList>\n"), study_xml("\t<StudyVariableList>\n"), inputfiles_xml("\t<InputFiles>\n");
+			std::map<String,String> files;
 			for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
 			{
 				String rfgr,ar,vr;
 				rfgr = String(UniqueIdGenerator::getUniqueId());
 				vr = String(UniqueIdGenerator::getUniqueId());
-				
-				inputfiles_xml += "\t\t<RawFilesGroup id=\"rfg_" + rfgr + "\">\n";
+				//TODO regroup at Rawfilesgroup level
+				String rgs;
+				bool group_exists = true;
+				rgs += "\t\t<RawFilesGroup id=\"rfg_" + rfgr + "\">\n";
 				for (std::vector<ExperimentalSettings>::const_iterator iit = ait->raw_files_.begin(); iit != ait->raw_files_.end(); ++iit)
 				{
-					// TODO do better grouping in MSQuantifications class' Assay
-					// TODO now remove rawfiles redundancy!
-					for (std::vector<SourceFile>::const_iterator sit = iit->getSourceFiles().begin(); sit != iit->getSourceFiles().end(); ++sit)
+					if (files.find(iit->getLoadedFilePath()) == files.end())
 					{
-						inputfiles_xml += "\t\t\t<RawFile id=\"" + String(UniqueIdGenerator::getUniqueId()) + "\" location=\"" + sit->getPathToFile() + sit->getNameOfFile() + "\"/>\n";
+						group_exists = false;
+						UInt64 rid = UniqueIdGenerator::getUniqueId();
+						files.insert(std::make_pair<String,String>(iit->getLoadedFilePath(),rfgr));
+						rgs += "\t\t\t<RawFile id=\"r_" +String(rid)  + "\" location=\"" + iit->getLoadedFilePath() + "\"/>\n";
+						// TODO write proteowizards sourcefiles (if there is any mentioning of that in the mzml) into OpenMS::ExperimentalSettings of the exp
+					}
+					else
+					{
+						rfgr = "rfg_" + String(files.find(iit->getLoadedFilePath())->second);
 					}
 				}
-				inputfiles_xml += "\t\t</RawFilesGroup>\n";
+				rgs += "\t\t</RawFilesGroup>\n";
+				
+				if(!group_exists)
+				{
+					inputfiles_xml += rgs;
+				}
 				
 				assay_xml += "\t\t<Assay id=\"a_" + String(ait->uid_)  + "\" RawFilesGroup_refs=\"" + rfgr + "\">\n";
 				assay_xml += "\t\t\t<Label>\n";
@@ -512,6 +531,10 @@ namespace OpenMS
 		
 		void MzQuantMLHandler::writeUserParams_(String& s, const MetaInfoInterface& meta, UInt indent)
 		{
+			if (meta.isMetaEmpty())
+			{
+				return;
+			}				
 			std::vector<String> keys;
 			meta.getKeys(keys);
 

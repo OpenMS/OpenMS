@@ -26,6 +26,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/MSQuantifications.h>
+#include<set>
+#include<iostream>
 
 using namespace std;
 
@@ -74,7 +76,7 @@ namespace OpenMS
 			
 			const std::vector<DataProcessing> MSQuantifications::getDataProcessingList() const
 			{
-				std::vector<DataProcessing> list; 
+				std::vector<DataProcessing> list = data_processings_; 
 				for (std::vector<FeatureMap<> >::const_iterator fit = feature_maps_.begin(); fit != feature_maps_.end(); ++fit)
 				{
 					list.insert(list.end(),fit->getDataProcessing().begin(), fit->getDataProcessing().end());
@@ -129,12 +131,15 @@ namespace OpenMS
 			void MSQuantifications::registerExperiment(MSExperiment<Peak1D> & exp, std::vector< std::vector< std::pair<String, DoubleReal> > > label)
 			{
 				for (std::vector< std::vector< std::pair<String, DoubleReal> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
-				{
+				{ 
+					//TODO look for existing labels
 					Assay a;
 					a.mods_ = (*lit);
 					a.raw_files_.push_back(exp.getExperimentalSettings());
 					assays_.push_back(a);
 				}
+				
+				data_processings_ = exp[0].getDataProcessing(); //todo overwrite MSExperiments inherited front method to work. [0] operator is ugly!
 			}
 
 }//namespace OpenMS

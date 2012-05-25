@@ -218,6 +218,7 @@ namespace OpenMS
 			std::vector<ConsensusMap> consensus_maps_;
 			std::vector<FeatureMap<> > feature_maps_;
 			std::vector<Assay> assays_;							
+			std::vector<DataProcessing> data_processings_;							
 		};
 
 } // namespace OpenMS
