@@ -90,7 +90,7 @@ START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperim
     exp_no_ms2_file = OPENMS_GET_TEST_DATA_PATH("RawTandemMSSignalSimulation_no_ms2.mzML");
     exp_with_ms2_file = OPENMS_GET_TEST_DATA_PATH("RawTandemMSSignalSimulation_with_ms2.mzML");;
     FeatureMapSim features;
-    MSSimExperiment exp_no_ms2, exp_with_ms2;
+    MSSimExperiment exp_no_ms2, exp_with_ms2, peak_map;
     FeatureXMLFile().load(feature_filename, features);
     MzMLFile().load(exp_no_ms2_file, exp_no_ms2);
     MzMLFile().load(exp_with_ms2_file, exp_with_ms2);
@@ -104,7 +104,7 @@ START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperim
     p.setValue("Precursor:Exclusion:exclusion_time", 50.0);
     sim.setParameters(p);
 
-    sim.generateRawTandemSignals(features, exp_no_ms2);
+    sim.generateRawTandemSignals(features, exp_no_ms2, peak_map);
     IntList levels;
     levels.push_back(1);
     exp_no_ms2.erase(remove_if(exp_no_ms2.begin(), exp_no_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_no_ms2.end());
