@@ -650,6 +650,12 @@ namespace OpenMS {
     
     Int end_scan  = std::numeric_limits<Int>::min();
 
+    IsotopeModel* isomodel = static_cast<IsotopeModel*>(pm.getModel(1));
+    IsotopeDistribution iso_dist = isomodel->getIsotopeDistribution();
+    SimCoordinateType mz_mono = active_feature.getMZ();
+    SimCoordinateType iso_peakdist = isomodel->getParameters().getValue("isotope:distance");
+    Int q = active_feature.getCharge();
+
     // Sample the model ...
     SimCoordinateType rt(0);
     MSSimExperiment::iterator exp_iter = exp_start;
@@ -658,15 +664,14 @@ namespace OpenMS {
     {
 			rt = exp_iter->getRT();
       DoubleReal distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
-      SimPointType point;
-
       DoubleReal rt_intensity = ((EGHModel*)pm.getModel(0))->getIntensity(rt);
 
       // centroided GT
-      for (IsotopeDistribution::const_iterator iter = ((IsotopeModel*)pm.getModel(1))->getIsotopeDistribution().begin();
-           iter != ((IsotopeModel*)pm.getModel(1))->getIsotopeDistribution().end(); ++iter)
+      Size iso_pos(0);
+      SimPointType point;
+      for (IsotopeDistribution::const_iterator iter = iso_dist.begin(); iter != iso_dist.end(); ++iter, ++iso_pos)
       {
-        point.setMZ(iter->first);
+        point.setMZ(mz_mono + (iso_pos * iso_peakdist / q));
         point.setIntensity( iter->second * rt_intensity * distortion );
 
         if ( point.getIntensity() <= 0.0) continue;
@@ -736,12 +741,7 @@ namespace OpenMS {
     // -------------------------
     active_feature.getConvexHulls().clear();
     
-    // get isotope model (to determine mass traces)
-    IsotopeModel* isomodel = static_cast<IsotopeModel*>(pm.getModel(1));
-    IsotopeDistribution iso_dist = isomodel->getIsotopeDistribution();
-    
-    SimCoordinateType mz_mono = active_feature.getMZ();
-    Int q = active_feature.getCharge();
+    // use isotope model (to determine mass traces)
 
     DoubleList isotope_intensities;
     for (	IsotopeDistribution::iterator iter = iso_dist.begin();
