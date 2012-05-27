@@ -931,8 +931,14 @@ namespace OpenMS
   {
     // something has changed --> tmp files might be invalid --> reset
     reset(true);
-
     TOPPASVertex::inEdgeHasChanged();
+  }
+
+  void TOPPASToolVertex::outEdgeHasChanged()
+  {
+    // something has changed --> tmp files might be invalid --> reset
+    reset(true);
+    TOPPASVertex::outEdgeHasChanged();
   }
 
   void TOPPASToolVertex::openContainingFolder()

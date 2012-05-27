@@ -235,8 +235,8 @@ namespace OpenMS
       source->addOutEdge(hover_edge_);
       target->addInEdge(hover_edge_);
       hover_edge_->setColor(QColor(255, 165, 0));
-      connect(source, SIGNAL(somethingHasChanged()), hover_edge_, SLOT(sourceHasChanged()));
-      connect(hover_edge_, SIGNAL(somethingHasChanged()), target, SLOT(inEdgeHasChanged()));
+
+      connectEdgeSignals(hover_edge_);
 
       TOPPASIOMappingDialog dialog(hover_edge_);
       if (dialog.firstExec())
@@ -1628,6 +1628,8 @@ namespace OpenMS
         }
       }
 
+      if (this->isPipelineRunning()) disable_resume = true;
+
       QSet<QString> action;
 
       if (found_tool)
@@ -1755,6 +1757,7 @@ namespace OpenMS
           {
             if (askForOutputDir(false))
             {
+              setPipelineRunning();
               resetDownstream(ttv);
               ttv->run();
             }
@@ -2053,7 +2056,7 @@ namespace OpenMS
   {
     TOPPASVertex * source = e->getSourceVertex();
     TOPPASVertex * target = e->getTargetVertex();
-    connect(source, SIGNAL(somethingHasChanged()), e, SLOT(sourceHasChanged()));
+    connect(e, SIGNAL(somethingHasChanged()), source, SLOT(outEdgeHasChanged()));
     connect(e, SIGNAL(somethingHasChanged()), target, SLOT(inEdgeHasChanged()));
     connect(e, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));
   }

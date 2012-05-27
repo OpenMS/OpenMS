@@ -253,4 +253,11 @@ namespace OpenMS
     setToolTip(files.join("\n"));
   }
 
+  void TOPPASInputFileListVertex::outEdgeHasChanged()
+  {
+    reset(true);
+    qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+    TOPPASVertex::outEdgeHasChanged();
+  }
+
 }

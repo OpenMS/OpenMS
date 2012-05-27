@@ -77,6 +77,10 @@ public:
     /// Sets the key (for applying resources from a resource file)
     void setKey(const QString & key);
 
+    public slots:
+      /// Called by an outgoing edge when it has changed
+      virtual void outEdgeHasChanged();
+
 protected:
 
     /// The key of this input node (for applying resources from a resource file)

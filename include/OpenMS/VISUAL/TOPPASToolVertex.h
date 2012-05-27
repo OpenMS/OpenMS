@@ -190,6 +190,8 @@ public slots:
     void toolFailedSlot();
     /// Called by an incoming edge when it has changed
     virtual void inEdgeHasChanged();
+    /// Called by an outgoing edge when it has changed
+    virtual void outEdgeHasChanged();
 
 signals:
 
