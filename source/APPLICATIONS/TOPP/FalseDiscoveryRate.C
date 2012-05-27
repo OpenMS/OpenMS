@@ -209,10 +209,6 @@ class TOPPFalseDiscoveryRate
 				//-------------------------------------------------------------
       	// writing output
       	//-------------------------------------------------------------
-				if(alg_param.getValue("add_decoy_peptides").toBool())
-				{
-					fwd_pep.insert(fwd_pep.end(),rev_pep.begin(),rev_pep.begin());
-      	}
      		IdXMLFile().store(out, fwd_prot, fwd_pep);
 			}
 
