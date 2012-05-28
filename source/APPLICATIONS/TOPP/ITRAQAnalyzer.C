@@ -84,6 +84,8 @@ using namespace std;
   
   After this quantitation step, you might want to annotate the consensus elements with the respective identifications, obtained from
   an identification pipeline.
+  Note that quantification is solely on peptide level at this stage. In order to obtain protein quantifications, you can try @ref TOPP_TextExporter 
+  to obtain a simple text format which you can feed to other software tools (e.g., R), or you can try @ref TOPP_ProteinQuantifier.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ITRAQAnalyzer.cli
