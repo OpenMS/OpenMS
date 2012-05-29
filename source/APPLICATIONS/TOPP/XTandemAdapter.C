@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -147,8 +147,8 @@ class TOPPXTandemAdapter
 			registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
 			registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "Cleavage site", false);
 			registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "Maximal E-Value of a hit to be reported", false);
-			registerFlag_("no_refinement", "Disable the refinement, especially useful for matching only peptides without proteins. For most applications it is recommended to set this flag.");
-			registerFlag_("no_semi_cleavage", "If set, all both termini must follow the cutting rule. For most applications it is recommended to set this flag.");
+			registerFlag_("refinement", "Enable the refinement. For most applications (especially when using FDR, PEP approaches) it is NOT recommended to set this flag.");
+			registerFlag_("semi_cleavage", "If set, both termini must NOT follow the cutting rule. For most applications it is NOT recommended to set this flag.");
 		}
 
 		ExitCodes main_(int , const char**)
@@ -158,7 +158,7 @@ class TOPPXTandemAdapter
 			// path to the log file
 			String logfile(getStringOption_("log"));
 			String xtandem_executable(getStringOption_("xtandem_executable"));
-			// log filestream (as long as the real logfile is not determined yet)
+			// log file stream (as long as the real logfile is not determined yet)
 			ofstream log;
 			String inputfile_name;
 			String outputfile_name;
@@ -297,8 +297,8 @@ class TOPPXTandemAdapter
 			infile.setTaxon("OpenMS_dummy_taxonomy");
 			infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
 			infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
-			infile.setRefine(!getFlag_("no_refinement"));
-			infile.setSemiCleavage(!getFlag_("no_semi_cleavage"));
+			infile.setRefine(getFlag_("refinement"));
+			infile.setSemiCleavage(getFlag_("semi_cleavage"));
 
 			infile.write(input_filename);
 
