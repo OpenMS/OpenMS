@@ -189,7 +189,14 @@ namespace OpenMS
 			//CVList
 			os << "<CvList>\n \t<Cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"2.25.0\"/>\n\t<Cv id=\"UO\" fullName=\"Unit Ontology\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"/>\n</CvList>\n";
 			
-			// TODO write analysissummary
+			//AnalysisSummary
+			os << "\t<AnalysisSummary>\n"	;
+			cmsq_->getAnalysisSummary().quant_type_;
+			os << "\t\t<userParam name=\"QuantType\" value=\"";
+			os <<String(MSQuantifications::NamesOfQuantTypes[cmsq_->getAnalysisSummary().quant_type_]) ;
+					//~ writeUserParam_(dataprocessinglist_tag, cmsq_->getAnalysisSummary().getUserParams(), UInt(2)); 
+					//~ writeCVParams_(dataprocessinglist_tag, (cmsq_->getAnalysisSummary().getCVTerms(), UInt(2)); 
+			os << "\"/>\n\t</AnalysisSummary>\n";
 			
 			//Software & DataProcessing
 			String softwarelist_tag;

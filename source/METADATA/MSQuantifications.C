@@ -33,6 +33,8 @@ using namespace std;
 
 namespace OpenMS
 {
+		const std::string MSQuantifications::NamesOfQuantTypes[] = {"MS1LABEL", "MS2LABEL", "LABELFREE"};
+
 			/// Constructor
 			MSQuantifications::MSQuantifications() :
 				ExperimentalSettings()

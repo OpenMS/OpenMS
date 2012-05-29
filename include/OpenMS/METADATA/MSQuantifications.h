@@ -50,6 +50,7 @@ namespace OpenMS
 			typedef CVTermList ParamGroupList; // userparams are exclusively inside the CVTermList's MetaInfoInterface
 
 			enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
+			static const std::string NamesOfQuantTypes[SIZE_OF_QUANT_TYPES];		
 			enum LABEL_TYPES {NONE=0, SILAC_LIGHTER, SILAC_LIGHT, SILAC_MEDIUM, SILAC_HEAVY, ITRAQ114, ITRAQ115,ITRAQ116, ITRAQ117, SIZE_OF_LABEL_TYPES}; //silac names chosen so you can do double labeling with light and heavy and quadruple labeling with all 4
 			//@}
 			//~ InputFiles: //~ searchdb abbildung version,releasedate,#entries,dbname über paramgrouplist
@@ -218,7 +219,8 @@ namespace OpenMS
 			std::vector<ConsensusMap> consensus_maps_;
 			std::vector<FeatureMap<> > feature_maps_;
 			std::vector<Assay> assays_;							
-			std::vector<DataProcessing> data_processings_;							
+			std::vector<DataProcessing> data_processings_;		
+		
 		};
 
 } // namespace OpenMS
