@@ -430,16 +430,20 @@ namespace OpenMS
 							for (Size i = 0; i < cid[k].size(); ++i)
 							{
 								os << "\t\t<PeptideConsensus id=\"" << "c_" << String(cid[k][i].front()) << "\" charge=\""+ String((*cmsq_).getConsensusMaps()[k][i].getCharge()) +"\">\n";
-								os << "\t\t\t<feature_refs>";
 								for (Size j=1; j < cid[k][i].size(); ++j)
 								{
-									os << "f_" << cid[k][i][j]<< " ";
+									os << "\t\t\t<FeatureRef feature_ref=\"f_" << String(cid[k][i][j]) << "\" Assay_Refs=a_\"" << String(cmsq_->getAssays()[(j-1)].uid_) << "</FeatureRef>\n";
 								}
-								os << "\t\t\t</feature_refs>\n";
+								os << "</FeatureRef>\n";
 								if (!(*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().empty())
 								{									
-									//~ os << "\t\t\t<IdentificationRef id_ref=\"";
-									//~ os << (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" IdentificationFile_ref=\"";
+									//~ os << "\t\t\t<IdentificationRef id_refs=\"";
+									//~ os << (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" feature_refs=\"";
+									//~ for (Size j=1; j < cid[k][i].size(); ++j)
+									//~ {
+										//~ os << "f_" << cid[k][i][j]<< " ";
+									//~ }
+									//~ os << (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" identificationFile_ref=\"";
 									//~ os << idid_to_idfilenames.begin()->first  << "\"/>\n";
 								}
 								os << "\t\t</PeptideConsensus>\n";
@@ -449,7 +453,10 @@ namespace OpenMS
 							os << "\t\t<RatioQuantLayer id=\"" << "q_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n";
 							os << "\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>\n\t\t\t\t\t</DataType>\n";
 							os << "\t\t\t\t<Column index>";
-							//~ todo <ColumnIndex>ratio_L_M ... ratio_L_H</ColumnIndex>
+							for(std::vector<UInt64>::const_iterator rit = rid.begin(); rit != rid.end(); ++rit)
+							{
+								os << "r_" << String(*rit) << " ";
+							}
 							os << "</ColumnIndex>\n\t\t\t<DataMatrix>\n";
 
 							//~ calculate ratios

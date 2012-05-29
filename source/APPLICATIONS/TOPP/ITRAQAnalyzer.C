@@ -28,9 +28,12 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/MzQuantMLFile.h>
+#include <OpenMS/METADATA/MSQuantifications.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -113,6 +116,9 @@ class TOPPITRAQAnalyzer
 		setValidFormats_("in",StringList::create("mzML"));
 		registerOutputFile_("out","<file>","","output consensusXML file with quantitative information");
 		setValidFormats_("out",StringList::create("consensusXML"));
+		
+		registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
+    setValidFormats_("out_mzq", StringList::create("mzq"));
 
     registerOutputFile_("out_stats", "<file>", "", "output statistics as tab-separated file (readable by R or Excel or ...)", false);
     setValidFormats_("out_stats", StringList::create("tsv"));
@@ -139,6 +145,7 @@ class TOPPITRAQAnalyzer
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
     String out_stats = getStringOption_("out_stats");
+    String out_mzq = getStringOption_("out_mzq");
 
 		Int itraq_type = (getStringOption_("type")=="4plex" ?  ItraqQuantifier::FOURPLEX : ItraqQuantifier::EIGHTPLEX );
 		//-------------------------------------------------------------
@@ -194,6 +201,39 @@ class TOPPITRAQAnalyzer
 
 		ConsensusXMLFile cm_file;
 		cm_file.store(out, consensus_map_quant);
+		
+		if (!out_mzq.trim().empty())
+		{
+			MSQuantifications msq;
+			std::vector< std::vector< std::pair<String, DoubleReal> > > labels;
+			if (itraq_type == ItraqQuantifier::FOURPLEX)
+			{
+				for (Size i = 0; i < 4; ++i)
+				{
+					std::vector< std::pair<String, DoubleReal> > one_label;
+					one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ")+String(ItraqConstants::CHANNELS_FOURPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_FOURPLEX[i][0]) ) ); 
+					labels.push_back(one_label);
+				}
+			}
+			else //ItraqQuantifier::EIGHTPLEX
+			{
+				for (Size i = 0; i < 8; ++i)
+				{
+					std::vector< std::pair<String, DoubleReal> > one_label;
+					one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ")+String(ItraqConstants::CHANNELS_FOURPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_FOURPLEX[i][0]) ) ); 
+					labels.push_back(one_label);
+				}
+			} 
+			msq.registerExperiment(exp, labels); //add assays
+			msq.assignUIDs();
+			MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS2LABEL;
+			msq.setAnalysisSummaryQuantType(quant_type);//add analysis_summary_
+
+			msq.addConsensusMap(consensus_map_quant);//add ITRAQAnalyzer result
+			//~ add AuditCollection - no such concept in TOPPTools yet
+			MzQuantMLFile file;
+			file.store(out_mzq, msq);
+		}
 
     std::cout << itraq_quant.getStats();
     if (!out_stats.trim().empty())
