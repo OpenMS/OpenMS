@@ -97,6 +97,24 @@ namespace OpenMS
     QRectF text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
     painter->drawText(-(int)(text_boundings.width() / 2.0), (int)(text_boundings.height() / 4.0), text);
 
+    // display file type(s)
+    Map<QString, Size> suffices;
+    foreach(QString fn, getFileNames())
+    {
+      ++suffices[QFileInfo(fn).completeSuffix()];
+    }
+    StringList text_l;
+    for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
+    {
+      if (suffices.size() > 1)
+        text_l.push_back(String(".") + sit->first + "(" + String(sit->second) + ")");
+      else
+        text_l.push_back(String(".") + sit->first);
+    }
+    text = text_l.concatenate(" | ").toQString();
+    text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
+    painter->drawText(-(int)(text_boundings.width() / 2.0), 35 - (int)(text_boundings.height() / 4.0), text);
+
     //topo sort number
     qreal x_pos = -63.0;
     qreal y_pos = -19.0;
