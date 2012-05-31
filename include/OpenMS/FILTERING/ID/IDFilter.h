@@ -187,6 +187,9 @@ namespace OpenMS
 		  /// only peptides having a length equal to or greater than 'length' will be kept
 		  void filterIdentificationsByLength(const PeptideIdentification& identification, Size length, PeptideIdentification& filtered_identification);
 
+      /// only peptides having a variable modification will be kept
+      void filterIdentificationsByVariableModifications(const PeptideIdentification& identification, const std::vector<String>& fixed_modifications, PeptideIdentification& filtered_identification);
+
 			/// only protein hits in 'identification' which are referenced by a peptide in 'peptide_identifications' are kept
 			void removeUnreferencedProteinHits(const ProteinIdentification& 	identification, const std::vector<PeptideIdentification> peptide_identifications, ProteinIdentification& 	filtered_identification);
 

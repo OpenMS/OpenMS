@@ -201,6 +201,7 @@ protected:
                   "Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
 		registerIntOption_("min_length","<integer>", 0, "Keep only peptide hits with a length greater or equal this value.", false);
 		setMinInt_("min_length", 0);
+    registerFlag_("var_mods", "Keep only peptide hits with variable modifications (fixed modifications from SearchParameters will be ignored).", false);
 
     registerFlag_("unique","If a peptide hit occurs more than once, only one instance is kept. This will (for instance) remove \
                   redundant identifications from multiple charge states or concurrent CID+HCD spectra. \
@@ -249,6 +250,8 @@ protected:
 
 		bool best_strict = getFlag_("best:strict");
 		UInt min_length = getIntOption_("min_length");
+
+    bool var_mods = getFlag_("var_mods");
 
     String sequences_file_name = getStringOption_("whitelist:proteins").trim();
 		bool no_protein_identifiers = getFlag_("whitelist:by_seq_only");
@@ -373,7 +376,7 @@ protected:
 				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, true);
 			}
 
-			if (min_length>0)
+      if (min_length > 0)
 			{
         applied_filters.insert(String("Filtering peptide length ") +  min_length + "...\n");
 				PeptideIdentification temp_identification = filtered_identification;
@@ -381,6 +384,31 @@ protected:
 																						 min_length,
 																						 filtered_identification);
 			}
+
+      if (var_mods)
+      {
+        // determine fixed modifications to distinguish variable modifications
+        vector<ProteinIdentification::SearchParameters> search_params;
+        vector<String> fixed_modifications;
+        for (vector<ProteinIdentification>::const_iterator it = protein_identifications.begin(); it != protein_identifications.end(); ++it)
+        {
+          if (find(search_params.begin(), search_params.end(), it->getSearchParameters()) == search_params.end())
+          {
+            search_params.push_back(it->getSearchParameters());
+          }
+        }
+        for (Size i = 0; i != search_params.size(); ++i)
+        {
+          for (Size j = 0; j != search_params[i].fixed_modifications.size(); ++j)
+          {
+            fixed_modifications.push_back(search_params[i].fixed_modifications[j]);
+          }
+        }
+
+        applied_filters.insert(String("Filtering for variable modifications") +  "...\n");
+        PeptideIdentification temp_identification = filtered_identification;
+        filter.filterIdentificationsByVariableModifications(temp_identification, fixed_modifications, filtered_identification);
+      }
 
 			if (peptide_threshold_score!=0)
 			{

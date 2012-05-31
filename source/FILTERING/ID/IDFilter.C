@@ -176,6 +176,72 @@ void IDFilter::filterIdentificationsByLength(const PeptideIdentification&   iden
   }
 }
 
+void IDFilter::filterIdentificationsByVariableModifications(const PeptideIdentification& identification,
+                                                            const vector<String>& fixed_modifications,
+                                                            PeptideIdentification& filtered_identification)
+{
+  vector<Size> new_peptide_indices;
+  vector<PeptideHit> filtered_peptide_hits;
+
+  filtered_identification = identification;
+  filtered_identification.setHits(vector<PeptideHit>());
+
+  const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
+
+  for (Size i = 0; i < temp_peptide_hits.size(); i++)
+  {
+    const AASequence& aa_seq = temp_peptide_hits[i].getSequence();
+
+    /*
+     TODO: check these cases
+    // check terminal modifications
+    if (aa_seq.hasNTerminalModification())
+    {
+      String unimod_name = aa_seq.getNTerminalModification();
+      if (find(fixed_modifications.begin(), fixed_modifications.end(), unimod_name) == fixed_modifications.end())
+      {
+        new_peptide_indices.push_back(i);
+        continue;
+      }
+    }
+
+    if (aa_seq.hasCTerminalModification())
+    {
+      String unimod_name = aa_seq.getCTerminalModification();
+      if (find(fixed_modifications.begin(), fixed_modifications.end(), unimod_name) == fixed_modifications.end())
+      {
+        new_peptide_indices.push_back(i);
+        continue;
+      }
+    }
+    */
+    // check internal modifications
+    for (Size j = 0; j != aa_seq.size(); ++j)
+    {
+      if (aa_seq[j].isModified())
+      {
+        String unimod_name = aa_seq[j].getModification() + " (" + aa_seq[j].getOneLetterCode() + ")";
+        if (find(fixed_modifications.begin(), fixed_modifications.end(), unimod_name) == fixed_modifications.end())
+        {
+          new_peptide_indices.push_back(i);
+          continue;
+        }
+      }
+    }
+  }
+
+  for (Size i = 0; i < new_peptide_indices.size(); i++)
+  {
+    const PeptideHit& ph = temp_peptide_hits[new_peptide_indices[i]];
+    filtered_peptide_hits.push_back(ph);
+  }
+  if ( !filtered_peptide_hits.empty() )
+  {
+    filtered_identification.setHits(filtered_peptide_hits);
+    filtered_identification.assignRanks();
+  }
+}
+
 void IDFilter::filterIdentificationsByProteins(const PeptideIdentification& identification,
                                                const vector< FASTAFile::FASTAEntry >& proteins,
                                                PeptideIdentification& filtered_identification,
