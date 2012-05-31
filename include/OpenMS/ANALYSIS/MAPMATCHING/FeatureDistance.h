@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Clemens Groepl, Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREDISTANCE_H
@@ -81,7 +81,7 @@ namespace OpenMS
 		FeatureDistance(DoubleReal max_intensity = 1.0,
 										bool force_constraints = false);
 		
-		/// Desctructor
+		/// Destructor
 		virtual ~FeatureDistance();
 
 		/// Assignment operator
@@ -97,16 +97,35 @@ namespace OpenMS
 
 	protected:
 		/// Structure for storing distance parameters
-		struct DistanceParams_;
+    struct DistanceParams_
+    {
+      DistanceParams_() {}
+
+      DistanceParams_(const String& what, const Param& global)
+      {
+        Param param = global.copy("distance_" + what + ":", true);
+        if (what == "MZ") max_diff_ppm = param.getValue("unit") == "ppm";
+        else max_diff_ppm = false;
+        max_difference = param.getValue("max_difference");
+        exponent = param.getValue("exponent");
+        weight = param.getValue("weight");
+        norm_factor = 1 / max_difference;
+        relevant = (weight != 0.0) && (exponent != 0.0);
+        if (!relevant) weight = 0.0;
+      }
+
+      DoubleReal max_difference, exponent, weight, norm_factor;
+      bool max_diff_ppm, relevant;
+    };
 
 		/// Docu in base class
 		void updateMembers_();
 
 		/// Computes a distance component given absolute difference and parameters
-		inline DoubleReal distance_(DoubleReal diff, const DistanceParams_* params);
+		inline DoubleReal distance_(DoubleReal diff, const DistanceParams_& params) const;
 
 		/// Storage of parameters for the individual distance components
-		DistanceParams_ *params_rt_, *params_mz_, *params_intensity_;
+		DistanceParams_ params_rt_, params_mz_, params_intensity_;
 		
 		/// Reciprocal value of the total weight in the distance function
 		DoubleReal total_weight_reciprocal_;

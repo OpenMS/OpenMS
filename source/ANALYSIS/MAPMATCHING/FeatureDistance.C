@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser
-// $Authors: Clemens Groepl, Hendrik Weisser $
+// $Authors: Clemens Groepl, Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
@@ -36,35 +36,15 @@ namespace OpenMS
 		std::numeric_limits<DoubleReal>::infinity();
 
 
-	struct FeatureDistance::DistanceParams_
-	{
-		DistanceParams_(const String& what, const Param& global)
-		{
-			Param param = global.copy("distance_" + what + ":", true);
-			if (what == "MZ") max_diff_ppm = param.getValue("unit") == "ppm";
-			else max_diff_ppm = false;
-			max_difference = param.getValue("max_difference");
-			exponent = param.getValue("exponent");
-			weight = param.getValue("weight");
-			norm_factor = 1 / max_difference;
-			relevant = (weight != 0.0) && (exponent != 0.0);
-			if (!relevant) weight = 0.0;
-		}
-
-		DoubleReal max_difference, exponent, weight, norm_factor;
-		bool max_diff_ppm, relevant;
-	};
-
-
 	FeatureDistance::FeatureDistance(DoubleReal max_intensity, 
 																	 bool force_constraints):
 		DefaultParamHandler("FeatureDistance"), 
-		params_rt_(0), params_mz_(0), params_intensity_(0),
+		params_rt_(), params_mz_(), params_intensity_(),
 		max_intensity_(max_intensity), force_constraints_(force_constraints)
 	{
     defaults_.setValue("distance_RT:max_difference", 100.0, "Maximum allowed difference in RT");
     defaults_.setMinFloat("distance_RT:max_difference", 0.0);
-		defaults_.setValue("distance_RT:exponent", 1.0, "Normalized RT differences are raised to this power", StringList::create("advanced"));
+		defaults_.setValue("distance_RT:exponent", 1.0, "Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", StringList::create("advanced"));
 		defaults_.setMinFloat("distance_RT:exponent", 0.0);
 		defaults_.setValue("distance_RT:weight", 1.0, "RT distances are weighted by this factor", StringList::create("advanced"));
 		defaults_.setMinFloat("distance_RT:weight", 0.0);
@@ -74,13 +54,13 @@ namespace OpenMS
     defaults_.setMinFloat("distance_MZ:max_difference", 0.0);
     defaults_.setValue("distance_MZ:unit", "Da", "Unit of the 'max_difference' parameter");
     defaults_.setValidStrings("distance_MZ:unit", StringList::create("Da,ppm"));
-		defaults_.setValue("distance_MZ:exponent", 2.0, "Normalized m/z differences are raised to this power", StringList::create("advanced"));
+		defaults_.setValue("distance_MZ:exponent", 2.0, "Normalized m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", StringList::create("advanced"));
 		defaults_.setMinFloat("distance_MZ:exponent", 0.0);
 		defaults_.setValue("distance_MZ:weight", 1.0, "m/z distances are weighted by this factor", StringList::create("advanced"));
 		defaults_.setMinFloat("distance_MZ:weight", 0.0);
 		defaults_.setSectionDescription("distance_MZ", "Distance component based on m/z differences");
 
-		defaults_.setValue("distance_intensity:exponent", 1.0, "Differences in relative intensity are raised to this power", StringList::create("advanced"));
+		defaults_.setValue("distance_intensity:exponent", 1.0, "Differences in relative intensity are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", StringList::create("advanced"));
 		defaults_.setMinFloat("distance_intensity:exponent", 0.0);
     defaults_.setValue("distance_intensity:weight", 0.0, "Distances based on relative intensity are weighted by this factor", StringList::create("advanced"));
     defaults_.setMinFloat("distance_intensity:weight", 0.0);
@@ -95,9 +75,6 @@ namespace OpenMS
 
 	FeatureDistance::~FeatureDistance()
 	{
-		delete params_rt_;
-		delete params_mz_;
-		delete params_intensity_;
 	}
 
 
@@ -115,23 +92,31 @@ namespace OpenMS
 
 	void FeatureDistance::updateMembers_()
 	{
-		delete params_rt_;
-		delete params_mz_;
-		delete params_intensity_;
-		params_rt_ = new DistanceParams_("RT", param_);
-		params_mz_ = new DistanceParams_("MZ", param_);
+		params_rt_ = DistanceParams_("RT", param_);
+		params_mz_ = DistanceParams_("MZ", param_);
 		// this parameter is not set by the user, but comes from the data:
 		param_.setValue("distance_intensity:max_difference", max_intensity_);
-		params_intensity_ = new DistanceParams_("intensity", param_);
-		total_weight_reciprocal_ = 1 / (params_rt_->weight + params_mz_->weight + 
-																		params_intensity_->weight);
+		params_intensity_ = DistanceParams_("intensity", param_);
+		total_weight_reciprocal_ = 1 / (params_rt_.weight + params_mz_.weight + 
+																		params_intensity_.weight);
 		ignore_charge_ = String(param_.getValue("ignore_charge")) == "true";
 	}
 
 
-  DoubleReal FeatureDistance::distance_(DoubleReal diff, const DistanceParams_* params)
+  DoubleReal FeatureDistance::distance_(DoubleReal diff, const DistanceParams_& params) const
 	{
-		return pow(diff * params->norm_factor, params->exponent) * params->weight;
+    // manually querying for ^1 and ^2, since pow(x,2.0) is REALLY expensive and ^1 and ^2 are the defaults (so are likely to be used)
+    if (params.exponent==1) return diff * params.norm_factor * params.weight;
+    else if (params.exponent==2)
+    {
+      DoubleReal tmp(diff * params.norm_factor);
+      return tmp * tmp * params.weight;
+    }
+		else
+    { // this pow() is REALLY expensive, since it uses a 'double' as exponent, using 'int' will make it faster,
+      // but we will loose fractional exponents (might be useful?)
+      return pow(diff * params.norm_factor, params.exponent) * params.weight;
+    }
 	}
 
 	pair<bool, DoubleReal> FeatureDistance::operator()(const BaseFeature& left, 
@@ -154,12 +139,12 @@ namespace OpenMS
     // check m/z difference constraint:
     DoubleReal left_mz = left.getMZ(), right_mz = right.getMZ();
     DoubleReal dist_mz = fabs(left_mz - right_mz);
-    DoubleReal max_diff_mz = params_mz_->max_difference;
-    if (params_mz_->max_diff_ppm) // compute absolute difference (in Da/Th)
+    DoubleReal max_diff_mz = params_mz_.max_difference;
+    if (params_mz_.max_diff_ppm) // compute absolute difference (in Da/Th)
     {
       max_diff_mz *= left_mz * 1e-6;
       // overwrite this parameter - it will be recomputed each time anyway:
-      params_mz_->norm_factor = 1 / max_diff_mz;
+      params_mz_.norm_factor = 1 / max_diff_mz;
     }
 
     if (dist_mz > max_diff_mz)
@@ -172,8 +157,8 @@ namespace OpenMS
     }
 
 		// check RT difference constraint:
-    DoubleReal dist_rt = abs(left.getRT() - right.getRT());
-		if (dist_rt > params_rt_->max_difference)
+    DoubleReal dist_rt = fabs(left.getRT() - right.getRT());
+		if (dist_rt > params_rt_.max_difference)
 		{
       if (force_constraints_)
       {
@@ -186,9 +171,9 @@ namespace OpenMS
 		dist_mz = distance_(dist_mz, params_mz_);
 
     DoubleReal dist_intensity = 0.0;
-		if (params_intensity_->relevant) // not by default, so worth checking
+		if (params_intensity_.relevant) // not by default, so worth checking
 		{
-			dist_intensity = abs(left.getIntensity() - right.getIntensity());
+			dist_intensity = fabs(left.getIntensity() - right.getIntensity());
 			dist_intensity = distance_(dist_intensity, params_intensity_);
 		}
 		
