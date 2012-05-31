@@ -216,7 +216,7 @@ namespace OpenMS
       std::pair<DoubleReal, DoubleReal> bounds;
       DoubleReal L = log(alpha);
       DoubleReal s = sqrt(
-          ((L*tau_)*(L*tau_)) / 4) - 2*L*sigma_square_
+          ((L*tau_)*(L*tau_) / 4) - 2*L*sigma_square_
       );
 
       DoubleReal s1,s2;

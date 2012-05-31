@@ -44,7 +44,7 @@ namespace OpenMS
     @brief This class represents the abstract base class of a signal to noise estimator.
 
     A signal to noise estimator should provide the signal to noise ratio of all raw data points
-    in a given intervall [first_,last_).
+    in a given interval [first_,last_).
   */
   
 	template < typename Container = MSSpectrum< > >
@@ -99,7 +99,7 @@ namespace OpenMS
     {}
 
      
-    /// Set the start and endpoint of the raw data intervall, for which signal to noise ratios will be estimated immediately
+    /// Set the start and endpoint of the raw data interval, for which signal to noise ratios will be estimated immediately
     virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)
     {
       first_=it_begin;
@@ -109,7 +109,7 @@ namespace OpenMS
     }
       
           
-    /// Set the start and endpoint of the raw data intervall, for which signal to noise ratios will be estimated immediately
+    /// Set the start and endpoint of the raw data interval, for which signal to noise ratios will be estimated immediately
     virtual void init(const Container& c)
     {
       init(c.begin(), c.end() ); 
@@ -154,14 +154,14 @@ namespace OpenMS
 
 
     /** 
-      @brief protected struct to store parameters my, sigma for a gaussian distribution
+      @brief protected struct to store parameters my, sigma for a Gaussian distribution
     
       Accessors are : mean and variance      
     */ 
     struct GaussianEstimate
     {
-      double mean;   ///mean of estimated gaussian
-      double variance; ///variance of estimated gaussian
+      double mean;   ///mean of estimated Gaussian
+      double variance; ///variance of estimated Gaussian
     };  
 
 
