@@ -186,7 +186,8 @@ namespace OpenMS
       run = scan_first_;
       while (run != scan_last_)
       {
-        v += std::pow(m - (*run).getIntensity(), 2);
+        DoubleReal tmp(m - (*run).getIntensity());
+        v += tmp*tmp;
         ++run;
       }
       v = v / ((double)size); // divide by n

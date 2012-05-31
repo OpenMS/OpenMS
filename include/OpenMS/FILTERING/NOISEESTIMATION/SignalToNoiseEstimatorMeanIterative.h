@@ -346,7 +346,8 @@ namespace OpenMS
               hist_stdev = 0;
               for (int bin = 0; bin < hist_rightmost_bin; ++bin)
               {
-                hist_stdev += histogram[bin]/ (double) elements_in_window * std::pow(bin_value[bin]-hist_mean, 2);
+                DoubleReal tmp(bin_value[bin]-hist_mean);
+                hist_stdev += histogram[bin]/ (double) elements_in_window * tmp * tmp;
               }
               hist_stdev = std::sqrt(hist_stdev);
 

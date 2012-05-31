@@ -133,7 +133,8 @@ namespace OpenMS
 			DoubleReal error = 0;
 			while (begin_a != end_a)
 			{
-				error += pow(*begin_a - *begin_b, 2);
+        IteratorType1 tmp(*begin_a - *begin_b);
+				error += tmp*tmp;
 				++begin_a;
 				++begin_b;
 			}
