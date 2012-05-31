@@ -171,6 +171,6 @@ add_custom_target(final_package
   DEPENDS dmg)
   
 add_custom_target(dmg
-  COMMAND cpack
+  COMMAND cpack -G DragNDrop
   COMMENT "Building intermediate dmg package"
 )
