@@ -45,7 +45,7 @@ namespace OpenMS
 			msq_(0),
 			cmsq_(&msq)
 		{
-				cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
+				cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo")); //TODO unimod -> then automatise CVList writing 
 		}
 
 		MzQuantMLHandler::MzQuantMLHandler(MSQuantifications& msq, /* FeatureMap& feature_map, */ const String& filename, const String& version, const ProgressLogger& logger)
@@ -69,7 +69,7 @@ namespace OpenMS
 			static set<String> to_ignore;
 			if (to_ignore.empty())
 			{
-				to_ignore.insert("peptideSequence");
+				to_ignore.insert("CVList"); // for now static set of obos.
 			}
 
 			if (to_ignore.find(tag_) != to_ignore.end())
@@ -90,18 +90,19 @@ namespace OpenMS
 			}
 
 			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+			static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 			static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
 			static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
 			//~ static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 			static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
 
-
 			if (tag_ == "cvParam")
 			{
-				String value, unit_accession, cv_ref;
+				String value, unit_accession, cv_ref; 
 				optionalAttributeAsString_(value, attributes, s_value);
 				optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
-				optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);
+				optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);  //TODO
 				handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), /* attributeAsString_(attributes, s_name), value, */ attributes, cv_ref/*,  unit_accession */);
 				return;
 			}
@@ -112,30 +113,59 @@ namespace OpenMS
 				return;
 			}
 
-			//~ if (tag_ == "SourceFile")
-			//~ {
-				//~ // start new
-				//~ actual_inputfile_ = MSQuantifications::Inputfile();
-				
-				//~ // location attribute
-				//~ actual_inputfile_.location = attributeAsString_(attributes, "location");
-
-				//~ // name attribute (opt)
-				//~ String name;
-				//~ if (optionalAttributeAsString_(name, attributes, "name"))
-				//~ {
-					//~ actual_inputfile_.name = name;
-				//~ }
-				
-				// ext doc uri element in cahracter tag ExternalFormatDocumentation
-				// FileFormat is own tag -> CVparam
-				//~ return;
-			//~ }
+			if (tag_ == "DataProcessing")
+			{
+				int order = asInt_(attributeAsString_(attributes,"order"));
+				current_dp_ = std::make_pair<int,DataProcessing>(order,DataProcessing());
+				current_pas_.clear();
+				//~ order 
+				DataValue sw_ref(attributeAsString_(attributes,"software_ref"));
+				current_dp_.second.setMetaValue("software_ref",sw_ref);
+			}
+			
+			if (tag_ == "ProcessingMethod")
+			{
+				//order gets implicity imposed by set<ProcessingAction> - so nothing to do here
+			}		
+			
+			if (tag_ == "Software")
+			{
+				current_sw_ = Software();
+				current_id_ = attributeAsString_(attributes,"id");
+				String vers = attributeAsString_(attributes,"version");
+				current_sw_.setVersion(vers);
+			}
+			
+			else if (tag_ == "userParam")
+			{
+				String type = "";
+				optionalAttributeAsString_(type, attributes, s_type);
+				String value = "";
+				optionalAttributeAsString_(value, attributes, s_value);
+				handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value);
+			}
+			
+			if (tag_ == "RawFilesGroup")
+			{
+				current_id_ = attributeAsString_(attributes,"id");
+				std::vector<ExperimentalSettings> exp_set;
+				current_files_.insert(std::make_pair<String,std::vector<ExperimentalSettings> >(current_id_,exp_set));
+			}
+			
+			if (tag_ == "RawFile")
+			{
+				ExperimentalSettings es;
+				es.setLoadedFilePath(attributeAsString_(attributes,"location"));
+				current_files_[current_id_].push_back(es);
+				//here would be the place to start looking for additional experimentalsettings readin
+			}
+			
 			error(LOAD, "MzIdentMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
 		}
 
 		void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
 		{
+			//if there is data between the element tags
 			//~ if (tag_ == "ExternalFormatDocumentation")
 			//~ {
 				//~ actual_inputfile_.doc_uri = sm_.convert(chars);
@@ -163,16 +193,43 @@ namespace OpenMS
 				//~ return;
 			//~ }
 
-			//~ if (tag_ == "SourceFile")
-			//~ {
-				//~ inputfiles_.addHit(actual_inputfile_);
-				//~ return;
-			//~ }
+			// no ProcessingMethod endElement action so each userParam under Dataprocessing will be one processingaction - no other way for core-lib compability yet
+			if (tag_ == "DataProcessing")
+			{
+				current_dp_.second.setProcessingActions(current_pas_);
+				current_orderedps_.insert(current_dp_);
+				return;
+			}
+			
+			if (tag_ == "DataProcessingList")
+			{
+				std::vector<DataProcessing> dps;
+				for (std::map<int,DataProcessing>::const_iterator it = current_orderedps_.begin() ; it != current_orderedps_.end(); it++ )
+				{
+						dps.push_back(it->second);
+				}
+				msq_->setDataProcessingList(dps);
+				return;
+			}
+			
+			if (tag_ == "Software")
+			{
+				std::vector<DataProcessing> dps = msq_->getDataProcessingList();
+				for (std::vector<DataProcessing>::iterator it = dps.begin(); it != dps.end(); ++it)
+				{
+					if (it->getMetaValue("software_ref") == current_id_)
+					{
+						it->setSoftware(current_sw_);
+					}
+				}
+			}
+			
 		}
-
+			
 		void MzQuantMLHandler::handleCVParam_(const String& /* parent_parent_tag*/, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref /* , const String& unit_accession */)
 		{
 				//~ ...
+			return;
 		}
 
 
@@ -184,7 +241,7 @@ namespace OpenMS
  			
 			//header
 			//~ TODO CreationDate
-			os << "<mzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2 ../../schema/mzQuantML_1_0_0-rc2.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2\"" << " version=\"1.0.0-rc2\"" << ">\n";
+			os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2 ../../schema/mzQuantML_1_0_0-rc2.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2\"" << " version=\"1.0.0-rc2\"" << ">\n";
 			
 			//CVList
 			os << "<CvList>\n \t<Cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"2.25.0\"/>\n\t<Cv id=\"UO\" fullName=\"Unit Ontology\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"/>\n</CvList>\n";
@@ -213,7 +270,7 @@ namespace OpenMS
 			{
 				String sw_ref;
 				sw_ref = "sw_" + String(UniqueIdGenerator::getUniqueId());
-				softwarelist_tag += "\t\t<Software id=\"" +  sw_ref + "\" version=\"" + String(dit->getSoftware().getVersion()) + "\"/>\n";
+				softwarelist_tag += "\t\t<Software id=\"" +  sw_ref + "\" version=\"" + String(dit->getSoftware().getVersion()) + "\">\n";
 				writeCVParams_(softwarelist_tag, dit->getSoftware().getCVTerms(), UInt(3));
 				if (dit->getSoftware().getCVTerms().empty())
 				{
@@ -221,7 +278,7 @@ namespace OpenMS
 				}
 				softwarelist_tag += "\t\t</Software>\n";
 				++order_d;		
-				dataprocessinglist_tag += "\t\t<DataProcessing id=\"dp_" + String(UniqueIdGenerator::getUniqueId()) + "\" software_Ref=\"" + sw_ref + "\" order=\"" + String(order_d) + "\">\n";
+				dataprocessinglist_tag += "\t\t<DataProcessing id=\"dp_" + String(UniqueIdGenerator::getUniqueId()) + "\" software_ref=\"" + sw_ref + "\" order=\"" + String(order_d) + "\">\n";
 				Size order_c = 0;
 				for (std::set<DataProcessing::ProcessingAction>::const_iterator pit = dit->getProcessingActions().begin(); pit != dit->getProcessingActions().end(); ++pit)
 				{
@@ -241,20 +298,26 @@ namespace OpenMS
 				
 			softwarelist_tag += "\t</SoftwareList>\n";
 				
-			os << dataprocessinglist_tag << softwarelist_tag;
+			os << softwarelist_tag << dataprocessinglist_tag;
 			
 			// Ratios tag
-			String ratio_xml("\t<RatioList>\n");
-			for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin()+1; ait != cmsq_->getAssays().end(); ++ait)
+			String ratio_xml;
+			switch(cmsq_->getAnalysisSummary().quant_type_)
 			{
-				UInt64 ri = UniqueIdGenerator::getUniqueId();
-				rid.push_back(ri);
-				ratio_xml += "\t\t<Ratio id=\"r_" + String(ri) +" numerator_ref=a_\""+ String(cmsq_->getAssays().begin()->uid_) +"\" denominator_ref=a_\""+ String(ait->uid_) +"\" >\n";
-				ratio_xml += "\t\t\t<RatioCalculation>\n\t\t\t\t<userParam name=\"Simple ratio calc\"/>\n\t\t\t\t<userParam name=\"light to medium/.../heavy\"/>\n\t\t\t</RatioCalculation>\n\t\t</Ratio>\n";
+				case 0:
+					ratio_xml += "\t<RatioList>\n";
+					for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin()+1; ait != cmsq_->getAssays().end(); ++ait)
+					{
+						UInt64 ri = UniqueIdGenerator::getUniqueId();
+						rid.push_back(ri);
+						ratio_xml += "\t\t<Ratio id=\"r_" + String(ri) +"\" numerator_ref=\"a_"+ String(cmsq_->getAssays().begin()->uid_) +"\" denominator_ref=\"a_"+ String(ait->uid_) +"\" >\n";
+						ratio_xml += "\t\t\t<RatioCalculation>\n\t\t\t\t<userParam name=\"Simple ratio calc\"/>\n\t\t\t\t<userParam name=\"light to medium/.../heavy\"/>\n\t\t\t</RatioCalculation>\n\t\t</Ratio>\n";
+					}
+					ratio_xml += "\t</RatioList>\n";
+				break;
 			}
-			ratio_xml += "\t</RatioList>\n";
 			
-			// Assay & StudyVariables: each  "channel" gets its assay
+			// Assay & StudyVariables: each  "channel" gets its assay - each assay its rawfilegroup 
 			String assay_xml("\t<AssayList>\n"), study_xml("\t<StudyVariableList>\n"), inputfiles_xml("\t<InputFiles>\n");
 			std::map<String,String> files;
 			for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
@@ -280,6 +343,7 @@ namespace OpenMS
 					{
 						rfgr = "rfg_" + String(files.find(iit->getLoadedFilePath())->second);
 					}
+					//~ what about the other experimentalsettings?
 				}
 				rgs += "\t\t</RawFilesGroup>\n";
 				
@@ -288,35 +352,85 @@ namespace OpenMS
 					inputfiles_xml += rgs;
 				}
 				
-				assay_xml += "\t\t<Assay id=\"a_" + String(ait->uid_)  + "\" RawFilesGroup_refs=\"" + rfgr + "\">\n";
+				assay_xml += "\t\t<Assay id=\"a_" + String(ait->uid_)  + "\" rawFilesGroup_refs=\"" + rfgr + "\">\n";
 				assay_xml += "\t\t\t<Label>\n";
 				switch(cmsq_->getAnalysisSummary().quant_type_)
 				{ //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
 					case 0:
 						for (std::vector< std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
-						{ 	//~ TODO CVTerms
-							assay_xml += "\t\t\t\t<Modification massDelta=\""+String(lit->second)+"\" residues=\"TODO\">\n";
-							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"TODO\" accession=\"TODO\" name=\""+String(lit->first)+"\" value=\"0\"/>\n";							
+						{ 
+							String cv_acc,cv_name;
+							switch((int)std::floor( (Real)lit->first.toFloat() + (Real)0.5) ) //delta >! 0
+							{
+								case 4:
+									cv_acc = "481";
+									cv_name = "Label:2H(4)";
+								break;
+								case 6:
+									cv_acc = "188";
+									cv_name = "Label:13C(6)";
+								break;
+								case 8:
+									cv_acc = "259";
+									cv_name = "Label:13C(6)15N(2)";
+								break;
+								case 10:
+									cv_acc = "267";
+									cv_name = "Label:13C(6)15N(4)";
+								break;
+								default:
+									cv_name = "TODO";
+									cv_acc = "TODO";
+							}
+							assay_xml += "\t\t\t\t<Modification massDelta=\""+String(lit->second)+"\" >\n";
+							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"UNIMOD\" accession=\"" + cv_acc + "\" name=\""+ cv_name +"\" value=\"" + String(lit->first) + "\"/>\n";			
+							assay_xml += "\t\t\t\t</Modification>\n";
 						}
 					break;
 					
 					case 1:
 					{
-						assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
-						assay_xml += "\t\t\t\t\t<cvParam name =\"itraq label\"/>\n";
+						//~ assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
+						//~ assay_xml += "\t\t\t\t\t<cvParam name =\"itraq label\"/>\n";
+						for (std::vector< std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
+						{ 	
+							assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
+							String cv_acc,cv_name;
+							switch((int)lit->second)
+							{ //~ TODO 8plex
+								case 114:
+									cv_name = "iTRAQ4plex114";
+									cv_acc = "532";									
+								break;
+								case 115:
+									cv_name = "iTRAQ4plex115";
+									cv_acc = "533";									
+								break;
+								case 116:
+								case 117:
+									cv_name = "iTRAQ4plex116/7";
+									cv_acc = "214";									
+								break;
+								default:
+									cv_name = "TODO";
+									cv_acc = "TODO";
+							}
+							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"UNIMOD\" accession=\"" + cv_acc+  "\" name=\"" + cv_name + "\" value=\"" + String(lit->first) + "\"/>\n";			
+							assay_xml += "\t\t\t\t</Modification>\n";
+						}
 						break;
 					}
 					default:
 						assay_xml += "\t\t\t\t<Modification massDelta=\"0\" residues=\"X\">\n";
 						assay_xml += "\t\t\t\t\t<cvParam name =\"no label\"/>\n";
+						assay_xml += "\t\t\t\t</Modification>\n";
 				}
-				assay_xml += "\t\t\t\t</Modification>\n";
 				assay_xml += "\t\t\t</Label>\n";
 				assay_xml += "\t\t</Assay>\n";
 
 				// for SILACAnalyzer/iTRAQAnalyzer one assay is one studyvariable, this may change!!! TODO for iTRAQ
 				study_xml += "\t<StudyVariable id=\"v_" + vr + "\" name=\"String\">\n";
-				study_xml += "\t\t\t<AssayRef assay_ref=\"a_" + ar + "\"/>\n";
+				study_xml += "\t\t\t<AssayRef>a_" + ar + "<AssayRef/>\n";
 				study_xml += "\t</StudyVariable>\n";
 			}
 			assay_xml += "</AssayList>\n";
@@ -452,7 +566,7 @@ namespace OpenMS
 							// QuantLayers
 							os << "\t\t<RatioQuantLayer id=\"" << "q_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n";
 							os << "\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>\n\t\t\t\t\t</DataType>\n";
-							os << "\t\t\t\t<Column index>";
+							os << "\t\t\t\t<ColumnIndex>";
 							for(std::vector<UInt64>::const_iterator rit = rid.begin(); rit != rid.end(); ++rit)
 							{
 								os << "r_" << String(*rit) << " ";
@@ -481,25 +595,25 @@ namespace OpenMS
 							os << "\t\t</RatioQuantLayer>\n";
 						}
 						break;
-						case 1: // ms2label - iterate featuremap
+						case 1: // ms2label
 						{
-								for (Size i = 0; i < fid.size(); ++i)
-								{
-										if (!(*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().empty())
-										{
-												os << "\t\t<PeptideConsensus id=\"" << "c_" << String(fid[i]) << "\" charge=\""+ String((*cmsq_).getConsensusMaps()[k][i].getCharge()) +"\">\n";
-												os << "\t\t\t<feature_refs>";
-												for (Size j = 0; j < f2i[i].size(); ++j)
-												{
-														os << String(f2i[i][j]) << " ";
-												}
-												os << "\t\t\t</feature_refs>\n";
-												//~ os << "\t\t\t<IdentificationRef id_ref=\"";
-												//~ os << (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" IdentificationFile_ref=\"";
-												//~ os << idid_to_idfilenames.begin()->first  << "\"/>\n";
-												os << "\t\t</PeptideConsensus>\n";
-										}
-								}
+								//~ for (Size i = 0; i < fid.size(); ++i)
+								//~ {
+										//~ if (!(*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().empty())
+										//~ {
+												//~ os << "\t\t<PeptideConsensus id=\"" << "c_" << String(fid[i]) << "\" charge=\""+ String((*cmsq_).getConsensusMaps()[k][i].getCharge()) +"\">\n";
+												//~ os << "\t\t\t<feature_refs>";
+												//~ for (Size j = 0; j < f2i[i].size(); ++j)
+												//~ {
+														//~ os << String(f2i[i][j]) << " ";
+												//~ }
+												//~ os << "\t\t\t</feature_refs>\n";
+												//~ // os << "\t\t\t<IdentificationRef id_ref=\"";
+												//~ // os << (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" IdentificationFile_ref=\"";
+												//~ // os << idid_to_idfilenames.begin()->first  << "\"/>\n";
+												//~ os << "\t\t</PeptideConsensus>\n";
+										//~ }
+								//~ }
 								//~ TODO ratios, when available (not yet for the iTRAQ tuples of iTRAQAnalyzer)
 						}
 						break;
@@ -512,7 +626,7 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// TODO - omitted as there are no ids yet
 
-			os << "</mzQuantML>\n";
+			os << "</MzQuantML>\n";
 		}
 
 		void MzQuantMLHandler::writeCVParams_(String& s, const Map< String, std::vector < CVTerm > > & cvl, UInt indent)
@@ -573,6 +687,53 @@ namespace OpenMS
 				s += "\" value=\"" + (String)(d) + "\"/>" + "\n";
 			}
 		}
+		
+		void MzQuantMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
+		{
+			//create a DataValue that contains the data in the right type
+			DataValue data_value;
+			//float type
+			if (type=="xsd:double" || type=="xsd:float")
+			{
+				data_value = DataValue(value.toDouble());
+			}
+			//integer type
+			else if (type=="xsd:byte" || type=="xsd:decimal" || type=="xsd:int" || type=="xsd:integer" || type=="xsd:long" || type=="xsd:negativeInteger" || type=="xsd:nonNegativeInteger" || type=="xsd:nonPositiveInteger" || type=="xsd:positiveInteger" || type=="xsd:short" || type=="xsd:unsignedByte" || type=="xsd:unsignedInt" || type=="xsd:unsignedLong" || type=="xsd:unsignedShort")
+			{
+				data_value = DataValue(value.toInt());
+			}
+			//everything else is treated as a string
+			else
+			{
+				data_value = DataValue(value);
+			}
+			
+			//find the right MetaInfoInterface
+			if (parent_tag=="ProcessingMethod")
+			{
+				//~ value is softwarename - will get handled elsewhere
+				int x = std::distance(DataProcessing::NamesOfProcessingAction, std::find(DataProcessing::NamesOfProcessingAction, DataProcessing::NamesOfProcessingAction + DataProcessing::SIZE_OF_PROCESSINGACTION , name));
+				DataProcessing::ProcessingAction a = static_cast<DataProcessing::ProcessingAction>(x); // ugly and depends on NamesOfProcessingAction^=ProcessingAction-definitions - see TODO rewrite DataProcessing!
+				current_pas_.insert(a);
+			}
+			else if (parent_tag=="Software")
+			{
+				if(value == "")
+				{
+					current_sw_.setName(name);
+				}
+				else
+				current_sw_.setMetaValue(name,data_value);
+			}
+			//~ ...
+			//~ else if (parent_tag=="fileContent")
+			//~ {
+				//~ //currently ignored
+			//~ }
+			else warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+		}
+		
+		
 
 		void MzQuantMLHandler::writeFeature_(ostream& os, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
 		{

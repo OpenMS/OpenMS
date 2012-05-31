@@ -119,12 +119,16 @@ namespace OpenMS
 				MzQuantMLHandler(const MzQuantMLHandler& rhs);
 				MzQuantMLHandler& operator = (const MzQuantMLHandler& rhs);
 				
-
-				//~ Map<String, AASequence> pep_sequences_;
-				SourceFile actual_inputfile_;
-				//~ Int current_mod_location_;
-				//~ ProteinHit actual_protein_;
-				//~ Double ratio_;
+				std::map<String, std::vector<ExperimentalSettings> > current_files_;
+				Software current_sw_;
+				String current_id_;
+				std::vector<MetaInfo> up_stack_;
+				std::vector<CVTerm> cvp_stack_;
+			
+				std::map<int,DataProcessing> current_orderedps_;
+				std::pair<int,DataProcessing> current_dp_;
+				std::set< DataProcessing::ProcessingAction > current_pas_;
+				
 
 		};
 	} // namespace Internal

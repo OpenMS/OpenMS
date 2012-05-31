@@ -208,6 +208,7 @@ namespace OpenMS
 			const std::vector<ConsensusMap>& getConsensusMaps() const;
 			const std::vector<FeatureMap<> >& getFeatureMaps() const;
 			const AnalysisSummary& getAnalysisSummary() const;
+			void setDataProcessingList(std::vector<DataProcessing>& dpl);
 			void setAnalysisSummaryQuantType(QUANT_TYPES r);
 			void addConsensusMap(ConsensusMap& m);
 			void assignUIDs();
