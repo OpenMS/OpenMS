@@ -1827,10 +1827,10 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 				DoubleReal dmh = std::fabs(mz_min+(0.5+mh)*intensity_mz_step_-mz)/intensity_mz_step_;
         // Calculate weights for the intensity scores based on the distances to the
         // bin center(the nearer to better)
-				DoubleReal d1 = std::sqrt(std::pow(1.0-drl,2.0)+std::pow(1.0-dml,2.0));
-				DoubleReal d2 = std::sqrt(std::pow(1.0-drh,2.0)+std::pow(1.0-dml,2.0));
-				DoubleReal d3 = std::sqrt(std::pow(1.0-drl,2.0)+std::pow(1.0-dmh,2.0));
-				DoubleReal d4 = std::sqrt(std::pow(1.0-drh,2.0)+std::pow(1.0-dmh,2.0));
+				DoubleReal d1 = std::sqrt(std::pow(1.0-drl,2)+std::pow(1.0-dml,2));
+				DoubleReal d2 = std::sqrt(std::pow(1.0-drh,2)+std::pow(1.0-dml,2));
+				DoubleReal d3 = std::sqrt(std::pow(1.0-drl,2)+std::pow(1.0-dmh,2));
+				DoubleReal d4 = std::sqrt(std::pow(1.0-drh,2)+std::pow(1.0-dmh,2));
 				DoubleReal d_sum = d1 + d2 + d3 + d4;				
         // Final score .. intensityScore in the surrounding bins, weighted by the distance of the
         // bin center to the peak
