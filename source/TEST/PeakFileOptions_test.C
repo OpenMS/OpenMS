@@ -28,7 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 ///////////////////////////
 
 using namespace OpenMS;

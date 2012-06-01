@@ -29,7 +29,7 @@
 #define OPENMS_FORMAT_DTA2DFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>

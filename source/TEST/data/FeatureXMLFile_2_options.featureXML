@@ -10,16 +10,44 @@
 			<position dim="0">2.1</position>
 			<position dim="1">1020</position>
 			<intensity>200</intensity>
+			<convexhull nr="0">
+				<pt x="11.5" y="11.8" />
+				<pt x="12.5" y="12.8" />
+			</convexhull>			
 		</feature>
 		<feature id="f_2">
 			<position dim="0">3.1</position>
 			<position dim="1">1030</position>
 			<intensity>300</intensity>
+			<convexhull nr="0">
+				<pt x="31.5" y="31.8" />
+				<pt x="32.5" y="32.8" />
+			</convexhull>			
 		</feature>
 		<feature id="f_3">
 			<position dim="0">4.1</position>
 			<position dim="1">1040</position>
 			<intensity>400</intensity>
+			<subordinate>
+				<feature id="f_3_2000">
+					<position dim="0">24</position>
+					<position dim="1">0</position>
+					<intensity>320</intensity>
+					<quality dim="0">0.1</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.1</overallquality>
+					<charge>1</charge>
+				</feature>
+				<feature id="f_3_2001">
+					<position dim="0">23</position>
+					<position dim="1">11</position>
+					<intensity>11320</intensity>
+					<quality dim="0">0.1</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.1</overallquality>
+					<charge>2</charge>
+				</feature>
+			</subordinate>
 		</feature>
 		<feature id="f_4">
 			<position dim="0">5.1</position>
@@ -30,6 +58,50 @@
 			<position dim="0">4.1</position>
 			<position dim="1">1020</position>
 			<intensity>250</intensity>
+			<convexhull nr="0">
+				<pt x="1.5" y="1.8" />
+				<pt x="2.5" y="2.8" />
+			</convexhull>
+			<subordinate>
+				<feature id="f_5_2000">
+					<position dim="0">24</position>
+					<position dim="1">0</position>
+					<intensity>320</intensity>
+					<quality dim="0">0.1</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.1</overallquality>
+					<charge>1</charge>
+				</feature>
+				<feature id="f_5_2001">
+					<position dim="0">23</position>
+					<position dim="1">11</position>
+					<intensity>11320</intensity>
+					<quality dim="0">0.1</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0.1</overallquality>
+					<charge>2</charge>
+					<subordinate>
+						<feature id="f_5_2001_2000">
+							<position dim="0">24</position>
+							<position dim="1">0</position>
+							<intensity>320</intensity>
+							<quality dim="0">0.1</quality>
+							<quality dim="1">0</quality>
+							<overallquality>0.1</overallquality>
+							<charge>1</charge>
+						</feature>
+						<feature id="f_5_2001_2001">
+							<position dim="0">23</position>
+							<position dim="1">11</position>
+							<intensity>11320</intensity>
+							<quality dim="0">0.1</quality>
+							<quality dim="1">0</quality>
+							<overallquality>0.1</overallquality>
+							<charge>2</charge>
+						</feature>
+					</subordinate>					
+				</feature>
+			</subordinate>
 		</feature>
 		<feature id="f_6">
 			<position dim="0">2.1</position>

@@ -30,7 +30,7 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
 
 namespace OpenMS

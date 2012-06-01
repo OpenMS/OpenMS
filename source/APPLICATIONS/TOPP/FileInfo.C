@@ -333,7 +333,10 @@ class TOPPFileInfo
 		Map<String, int> meta_names;
 		if (in_type == FileTypes::FEATUREXML) //features
 		{
-			FeatureXMLFile().load(in,feat);
+      FeatureXMLFile ff;
+      ff.getOptions().setLoadConvexHull(false);  // CH's currently not needed here
+      ff.getOptions().setLoadSubordinates(false);// SO's currently not needed here
+			ff.load(in,feat);
 			feat.updateRanges();
 
 			os << "Number of features: " << feat.size() << "\n"
@@ -359,7 +362,7 @@ class TOPPFileInfo
 		}
 		else if (in_type == FileTypes::CONSENSUSXML) //consensus features
 		{
-			ConsensusXMLFile().load(in,cons);
+			ConsensusXMLFile().load(in, cons);
 			cons.updateRanges();
 
 			map<Size, UInt> num_consfeat_of_size;

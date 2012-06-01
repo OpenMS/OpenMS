@@ -29,7 +29,7 @@
 #define OPENMS_FORMAT_MZDATAFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>

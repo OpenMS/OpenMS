@@ -59,7 +59,6 @@ MzXMLFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 PTMXMLFile.h
-PeakFileOptions.h
 PeakTypeEstimator.h
 PepNovoInfile.h
 PepNovoOutfile.h

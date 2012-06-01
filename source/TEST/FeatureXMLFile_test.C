@@ -30,7 +30,7 @@
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
@@ -60,17 +60,31 @@ START_SECTION((~FeatureXMLFile()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
+START_SECTION((Size loadSize(const String& filename)))
+  FeatureMap<> e;
+  FeatureXMLFile dfmap_file;
+  //test exception
+  TEST_EXCEPTION( Exception::FileNotFound , dfmap_file.loadSize("dummy/dummy.MzData") )
+  // real test
+  Size r = dfmap_file.loadSize(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"));
+  TEST_EQUAL(r, 2);
+  // again, to test if reset internally works
+  r = dfmap_file.loadSize(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"));
+  TEST_EQUAL(r, 2);
+
+END_SECTION
+
+START_SECTION((void load(const String& filename, FeatureMap<>& feature_map)))
 	TOLERANCE_ABSOLUTE(0.01)
 
 	FeatureMap<> e;
 	FeatureXMLFile dfmap_file;
 
 	//test exception
-	TEST_EXCEPTION( Exception::FileNotFound , dfmap_file.load("dummy/dummy.MzData",e) )
+	TEST_EXCEPTION( Exception::FileNotFound , dfmap_file.load("dummy/dummy.MzData", e) )
 
 	// real test
-	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
 	TEST_EQUAL(e.getIdentifier(),"lsid");
 
 	//test DocumentIdentifier addition
@@ -132,43 +146,68 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 
 	//test if loading a second file works (initialization)
 	FeatureMap<> e2;
-	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e2);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e2);
 	TEST_EQUAL(e==e2,true)
 
 	//test of old file with mzData description (version 1.2)
 	//here only the downward-compatibility of the new parser is tested
 	//no exception should be thrown
-	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_3_old.featureXML"),e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_3_old.featureXML"), e);
 	TEST_EQUAL(e.size(),1)
 
-	//PeakFileOptions tests
+	//FeatureFileOptions tests
 	dfmap_file.getOptions().setRTRange(makeRange(0, 10));
-	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
 	TEST_EQUAL(e.size(),1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 0)
 	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
 	TEST_REAL_SIMILAR(e[0].getIntensity(), 500)
 
-	dfmap_file.getOptions() = PeakFileOptions();
+	dfmap_file.getOptions() = FeatureFileOptions();
 	dfmap_file.getOptions().setMZRange(makeRange(10, 50));
-	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
 	TEST_EQUAL(e.size(),1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 0)
 	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
 	TEST_REAL_SIMILAR(e[0].getIntensity(), 500)
 
-	dfmap_file.getOptions() = PeakFileOptions();
+	dfmap_file.getOptions() = FeatureFileOptions();
 	dfmap_file.getOptions().setIntensityRange(makeRange(400, 600));
-	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
 	TEST_EQUAL(e.size(),1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 0)
 	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
 	TEST_REAL_SIMILAR(e[0].getIntensity(), 500)
 
+  // convex hulls:
+  {
+  dfmap_file.getOptions() = FeatureFileOptions();
+  FeatureMap<> e_full;
+  dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), e_full);
+  dfmap_file.getOptions().setLoadConvexHull(false);
+  dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), e);
+  // delete CH's manually
+  std::vector<ConvexHull2D> empty_hull;
+  for (Size ic = 0; ic<e_full.size(); ++ ic) e_full[ic].setConvexHulls(empty_hull);
+  TEST_EQUAL(e_full, e)
+  }
+
+  // subordinates:
+  {
+  dfmap_file.getOptions() = FeatureFileOptions();
+  FeatureMap<> e_full;
+  dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), e_full);
+  dfmap_file.getOptions().setLoadSubordinates(false);
+  dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), e);
+  // delete SO's manually
+  std::vector<Feature> empty_f;
+  for (Size ic = 0; ic<e_full.size(); ++ ic) e_full[ic].setSubordinates(empty_f);
+  TEST_EQUAL(e_full, e)
+  }
 
 END_SECTION
 
-START_SECTION((void store(String filename, const FeatureMap<> &feature_map)))
+START_SECTION((void store(const String& filename, const FeatureMap<> &feature_map)))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
@@ -181,7 +220,7 @@ START_SECTION((void store(String filename, const FeatureMap<> &feature_map)))
   TEST_EQUAL(map==map2, true)
 END_SECTION
 
-START_SECTION((PeakFileOptions& getOptions()))
+START_SECTION((FeatureFileOptions& getOptions()))
 	FeatureXMLFile f;
   FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));
@@ -222,13 +261,13 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
   TEST_EQUAL(f.isValid(filename),true);
 END_SECTION
 
-START_SECTION((const PeakFileOptions& getOptions() const))
+START_SECTION((const FeatureFileOptions& getOptions() const))
 	FeatureXMLFile f;
  	FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));
 	f.getOptions().setIntensityRange(makeRange(290.0, 310.0));
 
-	const PeakFileOptions pfo = f.getOptions();
+	const FeatureFileOptions pfo = f.getOptions();
 
 	TEST_EQUAL(pfo.getRTRange(),makeRange(1.5, 4.5))
 	TEST_EQUAL(pfo.getIntensityRange(),makeRange(290.0, 310.0))

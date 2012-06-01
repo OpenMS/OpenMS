@@ -31,7 +31,7 @@
 //OpenMS includes
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
-#include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
 //QT includes
 #include <QtSql/QSqlQuery>

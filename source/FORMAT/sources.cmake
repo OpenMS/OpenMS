@@ -40,7 +40,6 @@ MzXMLFile.C
 OMSSACSVFile.C
 OMSSAXMLFile.C
 PTMXMLFile.C
-PeakFileOptions.C
 PeakTypeEstimator.C
 PepNovoInfile.C
 PepNovoOutfile.C

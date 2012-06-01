@@ -29,7 +29,7 @@
 #define OPENMS_FORMAT_FEATUREXMLFILE_H
 
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -71,22 +71,27 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-			void load(String filename, FeatureMap<>& feature_map);
+			void load(const String& filename, FeatureMap<>& feature_map);
+
+      Size loadSize(const String& filename);
 
 			/**
 				@brief stores the map @p feature_map in file with name @p filename.
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(String filename, const FeatureMap<>& feature_map);
+			void store(const String& filename, const FeatureMap<>& feature_map);
 
       /// Mutable access to the options for loading/storing
-      PeakFileOptions& getOptions();
+      FeatureFileOptions& getOptions();
 
       /// Non-mutable access to the options for loading/storing
-      const PeakFileOptions& getOptions() const;
+      const FeatureFileOptions& getOptions() const;
 
 		protected:
+
+      // restore default state for next load/store operation
+      void resetMembers_();
 
 			// Docu in base class
       virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
@@ -111,14 +116,23 @@ namespace OpenMS
 			*/
 			void updateCurrentFeature_(bool create);
 
+      /// allows for early return in parsing functions when certain sections should be ignored
+      /// <=0 - parsing ON
+      ///  >0 - this number of tags have been entered that forbid parsing and need to be exited before parsing continues
+      Int disable_parsing_;
+
 			/// points to the last open &lt;feature&gt; tag (possibly a subordinate feature)
 			Feature* current_feature_;
 			/// Feature map pointer for reading
 			FeatureMap<Feature>* map_;
 			/// Options that can be set
-			PeakFileOptions options_;
+			FeatureFileOptions options_;
+      /// only parse until "count" tag is reached (used in loadSize())
+      bool size_only_;
+      /// holds the putative size given in count
+      Size expected_size_;
 
-			/**@name temporary datastructures to hold parsed data */
+			/**@name temporary data structures to hold parsed data */
 	    //@{
 			ModelDescription<2>* model_desc_;
 			Param param_;
@@ -129,7 +143,7 @@ namespace OpenMS
 			/// current dimension of the feature position, quality, or convex hull point
 	 		UInt dim_;
 
-			//for downward compatibility, all tags in the old description must be ignored
+			/// for downward compatibility, all tags in the old description must be ignored
 			bool in_description_;
 
 			/// level in Feature stack during parsing
