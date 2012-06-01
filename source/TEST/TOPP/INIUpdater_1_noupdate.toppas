@@ -143,17 +143,17 @@
           <ITEM name="ignore_charge" value="false" type="string" description="Compare features normally even if their charge states are different" restrictions="true,false" />
           <NODE name="distance_RT" description="Distance component based on RT differences">
             <ITEM name="max_difference" value="100" type="float" description="Maximum allowed difference in RT" restrictions="0:" />
-            <ITEM name="exponent" value="1" type="float" description="Normalized RT differences are raised to this power" tags="advanced" restrictions="0:" />
+            <ITEM name="exponent" value="1" type="float" description="Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="1" type="float" description="RT distances are weighted by this factor" tags="advanced" restrictions="0:" />
           </NODE>
           <NODE name="distance_MZ" description="Distance component based on m/z differences">
             <ITEM name="max_difference" value="0.3" type="float" description="Maximum allowed difference in m/z (unit defined by &apos;mz_unit&apos;)" restrictions="0:" />
             <ITEM name="unit" value="Da" type="string" description="Unit of the &apos;max_difference&apos; parameter" restrictions="Da,ppm" />
-            <ITEM name="exponent" value="2" type="float" description="Normalized m/z differences are raised to this power" tags="advanced" restrictions="0:" />
+            <ITEM name="exponent" value="2" type="float" description="Normalized m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="1" type="float" description="m/z distances are weighted by this factor" tags="advanced" restrictions="0:" />
           </NODE>
           <NODE name="distance_intensity" description="Distance component based on differences in relative intensity">
-            <ITEM name="exponent" value="1" type="float" description="Differences in relative intensity are raised to this power" tags="advanced" restrictions="0:" />
+            <ITEM name="exponent" value="1" type="float" description="Differences in relative intensity are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="0" type="float" description="Distances based on relative intensity are weighted by this factor" tags="advanced" restrictions="0:" />
           </NODE>
         </NODE>
