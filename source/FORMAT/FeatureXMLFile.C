@@ -697,19 +697,17 @@ namespace OpenMS
 
     // handle skipping of whole sections
     // IMPORTANT: check parent tags first (i.e. tags higher in the tree), since otherwise sections might be enabled/disabled too early/late
-    if ((!options_.getLoadSubordinates()) && tag=="subordinate")
+    if (   ( (!options_.getLoadSubordinates()) && tag=="subordinate")
+         ||( (!options_.getLoadConvexHull()) && tag=="convexhull") )
     {
       --disable_parsing_;
-      return;
-    }
-    else if ((!options_.getLoadConvexHull()) && tag=="convexhull") 
-    {
-      --disable_parsing_;
-      return;
+      return; // even if disable_parsing is false now, we still exit (since this endelement() should be ignored)
     }
 
+    if (disable_parsing_) return;
+
     // do the actual parsing:
-		open_tags_.pop_back();
+    open_tags_.pop_back();
 
 		//for downward compatibility, all tags in the old description must be ignored
 		if (tag=="description")
@@ -824,6 +822,9 @@ namespace OpenMS
 
 		//for downward compatibility, all tags in the old description must be ignored
 		if (in_description_) return;
+
+    // we are before first tag or beyond last tag
+    if (open_tags_.size()==0) return;
 
 		String& current_tag = open_tags_.back();
 		if (current_tag == "intensity")
