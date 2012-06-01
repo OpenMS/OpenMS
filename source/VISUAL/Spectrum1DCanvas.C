@@ -125,7 +125,7 @@ namespace OpenMS
     dataToWidget(peak.getMZ(), peak.getIntensity(), point, flipped, percentage);
   }
 
-  void Spectrum1DCanvas::dataToWidget(float x, float y, QPoint & point, bool flipped, bool percentage)
+  void Spectrum1DCanvas::dataToWidget(DoubleReal x, DoubleReal y, QPoint & point, bool flipped, bool percentage)
   {
     QPoint tmp;
     if (percentage)
@@ -175,9 +175,9 @@ namespace OpenMS
     return widgetToData(pos.x(), pos.y(), percentage);
   }
 
-  SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(float x, float y, bool percentage)
+  SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(DoubleReal x, DoubleReal y, bool percentage)
   {
-    float actual_y;
+    DoubleReal actual_y;
     DoubleReal alignment_shrink_factor = 1.0;
     if (height() > 10)
     {
@@ -617,7 +617,7 @@ namespace OpenMS
     //update range area
     recalculateRanges_(0, 2, 1);
     overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
-    float width = overall_data_range_.width();
+    DoubleReal width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
@@ -1050,7 +1050,7 @@ namespace OpenMS
     //update ranges
     recalculateRanges_(0, 2, 1);
     overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
-    float width = overall_data_range_.width();
+    DoubleReal width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
@@ -1103,7 +1103,7 @@ namespace OpenMS
     else // only if none or both are true
     {
       text = "m/z: ";
-      precision = 6;
+      precision = 8;
     }
     lines.push_back(text.c_str() + QString::number(mz, 'f', precision));
     lines.push_back("Int: " + QString::number(it, 'f', 2));
@@ -1530,7 +1530,7 @@ namespace OpenMS
     //update ranges
     recalculateRanges_(0, 2, 1);
     overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
-    float width = overall_data_range_.width();
+    DoubleReal width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());

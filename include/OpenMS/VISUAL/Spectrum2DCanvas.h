@@ -300,7 +300,7 @@ protected:
       @param y the chart coordinate y
       @param point returned widget coordinates
     */
-    inline void dataToWidget_(float x, float y, QPoint & point)
+    inline void dataToWidget_(DoubleReal x, DoubleReal y, QPoint & point)
     {
       if (!isMzToXAxis())
       {

@@ -104,17 +104,17 @@ public:
     /// Sets whether this widget is currently in mirror mode
     void setMirrorModeActive(bool b);
 
-    /// For convenience - calls dataToWidget(float, float, ...)
+    /// For convenience - calls dataToWidget
     void dataToWidget(const PeakType & peak, QPoint & point, bool flipped = false, bool percentage = true);
 
     /// Calls SpectrumCanvas::dataToWidget_(), takes mirror mode into account
-    void dataToWidget(float x, float y, QPoint & point, bool flipped = false, bool percentage = false);
+    void dataToWidget(DoubleReal x, DoubleReal y, QPoint & point, bool flipped = false, bool percentage = false);
 
-    /// For convenience - calls widgetToData(float, float, ...)
+    /// For convenience - calls widgetToData
     PointType widgetToData(const QPoint & pos, bool percentage = false);
 
     /// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
-    PointType widgetToData(float x, float y, bool percentage = false);
+    PointType widgetToData(DoubleReal x, DoubleReal y, bool percentage = false);
 
     /// ----- Annotations
 

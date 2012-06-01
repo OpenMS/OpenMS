@@ -737,7 +737,7 @@ protected:
         @param y the widget coordinate y
         @return chart coordinates
     */
-    inline PointType widgetToData_(float x, float y)
+    inline PointType widgetToData_(DoubleReal x, DoubleReal y)
     {
       if (!isMzToXAxis())
       {
@@ -755,7 +755,7 @@ protected:
       }
     }
 
-    /// Calls widgetToData_(float, float) with x and y position of @p pos
+    /// Calls widgetToData_ with x and y position of @p pos
     inline PointType widgetToData_(const QPoint & pos)
     {
       return widgetToData_(pos.x(), pos.y());
@@ -769,7 +769,7 @@ protected:
         @param y the chart coordinate y
         @param point returned widget coordinates
     */
-    inline void dataToWidget_(float x, float y, QPoint & point)
+    inline void dataToWidget_(DoubleReal x, DoubleReal y, QPoint & point)
     {
       if (!isMzToXAxis())
       {
