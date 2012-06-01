@@ -98,7 +98,7 @@ namespace OpenMS
 		 //~ TODO rewirte writeCVParams_ in baseclass to be more convenient
 		 //~ void MzQuantMLHandler::writeCVParams_(std::ostream& os, const Map< String, std::vector < CVTerm > > & , UInt indent);
 		 void writeCVParams_(String& s, const Map< String, std::vector < CVTerm > > & , UInt indent);
-		 
+
 			/// Writes user terms
 			void writeUserParams_(std::ostream& os, const MetaInfoInterface& meta, UInt indent);
 			void writeUserParams_(String& s, const MetaInfoInterface& meta, UInt indent);
@@ -118,17 +118,18 @@ namespace OpenMS
 				MzQuantMLHandler();
 				MzQuantMLHandler(const MzQuantMLHandler& rhs);
 				MzQuantMLHandler& operator = (const MzQuantMLHandler& rhs);
-				
-				std::map<String, std::vector<ExperimentalSettings> > current_files_;
+
+				std::map<String, std::vector<ExperimentalSettings> > current_files_; // 1.rawfilesgroup_ref 2.inputfiles for each assay as experimentalsettings
 				Software current_sw_;
 				String current_id_;
 				std::vector<MetaInfo> up_stack_;
 				std::vector<CVTerm> cvp_stack_;
-			
+				MSQuantifications::Assay current_assay_;
+
 				std::map<int,DataProcessing> current_orderedps_;
 				std::pair<int,DataProcessing> current_dp_;
 				std::set< DataProcessing::ProcessingAction > current_pas_;
-				
+
 
 		};
 	} // namespace Internal

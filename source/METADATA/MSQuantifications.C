@@ -46,11 +46,11 @@ namespace OpenMS
 				ExperimentalSettings(source)
 			{
 			}
-			
+
 			MSQuantifications::~MSQuantifications()
-			{  	
+			{
 			}
-			
+
 			/// Assignment operator
 			MSQuantifications& MSQuantifications::operator= (const MSQuantifications& source)
 			{
@@ -60,7 +60,7 @@ namespace OpenMS
 				//~ PersistentObject::operator=(source);
 
 				//~ reassign members
-				
+
 				return *this;
 			}
 
@@ -69,22 +69,22 @@ namespace OpenMS
 			{
 				return ExperimentalSettings::operator==(rhs);
 			}
-			
+
 			/// Equality operator
 			bool MSQuantifications::operator!= (const MSQuantifications& rhs) const
 			{
 				return !(operator==(rhs));
 			}
-			
+
 			void MSQuantifications::setDataProcessingList(std::vector<DataProcessing>& dpl)
 			{
 				data_processings_ = dpl;
 			}
-			
+
 			const std::vector<DataProcessing> MSQuantifications::getDataProcessingList() const
 			{
-				std::vector<DataProcessing> list = data_processings_; 
-				
+				std::vector<DataProcessing> list = data_processings_;
+
 				//This is one way street for dataprocessing - it probably wont get mapped back after writeout and readin
 				for (std::vector<FeatureMap<> >::const_iterator fit = feature_maps_.begin(); fit != feature_maps_.end(); ++fit)
 				{
@@ -95,11 +95,16 @@ namespace OpenMS
 				{
 					list.insert(list.end(),cit->getDataProcessing().begin(), cit->getDataProcessing().end());
 				}
-				
-				return list;				
+
+				return list;
 			}
-			
+
 			const std::vector<MSQuantifications::Assay>& MSQuantifications::getAssays() const
+			{
+				return assays_;
+			}
+
+			std::vector<MSQuantifications::Assay>& MSQuantifications::getAssays()
 			{
 				return assays_;
 			}
@@ -107,18 +112,18 @@ namespace OpenMS
 			const std::vector<FeatureMap<> >& MSQuantifications::getFeatureMaps() const
 			{
 				return feature_maps_;
-			}			
-			
+			}
+
 			const std::vector<ConsensusMap>& MSQuantifications::getConsensusMaps() const
 			{
 				return consensus_maps_;
-			}			
+			}
 
 			const MSQuantifications::AnalysisSummary& MSQuantifications::getAnalysisSummary() const
 			{
 				return analysis_summary_;
 			}
-			
+
 			void MSQuantifications::setAnalysisSummaryQuantType(MSQuantifications::QUANT_TYPES r)
 			{
 				analysis_summary_.quant_type_ = r;
@@ -128,7 +133,7 @@ namespace OpenMS
 			{
 				consensus_maps_.push_back(m);
 			}
-			
+
 			void MSQuantifications::assignUIDs()
 			{
 				for(std::vector<Assay>::iterator ait = assays_.begin(); ait != assays_.end(); ++ait)
@@ -136,18 +141,18 @@ namespace OpenMS
 					ait->uid_ = UniqueIdGenerator::getUniqueId();
 				}
 			}
-			
+
 			void MSQuantifications::registerExperiment(MSExperiment<Peak1D> & exp, std::vector< std::vector< std::pair<String, DoubleReal> > > label)
 			{
 				for (std::vector< std::vector< std::pair<String, DoubleReal> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
-				{ 
+				{
 					//TODO look for existing labels
 					Assay a;
 					a.mods_ = (*lit);
 					a.raw_files_.push_back(exp.getExperimentalSettings());
 					assays_.push_back(a);
 				}
-				
+
 				data_processings_ = exp[0].getDataProcessing(); //todo overwrite MSExperiments inherited front method to work. [0] operator is ugly!
 			}
 

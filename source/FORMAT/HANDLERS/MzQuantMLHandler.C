@@ -45,7 +45,7 @@ namespace OpenMS
 			msq_(0),
 			cmsq_(&msq)
 		{
-				cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo")); //TODO unimod -> then automatise CVList writing 
+				cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo")); //TODO unimod -> then automatise CVList writing
 		}
 
 		MzQuantMLHandler::MzQuantMLHandler(MSQuantifications& msq, /* FeatureMap& feature_map, */ const String& filename, const String& version, const ProgressLogger& logger)
@@ -60,7 +60,7 @@ namespace OpenMS
 		MzQuantMLHandler::~MzQuantMLHandler()
 		{
 		}
-		
+
 		void MzQuantMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
 			tag_ = sm_.convert(qname);
@@ -99,7 +99,7 @@ namespace OpenMS
 
 			if (tag_ == "cvParam")
 			{
-				String value, unit_accession, cv_ref; 
+				String value, unit_accession, cv_ref;
 				optionalAttributeAsString_(value, attributes, s_value);
 				optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
 				optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);  //TODO
@@ -118,16 +118,16 @@ namespace OpenMS
 				int order = asInt_(attributeAsString_(attributes,"order"));
 				current_dp_ = std::make_pair<int,DataProcessing>(order,DataProcessing());
 				current_pas_.clear();
-				//~ order 
+				//~ order
 				DataValue sw_ref(attributeAsString_(attributes,"software_ref"));
 				current_dp_.second.setMetaValue("software_ref",sw_ref);
 			}
-			
+
 			if (tag_ == "ProcessingMethod")
 			{
 				//order gets implicity imposed by set<ProcessingAction> - so nothing to do here
-			}		
-			
+			}
+
 			if (tag_ == "Software")
 			{
 				current_sw_ = Software();
@@ -135,7 +135,7 @@ namespace OpenMS
 				String vers = attributeAsString_(attributes,"version");
 				current_sw_.setVersion(vers);
 			}
-			
+
 			else if (tag_ == "userParam")
 			{
 				String type = "";
@@ -144,14 +144,14 @@ namespace OpenMS
 				optionalAttributeAsString_(value, attributes, s_value);
 				handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value);
 			}
-			
+
 			if (tag_ == "RawFilesGroup")
 			{
 				current_id_ = attributeAsString_(attributes,"id");
 				std::vector<ExperimentalSettings> exp_set;
 				current_files_.insert(std::make_pair<String,std::vector<ExperimentalSettings> >(current_id_,exp_set));
 			}
-			
+
 			if (tag_ == "RawFile")
 			{
 				ExperimentalSettings es;
@@ -159,7 +159,33 @@ namespace OpenMS
 				current_files_[current_id_].push_back(es);
 				//here would be the place to start looking for additional experimentalsettings readin
 			}
-			
+
+			if (tag_ == "Assay")
+			{
+				current_assay_ = MSQuantifications::Assay();
+				//~ current_assay_.uid_ = attributeAsString_(attributes,"id");
+				current_id_ = attributeAsString_(attributes,"rawFileGroup_ref");
+				current_assay_.raw_files_ = current_files_[current_id_];
+				//TODO CVhandling
+			}
+
+			if (tag_ == "Label")
+			{
+				//TODO CVhandling
+			}
+
+			if (tag_ == "Modification")
+			{
+				String massdelta_string;
+				optionalAttributeAsString_(massdelta_string,attributes,"massDelta");
+				//~ TODO casting or uid_ rewrite : DoubleReal mass_delta = (DoubleReal)
+				String residue;
+				optionalAttributeAsString_(residue,attributes,"residues");
+				//~ current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>(residue,mass_delta));
+				//TODO CVhandling
+			}
+
+
 			error(LOAD, "MzIdentMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
 		}
 
@@ -200,7 +226,7 @@ namespace OpenMS
 				current_orderedps_.insert(current_dp_);
 				return;
 			}
-			
+
 			if (tag_ == "DataProcessingList")
 			{
 				std::vector<DataProcessing> dps;
@@ -211,7 +237,7 @@ namespace OpenMS
 				msq_->setDataProcessingList(dps);
 				return;
 			}
-			
+
 			if (tag_ == "Software")
 			{
 				std::vector<DataProcessing> dps = msq_->getDataProcessingList();
@@ -223,42 +249,90 @@ namespace OpenMS
 					}
 				}
 			}
-			
+
+			if (tag_ == "Assay")
+			{
+				msq_->getAssays().push_back(current_assay_);
+			}
 		}
-			
+
 		void MzQuantMLHandler::handleCVParam_(const String& /* parent_parent_tag*/, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref /* , const String& unit_accession */)
 		{
-				//~ ...
+				//TODO Assay cvrefs
 			return;
 		}
 
+		void MzQuantMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
+		{
+			//create a DataValue that contains the data in the right type
+			DataValue data_value;
+			//float type
+			if (type=="xsd:double" || type=="xsd:float")
+			{
+				data_value = DataValue(value.toDouble());
+			}
+			//integer type
+			else if (type=="xsd:byte" || type=="xsd:decimal" || type=="xsd:int" || type=="xsd:integer" || type=="xsd:long" || type=="xsd:negativeInteger" || type=="xsd:nonNegativeInteger" || type=="xsd:nonPositiveInteger" || type=="xsd:positiveInteger" || type=="xsd:short" || type=="xsd:unsignedByte" || type=="xsd:unsignedInt" || type=="xsd:unsignedLong" || type=="xsd:unsignedShort")
+			{
+				data_value = DataValue(value.toInt());
+			}
+			//everything else is treated as a string
+			else
+			{
+				data_value = DataValue(value);
+			}
+
+			//find the right MetaInfoInterface
+			if (parent_tag=="ProcessingMethod")
+			{
+				//~ value is softwarename - will get handled elsewhere
+				int x = std::distance(DataProcessing::NamesOfProcessingAction, std::find(DataProcessing::NamesOfProcessingAction, DataProcessing::NamesOfProcessingAction + DataProcessing::SIZE_OF_PROCESSINGACTION , name));
+				DataProcessing::ProcessingAction a = static_cast<DataProcessing::ProcessingAction>(x); // ugly and depends on NamesOfProcessingAction^=ProcessingAction-definitions - see TODO rewrite DataProcessing!
+				current_pas_.insert(a);
+			}
+			else if (parent_tag=="Software")
+			{
+				if(value == "")
+				{
+					current_sw_.setName(name);
+				}
+				else
+				current_sw_.setMetaValue(name,data_value);
+			}
+			//~ ...
+			//~ else if (parent_tag=="fileContent")
+			//~ {
+				//~ //currently ignored
+			//~ }
+			else warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+		}
 
 		void MzQuantMLHandler::writeTo(std::ostream&  os)
 		{
 			//~ TODO logger_.startProgress(0,exp.size(),"storing mzML file");
 			String line; //everyone walk the line!!!
 			std::vector<UInt64> rid;
- 			
+
 			//header
 			//~ TODO CreationDate
 			os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2 ../../schema/mzQuantML_1_0_0-rc2.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2\"" << " version=\"1.0.0-rc2\"" << ">\n";
-			
+
 			//CVList
 			os << "<CvList>\n \t<Cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"2.25.0\"/>\n\t<Cv id=\"UO\" fullName=\"Unit Ontology\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"/>\n</CvList>\n";
-			
+
 			//AnalysisSummary
 			os << "\t<AnalysisSummary>\n"	;
 			cmsq_->getAnalysisSummary().quant_type_;
 			os << "\t\t<userParam name=\"QuantType\" value=\"";
 			os <<String(MSQuantifications::NamesOfQuantTypes[cmsq_->getAnalysisSummary().quant_type_]) ;
-					//~ writeUserParam_(dataprocessinglist_tag, cmsq_->getAnalysisSummary().getUserParams(), UInt(2)); 
-					//~ writeCVParams_(dataprocessinglist_tag, (cmsq_->getAnalysisSummary().getCVTerms(), UInt(2)); 
+					//~ writeUserParam_(dataprocessinglist_tag, cmsq_->getAnalysisSummary().getUserParams(), UInt(2));
+					//~ writeCVParams_(dataprocessinglist_tag, (cmsq_->getAnalysisSummary().getCVTerms(), UInt(2));
 			os << "\"/>\n\t</AnalysisSummary>\n";
-			
+
 			//Software & DataProcessing
 			String softwarelist_tag;
 			softwarelist_tag += "\t<SoftwareList>\n"	;
-				
+
 			String dataprocessinglist_tag;
 			dataprocessinglist_tag += "\t<DataProcessingList>\n";
 			// TODO Software DefaultTag for each file: OpenMS
@@ -277,7 +351,7 @@ namespace OpenMS
 					softwarelist_tag += "\t\t\t<userParam name=\""+ String(dit->getSoftware().getName()) +"\"/>\n";
 				}
 				softwarelist_tag += "\t\t</Software>\n";
-				++order_d;		
+				++order_d;
 				dataprocessinglist_tag += "\t\t<DataProcessing id=\"dp_" + String(UniqueIdGenerator::getUniqueId()) + "\" software_ref=\"" + sw_ref + "\" order=\"" + String(order_d) + "\">\n";
 				Size order_c = 0;
 				for (std::set<DataProcessing::ProcessingAction>::const_iterator pit = dit->getProcessingActions().begin(); pit != dit->getProcessingActions().end(); ++pit)
@@ -293,13 +367,13 @@ namespace OpenMS
 				}
 				dataprocessinglist_tag += "\t\t</DataProcessing>\n";
 			}
-				
+
 			dataprocessinglist_tag += "\t</DataProcessingList>\n";
-				
+
 			softwarelist_tag += "\t</SoftwareList>\n";
-				
+
 			os << softwarelist_tag << dataprocessinglist_tag;
-			
+
 			// Ratios tag
 			String ratio_xml;
 			switch(cmsq_->getAnalysisSummary().quant_type_)
@@ -316,8 +390,8 @@ namespace OpenMS
 					ratio_xml += "\t</RatioList>\n";
 				break;
 			}
-			
-			// Assay & StudyVariables: each  "channel" gets its assay - each assay its rawfilegroup 
+
+			// Assay & StudyVariables: each  "channel" gets its assay - each assay its rawfilegroup
 			String assay_xml("\t<AssayList>\n"), study_xml("\t<StudyVariableList>\n"), inputfiles_xml("\t<InputFiles>\n");
 			std::map<String,String> files;
 			for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
@@ -346,19 +420,19 @@ namespace OpenMS
 					//~ what about the other experimentalsettings?
 				}
 				rgs += "\t\t</RawFilesGroup>\n";
-				
+
 				if(!group_exists)
 				{
 					inputfiles_xml += rgs;
 				}
-				
+
 				assay_xml += "\t\t<Assay id=\"a_" + String(ait->uid_)  + "\" rawFilesGroup_refs=\"" + rfgr + "\">\n";
 				assay_xml += "\t\t\t<Label>\n";
 				switch(cmsq_->getAnalysisSummary().quant_type_)
 				{ //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
 					case 0:
 						for (std::vector< std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
-						{ 
+						{
 							String cv_acc,cv_name;
 							switch((int)std::floor( (Real)lit->first.toFloat() + (Real)0.5) ) //delta >! 0
 							{
@@ -383,39 +457,39 @@ namespace OpenMS
 									cv_acc = "TODO";
 							}
 							assay_xml += "\t\t\t\t<Modification massDelta=\""+String(lit->second)+"\" >\n";
-							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"UNIMOD\" accession=\"" + cv_acc + "\" name=\""+ cv_name +"\" value=\"" + String(lit->first) + "\"/>\n";			
+							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"UNIMOD\" accession=\"" + cv_acc + "\" name=\""+ cv_name +"\" value=\"" + String(lit->first) + "\"/>\n";
 							assay_xml += "\t\t\t\t</Modification>\n";
 						}
 					break;
-					
+
 					case 1:
 					{
 						//~ assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
 						//~ assay_xml += "\t\t\t\t\t<cvParam name =\"itraq label\"/>\n";
 						for (std::vector< std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
-						{ 	
+						{
 							assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
 							String cv_acc,cv_name;
 							switch((int)lit->second)
 							{ //~ TODO 8plex
 								case 114:
 									cv_name = "iTRAQ4plex114";
-									cv_acc = "532";									
+									cv_acc = "532";
 								break;
 								case 115:
 									cv_name = "iTRAQ4plex115";
-									cv_acc = "533";									
+									cv_acc = "533";
 								break;
 								case 116:
 								case 117:
 									cv_name = "iTRAQ4plex116/7";
-									cv_acc = "214";									
+									cv_acc = "214";
 								break;
 								default:
 									cv_name = "TODO";
 									cv_acc = "TODO";
 							}
-							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"UNIMOD\" accession=\"" + cv_acc+  "\" name=\"" + cv_name + "\" value=\"" + String(lit->first) + "\"/>\n";			
+							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"UNIMOD\" accession=\"" + cv_acc+  "\" name=\"" + cv_name + "\" value=\"" + String(lit->first) + "\"/>\n";
 							assay_xml += "\t\t\t\t</Modification>\n";
 						}
 						break;
@@ -488,7 +562,7 @@ namespace OpenMS
 				cid.push_back(cmid);
 			}
 			os << feature_xml;
-				
+
 			switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
 			{
 				case 0: //ms1label
@@ -530,7 +604,7 @@ namespace OpenMS
 				}
 				break;
 			}
-			
+
 			os << "\t</FeatureList>\n";
 
 			// Peptides
@@ -550,7 +624,7 @@ namespace OpenMS
 								}
 								os << "</FeatureRef>\n";
 								if (!(*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().empty())
-								{									
+								{
 									//~ os << "\t\t\t<IdentificationRef id_refs=\"";
 									//~ os << (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" feature_refs=\"";
 									//~ for (Size j=1; j < cid[k][i].size(); ++j)
@@ -562,7 +636,7 @@ namespace OpenMS
 								}
 								os << "\t\t</PeptideConsensus>\n";
 							}
-							
+
 							// QuantLayers
 							os << "\t\t<RatioQuantLayer id=\"" << "q_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n";
 							os << "\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>\n\t\t\t\t\t</DataType>\n";
@@ -656,13 +730,13 @@ namespace OpenMS
 			writeUserParams_(h, meta, indent);
 			os << h;
 		}
-		
+
 		void MzQuantMLHandler::writeUserParams_(String& s, const MetaInfoInterface& meta, UInt indent)
 		{
 			if (meta.isMetaEmpty())
 			{
 				return;
-			}				
+			}
 			std::vector<String> keys;
 			meta.getKeys(keys);
 
@@ -687,53 +761,6 @@ namespace OpenMS
 				s += "\" value=\"" + (String)(d) + "\"/>" + "\n";
 			}
 		}
-		
-		void MzQuantMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
-		{
-			//create a DataValue that contains the data in the right type
-			DataValue data_value;
-			//float type
-			if (type=="xsd:double" || type=="xsd:float")
-			{
-				data_value = DataValue(value.toDouble());
-			}
-			//integer type
-			else if (type=="xsd:byte" || type=="xsd:decimal" || type=="xsd:int" || type=="xsd:integer" || type=="xsd:long" || type=="xsd:negativeInteger" || type=="xsd:nonNegativeInteger" || type=="xsd:nonPositiveInteger" || type=="xsd:positiveInteger" || type=="xsd:short" || type=="xsd:unsignedByte" || type=="xsd:unsignedInt" || type=="xsd:unsignedLong" || type=="xsd:unsignedShort")
-			{
-				data_value = DataValue(value.toInt());
-			}
-			//everything else is treated as a string
-			else
-			{
-				data_value = DataValue(value);
-			}
-			
-			//find the right MetaInfoInterface
-			if (parent_tag=="ProcessingMethod")
-			{
-				//~ value is softwarename - will get handled elsewhere
-				int x = std::distance(DataProcessing::NamesOfProcessingAction, std::find(DataProcessing::NamesOfProcessingAction, DataProcessing::NamesOfProcessingAction + DataProcessing::SIZE_OF_PROCESSINGACTION , name));
-				DataProcessing::ProcessingAction a = static_cast<DataProcessing::ProcessingAction>(x); // ugly and depends on NamesOfProcessingAction^=ProcessingAction-definitions - see TODO rewrite DataProcessing!
-				current_pas_.insert(a);
-			}
-			else if (parent_tag=="Software")
-			{
-				if(value == "")
-				{
-					current_sw_.setName(name);
-				}
-				else
-				current_sw_.setMetaValue(name,data_value);
-			}
-			//~ ...
-			//~ else if (parent_tag=="fileContent")
-			//~ {
-				//~ //currently ignored
-			//~ }
-			else warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
-		}
-		
-		
 
 		void MzQuantMLHandler::writeFeature_(ostream& os, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
 		{
@@ -768,7 +795,7 @@ namespace OpenMS
 								//~ os << indent << "\t\t\t\t</hullpoint>\n";*/
 								//~ os << indent << precisionWrapper(pos[0]) << " " << precisionWrapper(pos[1]) << " ";
 						//~ }
-						//~ os << "\n"; 
+						//~ os << "\n";
 				//~ }
 				//~ os << "</Masstrace>\n";
 
