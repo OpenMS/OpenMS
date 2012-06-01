@@ -28,11 +28,11 @@
 
 /**
 
-    Generously provided by the BALL people, taken from version 1.2
-    with slight modifications
+  Generously provided by the BALL people, taken from version 1.2
+  with slight modifications
 
-    Originally implemented by OK who refused to take any responsibility
-    for the code ;)
+  Originally implemented by OK who refused to take any responsibility
+  for the code ;)
 */
 #include <limits>
 #include <string>
@@ -82,6 +82,7 @@ namespace OpenMS
         if (incomplete_line_.size() > 0)
           distribute_(incomplete_line_);
         delete[] pbuf_;
+        pbuf_ = 0;
       }
     }
 
@@ -234,7 +235,8 @@ namespace OpenMS
             {
               // search for the first end of line
               for (; line_end < pptr() && *line_end != '\n'; line_end++)
-              {}
+              {
+              }
 
               if (line_end >= pptr())
               {
@@ -264,7 +266,7 @@ namespace OpenMS
                 incomplete_line_ = "";
                 outstring += &(buf[0]);
 
-                // avoid adding empty lines to the cache                  
+                // avoid adding empty lines to the cache
                 if (outstring.empty())
                 {
                   distribute_(outstring);
@@ -278,7 +280,7 @@ namespace OpenMS
                   // send outline (and extra_message) to attached streams
                   if (!extra_message.empty())
                     distribute_(extra_message);
-                    
+
                   distribute_(outstring);
                 }
 
@@ -340,11 +342,11 @@ namespace OpenMS
             result.append("%");
             break;
 
-          case 'y':             // append the message type (error/warning/information)
+          case 'y':           // append the message type (error/warning/information)
             result.append(level_);
             break;
 
-          case 'T':             // time: HH:MM:SS
+          case 'T':           // time: HH:MM:SS
             strftime(buf, 64, "%H:%M:%S", localtime(&time));
             result.append(buf);
             break;
@@ -354,22 +356,22 @@ namespace OpenMS
             result.append(buf);
             break;
 
-          case 'D':             // date: DD.MM.YYYY
+          case 'D':           // date: DD.MM.YYYY
             strftime(buf, 64, "%Y/%m/%d", localtime(&time));
             result.append(buf);
             break;
 
-          case 'd':             // date: DD.MM.
+          case 'd':           // date: DD.MM.
             strftime(buf, 64, "%m/%d", localtime(&time));
             result.append(buf);
             break;
 
-          case 'S':             // time+date: DD.MM.YYYY, HH:MM:SS
+          case 'S':           // time+date: DD.MM.YYYY, HH:MM:SS
             strftime(buf, 64, "%Y/%m/%d, %H:%M:%S", localtime(&time));
             result.append(buf);
             break;
 
-          case 's':             // time+date: DD.MM., HH:MM
+          case 's':           // time+date: DD.MM., HH:MM
             strftime(buf, 64, "%m/%d, %H:%M", localtime(&time));
             result.append(buf);
             break;
@@ -392,7 +394,8 @@ namespace OpenMS
 
     LogStreamNotifier::LogStreamNotifier() :
       registered_at_(0)
-    {}
+    {
+    }
 
     LogStreamNotifier::~LogStreamNotifier()
     {
@@ -400,7 +403,8 @@ namespace OpenMS
     }
 
     void LogStreamNotifier::logNotify()
-    {}
+    {
+    }
 
     void LogStreamNotifier::unregister()
     {
@@ -435,8 +439,10 @@ namespace OpenMS
     {
       if (delete_buffer_)
       {
-        // remove the streambuffer
+        // delete the streambuffer
         delete rdbuf();
+        // set it to 0
+        std::ios(0);
       }
     }
 
@@ -542,10 +548,10 @@ namespace OpenMS
   OPENMS_DLLAPI StreamHandler STREAM_HANDLER;
 
   // global default logstream
-  OPENMS_DLLAPI Logger::LogStream Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
-  OPENMS_DLLAPI Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
-  OPENMS_DLLAPI Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), true);
+  OPENMS_DLLAPI Logger::LogStream Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), false, &cerr);
+  OPENMS_DLLAPI Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), false, &cerr);
+  OPENMS_DLLAPI Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), false, &cout);
+  OPENMS_DLLAPI Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), false, &cout);
+  OPENMS_DLLAPI Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), false);
 
 } // namespace OpenMS
