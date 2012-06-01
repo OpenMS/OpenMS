@@ -146,7 +146,7 @@ namespace OpenMS
 					return *this;
 				}
 
-				UInt64 uid_;
+				String uid_;
 				std::vector< std::pair<String, DoubleReal> > mods_;
 				std::vector<ExperimentalSettings> raw_files_;
 				std::map<size_t, FeatureMap<> > feature_maps_; // iTRAQ needs no FeatureMaps so ExperimentalSettings are not directly mapped to FeatureMaps

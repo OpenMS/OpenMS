@@ -138,7 +138,7 @@ namespace OpenMS
 			{
 				for(std::vector<Assay>::iterator ait = assays_.begin(); ait != assays_.end(); ++ait)
 				{
-					ait->uid_ = UniqueIdGenerator::getUniqueId();
+					ait->uid_ = String(UniqueIdGenerator::getUniqueId());
 				}
 			}
 

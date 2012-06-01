@@ -32,6 +32,7 @@
 #include <set>
 #include <vector>
 #include <map>
+#include <iostream>
 
 using namespace std;
 
@@ -163,7 +164,7 @@ namespace OpenMS
 			if (tag_ == "Assay")
 			{
 				current_assay_ = MSQuantifications::Assay();
-				//~ current_assay_.uid_ = attributeAsString_(attributes,"id");
+				current_assay_.uid_ = attributeAsString_(attributes,"id");
 				current_id_ = attributeAsString_(attributes,"rawFileGroup_ref");
 				current_assay_.raw_files_ = current_files_[current_id_];
 				//TODO CVhandling
@@ -178,10 +179,9 @@ namespace OpenMS
 			{
 				String massdelta_string;
 				optionalAttributeAsString_(massdelta_string,attributes,"massDelta");
-				//~ TODO casting or uid_ rewrite : DoubleReal mass_delta = (DoubleReal)
 				String residue;
 				optionalAttributeAsString_(residue,attributes,"residues");
-				//~ current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>(residue,mass_delta));
+				current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>(residue,massdelta_string.toDouble()));
 				//TODO CVhandling
 			}
 
@@ -373,7 +373,7 @@ namespace OpenMS
 			softwarelist_tag += "\t</SoftwareList>\n";
 
 			os << softwarelist_tag << dataprocessinglist_tag;
-
+			
 			// Ratios tag
 			String ratio_xml;
 			switch(cmsq_->getAnalysisSummary().quant_type_)
@@ -392,7 +392,7 @@ namespace OpenMS
 			}
 
 			// Assay & StudyVariables: each  "channel" gets its assay - each assay its rawfilegroup
-			String assay_xml("\t<AssayList>\n"), study_xml("\t<StudyVariableList>\n"), inputfiles_xml("\t<InputFiles>\n");
+			String assay_xml("\t<AssayList id=\"assaylist1\">\n"), study_xml("\t<StudyVariableList>\n"), inputfiles_xml("\t<InputFiles>\n");
 			std::map<String,String> files;
 			for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
 			{
@@ -426,15 +426,16 @@ namespace OpenMS
 					inputfiles_xml += rgs;
 				}
 
-				assay_xml += "\t\t<Assay id=\"a_" + String(ait->uid_)  + "\" rawFilesGroup_refs=\"" + rfgr + "\">\n";
+				assay_xml += "\t\t<Assay id=\"a_" + String(ait->uid_)  + "\" rawFilesGroup_ref=\"rfg_" + rfgr + "\">\n";
 				assay_xml += "\t\t\t<Label>\n";
+				
 				switch(cmsq_->getAnalysisSummary().quant_type_)
 				{ //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
 					case 0:
 						for (std::vector< std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
 						{
 							String cv_acc,cv_name;
-							switch((int)std::floor( (Real)lit->first.toFloat() + (Real)0.5) ) //delta >! 0
+							switch((int)std::floor( lit->second + (DoubleReal)0.5) ) //delta >! 0
 							{
 								case 4:
 									cv_acc = "481";
@@ -499,26 +500,27 @@ namespace OpenMS
 						assay_xml += "\t\t\t\t\t<cvParam name =\"no label\"/>\n";
 						assay_xml += "\t\t\t\t</Modification>\n";
 				}
+
 				assay_xml += "\t\t\t</Label>\n";
 				assay_xml += "\t\t</Assay>\n";
 
 				// for SILACAnalyzer/iTRAQAnalyzer one assay is one studyvariable, this may change!!! TODO for iTRAQ
-				study_xml += "\t<StudyVariable id=\"v_" + vr + "\" name=\"String\">\n";
-				study_xml += "\t\t\t<AssayRef>a_" + ar + "<AssayRef/>\n";
+				study_xml += "\t<StudyVariable id=\"v_" + vr + "\" name=\"noname\">\n";
+				study_xml += "\t\t\t<Assay_refs>a_" + String(ait->uid_) + "</Assay_refs>\n";
 				study_xml += "\t</StudyVariable>\n";
 			}
 			assay_xml += "</AssayList>\n";
 			inputfiles_xml += "</InputFiles>\n";
 			study_xml += "</StudyVariableList>\n";
 			os << inputfiles_xml << assay_xml << study_xml << ratio_xml;
-
+			
 			// Features and QuantLayers
 			std::vector<UInt64> fid;
 			std::vector<Real> fin, fwi /*, fqu */;
 			std::vector< std::vector< std::vector<UInt64> >  >cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
 			std::vector< std::vector<Real> > f2i;
 			String feature_xml = "";
-			feature_xml += "\t<FeatureList>\n"; // TODO spectrum_refs
+			feature_xml += "\t<FeatureList id=\"featurelist1\">\n"; //URGENT TODO rawfilegroupref
 			for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
 			{
 				std::vector< std::vector<UInt64> > cmid;
@@ -538,7 +540,7 @@ namespace OpenMS
 								fin.push_back(fit->getIntensity());
 								fwi.push_back(fit->getWidth());
 								//~ fqu.push_back(jt->getQuality());
-								feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" RT=\"" + String(fit->getRT()) + "\" MZ=\"" + String(fit->getMZ()) + "\" charge=\"" + String(fit->getCharge()) + "\"/>\n";
+								feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(fit->getRT()) + "\" mz=\"" + String(fit->getMZ()) + "\" charge=\"" + String(fit->getCharge()) + "\"/>\n";
 								// TODO as soon as SILACanalyzer incorporate convex hulls read from the featuremap
 								//~ writeUserParam_(os, *jt, UInt(2)); // FeatureHandle has no MetaInfoInterface!!!
 							}
@@ -548,7 +550,7 @@ namespace OpenMS
 						{
 							std::vector<Real> fi;
 							fid.push_back(UniqueIdGenerator::getUniqueId());
-							feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" RT=\"" + String(cit->getRT()) + "\" MZ=\"" + String(cit->getMZ()) + "\" charge=\"" + String(cit->getCharge()) + "\"/>\n";
+							feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(cit->getRT()) + "\" mz=\"" + String(cit->getMZ()) + "\" charge=\"" + String(cit->getCharge()) + "\"/>\n";
 							//~ std::vector<UInt64> cidvec;
 							//~ cidvec.push_back(fid.back());
 							for (std::set< FeatureHandle,FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin(); fit != feature_handles.end(); ++fit)
@@ -608,7 +610,7 @@ namespace OpenMS
 			os << "\t</FeatureList>\n";
 
 			// Peptides
-			os << "\t<PeptideList  id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n";
+			os << "\t<PeptideConsensusList  id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO finalresult &evidenceref
 			for (Size k = 0; k < cid.size(); ++k)
 			{
 				switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
@@ -620,9 +622,8 @@ namespace OpenMS
 								os << "\t\t<PeptideConsensus id=\"" << "c_" << String(cid[k][i].front()) << "\" charge=\""+ String((*cmsq_).getConsensusMaps()[k][i].getCharge()) +"\">\n";
 								for (Size j=1; j < cid[k][i].size(); ++j)
 								{
-									os << "\t\t\t<FeatureRef feature_ref=\"f_" << String(cid[k][i][j]) << "\" Assay_Refs=a_\"" << String(cmsq_->getAssays()[(j-1)].uid_) << "</FeatureRef>\n";
+									os << "\t\t\t<FeatureRef feature_ref=\"f_" << String(cid[k][i][j]) << "\" Assay_Refs=\"a_" << String(cmsq_->getAssays()[(j-1)].uid_) << "\"/>\n";
 								}
-								os << "</FeatureRef>\n";
 								if (!(*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().empty())
 								{
 									//~ os << "\t\t\t<IdentificationRef id_refs=\"";
