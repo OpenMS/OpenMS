@@ -315,10 +315,14 @@ namespace OpenMS
 
 			//header
 			//~ TODO CreationDate
-			os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2 ../../schema/mzQuantML_1_0_0-rc2.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2\"" << " version=\"1.0.0-rc2\"" << ">\n";
+			os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2 ../../schema/mzQuantML_1_0_0-rc2.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2\"" << " version=\"1.0.0\"" << ">\n";
 
 			//CVList
-			os << "<CvList>\n \t<Cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"2.25.0\"/>\n\t<Cv id=\"UO\" fullName=\"Unit Ontology\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"/>\n</CvList>\n";
+			os << "<CvList>\n";
+			os << " \t<Cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"2.25.0\"/>\n";
+			os <<"\t<Cv id=\"UO\" fullName=\"Unit Ontology\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"/>\n";
+			os <<"\t<Cv id=\"UNIMOD\" fullName=\"UniMod\" uri=\"http://google.com\"/>\n";
+			os << "</CvList>\n";
 
 			//AnalysisSummary
 			os << "\t<AnalysisSummary>\n"	;
@@ -391,6 +395,7 @@ namespace OpenMS
 				break;
 			}
 
+			String glob_rfgr;
 			// Assay & StudyVariables: each  "channel" gets its assay - each assay its rawfilegroup
 			String assay_xml("\t<AssayList id=\"assaylist1\">\n"), study_xml("\t<StudyVariableList>\n"), inputfiles_xml("\t<InputFiles>\n");
 			std::map<String,String> files;
@@ -408,6 +413,7 @@ namespace OpenMS
 					if (files.find(iit->getLoadedFilePath()) == files.end())
 					{
 						group_exists = false;
+						glob_rfgr = rfgr; //TODO remove that when real rawfile grouping is done
 						UInt64 rid = UniqueIdGenerator::getUniqueId();
 						files.insert(std::make_pair<String,String>(iit->getLoadedFilePath(),rfgr));
 						rgs += "\t\t\t<RawFile id=\"r_" +String(rid)  + "\" location=\"" + iit->getLoadedFilePath() + "\"/>\n";
@@ -415,7 +421,7 @@ namespace OpenMS
 					}
 					else
 					{
-						rfgr = "rfg_" + String(files.find(iit->getLoadedFilePath())->second);
+						rfgr = String(files.find(iit->getLoadedFilePath())->second);
 					}
 					//~ what about the other experimentalsettings?
 				}
@@ -520,7 +526,7 @@ namespace OpenMS
 			std::vector< std::vector< std::vector<UInt64> >  >cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
 			std::vector< std::vector<Real> > f2i;
 			String feature_xml = "";
-			feature_xml += "\t<FeatureList id=\"featurelist1\">\n"; //URGENT TODO rawfilegroupref
+			feature_xml += "\t<FeatureList id=\"featurelist1\" rawFilesGroup_ref=\"rfg_" + glob_rfgr + "\">\n"; //TODO make registerExperiment also register the consensusmaps (and featuremaps) - keep the grouping with ids
 			for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
 			{
 				std::vector< std::vector<UInt64> > cmid;
@@ -570,7 +576,7 @@ namespace OpenMS
 				case 0: //ms1label
 				{
 					os << "\t\t<FeatureQuantLayer id=\"" << "q_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n\t\t\t<ColumnDefinition>\n";
-
+					//what featurehandle is capable of reporting
 					os << "\t\t\t\t<Column index=\"0\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"TODO\" name=\"intensity\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>";
 					os << "\t\t\t\t<Column index=\"1\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"TODO\" name=\"width\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>";
 					//~ os << "\t\t\t\t<Column index=\"0\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"TODO\" name=\"quality\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>"; // getQuality erst ab BaseFeature - nicht in FeatureHandle
@@ -587,12 +593,12 @@ namespace OpenMS
 				break;
 				case 1: //ms2label
 				{
-					os << "\t\t<MS2AssayQuantLayer id=\""+ String(UniqueIdGenerator::getUniqueId()) +"\">\n\t\t\t<DataType>\n\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"TODO\" name=\"intensity\"/>\n\t\t\t</DataType>\n\t\t\t<ColumnDefinition>\n\t\t\t\t\t";
-					//~ for (Size i = 0; i < file_descriptions.size(); ++i)
-					//~ {
-						//~ os << "TODO";
-					//~ }
-					os <<  "\n\t\t\t\t</ColumnDefinition>\t\t\t<DataMatrix>\n";
+					os << "\t\t<MS2AssayQuantLayer id=\"ms2ql_"+ String(UniqueIdGenerator::getUniqueId()) +"\">\n\t\t\t<DataType>\n\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"1847\" name=\"reporterion intensity\"/>\n\t\t\t</DataType>\n\t\t\t<ColumnIndex>";
+					for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin()+1; ait != cmsq_->getAssays().end(); ++ait)
+					{
+						os << "a_"<< String(ait->uid_) << " ";
+					}
+					os <<  "</ColumnIndex>\t\t\t<DataMatrix>\n";
 					for (Size i = 0; i < fid.size(); ++i)
 					{
 						os << "\t\t\t\t\t<Row object_ref=\"f_" + String(fid[i]) + "\">";
@@ -610,7 +616,7 @@ namespace OpenMS
 			os << "\t</FeatureList>\n";
 
 			// Peptides
-			os << "\t<PeptideConsensusList  id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO finalresult &evidenceref
+			os << "\t<PeptideConsensusList  finalResult=\"true\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO evidenceref
 			for (Size k = 0; k < cid.size(); ++k)
 			{
 				switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
@@ -622,7 +628,7 @@ namespace OpenMS
 								os << "\t\t<PeptideConsensus id=\"" << "c_" << String(cid[k][i].front()) << "\" charge=\""+ String((*cmsq_).getConsensusMaps()[k][i].getCharge()) +"\">\n";
 								for (Size j=1; j < cid[k][i].size(); ++j)
 								{
-									os << "\t\t\t<FeatureRef feature_ref=\"f_" << String(cid[k][i][j]) << "\" Assay_Refs=\"a_" << String(cmsq_->getAssays()[(j-1)].uid_) << "\"/>\n";
+									os << "\t\t\t<EvidenceRef feature_ref=\"f_" << String(cid[k][i][j]) << "\" assay_refs=\"a_" << String(cmsq_->getAssays()[(j-1)].uid_) << "\"/>\n";
 								}
 								if (!(*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().empty())
 								{
@@ -693,7 +699,7 @@ namespace OpenMS
 						}
 						break;
 				}
-				os << "\t</PeptideList>\n";
+				os << "\t</PeptideConsensusList>\n";
 			}
 
 			//--------------------------------------------------------------------------------------------
