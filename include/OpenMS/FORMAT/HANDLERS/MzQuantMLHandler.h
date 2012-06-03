@@ -89,7 +89,7 @@ namespace OpenMS
 			const MSQuantifications* cmsq_;
 
 			/// Handles CV terms
-			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref/* ,  const String& unit_accession="" */);
+			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& attributes, const String& cv_ref,  const String& unit_accession="");
 
 			/// Handles user terms
 			void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
@@ -122,14 +122,23 @@ namespace OpenMS
 				std::map<String, std::vector<ExperimentalSettings> > current_files_; // 1.rawfilesgroup_ref 2.inputfiles for each assay as experimentalsettings
 				Software current_sw_;
 				String current_id_;
+				String current_cf_id_;
+
 				std::vector<MetaInfo> up_stack_;
 				std::vector<CVTerm> cvp_stack_;
 				MSQuantifications::Assay current_assay_;
 
+				std::multimap<String, String> cm_cf_ids_; 
+				std::map<String,String> f_cf_ids_;
+				std::map<String,ConsensusFeature> cf_cf_obj_;
+				std::map<String,FeatureHandle> f_f_obj_;
+			
 				std::map<int,DataProcessing> current_orderedps_;
 				std::pair<int,DataProcessing> current_dp_;
 				std::set< DataProcessing::ProcessingAction > current_pas_;
 
+				std::vector<String> current_dm_types_;//hotfix for cvs
+				std::vector<DoubleReal> current_dm_values_;
 
 		};
 	} // namespace Internal

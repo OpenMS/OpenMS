@@ -71,6 +71,15 @@ namespace OpenMS
 			if (to_ignore.empty())
 			{
 				to_ignore.insert("CVList"); // for now static set of obos.
+				to_ignore.insert("ProteinGroupList"); // for now no proteins or groups
+				to_ignore.insert("ProteinList"); // .
+				to_ignore.insert("Protein"); // .
+				to_ignore.insert("StudyVariableList"); // We can't deal with these right now, but that is coming
+				to_ignore.insert("StudyVariable"); // .
+				
+				to_ignore.insert("AssayList"); // we only need to see the assays
+				to_ignore.insert("DataProcessingList"); // we only need to see the DataProcessings
+				to_ignore.insert("SoftwareList"); // we only need to see the Softwares
 			}
 
 			if (to_ignore.find(tag_) != to_ignore.end())
@@ -95,7 +104,6 @@ namespace OpenMS
 			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 			static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
 			static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
-			//~ static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 			static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
 
 			if (tag_ == "cvParam")
@@ -104,7 +112,7 @@ namespace OpenMS
 				optionalAttributeAsString_(value, attributes, s_value);
 				optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
 				optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);  //TODO
-				handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), /* attributeAsString_(attributes, s_name), value, */ attributes, cv_ref/*,  unit_accession */);
+				handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, attributes, cv_ref, unit_accession);
 				return;
 			}
 
@@ -177,16 +185,109 @@ namespace OpenMS
 
 			if (tag_ == "Modification")
 			{
-				String massdelta_string;
-				optionalAttributeAsString_(massdelta_string,attributes,"massDelta");
-				String residue;
-				optionalAttributeAsString_(residue,attributes,"residues");
-				current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>(residue,massdelta_string.toDouble()));
-				//TODO CVhandling
+				if(parent_tag == "Label")
+				{	
+					String massdelta_string;
+					optionalAttributeAsString_(massdelta_string,attributes,"massDelta");
+					String residue;
+					optionalAttributeAsString_(residue,attributes,"residues");
+					current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>(residue,massdelta_string.toDouble()));
+					//TODO CVhandling
+				}
+				else
+				{
+					error(LOAD, "MzQuantMLHandler::startElement: Unhandable element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
+				}
 			}
+			
+			if (tag_ == "Ratio")
+			{
+				current_id_ = attributeAsString_(attributes,"id");
+				String num = attributeAsString_(attributes,"numerator_ref");
+				String den = attributeAsString_(attributes,"denominator_ref");
+				msq_->getRatios().insert(std::make_pair<String,std::pair<String,String> >(current_id_,std::make_pair<String,String>(num,den)));
+			}
+			
+			if (tag_ == "PeptideConsensusList")
+			{
+				current_id_ = attributeAsString_(attributes,"id"); //needed in all PeptideConsensus elements
+			}		
+			
+			if (tag_ == "PeptideConsensus")
+			{
+				ConsensusFeature current_cf;
+				current_cf_id_ = attributeAsString_(attributes,"id");
+				int c = attributeAsInt_(attributes,"charge");
+				current_cf.setCharge(c);
+				//TODO read searchDatabase map from inputfiles
+				String searchDatabase_ref;
+				if (optionalAttributeAsString_(searchDatabase_ref,attributes,"SearchDatabase_ref") )
+				{
+					current_cf.setMetaValue("SearchDatabase_ref",DataValue(searchDatabase_ref));
+				}
+				cm_cf_ids_.insert(std::make_pair<String,String>(current_id_,current_cf_id_));
+				cf_cf_obj_.insert(std::make_pair<String,ConsensusFeature>(current_cf_id_,current_cf));
+			}	
 
-
-			error(LOAD, "MzIdentMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
+			if (tag_ == "EvidenceRef")
+			{
+				//~ String searchDatabase_ref;
+				//~ if (optionalAttributeAsString_(searchDatabase_ref,attributes,"SearchDatabase_ref") )
+				//~ {
+					//~ current_cf.setMetaValue("SearchDatabase_ref",DataValue(searchDatabase_ref));
+				//~ }
+				//~ String identificationFile_ref;
+				//~ if (optionalAttributeAsString_(identificationFile_ref,attributes,"identificationFile_ref") )
+				//~ {
+					//~ current_cf.setMetaValue("identificationFile_ref",DataValue(identificationFile_ref)); //TODO add identificationFile_ref to PeptideIdentification
+				//~ }
+				//~ StringList id_refs;
+				//~ if (optionalAttributeAsStringList_(id_refs,attributes,"id_refs") )
+				//~ {
+					//~ for (StringList::const_iterator it; it != id_refs.end(); ++it) //complete loop wont work! TODO add id_refs to PeptideIdentification
+					//~ {
+						//~ current_cf.setMetaValue("identificationFile_ref",DataValue(*it));
+					//~ }
+				//~ }
+				
+				String f_ref = attributeAsString_(attributes,"feature_ref"); // models which features will be included in this consensusfeature - idependent from id(is optional)
+				f_cf_ids_.insert(std::make_pair<String,String>(f_ref,current_id_));
+				
+				//~ StringList a_refs = attributeAsStringList_(attributes,"assay_refs"); // what to do with these??
+				//~ for (StringList::const_iterator it = a_refs.begin(); it != a_refs.end(); ++it)
+				//~ {
+				//~ }
+			}		
+			
+			else if (tag_ == "Feature")
+			{
+				current_id_ = attributeAsString_(attributes,"id");
+				DoubleReal rt = attributeAsDouble_(attributes,"rt");
+				DoubleReal mz = attributeAsDouble_(attributes,"mz");
+				FeatureHandle fh;
+				fh.setRT(rt);
+				fh.setMZ(mz);
+				int c;
+				if (optionalAttributeAsInt_(c,attributes,"charge"))
+				{
+					fh.setCharge(c);
+				}
+				f_f_obj_.insert(std::make_pair<String,FeatureHandle>(current_id_,fh)); // map_index was lost!! TODO as user param
+			}
+			
+			else if (tag_ == "FeatureQuantLayer" || tag_ == "RatioQuantLayer")
+			{
+				//TODO ColumnIndex!!!
+				current_dm_types_.clear();
+				current_dm_values_.clear();
+			}
+					
+			else if (tag_ == "Row")
+			{
+				current_id_ = attributeAsString_(attributes,"object_ref");
+			}
+				
+			else error(LOAD, "MzQuantMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
 		}
 
 		void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
@@ -198,8 +299,46 @@ namespace OpenMS
 
 				//~ return;
 			//~ }
-
-			//error(LOAD, "MzIdentMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
+			if (tag_ == "PeptideSequence")
+			{
+				AASequence p(sm_.convert(chars));
+				PeptideHit ph = PeptideHit(0, 0, cf_cf_obj_[current_cf_id_].getCharge(), p);
+				cf_cf_obj_[current_cf_id_].getPeptideIdentifications().back().insertHit(ph); // just moments before added
+				return;
+			}
+			
+			else if (tag_ == "Row")
+			{
+				const String r = sm_.convert(chars);
+				std::vector<String> string_values;
+				r.split(' ', string_values);
+				if (current_dm_types_.size() != string_values.size())
+				{
+					warning(LOAD, String("Unknown/unmatching row content in DataMatrix of ?'")/*  + parent_parent_tag + "'." */);
+					return;
+				}
+				for (Size i = 0; i < string_values.size(); ++i)
+				{
+					if(current_dm_types_[i]=="intensity")
+					{
+						f_f_obj_[current_id_].setIntensity(string_values[i].toDouble());
+					}
+					else if(current_dm_types_[i].hasPrefix("c_"))
+					{
+						cf_cf_obj_[current_id_].setMetaValue(current_dm_types_[i],DataValue(string_values[i].toDouble()));  //these are ratios written to the metainfo of 
+					}
+				}
+			}
+			
+			else if (tag_ == "ColumnIndex")
+			{
+				//overwrites current_dm_types_ with the ratio element ids
+				String r = sm_.convert(chars);
+				current_dm_types_.clear();
+				r.split(" ", current_dm_types_);
+			}
+			
+			else error(LOAD, "MzQuantMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
 		}
 
 		void MzQuantMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
@@ -254,12 +393,43 @@ namespace OpenMS
 			{
 				msq_->getAssays().push_back(current_assay_);
 			}
+			
+			if (tag_ == "FeatureList")
+			{
+				//~ assemble consensusfeatures
+				for (std::map<String,String>::iterator it = f_cf_ids_.begin(); it != f_cf_ids_.end(); ++it)
+				{
+					cf_cf_obj_[it->second].insert(f_f_obj_[it->first]);
+				}
+				//TODO implicit order by assay (map index is lost)
+				
+				//~ assemble consensusfeaturemaps
+				ConsensusMap cm;
+				std::multimap<String,String>::const_iterator last = cm_cf_ids_.begin();
+				for (std::multimap<String,String>::const_iterator it = cm_cf_ids_.begin(); it != cm_cf_ids_.end(); ++it)
+				{
+					if (it->first != last->first)
+					{
+						msq_->addConsensusMap(cm);
+						cm = ConsensusMap();
+						last = it;
+					}
+					cm.push_back(cf_cf_obj_[it->second]);
+				}
+				msq_->addConsensusMap(cm);
+			}	
+			
 		}
 
-		void MzQuantMLHandler::handleCVParam_(const String& /* parent_parent_tag*/, const String& parent_tag, const String& accession, /* const String& name, */ /* const String& value, */ const xercesc::Attributes& attributes, const String& cv_ref /* , const String& unit_accession */)
+		void MzQuantMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& attributes, const String& cv_ref, const String& unit_accession)
 		{
-				//TODO Assay cvrefs
-			return;
+			//TODO Assay cvrefs
+			if (parent_tag=="DataValue")
+			{
+				current_dm_types_.push_back(name);
+			}
+			
+			else warning(LOAD, String("Unhandled cvParam '") + name + "' in tag '" + parent_tag + "'.");
 		}
 
 		void MzQuantMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
@@ -297,7 +467,9 @@ namespace OpenMS
 					current_sw_.setName(name);
 				}
 				else
-				current_sw_.setMetaValue(name,data_value);
+				{
+					current_sw_.setMetaValue(name,data_value);
+				}
 			}
 			//~ ...
 			//~ else if (parent_tag=="fileContent")
