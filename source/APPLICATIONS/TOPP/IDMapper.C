@@ -212,12 +212,12 @@ class TOPPIDMapper
 			//----------------------------------------------------------------
 			// MzQuantML
 			//----------------------------------------------------------------
-			if (in_type == FileTypes::MZQUANTML)
-			{
+			//~ if (in_type == FileTypes::MZQUANTML)
+			//~ {
 				// LOG_DEBUG << "Processing mzq ..." << endl;
-				MSQuantifications msq;
-				MzQuantMLFile file;
-				file.load(in, msq);
+				//~ MSQuantifications msq;
+				//~ MzQuantMLFile file;
+				//~ file.load(in, msq);
 
 				//~ mapper.annotate(map, peptide_ids, protein_ids,
 												//~ getFlag_("use_centroid_rt"),
@@ -226,12 +226,11 @@ class TOPPIDMapper
 				//~ //annotate output with data processing info
 				//~ addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 
+				//~ writeDebug_(msq.getConsensusMaps().size(),3);
+				//~ writeDebug_(msq.getConsensusMaps().back().size(),3);
+				//~ writeDebug_(msq.getAnalysisSummary().quant_type_,3);
 				//~ file.store(out,msq);
-				writeDebug_(msq.getConsensusMaps().size(),3);
-				writeDebug_(msq.getConsensusMaps().back().size(),3);
-				writeDebug_(msq.getAnalysisSummary().quant_type_,3);
-				file.store(out,msq);
-			}
+			//~ }
 
 			// LOG_DEBUG << "Done." << endl;
 			return EXECUTION_OK;
