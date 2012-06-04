@@ -33,6 +33,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -70,16 +71,24 @@ namespace OpenMS
 			static set<String> to_ignore;
 			if (to_ignore.empty())
 			{
-				to_ignore.insert("CVList"); // for now static set of obos.
+				to_ignore.insert("CvList"); // for now static set of obos.
+				to_ignore.insert("Cv"); // for now static set of obos.
 				to_ignore.insert("ProteinGroupList"); // for now no proteins or groups
 				to_ignore.insert("ProteinList"); // .
 				to_ignore.insert("Protein"); // .
 				to_ignore.insert("StudyVariableList"); // We can't deal with these right now, but that is coming
 				to_ignore.insert("StudyVariable"); // .
+				to_ignore.insert("Assay_refs"); // .
 				
+				to_ignore.insert("FeatureList"); // we only need to see the features and datamatrices
 				to_ignore.insert("AssayList"); // we only need to see the assays
 				to_ignore.insert("DataProcessingList"); // we only need to see the DataProcessings
 				to_ignore.insert("SoftwareList"); // we only need to see the Softwares
+				to_ignore.insert("InputFiles"); // we only need to see the Files
+				to_ignore.insert("Label"); // we only need to see the Modifications
+				to_ignore.insert("DataType"); // we only need to see the Modifications
+				to_ignore.insert("ColumnIndex"); // we only need to see the inside characters
+				to_ignore.insert("DataMatrix"); // we only need to see the inside characters
 			}
 
 			if (to_ignore.find(tag_) != to_ignore.end())
@@ -113,16 +122,19 @@ namespace OpenMS
 				optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
 				optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);  //TODO
 				handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, attributes, cv_ref, unit_accession);
-				return;
 			}
 
-			if (tag_ == "MzQuantML")
+			else if (tag_ == "MzQuantML")
 			{
 				// handle version and experiment type
-				return;
+			}
+			
+			else if (tag_ == "AnalysisSummary")
+			{
+				// handle version and experiment type
 			}
 
-			if (tag_ == "DataProcessing")
+			else if (tag_ == "DataProcessing")
 			{
 				int order = asInt_(attributeAsString_(attributes,"order"));
 				current_dp_ = std::make_pair<int,DataProcessing>(order,DataProcessing());
@@ -132,12 +144,12 @@ namespace OpenMS
 				current_dp_.second.setMetaValue("software_ref",sw_ref);
 			}
 
-			if (tag_ == "ProcessingMethod")
+			else if (tag_ == "ProcessingMethod")
 			{
 				//order gets implicity imposed by set<ProcessingAction> - so nothing to do here
 			}
 
-			if (tag_ == "Software")
+			else if (tag_ == "Software")
 			{
 				current_sw_ = Software();
 				current_id_ = attributeAsString_(attributes,"id");
@@ -154,14 +166,14 @@ namespace OpenMS
 				handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value);
 			}
 
-			if (tag_ == "RawFilesGroup")
+			else if (tag_ == "RawFilesGroup")
 			{
 				current_id_ = attributeAsString_(attributes,"id");
 				std::vector<ExperimentalSettings> exp_set;
 				current_files_.insert(std::make_pair<String,std::vector<ExperimentalSettings> >(current_id_,exp_set));
 			}
 
-			if (tag_ == "RawFile")
+			else if (tag_ == "RawFile")
 			{
 				ExperimentalSettings es;
 				es.setLoadedFilePath(attributeAsString_(attributes,"location"));
@@ -169,21 +181,16 @@ namespace OpenMS
 				//here would be the place to start looking for additional experimentalsettings readin
 			}
 
-			if (tag_ == "Assay")
+			else if (tag_ == "Assay")
 			{
 				current_assay_ = MSQuantifications::Assay();
 				current_assay_.uid_ = attributeAsString_(attributes,"id");
-				current_id_ = attributeAsString_(attributes,"rawFileGroup_ref");
+				current_id_ = attributeAsString_(attributes,"rawFilesGroup_ref");
 				current_assay_.raw_files_ = current_files_[current_id_];
 				//TODO CVhandling
 			}
 
-			if (tag_ == "Label")
-			{
-				//TODO CVhandling
-			}
-
-			if (tag_ == "Modification")
+			else if (tag_ == "Modification")
 			{
 				if(parent_tag == "Label")
 				{	
@@ -200,7 +207,7 @@ namespace OpenMS
 				}
 			}
 			
-			if (tag_ == "Ratio")
+			else if (tag_ == "Ratio")
 			{
 				current_id_ = attributeAsString_(attributes,"id");
 				String num = attributeAsString_(attributes,"numerator_ref");
@@ -208,12 +215,12 @@ namespace OpenMS
 				msq_->getRatios().insert(std::make_pair<String,std::pair<String,String> >(current_id_,std::make_pair<String,String>(num,den)));
 			}
 			
-			if (tag_ == "PeptideConsensusList")
+			else if (tag_ == "PeptideConsensusList")
 			{
 				current_id_ = attributeAsString_(attributes,"id"); //needed in all PeptideConsensus elements
 			}		
 			
-			if (tag_ == "PeptideConsensus")
+			else if (tag_ == "PeptideConsensus")
 			{
 				ConsensusFeature current_cf;
 				current_cf_id_ = attributeAsString_(attributes,"id");
@@ -229,7 +236,7 @@ namespace OpenMS
 				cf_cf_obj_.insert(std::make_pair<String,ConsensusFeature>(current_cf_id_,current_cf));
 			}	
 
-			if (tag_ == "EvidenceRef")
+			else if (tag_ == "EvidenceRef")
 			{
 				//~ String searchDatabase_ref;
 				//~ if (optionalAttributeAsString_(searchDatabase_ref,attributes,"SearchDatabase_ref") )
@@ -275,9 +282,9 @@ namespace OpenMS
 				f_f_obj_.insert(std::make_pair<String,FeatureHandle>(current_id_,fh)); // map_index was lost!! TODO as user param
 			}
 			
-			else if (tag_ == "FeatureQuantLayer" || tag_ == "RatioQuantLayer")
+			else if (tag_ == "FeatureQuantLayer" || tag_ == "RatioQuantLayer" || tag_ == "MS2AssayQuantLayer")
 			{
-				//TODO ColumnIndex!!!
+				//TODO Column attribute index!!!
 				current_dm_types_.clear();
 				current_dm_values_.clear();
 			}
@@ -285,6 +292,7 @@ namespace OpenMS
 			else if (tag_ == "Row")
 			{
 				current_id_ = attributeAsString_(attributes,"object_ref");
+				current_row_.clear();
 			}
 				
 			else error(LOAD, "MzQuantMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
@@ -292,13 +300,8 @@ namespace OpenMS
 
 		void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
 		{
-			//if there is data between the element tags
-			//~ if (tag_ == "ExternalFormatDocumentation")
-			//~ {
-				//~ actual_inputfile_.doc_uri = sm_.convert(chars);
+			//if there is data between the element tags - !attention if element is derived from a xsd:list type, each list entry is a charecters call :(
 
-				//~ return;
-			//~ }
 			if (tag_ == "PeptideSequence")
 			{
 				AASequence p(sm_.convert(chars));
@@ -309,24 +312,11 @@ namespace OpenMS
 			
 			else if (tag_ == "Row")
 			{
-				const String r = sm_.convert(chars);
-				std::vector<String> string_values;
-				r.split(' ', string_values);
-				if (current_dm_types_.size() != string_values.size())
+				String r = sm_.convert(chars);
+				r.trim();
+				if (!r.empty())
 				{
-					warning(LOAD, String("Unknown/unmatching row content in DataMatrix of ?'")/*  + parent_parent_tag + "'." */);
-					return;
-				}
-				for (Size i = 0; i < string_values.size(); ++i)
-				{
-					if(current_dm_types_[i]=="intensity")
-					{
-						f_f_obj_[current_id_].setIntensity(string_values[i].toDouble());
-					}
-					else if(current_dm_types_[i].hasPrefix("c_"))
-					{
-						cf_cf_obj_[current_id_].setMetaValue(current_dm_types_[i],DataValue(string_values[i].toDouble()));  //these are ratios written to the metainfo of 
-					}
+					current_row_.push_back(r.toDouble());
 				}
 			}
 			
@@ -338,25 +328,29 @@ namespace OpenMS
 				r.split(" ", current_dm_types_);
 			}
 			
-			else error(LOAD, "MzQuantMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
+			else
+			{
+				String transcoded_chars2 = sm_.convert(chars);
+				transcoded_chars2.trim();
+				if (transcoded_chars2!="") warning(LOAD, "MzQuantMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring: "+ transcoded_chars2);
+			}
 		}
 
 		void MzQuantMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
-			//~ static set<String> to_ignore;
-			//~ if (to_ignore.empty())
-			//~ {
-				//~ to_ignore.insert("mzIdentML");
-				//~ to_ignore.insert("cvParam");
-			//~ }
+			static set<String> to_ignore;
+			if (to_ignore.empty())
+			{
+				to_ignore.insert("Cv");
+			}
 
-			//~ tag_ = sm_.convert(qname);
-			//~ open_tags_.pop_back();
+			tag_ = sm_.convert(qname);
+			open_tags_.pop_back();
 
-			//~ if (to_ignore.find(tag_) != to_ignore.end())
-			//~ {
-				//~ return;
-			//~ }
+			if (to_ignore.find(tag_) != to_ignore.end())
+			{
+				return;
+			}
 
 			// no ProcessingMethod endElement action so each userParam under Dataprocessing will be one processingaction - no other way for core-lib compability yet
 			if (tag_ == "DataProcessing")
@@ -366,7 +360,7 @@ namespace OpenMS
 				return;
 			}
 
-			if (tag_ == "DataProcessingList")
+			else if (tag_ == "DataProcessingList")
 			{
 				std::vector<DataProcessing> dps;
 				for (std::map<int,DataProcessing>::const_iterator it = current_orderedps_.begin() ; it != current_orderedps_.end(); it++ )
@@ -374,10 +368,9 @@ namespace OpenMS
 						dps.push_back(it->second);
 				}
 				msq_->setDataProcessingList(dps);
-				return;
 			}
 
-			if (tag_ == "Software")
+			else if (tag_ == "Software")
 			{
 				std::vector<DataProcessing> dps = msq_->getDataProcessingList();
 				for (std::vector<DataProcessing>::iterator it = dps.begin(); it != dps.end(); ++it)
@@ -389,12 +382,60 @@ namespace OpenMS
 				}
 			}
 
-			if (tag_ == "Assay")
+			else if (tag_ == "Assay")
 			{
 				msq_->getAssays().push_back(current_assay_);
 			}
 			
-			if (tag_ == "FeatureList")
+			else if (tag_ == "Row")
+			{		
+				
+				if (current_dm_types_.size() != current_row_.size())
+				{
+					warning(LOAD, String("Unknown/unmatching row content in DataMatrix of ?'")/*  + parent_parent_tag + "'." */);
+					return;
+				}
+				
+				if (cm_cf_ids_.empty()) //hack - works only if peptideconsensus is read before features
+				{
+					ConsensusFeature ms2cf;
+					ms2cf.setMZ(f_f_obj_[current_id_].getMZ());
+					ms2cf.setRT(f_f_obj_[current_id_].getRT());
+					cf_cf_obj_.insert(std::make_pair<String,ConsensusFeature>(current_id_,ms2cf));
+				}
+				for (Size i = 0; i < current_row_.size(); ++i)
+				{
+					if(current_dm_types_[i]=="intensity")
+					{
+						f_f_obj_[current_id_].setIntensity(current_row_[i]);
+					}
+					else if(current_dm_types_[i].hasPrefix("c_"))
+					{
+						cf_cf_obj_[current_id_].setMetaValue(current_dm_types_[i],DataValue(current_row_[i]));  //these are ratios written to the metainfo of 
+					}
+					else 
+					{ //ms2assayquantlayer
+						f_f_obj_[current_id_].setIntensity(current_row_[i]);
+						f_f_obj_[current_id_].setMapIndex(i);
+						cf_cf_obj_[current_id_].insert(f_f_obj_[current_id_]);
+					}
+				}
+				
+			}
+			
+			else if (tag_ == "DataMatrix")
+			{
+				ConsensusMap cm;
+				for (std::map<String,ConsensusFeature>::iterator it = cf_cf_obj_.begin(); it != cf_cf_obj_.end(); ++it)
+				{
+					cm.push_back(it->second);
+				}
+				f_cf_ids_.clear();
+				cm_cf_ids_.clear();
+				msq_->addConsensusMap(cm);
+			}
+			
+			else if (tag_ == "FeatureList")
 			{
 				//~ assemble consensusfeatures
 				for (std::map<String,String>::iterator it = f_cf_ids_.begin(); it != f_cf_ids_.end(); ++it)
@@ -416,9 +457,13 @@ namespace OpenMS
 					}
 					cm.push_back(cf_cf_obj_[it->second]);
 				}
-				msq_->addConsensusMap(cm);
+				if (!f_cf_ids_.empty()) //in case of MS2QuantLayer we do not need that and so after datamatrix f_cf_ids_ get cleared so we know here.
+				{
+					msq_->addConsensusMap(cm);
+				}
 			}	
 			
+			else warning(LOAD, String("MzQuantMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring."));
 		}
 
 		void MzQuantMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& attributes, const String& cv_ref, const String& unit_accession)
@@ -427,6 +472,10 @@ namespace OpenMS
 			if (parent_tag=="DataValue")
 			{
 				current_dm_types_.push_back(name);
+			}
+			else if (parent_tag=="DataType")
+			{
+				//TODO
 			}
 			
 			else warning(LOAD, String("Unhandled cvParam '") + name + "' in tag '" + parent_tag + "'.");
@@ -470,6 +519,20 @@ namespace OpenMS
 				{
 					current_sw_.setMetaValue(name,data_value);
 				}
+			}			
+			else if (parent_tag=="AnalysisSummary")
+			{
+				if (name == "QuantType")
+				{
+					const std::string* match = std::find(MSQuantifications::NamesOfQuantTypes, MSQuantifications::NamesOfQuantTypes+MSQuantifications::SIZE_OF_QUANT_TYPES, value);
+					int i = (MSQuantifications::NamesOfQuantTypes+MSQuantifications::SIZE_OF_QUANT_TYPES==match)? -1 : std::distance(MSQuantifications::NamesOfQuantTypes, match);
+					MSQuantifications::QUANT_TYPES quant_type = static_cast<MSQuantifications::QUANT_TYPES>(i); //this is so not nice and soooo unsafe why enum in the first place?!
+					msq_->setAnalysisSummaryQuantType(quant_type);
+				}
+				else
+				{
+					msq_->getAnalysisSummary().user_params_.setValue(name,data_value);
+				}					
 			}
 			//~ ...
 			//~ else if (parent_tag=="fileContent")
@@ -487,6 +550,7 @@ namespace OpenMS
 
 			//header
 			//~ TODO CreationDate
+			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"<< ">\n";
 			os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2 ../../schema/mzQuantML_1_0_0-rc2.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2\"" << " version=\"1.0.0\"" << ">\n";
 
 			//CVList

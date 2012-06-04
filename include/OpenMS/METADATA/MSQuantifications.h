@@ -51,7 +51,7 @@ namespace OpenMS
 
 			enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
 			static const std::string NamesOfQuantTypes[SIZE_OF_QUANT_TYPES];
-			enum LABEL_TYPES {NONE=0, SILAC_LIGHTER, SILAC_LIGHT, SILAC_MEDIUM, SILAC_HEAVY, ITRAQ114, ITRAQ115,ITRAQ116, ITRAQ117, SIZE_OF_LABEL_TYPES}; //silac names chosen so you can do double labeling with light and heavy and quadruple labeling with all 4
+			
 			//@}
 			//~ InputFiles: //~ searchdb abbildung version,releasedate,#entries,dbname über paramgrouplist
 			//~ struct ParamGroupList
@@ -111,7 +111,7 @@ namespace OpenMS
 					return *this;
 				}
 
-				std::vector<MetaInfo> user_params_;
+				MetaInfo user_params_;
 				CVTermList cv_params_;
 				QUANT_TYPES quant_type_;
 			};
@@ -210,6 +210,7 @@ namespace OpenMS
 			const std::vector<ConsensusMap>& getConsensusMaps() const;
 			const std::vector<FeatureMap<> >& getFeatureMaps() const;
 			const AnalysisSummary& getAnalysisSummary() const;
+			AnalysisSummary& getAnalysisSummary();
 			void setDataProcessingList(std::vector<DataProcessing>& dpl);
 			void setAnalysisSummaryQuantType(QUANT_TYPES r);
 			void addConsensusMap(ConsensusMap& m);

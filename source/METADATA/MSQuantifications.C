@@ -129,6 +129,11 @@ namespace OpenMS
 				return analysis_summary_;
 			}
 
+			MSQuantifications::AnalysisSummary& MSQuantifications::getAnalysisSummary()
+			{
+				return analysis_summary_;
+			}
+
 			void MSQuantifications::setAnalysisSummaryQuantType(MSQuantifications::QUANT_TYPES r)
 			{
 				analysis_summary_.quant_type_ = r;

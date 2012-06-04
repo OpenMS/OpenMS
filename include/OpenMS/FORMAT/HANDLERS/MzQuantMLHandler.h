@@ -139,6 +139,7 @@ namespace OpenMS
 
 				std::vector<String> current_dm_types_;//hotfix for cvs
 				std::vector<DoubleReal> current_dm_values_;
+				std::vector<DoubleReal> current_row_;
 
 		};
 	} // namespace Internal
