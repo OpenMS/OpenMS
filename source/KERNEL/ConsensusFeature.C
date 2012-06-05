@@ -300,5 +300,10 @@ namespace OpenMS
 
     return os;
   }
+	
+	void ConsensusFeature::addRatio(const ConsensusFeature::Ratio & r)
+  {
+		ratios_.push_back(r);
+	}
 
 }

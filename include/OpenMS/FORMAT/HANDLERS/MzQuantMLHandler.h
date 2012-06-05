@@ -123,6 +123,7 @@ namespace OpenMS
 				Software current_sw_;
 				String current_id_;
 				String current_cf_id_;
+				int current_count_;
 
 				std::vector<MetaInfo> up_stack_;
 				std::vector<CVTerm> cvp_stack_;
@@ -132,12 +133,13 @@ namespace OpenMS
 				std::map<String,String> f_cf_ids_;
 				std::map<String,ConsensusFeature> cf_cf_obj_;
 				std::map<String,FeatureHandle> f_f_obj_;
+				std::map<String,ConsensusFeature::Ratio> r_rtemp_;
 			
 				std::map<int,DataProcessing> current_orderedps_;
 				std::pair<int,DataProcessing> current_dp_;
 				std::set< DataProcessing::ProcessingAction > current_pas_;
 
-				std::vector<String> current_dm_types_;//hotfix for cvs
+				std::vector<String> current_col_types_;
 				std::vector<DoubleReal> current_dm_values_;
 				std::vector<DoubleReal> current_row_;
 

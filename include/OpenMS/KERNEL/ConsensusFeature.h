@@ -95,7 +95,44 @@ public:
       }
 
     };
+		
+		 /// slim struct to feed the need for systematically storing of ratios ( @see MSQuantifications ).
+		struct Ratio
+		{
+			Ratio()
+			{
+			}
 
+			Ratio(const Ratio& rhs)
+			{
+				ratio_value_ = rhs.ratio_value_;
+				denominator_ref_ = rhs.denominator_ref_;
+				numerator_ref_ = rhs.numerator_ref_;
+				description_ = rhs.description_;
+			}
+
+			virtual ~Ratio()
+			{
+			}
+
+			Ratio& operator = (const Ratio& rhs)
+			{
+				if (&rhs != this)
+				{
+					ratio_value_ = rhs.ratio_value_;
+					denominator_ref_ = rhs.denominator_ref_;
+					numerator_ref_ = rhs.numerator_ref_;
+					description_ = rhs.description_;
+				}
+				return *this;
+			}
+
+			DoubleReal ratio_value_;
+			String denominator_ref_;
+			String numerator_ref_;
+			StringList description_;
+			//TODO ratio cv info
+		};
 
     ///@name Constructors and Destructor
     //@{
@@ -210,6 +247,18 @@ public:
       @param intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
     */
     void computeDechargeConsensus(const FeatureMap<> & fm, bool intensity_weighted_averaging = false);
+		
+    /**
+      @brief Add a ratio.
+
+      Connects a ratio to the ConsensusFeature.
+
+      @note still experimental. consensusfeaturehandler will ignore it.
+    */
+    void addRatio(const Ratio& r);
+		
+	private:
+		std::vector<Ratio> ratios_;
 
   };
 

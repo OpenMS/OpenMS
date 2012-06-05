@@ -96,7 +96,7 @@ namespace OpenMS
 					quant_type_ = rhs.quant_type_;
 				}
 
-				~AnalysisSummary()
+				virtual ~AnalysisSummary()
 				{
 				}
 
@@ -130,7 +130,7 @@ namespace OpenMS
 					feature_maps_ = rhs.feature_maps_;
 				}
 
-				~Assay()
+				virtual ~Assay()
 				{
 				}
 
@@ -151,7 +151,7 @@ namespace OpenMS
 				std::vector<ExperimentalSettings> raw_files_;
 				std::map<size_t, FeatureMap<> > feature_maps_; // iTRAQ needs no FeatureMaps so ExperimentalSettings are not directly mapped to FeatureMaps
 			};
-
+			
 			// TODO handle referencing from consensusmaps to featuremaps/rawfiles
 			// TODO add ContactPerson or something to (Consensus)FeatureMap or DataProcessing (see below)
 			// TODO rewrite OpenMS::DataProcessing - data not yet linked in openms core formats - below should go in analysissummary of MSQuantifications - input/output not possible to be carried along
