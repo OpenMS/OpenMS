@@ -256,6 +256,15 @@ public:
       @note still experimental. consensusfeaturehandler will ignore it.
     */
     void addRatio(const Ratio& r);
+
+		/**
+      @brief Add a ratio vector.
+
+      Connects the ratios to the ConsensusFeature.
+
+      @note still experimental. consensusfeaturehandler will ignore it.
+    */
+    void setRatios(std::vector<Ratio>& rs);
 		
 	private:
 		std::vector<Ratio> ratios_;
