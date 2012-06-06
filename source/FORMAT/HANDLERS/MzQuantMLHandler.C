@@ -79,7 +79,7 @@ namespace OpenMS
 				to_ignore.insert("StudyVariableList"); // We can't deal with these right now, but that is coming
 				to_ignore.insert("StudyVariable"); // .
 				to_ignore.insert("Assay_refs"); // .
-				
+
 				to_ignore.insert("FeatureList"); // we only need to see the features and datamatrices
 				to_ignore.insert("AssayList"); // we only need to see the assays
 				to_ignore.insert("DataProcessingList"); // we only need to see the DataProcessings
@@ -128,7 +128,7 @@ namespace OpenMS
 			{
 				// handle version and experiment type
 			}
-			
+
 			else if (tag_ == "AnalysisSummary")
 			{
 				// handle version and experiment type
@@ -185,6 +185,10 @@ namespace OpenMS
 			{
 				current_assay_ = MSQuantifications::Assay();
 				current_assay_.uid_ = attributeAsString_(attributes,"id");
+				if (current_assay_.uid_.hasPrefix("a_"))
+				{
+					current_assay_.uid_ =  current_assay_.uid_.substr(2,current_assay_.uid_.size());
+				}
 				current_id_ = attributeAsString_(attributes,"rawFilesGroup_ref");
 				current_assay_.raw_files_ = current_files_[current_id_];
 				//TODO CVhandling
@@ -193,7 +197,7 @@ namespace OpenMS
 			else if (tag_ == "Modification")
 			{
 				if(parent_tag == "Label")
-				{	
+				{
 					String massdelta_string;
 					optionalAttributeAsString_(massdelta_string,attributes,"massDelta");
 					String residue;
@@ -206,7 +210,7 @@ namespace OpenMS
 					error(LOAD, "MzQuantMLHandler::startElement: Unhandable element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
 				}
 			}
-			
+
 			else if (tag_ == "Ratio")
 			{
 				current_id_ = attributeAsString_(attributes,"id");
@@ -217,12 +221,12 @@ namespace OpenMS
 				r.numerator_ref_ = num;
 				msq_->getRatios().insert(std::make_pair<String,std::pair<String,String> >(current_id_,std::make_pair<String,String>(num,den)));
 			}
-			
+
 			else if (tag_ == "PeptideConsensusList")
 			{
 				current_id_ = attributeAsString_(attributes,"id"); //needed in all PeptideConsensus elements
-			}		
-			
+			}
+
 			else if (tag_ == "PeptideConsensus")
 			{
 				ConsensusFeature current_cf;
@@ -237,7 +241,7 @@ namespace OpenMS
 				}
 				cm_cf_ids_.insert(std::make_pair<String,String>(current_id_,current_cf_id_));
 				cf_cf_obj_.insert(std::make_pair<String,ConsensusFeature>(current_cf_id_,current_cf));
-			}	
+			}
 
 			else if (tag_ == "EvidenceRef")
 			{
@@ -259,16 +263,16 @@ namespace OpenMS
 						//~ current_cf.setMetaValue("identificationFile_ref",DataValue(*it));
 					//~ }
 				//~ }
-				
+
 				String f_ref = attributeAsString_(attributes,"feature_ref"); // models which features will be included in this consensusfeature - idependent from id(is optional)
 				f_cf_ids_.insert(std::make_pair<String,String>(f_ref,current_cf_id_));
-				
+
 				//~ StringList a_refs = attributeAsStringList_(attributes,"assay_refs"); // what to do with these??
 				//~ for (StringList::const_iterator it = a_refs.begin(); it != a_refs.end(); ++it)
 				//~ {
 				//~ }
-			}		
-			
+			}
+
 			else if (tag_ == "Feature")
 			{
 				current_id_ = attributeAsString_(attributes,"id");
@@ -284,24 +288,24 @@ namespace OpenMS
 				}
 				f_f_obj_.insert(std::make_pair<String,FeatureHandle>(current_id_,fh)); // map_index was lost!! TODO as user param
 			}
-			
+
 			else if (tag_ == "FeatureQuantLayer" || tag_ == "RatioQuantLayer" || tag_ == "MS2AssayQuantLayer")
 			{
 				//TODO Column attribute index!!!
 				current_col_types_.clear();
 			}
-						
+
 			else if (tag_ == "Column")
-			{		
+			{
 				current_count_ = attributeAsInt_(attributes,"index");
 			}
-					
+
 			else if (tag_ == "Row")
 			{
 				current_id_ = attributeAsString_(attributes,"object_ref");
 				current_row_.clear();
 			}
-				
+
 			else error(LOAD, "MzQuantMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
 		}
 
@@ -316,7 +320,7 @@ namespace OpenMS
 				cf_cf_obj_[current_cf_id_].getPeptideIdentifications().back().insertHit(ph); // just moments before added
 				return;
 			}
-			
+
 			else if (tag_ == "Row")
 			{
 				String r = sm_.convert(chars);
@@ -326,7 +330,7 @@ namespace OpenMS
 					current_row_.push_back(r.toDouble());
 				}
 			}
-			
+
 			else if (tag_ == "ColumnIndex")
 			{
 				//overwrites current_col_types_ with the ratio_refs or the assay_refs
@@ -334,7 +338,7 @@ namespace OpenMS
 				//clear must have happened earlyer in QuantLayer tag
 				r.split(" ", current_col_types_);
 			}
-			
+
 			else
 			{
 				String transcoded_chars2 = sm_.convert(chars);
@@ -352,7 +356,7 @@ namespace OpenMS
 			}
 
 			tag_ = sm_.convert(qname);
-			
+
 			//determine parent tag
 			String parent_tag;
 			if (open_tags_.size() > 1)
@@ -407,20 +411,20 @@ namespace OpenMS
 			{
 				msq_->getAssays().push_back(current_assay_);
 			}
-			
+
 			else if (tag_ == "ColumnDefinition")
 			{
 				//TODO check all current_col_types_[] are not empty
 			}
-			
+
 			else if (tag_ == "Row")
-			{		
+			{
 				if (current_col_types_.size() != current_row_.size())
 				{
 					warning(LOAD, String("Unknown/unmatching row content in Row element of '") + parent_tag + "'." );
 					return;
 				}
-				
+
 				if (parent_parent_tag == "RatioQuantLayer")
 				{
 					for (Size i = 0; i < current_row_.size(); ++i)
@@ -430,7 +434,7 @@ namespace OpenMS
 						cf_cf_obj_[current_id_].addRatio(r);
 					}
 				}
-				
+
 				if (parent_parent_tag == "MS2AssayQuantLayer")
 				{
 					ConsensusFeature ms2cf;
@@ -445,7 +449,7 @@ namespace OpenMS
 						cf_cf_obj_[current_id_].insert(f_f_obj_[current_id_]);
 					}
 				}
-	
+
 				if (parent_parent_tag == "FeatureQuantLayer")
 				{
 					for (Size i = 0; i < current_row_.size(); ++i)
@@ -461,7 +465,7 @@ namespace OpenMS
 					}
 				}
 			}
-			
+
 			//~ assemble consensusmap MS2LABEL
 			else if (tag_ == "MS2AssayQuantLayer") // TODO what if there are more than one FeatureQuantLayer?
 			{
@@ -474,7 +478,7 @@ namespace OpenMS
 				cm_cf_ids_.clear();
 				msq_->addConsensusMap(cm);
 			}
-			
+
 			//~ assemble consensusmap MS1LABEL
 			else if (tag_ == "FeatureList") // TODO what if there are more than one FeatureQuantLayer?
 			{
@@ -484,7 +488,7 @@ namespace OpenMS
 					cf_cf_obj_[it->second].insert(f_f_obj_[it->first]);
 				}
 				//TODO map index from assay?
-				
+
 				//~ assemble consensusfeaturemaps
 				ConsensusMap cm;
 				std::multimap<String,String>::const_iterator last = cm_cf_ids_.begin();
@@ -502,8 +506,8 @@ namespace OpenMS
 				{
 					msq_->addConsensusMap(cm);
 				}
-			}	
-			
+			}
+
 			else warning(LOAD, String("MzQuantMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring."));
 		}
 
@@ -521,7 +525,7 @@ namespace OpenMS
 			{
 				//TODO
 			}
-			
+
 			else warning(LOAD, String("Unhandled cvParam '") + name + "' in tag '" + parent_tag + "'.");
 		}
 
@@ -553,7 +557,7 @@ namespace OpenMS
 				DataProcessing::ProcessingAction a = static_cast<DataProcessing::ProcessingAction>(x); // ugly and depends on NamesOfProcessingAction^=ProcessingAction-definitions - see TODO rewrite DataProcessing!
 				current_pas_.insert(a);
 			}
-			
+
 			else if (parent_tag=="Software")
 			{
 				if(value == "")
@@ -564,8 +568,8 @@ namespace OpenMS
 				{
 					current_sw_.setMetaValue(name,data_value);
 				}
-			}			
-			
+			}
+
 			else if (parent_tag=="AnalysisSummary")
 			{
 				if (name == "QuantType")
@@ -578,14 +582,14 @@ namespace OpenMS
 				else
 				{
 					msq_->getAnalysisSummary().user_params_.setValue(name,data_value);
-				}					
+				}
 			}
-			
+
 			else if (parent_tag=="AnalysisSummary")
 			{
 				r_rtemp_[current_id_].description_.push_back(name);
 			}
-			
+
 			else warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
 		}
 
@@ -660,19 +664,38 @@ namespace OpenMS
 			softwarelist_tag += "\t</SoftwareList>\n";
 
 			os << softwarelist_tag << dataprocessinglist_tag;
-			
+
 			// Ratios tag
 			String ratio_xml;
 			switch(cmsq_->getAnalysisSummary().quant_type_)
 			{
 				case 0:
-					ratio_xml += "\t<RatioList>\n";
-					for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin()+1; ait != cmsq_->getAssays().end(); ++ait)
+					//~ register ratio elements in numden_r_ids_ and r_r_obj_
+					for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
 					{
-						UInt64 ri = UniqueIdGenerator::getUniqueId();
-						rid.push_back(ri);
-						ratio_xml += "\t\t<Ratio id=\"r_" + String(ri) +"\" numerator_ref=\"a_"+ String(cmsq_->getAssays().begin()->uid_) +"\" denominator_ref=\"a_"+ String(ait->uid_) +"\" >\n";
-						ratio_xml += "\t\t\t<RatioCalculation>\n\t\t\t\t<userParam name=\"Simple ratio calc\"/>\n\t\t\t\t<userParam name=\"light to medium/.../heavy\"/>\n\t\t\t</RatioCalculation>\n\t\t</Ratio>\n";
+						std::vector< std::vector<UInt64> > cmid;
+						for (ConsensusMap::const_iterator cit = mit->begin(); cit != mit->end(); ++cit)
+						{
+							for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = cit->getRatios().begin(); rit != cit->getRatios().end(); ++rit)
+							{
+								String rd = rit->numerator_ref_ + rit->denominator_ref_; // add ratiocalculation params too?
+								String tid = String(UniqueIdGenerator::getUniqueId());
+								numden_r_ids_.insert(std::make_pair<String,String>(rd,tid));
+								r_r_obj_.insert(std::make_pair<String,ConsensusFeature::Ratio>(tid,(*rit)));
+							}
+						}
+					}
+
+					ratio_xml += "\t<RatioList>\n";
+					for (std::map<String, ConsensusFeature::Ratio>::const_iterator rit = r_r_obj_.begin(); rit != r_r_obj_.end(); ++rit)
+					{
+						ratio_xml += "\t\t<Ratio id=\"r_" + String(rit->first) +"\" numerator_ref=\"a_"+ String(rit->second.numerator_ref_) +"\" denominator_ref=\"a_"+ String(rit->second.denominator_ref_) +"\" >\n";
+						ratio_xml += "\t\t\t<RatioCalculation>\n";
+						for (std::vector<String>::const_iterator dit = rit->second.description_.begin(); dit != rit->second.description_.end(); ++dit)
+						{
+							ratio_xml += "\t\t\t\t<userParam name=\"" + String(*dit) + "\"/>\n";
+						}
+						ratio_xml += "\t\t\t</RatioCalculation>\n";
 					}
 					ratio_xml += "\t</RatioList>\n";
 				break;
@@ -717,7 +740,7 @@ namespace OpenMS
 
 				assay_xml += "\t\t<Assay id=\"a_" + String(ait->uid_)  + "\" rawFilesGroup_ref=\"rfg_" + rfgr + "\">\n";
 				assay_xml += "\t\t\t<Label>\n";
-				
+
 				switch(cmsq_->getAnalysisSummary().quant_type_)
 				{ //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
 					case 0:
@@ -802,7 +825,7 @@ namespace OpenMS
 			inputfiles_xml += "</InputFiles>\n";
 			study_xml += "</StudyVariableList>\n";
 			os << inputfiles_xml << assay_xml << study_xml << ratio_xml;
-			
+
 			// Features and QuantLayers
 			std::vector<UInt64> fid;
 			std::vector<Real> fin, fwi /*, fqu */;
@@ -931,31 +954,26 @@ namespace OpenMS
 							os << "\t\t<RatioQuantLayer id=\"" << "q_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n";
 							os << "\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>\n\t\t\t\t\t</DataType>\n";
 							os << "\t\t\t\t<ColumnIndex>";
-							for(std::vector<UInt64>::const_iterator rit = rid.begin(); rit != rid.end(); ++rit)
+							for(std::map<String,String>::const_iterator rit = numden_r_ids_.begin(); rit != numden_r_ids_.end(); ++rit)
 							{
-								os << "r_" << String(*rit) << " ";
+								os << "r_" << String(rit->second) << " ";
 							}
-							os << "</ColumnIndex>\n\t\t\t<DataMatrix>\n";
+							os << "</ColumnIndex>\n\t\t\t\t<DataMatrix>\n";
 
 							//~ calculate ratios
 							for (Size i=0; i < cid[k].size(); ++i)
 							{
-								const std::set< FeatureHandle,FeatureHandle::IndexLess>& feature_handles = (*cmsq_).getConsensusMaps()[k][i].getFeatures();
+								//~ String rd = rit->numerator_ref_ + rit->denominator_ref_;
+								os <<"\t\t\t\t<Row object_ref=\"c_" << String(cid[k][i].front()) << "\">";
 								String dis;
-								if (feature_handles.size() > 1)
+								for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = (*cmsq_).getConsensusMaps()[k][i].getRatios().begin(); rit != (*cmsq_).getConsensusMaps()[k][i].getRatios().end(); ++rit)
 								{
-									os <<"\t\t\t\t<Row object_ref=\"c_" << String(cid[k][i].front()) << "\">";
-									std::set< FeatureHandle,FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin(); // this is unlabeled
-									fit++;
-									for (fit; fit != feature_handles.end(); ++fit)
-									{
-										dis += String( feature_handles.begin()->getIntensity() / fit->getIntensity() );
-										dis += " ";
-									}
-									os << dis.trim() << "</Row>\n";
+									//~ value here
+
 								}
+								os << dis.trim() << "</Row>\n";
 							}
-							os << "\t\t\t</DataMatrix>\n";
+							os << "\t\t\t\t</DataMatrix>\n";
 							os << "\t\t</RatioQuantLayer>\n";
 						}
 						break;

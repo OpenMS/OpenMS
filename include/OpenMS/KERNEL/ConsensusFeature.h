@@ -95,7 +95,7 @@ public:
       }
 
     };
-		
+
 		 /// slim struct to feed the need for systematically storing of ratios ( @see MSQuantifications ).
 		struct Ratio
 		{
@@ -247,7 +247,7 @@ public:
       @param intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
     */
     void computeDechargeConsensus(const FeatureMap<> & fm, bool intensity_weighted_averaging = false);
-		
+
     /**
       @brief Add a ratio.
 
@@ -265,7 +265,17 @@ public:
       @note still experimental. consensusfeaturehandler will ignore it.
     */
     void setRatios(std::vector<Ratio>& rs);
-		
+
+		/**
+      @brief Get the ratio vector.
+    */
+    std::vector<Ratio> getRatios() const;
+
+		/**
+      @brief Get the ratio vector.
+    */
+    std::vector<Ratio>& getRatios();
+
 	private:
 		std::vector<Ratio> ratios_;
 

@@ -129,12 +129,14 @@ namespace OpenMS
 				std::vector<CVTerm> cvp_stack_;
 				MSQuantifications::Assay current_assay_;
 
-				std::multimap<String, String> cm_cf_ids_; 
+				std::multimap<String, String> cm_cf_ids_;
 				std::map<String,String> f_cf_ids_;
 				std::map<String,ConsensusFeature> cf_cf_obj_;
 				std::map<String,FeatureHandle> f_f_obj_;
 				std::map<String,ConsensusFeature::Ratio> r_rtemp_;
-			
+				std::map<String,String> numden_r_ids_;
+				std::map<String,ConsensusFeature::Ratio> r_r_obj_;
+
 				std::map<int,DataProcessing> current_orderedps_;
 				std::pair<int,DataProcessing> current_dp_;
 				std::set< DataProcessing::ProcessingAction > current_pas_;

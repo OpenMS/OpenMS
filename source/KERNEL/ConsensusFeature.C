@@ -300,7 +300,7 @@ namespace OpenMS
 
     return os;
   }
-	
+
 	void ConsensusFeature::addRatio(const ConsensusFeature::Ratio & r)
   {
 		ratios_.push_back(r);
@@ -309,6 +309,16 @@ namespace OpenMS
 	void ConsensusFeature::setRatios(std::vector<ConsensusFeature::Ratio> & rs)
   {
 		ratios_ = rs;
+	}
+
+	std::vector<ConsensusFeature::Ratio>& ConsensusFeature::getRatios()
+  {
+		return ratios_;
+	}
+
+	std::vector<ConsensusFeature::Ratio> ConsensusFeature::getRatios() const
+  {
+		return ratios_;
 	}
 
 }
