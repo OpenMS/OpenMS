@@ -673,25 +673,32 @@ namespace OpenMS
 					//~ register ratio elements in numden_r_ids_ and r_r_obj_
 					for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
 					{
-						std::vector< std::vector<UInt64> > cmid;
+						//~ std::vector< std::vector<UInt64> > cmid;
 						for (ConsensusMap::const_iterator cit = mit->begin(); cit != mit->end(); ++cit)
 						{
-							for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = cit->getRatios().begin(); rit != cit->getRatios().end(); ++rit)
+							std::vector<ConsensusFeature::Ratio> rv = cit->getRatios();
+							//~ for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = cit->getRatios().begin(); rit != cit->getRatios().end(); ++rit)
+							//~ std::cout << rv.size()<< std::endl;
+							for (Size i = 0; i < rv.size(); ++i)
 							{
-								String rd = rit->numerator_ref_ + rit->denominator_ref_; // add ratiocalculation params too?
+								ConsensusFeature::Ratio robj(rv[i]);
+								//~ String rd = rit->numerator_ref_ + rit->denominator_ref_; // add ratiocalculation params too?
+								String rd = robj.numerator_ref_ + robj.denominator_ref_; // add ratiocalculation params too?
 								String tid = String(UniqueIdGenerator::getUniqueId());
 								numden_r_ids_.insert(std::make_pair<String,String>(rd,tid));
-								r_r_obj_.insert(std::make_pair<String,ConsensusFeature::Ratio>(tid,(*rit)));
+								
+								//~ ConsensusFeature::Ratio robj(*rit); this segfaults!!! why???? oh, why?!?!?!?!
+								r_r_obj_.insert(std::make_pair<String,ConsensusFeature::Ratio>(tid,robj));
 							}
 						}
 					}
 
 					ratio_xml += "\t<RatioList>\n";
-					for (std::map<String, ConsensusFeature::Ratio>::const_iterator rit = r_r_obj_.begin(); rit != r_r_obj_.end(); ++rit)
+					for (std::map<String, String>::const_iterator rit = numden_r_ids_.begin(); rit != numden_r_ids_.end(); ++rit)
 					{
-						ratio_xml += "\t\t<Ratio id=\"r_" + String(rit->first) +"\" numerator_ref=\"a_"+ String(rit->second.numerator_ref_) +"\" denominator_ref=\"a_"+ String(rit->second.denominator_ref_) +"\" >\n";
+						ratio_xml += "\t\t<Ratio id=\"r_" + String(rit->second) +"\" numerator_ref=\"a_"+ String(r_r_obj_[rit->second].numerator_ref_) +"\" denominator_ref=\"a_"+ String(r_r_obj_[rit->second].denominator_ref_) +"\" >\n";
 						ratio_xml += "\t\t\t<RatioCalculation>\n";
-						for (std::vector<String>::const_iterator dit = rit->second.description_.begin(); dit != rit->second.description_.end(); ++dit)
+						for (std::vector<String>::const_iterator dit = r_r_obj_[rit->second].description_.begin(); dit != r_r_obj_[rit->second].description_.end(); ++dit)
 						{
 							ratio_xml += "\t\t\t\t<userParam name=\"" + String(*dit) + "\"/>\n";
 						}
@@ -875,7 +882,7 @@ namespace OpenMS
 				}
 				cid.push_back(cmid);
 			}
-			os << feature_xml;
+			os << feature_xml; 
 
 			switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
 			{
@@ -904,7 +911,7 @@ namespace OpenMS
 					{
 						os << "a_"<< String(ait->uid_) << " ";
 					}
-					os <<  "</ColumnIndex>\t\t\t<DataMatrix>\n";
+					os <<  "</ColumnIndex>\n\t\t\t<DataMatrix>\n";
 					for (Size i = 0; i < fid.size(); ++i)
 					{
 						os << "\t\t\t\t\t<Row object_ref=\"f_" + String(fid[i]) + "\">";
@@ -960,18 +967,25 @@ namespace OpenMS
 							}
 							os << "</ColumnIndex>\n\t\t\t\t<DataMatrix>\n";
 
-							//~ calculate ratios
+							//~ collect ratios
 							for (Size i=0; i < cid[k].size(); ++i)
 							{
-								//~ String rd = rit->numerator_ref_ + rit->denominator_ref_;
 								os <<"\t\t\t\t<Row object_ref=\"c_" << String(cid[k][i].front()) << "\">";
-								String dis;
-								for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = (*cmsq_).getConsensusMaps()[k][i].getRatios().begin(); rit != (*cmsq_).getConsensusMaps()[k][i].getRatios().end(); ++rit)
+																
+								std::map<String,String> r_values;
+								std::vector<ConsensusFeature::Ratio> temp_ratios = cmsq_->getConsensusMaps()[k][i].getRatios();
+								for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = temp_ratios.begin(); rit != temp_ratios.end(); ++rit)
 								{
-									//~ value here
-
+									String rd = rit->numerator_ref_ + rit->denominator_ref_;
+									r_values.insert(std::make_pair<String,String>(rd,String(rit->ratio_value_)));
 								}
-								os << dis.trim() << "</Row>\n";
+								std::vector<String> dis;
+								//TODO isert missing ratio_refs into r_values with value "-1"
+								for (std::map<String,String>::const_iterator sit = r_values.begin(); sit != r_values.end(); ++sit)
+								{
+									dis.push_back(sit->second);
+								}
+								os << StringList(dis).concatenate(" ").trim() << "</Row>\n";
 							}
 							os << "\t\t\t\t</DataMatrix>\n";
 							os << "\t\t</RatioQuantLayer>\n";

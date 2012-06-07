@@ -130,7 +130,7 @@ public:
 			DoubleReal ratio_value_;
 			String denominator_ref_;
 			String numerator_ref_;
-			StringList description_;
+			std::vector<String> description_;
 			//TODO ratio cv info
 		};
 

@@ -34,25 +34,25 @@
 namespace OpenMS
 {
   ConsensusFeature::ConsensusFeature() :
-    BaseFeature(), HandleSetType()
+    BaseFeature(), HandleSetType(),ratios_()
   {}
 
   ConsensusFeature::ConsensusFeature(const ConsensusFeature & rhs) :
-    BaseFeature(rhs), HandleSetType(rhs)
-  {}
+    BaseFeature(rhs), HandleSetType(rhs),ratios_()
+  {ratios_ = rhs.ratios_;}
 
   ConsensusFeature::ConsensusFeature(const BaseFeature & feature) :
-    BaseFeature(feature), HandleSetType()
+    BaseFeature(feature), HandleSetType(),ratios_()
   {}
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const Peak2D & element, UInt64 element_index) :
-    BaseFeature(element), HandleSetType()
+    BaseFeature(element), HandleSetType(),ratios_()
   {
     insert(map_index, element, element_index);
   }
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature & element) :
-    BaseFeature(element), HandleSetType()
+    BaseFeature(element), HandleSetType(),ratios_()
   {
     insert(FeatureHandle(map_index, element));
   }
@@ -64,6 +64,7 @@ namespace OpenMS
 
     HandleSetType::operator=(rhs);
     BaseFeature::operator=(rhs);
+		ratios_ = rhs.ratios_;
 
     return *this;
   }

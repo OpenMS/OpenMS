@@ -944,12 +944,10 @@ class TOPPSILACAnalyzer
 					{
 						ConsensusFeature::Ratio r;
 						r.numerator_ref_ = String(msq.getAssays().begin()->uid_);
-						r.denominator_ref_ = String(ait->uid_);
-						std::vector< String > up; 
-						up.push_back("Simple ratio calc");
-						up.push_back("light to medium/.../heavy");
+						r.denominator_ref_ = String(ait->uid_);				
+						r.description_.push_back("Simple ratio calc");
+						r.description_.push_back("light to medium/.../heavy");
 						//~ "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>"
-						r.description_ = StringList(up); 
 						rts.push_back(r);
 					}
 					const std::set< FeatureHandle,FeatureHandle::IndexLess>& feature_handles = cit->getFeatures();
@@ -960,12 +958,14 @@ class TOPPSILACAnalyzer
 						for (fit; fit != feature_handles.end(); ++fit)
 						{
 							Size ri = std::distance(feature_handles.begin(), fit);
-							rts[ri].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity(); // a proper silacalanyzer algo should never have 0-intensities so no 0devison ...
+							rts[ri-1].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity(); // a proper silacalanyzer algo should never have 0-intensities so no 0devison ...
 						}
 					}
+					
 					cit->setRatios(rts);
 				}
 				msq.addConsensusMap(numap);//add SILACAnalyzer result
+
 				//~ msq.addFeatureMap();//add SILACAnalyzer evidencetrail as soon as clear what is realy contained in the featuremap
 				//~ add AuditCollection - no such concept in TOPPTools yet
 				writeMzQuantML(out_mzq,msq);
