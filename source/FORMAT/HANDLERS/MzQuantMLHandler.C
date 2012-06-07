@@ -607,8 +607,8 @@ namespace OpenMS
 			//CVList
 			os << "<CvList>\n";
 			os << " \t<Cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"2.25.0\"/>\n";
+			os <<"\t<Cv id=\"PSI-MOD\" fullName=\"Proteomics Standards Initiative Protein Modifications Vocabularies\" uri=\"http://psidev.cvs.sourceforge.net/psidev/psi/mod/data/PSI-MOD.obo\" version=\"1.2\"/>\n";
 			os <<"\t<Cv id=\"UO\" fullName=\"Unit Ontology\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"/>\n";
-			os <<"\t<Cv id=\"UNIMOD\" fullName=\"UniMod\" uri=\"http://google.com\"/>\n";
 			os << "</CvList>\n";
 
 			//AnalysisSummary
@@ -756,28 +756,24 @@ namespace OpenMS
 							String cv_acc,cv_name;
 							switch((int)std::floor( lit->second + (DoubleReal)0.5) ) //delta >! 0
 							{
-								case 4:
-									cv_acc = "481";
-									cv_name = "Label:2H(4)";
-								break;
 								case 6:
-									cv_acc = "188";
-									cv_name = "Label:13C(6)";
+									cv_acc = "MOD:00544";
+									cv_name = "6x(13)C labeled residue";
 								break;
 								case 8:
-									cv_acc = "259";
-									cv_name = "Label:13C(6)15N(2)";
+									cv_acc = "MOD:00582";
+									cv_name = "6x(13)C,2x(15)N labeled L-lysine";
 								break;
 								case 10:
-									cv_acc = "267";
-									cv_name = "Label:13C(6)15N(4)";
+									cv_acc = "MOD:00587";
+									cv_name = "6x(13)C,4x(15)N labeled L-arginine";
 								break;
 								default:
 									cv_name = "TODO";
 									cv_acc = "TODO";
 							}
 							assay_xml += "\t\t\t\t<Modification massDelta=\""+String(lit->second)+"\" >\n";
-							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"UNIMOD\" accession=\"" + cv_acc + "\" name=\""+ cv_name +"\" value=\"" + String(lit->first) + "\"/>\n";
+							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"PSI-MOD\" accession=\"" + cv_acc + "\" name=\""+ cv_name +"\" value=\"" + String(lit->first) + "\"/>\n";
 							assay_xml += "\t\t\t\t</Modification>\n";
 						}
 					break;
@@ -788,34 +784,36 @@ namespace OpenMS
 						//~ assay_xml += "\t\t\t\t\t<cvParam name =\"itraq label\"/>\n";
 						for (std::vector< std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
 						{
-							assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
+							assay_xml += "\t\t\t\t<Modification massDelta=\"145\">\n";
 							String cv_acc,cv_name;
 							switch((int)lit->second)
 							{ //~ TODO 8plex
 								case 114:
-									cv_name = "iTRAQ4plex114";
-									cv_acc = "532";
+									cv_name = "iTRAQ4plex-114 reporter fragment";
+									cv_acc = "MOD:01522";
 								break;
 								case 115:
-									cv_name = "iTRAQ4plex115";
-									cv_acc = "533";
+									cv_name = "iTRAQ4plex-115 reporter fragment";
+									cv_acc = "MOD:01523";
 								break;
 								case 116:
+									cv_name = "iTRAQ4plex-116 reporter fragment";
+									cv_acc = "MOD:01524";
 								case 117:
-									cv_name = "iTRAQ4plex116/7";
-									cv_acc = "214";
+									cv_name = "iTRAQ4plex-117, mTRAQ heavy, reporter fragment";
+									cv_acc = "MOD:01525";
 								break;
 								default:
 									cv_name = "TODO";
 									cv_acc = "TODO";
 							}
-							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"UNIMOD\" accession=\"" + cv_acc+  "\" name=\"" + cv_name + "\" value=\"" + String(lit->first) + "\"/>\n";
+							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"PSI-MOD\" accession=\"" + cv_acc+  "\" name=\"" + cv_name + "\" value=\"" + String(lit->first) + "\"/>\n";
 							assay_xml += "\t\t\t\t</Modification>\n";
 						}
 						break;
 					}
 					default:
-						assay_xml += "\t\t\t\t<Modification massDelta=\"0\" residues=\"X\">\n";
+						assay_xml += "\t\t\t\t<Modification massDelta=\"0\">\n";
 						assay_xml += "\t\t\t\t\t<cvParam name =\"no label\"/>\n";
 						assay_xml += "\t\t\t\t</Modification>\n";
 				}
@@ -1142,9 +1140,6 @@ namespace OpenMS
 				//~ os << indent << "\t\t</feature>\n";
 
  }
-
-
-
 
 	} //namespace Internal
 } // namespace OpenMS
