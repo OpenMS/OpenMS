@@ -826,9 +826,9 @@ namespace OpenMS
 				study_xml += "\t\t\t<Assay_refs>a_" + String(ait->uid_) + "</Assay_refs>\n";
 				study_xml += "\t</StudyVariable>\n";
 			}
-			assay_xml += "</AssayList>\n";
-			inputfiles_xml += "</InputFiles>\n";
-			study_xml += "</StudyVariableList>\n";
+			assay_xml += "\t</AssayList>\n";
+			inputfiles_xml += "\t</InputFiles>\n";
+			study_xml += "\t</StudyVariableList>\n";
 			os << inputfiles_xml << assay_xml << study_xml << ratio_xml;
 
 			// Features and QuantLayers
