@@ -120,7 +120,6 @@ namespace OpenMS
 				MzQuantMLHandler& operator = (const MzQuantMLHandler& rhs);
 
 				std::map<String, std::vector<ExperimentalSettings> > current_files_; // 1.rawfilesgroup_ref 2.inputfiles for each assay as experimentalsettings
-				Software current_sw_;
 				String current_id_;
 				String current_cf_id_;
 				int current_count_;
@@ -137,6 +136,8 @@ namespace OpenMS
 				std::map<String,String> numden_r_ids_;
 				std::map<String,ConsensusFeature::Ratio> r_r_obj_;
 
+				//~ Software current_sw_;
+				std::map<String,Software> current_sws_;
 				std::map<int,DataProcessing> current_orderedps_;
 				std::pair<int,DataProcessing> current_dp_;
 				std::set< DataProcessing::ProcessingAction > current_pas_;

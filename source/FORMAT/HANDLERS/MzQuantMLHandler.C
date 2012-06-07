@@ -151,10 +151,10 @@ namespace OpenMS
 
 			else if (tag_ == "Software")
 			{
-				current_sw_ = Software();
 				current_id_ = attributeAsString_(attributes,"id");
+				current_sws_.insert(std::make_pair<String,Software>(current_id_,Software()));
 				String vers = attributeAsString_(attributes,"version");
-				current_sw_.setVersion(vers);
+				current_sws_[current_id_].setVersion(vers);
 			}
 
 			else if (tag_ == "userParam")
@@ -286,7 +286,7 @@ namespace OpenMS
 				{
 					fh.setCharge(c);
 				}
-				f_f_obj_.insert(std::make_pair<String,FeatureHandle>(current_id_,fh)); // map_index was lost!! TODO as user param
+				f_f_obj_.insert(std::make_pair<String,FeatureHandle>(current_id_,fh)); // map_index was lost!! TODO artificial ones produced in ConsensusMap assembly
 			}
 
 			else if (tag_ == "FeatureQuantLayer" || tag_ == "RatioQuantLayer" || tag_ == "MS2AssayQuantLayer")
@@ -392,19 +392,14 @@ namespace OpenMS
 				{
 						dps.push_back(it->second);
 				}
-				msq_->setDataProcessingList(dps);
-			}
-
-			else if (tag_ == "Software")
-			{
-				std::vector<DataProcessing> dps = msq_->getDataProcessingList();
 				for (std::vector<DataProcessing>::iterator it = dps.begin(); it != dps.end(); ++it)
 				{
-					if (it->getMetaValue("software_ref") == current_id_)
+					if (it->metaValueExists("software_ref") && current_sws_.find(it->getMetaValue("software_ref")) != current_sws_.end())
 					{
-						it->setSoftware(current_sw_);
+						it->setSoftware(current_sws_[it->getMetaValue("software_ref")]);
 					}
 				}
+				msq_->setDataProcessingList(dps);
 			}
 
 			else if (tag_ == "Assay")
@@ -485,9 +480,8 @@ namespace OpenMS
 				//~ assemble consensusfeatures
 				for (std::map<String,String>::iterator it = f_cf_ids_.begin(); it != f_cf_ids_.end(); ++it)
 				{
-					cf_cf_obj_[it->second].insert(f_f_obj_[it->first]);
+					cf_cf_obj_[it->second].insert(f_f_obj_[it->first]); //URGENT TODO make artificial map/feature indices
 				}
-				//TODO map index from assay?
 
 				//~ assemble consensusfeaturemaps
 				ConsensusMap cm;
@@ -562,11 +556,11 @@ namespace OpenMS
 			{
 				if(value == "")
 				{
-					current_sw_.setName(name);
+					current_sws_[current_id_].setName(name);
 				}
 				else
 				{
-					current_sw_.setMetaValue(name,data_value);
+					current_sws_[current_id_].setMetaValue(name,data_value);
 				}
 			}
 
@@ -702,7 +696,7 @@ namespace OpenMS
 						{
 							ratio_xml += "\t\t\t\t<userParam name=\"" + String(*dit) + "\"/>\n";
 						}
-						ratio_xml += "\t\t\t</RatioCalculation>\n";
+						ratio_xml += "\t\t\t</RatioCalculation>\n\t\t</Ratio>\n";
 					}
 					ratio_xml += "\t</RatioList>\n";
 				break;
