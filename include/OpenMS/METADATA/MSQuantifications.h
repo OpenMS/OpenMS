@@ -31,6 +31,7 @@
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+//~ #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -206,7 +207,7 @@ namespace OpenMS
 			const std::vector<DataProcessing> getDataProcessingList() const;
 			const std::vector<Assay>& getAssays() const;
 			std::vector<Assay>& getAssays();
-			std::map<String,std::pair<String,String> >& getRatios();
+			std::map<String,ConsensusFeature::Ratio>& getRatios();
 			const std::vector<ConsensusMap>& getConsensusMaps() const;
 			const std::vector<FeatureMap<> >& getFeatureMaps() const;
 			const AnalysisSummary& getAnalysisSummary() const;
@@ -224,7 +225,7 @@ namespace OpenMS
 			std::vector<FeatureMap<> > feature_maps_;
 			std::vector<Assay> assays_;
 			std::vector<DataProcessing> data_processings_;
-			std::map<String,std::pair<String,String> > ratios_; //key: ratio_ref see metavalue of a ConsensusFeature; v1:assayref numerator; v2: assay_ref denominator
+			//~ std::map<String,ConsensusFeature::Ratio > ratio_calculations_;
 		};
 
 } // namespace OpenMS

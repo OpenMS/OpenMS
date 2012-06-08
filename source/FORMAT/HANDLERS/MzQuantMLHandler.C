@@ -80,7 +80,7 @@ namespace OpenMS
 				to_ignore.insert("StudyVariable"); // .
 				to_ignore.insert("Assay_refs"); // .
 
-				to_ignore.insert("FeatureList"); // we only need to see the features and datamatrices
+				to_ignore.insert("FeatureList"); // we only need to see the features and datamatrices rows
 				to_ignore.insert("AssayList"); // we only need to see the assays
 				to_ignore.insert("DataProcessingList"); // we only need to see the DataProcessings
 				to_ignore.insert("SoftwareList"); // we only need to see the Softwares
@@ -215,11 +215,19 @@ namespace OpenMS
 			{
 				current_id_ = attributeAsString_(attributes,"id");
 				String num = attributeAsString_(attributes,"numerator_ref");
+				if (num.hasPrefix("a_"))
+				{
+					num = num.substr(2,num.size());
+				}
 				String den = attributeAsString_(attributes,"denominator_ref");
+				if (den.hasPrefix("a_"))
+				{
+					den = den.substr(2,den.size());
+				}
 				ConsensusFeature::Ratio r;
 				r.denominator_ref_ = den;
 				r.numerator_ref_ = num;
-				msq_->getRatios().insert(std::make_pair<String,std::pair<String,String> >(current_id_,std::make_pair<String,String>(num,den)));
+				r_rtemp_.insert(std::make_pair<String,ConsensusFeature::Ratio>(current_id_,r));
 			}
 
 			else if (tag_ == "PeptideConsensusList")
@@ -325,9 +333,14 @@ namespace OpenMS
 			{
 				String r = sm_.convert(chars);
 				r.trim();
-				if (!r.empty())
+				if (!r.empty()) // always two notifications for a row, only the first one contains chars - dunno why
 				{
-					current_row_.push_back(r.toDouble());
+					std::vector<String> splits;
+					r.split(" ",splits);
+					for (std::vector<String>::iterator it = splits.begin(); it != splits.end(); ++it)
+					{
+						current_row_.push_back(it->toDouble());
+					}
 				}
 			}
 
@@ -336,7 +349,11 @@ namespace OpenMS
 				//overwrites current_col_types_ with the ratio_refs or the assay_refs
 				String r = sm_.convert(chars);
 				//clear must have happened earlyer in QuantLayer tag
-				r.split(" ", current_col_types_);
+				r.trim();
+				if (!r.empty()) // always two notifications for a row, only the first one contains chars - dunno why
+				{
+					r.split(" ", current_col_types_);
+				}
 			}
 
 			else
@@ -425,6 +442,10 @@ namespace OpenMS
 					for (Size i = 0; i < current_row_.size(); ++i)
 					{
 						ConsensusFeature::Ratio r(r_rtemp_[current_col_types_[i]]);
+										std::cout << current_col_types_[i] << std::endl;
+										//~ std::cout << r_rtemp_[current_col_types_[i]].numerator_ref_ << std::endl;
+										//~ std::cout << r.numerator_ref_ << std::endl;
+
 						r.ratio_value_ = current_row_[i];
 						cf_cf_obj_[current_id_].addRatio(r);
 					}
@@ -440,7 +461,6 @@ namespace OpenMS
 					{
 						//current_id_ is a feature here, because we wont have seen a peptideconsensuslist, or have'nt we?
 						f_f_obj_[current_id_].setIntensity(current_row_[i]);
-						f_f_obj_[current_id_].setMapIndex(i); //probably bogus
 						cf_cf_obj_[current_id_].insert(f_f_obj_[current_id_]);
 					}
 				}
@@ -449,7 +469,7 @@ namespace OpenMS
 				{
 					for (Size i = 0; i < current_row_.size(); ++i)
 					{
-						if(current_col_types_[i]=="intensity")
+						if(current_col_types_[i]=="MS:1001141")
 						{
 							f_f_obj_[current_id_].setIntensity(current_row_[i]);
 						}
@@ -462,7 +482,7 @@ namespace OpenMS
 			}
 
 			//~ assemble consensusmap MS2LABEL
-			else if (tag_ == "MS2AssayQuantLayer") // TODO what if there are more than one FeatureQuantLayer?
+			else if (tag_ == "MS2AssayQuantLayer") 
 			{
 				ConsensusMap cm;
 				for (std::map<String,ConsensusFeature>::iterator it = cf_cf_obj_.begin(); it != cf_cf_obj_.end(); ++it)
@@ -480,7 +500,7 @@ namespace OpenMS
 				//~ assemble consensusfeatures
 				for (std::map<String,String>::iterator it = f_cf_ids_.begin(); it != f_cf_ids_.end(); ++it)
 				{
-					cf_cf_obj_[it->second].insert(f_f_obj_[it->first]); //URGENT TODO make artificial map/feature indices
+					cf_cf_obj_[it->second].insert(f_f_obj_[it->first]);
 				}
 
 				//~ assemble consensusfeaturemaps
@@ -513,7 +533,7 @@ namespace OpenMS
 				{
 					current_col_types_.resize(current_count_+1,"");
 				}
-				current_col_types_[current_count_] = name; //TODO real cv handling here (i.e. translate name into decision string for the "row-loop")
+				current_col_types_[current_count_] = accession; //TODO real cv handling here (i.e. translate name into decision string for the "row-loop")
 			}
 			else if (parent_tag=="Assay")
 			{
@@ -578,10 +598,22 @@ namespace OpenMS
 					msq_->getAnalysisSummary().user_params_.setValue(name,data_value);
 				}
 			}
-
-			else if (parent_tag=="AnalysisSummary")
+			
+			else if (parent_tag=="RatioCalculation")
 			{
 				r_rtemp_[current_id_].description_.push_back(name);
+			}
+			
+			else if (parent_tag=="Feature")
+			{
+				if (name=="feature_index")
+				{
+					f_f_obj_[current_id_].setUniqueId(UInt64(value.toInt()));
+				}
+				else if (name == "map_index")
+				{
+					f_f_obj_[current_id_].setMapIndex(UInt64(value.toInt()));
+				}
 			}
 
 			else warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
@@ -851,9 +883,12 @@ namespace OpenMS
 								fin.push_back(fit->getIntensity());
 								fwi.push_back(fit->getWidth());
 								//~ fqu.push_back(jt->getQuality());
-								feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(fit->getRT()) + "\" mz=\"" + String(fit->getMZ()) + "\" charge=\"" + String(fit->getCharge()) + "\"/>\n";
+								feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(fit->getRT()) + "\" mz=\"" + String(fit->getMZ()) + "\" charge=\"" + String(fit->getCharge()) + "\">\n";
 								// TODO as soon as SILACanalyzer incorporate convex hulls read from the featuremap
 								//~ writeUserParam_(os, *jt, UInt(2)); // FeatureHandle has no MetaInfoInterface!!!
+								feature_xml += "\t\t\t<userParam name=\"map_index\" value=\"" + String(fit->getMapIndex() ) + "\"/>\n";
+								feature_xml += "\t\t\t<userParam name=\"feature_index\" value=\"" + String(fit->getUniqueId()) + "\"/>\n";
+								feature_xml += "\t\t</Feature>\n";
 							}
 							cmid.push_back(idvec);
 						}break;
@@ -882,7 +917,7 @@ namespace OpenMS
 				{
 					os << "\t\t<FeatureQuantLayer id=\"" << "q_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n\t\t\t<ColumnDefinition>\n";
 					//what featurehandle is capable of reporting
-					os << "\t\t\t\t<Column index=\"0\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"TODO\" name=\"intensity\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>";
+					os << "\t\t\t\t<Column index=\"0\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001141\" name=\"intensity of precursor ion\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>";
 					os << "\t\t\t\t<Column index=\"1\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"TODO\" name=\"width\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>";
 					//~ os << "\t\t\t\t<Column index=\"0\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"TODO\" name=\"quality\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>"; // getQuality erst ab BaseFeature - nicht in FeatureHandle
 					os << "</ColumnDefinition>\t\t\t\t\n<DataMatrix>\n";

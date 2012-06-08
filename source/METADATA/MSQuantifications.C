@@ -109,10 +109,10 @@ namespace OpenMS
 				return assays_;
 			}
 			
-			std::map<String,std::pair<String,String> >& MSQuantifications::getRatios()
-			{
-				return ratios_;
-			}
+			//~ std::map<String,ConsensusFeature::Ratio>& MSQuantifications::getRatioCalculations()
+			//~ {
+				//~ return ratio_calculations_;
+			//~ }
 
 			const std::vector<FeatureMap<> >& MSQuantifications::getFeatureMaps() const
 			{
