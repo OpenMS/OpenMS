@@ -202,7 +202,10 @@ namespace OpenMS
 					optionalAttributeAsString_(massdelta_string,attributes,"massDelta");
 					String residue;
 					optionalAttributeAsString_(residue,attributes,"residues");
-					current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>(residue,massdelta_string.toDouble()));
+					if (massdelta_string != "145")
+					{
+						current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>(residue,massdelta_string.toDouble()));
+					}
 					//TODO CVhandling
 				}
 				else
@@ -436,16 +439,12 @@ namespace OpenMS
 					warning(LOAD, String("Unknown/unmatching row content in Row element of '") + parent_tag + "'." );
 					return;
 				}
-
+				
 				if (parent_parent_tag == "RatioQuantLayer")
 				{
 					for (Size i = 0; i < current_row_.size(); ++i)
 					{
 						ConsensusFeature::Ratio r(r_rtemp_[current_col_types_[i]]);
-										std::cout << current_col_types_[i] << std::endl;
-										//~ std::cout << r_rtemp_[current_col_types_[i]].numerator_ref_ << std::endl;
-										//~ std::cout << r.numerator_ref_ << std::endl;
-
 						r.ratio_value_ = current_row_[i];
 						cf_cf_obj_[current_id_].addRatio(r);
 					}
@@ -459,9 +458,12 @@ namespace OpenMS
 					cf_cf_obj_.insert(std::make_pair<String,ConsensusFeature>(current_id_,ms2cf));
 					for (Size i = 0; i < current_row_.size(); ++i)
 					{
-						//current_id_ is a feature here, because we wont have seen a peptideconsensuslist, or have'nt we?
-						f_f_obj_[current_id_].setIntensity(current_row_[i]);
-						cf_cf_obj_[current_id_].insert(f_f_obj_[current_id_]);
+						FeatureHandle fh;
+						fh.setRT(f_f_obj_[current_id_].getMZ());
+						fh.setMZ(f_f_obj_[current_id_].getRT());
+						fh.setIntensity(current_row_[i]);
+						fh.setUniqueId(i);
+						cf_cf_obj_[current_id_].insert(fh);
 					}
 				}
 
@@ -535,9 +537,18 @@ namespace OpenMS
 				}
 				current_col_types_[current_count_] = accession; //TODO real cv handling here (i.e. translate name into decision string for the "row-loop")
 			}
-			else if (parent_tag=="Assay")
+			else if (parent_parent_tag=="Label")
 			{
 				//TODO
+				if (accession == "MOD:01522")
+					current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>("114" , DoubleReal(114)));
+				else if (accession == "MOD:01523")	
+					current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>("115" , DoubleReal(115)));
+				else if (accession == "MOD:01524")	
+					current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>("116" , DoubleReal(116)));
+				else if (accession == "MOD:01525")	
+					current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>("117" , DoubleReal(117)));
+				
 			}
 
 			else warning(LOAD, String("Unhandled cvParam '") + name + "' in tag '" + parent_tag + "'.");
@@ -636,7 +647,7 @@ namespace OpenMS
 			os <<"\t<Cv id=\"PSI-MOD\" fullName=\"Proteomics Standards Initiative Protein Modifications Vocabularies\" uri=\"http://psidev.cvs.sourceforge.net/psidev/psi/mod/data/PSI-MOD.obo\" version=\"1.2\"/>\n";
 			os <<"\t<Cv id=\"UO\" fullName=\"Unit Ontology\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"/>\n";
 			os << "</CvList>\n";
-
+												
 			//AnalysisSummary
 			os << "\t<AnalysisSummary>\n"	;
 			cmsq_->getAnalysisSummary().quant_type_;
@@ -653,12 +664,27 @@ namespace OpenMS
 			String dataprocessinglist_tag;
 			dataprocessinglist_tag += "\t<DataProcessingList>\n";
 			// TODO Software DefaultTag for each file: OpenMS
-			Size order_d = 0;
-
+			Size order_d = 0;			
+			
+			String idfile_tag, idfile_ref,searchdb_ref;
+			
 			std::vector<DataProcessing> pl = cmsq_->getDataProcessingList();
 			for (std::vector<DataProcessing>::const_iterator dit = pl.begin(); dit != pl.end(); ++dit)
 			//~ for (std::vector<DataProcessing>::const_iterator dit = cmsq_->getDataProcessingList().begin(); dit != cmsq_->getDataProcessingList().end(); ++dit) // soome wierd bug is making this impossible resulting in segfault - to tired to work this one out right now
 			{
+				if (dit->getSoftware().getName() == "IDMapper" && !cmsq_->getConsensusMaps().front().getProteinIdentifications().empty())
+				{
+					searchdb_ref = "sdb_" + String(UniqueIdGenerator::getUniqueId());
+					idfile_ref = "idf_" + String(UniqueIdGenerator::getUniqueId());
+					String idfile_name = dit->getMetaValue("parameter: id");
+
+					idfile_tag += "\t\t<IdentificationFiles>\n";
+					idfile_tag += "\t\t\t<IdentificationFile id=\"" + idfile_ref + "\" name=\"" + idfile_name + "\" location=\"" + idfile_name + "\" searchDatabase_ref=\"" + searchdb_ref + "\"/>\n";
+					idfile_tag += "\t\t</IdentificationFiles>\n";
+					
+					idfile_tag += "\t\t<SearchDatabase id=\"" + searchdb_ref + "\" location=\"" + cmsq_->getConsensusMaps().front().getProteinIdentifications().front().getSearchParameters().db_version + "\">\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"db_version\" value=\"" + cmsq_->getConsensusMaps().front().getProteinIdentifications().front().getSearchParameters().db_version + "\" />\n\t\t\t</DatabaseName>\n\t\t</SearchDatabase>\n";
+				}
+				
 				String sw_ref;
 				sw_ref = "sw_" + String(UniqueIdGenerator::getUniqueId());
 				softwarelist_tag += "\t\t<Software id=\"" +  sw_ref + "\" version=\"" + String(dit->getSoftware().getVersion()) + "\">\n";
@@ -704,7 +730,6 @@ namespace OpenMS
 						{
 							std::vector<ConsensusFeature::Ratio> rv = cit->getRatios();
 							//~ for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = cit->getRatios().begin(); rit != cit->getRatios().end(); ++rit)
-							//~ std::cout << rv.size()<< std::endl;
 							for (Size i = 0; i < rv.size(); ++i)
 							{
 								ConsensusFeature::Ratio robj(rv[i]);
@@ -770,7 +795,7 @@ namespace OpenMS
 				{
 					inputfiles_xml += rgs;
 				}
-
+				
 				assay_xml += "\t\t<Assay id=\"a_" + String(ait->uid_)  + "\" rawFilesGroup_ref=\"rfg_" + rfgr + "\">\n";
 				assay_xml += "\t\t\t<Label>\n";
 
@@ -825,13 +850,14 @@ namespace OpenMS
 								case 116:
 									cv_name = "iTRAQ4plex-116 reporter fragment";
 									cv_acc = "MOD:01524";
+								break;
 								case 117:
 									cv_name = "iTRAQ4plex-117, mTRAQ heavy, reporter fragment";
 									cv_acc = "MOD:01525";
 								break;
 								default:
-									cv_name = "TODO";
-									cv_acc = "TODO";
+									cv_name = "Applied Biosystems iTRAQ(TM) multiplexed quantitation chemistry";
+									cv_acc = "MOD:00564";
 							}
 							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"PSI-MOD\" accession=\"" + cv_acc+  "\" name=\"" + cv_name + "\" value=\"" + String(lit->first) + "\"/>\n";
 							assay_xml += "\t\t\t\t</Modification>\n";
@@ -853,6 +879,8 @@ namespace OpenMS
 				study_xml += "\t</StudyVariable>\n";
 			}
 			assay_xml += "\t</AssayList>\n";
+			
+			inputfiles_xml += idfile_tag;
 			inputfiles_xml += "\t</InputFiles>\n";
 			study_xml += "\t</StudyVariableList>\n";
 			os << inputfiles_xml << assay_xml << study_xml << ratio_xml;
@@ -934,7 +962,7 @@ namespace OpenMS
 				case 1: //ms2label
 				{
 					os << "\t\t<MS2AssayQuantLayer id=\"ms2ql_"+ String(UniqueIdGenerator::getUniqueId()) +"\">\n\t\t\t<DataType>\n\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"1847\" name=\"reporterion intensity\"/>\n\t\t\t</DataType>\n\t\t\t<ColumnIndex>";
-					for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin()+1; ait != cmsq_->getAssays().end(); ++ait)
+					for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
 					{
 						os << "a_"<< String(ait->uid_) << " ";
 					}
@@ -956,13 +984,14 @@ namespace OpenMS
 			os << "\t</FeatureList>\n";
 
 			// Peptides
-			os << "\t<PeptideConsensusList  finalResult=\"true\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO evidenceref
+			
 			for (Size k = 0; k < cid.size(); ++k)
 			{
 				switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
 				{
 						case 0: // ms1label - iterate consensusmap?
 						{
+							os << "\t<PeptideConsensusList  finalResult=\"true\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO evidenceref
 							for (Size i = 0; i < cid[k].size(); ++i)
 							{
 								os << "\t\t<PeptideConsensus id=\"" << "c_" << String(cid[k][i].front()) << "\" charge=\""+ String((*cmsq_).getConsensusMaps()[k][i].getCharge()) +"\">\n";
@@ -1016,32 +1045,37 @@ namespace OpenMS
 							}
 							os << "\t\t\t\t</DataMatrix>\n";
 							os << "\t\t</RatioQuantLayer>\n";
+							os << "\t</PeptideConsensusList>\n";
 						}
 						break;
 						case 1: // ms2label
 						{
-								//~ for (Size i = 0; i < fid.size(); ++i)
-								//~ {
-										//~ if (!(*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().empty())
-										//~ {
-												//~ os << "\t\t<PeptideConsensus id=\"" << "c_" << String(fid[i]) << "\" charge=\""+ String((*cmsq_).getConsensusMaps()[k][i].getCharge()) +"\">\n";
-												//~ os << "\t\t\t<feature_refs>";
-												//~ for (Size j = 0; j < f2i[i].size(); ++j)
-												//~ {
-														//~ os << String(f2i[i][j]) << " ";
-												//~ }
-												//~ os << "\t\t\t</feature_refs>\n";
-												//~ // os << "\t\t\t<IdentificationRef id_ref=\"";
-												//~ // os << (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" IdentificationFile_ref=\"";
-												//~ // os << idid_to_idfilenames.begin()->first  << "\"/>\n";
-												//~ os << "\t\t</PeptideConsensus>\n";
-										//~ }
-								//~ }
-								//~ TODO ratios, when available (not yet for the iTRAQ tuples of iTRAQAnalyzer)
+							if (!searchdb_ref.empty() && k <2) // would break if there is more than one consensusmap
+							{
+								String ass_refs;
+								for (Size j = 0; j < cmsq_->getAssays().size(); ++j)
+								{
+									ass_refs += "a_" + String(cmsq_->getAssays()[j].uid_) + " ";
+								}
+								ass_refs.trim();
+								os << "\t<PeptideConsensusList  finalResult=\"false\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO evidenceref
+								for (Size i = 0; i < fid.size(); ++i)
+								{
+									if (!cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().empty())
+									{
+										os << "\t\t<PeptideConsensus id=\"" << "c_" << String(UniqueIdGenerator::getUniqueId()) << "\" charge=\"" << String(cmsq_->getConsensusMaps()[k][i].getCharge()) << "\" searchDatabase_ref=\"" << searchdb_ref << "\">\n";
+										os << "\t\t\t<PeptideSequence>" << cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().front().getHits().front().getSequence().toUnmodifiedString() << "</PeptideSequence>\n";
+										os << "\t\t\t<EvidenceRef feature_ref=\"f_" << String(fid[i]) << "\" assay_refs=\"" << ass_refs << "\" id_refs=\"" << cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" identificationFile_ref=\"" << idfile_ref << "\"/>\n";
+										os << "\t\t</PeptideConsensus>\n";
+									}
+									//~ TODO ratios, when available (not yet for the iTRAQ tuples of iTRAQAnalyzer)
+								}
+								os << "\t</PeptideConsensusList>\n";
+							}
 						}
 						break;
 				}
-				os << "\t</PeptideConsensusList>\n";
+				
 			}
 
 			//--------------------------------------------------------------------------------------------

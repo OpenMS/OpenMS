@@ -123,6 +123,11 @@ namespace OpenMS
 			{
 				return consensus_maps_;
 			}
+			
+			std::vector<ConsensusMap>& MSQuantifications::getConsensusMaps()
+			{
+				return consensus_maps_;
+			}
 
 			const MSQuantifications::AnalysisSummary& MSQuantifications::getAnalysisSummary() const
 			{

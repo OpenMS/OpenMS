@@ -209,6 +209,7 @@ namespace OpenMS
 			std::vector<Assay>& getAssays();
 			std::map<String,ConsensusFeature::Ratio>& getRatios();
 			const std::vector<ConsensusMap>& getConsensusMaps() const;
+			std::vector<ConsensusMap>& getConsensusMaps();
 			const std::vector<FeatureMap<> >& getFeatureMaps() const;
 			const AnalysisSummary& getAnalysisSummary() const;
 			AnalysisSummary& getAnalysisSummary();

@@ -219,12 +219,15 @@ class TOPPIDMapper
 				MzQuantMLFile file;
 				file.load(in, msq);
 
-				//~ mapper.annotate(map, peptide_ids, protein_ids,
-												//~ getFlag_("use_centroid_rt"),
-												//~ getFlag_("use_centroid_mz"));
+				for (std::vector<ConsensusMap>::iterator it = msq.getConsensusMaps().begin(); it != msq.getConsensusMaps().end(); ++it)
+				{
+					bool measure_from_subelements=getFlag_("use_subelements");
 
-				//~ //annotate output with data processing info
-				//~ addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+					mapper.annotate(*it,peptide_ids,protein_ids,measure_from_subelements);
+					
+					//annotate output with data processing info
+					addDataProcessing_(*it, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+				}
 
 				//~ writeDebug_(msq.getConsensusMaps().size(),3);
 				//~ writeDebug_(msq.getConsensusMaps().back().size(),3);
