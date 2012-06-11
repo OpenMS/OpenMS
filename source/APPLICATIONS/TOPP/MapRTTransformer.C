@@ -81,7 +81,7 @@ class TOPPMapRTTransformer
 
 public:
 	TOPPMapRTTransformer()
-		: TOPPMapAlignerBase("MapRTTransformer", "Applies retention time transformations to maps.")
+    : TOPPMapAlignerBase("MapRTTransformer", "Applies retention time transformations to maps.")
 	{
 	}
 
@@ -183,7 +183,7 @@ protected:
 					MzMLFile file;
 					MSExperiment<> map;
 					file.load(in_file, map);
-					MapAlignmentAlgorithm::transformSinglePeakMap(map, trafo);
+          MapAlignmentTransformer::transformSinglePeakMap(map, trafo);
 					addDataProcessing_(map, 
 														 getProcessingInfo_(DataProcessing::ALIGNMENT));
 					file.store(outs[i], map);
@@ -193,7 +193,7 @@ protected:
 					FeatureXMLFile file;
 					FeatureMap<> map;
 					file.load(in_file, map);
-					MapAlignmentAlgorithm::transformSingleFeatureMap(map, trafo);
+          MapAlignmentTransformer::transformSingleFeatureMap(map, trafo);
 					addDataProcessing_(map, 
 														 getProcessingInfo_(DataProcessing::ALIGNMENT));
 					file.store(outs[i], map);
@@ -203,7 +203,7 @@ protected:
 					ConsensusXMLFile file;
 					ConsensusMap map;
 					file.load(in_file, map);
-					MapAlignmentAlgorithm::transformSingleConsensusMap(map, trafo);
+          MapAlignmentTransformer::transformSingleConsensusMap(map, trafo);
 					addDataProcessing_(map, 
 														 getProcessingInfo_(DataProcessing::ALIGNMENT));
 					file.store(outs[i], map);
@@ -214,7 +214,7 @@ protected:
 					vector<ProteinIdentification> proteins;
 					vector<PeptideIdentification> peptides;
 					file.load(in_file, proteins, peptides);
-					MapAlignmentAlgorithm::transformSinglePeptideIdentification(peptides, 
+          MapAlignmentTransformer::transformSinglePeptideIdentification(peptides,
 																																			trafo);
 					// no "data processing" section in idXML
 					file.store(outs[i], proteins, peptides);

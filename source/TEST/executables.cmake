@@ -372,6 +372,7 @@ set(analysis_executables_list
 	MapAlignmentEvaluationAlgorithmPrecision_test
 	MapAlignmentEvaluationAlgorithmRecall_test
 	MapAlignmentEvaluationAlgorithm_test
+	MapAlignmentTransformer_test
 	MassDecompositionAlgorithm_test
 	MassDecomposition_test
 	OfflinePrecursorIonSelection_test

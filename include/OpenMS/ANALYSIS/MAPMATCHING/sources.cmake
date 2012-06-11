@@ -20,6 +20,7 @@ MapAlignmentAlgorithmSpectrumAlignment.h
 MapAlignmentEvaluationAlgorithm.h
 MapAlignmentEvaluationAlgorithmPrecision.h
 MapAlignmentEvaluationAlgorithmRecall.h
+MapAlignmentTransformer.h
 PoseClusteringAffineSuperimposer.h
 PoseClusteringShiftSuperimposer.h
 QTClusterFinder.h

@@ -20,6 +20,7 @@ MapAlignmentAlgorithmSpectrumAlignment.C
 MapAlignmentEvaluationAlgorithm.C
 MapAlignmentEvaluationAlgorithmPrecision.C
 MapAlignmentEvaluationAlgorithmRecall.C
+MapAlignmentTransformer.C
 PoseClusteringAffineSuperimposer.C
 PoseClusteringShiftSuperimposer.C
 QTClusterFinder.C

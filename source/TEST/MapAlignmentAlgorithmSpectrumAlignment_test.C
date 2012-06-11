@@ -29,10 +29,10 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 
 using namespace std;
 using namespace OpenMS;
-
 
 /////////////////////////////////////////////////////////////
 
@@ -113,7 +113,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 	Param params;
 	params.setValue("interpolation_type", "cspline");
 	ma.fitModel(model_type, params, transformations);
-	ma.transformPeakMaps(maps, transformations);
+  MapAlignmentTransformer::transformPeakMaps(maps, transformations);
 	maps[0].updateRanges(-1);
 	maps[1].updateRanges(-1);
   for (Size i=0; i< maps[0].size(); ++i)

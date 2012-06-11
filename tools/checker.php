@@ -444,7 +444,7 @@ $GLOBALS["all_tests"] = array(
 			"XMLSchemes.h",
 			"Serialization.h",
 			"Exception.h",
-			"GlobalExceptionHandler.h"
+			"GlobalExceptionHandler.h",
 			"Types.h",
 			"Macros.h",
 			"Benchmark.h",
@@ -469,7 +469,7 @@ $GLOBALS["all_tests"] = array(
 			if (in_array("guards",$tests))
 			{
 				$dont_report = array("TypeNameIdStringMiscellanyDefs.h");
-					
+
 				if (endsWith($f,".h"))
 				{
 					for ($i=0;$i<count($file);$i++)
@@ -490,7 +490,7 @@ $GLOBALS["all_tests"] = array(
 								break;
 							}
 						}
-							
+
 						$class = trim(substr($f,strrpos($f,"/")+1));
 						if ($i==count($file)-1 AND !in_array($class,$dont_report))
 						{
@@ -614,7 +614,7 @@ $GLOBALS["all_tests"] = array(
 				"ExampleLibraryFile.C",
         "TestExternalCode.C"
 				);
-					
+
 				if (!in_array($basename,$ignore)  && !beginsWith($f,"source/APPLICATIONS/TOPP/")  && !beginsWith($f,"source/APPLICATIONS/UTILS/") && !beginsWith($f,"source/VISUAL/APPLICATIONS/GUITOOLS/") )
 				{
 					if (endsWith($f,"_test.C"))
@@ -844,17 +844,17 @@ $GLOBALS["all_tests"] = array(
 					if (in_array($testname,$files))
 					{
 						$out = array();
-							
+
 						exec("svn proplist -v $src_path/$testname",$out);
 						$kw = false;
 						$kw_id = false;
 						foreach ($out as $line)
 						{
-							
+
 							if (strpos($line,"svn:keywords")!==FALSE)
 							{
 								$kw = true;
-								
+
 							}
 
 							if (strpos($line,"Id")!==FALSE)
@@ -870,14 +870,14 @@ $GLOBALS["all_tests"] = array(
 						// use xml output since svn 1.5 and 1.6 have different output formats
 						// when used wo --xml
 						exec("svn proplist -v --xml $src_path/$testname",$out);
-							
+
 						// concat
 						$xml_out = "";
 						foreach($out as $line)
 						{
 							$xml_out .= $line."\n";
 						}
-							
+
 						$svn_xml = simplexml_load_string($xml_out);
 						$kw = false;
 						foreach($svn_xml->target as $target)

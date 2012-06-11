@@ -28,6 +28,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <iostream>
 
@@ -93,7 +94,7 @@ START_SECTION((virtual void alignPeptideIdentifications(std::vector<std::vector<
 	params.clear();
 	params.setValue("num_breakpoints", 10);
 	aligner->fitModel("b_spline", params, transforms);
-	aligner->transformPeptideIdentifications(peptides, transforms);
+  MapAlignmentTransformer::transformPeptideIdentifications(peptides, transforms);
 // 	cout << "Output (transformed):\n";
 // 	for (Size i = 0; i < peptides[0].size(); ++i)
 // 	{

@@ -31,7 +31,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -217,7 +219,7 @@ protected:
 			{
 				alignment->fitModel(model_type, model_params, transformations);
 			}
-			alignment->transformPeakMaps(peak_maps, transformations);
+      MapAlignmentTransformer::transformPeakMaps(peak_maps, transformations);
 
 			// write output
 			progresslogger.startProgress(0, outs.size(), "writing output files");
@@ -283,7 +285,7 @@ protected:
 				FeatureMap<> feature_map;
 		    f.load(ins[i], feature_map);
 
-				alignment->transformSingleFeatureMap(feature_map, transformations[i]);
+        MapAlignmentTransformer::transformSingleFeatureMap(feature_map, transformations[i]);
 				
 				//annotate output with data processing info
 				addDataProcessing_(feature_map, getProcessingInfo_(DataProcessing::ALIGNMENT));
@@ -323,7 +325,7 @@ protected:
 			{
 				alignment->fitModel(model_type, model_params, transformations);
 			}
-			alignment->transformConsensusMaps(cons_maps, transformations);
+      MapAlignmentTransformer::transformConsensusMaps(cons_maps, transformations);
 
 			// write output
 			progresslogger.startProgress(0, outs.size(), "writing output files");
@@ -372,7 +374,7 @@ protected:
 			{
 				alignment->fitModel(model_type, model_params, transformations);
 			}
-			alignment->transformPeptideIdentifications(peptide_ids_vec, 
+      MapAlignmentTransformer::transformPeptideIdentifications(peptide_ids_vec,
 																								 transformations);
 
 			// write output
