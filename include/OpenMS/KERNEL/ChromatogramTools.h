@@ -150,7 +150,11 @@ public:
           {
             for (Size peak_idx = 0; peak_idx < it->size(); peak_idx++)
             {
-              chroms[it->getPrecursors().begin()->getMZ()][(*it)[peak_idx].getMZ()].push_back(*it);
+              // copy spectrum and delete all data, but keep metadata, then add single peak
+              SpectrumType dummy = *it;
+              dummy.clear(false);
+              dummy.push_back((*it)[peak_idx]);
+              chroms[it->getPrecursors().begin()->getMZ()][(*it)[peak_idx].getMZ()].push_back(dummy);
             }
           }
           else
