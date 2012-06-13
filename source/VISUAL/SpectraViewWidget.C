@@ -278,12 +278,7 @@ namespace OpenMS
     QList<QTreeWidgetItem *> toplevel_items;
     bool more_than_one_spectrum = true;
 
-    if (cl.type == LayerData::DT_PEAK  &&
-        !(cl.getPeakData()->size() > 0 &&
-          cl.getPeakData()->metaValueExists("is_chromatogram") &&
-          cl.getPeakData()->getMetaValue("is_chromatogram").toBool()
-          )
-        )
+    if (cl.type == LayerData::DT_PEAK  && !(cl.chromatogram_flag_set()))
     {
       std::vector<QTreeWidgetItem *> parent_stack;
       parent_stack.push_back(0);
@@ -479,11 +474,7 @@ namespace OpenMS
         more_than_one_spectrum = false;
       }
     }
-    else if (cl.type == LayerData::DT_CHROMATOGRAM ||
-             (cl.getPeakData()->size() > 0 &&
-              cl.getPeakData()->metaValueExists("is_chromatogram") &&
-              cl.getPeakData()->getMetaValue("is_chromatogram").toBool()
-             ))
+    else if (cl.type == LayerData::DT_CHROMATOGRAM || cl.chromatogram_flag_set())
     {
 
       // We need to redraw the whole Widget because the we have changed all the layers.
@@ -522,13 +513,10 @@ namespace OpenMS
       MSExperiment<Peak1D> exp;
       exp = *cl.getPeakData();
 
-      if (cl.getPeakData()->size() > 0 &&
-          cl.getPeakData()->metaValueExists("is_chromatogram") &&
-          cl.getPeakData()->getMetaValue("is_chromatogram").toBool())
+      if (cl.chromatogram_flag_set())
       {
         exp = *cl.getChromatogramData();
       }
-
 
       if (exp.getChromatograms().size() > 1)
       {

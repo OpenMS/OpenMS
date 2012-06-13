@@ -223,11 +223,8 @@ namespace OpenMS
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
     // new spectrum.
-    if (layer.getPeakData()->size() > 0 &&
-        layer.getPeakData()->metaValueExists("is_chromatogram") &&
-        layer.getPeakData()->getMetaValue("is_chromatogram").toBool())
+    if (layer.chromatogram_flag_set())
     {
-
       // first get chromatogram data
       ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
       const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
@@ -288,9 +285,7 @@ namespace OpenMS
     // new spectrum.
     const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
     String fname = layer.filename;
-    if (layer.getPeakData()->size() > 0 &&
-        layer.getPeakData()->metaValueExists("is_chromatogram") &&
-        layer.getPeakData()->getMetaValue("is_chromatogram").toBool())
+    if (layer.chromatogram_flag_set())
     {
 
       // first get chromatogram data
@@ -349,8 +344,6 @@ namespace OpenMS
       tv_->updateFilterBar();
       tv_->updateMenu();
     }
-
-
   }
 
   void TOPPViewSpectraViewBehavior::deactivate1DSpectrum(int /* spectrum_index */)

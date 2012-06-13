@@ -231,6 +231,22 @@ public:
       current_spectrum_ = index;
     }
 
+    // whether the current layer is a chromatogram 
+    // we need this specifically because this->type will *not* distinguish
+    // chromatogram and spectra data.
+    bool chromatogram_flag_set() const
+    {
+      return this->getPeakData()->size() > 0 &&
+             this->getPeakData()->metaValueExists("is_chromatogram") &&
+             this->getPeakData()->getMetaValue("is_chromatogram").toBool();
+    }
+
+    // whether the current layer is a chromatogram
+    void set_chromatogram_flag()
+    {
+      this->getPeakData()->setMetaValue("is_chromatogram", "true");
+    }
+
     /// if this layer is visible
     bool visible;
 
