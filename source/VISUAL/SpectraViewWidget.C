@@ -121,22 +121,24 @@ namespace OpenMS
       {
         col = 1;
       }
-      QList<QTreeWidgetItem *> searched = spectra_view_treewidget->findItems(text, Qt::MatchFixedString /* matchflag exact match */, col);
+
+      Qt::MatchFlags matchflags = Qt::MatchFixedString;
+      //matchflags = matchflags | Qt::MatchRecursive;
+      QList<QTreeWidgetItem *> searched = spectra_view_treewidget->findItems(text, matchflags, col);
       QList<QTreeWidgetItem *> selected = spectra_view_treewidget->selectedItems();
 
       if (searched.size() > 0)
       {
+        QTreeWidgetItem * olditem = spectra_view_treewidget->currentItem();
         for (int i = 0; i < selected.size(); ++i)
         {
           selected[i]->setSelected(false);
         }
         spectra_view_treewidget->update();
-        int spectrum_index = searched.first()->text(1).toInt();
         searched.first()->setSelected(true);
         spectra_view_treewidget->update();
         spectra_view_treewidget->scrollToItem(searched.first());
-
-        emit spectrumSelected(spectrum_index);
+        spectrumSelectionChange_(searched.first(), olditem);
       }
     }
   }
@@ -493,12 +495,16 @@ namespace OpenMS
       }
 
       spectra_treewidget_->setColumnCount(5);
-      spectra_treewidget_->setColumnWidth(0, 80);
+      spectra_treewidget_->setColumnWidth(0, 45);
       spectra_treewidget_->setColumnWidth(1, 45);
       spectra_treewidget_->setColumnWidth(2, 80);
-      spectra_treewidget_->setColumnWidth(3, 80);
+      spectra_treewidget_->setColumnWidth(3, 150);
       spectra_treewidget_->setColumnWidth(4, 80);
+      spectra_treewidget_->setColumnWidth(5, 80);
+      spectra_treewidget_->setColumnWidth(6, 45);
+      spectra_treewidget_->setColumnWidth(7, 80);
 
+      // create a different header list
       QStringList header_labels;
       header_labels.append(QString(" type "));
       header_labels.append(QString("index"));
@@ -509,6 +515,16 @@ namespace OpenMS
       header_labels.append(QString("charge"));
       header_labels.append(QString("chromatogram type"));
       spectra_treewidget_->setHeaderLabels(header_labels);
+
+      // create a different combo box
+      int curr = spectra_combo_box_->currentIndex();
+      QStringList qsl;
+      qsl.push_back("index");
+      qsl.push_back("m/z");
+      qsl.push_back("Description");
+      spectra_combo_box_->clear();
+      spectra_combo_box_->addItems(qsl);
+      spectra_combo_box_->setCurrentIndex(curr);
 
       MSExperiment<Peak1D> exp;
       exp = *cl.getPeakData();
