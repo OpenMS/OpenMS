@@ -3102,7 +3102,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		topp_.layer_name = layer.name;
     topp_.window_id = getActiveSpectrumWidget()->getWindowId();
     topp_.spectrum_id = layer.getCurrentSpectrumIndex();
-		if (layer.type==LayerData::DT_PEAK)
+    if (layer.type == LayerData::DT_PEAK  && !(layer.chromatogram_flag_set()))
 		{
 			MzMLFile f;
 			f.setLogType(ProgressLogger::GUI);
@@ -3117,7 +3117,30 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
         f.store(topp_.file_name+"_in",*layer.getPeakData());
 			}
 		}
-		else if (layer.type==LayerData::DT_FEATURE)
+    else if (layer.type == LayerData::DT_CHROMATOGRAM || layer.chromatogram_flag_set())
+    {
+      MzMLFile f;
+      // This means we have chromatogram data, either as DT_CHROMATOGRAM or as
+      // DT_PEAK with the chromatogram flag set. To run the TOPPTool we need to
+      // remove the flag and add the newly generated layer as spectrum data
+      // (otherwise we run into problems with SpectraViewWidget::updateEntries
+      // which assumes that all chromatogram data has chromatograms).
+      getActiveCanvas()->getCurrentLayer().remove_chromatogram_flag(); // removing the flag is not constant
+      //getActiveCanvas()->getCurrentLayer().getPeakData()->setMetaValue("chromatogram_passed_through_TOPP", "true"); 
+
+      f.setLogType(ProgressLogger::GUI);
+      if (topp_.visible)
+      {
+        ExperimentType exp;
+        getActiveCanvas()->getVisiblePeakData(exp);
+        f.store(topp_.file_name+"_in",exp);
+      }
+      else
+      {
+        f.store(topp_.file_name+"_in",*layer.getPeakData());
+      }
+    }
+    else if (layer.type==LayerData::DT_FEATURE)
 		{
 			if (topp_.visible)
 			{

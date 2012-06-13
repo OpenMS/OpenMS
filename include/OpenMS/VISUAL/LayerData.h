@@ -231,9 +231,10 @@ public:
       current_spectrum_ = index;
     }
 
-    // whether the current layer is a chromatogram 
+    /// Check whether the current layer is a chromatogram 
     // we need this specifically because this->type will *not* distinguish
-    // chromatogram and spectra data.
+    // chromatogram and spectra data since we need to store chromatograms for
+    // the 1D case in a layer that looks like PEAK data to all tools.
     bool chromatogram_flag_set() const
     {
       return this->getPeakData()->size() > 0 &&
@@ -241,10 +242,19 @@ public:
              this->getPeakData()->getMetaValue("is_chromatogram").toBool();
     }
 
-    // whether the current layer is a chromatogram
+    // set the chromatogram flag 
     void set_chromatogram_flag()
     {
       this->getPeakData()->setMetaValue("is_chromatogram", "true");
+    }
+
+    // remove the chromatogram flag 
+    void remove_chromatogram_flag()
+    {
+      if( this->chromatogram_flag_set())
+      {
+        this->getPeakData()->removeMetaValue("is_chromatogram");
+      }
     }
 
     /// if this layer is visible
