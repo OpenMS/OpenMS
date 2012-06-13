@@ -123,7 +123,12 @@ namespace OpenMS
       }
 
       Qt::MatchFlags matchflags = Qt::MatchFixedString;
-      //matchflags = matchflags | Qt::MatchRecursive;
+      //matchflags = matchflags | Qt::MatchRecursive; // whether we also want to match subitems
+      if (col!=1)
+      {
+        // only the index has to be matched exactly
+        matchflags = matchflags | Qt::MatchStartsWith;
+      }
       QList<QTreeWidgetItem *> searched = spectra_view_treewidget->findItems(text, matchflags, col);
       QList<QTreeWidgetItem *> selected = spectra_view_treewidget->selectedItems();
 
