@@ -131,7 +131,19 @@ namespace OpenMS {
 
 	void ItraqConstants::initChannelMap(const int itraq_type, ChannelMapType& map)
 	{
-		/// valid names for 4 and 8plex, ie 114,115,116,117 for 4plex
+    static Map<Int, DoubleReal> reporter_mass_exact;
+    if (reporter_mass_exact.size() == 0)
+    { // exact monoisotopic reporter ion masses (taken from AB Sciex)
+      reporter_mass_exact[113] = 113.1078;
+      reporter_mass_exact[114] = 114.1112;
+      reporter_mass_exact[115] = 115.1082;
+      reporter_mass_exact[116] = 116.1116;
+      reporter_mass_exact[117] = 117.1149;
+      reporter_mass_exact[118] = 118.1120;
+      reporter_mass_exact[119] = 119.1153;
+      reporter_mass_exact[121] = 121.1220;
+    }
+		/// valid names for 4 and 8plex, i.e. 114,115,116,117 for 4plex
 		std::vector< Matrix<Int> > channel_names;
 		channel_names.resize(2);
 		channel_names[0].setMatrix<4,1>(CHANNELS_FOURPLEX);
@@ -144,7 +156,11 @@ namespace OpenMS {
 			info.description = "";
 			info.name = channel_names[itraq_type].getValue(i,0);
 			info.id = (Int)i;
-			info.center = double(info.name) + 0.11;
+      if (!reporter_mass_exact.has(info.name))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unexpected reporter name during initialization.", String(info.name));
+      }
+			info.center = reporter_mass_exact[info.name];
 			info.active = false;
 			map[info.name] = info;
 		}
