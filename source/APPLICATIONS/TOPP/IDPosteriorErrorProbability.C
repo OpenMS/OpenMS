@@ -138,8 +138,16 @@ class TOPPIDPosteriorErrorProbability
 		}
 		else if (engine == "MASCOT")
 		{
-			return((-1)* log10(max((DoubleReal)hit.getMetaValue("EValue"),smallest_e_value_)));
-    } else if (engine == "SpectraST")
+			if(hit.metaValueExists("EValue"))
+			{
+				return((-1)* log10(max((DoubleReal)hit.getMetaValue("EValue"),smallest_e_value_)));
+			}
+			if(hit.metaValueExists("expect"))
+			{
+				return((-1)* log10(max((DoubleReal)hit.getMetaValue("expect"),smallest_e_value_)));
+			}
+    } 
+		else if (engine == "SpectraST")
     {
       return (100*hit.getScore());  // SpectraST f-val
     }
