@@ -201,6 +201,8 @@ protected:
                   "Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
 		registerIntOption_("min_length","<integer>", 0, "Keep only peptide hits with a length greater or equal this value.", false);
 		setMinInt_("min_length", 0);
+		registerIntOption_("min_charge","<integer>", 1, "Keep only peptide hits for tandem spectra with charge greater or equal this value.", false);
+		setMinInt_("min_charge", 1);
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (fixed modifications from SearchParameters will be ignored).", false);
 
     registerFlag_("unique","If a peptide hit occurs more than once, only one instance is kept. This will (for instance) remove \
@@ -250,6 +252,7 @@ protected:
 
 		bool best_strict = getFlag_("best:strict");
 		UInt min_length = getIntOption_("min_length");
+		UInt min_charge = getIntOption_("min_charge");
 
     bool var_mods = getFlag_("var_mods");
 
@@ -415,6 +418,13 @@ protected:
 				applied_filters.insert(String("Filtering by peptide score > ") + peptide_threshold_score + " ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification);
+			}
+
+			if (min_charge > 1)
+			{
+				applied_filters.insert(String("Filtering by charge > ") + min_charge + " ...\n");
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsByCharge(temp_identification, min_charge, filtered_identification);
 			}
 
 			if (best_n_peptide_hits != 0)
