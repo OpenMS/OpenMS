@@ -187,15 +187,44 @@ public:
         LOG_INFO << "DocumentIdentifiers are lost during merge of ConsensusMaps\n";
       }
       DocumentIdentifier::operator=(empty_map);
-
       UniqueIdInterface::operator=(empty_map);
 
-      // merge these:
-      protein_identifications_.insert(protein_identifications_.end(), rhs.protein_identifications_.begin(), rhs.protein_identifications_.end());
-      unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(), rhs.unassigned_peptide_identifications_.end());
-      data_processing_.insert(data_processing_.end(), rhs.data_processing_.begin(), rhs.data_processing_.end());
+      //append dataProcessing
+      data_processing_.insert(data_processing_.end(),rhs.data_processing_.begin(), rhs.data_processing_.end());
 
-      // append features:
+      //append fileDescription
+      file_description_.insert(rhs.file_description_.begin(),rhs.file_description_.end());
+      //update filename and map size
+      Map<UInt64,FileDescription>::const_iterator it = file_description_.begin();
+      Map<UInt64,FileDescription>::const_iterator it2 = rhs.file_description_.begin();
+      for(; it != file_description_.end() && it2 != rhs.file_description_.end(); ++it,++it2)
+      {
+        getFileDescriptions().at(it->first).filename = "mergedConsensusXMLFile";
+        getFileDescriptions().at(it->first).size = it->second.size + it2->second.size;
+      }
+
+      //append proteinIdenficiation
+      protein_identifications_.insert(protein_identifications_.end(),rhs.protein_identifications_.begin(),rhs.protein_identifications_.end());
+      //ensure non-redundant modification parameter
+      for(std::vector<ProteinIdentification>::iterator it = protein_identifications_.begin(); it != protein_identifications_.end(); ++it)
+      {
+        vector<String>::iterator it2;
+        // remove redundant variable modifications
+        vector<String>& varMod = const_cast<vector<String>& >(it->getSearchParameters().variable_modifications);
+        sort(varMod.begin(),varMod.end());
+        it2 = unique(varMod.begin(),varMod.end());
+        varMod.resize(it2 - varMod.begin());
+        // remove redundant fixed modifications
+        vector<String>& fixMod = const_cast<vector<String>& >(it->getSearchParameters().fixed_modifications);
+        sort(fixMod.begin(),fixMod.end());
+        it2 = unique(fixMod.begin(),fixMod.end());
+        fixMod.resize(it2 - fixMod.begin());
+      }
+
+      //append unassignedPeptideIdentifiactions
+      unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(),rhs.unassigned_peptide_identifications_.end());
+
+      // append consensusElements to consensusElementList:
       this->insert(this->end(), rhs.begin(), rhs.end());
 
       // todo: check for double entries
