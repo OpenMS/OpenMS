@@ -207,6 +207,7 @@ START_SECTION((ConsensusMap& operator+=(const ConsensusMap &rhs)))
   m1.getProteinIdentifications().resize(1);
   m1.getUnassignedPeptideIdentifications().resize(1);
   m1.ensureUniqueId();
+  m1.getFileDescriptions()[0].filename = "m1";
 
   m2.setIdentifier ("321");
   m2.getDataProcessing().resize(2);
@@ -214,7 +215,7 @@ START_SECTION((ConsensusMap& operator+=(const ConsensusMap &rhs)))
   m2.getUnassignedPeptideIdentifications().resize(2);
   m2.push_back(ConsensusFeature());
   m2.push_back(ConsensusFeature());
-
+  m2.getFileDescriptions()[1].filename = "m2";
 
   m1+=m2;
   TEST_EQUAL(m1.getIdentifier(), "");
@@ -223,6 +224,7 @@ START_SECTION((ConsensusMap& operator+=(const ConsensusMap &rhs)))
   TEST_EQUAL(m1.getProteinIdentifications().size(),3);
   TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(),3);
   TEST_EQUAL(m1.size(),3);
+  TEST_EQUAL(m1.getFileDescriptions().size(), 2);
 }
 END_SECTION
 

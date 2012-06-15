@@ -37,10 +37,6 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 
-
-#include <utility>
-using namespace std;
-
 namespace OpenMS
 {
   /**
@@ -69,14 +65,8 @@ public:
     struct FileDescription :
       public MetaInfoInterface
     {
-      ///Default constructor
-      FileDescription() :
-        MetaInfoInterface(),
-        filename(),
-        label(),
-        size(0),
-        unique_id(UniqueIdInterface::INVALID)
-      {}
+      /// Default constructor
+      FileDescription();
 
       /// File name of the file
       String filename;
@@ -105,71 +95,19 @@ public:
     //@}
 
     /// Default onstructor
-    inline ConsensusMap() :
-      Base(),
-      MetaInfoInterface(),
-      RangeManagerType(),
-      DocumentIdentifier(),
-      UniqueIdInterface(),
-      UniqueIdIndexer<ConsensusMap>(),
-      file_description_(),
-      experiment_type_(),
-      protein_identifications_(),
-      unassigned_peptide_identifications_(),
-      data_processing_()
-    {}
+    ConsensusMap();
 
     /// Copy constructor
-    inline ConsensusMap(const ConsensusMap & source) :
-      Base(source),
-      MetaInfoInterface(source),
-      RangeManagerType(source),
-      DocumentIdentifier(source),
-      UniqueIdInterface(source),
-      UniqueIdIndexer<ConsensusMap>(source),
-      file_description_(source.file_description_),
-      experiment_type_(source.experiment_type_),
-      protein_identifications_(source.protein_identifications_),
-      unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
-      data_processing_(source.data_processing_)
-    {}
+    ConsensusMap(const ConsensusMap & source);
 
     /// Destructor
-    inline ~ConsensusMap()
-    {}
+    ~ConsensusMap();
 
     /// Creates a ConsensusMap with n elements
-    explicit inline ConsensusMap(Base::size_type n) :
-      Base(n),
-      MetaInfoInterface(),
-      RangeManagerType(),
-      DocumentIdentifier(),
-      UniqueIdInterface(),
-      file_description_(),
-      experiment_type_(),
-      protein_identifications_(),
-      unassigned_peptide_identifications_(),
-      data_processing_()
-    {}
+    explicit ConsensusMap(Base::size_type n);
 
     /// Assignment operator
-    ConsensusMap & operator=(const ConsensusMap & source)
-    {
-      if (this == &source) return *this;
-
-      Base::operator=(source);
-      MetaInfoInterface::operator=(source);
-      RangeManagerType::operator=(source);
-      DocumentIdentifier::operator=(source);
-      UniqueIdInterface::operator=(source);
-      file_description_ = source.file_description_;
-      experiment_type_ = source.experiment_type_;
-      protein_identifications_ = source.protein_identifications_;
-      unassigned_peptide_identifications_ = source.unassigned_peptide_identifications_;
-      data_processing_ = source.data_processing_;
-
-      return *this;
-    }
+    ConsensusMap & operator=(const ConsensusMap & source);
 
     /**
       @brief Add one consensus map to another.
@@ -180,120 +118,26 @@ public:
 
       @param rhs The consensus map.
     */
-    ConsensusMap & operator+=(const ConsensusMap & rhs)
-    {
-      ConsensusMap empty_map;
-      // reset these:
-      RangeManagerType::operator=(empty_map);
-
-      if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
-      {
-        LOG_INFO << "DocumentIdentifiers are lost during merge of ConsensusMaps\n";
-      }
-      DocumentIdentifier::operator=(empty_map);
-      UniqueIdInterface::operator=(empty_map);
-
-      //append dataProcessing
-      data_processing_.insert(data_processing_.end(),rhs.data_processing_.begin(), rhs.data_processing_.end());
-
-      //append fileDescription
-      file_description_.insert(rhs.file_description_.begin(),rhs.file_description_.end());
-      //update filename and map size
-      Map<UInt64,FileDescription>::const_iterator it = file_description_.begin();
-      Map<UInt64,FileDescription>::const_iterator it2 = rhs.file_description_.begin();
-      for(; it != file_description_.end() && it2 != rhs.file_description_.end(); ++it,++it2)
-      {
-        getFileDescriptions().at(it->first).filename = "mergedConsensusXMLFile";
-        getFileDescriptions().at(it->first).size = it->second.size + it2->second.size;
-      }
-
-      //append proteinIdenficiation
-      protein_identifications_.insert(protein_identifications_.end(),rhs.protein_identifications_.begin(),rhs.protein_identifications_.end());
-      //ensure non-redundant modification parameter
-      for(std::vector<ProteinIdentification>::iterator it = protein_identifications_.begin(); it != protein_identifications_.end(); ++it)
-      {
-        vector<String>::iterator it2;
-        // remove redundant variable modifications
-        vector<String>& varMod = const_cast<vector<String>& >(it->getSearchParameters().variable_modifications);
-        sort(varMod.begin(),varMod.end());
-        it2 = unique(varMod.begin(),varMod.end());
-        varMod.resize(it2 - varMod.begin());
-        // remove redundant fixed modifications
-        vector<String>& fixMod = const_cast<vector<String>& >(it->getSearchParameters().fixed_modifications);
-        sort(fixMod.begin(),fixMod.end());
-        it2 = unique(fixMod.begin(),fixMod.end());
-        fixMod.resize(it2 - fixMod.begin());
-      }
-
-      //append unassignedPeptideIdentifiactions
-      unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(), rhs.unassigned_peptide_identifications_.begin(),rhs.unassigned_peptide_identifications_.end());
-
-      // append consensusElements to consensusElementList:
-      this->insert(this->end(), rhs.begin(), rhs.end());
-
-      // todo: check for double entries
-      // features, unassignedpeptides, proteins...
-
-      // consistency
-      try
-      {
-        UniqueIdIndexer<ConsensusMap>::updateUniqueIdToIndex();
-      }
-      catch (Exception::Postcondition /*&e*/) // assign new UID's for conflicting entries
-      {
-        Size replaced_uids =  UniqueIdIndexer<ConsensusMap>::resolveUniqueIdConflicts();
-        LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
-      }
-
-      return *this;
-    }
+    ConsensusMap & operator+=(const ConsensusMap & rhs);
 
     /**
       @brief Clears all data and meta data
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
-    void clear(bool clear_meta_data = true)
-    {
-      Base::clear();
-
-      if (clear_meta_data)
-      {
-        clearMetaInfo();
-        clearRanges();
-        this->DocumentIdentifier::operator=(DocumentIdentifier());             // no "clear" method
-        clearUniqueId();
-        file_description_.clear();
-        experiment_type_.clear();
-        protein_identifications_.clear();
-        unassigned_peptide_identifications_.clear();
-        data_processing_.clear();
-      }
-    }
+    void clear(bool clear_meta_data = true);
 
     /// Non-mutable access to the file descriptions
-    inline const FileDescriptions & getFileDescriptions() const
-    {
-      return file_description_;
-    }
+    const FileDescriptions & getFileDescriptions() const;
 
     /// Mutable access to the file descriptions
-    inline FileDescriptions & getFileDescriptions()
-    {
-      return file_description_;
-    }
+    FileDescriptions & getFileDescriptions();
 
     /// Non-mutable access to the experiment type
-    inline const String & getExperimentType() const
-    {
-      return experiment_type_;
-    }
+    const String & getExperimentType() const;
 
     /// Mutable access to the experiment type
-    inline void setExperimentType(const String & experiment_type)
-    {
-      experiment_type_ = experiment_type;
-    }
+    void setExperimentType(const String & experiment_type);
 
     /**
       @name Sorting.
@@ -303,60 +147,25 @@ public:
     */
     //@{
     /// Sorts the peaks according to ascending intensity.
-    void sortByIntensity(bool reverse = false)
-    {
-      if (reverse)
-      {
-        std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::IntensityLess()));
-      }
-      else
-      {
-        std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::IntensityLess());
-      }
-    }
+    void sortByIntensity(bool reverse = false);
 
     /// Sorts the peaks to RT position.
-    void sortByRT()
-    {
-      std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::RTLess());
-    }
+    void sortByRT();
 
     /// Sorts the peaks to m/z position.
-    void sortByMZ()
-    {
-      std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MZLess());
-    }
+    void sortByMZ();
 
     /// Lexicographically sorts the peaks by their position (First RT then m/z).
-    void sortByPosition()
-    {
-      std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::PositionLess());
-    }
+    void sortByPosition();
 
     /// Sorts the peaks according to ascending quality.
-    void sortByQuality(bool reverse = false)
-    {
-      if (reverse)
-      {
-        std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::QualityLess()));
-      }
-      else
-      {
-        std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::QualityLess());
-      }
-    }
+    void sortByQuality(bool reverse = false);
 
     /// Sorts with respect to the size (number of elements)
-    void sortBySize()
-    {
-      std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::SizeLess()));
-    }
+    void sortBySize();
 
     /// Sorts with respect to the sets of maps covered by the consensus features (lexicographically).
-    void sortByMaps()
-    {
-      std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MapsLess());
-    }
+    void sortByMaps();
 
     //@}
 
@@ -382,7 +191,8 @@ public:
     template <typename FeatureT>
     static void convert(UInt64 const input_map_index,
                         FeatureMap<FeatureT> const & input_map,
-                        ConsensusMap & output_map, Size n = -1)
+                        ConsensusMap & output_map,
+                        Size n = -1)
     {
       if (n > input_map.size())
       {
@@ -418,11 +228,14 @@ public:
       @param output_map The resulting ConsensusMap.
       @param n The maximum number of elements to be copied.
     */
-    static void convert(UInt64 const input_map_index, MSExperiment<> & input_map, ConsensusMap & output_map, Size n = -1)
+    static void convert(UInt64 const input_map_index,
+                        MSExperiment<> & input_map,
+                        ConsensusMap & output_map,
+                        Size n = -1)
     {
       output_map.clear(true);
 
-      // see @todo above
+      // see @todo abovet
       output_map.setUniqueId();
 
       input_map.updateRanges(1);
@@ -433,12 +246,22 @@ public:
       output_map.reserve(n);
       std::vector<Peak2D> tmp;
       tmp.reserve(input_map.getSize());
-      input_map.get2DData(tmp);           // TODO Avoid tripling the memory consumption by this call
-      std::partial_sort(tmp.begin(), tmp.begin() + n, tmp.end(), reverseComparator(Peak2D::IntensityLess()));
+
+      // TODO Avoid tripling the memory consumption by this call
+      input_map.get2DData(tmp);
+
+      std::partial_sort(tmp.begin(),
+                        tmp.begin() + n,
+                        tmp.end(),
+                        reverseComparator(Peak2D::IntensityLess()));
+
       for (Size element_index = 0; element_index < n; ++element_index)
       {
-        output_map.push_back(ConsensusFeature(input_map_index, tmp[element_index], element_index));
+        output_map.push_back(ConsensusFeature(input_map_index,
+                                              tmp[element_index],
+                                              element_index));
       }
+
       output_map.getFileDescriptions()[input_map_index].size = n;
       output_map.updateRanges();
     }
@@ -455,7 +278,10 @@ public:
       @param output_map The resulting ConsensusMap.
       @param n The maximum number of elements to be copied.
     */
-    static void convert(UInt64 const input_map_index, std::vector<Peak2D> & input_map, ConsensusMap & output_map, Size n = -1)
+    static void convert(UInt64 const input_map_index,
+                        std::vector<Peak2D> & input_map,
+                        ConsensusMap & output_map,
+                        Size n = -1)
     {
       // Clear the map and assign new ID.
       output_map.setUniqueId();
@@ -468,12 +294,16 @@ public:
       }
       output_map.reserve(n);
 
-      std::partial_sort(input_map.begin(), input_map.begin() + n,
-                        input_map.end(), reverseComparator(Peak2D::IntensityLess()));
+      std::partial_sort(input_map.begin(),
+                        input_map.begin() + n,
+                        input_map.end(),
+                        reverseComparator(Peak2D::IntensityLess()));
+
       for (Size element_index = 0; element_index < n; ++element_index)
       {
         output_map.push_back(ConsensusFeature(input_map_index, input_map[element_index], element_index));
       }
+
       output_map.getFileDescriptions()[input_map_index].size = n;
       output_map.updateRanges();
     }
@@ -489,16 +319,20 @@ public:
       @param output_map The resulting ConsensusMap.
     */
     template <typename FeatureT>
-    static void convert(ConsensusMap const & input_map, const bool keep_uids, FeatureMap<FeatureT> & output_map)
+    static void convert(ConsensusMap const & input_map,
+                        const bool keep_uids,
+                        FeatureMap<FeatureT> & output_map)
     {
       output_map.clear(true);
       output_map.resize(input_map.size());
-      // fm.MetaInfoInterface::operator=(input_map); // not available ...
       output_map.DocumentIdentifier::operator=(input_map);
+
       if (keep_uids) output_map.UniqueIdInterface::operator=(input_map);
       else output_map.setUniqueId();
+
       output_map.setProteinIdentifications(input_map.getProteinIdentifications());
       output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
+
       for (Size i = 0; i < input_map.size(); ++i)
       {
         Feature & f = output_map[i];
@@ -506,122 +340,53 @@ public:
         f.BaseFeature::operator=(c);
         if (!keep_uids) f.setUniqueId();
       }
-
     }
 
     // Docu in base class
     void updateRanges();
 
     /// Swaps the content of this map with the content of @p from
-    void swap(ConsensusMap & from)
-    {
-      ConsensusMap tmp;
-
-      //swap range information
-      tmp.RangeManagerType::operator=(* this);
-      this->RangeManagerType::operator=(from);
-      from.RangeManagerType::operator=(tmp);
-
-      //swap consensus features
-      Base::swap(from);
-
-      // swap DocumentIdentifier
-      DocumentIdentifier::swap(from);
-
-      // swap unique id
-      UniqueIdInterface::swap(from);
-
-      // swap unique id index
-      UniqueIdIndexer<ConsensusMap>::swap(from);
-
-      // swap the remaining members
-      std::swap(file_description_, from.file_description_);
-      experiment_type_.swap(from.experiment_type_);
-      protein_identifications_.swap(from.protein_identifications_);
-      unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
-      data_processing_.swap(from.data_processing_);
-    }
+    void swap(ConsensusMap & from);
 
     /// non-mutable access to the protein identifications
-    const std::vector<ProteinIdentification> & getProteinIdentifications() const
-    {
-      return protein_identifications_;
-    }
+    const std::vector<ProteinIdentification> & getProteinIdentifications() const;
 
     /// mutable access to the protein identifications
-    std::vector<ProteinIdentification> & getProteinIdentifications()
-    {
-      return protein_identifications_;
-    }
+    std::vector<ProteinIdentification> & getProteinIdentifications();
 
     /// sets the protein identifications
-    void setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications)
-    {
-      protein_identifications_ = protein_identifications;
-    }
+    void setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications);
 
     /// non-mutable access to the unassigned peptide identifications
-    const std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications() const
-    {
-      return unassigned_peptide_identifications_;
-    }
+    const std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications() const;
 
     /// mutable access to the unassigned peptide identifications
-    std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications()
-    {
-      return unassigned_peptide_identifications_;
-    }
+    std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications();
 
     /// sets the unassigned peptide identifications
-    void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification> & unassigned_peptide_identifications)
-    {
-      unassigned_peptide_identifications_ = unassigned_peptide_identifications;
-    }
+    void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification> & unassigned_peptide_identifications);
 
     /// returns a const reference to the description of the applied data processing
-    const std::vector<DataProcessing> & getDataProcessing() const
-    {
-      return data_processing_;
-    }
+    const std::vector<DataProcessing> & getDataProcessing() const;
 
     /// returns a mutable reference to the description of the applied data processing
-    std::vector<DataProcessing> & getDataProcessing()
-    {
-      return data_processing_;
-    }
+    std::vector<DataProcessing> & getDataProcessing();
 
     /// sets the description of the applied data processing
-    void setDataProcessing(const std::vector<DataProcessing> & processing_method)
-    {
-      data_processing_ = processing_method;
-    }
+    void setDataProcessing(const std::vector<DataProcessing> & processing_method);
 
     /// Equality operator
-    bool operator==(const ConsensusMap & rhs) const
-    {
-      return std::operator==(*this, rhs) &&
-             MetaInfoInterface::operator==(rhs) &&
-             RangeManagerType::operator==(rhs) &&
-             DocumentIdentifier::operator==(rhs) &&
-             UniqueIdInterface::operator==(rhs) &&
-             file_description_ == rhs.file_description_ &&
-             experiment_type_ == rhs.experiment_type_ &&
-             protein_identifications_ == rhs.protein_identifications_ &&
-             unassigned_peptide_identifications_ == rhs.unassigned_peptide_identifications_ &&
-             data_processing_ == rhs.data_processing_;
-    }
+    bool operator==(const ConsensusMap & rhs) const;
 
     /// Equality operator
-    bool operator!=(const ConsensusMap & rhs) const
-    {
-      return !(operator==(rhs));
-    }
+    bool operator!=(const ConsensusMap & rhs) const;
 
     /**
       @brief Applies a member function of Type to the container itself and all consensus features.
       The returned values are accumulated.
 
-      <b>Example:</b>  The following will print the number of features with invalid unique ids (plus 1 if the container has an invalid UID as well):
+      <b>Example:</b>  The following will print the number of features with invalid unique ids
+      (plus 1 if the container has an invalid UID as well):
       @code
       ConsensusMap cm;
       (...)
@@ -670,7 +435,6 @@ protected:
 
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
-
   };
 
   ///Print the contents of a ConsensusMap to a stream.
