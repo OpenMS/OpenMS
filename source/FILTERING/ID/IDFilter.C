@@ -176,6 +176,37 @@ void IDFilter::filterIdentificationsByLength(const PeptideIdentification&   iden
   }
 }
 
+void IDFilter::filterIdentificationsByCharge(const PeptideIdentification&   identification,
+                                             Size                            min_charge,
+                                             PeptideIdentification&         filtered_identification)
+{
+  vector<Size> new_peptide_indices;
+  vector<PeptideHit> filtered_peptide_hits;
+
+  filtered_identification = identification;
+  filtered_identification.setHits(vector<PeptideHit>());
+
+  const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
+
+  for (Size i = 0; i < temp_peptide_hits.size(); i++)
+  {
+    if (temp_peptide_hits[i].getCharge() >= min_charge)
+    {
+      new_peptide_indices.push_back(i);
+    }
+  }
+
+  for (Size i = 0; i < new_peptide_indices.size(); i++)
+  {
+    filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
+  }
+  if ( !filtered_peptide_hits.empty() )
+  {
+    filtered_identification.setHits(filtered_peptide_hits);
+    filtered_identification.assignRanks();
+  }
+}
+
 void IDFilter::filterIdentificationsByVariableModifications(const PeptideIdentification& identification,
                                                             const vector<String>& fixed_modifications,
                                                             PeptideIdentification& filtered_identification)
