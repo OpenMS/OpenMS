@@ -37,6 +37,10 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 
+
+#include <utility>
+using namespace std;
+
 namespace OpenMS
 {
   /**
