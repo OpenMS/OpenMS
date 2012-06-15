@@ -106,6 +106,10 @@ namespace OpenMS
 			/// Destructor
       virtual ~XMLHandler();
 
+			/// Release internal memory used for parsing (call
+			void reset();			
+
+
 			/**
 				@name Reimplemented XERCES-C error handlers
 				

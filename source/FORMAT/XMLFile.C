@@ -44,6 +44,27 @@ namespace OpenMS
 {
 	namespace Internal
 	{
+
+		/// This class ensures that the reset() method of the XMLHandler is called when it goes out of scope.
+		/// useful when used in exeption handling
+		class XMLCleaner_
+		{
+			public:
+			XMLCleaner_(XMLHandler* handler)
+			 : p_(handler)
+			{
+				
+			}
+			
+			~XMLCleaner_()
+			{
+				p_->reset();
+			}
+
+			private:
+				XMLHandler* p_;
+		};
+
 		XMLFile::XMLFile()
 		{
 		}
@@ -60,6 +81,9 @@ namespace OpenMS
 	
 		void XMLFile::parse_(const String& filename, XMLHandler* handler) 
 		{
+			// ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FatureXMLFile, is used again)
+			XMLCleaner_ clean(handler);
+			
 			//try to open file
 			if (!File::exists(filename))
 			{

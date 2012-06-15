@@ -54,6 +54,12 @@ namespace OpenMS
 		{
 		}
 	
+		void XMLHandler::reset()
+		{ // reset Xerces XML strings (memleak otherwise)
+			sm_.clear();
+		}
+
+
 		void XMLHandler::fatalError(const SAXParseException& exception)
 		{
 			fatalError(LOAD, sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
@@ -218,7 +224,7 @@ namespace OpenMS
 		XMLCh* StringManager::convert(const String& str) const
 		{
 			XMLCh* result = XMLString::transcode(str.c_str());
-			xml_strings_.push_back(result) ;
+			xml_strings_.push_back(result);
 			return result;
 		}
 
