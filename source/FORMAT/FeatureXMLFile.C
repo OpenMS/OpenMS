@@ -50,6 +50,16 @@ namespace OpenMS
     disable_parsing_ = 0;
     current_feature_ = 0;
     map_ = 0;
+    //options_ = FeatureFileOptions(); do NOT reset this, since we need to preserve options!
+    size_only_ = false;
+    expected_size_ = 0;
+    model_desc_ = ModelDescription<2>();
+    param_ = Param();
+    current_chull_ = ConvexHull2D::PointArrayType();
+    hull_position_ = DPosition<2>();
+    dim_ = 0;
+    in_description_ = false;
+    subordinate_feature_level_ = 0;
     last_meta_ = 0;
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
@@ -60,10 +70,7 @@ namespace OpenMS
     identifier_id_.clear();
     id_identifier_.clear();
     search_param_ = ProteinIdentification::SearchParameters();
-    size_only_ = false;
-    expected_size_ = 0;
-    in_description_ = false;
-    subordinate_feature_level_ = 0;
+    
   }
 
   Size FeatureXMLFile::loadSize(const String& filename)
@@ -386,9 +393,9 @@ namespace OpenMS
 		}
 		else if (tag=="model")
 		{
-			model_desc_ = new ModelDescription<2>();
+			model_desc_ = ModelDescription<2>();
 			param_.clear();
-			model_desc_->setName(attributeAsString_(attributes,s_name));
+			model_desc_.setName(attributeAsString_(attributes,s_name));
 		}
 		else if (tag=="param")
 		{
@@ -754,9 +761,8 @@ namespace OpenMS
 		}
 		else if (tag=="model")
 		{
-			model_desc_->setParam(param_);
-			current_feature_->setModelDescription(*model_desc_);
-			delete model_desc_;
+			model_desc_.setParam(param_);
+			current_feature_->setModelDescription(model_desc_);
 		}
 		else if (tag=="hullpoint" || tag=="pt")
 		{

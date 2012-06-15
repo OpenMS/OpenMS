@@ -99,7 +99,7 @@ public:
 	}
 
 protected:
-	void registerOptionsAndFlags_(const String& file_formats)
+	void registerOptionsAndFlags_(const String& file_formats, const bool add_reference = false)
 	{
 		registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same file type)", true);
 		setValidFormats_("in", StringList::create(file_formats));
@@ -108,10 +108,20 @@ protected:
 		registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks", false);
 		setValidFormats_("trafo_out", StringList::create("trafoXML"));
     addEmptyLine_();
+    if (add_reference)
+    {
+      registerTOPPSubsection_("reference", "Options to define a reference file (use either 'file' or 'index', not both; if neither is given 'index' is used).");
+      registerInputFile_("reference:file", "<file>", "", "File to use as reference (same file format as input files required)", false);
+      setValidFormats_("reference:file", StringList::create(file_formats));
+      registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will select a reference.", false);
+      setMinInt_("reference:index", 0);
+    }
+    addEmptyLine_();
 		addText_("This tool takes a number of input files, aligns them and writes the results to the output files.");
 		addText_("Either 'out' or 'trafo_out' has to be provided. They can be used together.");
 	}
 
+  /// deprecated? (not used in PoseClustering... and moved to initialize_() )
 	void handleReference_(MapAlignmentAlgorithm* alignment)
 	{
 		// note: this function is in the base class to avoid code duplication, but
@@ -134,61 +144,98 @@ protected:
 		alignment->setReference(reference_index, reference_file);
 	}
 
-	ExitCodes commonMain_(MapAlignmentAlgorithm* alignment)
-	{
-		//-------------------------------------------------------------
-		// parameter handling
-		//-------------------------------------------------------------
-		StringList ins = getStringList_("in");
-		StringList outs = getStringList_("out");
-		StringList trafos = getStringList_("trafo_out");
-		Param model_params = getParam_().copy("model:", true);
-		String model_type = model_params.getValue("type");
-		model_params = model_params.copy(model_type + ":", true);
+  ExitCodes initialize_(MapAlignmentAlgorithm* alignment, bool check_ref=false)
+  {
+    //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
+    StringList ins = getStringList_("in");
+    StringList outs = getStringList_("out");
+    StringList trafos = getStringList_("trafo_out");
 
-		ProgressLogger progresslogger;
-		progresslogger.setLogType(log_type_);
+    //-------------------------------------------------------------
+    // check for valid input
+    //-------------------------------------------------------------
+    // check whether some kind of output file is given:
+    if (outs.empty() && trafos.empty())
+    {
+      writeLog_("Error: Either data output or transformation output files have to be provided!");
+      return ILLEGAL_PARAMETERS;
+    }
+    // check whether number of input files equals number of output files:
+    if (!outs.empty() && (ins.size() != outs.size()))
+    {
+      writeLog_("Error: The number of input and output files has to be equal!");
+      return ILLEGAL_PARAMETERS;
+    }
+    if (!trafos.empty() && (ins.size() != trafos.size()))
+    {
+      writeLog_("Error: The number of input and transformation output files has to be equal!");
+      return ILLEGAL_PARAMETERS;
+    }
+    // check whether all input files have the same type (this type is used to store the output type too):
+    FileTypes::Type in_type = FileHandler::getType(ins[0]);
+    for (Size i = 1; i < ins.size(); ++i)
+    {
+      if (FileHandler::getType(ins[i]) != in_type)
+      {
+        writeLog_("Error: All input files have to be in the same format!");
+        return ILLEGAL_PARAMETERS;
+      }
+    }
 
-		//-------------------------------------------------------------
-		// check for valid input
-		//-------------------------------------------------------------
-		// check whether some kind of output file is given:
-		if (outs.empty() && trafos.empty())
-		{
-			writeLog_("Error: Either data output or transformation output files have to be provided!");
-			return ILLEGAL_PARAMETERS;
-		}
-		// check whether number of input files equals number of output files:
-		if (!outs.empty() && (ins.size() != outs.size()))
-		{
-			writeLog_("Error: The number of input and output files has to be equal!");
-			return ILLEGAL_PARAMETERS;
-		}
-		if (!trafos.empty() && (ins.size() != trafos.size()))
-		{
-			writeLog_("Error: The number of input and transformation output files has to be equal!");
-			return ILLEGAL_PARAMETERS;
-		}
-		// check whether all input files have the same type (this type is used to store the output type too):
-		FileTypes::Type in_type = FileHandler::getType(ins[0]);
-		for (Size i = 1; i < ins.size(); ++i)
-		{
-			if (FileHandler::getType(ins[i]) != in_type)
-			{
-				writeLog_("Error: All input files have to be in the same format!");
-				return ILLEGAL_PARAMETERS;
-			}
-		}
+    if (check_ref)
+    { // a valid index OR file should be given
+      Size reference_index = getIntOption_("reference:index");
+      String reference_file = getStringOption_("reference:file");
+      if (reference_index > getStringList_("in").size())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' must not be higher than the number of input files");
+      }
+      if (reference_index && !reference_file.empty())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'reference:index' and 'reference:file' cannot be used together");
+      }
+
+      // file should have same type as other input
+      if (!reference_file.empty())
+      {
+        if (FileHandler::getType(reference_file) != in_type)
+        {
+          writeLog_("Error: Reference file has not the same format as other input files!");
+          return ILLEGAL_PARAMETERS;
+        }
+      }
+    }
 
     //-------------------------------------------------------------
     // set up alignment algorithm
     //-------------------------------------------------------------
-		Param alignment_param = getParam_().copy("algorithm:", true);
+    Param alignment_param = getParam_().copy("algorithm:", true);
 
-		writeDebug_("Used alignment parameters", alignment_param, 3);
-		alignment->setParameters(alignment_param);
-		alignment->setLogType(log_type_);
+    writeDebug_("Used alignment parameters", alignment_param, 3);
+    alignment->setParameters(alignment_param);
+    alignment->setLogType(log_type_);
 
+    return EXECUTION_OK;
+  }
+
+  /// deprecated? (not used in PoseClustering... and moved to initialize_() )
+	ExitCodes commonMain_(MapAlignmentAlgorithm* alignment)
+	{
+		ExitCodes ret = initialize_(alignment);
+    if (ret!=EXECUTION_OK) return ret;
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+
+
+    StringList ins = getStringList_("in");
+    StringList outs = getStringList_("out");
+    StringList trafos = getStringList_("trafo_out");
+    Param model_params = getParam_().copy("model:", true);
+    String model_type = model_params.getValue("type");
+    model_params = model_params.copy(model_type + ":", true);
+    FileTypes::Type in_type = FileHandler::getType(ins[0]);
 		std::vector<TransformationDescription> transformations;
 
     //-------------------------------------------------------------

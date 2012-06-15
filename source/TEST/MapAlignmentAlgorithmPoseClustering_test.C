@@ -79,7 +79,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
   std::vector<TransformationDescription> transformations;
   // Trafo cannot be computed, due to too few datapoints
   // -- the ideal solution would be to fix the trafo estimation
-  TEST_EXCEPTION(Exception::InvalidValue, alignment->alignPeakMaps(peak_maps,transformations));
+  TEST_EXCEPTION(Exception::NotImplemented, alignment->alignPeakMaps(peak_maps,transformations));
 }
 END_SECTION
 

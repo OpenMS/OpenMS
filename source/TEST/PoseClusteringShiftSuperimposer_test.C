@@ -68,7 +68,7 @@ START_SECTION((static const String getProductName()))
   TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
 END_SECTION
 
-START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::vector< TransformationDescription > &transformations)))
+START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)))
 
   std::vector<ConsensusMap> input(2);
 
@@ -94,7 +94,7 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
   input[1].push_back(ConsensusFeature(feat3));
   input[1].push_back(ConsensusFeature(feat4));
 
-  std::vector<TransformationDescription> transformations;
+  TransformationDescription transformation;
   PoseClusteringShiftSuperimposer pcat;
 	Param params;
 #if 0 // switch this on for debugging
@@ -102,11 +102,10 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
   params.setValue("dump_pairs","tmp_PoseClusteringShiftSuperimposer_pairs");
   pcat.setParameters(params);
 #endif
-	pcat.run(input,transformations);
+	pcat.run(input[0], input[1], transformation);
   
-	TEST_EQUAL(transformations.size(),1)
-  TEST_STRING_EQUAL(transformations[0].getModelType(), "linear")
-	transformations[0].getModelParameters(params);
+  TEST_STRING_EQUAL(transformation.getModelType(), "linear")
+	transformation.getModelParameters(params);
 	TEST_EQUAL(params.size(), 2)    
   TEST_REAL_SIMILAR(params.getValue("slope"), 1.0)
   TEST_REAL_SIMILAR(params.getValue("intercept"), -20.4)

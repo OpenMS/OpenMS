@@ -21,8 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -72,13 +72,10 @@ using namespace std;
 
   @see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
-  Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "linear" model. The different available models are:
-    - @ref OpenMS::TransformationModelLinear "linear": Linear model.
-    - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
-    - @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
+  This algorithm uses an affine transformation model.
 
-  The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
-  @htmlinclude OpenMS_MapAlignerPoseClusteringModel.parameters @n
+  To speed up the alignment, consider reducing 'max_number_of_peaks_considered'.
+  If your alignment is not good enough, consider increasing this number (the alignment will take longer though).
 
   <B>The command line parameters of this tool are:</B> @n
   @verbinclude TOPP_MapAlignerIdentification.cli
@@ -99,15 +96,8 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    String formats = "mzML,featureXML";
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats);
-    registerTOPPSubsection_("reference", "Options to define a reference file");
-    registerInputFile_("reference:file", "<file>", "", "File to use as reference (same file format as input files required)", false);
-    setValidFormats_("reference:file", StringList::create(formats));
-    registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will select a reference.", false);
-    setMinInt_("reference:index", 0);
+    TOPPMapAlignerBase::registerOptionsAndFlags_("mzML,featureXML", true);
     registerSubsection_("algorithm", "Algorithm parameters section");
-    registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
   Param getSubsectionDefaults_(const String & section) const
@@ -117,18 +107,143 @@ protected:
       MapAlignmentAlgorithmPoseClustering algo;
       return algo.getParameters();
     }
-    if (section == "model")
-    {
-      return getModelDefaults("linear");
-    }
     return Param();     // shouldn't happen
   }
 
   ExitCodes main_(int, const char **)
   {
     MapAlignmentAlgorithmPoseClustering algorithm;
-    handleReference_(&algorithm);
-    return TOPPMapAlignerBase::commonMain_(&algorithm);
+    ExitCodes ret = TOPPMapAlignerBase::initialize_(&algorithm, true);
+    if (ret!=EXECUTION_OK) return ret;
+    
+    StringList in_files = getStringList_("in");
+    StringList out_files = getStringList_("out");
+    StringList out_trafos = getStringList_("trafo_out");
+
+    Size reference_index = getIntOption_("reference:index");
+    String reference_file = getStringOption_("reference:file");
+
+    FileTypes::Type in_type = FileHandler::getType(in_files[0]);
+    String file;
+    if (!reference_file.empty())
+    {
+      file = reference_file;
+      reference_index = in_files.size(); // points to invalid index
+    }
+    else if (reference_index > 0)  //  normal reference (index was checked before)
+    {
+      file = in_files[--reference_index]; // ref index is 1-based in parameters, but should be 0-based here
+    }
+    else if (reference_index == 0) // no reference given
+    {
+			LOG_INFO << "Picking a reference (by size) ..." << std::flush;
+      // use map with highest number of features as reference:
+      Size max_count(0);
+      FeatureXMLFile f;
+      for (Size m = 0; m < in_files.size(); ++m)
+      {
+        Size s(0);
+        if (in_type==FileTypes::FEATUREXML) s = f.loadSize(in_files[m]);
+        else if (in_type==FileTypes::MZML)
+        { // this is expensive!
+          MSExperiment<> exp;
+          MzMLFile().load(in_files[m], exp);
+          exp.updateRanges(1);
+          s = exp.getSize();
+        }
+        if (s > max_count)
+        {
+          max_count = s;
+          reference_index = m;
+        }
+      }
+			LOG_INFO << " done" << std::endl;
+      file = in_files[reference_index];
+    }
+
+    FeatureXMLFile f_fxml;
+    if (out_files.size()==0) // no need to store featureXML, thus we can load only minimum required information
+    {
+      f_fxml.getOptions().setLoadConvexHull(false);
+      f_fxml.getOptions().setLoadSubordinates(false);
+    }
+    if (in_type==FileTypes::FEATUREXML)
+    {
+      FeatureMap<> map_ref;
+      FeatureXMLFile f_fxml_tmp; // for the reference, we never need CH or subordinates
+      f_fxml_tmp.getOptions().setLoadConvexHull(false);
+      f_fxml_tmp.getOptions().setLoadSubordinates(false);
+      f_fxml_tmp.load(file, map_ref);
+      algorithm.setReference(map_ref);
+    }
+    else if (in_type==FileTypes::MZML)
+    {
+      MSExperiment<> map_ref;
+      MzMLFile().load(file, map_ref);
+      algorithm.setReference(map_ref);
+    }
+
+		ProgressLogger plog;
+		plog.setLogType(log_type_);
+		
+		plog.startProgress(0, in_files.size(), "Aligning input maps");
+		Size progress(0); // thread-safe progress
+    // TODO: it should all work on FeatureXML files, since we might need them for output anyway. Converting to ConsensusXML is just wasting memory!
+    #ifdef _OPENMP 
+    #pragma omp parallel for schedule(dynamic, 1)
+    #endif
+    for (Size i=0; i<in_files.size(); ++i)
+    {
+      TransformationDescription trafo;
+      if (in_type==FileTypes::FEATUREXML)
+      {
+        FeatureMap<> map;
+        // workaround for loading: use temporary FeatureXMLFile since it is not thread-safe
+        FeatureXMLFile f_fxml_tmp; // do not use firstprivate, since FeatureXMLFile has no copy c'tor
+        f_fxml_tmp.getOptions() = f_fxml.getOptions();
+        f_fxml_tmp.load(in_files[i], map);
+        if (i==reference_index) trafo.fitModel("identity");
+        else algorithm.align(map, trafo);
+        if (out_files.size())
+        {
+          MapAlignmentTransformer::transformSingleFeatureMap(map, trafo);
+          // annotate output with data processing info
+          addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
+          f_fxml_tmp.store(out_files[i], map);
+        }
+      }
+      else if (in_type==FileTypes::MZML)
+      {
+        MSExperiment<> map;
+        MzMLFile().load(in_files[i], map);
+        if (i==reference_index) trafo.fitModel("identity");
+        else algorithm.align(map, trafo);
+        if (out_files.size())
+        {
+          MapAlignmentTransformer::transformSinglePeakMap(map, trafo);
+          // annotate output with data processing info
+          addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
+          MzMLFile().store(out_files[i], map);
+        }
+      }      
+      
+      if (out_trafos.size())
+      {
+        TransformationXMLFile().store(out_trafos[i], trafo);
+      }
+
+		  #ifdef _OPENMP 
+      #pragma omp critical (MAPose_Progress)
+      #endif
+			{
+      plog.setProgress(++progress); // thread safe progress counter
+			}
+
+    }
+    
+		plog.endProgress();
+    return EXECUTION_OK;
+
   }
 };
 

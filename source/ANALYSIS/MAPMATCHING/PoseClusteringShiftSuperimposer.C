@@ -81,14 +81,8 @@ namespace OpenMS
     return;
   }
 
-  void PoseClusteringShiftSuperimposer::run(const std::vector<ConsensusMap> & maps, std::vector<TransformationDescription> & transformations)
+  void PoseClusteringShiftSuperimposer::run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)
   {
-
-    if (maps.size() != 2)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Exactly two input maps are required");
-    }
-
     typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
     typedef Math::LinearInterpolation<DoubleReal, DoubleReal> LinearInterpolationType_;
 
@@ -138,9 +132,9 @@ namespace OpenMS
     //**************************************************************************
     // Select the most abundant data points only.  After that, disallow modifications
     // (we tend to have annoying issues with const_iterator versus iterator).
-    PeakPointerArray_ model_map_ini(maps[0].begin(), maps[0].end());
+    PeakPointerArray_ model_map_ini(map_model.begin(), map_model.end());
     const PeakPointerArray_ & model_map(model_map_ini);
-    PeakPointerArray_ scene_map_ini(maps[1].begin(), maps[1].end());
+    PeakPointerArray_ scene_map_ini(map_scene.begin(), map_scene.end());
     const PeakPointerArray_ & scene_map(scene_map_ini);
     {
       // truncate the data as necessary
@@ -170,10 +164,10 @@ namespace OpenMS
     // get RT ranges (NOTE: we trust that min and max have been updated in the
     // ConsensusMap::convert() method !)
 
-    const DoubleReal model_low = maps[0].getMin()[ConsensusFeature::RT];
-    const DoubleReal scene_low = maps[1].getMin()[ConsensusFeature::RT];
-    const DoubleReal model_high = maps[0].getMax()[ConsensusFeature::RT];
-    const DoubleReal scene_high = maps[1].getMax()[ConsensusFeature::RT];
+    const DoubleReal model_low = map_model.getMin()[ConsensusFeature::RT];
+    const DoubleReal scene_low = map_scene.getMin()[ConsensusFeature::RT];
+    const DoubleReal model_high = map_model.getMax()[ConsensusFeature::RT];
+    const DoubleReal scene_high = map_scene.getMax()[ConsensusFeature::RT];
 
     // OLD STUFF
     //    const DoubleReal rt_low = (maps[0].getMin()[ConsensusFeature::RT] + maps[1].getMin()[ConsensusFeature::RT]) / 2.;
@@ -512,15 +506,13 @@ namespace OpenMS
 
     // set trafo
     {
-      transformations.clear();
-
       Param params;
       params.setValue("slope", 1.0);
       params.setValue("intercept", intercept);
 
       TransformationDescription trafo;
       trafo.fitModel("linear", params);
-      transformations.push_back(trafo);
+      transformation = trafo;
     }
 
     setProgress(++actual_progress);

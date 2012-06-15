@@ -100,15 +100,10 @@ namespace OpenMS
   }
 
   void
-  PoseClusteringAffineSuperimposer::run(const std::vector<ConsensusMap> & maps, std::vector<TransformationDescription> & transformations)
+  PoseClusteringAffineSuperimposer::run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)
   {
 
-    if (maps.size() != 2)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Exactly two input maps are required");
-    }
-
-    if (maps[0].empty() || maps[1].empty())
+    if (map_model.empty() || map_scene.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "One of the input maps is empty! This is not allowed!");
     }
@@ -159,9 +154,9 @@ namespace OpenMS
     //**************************************************************************
     // Select the most abundant data points only.  After that, disallow modifications
     // (we tend to have annoying issues with const_iterator versus iterator).
-    PeakPointerArray_ model_map_ini(maps[0].begin(), maps[0].end());
+    PeakPointerArray_ model_map_ini(map_model.begin(), map_model.end());
     const PeakPointerArray_ & model_map(model_map_ini);
-    PeakPointerArray_ scene_map_ini(maps[1].begin(), maps[1].end());
+    PeakPointerArray_ scene_map_ini(map_scene.begin(), map_scene.end());
     const PeakPointerArray_ & scene_map(scene_map_ini);
     {
       // truncate the data as necessary
@@ -189,8 +184,8 @@ namespace OpenMS
 
     // get RT ranges (NOTE: we trust that min and max have been updated in the
     // ConsensusMap::convert() method !)
-    const DoubleReal rt_low = (maps[0].getMin()[ConsensusFeature::RT] + maps[1].getMin()[ConsensusFeature::RT]) / 2.;
-    const DoubleReal rt_high = (maps[0].getMax()[ConsensusFeature::RT] + maps[1].getMax()[ConsensusFeature::RT]) / 2.;
+    const DoubleReal rt_low = (map_model.getMin()[ConsensusFeature::RT] + map_scene.getMin()[ConsensusFeature::RT]) / 2.;
+    const DoubleReal rt_high = (map_model.getMax()[ConsensusFeature::RT] + map_scene.getMax()[ConsensusFeature::RT]) / 2.;
 
     const DoubleReal rt_pair_min_distance = (DoubleReal) param_.getValue("rt_pair_distance_fraction") * (rt_high - rt_low);
 
@@ -989,8 +984,6 @@ namespace OpenMS
 
     // set trafo
     {
-      transformations.clear();
-
       Param params;
       const DoubleReal slope = ((rt_high_image - rt_low_image) /
                                 (rt_high - rt_low));
@@ -1004,9 +997,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Superimposer could not compute an initial transformation! You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
       }
 
-      TransformationDescription trafo;
-      trafo.fitModel("linear", params);       // no data, but explicit parameters
-      transformations.push_back(trafo);
+      transformation.fitModel("linear", params);       // no data, but explicit parameters
     }
 
     setProgress(++actual_progress);

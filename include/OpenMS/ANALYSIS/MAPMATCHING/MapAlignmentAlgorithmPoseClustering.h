@@ -30,6 +30,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
@@ -37,8 +39,12 @@ namespace OpenMS
   /**
     @brief A map alignment algorithm based on pose clustering.
 
-    Pose clustering analyses pair distances to find the most probable transformation of retention times.
-
+    Pose clustering analyzes pair distances to find the most probable transformation of retention times.
+		The algorithm choses the x most intensity peaks/features per map.
+    This is modeled via the parameter 'max_num_peaks_considered', which in turn influences the runtime and stability of the results.
+		Bigger values prolong computation, smaller values might lead to no or unstable trafos. Set to -1 to use all features (might take very
+		long for large maps).
+	
     For further details see:
     @n Eva Lange et.al
     @n A Geometric Approach for the Alignment of Liquid Chromatography-Mass Spectrometry Data
@@ -48,7 +54,6 @@ namespace OpenMS
 
     @ingroup MapAlignment
 
-    @todo write test, work out the TODOs (Clemens)
   */
   class OPENMS_DLLAPI MapAlignmentAlgorithmPoseClustering :
     public MapAlignmentAlgorithm
@@ -60,17 +65,15 @@ public:
     /// Destructor
     virtual ~MapAlignmentAlgorithmPoseClustering();
 
-    // Docu in base class
-    virtual void alignPeakMaps(std::vector<MSExperiment<> > &, std::vector<TransformationDescription> &);
+    void align(const FeatureMap<>& map, TransformationDescription& trafo);
+    void align(const MSExperiment<>& map, TransformationDescription& trafo);
+    void align(const ConsensusMap& map, TransformationDescription& trafo);
 
-    // Docu in base class
-    virtual void alignCompactFeatureMaps(std::vector<std::vector<Peak2D> > &, std::vector<TransformationDescription> &);
-
-    // Docu in base class
-    virtual void alignFeatureMaps(std::vector<FeatureMap<> > &, std::vector<TransformationDescription> &);
-
-    // Docu in base class
-    virtual void setReference(Size reference_index = 0, const String & reference_file = "");
+    template <typename MapType> void setReference( const MapType& map )
+    {
+      MapType map2 = map; // todo: avoid copy (MSExperiment version of convert() demands non-const version)
+      ConsensusMap::convert(0, map2, reference_, max_num_peaks_considered_);
+    }
 
     /// Creates a new instance of this class (for Factory)
     static MapAlignmentAlgorithm * create()
@@ -86,20 +89,16 @@ public:
 
 protected:
 
-    /// Index of input file to use as reference (1-based!)
-    Size reference_index_;
+    virtual void updateMembers_();
 
-    /// Path to external reference file
-    String reference_file_;
+    PoseClusteringAffineSuperimposer superimposer_;
 
-    /**
-         Compute retention time transformations for feature maps or consensus maps
-     */
-    template <typename MapType>
-    void computeTransformations_(std::vector<MapType> & maps,
-                                 std::vector<TransformationDescription> &
-                                 transformations, Size reference_index,
-                                 Size max_num_peaks_considered = -1);
+    StablePairFinder pairfinder_;
+
+    ConsensusMap reference_;
+
+    Int max_num_peaks_considered_;
+
 private:
 
     /// Copy constructor intentionally not implemented -> private

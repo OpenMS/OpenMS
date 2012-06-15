@@ -44,15 +44,12 @@ class TestSuperimposer
 		check_defaults_ = false; 
 	}
 
-	virtual void run(const std::vector<ConsensusMap>& maps, std::vector<TransformationDescription>& transformations)
+	virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)
 	{
-		if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
-		transformations.clear();
-		transformations.resize(1);
 		Param params;
 		params.setValue("slope",1.1);
 		params.setValue("intercept", 5.0);
-		transformations[0].fitModel("linear", params);
+		transformation.fitModel("linear", params);
 	}
 };
 
@@ -72,17 +69,16 @@ START_SECTION((virtual ~BaseSuperimposer()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::vector<TransformationDescription>& transformations)=0))
+START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)=0))
 {
-  std::vector<TransformationDescription> transformations;
+  TransformationDescription transformation;
   TestSuperimposer si;
 	std::vector<ConsensusMap> maps;
-	TEST_EXCEPTION(Exception::IllegalArgument, si.run(maps, transformations))
 	maps.resize(2);
-  si.run(maps, transformations);
-  TEST_STRING_EQUAL(transformations[0].getModelType(), "linear");
+  si.run(maps[0], maps[1], transformation);
+  TEST_STRING_EQUAL(transformation.getModelType(), "linear");
   Param params;
-	transformations[0].getModelParameters(params);
+	transformation.getModelParameters(params);
   TEST_REAL_SIMILAR(params.getValue("slope"), 1.1)
   TEST_REAL_SIMILAR(params.getValue("intercept"), 5.0)
 }

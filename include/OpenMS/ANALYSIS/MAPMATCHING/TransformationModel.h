@@ -107,7 +107,7 @@ namespace OpenMS
 		~TransformationModelLinear();
 
 		/// Evaluates the model at the given value
-		DoubleReal evaluate(const DoubleReal value) const;
+		virtual DoubleReal evaluate(const DoubleReal value) const;
 
 		using TransformationModel::getParameters;
 

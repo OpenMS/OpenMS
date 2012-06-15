@@ -70,9 +70,7 @@ namespace OpenMS
 
 		@exception IllegalArgument is thrown if the input maps are invalid.
 		*/
-		virtual void run ( const std::vector<ConsensusMap>& maps,
-											 std::vector<TransformationDescription>& transformations
-										 ) = 0;
+		virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation) = 0;
 
 		/// Register all derived classes here
 		static void registerChildren();

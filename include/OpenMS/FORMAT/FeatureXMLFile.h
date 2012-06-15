@@ -134,7 +134,7 @@ namespace OpenMS
 
 			/**@name temporary data structures to hold parsed data */
 	    //@{
-			ModelDescription<2>* model_desc_;
+			ModelDescription<2> model_desc_;
 			Param param_;
 			ConvexHull2D::PointArrayType current_chull_;
 			DPosition<2> hull_position_;
