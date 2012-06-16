@@ -137,8 +137,8 @@ namespace OpenMS
 
     for (; it != file_description_.end() && it2 != rhs.file_description_.end(); ++it, ++it2)
     {
-      getFileDescriptions().at(it->first).filename = "mergedConsensusXMLFile";
-      getFileDescriptions().at(it->first).size = it->second.size + it2->second.size;
+      getFileDescriptions()[it->first].filename = "mergedConsensusXMLFile";
+      getFileDescriptions()[it->first].size = it->second.size + it2->second.size;
     }
 
     // append proteinIdenficiation
