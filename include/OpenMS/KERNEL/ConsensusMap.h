@@ -62,7 +62,7 @@ namespace OpenMS
 public:
 
     /// Source file description for input files
-    struct FileDescription :
+    struct OPENMS_DLLAPI FileDescription :
       public MetaInfoInterface
     {
       /// Default constructor
