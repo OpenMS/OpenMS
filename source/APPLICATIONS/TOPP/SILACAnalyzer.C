@@ -915,22 +915,16 @@ class TOPPSILACAnalyzer
         // it->second.label = id;
       }
 			
-			DataProcessing data_processing;
-      Software software; //TODO CVTerm adding
-      software.setName("OpenMS SILACAnalyzer");
-      software.setVersion("1.9");
-			data_processing.setSoftware(software);      
-			std::set<DataProcessing::ProcessingAction> actions;
+
+      std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::DATA_PROCESSING);
       actions.insert(DataProcessing::PEAK_PICKING);
       actions.insert(DataProcessing::FILTERING);
       actions.insert(DataProcessing::QUANTITATION);
-      data_processing.setProcessingActions(actions);
-      data_processing.setCompletionTime(DateTime::now());
-			std::vector<DataProcessing> data_processing_vector;
-			data_processing_vector.push_back(data_processing);
-      map.setDataProcessing(data_processing_vector);
-			
+
+      addDataProcessing_(map, getProcessingInfo_(actions));
+
+
       writeConsensus(out, map);
 			if (out_mzq != "")
 			{

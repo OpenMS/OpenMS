@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:///C:/dev/NIGHTLY/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.5" id="cm_16627578304933075941" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<dataProcessing completion_time="2012-06-18T06:50:13">
-		<software name="OpenMS SILACAnalyzer" version="1.9" />
-		<processingAction name="Data processing action" />
-		<processingAction name="Peak picking" />
-		<processingAction name="Data filtering" />
-		<processingAction name="Quantitation" />
-	</dataProcessing>
-	<mapList count="0">
+  <dataProcessing completion_time="1999-12-31T23:59:59">
+    <software name="SILACAnalyzer" version="version_string" />
+    <processingAction name="Data processing action" />
+    <processingAction name="Peak picking" />
+    <processingAction name="Data filtering" />
+    <processingAction name="Quantitation" />
+    <userParam type="string" name="parameter: mode" value="test_mode"/>
+  </dataProcessing>
+  <mapList count="0">
 	</mapList>
 	<consensusElementList>
 	</consensusElementList>
