@@ -192,14 +192,14 @@ protected:
     #ifdef _OPENMP 
     #pragma omp parallel for schedule(dynamic, 1)
     #endif
-    for (Size i=0; i<in_files.size(); ++i)
+    for (Int i=0; i<in_files.size(); ++i)
     {
       TransformationDescription trafo;
       if (in_type==FileTypes::FEATUREXML)
       {
         FeatureMap<> map;
         // workaround for loading: use temporary FeatureXMLFile since it is not thread-safe
-        FeatureXMLFile f_fxml_tmp; // do not use firstprivate, since FeatureXMLFile has no copy c'tor
+        FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();
         f_fxml_tmp.load(in_files[i], map);
         if (i==reference_index) trafo.fitModel("identity");
