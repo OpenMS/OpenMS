@@ -103,8 +103,8 @@
       <ITEM name="y_pos" value="-40" type="float" description="" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;IDMapper&apos;">
         <ITEM name="id" value="" type="string" description="Protein/peptide identifications file" tags="input file,required" restrictions="*.idXML" />
-        <ITEM name="in" value="" type="string" description="Feature map/consensus map file" tags="input file,required" restrictions="*.featureXML,*.consensusXML" />
-        <ITEM name="out" value="" type="string" description="Output file (the format depends on the input file format)." tags="output file,required" restrictions="*.featureXML,*.consensusXML" />
+        <ITEM name="in" value="" type="string" description="Feature map/consensus map file" tags="input file,required" restrictions="*.featureXML,*.consensusXML,*.mzq" />
+        <ITEM name="out" value="" type="string" description="Output file (the format depends on the input file format)." tags="output file,required" restrictions="*.featureXML,*.consensusXML,*.mzq" />
         <ITEM name="rt_tolerance" value="5" type="float" description="RT tolerance (in seconds) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
         <ITEM name="mz_tolerance" value="20" type="float" description="m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
         <ITEM name="mz_measure" value="ppm" type="string" description="Unit of &apos;mz_tolerance&apos;." restrictions="ppm,Da" />
@@ -143,17 +143,17 @@
           <ITEM name="ignore_charge" value="false" type="string" description="Compare features normally even if their charge states are different" restrictions="true,false" />
           <NODE name="distance_RT" description="Distance component based on RT differences">
             <ITEM name="max_difference" value="100" type="float" description="Maximum allowed difference in RT" restrictions="0:" />
-            <ITEM name="exponent" value="1" type="float" description="Normalized RT differences are raised to this power" tags="advanced" restrictions="0:" />
+            <ITEM name="exponent" value="1" type="float" description="Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="1" type="float" description="RT distances are weighted by this factor" tags="advanced" restrictions="0:" />
           </NODE>
           <NODE name="distance_MZ" description="Distance component based on m/z differences">
             <ITEM name="max_difference" value="0.3" type="float" description="Maximum allowed difference in m/z (unit defined by &apos;mz_unit&apos;)" restrictions="0:" />
             <ITEM name="unit" value="Da" type="string" description="Unit of the &apos;max_difference&apos; parameter" restrictions="Da,ppm" />
-            <ITEM name="exponent" value="2" type="float" description="Normalized m/z differences are raised to this power" tags="advanced" restrictions="0:" />
+            <ITEM name="exponent" value="2" type="float" description="Normalized m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="1" type="float" description="m/z distances are weighted by this factor" tags="advanced" restrictions="0:" />
           </NODE>
           <NODE name="distance_intensity" description="Distance component based on differences in relative intensity">
-            <ITEM name="exponent" value="1" type="float" description="Differences in relative intensity are raised to this power" tags="advanced" restrictions="0:" />
+            <ITEM name="exponent" value="1" type="float" description="Differences in relative intensity are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="0" type="float" description="Distances based on relative intensity are weighted by this factor" tags="advanced" restrictions="0:" />
           </NODE>
         </NODE>
