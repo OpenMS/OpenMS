@@ -347,13 +347,14 @@ class TOPPIDPosteriorErrorProbability
 						{
 							if(prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
 							{
+                String score_type = it->getScoreType() + "_score";
 								vector<PeptideHit> hits = it->getHits();
 									for(std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
 								{
 		 							if(!split_charge || hit->getCharge() == charge)
 									{
-										DoubleReal score;
-										hit->setMetaValue("Search engine score",hit->getScore());
+                    DoubleReal score;
+                    hit->setMetaValue(score_type, hit->getScore());
 										score = PEP_model.computeProbability(get_score_(engine, *hit));
 										if(score > 0 && score < 1) unable_to_fit_data = false; //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
 										if(score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;//same as above
