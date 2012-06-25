@@ -67,6 +67,7 @@ PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier
+ProteinResolver
 RTModel
 RTPredict
 Resampler
