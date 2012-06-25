@@ -24,7 +24,6 @@ MRMPairFinder
 MSSimulator
 MapAlignmentEvaluation
 OpenMSInfo
-PeptideCentricDatabase
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator

@@ -37,7 +37,6 @@ IDFilter
 IDMapper
 IDMerger
 IDRTCalibration
-ProteinResolver
 ITRAQAnalyzer
 InspectAdapter
 InternalCalibration
