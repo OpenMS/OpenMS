@@ -246,7 +246,7 @@ namespace OpenMS
 		{
 			os << "\n";
 			os << "BEGIN IONS\n";
-			os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) << "\n";
+			os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) << "_" << spec.getNativeID() << "\n";
 			os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
 			os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
 
