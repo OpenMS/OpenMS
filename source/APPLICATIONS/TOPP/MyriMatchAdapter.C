@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OMSSAAdapter OMSSAAdapter
+  @page TOPP_MyriMatchAdapter MyriMatchAdapter
 
   @brief Identifies peptides in MS/MS spectra via MyriMatch.
 
@@ -70,7 +70,7 @@
   This wrapper has been tested successfully with MyriMatch, version 2.1.x
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_OMSSAAdapter.cli
+  @verbinclude TOPP_MyriMatchAdapter.cli
 */
 
 // We do not want this class to show up in the docu:
