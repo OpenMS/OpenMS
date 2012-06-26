@@ -50,7 +50,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI ConsensusMap :
+  class ConsensusMap : // no OPENMS_DLLAPI here, since the class is derived from an STL class - we do not want parts of the STL lib in OpenMS.lib, since it will cause linker errors
     public std::vector<ConsensusFeature>,
     public MetaInfoInterface,
     public RangeManager<2>,
@@ -94,20 +94,20 @@ public:
     typedef std::vector<ConsensusFeature>::const_reverse_iterator ConstReverseIterator;
     //@}
 
-    /// Default onstructor
-    ConsensusMap();
+    /// Default constructor
+    OPENMS_DLLAPI ConsensusMap();
 
     /// Copy constructor
-    ConsensusMap(const ConsensusMap & source);
+    OPENMS_DLLAPI ConsensusMap(const ConsensusMap & source);
 
     /// Destructor
-    ~ConsensusMap();
+    OPENMS_DLLAPI ~ConsensusMap();
 
     /// Creates a ConsensusMap with n elements
-    explicit ConsensusMap(Base::size_type n);
+    OPENMS_DLLAPI explicit ConsensusMap(Base::size_type n);
 
     /// Assignment operator
-    ConsensusMap & operator=(const ConsensusMap & source);
+    OPENMS_DLLAPI ConsensusMap & operator=(const ConsensusMap & source);
 
     /**
       @brief Add one consensus map to another.
@@ -118,26 +118,26 @@ public:
 
       @param rhs The consensus map.
     */
-    ConsensusMap & operator+=(const ConsensusMap & rhs);
+    OPENMS_DLLAPI ConsensusMap & operator+=(const ConsensusMap & rhs);
 
     /**
       @brief Clears all data and meta data
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
-    void clear(bool clear_meta_data = true);
+    OPENMS_DLLAPI void clear(bool clear_meta_data = true);
 
     /// Non-mutable access to the file descriptions
-    const FileDescriptions & getFileDescriptions() const;
+    OPENMS_DLLAPI const FileDescriptions & getFileDescriptions() const;
 
     /// Mutable access to the file descriptions
-    FileDescriptions & getFileDescriptions();
+    OPENMS_DLLAPI FileDescriptions & getFileDescriptions();
 
     /// Non-mutable access to the experiment type
-    const String & getExperimentType() const;
+    OPENMS_DLLAPI const String & getExperimentType() const;
 
     /// Mutable access to the experiment type
-    void setExperimentType(const String & experiment_type);
+    OPENMS_DLLAPI void setExperimentType(const String & experiment_type);
 
     /**
       @name Sorting.
@@ -147,25 +147,25 @@ public:
     */
     //@{
     /// Sorts the peaks according to ascending intensity.
-    void sortByIntensity(bool reverse = false);
+    OPENMS_DLLAPI void sortByIntensity(bool reverse = false);
 
     /// Sorts the peaks to RT position.
-    void sortByRT();
+    OPENMS_DLLAPI void sortByRT();
 
     /// Sorts the peaks to m/z position.
-    void sortByMZ();
+    OPENMS_DLLAPI void sortByMZ();
 
     /// Lexicographically sorts the peaks by their position (First RT then m/z).
-    void sortByPosition();
+    OPENMS_DLLAPI void sortByPosition();
 
     /// Sorts the peaks according to ascending quality.
-    void sortByQuality(bool reverse = false);
+    OPENMS_DLLAPI void sortByQuality(bool reverse = false);
 
     /// Sorts with respect to the size (number of elements)
-    void sortBySize();
+    OPENMS_DLLAPI void sortBySize();
 
     /// Sorts with respect to the sets of maps covered by the consensus features (lexicographically).
-    void sortByMaps();
+    OPENMS_DLLAPI void sortByMaps();
 
     //@}
 
@@ -228,14 +228,14 @@ public:
       @param output_map The resulting ConsensusMap.
       @param n The maximum number of elements to be copied.
     */
-    static void convert(UInt64 const input_map_index,
-                        MSExperiment<> & input_map,
-                        ConsensusMap & output_map,
-                        Size n = -1)
+    OPENMS_DLLAPI static void convert(UInt64 const input_map_index,
+                                      MSExperiment<> & input_map,
+                                      ConsensusMap & output_map,
+                                      Size n = -1)
     {
       output_map.clear(true);
 
-      // see @todo abovet
+      // see @todo above
       output_map.setUniqueId();
 
       input_map.updateRanges(1);
@@ -278,10 +278,10 @@ public:
       @param output_map The resulting ConsensusMap.
       @param n The maximum number of elements to be copied.
     */
-    static void convert(UInt64 const input_map_index,
-                        std::vector<Peak2D> & input_map,
-                        ConsensusMap & output_map,
-                        Size n = -1)
+    OPENMS_DLLAPI static void convert(UInt64 const input_map_index,
+                                      std::vector<Peak2D> & input_map,
+                                      ConsensusMap & output_map,
+                                      Size n = -1)
     {
       // Clear the map and assign new ID.
       output_map.setUniqueId();
@@ -343,43 +343,43 @@ public:
     }
 
     // Docu in base class
-    void updateRanges();
+    OPENMS_DLLAPI void updateRanges();
 
     /// Swaps the content of this map with the content of @p from
-    void swap(ConsensusMap & from);
+    OPENMS_DLLAPI void swap(ConsensusMap & from);
 
     /// non-mutable access to the protein identifications
-    const std::vector<ProteinIdentification> & getProteinIdentifications() const;
+    OPENMS_DLLAPI const std::vector<ProteinIdentification> & getProteinIdentifications() const;
 
     /// mutable access to the protein identifications
-    std::vector<ProteinIdentification> & getProteinIdentifications();
+    OPENMS_DLLAPI std::vector<ProteinIdentification> & getProteinIdentifications();
 
     /// sets the protein identifications
-    void setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications);
+    OPENMS_DLLAPI void setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications);
 
     /// non-mutable access to the unassigned peptide identifications
-    const std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications() const;
+    OPENMS_DLLAPI const std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications() const;
 
     /// mutable access to the unassigned peptide identifications
-    std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications();
+    OPENMS_DLLAPI std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications();
 
     /// sets the unassigned peptide identifications
-    void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification> & unassigned_peptide_identifications);
+    OPENMS_DLLAPI void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification> & unassigned_peptide_identifications);
 
     /// returns a const reference to the description of the applied data processing
-    const std::vector<DataProcessing> & getDataProcessing() const;
+    OPENMS_DLLAPI const std::vector<DataProcessing> & getDataProcessing() const;
 
     /// returns a mutable reference to the description of the applied data processing
-    std::vector<DataProcessing> & getDataProcessing();
+    OPENMS_DLLAPI std::vector<DataProcessing> & getDataProcessing();
 
     /// sets the description of the applied data processing
-    void setDataProcessing(const std::vector<DataProcessing> & processing_method);
+    OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing> & processing_method);
 
     /// Equality operator
-    bool operator==(const ConsensusMap & rhs) const;
+    OPENMS_DLLAPI bool operator==(const ConsensusMap & rhs) const;
 
     /// Equality operator
-    bool operator!=(const ConsensusMap & rhs) const;
+    OPENMS_DLLAPI bool operator!=(const ConsensusMap & rhs) const;
 
     /**
       @brief Applies a member function of Type to the container itself and all consensus features.
