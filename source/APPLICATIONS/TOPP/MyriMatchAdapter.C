@@ -122,96 +122,79 @@ protected :
   };
 
   bool getVersion_(const String& version, MyriMatchVersion& myrimatch_version_i) const
-    {
-      // we expect three components
-      IntList nums = IntList::create(StringList::create(version,'.'));
-      if (nums.size()!=3) return false;
+  {
+    // we expect three components
+    IntList nums = IntList::create(StringList::create(version,'.'));
+    if (nums.size()!=3) return false;
 
-      myrimatch_version_i.myrimatch_major =nums[0];
-      myrimatch_version_i.myrimatch_minor =nums[1];
-      myrimatch_version_i.myrimatch_patch =nums[2];
-      return true;
-    }
+    myrimatch_version_i.myrimatch_major =nums[0];
+    myrimatch_version_i.myrimatch_minor =nums[1];
+    myrimatch_version_i.myrimatch_patch =nums[2];
+    return true;
+  }
 
   /// returns false on failure
-  bool translateModifications(StringList &static_mod_list, StringList &variable_mod_list)
+  void translateModifications(StringList &static_mod_list, StringList &variable_mod_list)
+  {
+    // translating UNIMOD notation to MyriMatch notation of PTMs.
+    ModificationDefinitionsSet mod_set(getStringList_("fixed_modifications"), getStringList_("variable_modifications"));
+    if ( !getStringList_("fixed_modifications").empty())
     {
-      // translating UNIMOD notation to MyriMatch notation of PTMs.
-      ModificationDefinitionsSet mod_set(getStringList_("fixed_modifications"), getStringList_("variable_modifications"));
-      if ( !getStringList_("fixed_modifications").empty())
+      set<String> mod_names = mod_set.getFixedModificationNames();
+      for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
-        set<String> mod_names = mod_set.getFixedModificationNames();
-        for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
+        ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
+        String origin = String(mod.getOrigin());
+        String mass_diff = String(mod.getDiffMonoMass());
+        if(origin == "N-term")
         {
-          ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
-          String origin = String(mod.getOrigin());
-          String mass_diff = String(mod.getDiffMonoMass());
-          if(origin == "N-term")
-          {
-            origin = "(";
-          }
-          else if (origin == "C-term")
-          {
-            origin = ")";
-          }
-          else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "N-term")
-          {
-            origin = "(" + origin;
-          }
-          else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "C-term")
-          {
-            origin = ")" + origin;
-          }
-          static_mod_list.push_back(origin + " " + mod.getDiffMonoMass());
+          origin = "(";
         }
+        else if (origin == "C-term")
+        {
+          origin = ")";
+        }
+        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "N-term")
+        {
+          origin = "(" + origin;
+        }
+        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "C-term")
+        {
+          origin = ")" + origin;
+        }
+        static_mod_list.push_back(origin + " " + mod.getDiffMonoMass());
       }
-
-      if ( !getStringList_("variable_modifications").empty())
-      {
-        char mod_chars [] =  {'@','^','$','%','*','+'};
-        unsigned int mod_num = sizeof(mod_chars) / sizeof(mod_chars[0]);
-        unsigned int mod_count = 0;
-        set<String> mod_names = mod_set.getVariableModificationNames();
-
-        if (mod_names.size() > mod_num)
-        {
-          writeDebug_(("Too many variable modifications. Using the first " + String(mod_num) + "."),0);
-          return false;
-        }
-
-        for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
-        {
-          if(mod_count < mod_num)
-          {
-            ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
-            String origin = String(mod.getOrigin());
-            String mass_diff = String(mod.getDiffMonoMass());
-            if(origin == "N-term")
-            {
-              origin = "(";
-            }
-            else if (origin == "C-term")
-            {
-              origin = ")";
-            }
-            else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "N-term")
-            {
-              origin = "(" + origin;
-            }
-            else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "C-term")
-            {
-              origin = ")" + origin;
-            }
-            variable_mod_list.push_back(origin + " " + String(mod_chars[mod_count++]) + " " + mass_diff);
-          }
-          else
-          {
-            break;
-          }
-        }
-      }
-      return true;
     }
+
+    if ( !getStringList_("variable_modifications").empty())
+    {
+      set<String> mod_names = mod_set.getVariableModificationNames();
+
+      for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
+      {
+        ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
+        String origin = String(mod.getOrigin());
+        String mass_diff = String(mod.getDiffMonoMass());
+        if(origin == "N-term")
+        {
+          origin = "(";
+        }
+        else if (origin == "C-term")
+        {
+          origin = ")";
+        }
+        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "N-term")
+        {
+          origin = "(" + origin;
+        }
+        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "C-term")
+        {
+          origin = ")" + origin;
+        }
+        variable_mod_list.push_back(origin + " * " + mass_diff); // use * for all mods (no unique-per-mod symbol should be required)
+      }
+    }
+  }
 
   void registerOptionsAndFlags_()
     {
@@ -244,7 +227,7 @@ protected :
                           "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
       setValidStrings_("fixed_modifications", all_mods);
       registerStringList_("variable_modifications", "<mods>", StringList::create(""),
-                          "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'. Use at most 6 variable modifications!", false);
+                          "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'.", false);
       setValidStrings_("variable_modifications", all_mods);
 
       addEmptyLine_();
@@ -356,7 +339,7 @@ protected :
       // Common Identification engine options
       StringList static_mod_list;
       StringList dynamic_mod_list;
-      if (!translateModifications(static_mod_list,dynamic_mod_list)) return ILLEGAL_PARAMETERS;
+      translateModifications(static_mod_list,dynamic_mod_list);
       if(!static_mod_list.empty())
         parameters << "-StaticMods" << static_mod_list.concatenate(" ");
       if(!dynamic_mod_list.empty())
@@ -421,7 +404,7 @@ protected :
       f.close();
       parameters << "-cfg" << cfg_file;
 
-      // path to inputfile must be the last parameter
+      // path to input file must be the last parameter
       parameters << inputfile_name;
 
       //-------------------------------------------------------------
@@ -437,7 +420,7 @@ protected :
 
       QProcess process;
 
-      // Bad style, because it breks relative paths?
+      // Bad style, because it breaks relative paths?
       process.setWorkingDirectory(tmp_dir.toQString());
 
       process.start(myrimatch_executable.toQString(), qparam, QIODevice::ReadOnly);
@@ -471,7 +454,7 @@ protected :
       QFile(pep_file.toQString()).remove();
       QFile(cfg_file.toQString()).remove();
       //-------------------------------------------------------------
-      // writng results
+      // writing results
       //-------------------------------------------------------------
 
       IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
