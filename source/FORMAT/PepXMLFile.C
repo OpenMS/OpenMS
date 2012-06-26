@@ -555,17 +555,25 @@ namespace OpenMS
 				current_peptide_.setScoreType(name);
 				current_peptide_.setHigherScoreBetter(false);
 			}
-			// if (name == "hyperscore")
-			// { // X!Tandem score
-			// 	value = attributeAsDouble_(attributes, "value");
-			// 	peptide_hit_.setScore(value);
-			// 	current_peptide_.setScoreType(name); // add "X!Tandem" to name?
-			// 	current_peptide_.setHigherScoreBetter(true);
-			// }
-			else if (name == "xcorr")
-			{ // Sequest score
+      else if (name == "mvh")
+      { // MyriMatch score
 				value = attributeAsDouble_(attributes, "value");
 				peptide_hit_.setScore(value);
+        current_peptide_.setScoreType(name);
+        current_peptide_.setHigherScoreBetter(true);
+      }
+      // if (name == "hyperscore")
+      // { // X!Tandem score
+      //   value = attributeAsDouble_(attributes, "value");
+      //   peptide_hit_.setScore(value);
+      //   current_peptide_.setScoreType(name); // add "X!Tandem" to name?
+      //   current_peptide_.setHigherScoreBetter(true);
+      // }
+      else if (name == "xcorr" && search_engine_ != "MyriMatch")
+      { // Sequest score; MyriMatch has also an xcorr, but we want to ignore it
+        // and use the mvh
+        value = attributeAsDouble_(attributes, "value");
+        peptide_hit_.setScore(value);
 				current_peptide_.setScoreType(name); // add "Sequest" to name?
 				current_peptide_.setHigherScoreBetter(true);
 			}
@@ -576,6 +584,7 @@ namespace OpenMS
 				current_peptide_.setScoreType(name);
 				current_peptide_.setHigherScoreBetter(true);
 			}
+
 		}
 
 		else if (element == "search_hit") // parent: "search_result"
@@ -632,6 +641,88 @@ namespace OpenMS
 			current_peptide_.setScoreType("InterProphet probability");
 			current_peptide_.setHigherScoreBetter(true);
 		}
+
+
+    ////NEW
+    else if (element == "modification_info") // parent: "search_hit" (in "search result")
+    {
+      // Has N-Term Modification
+      DoubleReal mod_nterm_mass;
+      if(optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass"))  // this specifies a terminal modification
+      {
+        // lookup the modification in the search_summary by mass
+        for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
+        {
+          if(mod_nterm_mass == it->mass && it->terminus == "n")
+          {
+            DoubleReal massdiff = (it->massdiff).toDouble();
+            vector<String> mods;
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, 0.001, ResidueModification::N_TERM);
+            if (mods.size() == 1)
+            {
+              current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
+            }
+            else
+            {
+              if ( !mods.empty() )
+              {
+                String mod_str = mods[0];
+                for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+                {
+                  mod_str += ", " + *mit;
+                }
+                error(LOAD, "Modification '" + String(massdiff) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
+                current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
+              }
+              else
+              {
+                error(LOAD, String("Cannot find N-term modification with mass " + String(mod_nterm_mass) + "."));
+              }
+            }
+            break; // only one modification should match, so we can stop the loop here
+          }
+        }
+      }
+
+      // Has C-Term Modification
+      DoubleReal mod_cterm_mass;
+      if(optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass"))  // this specifies a terminal modification
+      {
+        // lookup the modification in the search_summary by mass
+        for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
+        {
+          if(mod_cterm_mass == it->mass && it->terminus == "c")
+          {
+            DoubleReal massdiff = (it->massdiff).toDouble();
+            vector<String> mods;
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, 0.001, ResidueModification::C_TERM);
+            if (mods.size() == 1)
+            {
+              current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
+            }
+            else
+            {
+              if ( !mods.empty() )
+              {
+                String mod_str = mods[0];
+                for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+                {
+                  mod_str += ", " + *mit;
+                }
+                error(LOAD, "Modification '" + String(massdiff) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
+                current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
+              }
+              else
+              {
+                error(LOAD, String("Cannot find C-term modification with mass " + String(mod_cterm_mass) + "."));
+              }
+            }
+            break; // only one modification should match, so we can stop the loop here
+          }
+        }
+      }
+    }
+    ////NEW_END
 
 		else if (element == "alternative_protein") // parent: "search_hit"
 		{
@@ -723,8 +814,10 @@ namespace OpenMS
       aa_mod.mass = attributeAsDouble_(attributes, "mass");
 			aa_mod.terminus = attributeAsString_(attributes, "terminus");
       String is_variable = attributeAsString_(attributes, "variable");
+
       if (is_variable == "Y")
       {
+        variable_modifications_.push_back(aa_mod);
       	if (aa_mod.description != "")
         {
           params_.variable_modifications.push_back(aa_mod.description); // TODO
@@ -745,6 +838,7 @@ namespace OpenMS
       }
       else
       {
+        fixed_modifications_.push_back(aa_mod);
 				if (aa_mod.description != "")
         {
           params_.fixed_modifications.push_back(aa_mod.description); // TODO
@@ -803,9 +897,9 @@ namespace OpenMS
 				}
 			}
 
-			String search_engine = attributeAsString_(attributes, "search_engine");
+      search_engine_ = attributeAsString_(attributes, "search_engine");
 			// generate identifier from search engine and date:
-			prot_id_ = search_engine + "_" + date_.getDate();
+      prot_id_ = search_engine_ + "_" + date_.getDate();
 
 			search_id_ = 1;
 			optionalAttributeAsUInt_(search_id_, attributes, "search_id");
@@ -822,7 +916,7 @@ namespace OpenMS
 				prot_it = --proteins_->end();
 				prot_id_ = prot_id_ + "_" + search_id_; // make sure the ID is unique
 			}
-			prot_it->setSearchEngine(search_engine);
+      prot_it->setSearchEngine(search_engine_);
 			prot_it->setIdentifier(prot_id_);
 		}
 

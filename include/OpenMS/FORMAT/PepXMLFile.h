@@ -179,6 +179,9 @@ namespace OpenMS
 			/// Name of the associated experiment (filename of the data file, extension will be removed)
 			String exp_name_;
 
+      /// Set name of search engine
+      String search_engine_;
+
 			/// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
 			bool use_precursor_data_;
 

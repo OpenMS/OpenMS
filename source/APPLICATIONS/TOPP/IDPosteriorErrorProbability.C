@@ -132,6 +132,14 @@ class TOPPIDPosteriorErrorProbability
 		{
 			return ((-1)* log10(max(hit.getScore(),smallest_e_value_)));
 		}
+    else if( engine == "MyriMatch" )
+    {
+      //double e_val = exp(-hit.getScore());
+      //double score_val = ((-1)* log10(max(e_val,smallest_e_value_)));
+      //printf("myri score: %e ; e_val: %e ; score_val: %e\n",hit.getScore(),e_val,score_val);
+      //return score_val;
+      return hit.getScore();
+    }
 		else if(engine.compare("XTandem") == 0)
 		{
 			return((-1)* log10(max((DoubleReal)hit.getMetaValue("E-Value"),smallest_e_value_)));
@@ -190,7 +198,7 @@ class TOPPIDPosteriorErrorProbability
 		vector<Int> charges;
 		PosteriorErrorProbabilityModel PEP_model;
 		PEP_model.setParameters(fit_algorithm);
-    StringList search_engines = StringList::create("XTandem,OMSSA,MASCOT,SpectraST");
+    StringList search_engines = StringList::create("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch");
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------

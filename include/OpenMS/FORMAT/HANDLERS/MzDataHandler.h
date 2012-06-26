@@ -1329,7 +1329,7 @@ namespace OpenMS
 					}
 					else if (value=="ProductIonScan")
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+            spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
 						spec_.setMSLevel(2);
 					}
 					else if (value=="PrecursorIonScan")
@@ -1343,10 +1343,17 @@ namespace OpenMS
 					}
 					else
 					{
+            if (spec_.getMSLevel() >= 2)
+            {
+              exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+            }
+            else
+            {
 						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 						warning(LOAD, String("Unknown scan mode '") + value + "'. Assuming full scan");
 					}
 				}
+        }
 				else if (accession=="PSI:1000038") //Time in minutes
 				{
 					spec_.setRT(asDouble_(value)*60); //Minutes to seconds

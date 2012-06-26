@@ -525,7 +525,8 @@ namespace OpenMS
 				}
 				else if (type=="Full")
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          if (ms_level>1) exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+          else exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="SIM")
 				{

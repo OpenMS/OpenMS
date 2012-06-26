@@ -38,6 +38,7 @@ IDMapper
 IDMerger
 IDRTCalibration
 ITRAQAnalyzer
+InclusionExclusionListCreator
 InspectAdapter
 InternalCalibration
 MapAlignerIdentification
@@ -49,6 +50,7 @@ MapStatistics
 MascotAdapter
 MascotAdapterOnline
 MassTraceExtractor
+MyriMatchAdapter
 NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
@@ -84,12 +86,11 @@ SpectraFilterScaler
 SpectraFilterBernNorm
 SpectraFilterNLargest
 SpectraFilterNormalizer
+SpectraMerger
 TOFCalibration
 TextExporter
 MzTabExporter
 XTandemAdapter
-InclusionExclusionListCreator
-SpectraMerger
 )
 
 ## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
