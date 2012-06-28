@@ -72,6 +72,18 @@ namespace OpenMS
 		return;
 	}
 
+	void CVTermList::replaceCVTerm(const CVTerm& cv_term)
+  {
+    std::vector<CVTerm> tmp;
+    tmp.push_back(cv_term);
+    cv_terms_[cv_term.getAccession()] = tmp;
+  }
+
+	void CVTermList::replaceCVTerms(const vector<CVTerm>& cv_terms, const String& accession)
+	{
+		cv_terms_[accession] = cv_terms;
+	}
+
 	const Map<String, vector<CVTerm> >& CVTermList::getCVTerms() const
 	{
 		return cv_terms_;

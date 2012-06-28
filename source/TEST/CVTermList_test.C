@@ -148,6 +148,46 @@ START_SECTION((void addCVTerm(const CVTerm &term)))
 }
 END_SECTION
 
+START_SECTION((void replaceCVTerm(const CVTerm &cv_term)))
+{
+  CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
+  CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
+  CVTermList cv_term_list;
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
+  cv_term_list.replaceCVTerm(cv_term);
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 1)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][0].getValue(), "3.0")
+  CVTerm cv_term2("my_accession", "my_name", "my_cv_identifier_ref", "2.0", unit);
+  cv_term_list.replaceCVTerm(cv_term2);
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 1)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][0].getValue(), "2.0")
+}
+END_SECTION
+
+START_SECTION((void replaceCVTerms(const std::vector<CVTerm> &cv_terms)))
+{
+  CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
+  CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
+  CVTerm cv_term2("my_accession", "my_name", "my_cv_identifier_ref", "2.0", unit);
+  std::vector<CVTerm> tmp;
+  tmp.push_back(cv_term);
+  tmp.push_back(cv_term2);
+  CVTermList cv_term_list;
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
+  cv_term_list.replaceCVTerms(tmp, "my_accession");
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 2)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][0].getValue(), "3.0")
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][1].getValue(), "2.0")
+  cv_term_list.replaceCVTerm(cv_term2);
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 1)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"][0].getValue(), "2.0")
+}
+END_SECTION
+
 /*
 START_SECTION(([EXTRA] bool checkCVTerms(const ControlledVocabulary &cv) const ))
 {

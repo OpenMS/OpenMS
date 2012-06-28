@@ -67,6 +67,12 @@ namespace OpenMS
 				/// sets the CV terms 
 				void setCVTerms(const std::vector<CVTerm>& terms);
 
+				/// replaces the specified CV term 
+				void replaceCVTerm(const CVTerm& cv_term);
+
+				/// replaces the specified CV terms using the given accession number
+				void replaceCVTerms(const std::vector<CVTerm>& cv_terms, const String& accession);
+
 				/// returns the accession string of the term
 				const Map<String, std::vector<CVTerm> >& getCVTerms() const;
 
