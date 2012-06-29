@@ -188,6 +188,35 @@ START_SECTION((void replaceCVTerms(const std::vector<CVTerm> &cv_terms)))
 }
 END_SECTION
 
+START_SECTION((void replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_map)))
+{
+  CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
+  CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
+  CVTerm cv_term2("my_accession2", "my_name", "my_cv_identifier_ref", "2.0", unit);
+  std::vector<CVTerm> tmp;
+  tmp.push_back(cv_term);
+  std::vector<CVTerm> tmp2;
+  tmp2.push_back(cv_term2);
+  Map<String, std::vector<CVTerm> >new_terms;
+  new_terms["my_accession2"] = tmp2;
+  TEST_EQUAL(new_terms.has("my_accession2"), true);
+
+  // create CVTermList with old "my_accession"
+  CVTermList cv_term_list;
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
+  cv_term_list.replaceCVTerms(tmp, "my_accession");
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession"].size(), 1)
+
+  // replace the terms, delete "my_accession" and introduce "my_accession2"
+  cv_term_list.replaceCVTerms(new_terms);
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession2"), true)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession2"].size(), 1)
+  TEST_EQUAL(cv_term_list.getCVTerms()["my_accession2"][0].getValue(), "2.0")
+}
+END_SECTION
+
 /*
 START_SECTION(([EXTRA] bool checkCVTerms(const ControlledVocabulary &cv) const ))
 {

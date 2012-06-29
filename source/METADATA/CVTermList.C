@@ -84,6 +84,11 @@ namespace OpenMS
 		cv_terms_[accession] = cv_terms;
 	}
 
+	void CVTermList::replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_map)
+	{
+		cv_terms_ = cv_term_map;
+	}
+
 	const Map<String, vector<CVTerm> >& CVTermList::getCVTerms() const
 	{
 		return cv_terms_;
