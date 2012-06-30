@@ -69,8 +69,17 @@ OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS"
 #endif()
 set(Boost_USE_MULTITHREADED  ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
+#set(Boost_DEBUG TRUE)
+set(Boost_COMPILER "")
 
 FIND_PACKAGE(Boost 1.42.0 REQUIRED iostreams date_time math_c99)
+if(!Boost_FOUND)
+  # second attempt to find boost using plain "VC" as toolset, instead of vs110 or so.
+  # this is required for cases where Boost was build without specifying a toolset explicitly
+  set(Boost_COMPILER "-vc")
+  FIND_PACKAGE(Boost 1.42.0 REQUIRED iostreams date_time math_c99)
+endif()
+
 if(Boost_FOUND)
 	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
