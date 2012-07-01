@@ -227,7 +227,7 @@ namespace OpenMS
               std::set<FeatureHandle, FeatureHandle::IndexLess> fh_set;
 
               fh_set.insert(FeatureHandle(map_index, simulated_features[*it]));
-              charge_mapping.insert(std::make_pair<String, std::set<FeatureHandle, FeatureHandle::IndexLess> > (simulated_features[*it].getMetaValue("charge_adducts"),fh_set));
+              charge_mapping.insert(std::make_pair(simulated_features[*it].getMetaValue("charge_adducts"),fh_set));
             }
           }
         }

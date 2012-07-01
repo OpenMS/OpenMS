@@ -137,7 +137,7 @@ namespace OpenMS
 			else if (tag_ == "DataProcessing")
 			{
 				int order = asInt_(attributeAsString_(attributes,"order"));
-				current_dp_ = std::make_pair<int,DataProcessing>(order,DataProcessing());
+				current_dp_ = std::make_pair(order,DataProcessing());
 				current_pas_.clear();
 				//~ order
 				DataValue sw_ref(attributeAsString_(attributes,"software_ref"));
@@ -152,7 +152,7 @@ namespace OpenMS
 			else if (tag_ == "Software")
 			{
 				current_id_ = attributeAsString_(attributes,"id");
-				current_sws_.insert(std::make_pair<String,Software>(current_id_,Software()));
+				current_sws_.insert(std::make_pair(current_id_,Software()));
 				String vers = attributeAsString_(attributes,"version");
 				current_sws_[current_id_].setVersion(vers);
 			}
@@ -170,7 +170,7 @@ namespace OpenMS
 			{
 				current_id_ = attributeAsString_(attributes,"id");
 				std::vector<ExperimentalSettings> exp_set;
-				current_files_.insert(std::make_pair<String,std::vector<ExperimentalSettings> >(current_id_,exp_set));
+				current_files_.insert(std::make_pair(current_id_,exp_set));
 			}
 
 			else if (tag_ == "RawFile")
@@ -204,7 +204,7 @@ namespace OpenMS
 					optionalAttributeAsString_(residue,attributes,"residues");
 					if (massdelta_string != "145")
 					{
-						current_assay_.mods_.push_back(std::make_pair<String,DoubleReal>(residue,massdelta_string.toDouble()));
+						current_assay_.mods_.push_back(std::make_pair(residue,massdelta_string.toDouble()));
 					}
 					//TODO CVhandling
 				}
@@ -230,7 +230,7 @@ namespace OpenMS
 				ConsensusFeature::Ratio r;
 				r.denominator_ref_ = den;
 				r.numerator_ref_ = num;
-				r_rtemp_.insert(std::make_pair<String,ConsensusFeature::Ratio>(current_id_,r));
+				r_rtemp_.insert(std::make_pair(current_id_,r));
 			}
 
 			else if (tag_ == "PeptideConsensusList")
@@ -250,8 +250,8 @@ namespace OpenMS
 				{
 					current_cf.setMetaValue("SearchDatabase_ref",DataValue(searchDatabase_ref));
 				}
-				cm_cf_ids_.insert(std::make_pair<String,String>(current_id_,current_cf_id_));
-				cf_cf_obj_.insert(std::make_pair<String,ConsensusFeature>(current_cf_id_,current_cf));
+				cm_cf_ids_.insert(std::make_pair(current_id_,current_cf_id_));
+				cf_cf_obj_.insert(std::make_pair(current_cf_id_,current_cf));
 			}
 
 			else if (tag_ == "EvidenceRef")
@@ -276,7 +276,7 @@ namespace OpenMS
 				//~ }
 
 				String f_ref = attributeAsString_(attributes,"feature_ref"); // models which features will be included in this consensusfeature - idependent from id(is optional)
-				f_cf_ids_.insert(std::make_pair<String,String>(f_ref,current_cf_id_));
+				f_cf_ids_.insert(std::make_pair(f_ref,current_cf_id_));
 
 				//~ StringList a_refs = attributeAsStringList_(attributes,"assay_refs"); // what to do with these??
 				//~ for (StringList::const_iterator it = a_refs.begin(); it != a_refs.end(); ++it)
@@ -297,7 +297,7 @@ namespace OpenMS
 				{
 					fh.setCharge(c);
 				}
-				f_f_obj_.insert(std::make_pair<String,FeatureHandle>(current_id_,fh)); // map_index was lost!! TODO artificial ones produced in ConsensusMap assembly
+				f_f_obj_.insert(std::make_pair(current_id_,fh)); // map_index was lost!! TODO artificial ones produced in ConsensusMap assembly
 			}
 
 			else if (tag_ == "FeatureQuantLayer" || tag_ == "RatioQuantLayer" || tag_ == "MS2AssayQuantLayer")
@@ -455,7 +455,7 @@ namespace OpenMS
 					ConsensusFeature ms2cf;
 					ms2cf.setMZ(f_f_obj_[current_id_].getMZ());
 					ms2cf.setRT(f_f_obj_[current_id_].getRT());
-					cf_cf_obj_.insert(std::make_pair<String,ConsensusFeature>(current_id_,ms2cf));
+					cf_cf_obj_.insert(std::make_pair(current_id_,ms2cf));
 					for (Size i = 0; i < current_row_.size(); ++i)
 					{
 						FeatureHandle fh;
@@ -736,10 +736,10 @@ namespace OpenMS
 								//~ String rd = rit->numerator_ref_ + rit->denominator_ref_; // add ratiocalculation params too?
 								String rd = robj.numerator_ref_ + robj.denominator_ref_; // add ratiocalculation params too?
 								String tid = String(UniqueIdGenerator::getUniqueId());
-								numden_r_ids_.insert(std::make_pair<String,String>(rd,tid));
+								numden_r_ids_.insert(std::make_pair(rd,tid));
 								
 								//~ ConsensusFeature::Ratio robj(*rit); this segfaults!!! why???? oh, why?!?!?!?!
-								r_r_obj_.insert(std::make_pair<String,ConsensusFeature::Ratio>(tid,robj));
+								r_r_obj_.insert(std::make_pair(tid,robj));
 							}
 						}
 					}
@@ -779,7 +779,7 @@ namespace OpenMS
 						group_exists = false;
 						glob_rfgr = rfgr; //TODO remove that when real rawfile grouping is done
 						UInt64 rid = UniqueIdGenerator::getUniqueId();
-						files.insert(std::make_pair<String,String>(iit->getLoadedFilePath(),rfgr));
+						files.insert(std::make_pair(iit->getLoadedFilePath(),rfgr));
 						rgs += "\t\t\t<RawFile id=\"r_" +String(rid)  + "\" location=\"" + iit->getLoadedFilePath() + "\"/>\n";
 						// TODO write proteowizards sourcefiles (if there is any mentioning of that in the mzml) into OpenMS::ExperimentalSettings of the exp
 					}
@@ -1033,7 +1033,7 @@ namespace OpenMS
 								for (std::vector<ConsensusFeature::Ratio>::const_iterator rit = temp_ratios.begin(); rit != temp_ratios.end(); ++rit)
 								{
 									String rd = rit->numerator_ref_ + rit->denominator_ref_;
-									r_values.insert(std::make_pair<String,String>(rd,String(rit->ratio_value_)));
+									r_values.insert(std::make_pair(rd,String(rit->ratio_value_)));
 								}
 								std::vector<String> dis;
 								//TODO isert missing ratio_refs into r_values with value "-1"

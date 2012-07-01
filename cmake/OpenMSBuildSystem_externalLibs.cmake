@@ -70,6 +70,7 @@ OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS"
 set(Boost_USE_MULTITHREADED  ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 #set(Boost_DEBUG TRUE)
+add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost tends to guess wrong lib names)
 set(Boost_COMPILER "")
 
 FIND_PACKAGE(Boost 1.42.0 REQUIRED iostreams date_time math_c99)
