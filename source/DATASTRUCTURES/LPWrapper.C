@@ -754,5 +754,41 @@ namespace OpenMS
 #endif
     else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));            
   }
+
+  Int LPWrapper::getNumberOfNonZeroEntriesInRow(Int idx)
+  {
+
+    if (solver_ == LPWrapper::SOLVER_GLPK)
+      {
+        /* Non-zero coefficient count in the row. */
+        // glpk uses arrays beginning at pos 1, so we need to shift
+        return  glp_get_mat_row(lp_problem_, idx+1, NULL, NULL);
+      }
+#if COINOR_SOLVER==1
+    else if (solver_ == LPWrapper::SOLVER_COINOR) throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+#endif
+    else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+  }
+
+  void LPWrapper::getMatrixRow(Int idx,std::vector<Int>& indexes)
+  {
+    if (solver_ == LPWrapper::SOLVER_GLPK)
+      {
+        Int size = getNumberOfNonZeroEntriesInRow(idx);
+        int *ind =  new int[size+1];
+        glp_get_mat_row(lp_problem_, idx+1, ind, NULL);
+        indexes.clear();
+        for(Int i =1;i<=size;++i)
+          {
+            indexes.push_back(ind[i]-1);
+          }
+        delete[] ind;
+      }
+#if COINOR_SOLVER==1
+    else if (solver_ == LPWrapper::SOLVER_COINOR) throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+#endif
+    else throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+  }
+
   
 }// namespace

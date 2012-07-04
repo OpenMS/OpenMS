@@ -381,6 +381,26 @@ START_SECTION((DoubleReal getColumnValue(Int index)))
 }
 END_SECTION
 
+START_SECTION((Int getNumberOfNonZeroEntriesInRow(Int idx)))
+{
+  TEST_EQUAL(lp.getNumberOfNonZeroEntriesInRow(0),2)
+}
+END_SECTION
+
+START_SECTION((void getMatrixRow(Int idx,std::vector<Int>& indexes)))
+{
+  std::vector<Int> idxs,idxs2;
+  idxs.push_back(0);
+  idxs.push_back(1);
+  lp.getMatrixRow(0,idxs2);
+  TEST_EQUAL(idxs2.size(),idxs.size())
+  for(Size i = 0; i < idxs2.size();++i)
+    {
+      TEST_EQUAL(idxs2[i],idxs[i])
+    }
+}
+END_SECTION
+
 START_SECTION((void setSolver(const SOLVER s)))
 {
   lp.setSolver(LPWrapper::SOLVER_GLPK);
