@@ -34,12 +34,12 @@
 
 namespace OpenMS
 {
-
+  class PrecursorIonSelectionPreprocessing;
 	/**
 		 @brief Implements ILP formulation of precursor selection problems
 		 
   */
-  class OPENMS_DLLAPI PSLPFormulation
+  class OPENMS_DLLAPI PSLPFormulation : public DefaultParamHandler
   { 
 
 	
@@ -57,10 +57,11 @@ namespace OpenMS
 		struct IndexTriple
 		{
 			Size feature;
-			Size scan;
+			Int scan;
       Size variable;
 			DoubleReal rt_probability;
 			DoubleReal signal_weight;
+      String prot_acc;
 		};
 
 		
@@ -83,7 +84,24 @@ namespace OpenMS
 																											std::set<Int>& charges_set,UInt ms2_spectra_per_rt_bin,
 																											std::vector<int>& solution_indices);
 
+    // find a set of precursors, so that the protein coverage is maximal
+    // and that the number of precursors per bin is not exceeded
+    void createAndSolveILPForInclusionListCreation(PrecursorIonSelectionPreprocessing& preprocessing,
+                                                   UInt ms2_spectra_per_rt_bin,UInt max_list_size,
+                                                   FeatureMap<>& precursors,
+                                                   bool solve_ILP=true);
+
 		
+    void setLPSolver(LPWrapper::SOLVER solver)
+    {
+      solver_ = solver;
+      std::cout << "in PSLP: set LP-solver to "<<solver_<<std::endl;
+    }
+    
+    LPWrapper::SOLVER getLPSolver()
+    {
+      return solver_;
+    }
     
 
 		struct IndexLess
@@ -92,7 +110,7 @@ namespace OpenMS
 			inline bool operator () ( IndexTriple  const & left,
 																IndexTriple const & right ) const
 			{
-				return ( left.variable < right.variable );
+				return ( left.feature < right.feature );
 			}
 		};
 
@@ -145,7 +163,23 @@ namespace OpenMS
 														std::vector<IndexTriple>& variable_indices,std::vector<int>& solution_indices,
 														UInt ms2_spectra_per_rt_bin,Size number_of_scans);
 
-		
+    void addProteinToILP_(PrecursorIonSelectionPreprocessing& preprocessing,
+                          std::map<String,std::vector<DoubleReal> >::const_iterator map_iter,
+                          Size& counter,Size& pep_counter,Size& feature_counter,
+                          std::vector<IndexTriple>& variable_indices,
+                          std::map<String,Size>& protein_penalty_index_map,FeatureMap<>& precursors);
+
+    void addMaxInclusionListSizeConstraints_(std::vector<IndexTriple>& variable_indices,/*Size number_of_features,*/UInt max_list_size);
+
+    void addRTBinCapacityConstraint_(std::vector<IndexTriple>& variable_indices,
+                                     Size max_rt_index,UInt ms2_spectra_per_rt_bin,bool sequential_order=false);
+
+    void addProteinCoverageConstraint_(std::vector<IndexTriple>& variable_indices,
+                                       PrecursorIonSelectionPreprocessing& preprocessing,
+                                       std::map<String,Size> protein_variable_index_map);
+
+    void assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple>& variable_indices,FeatureMap<>& precursors, std::vector<int>& solution_indices,PrecursorIonSelectionPreprocessing& preprocessing);
+
 		/**
      *	@brief Solve the ILP.
      *	
@@ -153,7 +187,7 @@ namespace OpenMS
     void solveILP_(std::vector<int>& solution_indices);
 
 		LPWrapper* model_;
-		
+    LPWrapper::SOLVER solver_;
   };
 
 	template <typename InputPeakType>
@@ -228,6 +262,11 @@ namespace OpenMS
 	}
 	
 
+  inline OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const PSLPFormulation::IndexTriple& triple)
+  {
+    os << "feature: "<< triple.feature << " scan: "<<triple.scan << " variable: "<<triple.variable << " prot_acc: "<<triple.prot_acc;
+    return os;
+  }
 
 } // namespace
 

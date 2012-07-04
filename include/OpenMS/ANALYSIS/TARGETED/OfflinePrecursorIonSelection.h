@@ -87,6 +87,19 @@ namespace OpenMS
                        const MSExperiment<InputPeakType>& experiment,
 											 std::vector<std::vector<std::pair<Size,Size> > > & indices);
 
+    void createProteinSequenceBasedLPInclusionList(String include,String rt_model_file,String pt_model_file,FeatureMap<>& precursors);
+
+    void setLPSolver(LPWrapper::SOLVER solver)
+    {
+      solver_ = solver;
+      std::cout << " LPSolver set to "<<solver_<<std::endl;
+    }
+    
+    LPWrapper::SOLVER getLPSolver()
+    {
+      return solver_;
+    }
+
 	private:
 		/**
 			 @brief Calculate the sum of intensities of relevant features for each scan separately.
@@ -111,6 +124,8 @@ namespace OpenMS
 		void updateExclusionList_(std::vector<std::pair<T,Size> >& exclusion_list);
 
     void updateExclusionList_(std::map<std::pair<DoubleReal,DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list);
+    
+    LPWrapper::SOLVER solver_;
   };
 
 	template <typename InputPeakType>
