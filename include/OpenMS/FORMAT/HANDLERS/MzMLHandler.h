@@ -3655,6 +3655,14 @@ namespace OpenMS
 					num_software += exp[s].getDataProcessing().size();
 				}
 			}
+			for (Size s = 0; s < exp.getChromatograms().size(); ++s)
+			{
+				if (find(dps.begin(), dps.end(), exp.getChromatograms()[s].getDataProcessing()) == dps.end())
+				{
+					dps.push_back(exp.getChromatograms()[s].getDataProcessing());
+					num_software += exp.getChromatograms()[s].getDataProcessing().size();
+				}
+			}
 
 			// count binary data array software
 			Size num_bi_software(0);
