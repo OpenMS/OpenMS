@@ -16,68 +16,68 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="380.6954346" RT="778.61" >
 			<PeptideHit score="0.999999883415763" sequence="AEDAKAR" charge="2" aa_before="R" aa_after="V" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="0.79432823472"/>
+				<UserParam type="float" name="OMSSA_score" value="0.79432823472"/>
 			</PeptideHit>
 			<PeptideHit score="0.999998276603375" sequence="TVDGVNR" charge="2" aa_before="R" aa_after="E" protein_refs="PH_0" >
-				<UserParam type="float" name="Search engine score" value="0.34673685045"/>
+				<UserParam type="float" name="OMSSA_score" value="0.34673685045"/>
 			</PeptideHit>
 			<PeptideHit score="0.99999757832529" sequence="TVDGPSGK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="0.30199517204"/>
+				<UserParam type="float" name="OMSSA_score" value="0.30199517204"/>
 			</PeptideHit>
 			<PeptideHit score="0.999983025274228" sequence="AEQAVSR" charge="2" aa_before="R" aa_after="L" protein_refs="PH_2" >
-				<UserParam type="float" name="Search engine score" value="0.13182567386"/>
+				<UserParam type="float" name="OMSSA_score" value="0.13182567386"/>
 			</PeptideHit>
 			<PeptideHit score="0.999838254056319" sequence="EAAAVGSR" charge="2" aa_before="R" aa_after="V" protein_refs="PH_0" >
-				<UserParam type="float" name="Search engine score" value="0.0457088189615"/>
+				<UserParam type="float" name="OMSSA_score" value="0.0457088189615"/>
 			</PeptideHit>
 			<PeptideHit score="0.99977725149802" sequence="EAEGRAK" charge="2" aa_before="R" aa_after="E" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="0.0389045144994"/>
+				<UserParam type="float" name="OMSSA_score" value="0.0389045144994"/>
 			</PeptideHit>
 			<PeptideHit score="0.996024473032848" sequence="EAEGARK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="0.00851138038202"/>
+				<UserParam type="float" name="OMSSA_score" value="0.00851138038202"/>
 			</PeptideHit>
 			<PeptideHit score="0.995853509283039" sequence="LSNEAAR" charge="2" aa_before="R" aa_after="R" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="0.00831763771103"/>
+				<UserParam type="float" name="OMSSA_score" value="0.00831763771103"/>
 			</PeptideHit>
 			<PeptideHit score="0.994207376231092" sequence="AEASVAGR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="0.00691830970919"/>
+				<UserParam type="float" name="OMSSA_score" value="0.00691830970919"/>
 			</PeptideHit>
 			<PeptideHit score="0.993165620138674" sequence="GDRADAR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="0.0063095734448"/>
+				<UserParam type="float" name="OMSSA_score" value="0.0063095734448"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="309.2268982" RT="958.267" >
 			<PeptideHit score="0.923252312913514" sequence="LLKLIVAR" charge="3" aa_before="R" aa_after="G" protein_refs="PH_0" >
-				<UserParam type="float" name="Search engine score" value="0.00144543977075"/>
+				<UserParam type="float" name="OMSSA_score" value="0.00144543977075"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="375.6966248" RT="998.481" >
 			<PeptideHit score="0.475573336725897" sequence="VANYQR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="0.000223872113857"/>
+				<UserParam type="float" name="OMSSA_score" value="0.000223872113857"/>
 			</PeptideHit>
 			<PeptideHit score="0.22010739556986" sequence="RQYQR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
-				<UserParam type="float" name="Search engine score" value="7.58577575029e-05"/>
+				<UserParam type="float" name="OMSSA_score" value="7.58577575029e-05"/>
 			</PeptideHit>
 			<PeptideHit score="0.113548380029683" sequence="QGVYQR" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2" >
-				<UserParam type="float" name="Search engine score" value="3.0199517204e-5"/>
+				<UserParam type="float" name="OMSSA_score" value="3.0199517204e-5"/>
 			</PeptideHit>
 			<PeptideHit score="0.0896769955952511" sequence="VYEPSR" charge="2" aa_before="R" aa_after="F" protein_refs="PH_2" >
-				<UserParam type="float" name="Search engine score" value="2.08929613085e-5"/>
+				<UserParam type="float" name="OMSSA_score" value="2.08929613085e-5"/>
 			</PeptideHit>
 			<PeptideHit score="0.0600746990896581" sequence="MQATTAK" charge="2" aa_after="R" protein_refs="PH_2" >
-				<UserParam type="float" name="Search engine score" value="1e-5"/>
+				<UserParam type="float" name="OMSSA_score" value="1e-5"/>
 			</PeptideHit>
 			<PeptideHit score="0.0431466860370726" sequence="DFEAIR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="4.78630092323e-6"/>
+				<UserParam type="float" name="OMSSA_score" value="4.78630092323e-6"/>
 			</PeptideHit>
 			<PeptideHit score="0.0295759434044722" sequence="FDELAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
-				<UserParam type="float" name="Search engine score" value="2.08929613085e-6"/>
+				<UserParam type="float" name="OMSSA_score" value="2.08929613085e-6"/>
 			</PeptideHit>
 			<PeptideHit score="0.0226703007993219" sequence="VEEFAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="1.17489755494e-6"/>
+				<UserParam type="float" name="OMSSA_score" value="1.17489755494e-6"/>
 			</PeptideHit>
 			<PeptideHit score="0.0107736878595685" sequence="VEFFAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="Search engine score" value="2.39883291902e-07"/>
+				<UserParam type="float" name="OMSSA_score" value="2.39883291902e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
