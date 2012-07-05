@@ -36,173 +36,187 @@
 
 namespace OpenMS
 {
-	/**
-		@brief A map alignment algorithm based on peptide identifications from MS2 spectra.
+  /**
+    @brief A map alignment algorithm based on peptide identifications from MS2 spectra.
 
-		PeptideIdentification instances are grouped by sequence of the respective best-scoring PeptideHit (provided the score is good enough) and retention time data is collected from the "RT" MetaInfo entries.	ID groups with the same sequence in different maps represent points of correspondence between the maps and form the basis of the alignment.
-		
-		Each map is aligned to a reference retention time scale. This time scale can either come from a reference file (@p reference parameter) or be computed as a consensus of the input maps (median retention times over all maps of the ID groups). The maps are then aligned to this scale as follows:\n
-		The median retention time of each ID group in a map is mapped to the reference retention time of this group. Cubic spline smoothing is used to convert this mapping to a smooth function. Retention times in the map are transformed to the consensus scale by applying this function.
+    PeptideIdentification instances are grouped by sequence of the respective best-scoring
+    PeptideHit (provided the score is good enough) and retention time data is collected from the
+    "RT" MetaInfo entries.	ID groups with the same sequence in different maps represent points of
+    correspondence between the maps and form the basis of the alignment.
 
-	  @htmlinclude OpenMS_MapAlignmentAlgorithmIdentification.parameters
+    Each map is aligned to a reference retention time scale. This time scale can either come from a
+    reference file (@p reference parameter) or be computed as a consensus of the input maps (median
+    retention times over all maps of the ID groups). The maps are then aligned to this scale as
+    follows:\n
+    The median retention time of each ID group in a map is mapped to the reference retention time of
+    this group. Cubic spline smoothing is used to convert this mapping to a smooth function.
+    Retention times in the map are transformed to the consensus scale by applying this function.
 
-		@ingroup MapAlignment
-	*/
-	class OPENMS_DLLAPI MapAlignmentAlgorithmIdentification
-		: public MapAlignmentAlgorithm
-	{
-	 public:
-		/// Default constructor
-		MapAlignmentAlgorithmIdentification();
+    @htmlinclude OpenMS_MapAlignmentAlgorithmIdentification.parameters
 
-		/// Destructor
-		virtual ~MapAlignmentAlgorithmIdentification();
+    @ingroup MapAlignment
+  */
+  class OPENMS_DLLAPI MapAlignmentAlgorithmIdentification :
+    public MapAlignmentAlgorithm
+  {
+public:
+    /// Default constructor
+    MapAlignmentAlgorithmIdentification();
 
-		// Docu in base class
-		virtual void alignPeakMaps(std::vector<MSExperiment<> >&,
-															 std::vector<TransformationDescription>&);
+    /// Destructor
+    virtual ~MapAlignmentAlgorithmIdentification();
 
-		// Docu in base class
-		virtual void alignFeatureMaps(std::vector<FeatureMap<> >&,
-																	std::vector<TransformationDescription>&);
+    // Docu in base class
+    virtual void alignPeakMaps(std::vector<MSExperiment<> > &,
+                               std::vector<TransformationDescription> &);
 
-		// Docu in base class
-		virtual void alignConsensusMaps(std::vector<ConsensusMap>&,
-																		std::vector<TransformationDescription>&);
+    // Docu in base class
+    virtual void alignFeatureMaps(std::vector<FeatureMap<> > &,
+                                  std::vector<TransformationDescription> &);
 
-		// Docu in base class
-		virtual void alignPeptideIdentifications(
-			std::vector<std::vector<PeptideIdentification> >&,
-			std::vector<TransformationDescription>&);
+    // Docu in base class
+    virtual void alignConsensusMaps(std::vector<ConsensusMap> &,
+                                    std::vector<TransformationDescription> &);
 
-		// Docu in base class
-		virtual void setReference(Size reference_index=0, 
-															const String& reference_file="");
+    // Docu in base class
+    virtual void alignPeptideIdentifications(
+      std::vector<std::vector<PeptideIdentification> > &,
+      std::vector<TransformationDescription> &);
 
-		/// Creates a new instance of this class (for Factory)
-		static MapAlignmentAlgorithm* create()
-		{
-			return new MapAlignmentAlgorithmIdentification();
-		}
+    // Docu in base class
+    virtual void setReference(Size reference_index = 0,
+                              const String & reference_file = "");
 
-		/// Returns the product name (for the Factory)
-		static String getProductName()
-		{
-			return "identification";
-		}
+    /**
+      @brief Align feature maps or consensus maps.
 
-	 protected:
+      Since the method of aligning feature and consensus maps is equal for this algorithm,
+      alignFeatureMaps and alignConsensusMaps are only defined in conformance with the interface and
+      forward to this method.
 
-		/// Type to store retention times given for individual peptide sequences
-		typedef std::map<String, DoubleList> SeqToList;
-		
-		/// Type to store one representative retention time per peptide sequence
-		typedef std::map<String, DoubleReal> SeqToValue;
+      @param maps Vector maps (FeatureMap or ConsensusMap) that should be aligned.
+      @param transformations Vector of TransformationDescription that will be computed.
+    */
+    template <typename MapType>
+    void alignMaps(
+      std::vector<MapType> & maps, std::vector<TransformationDescription> &
+      transformations);
 
-		/// Index of input file to use as reference (1-based!)
-		Size reference_index_;
 
-		/// Reference retention times (per peptide sequence)
-		SeqToValue reference_;
+    /// Creates a new instance of this class (for Factory)
+    static MapAlignmentAlgorithm * create()
+    {
+      return new MapAlignmentAlgorithmIdentification();
+    }
 
-		/// Score threshold for peptide hits
-		DoubleReal score_threshold_;
-		
-		/// Minimum number of runs a peptide must occur in
-		Size min_run_occur_;
-			 
-		/**
-			 @brief Compute the median retention time for each peptide sequence
-			 
-			 @param rt_data Lists of RT values for diff. peptide sequences (input, will be sorted)
-			 @param medians Median RT values for the peptide sequences (output)
-			 @param sorted Are RT lists already sorted? (see @p median_)
-			 
-			 @throw Exception::IllegalArgument if the input list is empty
-		*/
-		void computeMedians_(SeqToList& rt_data, SeqToValue& medians,
-												 bool sorted = false);
+    /// Returns the product name (for the Factory)
+    static String getProductName()
+    {
+      return "identification";
+    }
 
-		/// Check if peptide ID contains a hit that passes the significance threshold @p score_threshold_ (list of peptide hits will be sorted)
-		bool hasGoodHit_(PeptideIdentification& peptide);
+protected:
 
-		/**
-			 @brief Collect retention time data ("RT" MetaInfo) from peptide IDs
+    /// Type to store retention times given for individual peptide sequences
+    typedef std::map<String, DoubleList> SeqToList;
 
-			 @param peptides Input peptide IDs (lists of peptide hits will be sorted)
-			 @param rt_data Lists of RT values for diff. peptide sequences (output)
-		*/
-		void getRetentionTimes_(std::vector<PeptideIdentification>& peptides,
-														SeqToList& rt_data);
+    /// Type to store one representative retention time per peptide sequence
+    typedef std::map<String, DoubleReal> SeqToValue;
 
-		/**
-			 @brief Collect retention time data ("RT" MetaInfo) from peptide IDs annotated to spectra
+    /// Index of input file to use as reference (1-based!)
+    Size reference_index_;
 
-			 @param experiment Input map for RT data
-			 @param rt_data Lists of RT values for diff. peptide sequences (output)
-		*/
-		void getRetentionTimes_(MSExperiment<>& experiment, SeqToList& rt_data);
+    /// Reference retention times (per peptide sequence)
+    SeqToValue reference_;
 
-		/**
-			 @brief Collect retention time data ("RT" MetaInfo) from peptide IDs contained in feature maps or consensus maps
+    /// Score threshold for peptide hits
+    DoubleReal score_threshold_;
 
-			 The following global flags (mutually exclusive) influence the processing:\n
-			 Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
-			 Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
+    /// Minimum number of runs a peptide must occur in
+    Size min_run_occur_;
 
-			 @param features Input features for RT data
-			 @param rt_data Lists of RT values for diff. peptide sequences (output)
-		*/
-		template <typename MapType> void getRetentionTimes_(MapType& features,
-																												SeqToList& rt_data);
+    /**
+      @brief Compute the median retention time for each peptide sequence
 
-		/**
-			 @brief Compute retention time transformations from RT data grouped by peptide sequence
+      @param rt_data Lists of RT values for diff. peptide sequences (input, will be sorted)
+      @param medians Median RT values for the peptide sequences (output)
+      @param sorted Are RT lists already sorted? (see @p median_)
 
-			 @param rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
-			 @param transforms Resulting transformations, per dataset (output)
-			 @param sorted Are RT lists already sorted? (see @p median_)
-		*/
-		void computeTransformations_(std::vector<SeqToList>& rt_data,
-																 std::vector<TransformationDescription>&
-																 transforms, bool sorted = false);
+      @throw Exception::IllegalArgument if the input list is empty
+    */
+    void computeMedians_(SeqToList & rt_data, SeqToValue & medians,
+                         bool sorted = false);
 
-		/**
-			 @brief Check that parameter values are valid
+    /// Check if peptide ID contains a hit that passes the significance threshold @p score_threshold_ (list of peptide hits will be sorted)
+    bool hasGoodHit_(PeptideIdentification & peptide);
 
-			 Currently only 'min_run_occur' is checked.
+    /**
+      @brief Collect retention time data ("RT" MetaInfo) from peptide IDs
 
-			 @param runs Number of runs (input files) to be aligned
-		*/
-		void checkParameters_(const Size runs);
-			
-		/**
-			 @brief Get reference retention times
+      @param peptides Input peptide IDs (lists of peptide hits will be sorted)
+      @param rt_data Lists of RT values for diff. peptide sequences (output)
+    */
+    void getRetentionTimes_(std::vector<PeptideIdentification> & peptides,
+                            SeqToList & rt_data);
 
-			 If a reference file is supplied via the @p reference parameter, extract retention time information and store it in #reference_.
-		*/
-		void getReference_();
+    /**
+      @brief Collect retention time data ("RT" MetaInfo) from peptide IDs annotated to spectra
 
-		/**
-			 @brief Align feature maps or consensus maps
+      @param experiment Input map for RT data
+      @param rt_data Lists of RT values for diff. peptide sequences (output)
+    */
+    void getRetentionTimes_(MSExperiment<> & experiment, SeqToList & rt_data);
 
-			 Helper function containing common functionality for alignFeatureMaps and alignConsensusMaps.
-		*/
-		template <typename MapType> void alignFeatureOrConsensusMaps_(
-			std::vector<MapType>& maps, std::vector<TransformationDescription>& 
-			transformations);
+    /**
+      @brief Collect retention time data ("RT" MetaInfo) from peptide IDs contained in feature maps or consensus maps
 
-	 private:
+      The following global flags (mutually exclusive) influence the processing:\n
+      Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
+      Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
 
-		/// Copy constructor intentionally not implemented -> private
-		MapAlignmentAlgorithmIdentification(
-			const MapAlignmentAlgorithmIdentification&);
+      @param features Input features for RT data
+      @param rt_data Lists of RT values for diff. peptide sequences (output)
+    */
+    template <typename MapType>
+    void getRetentionTimes_(MapType & features, SeqToList & rt_data);
 
-		///Assignment operator intentionally not implemented -> private
-		MapAlignmentAlgorithmIdentification& operator=(
-			const MapAlignmentAlgorithmIdentification&);
+    /**
+      @brief Compute retention time transformations from RT data grouped by peptide sequence
 
-	};
+      @param rt_data Lists of RT values for diff. peptide sequences, per dataset (input, will be sorted)
+      @param transforms Resulting transformations, per dataset (output)
+      @param sorted Are RT lists already sorted? (see @p median_)
+    */
+    void computeTransformations_(std::vector<SeqToList> & rt_data,
+                                 std::vector<TransformationDescription> &
+                                 transforms, bool sorted = false);
+
+    /**
+      @brief Check that parameter values are valid
+
+      Currently only 'min_run_occur' is checked.
+
+      @param runs Number of runs (input files) to be aligned
+    */
+    void checkParameters_(const Size runs);
+
+    /**
+      @brief Get reference retention times
+
+      If a reference file is supplied via the @p reference parameter, extract retention time
+      information and store it in #reference_.
+    */
+    void getReference_();
+
+private:
+
+    /// Copy constructor intentionally not implemented -> private
+    MapAlignmentAlgorithmIdentification(const MapAlignmentAlgorithmIdentification &);
+
+    ///Assignment operator intentionally not implemented -> private
+    MapAlignmentAlgorithmIdentification & operator=(const MapAlignmentAlgorithmIdentification &);
+
+  };
 
 } // namespace OpenMS
 
