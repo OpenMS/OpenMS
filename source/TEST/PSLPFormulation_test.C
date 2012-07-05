@@ -98,8 +98,8 @@ END_SECTION
 START_SECTION(([PSLPFormulation::IndexLess] bool operator()(IndexTriple const &left, IndexTriple const &right) const))
 {
   PSLPFormulation::IndexTriple a,b;
-  a.variable = 1;
-  b.variable = 2;
+  a.feature = 1;
+  b.feature = 2;
 
   TEST_EQUAL(PSLPFormulation::IndexLess().operator ()(a,b), true )
   TEST_EQUAL(PSLPFormulation::IndexLess().operator ()(b,a), false )
