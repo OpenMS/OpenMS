@@ -8,6 +8,7 @@ ItraqConstants.h
 ItraqQuantifier.h
 PeptideAndProteinQuant.h
 ProteinInference.h
+ProteinResolver.h
 )
 
 ### add path to the filenames

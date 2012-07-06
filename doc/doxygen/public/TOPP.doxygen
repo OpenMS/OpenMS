@@ -52,10 +52,10 @@
   - @subpage TOPP_FileMerger - Merges several MS files into one file.
   - @subpage TOPP_IDMerger -  Merges several protein/peptide identification files into one file.
   - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
-	- @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
+  - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
   - @subpage TOPP_SpectraMerger - Merges spectra from an LC/MS map, either by precursor or by RT blocks
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
-	- @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file
+  - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file
 
   <b>Signal Processing and Preprocessing</b>
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
@@ -91,12 +91,13 @@
   - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
   - @subpage TOPP_ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps
+  - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
 
   <b>Map Alignment</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
-	- @subpage TOPP_MapAlignerIdentification - Corrects retention time distortions between maps based on common peptide identifications.
+  - @subpage TOPP_MapAlignerIdentification - Corrects retention time distortions between maps based on common peptide identifications.
   - @subpage TOPP_MapAlignerPoseClustering - Corrects retention time distortions between maps using a pose clustering approach.
   - @subpage TOPP_MapAlignerSpectrum - Corrects retention time distortions between maps by spectrum alignment.
   - @subpage TOPP_MapRTTransformer - Applies retention time transformations to maps.
@@ -104,7 +105,7 @@
   - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
   - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
 
-	
+
   <b>Protein/Peptide Identification</b>
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
   - @subpage TOPP_CompNovoCID - Performs a peptide/protein identification with the CompNovo engine in CID mode.
@@ -120,10 +121,13 @@
   <b>Protein/Peptide Processing</b>
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
-	- @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
+  - @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
   - @subpage TOPP_IDFilter - Filters results from protein or peptide identification engines based on different criteria.
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
+<!--  %% not tested yet
+- @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
+-->
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.

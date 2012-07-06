@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/luhn/thesis/OpenMS_head/OpenMS_svn/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.5" id="cm_9586619902412042706" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2011-11-07T13:06:05">
+		<software name="IDMapper" version="1.9.0" />
+		<processingAction name="Identification mapping" />
+		<userParam type="string" name="parameter: ini" value="/inis/IDMapper.ini"/>
+		<userParam type="string" name="parameter: id" value="tmp_1_1.idXML"/>
+		<userParam type="string" name="parameter: in" value="tmp_1_1.consensusXML"/>
+		<userParam type="string" name="parameter: out" value="tmp_1_1.consensusXML"/>
+		<userParam type="float" name="parameter: rt_tolerance" value="80"/>
+		<userParam type="float" name="parameter: mz_tolerance" value="10"/>
+		<userParam type="string" name="parameter: mz_measure" value="ppm"/>
+		<userParam type="string" name="parameter: mz_reference" value="precursor"/>
+		<userParam type="string" name="parameter: ignore_charge" value="false"/>
+		<userParam type="string" name="parameter: use_centroid_rt" value="false"/>
+		<userParam type="string" name="parameter: use_centroid_mz" value="false"/>
+		<userParam type="string" name="parameter: use_subelements" value="false"/>
+		<userParam type="string" name="parameter: log" value=""/>
+		<userParam type="int" name="parameter: debug" value="0"/>
+		<userParam type="int" name="parameter: threads" value="8"/>
+		<userParam type="string" name="parameter: no_progress" value="false"/>
+		<userParam type="string" name="parameter: test" value="false"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2011-11-04T10:31:18" search_engine="OMSSA" search_engine_version="2.1.8">
+		<SearchParameters db="ipi.HUMAN.v3.64.OpenMS_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="IPI:IPI00007074.5|SWISS-PROT:P54577|TREMBL:B3KWK4|ENSEMBL:ENSP00000362576|REFSEQ:NP_003671|H-INV:HIT000045086|VEGA:OTTHUMP00000004027" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="IPI:IPI00216008.4|SWISS-PROT:P11413-2|ENSEMBL:ENSP00000358633;ENSP00000408735|VEGA:OTTHUMP00000196180" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="IPI:IPI00289800.7|SWISS-PROT:P11413-1|TREMBL:Q0PHS4;Q2Q9B7;Q2Q9H2;Q2VF42|ENSEMBL:ENSP00000291567;ENSP00000377194|REFSEQ:NP_001035810|H-INV:HIT000029531|VEGA:OTTHUMP00000026034;OTTHUMP00000026039" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="IPI:IPI00396131.4|TREMBL:B4DPX9|ENSEMBL:ENSP00000398476" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="IPI:IPI00853547.1|SWISS-PROT:P11413-3|TREMBL:A8K8D9|ENSEMBL:ENSP00000377192|REFSEQ:NP_000393" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="IPI:IPI00884082.3|TREMBL:B4DYA7;Q0PHS1|ENSEMBL:ENSP00000395599;ENSP00000413397|VEGA:OTTHUMP00000026035" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="IPI:IPI00940386.1|SWISS-PROT:Q7Z739|TREMBL:B3KXL4;Q658Z6;Q8N3V9;Q8NA80;Q96MZ5|ENSEMBL:ENSP00000368753|REFSEQ:NP_689971|H-INV:HIT000053845|VEGA:OTTHUMP00000177566" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2011-11-04T10:55:39" search_engine="OMSSA" search_engine_version="2.1.8">
+		<SearchParameters db="ipi.HUMAN.v3.64.OpenMS_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:2H(4) (K)" />
+			<FixedModification name="Label:13C(6) (R)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_7" accession="IPI:IPI00418471.6|SWISS-PROT:P08670|TREMBL:B0YJC4;B0YJC5;B3KRK8;Q53HU8|ENSEMBL:ENSP00000224237|REFSEQ:NP_003371|H-INV:HIT000262376|VEGA:OTTHUMP00000019224" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_2" date="2011-11-04T11:15:48" search_engine="OMSSA" search_engine_version="2.1.8">
+		<SearchParameters db="ipi.HUMAN.v3.64.OpenMS_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:13C(6)15N(2) (K)" />
+			<FixedModification name="Label:13C(6)15N(4) (R)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_8" accession="IPI:IPI00644712.4|SWISS-PROT:P12956|TREMBL:B2RDN9|ENSEMBL:ENSP00000352257;ENSP00000353192;ENSP00000384257|REFSEQ:NP_001460|H-INV:HIT000295315|VEGA:OTTHUMP00000028581;OTTHUMP00000199331;OTTHUMP00000199333;OTTHUMP00000199349" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="IPI:IPI00889791.1|TREMBL:B1AHC8|ENSEMBL:ENSP00000384941|VEGA:OTTHUMP00000199332" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="IPI:IPI00893062.1|TREMBL:B1AHC9;B4DE32;B4E356;Q6IC76|ENSEMBL:ENSP00000384082;ENSP00000403679|VEGA:OTTHUMP00000199335" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="IPI:IPI00893179.1|TREMBL:B1AHC7|ENSEMBL:ENSP00000384104;ENSP00000413058|VEGA:OTTHUMP00000199334" score="0.860155344009399" sequence="">
+				<userParam type="float" name="OMSSA_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="493.251434326172" RT="2882.2542" >
+		<PeptideHit score="0" sequence="IDVGEAEPR" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
+			<userParam type="float" name="OMSSA_score" value="0.000365757871993307"/>
+			<userParam type="string" name="target_decoy" value="target"/>
+			<userParam type="string" name="protein_references" value="unique"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="918.90380859375" RT="3136.8036" >
+		<PeptideHit score="0" sequence="DGQVINETSQHHDDLE" charge="2" aa_before="R" protein_refs="PH_6">
+			<userParam type="float" name="OMSSA_score" value="5.14098450426003e-06"/>
+			<userParam type="string" name="target_decoy" value="target"/>
+			<userParam type="string" name="protein_references" value="unique"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="764.874145507812" RT="4289.8255" >
+		<PeptideHit score="0.00832282471626734" sequence="ELVYPPDYNPEGK(Label:13C(6)15N(2))" charge="2" aa_before="K" aa_after="V" protein_refs="PH_7 PH_9 PH_10 PH_11">
+			<userParam type="float" name="OMSSA_score" value="0.0635712893443919"/>
+			<userParam type="string" name="target_decoy" value="target"/>
+			<userParam type="string" name="protein_references" value="non-unique"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<mapList count="3">
+		<map id="0" name="tmp_1_1.mzML" label="" size="9776">
+		</map>
+		<map id="1" name="tmp_1_1.mzML" label="" size="9776">
+		</map>
+		<map id="2" name="tmp_1_1.mzML" label="" size="9776">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_9031570949276310735" quality="6" charge="2">
+			<centroid rt="3935.11455880523" mz="566.787188002902" it="6.47092e+08"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="3935.11455880523" mz="566.787188002902" it="2.82352e+08" charge="2"/>
+				<element map="1" id="0" rt="3935.11455880523" mz="569.797443734962" it="1.92044e+08" charge="2"/>
+				<element map="2" id="0" rt="3935.11455880523" mz="571.791726720588" it="1.72697e+08" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="566.786804199219" RT="3925.0377" >
+				<PeptideHit score="0.00110527770102238" sequence="GYLDDPTVPR" charge="2" aa_before="K" aa_after="G" protein_refs="PH_1 PH_2 PH_4 PH_5">
+					<userParam type="float" name="OMSSA_score" value="0.00529332143774595"/>
+					<userParam type="string" name="target_decoy" value="target"/>
+					<userParam type="string" name="protein_references" value="non-unique"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="566.78515625" RT="3948.5816" >
+				<PeptideHit score="0.00110527770102238" sequence="GYLDDPTVPR" charge="2" aa_before="K" aa_after="G" protein_refs="PH_1 PH_2 PH_4 PH_5">
+					<userParam type="float" name="OMSSA_score" value="0.00678197789442591"/>
+					<userParam type="string" name="target_decoy" value="target"/>
+					<userParam type="string" name="protein_references" value="non-unique"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="string" name="Mass shifts [Da]" value="0.0000;6.0201;10.0083"/>
+		</consensusElement>
+		<consensusElement id="e_12931037218683098572" quality="4" charge="2">
+			<centroid rt="3935.33500267361" mz="797.889515040024" it="1.79221e+07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="3935.33500267361" mz="797.889515040024" it="7.52018e+06" charge="2"/>
+				<element map="1" id="0" rt="3935.33500267361" mz="799.902029630991" it="4.70182e+06" charge="2"/>
+				<element map="2" id="0" rt="3935.33500267361" mz="801.896605089006" it="5.70006e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="797.887634277344" RT="3940.0929" >
+				<PeptideHit score="0" sequence="AITDGQAGFGNDTLSK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_5 PH_6">
+					<userParam type="float" name="OMSSA_score" value="2.94408456932281e-13"/>
+					<userParam type="string" name="target_decoy" value="target"/>
+					<userParam type="string" name="protein_references" value="non-unique"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<userParam type="string" name="Mass shifts [Da]" value="0.0000;4.0251;8.0142"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
