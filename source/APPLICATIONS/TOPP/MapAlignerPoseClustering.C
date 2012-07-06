@@ -28,6 +28,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
+#ifdef _OPENMP 
+#include <omp.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 
