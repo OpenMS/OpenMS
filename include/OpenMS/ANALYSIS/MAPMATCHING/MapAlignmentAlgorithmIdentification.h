@@ -98,9 +98,34 @@ public:
       @param transformations Vector of TransformationDescription that will be computed.
     */
     template <typename MapType>
-    void alignMaps(
-      std::vector<MapType> & maps, std::vector<TransformationDescription> &
-      transformations);
+    void alignMaps(std::vector<MapType> & maps, 
+                   std::vector<TransformationDescription> & transformations) 
+    {
+      checkParameters_(maps.size());
+      startProgress(0, 3, "aligning maps");
+
+      if (reference_index_)     // reference is one of the input files
+      {
+        SeqToList rt_data;
+        getRetentionTimes_(maps[reference_index_ - 1], rt_data);
+        computeMedians_(rt_data, reference_, true);
+      }
+
+      // one set of RT data for each input map, except reference:
+      vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
+      for (Size i = 0, j = 0; i < maps.size(); ++i)
+      {
+        if (i == reference_index_ - 1) continue; // skip reference map, if any
+
+        getRetentionTimes_(maps[i], rt_data[j++]);
+      }
+      setProgress(1);
+
+      computeTransformations_(rt_data, transformations, true);
+
+      setProgress(3);
+      endProgress();
+    }
 
 
     /// Creates a new instance of this class (for Factory)

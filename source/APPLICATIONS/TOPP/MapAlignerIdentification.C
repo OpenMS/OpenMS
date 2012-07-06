@@ -212,7 +212,7 @@ private:
       // load maps
       loadInitialMaps(featureMaps, inputFiles, fxmlFile);
 
-      algorithm.alignMaps(featureMaps, transformations);
+      algorithm.alignFeatureMaps(featureMaps, transformations);
 
       if (modelType != "none")
       {
@@ -235,7 +235,7 @@ private:
       // load maps
       loadInitialMaps(cons_maps, inputFiles, f);
 
-      algorithm.alignMaps(cons_maps, transformations);
+      algorithm.alignConsensusMaps(cons_maps, transformations);
 
       if (modelType != "none")
       {

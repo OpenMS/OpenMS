@@ -175,37 +175,7 @@ namespace OpenMS
     setProgress(3);
     endProgress();
   }
-
-  template <typename MapType>
-  void MapAlignmentAlgorithmIdentification::alignMaps(
-    vector<MapType> & maps, vector<TransformationDescription> & transformations)
-  {
-    checkParameters_(maps.size());
-    startProgress(0, 3, "aligning maps");
-
-    if (reference_index_)     // reference is one of the input files
-    {
-      SeqToList rt_data;
-      getRetentionTimes_(maps[reference_index_ - 1], rt_data);
-      computeMedians_(rt_data, reference_, true);
-    }
-
-    // one set of RT data for each input map, except reference:
-    vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
-    for (Size i = 0, j = 0; i < maps.size(); ++i)
-    {
-      if (i == reference_index_ - 1) continue; // skip reference map, if any
-
-      getRetentionTimes_(maps[i], rt_data[j++]);
-    }
-    setProgress(1);
-
-    computeTransformations_(rt_data, transformations, true);
-
-    setProgress(3);
-    endProgress();
-  }
-
+  
   void MapAlignmentAlgorithmIdentification::alignFeatureMaps(
     vector<FeatureMap<> > & maps,
     vector<TransformationDescription> & transformations)
