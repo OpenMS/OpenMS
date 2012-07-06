@@ -77,7 +77,7 @@ namespace OpenMS
     tools_map["IDFilter"] = Internal::ToolDescription("IDFilter", "ID Processing");
     tools_map["IDMapper"] = Internal::ToolDescription("IDMapper", "ID Processing");
     tools_map["IDMerger"] = Internal::ToolDescription("IDMerger", "File Handling");
-    //tools_map["IDRipper"] = Internal::ToolDescription("IDRipper", "File Handling");
+    tools_map["IDRipper"] = Internal::ToolDescription("IDRipper", "File Handling");
     tools_map["IDPosteriorErrorProbability"] = Internal::ToolDescription("IDPosteriorErrorProbability", "ID Processing");
     tools_map["IDRTCalibration"] = Internal::ToolDescription("IDRTCalibration", "ID Processing");
     tools_map["ITRAQAnalyzer"] = Internal::ToolDescription("ITRAQAnalyzer", "Quantitation");

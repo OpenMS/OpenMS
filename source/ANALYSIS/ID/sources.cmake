@@ -8,6 +8,7 @@ ConsensusID.C
 FalseDiscoveryRate.C
 HiddenMarkovModel.C
 IDMapper.C
+IDRipper.C
 IDDecoyProbability.C
 PILISIdentification.C
 PILISModel.C
@@ -16,6 +17,7 @@ PILISNeutralLossModel.C
 PILISScoring.C
 PILISCrossValidation.C
 ProtonDistributionModel.C
+#QuantitativeExperimentalDesign.C
 )
 
 ### add path to the filenames

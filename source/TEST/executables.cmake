@@ -356,7 +356,7 @@ set(analysis_executables_list
 	FeatureHandle_test
 	HiddenMarkovModel_test
 	IDMapper_test
-  #IDRipper_test
+  IDRipper_test
   ILPDCWrapper_test
 	InclusionExclusionList_test
 	ItraqChannelExtractor_test

@@ -9,6 +9,7 @@ FalseDiscoveryRate.h
 HiddenMarkovModel.h
 IDDecoyProbability.h
 IDMapper.h
+IDRipper.h
 PILISIdentification.h
 PILISModel.h
 PILISModelGenerator.h
@@ -16,6 +17,7 @@ PILISNeutralLossModel.h
 PILISScoring.h
 PILISCrossValidation.h
 ProtonDistributionModel.h
+#QuantitativeExperimentalDesign.h
 )
 
 ### add path to the filenames

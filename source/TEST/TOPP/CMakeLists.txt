@@ -773,11 +773,17 @@ add_test("TOPP_IDMapper_3_out1" ${DIFF} -in1 IDMapper_3_output.tmp -in2 ${DATA_D
 set_tests_properties("TOPP_IDMapper_3_out1" PROPERTIES DEPENDS "TOPP_IDMapper_3")
 
 ### IDRipper tests
-#add_test("TOPP_IDRipper_1" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_1_input.idXML -out IDRipper_1_output.tmp )
-#add_test("TOPP_IDRipper_1_out1" ${DIFF} -in1 IDRipper_1_output_1.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_1_output_1.idXML )
-#set_tests_properties("TOPP_IDRipper_1_out1" PROPERTIES DEPENDS "TOPP_IDRipper_1")
-#add_test("TOPP_IDRipper_1_out2" ${DIFF} -in1 IDRipper_1_output_2.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_1_output_2.idXML )
-#set_tests_properties("TOPP_IDRipper_1_out2" PROPERTIES DEPENDS "TOPP_IDRipper_1")
+add_test("TOPP_IDRipper_1" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_1_input.idXML -out IDRipper_1_output.tmp )
+add_test("TOPP_IDRipper_1_out1" ${DIFF} -in1 IDRipper_1_output_1.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_1_output_1.idXML )
+set_tests_properties("TOPP_IDRipper_1_out1" PROPERTIES DEPENDS "TOPP_IDRipper_1")
+add_test("TOPP_IDRipper_1_out2" ${DIFF} -in1 IDRipper_1_output_2.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_1_output_2.idXML )
+set_tests_properties("TOPP_IDRipper_1_out2" PROPERTIES DEPENDS "TOPP_IDRipper_1")
+add_test("TOPP_IDRipper_2" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_2_input.idXML -out IDRipper_2_output.tmp )
+add_test("TOPP_IDRipper_2_out1" ${DIFF} -in1 IDRipper_2_output_1.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_2_output_1.idXML )
+set_tests_properties("TOPP_IDRipper_2_out1" PROPERTIES DEPENDS "TOPP_IDRipper_2")
+add_test("TOPP_IDRipper_2_out2" ${DIFF} -in1 IDRipper_2_output_2.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_2_output_2.idXML )
+set_tests_properties("TOPP_IDRipper_2_out2" PROPERTIES DEPENDS "TOPP_IDRipper_2")
+
 
 ### ConsensusID tests
 add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_1_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_1_output.tmp)

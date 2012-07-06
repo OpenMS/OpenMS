@@ -36,6 +36,7 @@ IDFileConverter
 IDFilter
 IDMapper
 IDMerger
+IDRipper
 IDRTCalibration
 ITRAQAnalyzer
 InclusionExclusionListCreator
