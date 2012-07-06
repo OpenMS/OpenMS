@@ -112,7 +112,7 @@ public:
       }
 
       // one set of RT data for each input map, except reference:
-      vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
+      std::vector<SeqToList> rt_data(maps.size() - bool(reference_index_));
       for (Size i = 0, j = 0; i < maps.size(); ++i)
       {
         if (i == reference_index_ - 1) continue; // skip reference map, if any
