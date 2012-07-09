@@ -466,6 +466,8 @@ namespace OpenMS
   void TraMLHandler::writeTo(std::ostream& os)
   {
     const TargetedExperiment& exp = *(cexp_);
+    logger_.startProgress(0,exp.getTransitions().size(),"storing TraML file");
+    int progress = 0;
 
     os  << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     os  << "<TraML version=\"1.0.0\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML1.0.0.xsd\">" << "\n";
@@ -685,6 +687,7 @@ namespace OpenMS
       os << "  <TransitionList>" << "\n";
       for (std::vector<ReactionMonitoringTransition>::const_iterator it = exp.getTransitions().begin(); it != exp.getTransitions().end(); ++it)
       {
+        logger_.setProgress(progress++);
         os << "    <Transition";
         os << " id=\"" << it->getName() << "\"";
 
@@ -786,6 +789,7 @@ namespace OpenMS
     }
 
     os << "</TraML>" << "\n";
+    logger_.endProgress();
     return;
   }
 

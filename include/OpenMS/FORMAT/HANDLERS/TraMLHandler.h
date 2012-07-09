@@ -32,11 +32,10 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {
-  class ProgressLogger;
-
   namespace Internal
   {
 
