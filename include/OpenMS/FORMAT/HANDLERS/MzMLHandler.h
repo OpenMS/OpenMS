@@ -3452,7 +3452,8 @@ namespace OpenMS
 		void MzMLHandler<MapType>::writeTo(std::ostream& os)
 		{
 			const MapType& exp = *(cexp_);
-			logger_.startProgress(0,exp.size(),"storing mzML file");
+			logger_.startProgress(0,exp.size() + exp.getChromatograms().size(),"storing mzML file");
+			int progress = 0;
 			
 			os	<< "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 					<< "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"" << version_ << "\">\n";
@@ -4367,7 +4368,7 @@ namespace OpenMS
 				//write actual data
 				for (Size s=0; s<exp.size(); ++s)
 				{
-          logger_.setProgress(s);
+          logger_.setProgress(progress++);
 					const SpectrumType& spec = exp[s];
 					
 					//native id
@@ -4869,6 +4870,7 @@ namespace OpenMS
 				os	<< "		<chromatogramList count=\"" << exp.getChromatograms().size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n"; 
 				for (Size c = 0; c != exp.getChromatograms().size(); ++c)
 				{
+          logger_.setProgress(progress++);
 					// TODO native id with chromatogram=?? prefix?
 					const ChromatogramType& chromatogram = exp.getChromatograms()[c];
 					os << "      <chromatogram id=\"" << chromatogram.getNativeID() << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
