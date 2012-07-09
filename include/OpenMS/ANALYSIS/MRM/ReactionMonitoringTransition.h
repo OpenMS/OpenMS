@@ -54,6 +54,13 @@ namespace OpenMS
     typedef TargetedExperimentHelper::TraMLProduct Product;
     typedef TargetedExperimentHelper::Prediction Prediction;
 
+    enum DecoyTransitionType
+    {
+      UNKNOWN,
+      TARGET,
+      DECOY
+    };
+
     /** @name Constructors and destructors
     */
     //@{
@@ -129,6 +136,15 @@ namespace OpenMS
     void addPredictionTerm(const CVTerm& prediction);
 
     const Prediction& getPrediction() const;
+
+    DecoyTransitionType getDecoyTransitionType() const;
+
+    void setDecoyTransitionType(const DecoyTransitionType& d);
+
+    DoubleReal getLibraryIntensity() const;
+
+    void setLibraryIntensity(DoubleReal intensity);
+
     //@}
 
     /** @name Predicates
@@ -181,6 +197,10 @@ namespace OpenMS
     Product product_;
 
     std::vector<Product> intermediate_products_;
+
+    DecoyTransitionType decoy_type_;
+
+    DoubleReal library_intensity_;
 
     RetentionTime rts;
 

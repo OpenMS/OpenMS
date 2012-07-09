@@ -33,7 +33,8 @@ namespace OpenMS
 {
   ReactionMonitoringTransition::ReactionMonitoringTransition()
     :  CVTermList(),
-      precursor_mz_(std::numeric_limits<DoubleReal>::max())
+      precursor_mz_(std::numeric_limits<DoubleReal>::max()), 
+      library_intensity_(-101)
   {
   }
 
@@ -49,6 +50,8 @@ namespace OpenMS
       prediction_(rhs.prediction_),
       product_(rhs.product_),
       intermediate_products_(rhs.intermediate_products_),
+      decoy_type_(rhs.decoy_type_),
+      library_intensity_(rhs.library_intensity_),
       rts(rhs.rts)
   {
   }
@@ -72,6 +75,8 @@ namespace OpenMS
       prediction_ = rhs.prediction_;
       product_ = rhs.product_;
       intermediate_products_ = rhs.intermediate_products_;
+      decoy_type_ = rhs.decoy_type_;
+      library_intensity_ = rhs.library_intensity_;
       rts = rhs.rts;
     }
     return *this;
@@ -90,6 +95,8 @@ namespace OpenMS
             prediction_ == rhs.prediction_ &&
             product_ == rhs.product_ &&
             intermediate_products_ == rhs.intermediate_products_ &&
+            decoy_type_ == rhs.decoy_type_ &&
+            library_intensity_ == rhs.library_intensity_ &&
             rts == rhs.rts;
   }
 
@@ -248,6 +255,26 @@ namespace OpenMS
 
   void ReactionMonitoringTransition::updateMembers_()
   {
+  }
+
+  ReactionMonitoringTransition::DecoyTransitionType ReactionMonitoringTransition::getDecoyTransitionType() const
+  {
+    return decoy_type_;
+  }
+
+  void ReactionMonitoringTransition::setDecoyTransitionType(const DecoyTransitionType& d)
+  {
+    decoy_type_ = d;
+  }
+
+  DoubleReal ReactionMonitoringTransition::getLibraryIntensity() const
+  {
+    return library_intensity_;
+  }
+
+  void ReactionMonitoringTransition::setLibraryIntensity(const DoubleReal intensity)
+  {
+    library_intensity_ = intensity;
   }
 
 }

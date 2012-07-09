@@ -593,6 +593,14 @@ namespace OpenMS
       for (std::vector<TargetedExperiment::Peptide>::const_iterator it = exp_peptides.begin(); it != exp_peptides.end(); ++it)
       {
         os << "    <Peptide id=\"" << it->id << "\" sequence=\"" << it->sequence << "\">" << "\n";
+        if ( it->getChargeState() != -1 )
+        {
+          os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  it->getChargeState() << "\"/>\n";
+        }
+        if ( it->getPeptideGroupLabel() != "" )
+        {
+          os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000893\" name=\"peptide group label\" value=\"" <<  it->getPeptideGroupLabel() << "\"/>\n";
+        }
         writeCVParams_(os, (CVTermList)*it, 3);
         writeUserParam_(os, (MetaInfoInterface)*it, 3);
 
@@ -701,6 +709,24 @@ namespace OpenMS
           os << " compoundRef=\"" << it->getCompoundRef() << "\"";
         }
         os << ">" << "\n";
+
+
+        if ( it->getLibraryIntensity() > -100 )
+        {
+          os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001226\" name=\"product ion intensity\" value=\"" <<  it->getLibraryIntensity() << "\"/>\n";
+        }
+        if ( it->getDecoyTransitionType() != ReactionMonitoringTransition::UNKNOWN )
+        {
+          if ( it->getDecoyTransitionType() == ReactionMonitoringTransition::TARGET )
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002007\" name=\"target SRM transition\"/>\n";
+          }
+          else if ( it->getDecoyTransitionType() == ReactionMonitoringTransition::DECOY )
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002008\" name=\"decoy SRM transition\"/>\n";
+          }
+        }
+
 
         writeCVParams_(os, (CVTermList)*it, 3);
         writeUserParam_(os, (MetaInfoInterface)*it, 3);
@@ -1041,7 +1067,18 @@ namespace OpenMS
     }
     else if (parent_tag == "Peptide")
     {
-      actual_peptide_.addCVTerm(cv_term);
+      if (cv_term.getAccession() == "MS:1000041")
+      {
+        actual_peptide_.setChargeState(cv_term.getValue().toString().toInt());
+      }
+      else if (cv_term.getAccession() == "MS:1000893")
+      {
+        actual_peptide_.setPeptideGroupLabel(cv_term.getValue().toString());
+      }
+      else
+      {
+        actual_peptide_.addCVTerm(cv_term);
+      }
     }
     else if (parent_tag == "Modification")
     {
@@ -1083,6 +1120,8 @@ namespace OpenMS
     {
       if (parent_parent_tag == "Transition")
       {
+        // handle specific CV terms of Transition, currently these are 
+        // id: MS:1000827 name: isolation window target m/z
         if (cv_term.getAccession() == "MS:1000827")
         {
           actual_transition_.setPrecursorMZ(cv_term.getValue().toString().toDouble());
@@ -1112,7 +1151,31 @@ namespace OpenMS
     } 
     else if (parent_tag == "Transition")
     {
-      actual_transition_.addCVTerm(cv_term);
+      // handle specific CV terms of Transition, currently these are 
+      // id: MS:1002007 name: target SRM transition
+      // id: MS:1002008 name: decoy SRM transition
+      //
+      // id: MS:1000905 (percent of base peak times 100) or MS:1001226 (product ion intensity)
+      if (cv_term.getAccession() == "MS:1002007")
+      {
+        actual_transition_.setDecoyTransitionType(ReactionMonitoringTransition::TARGET);
+      }
+      else if (cv_term.getAccession() == "MS:1002008")
+      {
+        actual_transition_.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
+      }
+      else if (cv_term.getAccession() == "MS:1001226")
+      {
+        actual_transition_.setLibraryIntensity(cv_term.getValue().toString().toDouble());
+      }
+      else if (cv_term.getAccession() == "MS:1000905")
+      {
+        actual_transition_.setLibraryIntensity(cv_term.getValue().toString().toDouble());
+      }
+      else
+      {
+        actual_transition_.addCVTerm(cv_term);
+      }
     }
     else 
     {

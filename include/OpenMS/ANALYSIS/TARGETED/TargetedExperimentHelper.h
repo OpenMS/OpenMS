@@ -40,7 +40,7 @@ namespace OpenMS
     IncludeExcludeTarget).
   */
 
-  struct OPENMS_DLLAPI TargetedExperimentHelper
+  namespace TargetedExperimentHelper
   {
 
     struct Configuration
@@ -213,6 +213,17 @@ namespace OpenMS
       Peptide()
         : CVTermList()
       {
+        charge_ = -1;
+        peptide_group_label_ = -1;
+
+        // we store the actual labels in a static vector which allows us to
+        // store each label only once.
+        static std::vector<String>* init_peptide_group_labels_ = 0;
+        if (init_peptide_group_labels_ == 0)
+        {
+          init_peptide_group_labels_ = new std::vector<String>;
+        }
+        peptide_group_labels_ = init_peptide_group_labels_;
       }
 
       Peptide(const Peptide& rhs)
@@ -222,7 +233,10 @@ namespace OpenMS
           protein_refs(rhs.protein_refs),
           evidence(rhs.evidence),
           sequence(rhs.sequence),
-          mods(rhs.mods)
+          mods(rhs.mods),
+          charge_(rhs.charge_),
+          peptide_group_label_(rhs.peptide_group_label_),
+          peptide_group_labels_(rhs.peptide_group_labels_)
       {
       }
 
@@ -237,6 +251,9 @@ namespace OpenMS
           evidence = rhs.evidence;
           sequence = rhs.sequence;
           mods = rhs.mods;
+          charge_ = rhs.charge_;
+          peptide_group_label_ = rhs.peptide_group_label_;
+          peptide_group_labels_ = rhs.peptide_group_labels_;
         }
         return *this;
       }
@@ -249,7 +266,45 @@ namespace OpenMS
                 protein_refs == rhs.protein_refs &&
                 evidence == rhs.evidence &&
                 sequence == rhs.sequence &&
-                mods == rhs.mods;
+                mods == rhs.mods &&
+                charge_ == rhs.charge_ &&
+                peptide_group_label_ == rhs.peptide_group_label_ &&
+                peptide_group_labels_ == rhs.peptide_group_labels_;
+      }
+
+      void setChargeState(UInt charge)
+      {
+        charge_ = charge;
+      }
+
+      Int getChargeState() const
+      {
+        return charge_;
+      }
+
+      void setPeptideGroupLabel(const String & label) 
+      {
+        for (Size i = 0; i < peptide_group_labels_->size(); i++)
+        {
+          if ((*peptide_group_labels_)[i] == label)
+          {
+            peptide_group_label_ = i;
+            return;
+          }
+        }
+
+        // not found, add it to the list
+        peptide_group_label_ = peptide_group_labels_->size();
+        peptide_group_labels_->push_back(label);
+      }
+
+      String getPeptideGroupLabel() const
+      {
+        if (peptide_group_label_ == -1) 
+        {
+          return "";
+        }
+        return (*peptide_group_labels_)[peptide_group_label_];
       }
 
       std::vector<RetentionTime> rts;
@@ -258,6 +313,11 @@ namespace OpenMS
       CVTermList evidence;
       String sequence;
       std::vector<Modification> mods;
+
+      protected:
+        UInt charge_;
+        Int peptide_group_label_;
+        std::vector<String>* peptide_group_labels_;
     };
 
     struct OPENMS_DLLAPI Contact
@@ -405,6 +465,7 @@ namespace OpenMS
       {
         return configuration_list_;
       }
+
       void addConfiguration(const Configuration configuration) 
       {
         return configuration_list_.push_back(configuration);
@@ -419,6 +480,7 @@ namespace OpenMS
       {
         return interpretation_list_; 
       }
+
       void addInterpretation(const CVTermList interpretation) 
       {
         return interpretation_list_.push_back(interpretation);
@@ -432,7 +494,8 @@ namespace OpenMS
 
     };
 
-  };
+  }
+
 }
 
 #endif // OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENTHELPER_H
