@@ -64,6 +64,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDDecoyProbability.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_IDDecoyProbability.html
 
 	For the parameters of the algorithm section see the algorithms documentation: @n
 		@ref OpenMS::IDDecoyProbability "decoy_algorithm" @n

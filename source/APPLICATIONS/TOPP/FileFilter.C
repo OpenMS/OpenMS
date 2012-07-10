@@ -95,6 +95,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileFilter.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_FileFilter.html
 
 	For the parameters of the S/N algorithm section see the class documentation there: @n
 		@ref OpenMS::SignalToNoiseEstimatorMedian "sn"@n

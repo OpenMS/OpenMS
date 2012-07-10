@@ -52,7 +52,9 @@ using namespace std;
 	@experimental This Utility is not well tested and some features might not work as expected.
 	
 	<B>The command line parameters of this tool are:</B>
-	@verbinclude UTILS_SpecLibCreator.cli 
+	@verbinclude UTILS_SpecLibCreator.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude UTILS_SpecLibCreator.html 
 */
 
 // We do not want this class to show up in the docu:

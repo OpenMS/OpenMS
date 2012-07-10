@@ -51,6 +51,8 @@ using namespace std;
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_CVInspector.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude UTILS_CVInspector.html
 */
 
 // We do not want this class to show up in the docu:

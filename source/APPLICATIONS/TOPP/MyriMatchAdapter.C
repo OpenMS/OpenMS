@@ -71,6 +71,8 @@
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MyriMatchAdapter.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_MyriMatchAdapter.html
 */
 
 // We do not want this class to show up in the docu:

@@ -73,6 +73,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B> @n
 	@verbinclude TOPP_MapAlignerSpectrum.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_MapAlignerSpectrum.html
 
 */
 

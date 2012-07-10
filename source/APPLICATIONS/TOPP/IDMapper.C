@@ -84,6 +84,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDMapper.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_IDMapper.html
 
 	On the peptide side, two sources for m/z values are possible (see parameter @p mz_reference): 1. m/z of the precursor of the MS2 spectrum that gave rise to the peptide identification; 2. theoretical masses computed from the amino acid sequences of peptide hits.
 	(When using theoretical masses, make sure that peptide modifications were identified correctly. OpenMS currently "forgets" mass shifts that it can't assign to modifications - if that happens, masses computed from peptide sequences will be off.)

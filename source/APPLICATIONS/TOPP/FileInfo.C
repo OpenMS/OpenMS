@@ -80,6 +80,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FileInfo.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_FileInfo.html
 
 	In order to enrich the resulting data of your anaysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
 */

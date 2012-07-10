@@ -73,6 +73,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_NoiseFilterGaussian.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_NoiseFilterGaussian.html
 
 	<B>The algorithm parameters for the Gaussian filter are:</B>
 @htmlinclude OpenMS_GaussFilter.parameters

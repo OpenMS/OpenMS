@@ -69,6 +69,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B> @n
 	@verbinclude TOPP_MapRTTransformer.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_MapRTTransformer.html
 
 */
 

@@ -96,6 +96,8 @@ using namespace OpenMS;
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PrecursorIonSelector.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_PrecursorIonSelector.html
 
 	For the parameters of the algorithm section see the algorithm's documentation: @n
 		@ref OpenMS::PrecursorIonSelection @n

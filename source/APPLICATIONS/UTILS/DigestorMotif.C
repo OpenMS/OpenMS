@@ -50,6 +50,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_DigestorMotif.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude UTILS_DigestorMotif.html
 
 */
 

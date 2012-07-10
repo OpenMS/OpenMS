@@ -63,6 +63,8 @@ A number of different output formats are available via the parameter @p format:
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_MassCalculator.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude UTILS_MassCalculator.html
 */
 
 // We do not want this class to show up in the docu:

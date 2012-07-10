@@ -70,6 +70,8 @@ pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter t
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDMerger.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_IDMerger.html
 
 */
 

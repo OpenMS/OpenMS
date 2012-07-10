@@ -73,6 +73,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PILISIdentification.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_PILISIdentification.html
 
 	@todo Check for missing precursors (Hiwi)
 */

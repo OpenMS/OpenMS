@@ -82,6 +82,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_RTPredict.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_RTPredict.html
 
 	@todo This need serious clean up! Combining certain input and output options will
           result in strange behaviour, especially when using text output/input.

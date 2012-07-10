@@ -107,6 +107,8 @@ using namespace std;
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_SILACAnalyzer.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_SILACAnalyzer.html
 
   <b>Parameter Tuning</b>
 

@@ -55,6 +55,8 @@ using namespace Math;
 		
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_IDMassAccuracy.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude UTILS_IDMassAccuracy.html
 
 	Given a number of peak maps and for each of the maps an idXML file which contains
 	peptide identifications the theoretical masses of the identifications and the peaks

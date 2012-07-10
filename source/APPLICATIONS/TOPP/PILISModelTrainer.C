@@ -78,6 +78,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PILISModelTrainer.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_PILISModelTrainer.html
 */
 
 

@@ -86,6 +86,8 @@ RT	m/z	int	charge	rank
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_EICExtractor.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_EICExtractor.html
 
 */
 

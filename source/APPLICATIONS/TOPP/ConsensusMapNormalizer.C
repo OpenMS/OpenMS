@@ -65,6 +65,8 @@ The tool normalizes the intensities of a set of maps (consensusXML file) using r
 
 <B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ConsensusMapNormalizer.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_ConsensusMapNormalizer.html
 
 */
 

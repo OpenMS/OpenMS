@@ -82,6 +82,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_IDPosteriorErrorProbability.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_IDPosteriorErrorProbability.html
 
 	For the parameters of the algorithm section see the algorithms documentation: @n
 		@ref OpenMS::Math::PosteriorErrorProbabilityModel "fit_algorithm" @n

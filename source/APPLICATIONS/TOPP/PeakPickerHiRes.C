@@ -72,6 +72,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PeakPickerHiRes.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_PeakPickerHiRes.html
 
 	For the parameters of the algorithm section see the algorithm documentation: @n
     @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes" @n

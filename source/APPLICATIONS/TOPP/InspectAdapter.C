@@ -118,6 +118,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_InspectAdapter.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_InspectAdapter.html
 
   @todo rewrite the Adapter! It uses old formats and coding style, e.g. mzData input allowed, no input restrictions, manual (unneccessary file checking of input files) etc...
         + the interface is not convenient, etc ...

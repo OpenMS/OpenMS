@@ -67,6 +67,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_BaselineFilter.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_BaselineFilter.html
 
 	@note The length (given in Thomson) of the structuring element should be wider than the
 	maximum peak width in the raw data.

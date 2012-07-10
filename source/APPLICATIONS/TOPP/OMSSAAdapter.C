@@ -95,6 +95,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_OMSSAAdapter.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_OMSSAAdapter.html
 
 	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
 */

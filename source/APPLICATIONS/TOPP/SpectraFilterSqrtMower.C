@@ -60,6 +60,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_SpectraFilterSqrtMower.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_SpectraFilterSqrtMower.html
 
 	For the parameters of the algorithm section see the class documentation: @n
 		@ref OpenMS::SqrtMower @n

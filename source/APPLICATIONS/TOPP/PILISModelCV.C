@@ -75,6 +75,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PILISModelCV.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_PILISModelCV.html
 */
 
 

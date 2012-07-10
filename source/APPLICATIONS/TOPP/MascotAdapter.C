@@ -160,6 +160,8 @@ using namespace std;
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MascotAdapter.cli
+	<B>INI file documentation of this tool:</B>
+	@htmlinclude TOPP_MascotAdapter.html
 
 	You can specify the Mascot parameters <b>precursor_mass_tolerance</b>
 	(the peptide mass tolerance), <b>peak_mass_tolerance</b> (the MS/MS tolerance),
