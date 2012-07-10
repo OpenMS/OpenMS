@@ -65,6 +65,7 @@ if (DOXYGEN_FOUND)
 										COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html
 										COMMAND ${CMAKE_COMMAND} -E chdir doc "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile
 										COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/index.html doc/index.html
+										COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/doxygen/common/style_ini.css doc/html/style_ini.css
 										COMMAND ${CMAKE_COMMAND} -E echo "";
 										COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 										COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created.";
