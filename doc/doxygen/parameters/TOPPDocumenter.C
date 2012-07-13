@@ -43,10 +43,12 @@ void convertINI2HTML(const Param& p, ostream& os)
 {
   // the .css file is included via the Header.html (see doc/doxygen/common/Header.html)
   os << "<div class=\"ini_global\">\n";
-  os << "Legend:<br>\n";
-  os << "<div class=\"item item_required\">required parameter</div>\n";
-  os << "<div class=\"item item_advanced\">advanced parameter</div>\n";
-  os << "<br>\n";
+  os << "<div class=\"legend\">\n";
+  os << "<b>Legend:</b><br>\n";
+  os << " <div class=\"item item_required\">required parameter</div>\n";
+  os << " <div class=\"item item_advanced\">advanced parameter</div>\n";
+  os << "</div>\n";
+
   Param::ParamIterator it = p.begin();
   String indentation = "  ";
 

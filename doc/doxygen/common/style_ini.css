@@ -6,6 +6,15 @@ div.ini_global {
 	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
 }
 
+div.legend {
+  width: 200px;
+	border: 1px dashed;
+}
+
+div.legend div {
+	padding-left:10px;
+}
+
 div.node {
 	overflow:hidden;
 	font-size: 12px;
@@ -32,7 +41,7 @@ div.item {
 	border-bottom:1px dashed;
 }
 
-div.item_advanced {
+.item_advanced {
 	color: #555555
 }
 
@@ -68,7 +77,7 @@ div.item span.item_restrictions {
 	width:200px;
 }
 
-span.item_required {
+.item_required {
 	color: #FF7F00;
 	font-weight:bold;
 }
