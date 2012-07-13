@@ -43,7 +43,10 @@ void convertINI2HTML(const Param& p, ostream& os)
 {
   // the .css file is included via the Header.html (see doc/doxygen/common/Header.html)
   os << "<div class=\"ini_global\">\n";
-
+  os << "Legend:<br>\n";
+  os << "<div class=\"item item_required\">required parameter</div>\n";
+  os << "<div class=\"item item_advanced\">advanced parameter</div>\n";
+  os << "<br>\n";
   Param::ParamIterator it = p.begin();
   String indentation = "  ";
 
@@ -59,7 +62,7 @@ void convertINI2HTML(const Param& p, ostream& os)
       {
         String d = it2->description;
         d.substitute("\n","<br>");
-        os << indentation  << "<div class=\"node\"><span class=\"node_name\">" << writeXMLEscape(it2->name) << "</span><span class=\"node_description\">" << writeXMLEscape(d) << "</span></div>" << "\n";
+        os << indentation  << "<div class=\"node\"><span class=\"node_name\">" << (String().fillLeft('+', (UInt) indentation.size()/2) + it2->name) << "</span><span class=\"node_description\">" << (d) << "</span></div>" << "\n";
         indentation += "  ";
       }
       else //closed node
@@ -76,12 +79,12 @@ void convertINI2HTML(const Param& p, ostream& os)
     if (it->tags.find("required") != it->tags.end()) s_req += " item_required"; // optionally add required class 
     DataValue::DataType value_type = it->value.valueType();
     //write opening tag
-    os << indentation << "<div class=\"item" + s_attr + "\"><span class=\"item_name" + s_req + "\" style=\"padding-left:"<< indentation.size()*4 <<"px;\">" << writeXMLEscape(it->name) << "</span><span class=\"item_value\">" << it->value.toString() << "</span>" << "\n";
+    os << indentation << "<div class=\"item" + s_attr + "\"><span class=\"item_name" + s_req + "\" style=\"padding-left:"<< indentation.size()*4 <<"px;\">" << (it->name) << "</span><span class=\"item_value\">" << it->value.toString() << "</span>" << "\n";
 
     //replace all critical characters in description
     String d = it->description;
     d.substitute("\n","<br>");
-    os << "<span class=\"item_description\">" << writeXMLEscape(d) << "</span>";
+    os << "<span class=\"item_description\">" << (d) << "</span>";
 
     //tags
     String list;
@@ -92,7 +95,7 @@ void convertINI2HTML(const Param& p, ostream& os)
       if (!list.empty()) list += ",";
       list += *tag_it;
     }
-    os << "<span class=\"item_tags\">" << writeXMLEscape(list) << "</span>";
+    os << "<span class=\"item_tags\">" << (list) << "</span>";
 
     //restrictions
     String restrictions = "";
@@ -143,7 +146,7 @@ void convertINI2HTML(const Param& p, ostream& os)
     };
     if (restrictions.empty()) restrictions=" "; // create content, such that the cell gets an underline
 
-    os << "<span class=\"item_restrictions\">" << (escape_restrictions ? writeXMLEscape(restrictions) : restrictions) << "</span>";
+    os << "<span class=\"item_restrictions\">" << restrictions << "</span>";
 
     os <<"</div>"; // end div item
     
