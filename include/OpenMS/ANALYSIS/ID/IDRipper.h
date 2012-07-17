@@ -56,7 +56,8 @@ namespace OpenMS
       /**
         @brief Ripping protein/peptide identification according their file origin
 
-        This method stores for each file origin the respective ProteinIdentification and PeptideIdentification into a map.
+        Iteration over all @p PeptideIdentification. For each annotated file origin create a map entry and store the
+        respective @p PeptideIdentification and @p ProteinIdentification.
 
         @param ripped Contains the protein identification and peptide identification for each file origin annotated in proteins and peptides
         @param proteins Peptide identification annotated with file origin

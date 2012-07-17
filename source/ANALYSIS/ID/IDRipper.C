@@ -30,7 +30,11 @@
 
 #include <QDir>
 
-using namespace std;
+using std::vector;
+using std::map;
+using std::pair;
+
+//using namespace std;
 
 namespace OpenMS
 {
@@ -60,6 +64,8 @@ namespace OpenMS
     vector<ProteinHit> all_protein_hits;
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin(); prot_it != proteins.end(); ++prot_it)
     {
+      // remove file origin
+      prot_it->removeMetaValue("file_origin");
       vector<ProteinHit>& protein_hits  = prot_it->getHits();
       all_protein_hits.insert(all_protein_hits.end(), protein_hits.begin(), protein_hits.end());
     }
@@ -70,7 +76,12 @@ namespace OpenMS
     {
       // try to get file_origin, if not present ignore peptide identification
       const String& file_origin = pep_it->getMetaValue("file_origin").toString();
+      // QFileInfo fi("/tmp/archive.tar.gz");
+      // QString name = fi.fileName(); --> name = "archive.tar.gz"
       const String file_ = QFileInfo(file_origin.toQString()).fileName().toStdString();
+
+      //remove file origin
+      pep_it->removeMetaValue("file_origin");
 
       //TODO LOG that file_origin was not as expected
       if ( file_.empty() ) continue;
@@ -107,7 +118,6 @@ namespace OpenMS
           {
             for ( vector<ProteinHit>::const_iterator prot_it = protein2accessions.begin(); prot_it != protein2accessions.end(); ++prot_it)
             {
-              cerr << "Then add all protein hits now ..." << endl;
               it2->insertHit(*prot_it);
             }
             flag = false;

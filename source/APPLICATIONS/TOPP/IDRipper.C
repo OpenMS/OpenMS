@@ -26,16 +26,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <QDir>
 
+using std::vector;
+using std::pair;
+using std::map;
 
 using namespace OpenMS;
-using namespace std;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -44,7 +45,7 @@ using namespace std;
 /**
     @page TOPP_IDRipper IDRipper
 
-    @brief Splits one idXML file into several idXML files according to file origin.
+    @brief IDRipper splits the protein/peptide identification of an idXML file into several idXML files according their annotated file origin.
 
     <CENTER>
     <table>
@@ -54,21 +55,49 @@ using namespace std;
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMerger</td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinQuantifier</td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IsoformResolver</td>
+            <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDFilter</td>
+            <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDMapper</td>
         </tr>
     </table>
     </CENTER>
-
-    In general, the number of idXML files that can result from splitting is not limited.
+  <CENTER>
+  <table>
+    <tr>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDMerger \f$ \longrightarrow \f$</td>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
+    </tr>
+  </table>
+  </CENTER>
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDRipper.cli
 	<B>INI file documentation of this tool:</B>
 	@htmlinclude TOPP_IDRipper.html
+
+   <B>Example</B>
+
+   <p>Assuming each peptide identification in a given idXML-file is annotated with its file origin (e.g. IDRipper_test.idXML) :</p>
+
+   @p <UserParam type="string" name="file_origin" value="IDMerger1_test.idXML"/> or <br />
+   @p <UserParam type="string" name="file_origin" value="IDMerger2_test.idXML"/>
+
+   <p>Obviously the file contains protein/peptide identifications of IDMerger1_test.idXML and IDMerger2_test.idXML.</p>
+
+   <p>Calling IDRipper with an input file (here: @p -in IDRipper_test.idXML) and an output directory (via @p out or @p out_path) will
+   result in two idXML-files stored in the specified directory and named according their file origin.</p>
+
+  <p>In theory, merging files with @p IDMerger and rip the resulting file with @p IDSplitter will result in the original input files.
+
+  <B>NOTE: The meta value file origin is removed by the @p IDSplitter!!</B>
 
 */
 
@@ -80,7 +109,7 @@ class TOPPIDRipper
 {
  public:
     TOPPIDRipper()
-        : TOPPBase("IDRipper","Split one protein/peptide identification file into several files.")
+        : TOPPBase("IDRipper","Split protein/peptide identification file into several files according annotated file origin.")
     {
 
     }
@@ -91,9 +120,9 @@ class TOPPIDRipper
     {
         registerInputFile_("in","<file>","","IdXML-file, whereas the protein/peptide identifications must be tagged with file_origin");
         setValidFormats_("in",StringList::create("idXML"));
-        registerOutputFile_("out","<file>","","output directory for files",false,false);
+        registerOutputFile_("out","<file>","","The path to the file is used as the output directory.",false,false);
         setValidFormats_("out",StringList::create("idXML"));
-        registerStringOption_("out_path","<file>","","Directory for the IdXML-files after ripping according file_origin tag. If out_path is set, out is ignored.",false,true);
+        registerStringOption_("out_path","<file>","","Directory for the IdXML-files after ripping according file_origin tag. If out_path is set, out is ignored.",false,false);
     }
 
     ExitCodes main_(int , const char**)
@@ -113,22 +142,14 @@ class TOPPIDRipper
             throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__, "Please specify an output directory! There are two options to do so. Use 'out' to specify the directory and basename of the resulting files, or use 'out_path' to specify a path");
         }
 
-        // if the output-file is set use the path as directory
-        if ( !out_dir.empty())
-        {
-          //if ( ! QDir(out_dir.toQString()).exists() )
-           // throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__, "Specified path does not exist");
-          QDir dir = QFileInfo(out_dir.toQString()).dir();
-          output_directory = dir.dirName().toStdString();
-        }
-        // otherwise use specified output directory
-        else
-        {
-          //if ( ! QDir(out_dir_.toQString()).exists() )
-           // throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__, "Specified path does not exist");
-          QDir dir = QFileInfo(out_dir_.toQString()).dir();
-          output_directory = dir.dirName().toStdString();
-        }
+        QString dir = (!out_dir.empty()) ?
+                QFileInfo(out_dir.toQString()).absolutePath()
+              : QFileInfo(out_dir_.toQString()).absolutePath();
+
+        if ( ! QDir(dir).exists() )
+          throw Exception::InvalidParameter(__FILE__,__LINE__, __PRETTY_FUNCTION__, "Specified path does not exist");
+        output_directory = dir.toStdString();
+
 
         //-------------------------------------------------------------
         // calculations
@@ -157,8 +178,8 @@ class TOPPIDRipper
         map<String,pair< vector<ProteinIdentification>,vector<PeptideIdentification> > >::iterator it;
         for (it = ripped.begin(); it != ripped.end(); ++it )
         {
-          //@TODO absolute relative path
           QString output = output_directory.toQString();
+          // create full absolute path with filename
           String out = QDir::toNativeSeparators(output.append(QString("/")).append(it->first.toQString())).toStdString();
           IdXMLFile().store(out, it->second.first, it->second.second);
         }
