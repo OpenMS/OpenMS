@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:///some/path/to/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="HUMAN_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+5" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="15" peak_mass_tolerance="0.7" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<FixedModification name="Label:13C(6)15N(2) (K)" />
+		<FixedModification name="Label:13C(6)15N(4) (R)" />
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<SearchParameters id="SP_1" db="HUMAN_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+5" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="15" peak_mass_tolerance="0.7" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<SearchParameters id="SP_2" db="HUMAN_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+5" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="15" peak_mass_tolerance="0.7" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<FixedModification name="Label:2H(4) (K)" />
+		<FixedModification name="Label:13C(6) (R)" />
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2012-06-14T15:42:58" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="BL_ORD_ID:1000" score="0" sequence="" >
+			</ProteinHit>
+			<UserParam type="string" name="file_origin" value="/Users/luhn/QtCreator/OpenMS_svn/source/TEST/TOPP/IDRipper_3_input1.idXML"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="512.879028320312" RT="8337.3972" >
+			<PeptideHit score="5401.19724528319" sequence="GHGSEDTEDSAEHR(Label:13C(6)15N(4))" charge="3" aa_before="R" aa_after="H" protein_refs="PH_0" >
+			</PeptideHit>
+			<UserParam type="string" name="file_origin" value="/Users/luhn/QtCreator/OpenMS_svn/source/TEST/TOPP/IDRipper_3_input1.idXML"/>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2012-06-14T15:39:50" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_1" >
+		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_1" accession="BL_ORD_ID:1" score="0" sequence="" >
+			</ProteinHit>
+			<UserParam type="string" name="file_origin" value="/Users/luhn/QtCreator/OpenMS_svn/source/TEST/TOPP/IDRipper_3_input1.idXML"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="396.980987548828" RT="62.2773" >
+			<PeptideHit score="7273.0141432265" sequence="SISALPVNPHSIPPR" charge="4" aa_before="K" aa_after="G" protein_refs="PH_1" >
+			</PeptideHit>
+			<UserParam type="string" name="file_origin" value="/Users/luhn/QtCreator/OpenMS_svn/source/TEST/TOPP/IDRipper_3_input1.idXML"/>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2012-06-14T15:37:53" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_2" >
+		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_2" accession="BL_ORD_ID:10" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="BL_ORD_ID:11" score="0" sequence="" >
+			</ProteinHit>
+			<UserParam type="string" name="file_origin" value="/Users/luhn/QtCreator/OpenMS_svn/source/TEST/TOPP/IDRipper_3_input2.idXML"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="675.96923828125" RT="8118.3068" >
+			<PeptideHit score="1368.03422161504" sequence="AK(Label:2H(4))SVNIALHAVMIFSAAGTLLVFGYEK(Label:2H(4))SLVAM(Oxidation)" charge="5" aa_before="R" protein_refs="PH_2" >
+			</PeptideHit>
+			<PeptideHit score="2735.56927192931" sequence="MVLFQQQPGIVLGPR(Label:13C(6))C(Carbamidomethyl)IR(Label:13C(6))VWAITEAATM(Oxidation)R(Label:13C(6))" charge="5" aa_before="K" aa_after="Y" protein_refs="PH_3" >
+			</PeptideHit>
+			<UserParam type="string" name="file_origin" value="/Users/luhn/QtCreator/OpenMS_svn/source/TEST/TOPP/IDRipper_3_input2.idXML"/>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
