@@ -9,6 +9,7 @@ ItraqQuantifier.h
 PeptideAndProteinQuant.h
 ProteinInference.h
 ProteinResolver.h
+QuantitativeExperimentalDesign.h
 )
 
 ### add path to the filenames

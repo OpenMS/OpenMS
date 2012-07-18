@@ -30,68 +30,154 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
-#include <map>
-#include <algorithm>
-#include <iostream>
-#include <vector>
-#include <list>
-#include <set>
+//#include <algorithm>
 
-using namespace std;
+using std::map;
+using std::vector;
+using std::list;
+using std::set;
+
+//using namespace std;
 
 namespace OpenMS
 {
 
   ProteinResolver::ProteinResolver()
-    : DefaultParamHandler("ProteinResolver")
+    : DefaultParamHandler("ProteinResolver"), resolver_result_(), protein_data_()
   {
+    defaults_.setValue("resolver:missed_cleavages", 2, "Number of allowed missed cleavages");
+    defaults_.setMinInt("resolver:missed_cleavages", 0);
+    defaults_.setValue("resolver:min_length", 6, "Minimum length of peptide");
+    defaults_.setMinInt("resolver:min_length", 1);
+    defaults_.setValue("resolver:enzyme", "Trypsin", "Digestion enzyme");
+    defaults_.setValidStrings("resolver:enzyme", StringList::create("Trypsin"));
+
+    defaults_.setSectionDescription("resolver", "Additional options for algorithm");
+
+    defaultsToParam_();
   }
 
   ProteinResolver::ProteinResolver(const ProteinResolver& cp)
-    : DefaultParamHandler("ProteinResolver")
+    : DefaultParamHandler(cp),
+    protein_data_(cp.protein_data_),
+    resolver_result_(cp.resolver_result_)
   {
   }
 
-  ProteinResolver::~ProteinResolver(){}
 
   ProteinResolver& ProteinResolver::operator= (const ProteinResolver& rhs)
   {
     if (this == &rhs) return *this;
 
     DefaultParamHandler::operator= (rhs);
-    updateMembers_();
+    this->protein_data_ = rhs.protein_data_;
+    this->resolver_result_ = rhs.resolver_result_;
 
     return *this;
   }
 
 
-  void ProteinResolver::resolve(vector<ISDGroup>& isd_groups, vector<MSDGroup>& msd_groups,
-                                vector<FASTAFile::FASTAEntry>& protein_data, vector<Size>& reindexed_proteins,
-                                vector<Size>& reindexed_peptides, vector<ProteinEntry>& protein_nodes,
-                                vector<PeptideEntry>& peptide_nodes, vector<PeptideIdentification> peptide_identifications,
-                                ConsensusMap consensus, EnzymaticDigestion digestor, bool id, UInt min_size)
+  ProteinResolver::~ProteinResolver()
   {
+    clearResult();
+  }
+
+  void ProteinResolver::clearResult()
+  {
+    for (vector<ResolverResult>::iterator it = resolver_result_.begin(); it != resolver_result_.end(); ++it )
+    {
+      delete it->isds;
+      delete it->msds;
+      delete it->peptide_entries;
+      delete it->protein_entries;
+      delete it->reindexed_peptides;
+      delete it->reindexed_proteins;
+    }
+    resolver_result_.clear();
+  }
+
+  void ProteinResolver::resolveID(vector<PeptideIdentification>& peptide_identifications, const String& file_identifier)
+  {
+    vector<ProteinEntry>* protein_nodes = new vector<ProteinEntry>;
+    protein_nodes->resize(protein_data_.size());
+    vector<PeptideEntry>* peptide_nodes = new vector<PeptideEntry>;
+    vector<ISDGroup>* isd_groups = new vector<ISDGroup>;
+    vector<MSDGroup>* msd_groups = new vector<MSDGroup>;
+    vector<Size>* reindexed_proteins = new vector<Size>;
+    vector<Size>* reindexed_peptides = new vector<Size>;
+
     // building ISD Groups
-    buildingISDGroups_(digestor, protein_nodes, protein_data, peptide_nodes, isd_groups, min_size);
+    buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
 
     // Including all MSMS derived peptides into the graph
     Size found_peptides;
-    if(id)
-    {
-      found_peptides = includeMSMSPeptides_(peptide_identifications,peptide_nodes);
-    }
-    else // consensusXML
-    {
-      found_peptides = includeMSMSPeptides_(consensus,peptide_nodes);
-    }
+    found_peptides = includeMSMSPeptides_(peptide_identifications,*peptide_nodes);
 
     // building MSD Groups
-    buildingMSDGroups_(msd_groups, isd_groups);
+    buildingMSDGroups_(*msd_groups, *isd_groups);
 
     // calculations + reindexing
-    reindexingNodes_(msd_groups,reindexed_proteins, reindexed_peptides);
-    primaryProteins_(peptide_nodes,reindexed_peptides);
+    reindexingNodes_(*msd_groups, *reindexed_proteins, *reindexed_peptides);
+    primaryProteins_(*peptide_nodes, *reindexed_peptides);
     //TODO indistinguishableProteins(msd_groups);
+
+    //
+    countTargetDecoy(*msd_groups, peptide_identifications);
+
+    ResolverResult result;
+    result.identifier = file_identifier;
+    result.isds = isd_groups;
+    result.msds = msd_groups;
+    result.peptide_entries = peptide_nodes;
+    result.protein_entries = protein_nodes;
+    result.reindexed_peptides = reindexed_peptides;
+    result.reindexed_proteins = reindexed_proteins;
+    result.input_type = ResolverResult::PeptideIdent;
+    result.peptide_identification = &peptide_identifications;
+
+    resolver_result_.push_back(result);
+  }
+
+  void ProteinResolver::resolveConsensus(ConsensusMap& consensus, const String& file_identifier)
+  {
+    vector<ProteinEntry>* protein_nodes = new vector<ProteinEntry>;
+    protein_nodes->resize(protein_data_.size());
+    vector<PeptideEntry>* peptide_nodes = new vector<PeptideEntry>;
+    vector<ISDGroup>* isd_groups = new vector<ISDGroup>;
+    vector<MSDGroup>* msd_groups = new vector<MSDGroup>;
+    vector<Size>* reindexed_proteins = new vector<Size>;
+    vector<Size>* reindexed_peptides = new vector<Size>;
+
+    // building ISD Groups
+    buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
+
+    // Including all MSMS derived peptides into the graph
+    Size found_peptides;
+    found_peptides = includeMSMSPeptides_(consensus,*peptide_nodes);
+
+    // building MSD Groups
+    buildingMSDGroups_(*msd_groups, *isd_groups);
+
+    // calculations + reindexing
+    reindexingNodes_(*msd_groups, *reindexed_proteins, *reindexed_peptides);
+    primaryProteins_(*peptide_nodes, *reindexed_peptides);
+    //TODO indistinguishableProteins(msd_groups);
+
+    //
+    countTargetDecoy(*msd_groups, consensus);
+
+    ResolverResult result;
+    result.identifier = file_identifier;
+    result.isds = isd_groups;
+    result.msds = msd_groups;
+    result.peptide_entries = peptide_nodes;
+    result.protein_entries = protein_nodes;
+    result.reindexed_peptides = reindexed_peptides;
+    result.reindexed_proteins = reindexed_proteins;
+    result.input_type = ResolverResult::Consensus;
+    result.consensus_map = &consensus;
+
+    resolver_result_.push_back(result);
   }
 
   void ProteinResolver::countTargetDecoy(vector<MSDGroup>& msd_groups, ConsensusMap& consensus)
@@ -100,7 +186,7 @@ namespace OpenMS
     {
       for(list<PeptideEntry*>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
-        String tmp = getPeptideHit_(consensus, *pep).getMetaValue("target_decoy");
+        String tmp = getPeptideHit(consensus, *pep).getMetaValue("target_decoy");
 
         if(tmp == "target") ++(group->number_of_target);
         else if(tmp == "decoy") ++(group ->number_of_decoy);
@@ -108,7 +194,6 @@ namespace OpenMS
       }
     }
   }
-
 
   void ProteinResolver::countTargetDecoy(vector<MSDGroup>& msd_groups, vector<PeptideIdentification>& peptide_nodes)
   {
@@ -116,7 +201,7 @@ namespace OpenMS
     {
       for(list<PeptideEntry*>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
-        String tmp = getPeptideHit_(peptide_nodes, *pep).getMetaValue("target_decoy");
+        String tmp = getPeptideHit(peptide_nodes, *pep).getMetaValue("target_decoy");
 
         if(tmp == "target") ++(group->number_of_target);
         else if(tmp == "decoy") ++(group ->number_of_decoy);
@@ -124,242 +209,6 @@ namespace OpenMS
       }
     }
   }
-
-
-  void ProteinResolver::writeProteinsAndPeptidesmzTab(vector<ProteinEntry>& protein_nodes, vector<PeptideEntry>& peptide_nodes, vector<Size>& reindexed_proteins,
-                                                       vector<Size>& reindexed_peptides, vector<PeptideIdentification>& peptide_identifications, String& output )
-  {
-    TextFile outfile;
-    //protein table header line
-    outfile<<"PRH\taccession\tunit_id\tdatabase\tnum_peptides\tnum_peptides_unambiguous\tambiguitiy_members\tmodifications\tprotein_coverage";
-    for(vector<Size>::iterator prot = reindexed_proteins.begin(); prot != reindexed_proteins.end(); ++prot )
-    {
-      String tmp;
-      tmp += "PRT\t";
-      //tmp += protein_nodes[*prot];
-      outfile<<tmp;
-    }
-    outfile.store(output);
-  }
-
-
-  // functions which start with write, write the information into textfiles.
-  void ProteinResolver::writePeptideTable(vector<PeptideEntry> &peptides,vector<Size>& reindexed_peptides, vector<PeptideIdentification> & identifications, String & output_file)
-  {
-    TextFile outfile;
-    String init;
-    init +="MSD group\tISD group\tprot_index\tProtein ID\tpeptide sequence\tVar mods\tPep MW\tscore\tcharge\tRT\tMZ";
-    outfile<<init;
-    for(vector<Size>::iterator pep = reindexed_peptides.begin(); pep != reindexed_peptides.end(); ++pep)
-    {
-      String tmp;
-      //MSD and ISD group
-      tmp += peptides[*pep].msd_group;
-      tmp +="\t";
-      tmp += peptides[*pep].isd_group;
-      tmp +="\t";
-      //Protein index
-      for(list<ProteinEntry*>::iterator prot = peptides[*pep].proteins.begin();prot != peptides[*pep].proteins.end(); ++prot)
-      {
-        tmp += (*prot)->index;
-        if( prot != --(peptides[*pep].proteins.end())) tmp +=";";
-      }
-      tmp += "\t";
-      //Protein ID
-      for(list<ProteinEntry*>::iterator prot = peptides[*pep].proteins.begin();prot != peptides[*pep].proteins.end(); ++prot)
-      {
-        tmp += (*prot)->fasta_entry->identifier;
-        if( prot != --(peptides[*pep].proteins.end()))tmp +=";";
-      }
-      tmp += "\t";
-      //peptide sequence
-      const PeptideIdentification& pi = getPeptideIdentification_(identifications, &peptides[*pep]);
-      const PeptideHit& ph = getPeptideHit_(identifications, &peptides[*pep]);
-      const AASequence& seq = ph.getSequence();
-      tmp += seq.toUnmodifiedString();
-      tmp += "\t";
-      //var mods TODO
-      tmp += seq.toString();
-      tmp += "\t";
-      //Pep MW
-      tmp += seq.getMonoWeight();
-      tmp += "\t";
-      //score
-      tmp += ph.getScore();
-      tmp += "\t";
-      //charge
-      tmp += ph.getCharge();
-      tmp += "\t";
-      //RT
-      tmp += String(pi.getMetaValue("RT"));
-      tmp += "\t";
-      //MZ
-      tmp += String(pi.getMetaValue("MZ"));
-      outfile<<tmp;
-    }
-    outfile.store(output_file);
-  }
-
-
-  void ProteinResolver::writePeptideTable(vector<PeptideEntry> &peptides,vector<Size>& reindexed_peptides, ConsensusMap& consensus, String & output_file)
-  {
-    TextFile outfile;
-    String init;
-    init +="MSD group\tISD group\tprot_index\tProtein ID\tpeptide sequence\tVar mods\tPep MW\tscore\tcharge\tRT\tMZ";
-    outfile<<init;
-    for(vector<Size>::iterator pep = reindexed_peptides.begin(); pep != reindexed_peptides.end(); ++pep)
-    {
-      String tmp;
-      //MSD and ISD group
-      tmp += peptides[*pep].msd_group;
-      tmp +="\t";
-      tmp += peptides[*pep].isd_group;
-      tmp +="\t";
-      //Protein index
-      for(list<ProteinEntry*>::iterator prot = peptides[*pep].proteins.begin();prot != peptides[*pep].proteins.end(); ++prot)
-      {
-        tmp += (*prot)->index;
-        if( prot != --(peptides[*pep].proteins.end())) tmp +=";";
-      }
-      tmp += "\t";
-      //Protein ID
-      for(list<ProteinEntry*>::iterator prot = peptides[*pep].proteins.begin();prot != peptides[*pep].proteins.end(); ++prot)
-      {
-        tmp += (*prot)->fasta_entry->identifier;
-        if( prot != --(peptides[*pep].proteins.end()))tmp +=";";
-      }
-      tmp += "\t";
-      //peptide sequence
-      const PeptideIdentification& pi = getPeptideIdentification_(consensus, &peptides[*pep]);
-      const PeptideHit& ph = getPeptideHit_(consensus, &peptides[*pep]);
-      const AASequence& seq = ph.getSequence();
-      tmp += seq.toUnmodifiedString();
-      tmp += "\t";
-      //var mods TODO
-      tmp += seq.toString();
-      tmp += "\t";
-      //Pep MW
-      tmp += seq.getMonoWeight();
-      tmp += "\t";
-      //score
-      tmp += ph.getScore();
-      tmp += "\t";
-      //charge
-      tmp += ph.getCharge();
-      tmp += "\t";
-      //RT
-      tmp += String(pi.getMetaValue("RT"));
-      tmp += "\t";
-      //MZ
-      tmp += String(pi.getMetaValue("MZ"));
-      outfile<<tmp;
-    }
-    outfile.store(output_file);
-  }
-
-  void ProteinResolver::writeProteinTable(vector<ProteinEntry> & proteins,vector<Size>& reindexed_proteins, String& output_file)
-  {
-    TextFile outfile;
-    String init;
-    init += "MSD group\tISD group\tpep_index\tProt identifier\tProt ID\t#Peps in prot\tProt MW\tcoverage";
-    outfile <<init;
-    for(vector<Size>::iterator prot = reindexed_proteins.begin(); prot != reindexed_proteins.end(); ++prot)
-    {
-      String tmp;
-      //MSD and ISD group
-      tmp += proteins[*prot].msd_group;
-      tmp += "\t";
-      tmp += proteins[*prot].isd_group;
-      tmp += "\t";
-      //pep_index
-      Size pep_counter = 0;
-      for(list<PeptideEntry*>::iterator pep = proteins[*prot].peptides.begin();pep != proteins[*prot].peptides.end(); ++pep)
-      {
-        if((*pep)->experimental)
-        {
-          tmp += (*pep)->index;
-          ++pep_counter;
-          if(pep_counter < proteins[*prot].number_of_experimental_peptides)
-          {
-            tmp +=";";
-          }
-          else
-          {
-            break;
-          }
-        }
-      }
-      tmp += "\t";
-      //Protein identifier
-      tmp += proteins[*prot].index;
-      //TODO 1 a or 2* you know what I mean? tmp += prot->typeToString;
-      tmp += "\t";
-      //Protein ID
-      tmp += proteins[*prot].fasta_entry->identifier;
-      tmp += "\t";
-      //#Peps in prot
-      tmp += proteins[*prot].number_of_experimental_peptides;
-      tmp += "\t";
-      //Prot MW
-      tmp += proteins[*prot].weight;
-      tmp += "\t";
-      //coverage
-      tmp += proteins[*prot].coverage;
-      outfile<<tmp;
-    }
-    outfile.store(output_file);
-  }
-
-  void ProteinResolver::writeProteinGroups(vector<ISDGroup>& isd_groups,vector<MSDGroup>& msd_groups, String & output_file)
-  {
-    TextFile outfile;
-    String init;
-    init += "MSD group\tISD group\tprot_index\tpep_index\t#Peps in MSD\t#prots in ISD\tprots in ISD";//ISD group descriptor";
-    outfile<<init;
-    for(vector<ISDGroup>::iterator isd = isd_groups.begin(); isd != isd_groups.end(); ++isd )
-    {
-      for(list<Size>::iterator msd_group = isd->msd_groups.begin(); msd_group != isd->msd_groups.end(); ++msd_group)
-      {
-        MSDGroup* msd= &msd_groups[*msd_group];
-        //Protein group
-        String tmp;
-        tmp += msd->index;
-        tmp += "\t";
-        tmp += isd->index;
-        tmp += "\t";
-        //Protein index
-        for(list<ProteinEntry*>::iterator prot = msd->proteins.begin();prot != msd->proteins.end(); ++prot)
-        {
-          tmp += (*prot)->index;//fasta_entry->identifier;
-          if(prot != --(msd->proteins.end()))tmp +=";";
-        }
-        tmp += "\t";
-        //pep index
-        for(list<PeptideEntry*>::iterator peps = msd->peptides.begin();peps != msd->peptides.end(); ++peps)
-        {
-          if(!(*peps)->experimental) continue;
-          tmp += (*peps)->index;//identifications[(*peps)->peptide_identification].getHits()[(*pep)->peptide_hit].getSequence().toString();
-          if(peps != --(msd->peptides.end()))tmp +=";";
-        }
-        tmp += "\t";
-        //Peptides in MSD
-        tmp += msd->peptides.size();
-        tmp += "\t";
-        //#prots in ISD
-        tmp += isd->proteins.size();
-        tmp += "\t";
-        //prots in ISD;
-        for(list<ProteinEntry*>::iterator prot = isd->proteins.begin();prot != isd->proteins.end(); ++prot)
-        {
-          tmp += (*prot)->fasta_entry->identifier;
-          if(prot != --(isd->proteins.end()))tmp +=";";
-        }
-        outfile<<tmp;
-      }
-    }
-    outfile.store(output_file);
-  }
-
 
   //travers Protein and peptide nodes. Once for building ISD groups and once for building MSD groups
   void ProteinResolver::traversProtein_(ProteinEntry* prot_node, ISDGroup& group)
@@ -433,6 +282,9 @@ namespace OpenMS
   Size ProteinResolver::binarySearchNodes_(String& seq, vector<PeptideEntry>& nodes, Size start, Size end )
   {
 
+    // Termination condition: start index greater than end index
+    if(start > end) return -1;
+
     Size compare_value = (start + end)/2;
     String& node_sequence = nodes[compare_value].sequence;
     int compar = seq.compare(node_sequence);
@@ -467,7 +319,6 @@ namespace OpenMS
     Size found_peptide = 0;
     for(Size pep = 0; pep != peptide_identifications.size();++pep)
     {
-      cout<<pep <<" peptide identification of "<< peptide_identifications.size() <<" done\r";
       Size peptide_entry = findPeptideEntry_(peptide_identifications[pep].getHits().front().getSequence().toUnmodifiedString(),peptide_nodes);
 
       if(peptide_entry != peptide_nodes.size())
@@ -489,23 +340,25 @@ namespace OpenMS
   Size ProteinResolver::includeMSMSPeptides_(ConsensusMap & consensus, vector<PeptideEntry> &peptide_nodes )
   {
     Size found_peptide = 0;
-    for(Size pep = 0; pep != consensus.size();++pep)
+    for(Size pep = 0; pep != consensus.size(); ++pep)
     {
-      cout<<pep <<" consensus features of "<< consensus.size() <<" done\r";
       const vector<PeptideIdentification> & pep_id  = consensus[pep].getPeptideIdentifications();
+
       for(Size cons_pep = 0; cons_pep < pep_id.size(); ++cons_pep)
       {
-        Size peptide_entry = findPeptideEntry_(pep_id[cons_pep].getHits().front().getSequence().toUnmodifiedString(),peptide_nodes);
+        String seq = pep_id.at(cons_pep).getHits().front().getSequence().toUnmodifiedString();
+        Size peptide_entry = findPeptideEntry_(seq, peptide_nodes);
+
         if(peptide_entry != peptide_nodes.size())
         {
-          if(!peptide_nodes[peptide_entry].experimental)
+          if(!peptide_nodes.at(peptide_entry).experimental)
           {
             ++found_peptide;
           }
           //should be changed -- for consensus peptide_identification is the consensus and peptide_hit is the PeptideIdentification. PeptideHit is only top hit at the moment
-          peptide_nodes[peptide_entry].peptide_identification = pep;
-          peptide_nodes[peptide_entry].peptide_hit = cons_pep; //only top hit is used at the moment
-          peptide_nodes[peptide_entry].experimental = true;
+          peptide_nodes.at(peptide_entry).peptide_identification = pep;
+          peptide_nodes.at(peptide_entry).peptide_hit = cons_pep; //only top hit is used at the moment
+          peptide_nodes.at(peptide_entry).experimental = true;
         }
       }
     }
@@ -513,22 +366,22 @@ namespace OpenMS
   }
 
   //overloaded functions -- return a const reference to a PeptideIdentification object or a peptideHit either from a consensusMap or a vector<PeptideIdentification>
-  const PeptideIdentification& ProteinResolver::getPeptideIdentification_(const ConsensusMap& consensus, const PeptideEntry* peptide)
+  const PeptideIdentification& ProteinResolver::getPeptideIdentification(const ConsensusMap& consensus, const PeptideEntry* peptide)
   {
     return (consensus[peptide->peptide_identification].getPeptideIdentifications()[peptide->peptide_hit]);
   }
-  const PeptideHit& ProteinResolver::getPeptideHit_(const ConsensusMap& consensus,const PeptideEntry* peptide)
+  const PeptideHit& ProteinResolver::getPeptideHit(const ConsensusMap& consensus,const PeptideEntry* peptide)
   {
-    return getPeptideIdentification_(consensus,peptide).getHits().front();
+    return getPeptideIdentification(consensus,peptide).getHits().front();
   }
 
-  const PeptideIdentification& ProteinResolver::getPeptideIdentification_(const vector<PeptideIdentification>& peptide_nodes, const PeptideEntry* peptide)
+  const PeptideIdentification& ProteinResolver::getPeptideIdentification(const vector<PeptideIdentification>& peptide_nodes, const PeptideEntry* peptide)
   {
     return peptide_nodes[peptide->peptide_identification];
   }
-  const PeptideHit& ProteinResolver::getPeptideHit_(const vector<PeptideIdentification>& peptide_nodes,const PeptideEntry* peptide)
+  const PeptideHit& ProteinResolver::getPeptideHit(const vector<PeptideIdentification>& peptide_nodes,const PeptideEntry* peptide)
   {
-    return getPeptideIdentification_(peptide_nodes,peptide).getHits().front();
+    return getPeptideIdentification(peptide_nodes,peptide).getHits().front();
   }
 
 
@@ -559,11 +412,9 @@ namespace OpenMS
   void ProteinResolver::primaryProteins_(vector<PeptideEntry> &peptide_nodes,  vector<Size>& reindexed_peptides)
   {
     //primary proteins
-    cout<<"\nprimary\n";
     Size pc = 0;
     for(vector<Size>::iterator pep = reindexed_peptides.begin(); pep != reindexed_peptides.end(); ++pep)
     {
-      cout<<pc<<" peptides of " <<reindexed_peptides.size()<<" done\r";
       ++pc;
       if(peptide_nodes[*pep].proteins.size() == 1)
       {
@@ -572,10 +423,17 @@ namespace OpenMS
     }
   }
 
-  void ProteinResolver::buildingISDGroups_(EnzymaticDigestion& digestor, vector<ProteinEntry>& protein_nodes,
-                                           vector<FASTAFile::FASTAEntry>& protein_data, vector<PeptideEntry>& peptide_nodes,
-                                           vector<ISDGroup>& isd_groups, UInt& min_size)
+  void ProteinResolver::buildingISDGroups_(vector<ProteinEntry>& protein_nodes, vector<PeptideEntry>& peptide_nodes,
+                                           vector<ISDGroup>& isd_groups)
   {
+    EnzymaticDigestion digestor;
+    String enzyme_name = param_.getValue("resolver:enzyme");
+    digestor.setEnzyme(digestor.getEnzymeByName(enzyme_name));
+    UInt min_size = param_.getValue("resolver:min_length");
+    UInt missed_cleavages = param_.getValue("resolver:missed_cleavages");
+    digestor.setMissedCleavages(missed_cleavages);
+
+
     //-------------------------------------------------------------
     // building ISD Groups
     //-------------------------------------------------------------
@@ -583,17 +441,16 @@ namespace OpenMS
     vector<AASequence> temp_peptides;
     map<String,set<Size> > peptides;
 
-    for (Size i = 0; i < protein_data.size(); ++i)
+    for (Size i = 0; i < protein_data_.size(); ++i)
     {
-      cout << i <<" Proteins of "<< protein_data.size() <<" done...\r";
-      protein_nodes[i].fasta_entry = &protein_data[i];
+      protein_nodes[i].fasta_entry = &protein_data_[i];
       protein_nodes[i].traversed = false;
       protein_nodes[i].index = i;
       protein_nodes[i].protein_type = ProteinEntry::secondary;
-      protein_nodes[i].weight = AASequence(protein_data[i].sequence).getMonoWeight();
+      protein_nodes[i].weight = AASequence(protein_data_[i].sequence).getMonoWeight();
       protein_nodes[i].coverage = 0.;
       protein_nodes[i].number_of_experimental_peptides = 0;
-      digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
+      digestor.digest(AASequence(protein_data_[i].sequence), temp_peptides);
       for (Size j = 0; j < temp_peptides.size(); ++j)
       {
         if (temp_peptides[j].size() >= min_size)
@@ -609,7 +466,6 @@ namespace OpenMS
 
     for(map<String,set<Size> >::iterator i  = peptides.begin(); i != peptides.end(); ++i, ++pep_node, ++peptide_counter)
     {
-      cout << peptide_counter << " Peptides of " << peptides.size() << " done...\r";
       pep_node->index = peptide_counter;
       pep_node->traversed = false;
       pep_node->sequence = (*i).first;
@@ -644,10 +500,8 @@ namespace OpenMS
     // building MSDGroups
     //-------------------------------------------------------------
     Size msd_group_counter = 0;
-    cout<<"\n building MSD groups\n";
     for(Size isd_group = 0; isd_group != isd_groups.size(); ++isd_group)
     {
-      cout<<isd_group <<" isd group of "<<isd_groups.size() <<" done\r";
       for(list<ProteinEntry*>::iterator prot = isd_groups[isd_group].proteins.begin(); prot != isd_groups[isd_group].proteins.end(); ++prot)
       {
         ProteinEntry* prot_node = (*prot);
@@ -670,6 +524,16 @@ namespace OpenMS
         }
       }
     }
+  }
+
+  void ProteinResolver::setProteinData(vector<FASTAFile::FASTAEntry>& protein_data)
+  {
+    protein_data_ = protein_data;
+  }
+
+  const vector< ProteinResolver::ResolverResult >& ProteinResolver::getResults()
+  {
+    return resolver_result_;
   }
 
   //not tested

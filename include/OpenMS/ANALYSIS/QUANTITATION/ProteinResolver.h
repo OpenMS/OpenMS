@@ -45,6 +45,9 @@ namespace OpenMS
     This class is used by @ref TOPP_ProteinResolver. See there for further documentation.
 
     @htmlinclude OpenMS_ProteinResolver.parameters
+
+    @ingroup Analysis_QUANTITATION
+
   */
   class OPENMS_DLLAPI ProteinResolver: public DefaultParamHandler
   {
@@ -57,16 +60,18 @@ namespace OpenMS
       //copy constructor
       ProteinResolver(const ProteinResolver& rhs);
 
+      //assignment operator
+      ProteinResolver& operator= (const ProteinResolver& rhs);
+
       //destructor
       virtual ~ProteinResolver();
 
-      //assignment operator
-      ProteinResolver& operator= (const ProteinResolver& rhs);
 
       struct ProteinEntry;
       struct PeptideEntry;
       struct ISDGroup;
       struct MSDGroup;
+      struct ResolverResult;
 
       //represents a protein from fasta file
       struct ProteinEntry
@@ -117,33 +122,39 @@ namespace OpenMS
           std::list<Size> msd_groups;
       };
 
+      struct ResolverResult {
+          String identifier;
+          std::vector< ISDGroup >* isds;
+          std::vector< MSDGroup >*  msds;
+          std::vector< ProteinEntry >*  protein_entries;
+          std::vector< PeptideEntry >*  peptide_entries;
+          std::vector< Size >*  reindexed_peptides;
+          std::vector< Size >* reindexed_proteins;
+          enum type  {PeptideIdent,Consensus} input_type;
+          std::vector<PeptideIdentification>* peptide_identification;
+          ConsensusMap* consensus_map;
+      };
+
       /**
         @brief Computing protein groups from peptide identifications OR consensus map.
 
         Computes ISD and MSD groups.
 
-        @param isd_groups Vector to store ISD groups
-        @param msd_groups Vector to store MSD groups
-        @param protein_data Vecor of all fasta-file entries
-        @param reindexed_proteins Vector of indices to speed up access
-        @param reindexed_peptides Vector of indices to speed up access
-        @param protein_nodes Vector of ProteinEntry structs
-        @param peptide_nodes Vector of PeptideEntry structs
-        @param peptide_identifications Vector of PeptideIdentification in case idXML is given as input
         @param consensus ConsensusMap in case consensusXML file is given as input
-        @param digestor EnzymaticDigestion object to digest the fasta-file entries
-        @param id Boolean value if idXML (true) or consensusXML (false) is given as input type
-        @param min_size Integer value that defines the minimum length of resulting peptides
       */
-      void resolve(std::vector<ISDGroup>& isd_groups, std::vector<MSDGroup>& msd_groups,
-                   std::vector<FASTAFile::FASTAEntry>& protein_data, std::vector<Size>& reindexed_proteins,
-                   std::vector<Size>& reindexed_peptides, std::vector<ProteinEntry>& protein_nodes,
-                   std::vector<PeptideEntry>& peptide_nodes, std::vector<PeptideIdentification> peptide_identifications,
-                   ConsensusMap consensus, EnzymaticDigestion digestor, bool id, UInt min_size);
+      void resolveConsensus(ConsensusMap& consensus, const String& file_identifier);
+
+      /**
+        @brief Computing protein groups from peptide identifications OR consensus map.
+
+        Computes ISD and MSD groups.
+
+        @param peptide_identifications Vector of PeptideIdentification in case idXML is given as input
+      */
+      void resolveID(std::vector<PeptideIdentification>& peptide_identifications, const String& file_identifier);
+
       /**
         @brief NOT IMPLEMENTED YET
-
-        maybe longer
 
         @param protein_nodes
         @param peptide_nodes
@@ -152,11 +163,9 @@ namespace OpenMS
         @param peptide_identifications
         @param output
       */
-      void writeProteinsAndPeptidesmzTab(std::vector<ProteinEntry>& protein_nodes, std::vector<PeptideEntry>& peptide_nodes, std::vector<Size>& reindexed_proteins, std::vector<Size>& reindexed_peptides, std::vector<PeptideIdentification>& peptide_identifications, String& output  );
+      // void writeProteinsAndPeptidesmzTab(std::vector<ProteinEntry>& protein_nodes, std::vector<PeptideEntry>& peptide_nodes, std::vector<Size>& reindexed_proteins, std::vector<Size>& reindexed_peptides, std::vector<PeptideIdentification>& peptide_identifications, String& output  );
       /**
         @brief Writing peptide table into text file
-
-        maybe longer
 
         @param peptides
         @param reindexed_peptides
@@ -193,8 +202,6 @@ namespace OpenMS
       /**
         @brief brief
 
-        maybe longer
-
         @param msd_groups
         @param consensus
       */
@@ -203,15 +210,28 @@ namespace OpenMS
       /**
         @brief brief
 
-        maybe longer
 
         @param msd_groups
         @param peptide_nodes
       */
       void countTargetDecoy(std::vector<MSDGroup>& msd_groups, std::vector<PeptideIdentification>& peptide_nodes);
 
+      void clearResult();
+
+      void setProteinData(std::vector<FASTAFile::FASTAEntry>& protein_data);
+
+      const  std::vector<ResolverResult>& getResults();
+
+      //overloaded functions -- return a const reference to a PeptideIdentification object or a peptideHit either from a consensusMap or a vector<PeptideIdentification>
+      const PeptideIdentification& getPeptideIdentification(const ConsensusMap& consensus, const PeptideEntry* peptide);
+      const PeptideHit& getPeptideHit(const ConsensusMap& consensus,const PeptideEntry* peptide);
+      const PeptideIdentification& getPeptideIdentification(const std::vector<PeptideIdentification>& peptide_nodes, const PeptideEntry* peptide);
+      const PeptideHit& getPeptideHit(const std::vector<PeptideIdentification>& peptide_nodes,const PeptideEntry* peptide);
 
     private:
+
+      std::vector<ResolverResult> resolver_result_;
+      std::vector<FASTAFile::FASTAEntry> protein_data_;
 
       //travers Protein and peptide nodes. Once for building ISD groups and once for building MSD groups
       void traversProtein_(ProteinEntry* prot_node, ISDGroup& group);
@@ -227,18 +247,13 @@ namespace OpenMS
       //TODO include run information for each peptide
       //includes all MSMS derived peptides into the graph --ConsensusXML
       Size includeMSMSPeptides_(ConsensusMap & consensus, std::vector<PeptideEntry> &peptide_nodes );
-      //overloaded functions -- return a const reference to a PeptideIdentification object or a peptideHit either from a consensusMap or a vector<PeptideIdentification>
-      const PeptideIdentification& getPeptideIdentification_(const ConsensusMap& consensus, const PeptideEntry* peptide);
-      const PeptideHit& getPeptideHit_(const ConsensusMap& consensus,const PeptideEntry* peptide);
-      const PeptideIdentification& getPeptideIdentification_(const std::vector<PeptideIdentification>& peptide_nodes, const PeptideEntry* peptide);
-      const PeptideHit& getPeptideHit_(const std::vector<PeptideIdentification>& peptide_nodes,const PeptideEntry* peptide);
       //Proteins and Peptides get reindexed, based on whether they belong to msd groups or not. Indexes of Proteins which are in an ISD group but in none of the MSD groups will not be used anymore.
       void reindexingNodes_(std::vector<MSDGroup>& msd_groups, std::vector<Size> &reindexed_proteins, std::vector<Size> &reindexed_peptides );
       //marks Proteins which have a unique peptide as primary. Uses reindexed vector, thus reindexingNodes has to be called before.
       void primaryProteins_(std::vector<PeptideEntry> &peptide_nodes,  std::vector<Size>& reindexed_peptides);
       void buildingMSDGroups_(std::vector<MSDGroup>& msd_groups, std::vector<ISDGroup>& isd_groups);
-      void buildingISDGroups_(EnzymaticDigestion& digestor, std::vector<ProteinEntry>& protein_nodes, std::vector<FASTAFile::FASTAEntry>& protein_data, std::vector<PeptideEntry>& peptide_nodes,
-                              std::vector<ISDGroup>& isd_groups, UInt& min_size);
+      void buildingISDGroups_(std::vector<ProteinEntry>& protein_nodes, std::vector<PeptideEntry>& peptide_nodes,
+                              std::vector<ISDGroup>& isd_groups);
       //not tested
       //ProteinResolver::indistinguishableProteins(vector<MSDGroup>& msd_groups);
 

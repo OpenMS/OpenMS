@@ -17,7 +17,6 @@ PILISNeutralLossModel.h
 PILISScoring.h
 PILISCrossValidation.h
 ProtonDistributionModel.h
-#QuantitativeExperimentalDesign.h
 )
 
 ### add path to the filenames

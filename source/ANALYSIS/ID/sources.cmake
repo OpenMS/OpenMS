@@ -17,7 +17,6 @@ PILISNeutralLossModel.C
 PILISScoring.C
 PILISCrossValidation.C
 ProtonDistributionModel.C
-#QuantitativeExperimentalDesign.C
 )
 
 ### add path to the filenames
