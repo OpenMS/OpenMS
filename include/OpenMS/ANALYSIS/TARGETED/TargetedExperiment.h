@@ -47,7 +47,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI TargetedExperiment
   {
-    public:
+public:
 
     typedef TargetedExperimentHelper::CV CV;
     typedef TargetedExperimentHelper::Protein Protein;
@@ -69,19 +69,19 @@ namespace OpenMS
     TargetedExperiment();
 
     /// copy constructor
-    TargetedExperiment(const TargetedExperiment& rhs);
+    TargetedExperiment(const TargetedExperiment & rhs);
 
     /// destructor
     virtual ~TargetedExperiment();
     //@}
 
-    /// assignment operator 
-    TargetedExperiment& operator = (const TargetedExperiment& rhs);
+    /// assignment operator
+    TargetedExperiment & operator=(const TargetedExperiment & rhs);
 
     /** @name Predicates
     */
     //@{
-    bool operator == (const TargetedExperiment& rhs) const;
+    bool operator==(const TargetedExperiment & rhs) const;
     //@}
 
     /**
@@ -89,183 +89,122 @@ namespace OpenMS
 
       Proteins, peptides and transitions are merged (see operator+= for details).
     */
-    TargetedExperiment operator+(const TargetedExperiment & rhs) const
-    {
-      TargetedExperiment tmp(*this);
-      tmp += rhs;
-      return tmp;
-    }
+    TargetedExperiment operator+(const TargetedExperiment & rhs) const;
 
     /**
       @brief Add one targeted experiment to another.
 
       @param rhs The targeted experiment to add to this one.
     */
-    TargetedExperiment & operator+=(const TargetedExperiment & rhs)
-    {
-      protein_reference_map_dirty_ = true;
-      peptide_reference_map_dirty_ = true;
-
-      // merge these:
-      cvs_.insert(cvs_.end(), rhs.cvs_.begin(), rhs.cvs_.end());
-      contacts_.insert(contacts_.end(), rhs.contacts_.begin(), rhs.contacts_.end());
-      publications_.insert(publications_.end(), rhs.publications_.begin(), rhs.publications_.end());
-      instruments_.insert(instruments_.end(), rhs.instruments_.begin(), rhs.instruments_.end());
-      software_.insert(software_.end(), rhs.software_.begin(), rhs.software_.end());
-      proteins_.insert(proteins_.end(), rhs.proteins_.begin(), rhs.proteins_.end());
-      compounds_.insert(compounds_.end(), rhs.compounds_.begin(), rhs.compounds_.end());
-      peptides_.insert(peptides_.end(), rhs.peptides_.begin(), rhs.peptides_.end());
-      transitions_.insert(transitions_.end(), rhs.transitions_.begin(), rhs.transitions_.end());
-      include_targets_.insert(include_targets_.end(), rhs.include_targets_.begin(), rhs.include_targets_.end());
-      exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
-      source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
-
-      for (Map< String, std::vector < CVTerm > >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); targ_it++)
-      {
-        for (std::vector< CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); term_it++)
-        {
-          targets_.addCVTerm(*term_it);
-        }
-      }
-
-      // todo: check for double entries
-      // transitions, peptides, proteins
-
-      return *this;
-    }
+    TargetedExperiment & operator+=(const TargetedExperiment & rhs);
 
     /**
       @brief Clears all data and meta data
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
-    void clear(bool clear_meta_data)
-    {
-      transitions_.clear();
-
-      if (clear_meta_data)
-      {
-        cvs_.clear();
-        contacts_.clear();
-        publications_.clear();
-        instruments_.clear();
-        targets_ = CVTermList();
-        software_.clear();
-        proteins_.clear();
-        compounds_.clear();
-        peptides_.clear();
-
-        include_targets_.clear();
-        exclude_targets_.clear();
-        source_files_.clear();
-        protein_reference_map_.clear();
-        peptide_reference_map_.clear();
-
-        protein_reference_map_dirty_ = true;
-        peptide_reference_map_dirty_ = true;
-      }
-    }
+    void clear(bool clear_meta_data);
 
     /** @name Accessors
     */
     //@{
     // cv list
-    void setCVs(const std::vector<CV>& cvs);
-  
-    const std::vector<CV>& getCVs() const;
+    void setCVs(const std::vector<CV> & cvs);
 
-    void addCV(const CV& cv);
+    const std::vector<CV> & getCVs() const;
+
+    void addCV(const CV & cv);
 
     // contact list
-    void setContacts(const std::vector<Contact>& contacts);
+    void setContacts(const std::vector<Contact> & contacts);
 
-    const std::vector<Contact>& getContacts() const;
+    const std::vector<Contact> & getContacts() const;
 
-    void addContact(const Contact& contact);
+    void addContact(const Contact & contact);
 
     // publication list
-    void setPublications(const std::vector<Publication>& publications);
+    void setPublications(const std::vector<Publication> & publications);
 
-    const std::vector<Publication>& getPublications() const;
+    const std::vector<Publication> & getPublications() const;
 
-    void addPublication(const Publication& publication);
+    void addPublication(const Publication & publication);
 
     // target list
-    void setTargetCVTerms(const CVTermList& cv_terms);
+    void setTargetCVTerms(const CVTermList & cv_terms);
 
-    const CVTermList& getTargetCVTerms() const;
+    const CVTermList & getTargetCVTerms() const;
 
-    void addTargetCVTerm(const CVTerm& cv_term);
+    void addTargetCVTerm(const CVTerm & cv_term);
 
-    void setTargetMetaValue(const String &name, const DataValue &value);
+    void setTargetMetaValue(const String & name, const DataValue & value);
 
     // instrument list
-    void setInstruments(const std::vector<Instrument>& instruments);
+    void setInstruments(const std::vector<Instrument> & instruments);
 
-    const std::vector<Instrument>& getInstruments() const;
+    const std::vector<Instrument> & getInstruments() const;
 
-    void addInstrument(const Instrument& instrument);
+    void addInstrument(const Instrument & instrument);
 
     // software list
-    void setSoftware(const std::vector<Software>& software);
+    void setSoftware(const std::vector<Software> & software);
 
-    const std::vector<Software>& getSoftware() const;
+    const std::vector<Software> & getSoftware() const;
 
-    void addSoftware(const Software& software);
+    void addSoftware(const Software & software);
 
     // protein list
-    void setProteins(const std::vector<Protein>& proteins);
+    void setProteins(const std::vector<Protein> & proteins);
 
-    const std::vector<Protein>& getProteins() const;
+    const std::vector<Protein> & getProteins() const;
 
-    const Protein& getProteinByRef(const String& ref);
+    const Protein & getProteinByRef(const String & ref);
 
-    void addProtein(const Protein& protein);
+    void addProtein(const Protein & protein);
 
     // compound list
-    void setCompounds(const std::vector<Compound>& rhs);
+    void setCompounds(const std::vector<Compound> & rhs);
 
-    const std::vector<Compound>& getCompounds() const;
+    const std::vector<Compound> & getCompounds() const;
 
-    void addCompound(const Compound& rhs);
+    void addCompound(const Compound & rhs);
 
-    void setPeptides(const std::vector<Peptide>& rhs);
+    void setPeptides(const std::vector<Peptide> & rhs);
 
-    const std::vector<Peptide>& getPeptides() const;
+    const std::vector<Peptide> & getPeptides() const;
 
-    const Peptide& getPeptideByRef(const String& ref);
+    const Peptide & getPeptideByRef(const String & ref);
 
-    void addPeptide(const Peptide& rhs);
+    void addPeptide(const Peptide & rhs);
 
     /// set transition list
-    void setTransitions(const std::vector<ReactionMonitoringTransition>& transitions);
-    
+    void setTransitions(const std::vector<ReactionMonitoringTransition> & transitions);
+
     /// returns the transition list
-    const std::vector<ReactionMonitoringTransition>& getTransitions() const;
+    const std::vector<ReactionMonitoringTransition> & getTransitions() const;
 
     /// adds a transition to the list
-    void addTransition(const ReactionMonitoringTransition& transition);
+    void addTransition(const ReactionMonitoringTransition & transition);
 
-    void setIncludeTargets(const std::vector<IncludeExcludeTarget>& targets);
+    void setIncludeTargets(const std::vector<IncludeExcludeTarget> & targets);
 
-    const std::vector<IncludeExcludeTarget>& getIncludeTargets() const;
+    const std::vector<IncludeExcludeTarget> & getIncludeTargets() const;
 
-    void addIncludeTarget(const IncludeExcludeTarget& target);
+    void addIncludeTarget(const IncludeExcludeTarget & target);
 
-    void setExcludeTargets(const std::vector<IncludeExcludeTarget>& targets);
+    void setExcludeTargets(const std::vector<IncludeExcludeTarget> & targets);
 
-    const std::vector<IncludeExcludeTarget>& getExcludeTargets() const;
-  
-    void addExcludeTarget(const IncludeExcludeTarget& target);
+    const std::vector<IncludeExcludeTarget> & getExcludeTargets() const;
+
+    void addExcludeTarget(const IncludeExcludeTarget & target);
 
     /// sets the source files
-    void setSourceFiles(const std::vector<SourceFile>& source_files);
+    void setSourceFiles(const std::vector<SourceFile> & source_files);
 
     /// returns the source file list
-    const std::vector<SourceFile>& getSourceFiles() const;
+    const std::vector<SourceFile> & getSourceFiles() const;
 
     /// adds a source file to the list
-    void addSourceFile(const SourceFile& source_file);
+    void addSourceFile(const SourceFile & source_file);
     //@}
 
     ///@name Sorting peaks
@@ -276,7 +215,7 @@ namespace OpenMS
     void sortTransitionsByProductMZ();
     //@}
 
-    protected:
+protected:
 
     void createProteinReferenceMap();
 
@@ -295,7 +234,7 @@ namespace OpenMS
     std::vector<Software> software_;
 
     std::vector<Protein> proteins_;
-    
+
     std::vector<Compound> compounds_;
 
     std::vector<Peptide> peptides_;
@@ -317,7 +256,6 @@ namespace OpenMS
     bool peptide_reference_map_dirty_;
 
   };
-}
+} // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENT_H
-
