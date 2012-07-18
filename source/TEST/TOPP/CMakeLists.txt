@@ -786,9 +786,9 @@ set_tests_properties("TOPP_IDRipper_2_out2" PROPERTIES DEPENDS "TOPP_IDRipper_2"
 # use IDMerger results to test. Input -> IDMerger -> IDRipper -> Output == Input
 add_test("TOPP_IDRipper_3_prep" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML -out IDRipper_3_output.tmp -annotate_file_origin)
 add_test("TOPP_IDRipper_3" ${TOPP_BIN_PATH}/IDRipper -test -in IDRipper_3_output.tmp -out dummy.tmp)
-add_test("TOPP_IDRipper_3_out1" ${DIFF} -in1 IDRipper_3_input_1.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML )
+add_test("TOPP_IDRipper_3_out1" ${DIFF} -in1 IDRipper_3_input1.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML )
 set_tests_properties("TOPP_IDRipper_3_out1" PROPERTIES DEPENDS "TOPP_IDRipper_3")
-add_test("TOPP_IDRipper_3_out2" ${DIFF} -in1 IDRipper_3_input_2.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML )
+add_test("TOPP_IDRipper_3_out2" ${DIFF} -in1 IDRipper_3_input1.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML )
 set_tests_properties("TOPP_IDRipper_3_out2" PROPERTIES DEPENDS "TOPP_IDRipper_3")
 
 
@@ -867,13 +867,20 @@ add_test("TOPP_IDPosteriorErrorProbability_7" ${TOPP_BIN_PATH}/IDPosteriorErrorP
 
 ### ProteinResolver tests
 ### TODO test for idXML
-add_test("TOPP_ProteinResolver_1" ${TOPP_BIN_PATH}/ProteinResolver -test -in ${DATA_DIR_TOPP}/ProteinResolver_1_input.consensusXML -fasta ${DATA_DIR_TOPP}/ProteinResolver_1.fasta -protein_groups ProteinResolver_1_output1.tmp -peptide_table ProteinResolver_1_output2.tmp -protein_table ProteinResolver_1_output3.tmp)
+add_test("TOPP_ProteinResolver_1" ${TOPP_BIN_PATH}/ProteinResolver -test -in ${DATA_DIR_TOPP}/ProteinResolver_1_input.consensusXML -fasta ${DATA_DIR_TOPP}/ProteinResolver_1_input.fasta -protein_groups ProteinResolver_1_output1.tmp -peptide_table ProteinResolver_1_output2.tmp -protein_table ProteinResolver_1_output3.tmp)
 add_test("TOPP_ProteinResolver_1_out1" ${DIFF} -in1 ProteinResolver_1_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_1_output1.txt)
 set_tests_properties("TOPP_ProteinResolver_1_out1" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
 add_test("TOPP_ProteinResolver_1_out2" ${DIFF} -in1 ProteinResolver_1_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_1_output2.txt)
 set_tests_properties("TOPP_ProteinResolver_1_out2" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
 add_test("TOPP_ProteinResolver_1_out3" ${DIFF} -in1 ProteinResolver_1_output3.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_1_output3.txt)
 set_tests_properties("TOPP_ProteinResolver_1_out3" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
+#add_test("TOPP_ProteinResolver_2" ${TOPP_BIN_PATH}/ProteinResolver -test -in ${DATA_DIR_TOPP}/ProteinResolver_2_input.consensusXML -fasta ${DATA_DIR_TOPP}/ProteinResolver_2_input.fasta -design ${DATA_DIR_TOPP}/ProteinResolver_2_input.txt -protein_groups ProteinResolver_2_output1.tmp -peptide_table ProteinResolver_2_output2.tmp -protein_table ProteinResolver_2_output3.tmp)
+#add_test("TOPP_ProteinResolver_2_out1" ${DIFF} -in1 ProteinResolver_2_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_2_output1.txt)
+#set_tests_properties("TOPP_ProteinResolver_1_out1" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
+#add_test("TOPP_ProteinResolver_2_out2" ${DIFF} -in1 ProteinResolver_2_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_2_output2.txt)
+#set_tests_properties("TOPP_ProteinResolver_1_out1" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
+#add_test("TOPP_ProteinResolver_2_out3" ${DIFF} -in1 ProteinResolver_2_output3.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_2_output3.txt)
+#set_tests_properties("TOPP_ProteinResolver_1_out1" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
 
 ### ProteinQuantifier tests
 add_test("TOPP_ProteinQuantifier_1" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_1_output1.tmp -peptide_out ProteinQuantifier_1_output2.tmp)
