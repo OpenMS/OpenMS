@@ -46,7 +46,7 @@ using namespace std;
 /**
 	@page UTILS_ImageCreator ImageCreator
 
-	@brief Transforms an LC/MS map into a png image.
+	@brief Transforms an LC-MS map into a png image.
 
 	The input is first resampled into a matrix using
 	bilinear forward resampling.  Then the content of the matrix is written to
@@ -68,7 +68,7 @@ class TOPPImageCreator
  public:
 	TOPPImageCreator()
 		: TOPPBase("ImageCreator",
-							 "Transforms an LC/MS map into a PNG image.",false)
+							 "Transforms an LC-MS map into a PNG image.",false)
 	{
 	}
 
