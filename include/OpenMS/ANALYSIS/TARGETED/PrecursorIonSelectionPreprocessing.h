@@ -40,110 +40,107 @@
 #include <fstream>
 namespace OpenMS
 {
-	
+
   /**
-		 @brief This class implements the database preprocessing needing for precursor ion selection.
+    @brief This class implements the database preprocessing needing for precursor ion selection.
 
-		 
-
-		 @htmlinclude OpenMS_PrecursorIonSelectionPreprocessing.parameters
-
-	*/
-  class OPENMS_DLLAPI PrecursorIonSelectionPreprocessing : public DefaultParamHandler
+    @htmlinclude OpenMS_PrecursorIonSelectionPreprocessing.parameters
+   */
+  class OPENMS_DLLAPI PrecursorIonSelectionPreprocessing :
+    public DefaultParamHandler
   {
-  public:
-		PrecursorIonSelectionPreprocessing();
-		PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing& source);
-		~PrecursorIonSelectionPreprocessing();
-		
-		PrecursorIonSelectionPreprocessing& operator = (const PrecursorIonSelectionPreprocessing& source);
-		
-	
-		const std::map<String,std::vector<DoubleReal> >& getProtMasses() const;
+public:
+    PrecursorIonSelectionPreprocessing();
+    PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing & source);
+    ~PrecursorIonSelectionPreprocessing();
+
+    PrecursorIonSelectionPreprocessing & operator=(const PrecursorIonSelectionPreprocessing & source);
 
 
-		const std::vector<DoubleReal> & getMasses(String acc) const;
+    const std::map<String, std::vector<DoubleReal> > & getProtMasses() const;
 
-		const std::map<String, std::vector<DoubleReal> >& getProteinRTMap() const;
-		const std::map<String, std::vector<DoubleReal> >& getProteinPTMap() const;
-		const std::map<String, std::vector<String> >& getProteinPeptideSequenceMap() const;
-		
 
-		/**
-		 *	@brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
-		 *	
-		 *	@param db_path Path to database file (fasta)
-		 *	@param save Flag if preprocessing should be stored.
-		 *
-		 *	@throws Exception::FileNotFound if file with preprocessing or db can't be found
-		 *  @throws Exception::UnableToCreateFile if preprocessing file can't be written
-		 */
-		void dbPreprocessing(String db_path,bool save=true);
+    const std::vector<DoubleReal> & getMasses(String acc) const;
 
-		/**
-		 *	@brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
-		 *	
-		 *	@param db_path Path to database file (fasta)
-     *	@param rt_model_path
-     *	@param dt_model_path
-		 *	@param save Flag if preprocessing should be stored.
-		 *
-		 *	@throws Exception::FileNotFound if file with preprocessing or db can't be found
-		 *  @throws Exception::UnableToCreateFile if preprocessing file can't be written
-		 */
-		void dbPreprocessing(String db_path,String rt_model_path,String dt_model_path,bool save=true);
+    const std::map<String, std::vector<DoubleReal> > & getProteinRTMap() const;
+    const std::map<String, std::vector<DoubleReal> > & getProteinPTMap() const;
+    const std::map<String, std::vector<String> > & getProteinPeptideSequenceMap() const;
 
-		
-		/**
-		 *	@brief Loads tryptric peptide masses of a given database.
-		 *
-		 *	@throws Exception::FileNotFound if file with preprocessing can't be found
-		 *	@throws Exception::InvalidParameter if precursor_mass_tolerance_unit is ppm and
-		 *  file containing bin borders can't be found
-		 */
-		void loadPreprocessing();
 
-		/// get the weighted frequency of a mass
-		DoubleReal getWeight(DoubleReal mass);
+    /**
+      @brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
 
-		DoubleReal getRT(String prot_id,Size peptide_index);
-		
-		DoubleReal getPT(String prot_id,Size peptide_index);
+      @param db_path Path to database file (fasta)
+      @param save Flag if preprocessing should be stored.
 
-		/// get the rt-weight for the proposed peptide and its measured rt
-		DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt);
+      @throws Exception::FileNotFound if file with preprocessing or db can't be found
+      @throws Exception::UnableToCreateFile if preprocessing file can't be written
+    */
+    void dbPreprocessing(String db_path, bool save = true);
 
-		
-	protected:
-		/// saves the preprocessed db
-		void savePreprocessedDB_(String db_path,String path);
-		void savePreprocessedDBWithRT_(String db_path,String path);
-		/// loads the preprocessed db
-		void loadPreprocessedDB_(String path);
-		void setFixedModifications_(StringList& modifications);
+    /**
+      @brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
+
+      @param db_path Path to database file (fasta)
+      @param rt_model_path
+      @param dt_model_path
+      @param save Flag if preprocessing should be stored.
+
+      @throws Exception::FileNotFound if file with preprocessing or db can't be found
+      @throws Exception::UnableToCreateFile if preprocessing file can't be written
+    */
+    void dbPreprocessing(String db_path, String rt_model_path, String dt_model_path, bool save = true);
+
+
+    /**
+      @brief Loads tryptric peptide masses of a given database.
+
+      @throws Exception::FileNotFound if file with preprocessing can't be found
+      @throws Exception::InvalidParameter if precursor_mass_tolerance_unit is ppm and
+      file containing bin borders can't be found
+    */
+    void loadPreprocessing();
+
+    /// get the weighted frequency of a mass
+    DoubleReal getWeight(DoubleReal mass);
+
+    DoubleReal getRT(String prot_id, Size peptide_index);
+
+    DoubleReal getPT(String prot_id, Size peptide_index);
+
+    /// get the rt-weight for the proposed peptide and its measured rt
+    DoubleReal getRTWeight(String prot_id, Size peptide_index, DoubleReal meas_rt);
+
+protected:
+    /// saves the preprocessed db
+    void savePreprocessedDB_(String db_path, String path);
+    void savePreprocessedDBWithRT_(String db_path, String path);
+    /// loads the preprocessed db
+    void loadPreprocessedDB_(String path);
+    void setFixedModifications_(StringList & modifications);
 
     /// preprocess fasta identifier
-    void filterTaxonomyIdentifier_(FASTAFile::FASTAEntry& entry);
+    void filterTaxonomyIdentifier_(FASTAFile::FASTAEntry & entry);
 
-		/// all tryptic masses of the distinct peptides in the database
-		std::vector<DoubleReal> masses_;
+    /// all tryptic masses of the distinct peptides in the database
+    std::vector<DoubleReal> masses_;
     /// the sequences of the tryptic peptides
     std::set<AASequence> sequences_;
     /// stores masses of tryptic peptides for proteins, key is the accession number
-    std::map<String,std::vector<DoubleReal> > prot_masses_;
+    std::map<String, std::vector<DoubleReal> > prot_masses_;
     /// the masses of the bins used for preprocessing (only used if bins are not equidistant, i.e. with ppm)
     std::vector<DoubleReal> bin_masses_;
-		/// counter for the bins
-		std::vector<UInt> counter_;
-		/// maximal relative frequency of a mass
+    /// counter for the bins
+    std::vector<UInt> counter_;
+    /// maximal relative frequency of a mass
     UInt f_max_;
 
-		bool fixed_mods_;
-		std::map<String, std::vector<DoubleReal> > rt_prot_map_;
-		std::map<String, std::vector<DoubleReal> > pt_prot_map_;
-		std::map<String, std::vector<String> > prot_peptide_seq_map_;
-		std::map<char, std::vector<String> > fixed_modifications_;
+    bool fixed_mods_;
+    std::map<String, std::vector<DoubleReal> > rt_prot_map_;
+    std::map<String, std::vector<DoubleReal> > pt_prot_map_;
+    std::map<String, std::vector<String> > prot_peptide_seq_map_;
+    std::map<char, std::vector<String> > fixed_modifications_;
   };
 }
-    
+
 #endif //#ifndef OPENMS_ANALYSIS_ID_PRECURSORIONSELECTIONPREPROCESSING_H

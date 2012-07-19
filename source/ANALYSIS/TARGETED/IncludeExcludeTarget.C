@@ -31,26 +31,26 @@
 
 namespace OpenMS
 {
-  IncludeExcludeTarget::IncludeExcludeTarget()
-    :  CVTermList(),
-      precursor_mz_(std::numeric_limits<DoubleReal>::max()),
-      product_mz_(std::numeric_limits<DoubleReal>::max())
+  IncludeExcludeTarget::IncludeExcludeTarget() :
+    CVTermList(),
+    precursor_mz_(std::numeric_limits<DoubleReal>::max()),
+    product_mz_(std::numeric_limits<DoubleReal>::max())
   {
   }
 
-  IncludeExcludeTarget::IncludeExcludeTarget(const IncludeExcludeTarget& rhs)
-    : CVTermList(rhs),
-      name_(rhs.name_),
-      precursor_mz_(rhs.precursor_mz_),
-      precursor_cv_terms_(rhs.precursor_cv_terms_),
-      product_mz_(rhs.product_mz_),
-      product_cv_terms_(rhs.product_cv_terms_),
-      interpretation_list_(rhs.interpretation_list_),
-      peptide_ref_(rhs.peptide_ref_),
-      compound_ref_(rhs.compound_ref_),
-      configurations_(rhs.configurations_),
-      prediction_(rhs.prediction_),
-      rts(rhs.rts)
+  IncludeExcludeTarget::IncludeExcludeTarget(const IncludeExcludeTarget & rhs) :
+    CVTermList(rhs),
+    name_(rhs.name_),
+    precursor_mz_(rhs.precursor_mz_),
+    precursor_cv_terms_(rhs.precursor_cv_terms_),
+    product_mz_(rhs.product_mz_),
+    product_cv_terms_(rhs.product_cv_terms_),
+    interpretation_list_(rhs.interpretation_list_),
+    peptide_ref_(rhs.peptide_ref_),
+    compound_ref_(rhs.compound_ref_),
+    configurations_(rhs.configurations_),
+    prediction_(rhs.prediction_),
+    rts(rhs.rts)
   {
   }
 
@@ -58,11 +58,11 @@ namespace OpenMS
   {
   }
 
-  IncludeExcludeTarget& IncludeExcludeTarget::operator = (const IncludeExcludeTarget& rhs)
+  IncludeExcludeTarget & IncludeExcludeTarget::operator=(const IncludeExcludeTarget & rhs)
   {
     if (&rhs != this)
     {
-      CVTermList::operator = (rhs);
+      CVTermList::operator=(rhs);
       name_ = rhs.name_;
       precursor_mz_ = rhs.precursor_mz_;
       precursor_cv_terms_ = rhs.precursor_cv_terms_;
@@ -78,53 +78,53 @@ namespace OpenMS
     return *this;
   }
 
-  bool IncludeExcludeTarget::operator == (const IncludeExcludeTarget& rhs) const
+  bool IncludeExcludeTarget::operator==(const IncludeExcludeTarget & rhs) const
   {
-    return  CVTermList::operator == (rhs) &&
-            name_ == rhs.name_ &&
-            precursor_mz_ == rhs.precursor_mz_ &&
-            precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
-            product_mz_ == rhs.product_mz_ &&
-            product_cv_terms_ == rhs.product_cv_terms_ &&
-            interpretation_list_ == rhs.interpretation_list_ &&
-            peptide_ref_ == rhs.peptide_ref_ &&
-            compound_ref_ == rhs.compound_ref_ &&
-            configurations_ == rhs.configurations_ &&
-            prediction_ == rhs.prediction_ &&
-            rts == rhs.rts;
+    return CVTermList::operator==(rhs) &&
+           name_ == rhs.name_ &&
+           precursor_mz_ == rhs.precursor_mz_ &&
+           precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
+           product_mz_ == rhs.product_mz_ &&
+           product_cv_terms_ == rhs.product_cv_terms_ &&
+           interpretation_list_ == rhs.interpretation_list_ &&
+           peptide_ref_ == rhs.peptide_ref_ &&
+           compound_ref_ == rhs.compound_ref_ &&
+           configurations_ == rhs.configurations_ &&
+           prediction_ == rhs.prediction_ &&
+           rts == rhs.rts;
   }
 
-  bool IncludeExcludeTarget::operator != (const IncludeExcludeTarget& rhs) const
+  bool IncludeExcludeTarget::operator!=(const IncludeExcludeTarget & rhs) const
   {
     return !(*this == rhs);
   }
 
-  void IncludeExcludeTarget::setName(const String& name)
+  void IncludeExcludeTarget::setName(const String & name)
   {
     name_ = name;
   }
 
-  const String& IncludeExcludeTarget::getName() const
+  const String & IncludeExcludeTarget::getName() const
   {
     return name_;
   }
 
-  void IncludeExcludeTarget::setPeptideRef(const String& peptide_ref)
+  void IncludeExcludeTarget::setPeptideRef(const String & peptide_ref)
   {
     peptide_ref_ = peptide_ref;
   }
 
-  const String& IncludeExcludeTarget::getPeptideRef() const
+  const String & IncludeExcludeTarget::getPeptideRef() const
   {
     return peptide_ref_;
   }
 
-  void IncludeExcludeTarget::setCompoundRef(const String& compound_ref)
+  void IncludeExcludeTarget::setCompoundRef(const String & compound_ref)
   {
     compound_ref_ = compound_ref;
   }
 
-  const String& IncludeExcludeTarget::getCompoundRef() const
+  const String & IncludeExcludeTarget::getCompoundRef() const
   {
     return compound_ref_;
   }
@@ -139,21 +139,20 @@ namespace OpenMS
     return precursor_mz_;
   }
 
-  void IncludeExcludeTarget::setPrecursorCVTermList(const CVTermList& list)
+  void IncludeExcludeTarget::setPrecursorCVTermList(const CVTermList & list)
   {
     precursor_cv_terms_ = list;
   }
 
-  void IncludeExcludeTarget::addPrecursorCVTerm(const CVTerm& cv_term)
+  void IncludeExcludeTarget::addPrecursorCVTerm(const CVTerm & cv_term)
   {
     precursor_cv_terms_.addCVTerm(cv_term);
   }
 
-  const CVTermList& IncludeExcludeTarget::getPrecursorCVTermList() const
+  const CVTermList & IncludeExcludeTarget::getPrecursorCVTermList() const
   {
     return precursor_cv_terms_;
   }
-
 
   void IncludeExcludeTarget::setProductMZ(DoubleReal mz)
   {
@@ -165,62 +164,62 @@ namespace OpenMS
     return product_mz_;
   }
 
-  void IncludeExcludeTarget::setProductCVTermList(const CVTermList& list)
+  void IncludeExcludeTarget::setProductCVTermList(const CVTermList & list)
   {
     product_cv_terms_ = list;
   }
 
-  void IncludeExcludeTarget::addProductCVTerm(const CVTerm& cv_term)
+  void IncludeExcludeTarget::addProductCVTerm(const CVTerm & cv_term)
   {
     product_cv_terms_.addCVTerm(cv_term);
   }
 
-  const CVTermList& IncludeExcludeTarget::getProductCVTermList() const
+  const CVTermList & IncludeExcludeTarget::getProductCVTermList() const
   {
     return product_cv_terms_;
   }
 
-  void IncludeExcludeTarget::setInterpretations(const std::vector<CVTermList>& interpretations)
+  void IncludeExcludeTarget::setInterpretations(const std::vector<CVTermList> & interpretations)
   {
     interpretation_list_ = interpretations;
   }
 
-  const std::vector<CVTermList>& IncludeExcludeTarget::getInterpretations() const
+  const std::vector<CVTermList> & IncludeExcludeTarget::getInterpretations() const
   {
     return interpretation_list_;
   }
 
-  void IncludeExcludeTarget::addInterpretation(const CVTermList& interpretation)
+  void IncludeExcludeTarget::addInterpretation(const CVTermList & interpretation)
   {
     interpretation_list_.push_back(interpretation);
   }
 
-  void IncludeExcludeTarget::setConfigurations(const std::vector<Configuration>& configurations)
+  void IncludeExcludeTarget::setConfigurations(const std::vector<Configuration> & configurations)
   {
     configurations_ = configurations;
   }
 
-  const std::vector<IncludeExcludeTarget::Configuration>& IncludeExcludeTarget::getConfigurations() const
+  const std::vector<IncludeExcludeTarget::Configuration> & IncludeExcludeTarget::getConfigurations() const
   {
     return configurations_;
   }
 
-  void IncludeExcludeTarget::addConfiguration(const Configuration& configuration)
+  void IncludeExcludeTarget::addConfiguration(const Configuration & configuration)
   {
     configurations_.push_back(configuration);
   }
 
-  void IncludeExcludeTarget::setPrediction(const CVTermList& prediction)
+  void IncludeExcludeTarget::setPrediction(const CVTermList & prediction)
   {
     prediction_ = prediction;
   }
 
-  const CVTermList& IncludeExcludeTarget::getPrediction() const
+  const CVTermList & IncludeExcludeTarget::getPrediction() const
   {
     return prediction_;
   }
 
-  void IncludeExcludeTarget::addPredictionTerm(const CVTerm& term)
+  void IncludeExcludeTarget::addPredictionTerm(const CVTerm & term)
   {
     prediction_.addCVTerm(term);
   }
@@ -234,10 +233,9 @@ namespace OpenMS
     rts = rt;
   }
 
-  const IncludeExcludeTarget::RetentionTime& IncludeExcludeTarget::getRetentionTime() const
+  const IncludeExcludeTarget::RetentionTime & IncludeExcludeTarget::getRetentionTime() const
   {
     return rts;
   }
+
 }
-
-

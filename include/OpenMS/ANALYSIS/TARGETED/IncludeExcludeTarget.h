@@ -40,17 +40,17 @@ namespace OpenMS
     @brief This class stores a SRM/MRM transition
 
     The default values for precursor and product m/z values are
-    set to numeric_limits<DoubleReal>::max(). Default values for 
+    set to numeric_limits<DoubleReal>::max(). Default values for
     precursor an product charge is set to numeric_limits<Int>::max().
   */
-  class OPENMS_DLLAPI IncludeExcludeTarget 
-    : public CVTermList
+  class OPENMS_DLLAPI IncludeExcludeTarget :
+    public CVTermList
   {
 
-    public:
+public:
 
-      typedef TargetedExperimentHelper::Configuration Configuration;
-      typedef TargetedExperimentHelper::RetentionTime RetentionTime;
+    typedef TargetedExperimentHelper::Configuration Configuration;
+    typedef TargetedExperimentHelper::RetentionTime RetentionTime;
 
     /** @name Constructors and destructors
     */
@@ -59,85 +59,85 @@ namespace OpenMS
     IncludeExcludeTarget();
 
     /// copy constructor
-    IncludeExcludeTarget(const IncludeExcludeTarget& rhs);
+    IncludeExcludeTarget(const IncludeExcludeTarget & rhs);
 
     /// destructor
     virtual ~IncludeExcludeTarget();
     //@}
 
-    /// assignment operator 
-    IncludeExcludeTarget& operator = (const IncludeExcludeTarget& rhs);
+    /// assignment operator
+    IncludeExcludeTarget & operator=(const IncludeExcludeTarget & rhs);
 
     /** @name Accessors
     */
     //@{
-    void setName(const String& name);
+    void setName(const String & name);
 
-    const String& getName() const;
+    const String & getName() const;
 
-    void setPeptideRef(const String& peptide_ref);
+    void setPeptideRef(const String & peptide_ref);
 
-    const String& getPeptideRef() const;
+    const String & getPeptideRef() const;
 
-    void setCompoundRef(const String& compound_ref);
+    void setCompoundRef(const String & compound_ref);
 
-    const String& getCompoundRef() const;
+    const String & getCompoundRef() const;
 
     /// sets the precursor mz (Q1 value)
     void setPrecursorMZ(DoubleReal mz);
 
     DoubleReal getPrecursorMZ() const;
 
-    void setPrecursorCVTermList(const CVTermList& list);
+    void setPrecursorCVTermList(const CVTermList & list);
 
-    void addPrecursorCVTerm(const CVTerm& cv_term);
+    void addPrecursorCVTerm(const CVTerm & cv_term);
 
-    const CVTermList& getPrecursorCVTermList() const;
-    
+    const CVTermList & getPrecursorCVTermList() const;
+
     void setProductMZ(DoubleReal mz);
 
     DoubleReal getProductMZ() const;
 
-    void setProductCVTermList(const CVTermList& list);
+    void setProductCVTermList(const CVTermList & list);
 
-    void addProductCVTerm(const CVTerm& cv_term);
+    void addProductCVTerm(const CVTerm & cv_term);
 
-    const CVTermList& getProductCVTermList() const;
+    const CVTermList & getProductCVTermList() const;
 
-    void setInterpretations(const std::vector<CVTermList>& interpretations);
+    void setInterpretations(const std::vector<CVTermList> & interpretations);
 
-    const std::vector<CVTermList>& getInterpretations() const;
+    const std::vector<CVTermList> & getInterpretations() const;
 
-    void addInterpretation(const CVTermList& interpretation);
+    void addInterpretation(const CVTermList & interpretation);
 
-    void setConfigurations(const std::vector<Configuration>& configuration);
-    
-    const std::vector<Configuration>& getConfigurations() const;
+    void setConfigurations(const std::vector<Configuration> & configuration);
 
-    void addConfiguration(const Configuration& configuration);
+    const std::vector<Configuration> & getConfigurations() const;
 
-    void setPrediction(const CVTermList& prediction);
+    void addConfiguration(const Configuration & configuration);
 
-    void addPredictionTerm(const CVTerm& prediction);
+    void setPrediction(const CVTermList & prediction);
 
-    const CVTermList& getPrediction() const;
+    void addPredictionTerm(const CVTerm & prediction);
+
+    const CVTermList & getPrediction() const;
 
     void setRetentionTime(RetentionTime rt);
 
-    const RetentionTime& getRetentionTime() const;
+    const RetentionTime & getRetentionTime() const;
     //@}
 
     /** @name Predicates
     */
     //@{
     /// equality operator
-    bool operator == (const IncludeExcludeTarget& rhs) const;
-    
+    bool operator==(const IncludeExcludeTarget & rhs) const;
+
     /// inequality operator
-    bool operator != (const IncludeExcludeTarget& rhs) const;
+    bool operator!=(const IncludeExcludeTarget & rhs) const;
     //@}
 
-    protected:
+protected:
 
     void updateMembers_();
 
@@ -152,7 +152,7 @@ namespace OpenMS
     CVTermList product_cv_terms_;
 
     std::vector<CVTermList> interpretation_list_;
-  
+
     String peptide_ref_;
 
     String compound_ref_;
@@ -167,4 +167,3 @@ namespace OpenMS
 }
 
 #endif // OPENMS_ANALYSIS_TARGETED_INCLUDEEXCLUDETARGET_H
-

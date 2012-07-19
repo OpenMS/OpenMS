@@ -42,8 +42,6 @@ namespace OpenMS
 {
   /**
     @brief This class stores an prediction of an SRM/MRM transition
-
-
   */
   class OPENMS_DLLAPI TargetedExperiment
   {

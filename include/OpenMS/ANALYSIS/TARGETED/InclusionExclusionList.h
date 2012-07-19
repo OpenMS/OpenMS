@@ -35,22 +35,20 @@
 namespace OpenMS
 {
   /**
-     @brief
+    @brief
 
-
-     @todo allow modifications (fixed?)
-
+    @todo allow modifications (fixed?)
   */
-  class OPENMS_DLLAPI InclusionExclusionList
-    : public DefaultParamHandler
+  class OPENMS_DLLAPI InclusionExclusionList :
+    public DefaultParamHandler
   {
-  protected:
+protected:
     struct IEWindow
     {
-      IEWindow(const DoubleReal RTmin, const DoubleReal RTmax, const DoubleReal MZ)
-        : RTmin_(RTmin),
-          RTmax_(RTmax),
-          MZ_(MZ)
+      IEWindow(const DoubleReal RTmin, const DoubleReal RTmax, const DoubleReal MZ) :
+        RTmin_(RTmin),
+        RTmax_(RTmax),
+        MZ_(MZ)
       {
       }
 
@@ -62,37 +60,39 @@ namespace OpenMS
     /**
       @brief Determine distance between two spectra
 
-      Distance is determined as 
-      
+      Distance is determined as
+
         (d_rt/rt_max_ + d_mz/mz_max_) / 2
     */
     class WindowDistance_
     {
-      public:
-      WindowDistance_(const DoubleReal rt_bridge, const DoubleReal mz_max, const bool mz_as_ppm)
-        : rt_bridge_(rt_bridge),
-          mz_max_(mz_max),
-          mz_as_ppm_(mz_as_ppm)
+public:
+      WindowDistance_(const DoubleReal rt_bridge, const DoubleReal mz_max, const bool mz_as_ppm) :
+        rt_bridge_(rt_bridge),
+        mz_max_(mz_max),
+        mz_as_ppm_(mz_as_ppm)
       {
       }
-      
+
       // measure of SIMILARITY (not distance, i.e. 1-distance)!!
-      double operator()(const IEWindow& first, const IEWindow& second) const
+      double operator()(const IEWindow & first, const IEWindow & second) const
       {
         // get MZ distance:
         DoubleReal d_mz = fabs(first.MZ_ - second.MZ_);
         if (mz_as_ppm_)
         {
-          d_mz = d_mz/first.MZ_ * 1e6;
+          d_mz = d_mz / first.MZ_ * 1e6;
         }
-        if (d_mz > mz_max_) {return 0;}
+        if (d_mz > mz_max_) {return 0; }
         // mz is close enough ...
 
         // is RT overlapping?
-        if (first.RTmin_ <= second.RTmin_ && second.RTmin_ <= first.RTmax_) return 1; // intersect #1
-        if (first.RTmin_ <= second.RTmax_ && second.RTmax_ <= first.RTmax_) return 1; // intersect #2
-        if (second.RTmin_ <= first.RTmin_ && first.RTmax_ <= second.RTmax_) return 1; // complete inclusion (only one case; the other is covered above)
-      
+        if (first.RTmin_ <= second.RTmin_ && second.RTmin_ <= first.RTmax_) return 1;  // intersect #1
+
+        if (first.RTmin_ <= second.RTmax_ && second.RTmax_ <= first.RTmax_) return 1;  // intersect #2
+
+        if (second.RTmin_ <= first.RTmin_ && first.RTmax_ <= second.RTmax_) return 1;  // complete inclusion (only one case; the other is covered above)
+
         // when windows to not overlap at all:
         // ... are they at least close?
         if ((fabs(first.RTmin_ - second.RTmax_) <= rt_bridge_) ||
@@ -105,15 +105,15 @@ namespace OpenMS
         return 0;
       }
 
-    protected:
-      
+protected:
+
       DoubleReal rt_bridge_; ///< max rt distance between two windows in order to be considered overlapping
       DoubleReal mz_max_;    ///< max m/z distance between two ...
       bool mz_as_ppm_;       ///< m/z distance unit
 
     }; // end of WindowDistance_
 
-        
+
     typedef std::vector<IEWindow> WindowList;
 
     /**
@@ -126,9 +126,9 @@ namespace OpenMS
        - RT windows are extended
        - m/z value is averaged over all windows
     */
-    void mergeOverlappingWindows_(WindowList& list) const;
+    void mergeOverlappingWindows_(WindowList & list) const;
 
-    
+
     /**
       @brief Writes the windows to the given file
 
@@ -138,16 +138,16 @@ namespace OpenMS
       @throws Exception::UnableToCreateFile when file cannot be created
 
     */
-    void writeToFile_(const String& out_path, const WindowList& windows) const;
+    void writeToFile_(const String & out_path, const WindowList & windows) const;
 
-  public:
+public:
     /** @name Constructors and destructors
      */
     //@{
     /// default constructor
     InclusionExclusionList();
 
-   
+
     //@}
 
 //     void loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp);
@@ -156,34 +156,34 @@ namespace OpenMS
 //                      TargetedExperiment& exp, Size missed_cleavages = 0);
 
 
-		/**
-			 @brief Writes inclusion or exclusion list of tryptic peptides of the given proteins (tab-delimited).
+    /**
+      @brief Writes inclusion or exclusion list of tryptic peptides of the given proteins (tab-delimited).
 
-			 @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
-		 */
-    void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
-                                            const String& out_path,
-                                            const IntList& charges,
-                                            const String rt_model_path);
+      @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
+    */
+    void writeTargets(const std::vector<FASTAFile::FASTAEntry> & fasta_entries,
+                      const String & out_path,
+                      const IntList & charges,
+                      const String rt_model_path);
 
-		/**
-			 @brief Writes inclusion or exclusion list of given feature map.
+    /**
+      @brief Writes inclusion or exclusion list of given feature map.
 
-			 @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
-		 */
-    void writeTargets(const FeatureMap<>& map,
-                      const String& out_path);
-		
-		/**
-			 @brief Writes inclusion or exclusion list of given peptide ids (tab-delimited).
+      @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
+     */
+    void writeTargets(const FeatureMap<> & map,
+                      const String & out_path);
 
-			 @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
-			 @exception Exception::InvalidSize is thrown if a peptide id contains more than one hit
-			 @exception Exception::MissingInformation is thrown if a peptide id contains no RT information
-		 */
-		void writeTargets(const std::vector<PeptideIdentification>& pep_ids,
-                      const String& out_path,
-                      const IntList& charges);
+    /**
+      @brief Writes inclusion or exclusion list of given peptide ids (tab-delimited).
+
+      @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
+      @exception Exception::InvalidSize is thrown if a peptide id contains more than one hit
+      @exception Exception::MissingInformation is thrown if a peptide id contains no RT information
+     */
+    void writeTargets(const std::vector<PeptideIdentification> & pep_ids,
+                      const String & out_path,
+                      const IntList & charges);
 
   };
 

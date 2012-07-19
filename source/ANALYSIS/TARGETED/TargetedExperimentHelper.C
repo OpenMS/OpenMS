@@ -30,5 +30,3 @@
 namespace OpenMS
 {
 }
-
-
