@@ -177,6 +177,9 @@ private:
           if (mz_iter == experiment[rt].begin())
             break;
           --mz_iter;
+          end_found = true;
+          end.first = rt;
+          end.second = start.second;
         }
         // and now to the right
         while (mz_end != experiment[rt].end() && enclosesBoundingBox<InputPeakType>(features[f], experiment[rt].getRT(), mz_end->getMZ()))
@@ -247,38 +250,34 @@ private:
         end.first = start.first;
 
         typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = spec_iter->MZBegin(features[f].getMZ());
-        typename MSSpectrum<InputPeakType>::ConstIterator mz_end = mz_iter;
-
-        if (mz_iter == spec_iter->end())
+        if (spec_iter->begin() == spec_iter->end())
         {
-          if (mz_iter != spec_iter->begin() && fabs((mz_iter - 1)->getMZ() - features[f].getMZ()) < 0.5)
-          {
-            --mz_iter;
-          }
-          else
-            continue;
-        }
-        if (fabs(mz_iter->getMZ() - features[f].getMZ()) > 0.5)
+          indices.push_back(vec);
           continue;
-        while (mz_iter != spec_iter->begin() && fabs(features[f].getMZ() - mz_iter->getMZ()) < 0.5)
+        }
+        if (mz_iter == spec_iter->end() || (mz_iter->getMZ() > features[f].getMZ() && mz_iter != spec_iter->begin()))
           --mz_iter;
-        if (mz_iter != spec_iter->end())
-          ++mz_iter;
-        start.second = distance(spec_iter->begin(), mz_iter);
+        while (mz_iter != spec_iter->begin())
+        {
+          if (fabs((mz_iter-1)->getMZ() - features[f].getMZ()) < 0.5)
+            --mz_iter;
+          else break;
+        }
+        start.second = distance(spec_iter->begin(),mz_iter);
+        typename MSSpectrum<InputPeakType>::ConstIterator mz_end = mz_iter;
 #ifdef DEBUG_OPS
         std::cout << features[f].getMZ() << " Start: " << experiment[start.first].getRT() << " " << experiment[start.first][start.second].getMZ();
 #endif
         Int charge = features[f].getCharge();
         if (charge == 0)
           charge = 1;
-        while (mz_end != spec_iter->end() && mz_end->getMZ() - features[f].getMZ() < 3.0 / (DoubleReal)charge)
+        while (mz_end + 1 != spec_iter->end())
         {
-          //  std::cout << mz_end->getMZ() << " - "<<features[f].getMZ() << " <? "<<3.0/(DoubleReal)charge<<std::endl;
-          ++mz_end;
+          if (fabs((mz_end + 1)->getMZ() - features[f].getMZ()) < 3.0/(DoubleReal)charge)
+            ++mz_end;
+          else break;
         }
-        if (mz_end == spec_iter->end() && mz_end != spec_iter->begin())
-          --mz_end;                                                                    // mz_end must be a valid peak
-        end.second = distance(spec_iter->begin(), mz_end);
+        end.second = distance(spec_iter->begin(),mz_end);
 #ifdef DEBUG_OPS
         std::cout << "\tEnd: " << experiment[end.first].getRT() << " " << experiment[end.first][end.second].getMZ() << std::endl;
 #endif
