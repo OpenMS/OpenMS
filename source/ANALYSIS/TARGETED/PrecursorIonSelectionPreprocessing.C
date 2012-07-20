@@ -33,6 +33,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
+#include <gsl/gsl_cdf.h>
 
 using namespace std;
 //#define PISP_DEBUG
@@ -48,12 +49,14 @@ namespace OpenMS
   {
     defaults_.setValue("precursor_mass_tolerance", 10., "Precursor mass tolerance which is used to query the peptide database for peptides");
     defaults_.setMinFloat("precursor_mass_tolerance", 0.);
-    defaults_.setValue("rt_weighting:total_gradient_time", 7640., "the total gradient time in seconds, needed for normalization.");
-    defaults_.setValue("rt_weighting:gradient_offset", 600, "the total gradient time in seconds, needed for normalization.");
-
-    defaults_.setValue("rt_weighting:gauss_amplitude", 100., "amplitude at the gauss_mean");
-    defaults_.setValue("rt_weighting:gauss_mean", 0.0, "mean of the gauss curve");
-    defaults_.setValue("rt_weighting:gauss_std", 0.01, "std of the gauss curve");
+    defaults_.setValue("rt_settings:min_rt", 960., "Minimal RT in the experiment (in seconds)");
+    defaults_.setMinFloat("rt_settings:min_rt", 0.);
+    defaults_.setValue("rt_settings:max_rt", 3840., "Maximal RT in the experiment (in seconds)");
+    defaults_.setMinFloat("rt_settings:min_rt", 1.);
+    defaults_.setValue("rt_settings:rt_step_size", 30., "Time between two consecutive spectra (in seconds)");
+    defaults_.setMinFloat("rt_settings:min_rt", 1.);
+    defaults_.setValue("rt_settings:gauss_mean", -1.0, "mean of the gauss curve");
+    defaults_.setValue("rt_settings:gauss_sigma", 3., "std of the gauss curve");
     defaults_.setValue("precursor_mass_tolerance_unit", "ppm", "Precursor mass tolerance unit.");
     defaults_.setValidStrings("precursor_mass_tolerance_unit", StringList::create("ppm,Da"));
     defaults_.setValue("preprocessing:preprocessed_db_path", "", "Path where the preprocessed database should be stored");
@@ -67,6 +70,7 @@ namespace OpenMS
     defaults_.setValue("tmp_dir", "", "Absolute path to tmp data directory used to store files needed for rt and dt prediction.");
     defaults_.setValue("store_peptide_sequences", "false", "Flag if peptide sequences should be stored.");
     defaultsToParam_();
+    updateMembers_();
   }
 
   PrecursorIonSelectionPreprocessing::PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing & source) :
@@ -76,7 +80,7 @@ namespace OpenMS
     bin_masses_(source.bin_masses_),
     f_max_(source.f_max_)
   {
-
+    updateMembers_();
   }
 
   PrecursorIonSelectionPreprocessing::~PrecursorIonSelectionPreprocessing()
@@ -97,7 +101,7 @@ namespace OpenMS
     return *this;
   }
 
-  void PrecursorIonSelectionPreprocessing::setFixedModifications_(StringList & modifications)
+  void PrecursorIonSelectionPreprocessing::setFixedModifications(StringList & modifications)
   {
     for (Size i = 0; i < modifications.size(); ++i)
     {
@@ -194,26 +198,6 @@ namespace OpenMS
     return 1;
   }
 
-  DoubleReal PrecursorIonSelectionPreprocessing::getRTWeight(String prot_id, Size peptide_index, DoubleReal meas_rt)
-  {
-    DoubleReal pred_rt = getRT(prot_id, peptide_index);
-    //  std::cout << "pred rt: "<<pred_rt << std::endl;
-    // TODO: what to return if no rt was predicted for this peptide?
-    if (pred_rt == -1)
-      return 1.;
-
-    // determine difference of measured and predicted rt and normalize by total gradient time
-    DoubleReal diff = (meas_rt - pred_rt) / (DoubleReal)param_.getValue("rt_weighting:total_gradient_time");
-    // get parameters for gauss curve representing the distribution of the rt differences
-    DoubleReal a = param_.getValue("rt_weighting:gauss_amplitude");
-    DoubleReal m = param_.getValue("rt_weighting:gauss_mean");
-    DoubleReal s = param_.getValue("rt_weighting:gauss_std");
-    // std::cout << "mean, std and diff: "<<m << " "<<s<<" "<<diff<<std::endl;
-
-    // get gauss value for the specific rt difference
-    DoubleReal gauss_diff = a * exp(-1.0 * pow(diff - m, 2) / (2 * pow(s, 2)));
-    return gauss_diff;
-  }
 
   DoubleReal PrecursorIonSelectionPreprocessing::getWeight(DoubleReal mass)
   {
@@ -300,10 +284,6 @@ namespace OpenMS
               << "\t" << param_.getValue("precursor_mass_tolerance")
               << " " << param_.getValue("precursor_mass_tolerance_unit")
     //<< "\t"<<param_.getValue("rt_tolerance")
-              << "\t" << param_.getValue("rt_weighting:total_gradient_time")
-              << "\t" << param_.getValue("rt_weighting:gauss_amplitude")
-              << "\t" << param_.getValue("rt_weighting:gauss_mean")
-              << "\t" << param_.getValue("rt_weighting:gauss_std")
               << "\t" << param_.getValue("missed_cleavages")
               << "\t" << param_.getValue("preprocessing:taxonomy")
               << "\t" << param_.getValue("tmp_dir") << "---"
@@ -1156,4 +1136,107 @@ namespace OpenMS
 
   }
 
+
+  DoubleReal PrecursorIonSelectionPreprocessing::getRTProbability_(DoubleReal min_obs_rt, DoubleReal max_obs_rt, DoubleReal theo_rt)
+  {
+    // first adapt gaussian RT error distribution to a normal distribution with \mu = 0
+    Int theo_scan = getScanNumber_(theo_rt);
+    if (theo_scan == -1) return 0.;
+    DoubleReal obs_scan_begin = getScanNumber_(min_obs_rt);
+    if (obs_scan_begin != 0)  obs_scan_begin -=1;
+    DoubleReal obs_scan_end = getScanNumber_(max_obs_rt)+1;
+
+    if (obs_scan_begin == -1 || obs_scan_end == -1)
+    {
+      std::cout << "Probably an error occured during RTProb-calc: scan = -1: "
+                << obs_scan_begin << " "<< obs_scan_end << std::endl;
+      return 0.;
+    }
+    
+    obs_scan_begin -= mu_;
+    obs_scan_end -= mu_;
+    
+    DoubleReal x1,x2;
+    x1 = theo_scan - obs_scan_end;
+    x2 = theo_scan - obs_scan_begin;
+    
+    DoubleReal prob;
+    // gsl_cdf_gaussian_P computes the cumulative probs up to x (i.e. the area under the curve)
+    // so cgauss(x2)  - cgauss(x1) yields the area between x1 and x2
+    if (x2 > x1) prob = gsl_cdf_gaussian_P(x2,sigma_) - gsl_cdf_gaussian_P(x1,sigma_);
+    else  prob = gsl_cdf_gaussian_P(x1,sigma_) -  gsl_cdf_gaussian_P(x2,sigma_);
+    if ((prob < 0.) || (obs_scan_begin == obs_scan_end))
+    {
+      std::cerr << min_obs_rt << " "<< obs_scan_begin << " " << max_obs_rt << " "<< obs_scan_end << " "
+                << theo_rt << " " << theo_scan << " " << mu_ << " "<< x1 << " "<<x2 << " "<< prob<<std::endl;
+      if (x2 > x1) std::cerr <<  gsl_cdf_gaussian_P(x2,sigma_) <<" - "<<gsl_cdf_gaussian_P(x1,sigma_)<<std::endl;
+      else  std::cerr <<   gsl_cdf_gaussian_P(x1,sigma_)<<" - "<< gsl_cdf_gaussian_P(x2,sigma_)<<std::endl;
+    }
+    return prob;
+  }
+
+
+ 
+  Int PrecursorIonSelectionPreprocessing::getScanNumber_(DoubleReal rt)
+  {
+    DoubleReal min_rt = param_.getValue("rt_settings:min_rt");
+    DoubleReal max_rt = param_.getValue("rt_settings:max_rt");
+    DoubleReal rt_step_size = param_.getValue("rt_settings:rt_step_size");
+    
+    if (rt > max_rt || rt < min_rt) return -1;
+
+    Int scan = (Int)floor((rt - min_rt) / rt_step_size);
+    return scan;
+  }
+
+  
+	void PrecursorIonSelectionPreprocessing::setGaussianParameters(DoubleReal mu, DoubleReal sigma)
+	{
+		sigma_ = sigma;
+		mu_ = mu;
+	}
+
+  void PrecursorIonSelectionPreprocessing::updateMembers_()
+  {
+    sigma_ = param_.getValue("rt_settings:gauss_sigma");
+    mu_ = param_.getValue("rt_settings:gauss_mean");
+  }
+
+  DoubleReal PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature & feature)
+  {
+		DoubleReal theo_rt = 0.;
+		if (rt_prot_map_.size() > 0)
+		{
+      if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
+      {
+        if (rt_prot_map_[prot_id].size() > peptide_index)	theo_rt = rt_prot_map_[prot_id][peptide_index];
+      }
+    }
+		if (theo_rt == 0.)
+    {
+      if (rt_prot_map_.find(prot_id) == rt_prot_map_.end())
+      {
+        std::cout << " prot_id not in map "<<prot_id << std::endl;
+      }
+      else
+      {
+        std::cout << "protein in map, but "<< peptide_index << " " <<rt_prot_map_[prot_id].size()<<std::endl;
+      }
+      std::cout << "rt_map is empty, no rts predicted!"<<std::endl;
+    }
+    DoubleReal rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
+    DoubleReal rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];
+    
+		return 	getRTProbability_(rt_begin, rt_end, theo_rt);
+  }
+
+  
+  DoubleReal PrecursorIonSelectionPreprocessing::getRTProbability(DoubleReal pred_rt, Feature & feature)
+  {
+    DoubleReal rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
+    DoubleReal rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];
+    
+		return 	getRTProbability_(rt_begin, rt_end, pred_rt);
+  }
+  
 } //namespace

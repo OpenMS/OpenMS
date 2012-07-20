@@ -134,10 +134,6 @@ START_SECTION(DoubleReal getPT(String prot_id,Size peptide_index))
   TEST_REAL_SIMILAR(rt_pt_pp.getPT("P01008",1),0.0402)
 END_SECTION
 
-START_SECTION(DoubleReal getRTWeight(String prot_id, Size peptide_index,DoubleReal meas_rt))
-	TEST_REAL_SIMILAR(rt_pt_pp.getRTWeight("P01008",1,831.),99.999)
-END_SECTION
-
 START_SECTION((const std::map<String, std::vector<DoubleReal> >& getProteinRTMap() const))
   const std::map<String, std::vector<DoubleReal> >& rt_map = rt_pt_pp.getProteinRTMap();
   TEST_REAL_SIMILAR(rt_map.find("P01008")->second[1],831.46429)

@@ -7,6 +7,7 @@ PrecursorIonSelectionPreprocessing.h
 PrecursorIonSelection.h
 OfflinePrecursorIonSelection.h
 PSLPFormulation.h
+PSProteinInference.h
 IncludeExcludeTarget.h
 TargetedExperiment.h
 TargetedExperimentHelper.h

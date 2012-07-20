@@ -7,6 +7,7 @@ PrecursorIonSelectionPreprocessing.C
 PrecursorIonSelection.C
 OfflinePrecursorIonSelection.C
 PSLPFormulation.C
+PSProteinInference.C
 IncludeExcludeTarget.C
 TargetedExperiment.C
 TargetedExperimentHelper.C

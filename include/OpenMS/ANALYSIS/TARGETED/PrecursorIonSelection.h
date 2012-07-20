@@ -31,13 +31,13 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
+#include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
 #include <set>
 
 namespace OpenMS
 {
   class PrecursorIonSelectionPreprocessing;
-
+  class PSProteinInference;
   /**
     @brief This class implements different precursor ion selection strategies.
 
@@ -68,6 +68,7 @@ public:
     enum Type
     {
       IPS,
+      ILP_IPS,
       SPS,
       UPSHIFT,
       DOWNSHIFT,
@@ -93,6 +94,19 @@ public:
 
     };
 
+    /// Compare by score
+		struct SeqTotalScoreMore :
+      std::binary_function <Feature, Feature, bool>
+		{
+			inline bool operator () (Feature const & left, Feature const & right) const
+			{
+        if (left.getRT() < right.getRT()) return true;
+        else if (left.getRT() > right.getRT()) return false;
+        else return ((DoubleReal)left.getMetaValue("msms_score") > (DoubleReal)right.getMetaValue("msms_score"));
+			}
+		};
+
+    
     /**
       @brief Sort features by total score.
     */
@@ -111,6 +125,9 @@ public:
       @param number Number of features to be reported
     */
     void getNextPrecursors(FeatureMap<> & features, FeatureMap<> & next_features, UInt number);
+    void getNextPrecursorsSeq(FeatureMap<> & features, FeatureMap<> & next_features, UInt number, DoubleReal & rt);
+    void getNextPrecursors(std::vector<Int> & solution_indices, std::vector<PSLPFormulation::IndexTriple> & variable_indices, std::set<Int> & measured_variables,
+                           FeatureMap<> & features, FeatureMap<> & new_features, UInt step_size, PSLPFormulation & ilp);
 
 //      /**
 //        @brief Change scoring of features using peptide identifications only from spectra of the last
@@ -153,8 +170,18 @@ public:
     void simulateRun(FeatureMap<> & features, std::vector<PeptideIdentification> & pep_ids,
                      std::vector<ProteinIdentification> & prot_ids,
                      PrecursorIonSelectionPreprocessing & preprocessed_db,
-                     UInt step_size, String path);
+                     String path, MSExperiment<> & experiment, String precursor_path="");
 
+    void setLPSolver(LPWrapper::SOLVER solver)
+    {
+      solver_ = solver;
+      std::cout << " LPSolver set to "<<solver_<<std::endl;
+    }
+    
+    LPWrapper::SOLVER getLPSolver()
+    {
+      return solver_;
+    }
 
     void reset();
 
@@ -164,6 +191,15 @@ public:
     }
 
 private:
+    void simulateILPBasedIPSRun_(FeatureMap<>& features,MSExperiment<>& experiment,
+                                 std::vector<PeptideIdentification>& pep_ids,
+                                 std::vector<ProteinIdentification>& prot_ids,
+                                 PrecursorIonSelectionPreprocessing& preprocessed_db,
+                                 String output_path,String precursor_path="");
+
+    void simulateRun_(FeatureMap<>& features,std::vector<PeptideIdentification>& pep_ids,
+                      std::vector<ProteinIdentification>& prot_ids,
+                      PrecursorIonSelectionPreprocessing& preprocessed_db,String path,String precursor_path="");
 
     void shiftDown_(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, String protein_acc);
 
@@ -173,7 +209,7 @@ private:
     void updateMembers_();
 
     void rescore_(FeatureMap<> & features, std::vector<PeptideIdentification> & new_pep_ids,
-                  PrecursorIonSelectionPreprocessing & preprocessed_db);
+                  PrecursorIonSelectionPreprocessing & preprocessed_db, PSProteinInference & protein_inference);
 
     /**
       @brief Adds user params, required for the use of IPS, to a feature map using default values.
@@ -191,6 +227,8 @@ private:
 
     std::vector<PeptideIdentification> filterPeptideIds_(std::vector<PeptideIdentification> & pep_ids);
 
+    void convertPeptideIdScores_(std::vector<PeptideIdentification>& pep_ids);
+
     /// minimal number of peptides identified for a protein to be declared identified
     UInt min_pep_ids_;
     /// maximal score in the FeatureMap
@@ -199,12 +237,17 @@ private:
     Type type_;
     /// stores the peptide sequences for all protein identifications
     std::map<String, std::set<String> > prot_id_counter_;
+    /// stores the number of selected precursors per fraction
+		std::vector<Size> fraction_counter_;    
     /// precursor ion error tolerance
     DoubleReal mz_tolerance_;
     /// precursor ion error tolerance unit (ppm or Da)
     String mz_tolerance_unit_;
     /// maximal number of iterations
     UInt max_iteration_;
+    Size x_variable_number_;
+
+    LPWrapper::SOLVER solver_;
 
   };
 

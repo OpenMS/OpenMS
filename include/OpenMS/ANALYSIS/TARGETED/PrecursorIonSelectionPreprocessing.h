@@ -32,7 +32,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <algorithm>
 #include <cmath>
@@ -108,8 +108,12 @@ public:
 
     DoubleReal getPT(String prot_id, Size peptide_index);
 
-    /// get the rt-weight for the proposed peptide and its measured rt
-    DoubleReal getRTWeight(String prot_id, Size peptide_index, DoubleReal meas_rt);
+    void setFixedModifications(StringList & modifications);
+
+    void setGaussianParameters(DoubleReal mu, DoubleReal sigma);
+
+    DoubleReal getRTProbability(String prot_id, Size peptide_index, Feature & feature);
+    DoubleReal getRTProbability(DoubleReal pred_rt, Feature & feature);
 
 protected:
     /// saves the preprocessed db
@@ -117,10 +121,12 @@ protected:
     void savePreprocessedDBWithRT_(String db_path, String path);
     /// loads the preprocessed db
     void loadPreprocessedDB_(String path);
-    void setFixedModifications_(StringList & modifications);
-
     /// preprocess fasta identifier
     void filterTaxonomyIdentifier_(FASTAFile::FASTAEntry & entry);
+    Int getScanNumber_(DoubleReal rt);
+    DoubleReal getRTProbability_(DoubleReal min_obs_rt,DoubleReal max_obs_rt, DoubleReal pred_rt);    
+    /// update members method from DefaultParamHandler to update the members
+    void updateMembers_();
 
     /// all tryptic masses of the distinct peptides in the database
     std::vector<DoubleReal> masses_;
@@ -140,6 +146,10 @@ protected:
     std::map<String, std::vector<DoubleReal> > pt_prot_map_;
     std::map<String, std::vector<String> > prot_peptide_seq_map_;
     std::map<char, std::vector<String> > fixed_modifications_;
+    DoubleReal sigma_;
+    DoubleReal mu_;
+
+
   };
 }
 

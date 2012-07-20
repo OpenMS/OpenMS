@@ -35,6 +35,7 @@
 namespace OpenMS
 {
   class PrecursorIonSelectionPreprocessing;
+  class PSProteinInference;
   /**
     @brief Implements ILP formulation of precursor selection problems
   */
@@ -92,7 +93,31 @@ public:
                                                    FeatureMap<> & precursors,
                                                    bool solve_ILP = true);
 
+    template <typename InputPeakType>
+    void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap<> & features,
+                                                             const MSExperiment<InputPeakType> & experiment,
+                                                             std::vector<IndexTriple> & variable_indices,
+                                                             std::vector<int> & solution_indices,
+                                                             std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+                                                             std::set<Int> & charges_set, UInt ms2_spectra_per_rt_bin,
+                                                             Size step_size = 0, bool sequential_order = false);
 
+    void updateStepSizeConstraint(Size iteration, UInt step_size);
+    void updateFeatureILPVariables(FeatureMap<> & new_features, std::vector<IndexTriple> & variable_indices, std::map<Size,std::vector<String> > & feature_constraints_map);
+    void updateRTConstraintsForSequentialILP(Size & rt_index, UInt ms2_spectra_per_rt_bin, Size max_rt_index);
+    void updateCombinedILP(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, std::vector<IndexTriple> & variable_indices,
+                           std::vector<String> & new_protein_accs, std::vector<String> & protein_accs, PSProteinInference & prot_inference, Size & variable_counter,
+                           std::map<String,std::vector<Size> > & protein_feature_map, Feature& new_feature, std::map<String,Size> & protein_variable_index_map,
+                           std::map<String,std::set<String> > & prot_id_counter);
+
+    
+    DoubleReal getObjectiveValue(Int index);
+    
+    /**
+       @brief Solve the ILP.
+    */
+    void solveILP(std::vector<int> & solution_indices);
+    
     void setLPSolver(LPWrapper::SOLVER solver)
     {
       solver_ = solver;
@@ -164,12 +189,19 @@ protected:
                             std::vector<IndexTriple> & variable_indices, std::vector<int> & solution_indices,
                             UInt ms2_spectra_per_rt_bin, Size number_of_scans);
 
+    void createAndSolveCombinedLPFeatureBased_(const FeatureMap<> & features, std::vector<std::vector<DoubleReal> > & intensity_weights,
+                                               std::set<Int> & charges_set, std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+                                               std::vector<IndexTriple> & variable_indices, std::vector<Int> & solution_indices,
+                                               UInt ms2_spectra_per_rt_bin, Size number_of_scans, Size step_size = 0, bool sequential_order = false);
+
     void addProteinToILP_(PrecursorIonSelectionPreprocessing & preprocessing,
                           std::map<String, std::vector<DoubleReal> >::const_iterator map_iter,
                           Size & counter, Size & pep_counter, Size & feature_counter,
                           std::vector<IndexTriple> & variable_indices,
                           std::map<String, Size> & protein_penalty_index_map, FeatureMap<> & precursors);
 
+    void addPrecursorAcquisitionNumberConstraint_(std::vector<IndexTriple> & variable_indices, Size number_of_features, UInt number_of_msms_per_precursor);
+    
     void addMaxInclusionListSizeConstraints_(std::vector<IndexTriple> & variable_indices, /*Size number_of_features,*/ UInt max_list_size);
 
     void addRTBinCapacityConstraint_(std::vector<IndexTriple> & variable_indices,
@@ -179,13 +211,16 @@ protected:
                                        PrecursorIonSelectionPreprocessing & preprocessing,
                                        std::map<String, Size> protein_variable_index_map);
 
+    void addStepSizeConstraint_(std::vector<IndexTriple> & variable_indices, UInt step_size);
+
+
     void assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple> & variable_indices, FeatureMap<> & precursors, std::vector<int> & solution_indices, PrecursorIonSelectionPreprocessing & preprocessing);
 
-    /**
-      @brief Solve the ILP.
-    */
-    void solveILP_(std::vector<int> & solution_indices);
+    void updateObjFunction_(String acc, FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, std::vector<IndexTriple>& variable_indices);
 
+
+   Int getNumberOfPrecsInSpectrum_(Int constr_idx);
+   
     LPWrapper * model_;
     LPWrapper::SOLVER solver_;
   };
@@ -269,6 +304,30 @@ protected:
     return os;
   }
 
+  template <typename InputPeakType>
+	void PSLPFormulation::createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap<> & features,
+                                                                            const MSExperiment<InputPeakType> & experiment,
+                                                                            std::vector<IndexTriple> & variable_indices,
+                                                                            std::vector<Int> & solution_indices,
+                                                                            std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+                                                                            std::set<Int> & charges_set, UInt ms2_spectra_per_rt_bin,
+                                                                            Size step_size, bool sequential_order)
+	{
+    
+		std::vector<std::vector<DoubleReal> > intensity_weights;
+		calculateXICs_(intensity_weights, features, experiment, mass_ranges, true);
+#ifdef DEBUG_OPS
+		std::cout << "got xics"<<std::endl;
+#endif
+		
+		createAndSolveCombinedLPFeatureBased_(features, intensity_weights, charges_set, mass_ranges, variable_indices, solution_indices, ms2_spectra_per_rt_bin,
+                                          experiment.size(), step_size, sequential_order);
+	}
+	
+
+ 
+
+  
 } // namespace
 
 #endif // OPENMS_ANALYSIS_ID_PSLPFORMULATION_H

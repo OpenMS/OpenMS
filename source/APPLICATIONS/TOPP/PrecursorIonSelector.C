@@ -27,6 +27,7 @@
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
@@ -131,12 +132,18 @@ protected:
 
 		registerStringOption_("ids","<idxml file>","","file containing results of identification (IdXML)");
 		registerIntOption_("num_precursors","<Int>",1,"number of precursors to be selected",false);
+    registerInputFile_("raw_data","<file>","","Input profile data.",false);
+		setValidFormats_("raw_data",StringList::create("mzML"));
 		registerFlag_("load_preprocessing","The preprocessed db is loaded from file, not calculated.");
 		registerFlag_("store_preprocessing","The preprocessed db is stored.");
 		registerFlag_("simulation","Simulate the whole LC-MS/MS run.");
 		registerStringOption_("sim_results","<output file>","","File containing the results of the simulation run",false);
-
     registerInputFile_("db_path","<db-file>","","db file",false);
+    registerStringOption_("rt_model","<rt-model-file>","","SVM Model for RTPredict",false);
+		registerStringOption_("dt_model","<dt-model-file>","","SVM Model for PTPredict",false);
+    registerStringOption_("solver","<solver-type>","GLPK","LP solver type",false,true);
+    setValidStrings_("solver",StringList::create("GLPK,COINOR"));
+    registerStringList_("fixed_modifications", "<mods>", StringList(), "the modifications i.e. Carboxymethyl (C)", false);
     addEmptyLine_();
     registerSubsection_("algorithm","Settings for the compound list creation and rescoring.");
 
@@ -144,8 +151,8 @@ protected:
 	
 	Param getSubsectionDefaults_(const String& /* section*/) const
   {
-		Param param = PrecursorIonSelectionPreprocessing().getDefaults();
-    param.insert("",PrecursorIonSelection().getDefaults().copy(""));
+		Param param = PrecursorIonSelection().getDefaults();
+    //    param.insert("",PrecursorIonSelection().getDefaults().copy(""));
 		return param;
   }
 	 
@@ -157,7 +164,7 @@ protected:
 
     String in(getStringOption_("in"));
     String out(getStringOption_("out"));
-
+    String raw_data(getStringOption_("raw_data"));
 		String next_prec = getStringOption_("next_feat");
 		String ids = getStringOption_("ids");
 		String db_path = getStringOption_("db_path");
@@ -166,10 +173,14 @@ protected:
 		String sim_results = getStringOption_("sim_results");
 		bool load_preprocessing = getFlag_("load_preprocessing");
 		bool store_preprocessing = getFlag_("store_preprocessing");
+		String rt_model = getStringOption_("rt_model");
+		String dt_model = getStringOption_("dt_model");
+    String solver(getStringOption_("solver"));
+    StringList fixed_mods = getStringList_("fixed_modifications");
 		//-------------------------------------------------------------
     // init pis preprocessing
     //-------------------------------------------------------------
-		Param pisp_param = getParam_().copy("algorithm:",true);
+		Param pisp_param = getParam_().copy("algorithm:Preprocessing:",true);
 		pisp_param.remove("type");
 		pisp_param.remove("min_pep_ids");
 		pisp_param.remove("max_iteration");
@@ -177,7 +188,7 @@ protected:
     PrecursorIonSelectionPreprocessing pisp;
 		//    pisp.setLogType(log_type_);
 		pisp.setParameters(pisp_param);
-
+    pisp.setFixedModifications(fixed_mods);
     if(load_preprocessing)
     {
       pisp.loadPreprocessing();
@@ -188,12 +199,18 @@ protected:
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
     }
+    else if(rt_model == "" ||  dt_model == "")
+      {
+        pisp.dbPreprocessing(db_path,store_preprocessing);
+      }
     else
-    {
-      pisp.dbPreprocessing(db_path,store_preprocessing);
-    }
-	
-		
+      {
+        pisp.dbPreprocessing(db_path,rt_model,dt_model,store_preprocessing);
+      }
+    
+    MSExperiment<> exp;
+		if(raw_data != "")  MzMLFile().load(raw_data,exp);
+
 		//-------------------------------------------------------------
     // init pis
     //-------------------------------------------------------------
@@ -203,6 +220,13 @@ protected:
     PrecursorIonSelection pis;
 		//    pis.setLogType(log_type_);
 		pis.setParameters(pis_param);
+#if COINOR_SOLVER==1  
+    if(solver == "GLPK")
+      {
+        pis.setLPSolver(LPWrapper::SOLVER_GLPK);
+      }
+    else pis.setLPSolver(LPWrapper::SOLVER_COINOR);
+#endif
 		
     //-------------------------------------------------------------
     // loading input
@@ -223,12 +247,12 @@ protected:
 		
 		if(simulation)
     {
-      pis.simulateRun(f_map,pep_ids,prot_ids,pisp,prec_num,sim_results);
+      pis.simulateRun(f_map,pep_ids,prot_ids,pisp,sim_results, exp,"");
     }
 		else
     {
 				
-      pis.rescore(f_map,pep_ids,prot_ids,pisp);
+      pis.rescore(f_map,pep_ids,prot_ids,pisp);  // todo: add "rescoring" for LP selection
       FeatureMap<> new_precursors;
       pis.getNextPrecursors(f_map,new_precursors,prec_num);
 
