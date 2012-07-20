@@ -55,6 +55,16 @@ namespace OpenMS
 
     defaults_.setValue("Exclusion:exclusion_time", 100., "The time (in seconds) a feature is excluded.");
     defaults_.setMinFloat("Exclusion:exclusion_time", 0.);
+
+    defaults_.insert("ProteinBasedInclusion:",PSLPFormulation().getDefaults());
+    defaults_.remove("ProteinBasedInclusion:mz_tolerance");
+    defaults_.remove("ProteinBasedInclusion:combined_ilp:");
+    defaults_.remove("ProteinBasedInclusion:thresholds:min_protein_probability");
+    defaults_.remove("ProteinBasedInclusion:thresholds:min_pred_pep_prob");
+    defaults_.remove("ProteinBasedInclusion:thresholds:min_rt_weight");
+    defaults_.setValue("ProteinBasedInclusion:max_list_size",1000,"The maximal number of precursors in the inclusion list.");
+    defaults_.setMinInt("ProteinBasedInclusion:max_list_size",1);
+
     defaultsToParam_();
   }
 

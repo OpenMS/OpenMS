@@ -169,7 +169,7 @@ protected:
     list.setParameters(iel_param);
 
 
-    std::cout << "\n\n\n\n" << iel_param.getValue("RT:unit") << "\n\n";
+    //    std::cout << "\n\n\n\n" << iel_param.getValue("RT:unit") << "\n\n";
 
 
     if (include != "")
@@ -287,7 +287,7 @@ protected:
           writeLog_("Error: Protein sequences for inclusion given, but no charge states specified.");
           return MISSING_PARAMETERS;
         }
-        if(strategy == "PS_LP")
+        if(strategy == "ProteinBased_LP")
           {
             OfflinePrecursorIonSelection opis;        
             Param param = getParam_().copy("algorithm:PrecursorSelection:",true);
