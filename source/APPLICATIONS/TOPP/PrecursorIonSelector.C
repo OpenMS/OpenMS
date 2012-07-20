@@ -82,6 +82,10 @@ using namespace OpenMS;
 			<td><b>IPS</b></td>
 			<td>Combination of Down- and Upshift.</td>
 		</tr>
+		<tr>
+			<td><b>ILP_IPS</b></td>
+			<td>Iterative precursor ion selection using LP formulations.</td>
+		</tr>
 	</table>
 
 	This method is described in: Zerck, A.  and Nordhoff, E.  and Resemann, A.  and Mirgorodskaya, E.  and Suckau, D.  and Reinert, K.  and Lehrach, H.  and Gobom, J.:

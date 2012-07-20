@@ -44,6 +44,9 @@ namespace OpenMS
   class OPENMS_DLLAPI LPWrapper
   {
   public:
+    /**
+       @brief Struct that holds the parameters of the LP solver
+    */
     struct SolverParam
     {
       SolverParam(): message_level(3),branching_tech(4),backtrack_tech(3),

@@ -82,9 +82,8 @@ START_SECTION((template<typename PeakType> void raster(MSSpectrum<PeakType>& spe
   }
   TEST_REAL_SIMILAR(sum, 20);
 }
-END_SECTION
 
-START_SECTION((template<typename PeakType> void raster_spacing075(MSSpectrum<PeakType>& spectrum)))
+/////////// test raster with a spacing of 0.75
 {
   MSSpectrum< Peak1D > spec;
   spec.resize(5);

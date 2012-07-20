@@ -38,6 +38,8 @@ namespace OpenMS
   class PSProteinInference;
   /**
     @brief Implements ILP formulation of precursor selection problems
+
+    @htmlinclude OpenMS_PSLPFormulation.parameters
   */
   class OPENMS_DLLAPI PSLPFormulation :
     public DefaultParamHandler
