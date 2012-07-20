@@ -137,6 +137,7 @@ protected:
     String exclude(getStringOption_("exclude"));
     String out(getStringOption_("out"));
     String strategy = getStringOption_("inclusion_strategy");
+    std::cout << "strategy "<<strategy<<std::endl;
     String pt_model_file(getStringOption_("pt_model"));
     
     if (include == "" && exclude == "")
@@ -208,7 +209,7 @@ protected:
             String raw_data_path = getStringOption_("raw_data");
             MSExperiment<> exp,ms2;
             FeatureMap<> out_map;
-            MzDataFile().load(raw_data_path,exp);
+            MzMLFile().load(raw_data_path,exp);
             IntList levels;
             levels << 1;
             exp.erase(remove_if(exp.begin(), exp.end(),
@@ -217,6 +218,7 @@ protected:
             OfflinePrecursorIonSelection opis;
             Param param = getParam_().copy("algorithm:PrecursorSelection:",true);
             UInt spot_cap = param.getValue("ms2_spectra_per_rt_bin");
+            std::cout << "spot_cap "<< spot_cap << std::endl;
             opis.setParameters(param);
             
             std::set<Int> charges_set;
@@ -254,7 +256,7 @@ protected:
               }
             try
               {
-                if(out.hasSuffix("FeatureXML"))
+                if(out.hasSuffix("featureXML"))
                   {
                     FeatureXMLFile().store(out,out_map);
                   }
@@ -293,7 +295,7 @@ protected:
 
             FeatureMap<> precursors;
             opis.createProteinSequenceBasedLPInclusionList(include,rt_model_file,pt_model_file,precursors);
-            if(out.hasSuffix("FeatureXML"))
+            if(out.hasSuffix("featureXML"))
               {
                 FeatureXMLFile().store(out,precursors);
               }
