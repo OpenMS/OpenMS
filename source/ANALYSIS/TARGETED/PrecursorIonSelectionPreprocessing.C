@@ -59,14 +59,14 @@ namespace OpenMS
     defaults_.setValue("rt_settings:gauss_sigma", 3., "std of the gauss curve");
     defaults_.setValue("precursor_mass_tolerance_unit", "ppm", "Precursor mass tolerance unit.");
     defaults_.setValidStrings("precursor_mass_tolerance_unit", StringList::create("ppm,Da"));
-    defaults_.setValue("preprocessing:preprocessed_db_path", "", "Path where the preprocessed database should be stored");
-    defaults_.setValue("preprocessing:preprocessed_db_pred_rt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
-    defaults_.setValue("preprocessing:preprocessed_db_pred_dt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
-    defaults_.setValue("preprocessing:max_peptides_per_run", 100000, "Number of peptides for that the pt and rt are parallely predicted.");
-    defaults_.setMinInt("preprocessing:max_peptides_per_run", 1);
+    defaults_.setValue("preprocessed_db_path", "", "Path where the preprocessed database should be stored");
+    defaults_.setValue("preprocessed_db_pred_rt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
+    defaults_.setValue("preprocessed_db_pred_dt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
+    defaults_.setValue("max_peptides_per_run", 100000, "Number of peptides for that the pt and rt are parallely predicted.");
+    defaults_.setMinInt("max_peptides_per_run", 1);
     defaults_.setValue("missed_cleavages", 1, "Number of allowed missed cleavages.");
     defaults_.setMinInt("missed_cleavages", 0);
-    defaults_.setValue("preprocessing:taxonomy", "", "Taxonomy");
+    defaults_.setValue("taxonomy", "", "Taxonomy");
     defaults_.setValue("tmp_dir", "", "Absolute path to tmp data directory used to store files needed for rt and dt prediction.");
     defaults_.setValue("store_peptide_sequences", "false", "Flag if peptide sequences should be stored.");
     defaultsToParam_();
@@ -238,7 +238,7 @@ namespace OpenMS
   void PrecursorIonSelectionPreprocessing::loadPreprocessing()
   {
     // first check if preprocessed db already exists
-    String path = param_.getValue("preprocessing:preprocessed_db_path");
+    String path = param_.getValue("preprocessed_db_path");
 
     // check if file exists
     std::ifstream test(path.c_str());
@@ -280,12 +280,12 @@ namespace OpenMS
                                                            String dt_model_path, bool save)
   {
 #ifdef PISP_DEBUG
-    std::cout << "Parameters: " << param_.getValue("preprocessing:preprocessed_db_path")
+    std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
               << "\t" << param_.getValue("precursor_mass_tolerance")
               << " " << param_.getValue("precursor_mass_tolerance_unit")
     //<< "\t"<<param_.getValue("rt_tolerance")
               << "\t" << param_.getValue("missed_cleavages")
-              << "\t" << param_.getValue("preprocessing:taxonomy")
+              << "\t" << param_.getValue("taxonomy")
               << "\t" << param_.getValue("tmp_dir") << "---"
               << std::endl;
 #endif
@@ -304,7 +304,7 @@ namespace OpenMS
     {
 
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("preprocessing:taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
@@ -395,7 +395,7 @@ namespace OpenMS
     dt_param.setValue("dt_simulation_on", "true");
     dt_param.setValue("dt_model_file", dt_model_path);
     // this is needed, as too many sequences require too much memory for the rt and dt prediction
-    Size max_peptides_per_run = (Int)param_.getValue("preprocessing:max_peptides_per_run");
+    Size max_peptides_per_run = (Int)param_.getValue("max_peptides_per_run");
     peptide_sequences.resize(std::min(sequences_.size(), max_peptides_per_run));
 
     //#ifdef PIPS_DEBUG
@@ -604,18 +604,18 @@ namespace OpenMS
     }
     if (save)
     {
-      savePreprocessedDBWithRT_(db_path, (String)param_.getValue("preprocessing:preprocessed_db_path"));
+      savePreprocessedDBWithRT_(db_path, (String)param_.getValue("preprocessed_db_path"));
     }
   }
 
   void PrecursorIonSelectionPreprocessing::dbPreprocessing(String db_path, bool save)
   {
 #ifdef PISP_DEBUG
-    std::cout << "Parameters: " << param_.getValue("preprocessing:preprocessed_db_path")
+    std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
               << "\t" << param_.getValue("precursor_mass_tolerance")
               << " " << param_.getValue("precursor_mass_tolerance_unit")
               << "\t" << param_.getValue("missed_cleavages")
-              << "\t" << param_.getValue("preprocessing:taxonomy") << std::endl;
+              << "\t" << param_.getValue("taxonomy") << std::endl;
 #endif
 
     FASTAFile fasta_file;
@@ -628,7 +628,7 @@ namespace OpenMS
     for (UInt e = 0; e < entries.size(); ++e)
     {
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("preprocessing:taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
@@ -813,7 +813,7 @@ namespace OpenMS
     }
     if (save)
     {
-      savePreprocessedDB_(db_path, (String)param_.getValue("preprocessing:preprocessed_db_path"));
+      savePreprocessedDB_(db_path, (String)param_.getValue("preprocessed_db_path"));
     }
 
   }
@@ -833,7 +833,7 @@ namespace OpenMS
     String db_name = db_path.substr(pos1, pos2 - pos1);
     out << db_name << "\t" << param_.getValue("precursor_mass_tolerance")  << "\t"
         << param_.getValue("precursor_mass_tolerance_unit")
-        << "\t" << (String)param_.getValue("preprocessing:taxonomy");
+        << "\t" << (String)param_.getValue("taxonomy");
     // first save protein_masses_map
     out << prot_masses_.size() << std::endl;
 #ifdef PISP_DEBUG
@@ -909,7 +909,7 @@ namespace OpenMS
     String db_name = db_path.substr(pos1, pos2 - pos1);
     out << db_name << "\t" << param_.getValue("precursor_mass_tolerance")  << "\t"
         << param_.getValue("precursor_mass_tolerance_unit")
-        << "\t" << (String)param_.getValue("preprocessing:taxonomy");
+        << "\t" << (String)param_.getValue("taxonomy");
     // first save protein_masses_map
     out << prot_masses_.size() << std::endl;
 #ifdef PISP_DEBUG
@@ -925,7 +925,7 @@ namespace OpenMS
     for (UInt e = 0; e < entries.size(); ++e)
     {
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("preprocessing:taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
       {
 #ifdef PISP_DEBUG
         std::cout << entries[e].identifier << std::endl;

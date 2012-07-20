@@ -69,7 +69,7 @@ param.setValue("precursor_mass_tolerance_unit","Da");
 param.setValue("missed_cleavages",0);
 std::string tmp_filename;
 NEW_TMP_FILE(tmp_filename);
-param.setValue("preprocessing:preprocessed_db_path",tmp_filename);
+param.setValue("preprocessed_db_path",tmp_filename);
 ptr->setParameters(param);
 ptr->dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db.fasta"),true);
 	
