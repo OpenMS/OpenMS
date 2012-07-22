@@ -1108,13 +1108,11 @@ namespace OpenMS
         
         //#ifdef PIS_DEBUG
         // print info
-        Size index = new_features[c].getMetaValue("variable_index");
         std::cout << "rt "<< new_features[c].getRT()
                   << " mz: "<<  new_features[c].getMZ()
           // << " delta_p_max "<< new_features[c].getMetaValue("delta_p_max")
           // 											<< " delta_p_max_protein_acc "<< new_features[c].getMetaValue("delta_p_max_protein_acc")
-                  << " msms_score " << new_features[c].getMetaValue("msms_score")
-                  << " obj. value feat. based " <<  ilp_wrapper.getObjectiveValue(index);
+                  << " msms_score " << new_features[c].getMetaValue("msms_score");
         if (new_features[c].metaValueExists("penalized"))
         {
           std::cout << " penalized? "<< new_features[c].getMetaValue("penalized");

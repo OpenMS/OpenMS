@@ -29,6 +29,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
@@ -131,6 +132,80 @@ START_SECTION(([PSLPFormulation::VariableIndexLess] bool operator()(IndexTriple 
 }
 END_SECTION
 
+START_SECTION((void setLPSolver(LPWrapper::SOLVER solver)))
+{
+  PSLPFormulation lp;
+  lp.setLPSolver(LPWrapper::SOLVER_GLPK);
+  TEST_EQUAL(lp.getLPSolver(),LPWrapper::SOLVER_GLPK)
+}
+END_SECTION
+
+START_SECTION((LPWrapper::SOLVER getLPSolver()))
+{
+  PSLPFormulation lp;
+  lp.setLPSolver(LPWrapper::SOLVER_GLPK);
+  TEST_EQUAL(lp.getLPSolver(),LPWrapper::SOLVER_GLPK)
+}
+END_SECTION
+
+START_SECTION((void createAndSolveILPForInclusionListCreation(PrecursorIonSelectionPreprocessing & preprocessing, UInt ms2_spectra_per_rt_bin, UInt max_list_size, FeatureMap<> & precursors, bool solve_ILP = true)))
+{
+  Param param;
+  param.setValue("precursor_mass_tolerance",0.9);
+  param.setValue("precursor_mass_tolerance_unit","Da");
+  param.setValue("missed_cleavages",0);
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  param.setValue("preprocessed_db_path",tmp_filename);
+  PrecursorIonSelectionPreprocessing rt_pt_pp;
+  rt_pt_pp.setParameters(param);
+  rt_pt_pp.dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db.fasta"),
+                           OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_rt.model"),
+                           OPENMS_GET_TEST_DATA_PATH("DetectabilitySimulation.svm"),false);
+  FeatureMap<> precursors;
+  PSLPFormulation lp;
+  lp.createAndSolveILPForInclusionListCreation(rt_pt_pp, 15, 10, precursors, true);
+  TEST_EQUAL(precursors.size(),10)
+  TEST_EQUAL(precursors[0].getMetaValue("protein"),"P01008")
+  TEST_REAL_SIMILAR(precursors[1].getMZ(),1528.743)
+}
+END_SECTION
+
+START_SECTION((template <typename InputPeakType> void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap<> & features, const MSExperiment<InputPeakType> & experiment, std::vector<IndexTriple> & variable_indices, std::vector<int> & solution_indices, std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges, std::set<Int> & charges_set, UInt ms2_spectra_per_rt_bin, Size step_size = 0, bool sequential_order = false)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((void updateStepSizeConstraint(Size iteration, UInt step_size)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((void updateFeatureILPVariables(FeatureMap<> & new_features, std::vector<IndexTriple> & variable_indices, std::map<Size,std::vector<String> > & feature_constraints_map)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((void updateRTConstraintsForSequentialILP(Size & rt_index, UInt ms2_spectra_per_rt_bin, Size max_rt_index)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((void updateCombinedILP(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, std::vector<IndexTriple> & variable_indices, std::vector<String> & new_protein_accs, std::vector<String> & protein_accs, PSProteinInference & prot_inference, Size & variable_counter, std::map<String,std::vector<Size> > & protein_feature_map, Feature& new_feature, std::map<String,Size> & protein_variable_index_map, std::map<String,std::set<String> > & prot_id_counter)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+        
+START_SECTION((void solveILP(std::vector<int> & solution_indices)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

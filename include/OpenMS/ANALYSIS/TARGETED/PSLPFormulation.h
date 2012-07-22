@@ -113,8 +113,6 @@ public:
                            std::map<String,std::set<String> > & prot_id_counter);
 
     
-    DoubleReal getObjectiveValue(Int index);
-    
     /**
        @brief Solve the ILP.
     */
@@ -123,7 +121,6 @@ public:
     void setLPSolver(LPWrapper::SOLVER solver)
     {
       solver_ = solver;
-      std::cout << "in PSLP: set LP-solver to " << solver_ << std::endl;
     }
 
     LPWrapper::SOLVER getLPSolver()

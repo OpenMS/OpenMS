@@ -35,8 +35,9 @@
 namespace OpenMS
 {
   /**
-    @brief
-
+    @brief Provides functionalty for writing inclusion or exclusion lists.
+    
+    @htmlinclude OpenMS_InclusionExclusionList.parameters
     @todo allow modifications (fixed?)
   */
   class OPENMS_DLLAPI InclusionExclusionList :

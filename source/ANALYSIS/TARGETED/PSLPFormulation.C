@@ -1314,11 +1314,6 @@ void PSLPFormulation::updateRTConstraintsForSequentialILP(Size & rt_index, UInt 
   if (idx != -1) model_->setRowBounds(idx, 0., (DoubleReal)ms2_spectra_per_rt_bin, LPWrapper::UPPER_BOUND_ONLY);
 }
 
-DoubleReal PSLPFormulation::getObjectiveValue(Int index)
-{
-  return model_->getObjective(index);
-}
-
 void PSLPFormulation::updateObjFunction_(String acc, FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, std::vector<IndexTriple> & variable_indices)
 {
 #ifdef DEBUG_OPS
