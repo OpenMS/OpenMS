@@ -416,7 +416,7 @@ class TOPPOMSSAAdapter
         }
         catch (...)
         {
-			    printUsage_();
+				  LOG_ERROR << "Unable to find database '"<< db_name << "' (searched all folders). Did you mistype its name? Is the .psq-formatted version available?" << std::endl;
 			    return ILLEGAL_PARAMETERS;
         }
         db_name = full_db_name;
