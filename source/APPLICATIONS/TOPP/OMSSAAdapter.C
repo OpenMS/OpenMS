@@ -734,7 +734,7 @@ class TOPPOMSSAAdapter
 			}
 
 			// read OMSSA output
-			writeDebug_("Reading output of OMSSA", 10);
+			writeDebug_(String("Reading output of OMSSA from ") + unique_output_name, 10);
 			OMSSAXMLFile omssa_out_file;
 			omssa_out_file.setModificationDefinitionsSet(mod_set);  // TODO: add modifications from additional user mods subtree 
 			omssa_out_file.load(unique_output_name, protein_identification, peptide_ids);

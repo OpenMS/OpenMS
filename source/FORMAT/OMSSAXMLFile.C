@@ -350,16 +350,17 @@ namespace OpenMS
 		// m/z value and rt 
 		if (tag_ == "MSHitSet_ids_E")
 		{
+      // value might be  ( OMSSA 2.1.8): 359.213256835938_3000.13720000002_controllerType=0 controllerNumber=1 scan=4655
+      //                 (<OMSSA 2.1.8): 359.213256835938_3000.13720000002 
 			if (value.trim() != "")
 			{
 				if (value.has('_'))
 				{
-					String mz(value.prefix('_'));
-					String rt(value.suffix('_'));
+          StringList sp = StringList::create(value, '_');
 					try
 					{
-						actual_peptide_id_.setMetaValue("MZ", mz.toDouble());
-						actual_peptide_id_.setMetaValue("RT", rt.toDouble());				
+						actual_peptide_id_.setMetaValue("MZ", sp[0].toDouble());
+						actual_peptide_id_.setMetaValue("RT", sp[1].toDouble());				
 					}
 					catch (...)
 					{

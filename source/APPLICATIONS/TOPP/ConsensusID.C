@@ -165,14 +165,22 @@ class TOPPConsensusID
 				String document_id;
 				IdXMLFile().load(in,prot_ids, pep_ids, document_id);
 
-				//merge peptide ids by precursor position Sven:Ideally one should merge all peptide hits form the the different peptide identifications and keep the the information on the identification runs as a meta value
+				// merge peptide ids by precursor position Sven:Ideally one should merge all peptide hits form the the different peptide identifications and keep the the information on the identification runs as a meta value
 				vector<IDData> prec_data,final;
 				for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
 				{
-					PeptideIdentification t;
-					t=*pep_id_it;
+					PeptideIdentification pep_copy = *pep_id_it; // copy, for modifying it later
 					String file_origin = (String)pep_id_it->getMetaValue("file_origin");
 					String scoring = (String)pep_id_it->getIdentifier();
+          
+          if (!pep_id_it->metaValueExists("RT") || !pep_id_it->metaValueExists("MZ"))
+          {
+            LOG_ERROR << "Peptide  " << pep_id_it->getIdentifier() << " with first hit of score:" << pep_id_it->getHits()[0].getScore() << ", seq:" << pep_id_it->getHits()[0].getSequence() << " does NOT have (" 
+                      << (!pep_id_it->metaValueExists("RT") ? " RT " : "") << (!pep_id_it->metaValueExists("MZ") ? " MZ " : "") << ") information!\n"
+			                << "Check the tool that generated the input-idXML. Did you use a new (unsupported) version of a search-engine (in e.g. OMSSAAdapter)? Aborting!" << std::endl;
+            return INCOMPATIBLE_INPUT_DATA;
+          }
+
 					DoubleReal rt = (DoubleReal)(pep_id_it->getMetaValue("RT"));
 					DoubleReal mz = (DoubleReal)(pep_id_it->getMetaValue("MZ"));
 					writeDebug_(String("  ID: ") + rt + " / " + mz, 4);
@@ -191,7 +199,7 @@ class TOPPConsensusID
 						writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
 						//write information on search engine
 						vector<PeptideHit> hits;
-						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
+						for (vector<PeptideHit>::const_iterator pit = pep_copy.getHits().begin(); pit != pep_copy.getHits().end();++pit)
 							{
 								PeptideHit hit = *pit;
 								if (hit.getSequence().size()>=min_length)
@@ -208,9 +216,9 @@ class TOPPConsensusID
 									}
 								}
 								}
-						t.setHits(hits);
+						pep_copy.setHits(hits);
 						pos->sourcefile=file_origin;
-						pos->ids.push_back(t);
+						pos->ids.push_back(pep_copy);
 					}
 					//insert new entry
 					else
@@ -220,7 +228,7 @@ class TOPPConsensusID
 						tmp.rt = rt;
 						tmp.sourcefile = file_origin;
 						vector<PeptideHit> hits;
-						for (vector<PeptideHit>::const_iterator pit = t.getHits().begin(); pit != t.getHits().end();++pit)
+						for (vector<PeptideHit>::const_iterator pit = pep_copy.getHits().begin(); pit != pep_copy.getHits().end();++pit)
 						{
 							PeptideHit hit = *pit;
 							if (hit.getSequence().size()>=min_length)
@@ -238,8 +246,8 @@ class TOPPConsensusID
 							}
 							cout<<pep_id_it->getIdentifier()<<endl;
      				}
-						t.setHits(hits);
-						tmp.ids.push_back(t);
+						pep_copy.setHits(hits);
+						tmp.ids.push_back(pep_copy);
 						prec_data.push_back(tmp);
 						writeDebug_(String("    Inserting new precursor: ") + tmp.rt + " / " + tmp.mz, 4);
 					}
