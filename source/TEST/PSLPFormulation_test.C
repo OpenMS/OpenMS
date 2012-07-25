@@ -171,7 +171,7 @@ START_SECTION((void createAndSolveILPForInclusionListCreation(PrecursorIonSelect
 }
 END_SECTION
 
-START_SECTION((template <typename InputPeakType> void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap<> & features, const MSExperiment<InputPeakType> & experiment, std::vector<IndexTriple> & variable_indices, std::vector<int> & solution_indices, std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges, std::set<Int> & charges_set, UInt ms2_spectra_per_rt_bin, Size step_size = 0, bool sequential_order = false)))
+START_SECTION((template < typename InputPeakType > void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap<> &features, const MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< int > &solution_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, Size step_size=0, bool sequential_order=false)))
 {
   NOT_TESTABLE
 }

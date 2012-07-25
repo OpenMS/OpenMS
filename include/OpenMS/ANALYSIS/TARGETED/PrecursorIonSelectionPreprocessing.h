@@ -109,8 +109,20 @@ public:
     DoubleReal getPT(String prot_id, Size peptide_index);
 
     void setFixedModifications(StringList & modifications);
+    const std::map<char, std::vector<String> > & getFixedModifications()
+    {
+      return fixed_modifications_;
+    }
 
     void setGaussianParameters(DoubleReal mu, DoubleReal sigma);
+    DoubleReal getGaussMu()
+    {
+      return mu_;
+    }
+    DoubleReal getGaussSigma()
+    {
+      return sigma_;
+    }
 
     DoubleReal getRTProbability(String prot_id, Size peptide_index, Feature & feature);
     DoubleReal getRTProbability(DoubleReal pred_rt, Feature & feature);

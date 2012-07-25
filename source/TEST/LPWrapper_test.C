@@ -343,15 +343,18 @@ END_SECTION
 
 START_SECTION((Int solve(SolverParam &solver_param, const Size verbose_level=0)))
 {
-#if COINOR_SOLVER==1
-  if(lp.getSolver() ==LPWrapper::SOLVER_COINOR)   lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
-  lp.setObjectiveSense(LPWrapper::MAX);
-#endif
+  LPWrapper lp2;
+  lp2.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
+  lp2.setObjectiveSense(LPWrapper::MAX);
   LPWrapper::SolverParam param;
-  lp.solve(param);
+  lp2.solve(param);
+  TEST_EQUAL(lp2.getColumnValue(0),1)
+  TEST_EQUAL(lp2.getColumnValue(1),1)
 }
 END_SECTION
 
+LPWrapper::SolverParam param;
+lp.solve(param);
 START_SECTION((SolverStatus getStatus()))
 {
   if(lp.getSolver() == LPWrapper::SOLVER_GLPK)

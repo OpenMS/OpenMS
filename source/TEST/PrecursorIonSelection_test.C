@@ -97,7 +97,7 @@ Param param;
 param.setValue("precursor_mass_tolerance",0.05);
 param.setValue("precursor_mass_tolerance_unit","Da");
 param.setValue("missed_cleavages",1);
-param.setValue("preprocessing:preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH(""));
+param.setValue("preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH(""));
 preprocessing.setParameters(param);
 preprocessing.dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_db.fasta"),false);
 Param param2;
@@ -150,7 +150,52 @@ START_SECTION(([PrecursorIonSelection::TotalScoreMore] bool operator()(Feature c
   TEST_EQUAL(PrecursorIonSelection::TotalScoreMore().operator ()(a,a), false)
 }
 END_SECTION
-	
+
+START_SECTION((void setLPSolver(LPWrapper::SOLVER solver)))
+{
+#if COINOR_SOLVER==1
+  ptr->setLPSolver(LPWrapper::SOLVER_COINOR);
+  TEST_EQUAL(ptr->getLPSolver(),LPWrapper::SOLVER_COINOR)
+#endif
+  ptr->setLPSolver(LPWrapper::SOLVER_GLPK);
+  TEST_EQUAL(ptr->getLPSolver(),LPWrapper::SOLVER_GLPK)
+
+}
+END_SECTION
+
+START_SECTION((LPWrapper::SOLVER getLPSolver()))
+{
+  // was tested in previous section
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((void getNextPrecursorsSeq(FeatureMap<> &features, FeatureMap<> &next_features, UInt number, DoubleReal &rt)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((void getNextPrecursors(std::vector< Int > &solution_indices, std::vector< PSLPFormulation::IndexTriple > &variable_indices, std::set< Int > &measured_variables, FeatureMap<> &features, FeatureMap<> &new_features, UInt step_size, PSLPFormulation &ilp)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+  
+START_SECTION(([PrecursorIonSelection::SeqTotalScoreMore] bool operator()(Feature const &left, Feature const &right) const ))
+{
+  Feature a,b,c;
+  a.setRT(11.);
+  a.setMetaValue("msms_score",111.);
+  b.setRT(12.);
+  b.setMetaValue("msms_score",112.);
+  c.setRT(11.);
+  c.setMetaValue("msms_score",113.);
+  TEST_EQUAL(PrecursorIonSelection::SeqTotalScoreMore().operator()(a,b),true)
+  TEST_EQUAL(PrecursorIonSelection::SeqTotalScoreMore().operator()(a,c),false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

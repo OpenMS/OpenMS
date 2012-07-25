@@ -103,6 +103,7 @@ namespace OpenMS
 
   void PrecursorIonSelectionPreprocessing::setFixedModifications(StringList & modifications)
   {
+    fixed_modifications_.clear();
     for (Size i = 0; i < modifications.size(); ++i)
     {
 #ifdef DEBUG_PISP
@@ -111,7 +112,7 @@ namespace OpenMS
       // get specification
       String spec = modifications[i].suffix('(');
 #ifdef DEBUG_PISP
-      std::cout << "specificity: " << spec[0] << " " << spec << std::endl;
+      std::cerr << "specificity: " << spec[0] << " " << spec << std::endl;
       std::cout << "modname: " << modifications[i].prefix(' ') << std::endl;
 #endif
       if (fixed_modifications_.find(spec[0]) != fixed_modifications_.end())
@@ -1148,18 +1149,16 @@ namespace OpenMS
 
     if (obs_scan_begin == -1 || obs_scan_end == -1)
     {
-      std::cout << "Probably an error occured during RTProb-calc: scan = -1: "
+      std::cerr << "Probably an error occured during RTProb-calc: scan = -1: "
                 << obs_scan_begin << " "<< obs_scan_end << std::endl;
       return 0.;
     }
     
     obs_scan_begin -= mu_;
     obs_scan_end -= mu_;
-    
     DoubleReal x1,x2;
     x1 = theo_scan - obs_scan_end;
     x2 = theo_scan - obs_scan_begin;
-    
     DoubleReal prob;
     // gsl_cdf_gaussian_P computes the cumulative probs up to x (i.e. the area under the curve)
     // so cgauss(x2)  - cgauss(x1) yields the area between x1 and x2
@@ -1216,17 +1215,16 @@ namespace OpenMS
     {
       if (rt_prot_map_.find(prot_id) == rt_prot_map_.end())
       {
-        std::cout << " prot_id not in map "<<prot_id << std::endl;
+        std::cerr << " prot_id not in map "<<prot_id << std::endl;
       }
       else
       {
-        std::cout << "protein in map, but "<< peptide_index << " " <<rt_prot_map_[prot_id].size()<<std::endl;
+        std::cerr << "protein in map, but "<< peptide_index << " " <<rt_prot_map_[prot_id].size()<<std::endl;
       }
-      std::cout << "rt_map is empty, no rts predicted!"<<std::endl;
+      std::cerr << "rt_map is empty, no rts predicted!"<<std::endl;
     }
     DoubleReal rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
     DoubleReal rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];
-    
 		return 	getRTProbability_(rt_begin, rt_end, theo_rt);
   }
 

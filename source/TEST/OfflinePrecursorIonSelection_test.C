@@ -148,7 +148,23 @@ START_SECTION((template < typename InputPeakType > void getMassRanges(const Feat
 }
 END_SECTION
 
+START_SECTION((void setLPSolver(LPWrapper::SOLVER solver)))
+{
+#if COINOR_SOLVER==1
+  ptr->setLPSolver(LPWrapper::SOLVER_COINOR);
+  TEST_EQUAL(ptr->getLPSolver(),LPWrapper::SOLVER_COINOR)
+#endif
+  ptr->setLPSolver(LPWrapper::SOLVER_GLPK);
+  TEST_EQUAL(ptr->getLPSolver(),LPWrapper::SOLVER_GLPK)
+}
+END_SECTION
 
+START_SECTION((LPWrapper::SOLVER getLPSolver()))
+{
+  // was tested in previous section
+  NOT_TESTABLE()
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

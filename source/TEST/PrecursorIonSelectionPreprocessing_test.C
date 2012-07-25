@@ -151,7 +151,80 @@ const std::map<String, std::vector<String> >& map = rt_pt_pp.getProteinPeptideSe
    TEST_EQUAL(map.size(),0);
 END_SECTION
 
-	
+
+START_SECTION((void setFixedModifications(StringList & modifications)))
+{
+  StringList list = StringList::create("Carbamidomethylation (C)");
+  ptr->setFixedModifications(list);
+  const std::map<char, std::vector<String> > & map = ptr->getFixedModifications();
+  TEST_EQUAL(map.size(),1)
+  TEST_EQUAL(map.begin()->first,'C')
+  TEST_EQUAL(map.begin()->second[0],"Carbamidomethylation")
+}
+END_SECTION
+
+START_SECTION((const std::map<char, std::vector<String> > & getFixedModifications()))
+{
+  StringList list = StringList::create("Oxidation (M)");
+  ptr->setFixedModifications(list);
+  const std::map<char, std::vector<String> > & map = ptr->getFixedModifications();
+  TEST_EQUAL(map.size(),1)
+  TEST_EQUAL(map.begin()->first,'M')
+  TEST_EQUAL(map.begin()->second[0],"Oxidation")
+}
+END_SECTION
+  
+START_SECTION((void setGaussianParameters(DoubleReal mu, DoubleReal sigma)))
+{
+  ptr->setGaussianParameters(-3.,10.);
+  TEST_REAL_SIMILAR(ptr->getGaussMu(),-3.)
+  TEST_REAL_SIMILAR(ptr->getGaussSigma(),10.)  
+}
+END_SECTION
+
+START_SECTION((DoubleReal getGaussMu()))
+{
+  ptr->setGaussianParameters(-10.,10.);
+  TEST_REAL_SIMILAR(ptr->getGaussMu(),-10.)
+}
+END_SECTION
+
+START_SECTION((DoubleReal getGaussSigma()))
+{
+  ptr->setGaussianParameters(-10.,15.);
+  TEST_REAL_SIMILAR(ptr->getGaussSigma(),15.)  
+}
+END_SECTION
+std::vector< ConvexHull2D > hulls(2);
+hulls[0].addPoint(DPosition<2>(810.0,1.0));
+hulls[0].addPoint(DPosition<2>(810.0,2.0));
+hulls[1].addPoint(DPosition<2>(854.5,1.0));
+hulls[1].addPoint(DPosition<2>(854.5,4.0));
+
+
+START_SECTION((DoubleReal getRTProbability(String prot_id, Size peptide_index, Feature &feature)))
+{
+  Feature f;
+  f.setRT(831.46);
+  f.setConvexHulls(hulls);
+  param.setValue("rt_settings:min_rt",800.);
+  param.setValue("rt_settings:max_rt",900.);
+  param.setValue("rt_settings:rt_step_size",10.);
+  rt_pt_pp.setParameters(param);
+  rt_pt_pp.setGaussianParameters(0.,1.);
+  TEST_REAL_SIMILAR(rt_pt_pp.getRTProbability("P01008",1,f),0.9973)
+}
+END_SECTION
+
+START_SECTION((DoubleReal getRTProbability(DoubleReal pred_rt, Feature &feature)))
+{
+  Feature f;
+  f.setRT(831.46);
+  f.setConvexHulls(hulls);
+  TEST_REAL_SIMILAR(rt_pt_pp.getRTProbability(831.46429,f),0.9973)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
