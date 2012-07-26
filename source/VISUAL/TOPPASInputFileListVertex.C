@@ -137,7 +137,9 @@ namespace OpenMS
     Map<QString, Size> suffices;
     foreach(QString fn, getFileNames())
     {
-      ++suffices[QFileInfo(fn).completeSuffix()];
+      QStringList l = QFileInfo(fn).completeSuffix().split('.');
+      QString suf = (l.size()>1? l[l.size()-2] + "." : QString()) + l.back(); // take up to two dots as suffix
+      ++suffices[suf];
     }
     StringList text_l;
     for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)

@@ -584,8 +584,7 @@ namespace OpenMS
 
       //reset logfile
       QFile logfile(out_dir_ + QDir::separator() + "TOPPAS.log");
-      if (logfile.exists())
-        logfile.remove();
+      if (logfile.exists()) logfile.remove();
 
       //reset processes
       topp_processes_queue_.clear();
@@ -593,8 +592,8 @@ namespace OpenMS
       // start at input nodes
       for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
       {
-        if (error_occured_)
-          break;                   // someone raised an error
+        if (error_occured_) break;                   // someone raised an error
+
         TOPPASInputFileListVertex * iflv = qobject_cast<TOPPASInputFileListVertex *>(*it);
         if (iflv)
         {
