@@ -25,7 +25,7 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/PeakFileOptions.h>
+// #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
