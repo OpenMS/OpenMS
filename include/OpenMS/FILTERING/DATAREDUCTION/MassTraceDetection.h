@@ -84,9 +84,12 @@ private:
     // parameter stuff
     DoubleReal mass_error_ppm_;
     DoubleReal noise_threshold_int_;
-    DoubleReal chrom_apex_snt_;
-    DoubleReal chrom_fwhm_;
+    DoubleReal chrom_peak_snr_;
+
     DoubleReal min_sample_rate_;
+    DoubleReal min_peak_width_;
+
+    bool reestimate_mt_sd_;
 };
 }
 

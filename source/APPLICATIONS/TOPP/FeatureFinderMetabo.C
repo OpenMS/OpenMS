@@ -105,24 +105,26 @@ protected:
     {
         Param combined;
         Param p_com;
-        p_com.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm (used in MTD and FFM algorithms)");
-        // p_com.setValue("chrom_fwhm" , 3.0 , "Lower bound for a chromatographic peak's FWHM (in seconds)");
+        p_com.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
+        p_com.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
 
         combined.insert("common:", p_com);
 
         Param p_mtd = MassTraceDetection().getDefaults();
-        p_mtd.remove("mass_error_ppm");
-        // p_mtd.remove("chrom_fwhm");
+        p_mtd.remove("noise_threshold_int");
+        p_mtd.remove("chrom_peak_snr");
 
         combined.insert("mtd:", p_mtd);
 
         Param p_epd = ElutionPeakDetection().getDefaults();
-        p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
-        p_epd.setValidStrings("enabled", StringList::create("true,false"));
+        p_epd.remove("noise_threshold_int");
+        p_epd.remove("chrom_peak_snr");
+
+        // p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
+        // p_epd.setValidStrings("enabled", StringList::create("true,false"));
         combined.insert("epd:", p_epd);
 
         Param p_ffm = FeatureFindingMetabo().getDefaults();
-        p_ffm.remove("mass_error_ppm");
 
         combined.insert("ffm:", p_ffm);
 
@@ -191,31 +193,35 @@ protected:
         // configure and run elution peak detection
         //-------------------------------------------------------------
 
-        bool use_epd = epd_param.getValue("enabled").toBool();
+        // bool use_epd = epd_param.getValue("enabled").toBool();
 
         std::vector<MassTrace> m_traces_final = m_traces;
 
-        if (use_epd)
+        // DoubleReal pw_est(epd_param.getValue("chrom_fwhm"));
+        DoubleReal scan_time(std::fabs(ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT())/ms_peakmap.size());
+
+        ElutionPeakDetection epdet;
+        // epd_param.remove("enabled"); // artificially added above
+        epd_param.insert("", common_param);
+        epdet.setParameters(epd_param);
+
+        std::vector<MassTrace> splitted_mtraces;
+
+        epdet.setScanTime(scan_time);
+
+        epdet.detectPeaks(m_traces, splitted_mtraces);
+
+
+        if (epdet.getParameters().getValue("width_filtering").toBool())
         {
-
-            ElutionPeakDetection epdet;
-            epd_param.remove("enabled"); // artificially added above
-            epdet.setParameters(epd_param);
-
-            std::vector<MassTrace> splitted_mtraces;
-            epdet.detectPeaks(m_traces, splitted_mtraces);
-
-
-            if (epdet.getParameters().getValue("width_filtering").toBool())
-            {
-                m_traces_final.clear();
-                epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
-            }
-            else
-            {
-                m_traces_final = splitted_mtraces;
-            }
+            m_traces_final.clear();
+            epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
         }
+        else
+        {
+            m_traces_final = splitted_mtraces;
+        }
+
 
 
         //-------------------------------------------------------------
@@ -223,7 +229,6 @@ protected:
         //-------------------------------------------------------------
 
         FeatureFindingMetabo ffmet;
-        ffm_param.insert("", common_param);
 
         ffmet.setParameters(ffm_param);
         ffmet.run(m_traces_final, ms_feat_map);
