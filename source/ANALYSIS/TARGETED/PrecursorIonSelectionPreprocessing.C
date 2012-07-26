@@ -928,14 +928,11 @@ namespace OpenMS
       // filter for taxonomy
       if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
       {
+        // preprocess entry identifier
+        filterTaxonomyIdentifier_(entries[e]);
 #ifdef PISP_DEBUG
         std::cout << entries[e].identifier << std::endl;
 #endif
-        if (entries[e].identifier.hasPrefix("sp|") || entries[e].identifier.hasPrefix("tr|"))
-        {
-          entries[e].identifier = entries[e].identifier.suffix(entries[e].identifier.size() - 3);
-        }
-        entries[e].identifier = entries[e].identifier.prefix('|');
         String & seq = entries[e].sequence;
         // check for unallowed characters
         if (seq.hasSubstring("X") || seq.hasSubstring("B") ||  seq.hasSubstring("Z"))
