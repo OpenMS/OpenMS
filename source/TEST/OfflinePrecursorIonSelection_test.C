@@ -162,7 +162,7 @@ END_SECTION
 START_SECTION((LPWrapper::SOLVER getLPSolver()))
 {
   // was tested in previous section
-  NOT_TESTABLE()
+  NOT_TESTABLE
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
