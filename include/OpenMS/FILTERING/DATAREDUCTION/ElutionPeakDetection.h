@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -60,6 +60,17 @@ namespace OpenMS
         /// Destructor
         virtual ~ElutionPeakDetection();
 
+        /// Getter & setter methods
+        void setScanTime(const DoubleReal& st)
+        {
+            scan_time_ = st;
+        }
+
+        DoubleReal getFWHM()
+        {
+            return chrom_fwhm_;
+        }
+
         /** @name Main computation methods
             */
         /// Extracts chromatographic peaks from a single MassTrace and stores the splits into a vector of new mass traces.
@@ -69,6 +80,8 @@ namespace OpenMS
         void detectPeaks(std::vector<MassTrace>&, std::vector<MassTrace>&);
 
         /// Computes an estimate of the average peak width of the experiment based on smoothed intensities (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviances).
+        void estimatePeakWidth(std::vector<MassTrace>&);
+
         void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
 
 
@@ -77,7 +90,9 @@ namespace OpenMS
 
     private:
         DoubleReal chrom_fwhm_;
-        // Size window_size_;
+        DoubleReal scan_time_;
+        DoubleReal chrom_peak_snr_;
+        DoubleReal noise_threshold_int_;
         DoubleReal sample_rate_;
 
         bool pw_filtering_;

@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2012 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -50,16 +50,16 @@ namespace OpenMS
 */
 
 
-    class OPENMS_DLLAPI MassTraceDetection :
-            public DefaultParamHandler,
-            public ProgressLogger
-    {
-    public:
-        /// Default constructor
-        MassTraceDetection();
+class OPENMS_DLLAPI MassTraceDetection :
+        public DefaultParamHandler,
+        public ProgressLogger
+{
+public:
+    /// Default constructor
+    MassTraceDetection();
 
-        /// Default destructor
-        virtual ~MassTraceDetection();
+    /// Default destructor
+    virtual ~MassTraceDetection();
 
     /** @name Helper methods
         */
@@ -67,27 +67,30 @@ namespace OpenMS
     void updateIterativeWeightedMeanMZ(const DoubleReal&, const DoubleReal&, DoubleReal&, DoubleReal&, DoubleReal&);
 
     /// Computes a rough estimate of the average peak width of the experiment (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviances).
-        void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
+    void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
 
     /** @name Main computation methods
         */
     /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
-        void run(const MSExperiment<Peak1D>&, std::vector<MassTrace>&);
+    void run(const MSExperiment<Peak1D>&, std::vector<MassTrace>&);
 
     /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
     void run(MSExperiment<Peak1D>::ConstAreaIterator& begin, MSExperiment<Peak1D>::ConstAreaIterator& end, std::vector<MassTrace>& found_masstraces);
 
-    protected:
-        virtual void updateMembers_();
+protected:
+    virtual void updateMembers_();
 
-    private:
+private:
     // parameter stuff
-        DoubleReal mass_error_ppm_;
-        DoubleReal noise_threshold_int_;
-        DoubleReal chrom_apex_snt_;
-        DoubleReal chrom_fwhm_;
-        DoubleReal min_sample_rate_;
-    };
+    DoubleReal mass_error_ppm_;
+    DoubleReal noise_threshold_int_;
+    DoubleReal chrom_peak_snr_;
+
+    DoubleReal min_sample_rate_;
+    DoubleReal min_peak_width_;
+
+    bool reestimate_mt_sd_;
+};
 }
 
 #endif // OPENMS_FILTERING_DATAREDUCTION_MASSTRACEDETECTION_H
