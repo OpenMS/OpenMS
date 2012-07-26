@@ -263,7 +263,7 @@ namespace OpenMS
     }
     else if (entry.identifier.hasPrefix("IPI:"))
     {
-      entry.identifier = entry.identifier.suffix(entry.identifier.size() - 5);
+      entry.identifier = entry.identifier.suffix(entry.identifier.size() - 4);
     }
 
     if (entry.identifier.has('|'))
