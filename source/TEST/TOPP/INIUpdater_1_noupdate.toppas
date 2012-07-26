@@ -52,7 +52,7 @@
             <ITEM name="intensity_percentage" value="10" type="float" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present." tags="advanced" restrictions="0:100" />
             <ITEM name="intensity_percentage_optional" value="0.1" type="float" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing." tags="advanced" restrictions="0:100" />
             <ITEM name="optional_fit_improvement" value="2" type="float" description="Minimal percental improvement of isotope fit to allow leaving out an optional peak." tags="advanced" restrictions="0:100" />
-            <ITEM name="mass_window_width" value="25" type="float" description="Window width in Dalton for precalculation of estimated isotope distribtions." tags="advanced" restrictions="1:200" />
+            <ITEM name="mass_window_width" value="25" type="float" description="Window width in Dalton for precalculation of estimated isotope distributions." tags="advanced" restrictions="1:200" />
           </NODE>
           <NODE name="seed" description="Settings that determine which peaks are considered a seed">
             <ITEM name="min_score" value="0.8" type="float" description="Minimum seed score a peak has to reach to be used as seed.#br#The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.#br#If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score." restrictions="0:1" />
