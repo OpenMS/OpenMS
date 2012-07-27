@@ -417,7 +417,7 @@ protected:
 
 			if (peptide_threshold_score!=0)
 			{
-				applied_filters.insert(String("Filtering by peptide score > ") + peptide_threshold_score + " ...\n");
+				applied_filters.insert(String("Filtering by peptide score < (or >) ") + peptide_threshold_score + " ...\n");
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByScore(temp_identification, peptide_threshold_score, filtered_identification);
 			}
