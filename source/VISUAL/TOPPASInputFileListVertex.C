@@ -138,7 +138,7 @@ namespace OpenMS
     foreach(QString fn, getFileNames())
     {
       QStringList l = QFileInfo(fn).completeSuffix().split('.');
-      QString suf = (l.size()>1? l[l.size()-2] + "." : QString()) + l.back(); // take up to two dots as suffix
+      QString suf = ((l.size()>1 && l[l.size()-2].size() <= 4) ? l[l.size()-2] + "." : QString()) + l.back(); // take up to two dots as suffix (the first only if its <=4 chars, e.g. we want ".prot.xml" or ".tar.gz", but not "stupid.filename.with.longdots.mzML")
       ++suffices[suf];
     }
     StringList text_l;
