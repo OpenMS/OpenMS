@@ -225,19 +225,6 @@ protected:
             f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
 
             ms_feat_map.push_back(f);
-
-
-            // debug output
-            DoubleReal cent_rt(m_traces_final[i].getCentroidRT());
-            DoubleReal cent_mz(m_traces_final[i].getCentroidMZ());
-            // DoubleReal cent_int(m_traces_final[i].compute());
-
-            for (MassTrace::const_iterator v_it = m_traces_final[i].begin(); v_it != m_traces_final[i].end(); ++v_it)
-            {
-                std::cout << cent_rt << " " << cent_mz << " " << /* cent_int << " "  << */ v_it->getMZ() << " " << v_it->getIntensity() << std::endl;
-            }
-
-            std::cout << "----" << std::endl;
         }
 
         ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);

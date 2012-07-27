@@ -34,7 +34,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <vector>
-#include <svm.h>
 
 namespace OpenMS
 {
@@ -122,26 +121,6 @@ namespace OpenMS
             charge_ = ch;
         }
 
-        std::vector<DoubleReal> getAllIntensities(bool smoothed = false)
-        {
-            std::vector<DoubleReal> tmp;
-
-            for (Size i = 0; i < iso_pattern_.size(); ++i)
-            {
-                if (!smoothed)
-                {
-                    tmp.push_back(iso_pattern_[i]->computePeakArea());
-                }
-                else
-                {
-                    tmp.push_back(iso_pattern_[i]->computeSmoothedPeakArea());
-                }
-
-            }
-
-            return tmp;
-        }
-
 
         DoubleReal getCentroidMZ()
         {
@@ -178,8 +157,8 @@ namespace OpenMS
 
         /// addMassTrace
         void addMassTrace(MassTrace&);
-        DoubleReal getMonoisotopicFeatureIntensity(bool);
-        DoubleReal getSummedFeatureIntensity(bool);
+        DoubleReal getMonoisotopicFeatureIntensity();
+        DoubleReal getSummedFeatureIntensity();
 
 
         Size getNumFeatPoints() const;
@@ -229,20 +208,10 @@ namespace OpenMS
 
     private:
         /// private member functions
-        svm_model *isotope_filt_svm;
-        std::vector<DoubleReal> svm_feat_centers;
-        std::vector<DoubleReal> svm_feat_scales;
-        bool isLegalIsotopePattern_(FeatureHypothesis&);
-        void loadIsotopeModel_();
-
-        DoubleReal scoreMZ_(const MassTrace&, const MassTrace&, Size, Size);
-        DoubleReal scoreRT_(const MassTrace&, const MassTrace&);
-
-        DoubleReal computeOLSCoeff(const std::vector<DoubleReal>&, const std::vector<DoubleReal>&);
-        DoubleReal computeCosineSim(const std::vector<DoubleReal>&, const std::vector<DoubleReal>&);
-
-        // DoubleReal scoreTraceSim_(MassTrace, MassTrace);
-        // DoubleReal scoreIntRatio_(DoubleReal, DoubleReal, Size);
+        DoubleReal scoreMZ_(DoubleReal, DoubleReal, Size, Size);
+        DoubleReal scoreRT_(DoubleReal, DoubleReal);
+        DoubleReal scoreTraceSim_(MassTrace, MassTrace);
+        DoubleReal scoreIntRatio_(DoubleReal, DoubleReal, Size);
         void findLocalFeatures_(std::vector<MassTrace*>&, std::vector<FeatureHypothesis>&);
 
 
@@ -251,13 +220,9 @@ namespace OpenMS
         DoubleReal local_mz_range_;
         Size charge_lower_bound_;
         Size charge_upper_bound_;
-        //DoubleReal mass_error_ppm_;
-        //DoubleReal chrom_fwhm_;
-
+        DoubleReal mass_error_ppm_;
+        DoubleReal chrom_sigma_;
         bool report_summed_ints_;
-        bool disable_isotope_filtering_;
-        bool use_smoothed_intensities_;
-
     };
 
 
