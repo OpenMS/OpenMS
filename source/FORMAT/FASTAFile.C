@@ -108,7 +108,11 @@ namespace OpenMS
 		if (tag != "" && seq != "")
 		{
 			FASTAEntry entry;
-			position = tag.find_first_of(" \v\t");
+      // allow only " \t" and nothing else, especially not "|"=="\v", 
+      // since NCBI or Ensemble use >ENSG00000203832|ENST00000430395|ENSP00000412476|NBPF20 
+      //                         or >gi|129295|sp|P01013|OVAX_CHICK 
+      // as Identifier! (with description following)
+			position = tag.find_first_of(" \t"); 
 			if (position == String::npos)
 			{
 				entry.identifier = tag;
@@ -145,7 +149,7 @@ namespace OpenMS
 			outfile << ">" << it->identifier << " " << it->description << "\n";
 			
 			String tmp(it->sequence);
-			while (tmp.size() > 80)
+			while (tmp.size() > 80) // surprisingly fast, even though its using erase(). For-loop with substr() is much SLOWER!
 			{
 				outfile << tmp.prefix(80) << "\n";
 				tmp.erase(0, 80);
