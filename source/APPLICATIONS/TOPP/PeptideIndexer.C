@@ -64,7 +64,7 @@ using namespace std;
 
 	Each peptide hit is annotated by a target_decoy string,
 	indicating if the peptide sequence is found in a 'target', a 'decoy' or in both 'target+decoy' protein. This information is
-	crucial for the @ref TOPP_FalseDiscoveryRate tool.
+	crucial for the @ref TOPP_FalseDiscoveryRate @ref TOPP_IDPosteriorErrorProbability tools.
 
   This tool supports relative database filenames, which (when not found in the current working directory) is looked up in
   the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
@@ -292,6 +292,8 @@ class TOPPPeptideIndexer
 			registerOutputFile_("out","<file>","","Output idXML file.");
 			setValidFormats_("out", StringList::create("IdXML"));
 			registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accession of the protein database to indicate a decoy protein.", false);
+      registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
+      setValidStrings_("missing_decoy_action", StringList::create("error,warn"));
 			registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
 			registerFlag_("prefix", "If set, the database has protein accessions with 'decoy_string' as prefix.");
 			registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
@@ -444,10 +446,12 @@ class TOPPPeptideIndexer
 
       /// for peptides --> proteins
 
-      Int stats_matched_unique(0);
-      Int stats_matched_multi(0);
-      Int stats_unmatched(0);
-
+      Size stats_matched_unique(0);
+      Size stats_matched_multi(0);
+      Size stats_unmatched(0);
+      Size stats_count_m_t(0);
+      Size stats_count_m_d(0);
+      Size stats_count_m_td(0);
       Map<Size, set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
       
       Size pep_idx(0);
@@ -491,6 +495,7 @@ class TOPPPeptideIndexer
           ///
 					bool matches_target(false);
 					bool matches_decoy(false);
+
 					for (vector<String>::const_iterator it = it2->getProteinAccessions().begin(); it != it2->getProteinAccessions().end(); ++it)
 					{
 						if(prefix)
@@ -504,10 +509,23 @@ class TOPPPeptideIndexer
 							else matches_target = true;
 						}
 					}
-					StringList target_decoy;
-					if (matches_target) target_decoy.push_back("target");
-					if (matches_decoy) target_decoy.push_back("decoy");
-					it2->setMetaValue("target_decoy", target_decoy.concatenate("+"));
+					String target_decoy;
+          if (matches_decoy && matches_target)
+          {
+            target_decoy = "target+decoy";
+            ++stats_count_m_td;
+          }
+          else if (matches_target)
+          {
+            target_decoy = "target";
+            ++stats_count_m_t;
+          }
+          else if (matches_decoy) 
+          {
+            target_decoy = "decoy";
+            ++stats_count_m_d;
+          }
+					it2->setMetaValue("target_decoy", target_decoy);
 					if (it2->getProteinAccessions().size() == 1)
 					{
 						it2->setMetaValue("protein_references", "unique");
@@ -531,10 +549,34 @@ class TOPPPeptideIndexer
 				it1->setHits(hits);
 			}
 
-      LOG_INFO << "Statistics (peptides):\n";
+      LOG_INFO << "Statistics of peptides (target/decoy):\n";
+      LOG_INFO << "  match to target DB only: " << stats_count_m_t << "\n";
+      LOG_INFO << "  match to decoy DB only : " << stats_count_m_d << "\n";
+      LOG_INFO << "  match to both          : " << stats_count_m_td << "\n";
+      
+
+      LOG_INFO << "Statistics of peptides (to protein mapping):\n";
       LOG_INFO << "  no match (to 0 protein): " << stats_unmatched << "\n";
       LOG_INFO << "  unique match (to 1 protein): " << stats_matched_unique << "\n";
-      LOG_INFO << "  non-unique match (to >1 protein): " << stats_matched_multi << "\n";
+      LOG_INFO << "  non-unique match (to >1 protein): " << stats_matched_multi << std::endl;
+
+
+      /// exit if no peptides were matched to decoy
+      if (stats_count_m_d+stats_count_m_td == 0)
+      {
+        String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct a concatenated database? Are your 'decoy_string' (=" + getStringOption_("decoy_string") + ") and 'prefix' (=" + String(getFlag_("prefix")) + ") settings correct?");
+        if (getStringOption_("missing_decoy_action") == "error")
+        {
+          LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nQuitting..." << std::endl;
+          return UNEXPECTED_RESULT;  
+        }
+        else
+        {
+          LOG_WARN << "Warn: " << msg << "\nSet 'missing_decoy_action' to 'error' if you want to elevate this to an error!" << std::endl;
+        }
+
+
+      }
 
       /// for proteins --> peptides
 
