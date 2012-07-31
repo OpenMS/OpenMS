@@ -48,11 +48,16 @@ namespace OpenMS
 	}
 
 
-	void QTClusterFinder::setParameters_(DoubleReal max_intensity)
+	void QTClusterFinder::setParameters_(DoubleReal max_intensity, 
+																			 DoubleReal max_mz)
 	{
 		use_IDs_ = String(param_.getValue("use_identifications")) == "true";
 		max_diff_rt_ = param_.getValue("distance_RT:max_difference");
 		max_diff_mz_ = param_.getValue("distance_MZ:max_difference");
+		// compute m/z tolerance in Da (if given in ppm; for the hash grid):
+		if (param_.getValue("distance_MZ:unit") == "ppm") {
+			max_diff_mz_ *= max_mz * 1e-6;
+		}
 		Param distance_params = param_.copy("");
 		distance_params.remove("use_identifications");
 		feature_distance_ = FeatureDistance(max_intensity, true);
@@ -73,11 +78,13 @@ namespace OpenMS
 
 		// set up the distance functor (and set other parameters):
 		DoubleReal max_intensity = input_maps[0].getMaxInt();
+		DoubleReal max_mz = input_maps[0].getMax()[1];
 		for (Size map_index = 1; map_index < num_maps_; ++map_index)
 		{
 			max_intensity = max(max_intensity, input_maps[map_index].getMaxInt());
+			max_mz = max(max_mz, input_maps[map_index].getMax()[0]);
 		}
-		setParameters_(max_intensity);
+		setParameters_(max_intensity, max_mz);
 
 		// create the hash grid and fill it with features:
 		// cout << "Hashing..." << endl;

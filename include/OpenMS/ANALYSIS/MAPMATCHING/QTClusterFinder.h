@@ -117,7 +117,7 @@ namespace OpenMS
 		bool compatibleIDs_(QTCluster& cluster, const GridFeature* neighbor);
 		
 		/// Sets algorithm parameters
-		void setParameters_(DoubleReal max_intensity);
+		void setParameters_(DoubleReal max_intensity, DoubleReal max_mz);
 
 		/// Generates a consensus feature from the best cluster and updates the clustering
 		void makeConsensusFeature_(std::list<QTCluster>& clustering,
