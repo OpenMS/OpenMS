@@ -88,29 +88,24 @@ class TOPPDigestor
 		{
 			registerInputFile_("in","<file>","","input file");
       setValidFormats_("in",StringList::create("FASTA"));
-			registerOutputFile_("out","<file>","","output file (peptides)\n");
-      registerStringOption_("out_type", "<type>","", "out type", false);
-      setValidStrings_("out_type",StringList::create("idXML,FASTA"));
+			registerOutputFile_("out","<file>","","Output file (peptides)");
+      setValidFormats_("out", StringList::create("idXML,FASTA"));
+      registerStringOption_("out_type", "<type>","", "Set this if you cannot control the filename of 'out', e.g., in TOPPAS.", false);
+      setValidStrings_("out_type", StringList::create("idXML,FASTA"));
 
-      registerIntOption_("missed_cleavages","<number>",1,"the number of allowed missed cleavages", false);
+      registerIntOption_("missed_cleavages","<number>",1,"The number of allowed missed cleavages", false);
 			setMinInt_("missed_cleavages", 0);
-			registerIntOption_("min_length","<number>",6,"minimum length of peptide", false);
-			registerStringOption_("enzyme","<string>","Trypsin","the digestion enzyme", false);
+			registerIntOption_("min_length","<number>",6,"Minimum length of peptide", false);
+			registerIntOption_("max_length","<number>",40,"Maximum length of peptide", false);
+			registerStringOption_("enzyme","<string>","Trypsin","The type of digestion enzyme", false);
 		}
 
 		ExitCodes main_(int , const char**)
 		{
-			IdXMLFile IdXML_file;
 			vector<ProteinIdentification> protein_identifications;
 			vector<PeptideIdentification> identifications;
-			vector< String > peptides;
-			EnzymaticDigestion digestor;
-			vector<AASequence> temp_peptides;
 			PeptideIdentification peptide_identification;
 			ProteinIdentification protein_identification;
-			PeptideHit temp_peptide_hit;
-			vector<String> parts;
-			ProteinIdentification::SearchParameters search_parameters;
 			
 			protein_identifications.push_back(ProteinIdentification());
 			//-------------------------------------------------------------
@@ -125,37 +120,41 @@ class TOPPDigestor
 
 		  if (out_type==FileTypes::UNKNOWN)
 		  {
-			  out_type = fh.getType(outputfile_name);
+			  out_type = fh.getTypeByFileName(outputfile_name);
 			  writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
 		  }
 
 		  if (out_type==FileTypes::UNKNOWN)
 		  {
-			  writeLog_("Error: Could not determine output file type!");
+			  LOG_ERROR << ("Error: Could not determine output file type!") << std::endl;
 			  return PARSE_ERROR;
 		  }
 
-			UInt min_size = getIntOption_("min_length");
-			UInt missed_cleavages = getIntOption_("missed_cleavages");
+			Size min_size = getIntOption_("min_length");
+      Size max_size = getIntOption_("max_length");
+			Size missed_cleavages = getIntOption_("missed_cleavages");
 			
+
       bool has_FASTA_output = (out_type==FileTypes::FASTA);
 
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			FASTAFile file;
 			std::vector<FASTAFile::FASTAEntry> protein_data;
-			file.load(inputfile_name, protein_data);
+			FASTAFile().load(inputfile_name, protein_data);
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
 		
 			// This should be updated if more cleavage enzymes are available
+			EnzymaticDigestion digestor;
 			digestor.setEnzyme(EnzymaticDigestion::TRYPSIN);
+			ProteinIdentification::SearchParameters search_parameters;
 			search_parameters.enzyme = ProteinIdentification::TRYPSIN;
 			digestor.setMissedCleavages(missed_cleavages);
 			
       vector<String> protein_accessions(1);
+			PeptideHit temp_peptide_hit;
 
 			std::vector<FASTAFile::FASTAEntry> all_peptides;
 
@@ -171,11 +170,13 @@ class TOPPDigestor
   				temp_peptide_hit.setProteinAccessions(protein_accessions);
         }
 				
+   			vector<AASequence> temp_peptides;
 				digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
 	
         for (Size j = 0; j < temp_peptides.size(); ++j)
 				{
-					if (temp_peptides[j].size() >= min_size)
+					if ((temp_peptides[j].size() >= min_size) &&
+              (temp_peptides[j].size() <= max_size))
 					{
             if (!has_FASTA_output)
             {
@@ -211,13 +212,13 @@ class TOPPDigestor
       
       if (has_FASTA_output)
       {
-        file.store(outputfile_name, all_peptides);
+        FASTAFile().store(outputfile_name, all_peptides);
       }
       else
       {
-			  IdXML_file.store(outputfile_name,
-											   protein_identifications,
-											   identifications);
+			  IdXMLFile().store(outputfile_name,
+										      protein_identifications,
+											    identifications);
       }
 
 			return EXECUTION_OK;
