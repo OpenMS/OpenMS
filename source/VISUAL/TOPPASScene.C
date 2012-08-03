@@ -732,6 +732,13 @@ namespace OpenMS
 
   void TOPPASScene::load(const String & file)
   {
+    file_name_ = file;
+    
+    if (File::empty(file))
+    { // allow opening of 0-byte files as pretend they are empty, new TOPPAS files
+      return;
+    }
+
     Param load_param;
     load_param.load(file);
 
@@ -739,7 +746,9 @@ namespace OpenMS
     // get version of TOPPAS file
     String file_version = "1.8.0"; // default (were we did not have the tag)
     if (load_param.exists("info:version"))
+    {
       file_version = load_param.getValue("info:version");
+    }
     VersionInfo::VersionDetails v_file = VersionInfo::VersionDetails::create(file_version);
     VersionInfo::VersionDetails v_this_low = VersionInfo::VersionDetails::create("1.9.0"); // last compatible TOPPAS file version
     VersionInfo::VersionDetails v_this_high = VersionInfo::VersionDetails::create(VersionInfo::getVersion()); // last compatible TOPPAS file version
@@ -1019,7 +1028,6 @@ namespace OpenMS
             }
         }
 */
-    file_name_ = file;
 
     topoSort();
     // unblock signals again

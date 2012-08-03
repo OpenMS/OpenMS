@@ -45,6 +45,15 @@
 		
 		@image html TOPPAS_simple_example.png
 		@image latex TOPPAS_simple_example.png "" width=14cm
+		
+		
+		To create a new TOPPAS file, you can either: 
+
+			- open TOPPAS without providing any existing workflow - an empty workflow will be opened automatically
+			- in a running TOPPAS programm choose: @a File @a > @a New
+			- create an empty file in your file browser (explorer) with the suffix @a .toppas and double-click it (on Windows systems all @a .toppas files are 
+				associated with TOPPAS automatically during installation of %OpenMS, on Linux and MacOS you might need to manually associate the extension)
+		
 
 	@page TOPPAS_interface User interface
 		
@@ -118,7 +127,7 @@
       to 8, and you additionally set the number of parallel jobs in @b TOPPAS to 8, then you end up using 64 threads in parallel, which
       might not be what you intended to do.
 
-      In addition to @a TOPPAS_out, a @a TOPPAS_tmp directory will be created in the OpenMS temp path (call the @em OpenMSInfo tool to see where exactly).
+      In addition to @a TOPPAS_out, a @a TOPPAS_tmp directory will be created in the %OpenMS temp path (call the @em OpenMSInfo tool to see where exactly).
       It will contain all
       temporary files that are passed from tool to tool within the pipeline.
 			Both folders contain further sub-directories which are named after the number in the top-left corner of the node they
@@ -187,7 +196,7 @@
 				@n
 				In the @a Help menu, you can
 				
-				- go to the OpenMS website (@a OpenMS @a website)
+				- go to the %OpenMS website (@a %OpenMS @a website)
 				- open this tutorial (@a TOPPAS @a tutorial)
 				
 				@n @n
