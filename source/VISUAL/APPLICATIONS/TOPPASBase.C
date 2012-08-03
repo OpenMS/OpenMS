@@ -481,7 +481,7 @@ namespace OpenMS
 		if (file_name == "") return;
     if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
 		{
-			std::cerr << "The file '" << file_name << "' is not a .toppas file" << std::endl;
+			LOG_ERROR << "The file '" << file_name << "' is not a .toppas file" << std::endl;
 			return;
 		}
 		

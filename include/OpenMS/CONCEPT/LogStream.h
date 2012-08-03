@@ -425,7 +425,7 @@ private:
       /// has to be deleted. If the default ctor is used to create
       /// the LogStreamBuf, delete_buffer_ is set to true and the ctor
       /// also deletes the buffer.
-      bool    delete_buffer_;
+      bool delete_buffer_;
 
     }; //LogStream
 

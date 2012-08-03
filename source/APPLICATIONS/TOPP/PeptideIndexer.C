@@ -647,7 +647,7 @@ class TOPPPeptideIndexer
                  << "   - check your FASTA database\n"
                  << "   - increase 'aaa_max' to allow more ambiguous AA\n"
                  << "   - use 'allow_unmatched' flag if unmatched peptides are ok\n";
-        LOG_WARN << "Result files were written, but program will return with error code\n";
+        LOG_WARN << "Result files were written, but program will return with error code" << std::endl;
         return UNEXPECTED_RESULT;
       }
 
