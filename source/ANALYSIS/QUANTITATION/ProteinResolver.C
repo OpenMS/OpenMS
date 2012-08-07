@@ -29,6 +29,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 //#include <algorithm>
 
@@ -59,8 +60,8 @@ namespace OpenMS
 
   ProteinResolver::ProteinResolver(const ProteinResolver& cp)
     : DefaultParamHandler(cp),
-    protein_data_(cp.protein_data_),
-    resolver_result_(cp.resolver_result_)
+    resolver_result_(cp.resolver_result_),
+    protein_data_(cp.protein_data_)
   {
   }
 
@@ -70,8 +71,8 @@ namespace OpenMS
     if (this == &rhs) return *this;
 
     DefaultParamHandler::operator= (rhs);
-    this->protein_data_ = rhs.protein_data_;
     this->resolver_result_ = rhs.resolver_result_;
+    this->protein_data_ = rhs.protein_data_;
 
     return *this;
   }
@@ -96,7 +97,7 @@ namespace OpenMS
     resolver_result_.clear();
   }
 
-  void ProteinResolver::resolveID(vector<PeptideIdentification>& peptide_identifications, const String& file_identifier)
+  void ProteinResolver::resolveID(vector<PeptideIdentification>& peptide_identifications)
   {
     vector<ProteinEntry>* protein_nodes = new vector<ProteinEntry>;
     protein_nodes->resize(protein_data_.size());
@@ -125,7 +126,7 @@ namespace OpenMS
     countTargetDecoy(*msd_groups, peptide_identifications);
 
     ResolverResult result;
-    result.identifier = file_identifier;
+    //result.identifier = file_identifier;
     result.isds = isd_groups;
     result.msds = msd_groups;
     result.peptide_entries = peptide_nodes;
@@ -138,7 +139,7 @@ namespace OpenMS
     resolver_result_.push_back(result);
   }
 
-  void ProteinResolver::resolveConsensus(ConsensusMap& consensus, const String& file_identifier)
+  void ProteinResolver::resolveConsensus(ConsensusMap& consensus)
   {
     vector<ProteinEntry>* protein_nodes = new vector<ProteinEntry>;
     protein_nodes->resize(protein_data_.size());
@@ -160,6 +161,10 @@ namespace OpenMS
 
     // calculations + reindexing
     reindexingNodes_(*msd_groups, *reindexed_proteins, *reindexed_peptides);
+
+    // compute intensity of a msd group
+    computeIntensityOfMSD_(*msd_groups);
+
     primaryProteins_(*peptide_nodes, *reindexed_peptides);
     //TODO indistinguishableProteins(msd_groups);
 
@@ -167,7 +172,7 @@ namespace OpenMS
     countTargetDecoy(*msd_groups, consensus);
 
     ResolverResult result;
-    result.identifier = file_identifier;
+    //result.identifier = file_identifier;
     result.isds = isd_groups;
     result.msds = msd_groups;
     result.peptide_entries = peptide_nodes;
@@ -178,6 +183,22 @@ namespace OpenMS
     result.consensus_map = &consensus;
 
     resolver_result_.push_back(result);
+  }
+
+  void ProteinResolver::computeIntensityOfMSD_(vector<MSDGroup>& msd_groups)
+  {
+    // iteriert ueber alles msd gruppe
+    for(vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
+    {
+      DoubleList intensities;
+      // iterierere ueber peptide entry (peptide identification), intensitaet (summe der einzelintensitaeten)
+      for(list<PeptideEntry*>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
+      {
+        intensities.push_back((*pep)->intensity);
+      }
+      // median von der list ist itensity der msd group
+      group->intensity = Math::median(intensities.begin(),intensities.end());
+    }
   }
 
   void ProteinResolver::countTargetDecoy(vector<MSDGroup>& msd_groups, ConsensusMap& consensus)
@@ -342,7 +363,11 @@ namespace OpenMS
     Size found_peptide = 0;
     for(Size pep = 0; pep != consensus.size(); ++pep)
     {
-      const vector<PeptideIdentification> & pep_id  = consensus[pep].getPeptideIdentifications();
+      ConsensusFeature& feature = consensus.at(pep);
+
+      // get all peptide identifications
+      const vector<PeptideIdentification> & pep_id  = feature.getPeptideIdentifications();
+
 
       for(Size cons_pep = 0; cons_pep < pep_id.size(); ++cons_pep)
       {
@@ -359,6 +384,9 @@ namespace OpenMS
           peptide_nodes.at(peptide_entry).peptide_identification = pep;
           peptide_nodes.at(peptide_entry).peptide_hit = cons_pep; //only top hit is used at the moment
           peptide_nodes.at(peptide_entry).experimental = true;
+          // get intensity of the feature
+          peptide_nodes.at(peptide_entry).intensity = feature.getIntensity();
+          peptide_nodes.at(peptide_entry).origin = feature.getMetaValue("file_origin");
         }
       }
     }

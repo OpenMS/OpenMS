@@ -80,11 +80,11 @@ namespace OpenMS
       ///Not implemented
       QuantitativeExperimentalDesign& operator = (const QuantitativeExperimentalDesign&);
 
-      void mergeFeatureMaps_(FeatureMap<>& map, StringList& file_paths);
+      void mergeFeatureMaps_(FeatureMap<>& map, const String& experiment, StringList& file_paths);
 
-      void mergeConsensusMaps_(ConsensusMap& map, StringList& file_paths);
+      void mergeConsensusMaps_(ConsensusMap& map, const String& experiment, StringList& file_paths);
 
-      void mergeIDFiles_(std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, StringList& file_paths);
+      void mergeIDFiles_(std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment, StringList& file_paths);
 
       void findRelevantFilePaths_( std::map<String, StringList>& design2FileBaseName, std::map<String, StringList>& design2FilePath, StringList& filePaths);
 

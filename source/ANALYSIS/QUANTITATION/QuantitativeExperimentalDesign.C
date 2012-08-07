@@ -76,26 +76,27 @@ namespace OpenMS
 
     if ( in_type == FileTypes::IDXML)
     {
+      vector<ProteinIdentification> proteins;
+      vector<PeptideIdentification> peptides;
+
       for ( map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
-        vector<ProteinIdentification> proteins;
-        vector<PeptideIdentification> peptides;
         // merge the respective files
-        mergeIDFiles_(proteins, peptides, iter->second);
-
-        resolver.resolveID(peptides, iter->first);
+        mergeIDFiles_(proteins, peptides, iter->first, iter->second);
       }
+
+      resolver.resolveID(peptides);
     }
     else
     {
+      ConsensusMap consensus;
+
       for ( map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
-        ConsensusMap consensus;
-
-        mergeConsensusMaps_(consensus, iter->second);
-
-        resolver.resolveConsensus(consensus, iter->first);
+        mergeConsensusMaps_(consensus, iter->first, iter->second);
       }
+
+      resolver.resolveConsensus(consensus);
     }
   }
 
@@ -114,47 +115,45 @@ namespace OpenMS
 
     if ( in_type == FileTypes::FEATUREXML)
     {
+      FeatureMap<> features;
+
       for ( map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
-        FeatureMap<> features;
-
-        mergeFeatureMaps_(features, iter->second);
-
-        LOG_INFO << "Number of proteinIdentifications: " << features.getProteinIdentifications().size() << endl;
-        ProteinIdentification& proteins = features.getProteinIdentifications()[0];
-
-        quantifier.quantifyPeptides(features);
-        const PeptideAndProteinQuant::PeptideQuant& pep_result = quantifier.getPeptideResults();
-
-        quantifier.quantifyProteins(proteins);
-        const PeptideAndProteinQuant::ProteinQuant& prot_result = quantifier.getProteinResults();
-
-       // result.push_back(make_pair(pep_result,prot_result));
+        mergeFeatureMaps_(features, iter->first, iter->second);
       }
+      LOG_INFO << "Number of proteinIdentifications: " << features.getProteinIdentifications().size() << endl;
+      ProteinIdentification& proteins = features.getProteinIdentifications()[0];
+
+      quantifier.quantifyPeptides(features);
+      const PeptideAndProteinQuant::PeptideQuant& pep_result = quantifier.getPeptideResults();
+
+      quantifier.quantifyProteins(proteins);
+      const PeptideAndProteinQuant::ProteinQuant& prot_result = quantifier.getProteinResults();
+
+     // result.push_back(make_pair(pep_result,prot_result));
     }
     else
     {
+      ConsensusMap consensus;
+
       for ( map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
-        ConsensusMap consensus;
-
-        mergeConsensusMaps_(consensus, iter->second);
-
-        LOG_INFO << "Number of proteinIdentifications: " << consensus.getProteinIdentifications().size() << endl;
-        ProteinIdentification& proteins = consensus.getProteinIdentifications()[0];
-
-        quantifier.quantifyPeptides(consensus);
-        const PeptideAndProteinQuant::PeptideQuant& pep_result = quantifier.getPeptideResults();
-
-        quantifier.quantifyProteins(proteins);
-        const PeptideAndProteinQuant::ProteinQuant& prot_result = quantifier.getProteinResults();
-
-       // result.push_back(make_pair(pep_result,prot_result));
+        mergeConsensusMaps_(consensus, iter->first, iter->second);
       }
+
+      LOG_INFO << "Number of proteinIdentifications: " << consensus.getProteinIdentifications().size() << endl;
+      ProteinIdentification& proteins = consensus.getProteinIdentifications()[0];
+
+      quantifier.quantifyPeptides(consensus);
+      const PeptideAndProteinQuant::PeptideQuant& pep_result = quantifier.getPeptideResults();
+
+      quantifier.quantifyProteins(proteins);
+      const PeptideAndProteinQuant::ProteinQuant& prot_result = quantifier.getProteinResults();
+
     }
   }
 
-  void QuantitativeExperimentalDesign::mergeConsensusMaps_(ConsensusMap& out, StringList& file_paths)
+  void QuantitativeExperimentalDesign::mergeConsensusMaps_(ConsensusMap& out, const String& experiment, StringList& file_paths)
   {
     ConsensusMap map;
 
@@ -164,29 +163,34 @@ namespace OpenMS
     {
       //load should clear the map
       ConsensusXMLFile().load(*file_it, map);
-      LOG_INFO << counter << " of " << file_paths.size() << " merged\r";
+      for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
+      {
+        it->setMetaValue("experiment", DataValue(experiment));
+      }
       out += map;
     }
     LOG_INFO << endl;
   }
 
-  void QuantitativeExperimentalDesign::mergeFeatureMaps_(FeatureMap<>& out, StringList& file_paths)
+  void QuantitativeExperimentalDesign::mergeFeatureMaps_(FeatureMap<>& out, const String& experiment, StringList& file_paths)
   {
     FeatureMap<> map;
 
-    LOG_INFO << "Merge consensus maps: " << endl;
+    LOG_INFO << "Merge feature maps: " << endl;
     UInt counter = 1;
     for (StringList::Iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
     {
       //load should clear the map
       FeatureXMLFile().load(*file_it, map);
-      LOG_INFO << counter << " of " << file_paths.size() << " merged\r";
+      for (FeatureMap<>::iterator it = map.begin(); it != map.end(); ++it)
+      {
+        it->setMetaValue("experiment", DataValue(experiment));
+      }
       out += map;
     }
-    LOG_INFO << endl;
   }
 
-  void QuantitativeExperimentalDesign::mergeIDFiles_(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, StringList& file_paths)
+  void QuantitativeExperimentalDesign::mergeIDFiles_(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, const String& experiment, StringList& file_paths)
   {
     set<String> used_ids;
     vector<ProteinIdentification> additional_proteins;
@@ -197,6 +201,20 @@ namespace OpenMS
     {
       // load should clear the vectors
       IdXMLFile().load(*file_it, additional_proteins, additional_peptides);
+
+      for (vector<ProteinIdentification>::iterator prot_it =
+             additional_proteins.begin(); prot_it !=
+             additional_proteins.end(); ++prot_it)
+      {
+        prot_it->setMetaValue("experiment", DataValue(experiment));
+      }
+
+      for (vector<PeptideIdentification>::iterator pep_it =
+             additional_peptides.begin(); pep_it !=
+             additional_peptides.end(); ++pep_it)
+      {
+        pep_it->setMetaValue("experiment", DataValue(experiment));
+      }
 
       UInt counter = 1;
       for (vector<ProteinIdentification>::iterator prot_it = additional_proteins.begin(); prot_it != additional_proteins.end(); ++prot_it, ++counter)
@@ -230,10 +248,7 @@ namespace OpenMS
 
       proteins.insert(proteins.end(), additional_proteins.begin(), additional_proteins.end());
       peptides.insert(peptides.end(), additional_peptides.begin(), additional_peptides.end());
-
-      LOG_INFO << counter << " of " << file_paths.size() << " merged\r";
     }
-    LOG_INFO << endl;
   }
 
   void QuantitativeExperimentalDesign::findRelevantFilePaths_( map<String, StringList>& design2FileBaseName,  map<String, StringList>& design2FilePath, StringList& filePaths)

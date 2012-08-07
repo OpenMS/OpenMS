@@ -542,14 +542,14 @@ class TOPPProteinResolver
           //read data
           IdXML_file.load(input,protein_identifications, peptide_identifications);
           //calculation
-          resolver.resolveID(peptide_identifications, getBaseName_(input) );
+          resolver.resolveID(peptide_identifications );
         }
         else //consensusXML
         {
           //read data
           consensusXML_file.load(input,consensus);
           //calculation
-          resolver.resolveConsensus(consensus, getBaseName_(input) );
+          resolver.resolveConsensus(consensus);
         }
       }
 
@@ -606,13 +606,13 @@ class TOPPProteinResolver
             {
               // load ensures that vector are cleared upon loading
               IdXML_file.load(*iter,protein_identifications, peptide_identifications);
-              resolver.resolveID(peptide_identifications, getBaseName_(*iter) );
+              resolver.resolveID(peptide_identifications );
             }
             else
             {
               // load ensures that consensus map is cleared upon loading
               consensusXML_file.load(*iter, consensus);
-              resolver.resolveConsensus(consensus, getBaseName_(*iter) );
+              resolver.resolveConsensus(consensus);
             }
           }
         }
@@ -659,14 +659,14 @@ class TOPPProteinResolver
               // load ensures that vector are cleared upon loading
               IdXML_file.load(*iter,protein_identifications, peptide_identifications);
               // result is stored in struct and appended to result-vector of the resolver
-              resolver.resolveID(peptide_identifications, getBaseName_(*iter) );
+              resolver.resolveID(peptide_identifications);
             }
             else
             {
               //load ensures that consensus map is cleared upon loading
               consensusXML_file.load(*iter, consensus);
               // result is stored in struct and appended to result-vector of the resolver
-              resolver.resolveConsensus(consensus, getBaseName_(*iter) );
+              resolver.resolveConsensus(consensus);
             }
           }
         }

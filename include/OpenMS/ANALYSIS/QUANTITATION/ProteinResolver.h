@@ -102,6 +102,8 @@ namespace OpenMS
           Size  msd_group; //index
           Size isd_group; //index
           bool experimental;
+          Real intensity;
+          String origin;
       };
 
       //representation of an msd group. contains peptides, proteins and a pointer to its ISD group
@@ -113,6 +115,7 @@ namespace OpenMS
           Size number_of_decoy;
           Size number_of_target;
           Size number_of_target_plus_decoy;
+          Real intensity; // intensity of the MSD Group. Defined as the median of the peptide intensities.
       };
 
       struct ISDGroup {
@@ -142,7 +145,7 @@ namespace OpenMS
 
         @param consensus ConsensusMap in case consensusXML file is given as input
       */
-      void resolveConsensus(ConsensusMap& consensus, const String& file_identifier);
+      void resolveConsensus(ConsensusMap& consensus);
 
       /**
         @brief Computing protein groups from peptide identifications OR consensus map.
@@ -151,7 +154,7 @@ namespace OpenMS
 
         @param peptide_identifications Vector of PeptideIdentification in case idXML is given as input
       */
-      void resolveID(std::vector<PeptideIdentification>& peptide_identifications, const String& file_identifier);
+      void resolveID(std::vector<PeptideIdentification>& peptide_identifications);
 
       /**
         @brief NOT IMPLEMENTED YET
@@ -232,6 +235,8 @@ namespace OpenMS
 
       std::vector<ResolverResult> resolver_result_;
       std::vector<FASTAFile::FASTAEntry> protein_data_;
+
+      void computeIntensityOfMSD_(std::vector<MSDGroup>& msd_groups);
 
       //travers Protein and peptide nodes. Once for building ISD groups and once for building MSD groups
       void traversProtein_(ProteinEntry* prot_node, ISDGroup& group);
