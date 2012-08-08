@@ -531,38 +531,49 @@ namespace OpenMS
       spectra_combo_box_->addItems(qsl);
       spectra_combo_box_->setCurrentIndex(curr);
 
-      MSExperiment<Peak1D> exp;
-      exp = *cl.getPeakData();
+      LayerData::ExperimentSharedPtrType exp;
+      exp = cl.getPeakData();
 
       if (cl.chromatogram_flag_set())
       {
-        exp = *cl.getChromatogramData();
+        exp = cl.getChromatogramData();
       }
 
-      if (exp.getChromatograms().size() > 1)
+      if (exp->getChromatograms().size() > 1)
       {
         more_than_one_spectrum = false;
       }
 
-      // collect all precursor that fall into the mz rt window
+      // try to retrieve the map from the cache if available
       typedef std::set<Precursor, Precursor::MZLess> PCSetType;
-      PCSetType precursor_in_rt_mz_window;
-      for (std::vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
-      {
-        precursor_in_rt_mz_window.insert(iter->getPrecursor());
-      }
-
-      // determine product chromatograms for each precursor
       std::map<Precursor, std::vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
-      for (PCSetType::const_iterator pit = precursor_in_rt_mz_window.begin(); pit != precursor_in_rt_mz_window.end(); ++pit)
+      if (map_precursor_to_chrom_idx_cache.find((size_t)(exp.get())) != map_precursor_to_chrom_idx_cache.end() )
       {
-        for (std::vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+        map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache[(size_t)(exp.get())] ;
+      }
+      else 
+      {
+
+        // collect all precursor that fall into the mz rt window
+        PCSetType precursor_in_rt_mz_window;
+        for (std::vector<MSChromatogram<> >::const_iterator iter = exp->getChromatograms().begin(); iter != exp->getChromatograms().end(); ++iter)
         {
-          if (iter->getPrecursor() == *pit)
+          precursor_in_rt_mz_window.insert(iter->getPrecursor());
+        }
+
+        // determine product chromatograms for each precursor
+        for (PCSetType::const_iterator pit = precursor_in_rt_mz_window.begin(); pit != precursor_in_rt_mz_window.end(); ++pit)
+        {
+          for (std::vector<MSChromatogram<> >::const_iterator iter = exp->getChromatograms().begin(); iter != exp->getChromatograms().end(); ++iter)
           {
-            map_precursor_to_chrom_idx[*pit].push_back(iter - exp.getChromatograms().begin());
+            if (iter->getPrecursor() == *pit)
+            {
+              map_precursor_to_chrom_idx[*pit].push_back(iter - exp->getChromatograms().begin());
+            }
           }
         }
+
+        map_precursor_to_chrom_idx_cache[(size_t)(exp.get())] = map_precursor_to_chrom_idx;
       }
 
       if (!map_precursor_to_chrom_idx.empty())
@@ -605,7 +616,7 @@ namespace OpenMS
           // Show single chromatogram: iterate over all chromatograms corresponding to the current precursor and add action for the single chromatogram
           for (std::vector<Size>::iterator vit = mit->second.begin(); vit != mit->second.end(); ++vit)
           {
-            const MSChromatogram<> & current_chromatogram = exp.getChromatograms()[*vit];
+            const MSChromatogram<> & current_chromatogram = exp->getChromatograms()[*vit];
 
             // Childen chromatogram entry
             QTreeWidgetItem * sub_item = new QTreeWidgetItem(item);

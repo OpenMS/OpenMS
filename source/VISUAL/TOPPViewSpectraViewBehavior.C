@@ -290,7 +290,6 @@ namespace OpenMS
 
       // first get chromatogram data
       ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
-      const ExperimentType exp = *exp_sptr;
 
       Size layercount = widget_1d->canvas()->getLayerCount();
       for (Size i = 0; i != layercount; ++i)
@@ -304,7 +303,7 @@ namespace OpenMS
         ExperimentType * chrom_exp = new ExperimentType();
         ExperimentSharedPtrType chrom_exp_sptr(chrom_exp);
         SpectrumType spectrum;
-        const MSChromatogram<ChromatogramPeak> & current_chrom = exp.getChromatograms()[indices[index]];
+        const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[indices[index]];
 
         for (Size i = 0; i != current_chrom.size(); ++i)
         {
