@@ -40,21 +40,19 @@ namespace OpenMS
   {
   }
 
-  ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition & rhs) :
+  ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition & rhs) : 
     CVTermList(rhs),
     name_(rhs.name_),
-    precursor_mz_(rhs.precursor_mz_),
-    precursor_cv_terms_(rhs.precursor_cv_terms_),
-    interpretation_list_(rhs.interpretation_list_),
     peptide_ref_(rhs.peptide_ref_),
     compound_ref_(rhs.compound_ref_),
-    configurations_(rhs.configurations_),
-    prediction_(rhs.prediction_),
+    precursor_mz_(rhs.precursor_mz_),
+    precursor_cv_terms_(rhs.precursor_cv_terms_),
     product_(rhs.product_),
     intermediate_products_(rhs.intermediate_products_),
+    prediction_(rhs.prediction_),
+    rts(rhs.rts),
     decoy_type_(rhs.decoy_type_),
-    library_intensity_(rhs.library_intensity_),
-    rts(rhs.rts)
+    library_intensity_(rhs.library_intensity_)
   {
   }
 
@@ -68,38 +66,34 @@ namespace OpenMS
     {
       CVTermList::operator=(rhs);
       name_ = rhs.name_;
-      precursor_mz_ = rhs.precursor_mz_;
-      precursor_cv_terms_ = rhs.precursor_cv_terms_;
-      interpretation_list_ = rhs.interpretation_list_;
       peptide_ref_ = rhs.peptide_ref_;
       compound_ref_ = rhs.compound_ref_;
-      configurations_ = rhs.configurations_;
+      precursor_mz_ = rhs.precursor_mz_;
+      precursor_cv_terms_ = rhs.precursor_cv_terms_;
+      intermediate_products_ = rhs.intermediate_products_;
       prediction_ = rhs.prediction_;
       product_ = rhs.product_;
-      intermediate_products_ = rhs.intermediate_products_;
+      rts = rhs.rts;
       decoy_type_ = rhs.decoy_type_;
       library_intensity_ = rhs.library_intensity_;
-      rts = rhs.rts;
     }
     return *this;
   }
 
   bool ReactionMonitoringTransition::operator==(const ReactionMonitoringTransition & rhs) const
   {
-    return CVTermList::operator==(rhs) &&
+    return CVTermList::operator == (rhs) &&
            name_ == rhs.name_ &&
-           precursor_mz_ == rhs.precursor_mz_ &&
-           precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
-           interpretation_list_ == rhs.interpretation_list_ &&
            peptide_ref_ == rhs.peptide_ref_ &&
            compound_ref_ == rhs.compound_ref_ &&
-           configurations_ == rhs.configurations_ &&
-           prediction_ == rhs.prediction_ &&
+           precursor_mz_ == rhs.precursor_mz_ &&
+           precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
            product_ == rhs.product_ &&
            intermediate_products_ == rhs.intermediate_products_ &&
+           prediction_ == rhs.prediction_ &&
+           rts == rhs.rts &&
            decoy_type_ == rhs.decoy_type_ &&
-           library_intensity_ == rhs.library_intensity_ &&
-           rts == rhs.rts;
+           library_intensity_ == rhs.library_intensity_;
   }
 
   bool ReactionMonitoringTransition::operator!=(const ReactionMonitoringTransition & rhs) const

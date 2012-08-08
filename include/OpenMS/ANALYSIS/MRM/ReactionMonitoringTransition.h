@@ -178,32 +178,43 @@ protected:
 
     void updateMembers_();
 
-    String name_;
+    //@{ 
+    /// Attributes:
 
+    String name_; // id, required attribute
+
+    // attributes to a peptide / compound (optional)
+    String peptide_ref_;
+    String compound_ref_;
+    //@}
+
+    //@{ 
+    /// Subelements:
+
+    // Precursor
+    // Product
+    // IntermediateProduct
+    // RetentionTime
+    // Prediction
+    // cvparam / userParam
+
+    // A transition has exactly one precursor and it must supply the CV Term 1000827 (isolation window target m/z
     DoubleReal precursor_mz_;
-
     CVTermList precursor_cv_terms_;
 
-    std::vector<CVTermList> interpretation_list_;
-
-    String peptide_ref_;
-
-    String compound_ref_;
-
-    std::vector<Configuration> configurations_;
-
-    Prediction prediction_;
-
-    // A transition has one product but multiple intermediate products
     Product product_;
 
     std::vector<Product> intermediate_products_;
 
+    RetentionTime rts;
+
+    Prediction prediction_;
+    //@}
+
+    /// specific properties of a transition (e.g. specific CV terms)
     DecoyTransitionType decoy_type_;
 
     DoubleReal library_intensity_;
-
-    RetentionTime rts;
 
   };
 }
