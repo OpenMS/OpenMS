@@ -664,6 +664,11 @@ add_test("TOPP_InternalCalibration_1" ${TOPP_BIN_PATH}/InternalCalibration -test
 #add_test("TOPP_InternalCalibration_1_out1" ${DIFF} -in1 InternalCalibration.tmp -in2 ${DATA_DIR_TOPP}/InternalCalibration_2_output.mzML )
 #set_tests_properties("TOPP_InternalCalibration_1_out1" PROPERTIES DEPENDS "TOPP_InternalCalibration_1")
 
+### TMTAnalyzer
+add_test("TOPP_TMTAnalyzer_1" ${TOPP_BIN_PATH}/TMTAnalyzer -test -ini ${DATA_DIR_TOPP}/TMTAnalyzer.ini -in ${DATA_DIR_TOPP}/TMTAnalyzer_input_1.mzML -out TMTAnalyzer_1.tmp)
+add_test("TOPP_TMTAnalyzer_1_out1" ${DIFF} -whitelist "<map" "?xml-stylesheet" -in1 TMTAnalyzer_1.tmp -in2 ${DATA_DIR_TOPP}/TMTAnalyzer_output_1.consensusXML )
+set_tests_properties("TOPP_TMTAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_TMTAnalyzer_1")
+
 ### TOFCalibration tests
 add_test("TOPP_TOFCalibration_1" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_1_input.mzML -out TOFCalibration.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_1_calibrants.mzML)
 #add_test("TOPP_TOFCalibration_1_out1" ${DIFF} -in1 TOFCalibration.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_1_output.mzML )

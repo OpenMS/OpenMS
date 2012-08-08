@@ -38,106 +38,112 @@
 namespace OpenMS
 {
 
-	/**
-		@brief Some constants used throughout iTRAQ classes.
-		
-		Constants for iTRAQ experiments and a ChannelInfo structure to store information about a single channel.
+  /**
+    @brief Some constants used throughout iTRAQ classes.
 
-	*/
-	class OPENMS_DLLAPI ItraqConstants
-	{
+    Constants for iTRAQ experiments and a ChannelInfo structure to store information about a single channel.
+  */
+  class OPENMS_DLLAPI ItraqConstants
+  {
 
-	public:
+public:
 
-		static const Int CHANNEL_COUNT[];
-		enum ITRAQ_TYPES {FOURPLEX=0, EIGHTPLEX, SIZE_OF_ITRAQ_TYPES};
-		
-		/// stores information on an iTRAQ channel
-		struct ChannelInfo
-		{
-			String description; // description given by experimentalist (e.g. lung tissue)
-			Int name; // 114-117 or 113 to 121
-			Int id;		// 0-4 or 0-8
-			Peak2D::CoordinateType center; // expected centroid of peak in MZ
-			bool active; // channel actually added to the experiment?
-		};
+    static const Int CHANNEL_COUNT[];
+    enum ITRAQ_TYPES {FOURPLEX = 0, EIGHTPLEX, TMT_SIXPLEX, SIZE_OF_ITRAQ_TYPES};
 
-		/// maps iTRAQ channel (e.g. 117) to more information
-		typedef Map<Int, ChannelInfo > ChannelMapType;
+    /// stores information on an iTRAQ channel
+    struct ChannelInfo
+    {
+      String description;       // description given by experimentalist (e.g. lung tissue)
+      Int name;       // 114-117 or 113 to 121
+      Int id;           // 0-4 or 0-8
+      Peak2D::CoordinateType center;       // expected centroid of peak in MZ
+      bool active;       // channel actually added to the experiment?
+    };
 
-		/// (user defined?) isotope correction matrix in (-2, -1, +1, +2) row style
-		typedef std::vector< Matrix<double> > IsotopeMatrices;
-		
-		/// channel names for 4plex( 114, 115, 116, 117)
-		static const Int CHANNELS_FOURPLEX[4][1];
-		/// channel names for 8plex( 113, 114, 115, 116, 117, 118, 119, 121)
-		static const Int CHANNELS_EIGHTPLEX[8][1];
+    /// maps iTRAQ channel (e.g. 117) to more information
+    typedef Map<Int, ChannelInfo> ChannelMapType;
 
-		/// default isotope correction matrix (4 plex)
-		static const double ISOTOPECORRECTIONS_FOURPLEX[4][4];
-		/// default isotope correction matrix (8 plex)
-		static const double ISOTOPECORRECTIONS_EIGHTPLEX[8][4];
+    /// (user defined?) isotope correction matrix in (-2, -1, +1, +2) row style
+    typedef std::vector<Matrix<double> > IsotopeMatrices;
 
-		/**
-			@brief convert isotope correction matrix to stringlist
+    /// channel names for 4plex( 114, 115, 116, 117)
+    static const Int CHANNELS_FOURPLEX[4][1];
+    /// channel names for 8plex( 113, 114, 115, 116, 117, 118, 119, 121)
+    static const Int CHANNELS_EIGHTPLEX[8][1];
+    /// channel names for 6plex TMT with CID fragmentation( 126, 127, 128, 129, 130, 131)
+    static const Int CHANNELS_TMT_SIXPLEX[6][1];
+    // channel names for 6plex TMT with ETD fragmentation( 114, 115, 116, 117, 118, 119)
+    //static const Int CHANNELS_SIXPLEX_ETD[6][1];
 
-			Each line is converted into a string of the format &lt;channel&gt;:&lt;-2Da&gt;/&lt;-1Da&gt;/&lt;+1Da&gt;/&lt;+2Da&gt; ; e.g. '114:0/0.3/4/0' 
-			Useful for creating parameters or debug output.
+    /// default isotope correction matrix (4 plex)
+    static const double ISOTOPECORRECTIONS_FOURPLEX[4][4];
+    /// default isotope correction matrix (8 plex)
+    static const double ISOTOPECORRECTIONS_EIGHTPLEX[8][4];
+    /// default isotope correction matrix (6 plex TMT)
+    static const double ISOTOPECORRECTIONS_TMT_SIXPLEX[6][4];
+    // default isotope correction matrix (6 plex TMT)
+    //static const double ISOTOPECORRECTIONS_SIXPLEX_ETD[6][4];
 
-			@param itraq_type Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
-			@param isotope_corrections Vector of the two matrices (4plex, 8plex).
-		**/
-		static StringList getIsotopeMatrixAsStringList(const int itraq_type, const IsotopeMatrices& isotope_corrections);
+    /**
+      @brief convert isotope correction matrix to stringlist
 
-		/**
-			@brief convert strings to isotope correction matrix rows
+      Each line is converted into a string of the format &lt;channel&gt;:&lt;-2Da&gt;/&lt;-1Da&gt;/&lt;+1Da&gt;/&lt;+2Da&gt; ; e.g. '114:0/0.3/4/0'
+      Useful for creating parameters or debug output.
 
-			Each string of format &lt;channel&gt;:&lt;-2Da&gt;/&lt;-1Da&gt;/&lt;+1Da&gt;/&lt;+2Da&gt; ; e.g. '114:0/0.3/4/0' 
-			is parsed and the corresponding channel(row) in the matrix is updated.
-			Not all channels need to be present, missing channels will be left untouched.
-			Useful to update the matrix with user isotope correction values.
+      @param itraq_type Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
+      @param isotope_corrections Vector of the two matrices (4plex, 8plex).
+    */
+    static StringList getIsotopeMatrixAsStringList(const int itraq_type, const IsotopeMatrices & isotope_corrections);
 
-			@param itraq_type Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
-			@param channels New channel isotope values as strings
-			@param isotope_corrections Vector of the two matrices (4plex, 8plex).
-		**/
-		static void updateIsotopeMatrixFromStringList(const int itraq_type, const StringList& channels, IsotopeMatrices& isotope_corrections);
+    /**
+      @brief convert strings to isotope correction matrix rows
 
-		/**
-			@brief information about an iTRAQ channel
+      Each string of format &lt;channel&gt;:&lt;-2Da&gt;/&lt;-1Da&gt;/&lt;+1Da&gt;/&lt;+2Da&gt; ; e.g. '114:0/0.3/4/0'
+      is parsed and the corresponding channel(row) in the matrix is updated.
+      Not all channels need to be present, missing channels will be left untouched.
+      Useful to update the matrix with user isotope correction values.
 
-			State, name and expected mz-position of iTRAQ channels are initialized.
+      @param itraq_type Which matrix to stringify. Should be of values from enum ITRAQ_TYPES
+      @param channels New channel isotope values as strings
+      @param isotope_corrections Vector of the two matrices (4plex, 8plex).
+    */
+    static void updateIsotopeMatrixFromStringList(const int itraq_type, const StringList & channels, IsotopeMatrices & isotope_corrections);
 
-			@param itraq_type Should be of values from enum ITRAQ_TYPES
-			@param map Storage to initialize
-		**/
-		static void initChannelMap(const int itraq_type, ChannelMapType& map);
+    /**
+      @brief information about an iTRAQ channel
 
-		/**
-			@brief activate & annotate channels
+      State, name and expected mz-position of iTRAQ channels are initialized.
 
-			State and description of iTRAQ channels are updated.
-			Each input string must have the format &lt;channel&gt;:&lt;description&gt;, e.g. "114:myref","115:liver"
+      @param itraq_type Should be of values from enum ITRAQ_TYPES
+      @param map Storage to initialize
+    */
+    static void initChannelMap(const int itraq_type, ChannelMapType & map);
 
-			@param active_channels StringList with channel and description
-			@param map Storage to update
-		**/
-		static void updateChannelMap(const StringList& active_channels, ChannelMapType& map);
+    /**
+      @brief activate & annotate channels
 
-		/**
-			@brief translate isotope correction matrix in -2,-1,+1,+2 form into 114,115,116,117 format
-			
-			Translates e.g. ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX matrix into a 8x8 matrix which
-			maps how channel (row) distributes its tags onto other channels (columns).
-			
-			@param itraq_type Should be of values from enum ITRAQ_TYPES
-			@param isotope_corrections isotope correction matrix in -2...+2 form
-		**/
-		static Matrix<double> translateIsotopeMatrix(const int& itraq_type, const IsotopeMatrices& isotope_corrections);
-		
-	}; // !class
-	
+      State and description of iTRAQ channels are updated.
+      Each input string must have the format &lt;channel&gt;:&lt;description&gt;, e.g. "114:myref","115:liver"
+
+      @param active_channels StringList with channel and description
+      @param map Storage to update
+    */
+    static void updateChannelMap(const StringList & active_channels, ChannelMapType & map);
+
+    /**
+      @brief translate isotope correction matrix in -2,-1,+1,+2 form into 114,115,116,117 format
+
+      Translates e.g. ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX matrix into a 8x8 matrix which
+      maps how channel (row) distributes its tags onto other channels (columns).
+
+      @param itraq_type Should be of values from enum ITRAQ_TYPES
+      @param isotope_corrections isotope correction matrix in -2...+2 form
+    */
+    static Matrix<double> translateIsotopeMatrix(const int & itraq_type, const IsotopeMatrices & isotope_corrections);
+
+  };   // !class
+
 } // !namespace
 
 #endif // OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H
- 

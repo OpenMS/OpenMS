@@ -39,62 +39,59 @@
 namespace OpenMS
 {
 
-	/**
-		@brief Does post-processing on raw iTRAQ channel quantitation
-		
-		Using the raw consensus map from ItraqChannelExtractor, a non-negative isotope correction, normalization (using median) 
-		and [optionally] protein inference is computed.
-		
-		@htmlinclude OpenMS_ItraqQuantifier.parameters
+  /**
+    @brief Does post-processing on raw iTRAQ channel quantitation
 
-	*/
-	class OPENMS_DLLAPI ItraqQuantifier
-		: public DefaultParamHandler,
-			public ItraqConstants
-	{
+    Using the raw consensus map from ItraqChannelExtractor, a non-negative isotope correction, normalization (using median)
+    and [optionally] protein inference is computed.
 
-	public:
+    @htmlinclude OpenMS_ItraqQuantifier.parameters
+  */
+  class OPENMS_DLLAPI ItraqQuantifier :
+    public DefaultParamHandler,
+    public ItraqConstants
+  {
 
-		typedef ItraqConstants::ChannelInfo ChannelInfo;
-		typedef ItraqConstants::ChannelMapType ChannelMapType;
-		typedef ItraqConstants::IsotopeMatrices IsotopeMatrices;
-		
-		/// Constructor (assuming 4-plex experiment)
-		ItraqQuantifier();
-		
-		/// Constructor with iTRAQ-type (either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX)
-		ItraqQuantifier(Int itraq_type);
+public:
 
-		/// Constructor with iTRAQ-type (either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX) and Param
-		ItraqQuantifier(Int itraq_type, const Param& param);
+    typedef ItraqConstants::ChannelInfo ChannelInfo;
+    typedef ItraqConstants::ChannelMapType ChannelMapType;
+    typedef ItraqConstants::IsotopeMatrices IsotopeMatrices;
 
-		/// copy constructor
-    ItraqQuantifier(const ItraqQuantifier& cp);
+    /// Constructor (assuming 4-plex experiment)
+    ItraqQuantifier();
+
+    /// Constructor with iTRAQ-type (either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX)
+    explicit ItraqQuantifier(Int itraq_type);
+
+    /// Constructor with iTRAQ-type (either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX) and Param
+    ItraqQuantifier(Int itraq_type, const Param & param);
+
+    /// copy constructor
+    ItraqQuantifier(const ItraqQuantifier & cp);
 
     /// assignment operator
-    ItraqQuantifier& operator = (const ItraqQuantifier& rhs);
+    ItraqQuantifier & operator=(const ItraqQuantifier & rhs);
 
-		/**
-		 *	@brief using the raw iTRAQ intensities we apply isotope correction, normalization (using median)
-		 *	
-		 *	@param consensus_map_in Raw iTRAQ intensities from previous step
-		 *	@param consensus_map_out Post-processed iTRAQ ratios for peptides
-		 *
-		 *	@throws Exception::FailedAPICall is least-squares fit fails
-		 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
-		 */
-		void run(const ConsensusMap& consensus_map_in, 
-						 ConsensusMap& consensus_map_out
-						 );
-		
+    /**
+      @brief using the raw iTRAQ intensities we apply isotope correction, normalization (using median)
+
+      @param consensus_map_in Raw iTRAQ intensities from previous step
+      @param consensus_map_out Post-processed iTRAQ ratios for peptides
+
+      @throws Exception::FailedAPICall is least-squares fit fails
+      @throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
+    */
+    void run(const ConsensusMap & consensus_map_in,
+             ConsensusMap & consensus_map_out
+             );
+
     /**
       @brief Statistics for quantitation performance and comparison of NNLS vs. naive method (aka matrix inversion)
-
     */
     struct ItraqQuantifierStats
     {
-      ItraqQuantifierStats()
-        : 
+      ItraqQuantifierStats() :
         channel_count(0),
         iso_number_ms2_negative(0),
         iso_number_reporter_negative(0),
@@ -107,7 +104,7 @@ namespace OpenMS
       {
       }
 
-      Size channel_count;  //< 4plex or 8 plex?!
+      Size channel_count;  //< 4plex, 6plex, or 8 plex?!
       Size iso_number_ms2_negative; //< number of MS2 spectra where one or more channels had negative solution
       Size iso_number_reporter_negative;  //< number of channels where naive solution was negative
       Size iso_number_reporter_different; //< number of channels >0 where naive solution was different; happens when naive solution is negative in other channels
@@ -115,40 +112,40 @@ namespace OpenMS
       DoubleReal iso_total_intensity_negative; //< only for spectra where naive solution is negative
       Size number_ms2_total; //< total number of MS2 spectra
       Size number_ms2_empty; //< number of empty MS2 (no reporters at all)
-      std::map<Size,Size> empty_channels; //< Channel_ID -> Missing; indicating the number of empty channels from all MS2 scans, i.e., numbers are between number_ms2_empty and number_ms2_total
+      std::map<Size, Size> empty_channels; //< Channel_ID -> Missing; indicating the number of empty channels from all MS2 scans, i.e., numbers are between number_ms2_empty and number_ms2_total
     };
-    
-    ItraqQuantifierStats getStats() const;
-    
-	protected:
-		
-		void setDefaultParams_();
-		
-		void updateMembers_();
-		
-	private:
-		
-		/// initialize
-		void initIsotopeCorrections_();
-		
-		void reconstructChannelInfo_(const ConsensusMap& consensus_map);
-			
-		/// either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
-		Int itraq_type_;
-		
-		/// map the channel-name (e.g., 114) onto its channel_info
-		/// the channel-description is also the id-string in the mapList section of the ConsensusMap
-		ChannelMapType channel_map_;	
 
-		/// Matrices with isotope correction values (one for each plex-type)
-		IsotopeMatrices isotope_corrections_;
-		
+    ItraqQuantifierStats getStats() const;
+
+protected:
+
+    void setDefaultParams_();
+
+    void updateMembers_();
+
+private:
+
+    /// initialize
+    void initIsotopeCorrections_();
+
+    void reconstructChannelInfo_(const ConsensusMap & consensus_map);
+
+    /// either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
+    Int itraq_type_;
+
+    /// map the channel-name (e.g., 114) onto its channel_info
+    /// the channel-description is also the id-string in the mapList section of the ConsensusMap
+    ChannelMapType channel_map_;
+
+    /// Matrices with isotope correction values (one for each plex-type)
+    IsotopeMatrices isotope_corrections_;
+
     /// stats for isotope correction
     ItraqQuantifierStats stats_;
-		
-	}; // !class
 
-  OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const ItraqQuantifier::ItraqQuantifierStats& stats);
+  };   // !class
+
+  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ItraqQuantifier::ItraqQuantifierStats & stats);
 
 } // !namespace
 

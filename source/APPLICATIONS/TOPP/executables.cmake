@@ -88,6 +88,7 @@ SpectraFilterBernNorm
 SpectraFilterNLargest
 SpectraFilterNormalizer
 SpectraMerger
+TMTAnalyzer
 TOFCalibration
 TextExporter
 MzTabExporter

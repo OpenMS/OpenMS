@@ -35,74 +35,71 @@
 
 namespace OpenMS
 {
-	
-	/**
-		@brief [experimental class] extracts the iTRAQ channels from tandem MS data and stores intensity values in a consensus map
-		
-		[experimental class]
-		This class supports 4 and 8 channel iTRAQ and will optionally do peak picking before the quantitation step.
-		Quantitation is done by adding all signals within a small delta around the expected m/z of each channel.
-		When all channels are found to be empty, the ConsensusFeature is not created.
-		No postprocessing is done here. Use ItraqQuantifier for that!
-	
-		@htmlinclude OpenMS_ItraqChannelExtractor.parameters	
-	
-	*/
-	class OPENMS_DLLAPI ItraqChannelExtractor
-		: public DefaultParamHandler,
-			public ItraqConstants
-	{
 
-	public:
-		
-		typedef ItraqConstants::ChannelMapType ChannelMapType;
+  /**
+      @brief [experimental class] extracts the iTRAQ channels from tandem MS data and stores intensity values in a consensus map
 
-		/// Constructor (assuming 4plex)
-		ItraqChannelExtractor();
+      [experimental class]
+  This class supports 4 and 8 channel iTRAQ and 6 channel TMT and will optionally do peak picking
+  before the quantitation step. Quantitation is done by adding all signals within a small delta
+  around the expected m/z of each channel. When all channels are found to be empty, the
+  ConsensusFeature is not created. No postprocessing is done here. Use ItraqQuantifier for that!
 
-		/// Constructor with iTRAQ type (from enum ItraqConstants::ITRAQ_TYPES)
-		ItraqChannelExtractor(Int itraq_type);
-		
-		/// Constructor with iTRAQ type (from enum ItraqConstants::ITRAQ_TYPES) and param
-		ItraqChannelExtractor(Int itraq_type, const Param& param);
+      @htmlinclude OpenMS_ItraqChannelExtractor.parameters
+  */
+  class OPENMS_DLLAPI ItraqChannelExtractor :
+    public DefaultParamHandler,
+    public ItraqConstants
+  {
 
-		/// copy constructor
-		ItraqChannelExtractor(const ItraqChannelExtractor& cp);
+public:
 
-		/// assignment operator
-		ItraqChannelExtractor& operator = (const ItraqChannelExtractor& rhs);
+    typedef ItraqConstants::ChannelMapType ChannelMapType;
 
-		
-		/// @brief extracts the iTRAQ channels from the tandem MS data and stores intensity values in a consensus map
-		///
-		/// @param ms_exp_data Raw data to read
-		/// @param consensus_map 
-		void run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map);
+    /// Constructor (assuming 4plex)
+    ItraqChannelExtractor();
 
-	protected:
-		
-		void setDefaultParams_();
-		
-		/// implemented for DefaultParamHandler
-		void updateMembers_();
-			
-		
-	private:
-		
-		/// initialize
-		void init_();
-		
-		/// set to either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
-		Int itraq_type_;
-		
-		/// map the channel-name (eg 114) onto its description and the centroid mass
-		/// the channel-name is also the id-string in the mapList section of the ConsensusMap
-		ChannelMapType channel_map_;	
+    /// Constructor with iTRAQ type (from enum ItraqConstants::ITRAQ_TYPES)
+    explicit ItraqChannelExtractor(Int itraq_type);
 
-	}; // !class
+    /// Constructor with iTRAQ type (from enum ItraqConstants::ITRAQ_TYPES) and param
+    ItraqChannelExtractor(Int itraq_type, const Param & param);
 
-	
+    /// copy constructor
+    ItraqChannelExtractor(const ItraqChannelExtractor & cp);
+
+    /// assignment operator
+    ItraqChannelExtractor & operator=(const ItraqChannelExtractor & rhs);
+
+
+    /// @brief extracts the iTRAQ channels from the tandem MS data and stores intensity values in a consensus map
+    ///
+    /// @param ms_exp_data Raw data to read
+    /// @param consensus_map
+    void run(const MSExperiment<Peak1D> & ms_exp_data, ConsensusMap & consensus_map);
+
+protected:
+
+    void setDefaultParams_();
+
+    /// implemented for DefaultParamHandler
+    void updateMembers_();
+
+
+private:
+
+    /// initialize
+    void init_();
+
+    /// set to either ItraqConstants::FOURPLEX, ItraqConstants::EIGHTPLEX, or ItraqConstants::TMT_SIXPLEX
+    Int itraq_type_;
+
+    /// map the channel-name (eg 114) onto its description and the centroid mass
+    /// the channel-name is also the id-string in the mapList section of the ConsensusMap
+    ChannelMapType channel_map_;
+
+  };   // !class
+
 } // !namespace
 
 #endif // OPENMS_ANALYSIS_QUANTITATION_ITRAQCHANNELEXTRACTOR_H
- 

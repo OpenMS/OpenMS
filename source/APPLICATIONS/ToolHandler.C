@@ -37,7 +37,6 @@
 #include <QStringList>
 #include <QDir>
 
-
 #include <vector>
 
 namespace OpenMS
@@ -130,6 +129,7 @@ namespace OpenMS
     tools_map["SpectraFilterNLargest"] = Internal::ToolDescription("SpectraFilterNLargest", "Identification");
     tools_map["SpectraFilterNormalizer"] = Internal::ToolDescription("SpectraFilterNormalizer", "Identification");
     tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", "File Handling");
+    tools_map["TMTAnalyzer"] = Internal::ToolDescription("TMTAnalyzer", "Quantitation");
     tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", "Signal processing and preprocessing");
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", "File Handling");
     tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", "Identification");
@@ -142,9 +142,10 @@ namespace OpenMS
       if (tools_map.find(it->name) == tools_map.end())
       {
         tools_map[it->name] = *it;
-      } else
+      }
+      else
       {
-        throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
       }
     }
 
@@ -194,7 +195,7 @@ namespace OpenMS
     return util_map;
   }
 
-  StringList ToolHandler::getTypes(const String& toolname)
+  StringList ToolHandler::getTypes(const String & toolname)
   {
     // for internal tools, query TOPP and UTILS for a match
     Internal::ToolDescription ret;
@@ -205,18 +206,19 @@ namespace OpenMS
     else
     {
       ToolListType tools;
-      if (toolname == "GenericWrapper") tools = getTOPPToolList(true);
-      else tools = getTOPPToolList();
+      if (toolname == "GenericWrapper")
+        tools = getTOPPToolList(true);
+      else
+        tools = getTOPPToolList();
 
       if (tools.has(toolname))
       {
         return tools[toolname].types;
       }
     }
-    throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Requested toolname '" + toolname + " does not exist!", toolname);
+    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Requested toolname '" + toolname + " does not exist!", toolname);
     return StringList();
   }
-
 
   std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()
   {
@@ -226,7 +228,7 @@ namespace OpenMS
       tools_internal_loaded_ = true;
     }
     return tools_internal_;
-  }  
+  }
 
   String ToolHandler::getExternalToolsPath()
   {
@@ -240,7 +242,7 @@ namespace OpenMS
 
   Internal::ToolDescription ToolHandler::getExternalTools_()
   {
-    if (!tools_external_loaded_) 
+    if (!tools_external_loaded_)
     {
       loadExternalToolConfig_();
       tools_external_loaded_ = true;
@@ -252,16 +254,18 @@ namespace OpenMS
   void ToolHandler::loadExternalToolConfig_()
   {
     QStringList files = getExternalToolConfigFiles_();
-    for (int i=0;i<files.size();++i)
+    for (int i = 0; i < files.size(); ++i)
     {
       ToolDescriptionFile tdf;
       std::vector<Internal::ToolDescription> tools;
       tdf.load(String(files[i]), tools);
       // add every tool from file to list
-      for (Size i_t=0; i_t<tools.size(); ++i_t)
+      for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
-        if (i==0 && i_t==0) tools_external_ = tools[i_t]; // init
-        else tools_external_.append(tools[i_t]); // append
+        if (i == 0 && i_t == 0)
+          tools_external_ = tools[i_t];                   // init
+        else
+          tools_external_.append(tools[i_t]);    // append
       }
     }
     tools_external_.name = "GenericWrapper";
@@ -279,38 +283,38 @@ namespace OpenMS
       // add every tool from file to list
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
-          tools_internal_.push_back(tools[i_t]);
-          tools_external_.category = "INTERNAL";
+        tools_internal_.push_back(tools[i_t]);
+        tools_external_.category = "INTERNAL";
       }
     }
   }
 
   QStringList ToolHandler::getExternalToolConfigFiles_()
   {
-    
+
     QStringList paths;
     // *.ttd default path
-    paths << getExternalToolsPath().toQString(); 
+    paths << getExternalToolsPath().toQString();
     // OS-specific path
 #ifdef OPENMS_WINDOWSPLATFORM
-    paths << (getExternalToolsPath()+"/WINDOWS").toQString();
+    paths << (getExternalToolsPath() + "/WINDOWS").toQString();
 #else
-    paths << (getExternalToolsPath()+"/LINUX").toQString();
+    paths << (getExternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_PATH")!=0)
+    if (getenv("OPENMS_TTD_PATH") != 0)
     {
       paths << String(getenv("OPENMS_TTD_PATH")).toQString();
     }
-    
+
     QStringList all_files;
-    for (int p=0;p<paths.size();++p)
+    for (int p = 0; p < paths.size(); ++p)
     {
       QDir dir(paths[p], "*.ttd");
       QStringList files = dir.entryList();
-      for (int i=0;i<files.size();++i)
+      for (int i = 0; i < files.size(); ++i)
       {
-        files[i] = dir.absolutePath()+QDir::separator()+files[i];
+        files[i] = dir.absolutePath() + QDir::separator() + files[i];
       }
       all_files << files;
     }
@@ -325,12 +329,12 @@ namespace OpenMS
     paths << getInternalToolsPath().toQString();
     // OS-specific path
 #ifdef OPENMS_WINDOWSPLATFORM
-    paths << (getInternalToolsPath()+"/WINDOWS").toQString();
+    paths << (getInternalToolsPath() + "/WINDOWS").toQString();
 #else
-    paths << (getInternalToolsPath()+"/LINUX").toQString();
+    paths << (getInternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_INTERNAL_PATH")!=0)
+    if (getenv("OPENMS_TTD_INTERNAL_PATH") != 0)
     {
       paths << String(getenv("OPENMS_TTD_INTERNAL_PATH")).toQString();
     }
@@ -342,14 +346,14 @@ namespace OpenMS
       QStringList files = dir.entryList();
       for (int i = 0; i < files.size(); ++i)
       {
-        files[i] = dir.absolutePath()+QDir::separator()+files[i];
+        files[i] = dir.absolutePath() + QDir::separator() + files[i];
       }
       all_files << files;
     }
     return all_files;
   }
 
-  String ToolHandler::getCategory(const String& toolname)
+  String ToolHandler::getCategory(const String & toolname)
   {
     ToolListType tools = getTOPPToolList(true);
     ToolListType utils = getUtilList();
@@ -367,7 +371,7 @@ namespace OpenMS
   }
 
   // static
-  Internal::ToolDescription ToolHandler::tools_external_ = Internal::ToolDescription();  
+  Internal::ToolDescription ToolHandler::tools_external_ = Internal::ToolDescription();
   std::vector<Internal::ToolDescription> ToolHandler::tools_internal_;
   bool ToolHandler::tools_external_loaded_ = false;
   bool ToolHandler::tools_internal_loaded_ = false;

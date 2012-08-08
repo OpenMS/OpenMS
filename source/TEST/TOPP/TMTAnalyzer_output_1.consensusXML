@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////Users/aiche/dev/openms/openms-src/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.5" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<userParam type="int" name="itraq:scans_noquant" value="0"/>
+	<userParam type="int" name="itraq:scans_total" value="6"/>
+	<userParam type="string" name="Program" value="OpenMS::TMTAnalyzer"/>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="TMTAnalyzer" version="version_string" />
+		<processingAction name="Quantitation" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<mapList count="6">
+		<map id="0" name="micro_subset_0022.mzML" label="TMT_126_channel-1" size="6">
+			<userParam type="int" name="channel_name" value="126"/>
+			<userParam type="int" name="channel_id" value="0"/>
+			<userParam type="string" name="channel_description" value="channel-1"/>
+			<userParam type="float" name="channel_center" value="126.127725"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="1" name="micro_subset_0022.mzML" label="TMT_127_channel-2" size="6">
+			<userParam type="int" name="channel_name" value="127"/>
+			<userParam type="int" name="channel_id" value="1"/>
+			<userParam type="string" name="channel_description" value="channel-2"/>
+			<userParam type="float" name="channel_center" value="127.12476"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="2" name="micro_subset_0022.mzML" label="TMT_128_channel-3" size="6">
+			<userParam type="int" name="channel_name" value="128"/>
+			<userParam type="int" name="channel_id" value="2"/>
+			<userParam type="string" name="channel_description" value="channel-3"/>
+			<userParam type="float" name="channel_center" value="128.134433"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="3" name="micro_subset_0022.mzML" label="TMT_129_channel-4" size="6">
+			<userParam type="int" name="channel_name" value="129"/>
+			<userParam type="int" name="channel_id" value="3"/>
+			<userParam type="string" name="channel_description" value="channel-4"/>
+			<userParam type="float" name="channel_center" value="129.131468"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="4" name="micro_subset_0022.mzML" label="TMT_130_channel-5" size="6">
+			<userParam type="int" name="channel_name" value="130"/>
+			<userParam type="int" name="channel_id" value="4"/>
+			<userParam type="string" name="channel_description" value="channel-5"/>
+			<userParam type="float" name="channel_center" value="130.141141"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="5" name="micro_subset_0022.mzML" label="TMT_131_channel-6" size="6">
+			<userParam type="int" name="channel_name" value="131"/>
+			<userParam type="int" name="channel_id" value="5"/>
+			<userParam type="string" name="channel_description" value="channel-6"/>
+			<userParam type="float" name="channel_center" value="131.138176"/>
+			<userParam type="string" name="channel_active" value="true"/>
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_16627578304933075941" quality="0">
+			<centroid rt="2050.53970000002" mz="573.871215820313" it="1.3929e+06"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="2050.53970000002" mz="126.127725" it="255118"/>
+				<element map="1" id="0" rt="2050.53970000002" mz="127.12476" it="177389"/>
+				<element map="2" id="0" rt="2050.53970000002" mz="128.134433" it="267863"/>
+				<element map="3" id="0" rt="2050.53970000002" mz="129.131468" it="193377"/>
+				<element map="4" id="0" rt="2050.53970000002" mz="130.141141" it="257150"/>
+				<element map="5" id="0" rt="2050.53970000002" mz="131.138176" it="242006"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13229490167902618598" quality="0">
+			<centroid rt="2051.18050000002" mz="471.998443603516" it="2.7168e+06"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="2051.18050000002" mz="126.127725" it="406412"/>
+				<element map="1" id="1" rt="2051.18050000002" mz="127.12476" it="466256"/>
+				<element map="2" id="1" rt="2051.18050000002" mz="128.134433" it="410021"/>
+				<element map="3" id="1" rt="2051.18050000002" mz="129.131468" it="517012"/>
+				<element map="4" id="1" rt="2051.18050000002" mz="130.141141" it="373737"/>
+				<element map="5" id="1" rt="2051.18050000002" mz="131.138176" it="543362"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5024549519481199379" quality="0">
+			<centroid rt="2051.6628" mz="707.494689941406" it="912864"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="2051.6628" mz="126.127725" it="139803"/>
+				<element map="1" id="2" rt="2051.6628" mz="127.12476" it="160341"/>
+				<element map="2" id="2" rt="2051.6628" mz="128.134433" it="134430"/>
+				<element map="3" id="2" rt="2051.6628" mz="129.131468" it="179815"/>
+				<element map="4" id="2" rt="2051.6628" mz="130.141141" it="130295"/>
+				<element map="5" id="2" rt="2051.6628" mz="131.138176" it="168180"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6211693768620736135" quality="0">
+			<centroid rt="2055.40969999998" mz="578.833251953125" it="2.63942e+06"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="2055.40969999998" mz="126.127725" it="373022"/>
+				<element map="1" id="3" rt="2055.40969999998" mz="127.12476" it="507738"/>
+				<element map="2" id="3" rt="2055.40969999998" mz="128.134433" it="395088"/>
+				<element map="3" id="3" rt="2055.40969999998" mz="129.131468" it="453410"/>
+				<element map="4" id="3" rt="2055.40969999998" mz="130.141141" it="390542"/>
+				<element map="5" id="3" rt="2055.40969999998" mz="131.138176" it="519623"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2727934422266510952" quality="0">
+			<centroid rt="2055.7263" mz="593.901123046875" it="1.61857e+06"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="2055.7263" mz="126.127725" it="253412"/>
+				<element map="1" id="4" rt="2055.7263" mz="127.12476" it="272557"/>
+				<element map="2" id="4" rt="2055.7263" mz="128.134433" it="251852"/>
+				<element map="3" id="4" rt="2055.7263" mz="129.131468" it="281353"/>
+				<element map="4" id="4" rt="2055.7263" mz="130.141141" it="240649"/>
+				<element map="5" id="4" rt="2055.7263" mz="131.138176" it="318745"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3318143123566627610" quality="0">
+			<centroid rt="2056.26139999998" mz="843.597534179688" it="625208"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="2056.26139999998" mz="126.127725" it="103060"/>
+				<element map="1" id="5" rt="2056.26139999998" mz="127.12476" it="91843.8"/>
+				<element map="2" id="5" rt="2056.26139999998" mz="128.134433" it="104672"/>
+				<element map="3" id="5" rt="2056.26139999998" mz="129.131468" it="109189"/>
+				<element map="4" id="5" rt="2056.26139999998" mz="130.141141" it="100286"/>
+				<element map="5" id="5" rt="2056.26139999998" mz="131.138176" it="116156"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
