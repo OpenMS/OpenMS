@@ -172,6 +172,8 @@ public:
     bool isToolReady() const;
     /// Toggle breakpoint
     void toggleBreakpoint();
+    /// Called when the QProcess in the queue is called: emits 'toolStarted()'
+    virtual void emitToolStarted();
 
 
 public slots:

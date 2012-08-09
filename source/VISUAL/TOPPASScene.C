@@ -1836,18 +1836,15 @@ namespace OpenMS
     event->accept();
   }
 
-  void TOPPASScene::enqueueProcess(QProcess * p, const QString & command, const QStringList & args)
+  void TOPPASScene::enqueueProcess(const TOPPProcess& process)
   {
-    topp_processes_queue_ << TOPPProcess(p, command, args);
+    topp_processes_queue_ << process;
   }
 
   void TOPPASScene::runNextProcess()
   {
     static bool used = false;
-
-    if (used)
-      return;
-
+    if (used) return;
     used = true;
 
     while (!topp_processes_queue_.empty() && threads_active_ < allowed_threads_)
@@ -1856,10 +1853,12 @@ namespace OpenMS
       TOPPProcess tp = topp_processes_queue_.first();
       topp_processes_queue_.pop_front();
       FakeProcess * p = qobject_cast<FakeProcess *>(tp.proc);
-      if (p)
-        p->start(tp.command, tp.args);
+      if (p) p->start(tp.command, tp.args);
       else
+      {
+        tp.tv->emitToolStarted();
         tp.proc->start(tp.command, tp.args);
+      }
     }
 
     used = false;

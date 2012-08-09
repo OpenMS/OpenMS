@@ -481,7 +481,7 @@ namespace OpenMS
 
     createDirs();
 
-    emit toolStarted();
+    //emit toolStarted(); //disabled! Every signal emitted here does only mean the process is queued(!) not that its executed right away
 
     /// update round status
     round_total_ = (int) pkg.size(); // take number of rounds from previous tool(s) - should all be equal
@@ -620,7 +620,7 @@ namespace OpenMS
 
       //enqueue process
       std::cout << "Enqueue: " << File::getExecutablePath() + name_ << " \"" << String(args.join("\" \"")) << "\"" << std::endl;
-      ts->enqueueProcess(p, (File::getExecutablePath() + name_).toQString(), args);
+      ts->enqueueProcess( TOPPASScene::TOPPProcess(p, (File::getExecutablePath() + name_).toQString(), args, this));
     }
 
     // run pending processes
@@ -628,6 +628,11 @@ namespace OpenMS
 
 
     __DEBUG_END_METHOD__
+  }
+
+  void TOPPASToolVertex::emitToolStarted()
+  {
+    emit toolStarted();
   }
 
   void TOPPASToolVertex::executionFinished(int ec, QProcess::ExitStatus es)

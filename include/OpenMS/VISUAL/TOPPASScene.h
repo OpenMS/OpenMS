@@ -83,20 +83,23 @@ public:
     /// Stores the information for a TOPP process
     struct TOPPProcess
     {
-      ///Constructor
-      TOPPProcess(QProcess * p, const QString & cmd, const QStringList & arg) :
+      /// Constructor
+      TOPPProcess(QProcess * p, const QString & cmd, const QStringList & arg, TOPPASToolVertex* const tool) :
         proc(p),
         command(cmd),
-        args(arg)
+        args(arg),
+        tv(tool)
       {
       }
 
-      ///The process
+      /// The process
       QProcess * proc;
-      ///The command
+      /// The command
       QString command;
-      ///The arguments
+      /// The arguments
       QStringList args;
+      /// The tool which is started (used to call its slots)
+      TOPPASToolVertex* const tv;
     };
 
     /// The current action mode (creation of a new edge, or panning of the widget)
@@ -182,7 +185,7 @@ public:
     /// Shows a dialog that allows to specify the output directory. If @p always_ask == false, the dialog won't be shown if a directory has been set, already.
     bool askForOutputDir(bool always_ask = true);
     /// Enqueues the process, it will be run when the currently pending processes have finished
-    void enqueueProcess(QProcess * p, const QString & command, const QStringList & args);
+    void enqueueProcess(const TOPPProcess& process);
     /// Runs the next process in the queue, if any
     void runNextProcess();
     /// Resets the processes queue
