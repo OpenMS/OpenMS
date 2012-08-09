@@ -387,7 +387,7 @@ namespace OpenMS
       sw.start();
 			result = main_(argc, argv);
       sw.stop();
-      LOG_INFO << this->tool_name_ << " took " << sw.getClockTime() << " (wall time), " << sw.getCPUTime() << " (CPU time), " << sw.getSystemTime() << " (system time), " << sw.getUserTime() << "(user time)." << std::endl;
+      LOG_INFO << this->tool_name_ << " took " << sw.getClockTime() << " (wall time), " << sw.getCPUTime() << " (CPU time), " << sw.getSystemTime() << " (system time), " << sw.getUserTime() << " (user time)." << std::endl;
 
 #ifndef DEBUG_TOPP
 		}

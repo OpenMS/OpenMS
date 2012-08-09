@@ -64,18 +64,19 @@ using namespace std;
 	By default an estimation is performed using the (inverse) Gumbel distribution for incorrectly assigned sequences
 	and a Gaussian distribution for correctly assigned sequences. The probabilities are calculated by using Bayes' law, similar to PeptideProphet.
 	Alternatively, a second Gaussian distribution can be used for incorrectly assigned sequences.
-	At the moment, IDPosteriorErrorProbability is able to handle X!Tandem, Mascot and OMSSA scores.
+	At the moment, IDPosteriorErrorProbability is able to handle X!Tandem, Mascot, MyriMatch and OMSSA scores.
+  
+  No target/decoy information needs to be provided, since the model fits are done on the mixed distribution.
 
 	In order to validate the computed probabilities one can adjust the fit_algorithm subsection.
-	The easiest way, is to create a default ini file with the parameter -write_ini file_name.
-	Afterwards, it is suggested to open the created ini-file with INIFileEditor.
+
 	There are three parameters for the plot:
-	The parameter output_plots is by default false. If set to true the plot will be created.
+	The parameter 'output_plots' is by default false. If set to true the plot will be created.
 	The scores are plotted in form of bins. Each bin represents a set of scores in a range of (highest_score - smallest_score)/number_of_bins (if all scores have positive values).
 	The midpoint of the bin is the mean of the scores it represents.
 	Finally, the parameter output_name should be used to give the plot a unique name. Two files are created. One with the binned scores and one with all steps of the estimation.
 	If top_hits_only is set, only the top hits of each PeptideIndentification are used for the estimation process.
-	Additionally, if top_hits_onls is set, target_decoy information are available and a False Discovery Rate run was performed before, an additional plot will be plotted with target and decoy bins(output_plot must be true in fit_algorithm subsection).
+	Additionally, if 'top_hits_only' is set, target_decoy information are available and a False Discovery Rate run was performed before, an additional plot will be plotted with target and decoy bins(output_plot must be true in fit_algorithm subsection).
 	A peptide hit is assumed to be a target if its q-value is smaller than fdr_for_targets_smaller.
 	
 	Actually, the plots are saved as a gnuplot file. Therefore, to visualize the plots one has to use gnuplot, e.g. gnuplot file_name. This should output a postscript file which contains all steps of the estimation.
@@ -163,7 +164,7 @@ class TOPPIDPosteriorErrorProbability
     }
 		else
 		{
-			throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No parameters for choosen search engine","The choosen search engine is currently not supported");
+			throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"No parameters for chosen search engine","The chosen search engine is currently not supported");
 		}
 	}
 	
@@ -318,7 +319,6 @@ class TOPPIDPosteriorErrorProbability
 		}
 		for(map<String, vector< vector<double> > >::iterator it =all_scores.begin(); it != all_scores.end();++it)
 		{	
-			
 			vector<String> engine_info;
 		  it->first.split(splitter, engine_info);
 			String engine = engine_info[0];
@@ -331,17 +331,17 @@ class TOPPIDPosteriorErrorProbability
 			{
 				String output_name  = fit_algorithm.getValue("output_name");
 				fit_algorithm.setValue("output_name", output_name + "_charge_" + String(charge) , "...",StringList::create("advanced,output file"));	
-					PEP_model.setParameters(fit_algorithm);
-				}
+				PEP_model.setParameters(fit_algorithm);
+			}
 				
 			return_value = PEP_model.fit(it->second[0]);
-			if(!return_value )	 writeLog_("unable to fit data. Algorithm did not run through for the following search engine: "+ engine);
+			if(!return_value )	 writeLog_("unable to fit data. Algorithm did not run through for the following search engine: " + engine);
 			if(!return_value && !ignore_bad_data) return UNEXPECTED_RESULT;
 				//plot target_decoy
 			if(target_decoy_available && it->second[0].size() > 0 && return_value)
-				{
-				PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]);//target, decoy
-				}					
+			{
+			  PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]);//target, decoy
+			}					
 			if(return_value)
 			{
 				bool unable_to_fit_data =true;

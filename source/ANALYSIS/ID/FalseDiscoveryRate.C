@@ -194,7 +194,7 @@ namespace OpenMS
 						}
 						error_string += ")";
 					}
-					LOG_ERROR << error_string;
+					LOG_ERROR << error_string << std::endl;
 				}
 
 				// check target scores
@@ -214,7 +214,7 @@ namespace OpenMS
             }
             error_string += ")";
           }
-          LOG_ERROR << error_string;
+          LOG_ERROR << error_string << std::endl;
 				}
 
 				if (target_scores.empty() || decoy_scores.empty())
