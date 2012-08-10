@@ -99,7 +99,7 @@ public:
       /// The arguments
       QStringList args;
       /// The tool which is started (used to call its slots)
-      TOPPASToolVertex* const tv;
+      TOPPASToolVertex * tv;
     };
 
     /// The current action mode (creation of a new edge, or panning of the widget)
