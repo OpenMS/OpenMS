@@ -43,7 +43,7 @@ MassTrace::MassTrace()
 {
 }
 
-MassTrace::MassTrace(const std::list<PeakType>& tmp_lst, const DoubleReal& scan_time = 1.0)
+MassTrace::MassTrace(const std::list<PeakType>& tmp_lst, const DoubleReal& scan_time)
 {
     trace_peaks_.clear();
 
@@ -55,7 +55,7 @@ MassTrace::MassTrace(const std::list<PeakType>& tmp_lst, const DoubleReal& scan_
     scan_time_ = scan_time;
 }
 
-MassTrace::MassTrace(const std::vector<PeakType>& tmp_vec, const DoubleReal& scan_time = 1.0)
+MassTrace::MassTrace(const std::vector<PeakType>& tmp_vec, const DoubleReal& scan_time)
 {
     trace_peaks_ = tmp_vec;
     scan_time_ = scan_time;

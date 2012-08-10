@@ -58,10 +58,10 @@ public:
     MassTrace();
 
     /// Detailed constructor 1
-    MassTrace(const std::list<PeakType>&, const DoubleReal&);
+    MassTrace(const std::list<PeakType>&, const DoubleReal& scan_time = 1.0);
 
     /// Detailed constructor 2
-    MassTrace(const std::vector<PeakType>&, const DoubleReal&);
+    MassTrace(const std::vector<PeakType>&, const DoubleReal& scan_time = 1.0);
 
     /// Destructor
     ~MassTrace();
