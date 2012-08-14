@@ -426,6 +426,7 @@ namespace OpenMS
 
     topoSort();
     updateEdgeColors();
+    setChanged(true);
   }
 
   bool TOPPASScene::isEdgeAllowed_(TOPPASVertex * u, TOPPASVertex * v)
@@ -1610,7 +1611,7 @@ namespace OpenMS
           for (ConstEdgeIterator it = tv->inEdgesBegin(); it != tv->inEdgesEnd(); ++it)
           {
             TOPPASToolVertex * pred_ttv = qobject_cast<TOPPASToolVertex *>((*it)->getSourceVertex());
-            if (pred_ttv && (pred_ttv->getProgressColor() != Qt::green || !pred_ttv->isFinished()))
+            if (pred_ttv && (pred_ttv->getStatus() != TOPPASToolVertex::TOOL_SUCCESS))
             {
               disable_resume = true;
               break;
@@ -2042,7 +2043,7 @@ namespace OpenMS
 
     connect(ttv, SIGNAL(toolFailed(const QString &)), this, SLOT(pipelineErrorSlot(QString)));
     connect(ttv, SIGNAL(toolCrashed()), this, SLOT(pipelineErrorSlot()));
-
+    connect(ttv, SIGNAL(parameterChanged(const TOPPASToolVertex::TOOLSTATUS)), this, SLOT(changedParameter(const TOPPASToolVertex::TOOLSTATUS)));
     connect(ttv, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));
   }
 
@@ -2066,6 +2067,19 @@ namespace OpenMS
     connect(e, SIGNAL(somethingHasChanged()), target, SLOT(inEdgeHasChanged()));
     connect(e, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));
   }
+
+  void TOPPASScene::changedParameter(const TOPPASToolVertex::TOOLSTATUS status)
+  {
+    if (status == TOPPASToolVertex::TOOL_SCHEDULED ||
+        status== TOPPASToolVertex::TOOL_RUNNING || 
+        status == TOPPASToolVertex::TOOL_SUCCESS)
+    { // abort only if TTV's new parameters invalidate the results
+      abortPipeline();
+    }
+    setChanged(true); // to allow "Store" of pipeline
+    resetDownstream(dynamic_cast<TOPPASVertex*> (sender()));
+  }
+  
 
   void TOPPASScene::loadResources(const TOPPASResources & resources)
   {

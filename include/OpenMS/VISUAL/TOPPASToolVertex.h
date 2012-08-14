@@ -51,6 +51,8 @@ namespace OpenMS
     Q_OBJECT
 
 public:
+    /// current status of the vertex
+    enum TOOLSTATUS {TOOL_READY, TOOL_SCHEDULED, TOOL_RUNNING, TOOL_SUCCESS, TOOL_CRASH, TOOLSTATUS_SIZE};
 
     /// Stores the information for input/output files/lists
     struct IOInfo
@@ -148,10 +150,8 @@ public:
     /// using the input files as guidance
     /// Returns true on success, on failure the error_message is filled
     bool updateCurrentOutputFileNames(const RoundPackages & pkg, String & error_message);
-    /// Sets the progress color
-    void setProgressColor(const QColor & c);
-    /// Returns the progress color
-    QColor getProgressColor();
+    /// return if tool failed or is ready etc.
+    TOOLSTATUS getStatus() const;
     /// Lets the user edit the parameters of the tool
     void editParam();
     /// Returns the number of iterations this tool has to perform
@@ -190,6 +190,8 @@ public slots:
     void toolCrashedSlot();
     /// Called when the tool has failed
     void toolFailedSlot();
+    /// Called when the tool was scheduled for running
+    virtual void toolScheduledSlot();
     /// Called by an incoming edge when it has changed
     virtual void inEdgeHasChanged();
     /// Called by an outgoing edge when it has changed
@@ -207,6 +209,8 @@ signals:
     void toolFailed(const QString & message = "");
     /// Emitted from forwardTOPPOutput() to forward the signal outside
     void toppOutputReady(const QString & out);
+    /// Emitted if an INI parameter was edited by the user - depending on the current state of the tool an action is taken
+    void parameterChanged(const TOPPASToolVertex::TOOLSTATUS status);
 
 protected:
 
@@ -235,9 +239,8 @@ protected:
     String tmp_path_;
     /// The parameters of the tool
     Param param_;
-    /// Color representing the progress (red = failed, yellow = processing, green = finished, else: gray)
-    QColor progress_color_;
-
+    /// current status of the tool
+    TOOLSTATUS status_;
     /// tool initialization status: if C'tor was successful in finding the TOPP tool, this is set to 'true'
     bool tool_ready_;
 

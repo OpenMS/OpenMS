@@ -31,6 +31,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 #include <QtGui/QGraphicsScene>
 #include <QtCore/QProcess>
@@ -244,6 +245,8 @@ public slots:
     void snapToGrid();
     /// Sets if the running_ flag to true
     void setPipelineRunning(bool b = true);
+    /// Invoked by TTV if a parameter was edited
+    void changedParameter(const TOPPASToolVertex::TOOLSTATUS status);
     /// Called by a finished QProcess to indicate that we are free to start a new one
     void processFinished();
     /// dirty solution: when using ExecutePipeline this slot is called when the pipeline crashes. This will quit the app

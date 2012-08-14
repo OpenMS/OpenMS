@@ -57,7 +57,7 @@ namespace OpenMS
     name_(),
     type_(),
     param_(),
-    progress_color_(Qt::gray),
+    status_(TOOL_READY),
     tool_ready_(true),
     breakpoint_set_(false)
   {
@@ -75,7 +75,6 @@ namespace OpenMS
     name_(name),
     type_(type),
     param_(),
-    progress_color_(Qt::gray),
     tool_ready_(true),
     breakpoint_set_(false)
   {
@@ -93,7 +92,7 @@ namespace OpenMS
     name_(rhs.name_),
     type_(rhs.type_),
     param_(rhs.param_),
-    progress_color_(rhs.progress_color_),
+    status_(rhs.status_),
     tool_ready_(rhs.tool_ready_),
     breakpoint_set_(false)
   {
@@ -117,7 +116,7 @@ namespace OpenMS
     name_ = rhs.name_;
     type_ = rhs.type_;
     finished_ = rhs.finished_;
-    progress_color_ = rhs.progress_color_;
+    status_ = rhs.status_;
     breakpoint_set_ = false;
 
     return *this;
@@ -241,8 +240,8 @@ namespace OpenMS
     {
       // take new values
       param_.update(edit_param);
-      progress_color_ = Qt::gray;
-      emit somethingHasChanged();
+      reset(true);
+      emit parameterChanged(status_);
     }
 
     qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
@@ -344,7 +343,7 @@ namespace OpenMS
     qreal y_pos = -41.0;
     painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
 
-    if (progress_color_ != Qt::gray)
+    if (status_ != TOOL_READY)
     {
       QString text = QString::number(round_counter_) + " / " + QString::number(round_total_);
 
@@ -354,7 +353,23 @@ namespace OpenMS
 
     // progress light
     painter->setPen(Qt::black);
-    painter->setBrush(progress_color_);
+    QColor progress_color;
+    switch (status_)
+    {
+      case TOOL_READY:
+        progress_color = Qt::lightGray; break;
+      case TOOL_SCHEDULED:
+        progress_color = Qt::darkBlue; break;
+      case TOOL_RUNNING:
+        progress_color = Qt::yellow; break;
+      case TOOL_SUCCESS:
+        progress_color = Qt::green; break;
+      case TOOL_CRASH:
+        progress_color = Qt::red; break;
+      default:
+        progress_color = Qt::magenta; break; // signal weird status by color 
+    }
+    painter->setBrush(progress_color);
     painter->drawEllipse(46, -52, 14, 14);
 
     // recycling status
@@ -448,7 +463,7 @@ namespace OpenMS
 
     if (finished_)
     {
-      std::cerr << "This should not happen. Calling an already finished node '" << this->name_ << "' (#" << this->getTopoNr() << ")!\n";
+      LOG_ERROR << "This should not happen. Calling an already finished node '" << this->name_ << "' (#" << this->getTopoNr() << ")!" << std::endl;
       throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
     TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
@@ -620,6 +635,7 @@ namespace OpenMS
 
       //enqueue process
       std::cout << "Enqueue: " << File::getExecutablePath() + name_ << " \"" << String(args.join("\" \"")) << "\"" << std::endl;
+      toolScheduledSlot();
       ts->enqueueProcess( TOPPASScene::TOPPProcess(p, (File::getExecutablePath() + name_).toQString(), args, this));
     }
 
@@ -662,10 +678,10 @@ namespace OpenMS
 
         if (finished_)
         {
-          std::cout << "SOMETHING is very fishy. The vertex is already set to finished, yet there was still a thread spawning...\n";
+          LOG_ERROR << "SOMETHING is very fishy. The vertex is already set to finished, yet there was still a thread spawning..." << std::endl;
+          throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
         }
-        if (!ts->isDryRun())
-          renameOutput_();                    // rename generated files by content
+        if (!ts->isDryRun())  renameOutput_();                    // rename generated files by content
         finished_ = true;
         emit toolFinished();
 
@@ -763,6 +779,11 @@ namespace OpenMS
   void TOPPASToolVertex::setParam(const Param & param)
   {
     param_ = param;
+  }
+
+  TOPPASToolVertex::TOOLSTATUS TOPPASToolVertex::getStatus() const
+  {
+    return status_;
   }
 
   bool TOPPASToolVertex::updateCurrentOutputFileNames(const RoundPackages & pkg, String & error_msg)
@@ -898,37 +919,33 @@ namespace OpenMS
     emit toppOutputReady(out);
   }
 
-  void TOPPASToolVertex::setProgressColor(const QColor & c)
-  {
-    progress_color_ = c;
-  }
-
-  QColor TOPPASToolVertex::getProgressColor()
-  {
-    return progress_color_;
-  }
-
   void TOPPASToolVertex::toolStartedSlot()
   {
-    progress_color_ = Qt::yellow;
+    status_ = TOOL_RUNNING;
     update(boundingRect());
   }
 
   void TOPPASToolVertex::toolFinishedSlot()
   {
-    progress_color_ = Qt::green;
+    status_ = TOOL_SUCCESS;
     update(boundingRect());
   }
 
-  void TOPPASToolVertex::toolFailedSlot()
+  void TOPPASToolVertex::toolScheduledSlot()
   {
-    progress_color_ = Qt::red;
+    status_ = TOOL_SCHEDULED;
     update(boundingRect());
   }
+  void TOPPASToolVertex::toolFailedSlot()
+  {
+    status_ = TOOL_CRASH;
+    update(boundingRect());
+  }
+
 
   void TOPPASToolVertex::toolCrashedSlot()
   {
-    progress_color_ = Qt::red;
+    status_ = TOOL_CRASH;
     update(boundingRect());
   }
 
@@ -1022,9 +1039,9 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-      finished_ = false;
+    finished_ = false;
+    status_ = TOOL_READY;
     output_files_.clear();
-    progress_color_ = Qt::gray;
 
     if (reset_all_files)
     {
