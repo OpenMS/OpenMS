@@ -69,10 +69,13 @@ class TOPPImageCreator
 	TOPPImageCreator()
 		: TOPPBase("ImageCreator",
 							 "Transforms an LC-MS map into a PNG image.",false)
-	{
-	}
+  {
+    out_formats_ = StringList::create("PNG,JPG,BMP,TIFF,PPM");
+  }
 
- protected:
+
+protected:
+  StringList out_formats_; //< valid output formats for image
 
 	void addMS2Point_(int x, int y, QImage& image, QColor color = Qt::black,
 									 Size size = 2)
@@ -147,9 +150,9 @@ class TOPPImageCreator
 		registerInputFile_("in", "<file>", "", "input file ");
 		setValidFormats_("in", StringList::create("mzML"));
 		registerOutputFile_("out", "<file>", "", "output file");
-		setValidFormats_("out", StringList::create("PNG,JPG,BMP,TIFF,PPM"), false);
+		setValidFormats_("out", out_formats_, false);
 		registerStringOption_("out_type", "<file type>", "", "The image format. Set this if you want to force a format not reflected by the 'out' filename.", false);
-		setValidStrings_("out_type", StringList::create("PNG,JPG,BMP,TIFF,PPM"));
+		setValidStrings_("out_type", out_formats_);
 		
 		registerIntOption_("width", "<number>", 1024, "Number of pixels in m/z dimension.\nIf 0, one pixel per Th.", false);
 		setMinInt_("width",0);
@@ -181,6 +184,12 @@ class TOPPImageCreator
 		if (format.trim() == "")
 		{ // get from filename
       format = out.suffix('.');
+      if (!out_formats_.contains(format.toUpper()))
+      {
+        LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('"<< format << "') does not resemble a valid type. Please fix one of them." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+
 		}
 		MSExperiment<> exp;
 		MzMLFile f;
