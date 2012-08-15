@@ -98,13 +98,19 @@ class TOPPDigestor
 			registerIntOption_("min_length","<number>",6,"Minimum length of peptide", false);
 			registerIntOption_("max_length","<number>",40,"Maximum length of peptide", false);
 			registerStringOption_("enzyme","<string>","Trypsin","The type of digestion enzyme", false);
+      setValidStrings_("enzyme", StringList::create("Trypsin,none"));
 		}
 
 		ExitCodes main_(int , const char**)
 		{
 			vector<ProteinIdentification> protein_identifications;
+
 			vector<PeptideIdentification> identifications;
 			PeptideIdentification peptide_identification;
+      DateTime date_time = DateTime::now();
+      String date_time_string = date_time.get();
+      peptide_identification.setIdentifier("In-silico_digestion" + date_time_string);
+
 			ProteinIdentification protein_identification;
 			
 			protein_identifications.push_back(ProteinIdentification());
@@ -147,16 +153,36 @@ class TOPPDigestor
 			//-------------------------------------------------------------
 		
 			// This should be updated if more cleavage enzymes are available
+      ProteinIdentification::SearchParameters search_parameters;
+      String enzyme = getStringOption_("enzyme");	
 			EnzymaticDigestion digestor;
-			digestor.setEnzyme(EnzymaticDigestion::TRYPSIN);
-			ProteinIdentification::SearchParameters search_parameters;
-			search_parameters.enzyme = ProteinIdentification::TRYPSIN;
-			digestor.setMissedCleavages(missed_cleavages);
+      if (enzyme=="Trypsin")
+      {
+			  digestor.setEnzyme(EnzymaticDigestion::TRYPSIN);
+        digestor.setMissedCleavages(missed_cleavages);
+        search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+      }
+      else if (enzyme=="none")
+      {
+			  search_parameters.enzyme = ProteinIdentification::NO_ENZYME;
+      }
+      else
+      {
+        LOG_ERROR << "Internal error in Digestor, when evaluating enzyme name! Please report this!" << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
 			
       vector<String> protein_accessions(1);
 			PeptideHit temp_peptide_hit;
 
+      protein_identifications[0].setSearchParameters(search_parameters);
+      protein_identifications[0].setDateTime(date_time);
+      protein_identifications[0].setSearchEngine("In-silico digestion");
+      protein_identifications[0].setIdentifier("In-silico_digestion" + date_time_string);
+
 			std::vector<FASTAFile::FASTAEntry> all_peptides;
+
+      Size dropped_bylength(0); // stats for removing candidates
 
       for (Size i = 0; i < protein_data.size(); ++i)
 			{
@@ -171,7 +197,14 @@ class TOPPDigestor
         }
 				
    			vector<AASequence> temp_peptides;
-				digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
+        if (enzyme=="none")
+        {
+          temp_peptides.push_back(protein_data[i].sequence);
+        }
+        else
+        {
+          digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
+        }
 	
         for (Size j = 0; j < temp_peptides.size(); ++j)
 				{
@@ -182,6 +215,8 @@ class TOPPDigestor
             {
 						  temp_peptide_hit.setSequence(temp_peptides[j]);
 						  peptide_identification.insertHit(temp_peptide_hit);
+              identifications.push_back(peptide_identification);
+              peptide_identification.setHits(std::vector<PeptideHit>()); // clear
             }
             else // for FASTA file output
             {             
@@ -189,23 +224,13 @@ class TOPPDigestor
               all_peptides.push_back(pep);
             }
 					}
+          else
+          {
+            ++dropped_bylength;
+          }
 				}
 			}
 
-      if (!has_FASTA_output)
-      {
-			  DateTime date_time = DateTime::now();
-			  String date_time_string = "";
-  			
-			  date_time_string = date_time.get();
-			  protein_identifications[0].setSearchParameters(search_parameters);
-			  protein_identifications[0].setDateTime(date_time);
-			  protein_identifications[0].setSearchEngine("In-silico digestion");
-			  protein_identifications[0].setIdentifier("In-silico_digestion" + date_time_string);
-			  peptide_identification.setIdentifier("In-silico_digestion" + date_time_string);
-			  identifications.push_back(peptide_identification);
-      }
-  			
 			//-------------------------------------------------------------
 			// writing output
 			//-------------------------------------------------------------
@@ -220,6 +245,12 @@ class TOPPDigestor
 										      protein_identifications,
 											    identifications);
       }
+
+      Size pep_remaining_count = (has_FASTA_output ? all_peptides.size() : identifications.size());
+      LOG_INFO << "Statistics:\n"
+               << "  total #peptides after digestion:         " << pep_remaining_count+dropped_bylength << "\n"
+               << "  removed #peptides (length restrictions): " << dropped_bylength << "\n"
+               << "  remaining #peptides:                     " << pep_remaining_count << std::endl;
 
 			return EXECUTION_OK;
 		}
