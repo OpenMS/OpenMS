@@ -5,7 +5,9 @@ set(directory source/ANALYSIS/MAPMATCHING)
 set(sources_list
 BaseGroupFinder.C
 BaseSuperimposer.C
-ConsensusMapNormalizerAlgorithm.C
+ConsensusMapNormalizerAlgorithmThreshold.C
+ConsensusMapNormalizerAlgorithmMedian.C
+ConsensusMapNormalizerAlgorithmQuantile.C
 FeatureDistance.C
 FeatureGroupingAlgorithm.C
 FeatureGroupingAlgorithmIdentification.C

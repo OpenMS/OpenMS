@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Hendrik Brauer, Oliver Kohlbacher $
+// $Authors: Hendrik Brauer, Oliver Kohlbacher, Johannes Junker $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -30,7 +30,9 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -61,7 +63,13 @@ using namespace std;
 	</table>
 </CENTER>
  
-The tool normalizes the intensities of a set of maps (consensusXML file) using robust regression. Maps are normalized pair-wise relative to the map with the most features. Given two maps, peptide featues are classified as non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) or outliers. From the non-outliers an average intensity ratio is calculated and used for normalization.
+The tool normalizes the intensities of a set of maps (consensusXML file). The following normalization algorithms are available:
+
+- Robust regression: Maps are normalized pair-wise relative to the map with the most features. Given two maps, peptide featues are classified as non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) or outliers. From the non-outliers an average intensity ratio is calculated and used for normalization.
+
+- Median correction: The median of all maps is set to the median of the map with the most features.
+
+- Quantile normalization: Performs an exact quantile normalization if the number of features is equal across all maps. Otherwise, an approximate quantile normalization using resampling is applied.
 
 <B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_ConsensusMapNormalizer.cli
@@ -91,7 +99,9 @@ protected:
 		registerOutputFile_("out", "<file>", "", "output file");
 		setValidFormats_("out", StringList::create("consensusXML"));
 		addEmptyLine_();
-		registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "The parameter is used to distinguish between non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) and outliers.", false);
+    registerStringOption_("algorithm_type", "<type>", "robust_regression", "The normalization algorithm that is applied.", false, false);
+    setValidStrings_("algorithm_type", StringList::create("robust_regression,median,quantile"));
+    registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "Only for 'robust_regression': the parameter is used to distinguish between non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) and outliers.", false);
 		setMinFloat_("ratio_threshold", 0.001);
 		setMaxFloat_("ratio_threshold", 1.0);
 	}
@@ -99,26 +109,41 @@ protected:
 	ExitCodes main_(int , const char**)
 	{
 		String in = getStringOption_("in");
-		double ratio_threshold = getDoubleOption_("ratio_threshold");
+    String out = getStringOption_("out");
+    String algo_type = getStringOption_("algorithm_type");
+    double ratio_threshold = getDoubleOption_("ratio_threshold");
 
 		ConsensusXMLFile infile;
 		infile.setLogType(log_type_);
 		ConsensusMap map;
 		infile.load(in, map);
 
-		map.sortBySize();
+    //map normalization
+    if (algo_type == "robust_regression")
+    {
+      map.sortBySize();
+      vector<double> results = ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(map, ratio_threshold);
+      ConsensusMapNormalizerAlgorithmThreshold::normalizeMaps(map, results);
+    }
+    else if (algo_type == "median")
+    {
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map);
+    }
+    else if (algo_type == "quantile")
+    {
+      ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(map);
+    }
+    else
+    {
+      cerr << "Unknown algorithm type  '" << algo_type.c_str() << "'." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
 
-		//map normalization
-		vector<double> results = ConsensusMapNormalizerAlgorithm::computeCorrelation(map, ratio_threshold);
-		ConsensusMapNormalizerAlgorithm::normalizeMaps(map, results);
+    //annotate output with data processing info and save output file
+    addDataProcessing_(map, getProcessingInfo_(DataProcessing::NORMALIZATION));
+    infile.store(out, map);
 
-		//annotate output with data processing info
-		addDataProcessing_(map, getProcessingInfo_(DataProcessing::NORMALIZATION));
-
-		String out = getStringOption_("out");
-		infile.store(out, map);
-
-		return EXECUTION_OK;
+    return EXECUTION_OK;
 	}
 };
 

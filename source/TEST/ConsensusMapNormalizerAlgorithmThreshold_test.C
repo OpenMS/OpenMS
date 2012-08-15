@@ -22,33 +22,33 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse$
-// $Authors: Hendrik Brauer, Oiver Kohlbacher$
+// $Authors: Hendrik Brauer, Oiver Kohlbacher, Johannes Junker$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(ConsensusMapNormalizerAlgorithm, "$Id$")
+START_TEST(ConsensusMapNormalizerAlgorithmThreshold, "$Id: ConsensusMapNormalizerAlgorithmThreshold_test.C 9538 2012-02-12 13:06:58Z cbielow $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusMapNormalizerAlgorithm* ptr = 0;
-ConsensusMapNormalizerAlgorithm* nullPointer = 0;
-START_SECTION(ConsensusMapNormalizerAlgorithm())
+ConsensusMapNormalizerAlgorithmThreshold* ptr = 0;
+ConsensusMapNormalizerAlgorithmThreshold* nullPointer = 0;
+START_SECTION(ConsensusMapNormalizerAlgorithmThreshold())
 {
-	ptr = new ConsensusMapNormalizerAlgorithm();
+  ptr = new ConsensusMapNormalizerAlgorithmThreshold();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~ConsensusMapNormalizerAlgorithm())
+START_SECTION(~ConsensusMapNormalizerAlgorithmThreshold())
 {
 	delete ptr;
 }

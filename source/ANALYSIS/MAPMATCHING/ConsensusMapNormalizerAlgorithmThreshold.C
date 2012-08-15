@@ -22,10 +22,10 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Hendrik Brauer, Oliver Kohlbacher $
+// $Authors: Hendrik Brauer, Oliver Kohlbacher, Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
 #include <gsl/gsl_statistics.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -33,17 +33,17 @@ using namespace std;
 
 namespace OpenMS
 {
-  ConsensusMapNormalizerAlgorithm::ConsensusMapNormalizerAlgorithm()
+  ConsensusMapNormalizerAlgorithmThreshold::ConsensusMapNormalizerAlgorithmThreshold()
   {
 
   }
 
-  ConsensusMapNormalizerAlgorithm::~ConsensusMapNormalizerAlgorithm()
+  ConsensusMapNormalizerAlgorithmThreshold::~ConsensusMapNormalizerAlgorithmThreshold()
   {
 
   }
 
-	vector<double> ConsensusMapNormalizerAlgorithm::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold)
+  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold)
 	{
     Size number_of_features = map.size();
     Size number_of_maps = map.getFileDescriptions().size();
@@ -90,7 +90,7 @@ namespace OpenMS
 		return ratio_vector;
 	}
 
-	void ConsensusMapNormalizerAlgorithm::normalizeMaps(ConsensusMap& map, const vector<double>& ratios)
+  void ConsensusMapNormalizerAlgorithmThreshold::normalizeMaps(ConsensusMap& map, const vector<double>& ratios)
 	{
 		ConsensusMap::Iterator cf_it;
 		ProgressLogger progresslogger;

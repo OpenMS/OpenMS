@@ -341,7 +341,9 @@ set(analysis_executables_list
 	CompNovoIonScoringCID_test
 	CompNovoIonScoring_test
 	ConsensusID_test
-	ConsensusMapNormalizerAlgorithm_test
+	ConsensusMapNormalizerAlgorithmThreshold_test
+	#ConsensusMapNormalizerAlgorithmMedian_test
+	#ConsensusMapNormalizerAlgorithmQuantile_test
 	DeNovoAlgorithm_test
 	DeNovoIdentification_test
 	DeNovoIonScoring_test

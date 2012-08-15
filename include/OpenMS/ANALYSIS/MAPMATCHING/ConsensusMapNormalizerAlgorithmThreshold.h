@@ -22,11 +22,11 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Hendrik Brauer, Oliver Kohlbacher $
+// $Authors: Hendrik Brauer, Oliver Kohlbacher, Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHM_H
-#define OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHM_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHMTHRESHOLD_H
+#define OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHMTHRESHOLD_H
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -37,21 +37,21 @@ namespace OpenMS
 	 * @brief Algorithms of ConsensusMapNormalizer
 	 *
 	 */
-	class OPENMS_DLLAPI ConsensusMapNormalizerAlgorithm
+  class OPENMS_DLLAPI ConsensusMapNormalizerAlgorithmThreshold
 	{
 	private:
     /// copy constructor is not implemented -> private
-    ConsensusMapNormalizerAlgorithm(const ConsensusMapNormalizerAlgorithm &copyin);
+    ConsensusMapNormalizerAlgorithmThreshold(const ConsensusMapNormalizerAlgorithmThreshold &copyin);
 
     /// assignment operator is not implemented -> private
-    ConsensusMapNormalizerAlgorithm& operator = (const ConsensusMapNormalizerAlgorithm &rhs);
+    ConsensusMapNormalizerAlgorithmThreshold& operator = (const ConsensusMapNormalizerAlgorithmThreshold &rhs);
 
   public:
 		/// default constructor is not implemented -> private
-		ConsensusMapNormalizerAlgorithm();
+    ConsensusMapNormalizerAlgorithmThreshold();
 
 		/// destructor is not implemented -> private
-		virtual ~ConsensusMapNormalizerAlgorithm();
+    virtual ~ConsensusMapNormalizerAlgorithmThreshold();
 
     /**
 		 * @brief determines the ratio of all maps to the map with the most features
@@ -70,4 +70,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHM_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHMTHRESHOLD_H
