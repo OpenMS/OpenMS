@@ -107,6 +107,7 @@ protected:
         Param p_com;
         p_com.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
         p_com.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
+        p_com.setValue("chrom_fwhm" , 5.0 , "Expected chromatographic peak width (in seconds).");
 
         combined.insert("common:", p_com);
 
@@ -119,12 +120,14 @@ protected:
         Param p_epd = ElutionPeakDetection().getDefaults();
         p_epd.remove("noise_threshold_int");
         p_epd.remove("chrom_peak_snr");
+        p_epd.remove("chrom_fwhm");
 
         // p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
         // p_epd.setValidStrings("enabled", StringList::create("true,false"));
         combined.insert("epd:", p_epd);
 
         Param p_ffm = FeatureFindingMetabo().getDefaults();
+        p_ffm.remove("chrom_fwhm");
 
         combined.insert("ffm:", p_ffm);
 
@@ -229,6 +232,7 @@ protected:
         //-------------------------------------------------------------
 
         FeatureFindingMetabo ffmet;
+        ffm_param.insert("", common_param);
 
         ffmet.setParameters(ffm_param);
         ffmet.run(m_traces_final, ms_feat_map);

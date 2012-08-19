@@ -174,7 +174,7 @@ FeatureFindingMetabo::FeatureFindingMetabo()
     defaults_.setValue("charge_lower_bound" , 1 , "Lowest charge state to consider");    // 1
     defaults_.setValue("charge_upper_bound" , 5 , "Highest charge state to consider");    // 5
     //defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");  // 20.0
-    //defaults_.setValue("chrom_fwhm" , 3.0 , "Expected chromatographic peak width (in seconds).");    // 3.0
+    defaults_.setValue("chrom_fwhm" , 5.0 , "Expected chromatographic peak width (in seconds).");    // 3.0
     defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", StringList::create("advanced"));
     defaults_.setValidStrings("report_summed_ints", StringList::create(("false,true")));
     defaults_.setValue("disable_isotope_filtering", "false", "Disable metabolite isotope filtering.", StringList::create("advanced"));
@@ -203,7 +203,7 @@ void FeatureFindingMetabo::updateMembers_()
     local_rt_range_ = (DoubleReal)param_.getValue("local_rt_range");
     local_mz_range_ = (DoubleReal)param_.getValue("local_mz_range");
     // mass_error_ppm_ = (DoubleReal)param_.getValue("mass_error_ppm");
-    // chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
+    chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
 
     charge_lower_bound_ = (Size)param_.getValue("charge_lower_bound");
     charge_upper_bound_ = (Size)param_.getValue("charge_upper_bound");
@@ -440,7 +440,8 @@ void FeatureFindingMetabo::loadIsotopeModel_()
 //}
 
 
-DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) {
+DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+{
 
     DoubleReal mz1(tr1.getCentroidMZ());
     DoubleReal mz2(tr2.getCentroidMZ());
@@ -483,7 +484,9 @@ DoubleReal FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace&
 //    DoubleReal sigma1(chrom_fwhm_/2.3548);
 //    DoubleReal sigma(std::sqrt(2*sigma1*sigma1));
 
-    DoubleReal sigma(1.0);
+    //DoubleReal sigma(1.0);
+    DoubleReal sigma(chrom_fwhm_*0.1);
+
 
     if (diff_rt > 3*sigma)
     {

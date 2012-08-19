@@ -252,7 +252,7 @@ namespace OpenMS
         Size charge_lower_bound_;
         Size charge_upper_bound_;
         //DoubleReal mass_error_ppm_;
-        //DoubleReal chrom_fwhm_;
+        DoubleReal chrom_fwhm_;
 
         bool report_summed_ints_;
         bool disable_isotope_filtering_;
