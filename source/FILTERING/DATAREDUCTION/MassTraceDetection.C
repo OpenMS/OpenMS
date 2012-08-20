@@ -228,6 +228,27 @@ void  updateWeightedSDEstimate(PeakType p, const DoubleReal& mean_t1, DoubleReal
     last_weights_sum = weights_sum;
 }
 
+void  updateWeightedSDEstimateRobust(PeakType p, const DoubleReal& mean_t1, DoubleReal& sd_t, DoubleReal& last_weights_sum)
+{
+    DoubleReal denom(0.0), denom1(0.0), denom2(0.0), weights_sum(0.0);
+
+    denom1 = std::log(last_weights_sum) + 2*std::log(sd_t);
+    denom2 = std::log(p.getIntensity()) + 2*std::log(p.getMZ() - mean_t1);
+
+    denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
+    weights_sum = last_weights_sum + p.getIntensity();
+
+    DoubleReal tmp_sd = denom/std::sqrt(weights_sum);
+
+    if (tmp_sd > std::numeric_limits<DoubleReal>::epsilon())
+    {
+        sd_t = tmp_sd;
+    }
+
+    last_weights_sum = weights_sum;
+}
+
+
 
 void computeWeightedSDEstimate(std::list<PeakType> tmp, const DoubleReal& mean_t, DoubleReal& sd_t, const DoubleReal& lower_sd_bound)
 {
@@ -250,6 +271,7 @@ void computeWeightedSDEstimate(std::list<PeakType> tmp, const DoubleReal& mean_t
 
     return ;
 }
+
 
 
 DoubleReal computeLoss(const DoubleReal& x_t, const DoubleReal& mean_t, const DoubleReal& sd_t)
@@ -476,7 +498,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
                             // if (ftl_t > min_fwhm_scans)
                             {
                                 // computeWeightedSDEstimate(current_trace, centroid_mz, ftl_sd, lower_sd_bound);
-                                updateWeightedSDEstimate(next_peak, centroid_mz, ftl_sd, intensity_so_far);
+                                updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far);
                             }
                         }
 
@@ -630,7 +652,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
                             // if (ftl_t > min_fwhm_scans)
                             {
                                 //computeWeightedSDEstimate(current_trace, centroid_mz, ftl_sd, lower_sd_bound);
-                                updateWeightedSDEstimate(next_peak, centroid_mz, ftl_sd, intensity_so_far);
+                                updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far);
                             }
                         }
 

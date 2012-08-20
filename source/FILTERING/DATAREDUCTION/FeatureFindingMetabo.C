@@ -457,7 +457,7 @@ DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace&
     DoubleReal sigma2(tr2.getCentroidSD());
 
     // DoubleReal sigma = std::sqrt(sigma1*sigma1 + sigma2*sigma2);
-    DoubleReal sigma(std::sqrt(diff_sigma*diff_sigma + sigma1*sigma1 + sigma2*sigma2));
+    DoubleReal sigma(std::sqrt(std::exp(2*std::log(diff_sigma)) + std::exp(2*std::log(sigma1)) + std::exp(2*std::log(sigma2))));
 
 
     // std::cout << "mass: " << mz1 << " diffmz: " << diff_mz-center << " sigma: " << sigma << std::endl ;
@@ -485,13 +485,14 @@ DoubleReal FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace&
 //    DoubleReal sigma(std::sqrt(2*sigma1*sigma1));
 
     //DoubleReal sigma(1.0);
-    DoubleReal sigma(chrom_fwhm_*0.1);
+    DoubleReal sigma(chrom_fwhm_*0.2);
 
 
     if (diff_rt > 3*sigma)
     {
         return 0.0;
     }
+
 
     return std::exp(-0.5*((diff_rt)/sigma)*((diff_rt)/sigma));
 }
@@ -678,11 +679,15 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
                 // disable intensity scoring for now...
                 DoubleReal int_score(1.0);
 
+                std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << "\t" "ch: " << charge << " isopos: " << iso_pos << " rt: " << rt_score << "mz: " << mz_score << std::endl;
+
                 DoubleReal total_pair_score(0.0);
 
-                if (rt_score > 0.7 && mz_score > 0.0 && int_score > 0.0)
+                if (rt_score > 0.0 && mz_score > 0.0 && int_score > 0.0)
                 {
                     total_pair_score = std::exp(std::log(rt_score) + log(mz_score) + log(int_score));
+
+
                 }
 
                 if (total_pair_score > best_so_far)
@@ -698,6 +703,8 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
                 fh_tmp.addMassTrace(*candidates[best_idx]);
                 fh_tmp.setScore(fh_tmp.getScore() + best_so_far);
                 fh_tmp.setCharge(charge);
+                //std::cout << "adding " << fh_tmp.getLabel() << std::endl;
+                std::cout << "RTDIFF: " << candidates[0]->getCentroidRT() - candidates[best_idx]->getCentroidRT() << std::endl;
                 output_hypos.push_back(fh_tmp);
                 last_iso_idx = best_idx;
             }
@@ -767,6 +774,23 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
 
         std::cout << "size of hypotheses: " << feat_hypos.size() << std::endl;
 
+        // output all hypotheses:
+        for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
+        {
+            bool legal;
+
+            if (feat_hypos[hypo_idx].getSize() > 1)
+            {
+                legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
+            }
+
+
+            std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
+        }
+
+
+
+
         for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
         {
 
@@ -799,7 +823,7 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
 
                     result = disable_isotope_filtering_ ? true : isLegalIsotopePattern_(feat_hypos[hypo_idx]);
 
-                    // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl << std::endl;
+                    std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
                 }
 
                 if (result) {
