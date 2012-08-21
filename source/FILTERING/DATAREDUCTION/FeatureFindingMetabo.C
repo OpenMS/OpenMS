@@ -317,80 +317,91 @@ void FeatureFindingMetabo::loadIsotopeModel_()
 
 
 
-//DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
-//{
-//    // DoubleReal mu(std::pow(1.0029316*iso_pos, -0.0002107)/charge);
+DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+{
+    // DoubleReal mu(std::pow(1.0029316*iso_pos, -0.0002107)/charge);
 
-//    // DoubleReal mu((1.003355*iso_pos)/charge);
-//    // DoubleReal mu((DoubleReal)iso_pos/(DoubleReal)charge);
+    // DoubleReal mu((1.003355*iso_pos)/charge);
+    // DoubleReal mu((DoubleReal)iso_pos/(DoubleReal)charge);
 
-//    // DoubleReal mu((1.001527*(DoubleReal)iso_pos)/(DoubleReal)charge);
-//    //DoubleReal mu((1.003355*(DoubleReal)iso_pos)/(DoubleReal)charge);
+    // DoubleReal mu((1.001527*(DoubleReal)iso_pos)/(DoubleReal)charge);
+    //DoubleReal mu((1.003355*(DoubleReal)iso_pos)/(DoubleReal)charge);
 
-//    // std::cout << "checking mu " << mu << " " << iso_pos << " "  << charge << std::endl;
-
-
-
-//    // DoubleReal err_ppm1((mz1/1000000)*mass_error_ppm_);
-//    // DoubleReal err_ppm2((mz2/1000000)*mass_error_ppm_);
-
-//    // DoubleReal sigma = 0.02017855;
-
-//    DoubleReal sigma_mult(3.0);
-//    DoubleReal C13_diff(1.003355);
-
-//    DoubleReal mz1(tr1.getCentroidMZ());
-//    DoubleReal mz2(tr2.getCentroidMZ());
-
-//    DoubleReal centered_mz(std::fabs(mz2 - mz1) - (C13_diff*(DoubleReal)iso_pos)/(DoubleReal)charge);
-
-//    // setup gaussian mixture model for valid isotopic m/z distances
-//    //DoubleReal iso_mz_diff(1.002245);
-
-//    // std::cout << "iso_pos: " << iso_pos << " charge: " << charge << " mz_diff" << centered_mz << std::endl;
-
-//    DoubleReal mu1(-0.001210044);
-//    DoubleReal sigma1(0.0009562774);
-//    DoubleReal mu2(-0.008932877);
-//    DoubleReal sigma2(0.0021871884);
-
-//    DoubleReal mt_sigma1(tr1.getCentroidSD());
-//    DoubleReal mt_sigma2(tr2.getCentroidSD());
-//    DoubleReal mt_variances(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
-
-//    //std::cout << "mt_variances: " << mt_variances << std::endl;
-
-
-//    DoubleReal score_sigma1(std::sqrt(sigma1*sigma1 + mt_variances));
-//    DoubleReal score_sigma2(std::sqrt(sigma2*sigma2 + mt_variances));
-
-//    // std::cout << "score_sigma1: " << score_sigma1 << std::endl;
-//    // std::cout << "score_sigma2: " << score_sigma2 << std::endl;
-
-
-//    DoubleReal mz_score(0.0);
-
-
-//    if ((centered_mz < mu1 + sigma_mult*score_sigma1) && (centered_mz > mu2 - sigma_mult*score_sigma2))
-//    {
-//        DoubleReal tmp_exponent1((centered_mz - mu1)/score_sigma1);
-//        DoubleReal tmp_exponent2((centered_mz - mu2)/score_sigma2);
-
-//        DoubleReal mz_score1(std::exp(-0.5*tmp_exponent1*tmp_exponent1));
-//        DoubleReal mz_score2(std::exp(-0.5*tmp_exponent2*tmp_exponent2));
-
-//        mz_score = (mz_score1 > mz_score2)? mz_score1 : mz_score2;
-
-//    }
+    // std::cout << "checking mu " << mu << " " << iso_pos << " "  << charge << std::endl;
 
 
 
+    // DoubleReal err_ppm1((mz1/1000000)*mass_error_ppm_);
+    // DoubleReal err_ppm2((mz2/1000000)*mass_error_ppm_);
 
-//    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() <<  "mass: " << mz1 << " diffppm: " << " diffmz1: " << diff_mz-mu1 << " diffmz2: " << diff_mz-mu2 << " 3sigma1: " << sigma_mult*score_sigma1 << " 3sigma2: " << sigma_mult*score_sigma2 << " score: " << mz_score << std::endl ;
+    // DoubleReal sigma = 0.02017855;
+
+    DoubleReal sigma_mult(3.0);
+    DoubleReal C13_diff(1.003355);
+
+    DoubleReal mz1(tr1.getCentroidMZ());
+    DoubleReal mz2(tr2.getCentroidMZ());
+
+    DoubleReal centered_mz(std::fabs(mz2 - mz1) - (C13_diff*(DoubleReal)iso_pos)/(DoubleReal)charge);
+
+    // setup gaussian mixture model for valid isotopic m/z distances
+    //DoubleReal iso_mz_diff(1.002245);
+
+    // std::cout << "iso_pos: " << iso_pos << " charge: " << charge << " mz_diff" << centered_mz << std::endl;
+
+    DoubleReal mu1(-0.001210044);
+    DoubleReal sigma1(0.0009562774);
+    DoubleReal mu2(-0.008932877);
+    DoubleReal sigma2(0.0021871884);
+
+    DoubleReal mt_sigma1(tr1.getCentroidSD());
+    DoubleReal mt_sigma2(tr2.getCentroidSD());
+    // DoubleReal mt_variances1(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
+    DoubleReal mt_variances(std::exp(2*std::log(mt_sigma1)) + std::exp(2*std::log(mt_sigma2)));
+    // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
 
 
-//    return mz_score;
-//}
+    DoubleReal score_sigma1(std::sqrt(sigma1*sigma1 + mt_variances));
+    DoubleReal score_sigma2(std::sqrt(sigma2*sigma2 + mt_variances));
+
+    // std::cout << "score_sigma1: " << score_sigma1 << std::endl;
+    // std::cout << "score_sigma2: " << score_sigma2 << std::endl;
+
+
+    DoubleReal mz_score(0.0);
+
+
+    if (iso_pos == 1)
+    {
+        if ((centered_mz < mu1 + sigma_mult*score_sigma1) && (centered_mz > mu1 - sigma_mult*score_sigma1))
+        {
+            DoubleReal tmp_exponent1((centered_mz - mu1)/score_sigma1);
+            mz_score = std::exp(-0.5*tmp_exponent1*tmp_exponent1);
+
+        }
+    }
+    else
+    {
+        if ((centered_mz < mu1 + sigma_mult*score_sigma1) && (centered_mz > mu2 - sigma_mult*score_sigma2))
+        {
+            DoubleReal tmp_exponent1((centered_mz - mu1)/score_sigma1);
+            DoubleReal tmp_exponent2((centered_mz - mu2)/score_sigma2);
+
+            DoubleReal mz_score1(std::exp(-0.5*tmp_exponent1*tmp_exponent1));
+            DoubleReal mz_score2(std::exp(-0.5*tmp_exponent2*tmp_exponent2));
+
+            mz_score = (mz_score1 > mz_score2)? mz_score1 : mz_score2;
+
+        }
+    }
+    // std::cout<< tr1.getLabel() << "_" << tr2.getLabel() << " mz score: " << mz_score << std::endl;
+
+
+    //    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() <<  "mass: " << mz1 << " diffppm: " << " diffmz1: " << diff_mz-mu1 << " diffmz2: " << diff_mz-mu2 << " 3sigma1: " << sigma_mult*score_sigma1 << " 3sigma2: " << sigma_mult*score_sigma2 << " score: " << mz_score << std::endl ;
+
+
+    return mz_score;
+}
 
 //DoubleReal FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2)
 //{
@@ -440,38 +451,73 @@ void FeatureFindingMetabo::loadIsotopeModel_()
 //}
 
 
-DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
-{
+//DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+//{
 
-    DoubleReal mz1(tr1.getCentroidMZ());
-    DoubleReal mz2(tr2.getCentroidMZ());
+//    DoubleReal mz1(tr1.getCentroidMZ());
+//    DoubleReal mz2(tr2.getCentroidMZ());
 
-    DoubleReal diff_mz(std::fabs(mz2 - mz1));
-    DoubleReal avg_diff(1.001881);
+//    DoubleReal diff_mz(std::fabs(mz2 - mz1));
+//    DoubleReal avg_diff(1.001881);
 
-    DoubleReal center((avg_diff*(DoubleReal)iso_pos)/(DoubleReal)charge);
+//    DoubleReal center((avg_diff*(DoubleReal)iso_pos)/(DoubleReal)charge);
 
-    DoubleReal diff_sigma(0.004631371);
+//    DoubleReal diff_sigma(0.004631371);
 
-    DoubleReal sigma1(tr1.getCentroidSD());
-    DoubleReal sigma2(tr2.getCentroidSD());
+//    DoubleReal sigma1(tr1.getCentroidSD());
+//    DoubleReal sigma2(tr2.getCentroidSD());
 
-    // DoubleReal sigma = std::sqrt(sigma1*sigma1 + sigma2*sigma2);
-    DoubleReal sigma(std::sqrt(std::exp(2*std::log(diff_sigma)) + std::exp(2*std::log(sigma1)) + std::exp(2*std::log(sigma2))));
-
-
-    // std::cout << "mass: " << mz1 << " diffmz: " << diff_mz-center << " sigma: " << sigma << std::endl ;
+//    // DoubleReal sigma = std::sqrt(sigma1*sigma1 + sigma2*sigma2);
+//    DoubleReal sigma(std::sqrt(std::exp(2*std::log(diff_sigma)) + std::exp(2*std::log(sigma1)) + std::exp(2*std::log(sigma2))));
 
 
-    DoubleReal mz_score(0.0);
+//    std::cout << "mass: " << mz1 << " diffmz: " << diff_mz << " sigma: " << sigma << std::endl ;
 
-    if (std::fabs(diff_mz - center) < 3*sigma)
-    {
-        mz_score = std::exp(-0.5*((diff_mz - center)/sigma)*((diff_mz - center)/sigma));
-    }
 
-    return mz_score;
-}
+//    DoubleReal mz_score(0.0);
+
+//    if (std::fabs(diff_mz - center) < 3*sigma)
+//    {
+//        mz_score = std::exp(-0.5*((diff_mz - center)/sigma)*((diff_mz - center)/sigma));
+//    }
+
+//    return mz_score;
+//}
+
+
+//DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+//{
+
+//    DoubleReal mz1(tr1.getCentroidMZ());
+//    DoubleReal mz2(tr2.getCentroidMZ());
+
+//    DoubleReal diff_mz(std::fabs(mz2 - mz1));
+//    DoubleReal mz_shift(1.001881);
+
+//    DoubleReal center((avg_diff*(DoubleReal)iso_pos)/(DoubleReal)charge);
+
+//    DoubleReal diff_sigma(0.004631371);
+
+//    DoubleReal sigma1(tr1.getCentroidSD());
+//    DoubleReal sigma2(tr2.getCentroidSD());
+
+//    // DoubleReal sigma = std::sqrt(sigma1*sigma1 + sigma2*sigma2);
+//    DoubleReal sigma(std::sqrt(std::exp(2*std::log(diff_sigma)) + std::exp(2*std::log(sigma1)) + std::exp(2*std::log(sigma2))));
+
+
+//    // std::cout << "mass: " << mz1 << " diffmz: " << diff_mz-center << " sigma: " << sigma << std::endl ;
+
+
+//    DoubleReal mz_score(0.0);
+
+//    if (std::fabs(diff_mz - center) < 3*sigma)
+//    {
+//        mz_score = std::exp(-0.5*((diff_mz - center)/sigma)*((diff_mz - center)/sigma));
+//    }
+
+//    return mz_score;
+//}
+
 
 DoubleReal FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2)
 {
@@ -481,8 +527,8 @@ DoubleReal FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace&
 
     DoubleReal diff_rt(std::fabs(rt2 - rt1));
 
-//    DoubleReal sigma1(chrom_fwhm_/2.3548);
-//    DoubleReal sigma(std::sqrt(2*sigma1*sigma1));
+    //    DoubleReal sigma1(chrom_fwhm_/2.3548);
+    //    DoubleReal sigma(std::sqrt(2*sigma1*sigma1));
 
     //DoubleReal sigma(1.0);
     DoubleReal sigma(chrom_fwhm_*0.2);
@@ -679,7 +725,7 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
                 // disable intensity scoring for now...
                 DoubleReal int_score(1.0);
 
-                std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << "\t" "ch: " << charge << " isopos: " << iso_pos << " rt: " << rt_score << "mz: " << mz_score << std::endl;
+                // std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << "\t" "ch: " << charge << " isopos: " << iso_pos << " rt: " << rt_score << "mz: " << mz_score << std::endl;
 
                 DoubleReal total_pair_score(0.0);
 
@@ -704,7 +750,7 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
                 fh_tmp.setScore(fh_tmp.getScore() + best_so_far);
                 fh_tmp.setCharge(charge);
                 //std::cout << "adding " << fh_tmp.getLabel() << std::endl;
-                std::cout << "RTDIFF: " << candidates[0]->getCentroidRT() - candidates[best_idx]->getCentroidRT() << std::endl;
+
                 output_hypos.push_back(fh_tmp);
                 last_iso_idx = best_idx;
             }
@@ -785,7 +831,7 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
             }
 
 
-            std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
+            // std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
         }
 
 
@@ -823,7 +869,7 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
 
                     result = disable_isotope_filtering_ ? true : isLegalIsotopePattern_(feat_hypos[hypo_idx]);
 
-                    std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
+                    // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
                 }
 
                 if (result) {

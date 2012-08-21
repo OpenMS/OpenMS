@@ -732,7 +732,31 @@ void MassTrace::updateWeightedMeanMZ()
     centroid_mz_ = weighted_sum/total_weight;
 }
 
+void MassTrace::updateWeightedMZsd()
+{
+    if (trace_peaks_.empty())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... std of MZ undefined!", String(trace_peaks_.size()));
+    }
 
+    DoubleReal weighted_sum(0.0);
+    DoubleReal total_weight(0.0);
+
+    for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+    {
+        DoubleReal w_i = (*l_it).getIntensity();
+        total_weight += w_i;
+        weighted_sum += w_i * std::exp(2*std::log(std::abs((*l_it).getMZ() - centroid_mz_)));
+    }
+
+    if (total_weight < std::numeric_limits<DoubleReal>::epsilon())
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "All weights were equal to zero! Empty trace? Aborting...", String(total_weight));
+    }
+
+    centroid_sd_ = std::sqrt(weighted_sum)/std::sqrt(total_weight);
+
+}
 
 
 

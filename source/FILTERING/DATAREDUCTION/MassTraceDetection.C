@@ -233,7 +233,7 @@ void  updateWeightedSDEstimateRobust(PeakType p, const DoubleReal& mean_t1, Doub
     DoubleReal denom(0.0), denom1(0.0), denom2(0.0), weights_sum(0.0);
 
     denom1 = std::log(last_weights_sum) + 2*std::log(sd_t);
-    denom2 = std::log(p.getIntensity()) + 2*std::log(p.getMZ() - mean_t1);
+    denom2 = std::log(p.getIntensity()) + 2*std::log(std::abs(p.getMZ() - mean_t1));
 
     denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
     weights_sum = last_weights_sum + p.getIntensity();

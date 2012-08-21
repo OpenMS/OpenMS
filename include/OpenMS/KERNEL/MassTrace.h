@@ -261,6 +261,7 @@ public:
     /// Compute & update centroid m/z as weighted mean of m/z values.
     void updateWeightedMeanMZ();
 
+    void updateWeightedMZsd();
 
 private:
     /// Actual MassTrace container for doing centroid calculation, peak width estimation etc.

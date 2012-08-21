@@ -269,6 +269,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
                     //new_mt.updateWeightedMeanRT();
                     new_mt.updateSmoothedMaxRT();
                     new_mt.updateWeightedMeanMZ();
+                    new_mt.updateWeightedMZsd();
 
 
                     single_mtraces.push_back(new_mt);
@@ -310,6 +311,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
                 //new_mt.updateWeightedMeanRT();
                 new_mt.updateSmoothedMaxRT();
                 new_mt.updateWeightedMeanMZ();
+                new_mt.updateWeightedMZsd();
 
 
 
