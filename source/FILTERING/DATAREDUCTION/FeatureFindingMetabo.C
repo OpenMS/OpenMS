@@ -394,22 +394,22 @@ DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace&
     // DoubleReal sigma = 0.02017855;
 
     DoubleReal sigma_mult(3.0);
-    DoubleReal C13_diff(1.003355);
+    DoubleReal center((1.001156*(DoubleReal)iso_pos + 0.001349)/(DoubleReal)charge);
 
     DoubleReal mz1(tr1.getCentroidMZ());
     DoubleReal mz2(tr2.getCentroidMZ());
 
-    DoubleReal centered_mz(std::fabs(mz2 - mz1) - (C13_diff*(DoubleReal)iso_pos)/(DoubleReal)charge);
+    DoubleReal centered_mz(std::fabs(mz2 - mz1) - center);
 
     // setup gaussian mixture model for valid isotopic m/z distances
     //DoubleReal iso_mz_diff(1.002245);
 
     // std::cout << "iso_pos: " << iso_pos << " charge: " << charge << " mz_diff" << centered_mz << std::endl;
 
-    DoubleReal mu1(-0.001210044);
-    DoubleReal sigma1(0.0009562774);
-    DoubleReal mu2(-0.008932877);
-    DoubleReal sigma2(0.0021871884);
+    DoubleReal mu1(0.000981383);
+    DoubleReal sigma1(0.001657985);
+    DoubleReal mu2(-0.00559452);
+    DoubleReal sigma2(0.00118085);
 
     DoubleReal mt_sigma1(tr1.getCentroidSD());
     DoubleReal mt_sigma2(tr2.getCentroidSD());
