@@ -220,6 +220,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
         if (mt.computeSNR(true, noise_threshold_int_) > chrom_peak_snr_)
         {
             mt.updateSmoothedMaxRT();
+            mt.estimateFWHM(true);
             single_mtraces.push_back(mt);
         }
     }
@@ -270,6 +271,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
                     new_mt.updateSmoothedMaxRT();
                     new_mt.updateWeightedMeanMZ();
                     new_mt.updateWeightedMZsd();
+                    new_mt.estimateFWHM(true);
 
 
                     single_mtraces.push_back(new_mt);
@@ -312,6 +314,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
                 new_mt.updateSmoothedMaxRT();
                 new_mt.updateWeightedMeanMZ();
                 new_mt.updateWeightedMZsd();
+                new_mt.estimateFWHM(true);
 
 
 

@@ -26,6 +26,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -177,8 +178,12 @@ FeatureFindingMetabo::FeatureFindingMetabo()
     defaults_.setValue("chrom_fwhm" , 5.0 , "Expected chromatographic peak width (in seconds).");    // 3.0
     defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", StringList::create("advanced"));
     defaults_.setValidStrings("report_summed_ints", StringList::create(("false,true")));
-    defaults_.setValue("disable_isotope_filtering", "false", "Disable metabolite isotope filtering.", StringList::create("advanced"));
+    defaults_.setValue("disable_isotope_filtering", "false", "Disable isotope filtering.", StringList::create("advanced"));
     defaults_.setValidStrings("disable_isotope_filtering", StringList::create(("false,true")));
+    defaults_.setValue("isotope_model", "metabolites", "Change type of isotope model.", StringList::create("advanced"));
+    defaults_.setValidStrings("isotope_model", StringList::create(("metabolites,peptides")));
+
+
     defaults_.setValue("use_smoothed_intensities", "false", "Use LOWESS intensities instead of raw intensities.", StringList::create("advanced"));
     defaults_.setValidStrings("use_smoothed_intensities", StringList::create(("false,true")));
 
@@ -210,9 +215,61 @@ void FeatureFindingMetabo::updateMembers_()
 
     report_summed_ints_ = param_.getValue("report_summed_ints").toBool();
     disable_isotope_filtering_ = param_.getValue("disable_isotope_filtering").toBool();
+    isotope_model_ = param_.getValue("isotope_model");
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
 }
 
+
+DoubleReal FeatureFindingMetabo::computeAveragineSimScore(const std::vector<DoubleReal>& hypo_ints, const DoubleReal& mol_weight)
+{
+//    if (feat_hypo.getSize() == 1)
+//    {
+//        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
+//    }
+
+
+    IsotopeDistribution isodist(hypo_ints.size());
+    isodist.estimateFromPeptideWeight(mol_weight);
+    // isodist.renormalize();
+
+    std::vector<std::pair<Size, DoubleReal> > averagine_dist = isodist.getContainer();
+
+    // std::vector<DoubleReal> hypo_ints = feat_hypo.getAllIntensities();
+
+    DoubleReal max_int(0.0), theo_max_int(0.0);
+
+    for (Size i = 0; i < hypo_ints.size(); ++i)
+    {
+        if (hypo_ints[i] > max_int)
+        {
+            max_int = hypo_ints[i];
+        }
+
+        if (averagine_dist[i].second > theo_max_int)
+        {
+            theo_max_int = averagine_dist[i].second;
+        }
+    }
+
+
+
+    std::vector<DoubleReal> averagine_ratios, hypo_isos;
+
+    for (Size i = 0; i < hypo_ints.size(); ++i)
+    {
+        // std::cout << "iso ratios for mass " << mol_weight << " " << hypo_ints[i]/max_int << " / " << averagine_dist[i].second/theo_max_int << std::endl;
+        averagine_ratios.push_back(averagine_dist[i].second/theo_max_int);
+        hypo_isos.push_back(hypo_ints[i]/max_int);
+    }
+
+    DoubleReal iso_score = computeCosineSim(averagine_ratios, hypo_isos);
+    // std::cout << "score: " << iso_score << std::endl;
+
+
+
+
+    return iso_score;
+}
 
 bool FeatureFindingMetabo::isLegalIsotopePattern_(FeatureHypothesis& feat_hypo)
 {
@@ -519,29 +576,75 @@ DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace&
 //}
 
 
+//DoubleReal FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2)
+//{
+//    DoubleReal rt1(tr1.getCentroidRT());
+//    DoubleReal rt2(tr2.getCentroidRT());
+
+
+//    DoubleReal diff_rt(std::fabs(rt2 - rt1));
+
+//    //    DoubleReal sigma1(chrom_fwhm_/2.3548);
+//    //    DoubleReal sigma(std::sqrt(2*sigma1*sigma1));
+
+//    //DoubleReal sigma(1.0);
+//    DoubleReal sigma(chrom_fwhm_*0.2);
+
+
+//    if (diff_rt > 3*sigma)
+//    {
+//        return 0.0;
+//    }
+
+
+//    return std::exp(-0.5*((diff_rt)/sigma)*((diff_rt)/sigma));
+//}
+
 DoubleReal FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2)
 {
-    DoubleReal rt1(tr1.getCentroidRT());
-    DoubleReal rt2(tr2.getCentroidRT());
+    std::map<DoubleReal, std::vector<DoubleReal> > coinciding_rts;
+
+    std::pair<Size, Size> tr1_fwhm_idx(tr1.getFWHMborders());
+    std::pair<Size, Size> tr2_fwhm_idx(tr2.getFWHMborders());
+
+//    std::cout << tr1_fwhm_idx.first << " " << tr1_fwhm_idx.second << std::endl;
+//    std::cout << tr2_fwhm_idx.first << " " << tr2_fwhm_idx.second << std::endl;
+
+//    Size tr1_fwhm_size(tr1_fwhm_idx.second - tr1_fwhm_idx.first);
+//    Size tr2_fwhm_size(tr2_fwhm_idx.second - tr2_fwhm_idx.first);
 
 
-    DoubleReal diff_rt(std::fabs(rt2 - rt1));
+//    DoubleReal max_length = (tr1_fwhm_size > tr2_fwhm_size) ? tr1_fwhm_size : tr2_fwhm_size;
 
-    //    DoubleReal sigma1(chrom_fwhm_/2.3548);
-    //    DoubleReal sigma(std::sqrt(2*sigma1*sigma1));
-
-    //DoubleReal sigma(1.0);
-    DoubleReal sigma(chrom_fwhm_*0.2);
-
-
-    if (diff_rt > 3*sigma)
+    for (Size i = tr1_fwhm_idx.first; i <= tr1_fwhm_idx.second; ++i)
     {
-        return 0.0;
+        coinciding_rts[tr1[i].getRT()].push_back(tr1[i].getIntensity());
     }
 
+    for (Size i = tr2_fwhm_idx.first; i <= tr2_fwhm_idx.second; ++i)
+    {
+        coinciding_rts[tr2[i].getRT()].push_back(tr2[i].getIntensity());
+    }
 
-    return std::exp(-0.5*((diff_rt)/sigma)*((diff_rt)/sigma));
+    std::vector<DoubleReal> x, y;
+
+    for (std::map<DoubleReal, std::vector<DoubleReal> >::const_iterator m_it = coinciding_rts.begin(); m_it != coinciding_rts.end(); ++m_it)
+    {
+        if (m_it->second.size() == 2)
+        {
+            x.push_back(m_it->second[0]);
+            y.push_back(m_it->second[1]);
+        }
+    }
+
+//    if (x.size() < std::floor(0.8*max_length))
+//    {
+//        return 0.0;
+//    }
+
+    return computeCosineSim(x, y);
 }
+
 
 
 DoubleReal FeatureFindingMetabo::computeCosineSim(const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y)
@@ -691,6 +794,8 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
 
     for (Size charge = charge_lower_bound_; charge <= charge_upper_bound_; ++charge)
     {
+     //   std::cout << "checking charge: " << std::endl;
+
         FeatureHypothesis fh_tmp;
         fh_tmp.setScore(0.0);
 
@@ -702,12 +807,13 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
 
         Size last_iso_idx(0);
 
-        // Size iso_pos_max(std::floor(charge * local_mz_range_));
-        Size iso_pos_max(6);
+        Size iso_pos_max(std::floor(charge * local_mz_range_));
+        // Size iso_pos_max(6);
 
         // std::cout << "isoposmax: " << iso_pos_max << std::endl;
 
         for (Size iso_pos = 1; iso_pos <= iso_pos_max; ++iso_pos) {
+
             DoubleReal best_so_far(0.0);
             Size best_idx(0);
 
@@ -725,7 +831,15 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
                 // disable intensity scoring for now...
                 DoubleReal int_score(1.0);
 
-                // std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << "\t" "ch: " << charge << " isopos: " << iso_pos << " rt: " << rt_score << "mz: " << mz_score << std::endl;
+                if (isotope_model_ == "peptides")
+                {
+                    std::vector<DoubleReal> tmp_ints(fh_tmp.getAllIntensities());
+                    tmp_ints.push_back(candidates[mt_idx]->getIntensity(true));
+                    int_score = computeAveragineSimScore(tmp_ints, candidates[mt_idx]->getCentroidMZ() * charge);
+                }
+
+
+                std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << "\t" "ch: " << charge << " isopos: " << iso_pos << " rt: " << rt_score << "mz: " << mz_score << "int: " << int_score << std::endl;
 
                 DoubleReal total_pair_score(0.0);
 
@@ -747,7 +861,7 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
             if (best_so_far > 0.0)
             {
                 fh_tmp.addMassTrace(*candidates[best_idx]);
-                fh_tmp.setScore(fh_tmp.getScore() + best_so_far);
+                fh_tmp.setScore(fh_tmp.getScore() + best_so_far /* + fh_tmp.getSize() */);
                 fh_tmp.setCharge(charge);
                 //std::cout << "adding " << fh_tmp.getLabel() << std::endl;
 
@@ -821,18 +935,18 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
         std::cout << "size of hypotheses: " << feat_hypos.size() << std::endl;
 
         // output all hypotheses:
-        for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
-        {
-            bool legal;
+//        for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
+//        {
+//            bool legal;
 
-            if (feat_hypos[hypo_idx].getSize() > 1)
-            {
-                legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
-            }
+//            if (feat_hypos[hypo_idx].getSize() > 1)
+//            {
+//                legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
+//            }
 
 
-            // std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
-        }
+//            // std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
+//        }
 
 
 
@@ -866,8 +980,17 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
                 {
                     DoubleReal mono_int(feat_hypos[hypo_idx].getAllIntensities()[0]);
 
-
-                    result = disable_isotope_filtering_ ? true : isLegalIsotopePattern_(feat_hypos[hypo_idx]);
+                    if (!disable_isotope_filtering_)
+                    {
+                        if (isotope_model_ == "metabolites")
+                        {
+                            result = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
+                        }
+                        else if (isotope_model_ == "peptides")
+                        {
+                            result = true;
+                        }
+                    }
 
                     // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
                 }

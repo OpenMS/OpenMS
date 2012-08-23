@@ -38,8 +38,10 @@ MassTrace::MassTrace()
       centroid_sd_(),
       label_(),
       smoothed_intensities_(),
-      fwhm_num_scans_(),
-      scan_time_(1.0)
+      //fwhm_num_scans_(),
+      scan_time_(1.0),
+      fwhm_start_idx_(0),
+      fwhm_end_idx_(0)
 {
 }
 
@@ -72,8 +74,10 @@ MassTrace::MassTrace(const MassTrace& mt)
       centroid_sd_(mt.centroid_sd_),
       label_(mt.label_),
       smoothed_intensities_(mt.smoothed_intensities_),
-      fwhm_num_scans_(mt.fwhm_num_scans_),
-      scan_time_(mt.scan_time_)
+      //fwhm_num_scans_(mt.fwhm_num_scans_),
+      scan_time_(mt.scan_time_),
+      fwhm_start_idx_(mt.fwhm_start_idx_),
+      fwhm_end_idx_(mt.fwhm_end_idx_)
 {
 }
 
@@ -87,10 +91,22 @@ MassTrace& MassTrace::operator= (const MassTrace& rhs)
     centroid_sd_ = rhs.centroid_sd_;
     label_ = rhs.label_;
     smoothed_intensities_ = rhs.smoothed_intensities_;
-    fwhm_num_scans_ = rhs.fwhm_num_scans_;
+    // fwhm_num_scans_ = rhs.fwhm_num_scans_;
     scan_time_ = rhs.scan_time_;
+    fwhm_start_idx_ = rhs.fwhm_start_idx_;
+    fwhm_end_idx_ = rhs.fwhm_end_idx_;
 
     return *this;
+}
+
+PeakType& MassTrace::operator[](const Size& mt_idx)
+{
+    return trace_peaks_[mt_idx];
+}
+
+const PeakType& MassTrace::operator[](const Size& mt_idx) const
+{
+    return trace_peaks_[mt_idx];
 }
 
 DoubleReal MassTrace::computePeakArea()
@@ -254,7 +270,7 @@ Size MassTrace::findMaxByIntPeak(bool use_smoothed_ints = false) const
     return max_idx;
 }
 
-DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints = false) const
+DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints = false)
 {
     Size max_idx(this->findMaxByIntPeak(use_smoothed_ints));
 
@@ -290,10 +306,24 @@ DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints = false) const
 
     // fwhm_num_scans_ = right_border - left_border + 1;
 
+
+
+    fwhm_start_idx_ = left_border;
+    fwhm_end_idx_ = right_border;
     return std::fabs(trace_peaks_[right_border].getRT() - trace_peaks_[left_border].getRT());
 }
 
+DoubleReal MassTrace::computeFWHMarea()
+{
+    DoubleReal t_area(0.0);
 
+    for (Size i = fwhm_start_idx_; i <= fwhm_end_idx_; ++i)
+    {
+        t_area += smoothed_intensities_[i];
+    }
+
+    return t_area;
+}
 
 
 
@@ -534,6 +564,18 @@ void MassTrace::findLocalExtrema(const Size& num_neighboring_peaks, std::vector<
 
 
     return ;
+}
+
+DoubleReal MassTrace::getIntensity(bool smoothed)
+{
+//    if (smoothed)
+//    {
+//        return computeSmoothedPeakArea();
+//    }
+
+//    return computePeakArea();
+
+    return computeFWHMarea();
 }
 
 ConvexHull2D MassTrace::getConvexhull() const

@@ -72,6 +72,11 @@ public:
     /// Assignment operator
     MassTrace& operator= (const MassTrace&);
 
+    /// Random access operator
+    PeakType& operator[](const Size& mt_idx);
+    const PeakType& operator[](const Size& mt_idx) const;
+
+
     /** @name Iterators
       @brief Enables mutable/immutable access to the mass trace's peaks.
         */
@@ -178,6 +183,15 @@ public:
         centroid_sd_ = tmp_sd;
     }
 
+    std::pair<Size, Size> getFWHMborders()
+    {
+        return std::make_pair(fwhm_start_idx_, fwhm_end_idx_);
+    }
+
+    std::pair<Size, Size> getFWHMborders() const
+    {
+        return std::make_pair(fwhm_start_idx_, fwhm_end_idx_);
+    }
 
     /// Gets smoothed intensities (empty if no smoothing was explicitly done beforehand!).
     std::vector<DoubleReal> getSmoothedIntensities()
@@ -205,16 +219,16 @@ public:
     DoubleReal computeSNR(bool, DoubleReal);
 
     /// Return estimated number of peaks spanning the full-width-at-half-maximum (previous estimation needed!).
-    Size getFWHMScansNum()
-    {
-        return fwhm_num_scans_;
-    }
+//    Size getFWHMScansNum()
+//    {
+//        return fwhm_num_scans_;
+//    }
 
-    /// Set estimated number of peaks spanning the full-width-at-half-maximum.
-    void setFWHMScansNum(Size r_fwhm)
-    {
-        fwhm_num_scans_ = r_fwhm;
-    }
+//    /// Set estimated number of peaks spanning the full-width-at-half-maximum.
+//    void setFWHMScansNum(Size r_fwhm)
+//    {
+//        fwhm_num_scans_ = r_fwhm;
+//    }
 
     /// Get scan time of mass trace
     DoubleReal getScanTime()
@@ -232,10 +246,14 @@ public:
     Size findMaxByIntPeak(bool) const;
 
     /// Estimate FWHM of chromatographic peak in seconds (based on either raw or smoothed intensities). As a side-effect, the rough estimation of the number of scans within the FWHM range will be updated (see setFWHMScansNum).
-    DoubleReal estimateFWHM(bool) const;
+    DoubleReal estimateFWHM(bool);
+
+    DoubleReal computeFWHMarea();
 
     /// Find local extrema within mass trace and return their indices.
     void findLocalExtrema(const Size&, std::vector<Size>&, std::vector<Size>&);
+
+    DoubleReal getIntensity(bool);
 
     /// Return the mass trace's convex hull.
     ConvexHull2D getConvexhull() const;
@@ -285,8 +303,12 @@ private:
     /// Scan time (time difference between two consecutive scans)
     DoubleReal scan_time_;
 
+    Size fwhm_start_idx_;
+    Size fwhm_end_idx_;
+
+
     /// Rough estimate of a chromatographic peak's width (number of scans within the FWHM range).
-    Size fwhm_num_scans_;
+    // Size fwhm_num_scans_;
 };
 
 }

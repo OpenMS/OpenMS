@@ -83,79 +83,79 @@ void MassTraceDetection::updateIterativeWeightedMeanMZ(const DoubleReal& added_m
 }
 
 
-void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& filt_mtraces)
-{
-    std::multimap<Size, Size> histo_map;
+//void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& filt_mtraces)
+//{
+//    std::multimap<Size, Size> histo_map;
 
-    for (Size i = 0; i < mt_vec.size(); ++i)
-    {
-        mt_vec[i].estimateFWHM(false);
-        Size fwhm(mt_vec[i].getFWHMScansNum());
+//    for (Size i = 0; i < mt_vec.size(); ++i)
+//    {
+//        mt_vec[i].estimateFWHM(false);
+//        Size fwhm(mt_vec[i].getFWHMScansNum());
 
-        histo_map.insert(std::make_pair(fwhm, i));
-    }
+//        histo_map.insert(std::make_pair(fwhm, i));
+//    }
 
-    // compute median peak width
-    std::vector<DoubleReal> pw_vec;
-    std::vector<Size> pw_idx_vec;
+//    // compute median peak width
+//    std::vector<DoubleReal> pw_vec;
+//    std::vector<Size> pw_idx_vec;
 
-    for (std::multimap<Size, Size>::const_iterator c_it = histo_map.begin(); c_it != histo_map.end(); ++c_it)
-    {
-        pw_vec.push_back(c_it->first);
-        pw_idx_vec.push_back(c_it->second);
-    }
+//    for (std::multimap<Size, Size>::const_iterator c_it = histo_map.begin(); c_it != histo_map.end(); ++c_it)
+//    {
+//        pw_vec.push_back(c_it->first);
+//        pw_idx_vec.push_back(c_it->second);
+//    }
 
-    // Size pw_vec_size = pw_vec.size();
-    DoubleReal pw_median(Math::median(pw_vec.begin(), pw_vec.end(), true));
+//    // Size pw_vec_size = pw_vec.size();
+//    DoubleReal pw_median(Math::median(pw_vec.begin(), pw_vec.end(), true));
 
 
-    // compute median of absolute deviances (MAD)
-    std::vector<DoubleReal> abs_devs;
+//    // compute median of absolute deviances (MAD)
+//    std::vector<DoubleReal> abs_devs;
 
-    for (Size pw_i = 0; pw_i < pw_vec.size(); ++pw_i)
-    {
-        abs_devs.push_back(std::fabs(pw_vec[pw_i] - pw_median));
-    }
+//    for (Size pw_i = 0; pw_i < pw_vec.size(); ++pw_i)
+//    {
+//        abs_devs.push_back(std::fabs(pw_vec[pw_i] - pw_median));
+//    }
 
-    // Size abs_devs_size = abs_devs.size();
-    DoubleReal pw_mad(Math::median(abs_devs.begin(), abs_devs.end(), false));
+//    // Size abs_devs_size = abs_devs.size();
+//    DoubleReal pw_mad(Math::median(abs_devs.begin(), abs_devs.end(), false));
 
-    DoubleReal lower_pw_bound(0.0);
+//    DoubleReal lower_pw_bound(0.0);
 
-    if (pw_median - 2*pw_mad > 0.0)
-    {
-        lower_pw_bound = pw_median - 2*pw_mad;
-    }
+//    if (pw_median - 2*pw_mad > 0.0)
+//    {
+//        lower_pw_bound = pw_median - 2*pw_mad;
+//    }
 
-    // DoubleReal upper_pw_bound(std::floor(pw_median + 2*pw_mad));
+//    // DoubleReal upper_pw_bound(std::floor(pw_median + 2*pw_mad));
 
-    for (Size i = 0; i < mt_vec.size(); ++i)
-    {
-        // set to lowest peak width according to distribution
-        if (pw_vec[i] < lower_pw_bound)
-        {
-            if (mt_vec[pw_idx_vec[i]].getSize() >= lower_pw_bound)
-            {
-                if (mt_vec[pw_idx_vec[i]].getSize() >= pw_median)
-                {
-                    mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)pw_median);
-                }
-                else
-                {
-                    mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)lower_pw_bound); // override "false" pw estimation
-                }
+//    for (Size i = 0; i < mt_vec.size(); ++i)
+//    {
+//        // set to lowest peak width according to distribution
+//        if (pw_vec[i] < lower_pw_bound)
+//        {
+//            if (mt_vec[pw_idx_vec[i]].getSize() >= lower_pw_bound)
+//            {
+//                if (mt_vec[pw_idx_vec[i]].getSize() >= pw_median)
+//                {
+//                    mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)pw_median);
+//                }
+//                else
+//                {
+//                    mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)lower_pw_bound); // override "false" pw estimation
+//                }
 
-                filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
-            }
-        }
-        else
-        {
-            filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
-        }
-    }
+//                filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
+//            }
+//        }
+//        else
+//        {
+//            filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
+//        }
+//    }
 
-    return ;
-}
+//    return ;
+//}
 
 void MassTraceDetection::run(MSExperiment<Peak1D>::ConstAreaIterator& begin, MSExperiment<Peak1D>::ConstAreaIterator& end, std::vector<MassTrace>& found_masstraces)
 {
@@ -783,7 +783,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
             new_trace.setCentroidSD(ftl_sd);
 
             new_trace.setLabel("T" + tr_num);
-            new_trace.setFWHMScansNum(min_fwhm_scans);
+            // new_trace.setFWHMScansNum(min_fwhm_scans);
 
             peaks_detected += new_trace.getSize();
             this->setProgress(peaks_detected);
