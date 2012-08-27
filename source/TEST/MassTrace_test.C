@@ -353,20 +353,20 @@ test_mt2.updateWeightedMeanRT();
 test_mt2.updateWeightedMeanMZ();
 
 
-START_SECTION((void setFWHMScansNum(Size r_fwhm)))
-{
-    test_mt.setFWHMScansNum(2);
-    TEST_EQUAL(test_mt.getFWHMScansNum(), 2);
-}
-END_SECTION
+//START_SECTION((void setFWHMScansNum(Size r_fwhm)))
+//{
+//    test_mt.setFWHMScansNum(2);
+//    TEST_EQUAL(test_mt.getFWHMScansNum(), 2);
+//}
+//END_SECTION
 
 /////
 
-START_SECTION((Size getFWHMScansNum()))
-{
-    NOT_TESTABLE; // see setFWHMScansNum
-}
-END_SECTION
+//START_SECTION((Size getFWHMScansNum()))
+//{
+//    NOT_TESTABLE; // see setFWHMScansNum
+//}
+//END_SECTION
 
 /////
 
@@ -407,7 +407,7 @@ START_SECTION((DoubleReal estimateFWHM(bool)))
     TEST_REAL_SIMILAR(test_fwhm1, 4.01);
     TEST_REAL_SIMILAR(test_fwhm2, 4.01);
 
-    TEST_EQUAL(test_mt.getFWHMScansNum(), 5);
+    // TEST_EQUAL(test_mt.getFWHMScansNum(), 5);
 }
 END_SECTION
 
@@ -473,7 +473,7 @@ START_SECTION((MassTrace(const MassTrace &)))
     }
 
 
-    TEST_EQUAL(copy_mt.getFWHMScansNum(), test_mt.getFWHMScansNum());
+    // TEST_EQUAL(copy_mt.getFWHMScansNum(), test_mt.getFWHMScansNum());
 }
 END_SECTION
 
@@ -507,7 +507,7 @@ START_SECTION((MassTrace& operator=(const MassTrace &)))
     }
 
 
-    TEST_EQUAL(copy_mt.getFWHMScansNum(), test_mt.getFWHMScansNum());
+    // TEST_EQUAL(copy_mt.getFWHMScansNum(), test_mt.getFWHMScansNum());
 }
 END_SECTION
 

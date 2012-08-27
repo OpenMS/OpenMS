@@ -120,18 +120,18 @@ END_SECTION
 
 std::vector<MassTrace> filt;
 
-START_SECTION((void filterByPeakWidth(std::vector< MassTrace > &, std::vector< MassTrace > &)))
-{
-    test_mtd.filterByPeakWidth(output_mt, filt);
+//START_SECTION((void filterByPeakWidth(std::vector< MassTrace > &, std::vector< MassTrace > &)))
+//{
+//    test_mtd.filterByPeakWidth(output_mt, filt);
 
-    TEST_EQUAL(output_mt.size(), filt.size());
+//    TEST_EQUAL(output_mt.size(), filt.size());
 
-    for (Size i = 0; i < output_mt.size(); ++i)
-    {
-        TEST_EQUAL(output_mt[i].getFWHMScansNum(), filt[i].getFWHMScansNum());
-    }
-}
-END_SECTION
+////    for (Size i = 0; i < output_mt.size(); ++i)
+////    {
+////        TEST_EQUAL(output_mt[i].getFWHMScansNum(), filt[i].getFWHMScansNum());
+////    }
+//}
+//END_SECTION
 
 MSExperiment<Peak1D>::ConstAreaIterator mt_it1 = input.areaBeginConst(342.0, 375.0, 437.1, 437.4);
 MSExperiment<Peak1D>::ConstAreaIterator mt_it2 = input.areaBeginConst(342.0, 375.0, 438.2, 438.4);

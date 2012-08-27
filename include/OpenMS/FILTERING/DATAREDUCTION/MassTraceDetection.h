@@ -67,7 +67,7 @@ public:
     void updateIterativeWeightedMeanMZ(const DoubleReal&, const DoubleReal&, DoubleReal&, DoubleReal&, DoubleReal&);
 
     /// Computes a rough estimate of the average peak width of the experiment (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviances).
-    void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
+    // void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
 
     /** @name Main computation methods
         */
