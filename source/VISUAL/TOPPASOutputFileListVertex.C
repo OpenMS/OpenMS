@@ -34,6 +34,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
+#include <QtCore>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -224,14 +225,26 @@ namespace OpenMS
               std::cerr << "Could not delete old output file " << String(file_to) << " before overwriting with new one." << std::endl;
             }
           }
-          if (!QFile::copy(file_from, file_to))
+
+          // running the copy() in an extra thread, such that the GUI stays responsive
+          QFuture<bool> future = QtConcurrent::run(copy_, file_from, file_to);
+          QMutex mutex; mutex.lock();
+          QWaitCondition qwait;
+          while (!future.isFinished()) 
           {
-            std::cerr << "Could not copy tmp output file " << String(file_from) << " to " << String(file_to) << std::endl;
+            qApp->processEvents(); // GUI responsiveness
+            qwait.wait(&mutex, 25); // block for 25ms (enough for GUI responsiveness), so CPU usage remains low
           }
-          else
+          mutex.unlock();
+
+          if (bool(future.result()))
           {
             ++files_written_;
             emit outputFileWritten(file_to);
+          }
+          else
+          {
+            LOG_ERROR << "Could not copy tmp output file " << String(file_from) << " to " << String(file_to) << std::endl;
           }
         }
         update(boundingRect()); // repaint
@@ -242,6 +255,11 @@ namespace OpenMS
     emit iAmDone();
 
     __DEBUG_END_METHOD__
+  }
+
+  bool TOPPASOutputFileListVertex::copy_(const QString& from, const QString& to)
+  {
+    return QFile::copy(from, to);
   }
 
   void TOPPASOutputFileListVertex::inEdgeHasChanged()
