@@ -253,6 +253,7 @@ namespace OpenMS
     }
 
     // Painting legend
+    painter->setFont(QFont(painter->font().family(), font_size));
     if (show_legend && legend != "")
     {
       // style settings
