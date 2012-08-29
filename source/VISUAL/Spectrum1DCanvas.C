@@ -38,23 +38,23 @@
 #include <QtSvg/QSvgGenerator>
 
 // OpenMS
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/DIALOGS/Spectrum1DPrefDialog.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
-#include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/DIALOGS/Spectrum1DPrefDialog.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
 
 #include <iostream>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -77,12 +77,13 @@ namespace OpenMS
     alignment_score_(0),
     is_swapped_(true)
   {
-    //Paramater handling
+    //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
     defaults_.setValue("icon_color", "#000000", "Peak icon color.");
     defaults_.setValue("peak_color", "#0000ff", "Peak color.");
     defaults_.setValue("annotation_color", "#000055", "Annotation color.");
     defaults_.setValue("background_color", "#ffffff", "Background color.");
+    defaults_.setValue("show_legend", "false", "Annotate each layer with its name on the canvas.");
     defaultsToParam_();
     setName("Spectrum1DCanvas");
     setParameters(preferences);
@@ -797,6 +798,22 @@ namespace OpenMS
 
         //draw all annotation items
         drawAnnotations(i, *painter);
+
+        // draw a legend
+        if (param_.getValue("show_legend").toBool())
+        {
+          SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
+          double xpos = getVisibleArea().maxX() - (getVisibleArea().maxX() - getVisibleArea().minX())*0.1;
+          SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(xpos), PeakType::IntensityLess());
+          if (tmp != spectrum.end())
+          {
+            PointType position(xpos, std::max<double>(tmp->getIntensity()-100, tmp->getIntensity()*0.8));
+            Annotation1DPeakItem item = Annotation1DPeakItem(position, layer.name.toQString(), QColor(layer.param.getValue("peak_color").toQString()));
+            item.draw(this, *painter);
+          }
+        }
+
+
       }
     }
 

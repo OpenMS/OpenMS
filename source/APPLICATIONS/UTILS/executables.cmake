@@ -11,11 +11,12 @@ DigestorMotif
 ERPairFinder
 FFEval
 FuzzyDiff
+IDEvaluation
 IDExtractor
 IDMassAccuracy
 IDSplitter
 IDDecoyProbability
-IdXMLEvaluation
+RTEvaluation
 ImageCreator
 INIUpdater
 LabeledEval
@@ -35,6 +36,7 @@ QCCalculator
 
 ## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
 set(UTILS_executables_with_GUIlib
+IDEvaluation
 ImageCreator
 INIUpdater
 )

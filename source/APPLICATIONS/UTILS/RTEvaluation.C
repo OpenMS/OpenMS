@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -42,15 +42,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page UTILS_IdXMLEvaluation IdXMLEvaluation
+	@page UTILS_RTEvaluation RTEvaluation
 	
-	@brief Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.
+	@brief Application that evaluates TPs (true positives), TNs, FPs, and FNs for an IdXML file with predicted RTs.
 	
 	The method needs an IdXML file with IDs and predicted RTs. The second input file is a file containing
 	the protein sequences which are considered as positive hits. This tool then evaluates the tps, fps, tns, 
 	and fns for the unfiltered IDs, for the IDs filtered in first RT dimension, for the IDs filtered in
 	the second RT dimension as well as for the IDs filtered in both dimensions. The output is a table with
-	either csv format (can be imported by excel) or latex format (to include in tables in you latex manuscripts).
+	either csv format (can be imported by Excel) or latex format (to include in tables in your latex manuscripts).
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_IdXMLEvaluation.cli
@@ -66,7 +66,7 @@ class TOPPIdXMLEvaluation
 {
 	public:
 		TOPPIdXMLEvaluation()
-			: TOPPBase("IdXMLEvaluation","Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.",false)
+			: TOPPBase("RTEvaluation","Application that evaluates TPs (true positives), TNs, FPs, and FNs for an IdXML file with predicted RTs.",false)
 		{
 			
 		}
@@ -76,14 +76,15 @@ class TOPPIdXMLEvaluation
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file");
+			setValidFormats_("in", StringList::create("idXML"));
 			registerOutputFile_("out","<file>","","output file ");
-			registerInputFile_("sequences_file","<file>","","filename of a fasta file containing protein sequences.\n"
+			registerInputFile_("sequences_file","<file>","","Filename of a fasta file containing protein sequences.\n"
 																												 "All peptides that are not a substring of a sequence in this file are considered as false",false);
 			registerFlag_("latex", "indicates whether the output file format of the table should be latex or csv");
-			registerDoubleOption_("p_value_dim_1","<float>",0.01,"significance level of first dimension RT filter",false);
+			registerDoubleOption_("p_value_dim_1","<float>",0.01,"Significance level of first dimension RT filter",false);
 			setMinFloat_("p_value_dim_1", 0);
 			setMaxFloat_("p_value_dim_1", 1);
-			registerDoubleOption_("p_value_dim_2","<float>",0.05,"significance level of second dimension RT filter",false);
+			registerDoubleOption_("p_value_dim_2","<float>",0.05,"Significance level of second dimension RT filter",false);
 			setMinFloat_("p_value_dim_2", 0);
 			setMaxFloat_("p_value_dim_2", 1);
 		}

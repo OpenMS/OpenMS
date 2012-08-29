@@ -22,7 +22,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer:  $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 /**
@@ -48,9 +48,10 @@
 
   <b>Algorithm evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
+	- @subpage UTILS_IDEvaluation - Evaluation tool, comparing peptide recovery at different q-value thresholds for multiple search engines (e.g., after ConsensusID)
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
 	- @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
-	- @subpage UTILS_IdXMLEvaluation - Application that evaluates tps, tns, fps, and fns for an IdXML file with predicted RTs.
+	- @subpage UTILS_RTEvaluation - Application that evaluates TPs (true positives), TNs, FPs, and FNs for an IdXML file with predicted RTs.
 	- @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
 
   <b>Peptide identification</b>
@@ -62,7 +63,7 @@
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
   - @subpage UTILS_SpecLibCreator - Creates an MSP formated spectral library.
 
-    <b>Quantitation</b>
+  <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_MRMPairFinder - Evaluate labeled pair ratios on MRM features.
 
