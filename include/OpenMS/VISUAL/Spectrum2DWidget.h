@@ -43,7 +43,7 @@ namespace OpenMS
   /**
       @brief Widget for 2D-visualization of peak map and feature map data
 
-      The widget composes of two scoll bars, two AxisWidget and a Spectrum2DCanvas as central widget.
+      The widget is composed of two scroll bars, two AxisWidget and a Spectrum2DCanvas as central widget.
 
       @image html Spectrum2DWidget.png
 
@@ -64,7 +64,7 @@ public:
     /// Destructor
     virtual ~Spectrum2DWidget();
 
-    /// This method is overwritten to make the class specific members accessable
+    /// This method is overwritten to make the class specific members accessible
     inline Spectrum2DCanvas * canvas()
     {
       return static_cast<Spectrum2DCanvas *>(canvas_);

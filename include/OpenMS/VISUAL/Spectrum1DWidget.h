@@ -45,7 +45,7 @@ namespace OpenMS
   /**
       @brief Widget for visualization of several spectra
 
-      The widget composes of a scoll bar, an AxisWidget and a Spectrum1DCanvas as central widget.
+      The widget is composed of a scroll bar, an AxisWidget and a Spectrum1DCanvas as central widget.
 
       @image html Spectrum1DWidget.png
 
@@ -64,7 +64,7 @@ public:
     ///Destructor
     virtual ~Spectrum1DWidget();
 
-    /// This method is overwritten to make the class specific members accessable
+    /// This method is overwritten to make the class specific members accessible
     inline Spectrum1DCanvas * canvas()
     {
       return static_cast<Spectrum1DCanvas *>(canvas_);

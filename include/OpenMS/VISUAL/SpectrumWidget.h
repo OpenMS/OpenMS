@@ -101,13 +101,13 @@ public:
     }
 
     ///Returns a pointer to the x-axis axis widget.
-    inline AxisWidget * xAxis()
+    virtual inline AxisWidget * xAxis()
     {
       return x_axis_;
     }
 
     ///Returns a pointer to the y-axis axis widget.
-    inline AxisWidget * yAxis()
+    virtual inline AxisWidget * yAxis()
     {
       return y_axis_;
     }

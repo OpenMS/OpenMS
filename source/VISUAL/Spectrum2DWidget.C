@@ -56,7 +56,7 @@ namespace OpenMS
     y_axis_->setLegend(String(Peak2D::shortDimensionName(Peak2D::RT)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::RT)) + "]");
     y_axis_->setMinimumWidth(50);
 
-    // add projetions
+    // add projections
     grid_->setColumnStretch(2, 3);
     grid_->setRowStretch(1, 3);
 
