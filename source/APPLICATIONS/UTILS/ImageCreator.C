@@ -183,7 +183,14 @@ protected:
 		String format = getStringOption_("out_type");
 		if (format.trim() == "")
 		{ // get from filename
-      format = out.suffix('.');
+      try 
+      {
+        format = out.suffix('.');
+      }
+      catch (Exception::ElementNotFound& /*e*/)
+      {
+        format = "nosuffix";
+      }
       if (!out_formats_.contains(format.toUpper()))
       {
         LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('"<< format << "') does not resemble a valid type. Please fix one of them." << std::endl;
