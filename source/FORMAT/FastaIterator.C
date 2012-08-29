@@ -65,9 +65,9 @@ PepIterator * FastaIterator::operator++(int)
 	{
 		throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
-	PepIterator * old = new FastaIterator (*this);
+	PepIterator * copy = new FastaIterator (*this);
 	actual_seq_ = next_();
-	return old;
+	return copy;
 }
 
 FASTAEntry FastaIterator::operator*() 
@@ -92,11 +92,12 @@ PepIterator & FastaIterator::operator++()
 void FastaIterator::setFastaFile (const String & f)
 {
 	std::fstream fs;
-	fs.open(f.c_str());
+	fs.open(f.c_str(), std::fstream::in);
 	if (!fs.is_open())
 	{
 		throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, f);
 	}
+  fs.close();
 	fasta_file_ = f;
 }
 
@@ -110,6 +111,7 @@ std::string FastaIterator::next_()
 	if (input_file_->eof())
 	{
 		is_at_end_ = true;
+    input_file_->close();
 		return ("");
 	}
 	std::string line;
@@ -129,7 +131,7 @@ bool FastaIterator::begin()
 	{
 		throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
-	input_file_->open(fasta_file_.c_str());
+	input_file_->open(fasta_file_.c_str(), std::fstream::in);
 	
 	if (*input_file_)
 	{

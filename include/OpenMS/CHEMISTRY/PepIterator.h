@@ -68,14 +68,14 @@ namespace OpenMS
 			virtual FASTAEntry operator*() = 0;
 			
 			/**
-			@brief opperator ++ for postincrement
+			@brief operator ++ for pre-increment
 			@return Reference to PepIterator
 			@throw InvalidIterator if iterator has not been initialized
 			*/		
 			virtual PepIterator & operator++() = 0;
 			
 			/**
-			@brief opperator ++ for preincrement
+			@brief operator ++ for post-increment
 			@return pointer to PepIterator
 			@throw Exception::InvalidIterator if iterator has not been initialized
 			*/
