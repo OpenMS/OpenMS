@@ -114,6 +114,16 @@ namespace OpenMS
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
       */
       void store(const String& filename, const ConsensusMap& map) const;
+
+
+      /**
+      	@brief Stores a FeatureMap as an enhanced DTA file.
+      	
+        Creating columns: RT, m/z, intensity, charge
+
+				@exception Exception::UnableToCreateFile is thrown if the file could not be created
+      */
+      void store(const String& filename, const FeatureMap<>& map) const;
   };
 } // namespace OpenMS
 

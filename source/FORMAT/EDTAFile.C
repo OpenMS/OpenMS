@@ -50,9 +50,6 @@ namespace OpenMS
     return def;
   }
 
-  /**
-    * Check if column exists and convert String into Int.
-    */
   Int EDTAFile::checkedToInt_(const std::vector<String> &parts, Size index, Int def)
   {
     if (index < parts.size())
@@ -62,14 +59,6 @@ namespace OpenMS
     return def;
   }
 
-  /**
-    @brief Loads a EDTA file into a consensusXML.
- 				
- 		The content of the file is stored in @p features.
-
-		@exception Exception::FileNotFound is thrown if the file could not be opened
-		@exception Exception::ParseError is thrown if an error occurs during parsing
-  */
   void EDTAFile::load(const String& filename, ConsensusMap& consensus_map)
   {
     // load input
@@ -259,17 +248,27 @@ namespace OpenMS
 
   }
 
-  /**
-    @brief Stores a ConsensusMap as an enhanced DTA file.
-      	
-    NOT IMPLEMENTED
-
-		@exception Exception::UnableToCreateFile is thrown if the file could not be created
-  */
   void EDTAFile::store(const String& filename, const ConsensusMap& map) const
   {
     std::cerr << "Store() for EDTAFile not implemented. Filename was: " << filename << ", CM of size " << map.size() << "\n";
     throw Exception::NotImplemented (__FILE__, __LINE__, __PRETTY_FUNCTION__);
+  }
+
+
+  void EDTAFile::store(const String& filename, const FeatureMap<>& map) const
+  {
+    TextFile tf;
+    tf.push_back("RT\tm/z\tintensity\tcharge");
+
+    for (Size i=0; i<map.size(); ++i)
+    {
+      const Feature & f = map[i];
+      tf.push_back(String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge());
+    }
+
+
+    tf.store(filename);
+
   }
 } // namespace OpenMS
 

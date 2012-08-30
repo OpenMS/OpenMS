@@ -121,11 +121,11 @@ class TOPPFileConverter
 		setValidFormats_("in",StringList::create(formats));
 		setValidStrings_("in_type",StringList::create(formats));
 
-		formats = "mzData,mzXML,mzML,DTA2D,mgf,featureXML,consensusXML";
-		registerOutputFile_("out","<file>","","output file ");
-		setValidFormats_("out",StringList::create(formats));
+		formats = "mzData,mzXML,mzML,DTA2D,mgf,featureXML,consensusXML,edta";
+		registerOutputFile_("out", "<file>", "", "output file ");
+		setValidFormats_("out", StringList::create(formats));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("out_type",StringList::create(formats));
+		setValidStrings_("out_type", StringList::create(formats));
 		registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
 	}
 
@@ -206,7 +206,7 @@ class TOPPFileConverter
 		}
     else if (in_type == FileTypes::EDTA)
 		{
-			EDTAFile().load(in,cm);
+			EDTAFile().load(in, cm);
 			cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) && 
 					(out_type != FileTypes::CONSENSUSXML))
@@ -221,7 +221,7 @@ class TOPPFileConverter
              in_type == FileTypes::PEPLIST ||
              in_type == FileTypes::KROENIK)
 		{
-			fh.loadFeatures(in,fm,in_type);
+			fh.loadFeatures(in, fm, in_type);
       fm.sortByPosition();
 		  if ((out_type != FileTypes::FEATUREXML) && 
 					(out_type != FileTypes::CONSENSUSXML))
@@ -374,7 +374,10 @@ class TOPPFileConverter
 																								FORMAT_CONVERSION));
 			ConsensusXMLFile().store(out, cm);
 		}
-
+    else if (out_type == FileTypes::EDTA)
+    {
+      EDTAFile().store(out, fm);
+    }
 		else
 		{
 			writeLog_("Unknown output file type given. Aborting!");

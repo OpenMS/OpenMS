@@ -33,6 +33,7 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -95,6 +96,33 @@ START_SECTION((void store(const String& filename, const ConsensusMap& map) const
 }
 END_SECTION
 
+ START_SECTION((void store(const String& filename, const FeatureMap<>& map) const))
+{
+  FeatureMap<> fm;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_out_1.featureXML"), fm);
+
+  EDTAFile f;
+
+  String outfile;
+  NEW_TMP_FILE(outfile)
+
+  f.store(outfile, fm);
+
+  ConsensusMap cm;
+  f.load(outfile, cm);
+
+
+  TEST_EQUAL(fm.size(), cm.size());
+  ABORT_IF(fm.size() != cm.size());
+  for (Size i=0; i< fm.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(fm[i].getRT(), cm[i].getRT())
+    TEST_REAL_SIMILAR(fm[i].getMZ(), cm[i].getMZ())
+    TEST_REAL_SIMILAR(fm[i].getIntensity(), cm[i].getIntensity())
+  }
+
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
