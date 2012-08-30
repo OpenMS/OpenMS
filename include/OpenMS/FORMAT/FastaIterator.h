@@ -54,11 +54,7 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 	*/
 	FastaIterator();
 	
-	/**
-	@brief copy constructor
-	*/
-	FastaIterator(const FastaIterator &);
-	
+
 	/**
 	@brief destructor
 	*/
@@ -72,14 +68,14 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 	virtual FASTAEntry operator*();
 	
 	/**
-	@brief postincrement Operator for the iterator 
+	@brief pre-increment Operator for the iterator 
 	@return reference to PepIterator	
 	@throw Exception::InvalidIterator if iterator was not initialized
 	*/
 	virtual PepIterator & operator++();
 	
 	/**
-	@brief preincrement Operator for the iterator
+	@brief post-increment Operator for the iterator
 	@return pointer to PepIterator
 	@throw Exception::InvalidIterator if iterator was not initialized
 	*/
@@ -101,7 +97,7 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 
 	/**
 	@brief setter for spectrum
-	@note note availeble for FastaIterator
+	@note note available for FastaIterator
 	@throw Exception::NotImplemented 
 	*/
 	virtual void setSpectrum (const std::vector<DoubleReal> &)
@@ -111,7 +107,7 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 
 	/**
 	@brief getter for spectrum
-	@note note availeble for FastaIterator
+	@note note available for FastaIterator
 	@throw Exception::NotImplemented 
 	*/
 	virtual const std::vector<DoubleReal> & getSpectrum ()
@@ -121,7 +117,7 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 	
 	/**
 	@brief setter for tolerance
-	@note note availeble for FastaIterator
+	@note note available for FastaIterator
 	@throw Exception::NotImplemented 
 	*/
 	virtual void setTolerance (DoubleReal /* t */)
@@ -131,7 +127,7 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 	
 	/**
 	@brief getter for tolerance
-	@note note availeble for FastaIterator
+	@note note available for FastaIterator
 	@return tolerance
 	@throw Exception::NotImplemented 
 	*/
@@ -142,14 +138,14 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 
 	/**
 	@brief initializing of iterator
-	@return true if everything went rigth
+	@return true if everything went right
 	@throw Exception::InvalidIterator if fastaFile was not set
 	*/
 	virtual bool begin ();
 
 	/**
 	@brief indicates whether iterator is at end
-	@return bool true if interator is at end
+	@return bool true if iterator is at end
 	*/
 	virtual bool isAtEnd ();
 	
@@ -164,7 +160,7 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 	
 	/**
 	@brief needed by Factory
-	@return poiter to new object
+	@return pointer to new object
 	*/
 	static PepIterator * create()
 	{
@@ -182,7 +178,7 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 
 		bool is_at_end_; ///< bool indicated whether iterator is at end
 
-		std::ifstream * input_file_; ///< input file
+		std::ifstream input_file_; ///< input file
 
 		String fasta_file_; ///< fasta file location
 
@@ -191,6 +187,18 @@ class OPENMS_DLLAPI FastaIterator : public PepIterator
 		std::string header_; ///< actual fasta header
 
 		std::string last_header_; ///< last fasta header
+	
+  private:
+  	/**
+	  @brief copy constructor
+	  */
+	  FastaIterator(const FastaIterator &);
+
+    /**
+	  @brief Assignment
+	  */
+	  FastaIterator& operator=(const FastaIterator &);
+
 	
 };
 }

@@ -93,13 +93,7 @@ END_SECTION
 
 START_SECTION(virtual PepIterator* operator++(int i))
 	ptr = new FastaIterator();
-	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr)++);
-	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
-	ptr->begin();
-	FASTAEntry fe = **ptr;
-	PepIterator * pepIt = (*ptr)++;
-	TEST_EQUAL ((**pepIt).first,fe.first);
-	TEST_EQUAL ((**pepIt).second,fe.second);
+	TEST_EXCEPTION (Exception::NotImplemented, (*ptr)++);
 END_SECTION
 
 START_SECTION(virtual bool begin())
@@ -116,26 +110,13 @@ START_SECTION(virtual bool isAtEnd())
 	ptr = new FastaIterator();
 	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 	ptr->begin();
-	for (int i = 0; i < 5;i++)
+	for (int i = 0; i < 5; i++)
 	{
 		TEST_EQUAL(ptr->isAtEnd(), false);
 		++(*ptr);
 	}
 	TEST_EQUAL(ptr->isAtEnd(), true);
 END_SECTION
-
-START_SECTION(FastaIterator(const FastaIterator &))
-	ptr = new FastaIterator();
-	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
-	ptr->begin();
-	++*ptr;
-	++*ptr;
-	FastaIterator copy (*ptr);
-	TEST_EQUAL((**ptr).first,(*copy).first);
-	TEST_EQUAL((**ptr).second,(*copy).second);
-	TEST_EQUAL((*ptr).getFastaFile(),(copy).getFastaFile());
-END_SECTION
-
 
 
 START_SECTION(virtual void setSpectrum(const std::vector< DoubleReal > &))

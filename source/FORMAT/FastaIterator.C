@@ -35,13 +35,13 @@ namespace OpenMS
 
 typedef std::pair <String, String> FASTAEntry;
 
-FastaIterator::FastaIterator() :  PepIterator()
+FastaIterator::FastaIterator() :  
+  PepIterator(),
+  actual_seq_(),
+  is_at_end_(false),
+  fasta_file_(),
+  input_file_()
 {
-	actual_seq_ = "";
-	is_at_end_ = false;
-	const String ff = "";
-	fasta_file_= ff;
-	input_file_ = new std::ifstream();
 }
 
 FastaIterator::~FastaIterator()
@@ -49,25 +49,18 @@ FastaIterator::~FastaIterator()
 	
 }
 
-FastaIterator::FastaIterator(const FastaIterator & source) : PepIterator(source)
-{
-	is_at_end_ = (source.is_at_end_);
-	input_file_ = (source.input_file_);
-	fasta_file_ = (source.fasta_file_);
-	actual_seq_ =(source.actual_seq_);
-	header_ = (source.header_);
-	last_header_ = (source.last_header_);
-}
+// not implemented (since copying this stuff will invalidate the istream
+//FastaIterator::FastaIterator(const FastaIterator & source) : PepIterator(source)
+//{
+//}
+
+// not implemented (since copying this stuff will invalidate the istream
+//FastaIterator& operator=(const FastaIterator &);
+
 
 PepIterator * FastaIterator::operator++(int)
-{
-	if (last_header_=="")
-	{
-		throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-	}
-	PepIterator * copy = new FastaIterator (*this);
-	actual_seq_ = next_();
-	return copy;
+{ // this operator requires copying, which we cannot support!
+	throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 }
 
 FASTAEntry FastaIterator::operator*() 
@@ -108,15 +101,16 @@ String FastaIterator::getFastaFile()
 
 std::string FastaIterator::next_()
 {
-	if (input_file_->eof())
+	if (input_file_.eof())
 	{
 		is_at_end_ = true;
-    input_file_->close();
+    input_file_.close();
 		return ("");
 	}
+  is_at_end_ = false;
 	std::string line;
-	std::getline(*input_file_, line);
-	if (line[0] == '>' || input_file_->eof())
+	std::getline(input_file_, line);
+	if (line[0] == '>' || input_file_.eof())
 	{
 		last_header_ = header_;
 		header_ = line;
@@ -131,12 +125,12 @@ bool FastaIterator::begin()
 	{
 		throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
-	input_file_->open(fasta_file_.c_str(), std::fstream::in);
+	input_file_.open(fasta_file_.c_str(), std::fstream::in);
 	
-	if (*input_file_)
+	if (input_file_)
 	{
 		std::string line;
-		std::getline(*input_file_,line);
+		std::getline(input_file_,line);
 		header_ = line;
 		last_header_ = line;
 		actual_seq_ = next_();
