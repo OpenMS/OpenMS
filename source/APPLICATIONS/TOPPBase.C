@@ -1874,6 +1874,21 @@ namespace OpenMS
 		}
 	}
 
+  void TOPPBase::parseRange_(const String& text, Int& low, Int& high) const
+  {
+    String tmp = text.prefix(':');
+    if (tmp!="")
+    {
+      low = tmp.toInt();
+    }
+    tmp = "";
+    tmp = text.suffix(':');
+    if (tmp!="")
+    {
+      high = tmp.toInt();
+    }
+  }
+
 	Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
 	{
 		throw NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);

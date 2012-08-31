@@ -168,6 +168,47 @@ namespace OpenMS
 				}
 			}
 
+      /**
+        @brief filters a ProteinIdentification or PeptideIdentification corresponding to the score.
+
+        If the method higherScoreBetter() returns true for the IdentificationType the
+        n to m highestscoring hits are kept. Otherwise the n to m lowest scoring hits are kept.
+        This method is useful if a range of higher hits are used for decoy fairness analysis.
+      */
+      template <class IdentificationType>
+      void filterIdentificationsByBestNToMHits(const IdentificationType& identification, Size n, Size m, IdentificationType& filtered_identification)
+      {
+        if (n > m)
+        {
+          std::swap<Size>(n,m);
+        }
+
+        typedef typename IdentificationType::HitType HitType;
+        std::vector<HitType> filtered_hits;
+
+        IdentificationType temp_identification = identification;
+        temp_identification.sort(); // .. by score
+
+        filtered_identification = identification;
+        filtered_identification.setHits(std::vector<HitType>());
+
+        const std::vector<HitType>& hits = temp_identification.getHits();
+        for(Size i = n - 1; n <= m - 1; ++i)
+        {
+          if (i >= hits.size() || i < 0)
+          {
+            break;
+          }
+          filtered_hits.push_back(hits[i]);
+        }
+
+        if ( !filtered_hits.empty() )
+        {
+          filtered_identification.setHits(filtered_hits);
+          filtered_identification.assignRanks();
+        }
+      }
+
       /// filters a PeptideIdentification keeping only the best scoring hits (if strict is set, keeping only the best hit only if it is the only hit with that score)
 			void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
 

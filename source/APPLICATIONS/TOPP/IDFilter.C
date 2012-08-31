@@ -201,6 +201,7 @@ protected:
     setMinInt_("best:n_protein_hits", 0);
     registerFlag_("best:strict","Keep only the highest scoring peptide hit.\n"
                   "Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
+    registerStringOption_("best:n_to_m_peptide_hits","[min]:[max]",":","peptide hit rank range to extracts", false, true);
 		registerIntOption_("min_length","<integer>", 0, "Keep only peptide hits with a length greater or equal this value.", false);
 		setMinInt_("min_length", 0);
 		registerIntOption_("min_charge","<integer>", 1, "Keep only peptide hits for tandem spectra with charge greater or equal this value.", false);
@@ -251,6 +252,20 @@ protected:
 
 		Int best_n_peptide_hits = getIntOption_("best:n_peptide_hits");
 		Int best_n_protein_hits = getIntOption_("best:n_protein_hits");
+
+    Int best_n_to_m_peptide_hits_n = 0;
+    Int best_n_to_m_peptide_hits_m = numeric_limits<Size>::max();
+
+    //convert bounds to numbers
+    try
+    {
+      parseRange_(getStringOption_("best:n_to_m_peptide_hits"), best_n_to_m_peptide_hits_n, best_n_to_m_peptide_hits_m);		}
+    catch(Exception::ConversionError&)
+    {
+      writeLog_("Invalid boundary '" + getStringOption_("best:n_to_m_peptide_hits") + "' given. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
 
 		bool best_strict = getFlag_("best:strict");
 		UInt min_length = getIntOption_("min_length");
@@ -435,6 +450,13 @@ protected:
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification);
 			}
+
+      if (best_n_to_m_peptide_hits_m != numeric_limits<Size>::max() || best_n_to_m_peptide_hits_n != 0)
+      {
+        applied_filters.insert("Filtering by best n to m peptide hits ...\n");
+        PeptideIdentification temp_identification = filtered_identification;
+        filter.filterIdentificationsByBestNToMHits(temp_identification, best_n_to_m_peptide_hits_n, best_n_to_m_peptide_hits_m, filtered_identification);
+      }
 
       if (mz_error_filtering)
       {

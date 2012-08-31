@@ -876,6 +876,9 @@ namespace OpenMS
       /// Helper function that parses a range string ([a]:[b]) into two variables
       void parseRange_( const String& text, double& low, double& high ) const;
 
+      /// Helper function that parses a range string ([a]:[b]) into two variables
+      void parseRange_(const String& text, Int& low, Int& high) const;
+
       ///Type of progress logging
       ProgressLogger::LogType log_type_;
 
