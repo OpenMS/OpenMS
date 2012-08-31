@@ -1,0 +1,36 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		// multiple of these are allowed
+		<type>QCMLExport</type>
+		#name# -- for internal only
+		// multiple of these allowed (same # as 'types') - for external only
+		<external>
+				<text>
+					<onstartup>Calling python QCExporter' msconvert ...</onstartup>
+					<onfail>Something went wrong. Are 'python' and 'R' in your PATH?</onfail>
+					<onfinish>Tool finished successfully.</onfinish>
+				</text>
+			<e_category>FileConversion</e_category>
+			<cloptions> "%1"/QCExporter.py "%2" "%3" "%4"</cloptions>
+			<path>python</path>
+			<mappings>
+				<mapping id="1" cl="%%scriptpath" />
+				<mapping id="2" cl="%%inML" />
+				<mapping id="3" cl="%%inID" />
+				<mapping id="4" cl="%TMP" />
+				<file_post location="%TMP/genericwrapper.qcML" target="out" />
+			</mappings>
+			<ini_param>
+				<ITEM name="scriptpath" value="." type="string" description="input script path, this should point 
+to share/OpenMS/SCRIPTS of your OpenMS installation"/>
+				<ITEM name="inML" value="" type="string" description="input file in RAW format(valid formats: 
+&apos;mzML&apos;)" tags="input file" />
+				<ITEM name="inID" value="" type="string" description="input file in RAW format(valid formats: 
+&apos;idXML&apos;)" tags="input file" />
+				<ITEM name="out" value="" type="string" description="output file in qcML format(valid formats: 
+&apos;qcML&apos;)" tags="output file" />
+			</ini_param>
+		</external>
+	</tool>
+</ttd>
