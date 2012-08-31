@@ -128,10 +128,8 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File",this);
     menuBar()->addMenu(file);
-    file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL+Qt::Key_N);
-		file->addAction("&Open", this, SLOT(openFileDialog()), Qt::CTRL+Qt::Key_O);
-    file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL+Qt::Key_S);
-    file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
+    file->addAction("Add search result", this, SLOT(openFileDialog()), Qt::CTRL + Qt::Key_O);
+    file->addAction("Save Image &As", this, SLOT(saveImageAs()), Qt::CTRL + Qt::Key_S);
     file->addSeparator();
     file->addAction("&Quit", qApp, SLOT(quit()));
 
@@ -305,8 +303,6 @@ namespace OpenMS
     }
     std::sort(q_values.begin(), q_values.end());
 
-    std::cout << "smallest: " << *q_values.begin() << "   largest: " << *q_values.rbegin() << "\n";
-
 
     for (Size i=0; i<q_value_thresholds.size(); ++i)
     {
@@ -371,7 +367,7 @@ namespace OpenMS
 	}
 
 
-  void IDEvaluationBase::savePipeline()
+  void IDEvaluationBase::saveImageAs()
 	{
     QString cp = current_path_.toQString();
     QString file_name = QFileDialog::getSaveFileName(this, tr("Save image"), cp, tr("Images (*.svg *.png *.jpg)"));
@@ -446,8 +442,6 @@ namespace OpenMS
       spec_1d_->resize(w ,h);
       
       QImage img(w, h, QImage::Format_ARGB32_Premultiplied);
-      std::cerr << items_bounding_rect.width() << " " << items_bounding_rect.height() << "\n";
-      //img.fill(QColor(Qt::white).rgb());
       QPainter painter(&img);
       spec_1d_->render(&painter);//, QRectF(), items_bounding_rect);
       painter.end();
@@ -455,11 +449,6 @@ namespace OpenMS
     }
 	}
 	
-  void IDEvaluationBase::saveCurrentPipelineAs()
-  {
-    //QString file_name = IDEvaluationBase::savePipelineAs(w, current_path_.toQString());
-  }
-
 	void IDEvaluationBase::showURL()
 	{
 		QAction* action = qobject_cast<QAction*>(sender());
@@ -566,8 +555,8 @@ namespace OpenMS
 	
   void IDEvaluationBase::closeEvent(QCloseEvent* event)
   {
-    ws_->closeAllWindows();
-    event->accept();
+    //ws_->closeAllWindows();
+    //event->accept();
   }
 
 

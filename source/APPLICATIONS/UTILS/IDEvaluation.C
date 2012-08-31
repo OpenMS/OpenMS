@@ -96,7 +96,6 @@ class TOPPIDEvaluation
 
     char* dummy = "dummy"; int argc = 1;  QApplication a( argc, &dummy);
     p_my.insert("image:", IDEvaluationBase().getParameters().copy("image:", true)); // can only be called if a QApplication is present...
-    std::cout << p_my << " HELLOEEEE\n\n";
     return p_my;
   }
 
@@ -157,15 +156,11 @@ class TOPPIDEvaluation
     }
     
 
-    StringList colors = getStringList_("colors");
-
-    
     QApplication a( argc, const_cast<char**>(argv));
 
     IDEvaluationBase* mw = new IDEvaluationBase();
     Param alg_param = mw->getParameters();
     alg_param.insert("", getParam_().copy("algorithm:", true));
-    std::cout << alg_param << "\n\n";
     mw->setParameters(alg_param);
     mw->loadFiles(in_list);
     mw->setVisibleArea(q_min, q_max);

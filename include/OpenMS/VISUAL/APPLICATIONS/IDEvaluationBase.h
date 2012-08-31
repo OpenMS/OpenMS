@@ -96,11 +96,10 @@ namespace OpenMS
 
       /// opens the file in a new window
       void addSearchFile(const String& file_name);
-    	/// shows the dialog for opening files
+      /// shows the dialog for opening files
       void openFileDialog();
-      void saveCurrentPipelineAs();
-      /// saves the pipeline (determined by Qt's sender mechanism)
-      void savePipeline();
+      /// saves the plot - querying for a filename first
+      void saveImageAs();
       /// exports the current pipeline as image
       void exportAsImage(const QString& file_name, const QString& format = "");
     	/// changes the current path according to the currently active window/layer
