@@ -43,7 +43,7 @@ namespace OpenMS
 
   DoubleReal EDTAFile::checkedToDouble_(const std::vector<String> &parts, Size index, DoubleReal def)
   {
-    if (index < parts.size())
+    if (index < parts.size() && parts[index]!="NA")
     {
       return parts[index].toDouble();
     }
@@ -52,7 +52,7 @@ namespace OpenMS
 
   Int EDTAFile::checkedToInt_(const std::vector<String> &parts, Size index, Int def)
   {
-    if (index < parts.size())
+    if (index < parts.size() && parts[index]!="NA")
     {
       return parts[index].toInt();
     }
@@ -181,9 +181,16 @@ namespace OpenMS
         cf.setMZ(mz);
         cf.setIntensity(it);
         if (input_type != TYPE_OLD_NOCHARGE) cf.setCharge(ch);
+      }
+      catch (Exception::BaseException&)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
+      }
 
-        // Check all features in one line
-        for (Size j = 1; j < input_features; ++j)
+      // Check all features in one line
+      for (Size j = 1; j < input_features; ++j)
+      {
+        try
         {
           Feature f;
           f.setUniqueId();
@@ -205,10 +212,10 @@ namespace OpenMS
             cf.insert(j-1, f);
           }
         }
-      }
-      catch (Exception::BaseException&)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line") + String(i + 1) + ": Could not convert the first three columns to float! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
+        catch (Exception::BaseException&)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j*4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
+        }
       }
 
  			//parse meta data
@@ -250,8 +257,44 @@ namespace OpenMS
 
   void EDTAFile::store(const String& filename, const ConsensusMap& map) const
   {
-    std::cerr << "Store() for EDTAFile not implemented. Filename was: " << filename << ", CM of size " << map.size() << "\n";
-    throw Exception::NotImplemented (__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    TextFile tf;
+
+    // search for maximum number of sub-features (since this determines the number of columns)
+    Size max_sub(0);
+    for (Size i=0; i<map.size(); ++i)
+    {
+      max_sub = std::max(max_sub, map[i].getFeatures().size());
+    }
+
+    // write header
+    String header("RT\tm/z\tintensity\tcharge");
+    for (Size i=1; i<=max_sub; ++i)
+    {
+      header += "\tRT" + String(i) + "\tm/z" + String(i) + "\tintensity" + String(i) + "\tcharge" + String(i);
+    }
+    tf.push_back(header);
+
+    for (Size i=0; i<map.size(); ++i)
+    {
+      ConsensusFeature f = map[i];
+      // consensus
+      String entry = String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge();
+      // sub-features
+      ConsensusFeature::HandleSetType handle = f.getFeatures();
+      for (ConsensusFeature::HandleSetType::const_iterator it=handle.begin(); it!=handle.end(); ++it)
+      {
+        entry += String("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();
+      }
+      // missing sub-features
+      for (Size i=handle.size(); i<max_sub; ++i)
+      {
+         entry += "\tNA\tNA\tNA\tNA";
+      }
+      tf.push_back(entry);
+    }
+
+
+    tf.store(filename);
   }
 
 

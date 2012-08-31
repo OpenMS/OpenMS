@@ -91,8 +91,28 @@ END_SECTION
 START_SECTION((void store(const String& filename, const ConsensusMap& map) const))
 {
   EDTAFile f;
-  ConsensusMap fm;
-  TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", fm))
+  ConsensusMap cm;
+  f.load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_4.edta"), cm);
+  
+  String outfile;
+  NEW_TMP_FILE(outfile)
+  f.store(outfile, cm);
+
+  ConsensusMap cm2;
+  f.load(outfile, cm2);
+
+  TEST_EQUAL(cm.size(),cm2.size())
+  ABORT_IF(cm.size()!=cm2.size())
+  for (Size i=0; i< cm.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(cm[i].getRT(), cm2[i].getRT())
+    TEST_REAL_SIMILAR(cm[i].getMZ(), cm2[i].getMZ())
+    TEST_REAL_SIMILAR(cm[i].getIntensity(), cm2[i].getIntensity())
+    TEST_EQUAL(cm[i].getCharge(), cm2[i].getCharge())
+    TEST_EQUAL(cm[i].getFeatures().size(), cm2[i].getFeatures().size())
+    // cannot test for metavalues, since they are not written to EDTA (yet)
+  }
+
 }
 END_SECTION
 

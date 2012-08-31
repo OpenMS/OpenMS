@@ -376,7 +376,13 @@ class TOPPFileConverter
 		}
     else if (out_type == FileTypes::EDTA)
     {
-      EDTAFile().store(out, fm);
+      if (fm.size() > 0 && cm.size() > 0)
+      {
+        LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
+        return INTERNAL_ERROR;
+      }
+      if (fm.size() > 0) EDTAFile().store(out, fm);
+      else if (cm.size() > 0) EDTAFile().store(out, cm);
     }
 		else
 		{
