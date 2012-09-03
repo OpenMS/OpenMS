@@ -973,9 +973,12 @@ set_tests_properties("TOPP_PeptideIndexer_3_out" PROPERTIES DEPENDS "TOPP_Peptid
 add_test("TOPP_PeptideIndexer_4" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_4_out.tmp -allow_unmatched -aaa_max 0 -write_protein_sequence)
 add_test("TOPP_PeptideIndexer_4_out" ${DIFF} -in1 PeptideIndexer_4_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_4_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_4_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_4")
-add_test("TOPP_PeptideIndexer_5" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_1_out.tmp -allow_unmatched)
-add_test("TOPP_PeptideIndexer_5_out" ${DIFF} -in1 PeptideIndexer_1_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_5_out.idXML )
+add_test("TOPP_PeptideIndexer_5" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_5_out.tmp -allow_unmatched)
+add_test("TOPP_PeptideIndexer_5_out" ${DIFF} -in1 PeptideIndexer_5_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_5_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_5_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_5")
+add_test("TOPP_PeptideIndexer_6" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_2.idXML -out PeptideIndexer_6_out.tmp -allow_unmatched)
+add_test("TOPP_PeptideIndexer_6_out" ${DIFF} -in1 PeptideIndexer_6_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_6_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_6_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_6")
 
 ### ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in binary tree, as they have been configured from a .in file (see above)!
 add_test("TOPP_ExecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPP}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf -out_dir .)
