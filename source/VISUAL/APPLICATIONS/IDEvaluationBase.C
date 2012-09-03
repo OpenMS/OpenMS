@@ -371,7 +371,13 @@ namespace OpenMS
 	{
     QString cp = current_path_.toQString();
     QString file_name = QFileDialog::getSaveFileName(this, tr("Save image"), cp, tr("Images (*.svg *.png *.jpg)"));
-    exportAsImage(file_name);
+    String error;
+    if (!exportAsImage(file_name, error))
+    {
+      QMessageBox::warning(this, tr("Error"),
+        tr("Unable to save image to \n") +
+        file_name);
+    }
   }
 
 
@@ -380,11 +386,12 @@ namespace OpenMS
     return StringList::create("PNG,JPG,SVG");
   }
 
-  void IDEvaluationBase::exportAsImage(const QString& file_name, const QString& format)
+  bool IDEvaluationBase::exportAsImage(const QString& file_name, String& error_message, const QString& format)
   {
     if (file_name == "")
     {
-      return;
+      error_message = "Empty filename given!";
+      return false;
     }
 
     QString suffix = format;
@@ -397,7 +404,8 @@ namespace OpenMS
         !(suffix.compare("png", Qt::CaseInsensitive)==0) &&
         !(suffix.compare("jpg", Qt::CaseInsensitive)==0))
     {
-      return;
+      error_message = "Unsupported format given('" + suffix + "')!";
+      return false;
     }
     bool svg = (suffix.compare("svg", Qt::CaseInsensitive)==0);
 
@@ -445,8 +453,14 @@ namespace OpenMS
       QPainter painter(&img);
       spec_1d_->render(&painter);//, QRectF(), items_bounding_rect);
       painter.end();
-      img.save(file_name);
+      bool r = img.save(file_name, format.toStdString().c_str());
+      if (!r)
+      {
+        error_message = "Could not save image to '" + file_name + "' with format '" + format + "'!";
+        return false;
+      }
     }
+    return true;
 	}
 	
 	void IDEvaluationBase::showURL()

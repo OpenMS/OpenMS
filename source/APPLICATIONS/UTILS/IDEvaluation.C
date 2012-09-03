@@ -168,8 +168,14 @@ class TOPPIDEvaluation
 
     if (out != "")
     { // save as image and exit
-      mw->exportAsImage(out.toQString(), format.toQString());
-      return EXECUTION_OK;    
+      String error;
+      bool r = mw->exportAsImage(out.toQString(), error, format.toQString());
+      if (r) return EXECUTION_OK;    
+      else
+      {
+        LOG_ERROR << error << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
     }
 
     mw->show();

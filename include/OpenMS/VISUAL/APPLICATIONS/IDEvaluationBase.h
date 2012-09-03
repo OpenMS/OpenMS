@@ -101,7 +101,8 @@ namespace OpenMS
       /// saves the plot - querying for a filename first
       void saveImageAs();
       /// exports the current pipeline as image
-      void exportAsImage(const QString& file_name, const QString& format = "");
+      /// returns true on success, otherwise false + @p error_message
+      bool exportAsImage(const QString& file_name, String& error_message, const QString& format = "");
     	/// changes the current path according to the currently active window/layer
       //void updateCurrentPath();
       /// Shows the 'About' dialog
