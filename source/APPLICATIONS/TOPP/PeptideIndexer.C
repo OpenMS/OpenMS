@@ -72,7 +72,19 @@ using namespace std;
   By default the tool will fail, if an unmatched peptide occurs, i.e. the database does not contain the corresponding protein.
   You can force the tool to return successfully in this case by using the flag 'allow_unmatched'.
 
-  @todo: speed increase of 200% possible when loading the SA from disk instead of building it.
+  Some search engines (such as Mascot) will replace ambiguous AA's in the protein database with unambiguous AA' in the reported peptides, e.g., exchange 'X' with 'H'.
+  This will cause this peptide not to be found by exactly matching its sequence. However, we can recover these cases by using tolerant search in these cases (done automatically).
+  In all cases we require ambiguous AA's in peptide sequence to match exactly in the protein DB (i.e., 'X' in peptide only matches 'X').
+
+  Two search modes are available: 
+    - exact: Peptide sequences require exact match in protein database.
+             If no protein for this peptide can be found, tolerant matching is automatically used for this peptide. Thus, the results for these peptides
+             are identical for both search modes.
+    - tolerant: 
+             Allow ambiguous AA's in protein sequence, e.g., 'M' in peptide will match 'X' in protein.
+             This mode might yield more protein hits for some peptides (even though they have exact matches as well).
+  
+  The exact mode is much faster (about x10) and consumes less memory (about x2.5), but might fail to report a few proteins with ambiguous AAs for some peptides. Usually these proteins are putative, however.
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_PeptideIndexer.cli
@@ -80,9 +92,14 @@ using namespace std;
 	@htmlinclude TOPP_PeptideIndexer.html
 */
 
+
+namespace seqan
+{
+
 struct FoundProteinFunctor
 {   
-    Map<Size, set<Size> > pep_to_prot; // peptide index --> protein indices
+    typedef OpenMS::Map<OpenMS::Size, std::set<OpenMS::Size> > MapType;
+    MapType pep_to_prot; // peptide index --> protein indices
 
     FoundProteinFunctor()
       : pep_to_prot()
@@ -95,36 +112,54 @@ struct FoundProteinFunctor
       // remember mapping of proteins to peptides and vice versa
       for(unsigned i_pep=0;i_pep<countOccurrences(iter_pep);++i_pep)
       {
-        Size idx_pep = getOccurrences(iter_pep)[i_pep].i1;
+        OpenMS::Size idx_pep = getOccurrences(iter_pep)[i_pep].i1;
         for(unsigned i_prot=0;i_prot<countOccurrences(iter_prot);++i_prot)
         {
-          Size idx_prot = getOccurrences(iter_prot)[i_prot].i1;
+          OpenMS::Size idx_prot = getOccurrences(iter_prot)[i_prot].i1;
           pep_to_prot[idx_pep].insert(idx_prot);
         }
       }
     }
 
-          //hits_pep += countOccurrences(iter1);
-      //hits_prot += countOccurrences(iter2);
-      //std::cout << "peptide:        " << representative(iter1) << " occs: " << getOccurrences(iter1) << std::endl;
-      //std::cout << "protein_suffix: " << representative(iter2) << " occs: " << getOccurrences(iter2) << std::endl;
-      /*std::cout << "Peptide (" << representative(iter1) << "): ";
-      for(unsigned i=0;i<countOccurrences(iter1);++i)
+    bool operator == (const FoundProteinFunctor& rhs) const
+    {
+      if (pep_to_prot.size()!=rhs.pep_to_prot.size()) 
       {
-        std::cout << getOccurrences(iter1)[i].i1 << " ";
+        LOG_ERROR << "Size " << pep_to_prot.size() << " " << rhs.pep_to_prot.size() << std::endl;
+        return false;
       }
-      std::cout << " --> " << representative(iter2) << " -- " ;
-      for(unsigned i=0;i<countOccurrences(iter2);++i)
+
+      MapType::const_iterator it1 = pep_to_prot.begin(), it2 = rhs.pep_to_prot.begin();
+      while (it1!=pep_to_prot.end())
       {
-        std::cout << "[" << getOccurrences(iter2)[i].i1 << "," << getOccurrences(iter2)[i].i2 << "] ";
+        if (it1->first != it2->first)
+        {
+          LOG_ERROR << "Index of " << it1->first << " " << it2->first << std::endl;
+          return false;
+        }
+        if (it1->second.size() != it2->second.size()) 
+        {
+          LOG_ERROR << "Size of " << it1->first << " " << it1->second.size() << "--" << it2->second.size() << std::endl;
+          return false;
+        }
+        if (!equal(it1->second.begin(), it1->second.end(), it2->second.begin())) 
+        {
+          LOG_ERROR << "not equal set for " << it1->first << std::endl;
+          return false;
+        }
+        ++it1;
+        ++it2;
       }
-      std::cout << "\n";
-      */
+      return true;
+    }
+
+    bool operator != (const FoundProteinFunctor& rhs) const
+    {
+      return !(*this==rhs);
+    }
+
 };
 
-
-namespace seqan
-{
 
   // saving some memory for the SA
   template <>
@@ -229,15 +264,25 @@ namespace seqan
                               representative(iterB)[ipB],
 															EquivalenceClassAA_<char>::VALUE ))
           {
-            const char xx = representative(iterB)[ipB];
             // matched (including character classes) - look at ambiguous AA in PROTEIN tree (peptide tree is not considered!)
-            if (xx == 'X' ||
-                xx == 'B' ||
-                xx == 'Z')
+            const char x_prot = representative(iterB)[ipB];
+            if (x_prot == 'X' ||
+                x_prot == 'B' ||
+                x_prot == 'Z')
             {
               if (ec == 0) break;
               --ec;
             }
+            
+            // dealing with 'X' in peptide sequence: only match exactly 'X' in proteinDB, not just any representative of 'X' (this is how X!Tandem would report results)
+            const char x_pep = representative(iterA)[ipA];
+            if (x_pep == 'X' ||
+                x_pep == 'B' ||
+                x_pep == 'Z')
+            {
+              if (x_pep != x_prot) break;
+            }
+
           }
           else
           {
@@ -297,7 +342,8 @@ class TOPPPeptideIndexer
 			registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
 			registerFlag_("prefix", "If set, the database has protein accessions with 'decoy_string' as prefix.");
 			registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
-      registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. not set) the program terminates with error status on unmatched peptides.");
+      registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. this flag is not set) the program terminates with error status on unmatched peptides.");
+      registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous AA's) are associated. This is much slower!");
       registerIntOption_("aaa_max", "<AA count>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein DB with AAA's. AAA's are 'B', 'Z', and 'X'", false);
       setMinInt_("aaa_max", 0);
 		}
@@ -351,7 +397,7 @@ class TOPPPeptideIndexer
 
 			writeDebug_("Collecting peptides...", 1);
 
-      FoundProteinFunctor func; // stores the matches (need to survive local scope which follows)
+      seqan::FoundProteinFunctor func; // stores the matches (need to survive local scope which follows)
 			Map<String,Size> acc_to_prot; // build map: accessions to proteins
 
       { // new scope - forget data after search
@@ -391,34 +437,126 @@ class TOPPPeptideIndexer
 
         writeLog_(String("Mapping ") + length(pep_DB) + " peptides to " + length(prot_DB) + " proteins.");
 
-        /** search DB */
-
-        typedef seqan::Index< seqan::StringSet<seqan::Peptide>, seqan::IndexWotd<> > TIndex;
-        TIndex prot_Index(prot_DB);
-        TIndex pep_Index(pep_DB);
-        
-        // use only full peptides in Suffix Array
-        resize(indexSA(pep_Index), length(pep_DB));
-        for (unsigned i = 0; i < length(pep_DB); ++i)
+        /** first, try Aho Corasick (fast) -- using exact matching only */
+        bool SA_only = getFlag_("full_tolerant_search");
+        if (!SA_only)
         {
-          indexSA(pep_Index)[i].i1 = i;
-          indexSA(pep_Index)[i].i2 = 0;
+          seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasick > pattern(pep_DB);
+
+          writeDebug_("Finding peptide/protein matches...", 1);
+          Size hits(0);
+          for (Size i=0; i<length(prot_DB); ++i)
+          {
+            seqan::Finder<seqan::Peptide> finder(prot_DB[i]);
+            while (find(finder, pattern))
+            {
+              //seqan::appendValue(pat_hits, seqan::Pair<Size, Size>(position(pattern), position(finder)));
+              func.pep_to_prot[position(pattern)].insert(i);
+              ++hits;
+            }
+          }
+
+          writeLog_(String("Aho-Corasick done. Found ") + hits + " hits in " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides");
         }
 
-        typedef seqan::Iterator< TIndex, seqan::TopDown<seqan::PreorderEmptyEdges> >::Type TTreeIter;
+        /// check if every peptide was found:
+        if (func.pep_to_prot.size() != length(pep_DB))
+        {
+          /** search using SA, which supports mismatches (introduced by resolving ambiguous AA's by, e.g. Mascot) -- expensive! */
+          writeLog_(String("Using SA to find ambiguous matches ..."));
 
-        //seqan::open(indexSA(prot_Index), "c:\\tmp\\prot_Index.sa");
-        //seqan::open(indexDir(prot_Index), "c:\\tmp\\prot_Index.dir");
+          // search peptides which remained unidentified during Aho-Corasick (might be all if 'full_tolerant_search' is enabled)
+          seqan::StringSet<seqan::Peptide> pep_DB_SA;
+          Map<Size, Size> missed_pep;
+          for (Size p=0; p<length(pep_DB); ++p)
+          {
+            if (!func.pep_to_prot.has(p))
+            {
+              missed_pep[length(pep_DB_SA)] = p;
+              appendValue(pep_DB_SA, pep_DB[p]);
+            }
+          }
 
-        TTreeIter prot_Iter(prot_Index);
-        TTreeIter pep_Iter(pep_Index);
+          writeLog_(String("    for ") + length(pep_DB_SA) + " peptides.");
 
-        UInt max_aaa = getIntOption_("aaa_max");
-        seqan::_approximateAminoAcidTreeSearch<true,true>(func, pep_Iter, 0u, prot_Iter, 0u, 0u, max_aaa);
+          seqan::FoundProteinFunctor func_SA;
 
-        //seqan::save(indexSA(prot_Index), "c:\\tmp\\prot_Index.sa");
-        //seqan::save(indexDir(prot_Index), "c:\\tmp\\prot_Index.dir");
-      
+          typedef seqan::Index< seqan::StringSet<seqan::Peptide>, seqan::IndexWotd<> > TIndex;
+          TIndex prot_Index(prot_DB);
+          TIndex pep_Index(pep_DB_SA);
+
+          // use only full peptides in Suffix Array
+          resize(indexSA(pep_Index), length(pep_DB_SA));
+          for (unsigned i = 0; i < length(pep_DB_SA); ++i)
+          {
+            indexSA(pep_Index)[i].i1 = i;
+            indexSA(pep_Index)[i].i2 = 0;
+          }
+
+          typedef seqan::Iterator< TIndex, seqan::TopDown<seqan::PreorderEmptyEdges> >::Type TTreeIter;
+
+          //seqan::open(indexSA(prot_Index), "c:\\tmp\\prot_Index.sa");
+          //seqan::open(indexDir(prot_Index), "c:\\tmp\\prot_Index.dir");
+
+          TTreeIter prot_Iter(prot_Index);
+          TTreeIter pep_Iter(pep_Index);
+
+          UInt max_aaa = getIntOption_("aaa_max");
+          seqan::_approximateAminoAcidTreeSearch<true,true>(func_SA, pep_Iter, 0u, prot_Iter, 0u, 0u, max_aaa);
+
+          //seqan::save(indexSA(prot_Index), "c:\\tmp\\prot_Index.sa");
+          //seqan::save(indexDir(prot_Index), "c:\\tmp\\prot_Index.dir");
+
+          // augment results with SA hits
+          for (seqan::FoundProteinFunctor::MapType::const_iterator it = func_SA.pep_to_prot.begin(); it!=func_SA.pep_to_prot.end(); ++it)
+          {
+            func.pep_to_prot[missed_pep[it->first]] = it->second;
+          }
+
+
+        }
+
+        // test if results are equal:
+        /*if (func != func2)
+        {
+          LOG_ERROR << "WHAAAA" << std::endl;
+          
+          seqan::FoundProteinFunctor::MapType::const_iterator it1 = func.pep_to_prot.begin(), it2 = func2.pep_to_prot.begin();
+          while (it1!=func.pep_to_prot.end())
+          {
+            LOG_ERROR <<  "^-- " << it1->first << " " << it2->first << std::endl;
+            if (it1->first != it2->first)
+            {
+              LOG_ERROR << "Index of " << it1->first << " " << it2->first << std::endl;
+              LOG_ERROR << "values:" << pep_DB[it1->first] << " " << pep_DB[it2->first] << std::endl;
+
+              break;
+            }
+            if (it1->second.size() != it2->second.size()) 
+            {
+              LOG_ERROR << "Size of " << it1->first << " " << it1->second.size() << "--" << it2->second.size() << std::endl;
+              LOG_ERROR << "##values:" << pep_DB[it1->first] << " " << pep_DB[it2->first] << std::endl;
+              std::ostream_iterator< double > output( cerr, " " );
+              std::copy( it1->second.begin(), it1->second.end(), output );
+              std::set<Size>::const_iterator its = it1->second.begin();
+              for (; its!=it1->second.end(); ++its) cerr<<prot_DB[*its] << "\n";
+              std::cerr << " VS: ";
+              std::copy( it2->second.begin(), it2->second.end(), output );
+              its = it2->second.begin();
+              for (; its!=it2->second.end(); ++its) cerr<<prot_DB[*its] << "\n";
+              break;
+            }
+            if (!equal(it1->second.begin(), it1->second.end(), it2->second.begin())) 
+            {
+              LOG_ERROR << "not equal set for " << it1->first << std::endl;
+              break;
+            }
+            ++it1;
+            ++it2;
+          }          return INTERNAL_ERROR;
+        }*/
+
+        
       } // end local scope
 
       /* do mapping */
