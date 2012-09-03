@@ -384,7 +384,14 @@ class TOPPXTandemAdapter
 			/// Deletion of temporary files
 			QFile(input_filename.toQString()).remove();
 			QFile(tandem_input_filename.toQString()).remove();
-			QFile((temp_directory + files[0]).toQString()).remove(); // tandem_output_filename
+      if (this->debug_level_ < 2) 
+      {
+        QFile((temp_directory + files[0]).toQString()).remove(); // tandem_output_filename
+      }
+      else
+      {
+        LOG_INFO << "Not removing " << temp_directory + files[0] << " for debugging." << std::endl;
+      }
 			QFile(tandem_taxonomy_filename.toQString()).remove();
 
 			return EXECUTION_OK;
