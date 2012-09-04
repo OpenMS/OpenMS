@@ -653,6 +653,23 @@ namespace OpenMS
 			cmsq_->getAnalysisSummary().quant_type_;
 			os << "\t\t<userParam name=\"QuantType\" value=\"";
 			os <<String(MSQuantifications::NamesOfQuantTypes[cmsq_->getAnalysisSummary().quant_type_]) ;
+			switch(cmsq_->getAnalysisSummary().quant_type_)
+			{
+				case 0:
+					os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001837\" name=\"SILAC quantitation analysis\"/>\n";
+          os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002001\" name=\"MS1 label-based raw feature quantitation\" value=\"true\"/>\n";
+          os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002002\" name=\"MS1 label-based peptide level quantitation\" value=\"true\"/>\n";
+          os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002003\" name=\"MS1 label-based protein level quantitation\" value=\"true\"/>\n";
+          os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002004\" name=\"MS1 label-based proteingroup level quantitation\" value=\"false\"/>\n";
+				break;
+				case 1:
+					os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001837\" name=\"iTraq quantitation analysis\"/>\n";
+          os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"\" name=\"MS2 tag-based analysis feature level quantitation\" value=\"true\"/>\n";
+          os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"\" name=\"MS2 tag-based analysis group features by peptide quantitation\" value=\"false\"/>\n";
+          os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"\" name=\"MS2 tag-based analysis protein level quantitation\" value=\"false\"/>\n";
+					os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"\" name=\"MS2 tag-based analysis protein group level quantitation\" value=\"false\"/>\n";
+				break;
+			}
 					//~ writeUserParam_(dataprocessinglist_tag, cmsq_->getAnalysisSummary().getUserParams(), UInt(2));
 					//~ writeCVParams_(dataprocessinglist_tag, (cmsq_->getAnalysisSummary().getCVTerms(), UInt(2));
 			os << "\"/>\n\t</AnalysisSummary>\n";
@@ -820,8 +837,8 @@ namespace OpenMS
 									cv_name = "6x(13)C,4x(15)N labeled L-arginine";
 								break;
 								default:
-									cv_name = "TODO";
-									cv_acc = "TODO";
+									cv_name = "unlabeled sample";
+									cv_acc = "MS:1002038";
 							}
 							assay_xml += "\t\t\t\t<Modification massDelta=\""+String(lit->second)+"\" >\n";
 							assay_xml += "\t\t\t\t\t<cvParam cvRef=\"PSI-MOD\" accession=\"" + cv_acc + "\" name=\""+ cv_name +"\" value=\"" + String(lit->first) + "\"/>\n";
@@ -961,7 +978,7 @@ namespace OpenMS
 				break;
 				case 1: //ms2label
 				{
-					os << "\t\t<MS2AssayQuantLayer id=\"ms2ql_"+ String(UniqueIdGenerator::getUniqueId()) +"\">\n\t\t\t<DataType>\n\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"1847\" name=\"reporterion intensity\"/>\n\t\t\t</DataType>\n\t\t\t<ColumnIndex>";
+					os << "\t\t<MS2AssayQuantLayer id=\"ms2ql_"+ String(UniqueIdGenerator::getUniqueId()) +"\">\n\t\t\t<DataType>\n\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001847\" name=\"reporter ion intensity\"/>\n\t\t\t</DataType>\n\t\t\t<ColumnIndex>";
 					for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
 					{
 						os << "a_"<< String(ait->uid_) << " ";
@@ -1201,8 +1218,6 @@ namespace OpenMS
 				//~ writeUserParam_(os, feat, indentation_level + 3);
 
 				//~ os << indent << "\t\t</feature>\n";
-
- }
-
+		}
 	} //namespace Internal
 } // namespace OpenMS
