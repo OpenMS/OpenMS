@@ -178,14 +178,15 @@ namespace OpenMS
       double height = gsl_vector_get (param, 0);
       double x0 = gsl_vector_get (param, 1);
       double sig = gsl_vector_get (param, 2);
+      double c_fac = -0.5 / pow(sig, 2);
 
-      UInt count = 0;
+      Size count = 0;
       for (Size t=0; t< traces->size(); ++t)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = traces->at(t);
+        const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = (*traces)[t];
         for (Size i=0; i<trace.peaks.size(); ++i)
         {
-          gsl_vector_set(f, count, traces->baseline + trace.theoretical_int * height * exp(-0.5 * pow(trace.peaks[i].first - x0, 2)  / pow(sig, 2)) - trace.peaks[i].second->getIntensity() );
+          gsl_vector_set(f, count, traces->baseline + trace.theoretical_int * height * exp(c_fac * pow(trace.peaks[i].first - x0, 2) ) - trace.peaks[i].second->getIntensity() );
           ++count;
         }
       }
@@ -198,17 +199,21 @@ namespace OpenMS
       double height = gsl_vector_get (param, 0);
       double x0 = gsl_vector_get (param, 1);
       double sig = gsl_vector_get (param, 2);
+      double sig_sq = pow(sig,2);
+      double sig_3 = pow(sig,3);
+      double c_fac = -0.5 / sig_sq;
 
-      UInt count = 0;
+      Size count = 0;
       for (Size t=0; t<traces->size(); ++t)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = traces->at(t);
+        const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = (*traces)[t];
         for (Size i=0; i< trace.peaks.size(); ++i)
         {
           DoubleReal rt = trace.peaks[i].first;
-          gsl_matrix_set (J, count, 0, trace.theoretical_int * exp(-0.5 * pow(rt-x0,2) / pow(sig,2)));
-          gsl_matrix_set (J, count, 1, trace.theoretical_int * height * exp(-0.5 * pow(rt-x0,2) / pow(sig,2)) * (rt-x0) / pow(sig,2));
-          gsl_matrix_set (J, count, 2, 0.125 * trace.theoretical_int * height * exp(-0.5 * pow(rt-x0,2) / pow(sig,2)) * pow(rt-x0,2) / pow(sig,3));
+          DoubleReal e = exp(c_fac * pow(rt-x0,2) );
+          gsl_matrix_set (J, count, 0, trace.theoretical_int * e);
+          gsl_matrix_set (J, count, 1, trace.theoretical_int * height * e * (rt-x0) / sig_sq);
+          gsl_matrix_set (J, count, 2, 0.125 * trace.theoretical_int * height * e * pow(rt-x0,2) / sig_3);
           ++count;
         }
       }
