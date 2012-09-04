@@ -58,6 +58,9 @@ namespace OpenMS
 		// Proton mass in units
 		const double  PROTON_MASS_U			= 1.0072764667710;     // u
 
+    // Mass difference between Carbon-13 and Carbon-12 in units
+    const double C13C12_MASSDIFF_U = 1.0033548; // u
+
 		// Neutron mass
 		const double	NEUTRON_MASS    	= 1.6749286E-27L;   	 // kg
 

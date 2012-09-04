@@ -108,6 +108,11 @@ namespace OpenMS
 		*/
 		extern OPENMS_DLLAPI const double PROTON_MASS_U     ;      // u
 
+    /** C13C12 mass difference.
+        In units (\f$1.0033548\f$u)
+    */
+   extern OPENMS_DLLAPI const double C13C12_MASSDIFF_U;      // u
+
 		/** Neutron mass.
 				In units of kg (\f$1.6749286 \cdot 10^{-27}\f$ kg).
 		*/
