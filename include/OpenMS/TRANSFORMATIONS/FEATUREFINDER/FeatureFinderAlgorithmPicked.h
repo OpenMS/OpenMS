@@ -67,7 +67,7 @@ namespace OpenMS
     @htmlinclude OpenMS_FeatureFinderAlgorithmPicked.parameters
 
 		@improvement RT model with tailing/fronting (Marc)
-		@improvement More general MZ model - e.g. based on co-elution or with sulphur-averagines (Marc)
+		@improvement More general MZ model - e.g. based on co-elution or with sulfur-averagines (Marc)
 		
 		@todo Fix output in parallel mode, change assignment of charges to threads, add parallel TOPP test (Marc)
 		@todo Implement user-specified seed lists support (Marc)
@@ -907,31 +907,35 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 
 				for (Size i=0; i<features_->size(); ++i)
 				{
-					bbs[i] = features_->at(i).getConvexHull().getBoundingBox();
+					bbs[i] = (*features_)[i].getConvexHull().getBoundingBox();
 					if (bbs[i].height()>max_mz_span)
 					{
 						max_mz_span = bbs[i].height();
 					}
 				}
+
+        Size removed(0);
 				//intersect
 				for (Size i=0; i<features_->size(); ++i)
 				{
-					Feature& f1(features_->at(i));
+					Feature& f1((*features_)[i]);
 					for (Size j=i+1; j<features_->size(); ++j)
 					{
 						ff_->setProgress(i*features_->size()+j);
-						Feature& f2(features_->at(j));
+						Feature& f2((*features_)[j]);
 						//features that are more than 2 times the maximum m/z span apart do not overlap => abort 
 						if (f2.getMZ()-f1.getMZ()>2.0*max_mz_span) break;
-						//do nothting if one of the features is alreay removed
+						//do nothing if one of the features is already removed
 						if (f1.getIntensity()==0.0 || f2.getIntensity()==0.0) continue;
-						//do nothing if the overall convex hulls du not overlap
+						//do nothing if the overall convex hulls do not overlap
 						if (!bbs[i].intersects(bbs[j])) continue;
 						//act depending on the intersection
 						DoubleReal intersection = intersection_(f1, f2);
 
 						if (intersection>=max_feature_intersection_)
 						{
+              ++removed;
+
 							log_ << " - Intersection (" << (i+1) << "/" << (j+1) << "): " << intersection << std::endl;
 							if (f1.getCharge()==f2.getCharge())
 							{
@@ -978,26 +982,21 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						}
 					}
 				}
+        LOG_INFO << "Removed " << removed << " overlapping features." << std::endl;
 				//finally remove features with intensity 0
 				FeatureMap<> tmp;
 				tmp.reserve(features_->size());
-				UInt removed = 0;
 				for (Size i=0; i<features_->size(); ++i)
 				{
 					if (features_->operator[](i).getIntensity()!=0.0)
 					{
 						tmp.push_back(features_->operator[](i));
 					}
-					else
-					{
-						++removed;
-					}
 				}
 				tmp.Base::swap(*features_);
-				//sort features by intensty
+				//sort features by intensity
 				features_->sortByIntensity(true);
 				ff_->endProgress();
-				std::cout << "Removed " << removed << " overlapping features." << std::endl;
 				std::cout << features_->size() << " features left." << std::endl;
 				
 				//Abort reasons 
@@ -1092,7 +1091,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 			std::vector< std::vector< std::vector<DoubleReal> > > intensity_thresholds_;
 			//@}
 
-			///Vector of precalculated isotope distributions for several mass winows
+			///Vector of precalculated isotope distributions for several mass windows
 			std::vector< TheoreticalIsotopePattern > isotope_distributions_;
 
       // Docu in base class
@@ -1116,7 +1115,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
         reported_mz_ = param_.getValue("feature:reported_mz");
 			}
 			
-      /// Writes the abort reason to the log file and counts occurences for each reason
+      /// Writes the abort reason to the log file and counts occurrences for each reason
 			void abort_(bool debug, const Seed& seed, const String& reason)
 			{
 				log_ << "Abort: " << reason << std::endl;
@@ -1126,7 +1125,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 
       /**
        * Calculates the intersection between features.
-       * The value is normalized by the size of the smaller feature, so it rages from 0 to 1.
+       * The value is normalized by the size of the smaller feature, so it ranges from 0 to 1.
        */
 			DoubleReal intersection_(const Feature& f1, const Feature& f2) const
 			{
@@ -1156,22 +1155,22 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						DBoundingBox<2> bb2 = hulls2[j].getBoundingBox();
 						if (bb1.intersects(bb2))
 						{
-            if (bb1.minPosition()[0] <= bb2.minPosition()[0] &&
+              if (bb1.minPosition()[0] <= bb2.minPosition()[0] &&
                 bb1.maxPosition()[0] >= bb2.maxPosition()[0]) //bb1 contains bb2
 							{
 								overlap += bb2.width();
 							}
-            else if (bb2.minPosition()[0] <= bb1.minPosition()[0] &&
+              else if (bb2.minPosition()[0] <= bb1.minPosition()[0] &&
                      bb2.maxPosition()[0] >= bb1.maxPosition()[0]) //bb2 contains bb1
 							{
 								overlap += bb1.width();
 							}
-            else if (bb1.minPosition()[0] <= bb2.minPosition()[0] &&
+              else if (bb1.minPosition()[0] <= bb2.minPosition()[0] &&
                      bb1.maxPosition()[0] <= bb2.maxPosition()[0]) //the end of bb1 overlaps with bb2
 							{
 								overlap += bb1.maxPosition()[0]-bb2.minPosition()[0];
 							}
-            else if (bb2.minPosition()[0] <= bb1.minPosition()[0] &&
+              else if (bb2.minPosition()[0] <= bb1.minPosition()[0] &&
                      bb2.maxPosition()[0] <= bb1.maxPosition()[0]) //the end of bb2 overlaps with bb1
 							{
 								overlap += bb2.maxPosition()[0]-bb1.minPosition()[0];

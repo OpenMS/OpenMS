@@ -616,7 +616,7 @@ namespace OpenMS
       writeParam_(param_tmp, ini_file_iteration);
       args << "-ini" << ini_file_iteration;
 
-      //create process
+      // create process
       QProcess * p;
       if (!ts->isDryRun())
       {
@@ -634,7 +634,7 @@ namespace OpenMS
       connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
 
       //enqueue process
-      std::cout << "Enqueue: " << File::getExecutablePath() + name_ << " \"" << String(args.join("\" \"")) << "\"" << std::endl;
+      if (round==0) LOG_DEBUG << "Enqueue: \"" << File::getExecutablePath() + name_ << "\" \"" << String(args.join("\" \"")) << "\"" << std::endl;
       toolScheduledSlot();
       ts->enqueueProcess( TOPPASScene::TOPPProcess(p, (File::getExecutablePath() + name_).toQString(), args, this));
     }
