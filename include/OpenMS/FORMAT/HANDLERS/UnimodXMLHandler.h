@@ -38,13 +38,13 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-  /**
+    /**
     @brief Handler that is used for parsing XTandemXML data
     
   */
-  class OPENMS_DLLAPI UnimodXMLHandler:
-    public XMLHandler
-  {
+    class OPENMS_DLLAPI UnimodXMLHandler:
+        public XMLHandler
+    {
     public:
       /// Default constructor
       UnimodXMLHandler(std::vector<ResidueModification*>& mods, const String& filename);
@@ -57,12 +57,12 @@ namespace OpenMS
 			
 			// Docu in base class
       void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
-		
+
 			// Docu in base class
    		void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
 		  
     private:
-  
+
 			String tag_;
 
 			DoubleReal avge_mass_;
@@ -71,6 +71,11 @@ namespace OpenMS
 
 			EmpiricalFormula diff_formula_;
 
+      EmpiricalFormula neutral_loss_diff_formula_;
+
+      bool was_valid_peptide_modification_;
+      std::vector<EmpiricalFormula> neutral_loss_diff_formulas_;
+
 			ResidueModification* modification_;
 			
 			std::vector<ResidueModification*>& modifications_;
@@ -78,7 +83,7 @@ namespace OpenMS
 			std::vector<String> sites_;
 			
 			std::vector<ResidueModification::Term_Specificity> term_specs_;
-  };
+    };
 
 	} // namespace Internal
 } // namespace OpenMS
