@@ -456,6 +456,9 @@ endforeach(i)
 add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS GUI)
 
+##### CTDs ####
+include(cmake/OpenMSBuildSystem_ctdSupport.cmake)
+
 ##### Examples #####
 if ("${PACKAGE_TYPE}" STREQUAL "none")
 	set(EXAMPLES_executables)
