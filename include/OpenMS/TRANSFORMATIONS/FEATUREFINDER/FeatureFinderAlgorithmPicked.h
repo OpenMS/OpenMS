@@ -59,6 +59,13 @@
 #include <omp.h>
 #endif
 
+#ifdef _OPENMP
+  #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)  
+#else
+  #define IF_MASTERTHREAD 
+#endif    
+   
+
 namespace OpenMS
 {
 	/** 
@@ -340,7 +347,7 @@ namespace OpenMS
 				
 				//---------------------------------------------------------------------------
 				//Step 2:
-				//Prealculate mass trace scores and local trace maximum for each peak
+				//Precalculate mass trace scores and local trace maximum for each peak
 				//---------------------------------------------------------------------------
 				//new scope to make local variables disappear
 				{
@@ -403,7 +410,7 @@ namespace OpenMS
 
 				//---------------------------------------------------------------------------
 				//Step 2.5:
-				//Prealculate isotope distributions for interesting mass ranges
+				//Precalculate isotope distributions for interesting mass ranges
 				//---------------------------------------------------------------------------
 				//new scope to make local variables disappear
 				{
@@ -515,7 +522,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 							
 							//get isotope distribution for this mass
 							const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(mz*c);
-							//determine highest peak in isopope distribution
+							//determine highest peak in isotope distribution
 							Size max_isotope = std::max_element(isotopes.intensity.begin(), isotopes.intensity.end()) - isotopes.intensity.begin();
 							//Look up expected isotopic peaks (in the current spectrum or adjacent spectra)
 							Size peak_index = spectrum.findNearest(mz-((DoubleReal)(isotopes.size()+1)/c));
@@ -577,7 +584,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 							DoubleReal overall_score = std::pow(meta[0][p]*meta[1][p]*meta[meta_index_isotope][p], 1.0f/3.0f);
 							meta[meta_index_overall][p] = overall_score;
 
-							//add seed to vector if certain conditions are fullfilled
+							//add seed to vector if certain conditions are fulfilled
 							if (meta[2][p]!=0.0) // local maximum of mass trace is prerequisite for all features
 							{
 								//automatic seeds: overall score greater than the min seed score
@@ -641,36 +648,22 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						}
 						FeatureXMLFile().store(String("debug/seeds_")+String(c)+".featureXML", seed_map);
 					}
-#ifdef _OPENMP
-if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
-#endif    
-          {
-            ff_->endProgress();
-          }
+
+          IF_MASTERTHREAD ff_->endProgress(); // only master thread reports progress (otherwise it gets really confusing on the console)
 					std::cout << "Found " << seeds.size() << " seeds for charge " << c << "." << std::endl;
 					
 					//------------------------------------------------------------------
 					//Step 3.3:
 					//Extension of seeds
 					//------------------------------------------------------------------
-#ifdef _OPENMP
-if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
-#endif    
-          {
-            ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+String(c));
-          }
+          IF_MASTERTHREAD ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+String(c));
 					for (Size i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
 						//Step 3.3.1:
 						//Extend all mass traces
 						//------------------------------------------------------------------
-#ifdef _OPENMP
-if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
-#endif    
-            {
-						  ff_->setProgress(i);
-            }
+            IF_MASTERTHREAD ff_->setProgress(i);
 						log_ << std::endl << "Seed " << i << ":" << std::endl;
 						//If the intensity is zero this seed is already uses in another feature
 						const SpectrumType& spectrum = map_[seeds[i].spectrum];
@@ -734,7 +727,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 
             // choose fitter
             double egh_tau = 0.0;
-          TraceFitter<PeakType> * fitter = chooseTraceFitter_(egh_tau);
+            TraceFitter<PeakType> * fitter = chooseTraceFitter_(egh_tau);
 
 						fitter->setParameters(trace_fitter_params);
 						fitter->fit(traces);
@@ -1907,7 +1900,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
       //@{
       /**
       @brief Creates new mass traces @p new_traces based on the fitting result and the
-             orignal traces @p traces.
+             original traces @p traces.
 
       @param fitter The TraceFitter containing the results from the rt profile fitting step.
       @param traces Original mass traces found in the experiment.
