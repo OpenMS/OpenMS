@@ -1,24 +1,27 @@
 #!/bin/bash
-## 
+##
 ## 04/16/2009 - Stephan Aiche
 ##  Fixes the association of libOpenMS.dylib to the Qt libraries
 ##  to point to the installed lib/ path in /Applications/OpenMS-xx/lib/
-## 
-## Commandline arguments are: 
+##
+## Commandline arguments are:
 ##  $1 = install_name_tool
 ##  $2 = QT_LIB_PATH
 ##  $3 = lib-path
 
+# get the desired prefix that should be replaced /  requires that all QtLibs reside in the same place
+prefix=$(otool -L $3/libOpenMS.dylib | grep QtCore | tr -d ' \t'|sed 's/QtCore.*//')
+
 # fix Qt references of OpenMS
 for lib in QtOpenGL QtCore QtGui QtXml QtSql QtNetwork QtTest QtSvg QtWebKit QtXmlPatterns
 do
-    # change association to Qt libs
-    $1 -change $2/$lib.framework/Versions/4/$lib \
-        @executable_path/../lib/$lib.framework/Versions/4/$lib \
-        $3/libOpenMS.dylib
-        
-    $1 -change $2/$lib.framework/Versions/4/$lib \
-        @executable_path/../lib/$lib.framework/Versions/4/$lib \
-        $3/libOpenMS_GUI.dylib
+  # change association to Qt libs
+  $1 -change ${prefix}$lib.framework/Versions/4/$lib \
+    @executable_path/../lib/$lib.framework/Versions/4/$lib \
+    $3/libOpenMS.dylib
+
+  $1 -change ${prefix}$lib.framework/Versions/4/$lib \
+    @executable_path/../lib/$lib.framework/Versions/4/$lib \
+    $3/libOpenMS_GUI.dylib
 done
 
