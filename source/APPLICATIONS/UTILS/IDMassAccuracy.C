@@ -96,7 +96,9 @@ class TOPPIDMassAccuracy
 		void registerOptionsAndFlags_()
 		{
 			registerInputFileList_("in","<file list>", StringList(), "Input mzML file list, containing the spectra.");
+      setValidFormats_("in", StringList::create("mzML"));
 			registerInputFileList_("id_in", "<file list>", StringList(), "Input idXML file list, containing the identifications.");
+      setValidFormats_("id_in", StringList::create("idXML"));
 
 			registerOutputFile_("precursor_out","<file>","","Output file which contains the deviations from the precursors", false, false);
 			registerStringList_("precursor_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file", false);

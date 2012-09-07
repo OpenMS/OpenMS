@@ -80,6 +80,7 @@ class TOPPDecoyDatabase
       registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
 			registerFlag_("shuffle","If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
 			registerInputFile_("contaminants","<file>","","Input a FASTA file containing contaminants - if given they are included in the database (recommended)", false);
+      setValidFormats_("contaminants", StringList::create("FASTA"));
 		}
 
     String getIdentifier_(const String& identifier, const String& decoy_string, const bool as_prefix)

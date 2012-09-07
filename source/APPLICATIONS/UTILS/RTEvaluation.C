@@ -78,8 +78,9 @@ class TOPPIdXMLEvaluation
 			registerInputFile_("in","<file>","","input file");
 			setValidFormats_("in", StringList::create("idXML"));
 			registerOutputFile_("out","<file>","","output file ");
-			registerInputFile_("sequences_file","<file>","","Filename of a fasta file containing protein sequences.\n"
+			registerInputFile_("sequences_file","<file>","","Filename of a FASTA file containing protein sequences.\n"
 																												 "All peptides that are not a substring of a sequence in this file are considered as false",false);
+      setValidFormats_("sequences_file", StringList::create("FASTA"));
 			registerFlag_("latex", "indicates whether the output file format of the table should be latex or csv");
 			registerDoubleOption_("p_value_dim_1","<float>",0.01,"Significance level of first dimension RT filter",false);
 			setMinFloat_("p_value_dim_1", 0);
@@ -95,9 +96,6 @@ class TOPPIdXMLEvaluation
 			vector<ProteinIdentification> protein_identifications;
 			vector<PeptideIdentification> identifications;
 			vector<PeptideHit> temp_peptide_hits;
-			String inputfile_name = "";
-			String outputfile_name = getStringOption_("out");
-			String sequences_file_name = "";
 			vector<String> peptides;
 			vector<String> proteins;
 			vector< FASTAFile::FASTAEntry > sequences;
@@ -140,8 +138,9 @@ class TOPPIdXMLEvaluation
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
-			inputfile_name = getStringOption_("in");			
-			sequences_file_name = getStringOption_("sequences_file");			
+			String inputfile_name = getStringOption_("in");			
+			String sequences_file_name = getStringOption_("sequences_file");			
+      String outputfile_name = getStringOption_("out");
 			
 			//-------------------------------------------------------------
 			// reading input

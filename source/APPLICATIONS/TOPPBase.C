@@ -917,6 +917,10 @@ namespace OpenMS
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
         }
+        if (parameters_[i].valid_strings.size()>0)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Internal error: Valid formats are already set for '" + name + "'. Please check for typos!");
+        }
         parameters_[i].valid_strings = formats;
 				return;
 			}

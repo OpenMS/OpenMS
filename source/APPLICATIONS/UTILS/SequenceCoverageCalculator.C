@@ -71,7 +71,7 @@ class TOPPSequenceCoverageCalculator
       setValidFormats_("in_database", StringList::create("FASTA"));
 			registerInputFile_("in_peptides","<file>","","input file containing the identified peptides");
       setValidFormats_("in_peptides", StringList::create("idXML"), true);
-      registerOutputFile_("out","<file>","","Optional output file. If left out, the output is written to the command line.", false);
+      registerOutputFile_("out","<file>","","Optional text output file. If left out, the output is written to the command line.", false);
 		}
 
 		void getStartAndEndIndex(const String& sequence, const String& substring, pair<Size, Size>& indices)

@@ -71,7 +71,8 @@ class TOPPDigestorMotif
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","input file");
+			registerInputFile_("in","<file>","","FASTA input file");
+      setValidFormats_("in", StringList::create("FASTA"));
 			registerOutputFile_("out","<file>","","output file (peptides)\n");
 			registerIntOption_("missed_cleavages","<number>",1,"the number of allowed missed cleavages", false);
 			registerIntOption_("mass_accuracy","<number>",1000,"give your mass accuracy in ppb", false);

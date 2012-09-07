@@ -97,7 +97,9 @@ class TOPPPILISIdentification
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in", "<file>", "", "input file in MzML format", true);
+      setValidFormats_("in", StringList::create("mzML"));
 			registerOutputFile_("out", "<file>", "", "output file in IdXML format", true);
+      setValidFormats_("out", StringList::create("idXML"));
 			registerInputFile_("model_file", "<file", "", "the model file of the PILISModel", true);
 			registerInputFile_("peptide_db_file", "<file>", "", "a file which should contain peptides in the format\n"
 																														 "DFPIANGER 1019.09 1\n"

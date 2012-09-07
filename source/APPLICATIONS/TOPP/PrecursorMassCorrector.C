@@ -98,7 +98,7 @@ class TOPPPrecursorMassCorrector
 			registerInputFile_("in","<file>","","Input mzML file containing the spectra.");
 			setValidFormats_("in", StringList::create("mzML"));
 			registerOutputFile_("out","<file>","","Output mzML file.");
-			setValidFormats_("in", StringList::create("mzML"));
+			setValidFormats_("out", StringList::create("mzML"));
 
 			registerInputFile_("feature_in", "<file>", "", "Input featureXML file, containing features; if set, the MS/MS spectra precursor entries \n"
 																										 "will be matched to the feature m/z values if possible.", false);
@@ -107,7 +107,7 @@ class TOPPPrecursorMassCorrector
 																																						"this value should be set to the instruments selection window.", false);
 			setMinFloat_("precursor_mass_tolerance", 0);
 
-			registerIntOption_("max_charge", "<charge>", 3, "Maximal charge that should be assumend for precursor peaks", false, true);
+			registerIntOption_("max_charge", "<charge>", 3, "Maximal charge that should be assumed for precursor peaks", false, true);
 			registerDoubleOption_("intensity_threshold", "<threshold>", -1.0, "Intensity threshold value for isotope wavelet feature finder, please look at the documentation of the class for details.", false, true);
 		}
 
