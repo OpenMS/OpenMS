@@ -38,28 +38,28 @@
 
 namespace OpenMS
 {
-  LowessSmoothing::LowessSmoothing()
+LowessSmoothing::LowessSmoothing()
     : DefaultParamHandler("LowessSmoothing")
-  {
+{
     defaults_.setValue("window_size", 10, "The number of peaks to be included for local fitting in one window.");
     defaultsToParam_();
-  }
+}
 
-  LowessSmoothing::~LowessSmoothing()
-  {
-  }
+LowessSmoothing::~LowessSmoothing()
+{
+}
 
-  void LowessSmoothing::smoothData(const DoubleVector& input_x, const DoubleVector& input_y, DoubleVector& smoothed_output)
-  {
+void LowessSmoothing::smoothData(const DoubleVector& input_x, const DoubleVector& input_y, DoubleVector& smoothed_output)
+{
     if (input_x.size() != input_y.size()) {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
     }
 
     // unable to smooth over 2 or less data points (we need at least 3)
     if (input_x.size()<=2)
     {
-      smoothed_output = input_y;
-      return;
+        smoothed_output = input_y;
+        return;
     }
 
     Size input_size = input_y.size();
@@ -89,15 +89,15 @@ namespace OpenMS
 
     for(Size p_idx = 0; p_idx < input_y.size(); ++p_idx)
     {
-      DoubleReal rt = input_x[p_idx];
+        DoubleReal rt = input_x[p_idx];
 
-      gsl_matrix_set(X, p_idx, 0, 1.0);
-      gsl_matrix_set(X, p_idx, 1, rt);
-      gsl_matrix_set(X, p_idx, 2, rt * rt);
+        gsl_matrix_set(X, p_idx, 0, 1.0);
+        gsl_matrix_set(X, p_idx, 1, rt);
+        gsl_matrix_set(X, p_idx, 2, rt * rt);
 
-      gsl_vector_set(yvals_, p_idx, input_y[p_idx]);
+        gsl_vector_set(yvals_, p_idx, input_y[p_idx]);
 
-      // ++idx;
+        // ++idx;
     }
 
 
@@ -105,40 +105,40 @@ namespace OpenMS
     //for(DoubleVector::const_iterator outer_peak_it = input_y.begin(); outer_peak_it != input_y.end(); ++outer_peak_it )
     for(Size outer_idx = 0; outer_idx < input_y.size(); ++outer_idx)
     {
-      // Compute distances.
-      // Size inner_idx = 0;
-      for(Size inner_idx = 0; inner_idx < input_y.size(); ++inner_idx)
-      {
-        distances[inner_idx] = std::fabs(input_x[outer_idx] - input_x[inner_idx]);
-        sortedDistances[inner_idx] = distances[inner_idx];
-        // ++inner_idx;
-      }
+        // Compute distances.
+        // Size inner_idx = 0;
+        for(Size inner_idx = 0; inner_idx < input_y.size(); ++inner_idx)
+        {
+            distances[inner_idx] = std::fabs(input_x[outer_idx] - input_x[inner_idx]);
+            sortedDistances[inner_idx] = distances[inner_idx];
+            // ++inner_idx;
+        }
 
-      // Sort distances in order from smallest to largest.
-      // std::sort(sortedDistances, sortedDistances + input_size);
-      std::sort(sortedDistances.begin(), sortedDistances.end());
-
-
-      // Compute weights.
-      for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
-      {
-        gsl_vector_set(weights, inner_idx, tricube_(distances[inner_idx], sortedDistances[q]));
-      }
+        // Sort distances in order from smallest to largest.
+        // std::sort(sortedDistances, sortedDistances + input_size);
+        std::sort(sortedDistances.begin(), sortedDistances.end());
 
 
-      gsl_multifit_linear_workspace *work = gsl_multifit_linear_alloc(input_size, 3);
-      gsl_multifit_wlinear( X, weights, yvals_, c, cov, &chisq, work);
-      gsl_multifit_linear_free(work);
+        // Compute weights.
+        for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
+        {
+            gsl_vector_set(weights, inner_idx, tricube_(distances[inner_idx], sortedDistances[q]));
+        }
 
 
-      DoubleReal rt = input_x[outer_idx];
-      gsl_vector_set(x, 0, 1.0);
-      gsl_vector_set(x, 1, rt);
-      gsl_vector_set(x, 2, rt * rt);
+        gsl_multifit_linear_workspace *work = gsl_multifit_linear_alloc(input_size, 3);
+        gsl_multifit_wlinear( X, weights, yvals_, c, cov, &chisq, work);
+        gsl_multifit_linear_free(work);
 
-      gsl_multifit_linear_est (x, c, cov, &y, &yErr);
 
-      smoothed_output.push_back(y);
+        DoubleReal rt = input_x[outer_idx];
+        gsl_vector_set(x, 0, 1.0);
+        gsl_vector_set(x, 1, rt);
+        gsl_vector_set(x, 2, rt * rt);
+
+        gsl_multifit_linear_est (x, c, cov, &y, &yErr);
+
+        smoothed_output.push_back(y);
     }
 
     gsl_matrix_free(X);
@@ -147,32 +147,36 @@ namespace OpenMS
     gsl_matrix_free(cov);
 
     return ;
-  }
+}
 
-  DoubleReal LowessSmoothing::tricube_( DoubleReal u, DoubleReal t )
-  {
+DoubleReal LowessSmoothing::tricube_( DoubleReal u, DoubleReal t )
+{
     // In our case, u represents a distance and hence should be strictly positive.
     if (u < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of u must be strictly positive! Aborting...", String(u));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of u must be strictly positive! Aborting...", String(u));
     }
 
     // 0 <= u < t; u is regarded as 0.0 if fabs(u) falls below epsilon
     if ( (fabs(u) < std::numeric_limits<double>::epsilon() || (0.0 < u)) && (u < t) )
     {
-      // (1 - (u/t)^3)^3
-      return pow( ( 1.0 - pow(u/t, 3.0)), 3.0 );
+        // (1 - (u/t)^3)^3
+        // return pow( ( 1.0 - pow(u/t, 3.0)), 3.0 );
+        DoubleReal quot(u/t);
+        DoubleReal inner_term(1.0 - quot*quot*quot);
+
+        return inner_term*inner_term*inner_term;
     }
     // u >= t
     else
     {
-      return 0.0;
+        return 0.0;
     }
-  }
+}
 
-  void LowessSmoothing::updateMembers_()
-  {
+void LowessSmoothing::updateMembers_()
+{
     window_size_ = (Size)param_.getValue("window_size");
-  }
+}
 
 } //namespace OpenMS

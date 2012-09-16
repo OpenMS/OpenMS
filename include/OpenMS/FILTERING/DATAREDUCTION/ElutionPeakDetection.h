@@ -96,6 +96,7 @@ namespace OpenMS
         DoubleReal sample_rate_;
 
         bool pw_filtering_;
+        bool mt_snr_filtering_;
 
         void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
     };

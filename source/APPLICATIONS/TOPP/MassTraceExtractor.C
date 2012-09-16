@@ -105,18 +105,25 @@ protected:
     Param getSubsectionDefaults_(const String& /*section*/) const
     {
         Param combined;
-
         Param p_com;
-        p_com.setValue("chrom_fwhm" , 0.0 , "Allows filtering of mass traces with peak width (in seconds) less than this threshold. Disabled by default (set to 0.0).");
+        p_com.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
+        p_com.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
+        p_com.setValue("chrom_fwhm" , 5.0 , "Expected chromatographic peak width (in seconds).");
+
         combined.insert("common:", p_com);
 
         Param p_mtd = MassTraceDetection().getDefaults();
-        p_mtd.remove("chrom_fwhm");
+        p_mtd.remove("noise_threshold_int");
+        p_mtd.remove("chrom_peak_snr");
+
         combined.insert("mtd:", p_mtd);
 
         Param p_epd = ElutionPeakDetection().getDefaults();
+        p_epd.remove("noise_threshold_int");
+        p_epd.remove("chrom_peak_snr");
         p_epd.remove("chrom_fwhm");
-        p_epd.setValue("enabled", "true", "Switches on/off the detection of elution peaks");
+
+        p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
         p_epd.setValidStrings("enabled", StringList::create("true,false"));
         combined.insert("epd:", p_epd);
 
@@ -228,16 +235,16 @@ protected:
 
 
             // debug output
-            DoubleReal cent_rt(m_traces_final[i].getCentroidRT());
-            DoubleReal cent_mz(m_traces_final[i].getCentroidMZ());
-            // DoubleReal cent_int(m_traces_final[i].compute());
+//            DoubleReal cent_rt(m_traces_final[i].getCentroidRT());
+//            DoubleReal cent_mz(m_traces_final[i].getCentroidMZ());
+//            // DoubleReal cent_int(m_traces_final[i].compute());
 
-            for (MassTrace::const_iterator v_it = m_traces_final[i].begin(); v_it != m_traces_final[i].end(); ++v_it)
-            {
-                std::cout << cent_rt << " " << cent_mz << " " << /* cent_int << " "  << */ v_it->getMZ() << " " << v_it->getIntensity() << std::endl;
-            }
+//            for (MassTrace::const_iterator v_it = m_traces_final[i].begin(); v_it != m_traces_final[i].end(); ++v_it)
+//            {
+//                std::cout << cent_rt << " " << cent_mz << " " << /* cent_int << " "  << */ v_it->getMZ() << " " << v_it->getIntensity() << std::endl;
+//            }
 
-            std::cout << "----" << std::endl;
+//            std::cout << "----" << std::endl;
         }
 
         ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);

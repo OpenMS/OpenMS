@@ -52,8 +52,8 @@ MassTraceDetection::MassTraceDetection()
     defaults_.setValidStrings("reestimate_mt_sd", StringList::create(("true,false")));
 
     // advanced parameters
-    defaults_.setValue("min_sample_rate" , 0.7 , "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
-    defaults_.setValue("min_peak_width" , 3.0 , "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
+    defaults_.setValue("min_sample_rate" , 0.7, "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
+    defaults_.setValue("min_peak_width" , 3.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
 
 
 
@@ -337,6 +337,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
     }
 
 
+
+
     DoubleReal scan_time(std::fabs(input_exp[input_exp.size() - 1].getRT() - input_exp[0].getRT())/input_exp.size());
     Size min_fwhm_scans(3);
 
@@ -348,7 +350,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
     }
 
 
-    // std::cout << "min_fwhm_scans: " << min_fwhm_scans << " fwhm: " << chrom_fwhm_ << " time: " << scan_time << std::endl;
+    // std::cout << "min_fwhm_scans: " << min_fwhm_scans << " fwhm: " << " time: " << scan_time << "input size" << work_exp.size() << " " << chrom_apeces.size() << std::endl;
 
     // this->endProgress();
 
@@ -756,12 +758,13 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
 
         DoubleReal num_scans(down_scan_counter+up_scan_counter+1 - conseq_up - conseq_down);
 
+// std::cout << "minscans: " << num_scans << " peaks: " << current_trace.size() << std::endl;
 
-        //if (current_trace.size() >= min_fwhm_scans)
+//if (current_trace.size() >= min_fwhm_scans)
         if (current_trace.size() >= std::floor(num_scans*min_sample_rate_) && num_scans >= min_fwhm_scans)
         {
 
-            // std::cout << "minscans: " << num_scans << " peaks: " << current_trace.size() << std::endl;
+
 
             // std::cout << "CURR: " << current_trace.size() << " " << down_scan_counter + up_scan_counter +1 << std::endl;
             // mark all peaks as visited
@@ -810,7 +813,7 @@ void MassTraceDetection::updateMembers_()
 {
     mass_error_ppm_ = (DoubleReal)param_.getValue("mass_error_ppm");
     noise_threshold_int_ = (DoubleReal)param_.getValue("noise_threshold_int");
-
+    chrom_peak_snr_ = (DoubleReal)param_.getValue("chrom_peak_snr");
     // chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
 
     min_sample_rate_ = (DoubleReal)param_.getValue("min_sample_rate");

@@ -43,8 +43,11 @@ ElutionPeakDetection::ElutionPeakDetection()
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
     defaults_.setValue("noise_threshold_int" , 10.0 , "Intensity threshold below which peaks are regarded as noise.");
 
-    defaults_.setValue("width_filtering", "true", "Enable filtering of unlikely peak widths (5 and 95% quantiles of peak width distribution).");
-    defaults_.setValidStrings("width_filtering", StringList::create(("true,false")));
+    defaults_.setValue("width_filtering", "false", "Enable filtering of unlikely peak widths (5 and 95% quantiles of peak width distribution).");
+    defaults_.setValidStrings("width_filtering", StringList::create(("false,true")));
+
+    defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", StringList::create("advanced"));
+    defaults_.setValidStrings("masstrace_snr_filtering", StringList::create(("false,true")));
 
     defaultsToParam_();
 
@@ -179,9 +182,10 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
     // Size win_size = mt.getFWHMScansNum();
 
     // use one global window size for all mass traces to smooth
-    Size win_size = std::ceil(chrom_fwhm_/scan_time_);
+    DoubleReal scan_time(mt.getScanTime());
+    Size win_size = std::ceil(chrom_fwhm_/scan_time);
 
-    // std::cout << "win_size elution: " << win_size << std::endl;
+    // std::cout << "win_size elution: " << scan_time << " " << win_size << std::endl;
 
     // if there is no previous FWHM estimation... do it now
     //    if (win_size == 0)
@@ -217,7 +221,9 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
     // if only one maximum exists: finished!
     if (maxes.size() == 1)
     {
-        if (mt.computeSNR(true, noise_threshold_int_) > chrom_peak_snr_)
+
+
+        if (!mt_snr_filtering_ || mt.computeSNR(true, noise_threshold_int_) > chrom_peak_snr_)
         {
             mt.updateSmoothedMaxRT();
             mt.estimateFWHM(true);
@@ -257,7 +263,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
                 // copy smoothed ints
                 new_mt.setSmoothedIntensities(smoothed_tmp);
 
-                if (mt.computeSNR(true, noise_threshold_int_) > chrom_peak_snr_)
+                if (!mt_snr_filtering_ || mt.computeSNR(true, noise_threshold_int_) > chrom_peak_snr_)
                 {
 
                     // set label of subtrace
@@ -300,7 +306,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
             // copy smoothed ints
             new_mt.setSmoothedIntensities(smoothed_tmp);
 
-            if (mt.computeSNR(true, noise_threshold_int_) > chrom_peak_snr_)
+            if (!mt_snr_filtering_ || mt.computeSNR(true, noise_threshold_int_) > chrom_peak_snr_)
             {
 
                 // set label of subtrace
@@ -332,6 +338,7 @@ void ElutionPeakDetection::updateMembers_()
     chrom_peak_snr_ = (DoubleReal)param_.getValue("chrom_peak_snr");
     noise_threshold_int_ = (DoubleReal)param_.getValue("noise_threshold_int");
     pw_filtering_ = param_.getValue("width_filtering").toBool();
+    mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();
 }
 
 
