@@ -561,7 +561,7 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
           connect(filters_,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(filterEdit(QListWidgetItem*)));
           vbl->addWidget(filters_);
 
-          filters_check_box_ = new QCheckBox("Enable/disable all filters", tmp_widget);
+          filters_check_box_ = new QCheckBox("Enable all filters", tmp_widget);
           connect(filters_check_box_,SIGNAL(toggled(bool)),this,SLOT(layerFilterVisibilityChange(bool)));
           vbl->addWidget(filters_check_box_);
 
