@@ -177,6 +177,8 @@ namespace OpenMS
     }
     QFile::remove(ini_file);
 
+    setToolTip(tmp_param.getSectionDescription(name_).toQString());
+
     return changed;
   }
 
