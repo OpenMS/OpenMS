@@ -1,4 +1,5 @@
-// -*- mode: C++; tab-width: 2; -*- vi: set ts=2:
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
