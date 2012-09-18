@@ -32,6 +32,8 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
+
+#include <boost/math/distributions/exponential.hpp>
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
@@ -982,12 +984,13 @@ namespace OpenMS {
       for ( Size j = 0 ; j < experiment[i].size() ; ++j )
       {
         SimCoordinateType x = (experiment[i][j].getMZ() - minimal_mz_measurement_limit);        
-
         //if (x >= 1000.0) continue; // speed-up TODO: revise this ..
 
-        DoubleReal b = gsl_ran_exponential_pdf(x, shape);
-        b *= scale;
-        experiment[i][j].setIntensity( experiment[i][j].getIntensity() + b );
+        boost::math::exponential_distribution<double> ed(shape);
+        double bx = boost::math::pdf(ed,x);
+        //DoubleReal b = gsl_ran_exponential_pdf(x, shape);
+        bx *= scale;
+        experiment[i][j].setIntensity( experiment[i][j].getIntensity() + bx );
       }
     }
   }
