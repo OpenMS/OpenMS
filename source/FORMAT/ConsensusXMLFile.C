@@ -43,7 +43,7 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.5"), XMLFile("/SCHEMAS/ConsensusXML_1_5.xsd", "1.5"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
+    XMLHandler("", "1.5"), XMLFile("/SCHEMAS/consensusXML_1_5.xsd", "1.5"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
   {
   }
 
@@ -589,7 +589,7 @@ namespace OpenMS
     //add XSLT file if it can be found
     try
     {
-      String xslt_file = File::find("XSL/ConsensusXML.xsl");
+      String xslt_file = File::find("XSL/consensusXML.xsl");
       os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
     }
     catch(Exception::FileNotFound&)
@@ -613,7 +613,7 @@ namespace OpenMS
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-        << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+        << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     //user param
     writeUserParam_("userParam", os, consensus_map, 1);

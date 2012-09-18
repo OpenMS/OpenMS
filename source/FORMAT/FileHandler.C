@@ -44,7 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "featureXML", "IdXML", "ConsensusXML", "mgf", "ini", "toppas", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzid","mzq", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
+  const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "featureXML", "IdXML", "consensusXML", "mgf", "ini", "toppas", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzid","mzq", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -212,7 +212,7 @@ namespace OpenMS
     //IdXML (all lines)
     if (all_simple.hasSubstring("<IdXML")) return FileTypes::IDXML;
 
-    //ConsensusXML (all lines)
+    //consensusXML (all lines)
     if (all_simple.hasSubstring("<consensusXML")) return FileTypes::CONSENSUSXML;
 
     //TOPPAS (all lines)

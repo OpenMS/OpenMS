@@ -257,7 +257,7 @@ namespace OpenMS
       //includes all MSMS derived peptides into the graph --IdXML
       Size includeMSMSPeptides_(std::vector<PeptideIdentification> &peptide_identifications, std::vector<PeptideEntry> &peptide_nodes );
       //TODO include run information for each peptide
-      //includes all MSMS derived peptides into the graph --ConsensusXML
+      //includes all MSMS derived peptides into the graph --consensusXML
       Size includeMSMSPeptides_(ConsensusMap & consensus, std::vector<PeptideEntry> &peptide_nodes );
       //Proteins and Peptides get reindexed, based on whether they belong to msd groups or not. Indexes of Proteins which are in an ISD group but in none of the MSD groups will not be used anymore.
       void reindexingNodes_(std::vector<MSDGroup>& msd_groups, std::vector<Size> &reindexed_proteins, std::vector<Size> &reindexed_peptides );

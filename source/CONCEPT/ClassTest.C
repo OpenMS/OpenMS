@@ -195,7 +195,7 @@ namespace OpenMS
               case FileTypes::CONSENSUSXML:
                 if ( !ConsensusXMLFile().isValid(file_names[i]) )
                 {
-                  std::cout << " - Error: Invalid ConsensusXML file '" << file_names[i] << "'" << std::endl;
+                  std::cout << " - Error: Invalid consensusXML file '" << file_names[i] << "'" << std::endl;
                   passed_single = false;
                 }
                 break;

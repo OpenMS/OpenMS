@@ -137,13 +137,13 @@ protected:
 		//check if both input files have the correct type
 		if (FileHandler::getType(in) != FileTypes::CONSENSUSXML)
 		{
-			writeLog_("Error: The input file must be of type ConsensusXML!");
+			writeLog_("Error: The input file must be of type consensusXML!");
 			return ILLEGAL_PARAMETERS;
 		}
 
 		if (FileHandler::getType(gt) != FileTypes::CONSENSUSXML)
 		{
-			writeLog_("Error: The groundtruth file must be of type ConsensusXML!");
+			writeLog_("Error: The groundtruth file must be of type consensusXML!");
 			return ILLEGAL_PARAMETERS;
 		}
 		

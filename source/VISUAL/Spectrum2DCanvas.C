@@ -2712,7 +2712,7 @@ namespace OpenMS
     }
     else if (layer.type == LayerData::DT_CONSENSUS) //consensus feature data
     {
-      QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "ConsensusXML files (*.consensusXML);;All files (*)");
+      QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "consensusXML files (*.consensusXML);;All files (*)");
       if (!file_name.isEmpty())
       {
         // add suffix ".consensusXML" if not given

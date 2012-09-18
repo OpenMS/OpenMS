@@ -201,7 +201,7 @@ protected:
 		
 		plog.startProgress(0, in_files.size(), "Aligning input maps");
 		Size progress(0); // thread-safe progress
-    // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to ConsensusXML is just wasting memory!
+    // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
     #ifdef _OPENMP 
     #pragma omp parallel for schedule(dynamic, 1)
     #endif

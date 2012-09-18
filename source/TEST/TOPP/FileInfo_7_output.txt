@@ -2,7 +2,7 @@
 -- General information --
 
 File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_7_input.consensusXML
-File type: ConsensusXML
+File type: consensusXML
 
 Number of consensus features:
   of size 2: 5

@@ -106,8 +106,8 @@ class TOPPDecharger
     registerOutputFile_("out_fm","<file>","","output feature map", false);
     registerOutputFile_("outpairs","<file>","","output file", false);
 	  setValidFormats_("out_fm",StringList::create("featureXML"));
-	  setValidFormats_("out_cm",StringList::create("ConsensusXML"));
-	  setValidFormats_("outpairs",StringList::create("ConsensusXML"));
+	  setValidFormats_("out_cm",StringList::create("consensusXML"));
+	  setValidFormats_("outpairs",StringList::create("consensusXML"));
 
     addEmptyLine_();
     addText_("All other options of the Decharger depend on the FeatureDeconvolution class.\n"

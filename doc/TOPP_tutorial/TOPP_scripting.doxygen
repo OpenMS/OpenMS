@@ -54,7 +54,7 @@
 		Documented schemas of the %OpenMS formats can be found at
 		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
 
-		@em IdXML files and @em ConsensusXML files created by %OpenMS can be visualized in a web browser directly.
+		@em IdXML files and @em consensusXML files created by %OpenMS can be visualized in a web browser directly.
 		XSLT stylesheets are used to transform the XML to HTML code. The stylesheets are contained
 		in the @em OpenMS/share/OpenMS/XSLT/ folder of your %OpenMS installation.
 		@n If you want to view the file on the computer with the %OpenMS installation, you can just open it in your
@@ -752,7 +752,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		It converts the the following %OpenMS XML formats to text files:
 		- featureXML
 		- IdXML
-		- ConsensusXML
+		- consensusXML
 		
 		The use of the @b TextExporter is very simple:
 		@code

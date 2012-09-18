@@ -87,7 +87,7 @@ using namespace std;
   @ref OpenMS::DTA2DFile "DTA2D"
   @ref OpenMS::DTAFile "DTA"
   @ref OpenMS::FeatureXMLFile "featureXML"
-  @ref OpenMS::ConsensusXMLFile "ConsensusXML"
+  @ref OpenMS::ConsensusXMLFile "consensusXML"
   @ref OpenMS::MS2File "ms2"
   @ref OpenMS::XMassFile "fid/XMASS"
   @ref OpenMS::MsInspectFile "TSV"

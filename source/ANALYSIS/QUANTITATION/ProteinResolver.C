@@ -364,7 +364,7 @@ namespace OpenMS
   }
 
   //TODO include run information for each peptide
-  //includes all MSMS derived peptides into the graph --ConsensusXML
+  //includes all MSMS derived peptides into the graph --consensusXML
   Size ProteinResolver::includeMSMSPeptides_(ConsensusMap & consensus, vector<PeptideEntry> &peptide_nodes )
   {
     Size found_peptide = 0;

@@ -638,7 +638,7 @@ class TOPPProteinResolver
         // read file names in 'in_path'
         QDir dir(input_path.toQString());
         QStringList filters;
-        filters << "*.idXML" << "*.IdXML" << "*.consensusXML" << ".ConsensusXML";
+        filters << "*.idXML" << "*.IdXML" << "*.consensusXML" << ".consensusXML";
         dir.setNameFilters(filters);
         dir.setFilter(QDir::Files | QDir::Readable );
         dir.setSorting(QDir::Name | QDir::IgnoreCase);
