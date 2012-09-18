@@ -396,7 +396,7 @@ namespace OpenMS
       if (!File::writable(filename))
       {
         LOG_WARN << "Warning: Cannot create '.OpenMS.ini' in user home directory. Please check your environment!" << std::endl;
-        LOG_WARN << "         Home directory determined is: " << QDir::homePath() << "." << std::endl;
+        LOG_WARN << "         Home directory determined is: " << QDir::homePath().toStdString() << "." << std::endl;
         return p;
       }
 
