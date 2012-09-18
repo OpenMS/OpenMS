@@ -182,18 +182,22 @@ protected:
     {
       const ConvexHull2D convex_hull = feat_iter->getConvexHull();
       DBoundingBox<2> box = convex_hull.getBoundingBox();
+      DoubleReal rt = feat_iter->getRT();
+      DoubleReal mz = feat_iter->getMZ();
       double lower_mz = box.minY();
       double lower_rt = box.minX();
       double upper_mz = box.maxY();
       double upper_rt = box.maxX();
 
-      int lx, ly, ux, uy;
+      int lx, ly, ux, uy, cx, cy;
       if (transpose)
       {
         lx = int(xcoef * (lower_rt - exp.getMinRT()));
         ly = int(ycoef * (exp.getMaxMZ() - lower_mz));
         ux = int(xcoef * (upper_rt - exp.getMinRT()));
         uy = int(ycoef * (exp.getMaxMZ() - upper_mz));
+        cx = int(xcoef * (rt - exp.getMinRT()));
+        cy = int(ycoef * (mz - lower_mz));
       }
       else
       {
@@ -201,9 +205,12 @@ protected:
         ly = int(ycoef * (exp.getMaxRT() - lower_rt));
         ux = int(xcoef * (upper_mz - exp.getMinMZ()));
         uy = int(ycoef * (exp.getMaxRT() - upper_rt));
+        cx = int(xcoef * (mz - exp.getMinMZ()));
+        cy = int(ycoef * (exp.getMaxRT() - rt));
       }
 
       addFeatureBox_(ly, lx, uy, ux, image, color);
+      addMS2Point_(cx, cy, image, Qt::black);
     }
   }
 
