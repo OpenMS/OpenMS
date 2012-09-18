@@ -500,7 +500,7 @@ Main improvements of TOPP-Tools:
 - PepNovoAdapter: complete rewrite of the code, including classes
 
 New UTILS:
-- UniqueIdAssigner can be used to assign unique ids to featureXML and ConsensusXML files
+- UniqueIdAssigner can be used to assign unique ids to FeatureXML and ConsensusXML files
 
 Main improvements of UTILS:
 
@@ -550,7 +550,7 @@ Changes to the Build System:
 - added real install prefix and install target to be able to do a 'make install'
 
 Changes to OpenMS XML formats:
-- featureXML and ConsensusXML files use unique ids now instead of running indices. New XML
+- FeatureXML and ConsensusXML files use unique ids now instead of running indices. New XML
   Schema versions: 1.4
 
 Changes to the contrib package:
@@ -707,7 +707,7 @@ Detailed list of changes to specific OpenMS classes:
 Bug fixes:
 - [2645436]: TOPPView - Data Filter for "Size" not available
 - [2645510]: OpenMS - libOpenMS.so is built but linking fails (TOPP, tests) (on Debian "Lenny")
-- [2665055]: FileFilter ignores -sort option for featureXML and Consensus
+- [2665055]: FileFilter ignores -sort option for FeatureXML and Consensus
 - [2659013]: windows contrib can fail when copying compiled libraries
 - [2606068]: TOPP tools with list parameters do not work with INI files
 - [2690367]: Protein references missing on peptide identifications
@@ -786,7 +786,7 @@ Detailed list of changes to specific OpenMS classes:
   - DPeakArray (moved the functionality to the classes that inherited from it)
   - IDSpectrumMapper (replaced by IDMapper)
   - IDFeatureMapper (replaced by IDMapper)
-  - featureXMLHandler (merged into FeatureXMLFile)
+  - FeatureXMLHandler (merged into FeatureXMLFile)
   - ConsensusXMLHandler (merged into ConsensusXMLFile)
   - PeakPicker (merged into PeakPickerCWT)
   - MorphFilter (merged into MorphologicalFilter)
