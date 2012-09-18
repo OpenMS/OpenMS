@@ -104,9 +104,15 @@ namespace OpenMS
 
 	void TOPPASToolConfigDialog::ok_()
 	{
-		editor_->store();
-		
-		accept();
+    if (editor_->isModified())
+    {
+      editor_->store();
+      accept();
+    }
+    else
+    {
+      reject();
+    }
 	}
 	
 	void TOPPASToolConfigDialog::loadINI_()
