@@ -32,13 +32,14 @@
 // $Authors: Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <boost/math/distributions/cauchy.hpp>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <numeric>
 
-#include <gsl/gsl_randist.h>
+//#include <gsl/gsl_randist.h>
 
 namespace OpenMS
 {
@@ -183,7 +184,10 @@ namespace OpenMS
       for (DoubleReal coord = -peak_width; coord <= peak_width;
         coord += interpolation_step_)
       {
-        peak_shape_values_y.push_back(gsl_ran_cauchy_pdf(coord, isotope_lorentz_fwhm_/2.0)); //cauchy is using HWHM not FWHM
+        boost::math::cauchy_distribution<double> cauchy(0., isotope_lorentz_fwhm_/2.0);
+        double x = boost::math::pdf(cauchy,coord);
+          //double y = gsl_ran_cauchy_pdf(coord, isotope_lorentz_fwhm_/2.0);
+        peak_shape_values_y.push_back(x); //cauchy is using HWHM not FWHM
       }
     }
 
