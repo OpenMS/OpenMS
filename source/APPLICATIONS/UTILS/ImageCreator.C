@@ -35,12 +35,18 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+
 
 #include <QtGui/QImage>
+#include <QtGui/QPainter>
+
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -72,7 +78,7 @@ using namespace std;
 class TOPPImageCreator
 	: public TOPPBase
 {
- public:
+public:
 	TOPPImageCreator()
 		: TOPPBase("ImageCreator",
 							 "Transforms an LC-MS map into a PNG image.",false)
@@ -85,77 +91,132 @@ protected:
   StringList out_formats_; //< valid output formats for image
 
 	void addMS2Point_(int x, int y, QImage& image, QColor color = Qt::black,
-									 Size size = 2)
-		{		
-			int h = image.height(), w = image.width();
-			vector<int> xs(1, x), ys(1, y);
-			if (size == 2)
-			{
-				int xtemp[] = {x - 1, x, x, x + 1};
-				int ytemp[] = {y, y - 1, y + 1, y};
-				xs = vector<int>(xtemp, xtemp + 4);
-				ys = vector<int>(ytemp, ytemp + 4);
-			}
-			else if (size == 3)
-			{
-				int xtemp[] = {x - 2, x - 1, x - 1, x, x, x + 1, x + 1, x + 2};
-				int ytemp[] = {y, y + 1, y - 1, y + 2, y - 2, y + 1, y - 1, y};
-				xs = vector<int>(xtemp, xtemp + 8);
-				ys = vector<int>(ytemp, ytemp + 8);
-			}			
-			for (Size i = 0; i < xs.size(); ++i)
-			{
-				int xi = xs[i], yi = ys[i];
-				if ((xi > 0) && (xi < w) && (yi > 0) && (yi < h))
-				{
-					image.setPixel(xi, yi, color.rgb());
-				}
-			}
-		}
+                    Size size = 2)
+  {
+    int h = image.height(), w = image.width();
+    vector<int> xs(1, x), ys(1, y);
+    if (size == 2)
+    {
+      int xtemp[] = {x - 1, x, x, x + 1};
+      int ytemp[] = {y, y - 1, y + 1, y};
+      xs = vector<int>(xtemp, xtemp + 4);
+      ys = vector<int>(ytemp, ytemp + 4);
+    }
+    else if (size == 3)
+    {
+      int xtemp[] = {x - 2, x - 1, x - 1, x, x, x + 1, x + 1, x + 2};
+      int ytemp[] = {y, y + 1, y - 1, y + 2, y - 2, y + 1, y - 1, y};
+      xs = vector<int>(xtemp, xtemp + 8);
+      ys = vector<int>(ytemp, ytemp + 8);
+    }
+    for (Size i = 0; i < xs.size(); ++i)
+    {
+      int xi = xs[i], yi = ys[i];
+      if ((xi > 0) && (xi < w) && (yi > 0) && (yi < h))
+      {
+        image.setPixel(xi, yi, color.rgb());
+      }
+    }
+  }
+
+  void addFeatureBox_(int lower_mz, int lower_rt, int upper_mz, int upper_rt, QImage& image, QColor color = Qt::black)
+  {
+    QPainter* painter = new QPainter(&image);
+    painter->setPen(color);
+    painter->drawRect(QRect(lower_rt, lower_mz, upper_rt - lower_rt, upper_mz - lower_mz));
+    delete painter;
+  }
 
 	
 	void markMS2Locations_(MSExperiment<>& exp, QImage& image, bool transpose,
-												QColor color, Size size)
-		{
-			double xcoef = image.width(), ycoef = image.height();
-			if (transpose)
-			{
-				xcoef /= exp.getMaxRT() - exp.getMinRT();
-				ycoef /= exp.getMaxMZ() - exp.getMinMZ();
-			}
-			else
-			{
-				xcoef /= exp.getMaxMZ() - exp.getMinMZ();
-				ycoef /= exp.getMaxRT() - exp.getMinRT();
-			}
-			for (MSExperiment<>::Iterator spec_iter = exp.begin();
-					 spec_iter != exp.end(); ++spec_iter)
-			{
-				if (spec_iter->getMSLevel() == 2)
-				{
-					double mz = spec_iter->getPrecursors()[0].getMZ();
-					double rt = exp.getPrecursorSpectrum(spec_iter)->getRT();
-					int x, y;
-					if (transpose)
-					{
-						x = int(xcoef * (rt - exp.getMinRT()));
-						y = int(ycoef * (exp.getMaxMZ() - mz));
-					}
-					else
-					{
-						x = int(xcoef * (mz - exp.getMinMZ()));
-						y = int(ycoef * (exp.getMaxRT() - rt));
-					}
-					addMS2Point_(x, y, image, color, size);
-				}
-			}
-		}
+                         QColor color, Size size)
+  {
+    double xcoef = image.width(), ycoef = image.height();
+    if (transpose)
+    {
+      xcoef /= exp.getMaxRT() - exp.getMinRT();
+      ycoef /= exp.getMaxMZ() - exp.getMinMZ();
+    }
+    else
+    {
+      xcoef /= exp.getMaxMZ() - exp.getMinMZ();
+      ycoef /= exp.getMaxRT() - exp.getMinRT();
+    }
+    for (MSExperiment<>::Iterator spec_iter = exp.begin();
+    spec_iter != exp.end(); ++spec_iter)
+    {
+      if (spec_iter->getMSLevel() == 2)
+      {
+        double mz = spec_iter->getPrecursors()[0].getMZ();
+        double rt = exp.getPrecursorSpectrum(spec_iter)->getRT();
+        int x, y;
+        if (transpose)
+        {
+          x = int(xcoef * (rt - exp.getMinRT()));
+          y = int(ycoef * (exp.getMaxMZ() - mz));
+        }
+        else
+        {
+          x = int(xcoef * (mz - exp.getMinMZ()));
+          y = int(ycoef * (exp.getMaxRT() - rt));
+        }
+        addMS2Point_(x, y, image, color, size);
+      }
+    }
+  }
 	
+  void markFeatureLocations_(FeatureMap<>& feature_map, MSExperiment<>& exp, QImage& image, bool transpose, QColor color)
+  {
+    double xcoef = image.width(), ycoef = image.height();
+    if (transpose)
+    {
+      xcoef /= exp.getMaxRT() - exp.getMinRT();
+      ycoef /= exp.getMaxMZ() - exp.getMinMZ();
+    }
+    else
+    {
+      xcoef /= exp.getMaxMZ() - exp.getMinMZ();
+      ycoef /= exp.getMaxRT() - exp.getMinRT();
+    }
+
+    for (FeatureMap<>::Iterator feat_iter = feature_map.begin();
+    feat_iter != feature_map.end(); ++feat_iter)
+    {
+      const ConvexHull2D convex_hull = feat_iter->getConvexHull();
+      DBoundingBox<2> box = convex_hull.getBoundingBox();
+      double lower_mz = box.minY();
+      double lower_rt = box.minX();
+      double upper_mz = box.maxY();
+      double upper_rt = box.maxX();
+
+      int lx, ly, ux, uy;
+      if (transpose)
+      {
+        lx = int(xcoef * (lower_rt - exp.getMinRT()));
+        ly = int(ycoef * (exp.getMaxMZ() - lower_mz));
+        ux = int(xcoef * (upper_rt - exp.getMinRT()));
+        uy = int(ycoef * (exp.getMaxMZ() - upper_mz));
+      }
+      else
+      {
+        lx = int(xcoef * (lower_mz - exp.getMinMZ()));
+        ly = int(ycoef * (exp.getMaxRT() - lower_rt));
+        ux = int(xcoef * (upper_mz - exp.getMinMZ()));
+        uy = int(ycoef * (exp.getMaxRT() - upper_rt));
+      }
+
+      addFeatureBox_(ly, lx, uy, ux, image, color);
+    }
+  }
+
 
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in", "<file>", "", "input file ");
 		setValidFormats_("in", StringList::create("mzML"));
+    registerInputFile_("in_featureXML", "<file>", "", "input file ");
+    setValidFormats_("in_featureXML", StringList::create("featureXML"));
+
 		registerOutputFile_("out", "<file>", "", "output file");
 		setValidFormats_("out", out_formats_, false);
 		registerStringOption_("out_type", "<file type>", "", "The image format. Set this if you want to force a format not reflected by the 'out' filename.", false);
@@ -171,7 +232,7 @@ protected:
 													"If 0, this is determined from the data.", false);
 		registerFlag_("log_intensity", "Apply logarithm to intensity values");
 		registerFlag_("transpose", "flag to transpose the resampled matrix (RT vs. m/z).\n"
-															 "Per default, dimensions run bottom-up in RT and left-right in m/z.");
+                  "Per default, dimensions run bottom-up in RT and left-right in m/z.");
 		registerFlag_("precursors", "Mark locations of MS2 precursors.\n");
 		registerStringOption_("precursor_color", "<color>", "#000000", "Color for precursor marks (color code or word, e.g. 'black') (requires 'precursors' flag to be active)", false);
 		registerIntOption_("precursor_size", "<number>", 2,
@@ -186,6 +247,7 @@ protected:
 		// load data
 		//----------------------------------------------------------------
 		String in = getStringOption_("in");
+    String in_featureXML = getStringOption_("in_featureXML");
 		String out = getStringOption_("out");
 		String format = getStringOption_("out_type");
 		if (format.trim() == "")
@@ -247,12 +309,12 @@ protected:
 			bilip.setMapping_1(0, exp.getMinMZ(), cols-1, exp.getMaxMZ());
 
 			for (MSExperiment<>::Iterator spec_iter = exp.begin();
-					 spec_iter != exp.end(); ++spec_iter)
+      spec_iter != exp.end(); ++spec_iter)
 			{
 				if (spec_iter->getMSLevel() != 1) continue;
 				for (MSExperiment<>::SpectrumType::ConstIterator peak1_iter =
-							 spec_iter->begin(); peak1_iter != spec_iter->end();
-						 ++peak1_iter)
+             spec_iter->begin(); peak1_iter != spec_iter->end();
+        ++peak1_iter)
 				{
 					bilip.addValue(spec_iter->getRT(), peak1_iter->getMZ(),
 												 peak1_iter->getIntensity());
@@ -267,12 +329,12 @@ protected:
 			bilip.setMapping_1(0, exp.getMinRT(), cols-1, exp.getMaxRT());
 
 			for (MSExperiment<>::Iterator spec_iter = exp.begin();
-						spec_iter != exp.end(); ++spec_iter)
+      spec_iter != exp.end(); ++spec_iter)
 			{
 				if (spec_iter->getMSLevel()!=1) continue;
 				for (MSExperiment<>::SpectrumType::ConstIterator peak1_iter =
-							 spec_iter->begin(); peak1_iter != spec_iter->end();
-						 ++peak1_iter)
+             spec_iter->begin(); peak1_iter != spec_iter->end();
+        ++peak1_iter)
 				{
 					bilip.addValue(peak1_iter->getMZ(), spec_iter->getRT(),
 												 peak1_iter->getIntensity());
@@ -328,6 +390,14 @@ protected:
 											  Size(getIntOption_("precursor_size")));
 		}
 		
+    if (!in_featureXML.empty())
+    {
+      FeatureMap<> feature_map;
+      FeatureXMLFile ff;
+      ff.load(in_featureXML, feature_map);
+      markFeatureLocations_(feature_map, exp, image, getFlag_("transpose"), Qt::black);
+    }
+
 		if (image.save(out.toQString(), format.c_str())) return EXECUTION_OK;
 		else return CANNOT_WRITE_OUTPUT_FILE;
 	}
