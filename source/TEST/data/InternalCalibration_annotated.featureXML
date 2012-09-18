@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/featureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2009-10-28T09:03:22" search_engine="Mascot" search_engine_version="2.2.04">
 		<SearchParameters db="18mix092106" db_version="18mix092106_hinf_20080831.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="1.2" peak_mass_tolerance="0.6" >
 			<VariableModification name="Carbamidomethyl (C)" />

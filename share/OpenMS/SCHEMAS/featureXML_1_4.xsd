@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- edited with XMLSpy v2008 rel. 2 sp2 (http://www.altova.com) by Chris Bielow (FU Berlin) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- edited with gvim by Clemens Groepl, 2009-10-07. -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="featureMap">
 		<xs:annotation>
-			<xs:documentation>Base node of the FeatureXML format.</xs:documentation>
+			<xs:documentation>Base node of the featureXML format.</xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
@@ -367,9 +362,14 @@
 					<xs:documentation>Schema version, e.g. '1.1'. If it is missing, version 1.0 is assumed.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="id" type="xs:string">
+			<xs:attribute name="document_id" type="xs:string">
 				<xs:annotation>
 					<xs:documentation>An optional id for the document. It is recommended to use LSIDs when possible.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>An optional unique_id for the document, for internal use by OpenMS.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>
@@ -621,7 +621,7 @@
 		</xs:sequence>
 		<xs:attribute name="id" type="xs:ID" use="required" form="unqualified">
 			<xs:annotation>
-				<xs:documentation>File-wide unique identifier for the features. It is only used to reference inside the file. It should start at 0 and contain consecutive numbers. As an xs:id cannot be an integer number, the values are typically prefixed with 'f_'.</xs:documentation>
+				<xs:documentation>Unique identifier for the feature.  OpenMS uses unsigned 64 bit integers as unique ids.  As an xs:id cannot be an integer number, the values are typically prefixed with 'f_'.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>

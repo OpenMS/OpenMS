@@ -206,7 +206,7 @@ namespace OpenMS
 			/// fills the current spectrum with peaks and meta data
 			void fillData_();
 
-			///@name cvParam and userParam handling methods (for mzData and FeatureXML)
+			///@name cvParam and userParam handling methods (for mzData and featureXML)
 			//@{
 			/**  
 				@brief write cvParam containing strings to stream

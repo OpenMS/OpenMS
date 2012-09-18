@@ -2687,7 +2687,7 @@ namespace OpenMS
     }
     else if (layer.type == LayerData::DT_FEATURE) //features
     {
-      QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "FeatureXML files (*.featureXML);;All files (*)");
+      QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "featureXML files (*.featureXML);;All files (*)");
       if (!file_name.isEmpty())
       {
         // add suffix ".featureXML" if not given

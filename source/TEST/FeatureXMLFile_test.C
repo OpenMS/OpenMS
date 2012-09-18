@@ -96,7 +96,7 @@ START_SECTION((void load(const String& filename, FeatureMap<>& feature_map)))
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"));
-	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"FeatureXML");
+	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"featureXML");
 
 	TEST_EQUAL(e.size(),2)
 	TEST_REAL_SIMILAR(e[0].getRT(), 25)

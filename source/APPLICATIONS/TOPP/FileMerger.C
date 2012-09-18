@@ -112,7 +112,7 @@ protected:
     registerFlag_("annotate_file_origin", "Store the original filename in each feature (MetaValue: file_origin).");
 
     addEmptyLine_();
-    addText_("Flags for non-FeatureXML input/output:");
+    addText_("Flags for non-featureXML input/output:");
     registerFlag_("rt_auto", "Assign retention times automatically (integers starting at 1)");
     registerDoubleList_("rt_custom", "<rt>", DoubleList(), "List of custom retention times that are assigned to the files.\n"
                                                            "The number of given retention times must be equal to the number of given input file.", false);

@@ -2,7 +2,7 @@
 -- General information --
 
 File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_3_input.featureXML
-File type: FeatureXML
+File type: featureXML
 Number of features: 10
 
 Ranges:

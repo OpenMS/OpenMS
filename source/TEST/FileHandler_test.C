@@ -57,7 +57,7 @@ START_SECTION((static String typeToName(FileTypes::Type type)))
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZDATA),"mzData");
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZXML),"mzXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZML),"mzML");
-	TEST_EQUAL(tmp.typeToName(FileTypes::FEATUREXML),"FeatureXML");
+	TEST_EQUAL(tmp.typeToName(FileTypes::FEATUREXML),"featureXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::IDXML),"IdXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::CONSENSUSXML),"ConsensusXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::TRANSFORMATIONXML),"TrafoXML");
@@ -73,7 +73,7 @@ START_SECTION((static FileTypes::Type nameToType(const String &name)))
 	TEST_EQUAL(FileTypes::DTA2D, tmp.nameToType("DTA2D"));
 	TEST_EQUAL(FileTypes::MZDATA, tmp.nameToType("mzData"));
 	TEST_EQUAL(FileTypes::MZXML, tmp.nameToType("mzXML"));
-	TEST_EQUAL(FileTypes::FEATUREXML, tmp.nameToType("FeatureXML"));
+	TEST_EQUAL(FileTypes::FEATUREXML, tmp.nameToType("featureXML"));
 	TEST_EQUAL(FileTypes::IDXML, tmp.nameToType("IdXmL"));
 	TEST_EQUAL(FileTypes::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
   TEST_EQUAL(FileTypes::MGF, tmp.nameToType("mgf"));

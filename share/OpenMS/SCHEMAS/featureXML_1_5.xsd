@@ -5,7 +5,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="featureMap">
 		<xs:annotation>
-			<xs:documentation>Base node of the FeatureXML format.</xs:documentation>
+			<xs:documentation>Base node of the featureXML format.</xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>

@@ -181,7 +181,7 @@ namespace OpenMS
               case FileTypes::FEATUREXML:
                 if ( !FeatureXMLFile().isValid(file_names[i]) )
                 {
-                  std::cout << " - Error: Invalid FeatureXML file '" << file_names[i] << "'" << std::endl;
+                  std::cout << " - Error: Invalid featureXML file '" << file_names[i] << "'" << std::endl;
                   passed_single = false;
                 }
                 break;

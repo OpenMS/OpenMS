@@ -176,7 +176,7 @@ namespace OpenMS
 				return xercesc::XMLString::compareString(a,b)==0;
 			}
 
-			///@name General MetaInfo handling (for IdXML, FeatureXML, consensusXML)
+			///@name General MetaInfo handling (for IdXML, featureXML, consensusXML)
 			//@{
 			
 			///Writes the content of MetaInfoInterface to the file

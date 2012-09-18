@@ -101,11 +101,11 @@ class TOPPDecharger
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in","<file>","","input file ");
-		setValidFormats_("in",StringList::create("FeatureXML"));
+		setValidFormats_("in",StringList::create("featureXML"));
     registerOutputFile_("out_cm","<file>","","output consensus map");
     registerOutputFile_("out_fm","<file>","","output feature map", false);
     registerOutputFile_("outpairs","<file>","","output file", false);
-	  setValidFormats_("out_fm",StringList::create("FeatureXML"));
+	  setValidFormats_("out_fm",StringList::create("featureXML"));
 	  setValidFormats_("out_cm",StringList::create("ConsensusXML"));
 	  setValidFormats_("outpairs",StringList::create("ConsensusXML"));
 

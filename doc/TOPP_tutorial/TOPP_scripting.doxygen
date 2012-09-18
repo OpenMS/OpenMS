@@ -203,7 +203,7 @@
 			@code
 FileInfo -v -in infile.mzML
 			@endcode
-			Validation is available for several file formats including mzML, mzData, mzXML, FeatureXML and IdXML.
+			Validation is available for several file formats including mzML, mzData, mzXML, featureXML and IdXML.
 			
 			Another frequently-occuring problem is currupt data. You can check for corrupt data in peak files
 			with @b FileInfo as well:
@@ -750,7 +750,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		TOPP @b TextExporter can be used.
 		
 		It converts the the following %OpenMS XML formats to text files:
-		- FeatureXML
+		- featureXML
 		- IdXML
 		- ConsensusXML
 		

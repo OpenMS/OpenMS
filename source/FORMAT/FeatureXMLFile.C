@@ -43,7 +43,7 @@ namespace OpenMS
 {
 	FeatureXMLFile::FeatureXMLFile()
 		: Internal::XMLHandler("","1.6"),
-			Internal::XMLFile("/SCHEMAS/FeatureXML_1_6.xsd","1.6")
+			Internal::XMLFile("/SCHEMAS/featureXML_1_6.xsd","1.6")
 	{
     resetMembers_();
 	}
@@ -172,7 +172,7 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-		os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+		os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/featureXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
 		//write data processing
 		for (Size i=0; i< feature_map.getDataProcessing().size(); ++i)
