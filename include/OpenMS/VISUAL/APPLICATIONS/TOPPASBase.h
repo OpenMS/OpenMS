@@ -63,6 +63,7 @@ namespace OpenMS
 	class TOPPASWidget;
 	class TOPPASScene;
 	class TOPPASTabBar;
+  class TOPPASLogWindow;
 	class TOPPASResources;
 
   /**
@@ -199,7 +200,7 @@ namespace OpenMS
     protected:
 
 			/// Log output window
-      QTextEdit* log_;
+      TOPPASLogWindow* log_;
       /// Workflow Description window
       QTextEdit* desc_;
 

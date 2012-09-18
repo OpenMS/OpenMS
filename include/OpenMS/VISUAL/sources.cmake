@@ -22,6 +22,7 @@ Spectrum3DWidget.h
 SpectrumCanvas.h
 SpectrumWidget.h
 ListEditor.h
+TOPPASLogWindow.h
 TOPPASWidget.h
 TOPPASScene.h
 TOPPASVertex.h

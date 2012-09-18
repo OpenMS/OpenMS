@@ -26,6 +26,7 @@ Spectrum3DWidget.C
 SpectrumCanvas.C
 SpectrumWidget.C
 ListEditor.C
+TOPPASLogWindow.C
 TOPPASWidget.C
 TOPPASScene.C
 TOPPASVertex.C

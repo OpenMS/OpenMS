@@ -47,6 +47,7 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
+#include <OpenMS/VISUAL/TOPPASLogWindow.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -218,7 +219,7 @@ namespace OpenMS
 		//log window
 		QDockWidget* log_bar = new QDockWidget("Log", this);
 		addDockWidget(Qt::BottomDockWidgetArea, log_bar);
-		log_ = new QTextEdit(log_bar);
+    log_ = new TOPPASLogWindow(log_bar);
 		log_->setReadOnly(true);
 		log_bar->setWidget(log_);
 		log_bar->hide();
