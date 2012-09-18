@@ -93,7 +93,7 @@ class TOPPNoiseFilterSGolay
 {
   public:
     TOPPNoiseFilterSGolay()
-        : TOPPBase("NoiseFilterSGolay","Removes noise from profile spectra by using a Savitzky Golay filter.")
+        : TOPPBase("NoiseFilterSGolay","Removes noise from profile spectra by using a Savitzky Golay filter. Requires uniform (equidistant) data.")
     {
     }
 
