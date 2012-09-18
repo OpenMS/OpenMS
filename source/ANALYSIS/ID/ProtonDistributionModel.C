@@ -32,16 +32,20 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
+
+#include <cmath>
+#include <numeric>
+#include <cstdlib>
+#include <boost/math/distributions.hpp>
+
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <gsl/gsl_randist.h>
 
 
-#include <cmath>
-#include <numeric>
-#include <cstdlib>
 
 #define COULOMB_REPULSION (DoubleReal)47.0  // from zhang: 47.0 kJ/mol
 #define COULOMB_REPULSION2 (DoubleReal)47.0 // new
@@ -1509,8 +1513,11 @@ namespace OpenMS
 		DoubleReal sigma = (DoubleReal)param_.getValue("sigma");
     for (Int z = 1; z <= charge; ++z)
     {
-      n_term_intensities[z - 1] = gsl_ran_gaussian_pdf(fabs(n_term_sum - (DoubleReal)z), sigma);
-      c_term_intensities[z - 1] = gsl_ran_gaussian_pdf(fabs(c_term_sum - (DoubleReal)z), sigma);
+      double nterm = fabs(n_term_sum - (DoubleReal)z);
+      double cterm = fabs(c_term_sum - (DoubleReal)z);
+      boost::math::normal_distribution<double> normal(0., sigma);
+      n_term_intensities[z - 1] = boost::math::pdf(normal,nterm);
+      c_term_intensities[z - 1] = boost::math::pdf(normal,cterm);
     }
 
 		return;
