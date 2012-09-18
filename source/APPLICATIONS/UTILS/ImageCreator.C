@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Clemens Groepl, Timo Sachsenberg$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -86,7 +86,6 @@ public:
     out_formats_ = StringList::create("PNG,JPG,BMP,TIFF,PPM");
   }
 
-
 protected:
   StringList out_formats_; //< valid output formats for image
 
@@ -126,7 +125,6 @@ protected:
     painter->drawRect(QRect(lower_rt, lower_mz, upper_rt - lower_rt, upper_mz - lower_mz));
     delete painter;
   }
-
 	
 	void markMS2Locations_(MSExperiment<>& exp, QImage& image, bool transpose,
                          QColor color, Size size)
@@ -226,6 +224,8 @@ protected:
 		setMinInt_("width",0);
 		registerIntOption_("height", "<number>", 1024, "Number of pixels in RT dimension.\nIf 0, one pixel per spectrum.", false);
 		setMinInt_("height",0);
+    registerStringOption_("background_color", "<color>", "#FFFFFF", "Background color e.g.: \"#FF0000\" to choose red as background color", false);
+
 		registerStringOption_("gradient", "<gradient>", "", "Intensity gradient that defines colors for the range between 0 and 100.\n"
 													"Example: '0,#FFFFFF;50,#FF0000;100,#000000'", false);
 		registerDoubleOption_("max_intensity", "<int>", 0, "Maximum peak intensity used to determine range for colors.\n"
@@ -362,11 +362,18 @@ protected:
     writeDebug_("log_intensity: " + String(use_log), 1);
 
     QImage image(peaks, scans, QImage::Format_RGB32);
+    string s = getStringOption_("background_color");
+    QColor background_color(s.c_str());
+
+    QPainter* painter = new QPainter(&image);
+    painter->setPen(background_color);
+    painter->fillRect(0, 0, peaks, scans, Qt::SolidPattern);
+    delete painter;
+
 		DoubleReal factor = getDoubleOption_("max_intensity");
 		if ( factor == 0 )
 		{
-			factor = (*std::max_element(bilip.getData().begin(),
-																	bilip.getData().end()));
+      factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
 		}
     // logarithmize max. intensity as well:
     if (use_log) factor = std::log(factor);
@@ -378,8 +385,13 @@ protected:
 			{
         double value = bilip.getData().getValue(i, j);
 				if (use_log) value = std::log(value);
-				image.setPixel(j, i, gradient.interpolatedColorAt(value/factor).
-											 rgb());
+				if (value > 1e-4)
+				{
+          image.setPixel(j, i, gradient.interpolatedColorAt(value/factor).rgb());
+				} else
+				{
+          image.setPixel(j, i, background_color.rgb());
+				}
 			}
 		}
 
