@@ -282,6 +282,7 @@ namespace OpenMS
 					}
 				}
 
+				int gl_progress = 0;
 				bool debug = ( (String)(param_.getValue("debug"))=="true" );
 				//clean up / create folders for debug information
 				if (debug)
@@ -494,9 +495,7 @@ namespace OpenMS
 				//Charge loop (create seeds and features for each charge separately)
 				//-------------------------------------------------------------------------
 				Int plot_nr_global = -1; //counter for the number of plots (debug info)
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+				Int feature_nr_global = 0; //counter for the number of features (debug info)
 				for (SignedSize c=charge_low; c<=charge_high; ++c)
 				{
 					UInt meta_index_isotope = 3 + c - charge_low;
@@ -508,20 +507,10 @@ namespace OpenMS
 					//-----------------------------------------------------------
 					//Step 3.1: Precalculate IsotopePattern score
 					//-----------------------------------------------------------
-#ifdef _OPENMP
-if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
-#endif
-          {
-            ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ")+String(c));
-          }
+          ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ")+String(c));
 					for (Size s=0; s<map_.size(); ++s)
 					{
-#ifdef _OPENMP
-if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
-#endif
-            {
-  						ff_->setProgress(s);
-            }
+            ff_->setProgress(s);
 						const SpectrumType& spectrum = map_[s];
 						for (Size p=0; p<spectrum.size(); ++p)
 						{
@@ -556,33 +545,19 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 							}
 						}
 					}
-#ifdef _OPENMP
-if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
-#endif
-          {
-            ff_->endProgress();
-          }
+          ff_->endProgress();
 					//-----------------------------------------------------------
 					//Step 3.2:
 					//Find seeds for this charge
 					//-----------------------------------------------------------		
           Size end_of_iteration = map_.size() - std::min((Size) min_spectra_ , map_.size());
-#ifdef _OPENMP
-if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
-#endif
-          {
-            ff_->startProgress(min_spectra_, end_of_iteration, String("Finding seeds for charge ")+String(c));
-          }
+          ff_->startProgress(min_spectra_, end_of_iteration, String("Finding seeds for charge ")+String(c));
+
 					DoubleReal min_seed_score = param_.getValue("seed:min_score");
           //do nothing for the first few and last few spectra as the scans required to search for traces are missing
           for (Size s=min_spectra_; s<end_of_iteration; ++s)
 					{
-#ifdef _OPENMP
-if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
-#endif    
-            {
-						  ff_->setProgress(s);
-            }
+            ff_->setProgress(s);
 
 						//iterate over peaks
 						for (Size p=0; p<map_[s].size(); ++p)
@@ -656,21 +631,37 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						FeatureXMLFile().store(String("debug/seeds_")+String(c)+".featureXML", seed_map);
 					}
 
-          IF_MASTERTHREAD ff_->endProgress(); // only master thread reports progress (otherwise it gets really confusing on the console)
+          ff_->endProgress();
 					std::cout << "Found " << seeds.size() << " seeds for charge " << c << "." << std::endl;
 					
 					//------------------------------------------------------------------
 					//Step 3.3:
 					//Extension of seeds
 					//------------------------------------------------------------------
-          IF_MASTERTHREAD ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+String(c));
-					for (Size i=0; i<seeds.size(); ++i)
+
+					// We do not want to store features whose seeds lie within other
+					// features with higher intensity. We thus store this information in
+					// the map seeds_in_features which contains for each seed i a vector
+					// of other seeds that are contained in the corresponding feature i.
+					//
+					// The features are stored in an temporary feature map until it is
+					// decided whether they are contained within a seed of higher
+					// intensity.
+					std::map<int, std::vector<int> > seeds_in_features;
+					typedef std::map<int, OpenMS::Feature > FeatureMapType;
+					FeatureMapType tmp_feature_map;
+					gl_progress = 0;
+          ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+String(c));
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+					for (SignedSize i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
 						//Step 3.3.1:
 						//Extend all mass traces
 						//------------------------------------------------------------------
-            IF_MASTERTHREAD ff_->setProgress(i);
+            IF_MASTERTHREAD ff_->setProgress(gl_progress++);
 						log_ << std::endl << "Seed " << i << ":" << std::endl;
 						//If the intensity is zero this seed is already uses in another feature
 						const SpectrumType& spectrum = map_[seeds[i].spectrum];
@@ -678,11 +669,6 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						log_ << " - Int: " << peak.getIntensity() << std::endl;
 						log_ << " - RT: " << spectrum.getRT() << std::endl;
 						log_ << " - MZ: " << peak.getMZ() << std::endl;
-						if (seeds[i].intensity == 0.0)
-						{
-							log_ << "Already used in another feature => aborting!" << std::endl;
-							continue;
-						}
 						
 						//----------------------------------------------------------------
 						//Find best fitting isotope pattern for this charge (using averagine)
@@ -692,8 +678,9 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						if (isotope_fit_quality<min_isotope_fit_)
 						{
 							abort_(debug, seeds[i], "Could not find good enough isotope pattern containing the seed");
-							continue;
+							//continue;
 						}
+						else {
 						
 						//extend the convex hull in RT dimension (starting from the trace peaks)
 						log_ << "Collecting mass traces" << std::endl;
@@ -707,8 +694,10 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						if (!traces.isValid(seed_mz, trace_tolerance_))
 						{
 							abort_(debug, seeds[i], "Could not extend seed");
-							continue;
+							//continue;
 						}
+						else
+            {
 						
 						//------------------------------------------------------------------
 						//Step 3.3.2:
@@ -756,7 +745,7 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 					  // left "sigma"
 					  // right "sigma"
 					  // x0 .. "center" position of RT fit
-					  // height .. "heigth" of RT fit
+					  // height .. "height" of RT fit
 
 					  //------------------------------------------------------------------
 
@@ -778,22 +767,27 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
             DoubleReal final_score = 0.0;
 
             bool feature_ok = checkFeatureQuality_(fitter, new_traces, seed_mz, min_feature_score, error_msg, fit_score, correlation, final_score);
-					  				  
+#ifdef _OPENMP
+#pragma omp critical (FeatureFinderAlgorithmPicked)
+#endif 
+{
 						//write debug output of feature
 						if (debug)
             {
               writeFeatureDebugInfo_(fitter,traces, new_traces, feature_ok, error_msg, final_score ,plot_nr, peak);
 						}
+						log_ << "Feature label: " << plot_nr << std::endl;
+}
 						traces = new_traces;
 						
-						log_ << "Feature label: " << plot_nr << std::endl;
 						
 						//validity output
 						if (!feature_ok)
 						{
 							abort_(debug, seeds[i], error_msg);
-							continue;
+							//continue;
 						}
+						else{
 						
 						//------------------------------------------------------------------
 						//Step 3.3.5:
@@ -852,25 +846,24 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 						    fitter->getFeatureIntensityContribution() // was 2.5 * fitter->getHeight() * sigma
 						    / getIsotopeDistribution_(f.getMZ()).max);
          
-					// we do not need the fitter anymore
-					delete fitter;
+					  // we do not need the fitter anymore
+					  delete fitter;
 					
 						//add convex hulls of mass traces
 						for (Size j = 0; j < traces.size(); ++j)
 						{
 							f.getConvexHulls().push_back(traces[j].getConvexhull());
 						}
+						
 #ifdef _OPENMP
 #pragma omp critical (FeatureFinderAlgorithmPicked)
 #endif
-            {
-						  features_->push_back(f);
-            }
-
-						feature_candidates++;
+						{
+						tmp_feature_map[ i ] = f;
+						}
 						
 						//----------------------------------------------------------------
-						//Remove all seeds that lie inside the convex hull of the new feature
+						//Remember all seeds that lie inside the convex hull of the new feature
 						DBoundingBox<2> bb = f.getConvexHull().getBoundingBox();
 						for (Size j=i+1; j<seeds.size(); ++j)
 						{
@@ -878,17 +871,49 @@ if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise
 							DoubleReal mz = map_[seeds[j].spectrum][seeds[j].peak].getMZ();
 							if (bb.encloses(rt, mz) && f.encloses(rt, mz))
 							{
-								//set intensity to zero => the peak will be skipped!
-								seeds[j].intensity = 0.0;
+#ifdef _OPENMP
+#pragma omp critical (FeatureFinderAlgorithmPicked)
+#endif
+								{
+								seeds_in_features[i].push_back(j);
+								}
 							}
 						}
+					} } } // three if/else statements instead of continue (disallowed in OpenMP)
+					} // end of OPENMP over seeds
+
+					// Here we have to evaluate which seeds are already contained in
+					// features of seeds with higher intensities. Only if the seed is not
+					// used in any feature with higher intensity, we can add it to the
+					// features_ list.
+					std::vector<int> seeds_contained;
+					for (typename std::map<int, FeatureType>::iterator iter = tmp_feature_map.begin(); iter != tmp_feature_map.end() ; ++iter) 
+					{
+							int seed_nr = iter->first;
+							bool is_used = false;
+							for (Size i=0; i<seeds_contained.size(); ++i) 
+							{
+									if (seed_nr == seeds_contained[i]) { is_used=true; break; }
+							}
+							if (!is_used)
+							{
+									++feature_candidates;
+
+									//re-set label
+									iter->second.setMetaValue(3, feature_nr_global);
+									++feature_nr_global;
+									features_->push_back(iter->second);
+									
+									std::vector<int> curr_seed = seeds_in_features[seed_nr];
+									for (Size k=0; k<curr_seed.size(); ++k) 
+									{
+									    seeds_contained.push_back( curr_seed[k]);
+									
+									}
+							}
 					}
-#ifdef _OPENMP
-if (omp_get_thread_num() ==0)  // only master thread reports progress (otherwise it gets really confusing on the console)
-#endif    
-          {
-            ff_->endProgress();
-          }
+
+          IF_MASTERTHREAD ff_->endProgress();
 					std::cout << "Found " << feature_candidates << " feature candidates for charge " << c << "." << std::endl;
 				}
 				// END OPENMP
