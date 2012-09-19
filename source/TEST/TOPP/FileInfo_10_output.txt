@@ -2,7 +2,7 @@
 -- General information --
 
 File name: C:/dev/NIGHTLY/OpenMS/source/TEST/TOPP/FileInfo_10_input.idXML
-File type: IdXML
+File type: idXML
 Number of:
   runs:                1
   protein hits:        0

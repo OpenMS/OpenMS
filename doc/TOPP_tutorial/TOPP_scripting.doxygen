@@ -54,15 +54,15 @@
 		Documented schemas of the %OpenMS formats can be found at
 		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
 
-		@em IdXML files and @em consensusXML files created by %OpenMS can be visualized in a web browser directly.
+		@em idXML files and @em consensusXML files created by %OpenMS can be visualized in a web browser directly.
 		XSLT stylesheets are used to transform the XML to HTML code. The stylesheets are contained
 		in the @em OpenMS/share/OpenMS/XSLT/ folder of your %OpenMS installation.
 		@n If you want to view the file on the computer with the %OpenMS installation, you can just open it in your
 		browser. 
 		@n If you copy the file to another computer, you have must copy the XSLT stylesheet to that coputer and
 		change the second line in the XML file. The following example shows how to change the stylesheet location for
-		an IdXML file. You simply have to change the *PATH* in the line
-		@code<?xml-stylesheet type="text/xsl" href="file:///*PATH*IdXML.xsl"?>@endcode
+		an idXML file. You simply have to change the *PATH* in the line
+		@code<?xml-stylesheet type="text/xsl" href="file:///*PATH*idXML.xsl"?>@endcode
 		to the folder where the stylesheet resides.
 
 	<HR>
@@ -203,7 +203,7 @@
 			@code
 FileInfo -v -in infile.mzML
 			@endcode
-			Validation is available for several file formats including mzML, mzData, mzXML, featureXML and IdXML.
+			Validation is available for several file formats including mzML, mzData, mzXML, featureXML and idXML.
 			
 			Another frequently-occuring problem is currupt data. You can check for corrupt data in peak files
 			with @b FileInfo as well:
@@ -686,22 +686,22 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	IDFilter for one of the runs to get the high scoring identifications (40 to 200 distinct peptides should be enough). 
 	Then you use RTModel as described in the documentation to train a model for these spectra. 
 	With this model you can use RTPredict to predict the retention times for the remaining runs.
-	The predicted retention times are stored in the IdXML files. These predicted retention times can then
+	The predicted retention times are stored in the idXML files. These predicted retention times can then
 	be used to filter out false identifications using the IDFilter tool.
 
 	A typical sequence of TOPP tools would look like this:
 	@code
 
 	MapAligner -in Run1.mzML,...,Run4.mzML -out Run1_aligned.mzML,...,Run4_aligned.mzML
-	MascotAdapter -in Run1_aligned.mzML -out Run1_aligned.IdXML -ini Mascot.ini
-	MascotAdapter -in Run2_aligned.mzML -out Run2_aligned.IdXML -ini Mascot.ini
-	MascotAdapter -in Run3_aligned.mzML -out Run3_aligned.IdXML -ini Mascot.ini
-	MascotAdapter -in Run4_aligned.mzML -out Run4_aligned.IdXML -ini Mascot.ini
-	IDFilter -in Run1_aligned.IdXML -out Run1_best_hits.IdXML -pep_fraction 1 -best_hits
-	RTModel -in Run1_best_hits.IdXML -out Run1.model -ini RT.ini
-	RTPredict -in Run2_aligned.IdXML -out Run2_predicted.IdXML -svm_model Run1.model
-	RTPredict -in Run3_aligned.IdXML -out Run3_predicted.IdXML -svm_model Run1.model
-	RTPredict -in Run4_aligned.IdXML -out Run4_predicted.IdXML -svm_model Run1.model
+	MascotAdapter -in Run1_aligned.mzML -out Run1_aligned.idXML -ini Mascot.ini
+	MascotAdapter -in Run2_aligned.mzML -out Run2_aligned.idXML -ini Mascot.ini
+	MascotAdapter -in Run3_aligned.mzML -out Run3_aligned.idXML -ini Mascot.ini
+	MascotAdapter -in Run4_aligned.mzML -out Run4_aligned.idXML -ini Mascot.ini
+	IDFilter -in Run1_aligned.idXML -out Run1_best_hits.idXML -pep_fraction 1 -best_hits
+	RTModel -in Run1_best_hits.idXML -out Run1.model -ini RT.ini
+	RTPredict -in Run2_aligned.idXML -out Run2_predicted.idXML -svm_model Run1.model
+	RTPredict -in Run3_aligned.idXML -out Run3_predicted.idXML -svm_model Run1.model
+	RTPredict -in Run4_aligned.idXML -out Run4_predicted.idXML -svm_model Run1.model
 	IDFilter -in Run2_predicted.mzML -out Run2_filtered.mzML -rt_filtering
 	IDFilter -in Run3_predicted.mzML -out Run3_filtered.mzML -rt_filtering
 	IDFilter -in Run4_predicted.mzML -out Run4_filtered.mzML -rt_filtering
@@ -716,15 +716,15 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	@endcode
 
 	The likelihood of a peptide to be proteotypic can be predicted using PTModel and PTPredict.
-	Assume we have a file PT.IdXML which contains all proteotypic peptides
+	Assume we have a file PT.idXML which contains all proteotypic peptides
 	of a set of proteins. Lets also assume, we have a fasta file containing the amino acid
 	sequences of these proteins called mixture.fasta. To be able to train PTPredict, we
 	need negative peptides (peptides, which are not proteotypic). Therefore, one can use
 	the Digestor, which is located in the APPLICATIONS/UTILS/ folder together with the IDFilter:
 
 	@code
-	Digestor -in mixture.fasta -out all.IdXML
-	IDFilter -in all.IdXML -out NonPT.IdXML -exclusion_peptides_file PT.IdXML 
+	Digestor -in mixture.fasta -out all.idXML
+	IDFilter -in all.idXML -out NonPT.idXML -exclusion_peptides_file PT.idXML 
 	@endcode
  
 	In this example the proteins are digested in silico and the non proteotypic peptides set is
@@ -732,7 +732,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	can train PTModel:
 
 	@code
-	PTModel -in_positive PT.IdXML -in_negative NonPT.IdXML -out PT.model -ini PT.ini
+	PTModel -in_positive PT.idXML -in_negative NonPT.idXML -out PT.model -ini PT.ini
 	@endcode
 
 */
@@ -751,7 +751,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		
 		It converts the the following %OpenMS XML formats to text files:
 		- featureXML
-		- IdXML
+		- idXML
 		- consensusXML
 		
 		The use of the @b TextExporter is very simple:

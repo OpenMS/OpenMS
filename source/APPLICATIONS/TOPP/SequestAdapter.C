@@ -78,7 +78,7 @@ using namespace std;
 				(Supported spectrum file formats are .mzXML, .mzData)
 				for which the identifications are to be found and one database in
 				FASTA format containing the possible proteins.
-				The results are written as an IdXML output file. This mode is selected
+				The results are written as an idXML output file. This mode is selected
 			 	by default.
 				Note: You need a user with network access on the computer hosting sequest.
 			 	</li>
@@ -98,7 +98,7 @@ using namespace std;
 
 				<li>
 				Only the second part of the ProteinIdentification process is performed.
-				This means that the output of sequest is translated into IdXML.
+				This means that the output of sequest is translated into idXML.
 
 				This mode is selected by the <b>-sequest_out</b> option in the command line.
 				</li>
@@ -137,13 +137,13 @@ class TOPPSequestAdapter
 			registerStringOption_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
 					 																			"Note: In mode 'sequest_out' a directory with Sequest results files\n"
 																								"(*.out) is read", false);
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
+			registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
 			                                           "Note: In mode 'sequest_in' a Sequest input file is written.", false);
 			registerFlag_("sequest_in", "if this flag is set the SequestAdapter will read in mzXML or mzData\n"
 																								"and write an Sequest input file\n"
 																								"and create dta files from the given mzXML or mzData files");
 			registerFlag_("sequest_out", "if this flag is set the SequestAdapter will read in Sequest result files\n"
-																									"and write IdXML");
+																									"and write idXML");
 			registerStringOption_("mz_files", "<files>", "", "when using sequest_out the mzXML or mzData files (comma-separated)\n"
 																																						"have to be given to retrieve the retention times", false);
 			registerFlag_("show_enzymes", "show a list with enzymes and corresponding numbers to choose from");

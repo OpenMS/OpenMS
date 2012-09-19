@@ -172,7 +172,7 @@ class TOPPRTModel
 	protected:
 		void registerOptionsAndFlags_()
 		{
-			registerInputFile_("in","<file>","","This is the name of the input file (RT prediction). It is assumed that the file type is IdXML. If it is just a textfile having a sequence and the corresponding rt per line, the 'textfile_input' flag has to be set.\n", false);
+			registerInputFile_("in","<file>","","This is the name of the input file (RT prediction). It is assumed that the file type is idXML. If it is just a textfile having a sequence and the corresponding rt per line, the 'textfile_input' flag has to be set.\n", false);
 			setValidFormats_("in",StringList::create("idXML"));
 			registerFlag_("textfile_input", "Has to be set if the input file is a textfile containing a sequence with corresponding rt per line (separated by space).");
 			registerInputFile_("in_positive","<file>","","input file with positive examples (peptide separation prediction)\n", false);

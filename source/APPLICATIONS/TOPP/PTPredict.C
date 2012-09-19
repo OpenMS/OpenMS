@@ -60,7 +60,7 @@ using namespace std;
 	Ole Schulz-Trieglaff, Nico Pfeifer, Clemens Gr&ouml;pl, Oliver Kohlbacher and Knut Reinert LC-MSsim - a simulation software for Liquid ChromatographyMass Spectrometry data
   BMC Bioinformatics 2008, 9:423.
 
-	The input of this application is an svm model and an IdXML
+	The input of this application is an svm model and an idXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file. 
 	This file should have been produced by the @ref TOPP_PTModel application.
@@ -97,7 +97,7 @@ class TOPPPTPredict
 
 		ExitCodes main_(int , const char**)
 		{
-			IdXMLFile IdXML_file;
+			IdXMLFile idXML_file;
 			vector<ProteinIdentification> protein_identifications;
 			vector<PeptideIdentification> identifications;
 			vector< String > peptides;
@@ -177,7 +177,7 @@ class TOPPPTPredict
 				
 			}				
 			String document_id;			
-			IdXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
+			idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
 	  													
 			//-------------------------------------------------------------
 			// calculations
@@ -267,7 +267,7 @@ class TOPPPTPredict
 			// writing output
 			//-------------------------------------------------------------
 			
-			IdXML_file.store(outputfile_name,
+			idXML_file.store(outputfile_name,
 											 protein_identifications,
 											 identifications);
 			return EXECUTION_OK;

@@ -95,7 +95,7 @@ using namespace std;
 				The drawback is, of course, that you need the same amount of space
 				for the trie database as well, which can, in case of large and/or many
 				databases, be a problem.
-				The results are written as a IdXML output file. This mode is selected
+				The results are written as a idXML output file. This mode is selected
 			 	by default.
 			 	</li>
 
@@ -117,7 +117,7 @@ using namespace std;
 				<li>
 				Only the second part of the ProteinIdentification process is performed.
 				This means that the output of an Inspect run is analyzed and the result
-				written to an IdXML file.
+				written to an idXML file.
 
 				This mode is selected by the <b>-inspect_out</b> option in the command line.
 				</li>
@@ -150,12 +150,12 @@ class TOPPInspectAdapter
 		{
 			registerInputFile_("in", "<file>", "", "input file in mzXML or mzData format.\n"
 					 																			"Note: In mode 'inspect_out' an Inspect results file is read.");
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
+			registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
 			                                           "Note: In mode 'inspect_in' an Inspect input file is written.");
 			registerFlag_("inspect_in", "if this flag is set the InspectAdapter will read in mzXML,\n"
 																							 "write an Inspect input file and generate a trie database");
 			registerFlag_("inspect_out", "if this flag is set the InspectAdapter will read in a Inspect results file\n"
-																								 "and write IdXML");
+																								 "and write idXML");
 			registerStringOption_("inspect_directory", "<dir>", "", "the directory in which Inspect is located", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 			registerStringOption_("dbs", "<file>", "", "name(s) of database(s) to search in (FASTA and SwissProt supported)", false);
@@ -326,8 +326,8 @@ class TOPPInspectAdapter
 			}
 
 			if ( inspect_in ) writeDebug_("Inspect flag: mascot_in (reads in MzXML/MzData, writes Inspect generic format)", 1);
-			else if ( inspect_out ) writeDebug_("Inspect flag: mascot_in (reads in Inspect result file, writes IdXML file)", 1);
-			else writeDebug_("No Inspect flag set: reads in MzXML/MzData, writes IdXML file", 1);
+			else if ( inspect_out ) writeDebug_("Inspect flag: mascot_in (reads in Inspect result file, writes idXML file)", 1);
+			else writeDebug_("No Inspect flag set: reads in MzXML/MzData, writes idXML file", 1);
 
 			// a 'normal' inspect run corresponds to both inspect_in and inspect_out set
 			if ( !inspect_in && !inspect_out ) inspect_in = inspect_out = true;
@@ -765,8 +765,8 @@ class TOPPInspectAdapter
 
 				if ( wanted_records.empty() )
 				{
-					IdXMLFile IdXML_file;
-					IdXML_file.store(output_filename, vector<ProteinIdentification>(), vector<PeptideIdentification>());
+					IdXMLFile idXML_file;
+					idXML_file.store(output_filename, vector<ProteinIdentification>(), vector<PeptideIdentification>());
 					inspect_out = false;
 					writeLog_("No proteins matching criteria for generating minimized database for blind search. Aborting!");
 					exit_code = UNKNOWN_ERROR;
@@ -782,7 +782,7 @@ class TOPPInspectAdapter
 				}
 			}
 
-			// writing the output of inspect Into an IdXML file
+			// writing the output of inspect Into an idXML file
 			if ( exit_code == EXECUTION_OK && inspect_in && inspect_out )
 			{
 				String call;
@@ -812,7 +812,7 @@ class TOPPInspectAdapter
 			{
 				vector<PeptideIdentification> peptide_identifications;
 				ProteinIdentification protein_identification;
-				IdXMLFile IdXML_file;
+				IdXMLFile idXML_file;
 
 				if ( inspect_in ) // the version can only be retrieved by running inspect without parameters
 				{
@@ -861,12 +861,12 @@ class TOPPInspectAdapter
 						if ( exit_code == EXECUTION_OK )
 						{
 							vector< ProteinIdentification > protein_identifications(1, protein_identification);
-							IdXML_file.store(output_filename, protein_identifications, peptide_identifications);
+							idXML_file.store(output_filename, protein_identifications, peptide_identifications);
 						}
 					}
 					else
 					{
-						IdXML_file.store(output_filename, vector<ProteinIdentification>(), vector<PeptideIdentification>());
+						idXML_file.store(output_filename, vector<ProteinIdentification>(), vector<PeptideIdentification>());
 						writeLog_("No proteins identified!");
 					}
 				}

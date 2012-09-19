@@ -45,10 +45,10 @@
 namespace OpenMS 
 {
   /**
-    @brief Used to load and store IdXML files
+    @brief Used to load and store idXML files
     
     This class is used to load and store documents that implement 
-    the schema of IdXML files.
+    the schema of idXML files.
 		
 		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/. 
 		
@@ -70,7 +70,7 @@ namespace OpenMS
 			IdXMLFile();
 
 			/**
-				@brief Loads the identifications of an IdXML file without identifier
+				@brief Loads the identifications of an idXML file without identifier
 				
 				The information is read in and the information is stored in the
 				corresponding variables
@@ -81,7 +81,7 @@ namespace OpenMS
 			void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
 
 			/**
-				@brief Loads the identifications of an IdXML file
+				@brief Loads the identifications of an idXML file
 				
 				The information is read in and the information is stored in the
 				corresponding variables
@@ -92,7 +92,7 @@ namespace OpenMS
 			void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, String& document_id);
 			 			 
 			/**
-				@brief Stores the data in an IdXML file
+				@brief Stores the data in an idXML file
 				
 				The data is read in and stored in the file 'filename'.
 

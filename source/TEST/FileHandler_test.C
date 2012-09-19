@@ -58,7 +58,7 @@ START_SECTION((static String typeToName(FileTypes::Type type)))
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZXML),"mzXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZML),"mzML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::FEATUREXML),"featureXML");
-	TEST_EQUAL(tmp.typeToName(FileTypes::IDXML),"IdXML");
+	TEST_EQUAL(tmp.typeToName(FileTypes::IDXML),"idXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::CONSENSUSXML),"consensusXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::TRANSFORMATIONXML),"TrafoXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::INI),"ini");

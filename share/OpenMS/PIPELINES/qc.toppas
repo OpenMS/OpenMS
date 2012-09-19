@@ -59,9 +59,9 @@
       <ITEM name="x_pos" value="160" type="float" description="" />
       <ITEM name="y_pos" value="20" type="float" description="" />
       <NODE name="parameters" description="">
-        <ITEM name="in" value="" type="string" description="Input idXML file containing the identifications." tags="input file,required" restrictions="*.IdXML" />
+        <ITEM name="in" value="" type="string" description="Input idXML file containing the identifications." tags="input file,required" restrictions="*.idXML" />
         <ITEM name="fasta" value="" type="string" description="Input sequence database in FASTA format. Non-existing relative file-names are looked up via&apos;OpenMS.ini:id_db_dir&apos;" tags="input file,required" restrictions="*.fasta" />
-        <ITEM name="out" value="" type="string" description="Output idXML file." tags="output file,required" restrictions="*.IdXML" />
+        <ITEM name="out" value="" type="string" description="Output idXML file." tags="output file,required" restrictions="*.idXML" />
         <ITEM name="decoy_string" value="_rev" type="string" description="String that was appended to the accession of the protein database to indicate a decoy protein." />
         <ITEM name="write_protein_sequence" value="false" type="string" description="If set, the protein sequences are stored as well." restrictions="true,false" />
         <ITEM name="prefix" value="false" type="string" description="If set, the decoy_string is supposed to be appended as a prefix." restrictions="true,false" />

@@ -117,14 +117,14 @@ using namespace std;
       If you want filtering using the sequence alone, then use the flag @em WhiteList:by_seq_only.
   </li>
   <li>
-   <b>blacklist:peptides</b>:<br> For this option you specify an IdXML file.
+   <b>blacklist:peptides</b>:<br> For this option you specify an idXML file.
    All peptides that are present in both files (in-file and exclusion peptides
    file) will be dropped. Protein Hits are not affected.
   </li>
   <li><b>rt</b>:<br> To filter identifications according to their
    predicted retention times you have to set 'rt:p_value' and/or 'rt:p_value_1st_dim' larger than 0, depending which RT
       dimension you want to filter.
-   This filter can only be applied to IdXML files produced by @ref TOPP_RTPredict.
+   This filter can only be applied to idXML files produced by @ref TOPP_RTPredict.
   </li>
   <li>
    <b>best:n_peptide_hits</b>:<br> Only the best n peptide hits of a spectrum are kept. If two hits have the same score, their order is random.
@@ -233,7 +233,7 @@ protected:
 		//-------------------------------------------------------------
 
 		IDFilter filter;
-		IdXMLFile IdXML_file;
+		IdXMLFile idXML_file;
 		vector<ProteinIdentification> protein_identifications;
 		vector<PeptideIdentification> identifications;
 		vector<PeptideIdentification> identifications_exclusion;
@@ -311,7 +311,7 @@ protected:
 		if (exclusion_peptides_file_name  != "")
 		{
 			String document_id;
-			IdXML_file.load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion, document_id);
+			idXML_file.load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion, document_id);
 			for (Size i = 0; i < identifications_exclusion.size(); i++)
 			{
 				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getHits().begin();
@@ -323,7 +323,7 @@ protected:
 			}
 		}
 		String document_id;
-		IdXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
+		idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
 
 		//-------------------------------------------------------------
 		// calculations
@@ -600,7 +600,7 @@ protected:
 		// writing output
 		//-------------------------------------------------------------
 
-		IdXML_file.store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
+		idXML_file.store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
 
 		return EXECUTION_OK;
 	}

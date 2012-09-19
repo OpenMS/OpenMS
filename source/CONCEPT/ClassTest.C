@@ -188,7 +188,7 @@ namespace OpenMS
               case FileTypes::IDXML:
                 if ( !IdXMLFile().isValid(file_names[i]) )
                 {
-                  std::cout << " - Error: Invalid IdXML file '" << file_names[i] << "'" << std::endl;
+                  std::cout << " - Error: Invalid idXML file '" << file_names[i] << "'" << std::endl;
                   passed_single = false;
                 }
                 break;

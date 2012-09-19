@@ -254,7 +254,7 @@ namespace OpenMS
       Size findPeptideEntry_(String seq, std::vector<PeptideEntry>& nodes);
       //helper function for findPeptideEntry.
       Size binarySearchNodes_(String& seq, std::vector<PeptideEntry>& nodes, Size start, Size end );
-      //includes all MSMS derived peptides into the graph --IdXML
+      //includes all MSMS derived peptides into the graph --idXML
       Size includeMSMSPeptides_(std::vector<PeptideIdentification> &peptide_identifications, std::vector<PeptideEntry> &peptide_nodes );
       //TODO include run information for each peptide
       //includes all MSMS derived peptides into the graph --consensusXML

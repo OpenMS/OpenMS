@@ -85,7 +85,7 @@ class TOPPQCCalculator
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in_id","<file>","","Input idXML file containing the identifications. Your identifications will be exported in an easy-to-read format",false);
-		    setValidFormats_("in_id", StringList::create("IdXML"));
+		    setValidFormats_("in_id", StringList::create("idXML"));
 			registerInputFile_("feature","<file>","","feature input file (this is relevant for most QC issues)",false);
 			setValidFormats_("feature", StringList::create("featureXML"));
 			registerInputFile_("consensus","<file>","","consensus input file (this is only used for charge state deconvoluted output. Use the consensusXML output form the DeCharger)",false);

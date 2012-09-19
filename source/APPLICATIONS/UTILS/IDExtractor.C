@@ -52,7 +52,7 @@ using namespace std;
 /**
 	@page UTILS_IDExtractor IDExtractor
 	
-	@brief Extracts 'n' peptides randomly or best 'n' from IdXML files.
+	@brief Extracts 'n' peptides randomly or best 'n' from idXML files.
   	
   Input and output format are 'idXML'. The tools allows you to extract subsets of peptides
   from idXML files.
@@ -71,7 +71,7 @@ class TOPPIDExtractor
 {
 	public:
 		TOPPIDExtractor()
-			: TOPPBase("IDExtractor","Extracts 'n' peptides randomly or best 'n' from IdXML files.",false)
+			: TOPPBase("IDExtractor","Extracts 'n' peptides randomly or best 'n' from idXML files.",false)
 		{
 			
 		}

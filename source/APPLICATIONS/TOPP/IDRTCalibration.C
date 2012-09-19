@@ -63,9 +63,9 @@ using namespace std;
 	</table>
 </CENTER>
 
-	This tool can be used to linearly align RTs of the IdXML-File to a reference. If only calibrant_1_input and
+	This tool can be used to linearly align RTs of the idXML-File to a reference. If only calibrant_1_input and
   calibrant_2_input are given, the first calibrant will result at RT 0.1 and calibrant_2_input will be at 0.9.
-	If one wants to align the RTs of this IdXML file to the IDs of a reference file one can also give the RTs
+	If one wants to align the RTs of this idXML file to the IDs of a reference file one can also give the RTs
 	of the same calibrant in the reference file (calibrant_1_reference, calibrant_2_reference). If these calibrants
 	are given, the linear transformation (shift and scale) will be calculated such that calibrant_1_input will
 	be at the same RT as calibrant_1_reference and calibrant_2_input will

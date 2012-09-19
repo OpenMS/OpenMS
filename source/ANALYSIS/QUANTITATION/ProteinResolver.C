@@ -341,7 +341,7 @@ namespace OpenMS
     }
   }
 
-  //includes all MSMS derived peptides into the graph --IdXML
+  //includes all MSMS derived peptides into the graph --idXML
   Size ProteinResolver::includeMSMSPeptides_(vector<PeptideIdentification> &peptide_identifications, vector<PeptideEntry> &peptide_nodes )
   {
     Size found_peptide = 0;

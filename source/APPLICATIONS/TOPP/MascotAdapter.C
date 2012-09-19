@@ -95,7 +95,7 @@ using namespace std;
 				The whole process of ProteinIdentification via Mascot is executed.
 				Inputfile is a mzData file containing the MS/MS spectra
 			 	for which the identifications are to be found. The results
-			 	are written as a IdXML output file. This mode is selected
+			 	are written as a idXML output file. This mode is selected
 			 	by default.
 			 	</li>
 
@@ -116,7 +116,7 @@ using namespace std;
 				<li>
 				Only the second part of the ProteinIdentification process is performed.
 				This means that the outputfile of the Mascot server is
-				translated into IdXML.
+				translated into idXML.
 
 				This mode is selected by the <b>-mascot_out</b> option in the command line.
 				</li>
@@ -231,10 +231,10 @@ class TOPPMascotAdapter
 		{
 			registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
 					 																			"Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
+			registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
 			                                           "Note: In mode 'mascot_in' Mascot generic format is written.");
 			registerFlag_("mascot_in", "if this flag is set the MascotAdapter will read in mzData and write Mascot generic format");
-			registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot results file (.mascotXML) and write IdXML");
+			registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot results file (.mascotXML) and write idXML");
 			registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
 			registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0 , "the precursor mass tolerance", false);
 			registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
@@ -418,11 +418,11 @@ class TOPPMascotAdapter
 			{
 				mascotXML_file_name = inputfile_name;
 
-				writeDebug_("Mascot flag: mascot_out (reads in Mascot results file writes IdXML file)", 1);
+				writeDebug_("Mascot flag: mascot_out (reads in Mascot results file writes idXML file)", 1);
 			}
 			else
 			{
-				writeDebug_("No Mascot flag set: reads in MzData writes IdXML file", 1);
+				writeDebug_("No Mascot flag set: reads in MzData writes idXML file", 1);
 			}
 			if (!mascot_in && !mascot_out)
 			{

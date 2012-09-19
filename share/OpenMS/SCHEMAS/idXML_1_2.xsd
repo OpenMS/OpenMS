@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
-	<xs:element name="IdXML">
+	<xs:element name="idXML">
 		<xs:annotation>
-			<xs:documentation>Base node of IdXML</xs:documentation>
+			<xs:documentation>Base node of idXML</xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>

@@ -70,7 +70,7 @@ using namespace std;
 
    Currently this tool can create tab-delimited inclusion or exclusion lists (m/z, RT start, RT stop).
 	 The input can either be peptide identifications from previous runs, a feature map or a FASTA-file with proteins.
-	 Inclusion and exclusion charges can be specified for FASTA and IdXML input. If no charges are specified in the case of peptide id input, only
+	 Inclusion and exclusion charges can be specified for FASTA and idXML input. If no charges are specified in the case of peptide id input, only
    the charge state of the peptide id is in/excluded, otherwise all given charge states are entered to the list.
 
    The RT window size can be specified in the RT section of the INI file, either as relative window
@@ -103,8 +103,8 @@ protected:
   {
     registerInputFile_("include", "<file>", "", "Inclusion list input file in FASTA or featureXML format.",false);
     setValidFormats_("include",StringList::create("featureXML,FASTA"));
-    registerInputFile_("exclude","<file>", "", "Exclusion list input file in featureXML, IdXML or FASTA format.",false);
-    setValidFormats_("exclude",StringList::create("featureXML,IdXML,FASTA"));
+    registerInputFile_("exclude","<file>", "", "Exclusion list input file in featureXML, idXML or FASTA format.",false);
+    setValidFormats_("exclude",StringList::create("featureXML,idXML,FASTA"));
     registerOutputFile_("out", "<file>", "", "Output file (tab delimited).");
     registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in FASTA files.",false);
     registerInputFile_("pt_model","<file>","","PTModel file used for the pt prediction of peptides in FASTA files (only needed for inclusion_strategy PreotinBased_LP).",false);

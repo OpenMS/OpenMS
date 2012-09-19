@@ -122,7 +122,7 @@ class TOPPMascotAdapterOnline
 		{
 			registerInputFile_("in", "<file>", "", "input file in mzML format.\n");
 			setValidFormats_("in", StringList::create("mzML"));
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n");
+			registerOutputFile_("out", "<file>", "", "output file in idXML format.\n");
 			setValidFormats_("out", StringList::create("idXML"));
 
 			registerSubsection_("Mascot_server", "Mascot server details");

@@ -202,7 +202,7 @@ class TOPPOMSSAAdapter
       registerInputFile_("omssa_user_mods", "<file>", "", "additional <MSModSpec> subtrees of user modifications.\nSubtrees will be pasted into OMSSAAdapter generated user mod files.\nSee http://www.ncbi.nlm.nih.gov/data_specs/schema/OMSSA.mod.xsd for details about user mod file definition.", false, true, StringList::create("input file"));
 			registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 
-			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to IdXML");
+			//registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to idXML");
 			//registerStringOption_("omssa_out_format", "<type>", "", "Specifies the output format of OMSSA, if not given the format will be estimated", false);
 
 

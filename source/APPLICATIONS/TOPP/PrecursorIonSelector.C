@@ -141,7 +141,7 @@ protected:
     registerOutputFile_("next_feat","<output file>","","feature map (featureXML) file with the selected precursors",false);
     setValidFormats_("next_feat",StringList::create("featureXML"));
 
-		registerStringOption_("ids","<idxml file>","","file containing results of identification (IdXML)");
+		registerStringOption_("ids","<idxml file>","","file containing results of identification (idXML)");
 		registerIntOption_("num_precursors","<Int>",1,"number of precursors to be selected",false);
     registerInputFile_("raw_data","<file>","","Input profile data.",false);
 		setValidFormats_("raw_data",StringList::create("mzML"));

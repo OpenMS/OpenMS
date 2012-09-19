@@ -51,9 +51,9 @@ using namespace std;
 /**
 	@page UTILS_RTEvaluation RTEvaluation
 	
-	@brief Application that evaluates TPs (true positives), TNs, FPs, and FNs for an IdXML file with predicted RTs.
+	@brief Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
 	
-	The method needs an IdXML file with IDs and predicted RTs. The second input file is a file containing
+	The method needs an idXML file with IDs and predicted RTs. The second input file is a file containing
 	the protein sequences which are considered as positive hits. This tool then evaluates the tps, fps, tns, 
 	and fns for the unfiltered IDs, for the IDs filtered in first RT dimension, for the IDs filtered in
 	the second RT dimension as well as for the IDs filtered in both dimensions. The output is a table with
@@ -73,7 +73,7 @@ class TOPPIdXMLEvaluation
 {
 	public:
 		TOPPIdXMLEvaluation()
-			: TOPPBase("RTEvaluation","Application that evaluates TPs (true positives), TNs, FPs, and FNs for an IdXML file with predicted RTs.",false)
+			: TOPPBase("RTEvaluation","Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.",false)
 		{
 			
 		}

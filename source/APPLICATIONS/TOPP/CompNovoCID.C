@@ -108,7 +108,7 @@ protected:
     registerInputFile_("in", "<file>", "", "input file in mzML format", true);
     setValidFormats_("in", StringList::create("mzML"));
 
-    registerOutputFile_("out", "<file>", "", "output file in IdXML format", true);
+    registerOutputFile_("out", "<file>", "", "output file in idXML format", true);
     setValidFormats_("out", StringList::create("idXML"));
 
     addEmptyLine_();

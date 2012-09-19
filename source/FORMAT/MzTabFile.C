@@ -82,12 +82,12 @@ void MzTabFile::store(const String& filename, const std::vector<ProteinIdentific
     has_coverage = false;
   }
 
-  // partition into runs (as this could be a merged IdXML)
+  // partition into runs (as this could be a merged idXML)
   map<String, vector<PeptideIdentification> > map_run_to_pepids;
   map<String, vector<ProteinIdentification> > map_run_to_proids;
   partitionIntoRuns(pep_ids, prot_ids, map_run_to_pepids, map_run_to_proids);
   num_runs = map_run_to_pepids.size();
-  cout << "IdXML contains: " << num_runs << " runs." << endl;
+  cout << "idXML contains: " << num_runs << " runs." << endl;
 
   MapAccPepType map_run_accesion_to_peptides;
   createProteinToPeptideLinks(map_run_to_pepids, map_run_accesion_to_peptides);
@@ -301,7 +301,7 @@ void MzTabFile::partitionIntoRuns(const vector<PeptideIdentification>& pep_ids,
                               )
 {
   {
-    // IdXML can be merged so we have to deal with several runs
+    // idXML can be merged so we have to deal with several runs
     // Extract protein and peptide identifications for each run
     for (Size i = 0; i != pro_ids.size(); ++i)
     {

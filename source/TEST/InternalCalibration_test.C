@@ -106,7 +106,7 @@ END_SECTION
 IdXMLFile id_file;
 std::vector<ProteinIdentification> prot_ids;
 std::vector<PeptideIdentification> pep_ids;
-id_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_1.IdXML"),prot_ids,pep_ids);
+id_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_1.idXML"),prot_ids,pep_ids);
 START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(const MSExperiment< InputPeakType > &exp, MSExperiment< InputPeakType > &calibrated_exp, std::vector< PeptideIdentification > &ref_ids, String trafo_file_name="")))
 {
   TOLERANCE_ABSOLUTE(0.000001)
@@ -137,7 +137,7 @@ START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, Featur
   TEST_REAL_SIMILAR(calibrated_f_map[5].getMZ(),998.486309862771)
 }
 END_SECTION
-id_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_2.IdXML"),prot_ids,pep_ids);
+id_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_2.idXML"),prot_ids,pep_ids);
 START_SECTION((void calibrateMapGlobally(const FeatureMap<> &feature_map, FeatureMap<> &calibrated_feature_map, std::vector< PeptideIdentification > &ref_ids, String trafo_file_name="")))
 {
   FeatureMap<> calibrated_f_map;

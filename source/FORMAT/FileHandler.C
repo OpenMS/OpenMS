@@ -44,7 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "featureXML", "IdXML", "consensusXML", "mgf", "ini", "toppas", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzid","mzq", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
+  const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "featureXML", "idXML", "consensusXML", "mgf", "ini", "toppas", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzid","mzq", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -209,8 +209,8 @@ namespace OpenMS
     //feature map (all lines)
     if (all_simple.hasSubstring("<featureMap")) return FileTypes::FEATUREXML;
 
-    //IdXML (all lines)
-    if (all_simple.hasSubstring("<IdXML")) return FileTypes::IDXML;
+    //idXML (all lines)
+    if (all_simple.hasSubstring("<idXML")) return FileTypes::IDXML;
 
     //consensusXML (all lines)
     if (all_simple.hasSubstring("<consensusXML")) return FileTypes::CONSENSUSXML;

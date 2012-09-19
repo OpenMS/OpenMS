@@ -125,11 +125,11 @@ class TOPPIDRipper
 
     void registerOptionsAndFlags_()
     {
-        registerInputFile_("in","<file>","","IdXML-file, whereas the protein/peptide identifications must be tagged with file_origin");
+        registerInputFile_("in","<file>","","idXML-file, whereas the protein/peptide identifications must be tagged with file_origin");
         setValidFormats_("in",StringList::create("idXML"));
         registerOutputFile_("out","<file>","","The path to the file is used as the output directory.",false,false);
         setValidFormats_("out",StringList::create("idXML"));
-        registerStringOption_("out_path","<file>","","Directory for the IdXML-files after ripping according file_origin tag. If out_path is set, out is ignored.",false,false);
+        registerStringOption_("out_path","<file>","","Directory for the idXML-files after ripping according file_origin tag. If out_path is set, out is ignored.",false,false);
     }
 
     ExitCodes main_(int , const char**)

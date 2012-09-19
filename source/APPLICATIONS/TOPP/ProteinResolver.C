@@ -527,7 +527,7 @@ class TOPPProteinResolver
       //-------------------------------------------------------------
       // initialize rest
       //-------------------------------------------------------------
-      IdXMLFile IdXML_file;
+      IdXMLFile idXML_file;
       ConsensusXMLFile consensusXML_file;
       ConsensusMap consensus;
       vector<ProteinIdentification> protein_identifications;
@@ -547,7 +547,7 @@ class TOPPProteinResolver
         if(in_type == FileTypes::IDXML)
         {
           //read data
-          IdXML_file.load(input,protein_identifications, peptide_identifications);
+          idXML_file.load(input,protein_identifications, peptide_identifications);
           //calculation
           resolver.resolveID(peptide_identifications );
         }
@@ -612,7 +612,7 @@ class TOPPProteinResolver
             if(in_type == FileTypes::IDXML)
             {
               // load ensures that vector are cleared upon loading
-              IdXML_file.load(*iter,protein_identifications, peptide_identifications);
+              idXML_file.load(*iter,protein_identifications, peptide_identifications);
               resolver.resolveID(peptide_identifications );
             }
             else
@@ -638,7 +638,7 @@ class TOPPProteinResolver
         // read file names in 'in_path'
         QDir dir(input_path.toQString());
         QStringList filters;
-        filters << "*.idXML" << "*.IdXML" << "*.consensusXML" << ".consensusXML";
+        filters << "*.idXML" << "*.idXML" << "*.consensusXML" << ".consensusXML";
         dir.setNameFilters(filters);
         dir.setFilter(QDir::Files | QDir::Readable );
         dir.setSorting(QDir::Name | QDir::IgnoreCase);
@@ -664,7 +664,7 @@ class TOPPProteinResolver
             if(in_type == FileTypes::IDXML)
             {
               // load ensures that vector are cleared upon loading
-              IdXML_file.load(*iter,protein_identifications, peptide_identifications);
+              idXML_file.load(*iter,protein_identifications, peptide_identifications);
               // result is stored in struct and appended to result-vector of the resolver
               resolver.resolveID(peptide_identifications);
             }

@@ -68,17 +68,17 @@ using namespace std;
 
 
 	The input of this application
-	is an svm model and an IdXML
+	is an svm model and an idXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file.
 	This file should have been produced by the @ref TOPP_RTModel application.
 	<br>
 	For retention time prediction the peptide sequences are extracted
-	from the IdXML inputfile
+	from the idXML inputfile
 	and passed to the svm. The svm then predicts retention times
 	according to the trained model. The predicted retention times
 	are stored as @code <userParam name="predicted_retention_time" value="<predicted retention time>" />
-	@endcode inside the peptide entities in the IdXML output file.
+	@endcode inside the peptide entities in the idXML output file.
 
 	For separation prediction you have to specify two output file names.
 	'out_id:positive' is the filename of the peptides which are predicted
@@ -121,9 +121,9 @@ class TOPPRTPredict
 			registerTOPPSubsection_("out_id", "Output files in idXML format");
 			registerOutputFile_("out_id:file","<file>","","Output file with peptide RT prediction", false);
 			setValidFormats_("out_id:file",StringList::create("idXML"));
-			registerOutputFile_("out_id:positive","<file>","","Output file in IdXML format containing positive predictions (peptide separation prediction - requires negative file to be present as well)\n", false);
+			registerOutputFile_("out_id:positive","<file>","","Output file in idXML format containing positive predictions (peptide separation prediction - requires negative file to be present as well)\n", false);
 			setValidFormats_("out_id:positive",StringList::create("idXML"));
-			registerOutputFile_("out_id:negative","<file>","","Output file in IdXML format containing negative predictions (peptide separation prediction - requires positive file to be present as well)\n", false);
+			registerOutputFile_("out_id:negative","<file>","","Output file in idXML format containing negative predictions (peptide separation prediction - requires positive file to be present as well)\n", false);
 			setValidFormats_("out_id:negative",StringList::create("idXML"));
 			registerFlag_("out_id:rewrite_peptideidentification_rtmz", "rewrites each peptideidentification's rt and mz from prediction and calculation (according to the best hit)",true);
 
@@ -168,7 +168,7 @@ class TOPPRTPredict
 
 		ExitCodes main_(int , const char**)
 		{
-			IdXMLFile IdXML_file;
+			IdXMLFile idXML_file;
 			vector<ProteinIdentification> protein_identifications;
 			vector<PeptideIdentification> identifications;
 			vector< String > peptides;
@@ -349,7 +349,7 @@ class TOPPRTPredict
 			else
 			{
 				String document_id;
-				IdXML_file.load(input_id, protein_identifications, identifications, document_id);
+				idXML_file.load(input_id, protein_identifications, identifications, document_id);
 			}
 
 			//-------------------------------------------------------------
@@ -621,10 +621,10 @@ class TOPPRTPredict
 
 			if (separation_prediction)
 			{
-				IdXML_file.store(outputfile_name_positive,
+				idXML_file.store(outputfile_name_positive,
 												 protein_identifications,
 												 identifications_positive);
-				IdXML_file.store(outputfile_name_negative,
+				idXML_file.store(outputfile_name_negative,
 												 protein_identifications,
 												 identifications_negative);
 			}
@@ -636,7 +636,7 @@ class TOPPRTPredict
 				}
 				if (output_id != "") // idXML
 				{
-					IdXML_file.store(output_id,
+					idXML_file.store(output_id,
 													 protein_identifications,
 													 identifications);
 					writeDebug_("Linear correlation between predicted and measured rt is: "

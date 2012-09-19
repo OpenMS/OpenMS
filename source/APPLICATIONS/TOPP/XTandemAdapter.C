@@ -331,7 +331,7 @@ class TOPPXTandemAdapter
 			ProteinIdentification protein_id;
 			vector<PeptideIdentification> peptide_ids;
 
-			// read the output of X!Tandem and write it to IdXML
+			// read the output of X!Tandem and write it to idXML
 			XTandemXMLFile tandem_output;
 			tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
 			// find the file, because XTandem extends the filename with a timestamp we do not know (exactly)

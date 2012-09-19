@@ -71,7 +71,7 @@ using namespace std;
 
 	The PILISIdentification TOPP tool performs a ProteinIdentification run with
 	the PILIS ProteinIdentification engine. As input the file given in the in
-	parameters is used. The identifications are written into an IdXML
+	parameters is used. The identifications are written into an idXML
 	file given in the out parameter. Additionally the model_file must be
 	specified. To perform a search also a peptide database file should be
 	used,given in the peptide_db_file parameter. This should contain a
@@ -105,7 +105,7 @@ class TOPPPILISIdentification
 		{
 			registerInputFile_("in", "<file>", "", "input file in MzML format", true);
       setValidFormats_("in", StringList::create("mzML"));
-			registerOutputFile_("out", "<file>", "", "output file in IdXML format", true);
+			registerOutputFile_("out", "<file>", "", "output file in idXML format", true);
       setValidFormats_("out", StringList::create("idXML"));
 			registerInputFile_("model_file", "<file", "", "the model file of the PILISModel", true);
 			registerInputFile_("peptide_db_file", "<file>", "", "a file which should contain peptides in the format\n"

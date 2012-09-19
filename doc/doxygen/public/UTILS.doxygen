@@ -51,15 +51,15 @@
 	- @subpage UTILS_IDEvaluation - Evaluation tool, comparing peptide recovery at different q-value thresholds for multiple search engines (e.g., after ConsensusID)
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
 	- @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
-	- @subpage UTILS_RTEvaluation - Application that evaluates TPs (true positives), TNs, FPs, and FNs for an IdXML file with predicted RTs.
+	- @subpage UTILS_RTEvaluation - Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
 	- @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
 
   <b>Peptide identification</b>
 	- @subpage UTILS_Digestor - Digests a protein database in-silico.
 	- @subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
 	- @subpage UTILS_DecoyDatabase - Create decoy peptide databases from normal ones.
-	- @subpage UTILS_SequenceCoverageCalculator - Prints information about IdXML files.
-  - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from IdXML files.
+	- @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
+  - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
   - @subpage UTILS_SpecLibCreator - Creates an MSP formated spectral library.
 
