@@ -457,7 +457,10 @@ add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS GUI)
 
 ##### CTDs ####
-include(cmake/OpenMSBuildSystem_ctdSupport.cmake)
+set(ENABLE_CDTSUPPORT OFF CACHE BOOL "If enabled, targets for creating CTD's are generated. Main target will be 'build_ctds'.")
+if (ENABLE_CDTSUPPORT)
+	include(cmake/OpenMSBuildSystem_ctdSupport.cmake)
+endif()
 
 ##### Examples #####
 if ("${PACKAGE_TYPE}" STREQUAL "none")
