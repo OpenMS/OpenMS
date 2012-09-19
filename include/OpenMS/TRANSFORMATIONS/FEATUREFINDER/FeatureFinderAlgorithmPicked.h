@@ -661,13 +661,15 @@ namespace OpenMS
 						//Step 3.3.1:
 						//Extend all mass traces
 						//------------------------------------------------------------------
+
+            const SpectrumType& spectrum = map_[seeds[i].spectrum];
+            const PeakType& peak = spectrum[seeds[i].peak];
+
             IF_MASTERTHREAD 
             {
               ff_->setProgress(gl_progress++);
 						  log_ << std::endl << "Seed " << i << ":" << std::endl;
 						  //If the intensity is zero this seed is already uses in another feature
-						  const SpectrumType& spectrum = map_[seeds[i].spectrum];
-						  const PeakType& peak = spectrum[seeds[i].peak];
 						  log_ << " - Int: " << peak.getIntensity() << std::endl;
 						  log_ << " - RT: " << spectrum.getRT() << std::endl;
 						  log_ << " - MZ: " << peak.getMZ() << std::endl;
