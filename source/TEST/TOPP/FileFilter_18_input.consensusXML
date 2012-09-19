@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////share/opt/SARA/OpenMS/share/OpenMS/XSL/consensusXML.xsl"?>
-<consensusXML version="1.4" id="cm_8375110547982944032" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ConsensusXML version="1.4" id="cm_8375110547982944032" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2011-02-02T13:04:21" search_engine="Mascot" search_engine_version="2.2.04">
 		<SearchParameters db="regulatedPeptides" db_version="regulatedPeptides_appended_20100831.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" peak_mass_tolerance="0.5" >
 			<FixedModification name="Carbamidomethyl (C)" />
@@ -5169,4 +5169,4 @@
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>
-</consensusXML>
+</ConsensusXML>

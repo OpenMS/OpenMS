@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////home/groepl/Release1.6/share/OpenMS/XSL/consensusXML.xsl"?>
-<consensusXML version="1.4" id="cm_123456789012345" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ConsensusXML version="1.4" id="cm_123456789012345" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="3">
 		<map id="0" name="FeatureLinker_2_input1.featureXML" label="" size="21">
 		</map>
@@ -241,4 +241,4 @@
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>
-</consensusXML>
+</ConsensusXML>

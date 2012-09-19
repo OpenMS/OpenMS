@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/consensusXML.xsl"?>
-<consensusXML version="1.5" id="cm_2834631969522406461" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ConsensusXML version="1.5" id="cm_2834631969522406461" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2011-11-03T15:57:30">
 		<software name="Decharger" version="1.9.0" />
 		<processingAction name="Charge deconvolution" />
@@ -13336,4 +13336,4 @@
 			<userParam type="int" name="is_single_feature" value="1"/>
 		</consensusElement>
 	</consensusElementList>
-</consensusXML>
+</ConsensusXML>

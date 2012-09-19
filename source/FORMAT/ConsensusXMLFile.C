@@ -111,7 +111,7 @@ namespace OpenMS
       pep_id_.insertHit(pep_hit_);
       last_meta_ = &pep_id_;
     }
-    else if ( tag == "consensusXML" )
+    else if ( tag == "ConsensusXML" )
     {
       endProgress();
     }
@@ -241,7 +241,7 @@ namespace OpenMS
       act_cons_element_.getPosition() = pos_;
       act_cons_element_.setIntensity(it_);
     }
-    else if ( tag == "consensusXML" )
+    else if ( tag == "ConsensusXML" )
     {
       startProgress(0, 0, "loading consensusXML file");
       progress_ = 0;
@@ -597,7 +597,7 @@ namespace OpenMS
     }
 
     setProgress(++progress_);
-    os << "<consensusXML version=\"" << version_ << "\"";
+    os << "<ConsensusXML version=\"" << version_ << "\"";
     // file id
     if ( consensus_map.getIdentifier() != "" )
     {
@@ -804,7 +804,7 @@ namespace OpenMS
     }
     os << "\t</consensusElementList>\n";
 
-    os << "</consensusXML>\n";
+    os << "</ConsensusXML>\n";
     ;
 
     //Clear members

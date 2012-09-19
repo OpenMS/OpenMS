@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/consensusXML.xsl"?>
-<consensusXML version="1.5" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ConsensusXML version="1.5" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="IDMapper" version="version_string" />
 		<processingAction name="Identification mapping" />
@@ -1133,4 +1133,4 @@
 			</PeptideIdentification>
 		</consensusElement>
 	</consensusElementList>
-</consensusXML>
+</ConsensusXML>

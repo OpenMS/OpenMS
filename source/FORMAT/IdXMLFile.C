@@ -47,7 +47,7 @@ namespace OpenMS
 
 	IdXMLFile::IdXMLFile()
 		: XMLHandler("","1.2"),
-			XMLFile("/SCHEMAS/idXML_1_2.xsd","1.2"),
+      XMLFile("/SCHEMAS/idXML_1_2.xsd","1.2"),
 			last_meta_(0),
 			document_id_(),
 			prot_id_in_run_(false)
@@ -104,18 +104,18 @@ namespace OpenMS
 		//add XSLT file if it can be found
 		try
 		{
-			String xslt_file =  File::find("XSL/idXML.xsl");
+      String xslt_file =  File::find("XSL/idXML.xsl");
 			os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
 		}
 		catch(Exception::FileNotFound&)
 		{
 		}
-		os << "<idXML version=\"" << getVersion() << "\"";
+    os << "<IdXML version=\"" << getVersion() << "\"";
 		if (document_id!="")
 		{
 			os << " id=\"" << document_id << "\"";
 		}
-		os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/idXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/idXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 		
 		
 		//look up different search parameters
@@ -353,7 +353,7 @@ namespace OpenMS
 			}
 		}
 		//write footer
-		os << "</idXML>\n";
+    os << "</IdXML>\n";
 		
 		//close stream
 		os.close();
@@ -378,7 +378,7 @@ namespace OpenMS
 		String tag = sm_.convert(qname);
 		
 		//START
-		if (tag == "idXML")
+    if (tag == "IdXML")
 		{
 			//check file version against schema version
 			String file_version="";
@@ -671,7 +671,7 @@ namespace OpenMS
 		String tag = sm_.convert(qname);
 		
 		// START
-		if (tag =="idXML")
+    if (tag =="IdXML")
 		{
 			prot_id_in_run_ = false;
 		}

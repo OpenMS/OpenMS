@@ -5,7 +5,7 @@
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- edited with XMLSpy v2008 rel. 2 sp2 (http://www.altova.com) by Chris Bielow (FU Berlin) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:element name="consensusXML">
+	<xs:element name="ConsensusXML">
 		<xs:annotation>
 			<xs:documentation> Schema for a result of a multiple LC-MS map alignment. </xs:documentation>
 		</xs:annotation>
