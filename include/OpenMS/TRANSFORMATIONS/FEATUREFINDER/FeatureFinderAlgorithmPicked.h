@@ -157,7 +157,7 @@ namespace OpenMS
 				defaults_.setValue("isotopic_pattern:mass_window_width",25.0,"Window width in Dalton for precalculation of estimated isotope distributions.", StringList::create("advanced"));
 				defaults_.setMinFloat("isotopic_pattern:mass_window_width",1.0);
 				defaults_.setMaxFloat("isotopic_pattern:mass_window_width",200.0);
-				defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
+				defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotopic pattern (between 0 and 1).");
 				//Seed settings
 				defaults_.setValue("seed:min_score",0.8,"Minimum seed score a peak has to reach to be used as seed.\nThe seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.\nIf your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score.");
 				defaults_.setMinFloat("seed:min_score",0.0);
@@ -661,14 +661,17 @@ namespace OpenMS
 						//Step 3.3.1:
 						//Extend all mass traces
 						//------------------------------------------------------------------
-            IF_MASTERTHREAD ff_->setProgress(gl_progress++);
-						log_ << std::endl << "Seed " << i << ":" << std::endl;
-						//If the intensity is zero this seed is already uses in another feature
-						const SpectrumType& spectrum = map_[seeds[i].spectrum];
-						const PeakType& peak = spectrum[seeds[i].peak];
-						log_ << " - Int: " << peak.getIntensity() << std::endl;
-						log_ << " - RT: " << spectrum.getRT() << std::endl;
-						log_ << " - MZ: " << peak.getMZ() << std::endl;
+            IF_MASTERTHREAD 
+            {
+              ff_->setProgress(gl_progress++);
+						  log_ << std::endl << "Seed " << i << ":" << std::endl;
+						  //If the intensity is zero this seed is already uses in another feature
+						  const SpectrumType& spectrum = map_[seeds[i].spectrum];
+						  const PeakType& peak = spectrum[seeds[i].peak];
+						  log_ << " - Int: " << peak.getIntensity() << std::endl;
+						  log_ << " - RT: " << spectrum.getRT() << std::endl;
+						  log_ << " - MZ: " << peak.getMZ() << std::endl;
+            }
 						
 						//----------------------------------------------------------------
 						//Find best fitting isotope pattern for this charge (using averagine)
@@ -683,7 +686,6 @@ namespace OpenMS
 						else {
 						
 						//extend the convex hull in RT dimension (starting from the trace peaks)
-						log_ << "Collecting mass traces" << std::endl;
 						MassTraces traces;
 						traces.reserve(best_pattern.peak.size());
 						extendMassTraces_(best_pattern, traces, meta_index_overall);
@@ -706,7 +708,7 @@ namespace OpenMS
 						Int plot_nr = -1;
 
 #ifdef _OPENMP
-#pragma omp critical (FeatureFinderAlgorithmPicked)
+#pragma omp critical (FeatureFinderAlgorithmPicked_PLOTNR)
 #endif
             {
 						  plot_nr = ++plot_nr_global;
@@ -768,7 +770,7 @@ namespace OpenMS
 
             bool feature_ok = checkFeatureQuality_(fitter, new_traces, seed_mz, min_feature_score, error_msg, fit_score, correlation, final_score);
 #ifdef _OPENMP
-#pragma omp critical (FeatureFinderAlgorithmPicked)
+#pragma omp critical (FeatureFinderAlgorithmPicked_DEBUG)
 #endif 
 {
 						//write debug output of feature
@@ -776,7 +778,6 @@ namespace OpenMS
             {
               writeFeatureDebugInfo_(fitter,traces, new_traces, feature_ok, error_msg, final_score ,plot_nr, peak);
 						}
-						log_ << "Feature label: " << plot_nr << std::endl;
 }
 						traces = new_traces;
 						
@@ -856,7 +857,7 @@ namespace OpenMS
 						}
 						
 #ifdef _OPENMP
-#pragma omp critical (FeatureFinderAlgorithmPicked)
+#pragma omp critical (FeatureFinderAlgorithmPicked_TMPFEATUREMAP)
 #endif
 						{
 						tmp_feature_map[ i ] = f;
@@ -872,7 +873,7 @@ namespace OpenMS
 							if (bb.encloses(rt, mz) && f.encloses(rt, mz))
 							{
 #ifdef _OPENMP
-#pragma omp critical (FeatureFinderAlgorithmPicked)
+#pragma omp critical (FeatureFinderAlgorithmPicked_SEEDSINFEATURES)
 #endif
 								{
 								seeds_in_features[i].push_back(j);
