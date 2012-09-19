@@ -108,7 +108,7 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
 	
 	file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"),data);
 	sequences_iterator = data.begin();
-	TEST_EQUAL(data.size(), 2)
+	TEST_EQUAL(data.size(), 3)
 	TEST_EQUAL(sequences_iterator->identifier, String("P68509|1433F_BOVIN"))
 	TEST_EQUAL(sequences_iterator->description, String("This is the description of the first protein"))
 	TEST_EQUAL(sequences_iterator->sequence, String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") + 
@@ -123,6 +123,14 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
 		String("VLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQ") + 
 		String("PTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLT") + 
 		String("LWTSENQGDEGDAGEGEN"))
+	sequences_iterator++;
+	TEST_EQUAL(sequences_iterator->identifier, "sp|P31946|1433B_HUMAN")
+	TEST_EQUAL(sequences_iterator->description, String("14-3-3 protein beta/alpha OS=Homo sapiens GN=YWHAB PE=1 SV=3"))
+	TEST_EQUAL(sequences_iterator->sequence, String("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS")
+    + String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY")
+    + String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY")
+    + String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD")
+    + String("AGEGEN"))
 END_SECTION
 
 START_SECTION((void store(const String& filename, const std::vector< FASTAEntry > &data) const))
