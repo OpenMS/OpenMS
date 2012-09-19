@@ -200,15 +200,30 @@ namespace OpenMS
 
   void SpectrumCanvas::wheelEvent(QWheelEvent * e)
   {
-    if (e->delta() > 0)
-    {
-      zoomForward_();
-    }
-    else
-    {
-      zoomBack_();
-    }
+    zoom( e->x(), e->y(), e->delta() > 0 );
     e->accept();
+  }
+
+  void SpectrumCanvas::zoom(int x, int y, bool zoom_in)
+  {
+    const PointType::CoordinateType zoom_factor = zoom_in ? 0.8 : 1.0 / 0.8;
+    AreaType new_area;
+    for (int dim = 0; dim < AreaType::DIMENSION; dim++ ) 
+    {
+      new_area.min_[dim] = visible_area_.min_[dim] + ( 1.0 - zoom_factor ) * ( visible_area_.max_[dim] - visible_area_.min_[dim] )
+                           * ( ( dim == 0 ) == isMzToXAxis()
+                               ? (PointType::CoordinateType )x/width()
+                               : (PointType::CoordinateType)(height() - y ) / height() );
+      new_area.max_[dim] = new_area.min_[dim] + zoom_factor * ( visible_area_.max_[dim] - visible_area_.min_[dim] );
+      new_area.min_[dim] = std::max( new_area.min_[dim], overall_data_range_.min_[dim] );
+      new_area.max_[dim] = std::min( new_area.max_[dim], overall_data_range_.max_[dim] );
+    }
+    if (new_area != visible_area_ ) 
+    {
+      zoomAdd_(new_area);
+      zoom_pos_= --zoom_stack_.end(); // set to last position
+      changeVisibleArea_(*zoom_pos_);
+    }
   }
 
   void SpectrumCanvas::zoomBack_()
