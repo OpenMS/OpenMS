@@ -43,7 +43,7 @@
 	#include <iostream>
 #endif
 
-#include <gsl/gsl_randist.h>
+#include <boost/math/distributions.hpp>
 
 using namespace std;
 
@@ -322,28 +322,32 @@ namespace OpenMS
   double SpectrumCheapDPCorr::comparepeaks_(double posa, double posb, double inta, double intb) const
   {
     double variation = (posa + posb) / 2 * (double)param_.getValue("variation");
+    boost::math::normal_distribution<double> normal(0., variation);
+
+
 		unsigned int int_cnt = (unsigned int)param_.getValue("int_cnt");
     if (int_cnt == 0)
    	{
-      return gsl_ran_gaussian_pdf(posa - posb, variation) * inta * intb;
+      double p = boost::math::pdf(normal,posa - posb);
+      return p * inta * intb;
     }
     else
 		{
 			if (int_cnt == 1)
     	{
-      	return gsl_ran_gaussian_pdf(posa - posb, variation) * sqrt(inta * intb);
+        return boost::math::pdf(normal,posa - posb) * sqrt(inta * intb);
    		}
     	else 
 			{
 				if (int_cnt == 2)
     		{
-      		return gsl_ran_gaussian_pdf(posa - posb, variation) * (inta + intb);
+            return boost::math::pdf(normal,posa - posb) * (inta + intb);
     		}
     		else 
 				{
 					if (int_cnt == 3)
     			{
-      			return max(0.0, gsl_ran_gaussian_pdf(posa - posb, variation) * ((inta + intb) / 2 - fabs(inta - intb)));
+                return max(0.0, boost::math::pdf(normal,posa - posb) * ((inta + intb) / 2 - fabs(inta - intb)));
     			}
     			else
     			{
