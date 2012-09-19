@@ -579,11 +579,12 @@ namespace OpenMS
 				UInt window_id;
 				Size spectrum_id;
 				QProcess* process;
+				QTime timer;
 				bool visible;
 			} topp_;
 			//@}
 
-      /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
+      /// check if all available preferences get set by the .ini file. If there are some missing entries fill them with default values.
       void checkPreferences_();
       ///@name reimplemented Qt events
       //@{

@@ -3187,12 +3187,13 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 		}
 
 		//start log and show it
-		showLogMessage_(LS_NOTICE,"Starting TOPP tool","");// tool + args.join(" "));
+		showLogMessage_(LS_NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()),"");// tool + args.join(" "));
 
 		//start process
 		topp_.process = new QProcess();
 		topp_.process->setProcessChannelMode(QProcess::MergedChannels);
 		connect(topp_.process,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
+		topp_.timer.restart();
 		topp_.process->start(topp_.tool.toQString(),args);
 
 		//connect the finished slot
@@ -3212,10 +3213,14 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 
 		if (topp_.process->exitStatus()==QProcess::CrashExit)
 		{
-			showLogMessage_(LS_ERROR,"Execution of TOPP tool not successful!",String("The tool crashed during execution. If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.");
+			showLogMessage_(LS_ERROR, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
+			                          QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
+			                                  " or enable 'debug' mode in the TOPP ini file.").arg( tmp_dir.toQString() ) );
 		}
 		else if(topp_.out!="")
 		{
+		    showLogMessage_(LS_NOTICE,QString("'%1' finished successfully").arg(topp_.tool.toQString()),
+		                    QString("Execution time: %1 ms").arg( topp_.timer.elapsed() ) );
 			if (!File::readable(topp_.file_name+"_out"))
 			{
 				showLogMessage_(LS_ERROR,"Cannot read TOPP output",String("Cannot read '")+topp_.file_name+"_out'!");
