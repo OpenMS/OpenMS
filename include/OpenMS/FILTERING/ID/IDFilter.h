@@ -35,6 +35,7 @@
 #ifndef OPENMS_FILTERING_ID_IDFILTER_H
 #define OPENMS_FILTERING_ID_IDFILTER_H
 
+#include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -187,7 +188,7 @@ namespace OpenMS
       {
         if (n > m)
         {
-          std::swap<Size>(n,m);
+          std::swap(n,m);
         }
 
         typedef typename IdentificationType::HitType HitType;
