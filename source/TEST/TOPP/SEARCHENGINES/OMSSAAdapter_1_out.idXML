@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="C:/dev/OpenMS/source/TEST/TOPP/SEARCHENGINES/OMSSAAdapter_1.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" peak_mass_tolerance="0.3" >
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2012-09-20T18:55:29" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="BSA2" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="BSA3" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="test2_rev" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="520.262817382812" RT="2655.095703125" >
+			<PeptideHit score="1.36414648811099e-016" sequence="DFASSGGYVLHLHR" charge="3" aa_after="E" protein_refs="PH_2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" >
+			<PeptideHit score="2.3157988088133e-021" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_after="E" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="775.38720703125" RT="4923.77734375" >
+			<PeptideHit score="4.06291222839537e-022" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_after="A" protein_refs="PH_1" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
