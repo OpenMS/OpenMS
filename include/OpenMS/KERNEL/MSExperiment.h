@@ -386,8 +386,26 @@ public:
           if (it->getMaxInt() > RangeManagerType::int_range_.maxX()) RangeManagerType::int_range_.setMaxX(it->getMaxInt());
 
         }
+        // for MS level = 1 we extend the range for all the MS2 precursors
+        if (ms_level==1 && it->getMSLevel()==2)
+        {
+          if ( !it->getPrecursors().empty() )
+          {
+            DoubleReal pc_rt = it->getRT();
+            if (pc_rt < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(pc_rt);
+            if (pc_rt > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(pc_rt);
+            DoubleReal pc_mz = it->getPrecursors()[0].getMZ();
+            if (pc_mz < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(pc_mz);
+            if (pc_mz > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(pc_mz);
+          }
+
+        }
+
       }
       std::sort(ms_levels_.begin(), ms_levels_.end());
+
+      
+
 
       if (this->chromatograms_.empty())
       {
