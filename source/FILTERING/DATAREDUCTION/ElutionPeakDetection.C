@@ -81,7 +81,7 @@ void ElutionPeakDetection::detectPeaks(std::vector<MassTrace>& mt_vec, std::vect
 
     this->startProgress(0, mt_vec.size(), "elution peak detection");
 #ifdef _OPENMP
-#pragma omp parallel for shared(mt_vec, single_mtraces)
+#pragma omp parallel for
 #endif _OPENMP
     for (Size i = 0; i < mt_vec.size(); ++i)
     {
