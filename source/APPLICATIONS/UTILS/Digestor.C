@@ -94,11 +94,11 @@ class TOPPDigestor
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file");
-      setValidFormats_("in",StringList::create("FASTA"));
+      setValidFormats_("in",StringList::create("fasta"));
 			registerOutputFile_("out","<file>","","Output file (peptides)");
-      setValidFormats_("out", StringList::create("idXML,FASTA"));
+      setValidFormats_("out", StringList::create("idXML,fasta"));
       registerStringOption_("out_type", "<type>","", "Set this if you cannot control the filename of 'out', e.g., in TOPPAS.", false);
-      setValidStrings_("out_type", StringList::create("idXML,FASTA"));
+      setValidStrings_("out_type", StringList::create("idXML,fasta"));
 
       registerIntOption_("missed_cleavages","<number>",1,"The number of allowed missed cleavages", false);
 			setMinInt_("missed_cleavages", 0);

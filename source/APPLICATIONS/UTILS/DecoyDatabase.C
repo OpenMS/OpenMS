@@ -78,16 +78,16 @@ class TOPPDecoyDatabase
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","Input FASTA file containing the database.");
-      setValidFormats_("in", StringList::create("FASTA"));
+      setValidFormats_("in", StringList::create("fasta"));
 			registerOutputFile_("out","<file>","","Output FASTA file where the decoy database will be written to.");
-      setValidFormats_("out", StringList::create("FASTA"));
+      setValidFormats_("out", StringList::create("fasta"));
 			registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
       registerStringOption_("decoy_string_position", "<enum>", "suffix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
       setValidStrings_("decoy_string_position", StringList::create("prefix,suffix"));
       registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
 			registerFlag_("shuffle","If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
 			registerInputFile_("contaminants","<file>","","Input a FASTA file containing contaminants - if given they are included in the database (recommended)", false);
-      setValidFormats_("contaminants", StringList::create("FASTA"));
+      setValidFormats_("contaminants", StringList::create("fasta"));
 		}
 
     String getIdentifier_(const String& identifier, const String& decoy_string, const bool as_prefix)

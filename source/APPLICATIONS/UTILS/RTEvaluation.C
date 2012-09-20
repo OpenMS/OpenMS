@@ -87,7 +87,7 @@ class TOPPIdXMLEvaluation
 			registerOutputFile_("out","<file>","","output file ");
 			registerInputFile_("sequences_file","<file>","","Filename of a FASTA file containing protein sequences.\n"
 																												 "All peptides that are not a substring of a sequence in this file are considered as false",false);
-      setValidFormats_("sequences_file", StringList::create("FASTA"));
+      setValidFormats_("sequences_file", StringList::create("fasta"));
 			registerFlag_("latex", "indicates whether the output file format of the table should be latex or csv");
 			registerDoubleOption_("p_value_dim_1","<float>",0.01,"Significance level of first dimension RT filter",false);
 			setMinFloat_("p_value_dim_1", 0);

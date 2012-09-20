@@ -75,7 +75,7 @@ class TOPPSequenceCoverageCalculator
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in_database","<file>","","input file containing the database in FASTA format");
-      setValidFormats_("in_database", StringList::create("FASTA"));
+      setValidFormats_("in_database", StringList::create("fasta"));
 			registerInputFile_("in_peptides","<file>","","input file containing the identified peptides");
       setValidFormats_("in_peptides", StringList::create("idXML"), true);
       registerOutputFile_("out","<file>","","Optional text output file. If left out, the output is written to the command line.", false);
