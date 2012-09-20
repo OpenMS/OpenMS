@@ -87,7 +87,7 @@ void ElutionPeakDetection::detectPeaks(std::vector<MassTrace>& mt_vec, std::vect
     Size progress(0);
 #ifdef _OPENMP
 #pragma omp parallel for
-#endif _OPENMP
+#endif
     for (SignedSize i = 0; i < (SignedSize) mt_vec.size(); ++i)
     {
         IF_MASTERTHREAD this->setProgress(progress);
@@ -248,7 +248,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
             mt.estimateFWHM(true);
 #ifdef _OPENMP
 #pragma omp critical
-#endif _OPENMP
+#endif
             single_mtraces.push_back(mt);
         }
     }
@@ -303,7 +303,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
 
 #ifdef _OPENMP
 #pragma omp critical
-#endif _OPENMP
+#endif
                     single_mtraces.push_back(new_mt);
                 }
             }
@@ -349,7 +349,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTr
 
 #ifdef _OPENMP
 #pragma omp critical
-#endif _OPENMP
+#endif
                 single_mtraces.push_back(new_mt);
             }
         }

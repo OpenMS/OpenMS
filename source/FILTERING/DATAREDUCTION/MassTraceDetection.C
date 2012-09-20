@@ -344,10 +344,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
     }
 
 
-
-
-    DoubleReal scan_time(std::fabs(input_exp[input_exp.size() - 1].getRT() - input_exp[0].getRT())/input_exp.size());
     Size min_fwhm_scans(3);
+    DoubleReal scan_time(std::fabs(input_exp[input_exp.size() - 1].getRT() - input_exp[0].getRT())/input_exp.size());
 
     Size scan_nums(std::floor(min_peak_width_/scan_time));
 
@@ -356,8 +354,9 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
         min_fwhm_scans = scan_nums;
     }
 
+    Size min_flank_scans(std::floor((DoubleReal)min_fwhm_scans/2.0));
 
-    // std::cout << "min_fwhm_scans: " << min_fwhm_scans << " fwhm: " << " time: " << scan_time << "input size" << work_exp.size() << " " << chrom_apeces.size() << std::endl;
+    std::cout << "min_fwhm_scans: " << min_fwhm_scans << " fwhm: " << " time: " << scan_time << "input size" << work_exp.size() << " " << chrom_apeces.size() << std::endl;
 
     // this->endProgress();
 
@@ -414,7 +413,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
         Size peak_count_downward(0);
         Size peak_count_upward(0);
 
-        Size up_hitting_peak(1), down_hitting_peak(1);
+        Size up_hitting_peak(0), down_hitting_peak(0);
         Size up_scan_counter(0), down_scan_counter(0);
 
         Size fwhm_counter_down(0), fwhm_counter_up(0);
@@ -427,7 +426,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
         Size OUTLIER_BOUND_DOWN(10), OUTLIER_BOUND_UP(10);
 
         Size conseq_up(0), conseq_down(0);
-        Size max_conseq_missing(5);
+        Size max_conseq_missing(10);
 
         DoubleReal outlier_ratio(0.3);
 
@@ -453,20 +452,11 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
 
                     DoubleReal right_bound, left_bound;
 
-                    right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
-                    left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
+//                    right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
+//                    left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
 
-                    //                    if (ftl_t < 5)
-                    //                    {
-                    //                        //                        right_bound = ftl_mean + (ftl_mean/1000000)*mass_error_ppm_;
-                    //                        //                        left_bound = ftl_mean - (ftl_mean/1000000)*mass_error_ppm_;
-
-                    //                        ftl_sd = ((ftl_mean/1000000)*mass_error_ppm_)/3.0;
-                    //                        std::cout << std::setprecision(10) << "starting sd: " << ftl_sd << std::endl;
-                    //                    }
-
-                    // right_bound = centroid_mz + 3*ftl_sd;
-                    // left_bound = centroid_mz - 3*ftl_sd;
+                     right_bound = centroid_mz + 3*ftl_sd;
+                     left_bound = centroid_mz - 3*ftl_sd;
 
                     // std::cout << "down: " << centroid_mz << " "<<  ftl_sd << std::endl;
 
@@ -475,14 +465,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
 
                     DoubleReal left_mz(work_exp[trace_down_idx - 1][left_next_idx].getMZ());
                     DoubleReal right_mz(work_exp[trace_down_idx - 1][right_next_idx].getMZ());
-
-
-                    //                    if ((left_next_idx < right_next_idx))
-                    //                    {
-                    //                        std::cout << "left: " << left_next_idx << " right: " << right_next_idx << std::endl;
-                    //                    }
-
-
 
 
                     if ((next_down_peak_mz <= right_bound) && (next_down_peak_mz >= left_bound) && !peak_visited[spec_offsets[trace_down_idx - 1] + next_down_peak_idx])
@@ -510,41 +492,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
                                 updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far);
                             }
                         }
-
-
-                        // std::cout << "S: " << computeLoss(next_down_peak_mz, centroid_mz, ftl_sd) << " against fixed: " << computeLoss(next_down_peak_mz, fixed_mean, fixed_sd);
-                        // strategy_loss += computeLoss(next_down_peak_mz, centroid_mz, ftl_sd);
-
-                        //                        DoubleReal fixed_mean(0.0);
-
-                        //                        for (std::list<PeakType>::const_iterator l_it = current_trace.begin(); l_it != current_trace.end(); ++l_it)
-                        //                        {
-                        //                            fixed_mean += l_it->getMZ();
-                        //                        }
-
-                        //                        fixed_mean /= current_trace.size();
-
-                        //                        DoubleReal fixed_sd(0.0);
-
-                        //                        for (std::list<PeakType>::const_iterator l_it = current_trace.begin(); l_it != current_trace.end(); ++l_it)
-                        //                        {
-                        //                            fixed_sd += (l_it->getMZ() - fixed_mean)*(l_it->getMZ() - fixed_mean);
-                        //                        }
-
-                        //                        fixed_sd = std::sqrt(fixed_sd/current_trace.size());
-
-
-                        //                        DoubleReal fixed_loss(0.0);
-
-                        //                        for (std::list<PeakType>::const_iterator l_it = current_trace.begin(); l_it != current_trace.end(); ++l_it)
-                        //                        {
-                        //                            fixed_loss += computeLoss(l_it->getMZ(), fixed_mean, fixed_sd);
-                        //                        }
-
-                        //                        std::cout << "strategy loss: " << strategy_loss << " fixed loss: " << fixed_loss << std::endl;
-
-
-                        // std::cout << (int_midpoint_down + next_down_peak_int)/2.0 << std::endl;
 
                         DoubleReal new_midpoint((int_midpoint_down + next_down_peak_int)/2.0);
 
@@ -589,22 +536,21 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
                 ++down_scan_counter;
 
 
-                //                if (down_scan_counter > min_data_points) {
-                //                    DoubleReal sample_rate_down = (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter;
-
-                //                if (outlier_ratio*DoubleReal(peak_count_downward) > OUTLIER_BOUND_DOWN)
-                //                {
-                //                    OUTLIER_BOUND_DOWN = outlier_ratio*DoubleReal(peak_count_downward);
-                //                }
-
-                //                if (outliers_down > OUTLIER_BOUND_DOWN) {
-                //                    toggle_down = false;
-                //                }
-
                 if (conseq_down > max_conseq_missing) {
                     toggle_down = false;
                 }
-                //                }
+
+//                if (down_scan_counter > min_flank_scans)
+//                {
+//                    //std::cout << "down ratio: " << (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter << std::endl;
+//                    DoubleReal trace_sampling_ratio_down((DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter);
+
+//                    if (trace_sampling_ratio_down < min_sample_rate_)
+//                    {
+//                        toggle_down = false;
+//                    }
+//                }
+
             }
 
             //}
@@ -622,8 +568,12 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
 
                     DoubleReal right_bound, left_bound;
 
-                    right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
-                    left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
+//                    right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
+//                    left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
+
+
+                     right_bound = centroid_mz + 3*ftl_sd;
+                     left_bound = centroid_mz - 3*ftl_sd;
 
 
 
@@ -635,9 +585,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
                     //                        ftl_sd = ((ftl_mean/1000000)*mass_error_ppm_)/3.0;
                     //                        std::cout << std::setprecision(10) << "starting sd: " << ftl_sd << std::endl;
                     //                    }
-
-                    // right_bound = centroid_mz + 3*ftl_sd;
-                    // left_bound = centroid_mz - 3*ftl_sd;
 
                     // std::cout << "up: " << centroid_mz << " " << ftl_sd << std::endl;
 
@@ -758,17 +705,32 @@ void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<
                     toggle_up = false;
                 }
 
+//                if (up_scan_counter > min_flank_scans)
+//                {
+//                    //std::cout << "down ratio: " << (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter << std::endl;
+//                    DoubleReal trace_sampling_ratio_up((DoubleReal)up_hitting_peak/(DoubleReal)up_scan_counter);
+
+//                    if (trace_sampling_ratio_up < min_sample_rate_)
+//                    {
+//                        toggle_up = false;
+//                    }
+//                }
+
 
             }
 
         }
 
-        DoubleReal num_scans(down_scan_counter+up_scan_counter+1 - conseq_up - conseq_down);
+        DoubleReal num_scans(down_scan_counter+up_scan_counter+1 - conseq_down - conseq_up);
 
-// std::cout << "minscans: " << num_scans << " peaks: " << current_trace.size() << std::endl;
+        DoubleReal mt_quality((DoubleReal)current_trace.size()/(DoubleReal)num_scans);
+        DoubleReal rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
 
-//if (current_trace.size() >= min_fwhm_scans)
-        if (current_trace.size() >= std::floor(num_scans*min_sample_rate_) && num_scans >= min_fwhm_scans)
+        std::cout << "T" << trace_number << " down: " << down_scan_counter << " up: " << up_scan_counter << " cons down " << conseq_down << " cons_up" << conseq_up << " idx " << trace_up_idx-trace_down_idx << " minscans: " << num_scans << " peaks: " << current_trace.size() << " " << mt_quality << std::endl;
+
+// if (current_trace.size() >= min_fwhm_scans)
+        // if (current_trace.size() >= std::floor(num_scans*min_sample_rate_) && num_scans >= min_fwhm_scans)
+        if (rt_range >= min_peak_width_ && mt_quality >= min_sample_rate_)
         {
 
 
