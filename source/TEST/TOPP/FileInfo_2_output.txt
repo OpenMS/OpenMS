@@ -2,7 +2,7 @@
 -- General information --
 
 File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_2_input.dta2d
-File type: DTA2D
+File type: dta2d
 
 Peak type (metadata): Unknown
 Peak type (estimated): Unknown

@@ -51,48 +51,48 @@ using namespace std;
 
 START_SECTION((static String typeToName(FileTypes::Type type)))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.typeToName(FileTypes::UNKNOWN),"Unknown");
-	TEST_EQUAL(tmp.typeToName(FileTypes::DTA),"DTA");
-	TEST_EQUAL(tmp.typeToName(FileTypes::DTA2D),"DTA2D");
+  TEST_EQUAL(tmp.typeToName(FileTypes::UNKNOWN),"unknown");
+  TEST_EQUAL(tmp.typeToName(FileTypes::DTA),"dta");
+  TEST_EQUAL(tmp.typeToName(FileTypes::DTA2D),"dta2d");
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZDATA),"mzData");
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZXML),"mzXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::MZML),"mzML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::FEATUREXML),"featureXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::IDXML),"idXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::CONSENSUSXML),"consensusXML");
-	TEST_EQUAL(tmp.typeToName(FileTypes::TRANSFORMATIONXML),"TrafoXML");
+  TEST_EQUAL(tmp.typeToName(FileTypes::TRANSFORMATIONXML),"trafoXML");
 	TEST_EQUAL(tmp.typeToName(FileTypes::INI),"ini");
 	TEST_EQUAL(tmp.typeToName(FileTypes::TOPPAS),"toppas");
-	TEST_EQUAL(tmp.typeToName(FileTypes::PNG),"PNG");
+  TEST_EQUAL(tmp.typeToName(FileTypes::PNG),"png");
 END_SECTION
 
 START_SECTION((static FileTypes::Type nameToType(const String &name)))
 	FileHandler tmp;
-	TEST_EQUAL(FileTypes::UNKNOWN, tmp.nameToType("Unknown"));
-	TEST_EQUAL(FileTypes::DTA, tmp.nameToType("DTA"));
-	TEST_EQUAL(FileTypes::DTA2D, tmp.nameToType("DTA2D"));
+  TEST_EQUAL(FileTypes::UNKNOWN, tmp.nameToType("unknown"));
+  TEST_EQUAL(FileTypes::DTA, tmp.nameToType("dta"));
+  TEST_EQUAL(FileTypes::DTA2D, tmp.nameToType("dta2d"));
 	TEST_EQUAL(FileTypes::MZDATA, tmp.nameToType("mzData"));
 	TEST_EQUAL(FileTypes::MZXML, tmp.nameToType("mzXML"));
 	TEST_EQUAL(FileTypes::FEATUREXML, tmp.nameToType("featureXML"));
-	TEST_EQUAL(FileTypes::IDXML, tmp.nameToType("IdXmL"));
-	TEST_EQUAL(FileTypes::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
+  TEST_EQUAL(FileTypes::IDXML, tmp.nameToType("idXmL")); // case-insensitivity
+  TEST_EQUAL(FileTypes::CONSENSUSXML, tmp.nameToType("consensusXML"));
   TEST_EQUAL(FileTypes::MGF, tmp.nameToType("mgf"));
   TEST_EQUAL(FileTypes::INI, tmp.nameToType("ini"));
   TEST_EQUAL(FileTypes::TOPPAS, tmp.nameToType("toppas"));
-	TEST_EQUAL(FileTypes::TRANSFORMATIONXML, tmp.nameToType("TrafoXML"));
+  TEST_EQUAL(FileTypes::TRANSFORMATIONXML, tmp.nameToType("trafoXML"));
 	TEST_EQUAL(FileTypes::MZML, tmp.nameToType("mzML"));
   TEST_EQUAL(FileTypes::MS2, tmp.nameToType("ms2"));
 	TEST_EQUAL(FileTypes::PEPXML, tmp.nameToType("pepXML"));
 	TEST_EQUAL(FileTypes::PROTXML, tmp.nameToType("protXML"));
 	TEST_EQUAL(FileTypes::MZIDENTML, tmp.nameToType("mzid"));
-	TEST_EQUAL(FileTypes::GELML, tmp.nameToType("GelML"));
-	TEST_EQUAL(FileTypes::TRAML, tmp.nameToType("TraML"));
-	TEST_EQUAL(FileTypes::MSP, tmp.nameToType("MSP"));
-	TEST_EQUAL(FileTypes::OMSSAXML, tmp.nameToType("OMSSAXML"));
-  TEST_EQUAL(FileTypes::PNG, tmp.nameToType("PNG"));
+  TEST_EQUAL(FileTypes::GELML, tmp.nameToType("gelML"));
+  TEST_EQUAL(FileTypes::TRAML, tmp.nameToType("traML"));
+  TEST_EQUAL(FileTypes::MSP, tmp.nameToType("msp"));
+  TEST_EQUAL(FileTypes::OMSSAXML, tmp.nameToType("omssaXML"));
+  TEST_EQUAL(FileTypes::PNG, tmp.nameToType("png"));
   TEST_EQUAL(FileTypes::XMASS, tmp.nameToType("fid"));
 	TEST_EQUAL(FileTypes::TSV, tmp.nameToType("tsv"));
-	TEST_EQUAL(FileTypes::PEPLIST, tmp.nameToType("pepList"));
+  TEST_EQUAL(FileTypes::PEPLIST, tmp.nameToType("peplist"));
 	TEST_EQUAL(FileTypes::HARDKLOER, tmp.nameToType("hardkloer"));
 	TEST_EQUAL(FileTypes::KROENIK, tmp.nameToType("kroenik"));
 	TEST_EQUAL(FileTypes::FASTA, tmp.nameToType("fasta"));

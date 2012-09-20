@@ -2,7 +2,7 @@
 -- General information --
 
 File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_1_input.txt
-File type: DTA
+File type: dta
 
 Peak type (metadata): Unknown
 Peak type (estimated): Peak data

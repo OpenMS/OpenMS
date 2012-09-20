@@ -161,7 +161,7 @@ set_tests_properties("TOPP_FeatureFinderMRM_1_out1" PROPERTIES DEPENDS "TOPP_Fea
 add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_1_input.mzData -out FileConverter_1.tmp -out_type mzML)
 add_test("TOPP_FileConverter_1_out1" ${DIFF} -in1 FileConverter_1.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_1_output.mzML )
 set_tests_properties("TOPP_FileConverter_1_out1" PROPERTIES DEPENDS "TOPP_FileConverter_1")
-add_test("TOPP_FileConverter_2" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_2_input.txt -in_type DTA2D -out FileConverter_2.tmp -out_type mzML)
+add_test("TOPP_FileConverter_2" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_2_input.txt -in_type dta2d -out FileConverter_2.tmp -out_type mzML)
 add_test("TOPP_FileConverter_2_out1" ${DIFF} -in1 FileConverter_2.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_2_output.mzML )
 set_tests_properties("TOPP_FileConverter_2_out1" PROPERTIES DEPENDS "TOPP_FileConverter_2")
 add_test("TOPP_FileConverter_3" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_3_input.featureXML -out FileConverter_3.tmp -out_type mzML)
@@ -286,7 +286,7 @@ set_tests_properties("TOPP_FileFilter_24_out1" PROPERTIES DEPENDS "TOPP_FileFilt
 
 
 ### FileInfo tests
-add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.txt -in_type DTA -no_progress -out FileInfo_1.tmp)
+add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.txt -in_type dta -no_progress -out FileInfo_1.tmp)
 add_test("TOPP_FileInfo_1_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_1.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_1_output.txt )
 set_tests_properties("TOPP_FileInfo_1_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1")
 add_test("TOPP_FileInfo_2" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_2_input.dta2d -no_progress -out FileInfo_2.tmp)
@@ -318,7 +318,7 @@ set_tests_properties("TOPP_FileInfo_10_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileMerger_1" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_1_input1.dta2d ${DATA_DIR_TOPP}/FileMerger_1_input2.dta ${DATA_DIR_TOPP}/FileMerger_1_input3.dta2d -out FileMerger_1.tmp -rt_custom 1 2 3)
 add_test("TOPP_FileMerger_1_out1" ${DIFF} -in1 FileMerger_1.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_1_output.mzML )
 set_tests_properties("TOPP_FileMerger_1_out1" PROPERTIES DEPENDS "TOPP_FileMerger_1")
-add_test("TOPP_FileMerger_2" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_2_input1.txt ${DATA_DIR_TOPP}/FileMerger_2_input2.txt -in_type DTA -out FileMerger_2.tmp -rt_custom 5 10)
+add_test("TOPP_FileMerger_2" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_2_input1.txt ${DATA_DIR_TOPP}/FileMerger_2_input2.txt -in_type dta -out FileMerger_2.tmp -rt_custom 5 10)
 add_test("TOPP_FileMerger_2_out1" ${DIFF} -in1 FileMerger_2.tmp -in2 ${DATA_DIR_TOPP}/FileMerger_2_output.mzML )
 set_tests_properties("TOPP_FileMerger_2_out1" PROPERTIES DEPENDS "TOPP_FileMerger_2")
 add_test("TOPP_FileMerger_3" ${TOPP_BIN_PATH}/FileMerger -test -in ${DATA_DIR_TOPP}/FileMerger_3_input1.dta ${DATA_DIR_TOPP}/FileMerger_3_input2.dta -out FileMerger_3.tmp -rt_auto)
@@ -964,7 +964,7 @@ add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_D
 add_test("UTILS_ImageCreator_1_out1" ${DIFF} -in1 ImageCreator1.bmp -in2 ${DATA_DIR_TOPP}/ImageCreator_1_output.bmp )
 set_tests_properties("UTILS_ImageCreator_1_out1" PROPERTIES DEPENDS "UTILS_ImageCreator_1")
 # testing forced out_type
-add_test("UTILS_ImageCreator_2" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_2_input.mzML -out ImageCreator2.png -out_type BMP -width 20 -height 15 -precursors -precursor_size 3 -precursor_color green -log_intensity)
+add_test("UTILS_ImageCreator_2" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_2_input.mzML -out ImageCreator2.png -out_type bmp -width 20 -height 15 -precursors -precursor_size 3 -precursor_color green -log_intensity)
 add_test("UTILS_ImageCreator_2_out1" ${DIFF} -in1 ImageCreator2.png -in2 ${DATA_DIR_TOPP}/ImageCreator_2_output.bmp )
 set_tests_properties("UTILS_ImageCreator_2_out1" PROPERTIES DEPENDS "UTILS_ImageCreator_2")
 

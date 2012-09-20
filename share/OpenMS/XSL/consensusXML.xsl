@@ -1,6 +1,6 @@
 <?xml version="1.0"	encoding="utf-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-	<xsl:template match="consensusXML">
+	<xsl:template match="ConsensusXML">
 	  <html> 
 	  <body>  
 		  <xsl:apply-templates select="mapList"/>

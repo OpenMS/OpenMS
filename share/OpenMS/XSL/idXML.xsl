@@ -1,6 +1,6 @@
 <?xml version="1.0"	encoding="utf-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-<xsl:template match="idXML">
+<xsl:template match="IdXML">
   <html> 
   <body>  
 	  <xsl:apply-templates select="//IdentificationRun"/>
@@ -90,7 +90,7 @@
 	 	<xsl:variable name="search_parameters_reference">
 	 		<xsl:value-of select="@search_parameters_ref"/>
   	</xsl:variable>
-	  <xsl:apply-templates select="parent::idXML/SearchParameters[@id=$search_parameters_reference]"/>
+	  <xsl:apply-templates select="parent::IdXML/SearchParameters[@id=$search_parameters_reference]"/>
 	</table>
 	<br/>
 	<table border="1" cellpadding="2" style="border-style:solid; border-collapse:collapse;" width="100%">
