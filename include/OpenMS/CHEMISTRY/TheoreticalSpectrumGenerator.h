@@ -83,7 +83,7 @@ namespace OpenMS
 			virtual void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1);
 
       /// Adds the common, most abundant immonium ions to the theoretical specta
-      virtual void addAbundantImmoniumIons(RichPeakSpectrum& spec);
+      void addAbundantImmoniumIons(RichPeakSpectrum& spec);
 			//@}
 
 		protected:

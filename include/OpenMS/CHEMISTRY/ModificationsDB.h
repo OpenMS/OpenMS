@@ -131,8 +131,6 @@ namespace OpenMS
 			/// get all modifications that can be used for identification searches
 			void getAllSearchModifications(std::vector<String>& modifications);
 
-      /// print information stored in modification db
-       void print();
 		protected:
 
 			/// stores the modifications

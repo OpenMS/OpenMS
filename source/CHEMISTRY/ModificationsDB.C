@@ -538,22 +538,5 @@ namespace OpenMS
 		}
 		sort(modifications.begin(), modifications.end());
 	}
-
-  void ModificationsDB::print()
-  {
-    for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
-    {
-      const ResidueModification* rm = *it;
-      cout << "FullID\t ID\t FullName\t Name:" << endl;
-      cout << rm->getFullId() << "\t" << rm->getId() << "\t" << rm->getFullName() << "\t" << rm->getName() << endl;
-      cout << "MonoMass\t Avg.Mass\t Formula:" << endl;
-      cout << rm->getMonoMass() << "\t" << rm->getAverageMass() << "\t" << rm->getFormula() << endl;
-      cout << "DiffMonoMass\t DiffAvg.Mass\t DiffFormula:" << endl;
-      cout << rm->getDiffMonoMass() << "\t" << rm->getDiffAverageMass() << "\t" << rm->getDiffFormula() << endl;
-      cout << "NeutralLossMonoMass\t NeutralLossAverageMass\t NeutralLossDiffFormula:" << endl;
-      cout << rm->getNeutralLossMonoMass() << "\t" << rm->getNeutralLossAverageMass() << "\t" << rm->getNeutralLossDiffFormula() << endl;
-    }
-  }
-
 } // namespace OpenMS
 

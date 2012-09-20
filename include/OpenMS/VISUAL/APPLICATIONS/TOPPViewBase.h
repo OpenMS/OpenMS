@@ -48,6 +48,7 @@
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
+#include <OpenMS/VISUAL/TOPPASWidget.h>
 //STL
 #include <map>
 
@@ -199,11 +200,14 @@ namespace OpenMS
       //@name Accessors for the main gui components.
       //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
       //@{
-      /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets
+      /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets and TOPPASWidgets
       EnhancedWorkspace* getWorkspace() const;
 
       /// returns a pointer to the active SpectrumWidget (0 if none is active)
       SpectrumWidget*  getActiveSpectrumWidget() const;
+
+      /// returns a pointer to the active TOPPAS widget (0 if none is active)
+      TOPPASWidget* getActiveTOPPASWidget() const;
 
       /// returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
       Spectrum1DWidget* getActive1DWidget() const;
@@ -238,6 +242,8 @@ namespace OpenMS
       void openDatabaseDialog();
       /// shows the goto dialog
       void showGoToDialog();
+      /// enable TOPPAS tab in the view dock widget
+      void setTOPPASTabEnabled(bool enabled);
       /// shows the preferences dialog
       void preferencesDialog();
       /// Shows statistics (count,min,max,avg) about Intensity, Quality, Charge and meta data
@@ -319,7 +325,58 @@ namespace OpenMS
 			/// dialog for inspecting database meta data
 			void metadataDatabaseDialog();
 			/// dialog for inspecting file meta data
-			void metadataFileDialog();			            
+			void metadataFileDialog();			      
+
+      /** @name TOPPAS pipeline slots
+        */
+      //@{
+      /**
+        @brief Opens and displays a TOPP pipeline from a file.
+        @param filename Name of the file to be opened
+        @param in_new_window Indicates wether a new window should be created or merged with the opened one
+      */
+      void addTOPPASFile(const String& filename, bool in_new_window);
+      /// adds toppas widget to the current workspace
+      void showTOPPipelineInWindow_(TOPPASWidget* tw, const String& caption);
+      /// creates a new TOPPAS pipeline
+      void newPipeline();
+      /// shows the dialog for saving the current TOPPAS pipeline and updates the current tab caption
+      void saveCurrentPipelineAs();
+      /// saves the pipeline (determined by qt's sender mechanism)
+      void savePipeline();     
+      /// paste pipeline into current pipeline
+      void includePipeline();
+      /// load toppas resource file
+      void loadPipelineResourceFile();
+      /// save toppas resource file
+      void savePipelineResourceFile();
+      /// refresh the toppas pipeline parameters
+      void refreshPipelineParameters();
+      /// runs the the toppas pipeline
+      void runPipeline();
+      /// aborts the the toppas pipeline
+      void abortPipeline();
+      /// message after successful completion of pipeline
+      void showPipelineFinishedLogMessage();
+      /// Saves @p scene to the clipboard
+      void saveToClipboard(TOPPASScene* scene);
+      /// Sends the clipboard content to the sender of the connected signal
+      void sendClipboardContent();
+      /// Called when a tool is started
+      void toolStarted();
+      /// Called when a tool is finished
+      void toolFinished();
+      /// Called when a tool crashes
+      void toolCrashed();
+      /// Called when a tool execution fails
+      void toolFailed();
+			/// Called when a file was successfully written to an output vertex
+      void outputVertexFinished(const String& file);
+      /// Called when a TOPP tool produces (error) output.
+      void updateTOPPOutputLog(const QString& out);
+      /// Open files in this TOPPView instance (also updated 'recently opened files' list)
+      void openFilesInTOPPView(QStringList all_files);
+      //@}
 
       /** @name Toolbar slots
       */
@@ -353,6 +410,15 @@ namespace OpenMS
     	void filterEdit(QListWidgetItem* item);
     	/// slot for editing the preferences of the current layer
     	void layerEdit(QListWidgetItem* /*item*/);
+      //@}
+
+      /** @name TOPPAS protected slots
+        */
+      //@{
+      /// Inserts a new TOPP tool in the current window at (x,y)
+      void insertNewVertex_(double x, double y, QTreeWidgetItem* item = 0);
+      /// Inserts a new TOPP tool at the center of the current window at (x,y)
+      void insertNewVertexInCenter_(QTreeWidgetItem* item);
       //@}
 
     	/// slot for the finished signal of the TOPP tools execution
@@ -544,6 +610,21 @@ namespace OpenMS
       /// The current path (used for loading and storing).
       /// Depending on the preferences this is static or changes with the current window/layer.
       String current_path_;
+
+      ///@name TOPPAS variables
+      //@{
+      /// Path to temporary directory used in TOPPAS
+      QString toppas_tmp_path_;
+
+      /// z-value counter for new inserted TOPPAS nodes
+      static qreal toppas_z_value_;
+
+      /// Offset counter for new inserted TOPPAS nodes (to avoid invisible stacking)
+      static int toppas_node_offset_;
+
+      /// The toppas clipboard
+      TOPPASScene* toppas_clipboard_scene_;
+      //@}
 
       /// Tabwidget that hold the different views on the loaded data
       QTabWidget* views_tabwidget_;
