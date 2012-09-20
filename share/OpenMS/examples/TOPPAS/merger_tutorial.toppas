@@ -32,9 +32,9 @@ p, li { white-space: pre-wrap; }
       <ITEM name="x_pos" value="-160" type="float" description="" />
       <ITEM name="y_pos" value="60" type="float" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
-        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
+        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,fid" />
         <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.mzML,*.featureXML" />
         <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature (MetaValue: file_origin)." restrictions="true,false" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
@@ -94,9 +94,9 @@ p, li { white-space: pre-wrap; }
       <ITEM name="x_pos" value="160" type="float" description="" />
       <ITEM name="y_pos" value="-40" type="float" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
-        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
+        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,fid" />
         <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.mzML,*.featureXML" />
         <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature (MetaValue: file_origin)." restrictions="true,false" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
@@ -144,9 +144,9 @@ p, li { white-space: pre-wrap; }
       <ITEM name="x_pos" value="-160" type="float" description="" />
       <ITEM name="y_pos" value="-140" type="float" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
-        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
+        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,fid" />
         <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.mzML,*.featureXML" />
         <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature (MetaValue: file_origin)." restrictions="true,false" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />
@@ -176,9 +176,9 @@ p, li { white-space: pre-wrap; }
       <ITEM name="x_pos" value="480" type="float" description="" />
       <ITEM name="y_pos" value="-40" type="float" description="" />
       <NODE name="parameters" description="">
-        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.DTA,*.DTA2D,*.mgf,*.featureXML,*.fid">
+        <ITEMLIST name="in" type="string" description="Input files separated by blank" tags="input file,required" restrictions="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.fid">
         </ITEMLIST>
-        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid" />
+        <ITEM name="in_type" value="" type="string" description="input file type (default: determined from file extension or content)#br#" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,fid" />
         <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.mzML,*.featureXML" />
         <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature (MetaValue: file_origin)." restrictions="true,false" />
         <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" restrictions="true,false" />

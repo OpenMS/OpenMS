@@ -143,7 +143,7 @@ class TOPPPILISSpectraGenerator
 		{
 			// input
 			registerInputFileList_("in", "<file>", StringList(), "Input files for the spectra in MzML or MSP format.", false);
-			setValidFormats_("in", StringList::create("mzML,MSP"));
+      setValidFormats_("in", StringList::create("mzML,msp"));
 			registerInputFileList_("id_in", "<file>", StringList(), "Input files for the annotations in idXML format (if not given in MSP format).", false);
 			setValidFormats_("id_in", StringList::create("idXML"));
 			registerInputFile_("model_file", "<file>", "", "Input model file, used for generation mode or as basis for training. If not given, a default parameters are used for training.", false);
@@ -151,7 +151,7 @@ class TOPPPILISSpectraGenerator
 			// output
 			registerOutputFile_("trained_model_file", "<file>", "", "The output file of the trained model, used in training mode.", false);
 			registerOutputFile_("spectra_library_file", "<MSP-file>", "", "If this tool is used in generation mode, the spectral library is written into this MSP-file.", false);
-			setValidFormats_("spectra_library_file", StringList::create("MSP"));
+      setValidFormats_("spectra_library_file", StringList::create("msp"));
 
 			registerIntOption_("min_charge", "<charge>", 1, "The minimal charge state used for training (other peptides are ignored) and for 'generation' mode if peptides have charge 0.", false);
 			setMinInt_("min_charge", 1);

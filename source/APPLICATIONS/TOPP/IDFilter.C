@@ -181,7 +181,7 @@ protected:
     registerInputFile_("whitelist:proteins","<file>","","filename of a FASTA file containing protein sequences.\n"
                        "All peptides that are not a substring of a sequence in this file are removed\n"
                        "All proteins whose accession is not present in this file are removed.",false);
-		setValidFormats_("whitelist:proteins",StringList::create("FASTA"));
+    setValidFormats_("whitelist:proteins",StringList::create("fasta"));
     registerFlag_("whitelist:by_seq_only","Match peptides with FASTA file by sequence instead of accession and disable protein filtering.");
 
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only instances not present in a blacklist file can pass)");

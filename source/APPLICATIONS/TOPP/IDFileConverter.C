@@ -82,12 +82,12 @@ information for the use of ProteinProphet.
 
 
 Some information about the supported input types:
-  @ref OpenMS::MzIdentMLFile "MzIdentML"
-  @ref OpenMS::PepXMLFile "PepXML"
-  @ref OpenMS::ProtXMLFile "ProtXML"
+  @ref OpenMS::MzIdentMLFile "mzIdentML"
+  @ref OpenMS::PepXMLFile "pepXML"
+  @ref OpenMS::ProtXMLFile "protXML"
   @ref OpenMS::IdXMLFile "idXML"
   @ref OpenMS::MascotXML "mascotXML" / "xml"
-  @ref OpenMS::OMSSAFile "OMSSAXML"
+  @ref OpenMS::OMSSAFile "omssaXML"
   @ref OpenMS::SequestOutfile ".out" directory
 
 	<B>The command line parameters of this tool are:</B>
@@ -118,7 +118,7 @@ protected:
       "pepXML: Single pepXML file.\n"
       "protXML: Single protXML file.\n"
 	    "xml: Single Mascot xml file.\n"
-      "OMSSAXML: Single OMSSA xml file.\n"
+      "omssaXML: Single OMSSA xml file.\n"
       "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
 		String formats("idXML,mzid,pepXML,FASTA");

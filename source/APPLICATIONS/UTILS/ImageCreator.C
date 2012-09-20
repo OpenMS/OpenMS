@@ -81,9 +81,9 @@ class TOPPImageCreator :
 public:
   TOPPImageCreator() :
     TOPPBase("ImageCreator",
-             "Transforms an LC-MS map into a PNG image.", false)
+             "Transforms an LC-MS map into an image.", false)
   {
-    out_formats_ = StringList::create("PNG,JPG,BMP,TIFF,PPM");
+    out_formats_ = StringList::create("png,jpg,bmp,tiff,ppm");
   }
 
 protected:

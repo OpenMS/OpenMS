@@ -83,17 +83,17 @@ using namespace std;
   @ref OpenMS::MzMLFile "mzML"
   @ref OpenMS::MzXMLFile "mzXML"
   @ref OpenMS::MzDataFile "mzData"
-  @ref OpenMS::MascotGenericFile "MGF"
-  @ref OpenMS::DTA2DFile "DTA2D"
-  @ref OpenMS::DTAFile "DTA"
+  @ref OpenMS::MascotGenericFile "mgf"
+  @ref OpenMS::DTA2DFile "dta2d"
+  @ref OpenMS::DTAFile "dta"
   @ref OpenMS::FeatureXMLFile "featureXML"
   @ref OpenMS::ConsensusXMLFile "consensusXML"
   @ref OpenMS::MS2File "ms2"
   @ref OpenMS::XMassFile "fid/XMASS"
-  @ref OpenMS::MsInspectFile "TSV"
-  @ref OpenMS::SpecArrayFile "PEPLIST"
-  @ref OpenMS::KroenikFile "KROENIK"
-  @ref OpenMS::EDTAFile "EDTA"
+  @ref OpenMS::MsInspectFile "tsv"
+  @ref OpenMS::SpecArrayFile "peplist"
+  @ref OpenMS::KroenikFile "kroenik"
+  @ref OpenMS::EDTAFile "edta"
 
 	See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
@@ -124,11 +124,11 @@ class TOPPFileConverter
     addText_("");
 		registerInputFile_("in","<file>","","input file ");
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    String formats("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
+    String formats("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
 		setValidFormats_("in",StringList::create(formats));
 		setValidStrings_("in_type",StringList::create(formats));
 
-		formats = "mzData,mzXML,mzML,DTA2D,mgf,featureXML,consensusXML,edta";
+    formats = "mzData,mzXML,mzML,dta2d,mgf,featureXML,consensusXML,edta";
 		registerOutputFile_("out", "<file>", "", "output file ");
 		setValidFormats_("out", StringList::create(formats));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);

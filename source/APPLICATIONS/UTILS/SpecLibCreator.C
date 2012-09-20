@@ -87,7 +87,7 @@ class TOPPSpecLibCreator
 			registerInputFile_("spec","<file>","","spectra");
 			setValidFormats_("spec",StringList::create("mzData,mzXML"));
 			registerOutputFile_("out","<file>","","output MSP formated spectra library");
-		//	setValidFormats_("out",StringList::create("MSP"));
+    //	setValidFormats_("out",StringList::create("msp"));
 
 			addEmptyLine_();
 			addText_("Note: information file should have the following information: peptide, retention time, measured weight, charge state");

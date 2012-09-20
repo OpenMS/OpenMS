@@ -142,8 +142,8 @@ class TOPPPILISModelCV
 		void registerOptionsAndFlags_()
 		{
 			// input
-			registerInputFileList_("in", "<file>", StringList(), "Input files for the spectra in MzML or MSP format.", false);
-			setValidFormats_("in", StringList::create("mzML,MSP"));
+      registerInputFileList_("in", "<file>", StringList(), "Input files for the spectra in mzML or MSP format.", false);
+      setValidFormats_("in", StringList::create("mzML,msp"));
 			registerInputFileList_("id_in", "<file>", StringList(), "Input files for the annotations in idXML format (if not given in MSP format).", false);
 			setValidFormats_("id_in", StringList::create("idXML"));
 			registerInputFile_("model_file", "<file>", "", "Input model file, used for generation mode or as basis for training. If not given, a default parameters are used for training.", false);

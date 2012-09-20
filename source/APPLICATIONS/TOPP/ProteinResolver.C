@@ -225,7 +225,7 @@ class TOPPProteinResolver
     void registerOptionsAndFlags_()
     {
       registerInputFile_("fasta","<file>","","Input database file",true,false);
-      setValidFormats_("fasta",StringList::create("FASTA"));
+      setValidFormats_("fasta",StringList::create("fasta"));
       registerInputFile_("in","<file>","","Input file holding experimental data",false,false);
       setValidFormats_("in",StringList::create("idXML,consensusXML"));
       registerInputFileList_("in_list","<files>", StringList(),"Input files holding the experimental data. Ignored if parameter 'in' is given",false,false);

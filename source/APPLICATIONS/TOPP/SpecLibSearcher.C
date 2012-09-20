@@ -100,7 +100,7 @@ class TOPPSpecLibSearcher
 		{
 			registerInputFileList_("in","<files>",StringList::create(""),"Input files");
       setValidFormats_("in",StringList::create("mzML"));
-			registerInputFile_("lib","<file>","","searchable spectral library(MSP format)");
+      registerInputFile_("lib","<file>","","searchable spectral library (MSP format)");
 			registerOutputFileList_("out","<files>",StringList::create(""),"Output files. Have to be as many as input files");
 			setValidFormats_("out",StringList::create("idXML"));
 			registerDoubleOption_("precursor_mass_tolerance","<tolerance>",3,"Precursor mass tolerance, (Th)",false);

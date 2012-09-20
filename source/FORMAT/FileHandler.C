@@ -44,7 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "featureXML", "idXML", "consensusXML", "mgf", "ini", "toppas", "TrafoXML", "mzML", "ms2", "pepXML", "protXML", "mzid","mzq", "GelML", "TraML", "MSP", "OMSSAXML", "MASCOTXML", "PNG", "fid", "tsv", "pepList", "hardkloer","kroenik", "fasta", "edta"};
+  const std::string FileHandler::NamesOfTypes[] = {"unknown", "dta", "dta2d", "mzData", "mzXML", "featureXML", "idXML", "consensusXML", "mgf", "ini", "toppas", "trafoXML", "mzML", "ms2", "pepXML", "protXML", "mzid","mzq", "gelML", "traML", "msp", "omssaXML", "mascotXML", "png", "fid", "tsv", "peplist", "hardkloer","kroenik", "fasta", "edta"};
 
 	FileTypes::Type FileHandler::getType(const String& filename)
 	{
@@ -80,7 +80,7 @@ namespace OpenMS
 		tmp.toUpper();
     if (tmp == "BZ2" || tmp == "GZ") // todo ZIP (not supported yet):       || tmp == "ZIP"
 		{
-      // no not use getTypeByContent() here, as this is deadly for output files!
+      // do not use getTypeByContent() here, as this is deadly for output files!
       return getTypeByFileName(filename.prefix(filename.size()-tmp.size()-1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
 		}
 

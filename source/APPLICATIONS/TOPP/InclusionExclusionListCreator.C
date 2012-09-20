@@ -102,9 +102,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("include", "<file>", "", "Inclusion list input file in FASTA or featureXML format.",false);
-    setValidFormats_("include",StringList::create("featureXML,FASTA"));
+    setValidFormats_("include",StringList::create("featureXML,fasta"));
     registerInputFile_("exclude","<file>", "", "Exclusion list input file in featureXML, idXML or FASTA format.",false);
-    setValidFormats_("exclude",StringList::create("featureXML,idXML,FASTA"));
+    setValidFormats_("exclude",StringList::create("featureXML,idXML,fasta"));
     registerOutputFile_("out", "<file>", "", "Output file (tab delimited).");
     registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in FASTA files.",false);
     registerInputFile_("pt_model","<file>","","PTModel file used for the pt prediction of peptides in FASTA files (only needed for inclusion_strategy PreotinBased_LP).",false);
@@ -117,7 +117,7 @@ protected:
     setMinInt_("exclusion_charges", 1);
     registerInputFile_("raw_data","<mzMLFile>","","File containing the raw data (only needed for FeatureBased_LP).",false);
 
-    //    setValidFormats_("out", StringList::create("TraML"));
+    //    setValidFormats_("out", StringList::create("traML"));
 
     registerSubsection_("algorithm","Inclusion/Exclusion algorithm section");
   }
