@@ -3423,8 +3423,16 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 				  return;
         }
 
-        // convert rich spectrum to simple spectrum
+        // set precursor information
 				PeakSpectrum new_spec;
+        vector<Precursor> precursors;
+        Precursor precursor;
+        precursor.setMZ(aa_sequence.getMonoWeight());
+        precursor.setCharge(charge);
+        precursors.push_back(precursor);
+        new_spec.setPrecursors(precursors);
+        new_spec.setMSLevel(2);
+        // convert rich spectrum to simple spectrum
 				for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
 				{
 					new_spec.push_back(static_cast<Peak1D>(*it));
@@ -3441,7 +3449,6 @@ TOPPViewBase::TOPPViewBase(QWidget* parent):
 	      // ensure spectrum is drawn as sticks
 	      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
 				setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
-
 			}
 			else
 			{
