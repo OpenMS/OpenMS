@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar$
-// $Authors: Erhan Kenar, Holger Franken $
+// $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
 
@@ -40,6 +40,10 @@
 #include <sstream>
 #include <numeric>
 #include <algorithm>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -80,12 +84,18 @@ void ElutionPeakDetection::detectPeaks(std::vector<MassTrace>& mt_vec, std::vect
     single_mtraces.clear();
 
     this->startProgress(0, mt_vec.size(), "elution peak detection");
+    Size progress(0);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif _OPENMP
-    for (Size i = 0; i < mt_vec.size(); ++i)
+    for (SignedSize i = 0; i < (SignedSize) mt_vec.size(); ++i)
     {
-        this->setProgress(i);
+        IF_MASTERTHREAD this->setProgress(progress);
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
+        ++progress;
+
         detectElutionPeaks_(mt_vec[i], single_mtraces);
     }
 

@@ -66,12 +66,6 @@
 #include <omp.h>
 #endif
 
-#ifdef _OPENMP
-  #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)  
-#else
-  #define IF_MASTERTHREAD 
-#endif    
-   
 
 namespace OpenMS
 {

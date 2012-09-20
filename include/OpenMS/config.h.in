@@ -165,5 +165,11 @@
 #define OPENMS_GET_TEST_DATA_PATH(filename) (std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename).c_str()
 #define OPENMS_GET_TEST_DATA_PATH_MESSAGE(prefix,filename,suffix) (prefix + std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename + suffix).c_str()
 
+#ifdef _OPENMP
+  #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)  
+#else
+  #define IF_MASTERTHREAD 
+#endif    
+   
 
 #endif // OPENMS_CONFIG_H
