@@ -218,7 +218,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", StringList::create("mzML"));
-    registerInputFile_("in_featureXML", "<file>", "", "input file ", false);
+    registerInputFile_("in_featureXML", "<file>", "", "input file ", false, false);
     setValidFormats_("in_featureXML", StringList::create("featureXML"));
 
     registerOutputFile_("out", "<file>", "", "output file");
