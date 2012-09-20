@@ -173,6 +173,7 @@ namespace OpenMS
     AreaType area(widgetToData_(pos - QPoint(5, 5)), widgetToData_(pos + QPoint(5, 5)));
 
     float max_int = -1 * numeric_limits<float>::max();
+    PeakIndex max_pi;
 
     if (getCurrentLayer().type == LayerData::DT_PEAK)
     {
@@ -186,7 +187,7 @@ namespace OpenMS
         {
           //cout << "new max: " << i.getRT() << " " << i->getMZ() << endl;
           max_int = i->getIntensity();
-          return i.getPeakIndex();
+          max_pi = pi;
         }
       }
     }
@@ -205,8 +206,7 @@ namespace OpenMS
           if (i->getIntensity() > max_int)
           {
             max_int = i->getIntensity();
-
-            return PeakIndex(i - getCurrentLayer().getFeatureMap()->begin());
+            max_pi = PeakIndex(i - getCurrentLayer().getFeatureMap()->begin());
           }
         }
       }
@@ -227,7 +227,7 @@ namespace OpenMS
           if (i->getIntensity() > max_int)
           {
             max_int = i->getIntensity();
-            return PeakIndex(i - getCurrentLayer().getConsensusMap()->begin());
+            max_pi = PeakIndex(i - getCurrentLayer().getConsensusMap()->begin());
           }
         }
       }
@@ -271,7 +271,7 @@ namespace OpenMS
       //TODO IDENT
     }
 
-    return PeakIndex();
+    return max_pi;
   }
 
   void Spectrum2DCanvas::paintDots_(Size layer_index, QPainter & painter)
