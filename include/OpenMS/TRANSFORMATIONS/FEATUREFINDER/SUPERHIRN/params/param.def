@@ -1,0 +1,79 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  CONFIGURATION FILE for S U P E R H I R N                                    
+//
+//  written by Lukas N. Mueller, 1.8.08
+//  Contact: Lukas.Mueller@imsb.biol.ethz.ch
+//  Group of Prof. Ruedi Aebersold, 
+//  Institute for Molecular Systems Biology (IMSB)
+//  ETH Hoenggerberg, Zurich, Switzerland
+
+
+//-------------------------------------------------------------------------------------------------------
+//
+// FILE PATHS:
+//
+//
+// PROJECT NAME: name of this project, will be used to create a 
+//               folder with results called: ANALYSIS_<PROJECT NAME>
+MY PROJECT NAME=fixation
+//
+//	MZXML SOURCE:			location of the corresponding mzXML files:
+MZXML DIRECTORY=/Users/zellerf/Documents/bsse/tests/mzXML
+//
+//	PEPXML SOURCE:			location of the corresponding pepXML interact files:
+PEPXML DIRECTORY=/Users/zellerf/Documents/bsse/tests/SEARCHES
+//
+//	ROOT PARAMETER FILE:		root parameter file which stores ALL the parameter!
+ROOT PARAMETER FILE=/Users/zellerf/Documents/bsse/wiese/1.0/SuperHirnv1.0/make/ROOT_PARAM.def
+
+
+//-------------------------------------------------------------------------------------------------------
+//
+// 	GENERAL PARAMETERS:
+//
+//	MS1 retention time tolerance:	tolerance with which lc-peaks will be merged 
+//					AFTER the alignment of the spectra [min]
+MS1 retention time tolerance=1.0
+//
+//	mass time tolerance:		mass tolerance with which lc-peaks will be merged 
+//					AFTER the alignment of the spectra [PPM]
+MS1 m/z tolerance=10
+//
+//	MS2 PPM m/z tolerance:		mass tolerance with which MS2 identifications will be associated 
+//                         		to MS1 features. [PPM]
+MS2 PPM m/z tolerance=30
+//
+//	MS2 mass matching modus:	define which modus used to match ms2 assignments to ms1 peaks
+//                     			- theoretical mass [1]  : use theoretical mass calculated from sequence
+//                      		- MS1 precursor mass [0]: use measured ms1 mass of precursor ion
+MS2 mass matching modus=1
+//
+//
+// Peptide Prophet Threshold:  		Probability value at which peptide identification will be evaluated 
+//					(originally adopted from the Peptide Prophet, i.e. 1.0 refers to high probability)
+Peptide Prophet Threshold=0.9
+//
+//	LC elution window:			enables to only process a period of the 
+//					elution gradient, defines by start / end 
+//					only peaks within this region are accepted!!!, [min]
+start elution window=0.0
+end elution window=180.0
+//
+//
+// Charge state min:  			For the selection of MS1 features by charge state, here its, 
+//					the minimal charge state: 
+MS1 feature CHRG range min=1
+//
+// Charge state max:  			For the selection of MS1 features by charge state, here its, 
+//					the maximal charge state: 
+MS1 feature CHRG range max=5
+
+
+//-------------------------------------------------------------------------------------------------------
+//
+//	PRINT AND VISUALIZE OPTIONS:
+// 	( 0 = no, 1 = yes )
+//
+// gnuplot plot gerenator: if plots should be generate through out the whole program rountine
+gnuplot plot generator=1

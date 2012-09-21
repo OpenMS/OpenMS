@@ -17,6 +17,8 @@ FeatureFinderAlgorithm.C
 FeatureFinderAlgorithmIsotopeWavelet.C
 FeatureFinderAlgorithmPicked.C
 FeatureFinderAlgorithmPickedHelperStructs.C
+FeatureFinderAlgorithmSH.C
+FeatureFinderAlgorithmSHCtrl.C
 FeatureFinderAlgorithmSimple.C
 FeatureFinderAlgorithmSimplest.C
 FeatureFinderAlgorithmMRM.C

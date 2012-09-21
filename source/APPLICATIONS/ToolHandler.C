@@ -110,6 +110,7 @@ namespace OpenMS
     tools_map["PILISSpectraGenerator"] = Internal::ToolDescription("PILISSpectraGenerator", "ID Processing");
     tools_map["PTModel"] = Internal::ToolDescription("PTModel", "Peptide property prediction");
     tools_map["PTPredict"] = Internal::ToolDescription("PTPredict", "Peptide property prediction");
+    // TODO add PeakPickerSH
     tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", "Signal processing and preprocessing");
     tools_map["PeakPickerWavelet"] = Internal::ToolDescription("PeakPickerWavelet", "Signal processing and preprocessing");
     tools_map["PepNovoAdapter"] = Internal::ToolDescription("PepNovoAdapter", "Identification");
