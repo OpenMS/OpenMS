@@ -14,12 +14,6 @@
 #ifndef _USE_EXTERNAL_ISOTOPIC_DISTRIBUTION_H
 #define _USE_EXTERNAL_ISOTOPIC_DISTRIBUTION_H
 
-#include <string>
-#include <vector>
-#include <map>
-
-using namespace std;
-
 class ExternalIsotopicDistribution{
 
   
@@ -28,7 +22,7 @@ class ExternalIsotopicDistribution{
   
 private:
 
-  static multimap< double, PeptideIsotopeDisribution> allExternalPepdistributions;
+  static std::multimap< double, PeptideIsotopeDisribution> allExternalPepdistributions;
   
   ////////////////////////////////////////////////
   // declaration of the public members:
@@ -36,7 +30,7 @@ private:
 public:
   
   static bool EXTERNAL_ISOTOPIC_PROFILES;  
-  static string XMLInputFile;
+  static std::string XMLInputFile;
   static double EXTERNAL_DISTRIBUTION_MONO_ISOTOPE_PPM_TOLERANCE;
 
   //static multimap< double, double> allExternalPepdistributions;

@@ -17,13 +17,9 @@
 #ifndef _LCMSCData_h_
 #define _LCMSCData_h_
 
-#include <map>
-
-using namespace std;
-
-typedef map<int, LC_elution_peak> elution_peak_list;
-typedef map<int, LC_elution_peak>::iterator elution_peak_list_ITERATOR;
-typedef map< double, elution_peak_list> MZ_LIST;
+typedef std::map<int, LC_elution_peak> elution_peak_list;
+typedef std::map<int, LC_elution_peak>::iterator elution_peak_list_ITERATOR;
+typedef std::map< double, elution_peak_list> MZ_LIST;
 typedef MZ_LIST::iterator MZ_LIST_ITERATOR;
 
 
@@ -41,7 +37,7 @@ public:
   LCMSCData& operator=(const LCMSCData&);
   
   // prints profile of the extracted LC elution peaks:
-  void print_profile_of_LC_peaks(ofstream*);
+  void print_profile_of_LC_peaks(std::ofstream*);
  
   
   ///////////////////////////////
@@ -60,13 +56,13 @@ public:
   
   // get a list of m/z observed in a scan +/- scan_tolerance:
   // return the area of the LC elution peaks 
-  vector<LC_elution_peak> get_MZ_list(int);
-  vector<LC_elution_peak> get_MZ_list(int, int);
+  std::vector<LC_elution_peak> get_MZ_list(int);
+  std::vector<LC_elution_peak> get_MZ_list(int, int);
   
   // get all extracted LC peaks:
-  vector<LC_elution_peak*> get_ALL_peak();
+  std::vector<LC_elution_peak*> get_ALL_peak();
   // get a vector with all LC peaks ordered by their score:
-  vector<LC_elution_peak*> get_ALL_peak_ordered();
+  std::vector<LC_elution_peak*> get_ALL_peak_ordered();
   
   
   /*

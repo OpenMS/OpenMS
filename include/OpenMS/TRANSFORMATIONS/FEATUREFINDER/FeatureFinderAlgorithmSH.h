@@ -200,8 +200,8 @@ namespace OpenMS
           scanId++;
         }
         
-        vector<double>* vmzvals = new vector<double>();
-        vector<double>* vintvals = new vector<double>();
+        std::vector<double>* vmzvals = new std::vector<double>();
+        std::vector<double>* vintvals = new std::vector<double>();
         
         for (Size p=0; p<spectrum.size(); ++p)
         {

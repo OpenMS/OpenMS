@@ -10,6 +10,9 @@
  *
  */
 
+#include <list>
+#include <map>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/PeptideIsotopeDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ExternalIsotopicDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
@@ -635,7 +638,7 @@ double	IsotopicDist::sfMaxMass = 10000.0; // Max mass of isotopic tables
 double	IsotopicDist::sfMassStep = 100.0; // Mass bin size in isotopic tables
 
 bool IsotopicDist::sfDebug = false;
-ostream* IsotopicDist::sfStream = 0;
+std::ostream* IsotopicDist::sfStream = 0;
 
 
 #include <cmath>

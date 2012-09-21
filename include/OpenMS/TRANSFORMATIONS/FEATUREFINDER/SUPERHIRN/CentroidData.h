@@ -16,8 +16,6 @@
 #include <list>
 #include <vector>
 
-using namespace std;
-
 #ifndef _USE_CENTROID_DATA_H
 #define _USE_CENTROID_DATA_H
 
@@ -42,9 +40,9 @@ public:
   CentroidData(int,RawData&, double, bool);
 	virtual ~CentroidData();
   
-	void get(list<CentroidPeak>&);
+	void get(std::list<CentroidPeak>&);
 	void set(RawData&);
-	void set(vector<double>&,vector<double>&);
+	void set(std::vector<double>&, std::vector<double>&);
   
 	void setWidth(int pWidth) {fWindowWidth = pWidth;}
 	int	 getWidth(){return fWindowWidth;}
@@ -53,7 +51,7 @@ public:
 	double getNoise() {return fNoise;}
   void removeNoise();
 	
-	bool getNextPeakGroup(list<CentroidPeak>::iterator&,list<CentroidPeak>::iterator&);	
+	bool getNextPeakGroup(std::list<CentroidPeak>::iterator&, std::list<CentroidPeak>::iterator&);	
 	void resetPeakGroupIter();
   
   bool CENTROID_DATA_MODUS;
@@ -65,11 +63,10 @@ protected:
 	int	fWindowWidth;
 	double fNoise;
   double fScanRetentionTime;
-	list<CentroidPeak> fCentroidPeaks;
-	list<CentroidPeak>::iterator fPeakGroupStart;			
+  std::list<CentroidPeak> fCentroidPeaks;
+  std::list<CentroidPeak>::iterator fPeakGroupStart;			
 };
 
-ostream& operator<<(ostream&, CentroidData&);
-
+std::ostream& operator<<(std::ostream&, CentroidData&);
 
 #endif

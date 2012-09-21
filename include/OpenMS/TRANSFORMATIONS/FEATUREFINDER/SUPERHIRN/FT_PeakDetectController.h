@@ -37,21 +37,21 @@ private:
   
   // LCMS runs
   //LC_MS* THIS_LC_MS;  
-  vector<feature> fakeFeatureList;
-  vector<LC_MS> LC_MS_RUNS;  
+  std::vector<feature> fakeFeatureList;
+  std::vector<LC_MS> LC_MS_RUNS;  
   
   // paths:
-  string targetMzXML;
-  string SOURCE_DIR;
-  string OUTPUT_DIR;
+  std::string targetMzXML;
+  std::string SOURCE_DIR;
+  std::string OUTPUT_DIR;
   
   
 public:
   
   LC_MS* THIS_LC_MS;
   
-  typedef map<double, RawData*> Map;
-  typedef vector<Map> Vec;
+  typedef std::map<double, RawData*> Map;
+  typedef std::vector<Map> Vec;
 
     static bool CREATE_FEATURE_ELUTION_PROFILES;
   static bool LCelutionPeakDebugging;
@@ -97,7 +97,7 @@ public:
   // memory
   // for now, open file system for every check, but otherwise could eb done
   // in the constructor
-  bool checkIfFeatureExtractionExists( string );
+  bool checkIfFeatureExtractionExists( std::string );
     
 
   // **** for the MS2 level post processing:
@@ -192,14 +192,14 @@ public:
   // variables of the class
   
   // target file:
-  void set_target_file(string IN){targetMzXML = IN;};
-  string get_target_file(){return targetMzXML;};
+  void set_target_file(std::string IN){targetMzXML = IN;};
+  std::string get_target_file(){return targetMzXML;};
     
   // get the vector of LC/MS runs:
-  vector<LC_MS> get_parsed_DATA(){return LC_MS_RUNS;};
+  std::vector<LC_MS> get_parsed_DATA(){return LC_MS_RUNS;};
   bool getParsedDataEmpty(){return LC_MS_RUNS.empty();};
-  vector<LC_MS>::iterator get_parsed_DATA_START(){return LC_MS_RUNS.begin();};
-  vector<LC_MS>::iterator get_parsed_DATA_END(){return LC_MS_RUNS.end();};
+  std::vector<LC_MS>::iterator get_parsed_DATA_START(){return LC_MS_RUNS.begin();};
+  std::vector<LC_MS>::iterator get_parsed_DATA_END(){return LC_MS_RUNS.end();};
 };
 
 #endif

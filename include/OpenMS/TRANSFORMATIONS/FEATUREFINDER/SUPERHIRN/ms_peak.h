@@ -34,8 +34,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ms_peak.h>
 
-using namespace std;
-
 class CentroidPeak;
 
 class ms_peak{
@@ -53,14 +51,14 @@ class ms_peak{
   unsigned int NRISOTOPES;
   float SCORE;
   
-  string extraMSPeakInfo;
+  std::string extraMSPeakInfo;
   
   // child scan options:
   bool precursorMass;
   int childScan;
   
   double SignalToNoise;
-  vector<CentroidPeak> ISOPEAKS;
+  std::vector<CentroidPeak> ISOPEAKS;
   
 private:
 
@@ -75,7 +73,7 @@ public:
     // class constructor
     ms_peak(int,double,float);
     ms_peak();
-    ms_peak(int,double,float, unsigned int,unsigned int, float,vector<CentroidPeak>);
+    ms_peak(int,double,float, unsigned int,unsigned int, float,std::vector<CentroidPeak>);
     ms_peak(const ms_peak&);
     ms_peak(const ms_peak*);
 
@@ -106,12 +104,12 @@ public:
   // function to access the
   // variables of the class
   
-  vector<CentroidPeak>& get_isotopic_peaks() {return ISOPEAKS;}
-  vector<CentroidPeak>::iterator get_isotopic_peaks_start() {return ISOPEAKS.begin();}
-  vector<CentroidPeak>::iterator get_isotopic_peaks_end() {return ISOPEAKS.end();}
+  std::vector<CentroidPeak>& get_isotopic_peaks() {return ISOPEAKS;}
+  std::vector<CentroidPeak>::iterator get_isotopic_peaks_start() {return ISOPEAKS.begin();}
+  std::vector<CentroidPeak>::iterator get_isotopic_peaks_end() {return ISOPEAKS.end();}
   
-  void setExtraPeakInfo(string in){extraMSPeakInfo = in;};
-  string getExtraPeakInfo(){return extraMSPeakInfo;};
+  void setExtraPeakInfo(std::string in){extraMSPeakInfo = in;};
+  std::string getExtraPeakInfo(){return extraMSPeakInfo;};
   
   // precursor mass of the ms2 scane:
   void setPrecursorMZ(double in){ precursorMZ = in;};

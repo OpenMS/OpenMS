@@ -17,11 +17,6 @@
 class CentroidPeak;
 class DeconvPeak;
 
-#include <list>
-#include <iostream>
-
-using namespace std;
-
 class IsotopicDist
 {
 public:
@@ -30,16 +25,16 @@ public:
   static double	sfIntensityCV;
   
 	static void init();
-	static bool getMatchingPeaks(list<CentroidPeak>::iterator, list<CentroidPeak>::iterator, int, double&, double, list<list<CentroidPeak>::iterator>&);
-	static void subtractMatchingPeaks(list<list<CentroidPeak>::iterator>&, int, double, DeconvPeak&);
+	static bool getMatchingPeaks(std::list<CentroidPeak>::iterator, std::list<CentroidPeak>::iterator, int, double&, double, std::list<std::list<CentroidPeak>::iterator>&);
+	static void subtractMatchingPeaks(std::list<std::list<CentroidPeak>::iterator>&, int, double, DeconvPeak&);
 	static void getDistribution(double,double*&,double*&);
 	static void getMassBounds(double,int,int,int,double,double&,double&);
 
 	static bool getDebug() {return sfDebug;}
-	static ostream* getDebugStream() {return sfStream;}
+	static std::ostream* getDebugStream() {return sfStream;}
 	
 	static void setDebug(bool pDebug) {sfDebug = pDebug;}
-	static void setDebugStream(ostream* pStream) {sfStream = pStream;}
+	static void setDebugStream(std::ostream* pStream) {sfStream = pStream;}
 
 protected:
 
@@ -58,7 +53,7 @@ protected:
 	static double	sfMaxMass;
 	static double	sfMassStep;
 	static bool		sfDebug;
-	static ostream* sfStream;
+	static std::ostream* sfStream;
 };
 
 // Returns lower and upper mass bounds for all isotopic peaks
@@ -90,7 +85,5 @@ inline int IsotopicDist::getIndex(
   
   return idx;
 }
-
-
 
 #endif

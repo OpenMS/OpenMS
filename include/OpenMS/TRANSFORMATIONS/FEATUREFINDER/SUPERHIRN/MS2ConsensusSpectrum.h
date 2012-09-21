@@ -20,8 +20,6 @@
 #include <string>
 #include <map>
 
-using namespace std;
-
 class MS2ConsensusSpectrum{
 
     
@@ -31,7 +29,7 @@ class MS2ConsensusSpectrum{
 private:
   
   // stores the MS2 fragments:
-  multimap<double, MS2Fragment> MS2FragmentPeaks;
+  std::multimap<double, MS2Fragment> MS2FragmentPeaks;
   
   
 protected:
@@ -99,7 +97,7 @@ public:
   
   // plot the consensus MS2 spectrum:
   void plotSpectrum( );
-  void plotSpectrum( string );
+  void plotSpectrum( std::string );
   
   
   // remove outlier fragments based on their:
@@ -149,9 +147,9 @@ public:
   int getNbMS2Fragments(){return MS2FragmentPeaks.size();};
   
   // get the MS2 fragments list iterator:
-  multimap<double, MS2Fragment>::iterator getMS2FragmentPeakStart(){return MS2FragmentPeaks.begin();};
-  multimap<double, MS2Fragment>::iterator getMS2FragmentPeakEnd(){return MS2FragmentPeaks.end();};
-  multimap<double, MS2Fragment>* getMS2FragmentMap(){return &MS2FragmentPeaks;};
+  std::multimap<double, MS2Fragment>::iterator getMS2FragmentPeakStart(){return MS2FragmentPeaks.begin();};
+  std::multimap<double, MS2Fragment>::iterator getMS2FragmentPeakEnd(){return MS2FragmentPeaks.end();};
+  std::multimap<double, MS2Fragment>* getMS2FragmentMap(){return &MS2FragmentPeaks;};
 
   
 };

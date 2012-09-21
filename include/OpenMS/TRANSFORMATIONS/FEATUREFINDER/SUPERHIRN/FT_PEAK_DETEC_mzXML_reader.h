@@ -50,7 +50,7 @@ private:
   Process_Data* MS1_LC_MS_DATA_PROCESSOR;
   // MS2_Process_Data* MS2_LC_MS_DATA_PROCESSOR;
 
-  string current_file;
+  std::string current_file;
   //MZXML_FILE file_handler;
   //RAMP_FILE* ramp_file_Struct;
   
@@ -59,7 +59,7 @@ private:
 
   // mzXML parameters
   int total_scan;  
-  map<int,float> scan_TR_index;
+  std::map<int,float> scan_TR_index;
   double minRT;
   double maxRT;
   
@@ -76,11 +76,11 @@ private:
 public:
   
   
-  typedef map<double, RawData*> Map;
-  typedef vector<Map> Vec;
+  typedef std::map<double, RawData*> Map;
+  typedef std::vector<Map> Vec;
     
     static int	sfReportMonoPeaks; // 1 if info about monoisotopic peaks should be written to mono_peaks.txt
-  static string sfDebugDirectory; // Directory where peak detection debug files are written
+  static std::string sfDebugDirectory; // Directory where peak detection debug files are written
   static int	sfReportScanNumber; // if sfReportMonoPeaks is set to 1, details about this spectrum will be written to debug files 
 
   static int MS1_base_inter_scan_distance;
@@ -90,8 +90,8 @@ public:
   static double TR_MAX;
 
   
-  static vector<double> PEAK_EXTRACTION_SCAN_LEVELS;
-  static vector<double> FRAGMENT_MASS_SCAN_LEVELS;
+  static std::vector<double> PEAK_EXTRACTION_SCAN_LEVELS;
+  static std::vector<double> FRAGMENT_MASS_SCAN_LEVELS;
     
   // class destructor
   ~FT_PEAK_DETEC_mzXML_reader();

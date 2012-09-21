@@ -25,6 +25,8 @@
 // $Authors: Florian Zeller $
 // --------------------------------------------------------------------------
 
+#include <list>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/IsotopicDist.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ms_peak.h>
@@ -101,7 +103,7 @@ namespace OpenMS
       
       // das erste ist SCAN
       unsigned int j = 0;
-      map<int, MS1Signal>::iterator lcit;
+      std::map<int, MS1Signal>::iterator lcit;
       for (lcit = profile->getLCelutionSignalsStart(); lcit != profile->getLCelutionSignalsEnd(); lcit++) {
         int scan = lcit->first;
         MS1Signal signal = lcit->second;

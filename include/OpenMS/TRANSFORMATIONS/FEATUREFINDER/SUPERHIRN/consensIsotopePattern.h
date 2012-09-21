@@ -25,12 +25,8 @@
 
 #include <map>
 #include <vector>
-using namespace std;
-
 
 class consensIsotopePattern{
-  
-  
 
   ////////////////////////////////////////////////
   // declaration of the private members:
@@ -38,12 +34,12 @@ class consensIsotopePattern{
 private:
   
   // stores teh consenus pattern:
-  map<  double , double > isotopesTrace; 
-  vector<  double > mzIsotopesStDev; 
-  vector<  double > intensIsotopesStDev; 
+  std::map<  double , double > isotopesTrace; 
+  std::vector<  double > mzIsotopesStDev; 
+  std::vector<  double > intensIsotopesStDev; 
   
   // stores the detected patterns by retention time
-  map<double, pair< vector<double>, vector<double> > > rawIsotopes;
+  std::map<double, std::pair< std::vector<double>, std::vector<double> > > rawIsotopes;
   
   ////////////////////////////////////////////////
   // declaration of the public members:
@@ -79,7 +75,7 @@ public:
   // order an isotope trace in the correct cluster:
   void addIsotopeTrace( double, double );
   // condens the pattern, make averge peaks from the traces:
-  void condensIsotopePattern( pair< vector<double>, vector<double> >*);
+  void condensIsotopePattern( std::pair< std::vector<double>, std::vector<double> >*);
 
   
   ///////////////////////////////
@@ -87,8 +83,8 @@ public:
   // function to access the
   // variables of the class
 
-  map<double, double>::iterator getConsensIsotopeIteratorStart(){return isotopesTrace.begin();}; 
-  map<double, double>::iterator getConsensIsotopeIteratorEnd(){return isotopesTrace.end();}; 
+  std::map<double, double>::iterator getConsensIsotopeIteratorStart(){return isotopesTrace.begin();}; 
+  std::map<double, double>::iterator getConsensIsotopeIteratorEnd(){return isotopesTrace.end();}; 
 
 
 };

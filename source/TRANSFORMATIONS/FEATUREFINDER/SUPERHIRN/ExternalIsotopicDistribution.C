@@ -13,6 +13,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <math.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/PeptideIsotopeDistribution.h>

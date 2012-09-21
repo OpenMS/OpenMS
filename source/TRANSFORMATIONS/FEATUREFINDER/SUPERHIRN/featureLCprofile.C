@@ -21,6 +21,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/featureLCprofile.h>
 
+using namespace std;
+
 ////////////////////////////////////////////////
 // constructor for the object featureLCprofile:
 featureLCprofile::featureLCprofile(){
@@ -105,14 +107,14 @@ void featureLCprofile::addMS1elutionSignal(  double mass, double intensity, int 
   tmp.scan = scan;
   tmp.charge = charge;
   tmp.TR = TR;
-  LCelutionSignals.insert( make_pair( scan, tmp ) );
+  LCelutionSignals.insert( std::make_pair( scan, tmp ) );
 
 }
 
 /////////////////////////////////////////////////
 // add / get signals:
 void featureLCprofile::addMS1elutionSignal( MS1Signal* in){
-  LCelutionSignals.insert( make_pair( in->scan, *in ) );
+  LCelutionSignals.insert( std::make_pair( in->scan, *in ) );
 }
 
 /////////////////////////////////////////////////
@@ -124,7 +126,7 @@ void featureLCprofile::addOutsideMS1elutionSignal(  double mass, double intensit
   tmp.scan = scan;
   tmp.charge = charge;
   tmp.TR = TR;
-  outsideLCelutionSignals.insert( make_pair( scan, tmp ) );
+  outsideLCelutionSignals.insert( std::make_pair( scan, tmp ) );
   
 }
 

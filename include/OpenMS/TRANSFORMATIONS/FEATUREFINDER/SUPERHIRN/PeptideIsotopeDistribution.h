@@ -20,8 +20,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 class PeptideIsotopeDisribution{
 
     
@@ -30,13 +28,13 @@ class PeptideIsotopeDisribution{
   
 private:
   
-  vector<double> mass;
-  vector<double> intens;
+  std::vector<double> mass;
+  std::vector<double> intens;
   double* intensArray;
   
-  string sq;
-  string name;
-  string summary;
+  std::string sq;
+  std::string name;
+  std::string summary;
   int chargeState;
   int id;
   double RtSegment;
@@ -53,9 +51,9 @@ public:
   
   // class constructor
   PeptideIsotopeDisribution();
-  PeptideIsotopeDisribution(vector<double>, vector<double>);
-  PeptideIsotopeDisribution(vector<double>, vector<double>, int, string, string, int);
-  PeptideIsotopeDisribution(vector<double>, vector<double>, int, string, string, int, double);
+  PeptideIsotopeDisribution(std::vector<double>, std::vector<double>);
+  PeptideIsotopeDisribution(std::vector<double>, std::vector<double>, int, std::string, std::string, int);
+  PeptideIsotopeDisribution(std::vector<double>, std::vector<double>, int, std::string, std::string, int, double);
   // class copy constructor
   PeptideIsotopeDisribution(const PeptideIsotopeDisribution&);
   // class copy constructor
@@ -78,7 +76,7 @@ public:
   PeptideIsotopeDisribution& operator>(const PeptideIsotopeDisribution&);
 
   // return info in form or a string about PeptideIsotopeDisribution:
-  string getIsotopeDistInfo();
+  std::string getIsotopeDistInfo();
 
 
   ///////////////////////////////
@@ -88,13 +86,13 @@ public:
 
   // get the intensity values in form of an array
   double* getIntensityArray( );
-  string getName(){return name;};
-  string getSequence(){return sq;};
+  std::string getName(){return name;};
+  std::string getSequence(){return sq;};
   int getChargeState(){return chargeState;};
   double getMonoMass(){ return mass[0];};
   
   int getID(){return id;};
-  string getSummary(){return summary;};
+  std::string getSummary(){return summary;};
   double getRTSegment(){return RtSegment;};
   
   

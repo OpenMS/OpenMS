@@ -12,10 +12,11 @@
 
 #ifndef _CENTROIDPEAK_H_
 #define _CENTROIDPEAK_H_
-//using namespace std;
+
 #include <ostream>
 #include <cmath>
 #include <vector>
+
 // Class for centroid peaks
 class CentroidPeak{
 public:

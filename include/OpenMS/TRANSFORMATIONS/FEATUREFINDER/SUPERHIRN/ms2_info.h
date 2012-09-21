@@ -26,8 +26,6 @@
 #include <vector>
 #include <map>
 
-using namespace std;
-
 class ms2_info{
 
     
@@ -38,12 +36,12 @@ private:
   
   int ID;
   
-  string SQ;
-  string FULL_SQ;
-  string PREV_AA;
-  vector<string> AC;
-  string ORIGINAL_INTERACT_FILE;
-  string MS2_TYPE_TAG;
+  std::string SQ;
+  std::string FULL_SQ;
+  std::string PREV_AA;
+  std::vector<std::string> AC;
+  std::string ORIGINAL_INTERACT_FILE;
+  std::string MS2_TYPE_TAG;
   
   // peptide prophet analysis:
   float PEP_PROB;
@@ -62,7 +60,7 @@ private:
   
   double TR;
     
-  map< int, double> MOD_LIST;  
+  std::map< int, double> MOD_LIST;  
   
   // static values:
   static const double _MONO_H;
@@ -85,9 +83,9 @@ public:
   // class constructor
   ms2_info();
   ms2_info(int);
-  ms2_info(string, string, float);
-  ms2_info(string, string, int, float);
-  ms2_info(string, string, float, int, int);
+  ms2_info(std::string, std::string, float);
+  ms2_info(std::string, std::string, int, float);
+  ms2_info(std::string, std::string, float, int, int);
   // class copy constructor
   ms2_info(const ms2_info&);
   // class copy constructor
@@ -105,10 +103,10 @@ public:
   
   // add modification
   void add_modification(int, double);
-  map< int, double>::iterator get_Modification_list_start(){return MOD_LIST.begin();};
-  map< int, double>::iterator get_Modification_list_end(){return MOD_LIST.end();};
-  map< int, double>::iterator find_Modification(int pos){return MOD_LIST.find(pos);};
-  map< int, double>* get_Modification_list(){return &(MOD_LIST);};
+  std::map< int, double>::iterator get_Modification_list_start(){return MOD_LIST.begin();};
+  std::map< int, double>::iterator get_Modification_list_end(){return MOD_LIST.end();};
+  std::map< int, double>::iterator find_Modification(int pos){return MOD_LIST.find(pos);};
+  std::map< int, double>* get_Modification_list(){return &(MOD_LIST);};
   bool check_MODIFICATION(){ return !MOD_LIST.empty();};
 
   // calculates the theoretical mass from a sequence:
@@ -116,7 +114,7 @@ public:
   double get_THEO_MZ(){return THEO_MZ;};
   // sets modificatied SQ:
   void set_FULL_SQ();
-  void set_SQ(string IN){SQ = IN; set_THEO_MASS_from_SQ();set_FULL_SQ();};
+  void set_SQ(std::string IN){SQ = IN; set_THEO_MASS_from_SQ();set_FULL_SQ();};
   
   // show info:
   void show_info();
@@ -132,24 +130,24 @@ public:
   
   // AC functions:
   // check if this AC or not:
-  bool compare_AC( string );
+  bool compare_AC( std::string );
   // search a pattern in the  AC list:
-  bool search_AC_pattern( string );
+  bool search_AC_pattern( std::string );
 
 
   ///////////////////////////////
   // start here all the get / set
   // function to access the
   // variables of the class
-  string get_SQ(){return SQ;};
-  string get_MOD_SQ(){return FULL_SQ;};
-  string get_TOTAL_SQ(){return (get_PREV_AA( )+ "." + get_MOD_SQ());};
-  string get_AC(){return *(AC.begin());};
-  vector<string> get_ALL_AC(){return AC;};
-  vector<string>::iterator get_ALL_AC_START(){return AC.begin();};
-  vector<string>::iterator get_ALL_AC_END(){return AC.end();};
-  bool find_AC( string );
-  void set_AC(string);
+  std::string get_SQ(){return SQ;};
+  std::string get_MOD_SQ(){return FULL_SQ;};
+  std::string get_TOTAL_SQ(){return (get_PREV_AA( )+ "." + get_MOD_SQ());};
+  std::string get_AC(){return *(AC.begin());};
+  std::vector<std::string> get_ALL_AC(){return AC;};
+  std::vector<std::string>::iterator get_ALL_AC_START(){return AC.begin();};
+  std::vector<std::string>::iterator get_ALL_AC_END(){return AC.end();};
+  bool find_AC( std::string );
+  void set_AC(std::string);
   float get_PEP_PROB(){return PEP_PROB;};
   void set_PEP_PROB(float IN){PEP_PROB = IN;};
   
@@ -177,11 +175,11 @@ public:
   double get_XCORR(){ return XCORR;};
   void set_XCORR( double IN){ XCORR = IN;};
   
-  void set_MS2_TYPE_TAG(string IN){MS2_TYPE_TAG = IN;};
-  string get_MS2_TYPE_TAG(){return MS2_TYPE_TAG;};
+  void set_MS2_TYPE_TAG(std::string IN){MS2_TYPE_TAG = IN;};
+  std::string get_MS2_TYPE_TAG(){return MS2_TYPE_TAG;};
 
-  string get_ORIGINAL_INTERACT_FILE(){ return ORIGINAL_INTERACT_FILE;};
-  void set_ORIGINAL_INTERACT_FILE( string IN){ ORIGINAL_INTERACT_FILE = IN;};
+  std::string get_ORIGINAL_INTERACT_FILE(){ return ORIGINAL_INTERACT_FILE;};
+  void set_ORIGINAL_INTERACT_FILE( std::string IN){ ORIGINAL_INTERACT_FILE = IN;};
   
   // access the retentino parameter:
   double getRetentionTime(){return TR;};
@@ -189,8 +187,8 @@ public:
 
   double get_MONO_AA_MASS(int);
 
-  string get_PREV_AA( ){return PREV_AA;};
-  void set_PREV_AA( string IN ){PREV_AA = IN;};
+  std::string get_PREV_AA( ){return PREV_AA;};
+  void set_PREV_AA( std::string IN ){PREV_AA = IN;};
 };
 
 #endif

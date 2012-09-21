@@ -20,7 +20,7 @@ class BackgroundControl {
 
 private:
   
-  map<double, map< double, BackgroundIntensityBin> > intensityBinMap;
+  std::map<double, std::map< double, BackgroundIntensityBin> > intensityBinMap;
 
   void init();
 
@@ -30,15 +30,15 @@ public:
 
   BackgroundControl();
   
-  void addPeakMSScan( double , list<CentroidPeak>* peakList );
+  void addPeakMSScan( double , std::list<CentroidPeak>* peakList );
   
   double getBackgroundLevel( double mz, double tr);
   
   // find a key in the intensity map:
-  map<double, map< double, BackgroundIntensityBin>  >::iterator findTrKey( double );
+  std::map<double, std::map< double, BackgroundIntensityBin>  >::iterator findTrKey( double );
   
   // find a key in the m/z map:
-  map< double, BackgroundIntensityBin>::iterator findMzKey( double mz, map< double, BackgroundIntensityBin>* );
+  std::map< double, BackgroundIntensityBin>::iterator findMzKey( double mz, std::map< double, BackgroundIntensityBin>* );
 
   void processIntensityMaps(  );    
     

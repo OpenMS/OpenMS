@@ -17,8 +17,6 @@
 
 #include <OpenMS/config.h>
 
-using namespace std;
-
 // Class for the storage of raw MS data
 class OPENMS_DLLAPI RawData{
 
@@ -27,22 +25,22 @@ public:
   double LOW_INTENSITY_MS_SIGNAL_THRESHOLD;
    
 		RawData();
-		RawData(vector<double>&,vector<double>&);
+    RawData(std::vector<double>&,std::vector<double>&);
 		virtual ~RawData();
 		
-		friend ostream& operator<<(ostream& pOut, RawData& pRawData);
+		friend std::ostream& operator<<(std::ostream& pOut, RawData& pRawData);
   
-		void get(vector<double>&,vector<double>&);
-		void set(vector<double>&,vector<double>&);
+		void get(std::vector<double>&,std::vector<double>&);
+		void set(std::vector<double>&,std::vector<double>&);
 		
 		// Virtual functions
 		virtual void smooth() {};
   
 protected:
-		vector<double> fProfileMasses;
-		vector<double> fProfileIntens;
+		std::vector<double> fProfileMasses;
+		std::vector<double> fProfileIntens;
 };
 
-ostream& operator<<(ostream& pOut, RawData& pRawData);
+std::ostream& operator<<(std::ostream& pOut, RawData& pRawData);
 
 #endif

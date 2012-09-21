@@ -21,15 +21,10 @@
 #include <map>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/consensIsotopePattern.h>
 
-using namespace std;
-
-
-typedef multimap<int, ms_peak > elution_peak;
-typedef vector< elution_peak > MZ_series;
-typedef vector< elution_peak >::iterator MZ_series_ITERATOR;
-typedef multimap<int, ms_peak >::iterator SIGNAL_iterator;
-
-
+typedef std::multimap<int, ms_peak > elution_peak;
+typedef std::vector< elution_peak > MZ_series;
+typedef std::vector< elution_peak >::iterator MZ_series_ITERATOR;
+typedef std::multimap<int, ms_peak >::iterator SIGNAL_iterator;
 
 class LC_elution_peak{
 
@@ -63,12 +58,12 @@ protected:
   double fSNIntensityThreshold;
   ms_peak* APEX;
   
-  string elutionPeakExtraInfo;
+  std::string elutionPeakExtraInfo;
   
   // the raw signals assigned to this peak
-  multimap<int, ms_peak> intens_signals;
+  std::multimap<int, ms_peak> intens_signals;
   //multimap<int, ms_peak> raw_intens_signals;
-  multimap<int, int> CHRG_MAP;
+  std::multimap<int, int> CHRG_MAP;
   
  
   
@@ -165,7 +160,7 @@ public:
   void createConsensIsotopPattern();
 
   // print the elution profile from a peak:
-  void print_profile(ofstream*);
+  void print_profile(std::ofstream*);
   // find the closest existing mz peak in the elution profile:
   ms_peak* find_true_peak(float);
   // print the elution profile from a peak:
@@ -188,8 +183,8 @@ public:
   //void printConsensIsotopPattern();
 
   
-  void setElutionPeakExtraInfo( string in){elutionPeakExtraInfo = in;};
-  string getElutionPeakExtraInfo( ){return elutionPeakExtraInfo;};
+  void setElutionPeakExtraInfo( std::string in){elutionPeakExtraInfo = in;};
+  std::string getElutionPeakExtraInfo( ){return elutionPeakExtraInfo;};
   
   ///////////////////////////////
   // start here all the get / set
@@ -211,9 +206,9 @@ public:
   
   // to update the list of score and charge state:
   void update_CHRGMAP( ms_peak* IN ){
-    multimap<int, int>::iterator T = CHRG_MAP.find( IN->get_charge_state() );
+    std::multimap<int, int>::iterator T = CHRG_MAP.find( IN->get_charge_state() );
     if( T == CHRG_MAP.end() ){
-      CHRG_MAP.insert( make_pair( IN->get_charge_state(), 1 ) );
+      CHRG_MAP.insert( std::make_pair( IN->get_charge_state(), 1 ) );
     }
     else{
       (*T).second++;

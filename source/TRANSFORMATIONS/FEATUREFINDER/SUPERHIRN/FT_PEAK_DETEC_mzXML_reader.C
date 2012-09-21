@@ -36,11 +36,11 @@
 
 // debugging classes:
 int	FT_PEAK_DETEC_mzXML_reader::sfReportMonoPeaks = 0; // 1 if info about monoisotopic peaks should be written to mono_peaks.txt
-string FT_PEAK_DETEC_mzXML_reader::sfDebugDirectory; // Directory where peak detection debug files are written
+std::string FT_PEAK_DETEC_mzXML_reader::sfDebugDirectory; // Directory where peak detection debug files are written
 int	FT_PEAK_DETEC_mzXML_reader::sfReportScanNumber = -1; // if sfReportMonoPeaks is set to 1, details about this spectrum will be written to debug files 
 
-vector<double> FT_PEAK_DETEC_mzXML_reader::FRAGMENT_MASS_SCAN_LEVELS;
-vector<double> FT_PEAK_DETEC_mzXML_reader::PEAK_EXTRACTION_SCAN_LEVELS;
+std::vector<double> FT_PEAK_DETEC_mzXML_reader::FRAGMENT_MASS_SCAN_LEVELS;
+std::vector<double> FT_PEAK_DETEC_mzXML_reader::PEAK_EXTRACTION_SCAN_LEVELS;
 bool FT_PEAK_DETEC_mzXML_reader::MS2_PEAK_PROCESSING = false;
 int FT_PEAK_DETEC_mzXML_reader::MS1_base_inter_scan_distance;
 int FT_PEAK_DETEC_mzXML_reader::MS2_base_inter_scan_distance;
@@ -90,7 +90,7 @@ void FT_PEAK_DETEC_mzXML_reader::set_current_indexes(double pminrt, double pmaxr
   maxRT = pmaxrt;
   
   // FLOFLO
-  cout << "minRT = " << minRT << ", maxRT = " << maxRT << "\n";
+  std::cout << "minRT = " << minRT << ", maxRT = " << maxRT << "\n";
 
     ExternalIsotopicDistribution::initRetentionTimeSegments( minRT, maxRT );
 
@@ -111,7 +111,7 @@ void FT_PEAK_DETEC_mzXML_reader::read_mzXML_DATA(Vec datavec){
   
   std::cout << "Anzahl scans: " << datavec.size() << std::endl;
   
-  map<double, RawData*>::const_iterator it;
+  std::map<double, RawData*>::const_iterator it;
   for (i=0; i<datavec.size(); i++)
   {
     
@@ -119,12 +119,12 @@ void FT_PEAK_DETEC_mzXML_reader::read_mzXML_DATA(Vec datavec){
     
     // debug code to compare inputs in CleanUpSH2 and Superhirn
     RawData* pRawData = it->second;
-    vector<double> masses,intens;
+    std::vector<double> masses,intens;
     pRawData->get(masses,intens);
     get_MS_scan(i, it->first, it->second);
   }
   
-  cout << "Number of scans: " << i << "\n";
+  std::cout << "Number of scans: " << i << "\n";
     
   /*
   // check all the scans of the current region:

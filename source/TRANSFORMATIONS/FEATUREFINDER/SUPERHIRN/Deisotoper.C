@@ -19,6 +19,8 @@
 #include <list>
 #include <iostream>
 
+using namespace std;
+
 int Deisotoper::sfMinCharge = 1; // minimum charge considered in peak detection
 int	Deisotoper::sfMaxCharge = 5; // maximum charge considered in peak detection
 

@@ -26,9 +26,6 @@
 
 #include <map>
 
-using namespace std;
-
-
 // this structure stores the monoisotopic
 // signals of LC elution peak:
 struct MS1Signal{
@@ -48,8 +45,8 @@ class featureLCprofile{
   // declaration of the private members:
 private:
   
-  map<int, MS1Signal> LCelutionSignals;
-  map<int, MS1Signal> outsideLCelutionSignals;
+  std::map<int, MS1Signal> LCelutionSignals;
+  std::map<int, MS1Signal> outsideLCelutionSignals;
 
   
   // elution area
@@ -100,10 +97,10 @@ public:
   void addOutsideMS1elutionSignal(  double , double , int , int, double );
   void addMS1elutionSignal( MS1Signal* in);
 
-  map<int, MS1Signal>* getLCelutionSignalMap(){ return &LCelutionSignals;};
-  map<int, MS1Signal>::iterator getLCelutionSignalsStart(){ return LCelutionSignals.begin();};
-  map<int, MS1Signal>::reverse_iterator getLastLCelutionSignal(){ return LCelutionSignals.rbegin();};
-  map<int, MS1Signal>::iterator getLCelutionSignalsEnd(){ return LCelutionSignals.end();};
+  std::map<int, MS1Signal>* getLCelutionSignalMap(){ return &LCelutionSignals;};
+  std::map<int, MS1Signal>::iterator getLCelutionSignalsStart(){ return LCelutionSignals.begin();};
+  std::map<int, MS1Signal>::reverse_iterator getLastLCelutionSignal(){ return LCelutionSignals.rbegin();};
+  std::map<int, MS1Signal>::iterator getLCelutionSignalsEnd(){ return LCelutionSignals.end();};
   int getNbLCelutionSignals(){ return LCelutionSignals.size();};
 
   

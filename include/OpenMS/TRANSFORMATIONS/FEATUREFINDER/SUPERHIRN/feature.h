@@ -36,7 +36,7 @@ private:
   /////////////////////////////////////////////
   // IDENTIFICATION PARAMETERS:
   // name of the spectra:
-  map<double, vector< ms2_info> > MS2_SCANS;
+  std::map<double, std::vector< ms2_info> > MS2_SCANS;
   /////////////////////////////////////////////
   
   /////////////////////////////////////////////
@@ -65,7 +65,7 @@ private:
   
   ///////////////////////////////////////////
   // string to store ms1 feature extra information:
-  string featureExtraInformation;
+  std::string featureExtraInformation;
   
   ///////////////////////////////////////////
   // LC elution profile:
@@ -77,7 +77,7 @@ private:
   
   //////////////////////////////////////////
   // LC/MS matching things:
-  map<int, feature> matched_feature_list;
+  std::map<int, feature> matched_feature_list;
   
   
   // ranges of m/z and tr:
@@ -136,7 +136,7 @@ public:
 
   
   // writes out teh feature to a file:
-  void print_2_file(ofstream*);
+  void print_2_file(std::ofstream*);
   
   //////////////////////////////////
   // comparision operators:
@@ -149,33 +149,33 @@ public:
   */
   
   // writes out the important information:
-  void print_content(ofstream*,bool);
+  void print_content(std::ofstream*,bool);
   // add MS/MS info to the feature:
   void add_MS2_info(ms2_info*);
-  void add_MS2_info( map<double, vector<ms2_info> >*);
+  void add_MS2_info( std::map<double, std::vector<ms2_info> >*);
   bool get_MS2_info();
   bool get_MS2_info( double );
   bool check_MS2_empty(){return MS2_SCANS.empty();};
   void removeAllMS2Information(){return MS2_SCANS.clear();};
   int get_MS2_SCANS_SIZE(){return MS2_SCANS.size();};
-  map<double, vector<ms2_info> >* get_MS2_SCAN_MAP(){return &MS2_SCANS;};
-  map<double, vector<ms2_info> >::iterator get_MS2_SCANS_START(){return MS2_SCANS.begin();};
-  map<double, vector<ms2_info> >::iterator get_MS2_SCANS_END(){return MS2_SCANS.end();};
+  std::map<double, std::vector<ms2_info> >* get_MS2_SCAN_MAP(){return &MS2_SCANS;};
+  std::map<double, std::vector<ms2_info> >::iterator get_MS2_SCANS_START(){return MS2_SCANS.begin();};
+  std::map<double, std::vector<ms2_info> >::iterator get_MS2_SCANS_END(){return MS2_SCANS.end();};
   // get the best ms2 scan == closest to the apex:
   ms2_info* get_best_MS2_SCAN();
   ms2_info* get_best_MS2_SCAN( double );
   
-  void setFeatureExtraInformation( string in){featureExtraInformation=in;};
-  string getFeatureExtraInformation(){return featureExtraInformation;};
+  void setFeatureExtraInformation( std::string in){featureExtraInformation=in;};
+  std::string getFeatureExtraInformation(){return featureExtraInformation;};
   
   
   // functions to set/access machted features:
   void add_matched_feature(feature*);
-  map<int,feature>* get_match_list_REFERENCE(){return &matched_feature_list;};
-  map<int,feature> get_match_list(){return matched_feature_list;};
-  map<int,feature>::iterator get_match_list_start(){return matched_feature_list.begin();};
-  map<int,feature>::iterator get_match_list_end(){return matched_feature_list.end();};
-  map<int,feature>::iterator find_match_by_id(int ID){return matched_feature_list.find(ID);};
+  std::map<int,feature>* get_match_list_REFERENCE(){return &matched_feature_list;};
+  std::map<int,feature> get_match_list(){return matched_feature_list;};
+  std::map<int,feature>::iterator get_match_list_start(){return matched_feature_list.begin();};
+  std::map<int,feature>::iterator get_match_list_end(){return matched_feature_list.end();};
+  std::map<int,feature>::iterator find_match_by_id(int ID){return matched_feature_list.find(ID);};
 
   // get feature at a certain LC-MS by LC_MS id
   feature* get_feature( int );
@@ -185,7 +185,7 @@ public:
   bool check_match_by_id(int);
   void erase_match_list(){matched_feature_list.clear();};
   // get the profile over all matched features:
-  map<int, double> get_feature_profile();
+  std::map<int, double> get_feature_profile();
 
   // return number of times this feature has been seen = nb_replicates in list plus 1!
   int get_replicate_match_nb(){return (matched_feature_list.size() + 1);};
@@ -208,25 +208,25 @@ public:
   
   double get_THEO_MZ(){return get_best_MS2_SCAN()->get_MONO_MZ();};
   double get_THEO_MZ( double T){return get_best_MS2_SCAN( T )->get_MONO_MZ();};
-  string get_AC(){return get_best_MS2_SCAN()->get_AC();};
-  string get_AC(double T){return get_best_MS2_SCAN(T)->get_AC();};
-  bool check_AC( string IN){return get_best_MS2_SCAN()->compare_AC(IN);};
-  bool check_AC( string IN, double T){return get_best_MS2_SCAN( T )->compare_AC(IN);};
-  string get_SQ(){return get_best_MS2_SCAN()->get_SQ();};
-  string get_SQ(double T){return get_best_MS2_SCAN(T)->get_SQ();};
-  string get_TOTAL_SQ(){return get_best_MS2_SCAN()->get_TOTAL_SQ();};
-  string get_TOTAL_SQ(double T){return get_best_MS2_SCAN(T)->get_TOTAL_SQ();};
-  string get_MOD_SQ(){return get_best_MS2_SCAN()->get_MOD_SQ();};
-  string get_MOD_SQ(double T){return get_best_MS2_SCAN(T)->get_MOD_SQ();};
+  std::string get_AC(){return get_best_MS2_SCAN()->get_AC();};
+  std::string get_AC(double T){return get_best_MS2_SCAN(T)->get_AC();};
+  bool check_AC( std::string IN){return get_best_MS2_SCAN()->compare_AC(IN);};
+  bool check_AC( std::string IN, double T){return get_best_MS2_SCAN( T )->compare_AC(IN);};
+  std::string get_SQ(){return get_best_MS2_SCAN()->get_SQ();};
+  std::string get_SQ(double T){return get_best_MS2_SCAN(T)->get_SQ();};
+  std::string get_TOTAL_SQ(){return get_best_MS2_SCAN()->get_TOTAL_SQ();};
+  std::string get_TOTAL_SQ(double T){return get_best_MS2_SCAN(T)->get_TOTAL_SQ();};
+  std::string get_MOD_SQ(){return get_best_MS2_SCAN()->get_MOD_SQ();};
+  std::string get_MOD_SQ(double T){return get_best_MS2_SCAN(T)->get_MOD_SQ();};
   double get_pep_prob(){return get_best_MS2_SCAN()->get_PEP_PROB();};
   double get_pep_prob(double T){return get_best_MS2_SCAN(T)->get_PEP_PROB();};
-  string get_MS2_TYPE_TAG(){return get_best_MS2_SCAN()->get_MS2_TYPE_TAG();};
-  string get_MS2_TYPE_TAG(double T){return get_best_MS2_SCAN(T)->get_MS2_TYPE_TAG();};
+  std::string get_MS2_TYPE_TAG(){return get_best_MS2_SCAN()->get_MS2_TYPE_TAG();};
+  std::string get_MS2_TYPE_TAG(double T){return get_best_MS2_SCAN(T)->get_MS2_TYPE_TAG();};
   int get_MS2_scan(){return get_best_MS2_SCAN()->get_SCAN_START();};
   int get_MS2_scan(double T){return get_best_MS2_SCAN(T)->get_SCAN_START();};
-  map<double, vector<ms2_info> >* get_MS2_SCAN_LIST(){return &(MS2_SCANS);};
-  map<double, vector<ms2_info> >::iterator get_MS2_SCAN_LIST_START(){return MS2_SCANS.begin();};
-  map<double, vector<ms2_info> >::iterator get_MS2_SCAN_LIST_END(){return MS2_SCANS.end();};
+  std::map<double, std::vector<ms2_info> >* get_MS2_SCAN_LIST(){return &(MS2_SCANS);};
+  std::map<double, std::vector<ms2_info> >::iterator get_MS2_SCAN_LIST_START(){return MS2_SCANS.begin();};
+  std::map<double, std::vector<ms2_info> >::iterator get_MS2_SCAN_LIST_END(){return MS2_SCANS.end();};
   
   int get_scan_number(){return scan_apex;};
   void set_scan_number(int IN){scan_apex = IN;};

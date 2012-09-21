@@ -20,7 +20,6 @@
 #include <vector>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2ConsensusSpectrum.h>
-using namespace std;
 
 class ClusteredMS2ConsensusSpectrum : public MS2ConsensusSpectrum{
 
@@ -35,7 +34,7 @@ private:
   // declaration of the public members:
   
   // stores the individual MS/MS spectra:
-  vector<int> MS2Scans;
+  std::vector<int> MS2Scans;
   
 public:
   
@@ -104,8 +103,8 @@ public:
   // variables of the class
  
   int getNumberOfSpectraScan(){return MS2Scans.size();};
-  vector<int>::iterator getSpectraScanNumberStart(){return MS2Scans.begin();};
-  vector<int>::iterator getSpectraScanNumberEnd(){return MS2Scans.end();};
+  std::vector<int>::iterator getSpectraScanNumberStart(){return MS2Scans.begin();};
+  std::vector<int>::iterator getSpectraScanNumberEnd(){return MS2Scans.end();};
     
 };
 

@@ -39,8 +39,8 @@ private:
   // created from teh overlap of A and B
   LC_MS* lcmsMap;
   
-  vector<int> idsToRemove;
-  map< double, vector<feature*> > mzClusters;
+  std::vector<int> idsToRemove;
+  std::map< double, std::vector<feature*> > mzClusters;
 
   
   ////////////////////////////////////////////////
@@ -69,9 +69,9 @@ public:
   // create a distribution of delta Tr for the splited features
   void createMZFeatureClusters();
   // process a vector of m/z features
-  void processMZFeatureVector(vector<feature*>* );
+  void processMZFeatureVector(std::vector<feature*>* );
   // find to this feature the features which should be merged
-  vector<feature*>::iterator findFeaturesToMerge(feature* , vector<feature*>::iterator , vector<feature*>* );
+  std::vector<feature*>::iterator findFeaturesToMerge(feature* , std::vector<feature*>::iterator , std::vector<feature*>* );
   // compare if a feature belongs to another feature
   bool compareMZFeatureBeloning(feature* , feature* );
   // merge the target to the search feature

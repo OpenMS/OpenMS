@@ -17,19 +17,16 @@
 #ifndef PROCESS_DATA_H
 #define PROCESS_DATA_H
 
-
 #include <map>
 #include <vector>
 #include <string>
 #include <list>
 
-using namespace std;
-
-typedef multimap<int, ms_peak > elution_peak;
-typedef vector< elution_peak > MZ_series;
-typedef vector< elution_peak >::iterator MZ_series_ITERATOR;
-typedef vector< elution_peak >::reverse_iterator MZ_series_REV_ITERATOR;
-typedef multimap< double, MZ_series> MAIN_DATA_STRUCTURE;
+typedef std::multimap<int, ms_peak > elution_peak;
+typedef std::vector< elution_peak > MZ_series;
+typedef std::vector< elution_peak >::iterator MZ_series_ITERATOR;
+typedef std::vector< elution_peak >::reverse_iterator MZ_series_REV_ITERATOR;
+typedef std::multimap< double, MZ_series> MAIN_DATA_STRUCTURE;
 typedef MAIN_DATA_STRUCTURE::iterator MAIN_ITERATOR;
 
 
@@ -63,7 +60,7 @@ protected:
   
   // tracks the number of observed mz cluster
   // elements:
-  map<double, int> MZ_CLUSTER;
+  std::map<double, int> MZ_CLUSTER;
   unsigned int LC_elution_peak_counter;
   
   
@@ -87,7 +84,7 @@ public:
   // define minimal number of members in LC elution peaks cluster
   static int min_nb_cluster_members;
     
-    static map<int, float> scan_TR_index;
+    static std::map<int, float> scan_TR_index;
   
   // to track detected monoistopic mass for debugging:
   static bool MonoIsoDebugging;
@@ -111,7 +108,7 @@ public:
   // inputs raw /centroided  data into the object:
   void add_scan_raw_data(int , float , CentroidData* );    
   // inputs raw data into the object:
-  void add_scan_raw_data(int, float, vector<ms_peak>);
+  void add_scan_raw_data(int, float, std::vector<ms_peak>);
   
   //////////////////////////////////////////////////
   // overload operators:
@@ -134,7 +131,7 @@ public:
   
   
   // converts DeconvPeak list to ms_peak vector
-  void convert_ms_peaks(int ,double , list<DeconvPeak>& ,vector<ms_peak>& );
+  void convert_ms_peaks(int ,double , std::list<DeconvPeak>& ,std::vector<ms_peak>& );
 
   // check if the ms peak is in the selected mz, z, int range
   bool filterDeisotopicMSPeak(ms_peak* );
@@ -154,7 +151,7 @@ public:
   ///////////////////////////////////////////////////////////////////////////////
   // process a series of MS peaks
   // set the signal to noise level:
-  void processMSPeaks(multimap<int, ms_peak>* );
+  void processMSPeaks(std::multimap<int, ms_peak>* );
     
   
   ///////////////////////////////////////////////////////////////////////////////
@@ -216,14 +213,14 @@ public:
 
   // access the MZ_CLUSTER:
   // find element numbers:
-  map<double, int>::iterator get_nb_MZ_cluster_elements(double);
+  std::map<double, int>::iterator get_nb_MZ_cluster_elements(double);
   // erase an element:
-  void erase_MZ_cluster_element(map<double, int>::iterator);
+  void erase_MZ_cluster_element(std::map<double, int>::iterator);
   // insert an element:
   void insert_MZ_cluster_element(double, int);
   
   // add the scan vs TR index to the data structure:
-  void add_scan_TR_index(map<int, float> IN){scan_TR_index = IN;};
+  void add_scan_TR_index(std::map<int, float> IN){scan_TR_index = IN;};
 
   // get the processed data:
   LCMSCData* get_processed_data(){return DATA;};
@@ -238,7 +235,7 @@ public:
   
   
   // build up an index scan vs retention time:
-  static void insert_into_scan_TR_index(int IN, float TR){scan_TR_index.insert(pair<int, float>(IN,TR));};
+  static void insert_into_scan_TR_index(int IN, float TR){scan_TR_index.insert(std::pair<int, float>(IN,TR));};
 
 };
 

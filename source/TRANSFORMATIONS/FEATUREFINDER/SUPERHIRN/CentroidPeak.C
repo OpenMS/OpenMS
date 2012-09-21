@@ -10,6 +10,8 @@
  *
  */
 
+#include <list>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 
 // TODO Refactor
@@ -21,6 +23,7 @@
 #include <algorithm>
 #include <iomanip>
 
+using namespace std;
 
 int	CentroidPeak::sfCentroidWindowWidth = 5; // Centroid window width
 
@@ -135,11 +138,11 @@ void CentroidPeak::subtractIntensity(
 
 
 // Writes data to out stream using the << operator
-ostream& operator<<(
-	ostream& pOut, // output stream 
+std::ostream& operator<<(
+                         std::ostream& pOut, // output stream 
 	CentroidPeak& pCentroidPeak) // 
 {
-	pOut << fixed << setprecision(4) << pCentroidPeak.getMass() << " " << fixed << setprecision(2) << pCentroidPeak.getIntensity();
+	pOut << std::fixed << std::setprecision(4) << pCentroidPeak.getMass() << " " << std::fixed << std::setprecision(2) << pCentroidPeak.getIntensity();
 	return pOut;
 }
 

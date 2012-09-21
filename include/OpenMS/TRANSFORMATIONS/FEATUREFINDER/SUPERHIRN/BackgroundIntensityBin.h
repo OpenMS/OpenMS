@@ -13,16 +13,8 @@
 // 
 //
 
-
 #ifndef USE_BACKGROUND_INTENSITY_BIN_H
 #define USE_BACKGROUND_INTENSITY_BIN_H
-
-#include <string>
-#include <vector>
-#include <map>
-
-using namespace std;
-
 
 class BackgroundIntensityBin {
 
@@ -33,8 +25,8 @@ private:
   double trCoord;
   double zCoord;  
   
-  vector<double> IntensityMap;  
-  map<double, double> IntensityHist;
+  std::vector<double> IntensityMap;  
+  std::map<double, double> IntensityHist;
 
   double mean;
   double median;
@@ -60,8 +52,8 @@ public:
   // process collected intensities in the map
   void processIntensities( );
 
-  vector<double>* getIntensityMap(){ return &IntensityMap;};
-  map<double, double>* getIntensityHist(){ return &IntensityHist;};
+  std::vector<double>* getIntensityMap(){ return &IntensityMap;};
+  std::map<double, double>* getIntensityHist(){ return &IntensityHist;};
   double getMean(){return mean;};
 };
 

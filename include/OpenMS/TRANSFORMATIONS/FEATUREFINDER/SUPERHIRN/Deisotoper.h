@@ -17,23 +17,19 @@ class CentroidData;
 class DeconvPeak;
 
 #include <list>
-#include <vector>
 #include <iostream>
-
-using namespace std;
 
 class Deisotoper 
 {
 public:
   static int sfMinCharge;
   static int	sfMaxCharge;
-
   
 	Deisotoper();
 	Deisotoper(CentroidData&);
 	virtual ~Deisotoper();
 	
-	list<DeconvPeak>& getDeconvPeaks() {return fDeconvPeaks;}
+  std::list<DeconvPeak>& getDeconvPeaks() {return fDeconvPeaks;}
 	
 	void go(CentroidData&);
 	void cleanDeconvPeaks();
@@ -50,7 +46,7 @@ public:
 	
 protected:
 
-   list<DeconvPeak> fDeconvPeaks;
+  std::list<DeconvPeak> fDeconvPeaks;
  
 	int		fMinPeakGroupSize;
 	double	fTheta;
@@ -58,6 +54,6 @@ protected:
 	bool	fShortReportFlag;
 };
 
-ostream& operator<<(ostream&, Deisotoper&);
+std::ostream& operator<<(std::ostream&, Deisotoper&);
 
 #endif

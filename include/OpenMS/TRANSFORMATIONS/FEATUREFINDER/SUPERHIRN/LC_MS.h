@@ -27,8 +27,6 @@
 #include <vector>
 #include <map>
 
-using namespace std;
-
 typedef feature LC_MS_FEATURE;
 
 class LC_MS{
@@ -40,10 +38,10 @@ class LC_MS{
 private:
   
   // name of the spectra:
-  string spec_name;
+  std::string spec_name;
   
   // vector of object feature:
-  vector<LC_MS_FEATURE> feature_list;
+  std::vector<LC_MS_FEATURE> feature_list;
   
   // a unique specrum id to identify a spectrum:
   int spectrum_id;
@@ -52,10 +50,10 @@ private:
   int MASTER_ID;
   
   // the LC-MS raw data names and their IDs
-  map<int, string> raw_spec_names;
+  std::map<int, std::string> raw_spec_names;
   
   // alignment error:
-  map<double, pair<double,double> > ALIGNMENT_ERROR;
+  std::map<double, std::pair<double,double> > ALIGNMENT_ERROR;
  
  ////////////////////////////////////////////////
  // declaration of the public members:
@@ -70,7 +68,7 @@ public:
    ~LC_MS();
  
   // class constructor
-  LC_MS(string);
+  LC_MS(std::string);
   LC_MS();
   // copy constructor
   LC_MS(const LC_MS*);
@@ -81,7 +79,7 @@ public:
   // show the content of the spectra
   void show_info();
   // print teh content of the LC/MS run to a file:
-  void print_2_file(string);
+  void print_2_file(std::string);
   
   
   // copy constructor:
@@ -131,7 +129,7 @@ public:
     
   // tag the feature with the spectrum id:
   void tag_peaks_with_spectrum_ID(){
-    vector<LC_MS_FEATURE>::iterator p = feature_list.begin();
+    std::vector<LC_MS_FEATURE>::iterator p = feature_list.begin();
     while(p != feature_list.end()){
       (*p).set_spectrum_ID(get_spectrum_ID());
       p++;
@@ -150,13 +148,13 @@ public:
   
   // get the whole feature list:
   void clear_feature_list(){return feature_list.clear();};
-  vector<LC_MS_FEATURE> get_feature_list(){return feature_list;};
-  vector<LC_MS_FEATURE>* get_feature_list_reference(){return &feature_list;};
+  std::vector<LC_MS_FEATURE> get_feature_list(){return feature_list;};
+  std::vector<LC_MS_FEATURE>* get_feature_list_reference(){return &feature_list;};
   bool check_feature_list_empty(){return feature_list.empty();};
   
   // access end /start of list:
-  vector<LC_MS_FEATURE>::iterator get_feature_list_begin(){return feature_list.begin();};
-  vector<LC_MS_FEATURE>::iterator get_feature_list_end(){return feature_list.end();};
+  std::vector<LC_MS_FEATURE>::iterator get_feature_list_begin(){return feature_list.begin();};
+  std::vector<LC_MS_FEATURE>::iterator get_feature_list_end(){return feature_list.end();};
   
   // add a new feature to the list:
   void add_feature( feature* IN){
@@ -180,13 +178,13 @@ public:
   }
   
   // remove a feature by iterator and return the iterator to the next element
-  vector< LC_MS_FEATURE >::iterator remove_feature_from_list(vector< LC_MS_FEATURE >::iterator IN){return feature_list.erase(IN);}; 
+  std::vector< LC_MS_FEATURE >::iterator remove_feature_from_list(std::vector< LC_MS_FEATURE >::iterator IN){return feature_list.erase(IN);}; 
   
   // get number of feature added:
   unsigned int get_nb_features(){return feature_list.size();};
   
-  string get_spec_name(){return spec_name;};
-  void set_spec_name(string IN){spec_name = IN;};
+  std::string get_spec_name(){return spec_name;};
+  void set_spec_name(std::string IN){spec_name = IN;};
   
   // set / get spectrum id:
   int get_spectrum_ID(){return spectrum_id;};
@@ -200,31 +198,31 @@ public:
   
   // access the raw data names:
   void remove_raw_spec_name(int ID){raw_spec_names.erase( ID );};
-  void add_raw_spec_name(int ID, string name){raw_spec_names.insert( make_pair(ID, name) );};
+  void add_raw_spec_name(int ID, std::string name){raw_spec_names.insert( make_pair(ID, name) );};
   bool check_raw_spec_name_empty(){return raw_spec_names.empty();};
-  map<int, string>::iterator get_raw_spec_name_start(){return raw_spec_names.begin();};
-  map<int, string>::iterator get_raw_spec_name_end(){return raw_spec_names.end();};
-  map<int, string> get_raw_spec_name_map(){ return raw_spec_names;};
+  std::map<int, std::string>::iterator get_raw_spec_name_start(){return raw_spec_names.begin();};
+  std::map<int, std::string>::iterator get_raw_spec_name_end(){return raw_spec_names.end();};
+  std::map<int, std::string> get_raw_spec_name_map(){ return raw_spec_names;};
   int get_nb_raw_specs(){ return raw_spec_names.size();};
-  string get_raw_spec_name(int ID){ map<int, string>::iterator p = raw_spec_names.find(ID); 
+  std::string get_raw_spec_name(int ID){ std::map<int, std::string>::iterator p = raw_spec_names.find(ID); 
     if( p == raw_spec_names.end() ){
       return "";
     }
     return (*p).second;
   };
   // compare the LC/MS runs names 
-  bool check_LCMS_name( string );
+  bool check_LCMS_name( std::string );
 
 
   // check if this LC/MS ID is present in the raw LC/MS runs 
   bool find_LC_MS_by_ID( int );
   
   // add the raw spectrum map:
-  void add_raw_spec_name_map(map<int, string> IN){ 
-    map<int, string>::iterator p = IN.begin(); 
+  void add_raw_spec_name_map(std::map<int, std::string> IN){ 
+    std::map<int, std::string>::iterator p = IN.begin(); 
     while(p != IN.end()){
       int ID = (*p).first;
-      map<int, string >::iterator F = raw_spec_names.find( ID );
+      std::map<int, std::string >::iterator F = raw_spec_names.find( ID );
       if( F != raw_spec_names.end() ){
         ID += raw_spec_names.size();
       }
@@ -236,7 +234,7 @@ public:
   // counts the number of ms features, which contain MS2 info:
   int get_nb_identified_features(){
     int count = 0;
-    vector< LC_MS_FEATURE >::iterator P = get_feature_list_begin();
+    std::vector< LC_MS_FEATURE >::iterator P = get_feature_list_begin();
     while(P != get_feature_list_end()){
       if( (*P).get_MS2_info() )
         count++;
@@ -248,7 +246,7 @@ public:
   // counts the number of ms features, which contain MS2 info (no thresholding)
   int get_nb_identified_features( double PepProb_T){
     int count = 0;
-    vector<LC_MS_FEATURE >::iterator P = get_feature_list_begin();
+    std::vector<LC_MS_FEATURE >::iterator P = get_feature_list_begin();
     while(P != get_feature_list_end()){
       if( (*P).get_MS2_info( PepProb_T ) )
         count++;
@@ -261,8 +259,8 @@ public:
   // access the alignment error:
   // save an error:
   void add_alignment_error(double TR, double ERROR_UP, double ERROR_DOWN){ 
-    pair<double,double> tmp(ERROR_UP,ERROR_DOWN);
-    ALIGNMENT_ERROR.insert(pair<double, pair<double,double> >(TR, tmp));
+    std::pair<double,double> tmp(ERROR_UP,ERROR_DOWN);
+    ALIGNMENT_ERROR.insert(std::pair<double, std::pair<double,double> >(TR, tmp));
   };
   
   // get alignment error at specific TR:
