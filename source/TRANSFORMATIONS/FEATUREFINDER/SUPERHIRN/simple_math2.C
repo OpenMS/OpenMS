@@ -231,13 +231,13 @@ void simple_math2::OUTLIER_DETECTION_BY_DIXON(vector< pair<double, double> >* IN
     
     
     // delete here outliers if detected:
-    if( check_T_TEST( TAU_HIGH, SAMPLE_SIZE ) && HIGH_CHECK ){
+    if( check_T_TEST( TAU_HIGH, (int) SAMPLE_SIZE ) && HIGH_CHECK ){
       END = IN->end();
       END--;
       IN->erase( END );
     }
     
-    if( check_T_TEST( TAU_LOW, SAMPLE_SIZE )  && LOW_CHECK ){
+    if( check_T_TEST( TAU_LOW, (int) SAMPLE_SIZE )  && LOW_CHECK ){
       START = IN->begin();
       IN->erase( START );
     }
@@ -387,12 +387,12 @@ void simple_math2::OUTLIER_DETECTION_BY_DIXON(vector< pair<double, void*> >* IN)
     
     
     // delete here outliers if detected:
-    if( check_T_TEST( TAU_HIGH, SAMPLE_SIZE ) ){
+    if( check_T_TEST( TAU_HIGH, (int) SAMPLE_SIZE ) ){
       END = IN->end();
       END--;
       IN->erase( END );
     }
-    if( check_T_TEST( TAU_LOW, SAMPLE_SIZE ) ){
+    if( check_T_TEST( TAU_LOW, (int) SAMPLE_SIZE ) ){
       START = IN->begin();
       IN->erase( START );
     }
