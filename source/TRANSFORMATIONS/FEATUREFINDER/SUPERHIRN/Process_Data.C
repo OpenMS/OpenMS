@@ -319,7 +319,7 @@ double Process_Data::find_retention_time(double IN){
     }
   }
   else{
-    return 0;
+    return 0.0;
   }
 }
 
