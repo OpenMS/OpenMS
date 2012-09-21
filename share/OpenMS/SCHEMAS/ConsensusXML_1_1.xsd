@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:element name="ConsensusXML">
+	<xs:element name="consensusXML">
 		<xs:annotation>
 			<xs:documentation> Schema for a  result of an multiple LC-MS map alignment. </xs:documentation>
 		</xs:annotation>
@@ -16,6 +16,11 @@
 				<xs:element ref="transformationList" minOccurs="0"/>
 				<xs:element ref="consensusElementList"/>
 			</xs:sequence>
+			<xs:attribute name="version" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Schema version, e.g. '1.1'. If it is missing, version 1.0 is assumed.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
 		</xs:complexType>
 	</xs:element>
 	<xs:element name="alignmentMethod">
@@ -54,7 +59,7 @@
 	</xs:element>
 	<xs:element name="mapType">
 		<xs:annotation>
-			<xs:documentation>The format of the aligned LC-MS maps. Use "feat_map" for feature maps which are stored in featureXML or "consensus_map" for consensus maps in consensusXML..</xs:documentation>
+			<xs:documentation>The format of the aligned LC-MS maps. Use "feat_map" for feature maps which are stored in featureXML or "consensus_map" for consensus maps in ConsensusXML..</xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:attribute name="name" use="required">

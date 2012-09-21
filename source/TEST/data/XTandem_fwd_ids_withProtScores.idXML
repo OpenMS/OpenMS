@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="file:////OpenMS/XSL/idXML.xsl"?>
-<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/idXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="file:////OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="uniprot_sprot.fasta.pro" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+4" enzyme="unknown_enzyme" missed_cleavages="2" precursor_peak_tolerance="3" peak_mass_tolerance="0.3" >
 		<VariableModification name="MOD:01214" />
 		<VariableModification name="MOD:00719" />

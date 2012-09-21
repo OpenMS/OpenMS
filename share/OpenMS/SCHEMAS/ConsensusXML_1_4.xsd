@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- edited with XMLSpy v2008 rel. 2 sp2 (http://www.altova.com) by Chris Bielow (FU Berlin) -->
+<!-- edited with gvim by Clemens Groepl, 2009-10-07. -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:element name="ConsensusXML">
+	<xs:element name="consensusXML">
 		<xs:annotation>
 			<xs:documentation> Schema for a result of a multiple LC-MS map alignment. </xs:documentation>
 		</xs:annotation>
@@ -369,9 +367,14 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="id" type="xs:string">
+			<xs:attribute name="document_id" type="xs:string">
 				<xs:annotation>
 					<xs:documentation>An optional id for the document. It is recommended to use LSIDs when possible.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>An optional unique id for the document, for internal use by OpenMS.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>
@@ -435,14 +438,19 @@
 					<xs:documentation>Name of the map.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
+			<xs:attribute name="unique_id" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>An optional unique id for the map, for internal use by OpenMS.  Usually copied from the file specified by the name attibute.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
 			<xs:attribute name="id" type="xs:unsignedInt" use="required">
 				<xs:annotation>
-					<xs:documentation>Id of the map.</xs:documentation>
+					<xs:documentation>An identifier for the map, used by elements of consensus features to indicate the map from which they originate.  It has no meaning outside of the ConsensusXML file.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="label" type="xs:string">
 				<xs:annotation>
-					<xs:documentation>label, e.g. 'heavy' and 'light' in ICAT</xs:documentation>
+					<xs:documentation>A label, e.g. 'heavy' and 'light' in ICAT.  The label attribute represents the different roles of elements of consensus features.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="size" type="xs:unsignedInt" use="optional">
@@ -576,7 +584,7 @@
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:ID" use="required">
 				<xs:annotation>
-					<xs:documentation>File-wide unique identifier for the consensus element. It is only used to reference inside the file. It should start at 0 and contain consecutive numbers. As an xs:id cannot be an integer number, the values are typically prefixed with 'e_'.</xs:documentation>
+					<xs:documentation>Unique identifier for the consensus element.  OpenMS uses unsigned 64 bit integers as unique ids.  As an xs:id cannot be an integer number, the values are typically prefixed with 'e_'.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="quality" type="xs:double">
@@ -634,9 +642,9 @@
 					<xs:documentation>The element's original map index.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="id" type="xs:unsignedInt" use="required">
+			<xs:attribute name="id" type="xs:string" use="required">
 				<xs:annotation>
-					<xs:documentation>The element's index in its original map.</xs:documentation>
+					<xs:documentation>The element's unique id in its original map.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="rt" type="xs:double" use="required">

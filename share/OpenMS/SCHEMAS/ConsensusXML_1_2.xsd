@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:element name="ConsensusXML">
+	<xs:element name="consensusXML">
 		<xs:annotation>
 			<xs:documentation> Schema for a  result of an multiple LC-MS map alignment. </xs:documentation>
 		</xs:annotation>

@@ -4,7 +4,7 @@
 <!-- edited with gvim by Clemens Groepl, 2009-10-07. -->
 <!-- edited with notepad++ by Chris Bielow, 2011-10-27. -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:element name="ConsensusXML">
+	<xs:element name="consensusXML">
 		<xs:annotation>
 			<xs:documentation> Schema for a result of a multiple LC-MS map alignment. </xs:documentation>
 		</xs:annotation>
@@ -449,7 +449,7 @@
 			</xs:attribute>
 			<xs:attribute name="id" type="xs:unsignedInt" use="required">
 				<xs:annotation>
-					<xs:documentation>An identifier for the map, used by elements of consensus features to indicate the map from which they originate.  It has no meaning outside of the consensusXML file.</xs:documentation>
+					<xs:documentation>An identifier for the map, used by elements of consensus features to indicate the map from which they originate.  It has no meaning outside of the ConsensusXML file.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="label" type="xs:string">

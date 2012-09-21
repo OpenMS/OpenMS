@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="file:////OpenMS/share/OpenMS/XSL/idXML.xsl"?>
-<IdXML version="1.2" id="LSID1234" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/idXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="file:////OpenMS/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" id="LSID1234" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="MSDB" db_version="1.0" taxonomy="" mass_type="average" charges="+1, +2" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="1" peak_mass_tolerance="0.3" >
 	</SearchParameters>
 	<SearchParameters id="SP_1" db="MSDB" db_version="1.1" taxonomy="" mass_type="monoisotopic" charges="+1, +2, +3" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="1" peak_mass_tolerance="0.3" >

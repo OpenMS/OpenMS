@@ -31,9 +31,9 @@
       <ITEM name="y_pos" value="-220" type="float" description="" />
       <NODE name="parameters" description="">
         <ITEM name="in" value="" type="string" description="input file (valid formats: &apos;mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta&apos;)" tags="input file,required" />
-        <ITEM name="in_type" value="" type="string" description="input file type -- default: determined from file extension or content#br#" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta" />
+        <ITEM name="in_type" value="" type="string" description="input file type -- default: determined from file extension or content#br#" restrictions="mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta" />
         <ITEM name="out" value="" type="string" description="output file (valid formats: &apos;mzData,mzXML,mzML,DTA2D,mgf,featureXML,consensusXML&apos;)" tags="output file,required" />
-        <ITEM name="out_type" value="consensusXML" type="string" description="output file type -- default: determined from file extension or content#br#" restrictions="mzData,mzXML,mzML,dta2d,mgf,featureXML,consensusXML" />
+        <ITEM name="out_type" value="consensusXML" type="string" description="output file type -- default: determined from file extension or content#br#" restrictions="mzData,mzXML,mzML,DTA2D,mgf,featureXML,consensusXML" />
         <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />

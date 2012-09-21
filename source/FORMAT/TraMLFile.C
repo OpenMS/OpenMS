@@ -46,7 +46,7 @@ namespace OpenMS
 {
 
 	TraMLFile::TraMLFile()
-    : XMLFile("/SCHEMAS/traML1.0.0.xsd","1.0.0")
+		: XMLFile("/SCHEMAS/TraML1.0.0.xsd","1.0.0")
 	{
 	}
 

@@ -213,7 +213,7 @@ namespace OpenMS
     if (all_simple.hasSubstring("<IdXML")) return FileTypes::IDXML;
 
     //consensusXML (all lines)
-    if (all_simple.hasSubstring("<ConsensusXML")) return FileTypes::CONSENSUSXML;
+    if (all_simple.hasSubstring("<consensusXML")) return FileTypes::CONSENSUSXML;
 
     //TOPPAS (all lines)
     if (all_simple.hasSubstring("<PARAMETERS") && all_simple.hasSubstring("<NODE name=\"info\"") && all_simple.hasSubstring("<ITEM name=\"num_vertices\"")) return FileTypes::TOPPAS;

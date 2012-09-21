@@ -45,7 +45,7 @@ namespace OpenMS
 
 	TransformationXMLFile::TransformationXMLFile()
 		: XMLHandler("", "1.0"),
-			XMLFile("/SCHEMAS/trafoXML_1_0.xsd", "1.0"),
+			XMLFile("/SCHEMAS/TrafoXML_1_0.xsd", "1.0"),
 			params_(), data_(), model_type_()
 	{
 	}
@@ -83,7 +83,7 @@ namespace OpenMS
 		//write header
 		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
 		//add XSLT file if it can be found
-		os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/trafoXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << "\n";
+		os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << "\n";
 				
 		// open tag
 		os << "\t<Transformation name=\"" << transformation.getModelType() 

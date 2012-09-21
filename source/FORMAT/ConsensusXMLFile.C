@@ -43,7 +43,7 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.5"), XMLFile("/SCHEMAS/consensusXML_1_5.xsd", "1.5"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
+    XMLHandler("", "1.5"), XMLFile("/SCHEMAS/ConsensusXML_1_5.xsd", "1.5"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
   {
   }
 
@@ -111,7 +111,7 @@ namespace OpenMS
       pep_id_.insertHit(pep_hit_);
       last_meta_ = &pep_id_;
     }
-    else if ( tag == "ConsensusXML" )
+    else if ( tag == "consensusXML" )
     {
       endProgress();
     }
@@ -241,7 +241,7 @@ namespace OpenMS
       act_cons_element_.getPosition() = pos_;
       act_cons_element_.setIntensity(it_);
     }
-    else if ( tag == "ConsensusXML" )
+    else if ( tag == "consensusXML" )
     {
       startProgress(0, 0, "loading consensusXML file");
       progress_ = 0;
@@ -589,7 +589,7 @@ namespace OpenMS
     //add XSLT file if it can be found
     try
     {
-      String xslt_file = File::find("XSL/consensusXML.xsl");
+      String xslt_file = File::find("XSL/ConsensusXML.xsl");
       os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
     }
     catch(Exception::FileNotFound&)
@@ -597,7 +597,7 @@ namespace OpenMS
     }
 
     setProgress(++progress_);
-    os << "<ConsensusXML version=\"" << version_ << "\"";
+    os << "<consensusXML version=\"" << version_ << "\"";
     // file id
     if ( consensus_map.getIdentifier() != "" )
     {
@@ -613,7 +613,7 @@ namespace OpenMS
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-        << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+        << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     //user param
     writeUserParam_("userParam", os, consensus_map, 1);
@@ -804,7 +804,7 @@ namespace OpenMS
     }
     os << "\t</consensusElementList>\n";
 
-    os << "</ConsensusXML>\n";
+    os << "</consensusXML>\n";
     ;
 
     //Clear members

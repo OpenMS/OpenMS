@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- edited with XMLSpy v2007 sp2 (http://www.altova.com) by Oliver Kohlbacher (Universität Tübingen) -->
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- edited with gvim by Clemens Groepl, 2009-10-07. -->
-<!-- edited with notepad++ by Chris Bielow, 2011-10-27. -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="featureMap">
 		<xs:annotation>
-			<xs:documentation>Base node of the featureXML format.</xs:documentation>
+			<xs:documentation>Base node of the FeatureXML format.</xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
@@ -481,8 +479,8 @@
 					<xs:documentation>convex hulls of the feature in map coordinates. Points must be stored count-clockwise! Normally there is only one hull, but for high resolution data, each isotope pattern can have its own hull.</xs:documentation>
 				</xs:annotation>
 				<xs:complexType>
-					<xs:choice>
-						<xs:element name="hullpoint" minOccurs="0" maxOccurs="unbounded">
+					<xs:sequence>
+						<xs:element name="hullpoint" maxOccurs="unbounded">
 							<xs:annotation>
 								<xs:documentation>A single point in the convex hull</xs:documentation>
 							</xs:annotation>
@@ -507,16 +505,7 @@
 								</xs:sequence>
 							</xs:complexType>
 						</xs:element>
-						<xs:element name="pt" minOccurs="0" maxOccurs="unbounded">
-							<xs:annotation>
-								<xs:documentation>short form of hullpoint - since v1.5 due to filesize considerations</xs:documentation>
-							</xs:annotation>
-							<xs:complexType>
-								<xs:attribute name="x" type="xs:double" use="required"/>
-								<xs:attribute name="y" type="xs:double" use="required"/>
-							</xs:complexType>
-						</xs:element>
-					</xs:choice>
+					</xs:sequence>
 					<xs:attribute name="nr">
 						<xs:annotation>
 							<xs:documentation>number of hull points to expect</xs:documentation>
@@ -644,9 +633,6 @@
 			<xs:enumeration value="int"/>
 			<xs:enumeration value="float"/>
 			<xs:enumeration value="string"/>
-			<xs:enumeration value="intList"/>
-			<xs:enumeration value="floatList"/>
-			<xs:enumeration value="stringList"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="MassType">

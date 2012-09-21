@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/consensusXML.xsl"?>
-<ConsensusXML version="1.5" id="cm_2834631969522406461" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/consensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.5" id="cm_2834631969522406461" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2011-11-03T15:57:30">
 		<software name="Decharger" version="1.9.0" />
 		<processingAction name="Charge deconvolution" />
 		<userParam type="string" name="parameter: no_progress" value="true"/>
-		<userParam type="string" name="parameter: in" value="C:/Users/ADM_BI~1/AppData/Local/Temp/2011-11-03_155712_tupaia_3968_1/TOPPAS_tmp/Decharge_AvgMassSmooth_short/004_FileFilter/out/EU_Gliadinextrakt_100ng_25bis40in90min2.featureXML"/>
+		<userParam type="string" name="parameter: in" value="C:/Users/ADM_BI~1/AppData/Local/Temp/2011-11-03_155712_tupaia_3968_1/TOPPAS_tmp/Decharge_AvgMassSmooth_short/004_FileFilter/out/EU_Gliadinextrakt_100ng_25bis40in90min2.FeatureXML"/>
 		<userParam type="string" name="parameter: ini" value="C:\Users\ADM_BI~1\AppData\Local\Temp\2011-11-03_155712_tupaia_3968_1\TOPPAS_tmp\Decharge_AvgMassSmooth_short\005_Decharger\Decharger.ini"/>
 		<userParam type="string" name="parameter: log" value=""/>
 		<userParam type="int" name="parameter: debug" value="0"/>
 		<userParam type="int" name="parameter: threads" value="1"/>
 		<userParam type="string" name="parameter: test" value="false"/>
-		<userParam type="string" name="parameter: out_cm" value="C:\Users\ADM_BI~1\AppData\Local\Temp\2011-11-03_155712_tupaia_3968_1\TOPPAS_tmp\Decharge_AvgMassSmooth_short\005_Decharger\out_cm\EU_Gliadinextrakt_100ng_25bis40in90min2.featureXML_tmp3"/>
-		<userParam type="string" name="parameter: out_fm" value="C:\Users\ADM_BI~1\AppData\Local\Temp\2011-11-03_155712_tupaia_3968_1\TOPPAS_tmp\Decharge_AvgMassSmooth_short\005_Decharger\out_fm\EU_Gliadinextrakt_100ng_25bis40in90min2.featureXML_tmp4"/>
+		<userParam type="string" name="parameter: out_cm" value="C:\Users\ADM_BI~1\AppData\Local\Temp\2011-11-03_155712_tupaia_3968_1\TOPPAS_tmp\Decharge_AvgMassSmooth_short\005_Decharger\out_cm\EU_Gliadinextrakt_100ng_25bis40in90min2.FeatureXML_tmp3"/>
+		<userParam type="string" name="parameter: out_fm" value="C:\Users\ADM_BI~1\AppData\Local\Temp\2011-11-03_155712_tupaia_3968_1\TOPPAS_tmp\Decharge_AvgMassSmooth_short\005_Decharger\out_fm\EU_Gliadinextrakt_100ng_25bis40in90min2.FeatureXML_tmp4"/>
 		<userParam type="string" name="parameter: outpairs" value=""/>
 		<userParam type="int" name="parameter: algorithm:FeatureDeconvolution:charge_min" value="20"/>
 		<userParam type="int" name="parameter: algorithm:FeatureDeconvolution:charge_max" value="70"/>
@@ -31,7 +31,7 @@
 		<userParam type="float" name="parameter: algorithm:FeatureDeconvolution:mass_max" value="25000"/>
 	</dataProcessing>
 	<mapList count="1">
-		<map id="0" name="C:/Users/ADM_BI~1/AppData/Local/Temp/2011-11-03_155712_tupaia_3968_1/TOPPAS_tmp/Decharge_AvgMassSmooth_short/004_FileFilter/out/EU_Gliadinextrakt_100ng_25bis40in90min2.featureXML" label="decharged features" size="2092">
+		<map id="0" name="C:/Users/ADM_BI~1/AppData/Local/Temp/2011-11-03_155712_tupaia_3968_1/TOPPAS_tmp/Decharge_AvgMassSmooth_short/004_FileFilter/out/EU_Gliadinextrakt_100ng_25bis40in90min2.FeatureXML" label="decharged features" size="2092">
 		</map>
 	</mapList>
 	<consensusElementList>
@@ -13336,4 +13336,4 @@
 			<userParam type="int" name="is_single_feature" value="1"/>
 		</consensusElement>
 	</consensusElementList>
-</ConsensusXML>
+</consensusXML>
