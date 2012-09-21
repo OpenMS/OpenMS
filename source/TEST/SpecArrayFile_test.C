@@ -69,7 +69,7 @@ START_SECTION((template < typename FeatureMapType > void load(const String &file
 {
   SpecArrayFile f;
   FeatureMap<> fm;
-  f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_1.pepList"), fm);
+  f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_1.peplist"), fm);
   TEST_EQUAL(fm.size(),2)
   ABORT_IF(fm.size()!=2)
   TEST_EQUAL(fm[0].getRT(), 60.1*60)
@@ -85,9 +85,9 @@ START_SECTION((template < typename FeatureMapType > void load(const String &file
 
   
 
-  TEST_EXCEPTION(Exception::ParseError, f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_2.pepList"), fm));
+  TEST_EXCEPTION(Exception::ParseError, f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_2.peplist"), fm));
   
-  TEST_EXCEPTION(Exception::FileNotFound, f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_2_doesnotexist.pepList"), fm));
+  TEST_EXCEPTION(Exception::FileNotFound, f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_2_doesnotexist.peplist"), fm));
 }
 END_SECTION
 

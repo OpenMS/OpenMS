@@ -68,7 +68,7 @@ START_SECTION((void load(const String &filename, TargetedExperiment & id)))
 {
   TraMLFile file;
   TargetedExperiment exp;
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp);
 }
 END_SECTION
 
@@ -78,7 +78,7 @@ START_SECTION((void store(const String &filename, const TargetedExperiment &id) 
 
   //load map
   TargetedExperiment exp_original;
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_original);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp_original);
 
   //store map
   std::string tmp_filename;
@@ -100,8 +100,8 @@ START_SECTION((void equal()))
 
   TargetedExperiment exp_original;
   TargetedExperiment exp_second;
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_original);
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_second);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp_original);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp_second);
 
   TEST_EQUAL(exp_second == exp_original, true)
 }
@@ -114,7 +114,7 @@ START_SECTION((void assign()))
   //load map
   TargetedExperiment exp_original;
   TargetedExperiment exp_added;
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_original);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp_original);
 
   //store map
   std::string tmp_filename;
@@ -134,7 +134,7 @@ START_SECTION((void add()))
   //load map
   TargetedExperiment exp_original;
   TargetedExperiment exp_added;
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), exp_original);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp_original);
 
   //store map
   std::string tmp_filename;
@@ -158,7 +158,7 @@ START_SECTION([EXTRA] bool isValid(const String & filename, std::ostream & os = 
 
 //written filled file
   NEW_TMP_FILE(tmp_filename);
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), e);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), e);
   file.store(tmp_filename, e);
   TEST_EQUAL(file.isValid(tmp_filename), true);
 }
@@ -180,7 +180,7 @@ START_SECTION(bool isSemanticallyValid(const String & filename, StringList & err
 
 //written filled file
   NEW_TMP_FILE(tmp_filename);
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.TraML"), e);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), e);
   file.store(tmp_filename, e);
 //TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
   TEST_EQUAL(errors.size(), 0)

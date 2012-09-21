@@ -87,7 +87,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec) const)
 	PeakSpectrum s1;
 	MSPFile msp;
 	std::vector< PeptideIdentification > ids;
-  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.MSP"));
+  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
 	for(Size k = 0; k < exp[0].size(); ++k)
 	{
@@ -106,7 +106,7 @@ START_SECTION(DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpect
 	RichPeakMap exp;
 	MSPFile msp;
 	std::vector< PeptideIdentification > ids;
-  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.MSP"));
+  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
 	for(Size k = 0; k < exp[0].size(); ++k)
 	{
@@ -146,7 +146,7 @@ START_SECTION((DoubleReal operator()(const BinnedSpectrum &bin1, const BinnedSpe
 	RichPeakMap exp;
 	MSPFile msp;
 	std::vector< PeptideIdentification > ids;
-  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.MSP"));
+  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
 	for(Size k = 0; k < exp[0].size(); ++k)
 	{
@@ -186,7 +186,7 @@ START_SECTION(bool preprocess(PeakSpectrum &spec, Real remove_peak_intensity_thr
 	RichPeakMap exp;
 	MSPFile msp;
 	std::vector< PeptideIdentification > ids;
-  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.MSP"));
+  const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
   msp.load(filename, ids, exp);
 	for(Size k = 0; k < exp[0].size(); ++k)
 	{
