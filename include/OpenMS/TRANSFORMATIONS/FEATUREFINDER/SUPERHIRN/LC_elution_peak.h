@@ -249,7 +249,7 @@ public:
   ///////////////////
   // get scan apex:
   int get_scan_apex(){return fScanNumberApex;};
-  float get_apex_intensity(){return fapex_intensity;};
+  double get_apex_intensity(){return fapex_intensity;};
   double get_apex_retention_time(){return fRT;};
   double get_apex_MZ(){return get_MZ(get_scan_apex());};
   
@@ -261,7 +261,7 @@ public:
   
   /////////////////
   // get the total peak area:
-  float get_total_peak_area(){return fpeak_area;};
+  double get_total_peak_area(){return fpeak_area;};
   
   ////////////////
   // get start / end scan:
