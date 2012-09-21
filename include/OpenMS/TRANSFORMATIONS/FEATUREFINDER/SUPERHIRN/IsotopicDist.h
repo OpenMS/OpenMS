@@ -19,8 +19,8 @@
 namespace OpenMS
 {
 
-class CentroidPeak;
-class DeconvPeak;
+class OPENMS_DLLAPI CentroidPeak;
+class OPENMS_DLLAPI DeconvPeak;
 
 class OPENMS_DLLAPI IsotopicDist
 {

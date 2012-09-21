@@ -38,7 +38,7 @@
 namespace OpenMS
 {
 
-class CentroidPeak;
+class OPENMS_DLLAPI CentroidPeak;
 
 class OPENMS_DLLAPI ms_peak{
 
