@@ -23,15 +23,14 @@
 
 using namespace std;
 
-////////////////////////////////////////////////
-// constructor for the object BackgroundControl:
 BackgroundControl::BackgroundControl(){
   init();
 }
 
+BackgroundControl::~BackgroundControl(){
+  intensityBinMap.clear();
+}
 
-////////////////////////////////////////////////
-// initialization of the BackgroundControl classe:
 void BackgroundControl::init(){
   
   // create a vector of intensity bin objects
@@ -59,68 +58,26 @@ void BackgroundControl::init(){
   
 }
 
-
-//////////////////////////////////////////////////
-// add peaks of a ms scan:
-void BackgroundControl::addPeakMSScan( double TR, vector<ms_peak>* peakList ){
-  
-  map<double, map< double, BackgroundIntensityBin>  >::iterator F = findTrKey( TR );
-  if( F != intensityBinMap.end() ){
-    
-    // find the mz bins:
-    map< double, BackgroundIntensityBin>* mzMap = &(F->second); 
-    
-    vector<ms_peak>::iterator P = peakList->begin();
-    while( P != peakList->end() ){
-      
-      ms_peak* peak = &(*P);
-      
-      // add the centroid peaks:
-      vector<CentroidPeak>::iterator cen = peak->get_isotopic_peaks_start();
-      while( cen != peak->get_isotopic_peaks_end() ){
-        map< double, BackgroundIntensityBin>::iterator F_mz = findMzKey( cen->getMass(), mzMap );
-        if(  F_mz != mzMap->end() ){
-          F_mz->second.addMSPeak( peak );
-        }
-        cen++;
-      }
-      P++;
-    }
-    
-  }
-  
-}
-
-
-//////////////////////////////////////////////////
-// add peaks of a ms scan:
 void BackgroundControl::addPeakMSScan( double TR, list<CentroidPeak>* peakList ){
   
   map<double, map< double, BackgroundIntensityBin>  >::iterator F = findTrKey( TR );
   if( F != intensityBinMap.end() ){
     
     // find the mz bins:
-    map< double, BackgroundIntensityBin>* mzMap = &(F->second); 
-  
+    map< double, BackgroundIntensityBin>* mzMap = &(F->second);
+    
     list<CentroidPeak>::iterator mpi;
     for (mpi=peakList->begin();mpi!=peakList->end();++mpi) {
-  
+      
       map< double, BackgroundIntensityBin>::iterator F_mz = findMzKey( mpi->getMass(), mzMap );
       if(  F_mz != mzMap->end() ){
         F_mz->second.addIntensity( mpi->getIntensity() );
       }
     }
-  
-    
   }
-  
 }
 
-
-//////////////////////////////////////////////////
-// find a key in the m/z map:
 map< double, BackgroundIntensityBin>::iterator BackgroundControl::findMzKey( double mz, map< double, BackgroundIntensityBin>* mzMap ){
-  
   
   double constraint = BackgroundIntensityBin::MZ_BINS / 2.0;
   map<double, map< double, BackgroundIntensityBin>::iterator > outMap;
@@ -149,9 +106,6 @@ map< double, BackgroundIntensityBin>::iterator BackgroundControl::findMzKey( dou
   return mzMap->end();
 }
 
-
-//////////////////////////////////////////////////
-// find a key in the intensity map:
 map<double, map< double, BackgroundIntensityBin>  >::iterator BackgroundControl::findTrKey( double Tr ){
   
   double constraint = BackgroundIntensityBin::TR_BINS * 2;
@@ -182,25 +136,10 @@ map<double, map< double, BackgroundIntensityBin>  >::iterator BackgroundControl:
   return intensityBinMap.end();
 }
 
-
-
-//////////////////////////////////////////////////
-// -OBSOLETE- add a peak to the BackgroundControl
-/*void BackgroundControl::addPeak( ms_peak* in){
-  // find the corresponding retention time bin:
- 
-}*/
-
-
-//////////////////////////////////////////////////
-// get the background intensity level for a peak:
 double BackgroundControl::getBackgroundLevel( ms_peak* in){
   return getBackgroundLevel( in->get_MZ(), in->get_retention_time()  );
 }
 
-
-//////////////////////////////////////////////////
-// get the background intensity level for a peak:
 double BackgroundControl::getBackgroundLevel( double mz, double tr){
   // find the corresponding retention time bin:
   map<double, map< double, BackgroundIntensityBin> >::iterator F = findTrKey( tr  );
@@ -213,28 +152,6 @@ double BackgroundControl::getBackgroundLevel( double mz, double tr){
   return -1.0;
 }
 
-
-
-//////////////////////////////////////////////////
-// write out intensity maps:
-//void BackgroundControl::writeIntensityMaps(  ){
-//  
-//  map<double, map< double, BackgroundIntensityBin> >::iterator P1 = intensityBinMap.begin();
-//  while( P1 != intensityBinMap.end() ){
-//
-//    map< double, BackgroundIntensityBin> ::iterator P2 = P1->second.begin();
-//    while( P2 != P1->second.end() ){
-//      P2->second.writeIntensityMap();
-//  
-//      P2++;
-//    }
-//    
-//    P1++;
-//  }
-//}
-
-//////////////////////////////////////////////////
-// process the intensity maps:
 void BackgroundControl::processIntensityMaps(  ){
   
   map<double, map< double, BackgroundIntensityBin> >::iterator P1 = intensityBinMap.begin();
@@ -251,31 +168,3 @@ void BackgroundControl::processIntensityMaps(  ){
   }
 }
 
-
-//////////////////////////////////////////////////
-// class desctructor of BackgroundControl
-BackgroundControl::~BackgroundControl(){
-  intensityBinMap.clear();
-}
-
-/*
-//////////////////////////////////////////////////
-// -OBSOLETE- class copy constructor of BackgroundControl
-BackgroundControl::BackgroundControl(const BackgroundControl& tmp){
-  intensityBinMap = tmp.intensityBinMap;
-}
-
-//////////////////////////////////////////////////
-// -OBSOLETE- class copy constructor of BackgroundControl
-BackgroundControl::BackgroundControl(const BackgroundControl* tmp){
-  intensityBinMap = tmp->intensityBinMap;
-}
-
-
-//////////////////////////////////////////////////
-// -OBSOLETE- copy constructor:
-BackgroundControl& BackgroundControl::operator=(const BackgroundControl& tmp){
-  intensityBinMap = tmp.intensityBinMap;
-  return *this;
-}
-*/

@@ -57,6 +57,21 @@ END_SECTION
 
 ptr = new BackgroundControl();
 
+//START_SECTION((init()))
+//  ptr->init();
+//END_SECTION
+
+START_SECTION((init()))
+ms_peak *p = new ms_peak();
+std::vector<ms_peak> * peakvec = new std::vector<ms_peak>();
+peakvec->push_back(p);
+ptr->addPeakMSScan(1.0, peakvec);
+
+double bgLevel = ptr->getBackgroundLevel(p);
+TEST_EQUAL(bgLevel, 1.0);
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

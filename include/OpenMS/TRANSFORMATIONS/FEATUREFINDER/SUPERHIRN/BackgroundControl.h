@@ -13,88 +13,43 @@
 // 
 //
 
-
 #ifndef USE_BACKGROUND_CONTROL_H
 #define USE_BACKGROUND_CONTROL_H
 
-
-
-class BackgroundControl{
-
-    
-    ////////////////////////////////////////////////
-    // declaration of the private members:
+class BackgroundControl {
 
 private:
-
   
   map<double, map< double, BackgroundIntensityBin> > intensityBinMap;
-  
-  
 
-  ////////////////////////////////////////////////
-  // declaration of the public members:
-  
+  void init();
+
 public:
   
-  // class destructor
   ~BackgroundControl();
 
-  // class constructor
   BackgroundControl();
-  // class copy constructor
-  // -OBSOLETE- BackgroundControl(const BackgroundControl&);
-  // class copy constructor
-  // -OBSOLETE- BackgroundControl(const BackgroundControl*);
   
+  void addPeakMSScan( double , list<CentroidPeak>* peakList );
   
-  ////////////////////////////////////////////////
-  // initialization of the BackgroundControl classe:
-  void init();
-    
-  //////////////////////////////////////////////////
-  // add a peak to the BackgroundControl
-  // -OBSOLETE- void addPeak( ms_peak* );
-  // add peaks of a ms scan:
-  void addPeakMSScan( double , vector<ms_peak>* );
-  // add peaks of a ms scan:
-  void addPeakMSScan( double , list<CentroidPeak>* );
-
-  
-  //////////////////////////////////////////////////
-  // get the background intensity level for a peak:
   double getBackgroundLevel( ms_peak* );
+  
   double getBackgroundLevel( double mz, double tr);
   
   // find a key in the intensity map:
   map<double, map< double, BackgroundIntensityBin>  >::iterator findTrKey( double );
+  
   // find a key in the m/z map:
   map< double, BackgroundIntensityBin>::iterator findMzKey( double mz, map< double, BackgroundIntensityBin>* );
 
-    
-  //////////////////////////////////////////////////
-  // process the intensity maps:
   void processIntensityMaps(  );    
-  // write out intensity maps:
-  //void writeIntensityMaps( );
-  // gnuplot intensity maps:
-  //void plotIntensityMaps(  );
-
     
-  //////////////////////////////////////////////////
   // overload operators:
-  // -OBSOLETE- BackgroundControl& operator=(const BackgroundControl&);
   bool operator==(const BackgroundControl&);
   BackgroundControl& operator<=(const BackgroundControl&);
   BackgroundControl& operator>=(const BackgroundControl&);
   BackgroundControl& operator<(const BackgroundControl&);
   BackgroundControl& operator>(const BackgroundControl&);
-  
-  
-  ///////////////////////////////
-  // start here all the get / set
-  // function to access the
-  // variables of the class
   
 };
 
