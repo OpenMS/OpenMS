@@ -176,7 +176,7 @@ public:
   void add_feature( feature* IN){
     
     if( IN->get_feature_ID() == -1 ){
-      IN->set_feature_ID( feature_list.size() );
+      IN->set_feature_ID( (int) feature_list.size() );
     }
     feature_list.push_back( *IN );
     IN = NULL;
@@ -197,7 +197,7 @@ public:
   std::vector< LC_MS_FEATURE >::iterator remove_feature_from_list(std::vector< LC_MS_FEATURE >::iterator IN){return feature_list.erase(IN);}; 
   
   // get number of feature added:
-  unsigned int get_nb_features(){return feature_list.size();};
+  unsigned int get_nb_features(){return (unsigned int) feature_list.size();};
   
   std::string get_spec_name(){return spec_name;};
   void set_spec_name(std::string IN){spec_name = IN;};
@@ -219,7 +219,7 @@ public:
   std::map<int, std::string>::iterator get_raw_spec_name_start(){return raw_spec_names.begin();};
   std::map<int, std::string>::iterator get_raw_spec_name_end(){return raw_spec_names.end();};
   std::map<int, std::string> get_raw_spec_name_map(){ return raw_spec_names;};
-  int get_nb_raw_specs(){ return raw_spec_names.size();};
+  int get_nb_raw_specs(){ return (int) raw_spec_names.size();};
   std::string get_raw_spec_name(int ID){ std::map<int, std::string>::iterator p = raw_spec_names.find(ID); 
     if( p == raw_spec_names.end() ){
       return "";
@@ -240,7 +240,7 @@ public:
       int ID = (*p).first;
       std::map<int, std::string >::iterator F = raw_spec_names.find( ID );
       if( F != raw_spec_names.end() ){
-        ID += raw_spec_names.size();
+        ID += (int) raw_spec_names.size();
       }
       raw_spec_names.insert( make_pair( ID ,(*p).second) );
       p++;
