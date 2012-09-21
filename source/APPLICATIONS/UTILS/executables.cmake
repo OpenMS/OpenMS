@@ -9,6 +9,7 @@ DecoyDatabase
 Digestor
 DigestorMotif
 ERPairFinder
+FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
 IDEvaluation

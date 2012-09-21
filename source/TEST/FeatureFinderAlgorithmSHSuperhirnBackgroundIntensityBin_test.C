@@ -29,7 +29,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ms_peak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
 
 ///////////////////////////
@@ -52,13 +52,13 @@ START_SECTION((~BackgroundIntensityBin()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((checkBelonging(ms_peak*)))
+START_SECTION((checkBelonging(MSPeak*)))
   ptr = new BackgroundIntensityBin(300, 12);
-  ms_peak *p = new ms_peak();
+  MSPeak *p = new MSPeak();
   TEST_EQUAL(ptr->checkBelonging(p), false);
   delete p;
 
-  ms_peak* p2 = new ms_peak(1, 300, 100);  // (int IN_scan, double IN_mass, float IN_intens)
+  MSPeak* p2 = new MSPeak(1, 300, 100);  // (int IN_scan, double IN_mass, float IN_intens)
   p2->set_retention_time(12);
   TEST_EQUAL(ptr->checkBelonging(p2), true);
   delete p2;
@@ -71,9 +71,9 @@ START_SECTION((addIntensity( double )))
   TEST_EQUAL(ptr->getIntensityMap()->size(), 1);
 END_SECTION
 
-START_SECTION((addMSPeak( ms_peak* )))
+START_SECTION((addMSPeak( MSPeak* )))
   ptr = new BackgroundIntensityBin(300, 12);
-  ms_peak* p = new ms_peak(1, 300, 100);  // (int IN_scan, double IN_mass, float IN_intens)
+  MSPeak* p = new MSPeak(1, 300, 100);  // (int IN_scan, double IN_mass, float IN_intens)
   TEST_EQUAL(ptr->getIntensityMap()->size(), 0);
   ptr->addMSPeak(p);
   TEST_EQUAL(ptr->getIntensityMap()->size(), 1);
