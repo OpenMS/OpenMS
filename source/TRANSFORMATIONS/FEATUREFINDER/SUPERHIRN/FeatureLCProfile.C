@@ -36,7 +36,7 @@
 // 
 
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/featureLCprofile.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FeatureLCProfile.h>
 
 namespace OpenMS
 {
@@ -44,13 +44,13 @@ namespace OpenMS
 using namespace std;
 
 ////////////////////////////////////////////////
-// constructor for the object featureLCprofile:
-featureLCprofile::featureLCprofile(){
+// constructor for the object FeatureLCProfile:
+FeatureLCProfile::FeatureLCProfile(){
 }
 
 ////////////////////////////////////////////////
-// constructor for the object featureLCprofile:
-featureLCprofile::featureLCprofile(double apex_MZ, double apex_TR, double apex_Intensity, int apex_scan, int charge_state, double peak_area){
+// constructor for the object FeatureLCProfile:
+FeatureLCProfile::FeatureLCProfile(double apex_MZ, double apex_TR, double apex_Intensity, int apex_scan, int charge_state, double peak_area){
   
   // set the apex:
   apexMS1Signal.mass = apex_MZ;
@@ -66,8 +66,8 @@ featureLCprofile::featureLCprofile(double apex_MZ, double apex_TR, double apex_I
 
 
 ////////////////////////////////////////////////
-// constructor for the object featureLCprofile:
-featureLCprofile::featureLCprofile(double apex_MZ, double apex_TR, int charge_state, double peak_area){
+// constructor for the object FeatureLCProfile:
+FeatureLCProfile::FeatureLCProfile(double apex_MZ, double apex_TR, int charge_state, double peak_area){
   
   // set the apex:
   apexMS1Signal.mass = apex_MZ;
@@ -81,8 +81,8 @@ featureLCprofile::featureLCprofile(double apex_MZ, double apex_TR, int charge_st
 }
 
 //////////////////////////////////////////////////
-// class desctructor of featureLCprofile
-featureLCprofile::~featureLCprofile(){
+// class desctructor of FeatureLCProfile
+FeatureLCProfile::~FeatureLCProfile(){
   LCelutionSignals.clear();
   if( !outsideLCelutionSignals.empty() ){
     outsideLCelutionSignals.clear();
@@ -90,8 +90,8 @@ featureLCprofile::~featureLCprofile(){
 }
 
 //////////////////////////////////////////////////
-// class copy constructor of featureLCprofile
-featureLCprofile::featureLCprofile(const featureLCprofile& tmp){
+// class copy constructor of FeatureLCProfile
+FeatureLCProfile::FeatureLCProfile(const FeatureLCProfile& tmp){
   LCelutionSignals = tmp.LCelutionSignals;
   outsideLCelutionSignals = tmp.outsideLCelutionSignals;
   apexMS1Signal = tmp.apexMS1Signal;
@@ -99,8 +99,8 @@ featureLCprofile::featureLCprofile(const featureLCprofile& tmp){
 }
 
 //////////////////////////////////////////////////
-// class copy constructor of featureLCprofile
-featureLCprofile::featureLCprofile(const featureLCprofile* tmp){
+// class copy constructor of FeatureLCProfile
+FeatureLCProfile::FeatureLCProfile(const FeatureLCProfile* tmp){
   LCelutionSignals = tmp->LCelutionSignals;
   outsideLCelutionSignals = tmp->outsideLCelutionSignals;
   apexMS1Signal = tmp->apexMS1Signal;
@@ -109,7 +109,7 @@ featureLCprofile::featureLCprofile(const featureLCprofile* tmp){
 
 //////////////////////////////////////////////////
 // copy constructor:
-featureLCprofile& featureLCprofile::operator=(const featureLCprofile& tmp){
+FeatureLCProfile& FeatureLCProfile::operator=(const FeatureLCProfile& tmp){
   LCelutionSignals = tmp.LCelutionSignals;
   outsideLCelutionSignals = tmp.outsideLCelutionSignals;
   apexMS1Signal = tmp.apexMS1Signal;
@@ -120,7 +120,7 @@ featureLCprofile& featureLCprofile::operator=(const featureLCprofile& tmp){
 
 /////////////////////////////////////////////////
 // add / get signals:
-void featureLCprofile::addMS1elutionSignal(  double mass, double intensity, int scan, int charge, double TR){
+void FeatureLCProfile::addMS1elutionSignal(  double mass, double intensity, int scan, int charge, double TR){
   MS1Signal tmp;
   tmp.mass = mass;
   tmp.intensity = intensity;
@@ -133,13 +133,13 @@ void featureLCprofile::addMS1elutionSignal(  double mass, double intensity, int 
 
 /////////////////////////////////////////////////
 // add / get signals:
-void featureLCprofile::addMS1elutionSignal( MS1Signal* in){
+void FeatureLCProfile::addMS1elutionSignal( MS1Signal* in){
   LCelutionSignals.insert( std::make_pair( in->scan, *in ) );
 }
 
 /////////////////////////////////////////////////
 // add / get signals:
-void featureLCprofile::addOutsideMS1elutionSignal(  double mass, double intensity, int scan, int charge, double TR){
+void FeatureLCProfile::addOutsideMS1elutionSignal(  double mass, double intensity, int scan, int charge, double TR){
   MS1Signal tmp;
   tmp.mass = mass;
   tmp.intensity = intensity;
@@ -154,7 +154,7 @@ void featureLCprofile::addOutsideMS1elutionSignal(  double mass, double intensit
 
 /////////////////////////////////////////////////
 // change all elution times by a factor:
-void featureLCprofile::changeElutionTimesByFactor(double factor){
+void FeatureLCProfile::changeElutionTimesByFactor(double factor){
   apexMS1Signal.TR += factor;
   map<int, MS1Signal>::iterator P = getLCelutionSignalsStart();
   while( P != getLCelutionSignalsEnd() ){

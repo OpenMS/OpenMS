@@ -46,49 +46,67 @@
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI BackgroundIntensityBin {
+class OPENMS_DLLAPI BackgroundIntensityBin
+{
 
-private:
+	private:
 
-  // mz and tr coordinates of the bin:
-  double mzCoord;
-  double trCoord;
-  double zCoord;  
-  
-  std::vector<double> IntensityMap;  
-  std::map<double, double> IntensityHist;
+	// do not allow default constructor
+	BackgroundIntensityBin()
+	{
+	};
 
-  double mean;
-  double median;
-  void computeIntensityHist();
+	// mz and tr coordinates of the bin:
+	double mzCoord_;
+	double trCoord_;
+	double zCoord_;
 
-public:
-  
-  static double TR_BINS;
-  static double MZ_BINS;
-  static double INTENS_BINS;
-  static int MIN_BIN_COUNT;
-  
-  ~BackgroundIntensityBin();
+	std::vector<double> intensityMap_;
+	std::map<double, double> intensityHist_;
 
-  BackgroundIntensityBin(double, double);
-  
-  // check if a peak belongs to this intenisty bin
-  bool checkBelonging(ms_peak*);
-  // add intensity to BackgroundIntensityBin
-  void addIntensity( double );
-  // add peak to BackgroundIntensityBin
-  void addMSPeak( ms_peak* );
-  // process collected intensities in the map
-  void processIntensities( );
+	double mean_;
+	void computeIntensityHist();
 
-  std::vector<double>* getIntensityMap(){ return &IntensityMap;};
-  std::map<double, double>* getIntensityHist(){ return &IntensityHist;};
-  double getMean(){return mean;};
+	public:
+
+	virtual ~BackgroundIntensityBin();
+
+	// copy constructor
+	BackgroundIntensityBin(const BackgroundIntensityBin& );
+
+	// assignment operator
+	BackgroundIntensityBin& operator = (const BackgroundIntensityBin& );
+
+	BackgroundIntensityBin(double, double);
+
+	/*
+	 * @brief Check if a peak belongs to this intenisty bin
+	 */
+	bool checkBelonging(MSPeak*);
+
+	/*
+	 * @brief Add intensity to BackgroundIntensityBin
+	 */
+	void addIntensity( double );
+
+	/*
+	 * @brief add peak to BackgroundIntensityBin
+	 */
+	void addMSPeak( MSPeak* );
+	/*
+	 * @brief Process collected intensities in the map
+	 */
+	void processIntensities( );
+
+	std::vector<double>* getIntensityMap()
+	{	return &intensityMap_;};
+	std::map<double, double>* getIntensityHist()
+	{	return &intensityHist_;};
+	double getMean()
+	{	return mean_;};
 };
 
 } // ns
 
 #endif
 
-    

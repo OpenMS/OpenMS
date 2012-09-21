@@ -51,7 +51,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(APPLE_EXTRA_LIBS ${CARBON} ${OPENGL_LIBRARY})
 endif()
 
-
 ## sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes (when updating CMake).
 if (NOT CMAKE_SIZEOF_VOID_P)
 	message(FATAL_ERROR "'CMAKE_SIZEOF_VOID_P' is undefined. Thus you should delete CMakeFiles (the directory) and the CMakeCache.txt and rerun CMake again! This is some weird CMake bug that seems to appear when updating the CMake version.")

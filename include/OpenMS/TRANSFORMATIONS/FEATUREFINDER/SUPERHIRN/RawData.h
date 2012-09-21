@@ -47,30 +47,60 @@ namespace OpenMS
 {
 
 // Class for the storage of raw MS data
-class OPENMS_DLLAPI RawData{
+	class OPENMS_DLLAPI RawData
+	{
 
-public:
-  
-  double LOW_INTENSITY_MS_SIGNAL_THRESHOLD;
-   
-		RawData();
-    RawData(std::vector<double>&,std::vector<double>&);
-		virtual ~RawData();
-		
-		friend std::ostream& operator<<(std::ostream& pOut, RawData& pRawData);
-  
-		void get(std::vector<double>&,std::vector<double>&);
-		void set(std::vector<double>&,std::vector<double>&);
-		
-		// Virtual functions
-		virtual void smooth() {};
-  
-protected:
-		std::vector<double> fProfileMasses;
-		std::vector<double> fProfileIntens;
-};
+		public:
 
-std::ostream& operator<<(std::ostream& pOut, RawData& pRawData);
+			RawData();
+			RawData(std::vector<double>&, std::vector<double>&);
+			virtual ~RawData();
+
+			friend std::ostream& operator<<(std::ostream&, RawData&);
+
+			/*
+			 * @brief Retrieve raw data as mass and intensity vectors. First argument: Mass values in profile mode
+			 * Second argument: Intensity values in profile mode
+			 */
+			void get(std::vector<double>&, std::vector<double>&);
+
+			/*
+			 * @brief Set raw data as mass and intensity vectors. First argument: Mass values in profile mode
+			 * Second argument: Intensity values in profile mode
+			 */
+			void set(std::vector<double>&, std::vector<double>&);
+
+			// Virtual functions
+			virtual void smooth()
+			{
+			}
+
+		protected:
+			std::vector<double> profileMasses_;
+			std::vector<double> profileIntensities_;
+	};
+
+	std::ostream& operator<<(std::ostream& out, RawData& data);
+
+	inline RawData::RawData(std::vector<double>& masses,	std::vector<double>& intensities)
+	{
+		profileMasses_ = masses;
+		profileIntensities_ = intensities;
+	}
+
+
+	inline void RawData::get(std::vector<double> &masses, std::vector<double> &intensities)
+	{
+		masses = profileMasses_;
+		intensities = profileIntensities_;
+	}
+
+	inline void RawData::set(std::vector<double> &masses, std::vector<double> &intensities)
+	{
+		profileMasses_ = masses;
+		profileIntensities_ = intensities;
+	}
+
 
 } // ns
 

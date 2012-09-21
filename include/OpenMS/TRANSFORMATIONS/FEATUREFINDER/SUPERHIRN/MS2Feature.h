@@ -35,17 +35,73 @@
 //  December 2010
 //
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_MS_XML_reader.h>
+#ifndef MS2_FEATURE_H
+#define MS2_FEATURE_H
+
+#include "MS2Fragment.h"
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ClusteredMS2ConsensusSpectrum.h>
 
 namespace OpenMS
 {
 
-// These values are overwritten by config
-double LC_MS_XML_reader::TR_MIN = 0;
-double LC_MS_XML_reader::TR_MAX = 0; // 180
-double LC_MS_XML_reader::FEATURE_MZ_MIN = 0; // 200
-double LC_MS_XML_reader::FEATURE_MZ_MAX = 0; //1800;
-int LC_MS_XML_reader::FEATURE_CHRG_MIN = 0; //1;
-int LC_MS_XML_reader::FEATURE_CHRG_MAX = 0;
+class OPENMS_DLLAPI MS2Feature : public ClusteredMS2ConsensusSpectrum {
 
-}
+  
+  using ClusteredMS2ConsensusSpectrum::operator=;
+    
+  ////////////////////////////////////////////////
+  // declaration of the private members:
+  
+private:
+  
+  int ID;
+  
+  ////////////////////////////////////////////////
+  // declaration of the public members:
+  
+public:
+  
+  
+  // class destructor
+  ~MS2Feature();
+  // class constructor
+  MS2Feature();
+  MS2Feature(MS2Fragment*);
+  MS2Feature(double iPrecursorMZ, double iTR, int iChrg, int iApexScan);
+  
+  // class copy constructor
+  MS2Feature(const MS2Feature&);
+  // class copy constructor
+  MS2Feature(const MS2Feature*);
+  
+  
+  //////////////////////////////////////////////////
+  // overload operators:
+  //MS2Feature& operator=(const MS2Feature&);
+  bool operator==(const MS2Feature&);
+  MS2Feature& operator<=(const MS2Feature&);
+  MS2Feature& operator>=(const MS2Feature&);
+  MS2Feature& operator<(const MS2Feature&);
+  MS2Feature& operator>(const MS2Feature&);
+  
+  
+  // show info 
+  void show_info();
+
+  
+  ///////////////////////////////
+  // start here all the get / set
+  // function to access the
+  // variables of the class
+
+  void setID( int in ){ID = in;};
+  int getID( ){return ID;};
+
+  
+};
+
+} // ns
+
+#endif
+
+    

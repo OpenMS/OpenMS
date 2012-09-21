@@ -43,140 +43,135 @@
 #include <map>
 #include <math.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnUtil.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/PeptideIsotopeDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ExternalIsotopicDistribution.h>
 
 namespace OpenMS
 {
 
-using namespace std;
+	using namespace std;
 
-bool ExternalIsotopicDistribution::EXTERNAL_ISOTOPIC_PROFILES = false;
-string ExternalIsotopicDistribution::XMLInputFile;
-double ExternalIsotopicDistribution::EXTERNAL_DISTRIBUTION_MONO_ISOTOPE_PPM_TOLERANCE;
-multimap< double, PeptideIsotopeDisribution> ExternalIsotopicDistribution::allExternalPepdistributions;
-
-
+	bool ExternalIsotopicDistribution::EXTERNAL_ISOTOPIC_PROFILES = false;
+	string ExternalIsotopicDistribution::XMLInputFile;
+	double ExternalIsotopicDistribution::EXTERNAL_DISTRIBUTION_MONO_ISOTOPE_PPM_TOLERANCE;
+	multimap<double, PeptideIsotopeDisribution> ExternalIsotopicDistribution::allExternalPepdistributions;
 
 ////////////////////////////////////////////////
 // constructor for the object ExternalIsotopicDistribution:
-ExternalIsotopicDistribution::ExternalIsotopicDistribution(){
-}
+	ExternalIsotopicDistribution::ExternalIsotopicDistribution()
+	{
+	}
 
 //////////////////////////////////////////////////
 // class desctructor of ExternalIsotopicDistribution
-ExternalIsotopicDistribution::~ExternalIsotopicDistribution(){
-}
+	ExternalIsotopicDistribution::~ExternalIsotopicDistribution()
+	{
+	}
+
 
 //////////////////////////////////////////////////
 // function to extract external isotopic profiles
 // by an input monoisotopic mass
-PeptideIsotopeDisribution* ExternalIsotopicDistribution::extractExternalIsotopicProfile( double monoMass, int charge, double RT){
+	PeptideIsotopeDisribution* ExternalIsotopicDistribution::extractExternalIsotopicProfile(double monoMass, int charge,
+			double RT)
+	{
 
-  multimap<double, PeptideIsotopeDisribution>::iterator F = allExternalPepdistributions.lower_bound( monoMass );
-  multimap<double, PeptideIsotopeDisribution>::iterator P = F;
-  
-  // search down:
-  do{
-  
-    if( checkMonoIsotopOverlap( monoMass, charge, RT, &(P->second) ) ){
-      return &( P->second );
-    }
+		multimap<double, PeptideIsotopeDisribution>::iterator F = allExternalPepdistributions.lower_bound(monoMass);
+		multimap<double, PeptideIsotopeDisribution>::iterator P = F;
 
-    P--;    
-  }
-  while( P != allExternalPepdistributions.begin() );
-  
-  
-  // search up:
-  while( F != allExternalPepdistributions.end() ){
-    if( checkMonoIsotopOverlap( monoMass, charge, RT, &(P->second) ) ){
-      return &( P->second );
-    }
-    F++;
-  }
+		// search down:
+		do
+		{
 
-  return NULL;
+			if (checkMonoIsotopOverlap(monoMass, charge, RT, &(P->second)))
+			{
+				return &(P->second);
+			}
 
-}
+			P--;
+		}
+		while (P != allExternalPepdistributions.begin());
 
-// COPIED FROM SIMPLE_MATH
-//////////////////////////////////////////////////////
-// compare to masses at the PPM value and decided
-// if they fall into the m/z tolerance window
-bool simple_math_compareMassValuesAtPPMLevel( double mzA, double mzB, double PPM_TOLERANCE ){
-  
-  // take the average mass:
-  double avMass = (mzA + mzB) / 2.0;
-  
-  // define the parts per million:
-  double ppmValue = avMass / 1000000.00;
-  double ppmDeltaTol = ppmValue * PPM_TOLERANCE;
-  
-  double deltaMass = fabs( mzA - mzB);
-  if( deltaMass > ppmDeltaTol ){
-    return false;
-  }
-  
-  return true;
-}
+		// search up:
+		// PK: does not make sense, F iterator is never used, just P iterator which is fixed to begin().
+		while (F != allExternalPepdistributions.end())
+		{
+			if (checkMonoIsotopOverlap(monoMass, charge, RT, &(P->second)))
+			{
+				return &(P->second);
+			}
+			F++;
+		}
+		return NULL;
 
+	}
 
 //////////////////////////////////////////////////
 //  check if two masses to be the same
-bool ExternalIsotopicDistribution::checkMonoIsotopOverlap( double MeasMonoMass, int TestCharge, double TR, PeptideIsotopeDisribution* dist ){
-  
-  // check the charge state:
-  if( TestCharge != dist->getChargeState()){
-    return false;
-  }
-  
-  // check the mass tolerance:
-  if( !simple_math_compareMassValuesAtPPMLevel( dist->getMonoMass(), MeasMonoMass, ExternalIsotopicDistribution::EXTERNAL_DISTRIBUTION_MONO_ISOTOPE_PPM_TOLERANCE  ) ){
-    return false;
-  }
-  
-  if( ( TR < dist->getRTStart() ) || ( TR > dist->getRTEnd() ) ){
-    return false;
-  }
+	bool ExternalIsotopicDistribution::checkMonoIsotopOverlap(double MeasMonoMass, int TestCharge, double TR,
+			PeptideIsotopeDisribution* dist)
+	{
 
-  return true;  
-}
+		// check the charge state:
+		if (TestCharge != dist->getChargeState())
+		{
+			return false;
+		}
+
+		// check the mass tolerance:
+		if (!SuperHirnUtil::compareMassValuesAtPPMLevel(dist->getMonoMass(), MeasMonoMass,
+				ExternalIsotopicDistribution::EXTERNAL_DISTRIBUTION_MONO_ISOTOPE_PPM_TOLERANCE))
+		{
+			return false;
+		}
+
+		if ((TR < dist->getRTStart()) || (TR > dist->getRTEnd()))
+		{
+			return false;
+		}
+
+		return true;
+	}
 
 //////////////////////////////////////////////////
 // init the retention time segments
-void ExternalIsotopicDistribution::initRetentionTimeSegments( double start, double end){
-  
-  if( !allExternalPepdistributions.empty() ){
-    
-    double maxS = 0;
-    multimap<double, PeptideIsotopeDisribution>::iterator P = allExternalPepdistributions.begin(  );
-    while( P != allExternalPepdistributions.end() ){
-      
-      if( P->second.getRTSegment() > maxS ){
-        maxS = P->second.getRTSegment(); 
-      }
-      
-      P++;
-    }
-    
-    // divide into segments:
-    double Ssize = (end - start) / maxS;
-    
-    P = allExternalPepdistributions.begin(  );
-    while( P != allExternalPepdistributions.end() ){
-      
-      double s = P->second.getRTSegment();
-      
-      double lStart = (s - 1.0) * Ssize;
-      P->second.setRTStart( lStart );
-      double lEnd = (s) * Ssize;
-      P->second.setRTEnd( lEnd );
-      
-      P++;
-    }
-  }
-  
-  
-}
+	void ExternalIsotopicDistribution::initRetentionTimeSegments(double start, double end)
+	{
+
+		if (!allExternalPepdistributions.empty())
+		{
+
+			double maxS = 0;
+			multimap<double, PeptideIsotopeDisribution>::iterator P = allExternalPepdistributions.begin();
+			while (P != allExternalPepdistributions.end())
+			{
+
+				if (P->second.getRTSegment() > maxS)
+				{
+					maxS = P->second.getRTSegment();
+				}
+
+				P++;
+			}
+
+			// divide into segments:
+			double Ssize = (end - start) / maxS;
+
+			P = allExternalPepdistributions.begin();
+			while (P != allExternalPepdistributions.end())
+			{
+
+				double s = P->second.getRTSegment();
+
+				double lStart = (s - 1.0) * Ssize;
+				P->second.setRTStart(lStart);
+				double lEnd = (s) * Ssize;
+				P->second.setRTEnd(lEnd);
+
+				P++;
+			}
+		}
+
+	}
 }

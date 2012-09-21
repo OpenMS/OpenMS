@@ -34,8 +34,6 @@
 #include <map>
 
 namespace OpenMS
-{ 
-  
-	// This probably fixes the generic template
-	FeatureFinderAlgorithmSH<Peak1D,Feature> default_featurefinderalgorithmsh;
+{
+	FeatureFinderAlgorithmSH<Peak1D, Feature> default_featurefinderalgorithmsh;
 }

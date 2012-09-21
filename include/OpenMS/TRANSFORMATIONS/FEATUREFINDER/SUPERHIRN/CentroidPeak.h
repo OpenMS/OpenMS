@@ -48,101 +48,235 @@
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI CentroidPeak{
-public:
-  
-  static int	sfCentroidWindowWidth;
-  
-  CentroidPeak();
-  CentroidPeak(double,double);
-  CentroidPeak(double,double, double);
-  CentroidPeak(const CentroidPeak&);
-  // Copy constructor
-  CentroidPeak(const CentroidPeak*);
-  
-  CentroidPeak& operator=(const CentroidPeak&);
-  
-  bool operator<(const CentroidPeak&);
-  
-  virtual ~CentroidPeak();
-  
-  inline double getMass(){return fMass;}
-  inline double getIntensity(){return fIntensity;}
-  inline int	  getIsotopIdx(){return fIsotopIdx;}
-  inline double getSignalToNoise(){return fSignalToNoise;}	
-  inline double getFittedIntensity(){return fFittedIntensity;}
-  inline double getOrgIntensity(){return fOrgIntensity;}
-  inline std::string getExtraPeakInfo( ){ return extraPeakInfo;};
-  inline double getRetentionTime( ){ return fTr;};
-  
-  inline void setMass(double pMass){fMass = pMass;}
-  inline void setIntensity(double pIntensity){fIntensity = pIntensity;}
-  inline void setIsotopIdx(double pIsotopIdx){fIsotopIdx = (int)pIsotopIdx;}
-  inline void setSignalToNoise(double in){fSignalToNoise = in;}	
-  inline void setFittedIntensity(double pFittedIntensity){fFittedIntensity = pFittedIntensity;}
-  inline void setOrgIntensity(double pOrgIntensity){fOrgIntensity = pOrgIntensity;}
-  inline void setExtraPeakInfo( std::string in){ extraPeakInfo = in;};
-  inline void setRetentionTime(double in ){ fTr = in;};
+	class OPENMS_DLLAPI CentroidPeak
+	{
+		public:
 
-  void show_info();
-  void subtractIntensity(double);
-  
-protected:
-  
-  int		fIsotopIdx;
-  double	fMass;
-  double	fIntensity;
-  double	fFittedIntensity;
-  double	fOrgIntensity;
-  double fTr;
-  
-  double fSignalToNoise;
-  
-  std::string extraPeakInfo;
-};
+//		static int sfCentroidWindowWidth;
 
-std::ostream& operator<<(std::ostream&, CentroidPeak&);
+			CentroidPeak();
+			CentroidPeak(double, double);
+			CentroidPeak(double, double, double);
+			CentroidPeak(const CentroidPeak&);
+			// Copy constructor
+			CentroidPeak(const CentroidPeak*);
 
-// Class for deconvoluted isotopic patterns 
-class DeconvPeak : public CentroidPeak{
-public:
-  
-  DeconvPeak();
-  DeconvPeak(double,double,int,int,double,double);
-  DeconvPeak(const DeconvPeak&);
-  DeconvPeak(const DeconvPeak*);
-  
-  DeconvPeak& operator=(const DeconvPeak&);
-  
-  virtual ~DeconvPeak();
-  
-  inline int getCharge(){return fCharge;}
-  inline int getNrIsotopes(){return fNrIsotopes;}
-  inline double getC13MassError(){return fC13MassError;}
-  inline double getScore(){return fScore;}
-  // shows the info of the peak:
-  void show_info();
-  
-  inline std::vector<CentroidPeak> getIsotopicPeaks() {return fIsotopicPeaks;}
-  
-  inline void setCharge(int pCharge){fCharge = pCharge;}	
-  inline void setC13MassError(double pC13MassError){fC13MassError = pC13MassError;}
-  inline void setNrIsotopes(int pNrIsotopes){fNrIsotopes = pNrIsotopes;}
-  inline void setScore(double pScore){fScore = pScore;}
-  inline void setIsotopicPeaks(std::vector<CentroidPeak> pIsotopicPeaks) {
-    fIsotopicPeaks = pIsotopicPeaks;
-  }
-  
-protected:
-  
-  int						fCharge;
-  int						fNrIsotopes;
-  double					fC13MassError;
-  double					fScore;
-  std::vector<CentroidPeak>	fIsotopicPeaks;
-};
+			CentroidPeak& operator=(const CentroidPeak&);
 
-std::ostream& operator<<(std::ostream&, DeconvPeak&);
+			bool operator<(const CentroidPeak&);
+
+			virtual ~CentroidPeak();
+
+			// getters and setters
+			double getMass();
+			double getIntensity();
+			int getIsotopIdx();
+			double getSignalToNoise();
+			double getFittedIntensity();
+			double getOrgIntensity();
+			std::string getExtraPeakInfo();
+			double getRetentionTime();
+
+			void setMass(double pMass);
+			void setIntensity(double pIntensity);
+			void setIsotopIdx(double pIsotopIdx);
+			void setSignalToNoise(double in);
+			void setFittedIntensity(double pFittedIntensity);
+			void setOrgIntensity(double pOrgIntensity);
+			void setExtraPeakInfo(std::string in);
+			void setRetentionTime(double in);
+
+			void show_info();
+			void subtractIntensity(double);
+
+		protected:
+
+			int isotopIdx_;
+			double mass_;
+			double intensity_;
+			double fittedIntensity_;
+			double orgIntensity_;
+			double tr_;
+			double signalToNoise_;
+			std::string extraPeakInfo_;
+	};
+
+	// Class for deconvoluted isotopic patterns
+	class DeconvPeak: public CentroidPeak
+	{
+		public:
+
+			DeconvPeak();
+			DeconvPeak(double, double, int, int, double, double);
+			DeconvPeak(const DeconvPeak&);
+			DeconvPeak(const DeconvPeak*);
+
+			DeconvPeak& operator=(const DeconvPeak&);
+
+			virtual ~DeconvPeak();
+
+			// shows the info of the peak:
+			void show_info();
+
+			// getters and setters
+			int getCharge();
+			int getNrIsotopes();
+			double getC13MassError();
+			double getScore();
+			std::vector<CentroidPeak> getIsotopicPeaks();
+
+			void setCharge(int pCharge);
+			void setNrIsotopes(int pNrIsotopes);
+			void setC13MassError(double pC13MassError);
+			void setScore(double pScore);
+			void setIsotopicPeaks(std::vector<CentroidPeak> pIsotopicPeaks);
+
+		protected:
+
+			int charge_;
+			int nrIsotopes_;
+			double c13MassError_;
+			double score_;
+			std::vector<CentroidPeak> isotopicPeaks_;
+	};
+
+	// stream operators
+	std::ostream& operator<<(std::ostream&, CentroidPeak&);
+	std::ostream& operator<<(std::ostream&, DeconvPeak&);
+
+	// inline implementation of getters and setters
+
+	inline double CentroidPeak::getMass()
+	{
+		return mass_;
+	}
+
+	inline double CentroidPeak::getIntensity()
+	{
+		return intensity_;
+	}
+
+	inline int CentroidPeak::getIsotopIdx()
+	{
+		return isotopIdx_;
+	}
+
+	inline double CentroidPeak::getSignalToNoise()
+	{
+		return signalToNoise_;
+	}
+
+	inline double CentroidPeak::getFittedIntensity()
+	{
+		return fittedIntensity_;
+	}
+
+	inline double CentroidPeak::getOrgIntensity()
+	{
+		return orgIntensity_;
+	}
+
+	inline std::string CentroidPeak::getExtraPeakInfo()
+	{
+		return extraPeakInfo_;
+	}
+
+	inline double CentroidPeak::getRetentionTime()
+	{
+		return tr_;
+	}
+
+	inline void CentroidPeak::setMass(double pMass)
+	{
+		mass_ = pMass;
+	}
+
+	inline void CentroidPeak::setIntensity(double pIntensity)
+	{
+		intensity_ = pIntensity;
+	}
+
+	inline void CentroidPeak::setIsotopIdx(double pIsotopIdx)
+	{
+		isotopIdx_ = (int) pIsotopIdx;
+	}
+
+	inline void CentroidPeak::setSignalToNoise(double in)
+	{
+		signalToNoise_ = in;
+	}
+
+	inline void CentroidPeak::setFittedIntensity(double pFittedIntensity)
+	{
+		fittedIntensity_ = pFittedIntensity;
+	}
+
+	inline void CentroidPeak::setOrgIntensity(double pOrgIntensity)
+	{
+		orgIntensity_ = pOrgIntensity;
+	}
+
+	inline void CentroidPeak::setExtraPeakInfo(std::string in)
+	{
+		extraPeakInfo_ = in;
+	}
+
+	inline void CentroidPeak::setRetentionTime(double in)
+	{
+		tr_ = in;
+	}
+
+	//
+
+	inline int DeconvPeak::getCharge()
+	{
+		return charge_;
+	}
+
+	inline int DeconvPeak::getNrIsotopes()
+	{
+		return nrIsotopes_;
+	}
+
+	inline double DeconvPeak::getC13MassError()
+	{
+		return c13MassError_;
+	}
+
+	inline double DeconvPeak::getScore()
+	{
+		return score_;
+	}
+
+	inline std::vector<CentroidPeak> DeconvPeak::getIsotopicPeaks()
+	{
+		return isotopicPeaks_;
+	}
+
+	inline void DeconvPeak::setCharge(int pCharge)
+	{
+		charge_ = pCharge;
+	}
+
+	inline void DeconvPeak::setC13MassError(double pC13MassError)
+	{
+		c13MassError_ = pC13MassError;
+	}
+
+	inline void DeconvPeak::setNrIsotopes(int pNrIsotopes)
+	{
+		nrIsotopes_ = pNrIsotopes;
+	}
+
+	inline void DeconvPeak::setScore(double pScore)
+	{
+		score_ = pScore;
+	}
+
+	inline void DeconvPeak::setIsotopicPeaks(std::vector<CentroidPeak> pIsotopicPeaks)
+	{
+		isotopicPeaks_ = pIsotopicPeaks;
+	}
 
 } // ns
 

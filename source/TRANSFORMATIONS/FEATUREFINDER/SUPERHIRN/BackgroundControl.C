@@ -41,157 +41,185 @@
 //
 
 #include <list>
+#include <map>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ms_peak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_MS_XML_reader.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
 
 namespace OpenMS
 {
-  
-using namespace std;
 
-BackgroundControl::BackgroundControl(){
-  init();
-}
+	using namespace std;
 
-BackgroundControl::~BackgroundControl(){
-  intensityBinMap.clear();
-}
+	BackgroundControl::BackgroundControl()
+	{
+		init();
+	}
 
-void BackgroundControl::init(){
-  
-  // create a vector of intensity bin objects
-  
-  // first in the tr dimension:
-  double trStart = LC_MS_XML_reader::TR_MIN;
-  while( trStart <= LC_MS_XML_reader::TR_MAX ){
-  
-    // inner loop is the mzBins:
-    map<double, BackgroundIntensityBin> mzArray;
-    double mzStart = LC_MS_XML_reader::FEATURE_MZ_MIN;
-    while( mzStart <= LC_MS_XML_reader::FEATURE_MZ_MAX ){
-      
-      BackgroundIntensityBin* bin = new BackgroundIntensityBin(mzStart,trStart);
-      mzArray.insert( make_pair( mzStart, *bin ) );
-      delete bin;
-      bin = NULL;
-    
-      mzStart += BackgroundIntensityBin::MZ_BINS;
-    }
-    
-    intensityBinMap.insert( make_pair (trStart, mzArray) );
-    trStart += BackgroundIntensityBin::TR_BINS;
-  }
-  
-}
+	BackgroundControl::~BackgroundControl()
+	{
+		intensityBinMap.clear();
+	}
 
-void BackgroundControl::addPeakMSScan( double TR, list<CentroidPeak>* peakList ){
-  
-  map<double, map< double, BackgroundIntensityBin>  >::iterator F = findTrKey( TR );
-  if( F != intensityBinMap.end() ){
-    
-    // find the mz bins:
-    map< double, BackgroundIntensityBin>* mzMap = &(F->second);
-    
-    list<CentroidPeak>::iterator mpi;
-    for (mpi=peakList->begin();mpi!=peakList->end();++mpi) {
-      
-      map< double, BackgroundIntensityBin>::iterator F_mz = findMzKey( mpi->getMass(), mzMap );
-      if(  F_mz != mzMap->end() ){
-        F_mz->second.addIntensity( mpi->getIntensity() );
-      }
-    }
-  }
-}
+	void BackgroundControl::init()
+	{
 
-map< double, BackgroundIntensityBin>::iterator BackgroundControl::findMzKey( double mz, map< double, BackgroundIntensityBin>* mzMap ){
-  
-  double constraint = BackgroundIntensityBin::MZ_BINS / 2.0;
-  map<double, map< double, BackgroundIntensityBin>::iterator > outMap;
-  
-  map< double, BackgroundIntensityBin>::iterator F = mzMap->lower_bound( mz );
-  if( F != mzMap->end() ){
-    double delta = fabs( F->first - mz );
-    if( delta <= constraint ){ 
-      outMap.insert( make_pair( delta, F) );
-    }
-  }
-  
-  
-  if( F != mzMap->begin() ){
-    F--;
-    double delta = fabs( mz - F->first );    
-    if( delta <= constraint ){
-      outMap.insert( make_pair( delta, F) );
-    }
-  }
-  
-  if( !outMap.empty() ){
-    return outMap.begin()->second;
-  }
-  
-  return mzMap->end();
-}
+		// create a vector of intensity bin objects
 
-map<double, map< double, BackgroundIntensityBin>  >::iterator BackgroundControl::findTrKey( double Tr ){
-  
-  double constraint = BackgroundIntensityBin::TR_BINS * 2;
-  
-  map<double, map<double, map< double, BackgroundIntensityBin>  >::iterator > outMap;
-  map<double, map< double, BackgroundIntensityBin>  >::iterator F = intensityBinMap.lower_bound( Tr );
-  if( F != intensityBinMap.end() ){
-    double delta = fabs( Tr - F->first );    
-    if( delta <= constraint ){
-      outMap.insert( make_pair( delta, F) );
-    }
-    
-  }
+		// first in the tr dimension:
+		double trStart = SuperHirnParameters::instance()->getMinTR();
+		while (trStart <= SuperHirnParameters::instance()->getMaxTR())
+		{
 
-  if( F != intensityBinMap.begin() ){
-    F--;
+			// inner loop is the mzBins:
+			map<double, BackgroundIntensityBin> mzArray;
+			double mzStart = SuperHirnParameters::instance()->getMinFeatureMZ();
+			while (mzStart <= SuperHirnParameters::instance()->getMaxFeatureMZ())
+			{
 
-    double delta = fabs( Tr - F->first );    
-    if( delta <= constraint ){
-      outMap.insert( make_pair( delta, F) );
-    }
-  }
-  
-  if( !outMap.empty() ){
-    return outMap.begin()->second;
-  }
+				BackgroundIntensityBin* bin = new BackgroundIntensityBin(mzStart, trStart);
+				mzArray.insert(make_pair(mzStart, *bin));
+				delete bin;
 
-  return intensityBinMap.end();
-}
+				mzStart += SuperHirnParameters::instance()->getBackgroundIntensityBinsMZ();
+			}
 
-double BackgroundControl::getBackgroundLevel( double mz, double tr){
-  // find the corresponding retention time bin:
-  map<double, map< double, BackgroundIntensityBin> >::iterator F = findTrKey( tr  );
-  if( F != intensityBinMap.end() ){
-    map< double, BackgroundIntensityBin>::iterator F2 = findMzKey( mz, &(F->second) );
-    if( F2 != F->second.end() ){
-      return F2->second.getMean();
-    }
-  }
-  return -1.0;
-}
+			intensityBinMap.insert(make_pair(trStart, mzArray));
+			trStart += SuperHirnParameters::instance()->getBackgroundIntensityBinsTR();
+			;
+		}
 
-void BackgroundControl::processIntensityMaps(  ){
-  
-  map<double, map< double, BackgroundIntensityBin> >::iterator P1 = intensityBinMap.begin();
-  while( P1 != intensityBinMap.end() ){
-    
-    map< double, BackgroundIntensityBin> ::iterator P2 = P1->second.begin();
-    while( P2 != P1->second.end() ){
-      
-      P2->second.processIntensities( );
-      P2++;
-    }
-    
-    P1++;
-  }
-}
+	}
+
+	void BackgroundControl::addPeakMSScan(double TR, list<CentroidPeak>* peakList)
+	{
+
+		map<double, map<double, BackgroundIntensityBin> >::iterator F = findTrKey(TR);
+		if (F != intensityBinMap.end())
+		{
+
+			// find the mz bins:
+			map<double, BackgroundIntensityBin>* mzMap = &(F->second);
+
+			list<CentroidPeak>::iterator mpi;
+			for (mpi = peakList->begin(); mpi != peakList->end(); ++mpi)
+			{
+
+				map<double, BackgroundIntensityBin>::iterator F_mz = findMzKey(mpi->getMass(), mzMap);
+				if (F_mz != mzMap->end())
+				{
+					F_mz->second.addIntensity(mpi->getIntensity());
+				}
+			}
+		}
+	}
+
+	map<double, BackgroundIntensityBin>::iterator BackgroundControl::findMzKey(double mz,
+			map<double, BackgroundIntensityBin>* mzMap)
+	{
+
+		double constraint = SuperHirnParameters::instance()->getBackgroundIntensityBinsMZ() / 2.0;
+		map<double, map<double, BackgroundIntensityBin>::iterator> outMap;
+
+		map<double, BackgroundIntensityBin>::iterator F = mzMap->lower_bound(mz);
+		if (F != mzMap->end())
+		{
+			double delta = fabs(F->first - mz);
+			if (delta <= constraint)
+			{
+				outMap.insert(make_pair(delta, F));
+			}
+		}
+
+		if (F != mzMap->begin())
+		{
+			F--;
+			double delta = fabs(mz - F->first);
+			if (delta <= constraint)
+			{
+				outMap.insert(make_pair(delta, F));
+			}
+		}
+
+		if (!outMap.empty())
+		{
+			return outMap.begin()->second;
+		}
+
+		return mzMap->end();
+	}
+
+	map<double, map<double, BackgroundIntensityBin> >::iterator BackgroundControl::findTrKey(double Tr)
+	{
+
+		double constraint = SuperHirnParameters::instance()->getBackgroundIntensityBinsTR() * 2;
+
+		map<double, map<double, map<double, BackgroundIntensityBin> >::iterator> outMap;
+		map<double, map<double, BackgroundIntensityBin> >::iterator F = intensityBinMap.lower_bound(Tr);
+		if (F != intensityBinMap.end())
+		{
+			double delta = fabs(Tr - F->first);
+			if (delta <= constraint)
+			{
+				outMap.insert(make_pair(delta, F));
+			}
+
+		}
+
+		if (F != intensityBinMap.begin())
+		{
+			F--;
+
+			double delta = fabs(Tr - F->first);
+			if (delta <= constraint)
+			{
+				outMap.insert(make_pair(delta, F));
+			}
+		}
+
+		if (!outMap.empty())
+		{
+			return outMap.begin()->second;
+		}
+
+		return intensityBinMap.end();
+	}
+
+	double BackgroundControl::getBackgroundLevel(double mz, double tr)
+	{
+		// find the corresponding retention time bin:
+		map<double, map<double, BackgroundIntensityBin> >::iterator F = findTrKey(tr);
+		if (F != intensityBinMap.end())
+		{
+			map<double, BackgroundIntensityBin>::iterator F2 = findMzKey(mz, &(F->second));
+			if (F2 != F->second.end())
+			{
+				return F2->second.getMean();
+			}
+		}
+		return -1.0;
+	}
+
+	void BackgroundControl::processIntensityMaps()
+	{
+
+		map<double, map<double, BackgroundIntensityBin> >::iterator P1 = intensityBinMap.begin();
+		while (P1 != intensityBinMap.end())
+		{
+
+			map<double, BackgroundIntensityBin>::iterator P2 = P1->second.begin();
+			while (P2 != P1->second.end())
+			{
+
+				P2->second.processIntensities();
+				P2++;
+			}
+
+			P1++;
+		}
+	}
 } // ns
 

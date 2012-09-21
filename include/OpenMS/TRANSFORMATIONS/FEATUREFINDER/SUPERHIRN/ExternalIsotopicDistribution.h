@@ -65,8 +65,6 @@ public:
   static std::string XMLInputFile;
   static double EXTERNAL_DISTRIBUTION_MONO_ISOTOPE_PPM_TOLERANCE;
 
-  //static multimap< double, double> allExternalPepdistributions;
-
   // class destructor
   ~ExternalIsotopicDistribution();
   
@@ -99,6 +97,7 @@ public:
   //////////////////////////////////////////////////
   // function to extract external isotopic profiles
   // by an input monoisotopic mass
+
   static PeptideIsotopeDisribution* extractExternalIsotopicProfile( double, int , double);
   //  check if two masses to be the same
   static bool checkMonoIsotopOverlap( double , int, double, PeptideIsotopeDisribution* );

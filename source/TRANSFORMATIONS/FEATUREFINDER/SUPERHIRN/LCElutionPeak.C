@@ -1,0 +1,559 @@
+///////////////////////////////////////////////////////////////////////////
+//
+//  PEAK DETECTION OF FOURIER TRANSFORME MS INSTRUMENT DATA
+//// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Florian Zeller $
+// $Authors: Lukas Mueller, Markus Mueller $
+// --------------------------------------------------------------------------
+//
+//  written by Markus Mueller, markus.mueller@imsb.biol.ethz.ch
+//  and Lukas Mueller, Lukas.Mueller@imsb.biol.ethz.ch
+//  October 2005
+//
+//  Ported to OpenMS by Florian Zeller, florian.zeller@bsse.ethz.ch
+//  December 2010
+//
+//  Group of Prof. Ruedi Aebersold, IMSB, ETH Hoenggerberg, Zurich
+// 
+//
+
+#include <math.h>
+#include <stdio.h>
+#include <iostream>
+#include <map>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ConsensusIsotopePattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCElutionPeak.h>
+
+namespace OpenMS
+{
+
+	using namespace std;
+
+// resolution of the retention time, for peak area copmuting:
+// float LCElutionPeak::TR_RESOLUTION;
+
+// cut off, where everything small than this precentile of the
+// apex is discarded
+// float LCElutionPeak::intensity_apex_percentil_cutoff;
+
+// parameters to debug a ceratain mass range
+	double LCElutionPeak::DEBUG_MASS_START = -1;
+	double LCElutionPeak::DEBUG_MASS_END = -1;
+
+////////////////////////////////////////////////
+// constructor for the object LCElutionPeak:
+	LCElutionPeak::LCElutionPeak()
+	{
+
+		f_observed_Mass = 0;
+		fIsotopMass = 0;
+		fMonoMass = 0;
+		fVolume = 0;
+		fCharge = 0;
+		fNrIsotopes = 0;
+		fScanNumberStart = 0;
+		fScanNumberApex = 0;
+		fScanNumberEnd = 0;
+		fpeak_area = 0;
+		fapex_intensity = 0;
+		fRT = 0;
+		fStartTR = 0;
+		fEndTR = 0;
+		isotopePattern = NULL;
+
+	}
+
+////////////////////////////////////////////////
+// constructor for the object LCElutionPeak:
+	LCElutionPeak::LCElutionPeak(MZ_series_ITERATOR data, double MZ)
+	{
+
+		f_observed_Mass = MZ;
+		fIsotopMass = 0;
+		intens_signals = (*data);
+		fMonoMass = 0;
+		fVolume = 0;
+		fCharge = 0;
+		fNrIsotopes = 0;
+		fScanNumberStart = 0;
+		fScanNumberApex = 0;
+		fScanNumberEnd = 0;
+		fapex_intensity = 0;
+		fpeak_area = 0;
+		fRT = 0;
+		fStartTR = 0;
+		fEndTR = 0;
+		isotopePattern = NULL;
+	}
+
+//////////////////////////////////////////////////
+// class desctructor of LCElutionPeak
+	LCElutionPeak::~LCElutionPeak()
+	{
+
+		intens_signals.clear();
+		CHRG_MAP.clear();
+		if (isotopePattern != NULL)
+		{
+			delete isotopePattern;
+			isotopePattern = NULL;
+		}
+	}
+
+////////////////////////////////////////////////
+// constructor for the object feature:
+	LCElutionPeak::LCElutionPeak(const LCElutionPeak* tmp)
+	{
+		CHRG_MAP = tmp->CHRG_MAP;
+		f_observed_Mass = tmp->f_observed_Mass;
+		fpeak_area = tmp->fpeak_area;
+		fapex_intensity = tmp->fapex_intensity;
+		fIsotopMass = tmp->fIsotopMass;
+		fMonoMass = tmp->fMonoMass;
+		fVolume = tmp->fVolume;
+		fCharge = tmp->fCharge;
+		fNrIsotopes = tmp->fNrIsotopes;
+		fScanNumberStart = tmp->fScanNumberStart;
+		fScanNumberApex = tmp->fScanNumberApex;
+		fScanNumberEnd = tmp->fScanNumberEnd;
+		fRT = tmp->fRT;
+		fStartTR = tmp->fStartTR;
+		fEndTR = tmp->fEndTR;
+		intens_signals = tmp->intens_signals;
+		fSignalToNoise = tmp->fSignalToNoise;
+		fSNIntensityThreshold = tmp->fSNIntensityThreshold;
+		isotopePattern = new ConsensusIsotopePattern(tmp->isotopePattern);
+		elutionPeakExtraInfo = tmp->elutionPeakExtraInfo;
+	}
+
+//////////////////////////////////////////////////
+// class copy constructor of LCElutionPeak
+	LCElutionPeak::LCElutionPeak(const LCElutionPeak& tmp)
+	{
+
+		CHRG_MAP = tmp.CHRG_MAP;
+		f_observed_Mass = tmp.f_observed_Mass;
+		fpeak_area = tmp.fpeak_area;
+		fapex_intensity = tmp.fapex_intensity;
+		fIsotopMass = tmp.fIsotopMass;
+		fMonoMass = tmp.fMonoMass;
+		fVolume = tmp.fVolume;
+		fCharge = tmp.fCharge;
+		fNrIsotopes = tmp.fNrIsotopes;
+		fScanNumberStart = tmp.fScanNumberStart;
+		fScanNumberApex = tmp.fScanNumberApex;
+		fScanNumberEnd = tmp.fScanNumberEnd;
+		fRT = tmp.fRT;
+		fStartTR = tmp.fStartTR;
+		fEndTR = tmp.fEndTR;
+		fSNIntensityThreshold = tmp.fSNIntensityThreshold;
+		intens_signals = tmp.intens_signals;
+		fSignalToNoise = tmp.fSignalToNoise;
+		isotopePattern = new ConsensusIsotopePattern(tmp.isotopePattern);
+		elutionPeakExtraInfo = tmp.elutionPeakExtraInfo;
+
+	}
+
+//////////////////////////////////////////////////
+// copy constructor:
+	LCElutionPeak& LCElutionPeak::operator=(const LCElutionPeak& tmp)
+	{
+
+		CHRG_MAP = tmp.CHRG_MAP;
+		f_observed_Mass = tmp.f_observed_Mass;
+		fpeak_area = tmp.fpeak_area;
+		fapex_intensity = tmp.fapex_intensity;
+		fIsotopMass = tmp.fIsotopMass;
+		fMonoMass = tmp.fMonoMass;
+		fVolume = tmp.fVolume;
+		fCharge = tmp.fCharge;
+		fNrIsotopes = tmp.fNrIsotopes;
+		fScanNumberStart = tmp.fScanNumberStart;
+		fScanNumberApex = tmp.fScanNumberApex;
+		fScanNumberEnd = tmp.fScanNumberEnd;
+		fRT = tmp.fRT;
+		fStartTR = tmp.fStartTR;
+		fEndTR = tmp.fEndTR;
+		intens_signals = tmp.intens_signals;
+		fSNIntensityThreshold = tmp.fSNIntensityThreshold;
+		fSignalToNoise = tmp.fSignalToNoise;
+		isotopePattern = new ConsensusIsotopePattern(tmp.isotopePattern);
+		elutionPeakExtraInfo = tmp.elutionPeakExtraInfo;
+
+		return *this;
+	}
+
+//////////////////////////////////////////////////////////////////
+// get the original M/Z of a ms_peak
+	double LCElutionPeak::get_MZ(int IN)
+	{
+
+		SIGNAL_iterator P = intens_signals.lower_bound(IN);
+		if ((*P).first == IN)
+		{
+			return (*P).second.get_MZ();
+		}
+
+		if (P == get_signal_list_end())
+		{
+			P--;
+			return (*P).second.get_MZ();
+		}
+
+		if (P == get_signal_list_start())
+		{
+			return (*P).second.get_MZ();
+		}
+
+		double SCAN_UP = (*P).first;
+		P--;
+		double SCAN_DOWN = (*P).first;
+
+		if ((SCAN_UP - IN) <= (IN - SCAN_DOWN))
+			P++;
+
+		return (*P).second.get_MZ();
+
+	}
+
+////////////////////////////////////////////////////////////////////
+// find the closest existing mz peak in the elution profile:
+	MSPeak* LCElutionPeak::find_true_peak(float SCAN)
+	{
+
+		int int_SCAN = int(floor(SCAN));
+
+		SIGNAL_iterator P = intens_signals.upper_bound(int_SCAN);
+		if (P == intens_signals.end())
+		{
+			P--;
+			return &((*P).second);
+		}
+		else if (P == intens_signals.begin())
+		{
+			return &((*P).second);
+		}
+		else
+		{
+			float dis_UP = float((*P).first) - SCAN;
+			P--;
+			float dis_down = SCAN - float((*P).first);
+			if (dis_UP > dis_down)
+			{
+				return &((*P).second);
+			}
+			else
+			{
+				P++;
+				return &((*P).second);
+			}
+		}
+	}
+
+/////////////////////////////////////////////
+// print the elution profile from a peak:
+	void LCElutionPeak::show_info()
+	{
+		printf("scan:[%d,%d,%d], TR:[%0.2f,%0.2f,%0.2f],m/z=%0.4f(+%d),area=%0.2e(%0.2f),S/N=%0.2f\n", fScanNumberStart,
+				fScanNumberApex, fScanNumberEnd, fStartTR, fRT, fEndTR, get_apex_MZ(), get_charge_state(),
+				get_total_peak_area(), get_apex_intensity(), getSignalToNoise());
+	}
+
+//////////////////////////////////////////////////////////////////
+// determine the intensity background baseline based on S/N 
+// value:
+	void LCElutionPeak::setSNIntensityThreshold()
+	{
+
+		fSignalToNoise = 0;
+		fSNIntensityThreshold = 0;
+
+		double TotArea = 0;
+		SIGNAL_iterator P = get_signal_list_start();
+		while (P != get_signal_list_end())
+		{
+			MSPeak* peak = &(P->second);
+			fSignalToNoise += peak->getSignalToNoise() * peak->get_intensity();
+			fSNIntensityThreshold += peak->get_intensity() * (peak->get_intensity() / peak->getSignalToNoise());
+			TotArea += peak->get_intensity();
+			P++;
+		}
+
+		// set the signal to noise:
+		fSignalToNoise /= TotArea;
+		// set the noise threshold:
+		fSNIntensityThreshold /= TotArea;
+
+	}
+
+//////////////////////////////////////////////////////////////////
+// Compute a varietiy of parameters for the LC elution peak
+	void LCElutionPeak::computeLCElutionPeakParameters()
+	{
+
+		double TOT_AREA = 0;
+		double apexScan = 0;
+		double apexTr = 0;
+		MSPeak* endPeak = NULL;
+		MSPeak* startPeak = NULL;
+
+		// find the first peaks above the background intensity:
+		SIGNAL_iterator P = get_signal_list_start();
+		fScanNumberStart = (*P).second.get_scan_number();
+		fStartTR = (*P).second.get_retention_time();
+
+		// set start et first scan in the LC_peak:
+		while (P != get_signal_list_end())
+		{
+			if ((*P).second.get_intensity() >= fSNIntensityThreshold)
+			{
+				break;
+			}
+			P++;
+		}
+
+		// FLO: On windows, there is an error when we try to de-reference P when
+		// P refers to get_signal_list_end() - the case is quite obvious when we
+		// see that P is incremented afterwards. Without knowing I just introduce
+		// a check whether P is equal to get_signal_list_end().
+		if (P != get_signal_list_end())
+		{
+			startPeak = &((*P).second);
+
+			// to compute some other parameters at the same time:
+			update_CHRGMAP(&(*P).second);
+
+			P++;
+		}
+
+		// go through all peaks in the LC elution profile:
+		while (P != get_signal_list_end())
+		{
+
+			if ((*P).second.get_intensity() >= fSNIntensityThreshold)
+			{
+				if (startPeak != NULL)
+				{
+					endPeak = &((*P).second);
+				}
+				else
+				{
+					startPeak = &((*P).second);
+				}
+			}
+			else
+			{
+				endPeak = NULL;
+				startPeak = NULL;
+			}
+
+			if ((endPeak != NULL) && (startPeak != NULL))
+			{
+
+				// to compute some other parameters at the same time:
+				update_CHRGMAP(endPeak);
+
+				///////////////////////////////////////////////////
+				// compute an area between local start / end ms peak:
+				double area = compute_delta_area(startPeak->get_retention_time(),
+						startPeak->get_intensity() - fSNIntensityThreshold, endPeak->get_retention_time(),
+						endPeak->get_intensity() - fSNIntensityThreshold);
+
+				TOT_AREA += area;
+				apexScan += (double) (P->first) * area;
+				apexTr += startPeak->get_retention_time() * area;
+
+				// next scan:
+				startPeak = endPeak;
+			}
+
+			P++;
+		}
+
+		// if contained only one peak!
+		if (get_nb_ms_peaks() == 1)
+		{
+			TOT_AREA = startPeak->get_intensity();
+			fScanNumberEnd = fScanNumberStart;
+			fEndTR = startPeak->get_retention_time();
+		}
+		else
+		{
+
+			P--;
+			fScanNumberEnd = (*P).second.get_scan_number();
+			fEndTR = (*P).second.get_retention_time();
+			fpeak_area = TOT_AREA;
+			apexScan /= TOT_AREA;
+			apexTr /= TOT_AREA;
+			fRT = apexTr;
+		}
+
+		// set the apex ms peak:
+		MSPeak* APEX = find_true_peak((float) apexScan);
+		if (!APEX->getExtraPeakInfo().empty())
+		{
+			setElutionPeakExtraInfo(APEX->getExtraPeakInfo());
+		}
+
+		// find retention time and intensity of apex:
+		fScanNumberApex = APEX->get_scan_number();
+		fapex_intensity = APEX->get_intensity();
+
+	}
+
+/////////////////////////////////////////////////////////////////////
+// compute the charge state of the LC peak
+	void LCElutionPeak::compute_CHRG()
+	{
+
+		bool view = false;
+		double mass = get_apex_MZ();
+
+		if ((DEBUG_MASS_START <= mass) && (mass <= DEBUG_MASS_END))
+		{
+			view = true;
+			show_info();
+		}
+
+		int maxCount = -1;
+		multimap<int, int>::iterator C = CHRG_MAP.begin();
+		while (C != CHRG_MAP.end())
+		{
+
+			if (view)
+			{
+				cout << (*C).first << ":" << (*C).second << endl;
+			}
+
+			if (maxCount < (*C).second)
+			{
+				fCharge = (*C).first;
+				maxCount = (*C).second;
+			}
+			C++;
+		}
+
+		if (view)
+		{
+			cout << fCharge << endl;
+		}
+
+		CHRG_MAP.clear();
+	}
+
+/////////////////////////////////////////////////////////////////////
+// computes the area of between 2 peaks:
+	double LCElutionPeak::compute_delta_area(double START_TR, double START_INT, double END_TR, double END_INT)
+	{
+
+		double AREA = 0;
+
+		if ((START_INT > 0) && (END_INT > 0) && (START_TR <= END_TR))
+		{
+
+			double x = (END_TR - START_TR) / SuperHirnParameters::instance()->getMS1TRResolution();
+			double y = fabs(END_INT - START_INT);
+
+			if ((x != 0) && (y != 0))
+			{
+
+				double m = y / x;
+				double INT = START_INT;
+				double count = 0;
+				while (count <= x)
+				{
+					AREA += INT;
+					INT += m;
+					count++;
+				}
+				AREA += INT;
+			}
+		}
+
+		return AREA;
+	}
+
+////////////////////////////////////////////////////////////////////////////////
+// print all monositopic peak cluster along the LC profile:
+	void LCElutionPeak::createConsensIsotopPattern()
+	{
+
+		//////////////
+		// go through the different isotopes and
+		// constructe a consensus patterns:
+		isotopePattern = new ConsensusIsotopePattern();
+
+		multimap<int, MSPeak>::iterator R = intens_signals.begin();
+		while (R != intens_signals.end())
+		{
+
+			MSPeak* peak = &(*R).second;
+			map<double, double> isotopeCluster;
+
+			vector<CentroidPeak>::iterator p = peak->get_isotopic_peaks_start();
+			while (p != peak->get_isotopic_peaks_end())
+			{
+				isotopePattern->addIsotopeTrace((*p).getMass(), (*p).getFittedIntensity());
+				p++;
+			}
+
+			R++;
+		}
+
+		// create the pattern:
+		isotopePattern->constructConsusPattern();
+
+	}
+
+////////////////////////////////////////////////////////////////////////////////
+// define all required peak parameters from a single MS peak:
+	void LCElutionPeak::defineLCElutionPeakParametersFromMSPeak()
+	{
+
+		APEX = &(get_signal_list_start()->second);
+
+		fMonoMass = APEX->get_MZ();
+		fVolume = APEX->get_intensity();
+		fCharge = APEX->get_Chrg();
+		fScanNumberStart = APEX->get_Scan();
+		fScanNumberApex = fScanNumberStart;
+		fScanNumberEnd = fScanNumberStart;
+		fapex_intensity = APEX->get_intensity();
+		fRT = APEX->get_retention_time();
+		fStartTR = fRT;
+		fEndTR = fRT;
+		fpeak_area = APEX->get_intensity();
+		fSignalToNoise = APEX->getSignalToNoise();
+		createConsensIsotopPattern();
+
+	}
+
+}

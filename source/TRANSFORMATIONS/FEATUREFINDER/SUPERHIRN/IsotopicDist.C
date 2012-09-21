@@ -39,10 +39,8 @@
 #include <list>
 #include <map>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/PeptideIsotopeDistribution.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ExternalIsotopicDistribution.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidData.h>
 
 #include <iomanip>
 
@@ -51,8 +49,8 @@
 namespace OpenMS
 {
 
-double	IsotopicDist::sfDetectableIsoFact = 0.05; // determines which isotopes must match for peak detection
-double	IsotopicDist::sfIntensityCV = 0.3; // maximal deviation between expected and measured isotopic intensities  
+	//double	IsotopicDist::sfDetectableIsoFact = 0.05; // determines which isotopes must match for peak detection
+//double	IsotopicDist::sfIntensityCV = 0.3; // maximal deviation between expected and measured isotopic intensities
 // NOTE the sfIntensityCV is overwritten from config!
 
 
@@ -659,274 +657,309 @@ double IsotopicDist::sfIsoMass10[96][20] = {
 	{ 0.00000, 1.00294, 2.00576, 3.00848, 4.01117, 5.01377, 6.01635, 7.01891, 8.02143, 9.02400, 10.02659, 11.02918, 12.03184, 13.03495, 14.03812, 15.02369, 0.00000, 0.00000, 0.00000, 0.00000 }, // 10000 Da
 };
 
-int IsotopicDist::sfNrIsotopes[96];
-int	IsotopicDist::sfMaxIsotopeIndex = 19; // Highest first index in isotopic tables above
-int	IsotopicDist::sfMaxMassIndex = 95; // Highest second index in isotopic tables above
-double	IsotopicDist::sfMinMass = 500.0; // Min mass of isotopic tables
-double	IsotopicDist::sfMaxMass = 10000.0; // Max mass of isotopic tables
-double	IsotopicDist::sfMassStep = 100.0; // Mass bin size in isotopic tables
+	int IsotopicDist::sfNrIsotopes[96];
+	int IsotopicDist::sfMaxIsotopeIndex = 19; // Highest first index in isotopic tables above
+	int IsotopicDist::sfMaxMassIndex = 95; // Highest second index in isotopic tables above
+	double IsotopicDist::sfMinMass = 500.0; // Min mass of isotopic tables
+	double IsotopicDist::sfMaxMass = 10000.0; // Max mass of isotopic tables
+	double IsotopicDist::sfMassStep = 100.0; // Mass bin size in isotopic tables
 
-bool IsotopicDist::sfDebug = false;
-std::ostream* IsotopicDist::sfStream = 0;
-
+	//bool IsotopicDist::sfDebug = false;
+	//std::ostream* IsotopicDist::sfStream = 0;
 
 #include <cmath>
 #include <iostream>
 
-using namespace std;
+	using namespace std;
 
 // initialises several attributes and MUST be called before use of the other functions
-void IsotopicDist::init()
-{
-	int i,j;
-  double max_intens,fact;
-  
-  fact = IsotopicDist::sfDetectableIsoFact;
-  
-  for (i=0;i<=sfMaxMassIndex;i++) {
-    max_intens = 0.0;
-    for (j=0;j<=sfMaxIsotopeIndex;j++) {
-      max_intens = (max_intens>sfIsoDist50[i][j])?max_intens:sfIsoDist50[i][j];
-      if (sfIsoDist50[i][j]<max_intens*fact && j>1) break;
-    }
-		
-    sfNrIsotopes[i] = j;
-  } 
-}
+	void IsotopicDist::init()
+	{
+		if(SuperHirnParameters::instance()->isInitIsotopeDist())
+		{
+			return;
+		}
+
+		int i, j;
+		double max_intens, fact;
+
+		fact = SuperHirnParameters::instance()->getDetectableIsotopeFactor();
+
+		for (i = 0; i <= sfMaxMassIndex; i++)
+		{
+			max_intens = 0.0;
+			for (j = 0; j <= sfMaxIsotopeIndex; j++)
+			{
+				max_intens = (max_intens > sfIsoDist50[i][j]) ? max_intens : sfIsoDist50[i][j];
+				if (sfIsoDist50[i][j] < max_intens * fact && j > 1)
+					break;
+			}
+
+			sfNrIsotopes[i] = j;
+		}
+		SuperHirnParameters::instance()->setInitIsotopeDist();
+	}
 
 // Returns median isotopic distribtion for a given mass and charge 1
-void IsotopicDist::getDistribution(
-                                   double pMass, // mass of monoisotopic peak
-                                   double*& pMasses, // iso dist masses as C array, monoisotopic peak is set to 0 mass
-                                   double*& pIntens) // iso dist intensities as C array
-{
-  
-  
-   int idx = getIndex(pMass,1);
-  
-  pMasses = sfIsoDist50[idx];
-  pIntens = sfIsoMass50[idx];
-}
+// NEVER USED
+	/*
+	 void IsotopicDist::getDistribution(
+	 double pMass, // mass of monoisotopic peak
+	 double*& pMasses, // iso dist masses as C array, monoisotopic peak is set to 0 mass
+	 double*& pIntens) // iso dist intensities as C array
+	 {
 
 
+	 int idx = getIndex(pMass,1);
+
+	 pMasses = sfIsoDist50[idx];
+	 pIntens = sfIsoMass50[idx];
+	 }
+	 */
 
 // Iterates over an list of CentroidPeak objects and finds those ones that match a isotopic m/z value. It also calculates the 'best' 
 // match of a isotopic pattern to these peaks. 
-bool IsotopicDist::getMatchingPeaks(
-                                    list<CentroidPeak>::iterator pMono, // potential monoisotopic peak 
-                                    list<CentroidPeak>::iterator pEnd, // end of peak group
-                                    int pCharge, // charge of the isotopic pattern 
-                                    double& pAlpha, // best fit factor
-                                    double pTheta, // noise level
-                                    list<list<CentroidPeak>::iterator>& pMatchedPeaks) // matching peaks
-{
-  int idx,i,cnt;
-  double m_low,m_high,tol,m,alpha,max_alpha,min_alpha,mono_alpha,mono,theta,dm,dist,dist_min;
-  bool matched;
-  list<CentroidPeak>::iterator piter,match_peak;
-  list<double> alpha_values;
-  list<double>::iterator avi;
-  
-  mono = pMono->getMass();
-  tol =  CentroidData::sfMassTolPpm*mono/1.0e6 +  CentroidData::sfMassTolDa;
-  piter = pMono;
-  mono_alpha = 0.0;
-  
-  if (sfDebug) (*sfStream) << fixed << setprecision(4) << mono << " " ;	
-  
-  //////////////////////////////////////////////////////////
-  // get the local isotopic distribution:
-  idx = getIndex(mono,pCharge);  
-  
-  // get the extracted x percentile distribution:
-  //double* sfIsoDist10Local = IsotopicDist::sfIsoDist10[idx];
-  double* sfIsoDist50Local = IsotopicDist::sfIsoDist50[idx];
-  //double* sfIsoDist90Local = IsotopicDist::sfIsoDist90[idx];
-  
-  // check for external distributions:
-  PeptideIsotopeDisribution* extrenalIsoDist = NULL;
-  if( ExternalIsotopicDistribution::EXTERNAL_ISOTOPIC_PROFILES ){
-    extrenalIsoDist = ExternalIsotopicDistribution::extractExternalIsotopicProfile( mono, pCharge , pMono->getRetentionTime());
-    
-    if( extrenalIsoDist != NULL ){
-      sfIsoDist50Local = extrenalIsoDist->getIntensityArray( );
-    }
-  }
-  
-  double intens = pMono->getIntensity();
-  double theoIntensMono = sfIsoDist50Local[0];
-  pAlpha = (intens + pTheta) / theoIntensMono;
+	bool IsotopicDist::getMatchingPeaks(list<CentroidPeak>::iterator pMono, // potential monoisotopic peak
+			list<CentroidPeak>::iterator pEnd, // end of peak group
+			int pCharge, // charge of the isotopic pattern
+			double& pAlpha, // best fit factor
+			double pTheta, // noise level
+			list<list<CentroidPeak>::iterator>& pMatchedPeaks) // matching peaks
+	{
+		init();
 
-  
-  // Markus-Fix, applied 2011-05-06
-  int maxNbIsotopes = sfNrIsotopes[idx]; // number of isotopes used for quantification
-  int maxMaxNbIsotopes = (maxNbIsotopes>6)?maxNbIsotopes:6; // number of isotopes to be removed
-  
-  /*
-  if( CentroidData::MonoIsoDebugging ){
-    if( ( CentroidData::DebugMonoIsoMassMin <= mono) && ( CentroidData::DebugMonoIsoMassMax >= mono) ){
-      idx = getIndex(mono,pCharge);  
-      maxNbIsotopes = sfNrIsotopes[idx];
-      //maxNbIsotopes = 5;
-      cout<<maxNbIsotopes<<endl;
-    }
-  }
-*/
-  
-  
-  
-  for (i=0;i<maxMaxNbIsotopes;i++) { // find matching isotopes
-    theta = (sfIsoDist50Local[i]<IsotopicDist::sfDetectableIsoFact)?pTheta:0.0; // this only requires intense isotpic peaks to match exp. peaks
-    
-    //m_low = mono + sfIsoDist10Local[i]/pCharge - tol;
-    //m_high = mono + sfIsoDist90Local[i]/pCharge + tol;
-    m_low = mono + sfIsoMass10[idx][i]/pCharge - tol;
-    m_high = mono + sfIsoMass90[idx][i]/pCharge + tol;
-    
-    
-    
-    
-    matched = false;
-    dist_min = 100.0;
-    dm = 1.0;
-    max_alpha = 0.0;
-    for (;piter!=pEnd;++piter) {
-      m = piter->getMass();
-      
-      if (m>=m_low && m<=m_high) { // matching mass
-        dm = abs(piter->getMass()-mono-sfIsoMass50[idx][i]/pCharge);				
-        alpha = (piter->getIntensity()+theta)/sfIsoDist50Local[i];
-        if (i>0) { // second and higher isotop
-          dist = abs((alpha-mono_alpha)/mono_alpha) + 10.0*dm/tol; // score to evaluate distance between expected and measured values 
-          if (dist<dist_min) { // take minimum distance within same isotop mass range
-            max_alpha = alpha; 
-            match_peak = piter;
-            match_peak->setIsotopIdx(i);
-            dist_min = dist;
-            matched = true; 
-          }					
-        } else { // first (C12) isotop
-          if (piter == pMono) { 
-            mono_alpha = alpha; // take only peak itself within C12 isotop mass range
-            max_alpha = alpha;
-            match_peak = pMono;
-            pMono->setIsotopIdx(0);
-            matched = true; 
-          }
-        }
-      }
-      else if (m>m_high) { // out of mass bounds: go to next isotope
-        if (!matched) {
-          alpha = theta/sfIsoDist50Local[i];
-          max_alpha = (alpha>max_alpha)?alpha:max_alpha; // take maximum within same isotop
-        }
-        break;
-      }
-    }
-    
-    if (matched) {
-      /*
-      if( CentroidData::MonoIsoDebugging ){
-        if( ( CentroidData::DebugMonoIsoMassMin <= mono) && ( CentroidData::DebugMonoIsoMassMax >= mono) ){
-          cout<<endl<<"*Mass: "<<mono<<":: "<<piter->getIntensity()<<"::"<<pCharge<<endl;
-        }
-      }
-       */
-      
-      if( extrenalIsoDist != NULL){ 
-        match_peak->setExtraPeakInfo( extrenalIsoDist->getSummary());
-        // match_peak->show_info();
-        // extrenalIsoDist->show_info();
-        extrenalIsoDist = NULL;
-      }
-      
-      pMatchedPeaks.push_back(match_peak);
-    }
-    
-    if (piter==pEnd) { // stop if no peaks are left
-      if (!matched) {
-        alpha = theta/sfIsoDist50Local[i];
-        max_alpha = (alpha>max_alpha)?alpha:max_alpha; // take maximum within same isotop
-      }
-    }
-    
-    
-    if (i<maxNbIsotopes) alpha_values.push_back(max_alpha);
-    //if (i<maxNbIsotopes && sfDebug) sfStream << i << ":" << max_alpha << " ";	
-    
+		int idx, i, cnt;
+		double m_low, m_high, tol, m, alpha, max_alpha, min_alpha, mono_alpha, mono, theta, dm, dist, dist_min;
+		bool matched;
+		list<CentroidPeak>::iterator piter, match_peak;
+		list<double> alpha_values;
+		list<double>::iterator avi;
+
+		mono = pMono->getMass();
+		tol = SuperHirnParameters::instance()->getMassTolPpm() * mono / 1.0e6
+				+ SuperHirnParameters::instance()->getMassTolDa();
+		piter = pMono;
+		mono_alpha = 0.0;
+
+		//  if (sfDebug) (*sfStream) << fixed << setprecision(4) << mono << " " ;
+
+		//////////////////////////////////////////////////////////
+		// get the local isotopic distribution:
+		idx = getIndex(mono, pCharge);
+
+		// get the extracted x percentile distribution:
+		//double* sfIsoDist10Local = IsotopicDist::sfIsoDist10[idx];
+		double* sfIsoDist50Local = IsotopicDist::sfIsoDist50[idx];
+		//double* sfIsoDist90Local = IsotopicDist::sfIsoDist90[idx];
+
+		// check for external distributions: ****PK : EXTERNAL_ISOTOPIC_PROFILES is always false, remove
+		/*
+		PeptideIsotopeDisribution* extrenalIsoDist = NULL;
+		if (ExternalIsotopicDistribution::EXTERNAL_ISOTOPIC_PROFILES)
+		{
+			extrenalIsoDist = ExternalIsotopicDistribution::extractExternalIsotopicProfile(mono, pCharge,
+					pMono->getRetentionTime());
+
+			if (extrenalIsoDist != NULL)
+			{
+				sfIsoDist50Local = extrenalIsoDist->getIntensityArray();
+			}
+		}
+		*/
+
+		double intens = pMono->getIntensity();
+		double theoIntensMono = sfIsoDist50Local[0];
+		pAlpha = (intens + pTheta) / theoIntensMono;
+
+		// Markus-Fix, applied 2011-05-06
+		int maxNbIsotopes = sfNrIsotopes[idx]; // number of isotopes used for quantification
+		int maxMaxNbIsotopes = (maxNbIsotopes > 6) ? maxNbIsotopes : 6; // number of isotopes to be removed
+
+		/*
+		 if( CentroidData::MonoIsoDebugging ){
+		 if( ( CentroidData::DebugMonoIsoMassMin <= mono) && ( CentroidData::DebugMonoIsoMassMax >= mono) ){
+		 idx = getIndex(mono,pCharge);
+		 maxNbIsotopes = sfNrIsotopes[idx];
+		 //maxNbIsotopes = 5;
+		 cout<<maxNbIsotopes<<endl;
+		 }
+		 }
+		 */
+
+		for (i = 0; i < maxMaxNbIsotopes; i++)
+		{ // find matching isotopes
+			theta = (sfIsoDist50Local[i] < SuperHirnParameters::instance()->getDetectableIsotopeFactor()) ? pTheta : 0.0; // this only requires intense isotpic peaks to match exp. peaks
+
+			//m_low = mono + sfIsoDist10Local[i]/pCharge - tol;
+			//m_high = mono + sfIsoDist90Local[i]/pCharge + tol;
+			m_low = mono + sfIsoMass10[idx][i] / pCharge - tol;
+			m_high = mono + sfIsoMass90[idx][i] / pCharge + tol;
+
+			matched = false;
+			dist_min = 100.0;
+			dm = 1.0;
+			max_alpha = 0.0;
+			for (; piter != pEnd; ++piter)
+			{
+				m = piter->getMass();
+
+				if (m >= m_low && m <= m_high)
+				{ // matching mass
+					dm = abs(piter->getMass() - mono - sfIsoMass50[idx][i] / pCharge);
+					alpha = (piter->getIntensity() + theta) / sfIsoDist50Local[i];
+					if (i > 0)
+					{ // second and higher isotop
+						dist = abs((alpha - mono_alpha) / mono_alpha) + 10.0 * dm / tol; // score to evaluate distance between expected and measured values
+						if (dist < dist_min)
+						{ // take minimum distance within same isotop mass range
+							max_alpha = alpha;
+							match_peak = piter;
+							match_peak->setIsotopIdx(i);
+							dist_min = dist;
+							matched = true;
+						}
+					}
+					else
+					{ // first (C12) isotop
+						if (piter == pMono)
+						{
+							mono_alpha = alpha; // take only peak itself within C12 isotop mass range
+							max_alpha = alpha;
+							match_peak = pMono;
+							pMono->setIsotopIdx(0);
+							matched = true;
+						}
+					}
+				}
+				else if (m > m_high)
+				{ // out of mass bounds: go to next isotope
+					if (!matched)
+					{
+						alpha = theta / sfIsoDist50Local[i];
+						max_alpha = (alpha > max_alpha) ? alpha : max_alpha; // take maximum within same isotop
+					}
+					break;
+				}
+			}
+
+			if (matched)
+			{
+				/*
+				 if( CentroidData::MonoIsoDebugging ){
+				 if( ( CentroidData::DebugMonoIsoMassMin <= mono) && ( CentroidData::DebugMonoIsoMassMax >= mono) ){
+				 cout<<endl<<"*Mass: "<<mono<<":: "<<piter->getIntensity()<<"::"<<pCharge<<endl;
+				 }
+				 }
+				 */
+
+				/** PK never used
+				if (extrenalIsoDist != NULL)
+				{
+					match_peak->setExtraPeakInfo(extrenalIsoDist->getSummary());
+					// match_peak->show_info();
+					// extrenalIsoDist->show_info();
+					extrenalIsoDist = NULL;
+				}
+				*/
+
+				pMatchedPeaks.push_back(match_peak);
+			}
+
+			if (piter == pEnd)
+			{ // stop if no peaks are left
+				if (!matched)
+				{
+					alpha = theta / sfIsoDist50Local[i];
+					max_alpha = (alpha > max_alpha) ? alpha : max_alpha; // take maximum within same isotop
+				}
+			}
+
+			if (i < maxNbIsotopes)
+				alpha_values.push_back(max_alpha);
+			//if (i<maxNbIsotopes && sfDebug) sfStream << i << ":" << max_alpha << " ";
+
 //    if (max_alpha < 1.0) break;
-  } 
-  
-  // calculate final alpha
-  pAlpha = 0.0;
-  min_alpha = *(alpha_values.begin());
-  cnt = 0;
-  matched = true; 
-  for (avi=alpha_values.begin();avi!=alpha_values.end();++avi) {
-    if (abs(*avi-mono_alpha)/mono_alpha < IsotopicDist::sfIntensityCV) { // alpha close to value from first isotope 
-      pAlpha += *avi;
-      cnt++;
-    } else if ((mono_alpha-*avi)/mono_alpha > IsotopicDist::sfIntensityCV) { // small alpha in case of missing peak
-      min_alpha = (min_alpha>*avi)?*avi:min_alpha;
-      matched = false;
-    } 
-  }
-  
-  if (matched) {
-    pAlpha /= cnt; // calculate the avg alpha values for all alphas close to the one of the monoisotopic peak
-  } else {
-    pAlpha = min_alpha; // otherwise take smallest
-  }
-  
+		}
+
+		// calculate final alpha
+		pAlpha = 0.0;
+		min_alpha = *(alpha_values.begin());
+		cnt = 0;
+		matched = true;
+		for (avi = alpha_values.begin(); avi != alpha_values.end(); ++avi)
+		{
+			if (abs(*avi - mono_alpha) / mono_alpha < SuperHirnParameters::instance()->getIntensityCV())
+			{ // alpha close to value from first isotope
+				pAlpha += *avi;
+				cnt++;
+			}
+			else if ((mono_alpha - *avi) / mono_alpha > SuperHirnParameters::instance()->getIntensityCV())
+			{ // small alpha in case of missing peak
+				min_alpha = (min_alpha > *avi) ? *avi : min_alpha;
+				matched = false;
+			}
+		}
+
+		if (matched)
+		{
+			pAlpha /= cnt; // calculate the avg alpha values for all alphas close to the one of the monoisotopic peak
+		}
+		else
+		{
+			pAlpha = min_alpha; // otherwise take smallest
+		}
+
 //if (sfDebug) sfStream << " " << pAlpha << endl;	
-  
-  return (pAlpha>1.0);
-}
+
+		return (pAlpha > 1.0);
+	}
 
 // Subtracts fitted isotopic distribution from the spectrum and defines monoisotopic peak
-void IsotopicDist::subtractMatchingPeaks(
-                                         list<list<CentroidPeak>::iterator>& pMatchedPeaks, // pointers to matching peaks 
-                                         int pCharge, // charge
-                                         double pAlpha, // fit constant
-                                         DeconvPeak& pMonoPeak) // object to store info about monoisotopic peak 
-{
-  list<list<CentroidPeak>::iterator>::iterator mpi;
-  int idx,i,cnt;
-  double mono,h_tot,dmC13;
-  vector<CentroidPeak> isotopicDist;
-  
-  mono = (*pMatchedPeaks.begin())->getMass();
-  idx = getIndex(mono,pCharge);
-  
-  h_tot = 0.0;
-  cnt = 0;
-  dmC13 = 0.0;
-  for (mpi = pMatchedPeaks.begin();mpi!=pMatchedPeaks.end();++mpi) { // go through list of all matched peaks
-    i = (*mpi)->getIsotopIdx();
-    h_tot += pAlpha*sfIsoDist50[idx][i]; // sum up fitted intensities
-    cnt++;
-    
-    if (sfDebug) (*sfStream) << (*mpi)->getMass() << " " << (*mpi)->getIntensity() << " " << pAlpha*sfIsoDist50[idx][i] << ":";	
-    
-    (*mpi)->subtractIntensity(pAlpha*sfIsoDist50[idx][i]);
-    (*mpi)->setFittedIntensity(pAlpha*sfIsoDist50[idx][i]);
-    isotopicDist.push_back(**mpi);
-    
-    if (i==1) {
-      dmC13 = (*mpi)->getMass()-mono-sfIsoMass50[idx][1]/pCharge; // useful quantity for score
-    }
-  }
-  
-  if (sfDebug) (*sfStream)  << pCharge << endl;	
-  
-  pMonoPeak.setNrIsotopes(cnt);
-  pMonoPeak.setCharge(pCharge);
-  //	pMonoPeak.setIntensity(pAlpha*sfIsoDist50[idx][0]);
-  pMonoPeak.setIntensity(h_tot);
-  pMonoPeak.setC13MassError(dmC13);
-  pMonoPeak.setScore(h_tot);	
-  pMonoPeak.setIsotopicPeaks(isotopicDist);
-  //	pMonoPeak.setScore(h_tot/(abs(dmC13)+0.000001));
-}
+	void IsotopicDist::subtractMatchingPeaks(list<list<CentroidPeak>::iterator>& pMatchedPeaks, // pointers to matching peaks
+			int pCharge, // charge
+			double pAlpha, // fit constant
+			DeconvPeak& pMonoPeak) // object to store info about monoisotopic peak
+	{
+		init();
+		list<list<CentroidPeak>::iterator>::iterator mpi;
+		int idx, i, cnt;
+		double mono, h_tot, dmC13;
+		vector<CentroidPeak> isotopicDist;
+
+		mono = (*pMatchedPeaks.begin())->getMass();
+		idx = getIndex(mono, pCharge);
+
+		h_tot = 0.0;
+		cnt = 0;
+		dmC13 = 0.0;
+		for (mpi = pMatchedPeaks.begin(); mpi != pMatchedPeaks.end(); ++mpi)
+		{ // go through list of all matched peaks
+			i = (*mpi)->getIsotopIdx();
+			h_tot += pAlpha * sfIsoDist50[idx][i]; // sum up fitted intensities
+			cnt++;
+
+			//    if (sfDebug) (*sfStream) << (*mpi)->getMass() << " " << (*mpi)->getIntensity() << " " << pAlpha*sfIsoDist50[idx][i] << ":";
+
+			(*mpi)->subtractIntensity(pAlpha * sfIsoDist50[idx][i]);
+			(*mpi)->setFittedIntensity(pAlpha * sfIsoDist50[idx][i]);
+			isotopicDist.push_back(**mpi);
+
+			if (i == 1)
+			{
+				dmC13 = (*mpi)->getMass() - mono - sfIsoMass50[idx][1] / pCharge; // useful quantity for score
+			}
+		}
+
+		//  if (sfDebug) (*sfStream)  << pCharge << endl;
+
+		pMonoPeak.setNrIsotopes(cnt);
+		pMonoPeak.setCharge(pCharge);
+		//	pMonoPeak.setIntensity(pAlpha*sfIsoDist50[idx][0]);
+		pMonoPeak.setIntensity(h_tot);
+		pMonoPeak.setC13MassError(dmC13);
+		pMonoPeak.setScore(h_tot);
+		pMonoPeak.setIsotopicPeaks(isotopicDist);
+		//	pMonoPeak.setScore(h_tot/(abs(dmC13)+0.000001));
+	}
 
 }

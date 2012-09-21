@@ -209,9 +209,9 @@ namespace OpenMS
         }
         
         RawData* data = new RawData(*vmzvals, *vintvals);
-        
-        MyMap m;
-        m[rt/60.0] = data;
+
+        MyMap m(rt/60,data);
+//        m[rt/60.0] = data;
         unsigned int scanIndex = scanId - 1;
         datavec->at(scanIndex) = m;
       }

@@ -120,21 +120,25 @@ public:
   // add a MS2 fragment:
   void addMS2Fragment( MS2Fragment* );
   
-  // process the stored fragments:
-  void processConsenusSpectraFragments();
-  
   // compute MS2 parameters
   void computeMS2SpectrumParameters();
+
+  //*** PK removed, never used
+
+  // process the stored fragments:
+//  void processConsenusSpectraFragments();
   
   // remove outlier fragments based on their:
   // MS2Fragment::OutlierAttribute = ...
   // 1: retention time
   // 2: precursor mass
   // etc.
-  void removeOutlierFragments();
+//  void removeOutlierFragments();
   
   // remove H2O loss region of the MS2 spectra
-  void removeWaterLossRegion( );
+//  void removeWaterLossRegion( );
+
+
   // show MS2 spectrum info:
   void show_info( );
 

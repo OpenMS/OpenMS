@@ -46,7 +46,7 @@
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI MS1_feature_merger{
+class OPENMS_DLLAPI MS1FeatureMerger{
 
     
   ////////////////////////////////////////////////
@@ -57,10 +57,10 @@ private:
   //////
   // the common lc-ms spectrum,
   // created from teh overlap of A and B
-  LC_MS* lcmsMap;
+  LCMS* lcmsMap;
   
   std::vector<int> idsToRemove;
-  std::map< double, std::vector<feature*> > mzClusters;
+  std::map< double, std::vector<SHFeature*> > mzClusters;
 
   
   ////////////////////////////////////////////////
@@ -68,6 +68,7 @@ private:
   
 public:
   
+  /*
   static double INTENSITY_APEX_THRESHOLD;
   static double MS1_PEAK_AREA_TR_RESOLUTION;
 
@@ -76,11 +77,12 @@ public:
   static double PERCENTAGE_INTENSITY_ELUTION_BORDER_VARIATION;
   static double PPM_TOLERANCE_FOR_MZ_CLUSTERING;
   static bool MS1_FEATURE_CLUSTERING;
+*/
   
   // class destructor
-  ~MS1_feature_merger();
+  ~MS1FeatureMerger();
   // class constructor
-  MS1_feature_merger(LC_MS*);
+  MS1FeatureMerger(LCMS*);
   
   
   //////////////////////////////////////////////////
@@ -89,15 +91,15 @@ public:
   // create a distribution of delta Tr for the splited features
   void createMZFeatureClusters();
   // process a vector of m/z features
-  void processMZFeatureVector(std::vector<feature*>* );
+  void processMZFeatureVector(std::vector<SHFeature*>* );
   // find to this feature the features which should be merged
-  std::vector<feature*>::iterator findFeaturesToMerge(feature* , std::vector<feature*>::iterator , std::vector<feature*>* );
+  std::vector<SHFeature*>::iterator findFeaturesToMerge(SHFeature* , std::vector<SHFeature*>::iterator , std::vector<SHFeature*>* );
   // compare if a feature belongs to another feature
-  bool compareMZFeatureBeloning(feature* , feature* );
+  bool compareMZFeatureBeloning(SHFeature* , SHFeature* );
   // merge the target to the search feature
-  void mergeFeatures( feature* , feature* );
+  void mergeFeatures( SHFeature* , SHFeature* );
   // copmute new parameters for the merged MS1 feature
-  void computeNewMS1FeatureParameters( feature* );
+  void computeNewMS1FeatureParameters( SHFeature* );
   // computes the area of between 2 peaks:
   double computeDeltaArea(double, double, double, double);
 
@@ -106,7 +108,7 @@ public:
   // in the sorting algorithm:
   struct OPERATOR_FEATURE_TR{
     // provide the compare function for sort:
-    bool operator()(const feature A,const feature B) const{
+    bool operator()(const SHFeature A,const SHFeature B) const{
       // check if they have same mass
       return A.TR < B.TR;
     }

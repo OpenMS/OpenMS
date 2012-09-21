@@ -35,39 +35,58 @@
 //  December 2010
 //
 
-// Flo: I keep this class because if its constants. No functionality though, just
-// for maximum code compatiblity with the original superhirn.
+#include <stdio.h>
 
-#ifndef LC_MS_XML_READER_H
-#define LC_MS_XML_READER_H
-
-#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Fragment.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ClusteredMS2ConsensusSpectrum.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Feature.h>
 
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI LC_MS_XML_reader{
-  
-  ////////////////////////////////////////////////
-  // declaration of the public members:
-  
-public:
-  
-    static double TR_MIN;
-  static double TR_MAX;
-  static double FEATURE_MZ_MIN;
-  static double FEATURE_MZ_MAX;
-  static int FEATURE_CHRG_MIN;
-  static int FEATURE_CHRG_MAX;
-  // static double PEAK_SCORE_THERSHOLD;
-//  static double PEAK_INTENSITY_THRESHOLD;
-//  static bool EXTRACT_MONO_ISOTOPE_PROFILE;
-//  static double SIGNAL_TO_NOISE_THERSHOLD;
-//  static string DATA_STORAGE_XML_FORMAT_TYPE;
-};
+////////////////////////////////////////////////
+// constructor for the object MS2Feature:
+	MS2Feature::MS2Feature(MS2Fragment* in) :
+			ClusteredMS2ConsensusSpectrum(in)
+	{
+		ID = -1;
+	}
 
-} // ns
+////////////////////////////////////////////////
+// constructor for the object MS2ConsensusSpectrum:
+	MS2Feature::MS2Feature(double iPrecursorMZ, double iTR, int iChrg, int iApexScan) :
+			ClusteredMS2ConsensusSpectrum(iPrecursorMZ, iTR, iChrg, iApexScan)
+	{
+		ID = -1;
+	}
 
-#endif
+//////////////////////////////////////////////////
+// class desctructor of MS2Feature
+	MS2Feature::~MS2Feature()
+	{
+	}
 
-    
+//////////////////////////////////////////////////
+// class copy constructor of MS2Feature
+	MS2Feature::MS2Feature(const MS2Feature& tmp) :
+			ClusteredMS2ConsensusSpectrum(tmp)
+	{
+		ID = tmp.ID;
+	}
+
+//////////////////////////////////////////////////
+// class copy constructor of MS2Feature
+	MS2Feature::MS2Feature(const MS2Feature* tmp) :
+			ClusteredMS2ConsensusSpectrum(tmp)
+	{
+		ID = tmp->ID;
+	}
+
+/////////////////////////////////////////////
+// show info 
+	void MS2Feature::show_info()
+	{
+		//printf("DELETED");
+	}
+
+}

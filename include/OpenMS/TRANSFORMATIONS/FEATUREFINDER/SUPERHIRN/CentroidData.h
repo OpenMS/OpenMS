@@ -38,7 +38,6 @@
 
 //#ifndef _CentroidData_h_
 //#define _CentroidData_h_
-
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
@@ -53,52 +52,64 @@
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI CentroidData
-{
-public:
-  
-  static double	sfMassTolPpm;
-  static double	sfMassTolDa;
-  static double	sfMinIntensity;
-  static double	sfIntensityFloor;
-  
-  // debugging parameters => used by other classes :( :( :(   
-  static bool MonoIsoDebugging;
-  static double DebugMonoIsoMassMin; 
-  static double DebugMonoIsoMassMax; 
-  
-	CentroidData(int,RawData&, bool);
-  CentroidData(int,RawData&, double, bool);
-	virtual ~CentroidData();
-  
-	void get(std::list<CentroidPeak>&);
-	void set(RawData&);
-	void set(std::vector<double>&, std::vector<double>&);
-  
-	void setWidth(int pWidth) {fWindowWidth = pWidth;}
-	int	 getWidth(){return fWindowWidth;}
+	class OPENMS_DLLAPI CentroidData
+	{
+		public:
 
-	void setNoise(double);
-	double getNoise() {return fNoise;}
-  void removeNoise();
-	
-	bool getNextPeakGroup(std::list<CentroidPeak>::iterator&, std::list<CentroidPeak>::iterator&);	
-	void resetPeakGroupIter();
-  
-  bool CENTROID_DATA_MODUS;
-    
-protected:
-	
-	void calcCentroids(RawData&);
-  
-	int	fWindowWidth;
-	double fNoise;
-  double fScanRetentionTime;
-  std::list<CentroidPeak> fCentroidPeaks;
-  std::list<CentroidPeak>::iterator fPeakGroupStart;			
-};
+			/*
+			 static double sfMassTolPpm;
+			 static double sfMassTolDa;
+			 static double sfMinIntensity;
+			 static double sfIntensityFloor;
+			 */
+			// debugging parameters => used by other classes :( :( :(
+			/*
+			 static bool MonoIsoDebugging;
+			 static double DebugMonoIsoMassMin;
+			 static double DebugMonoIsoMassMax;
+			 */
 
-std::ostream& operator<<(std::ostream&, CentroidData&);
+			CentroidData(int, RawData&, bool);
+			CentroidData(int, RawData&, double, bool);
+			virtual ~CentroidData();
+
+			void get(std::list<CentroidPeak>&);
+			void set(RawData&);
+			void set(std::vector<double>&, std::vector<double>&);
+
+			void setWidth(int pWidth)
+			{
+				fWindowWidth = pWidth;
+			}
+			int getWidth()
+			{
+				return fWindowWidth;
+			}
+
+			void setNoise(double);
+			double getNoise()
+			{
+				return fNoise;
+			}
+			void removeNoise();
+
+			bool getNextPeakGroup(std::list<CentroidPeak>::iterator&, std::list<CentroidPeak>::iterator&);
+			void resetPeakGroupIter();
+
+			bool centroidDataModus_;
+
+		protected:
+
+			void calcCentroids(RawData&);
+
+			int fWindowWidth;
+			double fNoise;
+			double fScanRetentionTime;
+			std::list<CentroidPeak> fCentroidPeaks;
+			std::list<CentroidPeak>::iterator fPeakGroupStart;
+	};
+
+	std::ostream& operator<<(std::ostream&, CentroidData&);
 
 } // ns
 

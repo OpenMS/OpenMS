@@ -30,72 +30,98 @@
 //  written by Lukas N Mueller, 30.3.05
 //  Lukas.Mueller@imsb.biol.ethz.ch
 //  Group of Prof. Ruedi Aebersold, IMSB, ETH Hoenggerberg, Zurich
-//
+//  
 //  Ported to OpenMS by Florian Zeller, florian.zeller@bsse.ethz.ch
 //  December 2010
 //
 
-#ifndef MS2_FEATURE_H
-#define MS2_FEATURE_H
+#ifndef _FEATURE_LC_PROFILE
+#define _FEATURE_LC_PROFILE_H
 
-#include "MS2Fragment.h"
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ClusteredMS2ConsensusSpectrum.h>
+#include <OpenMS/CONCEPT/Types.h>
+
+#include <map>
 
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI MS2_feature : public ClusteredMS2ConsensusSpectrum {
+// this structure stores the monoisotopic
+// signals of LC elution peak:
+struct MS1Signal{
+  double mass;
+  double TR;
+  double intensity;
+  int scan;
+  int charge;
+};
 
-  
-  using ClusteredMS2ConsensusSpectrum::operator=;
+
+
+class OPENMS_DLLAPI FeatureLCProfile
+  {
+
     
   ////////////////////////////////////////////////
   // declaration of the private members:
-  
 private:
   
-  int ID;
+  std::map<int, MS1Signal> LCelutionSignals;
+  std::map<int, MS1Signal> outsideLCelutionSignals;
+
+  
+  // elution area
+  double LCelutionArea;
+  
+  // apex signale:
+  MS1Signal apexMS1Signal;
   
   ////////////////////////////////////////////////
   // declaration of the public members:
   
 public:
   
-  
   // class destructor
-  ~MS2_feature();
+  ~FeatureLCProfile();
+  
   // class constructor
-  MS2_feature();
-  MS2_feature(MS2Fragment*);
-  MS2_feature(double iPrecursorMZ, double iTR, int iChrg, int iApexScan);
+  FeatureLCProfile();
+  FeatureLCProfile(double , double, int, double );
+  FeatureLCProfile(double , double , double , int , int, double );
   
   // class copy constructor
-  MS2_feature(const MS2_feature&);
+  FeatureLCProfile(const FeatureLCProfile&);
   // class copy constructor
-  MS2_feature(const MS2_feature*);
+  FeatureLCProfile(const FeatureLCProfile*);
   
   
   //////////////////////////////////////////////////
   // overload operators:
-  //MS2_feature& operator=(const MS2_feature&);
-  bool operator==(const MS2_feature&);
-  MS2_feature& operator<=(const MS2_feature&);
-  MS2_feature& operator>=(const MS2_feature&);
-  MS2_feature& operator<(const MS2_feature&);
-  MS2_feature& operator>(const MS2_feature&);
+  FeatureLCProfile& operator=(const FeatureLCProfile&);
+  bool operator==(const FeatureLCProfile&);
+  FeatureLCProfile& operator<=(const FeatureLCProfile&);
+  FeatureLCProfile& operator>=(const FeatureLCProfile&);
+  FeatureLCProfile& operator<(const FeatureLCProfile&);
+  FeatureLCProfile& operator>(const FeatureLCProfile&);
   
+  // change all elution times by a factor:
+  void changeElutionTimesByFactor(double);
   
-  // show info 
-  void show_info();
-
   
   ///////////////////////////////
   // start here all the get / set
   // function to access the
   // variables of the class
 
-  void setID( int in ){ID = in;};
-  int getID( ){return ID;};
+  // add / get signals:
+  void addMS1elutionSignal(  double , double , int , int, double );
+  void addOutsideMS1elutionSignal(  double , double , int , int, double );
+  void addMS1elutionSignal( MS1Signal* in);
+
+  std::map<int, MS1Signal>* getLCelutionSignalMap(){ return &LCelutionSignals;};
+  std::map<int, MS1Signal>::iterator getLCelutionSignalsStart(){ return LCelutionSignals.begin();};
+  std::map<int, MS1Signal>::reverse_iterator getLastLCelutionSignal(){ return LCelutionSignals.rbegin();};
+  std::map<int, MS1Signal>::iterator getLCelutionSignalsEnd(){ return LCelutionSignals.end();};
+  int getNbLCelutionSignals(){ return (int) LCelutionSignals.size();};
 
   
 };

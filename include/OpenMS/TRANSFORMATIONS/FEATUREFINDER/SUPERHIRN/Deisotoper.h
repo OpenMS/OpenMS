@@ -53,8 +53,8 @@ class DeconvPeak;
 class OPENMS_DLLAPI Deisotoper 
 {
 public:
-  static int sfMinCharge;
-  static int	sfMaxCharge;
+//  static int sfMinCharge;
+//  static int	sfMaxCharge;
   
 	Deisotoper();
 	Deisotoper(CentroidData&);

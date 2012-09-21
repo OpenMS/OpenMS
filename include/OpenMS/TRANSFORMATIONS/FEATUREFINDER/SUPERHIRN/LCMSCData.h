@@ -47,8 +47,8 @@
 namespace OpenMS
 {
 
-typedef std::map<int, LC_elution_peak> elution_peak_list;
-typedef std::map<int, LC_elution_peak>::iterator elution_peak_list_ITERATOR;
+typedef std::map<int, LCElutionPeak> elution_peak_list;
+typedef std::map<int, LCElutionPeak>::iterator elution_peak_list_ITERATOR;
 typedef std::map< double, elution_peak_list> MZ_LIST;
 typedef MZ_LIST::iterator MZ_LIST_ITERATOR;
 
@@ -78,17 +78,17 @@ public:
   // find data of a specific m/z:
   MZ_LIST_ITERATOR get_MZ_by_iterator(double);
   // add data into the structure:
-  void add_LC_elution_peak(double , LC_elution_peak*);
+  void add_LC_elution_peak(double , LCElutionPeak*);
   
   // get a list of m/z observed in a scan +/- scan_tolerance:
   // return the area of the LC elution peaks 
-  std::vector<LC_elution_peak> get_MZ_list(int);
-  std::vector<LC_elution_peak> get_MZ_list(int, int);
+  std::vector<LCElutionPeak> get_MZ_list(int);
+  std::vector<LCElutionPeak> get_MZ_list(int, int);
   
   // get all extracted LC peaks:
-  std::vector<LC_elution_peak*> get_ALL_peak();
+  std::vector<LCElutionPeak*> get_ALL_peak();
   // get a vector with all LC peaks ordered by their score:
-  std::vector<LC_elution_peak*> get_ALL_peak_ordered();
+  std::vector<LCElutionPeak*> get_ALL_peak_ordered();
   
   
   /*
@@ -96,14 +96,14 @@ public:
   // operator which compares LC elution peaks 
   // by their score:
   struct OPERATOR_LC_PEAK{
-    bool operator()(LC_elution_peak* A,LC_elution_peak* B) const{
+    bool operator()(LCElutionPeak* A,LCElutionPeak* B) const{
       return A->get_LC_score() < B->get_LC_score();
     }
   };
 */
   
   // minimal MS peak intensity allowed:
-  static float intensity_min_threshold;
+	//  static float intensity_min_threshold;
   
 
  

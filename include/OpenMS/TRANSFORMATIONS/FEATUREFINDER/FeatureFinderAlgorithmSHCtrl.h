@@ -40,7 +40,7 @@ namespace OpenMS
 	
 		@ingroup FeatureFinder
 	*/
-  typedef std::map<double, RawData*> MyMap;
+  typedef std::pair<double, RawData*> MyMap;
   typedef std::vector<MyMap> Vec;
   
   class OPENMS_DLLAPI FeatureFinderAlgorithmSHCtrl

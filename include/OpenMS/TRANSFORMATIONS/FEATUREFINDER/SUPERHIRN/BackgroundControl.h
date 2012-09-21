@@ -46,43 +46,43 @@
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI BackgroundControl {
+class OPENMS_DLLAPI BackgroundControl
+{
 
-private:
-  
-  std::map<double, std::map< double, BackgroundIntensityBin> > intensityBinMap;
+	private:
 
-  void init();
+	std::map<double, std::map< double, BackgroundIntensityBin> > intensityBinMap;
 
-public:
-  
-  ~BackgroundControl();
+	void init();
 
-  BackgroundControl();
-  
-  void addPeakMSScan( double , std::list<CentroidPeak>* peakList );
-  
-  double getBackgroundLevel( double mz, double tr);
-  
-  // find a key in the intensity map:
-  std::map<double, std::map< double, BackgroundIntensityBin>  >::iterator findTrKey( double );
-  
-  // find a key in the m/z map:
-  std::map< double, BackgroundIntensityBin>::iterator findMzKey( double mz, std::map< double, BackgroundIntensityBin>* );
+	public:
 
-  void processIntensityMaps(  );    
-    
-  // overload operators:
-  bool operator==(const BackgroundControl&);
-  BackgroundControl& operator<=(const BackgroundControl&);
-  BackgroundControl& operator>=(const BackgroundControl&);
-  BackgroundControl& operator<(const BackgroundControl&);
-  BackgroundControl& operator>(const BackgroundControl&);
-  
+	~BackgroundControl();
+
+	BackgroundControl();
+
+	void addPeakMSScan( double , std::list<CentroidPeak>* peakList );
+
+	double getBackgroundLevel( double mz, double tr);
+
+	// find a key in the intensity map:
+	std::map<double, std::map< double, BackgroundIntensityBin> >::iterator findTrKey( double );
+
+	// find a key in the m/z map:
+	std::map< double, BackgroundIntensityBin>::iterator findMzKey( double mz, std::map< double, BackgroundIntensityBin>* );
+
+	void processIntensityMaps( );
+
+	// overload operators:
+	bool operator==(const BackgroundControl&);
+	BackgroundControl& operator<=(const BackgroundControl&);
+	BackgroundControl& operator>=(const BackgroundControl&);
+	BackgroundControl& operator<(const BackgroundControl&);
+	BackgroundControl& operator>(const BackgroundControl&);
+
 };
 
 } // namespace
 
 #endif
 
-    
