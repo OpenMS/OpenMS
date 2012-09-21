@@ -48,12 +48,10 @@
 namespace OpenMS
 {
 
-// Class for centroid peaks
 class OPENMS_DLLAPI CentroidPeak{
 public:
   
-  static int	sfCentroidWindowWidth; // Centroid window width
-  
+  static int	sfCentroidWindowWidth;
   
   CentroidPeak();
   CentroidPeak(double,double);
@@ -86,8 +84,6 @@ public:
   inline void setExtraPeakInfo( std::string in){ extraPeakInfo = in;};
   inline void setRetentionTime(double in ){ fTr = in;};
 
-  
-  // shows the info of the peak:
   void show_info();
   void subtractIntensity(double);
   

@@ -601,7 +601,7 @@ void feature::add_MS2_info(map<double, vector<ms2_info> >* IN){
 //////////////////////////////////////////////////
 // check how many matches
 int feature::get_nb_common_match(){
-  return matched_feature_list.size() + 1;
+  return (int) matched_feature_list.size() + 1;
 }
 
 
@@ -652,7 +652,7 @@ void feature::add_matched_feature(feature* IN){
   int insert_ID = IN->get_spectrum_ID();
   map<int, feature>::iterator F = matched_feature_list.find( insert_ID );
   if( F != matched_feature_list.end() ){
-    insert_ID += matched_feature_list.size();
+    insert_ID += (int) matched_feature_list.size();
   }
   matched_feature_list.insert( pair<int,feature>( insert_ID, *IN ) );
   IN = NULL;

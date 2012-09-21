@@ -53,9 +53,6 @@
 namespace OpenMS
 {
 
-//class OPENMS_DLLAPI RawData; // changed to include
-//class OPENMS_DLLAPI CentroidPeak; // changed to include
-
 class OPENMS_DLLAPI CentroidData
 {
 public:
