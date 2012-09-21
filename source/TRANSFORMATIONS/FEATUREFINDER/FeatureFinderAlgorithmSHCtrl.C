@@ -87,25 +87,28 @@ namespace OpenMS
       float area = (float)darea;
       f.setIntensity(area);
       
-      featureLCprofile* profile = (*p).getLCelutionProfile();
-      
-      ConvexHull2D::PointArrayType hull_points(profile->getNbLCelutionSignals());
-      
-      // the key is SCAN
-      unsigned int j = 0;
-      std::map<int, MS1Signal>::iterator lcit;
-      for (lcit = profile->getLCelutionSignalsStart(); lcit != profile->getLCelutionSignalsEnd(); lcit++) {
-        //int scan = lcit->first;
-        MS1Signal signal = lcit->second;
-        
-        hull_points[j][0] = signal.TR * 60.0; // convert back
-        hull_points[j][1] = signal.mass;
-        j++;
-      }
-      
-      ConvexHull2D hull;
-      hull.addPoints(hull_points);
-      f.getConvexHulls().push_back(hull);
+// ------------------------------------------------------------------------------
+// Convex hull -- needs to be calculated differently according to Markus Mueller
+// ------------------------------------------------------------------------------
+//      featureLCprofile* profile = (*p).getLCelutionProfile();
+//      ConvexHull2D::PointArrayType hull_points(profile->getNbLCelutionSignals());
+//      
+//      // the key is SCAN
+//      unsigned int j = 0;
+//      std::map<int, MS1Signal>::iterator lcit;
+//      for (lcit = profile->getLCelutionSignalsStart(); lcit != profile->getLCelutionSignalsEnd(); lcit++) {
+//        //int scan = lcit->first;
+//        MS1Signal signal = lcit->second;
+//        
+//        hull_points[j][0] = signal.TR * 60.0; // convert back
+//        hull_points[j][1] = signal.mass;
+//        j++;
+//      }
+//      
+//      ConvexHull2D hull;
+//      hull.addPoints(hull_points);
+//      f.getConvexHulls().push_back(hull);
+// ------------------------------------------------------------------------------
       
       thefeatures.push_back(f);
       p++;
