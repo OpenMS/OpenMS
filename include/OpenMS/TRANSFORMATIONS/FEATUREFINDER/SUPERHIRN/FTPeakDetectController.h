@@ -38,6 +38,8 @@
 #ifndef USE_FT_PEAK_DETECT_CONTROLLER_H
 #define USE_FT_PEAK_DETECT_CONTROLLER_H
 
+#include "boost/shared_ptr.hpp"
+
 namespace OpenMS
 {
 
@@ -65,7 +67,7 @@ class OPENMS_DLLAPI FTPeakDetectController
 
 	public:
 
-	typedef std::pair<double, RawData*> Map;
+  typedef std::pair<double, boost::shared_ptr<RawData> > Map;
 	typedef std::vector<Map> Vec;
 
 //	static bool CREATE_FEATURE_ELUTION_PROFILES;

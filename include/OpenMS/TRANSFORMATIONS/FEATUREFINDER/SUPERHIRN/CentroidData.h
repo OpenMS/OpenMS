@@ -46,6 +46,8 @@
 #include <list>
 #include <vector>
 
+#include "boost/shared_ptr.hpp"
+
 #ifndef _USE_CENTROID_DATA_H
 #define _USE_CENTROID_DATA_H
 
@@ -69,12 +71,12 @@ namespace OpenMS
 			 static double DebugMonoIsoMassMax;
 			 */
 
-			CentroidData(int, RawData&, bool);
-			CentroidData(int, RawData&, double, bool);
+			CentroidData(int, boost::shared_ptr<RawData>, bool);
+			CentroidData(int, boost::shared_ptr<RawData>, double, bool);
 			virtual ~CentroidData();
 
 			void get(std::list<CentroidPeak>&);
-			void set(RawData&);
+			void set(boost::shared_ptr<RawData>);
 			void set(std::vector<double>&, std::vector<double>&);
 
 			void setWidth(int pWidth)
@@ -100,7 +102,7 @@ namespace OpenMS
 
 		protected:
 
-			void calcCentroids(RawData&);
+			void calcCentroids(boost::shared_ptr<RawData>);
 
 			int fWindowWidth;
 			double fNoise;

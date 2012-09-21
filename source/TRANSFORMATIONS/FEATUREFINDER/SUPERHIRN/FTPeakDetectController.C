@@ -123,7 +123,7 @@ namespace OpenMS
 				SuperHirnParameters::instance()->getScanTRIndex()->insert(std::pair<int, float>(i, (float) it.first));
 
 				// centroid it:
-				CentroidData cd(SuperHirnParameters::instance()->getCentroidWindowWidth(), *it.second, it.first,
+				CentroidData cd(SuperHirnParameters::instance()->getCentroidWindowWidth(), it.second, it.first,
 						SuperHirnParameters::instance()->centroidDataModus());
 
 				//  store it:

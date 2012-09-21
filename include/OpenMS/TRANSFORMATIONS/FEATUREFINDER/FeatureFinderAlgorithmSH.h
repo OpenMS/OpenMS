@@ -31,6 +31,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSHCtrl.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
+#include "boost/shared_ptr.hpp"
+
 namespace OpenMS
 {
 	/** 
@@ -171,7 +173,8 @@ namespace OpenMS
       map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
       
       MyMap dummyMap;
-      Vec* datavec = new Vec(map_.size(), dummyMap);
+      Vec datavec;
+      datavec.resize(map_.size());
       unsigned int scanId = 0;
       
       // Ordering by native IDs order by scan numbers
@@ -199,26 +202,27 @@ namespace OpenMS
           scanId++;
         }
         
-        std::vector<double>* vmzvals = new std::vector<double>();
-        std::vector<double>* vintvals = new std::vector<double>();
+        std::vector<double> vmzvals;
+        std::vector<double> vintvals;
         
         for (Size p=0; p<spectrum.size(); ++p)
         {
-          vmzvals->push_back(spectrum[p].getMZ());
-          vintvals->push_back(spectrum[p].getIntensity());
+          vmzvals.push_back(spectrum[p].getMZ());
+          vintvals.push_back(spectrum[p].getIntensity());
         }
         
-        RawData* data = new RawData(*vmzvals, *vintvals);
+        //RawData* data = new RawData(vmzvals, vintvals);
+        boost::shared_ptr<RawData> data_ptr(new RawData(vmzvals, vintvals));
 
-        MyMap m(rt/60,data);
+        MyMap map_ptr(rt/60,data_ptr);
 //        m[rt/60.0] = data;
         unsigned int scanIndex = scanId - 1;
-        datavec->at(scanIndex) = m;
+        datavec[scanIndex] = map_ptr;
       }
       
       FeatureFinderAlgorithmSHCtrl ctrl;
       ctrl.initParams(this->param_);
-      std::vector<Feature> thefeatures = ctrl.extractPeaks(*datavec);
+      std::vector<Feature> thefeatures = ctrl.extractPeaks(datavec);
       
       for (unsigned int i=0; i<thefeatures.size(); ++i)
         features_->push_back(thefeatures[i]);

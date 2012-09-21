@@ -33,6 +33,8 @@
 #include <vector>
 #include <map>
 
+#include "boost/shared_ptr.hpp"
+
 namespace OpenMS
 {
 	/** 
@@ -40,7 +42,7 @@ namespace OpenMS
 	
 		@ingroup FeatureFinder
 	*/
-  typedef std::pair<double, RawData*> MyMap;
+  typedef std::pair<double, boost::shared_ptr<RawData> > MyMap;
   typedef std::vector<MyMap> Vec;
   
   class OPENMS_DLLAPI FeatureFinderAlgorithmSHCtrl

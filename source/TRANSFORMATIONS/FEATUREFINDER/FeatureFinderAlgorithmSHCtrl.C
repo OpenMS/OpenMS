@@ -52,8 +52,6 @@
 
 namespace OpenMS
 {
-	typedef std::pair<double, RawData*> MyMap;
-	typedef std::vector<MyMap> Vec;
 
 	std::vector<Feature> FeatureFinderAlgorithmSHCtrl::extractPeaks(Vec datavec)
 	{

@@ -68,7 +68,7 @@ namespace OpenMS
 
 // Constructor for raw data, which is then centroided. Converts it to CentroidPeak objects
 	CentroidData::CentroidData(int pWindowWidth, // width of window for quadratic fit
-			RawData &pRawData, // Profile data object
+			boost::shared_ptr<RawData> pRawData, // Profile data object
 			bool centMode // if data are in centroid modus
 			)
 	{
@@ -80,7 +80,7 @@ namespace OpenMS
 
 // Constructor for raw data, which is then centroided. Converts it to CentroidPeak objects
 	CentroidData::CentroidData(int pWindowWidth, // width of window for quadratic fit
-			RawData &pRawData, // Profile data object
+			boost::shared_ptr<RawData> pRawData, // Profile data object
 			double iRT, bool centMode // if data are in centroid modus
 			)
 	{
@@ -140,7 +140,7 @@ namespace OpenMS
 	}
 
 // Sets raw profile data object. Converts it to CentroidPeak objects 
-	void CentroidData::set(RawData &pRawData // Profile data
+	void CentroidData::set(boost::shared_ptr<RawData> pRawData // Profile data
 			)
 	{
 		calcCentroids(pRawData);
@@ -236,14 +236,14 @@ namespace OpenMS
 // Private methods
 
 // Calculates centroides of peaks from raw data
-	void CentroidData::calcCentroids(RawData &pRawData) // Profile data object
+	void CentroidData::calcCentroids(boost::shared_ptr<RawData> pRawData) // Profile data object
 // Calculates centroide data from profile data
 	{
 		int i, hw, j;
 		double cm, toti, min_dh;
 		vector<double> masses, intens;
 
-		pRawData.get(masses, intens);
+		pRawData->get(masses, intens);
 		fCentroidPeaks.clear();
 
 		////////////////////////////////////////////
