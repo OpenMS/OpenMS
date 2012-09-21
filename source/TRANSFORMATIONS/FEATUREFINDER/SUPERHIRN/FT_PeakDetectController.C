@@ -133,7 +133,7 @@ void FT_PeakDetectController::start_scan_parsing_of_mzXML_file(Vec datavec){
   
   // create a new LC/MS:
   THIS_LC_MS = new LC_MS( name );
-  THIS_LC_MS->set_spectrum_ID( this->LC_MS_RUNS.size() );
+  THIS_LC_MS->set_spectrum_ID( (int) this->LC_MS_RUNS.size() );
   
   // start the mzXML reading process:
   FT_READER->read_mzXML_DATA(datavec);

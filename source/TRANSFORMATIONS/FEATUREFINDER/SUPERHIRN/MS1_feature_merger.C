@@ -240,7 +240,7 @@ void MS1_feature_merger::processMZFeatureVector(vector<feature*>* mapF){
   // go through the vector to find to be merged features:
   while( length != mapF->size() ){
     
-    length = mapF->size();
+    length = (unsigned int) mapF->size();
     vector<feature*>::iterator SEARCHER = mapF->begin();
     while( SEARCHER != mapF->end() ){
             
