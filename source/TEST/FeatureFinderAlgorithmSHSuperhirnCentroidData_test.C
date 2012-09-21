@@ -44,8 +44,13 @@ using namespace OpenMS;
 using namespace std;
 
 CentroidData* ptr;
+
+vector<double>* centroidMasses = new vector<double>(); // Centroided masses
+vector<double>* centroidIntens = new vector<double>(); // Centroided intensities
+RawData* raw = new RawData(*centroidMasses, *centroidIntens);
+
 START_SECTION((CentroidData()))
-	ptr = new CentroidData();
+	ptr = new CentroidData(1, *raw, true);
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
@@ -53,7 +58,21 @@ START_SECTION((~CentroidData()))
 	delete ptr;
 END_SECTION
 
-ptr = new CentroidData();
+ptr = new CentroidData(1, *raw, true);
+
+
+START_SECTION((setAndGet()))
+ptr = new CentroidData(1, *raw, true);
+
+centroidMasses->push_back(1.0);
+centroidIntens->push_back(2.0);
+
+ptr->set(*centroidMasses, *centroidIntens);
+
+list<CentroidPeak>* centroidPeaks = new list<CentroidPeak>();
+ptr->get(*centroidPeaks);
+TEST_EQUAL(centroidPeaks->size(), 1);
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
