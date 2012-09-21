@@ -26,9 +26,12 @@
 #include <string.h>
 #include <stdio.h>
 
-using namespace std;
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ms2_info.h>
+
+namespace OpenMS
+{
+
+using namespace std;
 
 // static values:
 const double ms2_info::_MONO_H = 1.00728;
@@ -449,4 +452,5 @@ int ms2_info::get_TRYPTIC_STATE(){
     status++;
   }
   return status;
+}
 }

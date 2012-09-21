@@ -13,13 +13,18 @@
 #ifndef _DEISOTOPER_H_
 #define _DEISOTOPER_H_
 
-class CentroidData;
-class DeconvPeak;
+#include <OpenMS/CONCEPT/Types.h>
 
 #include <list>
 #include <iostream>
 
-class Deisotoper 
+namespace OpenMS
+{
+
+class CentroidData;
+class DeconvPeak;
+
+class OPENMS_DLLAPI Deisotoper 
 {
 public:
   static int sfMinCharge;
@@ -55,5 +60,7 @@ protected:
 };
 
 std::ostream& operator<<(std::ostream&, Deisotoper&);
+
+} // ns
 
 #endif

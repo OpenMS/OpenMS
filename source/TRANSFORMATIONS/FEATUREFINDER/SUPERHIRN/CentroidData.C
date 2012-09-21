@@ -21,6 +21,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 double	CentroidData::sfMassTolPpm = 10.0; // mass tolerance in ppm between isotopes
@@ -271,4 +274,5 @@ void CentroidData::calcCentroids(	RawData &pRawData ) // Profile data object
       }
     }
   }
+}
 }

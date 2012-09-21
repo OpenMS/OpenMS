@@ -15,6 +15,10 @@
 
 #include <iostream>
 #include <iomanip>
+
+namespace OpenMS
+{
+
 using namespace std;
 
 // Constructor & destructor
@@ -78,4 +82,4 @@ void RawData::set(	vector<double> &pProfileMasses, // Mass sample values in prof
 	fProfileIntens = pProfileIntens;
 
 }
-
+}

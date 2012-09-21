@@ -25,7 +25,10 @@
 #ifndef _FEATURE_H
 #define _FEATURE_H
 
-class feature{
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI feature{
   
   
   ////////////////////////////////////////////////
@@ -346,6 +349,8 @@ public:
   static double getFeatureMassErrorAtPPMLevel( double);
   
 };
+
+} // ns
 
 #endif
 

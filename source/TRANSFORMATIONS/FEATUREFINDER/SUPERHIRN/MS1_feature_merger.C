@@ -45,6 +45,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS1_feature_merger.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 double MS1_feature_merger::INTENSITY_APEX_THRESHOLD;
@@ -481,4 +484,4 @@ double MS1_feature_merger::computeDeltaArea(double START_TR, double START_INT, d
 
 
 
-
+}

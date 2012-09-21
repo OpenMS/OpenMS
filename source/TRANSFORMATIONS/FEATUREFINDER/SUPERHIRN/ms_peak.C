@@ -32,6 +32,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ms_peak.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 ////////////////////////////////////////////////
@@ -272,7 +275,4 @@ void ms_peak::activateAsPrecursorPeak( int in ){
     
 }
 
-
-
-
-
+}

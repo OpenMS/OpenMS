@@ -22,6 +22,9 @@
 #include <string>
 #include <list>
 
+namespace OpenMS
+{
+
 typedef std::multimap<int, ms_peak > elution_peak;
 typedef std::vector< elution_peak > MZ_series;
 typedef std::vector< elution_peak >::iterator MZ_series_ITERATOR;
@@ -30,7 +33,7 @@ typedef std::multimap< double, MZ_series> MAIN_DATA_STRUCTURE;
 typedef MAIN_DATA_STRUCTURE::iterator MAIN_ITERATOR;
 
 
-class Process_Data{
+class OPENMS_DLLAPI Process_Data{
 
     
     ////////////////////////////////////////////////
@@ -238,6 +241,8 @@ public:
   static void insert_into_scan_TR_index(int IN, float TR){scan_TR_index.insert(std::pair<int, float>(IN,TR));};
 
 };
+
+} // ns
 
 #endif
 

@@ -17,8 +17,11 @@
 
 #include <OpenMS/config.h>
 
+namespace OpenMS
+{
+
 // Class for the storage of raw MS data
-class OPENMS_DLLAPI RawData{
+class OPENMS_DLLAPI OPENMS_DLLAPI RawData{
 
 public:
   
@@ -42,5 +45,7 @@ protected:
 };
 
 std::ostream& operator<<(std::ostream& pOut, RawData& pRawData);
+
+} // ns
 
 #endif

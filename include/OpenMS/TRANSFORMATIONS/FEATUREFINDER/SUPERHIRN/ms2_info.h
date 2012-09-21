@@ -22,11 +22,16 @@
 #ifndef MS2_INFO_H
 #define MS2_INFO_H
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <string>
 #include <vector>
 #include <map>
 
-class ms2_info{
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI ms2_info{
 
     
   ////////////////////////////////////////////////
@@ -190,6 +195,8 @@ public:
   std::string get_PREV_AA( ){return PREV_AA;};
   void set_PREV_AA( std::string IN ){PREV_AA = IN;};
 };
+
+} // ns
 
 #endif
 

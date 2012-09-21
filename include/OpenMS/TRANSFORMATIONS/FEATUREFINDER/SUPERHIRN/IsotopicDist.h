@@ -14,10 +14,15 @@
 #ifndef _ISOTOPICDIST_h_
 #define _ISOTOPICDIST_h_
 
+#include <OpenMS/CONCEPT/Types.h>
+
+namespace OpenMS
+{
+
 class CentroidPeak;
 class DeconvPeak;
 
-class IsotopicDist
+class OPENMS_DLLAPI IsotopicDist
 {
 public:
 
@@ -85,5 +90,7 @@ inline int IsotopicDist::getIndex(
   
   return idx;
 }
+
+} // ns
 
 #endif

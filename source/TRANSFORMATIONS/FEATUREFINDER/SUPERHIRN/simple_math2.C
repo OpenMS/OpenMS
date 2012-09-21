@@ -15,6 +15,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/simple_math2.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 // significance values:
@@ -368,4 +371,6 @@ void simple_math2::OUTLIER_DETECTION_BY_DIXON(vector< pair<double, void*> >* IN)
     }
     
   }
+}
+
 }

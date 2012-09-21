@@ -22,6 +22,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ClusteredMS2ConsensusSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2_feature.h>
 
+namespace OpenMS
+{
 
 ////////////////////////////////////////////////
 // constructor for the object MS2_feature:
@@ -71,3 +73,4 @@ void MS2_feature::show_info(){
 }
 
     
+}

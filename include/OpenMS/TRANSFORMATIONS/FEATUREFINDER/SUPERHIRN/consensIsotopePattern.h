@@ -23,10 +23,15 @@
 #ifndef CONSENS_ISOTOPE_PATTERN_H
 #define CONSENS_ISOTOPE_PATTERN_H
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <map>
 #include <vector>
 
-class consensIsotopePattern{
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI consensIsotopePattern{
 
   ////////////////////////////////////////////////
   // declaration of the private members:
@@ -88,6 +93,8 @@ public:
 
 
 };
+
+} // ns
 
 #endif
 

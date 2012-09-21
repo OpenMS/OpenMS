@@ -17,10 +17,15 @@
 #ifndef _MS2_CONSENSUS_SPECTRUM_H
 #define _MS2_CONSENSUS_SPECTRUM_H
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <string>
 #include <map>
 
-class MS2ConsensusSpectrum{
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI MS2ConsensusSpectrum{
 
     
     ////////////////////////////////////////////////
@@ -153,6 +158,8 @@ public:
 
   
 };
+
+} // ns
 
 #endif
 

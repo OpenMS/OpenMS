@@ -46,6 +46,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FT_PEAK_DETEC_mzXML_reader.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FT_PeakDetectController.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 bool FT_PeakDetectController::CREATE_FEATURE_ELUTION_PROFILES = false;
@@ -464,8 +467,4 @@ void FT_PeakDetectController::addLCelutionProfile( feature* inF, LC_elution_peak
   myProfile = NULL;
 }
 
-
-
-
-
-
+}

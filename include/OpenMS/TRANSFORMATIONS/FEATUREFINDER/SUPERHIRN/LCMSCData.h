@@ -17,13 +17,16 @@
 #ifndef _LCMSCData_h_
 #define _LCMSCData_h_
 
+namespace OpenMS
+{
+
 typedef std::map<int, LC_elution_peak> elution_peak_list;
 typedef std::map<int, LC_elution_peak>::iterator elution_peak_list_ITERATOR;
 typedef std::map< double, elution_peak_list> MZ_LIST;
 typedef MZ_LIST::iterator MZ_LIST_ITERATOR;
 
 
-class LCMSCData
+class OPENMS_DLLAPI LCMSCData
 {
 public:
   
@@ -88,4 +91,7 @@ protected:
   
   
 };
+
+} // ns
+
 #endif

@@ -40,6 +40,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/Process_Data.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 map<int, float> Process_Data::scan_TR_index;
@@ -1142,4 +1145,6 @@ void Process_Data::adjustCorrectToMS1Precursor( double* precursorMZ, int z, int 
     //cout<<*precursorMZ<<" not found"<<endl;
   }
   
+}
+
 }

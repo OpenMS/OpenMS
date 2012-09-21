@@ -25,8 +25,10 @@
 #include "MS2Fragment.h"
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ClusteredMS2ConsensusSpectrum.h>
 
+namespace OpenMS
+{
 
-class MS2_feature : public ClusteredMS2ConsensusSpectrum {
+class OPENMS_DLLAPI MS2_feature : public ClusteredMS2ConsensusSpectrum {
 
   
   using ClusteredMS2ConsensusSpectrum::operator=;
@@ -81,6 +83,8 @@ public:
 
   
 };
+
+} // ns
 
 #endif
 

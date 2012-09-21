@@ -23,6 +23,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Fragment.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2ConsensusSpectrum.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 // mass to charge tolerance for MS2 trace level:
@@ -448,4 +451,4 @@ double MS2ConsensusSpectrum::getLCElutionPeakSimilarity( MS2Fragment* frag ){
   return corMS2/corSpec;
 }
 
-
+}

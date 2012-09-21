@@ -17,11 +17,16 @@
 #ifndef _CLUSTERED_MS2_CONSENSUS_SPECTRUM_H
 #define _CLUSTERED_MS2_CONSENSUS_SPECTRUM_H
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <vector>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2ConsensusSpectrum.h>
 
-class ClusteredMS2ConsensusSpectrum : public MS2ConsensusSpectrum{
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI ClusteredMS2ConsensusSpectrum : public MS2ConsensusSpectrum{
 
   
    
@@ -107,6 +112,8 @@ public:
   std::vector<int>::iterator getSpectraScanNumberEnd(){return MS2Scans.end();};
     
 };
+
+} // ns
 
 #endif
 

@@ -18,6 +18,8 @@
 
 #include <list>
 #include <iostream>
+namespace OpenMS
+{
 
 using namespace std;
 
@@ -177,4 +179,5 @@ void Deisotoper::cleanDeconvPeaks()
 			break;
 		}
 	}
+}
 }

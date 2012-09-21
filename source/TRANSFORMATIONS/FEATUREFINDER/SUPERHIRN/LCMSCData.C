@@ -18,6 +18,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_elution_peak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMSCData.h>
 
+namespace OpenMS
+{
+
 // minimal MS peak intensity allowed:
 float LCMSCData::intensity_min_threshold;
 
@@ -251,3 +254,4 @@ vector<LC_elution_peak*> LCMSCData::get_ALL_peak_ordered(){
   return DATA;
 }
 
+}

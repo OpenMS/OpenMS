@@ -12,7 +12,12 @@
 #ifndef _USE_simple_math2
 #define _USE_simple_math2
 
-class simple_math2 {
+#include <OpenMS/CONCEPT/Types.h>
+
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI simple_math2 {
   
 private:
   
@@ -64,5 +69,6 @@ public:
     
 };
 
+} // ns
 
 #endif

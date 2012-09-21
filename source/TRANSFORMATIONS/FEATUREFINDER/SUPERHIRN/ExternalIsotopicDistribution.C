@@ -19,6 +19,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/PeptideIsotopeDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ExternalIsotopicDistribution.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 bool ExternalIsotopicDistribution::EXTERNAL_ISOTOPIC_PROFILES = false;
@@ -271,4 +274,5 @@ void ExternalIsotopicDistribution::initRetentionTimeSegments( double start, doub
   }
   
   
+}
 }

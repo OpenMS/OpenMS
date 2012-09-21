@@ -21,6 +21,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ms_peak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 double BackgroundIntensityBin::TR_BINS = 2.0;
@@ -166,3 +169,4 @@ BackgroundIntensityBin::~BackgroundIntensityBin(){
   IntensityMap.clear();
 }
 
+}

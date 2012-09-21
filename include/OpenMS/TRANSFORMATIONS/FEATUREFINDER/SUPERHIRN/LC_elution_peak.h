@@ -21,12 +21,15 @@
 #include <map>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/consensIsotopePattern.h>
 
+namespace OpenMS
+{
+
 typedef std::multimap<int, ms_peak > elution_peak;
 typedef std::vector< elution_peak > MZ_series;
 typedef std::vector< elution_peak >::iterator MZ_series_ITERATOR;
 typedef std::multimap<int, ms_peak >::iterator SIGNAL_iterator;
 
-class LC_elution_peak{
+class OPENMS_DLLAPI LC_elution_peak{
 
     
   ////////////////////////////////////////////////
@@ -257,6 +260,8 @@ public:
   
 
 };
+
+} // ns
 
 #endif
 

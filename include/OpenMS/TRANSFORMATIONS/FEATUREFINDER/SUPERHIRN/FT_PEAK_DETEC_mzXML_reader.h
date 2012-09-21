@@ -29,6 +29,8 @@
 //
 // **********************************************************************//
 
+namespace OpenMS
+{
 
 // file structure remapping
 // for the mzXML parser ramp:
@@ -39,7 +41,7 @@ typedef FILE* MZXML_FILE;
 
 
 
-class FT_PEAK_DETEC_mzXML_reader{
+class OPENMS_DLLAPI FT_PEAK_DETEC_mzXML_reader{
 
     
     ////////////////////////////////////////////////
@@ -196,6 +198,8 @@ public:
   //void delete_existing_debug_file();
 
 };
+
+} // ns
 
 #endif
 

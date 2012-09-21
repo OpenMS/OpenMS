@@ -22,9 +22,10 @@
 #ifndef USE_FT_PEAK_DETECT_CONTROLLER_H
 #define USE_FT_PEAK_DETECT_CONTROLLER_H
 
+namespace OpenMS
+{
 
-
-class FT_PeakDetectController{
+class OPENMS_DLLAPI FT_PeakDetectController{
 
     
     ////////////////////////////////////////////////
@@ -201,6 +202,8 @@ public:
   std::vector<LC_MS>::iterator get_parsed_DATA_START(){return LC_MS_RUNS.begin();};
   std::vector<LC_MS>::iterator get_parsed_DATA_END(){return LC_MS_RUNS.end();};
 };
+
+} // ns
 
 #endif
 

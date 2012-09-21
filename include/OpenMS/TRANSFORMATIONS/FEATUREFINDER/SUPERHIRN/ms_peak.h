@@ -32,11 +32,15 @@
 #include <vector>
 #include <map>
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ms_peak.h>
+
+namespace OpenMS
+{
 
 class CentroidPeak;
 
-class ms_peak{
+class OPENMS_DLLAPI ms_peak{
 
     
   ////////////////////////////////////////////////
@@ -138,4 +142,7 @@ public:
   double getSignalToNoise(){return SignalToNoise;};
   void setSignalToNoise(double in){SignalToNoise = in;};
 };
+
+} // ns
+
 #endif

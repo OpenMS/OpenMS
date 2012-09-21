@@ -28,9 +28,12 @@
 #ifndef LC_MS_XML_READER_H
 #define LC_MS_XML_READER_H
 
+#include <OpenMS/CONCEPT/Types.h>
 
+namespace OpenMS
+{
 
-class LC_MS_XML_reader{
+class OPENMS_DLLAPI LC_MS_XML_reader{
   
   ////////////////////////////////////////////////
   // declaration of the public members:
@@ -49,6 +52,8 @@ public:
 //  static double SIGNAL_TO_NOISE_THERSHOLD;
 //  static string DATA_STORAGE_XML_FORMAT_TYPE;
 };
+
+} // ns
 
 #endif
 

@@ -17,10 +17,15 @@
 #ifndef PEPTIDE_ISOTOPE_DISTRIBUTION_H
 #define PEPTIDE_ISOTOPE_DISTRIBUTION_H
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <string>
 #include <vector>
 
-class PeptideIsotopeDisribution{
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI PeptideIsotopeDisribution{
 
     
   ////////////////////////////////////////////////
@@ -102,6 +107,8 @@ public:
   double getRTEnd(){return RtEnd;};
 
 };
+
+} // ns
 
 #endif
 

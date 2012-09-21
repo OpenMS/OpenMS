@@ -21,6 +21,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/featureLCprofile.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 ////////////////////////////////////////////////
@@ -144,4 +147,4 @@ void featureLCprofile::changeElutionTimesByFactor(double factor){
   }
 
 }
-
+}

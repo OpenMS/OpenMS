@@ -17,6 +17,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Fragment.h>
 
+namespace OpenMS
+{
+
 // outlier selection attribute:
 // 1 -> retention time
 // 2 -> preciursor MZ
@@ -159,4 +162,6 @@ double MS2Fragment::getOutlierDetectionAttribute(){
   
   // otherwise use retention time:
   return getTR();
+}
+
 }

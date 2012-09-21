@@ -20,6 +20,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/PeptideIsotopeDistribution.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 ////////////////////////////////////////////////
@@ -208,4 +211,5 @@ string PeptideIsotopeDisribution::getIsotopeDistInfo(){
   info = "Name: " + this->name;
   info += ", SQ: " + this->sq;
   return info;
+}
 }

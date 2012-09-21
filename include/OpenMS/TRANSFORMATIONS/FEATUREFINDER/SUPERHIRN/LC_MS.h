@@ -27,9 +27,12 @@
 #include <vector>
 #include <map>
 
+namespace OpenMS
+{
+
 typedef feature LC_MS_FEATURE;
 
-class LC_MS{
+class OPENMS_DLLAPI LC_MS{
 
   
   ////////////////////////////////////////////////
@@ -270,6 +273,8 @@ public:
   void set_MASTER_ID(int IN){ MASTER_ID = IN;};
   int get_MASTER_ID(){ return MASTER_ID;};
 };
+
+}
 
 #endif
 

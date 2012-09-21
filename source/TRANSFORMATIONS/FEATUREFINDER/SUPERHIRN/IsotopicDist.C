@@ -22,6 +22,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/IsotopicDist.h>
 
+namespace OpenMS
+{
+
 double	IsotopicDist::sfDetectableIsoFact = 0.05; // determines which isotopes must match for peak detection
 double	IsotopicDist::sfIntensityCV = 0.3; // maximal deviation between expected and measured isotopic intensities  
 // NOTE the sfIntensityCV is overwritten from config!
@@ -1020,4 +1023,6 @@ void IsotopicDist::subtractMatchingPeaks(
   pMonoPeak.setScore(h_tot);	
   pMonoPeak.setIsotopicPeaks(isotopicDist);
   //	pMonoPeak.setScore(h_tot/(abs(dmC13)+0.000001));	
+}
+
 }

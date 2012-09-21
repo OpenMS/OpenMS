@@ -13,12 +13,17 @@
 #ifndef _CENTROIDPEAK_H_
 #define _CENTROIDPEAK_H_
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <ostream>
 #include <cmath>
 #include <vector>
 
+namespace OpenMS
+{
+
 // Class for centroid peaks
-class CentroidPeak{
+class OPENMS_DLLAPI CentroidPeak{
 public:
   
   static int	sfCentroidWindowWidth; // Centroid window width
@@ -117,5 +122,6 @@ protected:
 
 std::ostream& operator<<(std::ostream&, DeconvPeak&);
 
+} // ns
 
 #endif

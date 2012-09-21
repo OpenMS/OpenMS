@@ -13,16 +13,21 @@
 //#ifndef _CentroidData_h_
 //#define _CentroidData_h_
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <list>
 #include <vector>
 
 #ifndef _USE_CENTROID_DATA_H
 #define _USE_CENTROID_DATA_H
 
+namespace OpenMS
+{
+
 class RawData;
 class CentroidPeak;
 
-class CentroidData
+class OPENMS_DLLAPI CentroidData
 {
 public:
   
@@ -68,5 +73,7 @@ protected:
 };
 
 std::ostream& operator<<(std::ostream&, CentroidData&);
+
+} // ns
 
 #endif

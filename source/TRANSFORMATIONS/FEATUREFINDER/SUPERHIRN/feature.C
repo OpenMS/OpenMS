@@ -40,6 +40,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/feature.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 
@@ -964,4 +967,4 @@ double feature::getFeatureMassErrorAtPPMLevel( double mz ){
 }  
 
 
-
+}

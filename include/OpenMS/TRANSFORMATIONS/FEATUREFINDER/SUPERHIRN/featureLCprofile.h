@@ -21,10 +21,14 @@
 
 
 #ifndef _FEATURE_LC_PROFILE
-
 #define _FEATURE_LC_PROFILE_H
 
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <map>
+
+namespace OpenMS
+{
 
 // this structure stores the monoisotopic
 // signals of LC elution peak:
@@ -38,7 +42,7 @@ struct MS1Signal{
 
 
 
-class featureLCprofile{
+class OPENMS_DLLAPI featureLCprofile{
 
     
   ////////////////////////////////////////////////
@@ -105,6 +109,8 @@ public:
 
   
 };
+
+} // ns
 
 #endif
 

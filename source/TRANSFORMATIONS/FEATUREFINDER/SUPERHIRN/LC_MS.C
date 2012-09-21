@@ -42,6 +42,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_MS.h>;
 
+namespace OpenMS
+{
+
 using namespace std;
 
 double LC_MS::MINIMAL_PEP_PROPHET_THERSHOLD = -3.0;
@@ -353,4 +356,6 @@ void LC_MS::setFeatureLCMSID(){
     (*p).set_spectrum_ID( get_spectrum_ID() );
     p++;
   }	
+}
+
 }

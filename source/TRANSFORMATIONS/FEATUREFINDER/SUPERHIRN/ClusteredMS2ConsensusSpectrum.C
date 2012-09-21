@@ -20,6 +20,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ClusteredMS2ConsensusSpectrum.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 
@@ -244,3 +247,4 @@ void ClusteredMS2ConsensusSpectrum::plotCombinedSpectra( ){
   
 }
 
+}

@@ -21,6 +21,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_MS_XML_reader.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
 
+namespace OpenMS
+{
+  
 using namespace std;
 
 BackgroundControl::BackgroundControl(){
@@ -163,4 +166,5 @@ void BackgroundControl::processIntensityMaps(  ){
     P1++;
   }
 }
+} // ns
 

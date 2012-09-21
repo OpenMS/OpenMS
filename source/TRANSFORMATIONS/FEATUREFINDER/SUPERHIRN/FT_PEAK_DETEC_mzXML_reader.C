@@ -31,8 +31,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FT_PEAK_DETEC_mzXML_reader.h>
 
-
-
+namespace OpenMS
+{
 
 // debugging classes:
 int	FT_PEAK_DETEC_mzXML_reader::sfReportMonoPeaks = 0; // 1 if info about monoisotopic peaks should be written to mono_peaks.txt
@@ -253,5 +253,4 @@ int FT_PEAK_DETEC_mzXML_reader::setInterMonoIsotopicLCDistance(int my_scan, int 
    */
 }
 
-
-
+}

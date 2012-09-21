@@ -23,6 +23,9 @@
 #include <algorithm>
 #include <iomanip>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 int	CentroidPeak::sfCentroidWindowWidth = 5; // Centroid window width
@@ -278,4 +281,4 @@ void CentroidPeak::show_info(){
   }
 }
 
-
+}

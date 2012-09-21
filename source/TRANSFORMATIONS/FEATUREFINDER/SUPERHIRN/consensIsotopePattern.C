@@ -24,6 +24,10 @@
 #include <map>
 #include <vector>
 #include <math.h>
+
+namespace OpenMS
+{
+
 using namespace std;
 
 double consensIsotopePattern::FT_MZ_TOLERANCE;
@@ -191,6 +195,4 @@ void consensIsotopePattern::condensIsotopePattern( pair< vector<double>, vector<
 
 }
 
-
-
-
+}

@@ -16,7 +16,10 @@
 #ifndef USE_BACKGROUND_INTENSITY_BIN_H
 #define USE_BACKGROUND_INTENSITY_BIN_H
 
-class BackgroundIntensityBin {
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI BackgroundIntensityBin {
 
 private:
 
@@ -56,6 +59,8 @@ public:
   std::map<double, double>* getIntensityHist(){ return &IntensityHist;};
   double getMean(){return mean;};
 };
+
+} // ns
 
 #endif
 

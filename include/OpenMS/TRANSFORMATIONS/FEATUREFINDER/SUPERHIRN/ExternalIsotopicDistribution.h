@@ -14,7 +14,12 @@
 #ifndef _USE_EXTERNAL_ISOTOPIC_DISTRIBUTION_H
 #define _USE_EXTERNAL_ISOTOPIC_DISTRIBUTION_H
 
-class ExternalIsotopicDistribution{
+#include <OpenMS/CONCEPT/Types.h>
+
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI ExternalIsotopicDistribution{
 
   
   ////////////////////////////////////////////////
@@ -83,5 +88,7 @@ public:
 
   
 };
+
+} // ns
 
 #endif

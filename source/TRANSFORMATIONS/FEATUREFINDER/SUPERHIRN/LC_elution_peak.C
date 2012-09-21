@@ -24,6 +24,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_elution_peak.h>
 
+namespace OpenMS
+{
+
 using namespace std;
 
 
@@ -790,8 +793,4 @@ void LC_elution_peak::defineLCElutionPeakParametersFromMSPeak(){
   
 }
   
-  
-  
-
-
-
+}

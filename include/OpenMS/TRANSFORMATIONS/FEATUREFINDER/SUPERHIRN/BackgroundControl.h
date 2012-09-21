@@ -16,7 +16,10 @@
 #ifndef USE_BACKGROUND_CONTROL_H
 #define USE_BACKGROUND_CONTROL_H
 
-class BackgroundControl {
+namespace OpenMS
+{
+
+class OPENMS_DLLAPI BackgroundControl {
 
 private:
   
@@ -50,6 +53,8 @@ public:
   BackgroundControl& operator>(const BackgroundControl&);
   
 };
+
+} // namespace
 
 #endif
 

@@ -24,9 +24,10 @@
 #ifndef MS1_FEATURE_MERGER_H
 #define MS1_FEATURE_MERGER_H
 
+namespace OpenMS
+{
 
-
-class MS1_feature_merger{
+class OPENMS_DLLAPI MS1_feature_merger{
 
     
   ////////////////////////////////////////////////
@@ -99,4 +100,7 @@ public:
   // variables of the class
  
 };
+
+} // ns
+
 #endif

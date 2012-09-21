@@ -17,9 +17,12 @@
 #ifndef USE_MS2_FRAGMENT_H
 #define USE_MS2_FRAGMENT_H
 
+#include <OpenMS/CONCEPT/Types.h>
 
+namespace OpenMS
+{
 
-class MS2Fragment{
+class OPENMS_DLLAPI MS2Fragment{
 
     
     ////////////////////////////////////////////////
@@ -120,6 +123,8 @@ public:
 
 
 };
+
+} // ns
 
 #endif
 

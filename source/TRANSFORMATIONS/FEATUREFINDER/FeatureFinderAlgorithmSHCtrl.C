@@ -62,7 +62,7 @@ namespace OpenMS
   typedef std::vector<MyMap> Vec;
   
   std::vector<Feature> FeatureFinderAlgorithmSHCtrl::extractPeaks(Vec datavec) {
-    std::cout << "extracting the peaks\n";
+    std::cout << "Extracting the peaks\n";
     //initParams();
     IsotopicDist::init();
     
