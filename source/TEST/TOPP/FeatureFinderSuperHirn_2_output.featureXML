@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.6" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/featureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FeatureFinderSH" version="version_string" />
+		<processingAction name="Peak picking" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="3">
+		<feature id="f_0">
+			<position dim="0">655.883594009743</position>
+			<position dim="1">339.852700625299</position>
+			<intensity>1.66716e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>3</charge>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">669.213295330684</position>
+			<position dim="1">354.709037746653</position>
+			<intensity>1.25845e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">661.732378510308</position>
+			<position dim="1">366.532276665986</position>
+			<intensity>1.47964e+07</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>3</charge>
+		</feature>
+	</featureList>
+</featureMap>

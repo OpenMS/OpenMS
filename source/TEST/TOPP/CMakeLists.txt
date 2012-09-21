@@ -157,10 +157,12 @@ add_test("TOPP_FeatureFinderMRM_1" ${TOPP_BIN_PATH}/FeatureFinderMRM -test -in $
 add_test("TOPP_FeatureFinderMRM_1_out1" ${DIFF} -in1 FeatureFinderMRM_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_1_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMRM_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMRM_1")
 ### FeatureFinder of SuperHirn test
-add_test("TOPP_FeatureFinderSuperhirn_1" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderAlgorithmSH_input.mzML -out FeatureFinderAlgorithmSH_output.featureXML.tmp -ini FeatureFinderSuperHirn_1_parameters.ini)
-add_test("TOPP_FeatureFinderSuperhirn_1_out1" ${DIFF} -in1 FeatureFinderCentroided_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_output.featureXML )
-set_tests_properties("TOPP_FeatureFinderSuperhirn_1" PROPERTIES DEPENDS "TOPP_FeatureFinderSuperhirn_1_prepare")
+add_test("TOPP_FeatureFinderSuperhirn_1" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_input_1.mzML -out FeatureFinderSuperHirn_1_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_1_parameters.ini)
+add_test("TOPP_FeatureFinderSuperhirn_1_out1" ${DIFF} -in1 FeatureFinderSuperHirn_1_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_1_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderSuperhirn_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderSuperhirn_1")
+add_test("TOPP_FeatureFinderSuperhirn_2" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_input_2.mzML -out FeatureFinderSuperHirn_2_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_2_parameters.ini)
+add_test("TOPP_FeatureFinderSuperhirn_2_out1" ${DIFF} -in1 FeatureFinderSuperHirn_2_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_2_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderSuperhirn_2_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderSuperhirn_2")
 
 ### FileConverter tests
 add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_1_input.mzData -out FileConverter_1.tmp -out_type mzML)
