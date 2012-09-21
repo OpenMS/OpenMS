@@ -101,7 +101,7 @@ void simple_math2::ITERATIVE_OUTLIER_DETECTION_BY_DIXON(vector<double>* IN){
   
   ////////////////
   // start here teh outlier detection iteratively:
-  unsigned int size;
+  size_t size;
   do{
     size = TMP.size();
     // make a outlier detection:
@@ -124,7 +124,7 @@ void simple_math2::ITERATIVE_OUTLIER_DETECTION_BY_DIXON(vector< pair<double, voi
   
   ////////////////
   // start here teh outlier detection iteratively:
-  unsigned int size;
+  size_t size;
   do{
     size = IN->size();
     // make a outlier detection:
