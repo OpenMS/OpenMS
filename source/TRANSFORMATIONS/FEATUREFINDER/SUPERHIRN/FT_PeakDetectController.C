@@ -57,7 +57,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2_feature.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/featureLCprofile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/feature.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_MS.h>;
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_MS.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS1_feature_merger.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FT_PEAK_DETEC_mzXML_reader.h>
@@ -362,10 +362,10 @@ void FT_PeakDetectController::add_raw_peak_to_LC_MS_run( LC_elution_peak* PEAK )
   int apex_scan = PEAK->get_scan_apex();
   double apex_MZ = PEAK->get_apex_MZ();
   double apex_TR = PEAK->get_apex_retention_time();
-  float apex_INTENSITY = PEAK->get_apex_intensity();
+  float apex_INTENSITY = (float) PEAK->get_apex_intensity();
   
   // peak shape:
-  float peak_area = PEAK->get_total_peak_area();
+  float peak_area = (float) PEAK->get_total_peak_area();
   int charge_state = PEAK->get_charge_state();
   int peak_start = PEAK->get_start_scan();
   int peak_end = PEAK->get_end_scan();
@@ -460,10 +460,10 @@ void FT_PeakDetectController::addLCelutionProfile( feature* inF, LC_elution_peak
   int apex_scan = PEAK->get_scan_apex();
   double apex_MZ = PEAK->get_apex_MZ();
   double apex_TR = PEAK->get_apex_retention_time();
-  float apex_Intensity = PEAK->get_apex_intensity();
+  float apex_Intensity = (float) PEAK->get_apex_intensity();
 
   // peak shape:
-  float peak_area = PEAK->get_total_peak_area();
+  float peak_area = (float) PEAK->get_total_peak_area();
   int charge_state = PEAK->get_charge_state();
   
   // create the class:

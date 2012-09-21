@@ -55,7 +55,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/Deisotoper.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMSCData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/simple_math2.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_MS_XML_reader.h>;
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_MS_XML_reader.h>
 
 // TODO Refactor
 // The four includes MS2_feature, featureLCprofile, ms2_info and feature are just 
@@ -739,7 +739,7 @@ void Process_Data::convert_to_LC_elution_peak(MZ_series_ITERATOR Q_SER, double t
   // set important processing parameters such as apec cutoff for noise removal
   // and the tr delta steps for peak area integration
   // LC_elution_peak::intensity_apex_percentil_cutoff = Process_Data::MS1_intensity_apex_percentil_cutoff;
-  LC_elution_peak::TR_RESOLUTION = Process_Data::MS1_TR_RESOLUTION;
+  LC_elution_peak::TR_RESOLUTION = (float) Process_Data::MS1_TR_RESOLUTION;
   
   // process MS peaks before addingL:
   processMSPeaks( &(*Q_SER) );
@@ -943,7 +943,7 @@ void Process_Data::convert_ms_peaks(int SCAN, double TR, list<DeconvPeak>& DECON
   
   list<DeconvPeak>::iterator mpi;
   for (mpi=DECONVPEAK.begin();mpi!=DECONVPEAK.end();++mpi) {
-    ms_peak peak(SCAN,mpi->getMass(),mpi->getIntensity(),mpi->getCharge(),mpi->getNrIsotopes(),mpi->getScore(),mpi->getIsotopicPeaks());
+    ms_peak peak(SCAN,mpi->getMass(),(float)mpi->getIntensity(),mpi->getCharge(),mpi->getNrIsotopes(),(float)mpi->getScore(),mpi->getIsotopicPeaks());
 
     if( !mpi->getExtraPeakInfo().empty() ){
       peak.setExtraPeakInfo( mpi->getExtraPeakInfo() );

@@ -185,7 +185,7 @@ void FT_PEAK_DETEC_mzXML_reader::get_MS_scan(off_t IN, double TR, RawData* data)
       // print_scan_header( &scan_header );
       
       // build up an index scan vs retention time:
-      insert_into_scan_TR_index(IN, TR);
+      insert_into_scan_TR_index(IN, (float)TR);
       
       //////////////////////////////////////////////////////
       // check here the MS Precursor Mass Spectrum Level 
@@ -199,7 +199,7 @@ void FT_PEAK_DETEC_mzXML_reader::get_MS_scan(off_t IN, double TR, RawData* data)
         MS1_LC_MS_DATA_PROCESSOR->setMaxScanDistance( max_scan);
         
         // process the data:
-        processMS1InputData(IN, TR, data);
+        processMS1InputData(IN, (float)TR, data);
         
       //}
   }

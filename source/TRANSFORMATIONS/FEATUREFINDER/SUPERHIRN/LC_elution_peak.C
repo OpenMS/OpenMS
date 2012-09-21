@@ -518,7 +518,7 @@ void LC_elution_peak::computeLCElutionPeakParameters( ){
   }
   
   // set the apex ms peak:
-  ms_peak* APEX = find_true_peak( apexScan );
+  ms_peak* APEX = find_true_peak( (float) apexScan );
   if ( ! APEX->getExtraPeakInfo().empty()) {
     setElutionPeakExtraInfo( APEX->getExtraPeakInfo() );
   }

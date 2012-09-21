@@ -442,14 +442,14 @@ void MS1_feature_merger::computeNewMS1FeatureParameters( feature* in ){
     
     // if contained only one peak!
     if(computeMap.size() == 1){
-      in->set_peak_area( start_int );
+      in->set_peak_area( (float) start_int );
       in->set_retention_time ( in->get_retention_time_START() );
       in->set_scan_number( in->get_scan_start() );
     }
     else{    
-      in->set_peak_area( TOT_AREA);
+      in->set_peak_area( (float) TOT_AREA);
       apexScan /= TOT_AREA;
-      in->set_scan_number( apexScan );
+      in->set_scan_number( (int) apexScan );
       apexTr /= TOT_AREA;
       in->set_retention_time ( apexTr );
     }
