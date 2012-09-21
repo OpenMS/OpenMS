@@ -58,8 +58,8 @@ namespace OpenMS
       // ----------------------------------------------------------------------------------------------------
       this->defaults_.setValue(       "ms1:precursor_detection_scan_levels", IntList::create(1), "Precursor detection scan levels");
       // ----------------------------------------------------------------------------------------------------
-      this->defaults_.setValue(       "ms1:max_inter_scan_distance", 0, "MS1 max inter scan distance"); // was 0.1, bug!
-      this->defaults_.setMinInt(      "ms1:max_inter_scan_distance", 0); // FIXME will be changed to double
+      this->defaults_.setValue(       "ms1:max_inter_scan_distance", 0, "MS1 max inter scan distance"); // was 0.1
+      this->defaults_.setMinInt(      "ms1:max_inter_scan_distance", 0); // Markus needs to clarify this parameter
       // ----------------------------------------------------------------------------------------------------
       this->defaults_.setValue(       "ms1:tr_resolution", 0.01, "MS1 LC retention time resolution");  // seems to have no effect
       this->defaults_.setMinFloat(    "ms1:tr_resolution", 0);
@@ -100,11 +100,6 @@ namespace OpenMS
       this->defaults_.setValue(       "ms1:mz_tolerance", 0.0, "MS1 m/z tolerance (ppm)");
       this->defaults_.setMinFloat(    "ms1:mz_tolerance", 0.0);
       // ----------------------------------------------------------------------------------------------------
-      // is only MS2 related
-      //this->defaults_.setValue(       "general:peptide_prophet_threshold", 0.9, "Peptide Prophet Threshold");
-      //this->defaults_.setMinFloat(    "general:peptide_prophet_threshold", 0.0);
-      // ----------------------------------------------------------------------------------------------------
-      // ----------------------------------------------------------------------------------------------------
       this->defaults_.setValue(       "ms1_feature_merger:active", "true", "Activation of MS1 feature merging post processing");
       this->defaults_.setValidStrings("ms1_feature_merger:active", StringList::create("true,false"));
       // ----------------------------------------------------------------------------------------------------
@@ -143,11 +138,10 @@ namespace OpenMS
       this->defaults_.setValue(       "ms1_feature_selection_options:chrg_range_max", 5, "MS1 feature CHRG range max");
       this->defaults_.setMinInt(      "ms1_feature_selection_options:chrg_range_max", 0);
       
-      
       this->check_defaults_ =  false;
     }
     
-    static unsigned int getNativeScanId(String native_id)
+    unsigned int getNativeScanId(String native_id)
     {
       
       Size start_idx=0;
@@ -155,7 +149,6 @@ namespace OpenMS
       {
         ++start_idx;
       }
-      //std::cout << "start_idx = " << start_idx << ", native_id.length() = " << native_id.length() << "\n";
       if(start_idx==native_id.length())
       {
         std::cout << "Native id could not be determined: " << native_id;
