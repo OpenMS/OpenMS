@@ -57,7 +57,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/simple_math2.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LC_MS_XML_reader.h>
 
-// TODO Refactor
 // The four includes MS2_feature, featureLCprofile, ms2_info and feature are just 
 // there for reading one constant. Get rid of them.
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2_feature.h>
