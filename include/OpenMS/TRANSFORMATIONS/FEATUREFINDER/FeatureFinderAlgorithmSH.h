@@ -155,7 +155,7 @@ namespace OpenMS
       {
         ++start_idx;
       }
-      std::cout << "start_idx = " << start_idx << ", native_id.length() = " << native_id.length() << "\n";
+      //std::cout << "start_idx = " << start_idx << ", native_id.length() = " << native_id.length() << "\n";
       if(start_idx==native_id.length())
       {
         std::cout << "Native id could not be determined: " << native_id;

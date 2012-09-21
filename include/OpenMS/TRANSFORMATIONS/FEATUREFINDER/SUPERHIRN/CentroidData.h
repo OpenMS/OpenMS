@@ -21,13 +21,8 @@ using namespace std;
 #ifndef _USE_CENTROID_DATA_H
 #define _USE_CENTROID_DATA_H
 
-
 class RawData;
 class CentroidPeak;
- 
-
-
-//using namespace std;
 
 class CentroidData
 {
@@ -38,18 +33,13 @@ public:
   static double	sfMinIntensity;
   static double	sfIntensityFloor;
   
-  // debugging parameters:
+  // debugging parameters => used by other classes :( :( :(   
   static bool MonoIsoDebugging;
   static double DebugMonoIsoMassMin; 
   static double DebugMonoIsoMassMax; 
   
-  
-
-	CentroidData();
-	CentroidData(int);
 	CentroidData(int,RawData&, bool);
   CentroidData(int,RawData&, double, bool);
-	CentroidData(int,vector<double>&,vector<double>&);
 	virtual ~CentroidData();
   
 	void get(list<CentroidPeak>&);
@@ -61,19 +51,19 @@ public:
 
 	void setNoise(double);
 	double getNoise() {return fNoise;}
-  	void removeNoise();
+  void removeNoise();
 	
 	bool getNextPeakGroup(list<CentroidPeak>::iterator&,list<CentroidPeak>::iterator&);	
 	void resetPeakGroupIter();
- // if data are in centroid modus:
- bool CENTROID_DATA_MODUS;
+  
+  bool CENTROID_DATA_MODUS;
     
 protected:
 	
 	void calcCentroids(RawData&);
   
-	int		fWindowWidth;
-	double	fNoise;
+	int	fWindowWidth;
+	double fNoise;
   double fScanRetentionTime;
 	list<CentroidPeak> fCentroidPeaks;
 	list<CentroidPeak>::iterator fPeakGroupStart;			
