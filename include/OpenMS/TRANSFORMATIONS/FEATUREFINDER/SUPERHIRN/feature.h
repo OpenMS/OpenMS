@@ -241,10 +241,10 @@ public:
   int get_charge_state(){return charge_state;};
   void set_charge_state(int IN){charge_state = IN;};
   void set_peak_area(float IN){total_peak_area = IN;};
-  float get_peak_area(){return total_peak_area;};
+  double get_peak_area(){return total_peak_area;};
   // get peak area at a certain LC/MS:
   double get_peak_area( int );
-  float get_apex_peak_intensity(){return apex_peak_intensity;};
+  double get_apex_peak_intensity(){return apex_peak_intensity;};
   void set_apex_peak_intensity(double in){apex_peak_intensity=in;};
   void normalize_peak_area_by_factor(double factor){ total_peak_area *= factor;};
   
