@@ -21,7 +21,7 @@ namespace OpenMS
 {
 
 // Class for the storage of raw MS data
-class OPENMS_DLLAPI OPENMS_DLLAPI RawData{
+class OPENMS_DLLAPI RawData{
 
 public:
   
