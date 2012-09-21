@@ -83,7 +83,7 @@ END_SECTION
 START_SECTION((processIntensities()))
   ptr = new BackgroundIntensityBin(300, 12);
   ptr->processIntensities();
-  TEST_EQUAL(ptr->getMean(), 0);
+  TEST_REAL_SIMILAR(ptr->getMean(), 0);
 END_SECTION
 
 START_SECTION((getIntensityHist()))
@@ -93,7 +93,9 @@ END_SECTION
 
 START_SECTION((getMean()))
   ptr = new BackgroundIntensityBin(300, 12);
-  TEST_EQUAL(ptr->getMean(), 0)
+  ptr->processIntensities();
+  //TEST_EQUAL(ptr->getMean(), 0)
+  TEST_REAL_SIMILAR(ptr->getMean(), 0);
 END_SECTION
 
 
