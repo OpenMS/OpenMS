@@ -499,6 +499,14 @@ Parameters in .ini files and elsewhere follow these conventions:
 </UL>
 This rule applies to all kinds of parameter strings, both keys and string-values.
 
+<H2 style="margin-top:20px; border-top:1px solid grey;">Data files</H2>
+The correct capitalization of all data file extensions supported by OpenMS in documented
+in FileHandler::NamesOfTypes[]. The convention is to use only lowercase letters
+for file extensions. There are three exceptions: "ML" and "XML" are written
+in uppercase letters and "mzData" keeps its capital "D". Please remember to
+keep this consistent when adding new data files or writing new TOPP tools
+or UTILS (use correct capitalization for file type restrictions, here).
+
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Documentation</H1>
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">UML diagrams</H2>
