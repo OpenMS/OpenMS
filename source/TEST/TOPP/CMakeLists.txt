@@ -1014,11 +1014,11 @@ set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_Decoy
 
 
 ### FeatureFinder of SuperHirn -- test on centroided data
-add_test("UTILS_FeatureFinderSuperhirn_1" ${UTILS_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_input_1.mzML -out FeatureFinderSuperHirn_1_output.featureXML.tmp -ini ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_1_parameters.ini)
-add_test("UTILS_FeatureFinderSuperhirn_1_out1" ${DIFF} -in1 FeatureFinderSuperHirn_1_output.featureXML.tmp -in2 ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_1_output.featureXML)
+add_test("UTILS_FeatureFinderSuperhirn_1" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_input_1.mzML -out FeatureFinderSuperHirn_1_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_1_parameters.ini)
+add_test("UTILS_FeatureFinderSuperhirn_1_out1" ${DIFF} -in1 FeatureFinderSuperHirn_1_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_1_output.featureXML)
 set_tests_properties("UTILS_FeatureFinderSuperhirn_1_out1" PROPERTIES DEPENDS "UTILS_FeatureFinderSuperhirn_1")
 ### FeatureFinder of SuperHirn -- test on profile data
-add_test("UTILS_FeatureFinderSuperhirn_2" ${UTILS_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_input_2.mzML -out FeatureFinderSuperHirn_2_output.featureXML.tmp -ini ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_2_parameters.ini)
-add_test("UTILS_FeatureFinderSuperhirn_2_out1" ${DIFF} -in1 FeatureFinderSuperHirn_2_output.featureXML.tmp -in2 ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_2_output.featureXML )
+add_test("UTILS_FeatureFinderSuperhirn_2" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_input_2.mzML -out FeatureFinderSuperHirn_2_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_2_parameters.ini)
+add_test("UTILS_FeatureFinderSuperhirn_2_out1" ${DIFF} -in1 FeatureFinderSuperHirn_2_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_2_output.featureXML )
 set_tests_properties("UTILS_FeatureFinderSuperhirn_2_out1" PROPERTIES DEPENDS "UTILS_FeatureFinderSuperhirn_2")
 
