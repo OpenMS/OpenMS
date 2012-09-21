@@ -426,6 +426,7 @@ set(transformations_executables_list
   FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
+  FeatureFinderAlgorithmSH_test
   # deprecated: FeatureFinderAlgorithmSimple_test
   # deprecated: FeatureFinderAlgorithmSimplest_test
   FeatureFinderAlgorithm_test
