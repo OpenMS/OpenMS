@@ -149,20 +149,26 @@ namespace OpenMS
     
     static unsigned int getNativeScanId(String native_id)
     {
-      Size num_pos=0;
-      while(!isdigit(native_id[num_pos]) && num_pos<native_id.length())
+      
+      Size start_idx=0;
+      while(!isdigit(native_id[start_idx]) && start_idx<native_id.length())
       {
-        ++num_pos;
+        ++start_idx;
       }
-      if(num_pos==native_id.length())
+      std::cout << "start_idx = " << start_idx << ", native_id.length() = " << native_id.length() << "\n";
+      if(start_idx==native_id.length())
       {
         std::cout << "Native id could not be determined: " << native_id;
         throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "Cannot convert native id to unsigned integer");
       }
-      else
+      
+      Size end_idx = start_idx;
+      while (isdigit(native_id[end_idx]))
       {
-        return native_id.substr(num_pos).toInt();
+        ++end_idx;
       }
+      
+      return native_id.substr(start_idx, end_idx-start_idx).toInt();
     }
     
     virtual void run()
@@ -174,15 +180,22 @@ namespace OpenMS
       MyMap dummyMap;
       Vec* datavec = new Vec(map_.size(), dummyMap);
       unsigned int scanId = 0;
+      bool orderByNativeIds = false; // TODO make this configurable by parameter
       
       for (unsigned int s = 0; s < map_.size(); s++)
       {
         const SpectrumType& spectrum = map_[s];
         double rt = spectrum.getRT();
         
-        bool orderByNativeIds = true; // TODO make this configurable by parameter
-        if (orderByNativeIds)
+        if (orderByNativeIds) 
+        {
           scanId = getNativeScanId(spectrum.getNativeID());
+          if (scanId == 0) {
+            std::cout << "Order by native ids not working, turning it off.\n";
+            orderByNativeIds = false;
+            scanId = 1;
+          }
+        }
         else {
           scanId++;
         }
