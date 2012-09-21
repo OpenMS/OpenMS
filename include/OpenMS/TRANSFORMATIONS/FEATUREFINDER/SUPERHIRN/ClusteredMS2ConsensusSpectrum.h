@@ -89,7 +89,7 @@ public:
   
   //////////////////////////////////////////////////
   // overload operators:
-  ClusteredMS2ConsensusSpectrum& operator=(const ClusteredMS2ConsensusSpectrum&);
+  //ClusteredMS2ConsensusSpectrum& operator=(const ClusteredMS2ConsensusSpectrum&);
   bool operator==(const ClusteredMS2ConsensusSpectrum&);
   ClusteredMS2ConsensusSpectrum& operator<=(const ClusteredMS2ConsensusSpectrum&);
   ClusteredMS2ConsensusSpectrum& operator>=(const ClusteredMS2ConsensusSpectrum&);
