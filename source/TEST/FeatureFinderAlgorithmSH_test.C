@@ -83,6 +83,7 @@ START_SECTION((virtual void run()))
   MzDataFile mzdata_file;
   mzdata_file.getOptions().addMSLevel(1);
   mzdata_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmSH_input.mzData"),input);
+
   input.updateRanges(1);
   FeatureMap<> output;
 
@@ -97,26 +98,18 @@ START_SECTION((virtual void run()))
   ffsh.setParameters(param);
   ffsh.setData(input, output, ff);
   ffsh.run();
+
+  TEST_EQUAL(output.size(), 384);
 	
 	//TOLERANCE_ABSOLUTE(0.001);
 	//TEST_REAL_SIMILAR(output[0].getOverallQuality(),0.8819);
-	//TEST_REAL_SIMILAR(output[1].getOverallQuality(),0.8673);
-	//TEST_REAL_SIMILAR(output[2].getOverallQuality(),0.9079);
-	//TEST_REAL_SIMILAR(output[3].getOverallQuality(),0.9271);
-	//TEST_REAL_SIMILAR(output[4].getOverallQuality(),0.9401);
-	//TEST_REAL_SIMILAR(output[5].getOverallQuality(),0.9094);
-	//TEST_REAL_SIMILAR(output[6].getOverallQuality(),0.9403);
-	//TEST_REAL_SIMILAR(output[7].getOverallQuality(),0.9243);
+  //TEST_REAL_SIMILAR(output[1].getOverallQuality(),0.8673);
+  // ...
 	
 	//TOLERANCE_ABSOLUTE(20.0);
 	//TEST_REAL_SIMILAR(output[0].getIntensity(),51260.0);
 	//TEST_REAL_SIMILAR(output[1].getIntensity(),44667.3);
-	//TEST_REAL_SIMILAR(output[2].getIntensity(),34613.3);
-	//TEST_REAL_SIMILAR(output[3].getIntensity(),19428.9);
-	//TEST_REAL_SIMILAR(output[4].getIntensity(),12513.9);
-	//TEST_REAL_SIMILAR(output[5].getIntensity(),8512.71);
-	//TEST_REAL_SIMILAR(output[6].getIntensity(),7295.3);
-	//TEST_REAL_SIMILAR(output[7].getIntensity(),5024.74);
+  // ...
 	
 END_SECTION
 
