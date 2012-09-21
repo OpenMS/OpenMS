@@ -147,7 +147,6 @@ add_test("TOPP_MassTraceExtractor_1" ${TOPP_BIN_PATH}/MassTraceExtractor -test -
 add_test("TOPP_MassTraceExtractor_1_out" ${DIFF} -in1 MassTraceExtractor_1.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_1_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_1")
 
-
 ### FeatureFinderCentroided test
 add_test("TOPP_FeatureFinderCentroided_1" ${TOPP_BIN_PATH}/FeatureFinderCentroided -test -ini ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out FeatureFinderCentroided_1.tmp)
 add_test("TOPP_FeatureFinderCentroided_1_out1" ${DIFF} -in1 FeatureFinderCentroided_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_output.featureXML )
@@ -156,13 +155,6 @@ set_tests_properties("TOPP_FeatureFinderCentroided_1_out1" PROPERTIES DEPENDS "T
 add_test("TOPP_FeatureFinderMRM_1" ${TOPP_BIN_PATH}/FeatureFinderMRM -test -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1_parameters.ini -out FeatureFinderMRM_1.tmp)
 add_test("TOPP_FeatureFinderMRM_1_out1" ${DIFF} -in1 FeatureFinderMRM_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_1_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMRM_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMRM_1")
-### FeatureFinder of SuperHirn test
-add_test("TOPP_FeatureFinderSuperhirn_1" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_input_1.mzML -out FeatureFinderSuperHirn_1_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_1_parameters.ini)
-add_test("TOPP_FeatureFinderSuperhirn_1_out1" ${DIFF} -in1 FeatureFinderSuperHirn_1_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_1_output.featureXML)
-set_tests_properties("TOPP_FeatureFinderSuperhirn_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderSuperhirn_1")
-add_test("TOPP_FeatureFinderSuperhirn_2" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_input_2.mzML -out FeatureFinderSuperHirn_2_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_2_parameters.ini)
-add_test("TOPP_FeatureFinderSuperhirn_2_out1" ${DIFF} -in1 FeatureFinderSuperHirn_2_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_2_output.featureXML )
-set_tests_properties("TOPP_FeatureFinderSuperhirn_2_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderSuperhirn_2")
 
 ### FileConverter tests
 add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_1_input.mzData -out FileConverter_1.tmp -out_type mzML)
@@ -1019,3 +1011,14 @@ set_tests_properties("UTILS_DecoyDatabase_1_out" PROPERTIES DEPENDS "UTILS_Decoy
 add_test("UTILS_DecoyDatabase_2" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_2.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -append)
 add_test("UTILS_DecoyDatabase_2_out" ${DIFF} -in1 DecoyDatabase_2.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_2_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_21")
+
+
+### FeatureFinder of SuperHirn -- test on centroided data
+add_test("UTILS_FeatureFinderSuperhirn_1" ${UTILS_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_input_1.mzML -out FeatureFinderSuperHirn_1_output.featureXML.tmp -ini ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_1_parameters.ini)
+add_test("UTILS_FeatureFinderSuperhirn_1_out1" ${DIFF} -in1 FeatureFinderSuperHirn_1_output.featureXML.tmp -in2 ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_1_output.featureXML)
+set_tests_properties("UTILS_FeatureFinderSuperhirn_1_out1" PROPERTIES DEPENDS "UTILS_FeatureFinderSuperhirn_1")
+### FeatureFinder of SuperHirn -- test on profile data
+add_test("UTILS_FeatureFinderSuperhirn_2" ${UTILS_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_input_2.mzML -out FeatureFinderSuperHirn_2_output.featureXML.tmp -ini ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_2_parameters.ini)
+add_test("UTILS_FeatureFinderSuperhirn_2_out1" ${DIFF} -in1 FeatureFinderSuperHirn_2_output.featureXML.tmp -in2 ${DATA_DIR_UTILS}/FeatureFinderSuperHirn_2_output.featureXML )
+set_tests_properties("UTILS_FeatureFinderSuperhirn_2_out1" PROPERTIES DEPENDS "UTILS_FeatureFinderSuperhirn_2")
+

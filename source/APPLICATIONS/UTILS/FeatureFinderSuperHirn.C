@@ -145,6 +145,11 @@ protected:
         //-------------------------------------------------------------
         //annotate output with data processing info
         addDataProcessing_(output, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+        output.ensureUniqueId();
+        for (Size i = 0; i < output.size(); i++)
+        {
+          output[i].ensureUniqueId();
+        }
         FeatureXMLFile().store(out,output);
 
         return EXECUTION_OK;
