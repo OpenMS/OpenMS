@@ -32,16 +32,18 @@
 // $Authors: Marc Sturm, Lars Nilse, Chris Bielow, Hendrik Brauer $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/ChromatogramTools.h>
+
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -80,6 +82,7 @@ using namespace std;
 		- extract spectra of a certain MS level
 		- filter by signal-to-noise estimation
 		- filter by scan mode of the spectra
+    - remove MS² scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
 	- featureXML
 		- filter by feature charge
 		- filter by feature size (number of subordinate features)
@@ -312,7 +315,7 @@ class TOPPFileFilter
     registerFlag_("map_and", "AND connective of map selection instead of OR.");
 
 		addEmptyLine_();
-		registerTOPPSubsection_("id","id section");
+		registerTOPPSubsection_("id","ID options");
 		addText_("The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist");
 		registerFlag_("id:remove_clashes", "remove features with id clashes (different sequences mapped to one feature)", true);
 		registerFlag_("id:keep_best_score_id", "in case of multiple peptide identifications, keep only the id with best score");
@@ -321,6 +324,16 @@ class TOPPFileFilter
 		registerFlag_("id:remove_annotated_features", "remove features with annotations");
 		registerFlag_("id:remove_unannotated_features", "remove features without annotations");
 		registerFlag_("id:remove_unassigned_ids", "remove unassigned peptide identifications");
+    registerInputFile_("id:blacklist", "<file>", "", "Input file containing MS² identifications whose corresponding MS² spectra should be removed from the mzML file!\n"
+                                                     "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
+                                                     "This tool will require all IDs to be matched to an MS² spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.");
+    setValidFormats_("id:blacklist", StringList::create("idXML"));
+    registerDoubleOption_("id:rt","tolerance",0.1,"retention tolerance [s] for precursor to id position", false);
+    registerDoubleOption_("id:mz","tolerance",0.001,"m/z tolerance [Th] for precursor to id position", false);
+    setMinFloat_("id:rt", 0);
+    setMinFloat_("id:mz", 0);
+    registerFlag_("id:blacklist_imperfect", "Allow for mismatching precursor positions (see 'id:blacklist')");
+   
 
 		addEmptyLine_();
 		addText_("Other options of the FileFilter only apply if S/N estimation is done.\n"
@@ -648,6 +661,18 @@ class TOPPFileFilter
 				}
 			}
 
+      //
+      String id_blacklist = getStringOption_("id:blacklist");
+      if (!id_blacklist.empty())
+      {
+        LOG_INFO << "Filtering out MS² spectra from raw file using blacklist ..." << std::endl;
+        bool blacklist_imperfect = getFlag_("id:blacklist_imperfect");
+        
+        int ret = filterByBlackList(exp, id_blacklist, blacklist_imperfect, getDoubleOption_("id:rt"), getDoubleOption_("id:mz"));
+        if (ret!=EXECUTION_OK) return (ExitCodes)ret;
+      }
+
+
   		//-------------------------------------------------------------
   		// writing output
   		//-------------------------------------------------------------
@@ -896,6 +921,93 @@ class TOPPFileFilter
 
 		return EXECUTION_OK;
 	}
+
+  ExitCodes filterByBlackList( MapType& exp, const String& id_blacklist, bool blacklist_imperfect, DoubleReal rt_tol, DoubleReal mz_tol) 
+  {
+    vector<ProteinIdentification> protein_ids;
+    vector<PeptideIdentification> peptide_ids;
+    IdXMLFile().load(id_blacklist, protein_ids, peptide_ids);
+
+    // translate idXML entries into something more handy
+    typedef std::vector < Peak2D > IdType;
+    IdType ids; // use Peak2D since it has sorting operators already
+    for (Size i=0; i<peptide_ids.size(); ++i)
+    {
+      if (!peptide_ids[i].metaValueExists("RT") && !peptide_ids[i].metaValueExists("MZ"))
+      {
+        LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+      Peak2D p;
+      p.setRT(peptide_ids[i].getMetaValue("RT"));
+      p.setMZ(peptide_ids[i].getMetaValue("MZ"));
+      ids.push_back(p);
+    }
+
+    std::sort(ids.begin(), ids.end(), Peak2D::RTLess());
+
+    set<Size> blacklist_idx;
+    set<Size> ids_covered;
+    for ( Size i = 0; i != exp.size(); ++i )
+    {
+      if ( exp[i].getMSLevel() == 2 )
+      {
+        if ( !exp[i].getPrecursors().empty() )
+        {
+          DoubleReal pc_rt = exp[i].getRT();
+          DoubleReal pc_mz = exp[i].getPrecursors()[0].getMZ();
+
+          IdType::iterator p_low = std::lower_bound(ids.begin(), ids.end(), pc_rt - rt_tol, Peak2D::RTLess());
+          IdType::iterator p_high = std::lower_bound(ids.begin(), ids.end(), pc_rt + rt_tol, Peak2D::RTLess());
+
+          // if precursor is out of the whole range, then p_low==p_high == (begin()||end())
+          // , thus the following loop will not run
+          for (IdType::iterator id_it = p_low; id_it != p_high; ++id_it)
+          { // RT already checked.. now check m/z
+            if (pc_mz - mz_tol < id_it->getMZ() && id_it->getMZ() < pc_mz + mz_tol)
+            {
+              blacklist_idx.insert(i);
+              ids_covered.insert(std::distance(ids.begin(), id_it));
+              // no break, since we might cover more IDs here
+            }
+          }
+        }
+      }
+    }
+    
+    LOG_INFO << "Removing " << blacklist_idx.size() << " MS2 spectra."<< endl;
+    if (ids_covered.size() != ids.size())
+    {
+      if (!blacklist_imperfect)
+      {
+        LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+                  << "If you are sure unmatched ids are ok, set the 'id:blacklist_imperfect' flag!" << std::endl;
+        return UNEXPECTED_RESULT;
+      }
+      else
+      {
+        LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+                 << "Remove the 'id:blacklist_imperfect' flag of you want this to be an error!" << std::endl;
+      }
+    }
+
+
+    MSExperiment<> exp2 = exp;
+    exp2.clear(false);
+
+    for ( Size i = 0; i != exp.size(); ++i )
+    {
+      if ( find (blacklist_idx.begin(), blacklist_idx.end(), i) ==
+        blacklist_idx.end() )
+      {
+        exp2.push_back( exp[i] );
+      }
+    }
+
+    exp = exp2;
+    return EXECUTION_OK;    
+  }
+
 };
 
 

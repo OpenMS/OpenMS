@@ -284,6 +284,17 @@ add_test("TOPP_FileFilter_24" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_T
 add_test("TOPP_FileFilter_24_out1" ${DIFF} -in1 FileFilter_24.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_24_output.consensusXML )
 set_tests_properties("TOPP_FileFilter_24_out1" PROPERTIES DEPENDS "TOPP_FileFilter_24")
 
+add_test("TOPP_FileFilter_25" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_25_input.mzML.gz -id:blacklist ${DATA_DIR_TOPP}/FileFilter_25_input.idXML -out FileFilter_25.tmp -id:mz 0.05 -id:rt 1 -id:blacklist_imperfect)
+add_test("TOPP_FileFilter_25_out1" ${DIFF} -in1 FileFilter_25.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_25_output.mzML )
+set_tests_properties("TOPP_FileFilter_25_out1" PROPERTIES DEPENDS "TOPP_FileFilter_25")
+
+add_test("TOPP_FileFilter_26" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_25_input.mzML.gz -id:blacklist ${DATA_DIR_TOPP}/FileFilter_25_input.idXML -out FileFilter_26.tmp -id:blacklist_imperfect)
+add_test("TOPP_FileFilter_26_out1" ${DIFF} -in1 FileFilter_26.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_25_output.mzML ) ## with missing id:mz and id:rt -- to test the default values
+set_tests_properties("TOPP_FileFilter_26_out1" PROPERTIES DEPENDS "TOPP_FileFilter_26")
+
+add_test("TOPP_FileFilter_27" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_25_input.mzML.gz -id:blacklist ${DATA_DIR_TOPP}/FileFilter_25_input.idXML -out FileFilter_27.tmp  -id:mz 0.05 -id:rt 1 )
+set_tests_properties("TOPP_FileFilter_27" PROPERTIES WILL_FAIL 1) ## has 2 imperfect matches
+
 
 ### FileInfo tests
 add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.txt -in_type dta -no_progress -out FileInfo_1.tmp)
