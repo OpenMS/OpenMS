@@ -43,9 +43,9 @@ public:
   // class constructor
   BackgroundControl();
   // class copy constructor
-  BackgroundControl(const BackgroundControl&);
+  // -OBSOLETE- BackgroundControl(const BackgroundControl&);
   // class copy constructor
-  BackgroundControl(const BackgroundControl*);
+  // -OBSOLETE- BackgroundControl(const BackgroundControl*);
   
   
   ////////////////////////////////////////////////
@@ -54,7 +54,7 @@ public:
     
   //////////////////////////////////////////////////
   // add a peak to the BackgroundControl
-  void addPeak( ms_peak* );
+  // -OBSOLETE- void addPeak( ms_peak* );
   // add peaks of a ms scan:
   void addPeakMSScan( double , vector<ms_peak>* );
   // add peaks of a ms scan:
@@ -83,7 +83,7 @@ public:
     
   //////////////////////////////////////////////////
   // overload operators:
-  BackgroundControl& operator=(const BackgroundControl&);
+  // -OBSOLETE- BackgroundControl& operator=(const BackgroundControl&);
   bool operator==(const BackgroundControl&);
   BackgroundControl& operator<=(const BackgroundControl&);
   BackgroundControl& operator>=(const BackgroundControl&);

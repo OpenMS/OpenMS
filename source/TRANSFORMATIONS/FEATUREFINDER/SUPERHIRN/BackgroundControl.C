@@ -185,11 +185,11 @@ map<double, map< double, BackgroundIntensityBin>  >::iterator BackgroundControl:
 
 
 //////////////////////////////////////////////////
-// add a peak to the BackgroundControl
-void BackgroundControl::addPeak( ms_peak* in){
+// -OBSOLETE- add a peak to the BackgroundControl
+/*void BackgroundControl::addPeak( ms_peak* in){
   // find the corresponding retention time bin:
  
-}
+}*/
 
 
 //////////////////////////////////////////////////
@@ -258,22 +258,24 @@ BackgroundControl::~BackgroundControl(){
   intensityBinMap.clear();
 }
 
+/*
 //////////////////////////////////////////////////
-// class copy constructor of BackgroundControl
+// -OBSOLETE- class copy constructor of BackgroundControl
 BackgroundControl::BackgroundControl(const BackgroundControl& tmp){
   intensityBinMap = tmp.intensityBinMap;
 }
 
 //////////////////////////////////////////////////
-// class copy constructor of BackgroundControl
+// -OBSOLETE- class copy constructor of BackgroundControl
 BackgroundControl::BackgroundControl(const BackgroundControl* tmp){
   intensityBinMap = tmp->intensityBinMap;
 }
 
 
 //////////////////////////////////////////////////
-// copy constructor:
+// -OBSOLETE- copy constructor:
 BackgroundControl& BackgroundControl::operator=(const BackgroundControl& tmp){
   intensityBinMap = tmp.intensityBinMap;
   return *this;
 }
+*/
