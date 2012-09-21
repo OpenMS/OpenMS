@@ -77,7 +77,7 @@ public:
   
   //////////////////////////////////////////////////
   // overload operators:
-  MS2_feature& operator=(const MS2_feature&);
+  //MS2_feature& operator=(const MS2_feature&);
   bool operator==(const MS2_feature&);
   MS2_feature& operator<=(const MS2_feature&);
   MS2_feature& operator>=(const MS2_feature&);
