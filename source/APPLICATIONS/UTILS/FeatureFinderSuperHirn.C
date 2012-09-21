@@ -62,7 +62,7 @@ class TOPPFeatureFinderSH
 {
 public:
     TOPPFeatureFinderSH()
-        : TOPPBase("FeatureFinderSH","Finds mass spectrometric features in profile mass spectra.", false)
+        : TOPPBase("FeatureFinderSH","Finds mass spectrometric features in mass spectra.", false)
     {
           // TODO finish, make official, add to source/APPLICATIONS/ToolHandler.C
     }
@@ -100,29 +100,21 @@ protected:
         //-------------------------------------------------------------
         MzMLFile mzMLFile;
         mzMLFile.setLogType(log_type_);
-        MSExperiment<Peak1D > ms_exp_raw;
+        MSExperiment<Peak1D > input;
         mzMLFile.getOptions().addMSLevel(1);
-        mzMLFile.load(in, ms_exp_raw);
+        mzMLFile.load(in, input);
 
-        if (ms_exp_raw.empty())
+        if (input.empty())
         {
             LOG_WARN << "The given file does not contain any conventional peak data, but might"
                     " contain chromatograms. This tool currently cannot handle them, sorry.";
             return INCOMPATIBLE_INPUT_DATA;
         }
 
-        /*
-        //check for peak type (profile data required)
-        if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
-        {
-            writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
-        }
-        */
-
         //check if spectra are sorted
-        for (Size i=0; i<ms_exp_raw.size(); ++i)
+        for (Size i=0; i<input.size(); ++i)
         {
-            if (!ms_exp_raw[i].isSorted())
+            if (!input[i].isSorted())
             {
                 writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
                 return INCOMPATIBLE_INPUT_DATA;
@@ -139,7 +131,7 @@ protected:
 
         FFSH ffsh;
         ffsh.setParameters(param);
-        ffsh.setData(ms_exp_raw, output, ff);
+        ffsh.setData(input, output, ff);
         ffsh.run();
 
         //-------------------------------------------------------------
