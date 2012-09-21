@@ -1,3 +1,30 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2011 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Florian Zeller $
+// $Authors: Lukas Mueller, Markus Mueller $
+// --------------------------------------------------------------------------
+//
 ///////////////////////////////////////////////////////////////////////////
 //
 //  written by Lukas N Mueller, 30.3.05
@@ -22,7 +49,7 @@ using namespace std;
 
 // significance values:
 const double simple_math2::T_TEST_001[12]={.999,.964,.895,.822,.763,.716,.675,.647,.544,.491,.455,.430};
-const double simple_math2::T_TEST_002[12]={.998,.949,869,.792,.731,.682,.644,.614,.515,.464,.430,.407};
+const double simple_math2::T_TEST_002[12]={.998,.949,.869,.792,.731,.682,.644,.614,.515,.464,.430,.407};
 const double simple_math2::T_TEST_01[12]={.886,.679,.559,.484,.433,.398,.370,.349,.284,.251,.230,.216};
 const double simple_math2::T_TEST_02[12]={.782,.561,.452,.387,.344,.314,.291,.274,.220,.193,.176,.165};
 const double simple_math2::T_TEST_05[12]={.782,.561,.452,.387,.344,.314,.291,.274,.220,.193,.176,.165};
