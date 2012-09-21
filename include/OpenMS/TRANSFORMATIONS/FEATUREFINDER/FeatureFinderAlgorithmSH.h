@@ -220,7 +220,7 @@ namespace OpenMS
       ctrl.initParams(this->param_);
       std::vector<Feature> thefeatures = ctrl.extractPeaks(*datavec);
       
-      for (unsigned int i=0; i<thefeatures.size(); i++)
+      for (unsigned int i=0; i<thefeatures.size(); ++i)
         features_->push_back(thefeatures[i]);
     }
     
