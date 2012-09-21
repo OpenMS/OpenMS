@@ -340,11 +340,6 @@ namespace OpenMS
         }
       }
 
-      if (n_ms1_scans == 0)
-      {
-        return;
-      }
-
       // create iterator on scan in the middle of the visible map
       ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min) + n_ms1_scans / 2;
 
@@ -508,14 +503,15 @@ namespace OpenMS
       //this is an MS/MS scan
       if (i->getMSLevel() == 2 && !i->getPrecursors().empty())
       {
+        QPoint pos_ms2;
+        dataToWidget_(i->getPrecursors()[0].getMZ(), i->getRT(), pos_ms2);   // position of precursor in MS2
+        
         ExperimentType::ConstIterator prec = peak_map.getPrecursorSpectrum(i);
 
         if (prec != peak_map.end())
         {
           QPoint pos_ms1;
           dataToWidget_(i->getPrecursors()[0].getMZ(), prec->getRT(), pos_ms1);  // position of precursor in MS1
-          QPoint pos_ms2;
-          dataToWidget_(i->getPrecursors()[0].getMZ(), i->getRT(), pos_ms2);   // position of precursor in MS2
           QPen p;
           p.setColor(Qt::black);
           painter.setPen(p);
@@ -529,6 +525,12 @@ namespace OpenMS
           // rt position of corresponding MS2
           painter.drawLine(pos_ms2.x() - 3, pos_ms2.y(), pos_ms2.x() + 3, pos_ms2.y());
           painter.drawLine(pos_ms1.x(), pos_ms1.y(), pos_ms2.x(), pos_ms2.y());
+        }
+        else // no preceding MS1
+        {
+          // rt position of corresponding MS2 (cross)
+          painter.drawLine(pos_ms2.x() - 3, pos_ms2.y(), pos_ms2.x() + 3, pos_ms2.y());
+          painter.drawLine(pos_ms2.x(), pos_ms2.y() - 3, pos_ms2.x(), pos_ms2.y() + 3);
         }
       }
     }
@@ -1193,7 +1195,7 @@ namespace OpenMS
     {
       update_buffer_ = true;
       //Abort if no data points are contained
-      if (currentPeakData_()->size() == 0 || currentPeakData_()->getSize() == 0)
+      if ((currentPeakData_()->size() == 0 || currentPeakData_()->getSize() == 0) && currentPeakData_()->getDataRange().isEmpty())
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
@@ -1202,6 +1204,10 @@ namespace OpenMS
         }
         QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
         return false;
+      }
+      if ((currentPeakData_()->getSize() == 0) && (!currentPeakData_()->getDataRange().isEmpty()))
+      {
+        setLayerFlag(LayerData::P_PRECURSORS, true); // show precursors if no MS1 data is contained
       }
     }
     else if (layers_.back().type == LayerData::DT_FEATURE)  //feature data
