@@ -167,7 +167,8 @@ void FT_PEAK_DETEC_mzXML_reader::get_MS_scan(off_t IN, double TR, RawData* data)
         // set the maximal inter-monoisotopic distance
         // for the same LC-elution peak
         // set the inter-monoistopic distance:
-        int max_scan = setInterMonoIsotopicLCDistance( IN , 1, FT_PEAK_DETEC_mzXML_reader::MS1_base_inter_scan_distance);
+        //int max_scan = setInterMonoIsotopicLCDistance( IN , 1, FT_PEAK_DETEC_mzXML_reader::MS1_base_inter_scan_distance);
+        int max_scan = 0;
         MS1_LC_MS_DATA_PROCESSOR->setMaxScanDistance( max_scan);
         
         // process the data:
@@ -208,13 +209,13 @@ void FT_PEAK_DETEC_mzXML_reader::processMS1InputData(int SCAN, float TR, RawData
 /////////////////////////////////////////////////////////////////////////
 // set the maximal inter-monoisotopic distance
 // for the same LC-elution peak
-int FT_PEAK_DETEC_mzXML_reader::setInterMonoIsotopicLCDistance(int my_scan, int level, int max_inter_scan_distance){
+//int FT_PEAK_DETEC_mzXML_reader::setInterMonoIsotopicLCDistance(int my_scan, int level, int max_inter_scan_distance){
   
   
   
   // TODO: Rewrite, but setInterMonoIsotopicLCDistance in Superhirn returns always 0, too
   //printf("setInterMonoIsotopicLCDistance is FAKE\n");
-  return 0;
+//  return 0;
   
   
   
@@ -251,6 +252,6 @@ int FT_PEAK_DETEC_mzXML_reader::setInterMonoIsotopicLCDistance(int my_scan, int 
   
   return nonMSLevelCount;
    */
-}
+//}
 
 }

@@ -187,7 +187,7 @@ DeconvPeak::DeconvPeak(
 
 // Copy constructor
 DeconvPeak::DeconvPeak(
-                       const DeconvPeak& pDeconvPeak) // Object to copy
+                       const DeconvPeak& pDeconvPeak) : CentroidPeak(0, 0) // Object to copy
 {
   fMass = pDeconvPeak.fMass;
   fIntensity = pDeconvPeak.fIntensity;

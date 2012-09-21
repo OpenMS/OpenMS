@@ -316,7 +316,7 @@ void Process_Data::add_scan_raw_data(int SCAN, float TR, CentroidData* centroide
   convert_ms_peaks(SCAN, TR, dei.getDeconvPeaks(), PEAK_LIST);
   
   //  store it:
-  this->add_scan_raw_data(SCAN, TR, PEAK_LIST);
+  this->add_scan_raw_data(PEAK_LIST);
   
   // clear it:
   PEAK_LIST.clear();
@@ -327,7 +327,7 @@ void Process_Data::add_scan_raw_data(int SCAN, float TR, CentroidData* centroide
 
 ///////////////////////////////////////////////////////////////////////////////
 // inputs the centroided / deisotoped data into the object:
-void Process_Data::add_scan_raw_data(int SCAN, float TR, vector<ms_peak> PEAK_LIST){
+void Process_Data::add_scan_raw_data(vector<ms_peak> PEAK_LIST){
   
   // add the peaks to the background controller:
   //backgroundController->addPeakMSScan( TR, &PEAK_LIST );
@@ -762,169 +762,6 @@ void Process_Data::processMSPeaks(multimap<int, ms_peak>* in){
   }
 
 }  
-
-
-///////////////////////////////////////////////////////////////////////////////
-// print all peaks in elution peak
-void Process_Data::plot_LC_elution_peak(double this_MZ, LC_elution_peak* IN){
-
-  /*
-  if(PLOTTING){
-  
-    double TR = 0;
-    double INT = 0;
-    
-    // print the cluster members:
-    map<int, ms_peak>::iterator p = IN->get_signal_list_start();
-    
-    double TR_min = IN->get_start_scan();
-    double TR_max = IN->get_end_scan();
-
-    while(p != IN->get_signal_list_end()){
-      
-      TR = find_retention_time( (*p).first );
-      INT = (*p).second.get_intensity();
-      
-      // add to the plot the detected LC_apexes:
-      PLOT->plot_LC_elution_peak_members(this_MZ, TR, INT);
-      p++;
-    }
-    
-    // print the apex:
-    INT = IN->get_apex_intensity();
-    // plot the apex of this elution peak: 
-    TR = IN->get_apex_retention_time();
-    
-    // plot apex:
-    PLOT->plot_LC_apex(this_MZ, TR, INT);
-    
-    // print the cluster box
-    PLOT->plot_LC_elution_peak_box(this_MZ, TR_min, TR_max);
-  }
-   */
-  
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// print all peaks in elution peak
-void Process_Data::plot_LC_elution_peak(double this_MZ, LC_elution_peak* IN, bool BOX){
-/*  
-  if(PLOTTING){
-    
-    double TR = 0;
-    double INT = 0;
-    
-    // print the cluster members:
-    map<int, ms_peak>::iterator p = IN->get_signal_list_start();    
-    double TR_min = IN->get_start_scan();
-    double TR_max = IN->get_end_scan();
-    
-     while(p != IN->get_signal_list_end()){
-       
-       TR = find_retention_time( (*p).first );
-       INT = (*p).second.get_intensity();
-       
-       // add to the plot the detected LC_apexes:
-       PLOT->plot_LC_elution_peak_members(this_MZ, TR, INT);
-       p++;
-     }
-    
-    // print the apex:
-    INT = IN->get_apex_intensity();
-    // plot the apex of this elution peak: 
-    TR = IN->get_apex_retention_time();
-
-    if(!BOX)
-      PLOT->plot_LC_apex(this_MZ, TR, INT);
-    
-    if(BOX)
-      // print the cluster box
-      PLOT->plot_LC_elution_peak_box(this_MZ, TR_min, TR_max);
-  }
-  
-*/
-
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-// prints the data out:
-void Process_Data::print_raw_DATA(){
-/*  
-  if(PLOTTING){
-      
-    double this_MZ = 0;
-    
-    //////////////////////////////////
-    // run through all m/z values:
-    MAIN_ITERATOR P_MZ = get_MZ_LIST_start();
-    while(P_MZ != get_MZ_LIST_end()){
-      
-      this_MZ = (*P_MZ).first;
-      
-      //////////////////////////////////
-      // run through all elution peaks
-      MZ_series_ITERATOR Q_SER = (*P_MZ).second.begin();
-      while( Q_SER != (*P_MZ).second.end()){
-        
-        
-        /////////////////////////////////
-        // run through all peaks of the 
-        // elution peak:
-        map<int, ms_peak >::iterator p = (*Q_SER).begin();
-        while( p != (*Q_SER).end() ){
-          PLOT->plot_LC_apex(this_MZ, find_retention_time( (*p).first), (*p).second.get_intensity());
-          p++; 
-        }
-        
-        Q_SER++;
-      }
-      
-      //////////////////////////////////
-    P_MZ++;
-    }
-  }
-  */
-
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// prints the extracted LC elution peaks:
-void Process_Data::print_extracted_LC_peaks(){
-/*
-  if(PLOTTING){
-    
-  double this_MZ = 0;
-    
-    //////////////////////////////////
-    // run through all m/z values:
-    map< double, elution_peak_list>::iterator P_MZ = DATA->get_DATA_start();
-    while( P_MZ != DATA->get_DATA_end()){
-      
-      this_MZ = (*P_MZ).first;
-      
-      //////////////////////////////////
-      // run through all LC_elution_peaks
-      map<int, LC_elution_peak>::iterator Q_SER = (*P_MZ).second.begin();
-      while( Q_SER != (*P_MZ).second.end()){
-	      
-        LC_elution_peak* PEAK = &((*Q_SER).second);
-        plot_LC_elution_peak(this_MZ, PEAK);
-        PEAK = NULL;
-        
-        Q_SER++;
-      }
-      //////////////////////////////////
-      
-      P_MZ++;
-    }
-  }
-  */
-
-}
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // checks if a mz value has already been seen,

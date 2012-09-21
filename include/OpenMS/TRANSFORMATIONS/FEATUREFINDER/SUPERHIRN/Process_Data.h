@@ -111,7 +111,7 @@ public:
   // inputs raw /centroided  data into the object:
   void add_scan_raw_data(int , float , CentroidData* );    
   // inputs raw data into the object:
-  void add_scan_raw_data(int, float, std::vector<ms_peak>);
+  void add_scan_raw_data(std::vector<ms_peak>);
   
   //////////////////////////////////////////////////
   // overload operators:
@@ -120,11 +120,6 @@ public:
   Process_Data& operator>=(const Process_Data&);
   Process_Data& operator<(const Process_Data&);
   Process_Data& operator>(const Process_Data&);
-  
-  // prints the data out:
-  void print_raw_DATA();
-  // prints the extracted LC elution peaks:
-  void print_extracted_LC_peaks();
 
   // insert an already observed mz into the data structure, checks
   // if it belongs to an existing LC elution peak or starts a new one:
@@ -182,12 +177,6 @@ public:
   
   // find closest match mz mass in the main structure
   MAIN_ITERATOR find_closest_mz_match(double);
-  
-  // print all peaks in elution peak
-  void plot_LC_elution_peak(double, LC_elution_peak*);
-  void plot_LC_elution_peak(double, LC_elution_peak*, bool);
-
-  
   
   // go back to the MS1 level and
   // find the correct precursor mass by mz and z:

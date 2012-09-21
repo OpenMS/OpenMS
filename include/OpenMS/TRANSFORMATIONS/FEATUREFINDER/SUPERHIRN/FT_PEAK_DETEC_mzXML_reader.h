@@ -138,7 +138,7 @@ public:
 
   // set the maximal inter-monoisotopic distance
   // for the same LC-elution peak
-  int setInterMonoIsotopicLCDistance( int , int, int);
+  //int setInterMonoIsotopicLCDistance( int , int, int);
   //int setInterMonoIsotopicLCDistance( int , int, int, double);
   
   // get a previous scan at the MS level from the current scan
