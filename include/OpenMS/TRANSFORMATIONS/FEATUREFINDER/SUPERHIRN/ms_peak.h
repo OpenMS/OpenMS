@@ -34,13 +34,14 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ms_peak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI CentroidPeak;
+//class CentroidPeak; // changed to include
 
-class OPENMS_DLLAPI ms_peak{
+class OPENMS_DLLAPI ms_peak {
 
     
   ////////////////////////////////////////////////

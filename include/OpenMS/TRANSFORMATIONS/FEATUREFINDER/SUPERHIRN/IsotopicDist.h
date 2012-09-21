@@ -16,11 +16,14 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/DeconvPeak.h>
+
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI CentroidPeak;
-class OPENMS_DLLAPI DeconvPeak;
+//class OPENMS_DLLAPI CentroidPeak; // changed to include
+//class OPENMS_DLLAPI DeconvPeak; // changed to include
 
 class OPENMS_DLLAPI IsotopicDist
 {

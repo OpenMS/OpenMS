@@ -15,6 +15,9 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
+
 #include <list>
 #include <vector>
 
@@ -24,8 +27,8 @@
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI RawData;
-class OPENMS_DLLAPI CentroidPeak;
+//class OPENMS_DLLAPI RawData; // changed to include
+//class OPENMS_DLLAPI CentroidPeak; // changed to include
 
 class OPENMS_DLLAPI CentroidData
 {
