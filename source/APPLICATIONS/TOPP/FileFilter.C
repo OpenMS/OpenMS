@@ -82,7 +82,7 @@ using namespace std;
 		- extract spectra of a certain MS level
 		- filter by signal-to-noise estimation
 		- filter by scan mode of the spectra
-    - remove MS² scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
+    - remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
 	- featureXML
 		- filter by feature charge
 		- filter by feature size (number of subordinate features)
@@ -324,9 +324,9 @@ class TOPPFileFilter
 		registerFlag_("id:remove_annotated_features", "remove features with annotations");
 		registerFlag_("id:remove_unannotated_features", "remove features without annotations");
 		registerFlag_("id:remove_unassigned_ids", "remove unassigned peptide identifications");
-    registerInputFile_("id:blacklist", "<file>", "", "Input file containing MS² identifications whose corresponding MS² spectra should be removed from the mzML file!\n"
+    registerInputFile_("id:blacklist", "<file>", "", "Input file containing MS identifications whose corresponding MS spectra should be removed from the mzML file!\n"
                                                      "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
-                                                     "This tool will require all IDs to be matched to an MS² spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
+                                                     "This tool will require all IDs to be matched to an MS2 spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
     setValidFormats_("id:blacklist", StringList::create("idXML"));
     registerDoubleOption_("id:rt","tolerance",0.1,"retention tolerance [s] for precursor to id position", false);
     registerDoubleOption_("id:mz","tolerance",0.001,"m/z tolerance [Th] for precursor to id position", false);
@@ -665,7 +665,7 @@ class TOPPFileFilter
       String id_blacklist = getStringOption_("id:blacklist");
       if (!id_blacklist.empty())
       {
-        LOG_INFO << "Filtering out MS² spectra from raw file using blacklist ..." << std::endl;
+        LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
         bool blacklist_imperfect = getFlag_("id:blacklist_imperfect");
         
         int ret = filterByBlackList(exp, id_blacklist, blacklist_imperfect, getDoubleOption_("id:rt"), getDoubleOption_("id:mz"));
