@@ -239,7 +239,6 @@ void	CentroidData::resetPeakGroupIter()
 void CentroidData::calcCentroids(	RawData &pRawData ) // Profile data object
 // Calculates centroide data from profile data
 {
-  
   int i,hw,j;
   double cm,toti,min_dh;
   vector<double> masses,intens;
@@ -272,7 +271,10 @@ void CentroidData::calcCentroids(	RawData &pRawData ) // Profile data object
     for (i=2;i<(int)masses.size()-2;i++) { 
       
       // Peak must be concave in the interval [i-2 .. i+2]
-      if (intens[i]>min_dh && intens[i]>intens[i-1]+min_dh && intens[i]>=intens[i+1] && intens[i-1]>intens[i-2]+min_dh && intens[i+1]>=intens[i+2]) {
+	  // BEFORE MARKUSFIX:
+      // if (intens[i]>min_dh && intens[i]>intens[i-1]+min_dh && intens[i]>=intens[i+1] && intens[i-1]>intens[i-2]+min_dh && intens[i+1]>=intens[i+2]) {
+	  // AFTER MARKUSFIX:
+	  if (intens[i]>min_dh && intens[i]>intens[i-1] && intens[i]>=intens[i+1] && intens[i-1]>intens[i-2] && intens[i+1]>=intens[i+2]) {
         
         // centroid mass:
         cm = 0.0;
@@ -302,8 +304,14 @@ void CentroidData::calcCentroids(	RawData &pRawData ) // Profile data object
           }
            */
           
-          cm += inte*mz;
-          toti += (double) intens[i-j];
+          // BEFORE MARKUSFIX:
+          // cm += inte*mz;
+          // toti += (double) intens[i-j];
+          // AFTER MARKUSFIX
+          if (abs(Tmz-mz)<0.03) {
+            cm += inte*mz;
+            toti += inte;
+          }
         }
         cm = cm/toti;  // Centre of gravity = centroid
         
