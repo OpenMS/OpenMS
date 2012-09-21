@@ -274,7 +274,7 @@ public:
   
   ////////////////
   // get number of peaks in the elution profile:
-  int get_nb_ms_peaks(){return intens_signals.size();};
+  int get_nb_ms_peaks(){return (int) intens_signals.size();};
   
   //////////////
   // access teh charge state of the LC elutino peak:

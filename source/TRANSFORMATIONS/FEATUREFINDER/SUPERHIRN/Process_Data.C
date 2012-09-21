@@ -506,7 +506,7 @@ void Process_Data::insert_observed_mz(MAIN_ITERATOR LCP, ms_peak* PEAK){
     
     // calculate the average mass, get # of observed in the m/z cluster:
     double nb_elements = 1;
-    nb_elements = LCP->second.rbegin()->size();    
+    nb_elements = (double) LCP->second.rbegin()->size();    
     
     // calculate the new cluster average mass:
     double peakIntens = getPeakIntensitySum( match_mz );

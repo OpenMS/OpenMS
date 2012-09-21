@@ -363,7 +363,7 @@ void ms2_info::set_FULL_SQ(){
   
   FULL_SQ.clear();
 
-  int pos = 0;
+  size_t pos = 0;
   for( unsigned int i=0; i<SQ.size(); i++){ 
     // insert normal AA letter:
     FULL_SQ += SQ[i];

@@ -160,7 +160,7 @@ void simple_math2::OUTLIER_DETECTION_BY_DIXON(vector<double>* IN){
 // detection of outliers by the DIXON's test (Gibbons, 1994):
 void simple_math2::OUTLIER_DETECTION_BY_DIXON(vector< pair<double, double> >* IN){
   
-  int SAMPLE_SIZE = IN->size();
+  size_t SAMPLE_SIZE = IN->size();
   
   if( (SAMPLE_SIZE > 2) && (SAMPLE_SIZE < 2000) ){
     
@@ -316,7 +316,7 @@ void simple_math2::OUTLIER_DETECTION_BY_DIXON(vector< pair<double, void*> >* IN)
   // sort the vector:
   sort( IN->begin(), IN->end(), VECTOR_OPERATOR() );
   
-  int SAMPLE_SIZE = IN->size();
+  size_t SAMPLE_SIZE = IN->size();
   
   if( (SAMPLE_SIZE > 2) && (SAMPLE_SIZE < 2000) ){
     

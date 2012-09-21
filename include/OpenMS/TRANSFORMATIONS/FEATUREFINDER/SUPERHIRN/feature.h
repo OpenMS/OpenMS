@@ -161,7 +161,7 @@ public:
   bool get_MS2_info( double );
   bool check_MS2_empty(){return MS2_SCANS.empty();};
   void removeAllMS2Information(){return MS2_SCANS.clear();};
-  int get_MS2_SCANS_SIZE(){return MS2_SCANS.size();};
+  int get_MS2_SCANS_SIZE(){return (int) MS2_SCANS.size();};
   std::map<double, std::vector<ms2_info> >* get_MS2_SCAN_MAP(){return &MS2_SCANS;};
   std::map<double, std::vector<ms2_info> >::iterator get_MS2_SCANS_START(){return MS2_SCANS.begin();};
   std::map<double, std::vector<ms2_info> >::iterator get_MS2_SCANS_END(){return MS2_SCANS.end();};
@@ -192,7 +192,7 @@ public:
   std::map<int, double> get_feature_profile();
 
   // return number of times this feature has been seen = nb_replicates in list plus 1!
-  int get_replicate_match_nb(){return (matched_feature_list.size() + 1);};
+  int get_replicate_match_nb(){return (int) (matched_feature_list.size() + 1);};
   int get_matching_nb(){return get_replicate_match_nb();};
   // return the sum of all intensities over replicates:
   double get_replicate_intensity_sum();

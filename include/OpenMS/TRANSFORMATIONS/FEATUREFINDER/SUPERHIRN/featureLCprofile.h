@@ -120,7 +120,7 @@ public:
   std::map<int, MS1Signal>::iterator getLCelutionSignalsStart(){ return LCelutionSignals.begin();};
   std::map<int, MS1Signal>::reverse_iterator getLastLCelutionSignal(){ return LCelutionSignals.rbegin();};
   std::map<int, MS1Signal>::iterator getLCelutionSignalsEnd(){ return LCelutionSignals.end();};
-  int getNbLCelutionSignals(){ return LCelutionSignals.size();};
+  int getNbLCelutionSignals(){ return (int) LCelutionSignals.size();};
 
   
 };

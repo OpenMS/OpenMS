@@ -170,7 +170,7 @@ public:
   // end scan
   int getEndScan(){return endScan;};
   // get the number of consensus fragments:
-  int getNbMS2Fragments(){return MS2FragmentPeaks.size();};
+  int getNbMS2Fragments(){return (int) MS2FragmentPeaks.size();};
   
   // get the MS2 fragments list iterator:
   std::multimap<double, MS2Fragment>::iterator getMS2FragmentPeakStart(){return MS2FragmentPeaks.begin();};

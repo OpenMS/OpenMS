@@ -223,7 +223,7 @@ public:
   MAIN_ITERATOR get_MZ_LIST_start();
   // erase element in MZ list:
   void erase_MZ_LIST_element(MAIN_ITERATOR); 
-  int getNbMSTraces(){ return pMZ_LIST.size();};
+  int getNbMSTraces(){ return (int) pMZ_LIST.size();};
   
   
   double getMinimalIntensityLevel(){return INTENSITY_THRESHOLD;};
