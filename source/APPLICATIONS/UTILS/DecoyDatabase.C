@@ -126,7 +126,7 @@ class TOPPDecoyDatabase
 			}
 			else
 			{
-				LOG_WARN << "Warning, no contaminant sequences have been included!"<<endl;
+				LOG_WARN << "Warning, no contaminant sequences have been included!" << endl;
 			}
 			
 			//-------------------------------------------------------------

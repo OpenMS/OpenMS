@@ -297,13 +297,13 @@ public:
         {
           if ((*peptide_group_labels_)[i] == label)
           {
-            peptide_group_label_ = i;
+            peptide_group_label_ = (Int)i;
             return;
           }
         }
 
         // not found, add it to the list
-        peptide_group_label_ = peptide_group_labels_->size();
+        peptide_group_label_ = (Int)peptide_group_labels_->size();
         peptide_group_labels_->push_back(label);
       }
 

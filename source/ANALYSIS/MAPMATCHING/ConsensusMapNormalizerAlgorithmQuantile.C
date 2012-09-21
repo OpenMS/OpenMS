@@ -59,8 +59,8 @@ namespace OpenMS
     Size number_of_maps = feature_ints.size();
 
     //determine largest number of features in any map
-    UInt largest_number_of_features = 0;
-    for (UInt i = 0; i < number_of_maps; ++i)
+    Size largest_number_of_features = 0;
+    for (Size i = 0; i < number_of_maps; ++i)
     {
       if (feature_ints[i].size() > largest_number_of_features)
       {
@@ -70,7 +70,7 @@ namespace OpenMS
 
     //resample n data points from each sorted intensity distribution (from the different maps), n = maximum number of features in any map
     vector<vector<double> > resampled_sorted_data;
-    for (UInt i = 0; i < number_of_maps; ++i)
+    for (Size i = 0; i < number_of_maps; ++i)
     {
       vector<double> sorted = feature_ints[i];
       gsl_sort(&sorted.front(), 1, sorted.size());
@@ -81,9 +81,9 @@ namespace OpenMS
 
     //compute reference distribution from all resampled distributions
     vector<double> reference_distribution(largest_number_of_features);
-    for (UInt i = 0; i < number_of_maps; ++i)
+    for (Size i = 0; i < number_of_maps; ++i)
     {
-      for (UInt j = 0; j < largest_number_of_features; ++j)
+      for (Size j = 0; j < largest_number_of_features; ++j)
       {
         reference_distribution[j] += (resampled_sorted_data[i][j] / (double)number_of_maps);
       }
@@ -91,7 +91,7 @@ namespace OpenMS
 
     //for each map: resample from the reference distribution down to the respective original size again
     vector<vector<double> > normalized_sorted_ints(number_of_maps);
-    for (UInt i = 0; i < number_of_maps; ++i)
+    for (Size i = 0; i < number_of_maps; ++i)
     {
       vector<double> ints;
       resample(reference_distribution, ints, feature_ints[i].size());
@@ -99,7 +99,7 @@ namespace OpenMS
     }
 
     //set the intensities of feature_ints to the normalized intensities
-    for (UInt i = 0; i < number_of_maps; ++i)
+    for (Size i = 0; i < number_of_maps; ++i)
     {
       vector<Size> sort_indices(feature_ints[i].size());
       gsl_sort_index(&sort_indices.front(), &feature_ints[i].front(), 1, feature_ints[i].size());

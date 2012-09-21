@@ -173,7 +173,7 @@ namespace OpenMS
 #endif
         IndexTriple triple;
         triple.feature = i;
-        triple.scan = s;
+        triple.scan = (Int)s;
         Int index = model_->addColumn();
         triple.variable = index;
         variable_indices.push_back(triple);
@@ -570,7 +570,7 @@ namespace OpenMS
           IndexTriple triple;
           triple.prot_acc = map_iter->first;
           triple.feature = p;
-          triple.scan = curr_rt_index;
+          triple.scan = (Int)curr_rt_index;
           triple.variable = index;
           variable_indices.push_back(triple);
           model_->setColumnBounds(index, 0., 1., LPWrapper::DOUBLE_BOUNDED);
@@ -651,7 +651,7 @@ namespace OpenMS
           IndexTriple triple;
           triple.prot_acc = map_iter->first;
           triple.feature = p;
-          triple.scan = curr_rt_index;
+          triple.scan = (Int)curr_rt_index;
           triple.variable = index;
           variable_indices.push_back(triple);
           model_->setColumnBounds(index, 0., 1., LPWrapper::DOUBLE_BOUNDED);
@@ -714,7 +714,7 @@ namespace OpenMS
     // ensure that each precursor is counted maximally once, so create new variable
     ///////////////////////////////////////////////////////////////////////
     // std::cout << "now the number of times a precursors is acquired"<<std::endl;
-    Size old_num = model_->getNumberOfColumns();
+    Int old_num = model_->getNumberOfColumns();
     // Size j = 0;
     Size old_size = variable_indices.size();
     for (Size i = 0; i < old_size; ++i)
@@ -753,8 +753,8 @@ namespace OpenMS
         std::vector<Int> indices(2);
         entries[0] = 1.;
         entries[1] = -1.;
-        indices[0] = variable_indices[f].variable;
-        indices[1] = triple.variable;
+        indices[0] = (Int)variable_indices[f].variable;
+        indices[1] = (Int)triple.variable;
         String name = "x_" + String(i) + String(",") + String(variable_indices[f].scan) + "_x_" + String(i);
         model_->addRow(indices, entries, name, 0, 0, LPWrapper::UPPER_BOUND_ONLY);
       }
