@@ -98,28 +98,11 @@ Process_Data::Process_Data(){
   DATA = new LCMSCData();
   LC_elution_peak_counter = 0;
   
-  //////////////////
-  // parameter to visualize
-  // the data & peak detection:
-  // read parameters from "param.def"  
-  //read_param* def = new read_param();
-  
-  //minimal intensity of a ms peak::
-  //def->search_tag("FT peak detect MS1 intensity min threshold", &INTENSITY_THRESHOLD);
-  
-  // m/z tolerance value:
-  // def->search_tag("FT peak detect MS1 m/z tolerance", &MZ_TOLERANCE);
- 
   // minimal number of cluster members
   //def->search_tag("FT peak detect MS1 min nb peak members", &min_nb_cluster_members);
   //def->search_tag("MS1 max inter scan distance", &max_inter_scan_retention_time_distance );
   TIME_CLUSTERING_BY_RETENTION_TIME = true;
- 
-  //delete def;
-  //def = NULL;
-  
   backgroundController = new BackgroundControl();
-
 }
 
 //////////////////////////////////////////////////
@@ -137,18 +120,6 @@ Process_Data::~Process_Data(){
     backgroundController = NULL;
   }
 }
-
-//////////////////////////////////////////////////
-// class copy constructor of Process_Data
-//Process_Data::Process_Data(const Process_Data& tmp){
-//}
-
-
-//////////////////////////////////////////////////
-// copy constructor:
-//Process_Data& Process_Data::operator=(const Process_Data& tmp){
-//  return *this;
-//}
 
 ///////////////////////////////////////////////////////////////////////////////
 // get an observed MZ mass, otherwise end of list iterator
@@ -366,9 +337,6 @@ void Process_Data::add_scan_raw_data(vector<ms_peak> PEAK_LIST){
         
     // check if its above the min. intensity:
     if( filterDeisotopicMSPeak( PEAK ) ){
-            
-      // set the retention time of the ms peak:
-      // PEAK->set_retention_time(TR);
     
       // check if this MZ has already been observed:
       MAIN_ITERATOR LCP = check_MZ_occurence( PEAK );
@@ -531,17 +499,6 @@ void Process_Data::insert_observed_mz(MAIN_ITERATOR LCP, ms_peak* PEAK){
     // check if this peak should be added to the existing 
     // last elution peak cluster or start a new one:
     if( check_elution_peak_belong(Q, PEAK) ){
-      // DEBUGGING
-//      if( MonoIsoDebugging ){
-//        if( ( DebugMonoIsoMassMin <= PEAK->get_MZ()) && ( DebugMonoIsoMassMax >= PEAK->get_MZ()) ){
-//          // get the last MS peak
-//          ms_peak* last_peak = &(Q->rbegin()->second);
-//          printf("%0.3f (%d):\n", match_mz, (*Q).size());
-//          last_peak->show_info();
-//          PEAK->show_info();
-//          //cout<<endl;
-//        }
-//      }
       
       // add to this cluster the ms peak:
       (*Q).insert(pair<int, ms_peak>(PEAK->get_Scan(), *PEAK));
@@ -689,21 +646,6 @@ bool Process_Data::check_elution_peak(MZ_series_ITERATOR Q_SER){
       
     }
   }      
-  
-  /*
-   // define here to how long the LC elution profile should
-   // be depending on the ms_peak score:
-   double score = 0;
-   elution_peak::iterator P = (*Q_SER).begin();
-   while( P != (*Q_SER).end() ){
-     score += (*P).second.get_score();
-     P++;
-   }
-   score /= (*Q_SER).size();
-   int min_cluster_length = int( double(min_nb_cluster_members-1) * (5.0 - score) + 1.0);
-   
-   */
-  
    
   // check if contains more or same than x element: 
   if( int((*Q_SER).size()) >= min_nb_cluster_members){
@@ -766,22 +708,6 @@ void Process_Data::processMSPeaks(multimap<int, ms_peak>* in){
     ms_peak* peak = &(I->second);
     double bgLevel = backgroundController->getBackgroundLevel( peak->get_MZ(), peak->get_retention_time() );
     double SN = peak->get_intensity() / bgLevel;
-    
-    /*
-    double avSN = 0;
-    double totIntens = 0;
-    vector<CentroidPeak>::iterator c = peak->get_isotopic_peaks_start();
-    while( c != peak->get_isotopic_peaks_end() ){
-    
-      double SN = c->getOrgIntensity() / bgLevel;
-      c->setSignalToNoise(SN);
-      avSN += SN *  c->getOrgIntensity();
-      totIntens += c->getOrgIntensity();
-      c++;
-    }
-    */
-    
-    //avSN /= totIntens;
     peak->setSignalToNoise( SN );
     
     I++;
@@ -1003,9 +929,6 @@ void Process_Data::adjustCorrectToMS1Precursor( double* precursorMZ, int z, int 
     preCursorPeak->activateAsPrecursorPeak( MS2Scan );
     // cout<<*precursorMZ<<"->"<<preCursorPeak->get_MZ()<<" :"<<MS2Scan<<endl;
     *precursorMZ = preCursorPeak->get_MZ();
-  }
-  else{
-    //cout<<*precursorMZ<<" not found"<<endl;
   }
   
 }

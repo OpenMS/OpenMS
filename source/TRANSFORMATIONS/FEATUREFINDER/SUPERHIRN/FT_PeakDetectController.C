@@ -100,36 +100,13 @@ FT_PeakDetectController::~FT_PeakDetectController(){
 }
 
 //////////////////////////////////////////////////
-// class copy constructor of FT_PeakDetectController
-//FT_PeakDetectController::FT_PeakDetectController(const FT_PeakDetectController& tmp){}
-
-
-//////////////////////////////////////////////////
-// copy constructor:
-//FT_PeakDetectController& FT_PeakDetectController::operator=(const FT_PeakDetectController& tmp){
-//  return *this;
-//}
-    
-
-
-//////////////////////////////////////////////////
 // start the scan parsing of a mzXML file
 void FT_PeakDetectController::start_scan_parsing_of_mzXML_file(Vec datavec){
   
-  // parse a mzXML file:
-  printf("\n\t-- SuperHirn feature extraction of mzXML file '%s'\n", get_target_file().c_str() );
-  
   FT_PEAK_DETEC_mzXML_reader* FT_READER = new FT_PEAK_DETEC_mzXML_reader();
   
-  // set input file and open:
-//  FT_READER->set_current_file( get_target_file() );
-//  FT_READER->delete_existing_debug_file(); // old debug files are overwritten
-//  FT_READER->open_mzxml_file();
-  
-  // get the titel of the current LC_MS run:
+  // set the titel of the current LC_MS run:
   string name = "tmplcms";
-//  name.erase(0, name.rfind("/")+1);
-//  name.erase(name.rfind(".mzXML"), name.size() - name.rfind(".mzXML"));
   
   // create a new LC/MS:
   THIS_LC_MS = new LC_MS( name );
@@ -137,10 +114,9 @@ void FT_PeakDetectController::start_scan_parsing_of_mzXML_file(Vec datavec){
   
   // start the mzXML reading process:
   FT_READER->read_mzXML_DATA(datavec);
-    
   
   //////////////////////////////////////
-  // post porocessing of mzXML data of a file:  
+  // post processing of mzXML data of a file:  
   // !!! MS1 LEVEL !!!
   process_MS1_level_data_structure( FT_READER );
   // !!! MS2 LEVEL !!!
@@ -157,8 +133,8 @@ void FT_PeakDetectController::start_scan_parsing_of_mzXML_file(Vec datavec){
   
   THIS_LC_MS->show_info();
   
-  
- /* Commented out for brutus */
+  /* Debug-output, commented out for brutus */
+  /*
   string SEP = "";
   FILE *file; 
   file = fopen("ffsh-features.txt","w+"); 
@@ -177,24 +153,13 @@ void FT_PeakDetectController::start_scan_parsing_of_mzXML_file(Vec datavec){
     p++;
   }	
   fclose(file);
-
-  
-  
-  
-  
-  // store the extracted run to XML:
-//  write_out_parsed_LC_MS( THIS_LC_MS );
+   */
   
   // add it to the spectrum list:
   LC_MS_RUNS.push_back( *THIS_LC_MS );
   
-  // clear up:
-  //delete THIS_LC_MS; 
-  //THIS_LC_MS = NULL;
-  
   delete FT_READER;
   FT_READER = NULL;
-  
 }
 
 typedef multimap< double, MZ_series> MAIN_DATA_STRUCTURE;
@@ -209,8 +174,8 @@ void FT_PeakDetectController::process_MS1_level_data_structure( FT_PEAK_DETEC_mz
   Process_Data* current_raw_mzXML_file =  FT_READER->get_processed_MS1_data_structure();
   
   // FLOFLO
-  int mzListSize = current_raw_mzXML_file->getNbMSTraces();
-  std::cout << "mzListSize: " << mzListSize << "\n";
+  //int mzListSize = current_raw_mzXML_file->getNbMSTraces();
+  //std::cout << "mzListSize: " << mzListSize << "\n";
     
   // extract LC elution features on the MS1 level:
   current_raw_mzXML_file->extract_elution_peaks();
@@ -221,7 +186,7 @@ void FT_PeakDetectController::process_MS1_level_data_structure( FT_PEAK_DETEC_mz
   // iterator over the extracted features, convert
   vector<LC_elution_peak*> PEAKS = current_processed_mzXML_file->get_ALL_peak();
   // show program status:
-  printf("\t\t\t* Processing of %d MS1 level features...\n",  (int) PEAKS.size() );
+  printf("\t* Processing of %d MS1 level features...\n",  (int) PEAKS.size() );
   
   vector<LC_elution_peak*>::iterator P = PEAKS.begin();
   while( P != PEAKS.end()){    
@@ -239,72 +204,6 @@ void FT_PeakDetectController::process_MS1_level_data_structure( FT_PEAK_DETEC_mz
   current_processed_mzXML_file = NULL;
   FT_READER = NULL;
 }
-
-
-
-/* FLO
-////////////////////////////////////////////////////
-// process MS2 level data
-void FT_PeakDetectController::process_MS2_level_data_structure( FT_PEAK_DETEC_mzXML_reader* FT_READER){
-
-  
-  // get the processsed raw data structure back:
-  MS2_Process_Data* current_MS2_raw_mzXML_file =  FT_READER->get_processed_MS2_data_structure();
-    
-  if( current_MS2_raw_mzXML_file->getNbMSTraces() > 0 ){
-    
-    // show program status:
-    // printf("\t\t\t* Processing of %d MS2 Fragments Traces...\n", current_MS2_raw_mzXML_file->getNbMSTraces() );
-    
-    // convert extracted traces:
-    current_MS2_raw_mzXML_file->constructMS2ConsensusSpectra( );
-    
-    // show how many consensus spectrum extracted:
-    printf("\t\t\t* Processing of %d MS2 level features...\n", current_MS2_raw_mzXML_file->getNbMS2Features() );
-      
-    //////////////////////////////////////////
-    // now get the list of MS2_features
-    // and associate them to MS1 features:
-    progress_bar bar(current_MS2_raw_mzXML_file->getNbMS2Features(),"");
-    vector< MS2_feature >::iterator F = current_MS2_raw_mzXML_file->getMS2FeaturesStart();
-    while( F != current_MS2_raw_mzXML_file->getMS2FeaturesEnd() ){
-      associateMS2FeatureToMS1Feature( &(*F) );
-      F++;
-      bar.update_progress();
-    }
-    
-    
-    printf("\n\t\t\t\t- %d MS2 features added to MS1 features\n", current_MS2_raw_mzXML_file->getNbMS2Features() - fakeFeatureList.size());
-     
-   }
-  
-  // clear:
-  current_MS2_raw_mzXML_file = NULL;
-  FT_READER = NULL;
-}
-
-
-////////////////////////////////////////////////////
-// combine the MS2 feature trace data to the MS1 features:
-void FT_PeakDetectController::associateMS2FeatureToMS1Feature( MS2_feature* ms2){
-  
-  FT_PeakDetectController::SearchedM2Feature = ms2;
-  vector<LC_MS_FEATURE>::iterator F = THIS_LC_MS->get_feature_list_end();
-  if( MS2_Process_Data::POST_MSMS_SPECTRUM_CLUSTERING ){
-    F = find_if( THIS_LC_MS->get_feature_list_begin(), THIS_LC_MS->get_feature_list_end(), MS2ToMS1Comparer() );
-    if( F != THIS_LC_MS->get_feature_list_end()  ){
-      addMS2FeatureToMS1Feature( ms2, &(*F) );
-    }
-  }
-  
-  // construct here fake ms1 features based on a observed MS2 feature
-  // which however could not be matched to a exiting ms1 feature
-  if( ( F == THIS_LC_MS->get_feature_list_end()) && FEATURE_FAKE_INSERTION_BASED_ON_MS2_FEATURE ){
-    constructMS1FeatureFromMS2Feature( ms2 );
-    
-  }
-}
- */
 
 ////////////////////////////////////////////////////
 // add an observed MS2 feature to the MS1 feature
@@ -371,12 +270,7 @@ void FT_PeakDetectController::add_raw_peak_to_LC_MS_run( LC_elution_peak* PEAK )
   int peak_end = PEAK->get_end_scan();
   
   if( (apex_TR <= FT_PEAK_DETEC_mzXML_reader::TR_MAX) && (apex_TR >= FT_PEAK_DETEC_mzXML_reader::TR_MIN) ){
-    
-    ////////////////////////////////
-    // in case of debugging mode:
-    // print out the LC peak info:
-
-    
+        
     ////////////////////////////////////
     // construct a feature:
     feature* TMP = new feature(apex_MZ, apex_TR, apex_scan, peak_start,peak_end, charge_state, peak_area, apex_INTENSITY, 0);
@@ -401,7 +295,6 @@ void FT_PeakDetectController::add_raw_peak_to_LC_MS_run( LC_elution_peak* PEAK )
       addFakeMSMSToFeature( TMP );
     }
     
-
     // function to add the elution profile to the feature:
     // (if turned on)
     if( CREATE_FEATURE_ELUTION_PROFILES ){
@@ -431,8 +324,6 @@ void FT_PeakDetectController::addFakeMSMSToFeature( feature* in ){
   
   string SQ = tmp.substr( 0, tmp.find( sep )); 
   tmp = tmp.substr( tmp.find( sep ) + sep.size() ); 
-
-  // int id = atoi( (tmp.substr( 0, tmp.find( sep )) ).c_str() ); 
   
   ms2_info* info = new ms2_info( AC, SQ, in->get_charge_state(), 1.0);
   info->set_MONO_MZ( in->get_MZ() );

@@ -926,7 +926,7 @@ void IsotopicDist::subtractMatchingPeaks(
   pMonoPeak.setC13MassError(dmC13);
   pMonoPeak.setScore(h_tot);	
   pMonoPeak.setIsotopicPeaks(isotopicDist);
-  //	pMonoPeak.setScore(h_tot/(abs(dmC13)+0.000001));	
+  //	pMonoPeak.setScore(h_tot/(abs(dmC13)+0.000001));
 }
 
 }

@@ -96,16 +96,6 @@ ClusteredMS2ConsensusSpectrum::ClusteredMS2ConsensusSpectrum(const ClusteredMS2C
   MS2Scans = tmp->MS2Scans;
 }
 
-
-//////////////////////////////////////////////////
-// copy constructor:
-//ClusteredMS2ConsensusSpectrum& ClusteredMS2ConsensusSpectrum::operator=(const ClusteredMS2ConsensusSpectrum& tmp){
-//  MS2ConsensusSpectrum::operator=(tmp);
-//  MS2Scans.clear();
-//  MS2Scans = tmp.MS2Scans;
-//  return *this;
-//}
-
 //////////////////////////////////////////////////
 // extracts fragments from a MS/MS spectra and inserts
 // them into the Clustered MS/MS spectrum:

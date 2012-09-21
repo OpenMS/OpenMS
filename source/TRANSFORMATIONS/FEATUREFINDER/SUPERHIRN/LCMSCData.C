@@ -57,7 +57,6 @@ float LCMSCData::intensity_min_threshold;
 using namespace std;
 
 LCMSCData::LCMSCData(){
-  // Init();
 }
 ///////////////////////////////////////////////////////////////////////////////
 

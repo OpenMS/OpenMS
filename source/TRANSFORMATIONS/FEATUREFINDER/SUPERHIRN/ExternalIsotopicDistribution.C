@@ -69,26 +69,6 @@ ExternalIsotopicDistribution::~ExternalIsotopicDistribution(){
 }
 
 //////////////////////////////////////////////////
-// class copy constructor of ExternalIsotopicDistribution
-//ExternalIsotopicDistribution::ExternalIsotopicDistribution(const ExternalIsotopicDistribution& tmp){
-//}
-
-//////////////////////////////////////////////////
-// class copy constructor of ExternalIsotopicDistribution
-//ExternalIsotopicDistribution::ExternalIsotopicDistribution(const ExternalIsotopicDistribution* tmp){
-//}
-
-
-//////////////////////////////////////////////////
-// copy constructor:
-//ExternalIsotopicDistribution& ExternalIsotopicDistribution::operator=(const ExternalIsotopicDistribution& tmp){
-//  return *this;
-//}
-
-
-
-
-//////////////////////////////////////////////////
 // function to extract external isotopic profiles
 // by an input monoisotopic mass
 PeptideIsotopeDisribution* ExternalIsotopicDistribution::extractExternalIsotopicProfile( double monoMass, int charge, double RT){
@@ -162,109 +142,6 @@ bool ExternalIsotopicDistribution::checkMonoIsotopOverlap( double MeasMonoMass, 
 
   return true;  
 }
-
-
-
-//////////////////////////////////////////////////
-// parse the external isotopic profiles
-// from xml file
-//void ExternalIsotopicDistribution::parseExternalIsotopicProfiles( ){
-//  
-//  TiXmlDocument* PARSER = new TiXmlDocument( XMLInputFile.c_str() );
-//  if( PARSER->LoadFile() ){
-//    printf("\t\t\t parsing External Isotopic Distribution XML file '%s' ...\n", XMLInputFile.c_str() );    
-//  }
-//  else{    
-//    
-//    if( PARSER != NULL ){
-//      delete PARSER;
-//      PARSER = NULL;
-//    }
-//    
-//    if( !XMLInputFile.empty() ){
-//      printf("\n\t** Could not open External Isotopic Distribution XML file %s ** \n", XMLInputFile.c_str() );
-//    }
-//  }
-//  
-//  // parsing was successful, then go an extract the patterns
-//  if( PARSER != NULL ){
-//    extractIsotopicProfiles( PARSER );
-//    
-//    if( ! allExternalPepdistributions.empty() ){
-//      ExternalIsotopicDistribution::EXTERNAL_ISOTOPIC_PROFILES = true;
-//    }
-//    
-//  }
-//  
-//  delete PARSER;
-//  PARSER = NULL;
-//
-//  
-//}
-
-
-//////////////////////////////////////////////////
-// extract isotopic profiles
-//void ExternalIsotopicDistribution::extractIsotopicProfiles( TiXmlDocument* PARSER ){
-//  
-//  
-//  // get the element of the ms search summary and go through each of them:
-//  TiXmlNode* IsotopProfiles = PARSER->FirstChild( "PeptidePins" ); 
-//  
-//  TiXmlNode* profile;
-//  for( profile = IsotopProfiles->FirstChild("PeptidePin"); profile; profile = profile->NextSibling() ){
-//    
-//    TiXmlElement* profileE = profile->ToElement();
-//    int id = atoi( profileE->Attribute("id") );
-//    string pinName = profileE->Attribute("name");        
-//    string pinSQ = profileE->Attribute("peptideSequence");        
-//    double rtSegment = atof( profileE->Attribute("rt_segment") );        
-//        
-//    if( profile != NULL ){
-//      
-//      TiXmlNode* myIsotopes = profile->FirstChild( "Isotopes" ); 
-//      TiXmlElement* isotopes_E = myIsotopes->ToElement();
-//      double chargeState = atof( isotopes_E->Attribute("charge") );        
-//      vector<double> masses;
-//      vector<double> intens;
-//      
-//      double totIntens = 0;
-//      
-//      TiXmlNode* isotope;
-//      for( isotope = myIsotopes->FirstChild("Isotope"); isotope; isotope = isotope->NextSibling() ){
-//        TiXmlElement* isotope_E = isotope->ToElement();
-//        double mass = atof( isotope_E->Attribute("mz") );
-//        double intensity = atof( isotope_E->Attribute("Intensity") );        
-//        
-//        // store:
-//        masses.push_back( mass );
-//        intens.push_back(intensity );
-//        totIntens += intensity;
-//      }
-//      
-//      // normalize the intensities:
-//      vector<double>::iterator I = intens.begin();
-//      while( I != intens.end()){
-//        *I /= totIntens;
-//        I++;
-//      }
-//      
-//      
-//      PeptideIsotopeDisribution* newIsoPep = new PeptideIsotopeDisribution( masses, intens, chargeState, pinName, pinSQ, id , rtSegment);
-//      newIsoPep->show_info();
-//      
-//      // store the profile:
-//      allExternalPepdistributions.insert( make_pair(  masses[0], *newIsoPep ) );
-//      delete newIsoPep;
-//      newIsoPep = NULL;
-//    }
-//    
-//  }
-//  
-//}
-
-
-
 
 //////////////////////////////////////////////////
 // init the retention time segments

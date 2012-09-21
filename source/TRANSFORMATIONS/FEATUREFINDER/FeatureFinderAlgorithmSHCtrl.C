@@ -62,10 +62,7 @@ namespace OpenMS
   typedef std::vector<MyMap> Vec;
   
   std::vector<Feature> FeatureFinderAlgorithmSHCtrl::extractPeaks(Vec datavec) {
-    std::cout << "Extracting the peaks\n";
-    //initParams();
-    IsotopicDist::init();
-    
+    IsotopicDist::init();    
     FT_PeakDetectController controller;
     controller.start_scan_parsing_of_mzXML_file(datavec);
     

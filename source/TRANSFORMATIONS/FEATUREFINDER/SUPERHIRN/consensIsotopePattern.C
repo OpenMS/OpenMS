@@ -119,7 +119,7 @@ void consensIsotopePattern::addIsotopeTrace( double mz, double intens){
   bool match = false;
   if( F != rawIsotopes.end() ){
   
-    // compute teh delta:
+    // compute the delta:
     if( simple_math_compareMassValuesAtPPMLevel3( mz, (*F).first, consensIsotopePattern::FT_MZ_TOLERANCE) ){
       (*F).second.first.push_back(mz);
       (*F).second.second.push_back(mz);

@@ -198,38 +198,6 @@ void MS2ConsensusSpectrum::processConsenusSpectraFragments(){
     // etc.
     MS2Fragment::OutlierAttribute = 1;
     removeOutlierFragments();
-    
-    
-    /*
-    //////////////////////////////////////////
-    // compute now average values of the MS2 consensus spectrum:
-    // - precursor mz
-    // - apex TR
-    // - apex scan
-    // - charge state:
-    
-    // convert back after the oulier detected vector:
-    vector<double> TRs;
-    vector<double> MZs;
-    vector<double> Scans;
-    vector<double> Zs;
-    map< double, MS2Fragment>::iterator I = MS2FragmentPeaks.begin();
-    while( I != MS2FragmentPeaks.end() ){
-      TRs.push_back( (*I).second.getTR() );
-      MZs.push_back( (*I).second.getPrecursorMZ() );
-      Scans.push_back( (double)(*I).second.getApexScan() );
-      Zs.push_back( (double)(*I).second.getCHRG() );
-      I++;
-    }
-    
-    // recompute the retention time:
-    simple_math myMath;
-    TR = myMath.MEDIAN( &TRs );
-    precursorMZ = myMath.MEDIAN( &MZs );
-    apexScan = myMath.MEDIAN( &Scans );
-    z = myMath.MEDIAN( &Zs );
-    */
-    
     computeMS2SpectrumParameters();
   }
  }
@@ -241,8 +209,6 @@ void MS2ConsensusSpectrum::processConsenusSpectraFragments(){
 void MS2ConsensusSpectrum::computeMS2SpectrumParameters(){
   
   if( MS2FragmentPeaks.size() > 1 ){
-    
-    
     
     double totArea = 0;
     TR = 0;
@@ -336,9 +302,6 @@ void MS2ConsensusSpectrum::show_info( ){
   printf( "\tMS2 consenus spectrum: m/z=%0.3f,Tr=%0.2f,scan=%d\n",
           precursorMZ, TR, apexScan);
 }
-
-
-
 
 ////////////////////////////////////////////////////////
 // find a corresponding MS2 fragment

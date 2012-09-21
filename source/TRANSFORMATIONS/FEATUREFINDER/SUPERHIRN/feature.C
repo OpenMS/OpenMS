@@ -414,63 +414,6 @@ bool feature::operator==(const feature& tmp){
   }
 }
 
-/*
-//////////////////////////////////////////////////
-// smaller operator:
-bool feature::operator<(const feature& tmp){
-  
-  float delta = tmp.MONO_MZ - MONO_MZ;
-  if( delta > 2 * MZ_TOL ){
-    return true;
-  }
-  else{
-    return false;
-  }
-}
-
-//////////////////////////////////////////////////
-// bigger operator:
-bool feature::operator>(const feature& tmp){
-  
-  float delta = MONO_MZ - tmp.MONO_MZ;
-  if( delta > 2 * MZ_TOL ){
-    return true;
-  }
-  else{
-    return false;
-  }
-}
-
-//////////////////////////////////////////////////
-// bigger or equal operator:
-bool feature::operator>=(const feature& tmp){
-  
-  float delta = MONO_MZ - tmp.MONO_MZ;
-  if(delta >= 2 * MZ_TOL){
-    return true;
-  }
-  else{
-    return false;
-  }
-}
-
-
-
-//////////////////////////////////////////////////
-// smaller or equal operator:
-bool feature::operator<=(const feature& tmp){
-  
-  float delta = tmp.MONO_MZ - MONO_MZ;
-  if( delta >= 2 * MZ_TOL ){
-    return true;
-  }
-  else{
-    return false;
-  }
-}
-*/
-
-
 //////////////////////////////////////////////////
 // show the content of the spectra:
 void feature::show_info(){
@@ -566,15 +509,6 @@ void feature::add_MS2_info( ms2_info* IN ){
       }
       
     }
-    
-    /*
-    // update also the matched features:
-    map<int,feature>::iterator P = matched_feature_list.begin();
-    while( P != matched_feature_list.end() ){
-      (*P).second.add_MS2_info( IN );
-      P++;
-    }
-     */
   
     IN = NULL;
   }

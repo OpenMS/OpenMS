@@ -147,9 +147,9 @@ void LC_MS::order_by_mass(){
 void LC_MS::show_info(){
   
   if( get_spec_name().size() > 0)
-    printf("\t\t\tLC-MS name: %s ", get_spec_name().c_str() );
+    printf("\t\t -- LC-MS name: %s ", get_spec_name().c_str() );
   else
-    printf("\t\t\tLC-MS ID: %d,", get_spectrum_ID());
+    printf("\t\t -- LC-MS ID: %d,", get_spectrum_ID());
   
   if( get_nb_raw_specs() != 0){
     printf("[MASTER MAP ID=%d] ", get_MASTER_ID()); 
@@ -163,11 +163,9 @@ void LC_MS::show_info(){
   // show the child LC/MS runs:
   map<int, string>::iterator C = get_raw_spec_name_start();
   while( C != get_raw_spec_name_end() ){
-    printf("\t\t\t\t - Child LC-MS: %s [ID=%d]\n", (*C).second.c_str(), (*C).first);    
+    printf("\t\t\t - Child LC-MS: %s [ID=%d]\n", (*C).second.c_str(), (*C).first);    
     C++;
   }
-  
-
   vector<LC_MS_FEATURE>::iterator p = feature_list.begin();
   while(p != feature_list.end()){
     // if((*p).get_MS2_info()){
@@ -227,16 +225,12 @@ int LC_MS::get_nb_common_peaks(int count){
 }
 
 //////////////////////////////////////////////////////////////////
-// remove a feature from teh LC/MS run:
+// remove a feature from the LC/MS run:
 void LC_MS::remove_feature(feature* IN){
   vector<LC_MS_FEATURE>::iterator P = find(feature_list.begin(),feature_list.end(), IN );
   if(P != feature_list.end()){
     P->show_info();
     P = feature_list.erase(P);
-  }
-  else{
-    // IN->show_info();
-    // printf("\nERROR: FEATURE could not be found in LC/MS run::LC_MS::483\n");
   }
 }
 
@@ -262,11 +256,6 @@ void LC_MS::remove_feature_by_ID(int ID){
   }
 }
   
-
-
-
-  
-
 ///////////////////////////////////////////////////////////
 // get alignment error at specific TR:
 void LC_MS::get_alignment_error(double IN, double* UP, double* DOWN){

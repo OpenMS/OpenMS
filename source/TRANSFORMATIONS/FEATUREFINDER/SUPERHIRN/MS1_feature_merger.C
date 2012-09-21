@@ -492,11 +492,4 @@ double MS1_feature_merger::computeDeltaArea(double START_TR, double START_INT, d
   return AREA;
 }
 
-  
-
-
-
-
-
-
 }

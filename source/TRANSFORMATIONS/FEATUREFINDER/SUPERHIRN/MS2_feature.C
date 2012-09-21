@@ -73,22 +73,10 @@ MS2_feature::MS2_feature(const MS2_feature* tmp):ClusteredMS2ConsensusSpectrum(t
   ID = tmp->ID;
 }
 
-//////////////////////////////////////////////////
-// copy constructor:
-//MS2_feature& MS2_feature::operator=(const MS2_feature& tmp){
-//  ClusteredMS2ConsensusSpectrum::operator=(tmp);
-//  ID = tmp.ID;
-//  return *this;
-//}
-
-
 /////////////////////////////////////////////
 // show info 
 void MS2_feature::show_info(){
-  
-  printf("DELETED");
-  
-  //((ClusteredMS2ConsensusSpectrum)this).show_info();
+  //printf("DELETED");
 }
 
     

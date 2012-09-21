@@ -268,35 +268,7 @@ ms_peak* LC_elution_peak::find_true_peak(float SCAN){
 
 /////////////////////////////////////////////
 // print the elution profile from a peak:
-//void LC_elution_peak::print_profile(ofstream* OUT){
-//
-//  char buffer[256];
-//  
-//  //  sprintf(buffer,"\n#peak[%f]\n", get_apex_MZ());  
-//  // OUT->write(buffer, strlen(buffer));
-//  SIGNAL_iterator P = get_signal_list_start();
-//  while(P != get_signal_list_end()){
-//    sprintf(buffer, "%f %d %d %f\n",get_apex_MZ(), (*P).first, (*P).second.get_charge_state(),(*P).second.get_intensity());
-//    OUT->write(buffer, strlen(buffer));
-//    P++;
-//  }
-//}
-
-
-
-/////////////////////////////////////////////
-// print the elution profile from a peak:
 void LC_elution_peak::show_info(){
-
-  /*
-  cout<<endl;
-  
-  SIGNAL_iterator P = get_signal_list_start();
-  while(P != get_signal_list_end()){
-  cout<<get_apex_MZ()<<" "<<(*P).first<<" "<<(*P).second.get_intensity()<<endl;;
-  P++;
-  }
-  */
   printf("scan:[%d,%d,%d], TR:[%0.2f,%0.2f,%0.2f],m/z=%0.4f(+%d),area=%0.2e(%0.2f),S/N=%0.2f\n",fScanNumberStart,fScanNumberApex,fScanNumberEnd,fStartTR,fRT,fEndTR,get_apex_MZ(), get_charge_state(),get_total_peak_area(),get_apex_intensity(), getSignalToNoise());
 }
 
@@ -325,104 +297,6 @@ void LC_elution_peak::setSNIntensityThreshold(){
   fSNIntensityThreshold /= TotArea;
 
 }
-
-
-/*
-//////////////////////////////////////////////////////////////////
-// define the apex into the elution profile::
-void LC_elution_peak::define_apex(){
-  
-  // for apex calculation:
-  double TOT_TR = 0;
-  double TOT_INT = 0;
-  double TOT_SCAN = 0;
-  
-  double start_TR = 0;
-  double start_int = 0;
-  double mid_TR = 0;  
-  double mid_int = 0;	
-  double mid_scan = 0;
-  double end_TR = 0;  
-  double end_int = 0;
-      
-  SIGNAL_iterator P = get_signal_list_start();
-  
-  // set start et first scan in the LC_peak:
-  start_TR = (*P).second.get_retention_time();
-  start_int = (*P).second.get_intensity();
-  mid_TR = (*P).second.get_retention_time();
-  mid_int = (*P).second.get_intensity();
-  mid_scan = (*P).second.get_scan_number();
-
-
-  P++;
-  
-  /////////////////////////////////////////////////////
-  // go through all peaks in the LC elution profile:
-  while(P != get_signal_list_end()){
-    
-    end_TR = (*P).second.get_retention_time(); 
-    end_int = (*P).second.get_intensity();
-      
-    ///////////////////////////////////////////////////
-    // copmute the area around the mid ms peak:
-    // compute area between end/mid:
-    double area_A = compute_delta_area( mid_TR, mid_int, end_TR, end_int);
-    
-    // compute area between mid/start:
-    double area_B = compute_delta_area(start_TR, start_int, mid_TR, mid_int);
-    
-    // add up for apex calculation:
-    TOT_TR += mid_TR * ( area_A + area_B );
-    TOT_INT += ( area_A + area_B );  
-    TOT_SCAN += mid_scan * ( area_A + area_B );
-    
-    // next scan:
-    start_TR = mid_TR;
-    start_int = mid_int;
-    mid_TR = end_TR;
-    mid_int = end_int;
-    mid_scan = (*P).second.get_scan_number();
-    P++;
-  }
-  
-  // if contained only one peak!
-  if(get_nb_ms_peaks() == 1){
-    TOT_INT = start_int;
-    TOT_TR = start_int * start_TR;
-    TOT_SCAN = start_int * mid_scan;
-  }
-  // do for the last peak as well
-  else{
-    // compute area between mid/start:
-    double area = compute_delta_area(start_TR, start_int, mid_TR, mid_int);
-    // add up for apex calculation:
-    TOT_TR += mid_TR * area;
-    TOT_INT += area;  
-    TOT_SCAN += mid_scan * area;
-  }
-  
-  //////////////////////////////////////////////
-  // compute the apex:
-  // get averaged scan number:
-  TOT_TR /= TOT_INT;
-  TOT_SCAN /= TOT_INT;
-  
-  fRT = TOT_TR;   
-  // set the apex ms peak:
-  ms_peak* APEX = find_true_peak(TOT_SCAN);
-  if ( ! APEX->getExtraPeakInfo().empty()) {
-    setElutionPeakExtraInfo( APEX->getExtraPeakInfo() );
-  }
-  
-  
-  // find retention time and intensity of apex:
-  fScanNumberApex = APEX->get_scan_number();
-  fapex_intensity = APEX->get_intensity();
-
-}
-*/
-
 
 //////////////////////////////////////////////////////////////////
 // Compute a varietiy of parameters for the LC elution peak
@@ -529,98 +403,6 @@ void LC_elution_peak::computeLCElutionPeakParameters( ){
 
 }
 
-/*
-//////////////////////////////////////////////////////////////////
-// compute the total peak area:
-void LC_elution_peak::compute_LC_peak_area(){
-  
-  //////////////////////
-  double TOT_AREA = 0;
-  double THRESHOLD = get_apex_intensity() * intensity_apex_percentil_cutoff;
-  
-  double start_TR = 0;
-  double start_int = 0;
-  double mid_TR = 0;  
-  double mid_int = 0;
-  double end_TR = 0;  
-  double end_int = 0;
-  fScore = 0;
-  
-  SIGNAL_iterator P = get_signal_list_start();
-  
-  // set start et first scan in the LC_peak:
-  start_TR = (*P).second.get_retention_time();
-  start_int = (*P).second.get_intensity();
-  mid_TR = (*P).second.get_retention_time();
-  mid_int = (*P).second.get_intensity();
-  
-  // to compute some other parameters at the same time:
-  update_CHRGMAP( &(*P).second ); 
-  update_SCOREMAP( &(*P).second ); 
-  
-  P++;
-  
-  /////////////////////////////////////////////////////
-  // go through all peaks in the LC elution profile:
-  while(P != get_signal_list_end()){
-    
-    if( P == get_signal_list_end())
-      break;
-    
-    end_TR = (*P).second.get_retention_time(); 
-    end_int = (*P).second.get_intensity();
-    
-    // to compute some other parameters at the same time:
-    update_CHRGMAP( &(*P).second ); 
-    update_SCOREMAP( &(*P).second ); 
-    
-    ///////////////////////////////////////////////////
-    // compute an area around the mid ms peak:
-    
-    // compute area between end/mid:
-    TOT_AREA += compute_delta_area( mid_TR, mid_int - THRESHOLD, end_TR, end_int - THRESHOLD);
-    
-    // compute area between mid/start:
-    TOT_AREA += compute_delta_area(start_TR, start_int - THRESHOLD, mid_TR, mid_int - THRESHOLD);
-    
-    // next scan:
-    start_TR = mid_TR;
-    start_int = mid_int;
-    mid_TR = end_TR;
-    mid_int = end_int;
-    
-    P++;
-  }
-  
-  // if contained only one peak!
-  if(get_nb_ms_peaks() == 1){
-    TOT_AREA = start_int;
-    // to compute some other parameters at the same time:
-    P--;
-  }
-  // do for the last peak as well
-  else{
-    // compute area between mid/start:
-    TOT_AREA += compute_delta_area(start_TR, start_int, mid_TR, mid_int);
-  }
-  
-  // set the area:
-  fpeak_area = TOT_AREA;
-  
-  // define start end scan:
-  P = get_signal_list_start();
-  fScanNumberStart = (*P).second.get_scan_number();
-  fStartTR = (*P).second.get_retention_time();
-  
-  P = get_signal_list_end();
-  P--;
-  fScanNumberEnd = (*P).second.get_scan_number();
-  fEndTR = (*P).second.get_retention_time();
-  
-}
-*/
-
-
 /////////////////////////////////////////////////////////////////////
 // compute the charge state of the LC peak
 void LC_elution_peak::compute_CHRG(){
@@ -686,81 +468,6 @@ double LC_elution_peak::compute_delta_area(double START_TR, double START_INT, do
   return AREA;
 }
 
-
-
-////////////////////////////////////////////////////////////////////////////////
-// print all monositopic peak cluster along the LC profile:
-//void LC_elution_peak::printIsotopClusters(){
-//  
-//  
-//  char outfile[255];
-//  sprintf( outfile, "isotopCluster_%0.3f_%d", get_apex_MZ(), get_charge_state());
-//  string tmp = outfile;
-//  data_plotter* PLOT = new data_plotter(tmp);
-//  
-//  double delta = 0.002;
-//    
-//  // now the cluster profiles:
-//  map<int, ms_peak>::iterator R = intens_signals.begin();
-//  while( R != intens_signals.end() ){
-//    
-//    ms_peak* peak = &(*R).second;
-//    map<double, double> cluster;
-//    vector<CentroidPeak>::iterator p = peak->get_isotopic_peaks_start();
-//    while( p != peak->get_isotopic_peaks_end() ){
-//      cluster.insert( make_pair( (*p).getMass() + delta, (*p).getFittedIntensity()  ) );
-//      // cluster.insert( make_pair( (*p).getMass() + delta, (*p).getFittedIntensity()  ) );
-//      p++; 
-//    }
-//    
-//    delta += delta;
-//    
-//    char buffer[255];
-//    sprintf( buffer, "scan=%d(%0.4f)", (*R).first, peak->get_MZ());
-//    PLOT->add_plot_data_impulses( &cluster , buffer);
-//    
-//    R++;
-//  }
-//  
-//  PLOT->set_POINT_SIZE( 2 );
-//  PLOT->plot_TWOD_data();
-//  //PLOT->print_MATRIX_data_to_TXT();
-//  delete PLOT;
-//  PLOT = NULL;
-//  
-//}
-//
-//////////////////////////////////////////////////////////////////////////////////
-//// print the consensus isotope pattern:
-//void LC_elution_peak::printConsensIsotopPattern(){
-//  
-//  char outfile[255];
-//  sprintf( outfile, "consensIsotope_%0.3f_%d", get_apex_MZ(), get_charge_state());
-//  string tmp = outfile;
-//  data_plotter* PLOT = new data_plotter(tmp);
-//  
-//  // now the cluster profiles:
-//  map<double, double>::iterator I = isotopePattern->getConsensIsotopeIteratorStart();
-//  while( I != isotopePattern->getConsensIsotopeIteratorEnd() ){
-//    
-//    char buffer[255];
-//    sprintf( buffer, "%0.4f", (*I).first);
-//    map<double, double> data;
-//    data.insert(make_pair( (*I).first, (*I).second) );
-//    PLOT->add_plot_data_impulses( &data , buffer);
-//    
-//    I++;
-//  }
-//  
-//  PLOT->set_POINT_SIZE( 2 );
-//  PLOT->plot_TWOD_data();
-//  //PLOT->print_MATRIX_data_to_TXT();
-//  delete PLOT;
-//  PLOT = NULL;
-//  
-//}
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // print all monositopic peak cluster along the LC profile:
 void LC_elution_peak::createConsensIsotopPattern(){
@@ -789,11 +496,6 @@ void LC_elution_peak::createConsensIsotopPattern(){
   isotopePattern->constructConsusPattern();
 
 }
-
-
-  
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // define all required peak parameters from a single MS peak:

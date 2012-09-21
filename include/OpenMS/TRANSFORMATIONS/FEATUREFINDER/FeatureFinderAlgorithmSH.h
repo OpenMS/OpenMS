@@ -166,7 +166,7 @@ namespace OpenMS
     
     virtual void run()
     {
-      std::cout << "Superhirn integration\n";
+      std::cout << "SuperHirn feature extraction...\n";
       
       map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
       
