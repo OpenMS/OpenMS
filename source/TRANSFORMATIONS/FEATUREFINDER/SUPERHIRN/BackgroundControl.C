@@ -136,10 +136,6 @@ map<double, map< double, BackgroundIntensityBin>  >::iterator BackgroundControl:
   return intensityBinMap.end();
 }
 
-double BackgroundControl::getBackgroundLevel( ms_peak* in){
-  return getBackgroundLevel( in->get_MZ(), in->get_retention_time()  );
-}
-
 double BackgroundControl::getBackgroundLevel( double mz, double tr){
   // find the corresponding retention time bin:
   map<double, map< double, BackgroundIntensityBin> >::iterator F = findTrKey( tr  );

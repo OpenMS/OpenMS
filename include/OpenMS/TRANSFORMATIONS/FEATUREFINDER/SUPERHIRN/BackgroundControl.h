@@ -32,8 +32,6 @@ public:
   
   void addPeakMSScan( double , list<CentroidPeak>* peakList );
   
-  double getBackgroundLevel( ms_peak* );
-  
   double getBackgroundLevel( double mz, double tr);
   
   // find a key in the intensity map:

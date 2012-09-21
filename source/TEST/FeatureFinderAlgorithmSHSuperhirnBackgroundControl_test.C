@@ -57,10 +57,7 @@ END_SECTION
 
 ptr = new BackgroundControl();
 
-//START_SECTION((init()))
-//  ptr->init();
-//END_SECTION
-
+/*
 START_SECTION((init()))
 ms_peak *p = new ms_peak();
 std::vector<ms_peak> * peakvec = new std::vector<ms_peak>();
@@ -68,7 +65,24 @@ peakvec->push_back(p);
 ptr->addPeakMSScan(1.0, peakvec);
 
 double bgLevel = ptr->getBackgroundLevel(p);
-TEST_EQUAL(bgLevel, 1.0);
+TEST_EQUAL(bgLevel, 0);
+END_SECTION
+*/
+
+
+START_SECTION((addPeakMSScan(idouble TR, list<CentroidPeak>* peakList)))
+
+double mass = 400.0;
+double intens = 50000;
+double rt = 0.1;
+CentroidPeak *p = new CentroidPeak(mass, intens, rt);
+std::list<CentroidPeak>* peakList = new std::list<CentroidPeak>();
+peakList->push_back(p);
+
+ptr->addPeakMSScan(1.0, peakList);
+
+double bgLevel = ptr->getBackgroundLevel(mass, rt);
+TEST_EQUAL(bgLevel, -1);
 END_SECTION
 
 
