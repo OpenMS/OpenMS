@@ -91,7 +91,7 @@ FeatureLCProfile::FeatureLCProfile(double apex_MZ, double apex_TR, int charge_st
 // class desctructor of FeatureLCProfile
 FeatureLCProfile::~FeatureLCProfile(){
   LCelutionSignals.clear();
-  if( !outsideLCelutionSignals.empty() ){
+  if ( !outsideLCelutionSignals.empty() ){
     outsideLCelutionSignals.clear();
   }
 }
@@ -164,7 +164,7 @@ void FeatureLCProfile::addOutsideMS1elutionSignal(  double mass, double intensit
 void FeatureLCProfile::changeElutionTimesByFactor(double factor){
   apexMS1Signal.TR += factor;
   map<int, MS1Signal>::iterator P = getLCelutionSignalsStart();
-  while( P != getLCelutionSignalsEnd() ){
+  while ( P != getLCelutionSignalsEnd() ){
   
     P->second.TR += factor;
     P++; 

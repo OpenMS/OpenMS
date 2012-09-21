@@ -96,7 +96,6 @@ namespace OpenMS
 
 			intensityBinMap.insert(make_pair(trStart, mzArray));
 			trStart += SuperHirnParameters::instance()->getBackgroundIntensityBinsTR();
-			;
 		}
 
 	}
