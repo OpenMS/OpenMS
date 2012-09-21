@@ -326,7 +326,7 @@ class TOPPFileFilter
 		registerFlag_("id:remove_unassigned_ids", "remove unassigned peptide identifications");
     registerInputFile_("id:blacklist", "<file>", "", "Input file containing MS² identifications whose corresponding MS² spectra should be removed from the mzML file!\n"
                                                      "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
-                                                     "This tool will require all IDs to be matched to an MS² spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.");
+                                                     "This tool will require all IDs to be matched to an MS² spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
     setValidFormats_("id:blacklist", StringList::create("idXML"));
     registerDoubleOption_("id:rt","tolerance",0.1,"retention tolerance [s] for precursor to id position", false);
     registerDoubleOption_("id:mz","tolerance",0.001,"m/z tolerance [Th] for precursor to id position", false);
