@@ -583,16 +583,6 @@ void feature::add_MS2_info(map<double, vector<ms2_info> >* IN){
   IN = NULL;
 }
 
-
-//////////////////////////////////////////////////
-// writes out the important information:
-void feature::print_content(ofstream* writer, bool TOP){
-
-  // flo deleted this
-}
-
-
-
 //////////////////////////////////////////////////
 // check how many matches
 int feature::get_nb_common_match(){
@@ -896,16 +886,6 @@ bool feature::get_MS2_info(double PP_THRES){
     }
   }
 }
-
-
-//////////////////////////////////////////////////
-// writes out teh feature to a file:
-void feature::print_2_file(ofstream* WRITER){
-  // flo deleted this
-
-}
-
-
 
 //////////////////////////////////////////////////////
 // check charge states, in cases where a feature was

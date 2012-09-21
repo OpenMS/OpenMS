@@ -222,31 +222,6 @@ vector<LC_elution_peak*> LCMSCData::get_ALL_peak(){
   return OUT;
 }
 
-//////////////////////////////////////////////////////
-// prints profile of the extracted LC elution peaks:
-void LCMSCData::print_profile_of_LC_peaks(ofstream* OUT){
-
-  //////////////////////////////////
-  // run through all m/z values:
-//  MZ_LIST_ITERATOR P_MZ = get_DATA_start();
-//  
-//  while( P_MZ != get_DATA_end()){
-//        
-//    //////////////////////////////////
-//    // run through all LC_elution_peaks
-//    elution_peak_list_ITERATOR Q_SER = (*P_MZ).second.begin();
-//    while( Q_SER != (*P_MZ).second.end()){
-//      (*Q_SER).second.print_profile(OUT);
-//      Q_SER++;
-//    }
-//    //////////////////////////////////
-//    
-//    P_MZ++;
-//  }
-//  OUT = NULL;
-}
-
-
 /////////////////////////////////////////////////////////////////////////////
 // get a vector with all LC peaks ordered by their score:
 vector<LC_elution_peak*> LCMSCData::get_ALL_peak_ordered(){

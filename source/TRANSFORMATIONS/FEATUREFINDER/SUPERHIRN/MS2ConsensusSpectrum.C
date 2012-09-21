@@ -303,40 +303,11 @@ void MS2ConsensusSpectrum::addMS2Fragment( MS2Fragment* in ){
 }
 
 //////////////////////////////////////////////////////
-// plot the consensus MS2 spectrum:
-void MS2ConsensusSpectrum::plotSpectrum( ){
-
-  char buffer[255];
-  sprintf( buffer, "MS2ConsSpec%0.2f", precursorMZ);
-  plotSpectrum( buffer );
-  
-}
-
-//////////////////////////////////////////////////////
-// plot the consensus MS2 spectrum:
-void MS2ConsensusSpectrum::plotSpectrum( string fileName ){
-  
- // deleted
-  
-}
-
-//////////////////////////////////////////////////////
 // show MS2 spectrum info:
 void MS2ConsensusSpectrum::show_info( ){
   
-  printf( "\tMS2 consenus spectrum: m/z=%0.3f,Tr=%0.2f,scan=%d,#fragments=%d\n",
-          precursorMZ, TR, apexScan, MS2FragmentPeaks.size());
-
-  /*
-  map<double, MS2Fragment>::iterator P = MS2FragmentPeaks.begin();
-  while( P != MS2FragmentPeaks.end() ){
-    P->second.show_info();
-    P++;
-  }
-   */
-  
-  
-  
+  printf( "\tMS2 consenus spectrum: m/z=%0.3f,Tr=%0.2f,scan=%d\n",
+          precursorMZ, TR, apexScan);
 }
 
 

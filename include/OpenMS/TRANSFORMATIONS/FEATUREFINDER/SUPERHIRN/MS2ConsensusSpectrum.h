@@ -98,12 +98,6 @@ public:
   
   // compute MS2 parameters
   void computeMS2SpectrumParameters();
-
-  
-  // plot the consensus MS2 spectrum:
-  void plotSpectrum( );
-  void plotSpectrum( std::string );
-  
   
   // remove outlier fragments based on their:
   // MS2Fragment::OutlierAttribute = ...

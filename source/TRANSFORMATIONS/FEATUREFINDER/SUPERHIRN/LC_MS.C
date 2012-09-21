@@ -209,14 +209,6 @@ int LC_MS::get_nb_common_peaks(int count){
   
   return common_count;
 }
- 
-
-//////////////////////////////////////////////////
-// print the content of the LC/MS run to a file:
-void LC_MS::print_2_file(string OUT){
-  // deleted by flo
-}
-
 
 //////////////////////////////////////////////////////////////////
 // remove a feature from teh LC/MS run:

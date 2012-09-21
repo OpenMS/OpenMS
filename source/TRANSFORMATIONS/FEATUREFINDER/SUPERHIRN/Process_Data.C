@@ -114,15 +114,15 @@ Process_Data::~Process_Data(){
 
 //////////////////////////////////////////////////
 // class copy constructor of Process_Data
-Process_Data::Process_Data(const Process_Data& tmp){
-}
+//Process_Data::Process_Data(const Process_Data& tmp){
+//}
 
 
 //////////////////////////////////////////////////
 // copy constructor:
-Process_Data& Process_Data::operator=(const Process_Data& tmp){
-  return *this;
-}
+//Process_Data& Process_Data::operator=(const Process_Data& tmp){
+//  return *this;
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 // get an observed MZ mass, otherwise end of list iterator
@@ -345,7 +345,7 @@ void Process_Data::add_scan_raw_data(int SCAN, float TR, vector<ms_peak> PEAK_LI
       // PEAK->set_retention_time(TR);
     
       // check if this MZ has already been observed:
-      MAIN_ITERATOR LCP = check_MZ_occurence( PEAK , false);
+      MAIN_ITERATOR LCP = check_MZ_occurence( PEAK );
       if(  LCP != get_MZ_LIST_end() ){
         insert_observed_mz(LCP, PEAK);
       }
@@ -929,7 +929,7 @@ void Process_Data::print_extracted_LC_peaks(){
 ///////////////////////////////////////////////////////////////////////////////
 // checks if a mz value has already been seen,
 // also look for very close ones and cluster them
-MAIN_ITERATOR Process_Data::check_MZ_occurence(ms_peak* PEAK, bool chargeStateCheck){
+MAIN_ITERATOR Process_Data::check_MZ_occurence(ms_peak* PEAK){
   
   if( MonoIsoDebugging ){
     if( ( DebugMonoIsoMassMin <= PEAK->get_MZ()) && ( DebugMonoIsoMassMax >= PEAK->get_MZ()) ){

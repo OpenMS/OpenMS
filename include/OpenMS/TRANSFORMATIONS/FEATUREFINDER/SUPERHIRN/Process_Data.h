@@ -148,7 +148,7 @@ public:
   int compareIteratorToPeak(ms_peak* , MAIN_ITERATOR );
   // checks if a mz value has already been seen,
   // also look for very close ones and cluster them
-  MAIN_ITERATOR check_MZ_occurence(ms_peak*, bool);
+  MAIN_ITERATOR check_MZ_occurence(ms_peak*);
     
   
   ///////////////////////////////////////////////////////////////////////////////

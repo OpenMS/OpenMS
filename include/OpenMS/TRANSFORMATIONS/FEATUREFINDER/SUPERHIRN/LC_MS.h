@@ -81,9 +81,6 @@ public:
   
   // show the content of the spectra
   void show_info();
-  // print teh content of the LC/MS run to a file:
-  void print_2_file(std::string);
-  
   
   // copy constructor:
   LC_MS& operator=(const LC_MS&);

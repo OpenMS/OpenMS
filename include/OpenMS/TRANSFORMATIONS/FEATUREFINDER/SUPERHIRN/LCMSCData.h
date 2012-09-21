@@ -39,10 +39,6 @@ public:
   // overload operators:
   LCMSCData& operator=(const LCMSCData&);
   
-  // prints profile of the extracted LC elution peaks:
-  void print_profile_of_LC_peaks(std::ofstream*);
- 
-  
   ///////////////////////////////
   // start here all the get / set
   // function to access the

@@ -84,14 +84,14 @@ FT_PeakDetectController::~FT_PeakDetectController(){
 
 //////////////////////////////////////////////////
 // class copy constructor of FT_PeakDetectController
-FT_PeakDetectController::FT_PeakDetectController(const FT_PeakDetectController& tmp){}
+//FT_PeakDetectController::FT_PeakDetectController(const FT_PeakDetectController& tmp){}
 
 
 //////////////////////////////////////////////////
 // copy constructor:
-FT_PeakDetectController& FT_PeakDetectController::operator=(const FT_PeakDetectController& tmp){
-  return *this;
-}
+//FT_PeakDetectController& FT_PeakDetectController::operator=(const FT_PeakDetectController& tmp){
+//  return *this;
+//}
     
 
 
@@ -204,7 +204,7 @@ void FT_PeakDetectController::process_MS1_level_data_structure( FT_PEAK_DETEC_mz
   // iterator over the extracted features, convert
   vector<LC_elution_peak*> PEAKS = current_processed_mzXML_file->get_ALL_peak();
   // show program status:
-  printf("\t\t\t* Processing of %d MS1 level features...\n",  PEAKS.size() );
+  printf("\t\t\t* Processing of %d MS1 level features...\n",  (int) PEAKS.size() );
   
   vector<LC_elution_peak*>::iterator P = PEAKS.begin();
   while( P != PEAKS.end()){    

@@ -174,7 +174,7 @@ ms_peak& ms_peak::operator=(const ms_peak& tmp){
 //////////////////////////////////////////////////
 // show info:
 void ms_peak::show_info(){
-  printf( "mz=%0.4f,int=%0.1f,scan=%d,tr=%0.2f,+%d", MZ, INTENSITY, SCAN, TR, CHRG, precursorMZ );
+  printf( "mz=%0.4f,int=%0.1f,scan=%d,tr=%0.2f,+%d", MZ, INTENSITY, SCAN, TR, CHRG ); // precursorMZ
   
   if( precursorMZ > 1.0){
     printf( ",preMZ=%0.4f\n", precursorMZ );

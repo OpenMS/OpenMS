@@ -95,7 +95,7 @@ void Deisotoper::go(
   
   pCentroidData.resetPeakGroupIter();
   while (pCentroidData.getNextPeakGroup(start,end)) { // isotopic patterns are withing the same peak group
-    for (cnt=0,pi=start;pi!=end;++pi,++cnt);
+    for (cnt=0,pi=start;pi!=end;++pi,++cnt) {};
     
     if (cnt>=fMinPeakGroupSize) { // Discard peak groups with only one peak
       for (pi=start;pi!=end;++pi,--cnt) {

@@ -185,7 +185,7 @@ double* PeptideIsotopeDisribution::getIntensityArray( ){
 void PeptideIsotopeDisribution::show_info(){
   
 
-  printf( "\n \t External Isotope Distribution:  %d isotopes", mass.size() );
+  //printf( "\n \t External Isotope Distribution:  %d isotopes", mass.size() );
   printf( "\n \t Info: Name=%s, SQ=%s, Id=%d, z=+%d, rtSeg=%.0f \n", name.c_str(), sq.c_str(), id, chargeState, RtSegment );
 
   vector<double>::iterator M = mass.begin();

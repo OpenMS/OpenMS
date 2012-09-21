@@ -136,23 +136,11 @@ public:
   void show_info();
   // show MS/MS spectra info:
   void showMS2consensSpectraInfo( );
-
-  
-  // writes out teh feature to a file:
-  void print_2_file(std::ofstream*);
   
   //////////////////////////////////
   // comparision operators:
   bool operator==(const feature&);
-  /*
-  bool operator<(const feature&);
-  bool operator>(const feature&);
-  bool operator<=(const feature&);
-  bool operator>=(const feature&);
-  */
   
-  // writes out the important information:
-  void print_content(std::ofstream*,bool);
   // add MS/MS info to the feature:
   void add_MS2_info(ms2_info*);
   void add_MS2_info( std::map<double, std::vector<ms2_info> >*);

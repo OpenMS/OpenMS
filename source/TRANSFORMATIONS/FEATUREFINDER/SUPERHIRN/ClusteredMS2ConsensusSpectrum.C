@@ -80,73 +80,6 @@ ClusteredMS2ConsensusSpectrum& ClusteredMS2ConsensusSpectrum::operator=(const Cl
 }
 
 //////////////////////////////////////////////////
-// remove outlier fragments based on their:
-// MS2Fragment::OutlierAttribute = ...
-// 1: retention time
-// 2: precursor mass
-// etc.
-void ClusteredMS2ConsensusSpectrum::removeOutlierFragments(){
-
-  // store in this vector the fragments:
-  vector< pair<double, void*> > ValueVector;
-  
-  /*
-  // store fragments by the desired attribute as outlier detection value:
-  map<double, MS2Fragment>::iterator P = MS2FragmentPeaks.begin();
-  while( P != MS2FragmentPeaks.end() ){
-    
-    // get the attribute:
-    double value = (*P).second.getOutlierDetectionAttribute();
-    
-    // store in the vector
-    ValueVector.push_back( pair<double, void*>( value, &(*P).second ) );     
-   
-    P++;
-  }
-  
-  // start the iterative outlier removal by the set attribut of a ms2 fragment:
-  simple_math myMath;
-  myMath.ITERATIVE_OUTLIER_DETECTION_BY_DIXON( &ValueVector );
-
-  // convert back after the oulier detected vector:
-  map<double, MS2Fragment> newFragments;
-  vector< pair<double, void*> >::iterator I = ValueVector.begin();
-  while( I != ValueVector.end() ){
-    pair<double, void*> p = (*I);
-    MS2Fragment* frag = (MS2Fragment*) p.second;
-    newFragments.insert( make_pair( frag->getFragmentPeakArea(), *frag ) );
-    I++;
-  }
-  
-  // copy back:
-  MS2FragmentPeaks.clear();
-  MS2FragmentPeaks = newFragments;
-  newFragments.clear();
-   */
-  
-}
-
-
-//////////////////////////////////////////////////
-// trace the fragments across MS/MS spectra:
-void ClusteredMS2ConsensusSpectrum::constructClusteredConsenusSpectraFragments(MS2ConsensusSpectrum* newMSMS){
-  
-  /*
-  // stores the individual consens spectra:
-  map<int, MS2ConsensusSpectrum* >::iterator C = ConsensSpectra.begin();
-  while( C != ConsensSpectra.end() ){
-    extractFragmentsFromConsensSpectra( (*C).first, (*C).second );
-    C++; 
-  }
-  
-  // process extracted aligned fragment traces:
-  processAlignedFragmentTraces();
-  */
-}
-
-
-
-//////////////////////////////////////////////////
 // extracts fragments from a MS/MS spectra and inserts
 // them into the Clustered MS/MS spectrum:
 void ClusteredMS2ConsensusSpectrum::extractFragmentsFromSpectra( MS2ConsensusSpectrum* in  ){
@@ -175,11 +108,6 @@ void ClusteredMS2ConsensusSpectrum::extractFragmentsFromSpectra( MS2ConsensusSpe
   }
 }
 
-
-
-
-
-
 //////////////////////////////////////////////////
 // add a MS2 fragment:
 void ClusteredMS2ConsensusSpectrum::addMS2ConsensusSpectrum( MS2ConsensusSpectrum* in ){
@@ -207,43 +135,6 @@ void ClusteredMS2ConsensusSpectrum::mergeMS2Fragments(MS2Fragment* target, MS2Fr
   // average m/z:
   target->setPrecursorMZ( ( target->getPrecursorMZ() + toMerge->getPrecursorMZ() ) / 2.0);
   
-  
-}
-
-//////////////////////////////////////////////////////
-// plot all the consensus MS2 spectrum in one plot:
-void ClusteredMS2ConsensusSpectrum::plotCombinedSpectra( ){
-  /*
-  
-  char buffer[255];
-  sprintf( buffer, "CombinedMS2ConsSpec%0.2f", precursorMZ);
-  string tmp = buffer;
-  data_plotter* PLOT = new data_plotter( tmp ); 
-  
-  map<int, MS2ConsensusSpectrum* >::iterator C = ConsensSpectra.begin();
-  while( C != ConsensSpectra.end() ){
-
-    sprintf( buffer, "LC-MS %d", C->first);
-    
-    map<double, double> data;
-    map<double, MS2Fragment>::iterator I = C->second->getMS2FragmentPeakStart();
-    while( I != C->second->getMS2FragmentPeakEnd() ){
-      data.insert( make_pair( I->second.getFragmentMz(), I->second.getFragmentPeakArea()) );
-      I++;
-    }
-    
-    PLOT->add_plot_data_impulses( &data, buffer);
-  
-    data.clear();
-    C++;
-  }
-  
-  
-  PLOT->plot_TWOD_data();
-  
-  delete PLOT;
-  PLOT = NULL;
-  */
   
 }
 

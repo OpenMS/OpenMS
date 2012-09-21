@@ -43,20 +43,20 @@ ExternalIsotopicDistribution::~ExternalIsotopicDistribution(){
 
 //////////////////////////////////////////////////
 // class copy constructor of ExternalIsotopicDistribution
-ExternalIsotopicDistribution::ExternalIsotopicDistribution(const ExternalIsotopicDistribution& tmp){
-}
+//ExternalIsotopicDistribution::ExternalIsotopicDistribution(const ExternalIsotopicDistribution& tmp){
+//}
 
 //////////////////////////////////////////////////
 // class copy constructor of ExternalIsotopicDistribution
-ExternalIsotopicDistribution::ExternalIsotopicDistribution(const ExternalIsotopicDistribution* tmp){
-}
+//ExternalIsotopicDistribution::ExternalIsotopicDistribution(const ExternalIsotopicDistribution* tmp){
+//}
 
 
 //////////////////////////////////////////////////
 // copy constructor:
-ExternalIsotopicDistribution& ExternalIsotopicDistribution::operator=(const ExternalIsotopicDistribution& tmp){
-  return *this;
-}
+//ExternalIsotopicDistribution& ExternalIsotopicDistribution::operator=(const ExternalIsotopicDistribution& tmp){
+//  return *this;
+//}
 
 
 

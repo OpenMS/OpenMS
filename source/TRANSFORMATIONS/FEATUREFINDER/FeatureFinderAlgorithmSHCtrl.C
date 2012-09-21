@@ -105,7 +105,7 @@ namespace OpenMS
       unsigned int j = 0;
       std::map<int, MS1Signal>::iterator lcit;
       for (lcit = profile->getLCelutionSignalsStart(); lcit != profile->getLCelutionSignalsEnd(); lcit++) {
-        int scan = lcit->first;
+        //int scan = lcit->first;
         MS1Signal signal = lcit->second;
         
         hull_points[j][0] = signal.TR * 60.0; // convert back
