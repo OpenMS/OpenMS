@@ -43,8 +43,8 @@ using namespace OpenMS;
 using namespace std;
 
 BackgroundIntensityBin* ptr;
-START_SECTION((BackgroundIntensityBin()))
-	ptr = new BackgroundIntensityBin();
+START_SECTION((BackgroundIntensityBin(double, double)))
+	ptr = new BackgroundIntensityBin(300, 12);
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
@@ -52,7 +52,51 @@ START_SECTION((~BackgroundIntensityBin()))
 	delete ptr;
 END_SECTION
 
-ptr = new BackgroundIntensityBin();
+START_SECTION((checkBelonging(ms_peak*)))
+  ptr = new BackgroundIntensityBin(300, 12);
+  ms_peak *p = new ms_peak();
+  TEST_EQUAL(ptr->checkBelonging(p), false);
+  delete p;
+
+  ms_peak* p2 = new ms_peak(1, 300, 100);  // (int IN_scan, double IN_mass, float IN_intens)
+  p2->set_retention_time(12);
+  TEST_EQUAL(ptr->checkBelonging(p2), true);
+  delete p2;
+END_SECTION
+
+START_SECTION((addIntensity( double )))
+  ptr = new BackgroundIntensityBin(300, 12);
+  TEST_EQUAL(ptr->getIntensityMap()->size(), 0);
+  ptr->addIntensity(100);
+  TEST_EQUAL(ptr->getIntensityMap()->size(), 1);
+END_SECTION
+
+START_SECTION((addMSPeak( ms_peak* )))
+  ptr = new BackgroundIntensityBin(300, 12);
+  ms_peak* p = new ms_peak(1, 300, 100);  // (int IN_scan, double IN_mass, float IN_intens)
+  TEST_EQUAL(ptr->getIntensityMap()->size(), 0);
+  ptr->addMSPeak(p);
+  TEST_EQUAL(ptr->getIntensityMap()->size(), 1);
+  delete p;
+END_SECTION
+
+START_SECTION((processIntensities()))
+  ptr = new BackgroundIntensityBin(300, 12);
+  ptr->processIntensities();
+  TEST_EQUAL(ptr->getMean(), 0);
+END_SECTION
+
+START_SECTION((getIntensityHist()))
+  ptr = new BackgroundIntensityBin(300, 12);
+  TEST_NOT_EQUAL(ptr->getIntensityHist(), 0);
+END_SECTION
+
+START_SECTION((getMean()))
+  ptr = new BackgroundIntensityBin(300, 12);
+  TEST_EQUAL(ptr->getMean(), 0)
+END_SECTION
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

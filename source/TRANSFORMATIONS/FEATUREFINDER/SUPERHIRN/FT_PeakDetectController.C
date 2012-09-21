@@ -138,7 +138,7 @@ void FT_PeakDetectController::start_scan_parsing_of_mzXML_file(Vec datavec){
   THIS_LC_MS->show_info();
   
   
- /* Commented out for brutus 
+ /* Commented out for brutus */
   string SEP = "";
   FILE *file; 
   file = fopen("ffsh-features.txt","w+"); 
@@ -157,7 +157,7 @@ void FT_PeakDetectController::start_scan_parsing_of_mzXML_file(Vec datavec){
     p++;
   }	
   fclose(file);
-  */
+
   
   
   

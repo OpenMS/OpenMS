@@ -180,7 +180,7 @@ namespace OpenMS
       MyMap dummyMap;
       Vec* datavec = new Vec(map_.size(), dummyMap);
       unsigned int scanId = 0;
-      bool orderByNativeIds = false; // TODO make this configurable by parameter
+      bool orderByNativeIds = true; // TODO make this configurable by parameter
       
       for (unsigned int s = 0; s < map_.size(); s++)
       {
