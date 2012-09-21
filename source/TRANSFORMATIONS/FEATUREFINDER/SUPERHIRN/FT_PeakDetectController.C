@@ -141,7 +141,7 @@ void FT_PeakDetectController::start_scan_parsing_of_mzXML_file(Vec datavec){
   
   string SEP = "";
   FILE *file; 
-  file = fopen("/tmp/ffsh-features.txt","w+"); 
+  file = fopen("ffsh-features.txt","w+"); 
   fprintf(file,"%s", "Features\n");
   
   vector<feature>::iterator p = THIS_LC_MS->get_feature_list_begin();
