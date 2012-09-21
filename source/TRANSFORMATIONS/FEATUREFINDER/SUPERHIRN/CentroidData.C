@@ -211,7 +211,8 @@ bool CentroidData::getNextPeakGroup(
 	
 	pi = fPeakGroupStart;
 	prev = fPeakGroupStart;
-	++pi;
+	if (pi != fCentroidPeaks.end()) // FLO: Windows Fix (crash: "could not be incremented")
+		++pi;
 	for (;pi!=fCentroidPeaks.end();++pi,++prev) {
 		eps = CentroidData::sfMassTolPpm*pi->getMass()/1.0e6 + CentroidData::sfMassTolDa;
 		if (abs(pi->getMass()-prev->getMass())>1.0+eps) {		

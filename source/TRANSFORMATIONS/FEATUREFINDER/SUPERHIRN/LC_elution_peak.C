@@ -418,13 +418,19 @@ void LC_elution_peak::computeLCElutionPeakParameters( ){
     }
     P++;
   }
-    
-  startPeak = &((*P).second);
   
-  // to compute some other parameters at the same time:
-  update_CHRGMAP( &(*P).second ); 
-  
-  P++;
+  // FLO: On windows, there is an error when we try to de-reference P when  
+  // P refers to get_signal_list_end() - the case is quite obvious when we 
+  // see that P is incremented afterwards. Without knowing I just introduce
+  // a check whether P is equal to get_signal_list_end().
+  if (P != get_signal_list_end()) {
+	  startPeak = &((*P).second);
+	  
+	  // to compute some other parameters at the same time:
+	  update_CHRGMAP( &(*P).second ); 
+	  
+	  P++;
+  }
   
   // go through all peaks in the LC elution profile:
   while(P != get_signal_list_end()){

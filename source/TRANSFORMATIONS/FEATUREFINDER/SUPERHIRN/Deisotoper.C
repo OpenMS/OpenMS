@@ -164,7 +164,8 @@ void Deisotoper::cleanDeconvPeaks()
 			if (most_intense->getIntensity() > 2.0*pi->getIntensity()) {
 //				cout << "remove: " << pi->getMass() << " " << pi->getIntensity() << endl;
 				pi = fDeconvPeaks.erase(pi);
-				--pi;
+				if (pi != fDeconvPeaks.begin()) // FLO: Fix windows error (crash "could not decrement")
+					--pi;
 			}
 		}
 		
