@@ -72,7 +72,7 @@ namespace OpenMS
 			~ClusteredMS2ConsensusSpectrum();
 
 			// class constructor
-			ClusteredMS2ConsensusSpectrum();
+			ClusteredMS2ConsensusSpectrum() {};
 			ClusteredMS2ConsensusSpectrum(MS2Fragment*);
 			ClusteredMS2ConsensusSpectrum(MS2ConsensusSpectrum*);
 			ClusteredMS2ConsensusSpectrum(double, double, int, int);

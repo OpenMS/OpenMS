@@ -31,12 +31,11 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ConsensusIsotopePattern.h>
 
 ///////////////////////////
 
-START_TEST(BackgroundControl, "$Id$")
+START_TEST(ConsensusIsotopePattern, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -44,18 +43,34 @@ START_TEST(BackgroundControl, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundControl* ptr;
-START_SECTION((BackgroundControl()))
-	ptr = new BackgroundControl();
+ConsensusIsotopePattern* ptr;
+START_SECTION((ConsensusIsotopePattern()))
+	ptr = new ConsensusIsotopePattern();
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION((~BackgroundControl()))
+START_SECTION((~ConsensusIsotopePattern()))
 	delete ptr;
 END_SECTION
 
-ptr = new BackgroundControl();
+ptr = new ConsensusIsotopePattern();
 
+START_SECTION(TODO)
+// 			// constructs the consensus pattern:
+// 			void constructConsusPattern();
+// 			// order an isotope trace in the correct cluster:
+// 			void addIsotopeTrace(double, double);
+// 			// condenses the pattern, make average peaks from the traces:
+// 			void condensIsotopePattern(std::pair<std::vector<double>, std::vector<double> >*);
+// 
+// 			///////////////////////////////
+// 			// start here all the get / set
+// 			// function to access the
+// 			// variables of the class
+// 
+// 			std::map<double, double>::iterator getConsensIsotopeIteratorStart();
+// 			std::map<double, double>::iterator getConsensIsotopeIteratorEnd();
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

@@ -31,12 +31,11 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Fragment.h>
 
 ///////////////////////////
 
-START_TEST(BackgroundControl, "$Id$")
+START_TEST(MS2Fragment, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -44,17 +43,17 @@ START_TEST(BackgroundControl, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundControl* ptr;
-START_SECTION((BackgroundControl()))
-	ptr = new BackgroundControl();
-	TEST_NOT_EQUAL(ptr,0)
+MS2Fragment* ptr;
+START_SECTION((MS2Fragment()))
+  ptr = new MS2Fragment();
+  TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION((~BackgroundControl()))
-	delete ptr;
+START_SECTION((~MS2Fragment()))
+  delete ptr;
 END_SECTION
 
-ptr = new BackgroundControl();
+ptr = new MS2Fragment();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

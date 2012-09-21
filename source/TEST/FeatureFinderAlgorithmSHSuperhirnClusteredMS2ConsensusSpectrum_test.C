@@ -56,6 +56,20 @@ END_SECTION
 
 ptr = new ClusteredMS2ConsensusSpectrum(0, 0, 0, 0);
 
+START_SECTION(TODO)
+// 
+// void constructClusteredConsenusSpectraFragments(MS2ConsensusSpectrum*);
+// 
+// void addMS2ConsensusSpectrum(MS2ConsensusSpectrum*);
+// 
+// void extractFragmentsFromSpectra(MS2ConsensusSpectrum*);
+// void mergeMS2Fragments(MS2Fragment*, MS2Fragment*);
+// 
+// void plotCombinedSpectra();
+// 
+// void removeOutlierFragments();
+
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

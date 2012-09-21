@@ -90,7 +90,7 @@ START_SECTION((virtual void run()))
   //parameters
   Param param;
   //param.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"));
-  //param = param.copy("FeatureFinder:1:algorithm:",true);
+  param = param.copy("FeatureFinder:1:algorithm:",true);
   //Dummy featurefinder
   FeatureFinder ff;
 
@@ -107,9 +107,15 @@ START_SECTION((virtual void run()))
   // ...
 	
 	//TOLERANCE_ABSOLUTE(20.0);
-	//TEST_REAL_SIMILAR(output[0].getIntensity(),51260.0);
-	//TEST_REAL_SIMILAR(output[1].getIntensity(),44667.3);
+	TEST_REAL_SIMILAR(output[0].getIntensity(),20829);
+	TEST_REAL_SIMILAR(output[1].getIntensity(),56818.6);
   // ...
+
+	TEST_REAL_SIMILAR(output[0].getMZ(),300.060882568359);
+	TEST_REAL_SIMILAR(output[1].getMZ(),300.060882568359);
+
+  TEST_REAL_SIMILAR(output[0].getRT(),35.1000317866759);
+  TEST_REAL_SIMILAR(output[1].getRT(),134.37407934271);
 	
 END_SECTION
 

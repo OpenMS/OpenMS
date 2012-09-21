@@ -65,7 +65,7 @@ public:
   // class destructor
   ~MS2Feature();
   // class constructor
-  MS2Feature();
+  MS2Feature() {};
   MS2Feature(MS2Fragment*);
   MS2Feature(double iPrecursorMZ, double iTR, int iChrg, int iApexScan);
   

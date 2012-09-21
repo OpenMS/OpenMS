@@ -52,7 +52,7 @@ namespace OpenMS
 
 		public:
 
-			RawData();
+			RawData() {};
 			RawData(std::vector<double>&, std::vector<double>&);
 			virtual ~RawData();
 

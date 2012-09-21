@@ -30,13 +30,13 @@
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
 
 ///////////////////////////
 
-START_TEST(BackgroundControl, "$Id$")
+START_TEST(MSPeak, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -44,17 +44,17 @@ START_TEST(BackgroundControl, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundControl* ptr;
-START_SECTION((BackgroundControl()))
-	ptr = new BackgroundControl();
+MSPeak* ptr;
+START_SECTION((MSPeak()))
+	ptr = new MSPeak();
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION((~BackgroundControl()))
+START_SECTION((~MSPeak()))
 	delete ptr;
 END_SECTION
 
-ptr = new BackgroundControl();
+ptr = new MSPeak();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

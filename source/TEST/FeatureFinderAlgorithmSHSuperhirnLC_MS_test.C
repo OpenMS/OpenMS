@@ -31,12 +31,15 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Info.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FeatureLCProfile.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Feature.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SHFeature.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMS.h>
 
 ///////////////////////////
 
-START_TEST(BackgroundControl, "$Id$")
+START_TEST(LCMS, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -44,17 +47,17 @@ START_TEST(BackgroundControl, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundControl* ptr;
-START_SECTION((BackgroundControl()))
-	ptr = new BackgroundControl();
+LCMS* ptr;
+START_SECTION((LCMS()))
+	ptr = new LCMS();
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION((~BackgroundControl()))
+START_SECTION((~LCMS()))
 	delete ptr;
 END_SECTION
 
-ptr = new BackgroundControl();
+ptr = new LCMS();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

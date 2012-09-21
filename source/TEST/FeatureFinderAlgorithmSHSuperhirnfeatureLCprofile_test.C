@@ -31,12 +31,11 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FeatureLCProfile.h>
 
 ///////////////////////////
 
-START_TEST(BackgroundControl, "$Id$")
+START_TEST(FeatureLCProfile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -44,17 +43,17 @@ START_TEST(BackgroundControl, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundControl* ptr;
-START_SECTION((BackgroundControl()))
-	ptr = new BackgroundControl();
+FeatureLCProfile* ptr;
+START_SECTION((FeatureLCProfile()))
+	ptr = new FeatureLCProfile();
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION((~BackgroundControl()))
+START_SECTION((~FeatureLCProfile()))
 	delete ptr;
 END_SECTION
 
-ptr = new BackgroundControl();
+ptr = new FeatureLCProfile();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

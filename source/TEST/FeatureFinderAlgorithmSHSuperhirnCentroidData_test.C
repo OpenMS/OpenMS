@@ -74,6 +74,16 @@ ptr->get(*centroidPeaks);
 TEST_EQUAL(centroidPeaks->size(), 1);
 END_SECTION
 
+START_SECTION(TODO)
+
+// CentroidPeak
+// 			void show_info();
+// 			void subtractIntensity(double);
+
+// DeconvPeak
+// std::vector<CentroidPeak> getIsotopicPeaks();
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

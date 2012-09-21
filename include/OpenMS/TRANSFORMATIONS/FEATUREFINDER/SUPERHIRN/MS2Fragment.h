@@ -91,7 +91,7 @@ public:
 
   
     // class constructor
-  MS2Fragment();
+  MS2Fragment() {};
     // class copy constructor
   MS2Fragment(const MS2Fragment&);
   // class copy constructor
