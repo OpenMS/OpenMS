@@ -180,7 +180,13 @@ namespace OpenMS
       MyMap dummyMap;
       Vec* datavec = new Vec(map_.size(), dummyMap);
       unsigned int scanId = 0;
-      bool orderByNativeIds = false; // TODO make this configurable by parameter
+      
+      // Ordering by native IDs order by scan numbers
+      // To achieve the exact same results as the original
+      // superhirn does, this is necessary.
+      // However, its is very experimental and will work
+      // for all data since its based on string comparison.
+      bool orderByNativeIds = false;
       
       for (unsigned int s = 0; s < map_.size(); s++)
       {
