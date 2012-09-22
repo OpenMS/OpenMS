@@ -266,12 +266,6 @@ protected:
       {
         format = "nosuffix";
       }
-      if (!out_formats_.contains(format.toUpper()))
-      {
-        LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
-
     }
     MSExperiment<> exp;
     MzMLFile f;
