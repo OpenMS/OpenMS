@@ -45,7 +45,7 @@
             <ITEM name="max_missing" value="1" type="int" description="Number of consecutive spectra where a high mass deviation or missing peak is acceptable.#br#This parameter should be well below &apos;min_spectra&apos;!" restrictions="0:" />
             <ITEM name="slope_bound" value="0.5" type="float" description="The maximum slope of mass trace intensities when extending from the highest peak.#br#This parameter is important to seperate overlapping elution peaks.#br#It should be increased if feature elution profiles fluctuate a lot." restrictions="0:" />
           </NODE>
-          <NODE name="isotopic_pattern" description="Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).">
+          <NODE name="isotopic_pattern" description="Settings for the calculation of a score indicating if a peak is part of a isotopic pattern (between 0 and 1).">
             <ITEM name="charge_low" value="2" type="int" description="Lowest charge to search for." restrictions="1:" />
             <ITEM name="charge_high" value="3" type="int" description="Highest charge to search for." restrictions="1:" />
             <ITEM name="mz_tolerance" value="0.005" type="float" description="Tolerated m/z deviation from the theoretical isotopic pattern.#br#It should be larger than the m/z resolution of the instument.#br#This value must be smaller than that 1/charge_high!" restrictions="0:" />
