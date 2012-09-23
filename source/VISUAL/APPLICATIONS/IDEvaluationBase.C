@@ -391,7 +391,7 @@ namespace OpenMS
 
   StringList IDEvaluationBase::getSupportedImageFormats()
   {
-    return StringList::create("PNG,JPG,SVG");
+    return StringList::create("png,jpg,svg"); // make sure this is lower-case
   }
 
   bool IDEvaluationBase::exportAsImage(const QString & file_name, String & error_message, const QString & format)
