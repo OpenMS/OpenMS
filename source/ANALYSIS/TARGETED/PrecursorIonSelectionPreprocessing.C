@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
 // $Authors: Alexandra Zerck $
@@ -205,7 +205,6 @@ namespace OpenMS
     std::cout << "pt_map is empty, no detectabilities predicted!" << std::endl;
     return 1;
   }
-
 
   DoubleReal PrecursorIonSelectionPreprocessing::getWeight(DoubleReal mass)
   {
@@ -1141,63 +1140,67 @@ namespace OpenMS
 
   }
 
-
   DoubleReal PrecursorIonSelectionPreprocessing::getRTProbability_(DoubleReal min_obs_rt, DoubleReal max_obs_rt, DoubleReal theo_rt)
   {
     // first adapt gaussian RT error distribution to a normal distribution with \mu = 0
     Int theo_scan = getScanNumber_(theo_rt);
-    if (theo_scan == -1) return 0.;
+    if (theo_scan == -1)
+      return 0.;
+
     DoubleReal obs_scan_begin = getScanNumber_(min_obs_rt);
-    if (obs_scan_begin != 0)  obs_scan_begin -=1;
-    DoubleReal obs_scan_end = getScanNumber_(max_obs_rt)+1;
+    if (obs_scan_begin != 0)
+      obs_scan_begin -= 1;
+    DoubleReal obs_scan_end = getScanNumber_(max_obs_rt) + 1;
 
     if (obs_scan_begin == -1 || obs_scan_end == -1)
     {
       std::cerr << "Probably an error occured during RTProb-calc: scan = -1: "
-                << obs_scan_begin << " "<< obs_scan_end << std::endl;
+                << obs_scan_begin << " " << obs_scan_end << std::endl;
       return 0.;
     }
-    
+
     obs_scan_begin -= mu_;
     obs_scan_end -= mu_;
-    DoubleReal x1,x2;
+    DoubleReal x1, x2;
     x1 = theo_scan - obs_scan_end;
     x2 = theo_scan - obs_scan_begin;
     DoubleReal prob;
     // gsl_cdf_gaussian_P computes the cumulative probs up to x (i.e. the area under the curve)
     // so cgauss(x2)  - cgauss(x1) yields the area between x1 and x2
-    if (x2 > x1) prob = gsl_cdf_gaussian_P(x2,sigma_) - gsl_cdf_gaussian_P(x1,sigma_);
-    else  prob = gsl_cdf_gaussian_P(x1,sigma_) -  gsl_cdf_gaussian_P(x2,sigma_);
+    if (x2 > x1)
+      prob = gsl_cdf_gaussian_P(x2, sigma_) - gsl_cdf_gaussian_P(x1, sigma_);
+    else
+      prob = gsl_cdf_gaussian_P(x1, sigma_) -  gsl_cdf_gaussian_P(x2, sigma_);
     if ((prob < 0.) || (obs_scan_begin == obs_scan_end))
     {
-      std::cerr << min_obs_rt << " "<< obs_scan_begin << " " << max_obs_rt << " "<< obs_scan_end << " "
-                << theo_rt << " " << theo_scan << " " << mu_ << " "<< x1 << " "<<x2 << " "<< prob<<std::endl;
-      if (x2 > x1) std::cerr <<  gsl_cdf_gaussian_P(x2,sigma_) <<" - "<<gsl_cdf_gaussian_P(x1,sigma_)<<std::endl;
-      else  std::cerr <<   gsl_cdf_gaussian_P(x1,sigma_)<<" - "<< gsl_cdf_gaussian_P(x2,sigma_)<<std::endl;
+      std::cerr << min_obs_rt << " " << obs_scan_begin << " " << max_obs_rt << " " << obs_scan_end << " "
+                << theo_rt << " " << theo_scan << " " << mu_ << " " << x1 << " " << x2 << " " << prob << std::endl;
+      if (x2 > x1)
+        std::cerr <<  gsl_cdf_gaussian_P(x2, sigma_) << " - " << gsl_cdf_gaussian_P(x1, sigma_) << std::endl;
+      else
+        std::cerr <<   gsl_cdf_gaussian_P(x1, sigma_) << " - " << gsl_cdf_gaussian_P(x2, sigma_) << std::endl;
     }
     return prob;
   }
 
-
- 
   Int PrecursorIonSelectionPreprocessing::getScanNumber_(DoubleReal rt)
   {
     DoubleReal min_rt = param_.getValue("rt_settings:min_rt");
     DoubleReal max_rt = param_.getValue("rt_settings:max_rt");
     DoubleReal rt_step_size = param_.getValue("rt_settings:rt_step_size");
-    
-    if (rt > max_rt || rt < min_rt) return -1;
+
+    if (rt > max_rt || rt < min_rt)
+      return -1;
 
     Int scan = (Int)floor((rt - min_rt) / rt_step_size);
     return scan;
   }
 
-  
-	void PrecursorIonSelectionPreprocessing::setGaussianParameters(DoubleReal mu, DoubleReal sigma)
-	{
-		sigma_ = sigma;
-		mu_ = mu;
-	}
+  void PrecursorIonSelectionPreprocessing::setGaussianParameters(DoubleReal mu, DoubleReal sigma)
+  {
+    sigma_ = sigma;
+    mu_ = mu;
+  }
 
   void PrecursorIonSelectionPreprocessing::updateMembers_()
   {
@@ -1207,38 +1210,38 @@ namespace OpenMS
 
   DoubleReal PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature & feature)
   {
-		DoubleReal theo_rt = 0.;
-		if (rt_prot_map_.size() > 0)
-		{
+    DoubleReal theo_rt = 0.;
+    if (rt_prot_map_.size() > 0)
+    {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {
-        if (rt_prot_map_[prot_id].size() > peptide_index)	theo_rt = rt_prot_map_[prot_id][peptide_index];
+        if (rt_prot_map_[prot_id].size() > peptide_index)
+          theo_rt = rt_prot_map_[prot_id][peptide_index];
       }
     }
-		if (theo_rt == 0.)
+    if (theo_rt == 0.)
     {
       if (rt_prot_map_.find(prot_id) == rt_prot_map_.end())
       {
-        std::cerr << " prot_id not in map "<<prot_id << std::endl;
+        std::cerr << " prot_id not in map " << prot_id << std::endl;
       }
       else
       {
-        std::cerr << "protein in map, but "<< peptide_index << " " <<rt_prot_map_[prot_id].size()<<std::endl;
+        std::cerr << "protein in map, but " << peptide_index << " " << rt_prot_map_[prot_id].size() << std::endl;
       }
-      std::cerr << "rt_map is empty, no rts predicted!"<<std::endl;
+      std::cerr << "rt_map is empty, no rts predicted!" << std::endl;
     }
     DoubleReal rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
     DoubleReal rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];
-		return 	getRTProbability_(rt_begin, rt_end, theo_rt);
+    return getRTProbability_(rt_begin, rt_end, theo_rt);
   }
 
-  
   DoubleReal PrecursorIonSelectionPreprocessing::getRTProbability(DoubleReal pred_rt, Feature & feature)
   {
     DoubleReal rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
     DoubleReal rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];
-    
-		return 	getRTProbability_(rt_begin, rt_end, pred_rt);
+
+    return getRTProbability_(rt_begin, rt_end, pred_rt);
   }
-  
+
 } //namespace

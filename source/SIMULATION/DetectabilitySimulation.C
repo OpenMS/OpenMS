@@ -1,38 +1,38 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#include<OpenMS/SIMULATION/DetectabilitySimulation.h>
+#include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -44,31 +44,33 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-namespace OpenMS {
+namespace OpenMS
+{
 
-  DetectabilitySimulation::DetectabilitySimulation()
-    : DefaultParamHandler("DetectabilitySimulation")
+  DetectabilitySimulation::DetectabilitySimulation() :
+    DefaultParamHandler("DetectabilitySimulation")
   {
     setDefaultParams_();
   }
 
-  DetectabilitySimulation::DetectabilitySimulation(const DetectabilitySimulation& source)
-    : DefaultParamHandler(source)
+  DetectabilitySimulation::DetectabilitySimulation(const DetectabilitySimulation & source) :
+    DefaultParamHandler(source)
   {
-    setParameters( source.getParameters() );
-    updateMembers_(); 
+    setParameters(source.getParameters());
+    updateMembers_();
   }
 
-  DetectabilitySimulation& DetectabilitySimulation::operator = (const DetectabilitySimulation& source)
+  DetectabilitySimulation & DetectabilitySimulation::operator=(const DetectabilitySimulation & source)
   {
-    setParameters( source.getParameters() );
+    setParameters(source.getParameters());
     updateMembers_();
     return *this;
   }
-  
+
   DetectabilitySimulation::~DetectabilitySimulation()
-  {}
-  
+  {
+  }
+
   void DetectabilitySimulation::filterDetectability(FeatureMapSim & features)
   {
     LOG_INFO << "Detectability Simulation ... started" << std::endl;
@@ -81,165 +83,166 @@ namespace OpenMS {
       noFilter_(features);
     }
   }
-  
+
   void DetectabilitySimulation::noFilter_(FeatureMapSim & features)
-  {  
+  {
     // set detectibility to 1.0 for all given peptides
     DoubleReal defaultDetectibility = 1.0;
-    
-    for(FeatureMapSim::iterator feature_it = features.begin();
-        feature_it != features.end();
-        ++feature_it) 
+
+    for (FeatureMapSim::iterator feature_it = features.begin();
+         feature_it != features.end();
+         ++feature_it)
     {
-      (*feature_it).setMetaValue("detectability", defaultDetectibility );
-    }     
+      (*feature_it).setMetaValue("detectability", defaultDetectibility);
+    }
   }
 
-	void DetectabilitySimulation::predictDetectabilities(vector<String>& peptides_vector,vector<DoubleReal>& labels,
-																											 vector<DoubleReal>& detectabilities)
-	{
+  void DetectabilitySimulation::predictDetectabilities(vector<String> & peptides_vector, vector<DoubleReal> & labels,
+                                                       vector<DoubleReal> & detectabilities)
+  {
     // The support vector machine
-		SVMWrapper svm_;
+    SVMWrapper svm_;
 
     // initialize support vector machine
     LibSVMEncoder encoder;
-    svm_problem* training_data = NULL;
+    svm_problem * training_data = NULL;
     UInt k_mer_length = 0;
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
-    
-		if (File::readable(dt_model_file_))
-		{
-    	svm_.loadModel(dt_model_file_);
+
+    if (File::readable(dt_model_file_))
+    {
+      svm_.loadModel(dt_model_file_);
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation got invalid parameter. 'dt_model_file' " + dt_model_file_ + " is not readable");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation got invalid parameter. 'dt_model_file' " + dt_model_file_ + " is not readable");
     }
-		
-		// load additional parameters
-		if (svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+
+    // load additional parameters
+    if (svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
       String add_paramfile = dt_model_file_ + "_additional_parameters";
-      if (! File::readable( add_paramfile ) )
+      if (!File::readable(add_paramfile))
       {
-        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation: SVM parameter file " + add_paramfile + " is not readable");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: SVM parameter file " + add_paramfile + " is not readable");
       }
-      
+
       Param additional_parameters;
       additional_parameters.load(add_paramfile);
-      
+
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-          && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+         && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation: No border length defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No border length defined in additional parameters file.");
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
       if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-          && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+         && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation: No k-mer length defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No k-mer length defined in additional parameters file.");
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
-      
+
       if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-          && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+         && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation: No sigma defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No sigma defined in additional parameters file.");
       }
-      
+
       sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
     }
-    
-		if (File::readable(dt_model_file_))
-		{
-    	svm_.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
-    	svm_.setParameter(SVMWrapper::SIGMA, sigma);
-    	// to obtain probabilities
-    	svm_.setParameter(SVMWrapper::PROBABILITY, 1);
-		}
+
+    if (File::readable(dt_model_file_))
+    {
+      svm_.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
+      svm_.setParameter(SVMWrapper::SIGMA, sigma);
+      // to obtain probabilities
+      svm_.setParameter(SVMWrapper::PROBABILITY, 1);
+    }
     // loading training data
     String sample_file = dt_model_file_ + "_samples";
     if (File::readable(sample_file))
     {
-    	training_data = encoder.loadLibSVMProblem(sample_file);
-    	svm_.setTrainingSample(training_data);
+      training_data = encoder.loadLibSVMProblem(sample_file);
+      svm_.setTrainingSample(training_data);
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, "DetectibilitySimulation: SVM sample file " + sample_file + " is not readable");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: SVM sample file " + sample_file + " is not readable");
     }
 
-		
+
     LOG_INFO << "Predicting peptide detectabilities..    " << endl;
-    
+
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-    
+
     // Encoding test data
     vector<DoubleReal> probs;
     probs.resize(peptides_vector.size(), 0);
-		
-    svm_problem* prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides_vector, probs,
-                                                                                     k_mer_length,
-                                                                                     allowed_amino_acid_characters,
-                                                                                     svm_.getIntParameter(SVMWrapper::BORDER_LENGTH));
-    
+
+    svm_problem * prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides_vector, probs,
+                                                                                      k_mer_length,
+                                                                                      allowed_amino_acid_characters,
+                                                                                      svm_.getIntParameter(SVMWrapper::BORDER_LENGTH));
+
     svm_.getSVCProbabilities(prediction_data, detectabilities, labels);
-    
+
     delete prediction_data;
   }
-	
+
   void DetectabilitySimulation::svmFilter_(FeatureMapSim & features)
   {
-    
+
     // transform featuremap to peptides vector
-    vector< String > peptides_vector(features.size());
-    for(Size i = 0; i < features.size(); ++i)
+    vector<String> peptides_vector(features.size());
+    for (Size i = 0; i < features.size(); ++i)
     {
       peptides_vector[i] = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
     }
 
-		vector<DoubleReal> labels;
-		vector<DoubleReal> detectabilities;
-		predictDetectabilities(peptides_vector,labels,detectabilities);
+    vector<DoubleReal> labels;
+    vector<DoubleReal> detectabilities;
+    predictDetectabilities(peptides_vector, labels, detectabilities);
 
-		
+
     // copy all meta data stored in the feature map
-    FeatureMapSim temp_copy(features); 
+    FeatureMapSim temp_copy(features);
     temp_copy.clear(false);
-    
+
     for (Size i = 0; i < peptides_vector.size(); ++i)
     {
 
       if (detectabilities[i] > min_detect_)
       {
-        features[i].setMetaValue("detectability", detectabilities[i] );
+        features[i].setMetaValue("detectability", detectabilities[i]);
         temp_copy.push_back(features[i]);
       }
 #ifdef DEBUG_SIM
       cout << detectabilities[i] << " " << min_detect_ << endl;
 #endif
-    } 
-    
+    }
+
     features.swap(temp_copy);
   }
 
-  void DetectabilitySimulation::setDefaultParams_() 
+  void DetectabilitySimulation::setDefaultParams_()
   {
-		defaults_.setValue("dt_simulation_on", "false", "Modelling detectibility enabled? This can serve as a filter to remove peptides which ionize badly, thus reducing peptide count");
+    defaults_.setValue("dt_simulation_on", "false", "Modelling detectibility enabled? This can serve as a filter to remove peptides which ionize badly, thus reducing peptide count");
     defaults_.setValidStrings("dt_simulation_on", StringList::create("true,false"));
-    defaults_.setValue("min_detect",0.5,"Minimum peptide detectability accepted. Peptides with a lower score will be removed");
-    defaults_.setValue("dt_model_file","examples/simulation/DTPredict.model","SVM model for peptide detectability prediction");
+    defaults_.setValue("min_detect", 0.5, "Minimum peptide detectability accepted. Peptides with a lower score will be removed");
+    defaults_.setValue("dt_model_file", "examples/simulation/DTPredict.model", "SVM model for peptide detectability prediction");
     defaultsToParam_();
   }
-  
+
   void DetectabilitySimulation::updateMembers_()
   {
     min_detect_ = param_.getValue("min_detect");
-		dt_model_file_ = param_.getValue("dt_model_file");
-		if (! File::readable( dt_model_file_ ) )
-    { // look in OPENMS_DATA_PATH
-      dt_model_file_ = File::find( dt_model_file_ );
+    dt_model_file_ = param_.getValue("dt_model_file");
+    if (!File::readable(dt_model_file_)) // look in OPENMS_DATA_PATH
+    {
+      dt_model_file_ = File::find(dt_model_file_);
     }
-  }  
+  }
+
 }

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
 // $Authors: Steffen Sass, Holger Plattfaut, Bastian Blank $
@@ -36,10 +36,10 @@
 
 using namespace OpenMS;
 
-IsotopeDistributionCache::IsotopeDistributionCache(DoubleReal max_mass, DoubleReal mass_window_width, DoubleReal intensity_percentage, DoubleReal intensity_percentage_optional)
-  : mass_window_width_(mass_window_width)
+IsotopeDistributionCache::IsotopeDistributionCache(DoubleReal max_mass, DoubleReal mass_window_width, DoubleReal intensity_percentage, DoubleReal intensity_percentage_optional) :
+  mass_window_width_(mass_window_width)
 {
-  Size num_isotopes = std::ceil(max_mass/mass_window_width) + 1;
+  Size num_isotopes = std::ceil(max_mass / mass_window_width) + 1;
 
   //reserve enough space
   isotope_distributions_.resize(num_isotopes);
@@ -50,7 +50,7 @@ IsotopeDistributionCache::IsotopeDistributionCache(DoubleReal max_mass, DoubleRe
     //log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
     IsotopeDistribution d;
     d.setMaxIsotope(20);
-    d.estimateFromPeptideWeight(0.5*mass_window_width + index * mass_window_width);
+    d.estimateFromPeptideWeight(0.5 * mass_window_width + index * mass_window_width);
 
     //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
     Size size_before = d.size();
@@ -58,7 +58,7 @@ IsotopeDistributionCache::IsotopeDistributionCache(DoubleReal max_mass, DoubleRe
     isotope_distributions_[index].trimmed_left = size_before - d.size();
     d.trimRight(intensity_percentage_optional);
 
-    for (IsotopeDistribution::Iterator it=d.begin(); it!=d.end(); ++it)
+    for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
     {
       isotope_distributions_[index].intensity.push_back(it->second);
       //log_ << " - " << it->second << std::endl;
@@ -73,9 +73,12 @@ IsotopeDistributionCache::IsotopeDistributionCache(DoubleReal max_mass, DoubleRe
     {
       if (isotope_distributions_[index].intensity[i] < intensity_percentage)
       {
-        if (!is_end && !is_begin) is_end = true;
-        if (is_begin) ++begin;
-        else if (is_end) ++end;
+        if (!is_end && !is_begin)
+          is_end = true;
+        if (is_begin)
+          ++begin;
+        else if (is_end)
+          ++end;
       }
       else if (is_begin)
       {
@@ -105,10 +108,10 @@ IsotopeDistributionCache::IsotopeDistributionCache(DoubleReal max_mass, DoubleRe
 }
 
 /// Returns the isotope distribution for a certain mass window
-const IsotopeDistributionCache::TheoreticalIsotopePattern& IsotopeDistributionCache::getIsotopeDistribution(DoubleReal mass) const
+const IsotopeDistributionCache::TheoreticalIsotopePattern & IsotopeDistributionCache::getIsotopeDistribution(DoubleReal mass) const
 {
   //calculate index in the vector
-  Size index = (Size)std::floor(mass / mass_window_width_);
+  Size index = (Size) std::floor(mass / mass_window_width_);
 
   if (index >= isotope_distributions_.size())
   {

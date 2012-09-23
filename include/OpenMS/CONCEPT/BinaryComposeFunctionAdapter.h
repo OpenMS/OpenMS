@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> $
@@ -38,7 +38,8 @@
 
 #include <functional>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
   /**
     @brief Represents the binary compose function object adapter.
@@ -103,39 +104,40 @@ int main(int argc, char** argv) {
     OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   */
   template <class OP1, class OP2, class OP3>
-  class BinaryComposeFunctionAdapter
-      : public std::binary_function<typename OP2::argument_type,
-      typename OP3::argument_type,
-      typename OP1::result_type>
+  class BinaryComposeFunctionAdapter :
+    public std::binary_function<typename OP2::argument_type,
+                                typename OP3::argument_type,
+                                typename OP1::result_type>
   {
-  private:
+private:
     OP1 op1_;    // process: op1(op2(x),op3(y))
     OP2 op2_;
     OP3 op3_;
-  public:
+public:
     /// constructor
-    BinaryComposeFunctionAdapter (const OP1& o1, const OP2& o2, const OP3& o3)
-      : op1_(o1), op2_(o2), op3_(o3)
+    BinaryComposeFunctionAdapter(const OP1 & o1, const OP2 & o2, const OP3 & o3) :
+      op1_(o1), op2_(o2), op3_(o3)
     {
     }
 
     /// function call
     typename OP1::result_type
-    operator()(const typename OP2::argument_type& x,
-               const typename OP3::argument_type& y) const
+    operator()(const typename OP2::argument_type & x,
+               const typename OP3::argument_type & y) const
     {
-      return op1_(op2_(x),op3_(y));
+      return op1_(op2_(x), op3_(y));
     }
+
   };
 
   /**
     @brief Convenience function for the @c BinaryComposeFunctionAdapter adapter
   */
   template <class OP1, class OP2, class OP3>
-  inline BinaryComposeFunctionAdapter<OP1,OP2,OP3>
-  binaryCompose (const OP1& o1, const OP2& o2, const OP3& o3)
+  inline BinaryComposeFunctionAdapter<OP1, OP2, OP3>
+  binaryCompose(const OP1 & o1, const OP2 & o2, const OP3 & o3)
   {
-    return BinaryComposeFunctionAdapter<OP1,OP2,OP3>(o1,o2,o3);
+    return BinaryComposeFunctionAdapter<OP1, OP2, OP3>(o1, o2, o3);
   }
 
 } // namespace OpenMS

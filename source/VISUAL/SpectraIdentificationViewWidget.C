@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Timo Sachsenberg $
@@ -190,15 +190,15 @@ namespace OpenMS
 
           if (!is_ms1_shown_)
           {
-            #ifdef DEBUG_IDENTIFICATION_VIEW
+#ifdef DEBUG_IDENTIFICATION_VIEW
             cout << "cellClicked_ deselect MS2: " << ms2_spectrum_index << endl;
-            #endif
+#endif
             emit spectrumDeselected(ms2_spectrum_index);
           }
 
-          #ifdef DEBUG_IDENTIFICATION_VIEW
+#ifdef DEBUG_IDENTIFICATION_VIEW
           cout << "cellClicked_ select MS1: " << ms1_spectrum_index << endl;
-          #endif
+#endif
           emit spectrumSelected(ms1_spectrum_index);
           is_ms1_shown_ = true;
           emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz +  50.0);
@@ -222,16 +222,16 @@ namespace OpenMS
 
     if (is_ms1_shown_)
     {
-      #ifdef DEBUG_IDENTIFICATION_VIEW
+#ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "selection Change MS1 deselect: " << layer_->current_spectrum << endl;
-      #endif
+#endif
       emit spectrumDeselected(int(layer_->getCurrentSpectrumIndex()));
     }
     else
     {
-      #ifdef DEBUG_IDENTIFICATION_VIEW
+#ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "selection Change MS2 deselect: " << previous_spectrum_index << endl;
-      #endif
+#endif
       emit spectrumDeselected(previous_spectrum_index);
     }
 
@@ -241,9 +241,9 @@ namespace OpenMS
     }
     else    // !precursor mz column clicked
     {
-      #ifdef DEBUG_IDENTIFICATION_VIEW
+#ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "selection Change MS2 select " << current_spectrum_index << endl;
-      #endif
+#endif
       emit spectrumSelected(current_spectrum_index);
     }
   }
@@ -418,17 +418,17 @@ namespace OpenMS
       item->setBackgroundColor(c);
       table_widget_->setItem(table_widget_->rowCount() - 1, 2, item);
 
-      #ifdef DEBUG_IDENTIFICATION_VIEW
+#ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "peptide identifications found:  " << id_count << endl;
-      #endif
+#endif
 
       if (id_count != 0)
       {
         vector<PeptideHit> ph = pi[0].getHits();
 
-        #ifdef DEBUG_IDENTIFICATION_VIEW
+#ifdef DEBUG_IDENTIFICATION_VIEW
         cout << "  peptide hits found: " << ph.size() << endl;
-        #endif
+#endif
 
         bool is_higher_score_better = false;
         Size best_score = pi[0].getHits()[0].getScore();
@@ -445,9 +445,9 @@ namespace OpenMS
             {
               PeptideHit ph = pi[pi_index].getHits()[j];
 
-              #ifdef DEBUG_IDENTIFICATION_VIEW
+#ifdef DEBUG_IDENTIFICATION_VIEW
               cout << "    " << i << " "  << pi_index << " " << j << " " << ph.getScore() << " " << ph.getSequence().toString() << endl;
-              #endif
+#endif
               // better score?
               if ((ph.getScore() < best_score && !is_higher_score_better)
                  || (ph.getScore() > best_score && is_higher_score_better))

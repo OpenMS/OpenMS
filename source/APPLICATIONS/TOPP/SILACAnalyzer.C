@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
 // $Authors: Lars Nilse, Steffen Sass, Holger Plattfaut, Bastian Blank $
@@ -114,8 +114,8 @@ using namespace std;
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_SILACAnalyzer.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude TOPP_SILACAnalyzer.html
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude TOPP_SILACAnalyzer.html
 
   <b>Parameter Tuning</b>
 
@@ -149,7 +149,7 @@ using namespace std;
 
  Parameters in section <i>labels:</i>
  This section contains a list of all isotopic labels currently available for analysis of SILAC data with SILACAnalyzer.
- 
+
  <b>References:</b>
   @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard,  <a href="http://www.springerlink.com/content/u40057754100v71t">SILACAnalyzer - a tool for differential quantitation of stable isotope derived data</a>, in F. Masulli, L. Peterson, and R. Tagliaferri (Eds.): CIBB 2009, LNBI 6160, pp. 4555, 2010.
 */
@@ -157,56 +157,55 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPSILACAnalyzer
-: public TOPPBase
+class TOPPSILACAnalyzer :
+  public TOPPBase
 {
-  private:
+private:
 
-    // input and output files
-    String in;
-    String out;
-    String out_clusters;    
-    String out_features;    
-    String out_mzq;    
+  // input and output files
+  String in;
+  String out;
+  String out_clusters;
+  String out_features;
+  String out_mzq;
 
-    String out_filters;
-    String in_filters;
-    String out_debug;
+  String out_filters;
+  String in_filters;
+  String out_debug;
 
-    // section "sample"
-    String selected_labels;
+  // section "sample"
+  String selected_labels;
   UInt charge_min;
   UInt charge_max;
-    Int missed_cleavages;
+  Int missed_cleavages;
   UInt isotopes_per_peptide_min;
   UInt isotopes_per_peptide_max;
 
-    // section "algorithm"
-    DoubleReal rt_threshold;
-    DoubleReal rt_min;
-    DoubleReal intensity_cutoff;
-    DoubleReal intensity_correlation;
-    DoubleReal model_deviation;
-    bool allow_missing_peaks;
+  // section "algorithm"
+  DoubleReal rt_threshold;
+  DoubleReal rt_min;
+  DoubleReal intensity_cutoff;
+  DoubleReal intensity_correlation;
+  DoubleReal model_deviation;
+  bool allow_missing_peaks;
 
-    // section "labels"
-    map<String, DoubleReal> label_identifiers;
-    vector<vector <String> > SILAClabels;     // list of SILAC labels, e.g. selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
-    vector<vector <DoubleReal> > massShifts;      // list of mass shifts
+  // section "labels"
+  map<String, DoubleReal> label_identifiers;
+  vector<vector<String> > SILAClabels;        // list of SILAC labels, e.g. selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
+  vector<vector<DoubleReal> > massShifts;         // list of mass shifts
 
-    typedef SILACClustering Clustering;
+  typedef SILACClustering Clustering;
 
-    vector<vector<SILACPattern> > data;
-    vector<Clustering *> cluster_data;
+  vector<vector<SILACPattern> > data;
+  vector<Clustering *> cluster_data;
 
-	MSQuantifications msq;
+  MSQuantifications msq;
 
-  public:
-    TOPPSILACAnalyzer()
-      : TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data",true), allow_missing_peaks(true)
-    {
-    }
-
+public:
+  TOPPSILACAnalyzer() :
+    TOPPBase("SILACAnalyzer", "Determination of peak ratios in LC-MS data", true), allow_missing_peaks(true)
+  {
+  }
 
   //--------------------------------------------------
   // set structure of ini file
@@ -247,9 +246,8 @@ class TOPPSILACAnalyzer
     registerFlag_("algorithm:allow_missing_peaks", "Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Should such peptides be included in the analysis?", true);
   }
 
-
   // create prameters for sections (set default values and restrictions)
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String & section) const
   {
     Param defaults;
 
@@ -300,7 +298,7 @@ class TOPPSILACAnalyzer
     {
       defaults.setValue("labels", "[Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'. If left empty the tool identifies singlets, i.e. acts as peptide feature finder.");
       defaults.setValue("charge", "2:4", "Range of charge states in the sample, i.e. min charge : max charge.");
-      defaults.setValue("missed_cleavages", 0 , "Maximum number of missed cleavages.");
+      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages.");
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("peaks_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", StringList::create("advanced"));
     }
@@ -327,7 +325,6 @@ class TOPPSILACAnalyzer
 
     return defaults;
   }
-
 
   //--------------------------------------------------
   // handle parameters (read in and format given parameters)
@@ -372,20 +369,20 @@ class TOPPSILACAnalyzer
     label_identifiers.insert(make_pair("dICPL10", getParam_().getValue("labels:dICPL10")));
 
     // create iterators for all labels to get corresponding mass shift
-    map<String,DoubleReal>::iterator arg6 = label_identifiers.find("Arg6");
-    map<String,DoubleReal>::iterator arg10 = label_identifiers.find("Arg10");
-    map<String,DoubleReal>::iterator lys4 = label_identifiers.find("Lys4");
-    map<String,DoubleReal>::iterator lys6 = label_identifiers.find("Lys6");
-    map<String,DoubleReal>::iterator lys8 = label_identifiers.find("Lys8");
-    map<String,DoubleReal>::iterator methyl4 = label_identifiers.find("Methyl4");
-    map<String,DoubleReal>::iterator methyl8 = label_identifiers.find("Methyl8");
-    map<String,DoubleReal>::iterator methyl12 = label_identifiers.find("Methyl12");
-    map<String,DoubleReal>::iterator methyl16 = label_identifiers.find("Methyl16");
-    map<String,DoubleReal>::iterator methyl24 = label_identifiers.find("Methyl24");
-    map<String,DoubleReal>::iterator methyl32 = label_identifiers.find("Methyl32");
-    map<String,DoubleReal>::iterator dicpl4 = label_identifiers.find("dICPL4");
-    map<String,DoubleReal>::iterator dicpl6 = label_identifiers.find("dICPL6");
-    map<String,DoubleReal>::iterator dicpl10 = label_identifiers.find("dICPL10");
+    map<String, DoubleReal>::iterator arg6 = label_identifiers.find("Arg6");
+    map<String, DoubleReal>::iterator arg10 = label_identifiers.find("Arg10");
+    map<String, DoubleReal>::iterator lys4 = label_identifiers.find("Lys4");
+    map<String, DoubleReal>::iterator lys6 = label_identifiers.find("Lys6");
+    map<String, DoubleReal>::iterator lys8 = label_identifiers.find("Lys8");
+    map<String, DoubleReal>::iterator methyl4 = label_identifiers.find("Methyl4");
+    map<String, DoubleReal>::iterator methyl8 = label_identifiers.find("Methyl8");
+    map<String, DoubleReal>::iterator methyl12 = label_identifiers.find("Methyl12");
+    map<String, DoubleReal>::iterator methyl16 = label_identifiers.find("Methyl16");
+    map<String, DoubleReal>::iterator methyl24 = label_identifiers.find("Methyl24");
+    map<String, DoubleReal>::iterator methyl32 = label_identifiers.find("Methyl32");
+    map<String, DoubleReal>::iterator dicpl4 = label_identifiers.find("dICPL4");
+    map<String, DoubleReal>::iterator dicpl6 = label_identifiers.find("dICPL6");
+    map<String, DoubleReal>::iterator dicpl10 = label_identifiers.find("dICPL10");
 
     // create string of all labels from advanced section "labels"
     String labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Methyl4 Methyl8 Methyl12 Methyl16 Methyl24 Methyl32 dICPL4 dICPL6 dICPL10";
@@ -442,13 +439,13 @@ class TOPPSILACAnalyzer
 
     // split string of SILAC labels (selected_labels) and save in a list (SILAClabels)
     vector<String> tempList; // temporary list of strings for SILAC labelets, e.g. "Lys6,Arg8"
-    boost::split( tempList, selected_labels, boost::is_any_of("[](){}") ); // any bracket allowed to separate labelets
+    boost::split(tempList, selected_labels, boost::is_any_of("[](){}"));   // any bracket allowed to separate labelets
     for (UInt i = 0; i < tempList.size(); i++)
     {
       if (tempList[i] != "")
       {
         vector<String> tempLabels;
-        boost::split( tempLabels, tempList[i], boost::is_any_of(",;: ") ); // various separators allowed to separate labels
+        boost::split(tempLabels, tempList[i], boost::is_any_of(",;: "));   // various separators allowed to separate labels
         SILAClabels.push_back(tempLabels);
       }
     }
@@ -475,7 +472,7 @@ class TOPPSILACAnalyzer
 
         if (found < 0)
         {
-          throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,SILAClabels[i][j]);
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, SILAClabels[i][j]);
         }
       }
     }
@@ -489,7 +486,7 @@ class TOPPSILACAnalyzer
         {
           for (Int dICPLPerPeptide = 0; dICPLPerPeptide <= missed_cleavages + 1; dICPLPerPeptide++)
           {
-            if ( ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide > 0 && ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide <= missed_cleavages + 1 )
+            if (ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide > 0 && ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide <= missed_cleavages + 1)
             {
               vector<DoubleReal> massShiftVector;
               for (UInt i = 0; i < SILAClabels.size(); i++)
@@ -503,7 +500,7 @@ class TOPPSILACAnalyzer
 
                 for (UInt j = 0; j < SILAClabels[i].size(); j++)
                 {
-                  Int Arg6There = 0;	// Is Arg6 in the SILAC label?
+                  Int Arg6There = 0;    // Is Arg6 in the SILAC label?
                   Int Arg10There = 0;
                   Int Lys4There = 0;
                   Int Lys6There = 0;
@@ -518,27 +515,27 @@ class TOPPSILACAnalyzer
                   Int dICPL6There = 0;
                   Int dICPL10There = 0;
 
-                  if ( SILAClabels[i][j].find("Arg6") == 0 ) Arg6There = 1;
-                  if ( SILAClabels[i][j].find("Arg10") == 0 ) Arg10There = 1;
-                  if ( SILAClabels[i][j].find("Lys4") == 0 ) Lys4There = 1;
-                  if ( SILAClabels[i][j].find("Lys6") == 0 ) Lys6There = 1;
-                  if ( SILAClabels[i][j].find("Lys8") == 0 ) Lys8There = 1;
-                  if ( SILAClabels[i][j].find("Methyl4") == 0 ) Methyl4There = 1;
-                  if ( SILAClabels[i][j].find("Methyl8") == 0 ) Methyl8There = 1;
-                  if ( SILAClabels[i][j].find("Methyl12") == 0 ) Methyl12There = 1;
-                  if ( SILAClabels[i][j].find("Methyl16") == 0 ) Methyl16There = 1;
-                  if ( SILAClabels[i][j].find("Methyl24") == 0 ) Methyl24There = 1;
-                  if ( SILAClabels[i][j].find("Methyl32") == 0 ) Methyl32There = 1;
-                  if ( SILAClabels[i][j].find("dICPL4") == 0 ) dICPL4There = 1;
-                  if ( SILAClabels[i][j].find("dICPL6") == 0 ) dICPL6There = 1;
-                  if ( SILAClabels[i][j].find("dICPL10") == 0 ) dICPL10There = 1;
+                  if (SILAClabels[i][j].find("Arg6") == 0) Arg6There = 1;
+                  if (SILAClabels[i][j].find("Arg10") == 0) Arg10There = 1;
+                  if (SILAClabels[i][j].find("Lys4") == 0) Lys4There = 1;
+                  if (SILAClabels[i][j].find("Lys6") == 0) Lys6There = 1;
+                  if (SILAClabels[i][j].find("Lys8") == 0) Lys8There = 1;
+                  if (SILAClabels[i][j].find("Methyl4") == 0) Methyl4There = 1;
+                  if (SILAClabels[i][j].find("Methyl8") == 0) Methyl8There = 1;
+                  if (SILAClabels[i][j].find("Methyl12") == 0) Methyl12There = 1;
+                  if (SILAClabels[i][j].find("Methyl16") == 0) Methyl16There = 1;
+                  if (SILAClabels[i][j].find("Methyl24") == 0) Methyl24There = 1;
+                  if (SILAClabels[i][j].find("Methyl32") == 0) Methyl32There = 1;
+                  if (SILAClabels[i][j].find("dICPL4") == 0) dICPL4There = 1;
+                  if (SILAClabels[i][j].find("dICPL6") == 0) dICPL6There = 1;
+                  if (SILAClabels[i][j].find("dICPL10") == 0) dICPL10There = 1;
 
-                  goAhead_Arg = goAhead_Arg || !( (ArgPerPeptide != 0 && Arg6There + Arg10There == 0) );
-                  goAhead_Lys = goAhead_Lys || !( (LysPerPeptide != 0 && Lys4There + Lys6There + Lys8There == 0) );
-                  goAhead_Methyl = goAhead_Methyl || !( (MethylPerPeptide != 0 && Methyl4There + Methyl8There + Methyl12There + Methyl16There + Methyl24There + Methyl32There == 0) );
-                  goAhead_dICPL = goAhead_dICPL || !( (dICPLPerPeptide != 0 && dICPL4There + dICPL6There + dICPL10There == 0) );
+                  goAhead_Arg = goAhead_Arg || !((ArgPerPeptide != 0 && Arg6There + Arg10There == 0));
+                  goAhead_Lys = goAhead_Lys || !((LysPerPeptide != 0 && Lys4There + Lys6There + Lys8There == 0));
+                  goAhead_Methyl = goAhead_Methyl || !((MethylPerPeptide != 0 && Methyl4There + Methyl8There + Methyl12There + Methyl16There + Methyl24There + Methyl32There == 0));
+                  goAhead_dICPL = goAhead_dICPL || !((dICPLPerPeptide != 0 && dICPL4There + dICPL6There + dICPL10There == 0));
 
-                  massShift = massShift + ArgPerPeptide * ( Arg6There * (arg6->second) + Arg10There * (arg10->second) ) + LysPerPeptide * ( Lys4There * (lys4->second) + Lys6There * (lys6->second) + Lys8There * (lys8->second) ) +  MethylPerPeptide * (Methyl4There * (methyl4->second) + Methyl8There * (methyl8->second) + Methyl12There * (methyl12->second) + Methyl16There * (methyl16->second) + Methyl24There * (methyl24->second) + Methyl32There * (methyl32->second) ) + dICPLPerPeptide * ( dICPL4There * (dicpl4->second) + dICPL6There * (dicpl6->second) + dICPL10There * (dicpl10->second) );
+                  massShift = massShift + ArgPerPeptide * (Arg6There * (arg6->second) + Arg10There * (arg10->second)) + LysPerPeptide * (Lys4There * (lys4->second) + Lys6There * (lys6->second) + Lys8There * (lys8->second)) +  MethylPerPeptide * (Methyl4There * (methyl4->second) + Methyl8There * (methyl8->second) + Methyl12There * (methyl12->second) + Methyl16There * (methyl16->second) + Methyl24There * (methyl24->second) + Methyl32There * (methyl32->second)) + dICPLPerPeptide * (dICPL4There * (dicpl4->second) + dICPL6There * (dicpl6->second) + dICPL10There * (dicpl10->second));
                 }
 
                 if (goAhead_Arg && goAhead_Lys && goAhead_Methyl && goAhead_dICPL)
@@ -576,12 +573,11 @@ class TOPPSILACAnalyzer
     cout << endl;
   }
 
-
   //--------------------------------------------------
   // filtering
   //--------------------------------------------------
 
-  void filterData(MSExperiment<Peak1D>& exp, const PeakWidthEstimator::Result &peak_width)
+  void filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width)
   {
     list<SILACFilter> filters;
 
@@ -660,7 +656,7 @@ class TOPPSILACAnalyzer
         vector<SILACPattern>::iterator it_2;     // second inner iterator over elements of second DataPoint
 
         while (data_it_1 < data_it_end)      // check for combining as long as first DataPoint is not second last elment of "data"
-        {          
+        {
           while (data_it_1->size() == 0 && data_it_1 < data_it_end)
           {
             ++data_it_1;      // get next first DataPoint
@@ -668,7 +664,7 @@ class TOPPSILACAnalyzer
           }
 
           if (data_it_1 == data_it_end && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
-          {            
+          {
             break;      // stop combining
           }
 
@@ -678,7 +674,7 @@ class TOPPSILACAnalyzer
           }
 
           if (data_it_2 == data.end())      // if second iterator points to end of "data"
-          {            
+          {
             data_it_2 = data_it_1 + 1;      // reset second iterator
           }
 
@@ -690,32 +686,29 @@ class TOPPSILACAnalyzer
           {
             // check if DataPoints have the same charge state and mass shifts
             if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
-            {              
+            {
               if (data_it_2 < data_it_end)     // if DataPpoints differ and second DataPoint is not second last element of "data"
               {
                 temp++;
                 ++data_it_2;      // get next second DataPoint
                 if (temp > 50000)
-                {                  
+                {
                   ++data_it_1;
                   temp = 0;
                 }
               }
-
               else if (data_it_2 == data_it_end && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
               {
                 ++data_it_1;      // get next first DataPoint
                 data_it_2 = data_it_1 + 1;      // reset second iterator
               }
-
               else
               {
                 ++data_it_1;      // get next first DataPoint
               }
             }
-
             else
-            {              
+            {
               // perform combining
               (*data_it_1).insert(data_it_1->end(), data_it_2->begin(), data_it_2->end());      // append second DataPoint to first DataPoint
               (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
@@ -755,7 +748,7 @@ class TOPPSILACAnalyzer
 
   }
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int, const char **)
   {
     handleParameters();
 
@@ -781,23 +774,23 @@ class TOPPSILACAnalyzer
 
     if (out_mzq != "")
     {
-			std::vector< std::vector< std::pair<String, DoubleReal> > > labels;
-			//add none label
-			labels.push_back(std::vector< std::pair<String, DoubleReal> > (1,std::make_pair<String,DoubleReal>(String("none"),DoubleReal(0)))); 
-			for (Size i = 0; i < SILAClabels.size(); ++i) //SILACLabels MUST be in weight order!!!
-			{
-				std::vector< std::pair<String, DoubleReal> > one_label;
-				for (UInt j = 0; j < SILAClabels[i].size(); ++j)
-				{
-					one_label.push_back(*(label_identifiers.find( SILAClabels[i][j] ) )); // this dereferencing would break if all SILAClabels would not have been checked before!
-				}
-				labels.push_back(one_label);
-			}
-			msq.registerExperiment(exp, labels); //add assays
-			msq.assignUIDs();
-		}
-		MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
-		msq.setAnalysisSummaryQuantType(quant_type);//add analysis_summary_
+      std::vector<std::vector<std::pair<String, DoubleReal> > > labels;
+      //add none label
+      labels.push_back(std::vector<std::pair<String, DoubleReal> >(1, std::make_pair<String, DoubleReal>(String("none"), DoubleReal(0))));
+      for (Size i = 0; i < SILAClabels.size(); ++i)       //SILACLabels MUST be in weight order!!!
+      {
+        std::vector<std::pair<String, DoubleReal> > one_label;
+        for (UInt j = 0; j < SILAClabels[i].size(); ++j)
+        {
+          one_label.push_back(*(label_identifiers.find(SILAClabels[i][j])));              // this dereferencing would break if all SILAClabels would not have been checked before!
+        }
+        labels.push_back(one_label);
+      }
+      msq.registerExperiment(exp, labels);       //add assays
+      msq.assignUIDs();
+    }
+    MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
+    msq.setAnalysisSummaryQuantType(quant_type);    //add analysis_summary_
 
     //--------------------------------------------------
     // estimate peak width
@@ -832,9 +825,9 @@ class TOPPSILACAnalyzer
       {
         ConsensusMap map;
         for (std::vector<std::vector<SILACPattern> >::const_iterator it = data.begin(); it != data.end(); ++it)
-				{        
-					generateFilterConsensusByPattern(map, *it);
-				}
+        {
+          generateFilterConsensusByPattern(map, *it);
+        }
         writeConsensus(out_filters, map);
       }
     }
@@ -864,7 +857,7 @@ class TOPPSILACAnalyzer
     if (out_debug != "")
     {
       std::ofstream out((out_debug + ".clusters.csv").c_str());
-      
+
       // generate header
       out
       << std::fixed << std::setprecision(8)
@@ -896,7 +889,7 @@ class TOPPSILACAnalyzer
         }
       }
       out << '\n';
-      
+
       // write data
       UInt cluster_id = 0;
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
@@ -904,18 +897,18 @@ class TOPPSILACAnalyzer
         generateClusterDebug(out, **it, cluster_id);
       }
     }
-    
+
     if (out != "")
     {
       ConsensusMap map;
-			
+
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {
         generateClusterConsensusByCluster(map, **it);
       }
 
       // XXX: Need a map per mass shift
-      ConsensusMap::FileDescriptions &desc = map.getFileDescriptions();
+      ConsensusMap::FileDescriptions & desc = map.getFileDescriptions();
       UInt id = 0;
       for (ConsensusMap::FileDescriptions::iterator it = desc.begin(); it != desc.end(); ++it, ++id)
       {
@@ -923,7 +916,7 @@ class TOPPSILACAnalyzer
         // XXX: Write correct label
         // it->second.label = id;
       }
-			
+
 
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::DATA_PROCESSING);
@@ -935,44 +928,44 @@ class TOPPSILACAnalyzer
 
 
       writeConsensus(out, map);
-			if (out_mzq != "")
-			{
-				ConsensusMap numap(map);
-				//calc. ratios
-				for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
-				{
-					//~ make ratio templates
-					std::vector<ConsensusFeature::Ratio> rts;
-					for (std::vector<MSQuantifications::Assay>::const_iterator ait = msq.getAssays().begin()+1; ait != msq.getAssays().end(); ++ait)
-					{
-						ConsensusFeature::Ratio r;
-						r.numerator_ref_ = String(msq.getAssays().begin()->uid_);
-						r.denominator_ref_ = String(ait->uid_);				
-						r.description_.push_back("Simple ratio calc");
-						r.description_.push_back("light to medium/.../heavy");
-						//~ "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>"
-						rts.push_back(r);
-					}
-					const std::set< FeatureHandle,FeatureHandle::IndexLess>& feature_handles = cit->getFeatures();
-					if (feature_handles.size() > 1)
-					{
-						std::set< FeatureHandle,FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin(); // this is unlabeled
-						fit++;
-						for (fit; fit != feature_handles.end(); ++fit)
-						{
-							Size ri = std::distance(feature_handles.begin(), fit);
-							rts[ri-1].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity(); // a proper silacalanyzer algo should never have 0-intensities so no 0devison ...
-						}
-					}
-					
-					cit->setRatios(rts);
-				}
-				msq.addConsensusMap(numap);//add SILACAnalyzer result
+      if (out_mzq != "")
+      {
+        ConsensusMap numap(map);
+        //calc. ratios
+        for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
+        {
+          //~ make ratio templates
+          std::vector<ConsensusFeature::Ratio> rts;
+          for (std::vector<MSQuantifications::Assay>::const_iterator ait = msq.getAssays().begin() + 1; ait != msq.getAssays().end(); ++ait)
+          {
+            ConsensusFeature::Ratio r;
+            r.numerator_ref_ = String(msq.getAssays().begin()->uid_);
+            r.denominator_ref_ = String(ait->uid_);
+            r.description_.push_back("Simple ratio calc");
+            r.description_.push_back("light to medium/.../heavy");
+            //~ "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>"
+            rts.push_back(r);
+          }
+          const std::set<FeatureHandle, FeatureHandle::IndexLess> & feature_handles = cit->getFeatures();
+          if (feature_handles.size() > 1)
+          {
+            std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin();             // this is unlabeled
+            fit++;
+            for (fit; fit != feature_handles.end(); ++fit)
+            {
+              Size ri = std::distance(feature_handles.begin(), fit);
+              rts[ri - 1].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity();             // a proper silacalanyzer algo should never have 0-intensities so no 0devison ...
+            }
+          }
 
-				//~ msq.addFeatureMap();//add SILACAnalyzer evidencetrail as soon as clear what is realy contained in the featuremap
-				//~ add AuditCollection - no such concept in TOPPTools yet
-				writeMzQuantML(out_mzq,msq);
-			}
+          cit->setRatios(rts);
+        }
+        msq.addConsensusMap(numap);        //add SILACAnalyzer result
+
+        //~ msq.addFeatureMap();//add SILACAnalyzer evidencetrail as soon as clear what is realy contained in the featuremap
+        //~ add AuditCollection - no such concept in TOPPTools yet
+        writeMzQuantML(out_mzq, msq);
+      }
     }
 
     if (out_clusters != "")
@@ -984,10 +977,10 @@ class TOPPSILACAnalyzer
         generateClusterConsensusByPattern(map, **it, cluster_id);
       }
 
-      ConsensusMap::FileDescription &desc = map.getFileDescriptions()[0];
+      ConsensusMap::FileDescription & desc = map.getFileDescriptions()[0];
       desc.filename = in;
       desc.label = "Cluster";
-      
+
       writeConsensus(out_clusters, map);
     }
 
@@ -1008,49 +1001,49 @@ class TOPPSILACAnalyzer
   void clusterData(const MSExperiment<> &, const PeakWidthEstimator::Result &);
 
 private:
-  PeakWidthEstimator::Result estimatePeakWidth(const MSExperiment<Peak1D> &exp);
+  PeakWidthEstimator::Result estimatePeakWidth(const MSExperiment<Peak1D> & exp);
 
   /**
    * @brief Generate ConsensusMap from clustering result
    */
   void generateClusterConsensusByCluster(ConsensusMap &, const Clustering &) const;
-  
+
   /**
    * @brief Generate ConsensusMap from clustering result, one consensus per pattern
    */
-  void generateClusterConsensusByPattern(ConsensusMap &, const Clustering &, UInt &cluster_id) const;
-  
+  void generateClusterConsensusByPattern(ConsensusMap &, const Clustering &, UInt & cluster_id) const;
+
   /**
    * @brief Generate debug output from clustering result
    */
-  void generateClusterDebug(std::ostream &out, const Clustering &clustering, UInt &cluster_id) const;
-  
+  void generateClusterDebug(std::ostream & out, const Clustering & clustering, UInt & cluster_id) const;
+
   /**
    * @brief Generate ConsensusMap from filter result
    */
   void generateFilterConsensusByPattern(ConsensusMap &, const std::vector<SILACPattern> &) const;
-  
+
   /**
    * @brief Generate a consensus entry from a pattern
    */
   ConsensusFeature generateSingleConsensusByPattern(const SILACPattern &) const;
-  
+
   /**
    * @brief Generate FeatureMap from clustering result
    */
   void generateClusterFeatureByCluster(FeatureMap<> &, const Clustering &) const;
-  
+
   /**
    * @brief Read filter result from ConsensusMap
    */
   void readFilterConsensusByPattern(ConsensusMap &);
 
-  static const String &selectColor(UInt nr);
- 
+  static const String & selectColor(UInt nr);
+
   /**
    * @brief Read consensusXML from file to ConsensusMap
    */
-  void readConsensus(const String &filename, ConsensusMap &in) const
+  void readConsensus(const String & filename, ConsensusMap & in) const
   {
     ConsensusXMLFile c_file;
     c_file.load(filename, in);
@@ -1059,7 +1052,7 @@ private:
   /**
    * @brief Write consensusXML from ConsensusMap to file
    */
-  void writeConsensus(const String &filename, ConsensusMap &out) const
+  void writeConsensus(const String & filename, ConsensusMap & out) const
   {
     out.sortByPosition();
     out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -1069,13 +1062,12 @@ private:
     c_file.store(filename, out);
   }
 
-	
-	  /**
-   * @brief Write MzQuantML from ConsensusMap to file
-   */
-  void writeMzQuantML(const String &filename, MSQuantifications &msq) const
+  /**
+* @brief Write MzQuantML from ConsensusMap to file
+*/
+  void writeMzQuantML(const String & filename, MSQuantifications & msq) const
   {
-		//~ TODO apply above to ConsensusMap befor putting into Msq
+    //~ TODO apply above to ConsensusMap befor putting into Msq
     //~ out.sortByPosition();
     //~ out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
     //~ out.setExperimentType("SILAC");
@@ -1083,11 +1075,11 @@ private:
     MzQuantMLFile file;
     file.store(filename, msq);
   }
-	
+
   /**
    * @brief Write featureXML from FeatureMap to file
    */
-  void writeFeatures(const String &filename, FeatureMap<> &out) const
+  void writeFeatures(const String & filename, FeatureMap<> & out) const
   {
     out.sortByPosition();
     out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -1095,9 +1087,10 @@ private:
     FeatureXMLFile f_file;
     f_file.store(filename, out);
   }
+
 };
 
-void TOPPSILACAnalyzer::clusterData(const MSExperiment<> &exp, const PeakWidthEstimator::Result &peak_width)
+void TOPPSILACAnalyzer::clusterData(const MSExperiment<> & exp, const PeakWidthEstimator::Result & peak_width)
 {
   typedef Clustering::PointCoordinate PointCoordinate;
 
@@ -1126,7 +1119,8 @@ void TOPPSILACAnalyzer::clusterData(const MSExperiment<> &exp, const PeakWidthEs
     // Calculate median by extracting the middle element (okay, the upper median)
     // Set max spacing to five times the median spectrum spacing
     // The five is an empirical value
-    if (space.size()) rt_max_spacing = space[space.size() / 2 + 1] * 5;
+    if (space.size())
+      rt_max_spacing = space[space.size() / 2 + 1] * 5;
   }
 
   UInt data_id = 0;
@@ -1136,12 +1130,12 @@ void TOPPSILACAnalyzer::clusterData(const MSExperiment<> &exp, const PeakWidthEs
        ++data_it, ++data_id)
   {
     const PointCoordinate max_delta(rt_threshold, mz_threshold);
-    Clustering *clustering = new Clustering(max_delta, rt_min, rt_max_spacing);
+    Clustering * clustering = new Clustering(max_delta, rt_min, rt_max_spacing);
 
     for (vector<SILACPattern>::iterator it = data_it->begin(); it != data_it->end(); ++it)
     {
       const PointCoordinate key(it->rt, it->mz);
-      SILACPattern &p = *it;
+      SILACPattern & p = *it;
       clustering->insertPoint(key, &p);
     }
 
@@ -1155,7 +1149,7 @@ void TOPPSILACAnalyzer::clusterData(const MSExperiment<> &exp, const PeakWidthEs
   progresslogger.endProgress();
 }
 
-PeakWidthEstimator::Result TOPPSILACAnalyzer::estimatePeakWidth(const MSExperiment<Peak1D> &exp)
+PeakWidthEstimator::Result TOPPSILACAnalyzer::estimatePeakWidth(const MSExperiment<Peak1D> & exp)
 {
   ProgressLogger progresslogger;
   progresslogger.setLogType(log_type_);
@@ -1168,7 +1162,7 @@ PeakWidthEstimator::Result TOPPSILACAnalyzer::estimatePeakWidth(const MSExperime
   return ret;
 }
 
-void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap &out, const Clustering &clustering) const
+void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap & out, const Clustering & clustering) const
 {
   // iterate over clusters
   for (Clustering::Grid::const_iterator cluster_it = clustering.grid.begin(); cluster_it != clustering.grid.end(); ++cluster_it)
@@ -1177,46 +1171,46 @@ void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap &out, con
 
     // determine the number of peptides
     // for that we look at the first point in the first pattern
-    const SILACPattern &firstPattern = *(cluster_it->second.begin())->second;
-    const SILACPoint &firstPoint = *(firstPattern.points.begin());
+    const SILACPattern & firstPattern = *(cluster_it->second.begin())->second;
+    const SILACPoint & firstPoint = *(firstPattern.points.begin());
     UInt numberPeptides = firstPoint.intensities.size();
     UInt charge = firstPoint.charge;
 
     // sums for each peptide of the pair (triplet, singlet, ...)
-    std::vector<DoubleReal> sumMzIntensities (numberPeptides,0);    // sum m/z * intensity (for intensity-weighted m/z average)
-    std::vector<DoubleReal> sumRtIntensities (numberPeptides,0);    // sum rt * intensity (for intensity-weighted rt average)
-    std::vector<DoubleReal> sumIntensities (numberPeptides,0);    // sum intensity (for 'feature volume' = peptide intensity)
-    std::vector<DoubleReal> sumIntensitiesMonoisotopic (numberPeptides,0);    // sum intensity of monoisotopic mass trace (for normalisation of intensity-weighted m/z average)
-    std::vector<DoubleReal> maxIntensityXIC (numberPeptides,0);    // tracks maximum of sumIntensitiesXIC
-    std::vector<DoubleReal> RtAtMaxIntensityXIC (numberPeptides,0);    // tracks rt at maximum of sumIntensitiesXIC
-    
+    std::vector<DoubleReal> sumMzIntensities(numberPeptides, 0);    // sum m/z * intensity (for intensity-weighted m/z average)
+    std::vector<DoubleReal> sumRtIntensities(numberPeptides, 0);    // sum rt * intensity (for intensity-weighted rt average)
+    std::vector<DoubleReal> sumIntensities(numberPeptides, 0);    // sum intensity (for 'feature volume' = peptide intensity)
+    std::vector<DoubleReal> sumIntensitiesMonoisotopic(numberPeptides, 0);    // sum intensity of monoisotopic mass trace (for normalisation of intensity-weighted m/z average)
+    std::vector<DoubleReal> maxIntensityXIC(numberPeptides, 0);    // tracks maximum of sumIntensitiesXIC
+    std::vector<DoubleReal> RtAtMaxIntensityXIC(numberPeptides, 0);    // tracks rt at maximum of sumIntensitiesXIC
+
     // iterate over SILAC patterns in each cluster
     for (Clustering::Cluster::const_iterator pattern_it = cluster_it->second.begin();
          pattern_it != cluster_it->second.end();
          ++pattern_it)
     {
-      const SILACPattern &pattern = *pattern_it->second;
-      std::vector<DoubleReal> sumIntensitiesXIC (numberPeptides,0);    // sums intensities at fixed rt (for XIC)
+      const SILACPattern & pattern = *pattern_it->second;
+      std::vector<DoubleReal> sumIntensitiesXIC(numberPeptides, 0);    // sums intensities at fixed rt (for XIC)
 
       // iterate over SILAC points in each SILAC pattern
       for (std::vector<SILACPoint>::const_iterator point_it = pattern.points.begin();
            point_it != pattern.points.end();
            ++point_it)
       {
-        const SILACPoint &point = *point_it;
+        const SILACPoint & point = *point_it;
 
         // iterate over peptides in doublet (or triplet, ...)
         UInt peptide = 0;    // peptide for which intensity, retention time and m/z are to be calculated
         for (std::vector<std::vector<DoubleReal> >::const_iterator peptide_it = point.intensities.begin();
              peptide_it != point.intensities.end();
              ++peptide_it)
-      {
+        {
           // iterate over isotopes in peptide
           UInt isotope = 0;
           for (std::vector<DoubleReal>::const_iterator isotope_it = peptide_it->begin();
                isotope_it != peptide_it->end();
                ++isotope_it)
-        {
+          {
             sumIntensities[peptide] += point.intensities[peptide][isotope];
             sumIntensitiesXIC[peptide] += point.intensities[peptide][isotope];
             sumRtIntensities[peptide] += point.rt * point.intensities[peptide][isotope];
@@ -1231,8 +1225,8 @@ void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap &out, con
           ++peptide;
         }
 
-        }
-      
+      }
+
       // check for each peptide if its XIC intensity has been raised
       for (UInt peptide = 0; peptide < numberPeptides; ++peptide)
       {
@@ -1240,8 +1234,8 @@ void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap &out, con
         {
           maxIntensityXIC[peptide] = sumIntensitiesXIC[peptide];
           RtAtMaxIntensityXIC[peptide] = pattern.rt;
+        }
       }
-    }
     }
     /*cout << "light m/z: " << sumMzIntensities[0]/sumIntensitiesMonoisotopic[0] << '\n';
      cout << "light rt (intensity averaged): " << sumRtIntensities[0]/sumIntensities[0] << '\n';
@@ -1251,8 +1245,8 @@ void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap &out, con
      cout << "heavy rt (at max XIC): " << RtAtMaxIntensityXIC[1] << '\n' << '\n';*/
 
     // consensus feature has coordinates of the light peptide
-    consensus.setMZ(sumMzIntensities[0]/sumIntensitiesMonoisotopic[0]);    // intensity-average only over the mono-isotopic peak
-    consensus.setRT(sumRtIntensities[0]/sumIntensities[0]);    // intensity-average over the entire peptide, i.e. all peptides
+    consensus.setMZ(sumMzIntensities[0] / sumIntensitiesMonoisotopic[0]);    // intensity-average only over the mono-isotopic peak
+    consensus.setRT(sumRtIntensities[0] / sumIntensities[0]);    // intensity-average over the entire peptide, i.e. all peptides
     //consensus.setRT(RtAtMaxIntensityXIC[0]);
     consensus.setIntensity(sumIntensities[0]);
     consensus.setCharge(charge);
@@ -1263,8 +1257,8 @@ void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap &out, con
     {
       FeatureHandle feature;
 
-      feature.setMZ(sumMzIntensities[peptide]/sumIntensitiesMonoisotopic[peptide]);
-      feature.setRT(sumRtIntensities[peptide]/sumIntensities[peptide]);
+      feature.setMZ(sumMzIntensities[peptide] / sumIntensitiesMonoisotopic[peptide]);
+      feature.setRT(sumRtIntensities[peptide] / sumIntensities[peptide]);
       //feature.setRT(RtAtMaxIntensityXIC[peptide]);
       feature.setIntensity(sumIntensities[peptide]);
       feature.setCharge(charge);
@@ -1276,11 +1270,11 @@ void TOPPSILACAnalyzer::generateClusterConsensusByCluster(ConsensusMap &out, con
 
     // add consensus to consensus map
     out.push_back(consensus);
-  }  
+  }
 }
 
-void TOPPSILACAnalyzer::generateClusterConsensusByPattern(ConsensusMap &out, const Clustering &clustering, UInt &cluster_id) const
-    {
+void TOPPSILACAnalyzer::generateClusterConsensusByPattern(ConsensusMap & out, const Clustering & clustering, UInt & cluster_id) const
+{
   for (Clustering::Grid::const_iterator cluster_it = clustering.grid.begin(); cluster_it != clustering.grid.end(); ++cluster_it, ++cluster_id)
   {
     for (Clustering::Cluster::const_iterator pattern_it = cluster_it->second.begin(); pattern_it != cluster_it->second.end(); ++pattern_it)
@@ -1297,17 +1291,17 @@ void TOPPSILACAnalyzer::generateClusterConsensusByPattern(ConsensusMap &out, con
   }
 }
 
-void TOPPSILACAnalyzer::generateClusterDebug(std::ostream &out, const Clustering &clustering, UInt &cluster_id) const
+void TOPPSILACAnalyzer::generateClusterDebug(std::ostream & out, const Clustering & clustering, UInt & cluster_id) const
 {
   for (Clustering::Grid::const_iterator cluster_it = clustering.grid.begin();
        cluster_it != clustering.grid.end();
        ++cluster_it, ++cluster_id)
   {
-      for (Clustering::Cluster::const_iterator pattern_it = cluster_it->second.begin();
-           pattern_it != cluster_it->second.end();
-           ++pattern_it)
-      {
-      const SILACPattern &pattern = *pattern_it->second;
+    for (Clustering::Cluster::const_iterator pattern_it = cluster_it->second.begin();
+         pattern_it != cluster_it->second.end();
+         ++pattern_it)
+    {
+      const SILACPattern & pattern = *pattern_it->second;
 
       std::ostringstream preamble;
 
@@ -1321,11 +1315,11 @@ void TOPPSILACAnalyzer::generateClusterDebug(std::ostream &out, const Clustering
       for (std::vector<DoubleReal>::const_iterator shift_it = pattern.mass_shifts.begin();
            shift_it != pattern.mass_shifts.end();
            ++shift_it)
-        {
+      {
         preamble
         << *++shift_it * pattern.charge << ',';
-        }
-      
+      }
+
       for (std::vector<std::vector<DoubleReal> >::const_iterator shift_inten_it = pattern.intensities.begin();
            shift_inten_it != pattern.intensities.end();
            ++shift_inten_it)
@@ -1337,7 +1331,7 @@ void TOPPSILACAnalyzer::generateClusterDebug(std::ostream &out, const Clustering
         {
           preamble
           << *peak_inten_it << ',';
-      }
+        }
         for (; peak_inten_id < isotopes_per_peptide_max; ++peak_inten_id)
         {
           preamble
@@ -1349,7 +1343,7 @@ void TOPPSILACAnalyzer::generateClusterDebug(std::ostream &out, const Clustering
            point_it != pattern.points.end();
            ++point_it)
       {
-        const SILACPoint &point = *point_it;
+        const SILACPoint & point = *point_it;
 
         out
         << preamble.str()
@@ -1366,42 +1360,42 @@ void TOPPSILACAnalyzer::generateClusterDebug(std::ostream &out, const Clustering
                ++peak_inten_it, ++peak_inten_id)
           {
             out << ','
-            << *peak_inten_it;
-    }
+                << *peak_inten_it;
+          }
           for (; peak_inten_id < isotopes_per_peptide_max; ++peak_inten_id)
           {
             out
             << ",NA";
-  }
-}
+          }
+        }
 
         // write MZ_RAW_...
         for (std::vector<std::vector<DoubleReal> >::const_iterator shift_mz_it = point.mz_positions.begin();
              shift_mz_it != point.mz_positions.end();
              ++shift_mz_it)
-{
+        {
           UInt peak_mz_id = 0;
           for (std::vector<DoubleReal>::const_iterator peak_mz_it = shift_mz_it->begin();
                peak_mz_it != shift_mz_it->end();
                ++peak_mz_it, ++peak_mz_id)
-  {
+          {
             out << ','
-            << *peak_mz_it;
+                << *peak_mz_it;
           }
           for (; peak_mz_id < isotopes_per_peptide_max; ++peak_mz_id)
-    {
+          {
             out
             << ",NA";
           }
         }
 
         out << '\n';
+      }
     }
   }
 }
-}
 
-void TOPPSILACAnalyzer::generateFilterConsensusByPattern(ConsensusMap &out, const std::vector<SILACPattern> &pattern) const
+void TOPPSILACAnalyzer::generateFilterConsensusByPattern(ConsensusMap & out, const std::vector<SILACPattern> & pattern) const
 {
   for (std::vector<SILACPattern>::const_iterator pattern_it = pattern.begin(); pattern_it != pattern.end(); ++pattern_it)
   {
@@ -1409,7 +1403,7 @@ void TOPPSILACAnalyzer::generateFilterConsensusByPattern(ConsensusMap &out, cons
   }
 }
 
-ConsensusFeature TOPPSILACAnalyzer::generateSingleConsensusByPattern(const SILACPattern &pattern) const
+ConsensusFeature TOPPSILACAnalyzer::generateSingleConsensusByPattern(const SILACPattern & pattern) const
 {
   // XXX: get from experiment
   Int charge = pattern.charge;
@@ -1472,7 +1466,7 @@ ConsensusFeature TOPPSILACAnalyzer::generateSingleConsensusByPattern(const SILAC
   return consensus;
 }
 
-void TOPPSILACAnalyzer::generateClusterFeatureByCluster(FeatureMap<> &out, const Clustering &clustering) const
+void TOPPSILACAnalyzer::generateClusterFeatureByCluster(FeatureMap<> & out, const Clustering & clustering) const
 {
   for (Clustering::Grid::const_iterator cluster_it = clustering.grid.begin(); cluster_it != clustering.grid.end(); ++cluster_it)
   {
@@ -1485,7 +1479,7 @@ void TOPPSILACAnalyzer::generateClusterFeatureByCluster(FeatureMap<> &out, const
          pattern_it != cluster_it->second.end();
          ++pattern_it)
     {
-      SILACPattern &pattern = *pattern_it->second;
+      SILACPattern & pattern = *pattern_it->second;
 
       for (std::vector<std::vector<DoubleReal> >::const_iterator shift_inten_it = pattern.intensities.begin();
            shift_inten_it != pattern.intensities.end();
@@ -1507,7 +1501,7 @@ void TOPPSILACAnalyzer::generateClusterFeatureByCluster(FeatureMap<> &out, const
     // Calculate global RT value
     global_rt /= global_intensity;
 
-    SILACPattern &pattern_first = *cluster_it->second.begin()->second;
+    SILACPattern & pattern_first = *cluster_it->second.begin()->second;
 
     for (UInt shift_id = 0; shift_id < pattern_first.mass_shifts.size(); ++shift_id)
     {
@@ -1531,9 +1525,9 @@ void TOPPSILACAnalyzer::generateClusterFeatureByCluster(FeatureMap<> &out, const
            pattern_it != cluster_it->second.end();
            ++pattern_it)
       {
-        SILACPattern &pattern = *pattern_it->second;
+        SILACPattern & pattern = *pattern_it->second;
 
-        const std::vector<DoubleReal> &intensities = pattern.intensities[shift_id];
+        const std::vector<DoubleReal> & intensities = pattern.intensities[shift_id];
         DoubleReal mz = pattern.mz + pattern.mass_shifts[shift_id];
         DoubleReal intensity0 = intensities[0];
 
@@ -1581,7 +1575,7 @@ void TOPPSILACAnalyzer::generateClusterFeatureByCluster(FeatureMap<> &out, const
   }
 }
 
-void TOPPSILACAnalyzer::readFilterConsensusByPattern(ConsensusMap &in)
+void TOPPSILACAnalyzer::readFilterConsensusByPattern(ConsensusMap & in)
 {
   std::map<std::pair<Int, Int>, std::vector<SILACPattern> > layers;
 
@@ -1632,10 +1626,11 @@ void TOPPSILACAnalyzer::readFilterConsensusByPattern(ConsensusMap &in)
   }
 }
 
-const String &TOPPSILACAnalyzer::selectColor(UInt nr)
+const String & TOPPSILACAnalyzer::selectColor(UInt nr)
 {
   // 15 HTML colors
-  const static String colors[] = {
+  const static String colors[] =
+  {
     "#00FFFF", "#000000", "#0000FF", "#FF00FF", "#008000",
     "#808080", "#00FF00", "#800000", "#000080", "#808000",
     "#800080", "#FF0000", "#C0C0C0", "#008080", "#FFFF00",
@@ -1647,7 +1642,7 @@ const String &TOPPSILACAnalyzer::selectColor(UInt nr)
 
 //@endcond
 
-int main(int argc, const char** argv )
+int main(int argc, const char ** argv)
 {
   TOPPSILACAnalyzer tool;
   return tool.main(argc, argv);

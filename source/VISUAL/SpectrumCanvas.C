@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
@@ -114,16 +114,16 @@ namespace OpenMS
 
   void SpectrumCanvas::resizeEvent(QResizeEvent * /* e */)
   {
-    #ifdef DEBUG_TOPPVIEW
+#ifdef DEBUG_TOPPVIEW
     cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-    #endif
+#endif
     buffer_ = QImage(width(), height(), QImage::Format_RGB32);
     update_buffer_ = true;
     updateScrollbars_();
     update_(__PRETTY_FUNCTION__);
-    #ifdef DEBUG_TOPPVIEW
+#ifdef DEBUG_TOPPVIEW
     cout << "END   " << __PRETTY_FUNCTION__ << endl;
-    #endif
+#endif
   }
 
   void SpectrumCanvas::setFilters(const DataFilters & filters)
@@ -200,7 +200,7 @@ namespace OpenMS
 
   void SpectrumCanvas::wheelEvent(QWheelEvent * e)
   {
-    zoom( e->x(), e->y(), e->delta() > 0 );
+    zoom(e->x(), e->y(), e->delta() > 0);
     e->accept();
   }
 
@@ -208,20 +208,20 @@ namespace OpenMS
   {
     const PointType::CoordinateType zoom_factor = zoom_in ? 0.8 : 1.0 / 0.8;
     AreaType new_area;
-    for (int dim = 0; dim < AreaType::DIMENSION; dim++ ) 
+    for (int dim = 0; dim < AreaType::DIMENSION; dim++)
     {
-      new_area.min_[dim] = visible_area_.min_[dim] + ( 1.0 - zoom_factor ) * ( visible_area_.max_[dim] - visible_area_.min_[dim] )
-                           * ( ( dim == 0 ) == isMzToXAxis()
-                               ? (PointType::CoordinateType )x/width()
-                               : (PointType::CoordinateType)(height() - y ) / height() );
-      new_area.max_[dim] = new_area.min_[dim] + zoom_factor * ( visible_area_.max_[dim] - visible_area_.min_[dim] );
-      new_area.min_[dim] = std::max( new_area.min_[dim], overall_data_range_.min_[dim] );
-      new_area.max_[dim] = std::min( new_area.max_[dim], overall_data_range_.max_[dim] );
+      new_area.min_[dim] = visible_area_.min_[dim] + (1.0 - zoom_factor) * (visible_area_.max_[dim] - visible_area_.min_[dim])
+                           * ((dim == 0) == isMzToXAxis()
+                              ? (PointType::CoordinateType)x / width()
+                              : (PointType::CoordinateType)(height() - y) / height());
+      new_area.max_[dim] = new_area.min_[dim] + zoom_factor * (visible_area_.max_[dim] - visible_area_.min_[dim]);
+      new_area.min_[dim] = std::max(new_area.min_[dim], overall_data_range_.min_[dim]);
+      new_area.max_[dim] = std::min(new_area.max_[dim], overall_data_range_.max_[dim]);
     }
-    if (new_area != visible_area_ ) 
+    if (new_area != visible_area_)
     {
       zoomAdd_(new_area);
-      zoom_pos_= --zoom_stack_.end(); // set to last position
+      zoom_pos_ = --zoom_stack_.end(); // set to last position
       changeVisibleArea_(*zoom_pos_);
     }
   }
@@ -990,11 +990,11 @@ namespace OpenMS
     if (layer.modified != modified)
     {
       layer.modified = modified;
-      #ifdef DEBUG_TOPPVIEW
+#ifdef DEBUG_TOPPVIEW
       cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
       cout << "emit: layerModificationChange" << endl;
       cout << "END " << __PRETTY_FUNCTION__ << endl;
-      #endif
+#endif
       emit layerModficationChange(activeLayerIndex(), modified);
     }
   }

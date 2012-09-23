@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
 // $Authors: Katharina Albers, Clemens Groepl, Chris Bielow, Mathias Walzer $
@@ -52,25 +52,25 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TOPP_IDFileConverter IDFileConverter
+    @page TOPP_IDFileConverter IDFileConverter
 
-	@brief Converts identification engine file formats.
+    @brief Converts identification engine file formats.
 
 <CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDFileConverter \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> TPP tools: PeptideProphet, ProteinProphet </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> TPP tools: ProteinProphet\n(for conversion from idXML to pepXML) </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Sequest protein identification engine </td>
-		</tr>
-	</table>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDFileConverter \f$ \longrightarrow \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> TPP tools: PeptideProphet, ProteinProphet </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> TPP tools: ProteinProphet\n(for conversion from idXML to pepXML) </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Sequest protein identification engine </td>
+        </tr>
+    </table>
 </CENTER>
 
 
@@ -90,10 +90,10 @@ Some information about the supported input types:
   @ref OpenMS::OMSSAFile "omssaXML"
   @ref OpenMS::SequestOutfile ".out" directory
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_IDFileConverter.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude TOPP_IDFileConverter.html
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude TOPP_IDFileConverter.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude TOPP_IDFileConverter.html
 
 */
 
@@ -101,7 +101,8 @@ Some information about the supported input types:
 /// @cond TOPPCLASSES
 
 
-class TOPPIDFileConverter : public TOPPBase
+class TOPPIDFileConverter :
+  public TOPPBase
 {
 public:
   TOPPIDFileConverter() :
@@ -114,14 +115,14 @@ protected:
   registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<path/file>", "", "Input file or directory containing the output of the search engine.\n"
-      "Sequest: Directory containing the .out files\n"
-      "pepXML: Single pepXML file.\n"
-      "protXML: Single protXML file.\n"
-	    "xml: Single Mascot xml file.\n"
-      "omssaXML: Single OMSSA xml file.\n"
-      "idXML: Single idXML file.\n", true);
+                                                "Sequest: Directory containing the .out files\n"
+                                                "pepXML: Single pepXML file.\n"
+                                                "protXML: Single protXML file.\n"
+                                                "xml: Single Mascot xml file.\n"
+                                                "omssaXML: Single OMSSA xml file.\n"
+                                                "idXML: Single idXML file.\n", true);
     registerOutputFile_("out", "<file>", "", "Output file", true);
-		String formats("idXML,mzid,pepXML,FASTA");
+    String formats("idXML,mzid,pepXML,FASTA");
     setValidFormats_("out", StringList::create(formats));
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_type", StringList::create(formats));
@@ -129,270 +130,270 @@ protected:
     addEmptyLine_();
     addText_("Sequest options:");
     registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
-      "Note: Sequest .out files do not contain retention times, only scan numbers.", false);
+                                                   "Note: Sequest .out files do not contain retention times, only scan numbers.", false);
     // Please contact the maintainers if you know more about Sequest .out files and might help to resolve this issue
     registerFlag_("ignore_proteins_per_peptide", "Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
-      "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
+                                                 "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
 
     addEmptyLine_();
     addText_("pepXML/mascotXML options:");
     registerStringOption_("mz_file", "<file>", "", "MS data file from which the pepXML/mascotXML was generated. Used to look up retention times (some contain only scan numbers) and/or to define what parts to extract (some pepXMLs contain results from multiple experiments).", false);
-		registerStringOption_("mz_name", "<file>", "", "Experiment filename/path to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
-		registerFlag_("use_precursor_data", "Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
+    registerStringOption_("mz_name", "<file>", "", "Experiment filename/path to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
+    registerFlag_("use_precursor_data", "Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
   }
 
   ExitCodes
-  main_(int, const char**)
+  main_(int, const char **)
   {
-	//-------------------------------------------------------------
-	// general variables and data
-	//-------------------------------------------------------------
-	FileHandler fh;
-	vector<PeptideIdentification> peptide_identifications;
-	vector<ProteinIdentification> protein_identifications;
+    //-------------------------------------------------------------
+    // general variables and data
+    //-------------------------------------------------------------
+    FileHandler fh;
+    vector<PeptideIdentification> peptide_identifications;
+    vector<ProteinIdentification> protein_identifications;
 
-	//-------------------------------------------------------------
-	// reading input
-	//-------------------------------------------------------------
-	const String in = getStringOption_("in");
+    //-------------------------------------------------------------
+    // reading input
+    //-------------------------------------------------------------
+    const String in = getStringOption_("in");
 
-	if (File::isDirectory(in))
-	{		
-		const String in_directory = File::absolutePath(in).ensureLastChar('/');
-		const String mz_file = getStringOption_("mz_file");
-		const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
-
-		UInt i = 0;
-		FileHandler fh;
-		FileTypes::Type type;
-		MSExperiment<Peak1D> msexperiment;
-		// Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, Real> num_and_rt;)  However, now String::toInt() might throw.
-		map<Int, Real> num_and_rt;
-		vector<String> NativeID;
-
-		// The mz-File (if given)
-		if ( !mz_file.empty() )
-		{
-			type = fh.getTypeByFileName(mz_file);
-			fh.loadExperiment(mz_file, msexperiment, type);
-			
-			for (MSExperiment<Peak1D>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
-			{
-				String(spectra_it->getNativeID()).split('=', NativeID);
-				try
-				{
-					num_and_rt[NativeID[1].toInt()] = spectra_it->getRT();
-					// std::cout << "num_and_rt: " << NativeID[1] << " = " << NativeID[1].toInt() << " : " << num_and_rt[NativeID[1].toInt()] << std::endl; // CG debuggging 2009-07-01
-				}
-				catch (Exception::ConversionError &e)
-				{
-					writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
-				}
-			}
-		}
-
-		// Get list of the actual Sequest .out-Files
-		StringList in_files;
-		if (!File::fileList(in_directory, String("*.out"), in_files))
-		{
-			writeLog_(String("Error: No .out files found in '") + in_directory + "'. Aborting!");
-		}
-
-		// Now get to work ...
-		for (vector<String>::const_iterator in_files_it = in_files.begin(); in_files_it != in_files.end(); ++in_files_it)
-		{
-			vector<PeptideIdentification> peptide_ids_seq;
-			ProteinIdentification protein_id_seq;
-			vector<DoubleReal> pvalues_seq;			
-			vector<String> in_file_vec;
-
-			SequestOutfile sequest_outfile;
-
-			writeDebug_(String("Reading file ") + *in_files_it, 3);
-
-			try
-			{
-				sequest_outfile.load((String) (in_directory + *in_files_it), peptide_ids_seq, protein_id_seq, 1.0, pvalues_seq, "Sequest", ignore_proteins_per_peptide);
-
-				in_files_it->split('.', in_file_vec);
-
-				for (Size j = 0; j < peptide_ids_seq.size(); ++j)
-				{
-
-					// We have to explicitly set the identifiers, because the normal set ones are composed of search engine name and date, which is the same for a bunch of sequest out-files.
-					peptide_ids_seq[j].setIdentifier(*in_files_it + "_" + i);
-
-					Int scan_number = 0;
-					if (!mz_file.empty())
-					{
-						try
-						{
-							scan_number = in_file_vec.at(2).toInt();
-							peptide_ids_seq[j].setMetaValue("RT", num_and_rt[scan_number]);
-						}
-						catch (Exception::ConversionError &e)
-						{
-							writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
-						}
-						catch (std::exception &e)
-						{
-							writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
-						}
-						//	DoubleReal real_mz = ( (DoubleReal)peptide_ids_seq[j].getMetaValue("MZ") - hydrogen_mass )/ (DoubleReal)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
-						const DoubleReal real_mz = (DoubleReal) peptide_ids_seq[j].getMetaValue("MZ") / (DoubleReal) peptide_ids_seq[j].getHits()[0].getCharge();
-						peptide_ids_seq[j].setMetaValue("MZ", real_mz);
-					}
-
-					writeDebug_(String("scan: ") + String(scan_number) + String("  RT: ") + String(peptide_ids_seq[j].getMetaValue("RT")) + "  MZ: " + String(peptide_ids_seq[j].getMetaValue("MZ")) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
-
-					peptide_identifications.push_back(peptide_ids_seq[j]);
-				}
-
-				protein_id_seq.setIdentifier(*in_files_it + "_" + i);
-				protein_identifications.push_back(protein_id_seq);
-				++i;
-			}
-			catch (Exception::ParseError & pe)
-			{
-				writeLog_(pe.getMessage() + String("(file: ") + *in_files_it + ")");
-				throw ;
-			}
-			catch (...)
-			{
-				writeLog_(String("Error reading file: ") + *in_files_it);
-				throw;
-			}
-		}
-		
-		writeDebug_("All files processed.", 3);
-  } // ! directory
-
-	else
-	{
-		FileTypes::Type in_type = fh.getType(in);
-
-		if (in_type == FileTypes::PEPXML)
-		{
-			String exp_name = getStringOption_("mz_file");
-			String orig_name =	getStringOption_("mz_name");
-			bool use_precursor_data = getFlag_("use_precursor_data");
-			
-			if (exp_name.empty()) 
-			{
-				PepXMLFile().load(in, protein_identifications, peptide_identifications,
-													orig_name);
-			}
-			else
-			{
-				MSExperiment<> exp;
-				fh.loadExperiment(exp_name, exp);
-				if (!orig_name.empty())
-				{
-					exp_name = orig_name;
-				}
-				PepXMLFile().load(in, protein_identifications, peptide_identifications,
-													exp_name, exp, use_precursor_data);
-			}
-		}
-    else if (in_type == FileTypes::IDXML)
+    if (File::isDirectory(in))
     {
-      IdXMLFile().load(in, protein_identifications, peptide_identifications);
-    }
-		else if (in_type == FileTypes::PROTXML)
-		{
-			protein_identifications.resize(1);
-			peptide_identifications.resize(1);
-			ProtXMLFile().load(in, protein_identifications[0], peptide_identifications[0]);
-		}
-		else if (in_type == FileTypes::OMSSAXML)
-		{
-			protein_identifications.resize(1);
-			OMSSAXMLFile().load(in, protein_identifications[0], peptide_identifications, true);
-		}
-		else if (in_type == FileTypes::MASCOTXML)
-		{
-      String exp_name = getStringOption_("mz_file");
-      MascotXMLFile::RTMapping rt_mapping;
-      if (!exp_name.empty()) 
+      const String in_directory = File::absolutePath(in).ensureLastChar('/');
+      const String mz_file = getStringOption_("mz_file");
+      const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
+
+      UInt i = 0;
+      FileHandler fh;
+      FileTypes::Type type;
+      MSExperiment<Peak1D> msexperiment;
+      // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, Real> num_and_rt;)  However, now String::toInt() might throw.
+      map<Int, Real> num_and_rt;
+      vector<String> NativeID;
+
+      // The mz-File (if given)
+      if (!mz_file.empty())
       {
-        MSExperiment<> exp;
-        fh.loadExperiment(exp_name, exp);
-        for (Size i=0; i<exp.size(); ++i)
+        type = fh.getTypeByFileName(mz_file);
+        fh.loadExperiment(mz_file, msexperiment, type);
+
+        for (MSExperiment<Peak1D>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
         {
-          rt_mapping[exp[i].getNativeID()] = exp[i].getRT();
+          String(spectra_it->getNativeID()).split('=', NativeID);
+          try
+          {
+            num_and_rt[NativeID[1].toInt()] = spectra_it->getRT();
+            // std::cout << "num_and_rt: " << NativeID[1] << " = " << NativeID[1].toInt() << " : " << num_and_rt[NativeID[1].toInt()] << std::endl; // CG debuggging 2009-07-01
+          }
+          catch (Exception::ConversionError & e)
+          {
+            writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+          }
         }
       }
-			protein_identifications.resize(1);
-			MascotXMLFile().load(in, protein_identifications[0], peptide_identifications, rt_mapping);
-		}
-		else
-		{
-			writeLog_("Unknown input file type given. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-		}
-	}
 
-		//-------------------------------------------------------------
-		// writing output
-		//-------------------------------------------------------------
-		const String out = getStringOption_("out");
-		FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
-		if (out_type == FileTypes::UNKNOWN)
-		{
-			out_type = fh.getTypeByFileName(out);
-		}
-		if (out_type == FileTypes::UNKNOWN)
-		{
-			writeLog_("Error: Could not determine output file type!");
-			return PARSE_ERROR;
-		}
+      // Get list of the actual Sequest .out-Files
+      StringList in_files;
+      if (!File::fileList(in_directory, String("*.out"), in_files))
+      {
+        writeLog_(String("Error: No .out files found in '") + in_directory + "'. Aborting!");
+      }
 
-		if (out_type == FileTypes::PEPXML)
-		{
-			PepXMLFile().store(out, protein_identifications, peptide_identifications);
-		}
-		else if (out_type == FileTypes::IDXML)
-		{
-			IdXMLFile().store(out, protein_identifications, peptide_identifications);
-		}
-		else if (out_type == FileTypes::MZIDENTML)
-		{
-			MzIdentMLFile().store(out, protein_identifications, peptide_identifications);
-		}
-		else if (out_type == FileTypes::FASTA)
-		{
-			Size count = 0;
-			std::ofstream fasta(out.c_str(), std::ios::out);
-			for (Size i = 0; i < peptide_identifications.size(); ++i)
-			{
-				for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
-				{
-					const PeptideHit& hit = peptide_identifications[i].getHits()[l];
-					fasta << ">" << hit.getSequence().toUnmodifiedString() << "|" << count++ 
-								<< "|" << hit.getSequence().toString() << endl;
-					String seq = hit.getSequence().toUnmodifiedString();
-					// FASTA files should have at most 60 characters of sequence info per line
-					for (Size j = 0; j < seq.size(); j += 60)
-					{
-						Size k = min(j + 60, seq.size());
-						fasta << std::string(seq[j], seq[k]) << endl;
-					}
-				}
-			}
-		}
-		else
-		{
-			writeLog_("Unsupported output file type given. Aborting!");
-			printUsage_();
-			return ILLEGAL_PARAMETERS;
-		}
+      // Now get to work ...
+      for (vector<String>::const_iterator in_files_it = in_files.begin(); in_files_it != in_files.end(); ++in_files_it)
+      {
+        vector<PeptideIdentification> peptide_ids_seq;
+        ProteinIdentification protein_id_seq;
+        vector<DoubleReal> pvalues_seq;
+        vector<String> in_file_vec;
+
+        SequestOutfile sequest_outfile;
+
+        writeDebug_(String("Reading file ") + *in_files_it, 3);
+
+        try
+        {
+          sequest_outfile.load((String) (in_directory + *in_files_it), peptide_ids_seq, protein_id_seq, 1.0, pvalues_seq, "Sequest", ignore_proteins_per_peptide);
+
+          in_files_it->split('.', in_file_vec);
+
+          for (Size j = 0; j < peptide_ids_seq.size(); ++j)
+          {
+
+            // We have to explicitly set the identifiers, because the normal set ones are composed of search engine name and date, which is the same for a bunch of sequest out-files.
+            peptide_ids_seq[j].setIdentifier(*in_files_it + "_" + i);
+
+            Int scan_number = 0;
+            if (!mz_file.empty())
+            {
+              try
+              {
+                scan_number = in_file_vec.at(2).toInt();
+                peptide_ids_seq[j].setMetaValue("RT", num_and_rt[scan_number]);
+              }
+              catch (Exception::ConversionError & e)
+              {
+                writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
+              }
+              catch (std::exception & e)
+              {
+                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
+              }
+              //	DoubleReal real_mz = ( (DoubleReal)peptide_ids_seq[j].getMetaValue("MZ") - hydrogen_mass )/ (DoubleReal)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
+              const DoubleReal real_mz = (DoubleReal) peptide_ids_seq[j].getMetaValue("MZ") / (DoubleReal) peptide_ids_seq[j].getHits()[0].getCharge();
+              peptide_ids_seq[j].setMetaValue("MZ", real_mz);
+            }
+
+            writeDebug_(String("scan: ") + String(scan_number) + String("  RT: ") + String(peptide_ids_seq[j].getMetaValue("RT")) + "  MZ: " + String(peptide_ids_seq[j].getMetaValue("MZ")) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
+
+            peptide_identifications.push_back(peptide_ids_seq[j]);
+          }
+
+          protein_id_seq.setIdentifier(*in_files_it + "_" + i);
+          protein_identifications.push_back(protein_id_seq);
+          ++i;
+        }
+        catch (Exception::ParseError & pe)
+        {
+          writeLog_(pe.getMessage() + String("(file: ") + *in_files_it + ")");
+          throw;
+        }
+        catch (...)
+        {
+          writeLog_(String("Error reading file: ") + *in_files_it);
+          throw;
+        }
+      }
+
+      writeDebug_("All files processed.", 3);
+    } // ! directory
+    else
+    {
+      FileTypes::Type in_type = fh.getType(in);
+
+      if (in_type == FileTypes::PEPXML)
+      {
+        String exp_name = getStringOption_("mz_file");
+        String orig_name =  getStringOption_("mz_name");
+        bool use_precursor_data = getFlag_("use_precursor_data");
+
+        if (exp_name.empty())
+        {
+          PepXMLFile().load(in, protein_identifications, peptide_identifications,
+                            orig_name);
+        }
+        else
+        {
+          MSExperiment<> exp;
+          fh.loadExperiment(exp_name, exp);
+          if (!orig_name.empty())
+          {
+            exp_name = orig_name;
+          }
+          PepXMLFile().load(in, protein_identifications, peptide_identifications,
+                            exp_name, exp, use_precursor_data);
+        }
+      }
+      else if (in_type == FileTypes::IDXML)
+      {
+        IdXMLFile().load(in, protein_identifications, peptide_identifications);
+      }
+      else if (in_type == FileTypes::PROTXML)
+      {
+        protein_identifications.resize(1);
+        peptide_identifications.resize(1);
+        ProtXMLFile().load(in, protein_identifications[0], peptide_identifications[0]);
+      }
+      else if (in_type == FileTypes::OMSSAXML)
+      {
+        protein_identifications.resize(1);
+        OMSSAXMLFile().load(in, protein_identifications[0], peptide_identifications, true);
+      }
+      else if (in_type == FileTypes::MASCOTXML)
+      {
+        String exp_name = getStringOption_("mz_file");
+        MascotXMLFile::RTMapping rt_mapping;
+        if (!exp_name.empty())
+        {
+          MSExperiment<> exp;
+          fh.loadExperiment(exp_name, exp);
+          for (Size i = 0; i < exp.size(); ++i)
+          {
+            rt_mapping[exp[i].getNativeID()] = exp[i].getRT();
+          }
+        }
+        protein_identifications.resize(1);
+        MascotXMLFile().load(in, protein_identifications[0], peptide_identifications, rt_mapping);
+      }
+      else
+      {
+        writeLog_("Unknown input file type given. Aborting!");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
+    const String out = getStringOption_("out");
+    FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(out);
+    }
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
+    if (out_type == FileTypes::PEPXML)
+    {
+      PepXMLFile().store(out, protein_identifications, peptide_identifications);
+    }
+    else if (out_type == FileTypes::IDXML)
+    {
+      IdXMLFile().store(out, protein_identifications, peptide_identifications);
+    }
+    else if (out_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().store(out, protein_identifications, peptide_identifications);
+    }
+    else if (out_type == FileTypes::FASTA)
+    {
+      Size count = 0;
+      std::ofstream fasta(out.c_str(), std::ios::out);
+      for (Size i = 0; i < peptide_identifications.size(); ++i)
+      {
+        for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
+        {
+          const PeptideHit & hit = peptide_identifications[i].getHits()[l];
+          fasta << ">" << hit.getSequence().toUnmodifiedString() << "|" << count++
+                << "|" << hit.getSequence().toString() << endl;
+          String seq = hit.getSequence().toUnmodifiedString();
+          // FASTA files should have at most 60 characters of sequence info per line
+          for (Size j = 0; j < seq.size(); j += 60)
+          {
+            Size k = min(j + 60, seq.size());
+            fasta << std::string(seq[j], seq[k]) << endl;
+          }
+        }
+      }
+    }
+    else
+    {
+      writeLog_("Unsupported output file type given. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
 
     return EXECUTION_OK;
   }
+
 };
 
-int main(int argc, const char** argv)
+int main(int argc, const char ** argv)
 {
   TOPPIDFileConverter tool;
   return tool.main(argc, argv);

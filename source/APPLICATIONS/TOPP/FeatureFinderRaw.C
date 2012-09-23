@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
 // $Authors: Lars Nilse, Steffen Sass, Holger Plattfaut, Bastian Blank $
@@ -103,8 +103,8 @@ using namespace std;
 
   <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_FeatureFinderRaw.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude TOPP_FeatureFinderRaw.html
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude TOPP_FeatureFinderRaw.html
 
   <b>Parameter Tuning</b>
 
@@ -117,7 +117,7 @@ using namespace std;
 
  <i>optional output:</i>
  - out_clusters [*.consensusXML] - contains the complete set of data points passing the filters
- 
+
   The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
 
   Parameters in section <i>algorithm:</i>
@@ -133,43 +133,42 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPFeatureFinderRaw
-: public TOPPBase
+class TOPPFeatureFinderRaw :
+  public TOPPBase
 {
-  private:
+private:
 
-    // input and output files
-    String in;
-    String out;
+  // input and output files
+  String in;
+  String out;
 
-    // section "sample"
-    Int charge_min;
-    Int charge_max;
-    Int missed_cleavages;
-    Int isotopes_per_peptide_min;
-    Int isotopes_per_peptide_max;
+  // section "sample"
+  Int charge_min;
+  Int charge_max;
+  Int missed_cleavages;
+  Int isotopes_per_peptide_min;
+  Int isotopes_per_peptide_max;
 
-    // section "algorithm"
-    DoubleReal rt_threshold;
-    DoubleReal rt_min;
-    DoubleReal intensity_cutoff;
-    DoubleReal intensity_correlation;
-    DoubleReal model_deviation;
+  // section "algorithm"
+  DoubleReal rt_threshold;
+  DoubleReal rt_min;
+  DoubleReal intensity_cutoff;
+  DoubleReal intensity_correlation;
+  DoubleReal model_deviation;
 
-    vector<vector <DoubleReal> > massShifts;      // list of mass shifts
+  vector<vector<DoubleReal> > massShifts;         // list of mass shifts
 
-    typedef SILACClustering Clustering;
+  typedef SILACClustering Clustering;
 
-    vector<vector<SILACPattern> > data;
-    vector<Clustering *> cluster_data;
+  vector<vector<SILACPattern> > data;
+  vector<Clustering *> cluster_data;
 
 
-  public:
-    TOPPFeatureFinderRaw()
-      : TOPPBase("FeatureFinderRaw","Determination of peak ratios in LC-MS data", true)
-    {
-    }
-
+public:
+  TOPPFeatureFinderRaw() :
+    TOPPBase("FeatureFinderRaw", "Determination of peak ratios in LC-MS data", true)
+  {
+  }
 
   //--------------------------------------------------
   // set structure of ini file
@@ -190,9 +189,8 @@ class TOPPFeatureFinderRaw
     registerSubsection_("algorithm", "Parameters for the algorithm.");
   }
 
-
   // create prameters for sections (set default values and restrictions)
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String & section) const
   {
     Param defaults;
 
@@ -229,7 +227,6 @@ class TOPPFeatureFinderRaw
 
     return defaults;
   }
-
 
   //--------------------------------------------------
   // handle parameters (read in and format given parameters)
@@ -290,12 +287,11 @@ class TOPPFeatureFinderRaw
     }
   }
 
-
   //--------------------------------------------------
   // filtering
   //--------------------------------------------------
 
-  void filterData(MSExperiment<Peak1D>& exp, const PeakWidthEstimator::Result &peak_width)
+  void filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width)
   {
     list<SILACFilter> filters;
 
@@ -354,7 +350,7 @@ class TOPPFeatureFinderRaw
 
       for (vector<vector<SILACPattern> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
       {
-        if ( !data_it->empty() )
+        if (!data_it->empty())
         {
           data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
         }
@@ -374,25 +370,25 @@ class TOPPFeatureFinderRaw
         vector<SILACPattern>::iterator it_2;     // second inner iterator over elements of second DataPoint
 
         while (data_it_1 < data_it_end)      // check for combining as long as first DataPoint is not second last elment of "data"
-        {          
-          while ( data_it_1->empty() && data_it_1 < data_it_end )
+        {
+          while (data_it_1->empty() && data_it_1 < data_it_end)
           {
             ++data_it_1;      // get next first DataPoint
             data_it_2 = data_it_1 + 1;      // reset second iterator
           }
 
           if (data_it_1 == data_it_end && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
-          {            
+          {
             break;      // stop combining
           }
 
-          while ( data_it_2 < data.end() && data_it_2->empty() )      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
+          while (data_it_2 < data.end() && data_it_2->empty())        // as long as current second DataPoint is empty and second iterator does not point to end of "data"
           {
             ++data_it_2;      // get next second DataPoint
           }
 
           if (data_it_2 == data.end())      // if second iterator points to end of "data"
-          {            
+          {
             data_it_2 = data_it_1 + 1;      // reset second iterator
           }
 
@@ -400,36 +396,33 @@ class TOPPFeatureFinderRaw
           it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
 
           // check if DataPoints are not empty
-          if ( !data_it_1->empty() && !data_it_2->empty() )
+          if (!data_it_1->empty() && !data_it_2->empty())
           {
             // check if DataPoints have the same charge state and mass shifts
             if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
-            {              
+            {
               if (data_it_2 < data_it_end)     // if DataPpoints differ and second DataPoint is not second last element of "data"
               {
                 temp++;
                 ++data_it_2;      // get next second DataPoint
                 if (temp > 50000)
-                {                  
+                {
                   ++data_it_1;
                   temp = 0;
                 }
               }
-
               else if (data_it_2 == data_it_end && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
               {
                 ++data_it_1;      // get next first DataPoint
                 data_it_2 = data_it_1 + 1;      // reset second iterator
               }
-
               else
               {
                 ++data_it_1;      // get next first DataPoint
               }
             }
-
             else
-            {              
+            {
               // perform combining
               (*data_it_1).insert(data_it_1->end(), data_it_2->begin(), data_it_2->end());      // append second DataPoint to first DataPoint
               (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
@@ -455,7 +448,7 @@ class TOPPFeatureFinderRaw
 
         for (vector<vector<SILACPattern> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
         {
-          if ( !data_it->empty() )
+          if (!data_it->empty())
           {
             data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
           }
@@ -469,7 +462,7 @@ class TOPPFeatureFinderRaw
 
   }
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int, const char **)
   {
     handleParameters();
 
@@ -494,14 +487,14 @@ class TOPPFeatureFinderRaw
     //--------------------------------------------------
     // estimate peak width
     //--------------------------------------------------
-    
+
     PeakWidthEstimator::Result peak_width;
     try
-    { 
+    {
       peak_width = estimatePeakWidth(exp);
     }
     catch (Exception::InvalidSize &)
-    { 
+    {
       writeLog_("Error: Unable to estimate peak width of input data.");
       return INCOMPATIBLE_INPUT_DATA;
     }
@@ -546,7 +539,7 @@ private:
 
   void generateClusterFeatureByCluster(FeatureMap<> &, const Clustering &) const;
 
-  void writeFeatures(const String &filename, FeatureMap<> &out) const
+  void writeFeatures(const String & filename, FeatureMap<> & out) const
   {
     out.sortByPosition();
     out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -554,9 +547,10 @@ private:
     FeatureXMLFile f_file;
     f_file.store(filename, out);
   }
+
 };
 
-void TOPPFeatureFinderRaw::clusterData(const PeakWidthEstimator::Result &peak_width)
+void TOPPFeatureFinderRaw::clusterData(const PeakWidthEstimator::Result & peak_width)
 {
   typedef Clustering::PointCoordinate PointCoordinate;
 
@@ -574,12 +568,12 @@ void TOPPFeatureFinderRaw::clusterData(const PeakWidthEstimator::Result &peak_wi
        ++data_it, ++data_id)
   {
     const PointCoordinate max_delta(rt_threshold, mz_threshold);
-    Clustering *clustering = new Clustering(max_delta, rt_min, 0);
+    Clustering * clustering = new Clustering(max_delta, rt_min, 0);
 
     for (vector<SILACPattern>::iterator it = data_it->begin(); it != data_it->end(); ++it)
     {
       const PointCoordinate key(it->rt, it->mz);
-      SILACPattern &p = *it;
+      SILACPattern & p = *it;
       clustering->insertPoint(key, &p);
     }
 
@@ -593,7 +587,7 @@ void TOPPFeatureFinderRaw::clusterData(const PeakWidthEstimator::Result &peak_wi
   progresslogger.endProgress();
 }
 
-PeakWidthEstimator::Result TOPPFeatureFinderRaw::estimatePeakWidth(const MSExperiment<Peak1D> &exp)
+PeakWidthEstimator::Result TOPPFeatureFinderRaw::estimatePeakWidth(const MSExperiment<Peak1D> & exp)
 {
   ProgressLogger progresslogger;
   progresslogger.setLogType(log_type_);
@@ -606,7 +600,7 @@ PeakWidthEstimator::Result TOPPFeatureFinderRaw::estimatePeakWidth(const MSExper
   return ret;
 }
 
-void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> &out, const Clustering &clustering) const
+void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> & out, const Clustering & clustering) const
 {
   for (Clustering::Grid::const_iterator cluster_it = clustering.grid.begin(); cluster_it != clustering.grid.end(); ++cluster_it)
   {
@@ -619,7 +613,7 @@ void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> &out, co
          pattern_it != cluster_it->second.end();
          ++pattern_it)
     {
-      SILACPattern &pattern = *pattern_it->second;
+      SILACPattern & pattern = *pattern_it->second;
 
       for (std::vector<std::vector<DoubleReal> >::const_iterator shift_inten_it = pattern.intensities.begin();
            shift_inten_it != pattern.intensities.end();
@@ -641,7 +635,7 @@ void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> &out, co
     // Calculate global RT value
     global_rt /= global_intensity;
 
-    SILACPattern &pattern_first = *cluster_it->second.begin()->second;
+    SILACPattern & pattern_first = *cluster_it->second.begin()->second;
 
     for (UInt shift_id = 0; shift_id < pattern_first.mass_shifts.size(); ++shift_id)
     {
@@ -665,9 +659,9 @@ void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> &out, co
            pattern_it != cluster_it->second.end();
            ++pattern_it)
       {
-        SILACPattern &pattern = *pattern_it->second;
+        SILACPattern & pattern = *pattern_it->second;
 
-        const std::vector<DoubleReal> &intensities = pattern.intensities[shift_id];
+        const std::vector<DoubleReal> & intensities = pattern.intensities[shift_id];
         DoubleReal mz = pattern.mz + pattern.mass_shifts[shift_id];
         DoubleReal intensity0 = intensities[0];
 
@@ -717,7 +711,7 @@ void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> &out, co
 
 //@endcond
 
-int main(int argc, const char** argv )
+int main(int argc, const char ** argv)
 {
   TOPPFeatureFinderRaw tool;
   return tool.main(argc, argv);

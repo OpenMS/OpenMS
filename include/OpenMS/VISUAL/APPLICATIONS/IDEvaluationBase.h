@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
@@ -63,133 +63,133 @@ class QNetworkReply;
 
 namespace OpenMS
 {
-	class TOPPASWidget;
-	class TOPPASScene;
-	class TOPPASTabBar;
-	class TOPPASResources;
+  class TOPPASWidget;
+  class TOPPASScene;
+  class TOPPASTabBar;
+  class TOPPASResources;
 
   /**
-  	@brief Main window of the IDEvaluation tool
-  
+    @brief Main window of the IDEvaluation tool
+
     @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI IDEvaluationBase 
-  	: public QMainWindow, 
-  		public DefaultParamHandler
+  class OPENMS_GUI_DLLAPI IDEvaluationBase :
+    public QMainWindow,
+    public DefaultParamHandler
   {
-      Q_OBJECT
+    Q_OBJECT
 
-    public:
-    	
-      ///Constructor
-      IDEvaluationBase(QWidget* parent=0);
-      ///Destructor
-      virtual ~IDEvaluationBase();
+public:
 
-      QSize sizeHint() const;
+    ///Constructor
+    IDEvaluationBase(QWidget * parent = 0);
+    ///Destructor
+    virtual ~IDEvaluationBase();
 
-      void setVisibleArea(double low, double high);
+    QSize sizeHint() const;
 
-      static StringList getSupportedImageFormats();
+    void setVisibleArea(double low, double high);
 
-    public slots:
-      
-      void resetZoom();
+    static StringList getSupportedImageFormats();
 
-      void setIntensityMode(int index);
+public slots:
 
-			/// compute q-values from ids and store as vector of points for plotting
-      bool getPoints(std::vector<PeptideIdentification>& peptides /* cannot be const, to avoid copy */, const std::vector< DoubleReal >& q_value_thresholds, MSSpectrum<>& points);
+    void resetZoom();
 
-      /// opens the file in a new window
-      void addSearchFile(const String& file_name);
-      /// shows the dialog for opening files
-      void openFileDialog();
-      /// saves the plot - querying for a filename first
-      void saveImageAs();
-      /// exports the current pipeline as image
-      /// returns true on success, otherwise false + @p error_message
-      bool exportAsImage(const QString& file_name, String& error_message, const QString& format = "");
-    	/// changes the current path according to the currently active window/layer
-      //void updateCurrentPath();
-      /// Shows the 'About' dialog
-      void showAboutDialog();
-      /**
-      	@brief Shows a status message in the status bar.
-      	
-      	If @p time is 0 the status message is displayed until showStatusMessage is called with an empty message or a new message.
-      	Otherwise the message is displayed for @p time ms.
-      */
-      void showStatusMessage(std::string msg, OpenMS::UInt time);
-      /// shows x,y coordinates in the status bar
-      //void showCursorStatus(double x, double y);
-      /// closes the active window
-      //void closeFile();
-      /// updates the toolbar
-      //void updateToolBar();
+    void setIntensityMode(int index);
 
-      void loadFiles(const StringList& list);
+    /// compute q-values from ids and store as vector of points for plotting
+    bool getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */, const std::vector<DoubleReal> & q_value_thresholds, MSSpectrum<> & points);
 
-      void showURL();
+    /// opens the file in a new window
+    void addSearchFile(const String & file_name);
+    /// shows the dialog for opening files
+    void openFileDialog();
+    /// saves the plot - querying for a filename first
+    void saveImageAs();
+    /// exports the current pipeline as image
+    /// returns true on success, otherwise false + @p error_message
+    bool exportAsImage(const QString & file_name, String & error_message, const QString & format = "");
+    /// changes the current path according to the currently active window/layer
+    //void updateCurrentPath();
+    /// Shows the 'About' dialog
+    void showAboutDialog();
+    /**
+      @brief Shows a status message in the status bar.
 
-    protected slots:
-	  
-		  /// enable/disable menu entries depending on the current state
-    	//void updateMenu();
-    	/// Shows the widget as window in the workspace (the special_id is only used for the first untitled widget (to be able to auto-close it later)
-    	//void showAsWindow_(TOPPASWidget* sw, const String& caption, const int special_id = -1);
-			
+      If @p time is 0 the status message is displayed until showStatusMessage is called with an empty message or a new message.
+      Otherwise the message is displayed for @p time ms.
+    */
+    void showStatusMessage(std::string msg, OpenMS::UInt time);
+    /// shows x,y coordinates in the status bar
+    //void showCursorStatus(double x, double y);
+    /// closes the active window
+    //void closeFile();
+    /// updates the toolbar
+    //void updateToolBar();
 
+    void loadFiles(const StringList & list);
+
+    void showURL();
+
+protected slots:
+
+    /// enable/disable menu entries depending on the current state
+    //void updateMenu();
+    /// Shows the widget as window in the workspace (the special_id is only used for the first untitled widget (to be able to auto-close it later)
+    //void showAsWindow_(TOPPASWidget* sw, const String& caption, const int special_id = -1);
 
 
-    protected:
-
-			/// Log output window
-      QTextEdit* log_;
-      /// Workflow Description window
-      QTextEdit* desc_;
-
-      /// Main workspace
-      QWorkspace* ws_;
-
-      Spectrum1DWidget* spec_1d_;
-
-      /// Label for messages in the status bar
-      QLabel* message_label_;
-
-      ///returns the window with id @p id
-      TOPPASWidget* window_(int id) const;
 
 
-      /// The current path (used for loading and storing).
-      /// Depending on the preferences this is static or changes with the current window/layer.
-      String current_path_;
-      ///@name reimplemented Qt events
-      //@{
-      void closeEvent(QCloseEvent* event);
-			void keyPressEvent(QKeyEvent* e);
-			//@}
-			
-			///Log message states
-			enum LogState
-			{ 
-				LS_NOTICE,   ///< Notice
-				LS_WARNING,  ///< Warning
-				LS_ERROR     ///< Fatal error
-			};
-			/// Shows a log message in the log_ window 
-      void showLogMessage_(LogState state, const String& heading, const String& body);
+protected:
 
-      std::vector< DoubleReal > q_value_thresholds_;
-      /** @name Toolbar
-      */
-      //@{
-      QToolBar* tool_bar_;
-      //common intensity modes
+    /// Log output window
+    QTextEdit * log_;
+    /// Workflow Description window
+    QTextEdit * desc_;
 
-      QButtonGroup* intensity_button_group_;
-      //1D specific stuff
-      //@}
+    /// Main workspace
+    QWorkspace * ws_;
+
+    Spectrum1DWidget * spec_1d_;
+
+    /// Label for messages in the status bar
+    QLabel * message_label_;
+
+    ///returns the window with id @p id
+    TOPPASWidget * window_(int id) const;
+
+
+    /// The current path (used for loading and storing).
+    /// Depending on the preferences this is static or changes with the current window/layer.
+    String current_path_;
+    ///@name reimplemented Qt events
+    //@{
+    void closeEvent(QCloseEvent * event);
+    void keyPressEvent(QKeyEvent * e);
+    //@}
+
+    ///Log message states
+    enum LogState
+    {
+      LS_NOTICE,             ///< Notice
+      LS_WARNING,            ///< Warning
+      LS_ERROR               ///< Fatal error
+    };
+    /// Shows a log message in the log_ window
+    void showLogMessage_(LogState state, const String & heading, const String & body);
+
+    std::vector<DoubleReal> q_value_thresholds_;
+    /** @name Toolbar
+    */
+    //@{
+    QToolBar * tool_bar_;
+    //common intensity modes
+
+    QButtonGroup * intensity_button_group_;
+    //1D specific stuff
+    //@}
 
   }
   ; //class

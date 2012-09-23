@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
@@ -52,24 +52,24 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page UTILS_INIUpdater INIUpdater
-	@brief Update INI and TOPPAS files from previous versions of OpenMS/TOPP
+    @page UTILS_INIUpdater INIUpdater
+    @brief Update INI and TOPPAS files from previous versions of OpenMS/TOPP
 
 <CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ INIUpdater \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-		</tr>
-	</table>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ INIUpdater \f$ \longrightarrow \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+        </tr>
+    </table>
 </CENTER>
 
-	This tool can update old INI files and make them
+    This tool can update old INI files and make them
    - compatible to new versions of %OpenMS
    - show new parameters introduced with a new %OpenMS version
    - delete old parameters which no longer have any effect
@@ -85,12 +85,12 @@ using namespace std;
   No backup will be created if -out is used, as the original files are not touched (unless you name them
   the same).
 
-  
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude UTILS_INIUpdater.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude UTILS_INIUpdater.html
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_INIUpdater.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_INIUpdater.html
 */
 
 // We do not want this class to show up in the docu:
@@ -99,31 +99,31 @@ using namespace std;
 using namespace OpenMS;
 
 
-class TOPPINIUpdater
-	: public TOPPBase
+class TOPPINIUpdater :
+  public TOPPBase
 {
-	public:
-	TOPPINIUpdater()
-		: TOPPBase("INIUpdater", "Update INI and TOPPAS files to new OpenMS version.", false),
-      failed_(),
-      tmp_files_()
-	{
-	}
-  	
-	protected:
+public:
+  TOPPINIUpdater() :
+    TOPPBase("INIUpdater", "Update INI and TOPPAS files to new OpenMS version.", false),
+    failed_(),
+    tmp_files_()
+  {
+  }
 
-	virtual void registerOptionsAndFlags_()
-	{
-		registerInputFileList_("in","<files>", StringList(), "INI/TOPPAS files that need updating.");
-		setValidFormats_("in", StringList::create("ini,toppas")); 
+protected:
 
-		registerFlag_("i", "in-place: Override given INI/TOPPAS files with new content (not compatible with -out)");
-		
-		registerOutputFileList_("out","<files>", StringList(), "Optional list of output files (not compatible with -i).", false, false);
+  virtual void registerOptionsAndFlags_()
+  {
+    registerInputFileList_("in", "<files>", StringList(), "INI/TOPPAS files that need updating.");
+    setValidFormats_("in", StringList::create("ini,toppas"));
+
+    registerFlag_("i", "in-place: Override given INI/TOPPAS files with new content (not compatible with -out)");
+
+    registerOutputFileList_("out", "<files>", StringList(), "Optional list of output files (not compatible with -i).", false, false);
     setValidFormats_("out", StringList::create("ini,toppas"));
-	}
+  }
 
-  void updateTOPPAS(const String& infile,const String& outfile)
+  void updateTOPPAS(const String & infile, const String & outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
@@ -153,7 +153,7 @@ class TOPPINIUpdater
     // update sections
     writeDebug_("#Vertices: " + vertices, 1);
     bool update_success = true;
-    for (Int v=0; v<vertices; ++v)
+    for (Int v = 0; v < vertices; ++v)
     {
       String sec_inst = "vertices:" + String(v) + ":";
       // check for default instance
@@ -164,8 +164,8 @@ class TOPPINIUpdater
         break;
       }
 
-      if (p.getValue(sec_inst + "toppas_type") != "tool")
-      { // not a tool (but input/output/merge node)
+      if (p.getValue(sec_inst + "toppas_type") != "tool") // not a tool (but input/output/merge node)
+      {
         continue;
       }
 
@@ -175,7 +175,7 @@ class TOPPINIUpdater
         update_success = false;
         break;
       }
-      
+
       String old_name = p.getValue(sec_inst + "tool_name");
       String new_tool;
       String ttype;
@@ -209,7 +209,7 @@ class TOPPINIUpdater
       // update defaults with old values
       Param new_param;
       new_param.load(tmp_ini_file);
-      new_param = new_param.copy(new_tool + ":1" , true);
+      new_param = new_param.copy(new_tool + ":1", true);
       Param old_param = p.copy(sec_inst + "parameters", true);
       new_param.update(old_param, true, false);
       // push back changes
@@ -227,9 +227,9 @@ class TOPPINIUpdater
 
     // update internal structure (e.g. edges format changed from 1.8 to 1.9)
     int argc = 1;
-    const char* c = "IniUpdater";
-    const char** argv = &c;
-    QApplication app(argc, const_cast<char**>(argv), false);
+    const char * c = "IniUpdater";
+    const char ** argv = &c;
+    QApplication app(argc, const_cast<char **>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
     d.mkpath(tmp_dir.toQString());
@@ -240,8 +240,8 @@ class TOPPINIUpdater
     p.load(tmp_ini_file);
 
     // STORE
-    if (outfile.empty())
-    { // create a backup
+    if (outfile.empty()) // create a backup
+    {
       QFileInfo fi(infile.toQString());
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
       QFile::rename(infile.toQString(), new_name.toQString());
@@ -254,7 +254,7 @@ class TOPPINIUpdater
     }
   }
 
-  void updateINI(const String& infile,const String& outfile)
+  void updateINI(const String & infile, const String & outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
@@ -288,12 +288,12 @@ class TOPPINIUpdater
       version = p.getValue(sections[0] + ":version");
       // TODO: return on newer version?!
     }
-    
+
 
     // update sections
     writeDebug_("Section names: " + sections.concatenate(", "), 1);
     bool update_success = true;
-    for (Size s=0; s<sections.size(); ++s)
+    for (Size s = 0; s < sections.size(); ++s)
     {
       String sec_inst = sections[s] + ":" + String(this_instance) + ":";
       // check for default instance
@@ -326,12 +326,12 @@ class TOPPINIUpdater
       // update defaults with old values
       Param new_param;
       new_param.load(tmp_ini_file);
-      new_param = new_param.copy(new_tool , true);
+      new_param = new_param.copy(new_tool, true);
       Param old_param = p.copy(sections[s], true);
       new_param.update(old_param, true, false);
       // push back changes
       p.remove(sections[s] + ":");
-      p.insert(new_tool   , new_param);
+      p.insert(new_tool, new_param);
     }
 
     if (!update_success)
@@ -341,8 +341,8 @@ class TOPPINIUpdater
     }
 
     // STORE
-    if (outfile.empty())
-    { // create a backup
+    if (outfile.empty()) // create a backup
+    {
       QFileInfo fi(infile.toQString());
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".ini";
       QFile::rename(infile.toQString(), new_name.toQString());
@@ -356,10 +356,10 @@ class TOPPINIUpdater
     }
   }
 
-	ExitCodes main_(int, const char**)
-	{
+  ExitCodes main_(int, const char **)
+  {
     StringList in  = getStringList_("in");
-		StringList out = getStringList_("out");
+    StringList out = getStringList_("out");
     bool inplace = getFlag_("i");
 
     // consistency checks
@@ -368,7 +368,7 @@ class TOPPINIUpdater
       writeLog_("Cannot write output files, as neither -out nor -i are given. Use either of them, but not both!");
       return ILLEGAL_PARAMETERS;
     }
-    if (out.size()>0 && inplace)
+    if (out.size() > 0 && inplace)
     {
       writeLog_("Two incompatible arguments given (-out and -i). Use either of them, but not both!");
       return ILLEGAL_PARAMETERS;
@@ -379,24 +379,24 @@ class TOPPINIUpdater
       writeLog_("Output and input file list length must be equal!");
       return ILLEGAL_PARAMETERS;
     }
-    
+
     // do the conversion!
     FileHandler fh;
-    for (Size i=0; i<in.size(); ++i)
+    for (Size i = 0; i < in.size(); ++i)
     {
       FileTypes::Type f_type = fh.getType(in[i]);
       if (f_type == FileTypes::INI) updateINI(in[i], inplace ? "" : out[i]);
       else if (f_type == FileTypes::TOPPAS) updateTOPPAS(in[i], inplace ? "" : out[i]);
     }
-    
-    for (Size i=0; i<tmp_files_.size(); ++i)
+
+    for (Size i = 0; i < tmp_files_.size(); ++i)
     {
       // clean up
       File::remove(tmp_files_[i]);
     }
 
 
-    if (failed_.size()>0)
+    if (failed_.size() > 0)
     {
       writeLog_("The following INI/TOPPAS files could not be updated:\n  " + failed_.concatenate("\n  "));
       return INPUT_FILE_CORRUPT;
@@ -415,9 +415,8 @@ class TOPPINIUpdater
 
 /// @endcond
 
-int main(int argc, const char** argv)
+int main(int argc, const char ** argv)
 {
   TOPPINIUpdater tool;
   return tool.main(argc, argv);
 }
-

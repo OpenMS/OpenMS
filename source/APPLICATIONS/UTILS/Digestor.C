@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Nico Pfeiffer, Chris Bielow $
@@ -49,230 +49,226 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page UTILS_Digestor Digestor
-	
-	@brief Digests a protein database in-silico.
+    @page UTILS_Digestor Digestor
+
+    @brief Digests a protein database in-silico.
 <CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ Digestor \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none (FASTA input) </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter (peptide blacklist)</td>
-		</tr>
-	</table>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ Digestor \f$ \longrightarrow \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none (FASTA input) </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter (peptide blacklist)</td>
+        </tr>
+    </table>
 </CENTER>
 
-	This application is used to digest a protein database to get all
-	peptides given a cleavage enzyme. At the moment only trypsin is supported.
-	
+    This application is used to digest a protein database to get all
+    peptides given a cleavage enzyme. At the moment only trypsin is supported.
+
   The output can be used as a blacklist filter input to @ref TOPP_IDFilter, to remove certain peptides.
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude UTILS_Digestor.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude UTILS_Digestor.html
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_Digestor.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_Digestor.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPDigestor
-	: public TOPPBase
+class TOPPDigestor :
+  public TOPPBase
 {
-	public:
-		TOPPDigestor()
-			: TOPPBase("Digestor","Digests a protein database in-silico.",false)
-		{
-			
-		}
-	
-	protected:
-		void registerOptionsAndFlags_()
-		{
-			registerInputFile_("in","<file>","","input file");
-      setValidFormats_("in",StringList::create("fasta"));
-			registerOutputFile_("out","<file>","","Output file (peptides)");
-      setValidFormats_("out", StringList::create("idXML,fasta"));
-      registerStringOption_("out_type", "<type>","", "Set this if you cannot control the filename of 'out', e.g., in TOPPAS.", false);
-      setValidStrings_("out_type", StringList::create("idXML,fasta"));
+public:
+  TOPPDigestor() :
+    TOPPBase("Digestor", "Digests a protein database in-silico.", false)
+  {
 
-      registerIntOption_("missed_cleavages","<number>",1,"The number of allowed missed cleavages", false);
-			setMinInt_("missed_cleavages", 0);
-			registerIntOption_("min_length","<number>",6,"Minimum length of peptide", false);
-			registerIntOption_("max_length","<number>",40,"Maximum length of peptide", false);
-			registerStringOption_("enzyme","<string>","Trypsin","The type of digestion enzyme", false);
-      setValidStrings_("enzyme", StringList::create("Trypsin,none"));
-		}
+  }
 
-		ExitCodes main_(int , const char**)
-		{
-			vector<ProteinIdentification> protein_identifications;
+protected:
+  void registerOptionsAndFlags_()
+  {
+    registerInputFile_("in", "<file>", "", "input file");
+    setValidFormats_("in", StringList::create("fasta"));
+    registerOutputFile_("out", "<file>", "", "Output file (peptides)");
+    setValidFormats_("out", StringList::create("idXML,fasta"));
+    registerStringOption_("out_type", "<type>", "", "Set this if you cannot control the filename of 'out', e.g., in TOPPAS.", false);
+    setValidStrings_("out_type", StringList::create("idXML,fasta"));
 
-			vector<PeptideIdentification> identifications;
-			PeptideIdentification peptide_identification;
-      DateTime date_time = DateTime::now();
-      String date_time_string = date_time.get();
-      peptide_identification.setIdentifier("In-silico_digestion" + date_time_string);
+    registerIntOption_("missed_cleavages", "<number>", 1, "The number of allowed missed cleavages", false);
+    setMinInt_("missed_cleavages", 0);
+    registerIntOption_("min_length", "<number>", 6, "Minimum length of peptide", false);
+    registerIntOption_("max_length", "<number>", 40, "Maximum length of peptide", false);
+    registerStringOption_("enzyme", "<string>", "Trypsin", "The type of digestion enzyme", false);
+    setValidStrings_("enzyme", StringList::create("Trypsin,none"));
+  }
 
-			ProteinIdentification protein_identification;
-			
-			protein_identifications.push_back(ProteinIdentification());
-			//-------------------------------------------------------------
-			// parsing parameters
-			//-------------------------------------------------------------
-			String inputfile_name = getStringOption_("in");			
-			String outputfile_name = getStringOption_("out");	
+  ExitCodes main_(int, const char **)
+  {
+    vector<ProteinIdentification> protein_identifications;
 
-		  //input file type
-		  FileHandler fh;
-		  FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+    vector<PeptideIdentification> identifications;
+    PeptideIdentification peptide_identification;
+    DateTime date_time = DateTime::now();
+    String date_time_string = date_time.get();
+    peptide_identification.setIdentifier("In-silico_digestion" + date_time_string);
 
-		  if (out_type==FileTypes::UNKNOWN)
-		  {
-			  out_type = fh.getTypeByFileName(outputfile_name);
-			  writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
-		  }
+    ProteinIdentification protein_identification;
 
-		  if (out_type==FileTypes::UNKNOWN)
-		  {
-			  LOG_ERROR << ("Error: Could not determine output file type!") << std::endl;
-			  return PARSE_ERROR;
-		  }
+    protein_identifications.push_back(ProteinIdentification());
+    //-------------------------------------------------------------
+    // parsing parameters
+    //-------------------------------------------------------------
+    String inputfile_name = getStringOption_("in");
+    String outputfile_name = getStringOption_("out");
 
-			Size min_size = getIntOption_("min_length");
-      Size max_size = getIntOption_("max_length");
-			Size missed_cleavages = getIntOption_("missed_cleavages");
-			
+    //input file type
+    FileHandler fh;
+    FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
 
-      bool has_FASTA_output = (out_type==FileTypes::FASTA);
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(outputfile_name);
+      writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
+    }
 
-			//-------------------------------------------------------------
-			// reading input
-			//-------------------------------------------------------------
-			std::vector<FASTAFile::FASTAEntry> protein_data;
-			FASTAFile().load(inputfile_name, protein_data);
-			//-------------------------------------------------------------
-			// calculations
-			//-------------------------------------------------------------
-		
-			// This should be updated if more cleavage enzymes are available
-      ProteinIdentification::SearchParameters search_parameters;
-      String enzyme = getStringOption_("enzyme");	
-			EnzymaticDigestion digestor;
-      if (enzyme=="Trypsin")
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      LOG_ERROR << ("Error: Could not determine output file type!") << std::endl;
+      return PARSE_ERROR;
+    }
+
+    Size min_size = getIntOption_("min_length");
+    Size max_size = getIntOption_("max_length");
+    Size missed_cleavages = getIntOption_("missed_cleavages");
+
+
+    bool has_FASTA_output = (out_type == FileTypes::FASTA);
+
+    //-------------------------------------------------------------
+    // reading input
+    //-------------------------------------------------------------
+    std::vector<FASTAFile::FASTAEntry> protein_data;
+    FASTAFile().load(inputfile_name, protein_data);
+    //-------------------------------------------------------------
+    // calculations
+    //-------------------------------------------------------------
+
+    // This should be updated if more cleavage enzymes are available
+    ProteinIdentification::SearchParameters search_parameters;
+    String enzyme = getStringOption_("enzyme");
+    EnzymaticDigestion digestor;
+    if (enzyme == "Trypsin")
+    {
+      digestor.setEnzyme(EnzymaticDigestion::TRYPSIN);
+      digestor.setMissedCleavages(missed_cleavages);
+      search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+    }
+    else if (enzyme == "none")
+    {
+      search_parameters.enzyme = ProteinIdentification::NO_ENZYME;
+    }
+    else
+    {
+      LOG_ERROR << "Internal error in Digestor, when evaluating enzyme name! Please report this!" << std::endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
+    vector<String> protein_accessions(1);
+    PeptideHit temp_peptide_hit;
+
+    protein_identifications[0].setSearchParameters(search_parameters);
+    protein_identifications[0].setDateTime(date_time);
+    protein_identifications[0].setSearchEngine("In-silico digestion");
+    protein_identifications[0].setIdentifier("In-silico_digestion" + date_time_string);
+
+    std::vector<FASTAFile::FASTAEntry> all_peptides;
+
+    Size dropped_bylength(0);   // stats for removing candidates
+
+    for (Size i = 0; i < protein_data.size(); ++i)
+    {
+      if (!has_FASTA_output)
       {
-			  digestor.setEnzyme(EnzymaticDigestion::TRYPSIN);
-        digestor.setMissedCleavages(missed_cleavages);
-        search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+        protein_accessions[0] = protein_data[i].identifier;
+        ProteinHit temp_protein_hit;
+        temp_protein_hit.setSequence(protein_data[i].sequence);
+        temp_protein_hit.setAccession(protein_accessions[0]);
+        protein_identifications[0].insertHit(temp_protein_hit);
+        temp_peptide_hit.setProteinAccessions(protein_accessions);
       }
-      else if (enzyme=="none")
+
+      vector<AASequence> temp_peptides;
+      if (enzyme == "none")
       {
-			  search_parameters.enzyme = ProteinIdentification::NO_ENZYME;
+        temp_peptides.push_back(protein_data[i].sequence);
       }
       else
       {
-        LOG_ERROR << "Internal error in Digestor, when evaluating enzyme name! Please report this!" << std::endl;
-        return ILLEGAL_PARAMETERS;
+        digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
       }
-			
-      vector<String> protein_accessions(1);
-			PeptideHit temp_peptide_hit;
 
-      protein_identifications[0].setSearchParameters(search_parameters);
-      protein_identifications[0].setDateTime(date_time);
-      protein_identifications[0].setSearchEngine("In-silico digestion");
-      protein_identifications[0].setIdentifier("In-silico_digestion" + date_time_string);
-
-			std::vector<FASTAFile::FASTAEntry> all_peptides;
-
-      Size dropped_bylength(0); // stats for removing candidates
-
-      for (Size i = 0; i < protein_data.size(); ++i)
-			{
-        if (!has_FASTA_output)
+      for (Size j = 0; j < temp_peptides.size(); ++j)
+      {
+        if ((temp_peptides[j].size() >= min_size) &&
+            (temp_peptides[j].size() <= max_size))
         {
-				  protein_accessions[0] = protein_data[i].identifier;
-  			  ProteinHit temp_protein_hit;
-          temp_protein_hit.setSequence(protein_data[i].sequence);
-				  temp_protein_hit.setAccession(protein_accessions[0]);
-				  protein_identifications[0].insertHit(temp_protein_hit);
-  				temp_peptide_hit.setProteinAccessions(protein_accessions);
-        }
-				
-   			vector<AASequence> temp_peptides;
-        if (enzyme=="none")
-        {
-          temp_peptides.push_back(protein_data[i].sequence);
+          if (!has_FASTA_output)
+          {
+            temp_peptide_hit.setSequence(temp_peptides[j]);
+            peptide_identification.insertHit(temp_peptide_hit);
+            identifications.push_back(peptide_identification);
+            peptide_identification.setHits(std::vector<PeptideHit>());   // clear
+          }
+          else   // for FASTA file output
+          {
+            FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, temp_peptides[j].toString());
+            all_peptides.push_back(pep);
+          }
         }
         else
         {
-          digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
+          ++dropped_bylength;
         }
-	
-        for (Size j = 0; j < temp_peptides.size(); ++j)
-				{
-					if ((temp_peptides[j].size() >= min_size) &&
-              (temp_peptides[j].size() <= max_size))
-					{
-            if (!has_FASTA_output)
-            {
-						  temp_peptide_hit.setSequence(temp_peptides[j]);
-						  peptide_identification.insertHit(temp_peptide_hit);
-              identifications.push_back(peptide_identification);
-              peptide_identification.setHits(std::vector<PeptideHit>()); // clear
-            }
-            else // for FASTA file output
-            {             
-              FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, temp_peptides[j].toString());
-              all_peptides.push_back(pep);
-            }
-					}
-          else
-          {
-            ++dropped_bylength;
-          }
-				}
-			}
-
-			//-------------------------------------------------------------
-			// writing output
-			//-------------------------------------------------------------
-      
-      if (has_FASTA_output)
-      {
-        FASTAFile().store(outputfile_name, all_peptides);
       }
-      else
-      {
-			  IdXMLFile().store(outputfile_name,
-										      protein_identifications,
-											    identifications);
-      }
+    }
 
-      Size pep_remaining_count = (has_FASTA_output ? all_peptides.size() : identifications.size());
-      LOG_INFO << "Statistics:\n"
-               << "  total #peptides after digestion:         " << pep_remaining_count+dropped_bylength << "\n"
-               << "  removed #peptides (length restrictions): " << dropped_bylength << "\n"
-               << "  remaining #peptides:                     " << pep_remaining_count << std::endl;
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
 
-			return EXECUTION_OK;
-		}
+    if (has_FASTA_output)
+    {
+      FASTAFile().store(outputfile_name, all_peptides);
+    }
+    else
+    {
+      IdXMLFile().store(outputfile_name,
+                        protein_identifications,
+                        identifications);
+    }
+
+    Size pep_remaining_count = (has_FASTA_output ? all_peptides.size() : identifications.size());
+    LOG_INFO << "Statistics:\n"
+             << "  total #peptides after digestion:         " << pep_remaining_count + dropped_bylength << "\n"
+             << "  removed #peptides (length restrictions): " << dropped_bylength << "\n"
+             << "  remaining #peptides:                     " << pep_remaining_count << std::endl;
+
+    return EXECUTION_OK;
+  }
+
 };
 
 
-int main( int argc, const char** argv )
+int main(int argc, const char ** argv)
 {
-	TOPPDigestor tool;
-	return tool.main(argc,argv);
+  TOPPDigestor tool;
+  return tool.main(argc, argv);
 }
-  
+
 /// @endcond
-
-
-
-
-

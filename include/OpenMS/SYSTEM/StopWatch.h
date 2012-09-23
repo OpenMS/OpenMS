@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
@@ -51,233 +51,227 @@
 
 namespace OpenMS
 {
-	/**
-		@brief StopWatch Class.
-		
-		This class is used to determine the current process time.
-		
-		@ingroup System
-	*/
-	class OPENMS_DLLAPI StopWatch
-	{
-		public:
-		
-		/**	@name	Constructors and Destructors 
-		*/
-		//@{
+  /**
+      @brief StopWatch Class.
 
-		/**	Default constructor.
-				Create a new stop watch. The stop watch is stopped.
-		*/
-		StopWatch();			        
+      This class is used to determine the current process time.
 
-		/**	Copy constructor.
-				Create a new stop watch from an existing stop watch.
-		*/
-		StopWatch(const StopWatch& stop_watch);			        
+      @ingroup System
+  */
+  class OPENMS_DLLAPI StopWatch
+  {
+public:
 
-		/**	Destructor.
-				Destructs a stop watch object.
-		*/
-		virtual ~StopWatch();
+    /**	@name	Constructors and Destructors
+    */
+    //@{
 
-		//@}
-		/**	Starting, Stopping and Resetting the stop watch 
-		*/
-		//@{
+    /**	Default constructor.
+            Create a new stop watch. The stop watch is stopped.
+    */
+    StopWatch();
 
-		/**	Clear and stop the stop watch.
-				This sets the stop watch to zero and stops it when running.
-				@see	reset
-		*/
-		void clear();			
-	
-		/** Start the stop watch.
-				The stop watch is started. If the stop watch is already running, <b>false</b>
-				is returned.
-				@return bool <b>false</b> if the stop watch was already running, <b>true</b> otherwise
-		*/
-		bool start();			
+    /**	Copy constructor.
+            Create a new stop watch from an existing stop watch.
+    */
+    StopWatch(const StopWatch & stop_watch);
 
-		/** Stop the stop watch.
-				The stop watch is stopped. If the stop watch was not running, <b>false</b>
-				is returned.
-				@return bool <b>false</b> if the was not running, <b>true</b> otherwise
-		*/
-		bool stop();
+    /**	Destructor.
+            Destructs a stop watch object.
+    */
+    virtual ~StopWatch();
 
-		/** Clear the stop watch without stopping.
-				The stop watch is cleared, but not stopped (if running).
-				@see clear
-		*/
-		void reset();
+    //@}
+    /**	Starting, Stopping and Resetting the stop watch
+    */
+    //@{
 
-		//@}
-			
-		/**	@name Readout of the StopWatch 
-		*/
-		//@{
+    /**	Clear and stop the stop watch.
+            This sets the stop watch to zero and stops it when running.
+            @see	reset
+    */
+    void clear();
 
-		/**	Get clock time.
-				Return the accumulated clock (real) time in seconds.
-		*/
-		DoubleReal getClockTime() const;
+    /** Start the stop watch.
+            The stop watch is started. If the stop watch is already running, <b>false</b>
+            is returned.
+            @return bool <b>false</b> if the stop watch was already running, <b>true</b> otherwise
+    */
+    bool start();
 
-		/**	Get user time.
-				Return the accumulated user time in seconds.
-		*/
-		DoubleReal getUserTime() const;		
+    /** Stop the stop watch.
+            The stop watch is stopped. If the stop watch was not running, <b>false</b>
+            is returned.
+            @return bool <b>false</b> if the was not running, <b>true</b> otherwise
+    */
+    bool stop();
 
-		/**	Get user time.
-				Return the accumulated system time in seconds.
-		*/
-		DoubleReal getSystemTime() const;
+    /** Clear the stop watch without stopping.
+            The stop watch is cleared, but not stopped (if running).
+            @see clear
+    */
+    void reset();
 
-		/**	Get CPU time.
-				Return the accumulated CPU time in seconds.
-				CPU time is the sum of user time and system time.
-		*/
-		inline DoubleReal getCPUTime() const 
-		{ 
-			return (getUserTime() + getSystemTime());
-		}
+    //@}
 
+    /**	@name Readout of the StopWatch
+    */
+    //@{
 
-		//@}
+    /**	Get clock time.
+            Return the accumulated clock (real) time in seconds.
+    */
+    DoubleReal getClockTime() const;
 
-		/**	@name	Assignment
-		*/
-		//@{
+    /**	Get user time.
+            Return the accumulated user time in seconds.
+    */
+    DoubleReal getUserTime() const;
 
-		/**	Assignment operator.
-				Assigns a stop watch from another. The two stop watch will then run 
-				synchronously.
-				@return StopWatch <tt>*this</tt>
-		*/
-		StopWatch& operator = (const StopWatch& stop_watch);
+    /**	Get user time.
+            Return the accumulated system time in seconds.
+    */
+    DoubleReal getSystemTime() const;
 
-		//@}
+    /**	Get CPU time.
+            Return the accumulated CPU time in seconds.
+            CPU time is the sum of user time and system time.
+    */
+    inline DoubleReal getCPUTime() const
+    {
+      return getUserTime() + getSystemTime();
+    }
 
-		/**	@name	Predicates 
-		*/
-		//@{
+    //@}
 
-		/**	Return true if the stop watch is running.
-				@return bool <b>true</b> if the stop watch is running, <b>false</b> otherwise
-		*/
-		bool isRunning() const 
-		{
-			return is_running_;
-		}
+    /**	@name	Assignment
+    */
+    //@{
 
-		/**	Equality operator.
-				Return <b>true</b> if two stop watchs are equal, i.e. they contain exactly 
-				the same time intervals for clock, user and system time and have the
-				same running status.
-				@param stop_watch the stop watch to compare with
-				@return bool <b>true</b> on equality, <b>false</b> otherwise
-		*/
-		bool operator == (const StopWatch& stop_watch) const;
+    /**	Assignment operator.
+            Assigns a stop watch from another. The two stop watch will then run
+            synchronously.
+            @return StopWatch <tt>*this</tt>
+    */
+    StopWatch & operator=(const StopWatch & stop_watch);
 
-		/**	Inequality operator.
-				Return <b>false</b> if two stop watchs differ in any way, i.e. they differ
-				in either the clock, user, or system time or have a different 
-				running status.
-				@param stop_watch the stop watch to compare with
-				@return bool <b>true</b> on inequality, <b>false</b> otherwise
-		*/	
-		inline bool operator != (const StopWatch& stop_watch) const 
-		{
-			return !(*this == stop_watch);
-		}
+    //@}
 
+    /**	@name	Predicates
+    */
+    //@{
 
-		/**	Lesser than operator.
-				Return true, if the stop watch is in all timings lesser than the
-				stop watch to be compared with (clock, user and system time).
-				@param stop_watch the stop watch to compare with
-				@return bool <b>true</b> if all times are lesser
-		*/
-		inline bool operator < (const StopWatch& stop_watch) const 
-		{
-			return (getCPUTime() < stop_watch.getCPUTime());
-		}
+    /**	Return true if the stop watch is running.
+            @return bool <b>true</b> if the stop watch is running, <b>false</b> otherwise
+    */
+    bool isRunning() const
+    {
+      return is_running_;
+    }
 
+    /**	Equality operator.
+            Return <b>true</b> if two stop watchs are equal, i.e. they contain exactly
+            the same time intervals for clock, user and system time and have the
+            same running status.
+            @param stop_watch the stop watch to compare with
+            @return bool <b>true</b> on equality, <b>false</b> otherwise
+    */
+    bool operator==(const StopWatch & stop_watch) const;
 
-		/**	Lesser or equal operator.
-				Return true, if the stop watch is in all timings lesser or equal than the
-				stop watch to be compared with (clock, user and system time).
-				@param stop_watch the stop watch to compare with
-				@return bool <b>true</b> if all times are lesser or equal
-		*/
-		inline bool operator <= (const StopWatch& stop_watch) const 
-		{
-			return !(stop_watch < *this);
-		}
+    /**	Inequality operator.
+            Return <b>false</b> if two stop watchs differ in any way, i.e. they differ
+            in either the clock, user, or system time or have a different
+            running status.
+            @param stop_watch the stop watch to compare with
+            @return bool <b>true</b> on inequality, <b>false</b> otherwise
+    */
+    inline bool operator!=(const StopWatch & stop_watch) const
+    {
+      return !(*this == stop_watch);
+    }
 
+    /**	Lesser than operator.
+            Return true, if the stop watch is in all timings lesser than the
+            stop watch to be compared with (clock, user and system time).
+            @param stop_watch the stop watch to compare with
+            @return bool <b>true</b> if all times are lesser
+    */
+    inline bool operator<(const StopWatch & stop_watch) const
+    {
+      return getCPUTime() < stop_watch.getCPUTime();
+    }
 
-		/**	Greater or equal operator.
-				Return true, if the stop watch is in all timings greater or equal than the
-				stop watch to be compared with (clock, user and system time).
-				@param stop_watch the stop watch to compare with
-				@return bool <b>true</b> if all times are greater or equal
-		*/
-		inline bool operator >= (const StopWatch& stop_watch) const 
-		{
-			return !(*this < stop_watch);
-		}
+    /**	Lesser or equal operator.
+            Return true, if the stop watch is in all timings lesser or equal than the
+            stop watch to be compared with (clock, user and system time).
+            @param stop_watch the stop watch to compare with
+            @return bool <b>true</b> if all times are lesser or equal
+    */
+    inline bool operator<=(const StopWatch & stop_watch) const
+    {
+      return !(stop_watch < *this);
+    }
 
+    /**	Greater or equal operator.
+            Return true, if the stop watch is in all timings greater or equal than the
+            stop watch to be compared with (clock, user and system time).
+            @param stop_watch the stop watch to compare with
+            @return bool <b>true</b> if all times are greater or equal
+    */
+    inline bool operator>=(const StopWatch & stop_watch) const
+    {
+      return !(*this < stop_watch);
+    }
 
-		/**	Greater operator.
-				Return true, if the stop watch is in all timings greater than the
-				stop watch to be compared with (clock, user and system time).
-				@param stop_watch the stop watch to compare with
-				@return bool <b>true</b> if all times are greater 
-		*/
-		inline bool operator > (const StopWatch& stop_watch) const 
-		{
-			return (stop_watch < *this);
-		}
+    /**	Greater operator.
+            Return true, if the stop watch is in all timings greater than the
+            stop watch to be compared with (clock, user and system time).
+            @param stop_watch the stop watch to compare with
+            @return bool <b>true</b> if all times are greater
+    */
+    inline bool operator>(const StopWatch & stop_watch) const
+    {
+      return stop_watch < *this;
+    }
+
+    //@}
 
 
-		//@}
+private:
 
+    static PointerSizeInt cpu_speed_;
 
-		private:
+#ifdef OPENMS_WINDOWSPLATFORM
+    static PointerSizeInt clock_speed_;
+#endif
 
-		static PointerSizeInt cpu_speed_;
+    // state of stop watch, either true(on) or false(off)
+    bool is_running_;
 
-		#ifdef OPENMS_WINDOWSPLATFORM
-			static PointerSizeInt clock_speed_;
-		#endif
+    // clock seconds value when the stop watch was last started
+    PointerSizeInt last_secs_;
 
-		// state of stop watch, either true(on) or false(off) 
-		bool is_running_;
+    // clock useconds value when the stop watch was last started
+    PointerSizeInt last_usecs_;
 
-		// clock seconds value when the stop watch was last started 
-		PointerSizeInt last_secs_;	
+    // user time when the stop watch was last started
+    clock_t last_user_time_;
 
-		// clock useconds value when the stop watch was last started 
-		PointerSizeInt last_usecs_;		
+    // system time when the stop watch was last started
+    clock_t last_system_time_;
 
-		// user time when the stop watch was last started 
-		clock_t last_user_time_;   
+    // current accumulated clock seconds
+    PointerSizeInt current_secs_;
 
-		// system time when the stop watch was last started 
-		clock_t last_system_time_; 
-		 
-		// current accumulated clock seconds 
-		PointerSizeInt current_secs_;		
+    // current accumulated clock useconds
+    PointerSizeInt current_usecs_;
 
-		// current accumulated clock useconds 
-		PointerSizeInt current_usecs_;		
-		
-		// current accumulated user time 
-		clock_t current_user_time_;		
+    // current accumulated user time
+    clock_t current_user_time_;
 
-		// current accumulated user time 
-		clock_t current_system_time_;
-	};
+    // current accumulated user time
+    clock_t current_system_time_;
+  };
 
 }
 

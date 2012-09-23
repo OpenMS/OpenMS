@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch $
@@ -41,196 +41,196 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page TOPP_FalseDiscoveryRate FalseDiscoveryRate
+    @page TOPP_FalseDiscoveryRate FalseDiscoveryRate
 
-	@brief Tool to estimate the false discovery rate on peptide and protein level
+    @brief Tool to estimate the false discovery rate on peptide and protein level
 <CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FalseDiscoveryRate \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDFilter </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
-		</tr>
-	</table>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FalseDiscoveryRate \f$ \longrightarrow \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDFilter </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
+        </tr>
+    </table>
 </CENTER>
 
-	This TOPP tool can calculate the false discovery rate (FDR) given a forward and
-	backward search. Most useful is this on protein level, however, it also can be
-	applied to peptides.
+    This TOPP tool can calculate the false discovery rate (FDR) given a forward and
+    backward search. Most useful is this on protein level, however, it also can be
+    applied to peptides.
 
-	The false discovery rate is defined as the number of false discoveries (the hits
-	in the reversed search) over the number of false and correct discoveries (the hits
-	in both databases) given a score.
+    The false discovery rate is defined as the number of false discoveries (the hits
+    in the reversed search) over the number of false and correct discoveries (the hits
+    in both databases) given a score.
 
   Prerequisites:
   - When using a combined database of forward and reverse hits (thus only using one search run per ID engine), then use @ref TOPP_PeptideIndexer to index an idXML file generated by a search engine adapter, e.g. @ref TOPP_MascotAdapter
     This will allow us to discern which peptides are from the target vs decoy database.
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_FalseDiscoveryRate.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude TOPP_FalseDiscoveryRate.html
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude TOPP_FalseDiscoveryRate.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude TOPP_FalseDiscoveryRate.html
 */
 
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPFalseDiscoveryRate
-	: public TOPPBase
+class TOPPFalseDiscoveryRate :
+  public TOPPBase
 {
-	public:
-		TOPPFalseDiscoveryRate()
-			: TOPPBase("FalseDiscoveryRate", "Estimates the false discovery rate on peptide and protein level using decoy searches.")
-		{
-		}
+public:
+  TOPPFalseDiscoveryRate() :
+    TOPPBase("FalseDiscoveryRate", "Estimates the false discovery rate on peptide and protein level using decoy searches.")
+  {
+  }
 
-	protected:
+protected:
 
-		Param getSubsectionDefaults_(const String& /*section*/) const
-		{
-			return FalseDiscoveryRate().getDefaults();
-		}
+  Param getSubsectionDefaults_(const String & /*section*/) const
+  {
+    return FalseDiscoveryRate().getDefaults();
+  }
 
-		void registerOptionsAndFlags_()
-		{
-			addText_("Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input:");
-			registerInputFile_("in", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
-			setValidFormats_("in", StringList::create("idXML"));
-			registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward", false);
-			setValidFormats_("fwd_in", StringList::create("idXML"));
-			registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run", false);
-			setValidFormats_("rev_in", StringList::create("idXML"));
-			registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
-      setValidFormats_("out", StringList::create("idXML"));
-			registerFlag_("proteins_only", "If set, the FDR of the proteins only is calculated");
-			registerFlag_("peptides_only", "If set, the FDR of the peptides only is calculated");
+  void registerOptionsAndFlags_()
+  {
+    addText_("Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input:");
+    registerInputFile_("in", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
+    setValidFormats_("in", StringList::create("idXML"));
+    registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward", false);
+    setValidFormats_("fwd_in", StringList::create("idXML"));
+    registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run", false);
+    setValidFormats_("rev_in", StringList::create("idXML"));
+    registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
+    setValidFormats_("out", StringList::create("idXML"));
+    registerFlag_("proteins_only", "If set, the FDR of the proteins only is calculated");
+    registerFlag_("peptides_only", "If set, the FDR of the peptides only is calculated");
 
-			registerSubsection_("algorithm","Parameter section for the FDR calculation algorithm");
+    registerSubsection_("algorithm", "Parameter section for the FDR calculation algorithm");
 
 
-			addEmptyLine_();
-		}
+    addEmptyLine_();
+  }
 
-		ExitCodes main_(int , const char**)
-		{
-			//-------------------------------------------------------------
-			// parameter handling
-			//-------------------------------------------------------------
+  ExitCodes main_(int, const char **)
+  {
+    //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
 
-			Param alg_param = getParam_().copy("algorithm:", true);
-			FalseDiscoveryRate fdr;
+    Param alg_param = getParam_().copy("algorithm:", true);
+    FalseDiscoveryRate fdr;
 
-			if (!alg_param.empty())
-			{
-				fdr.setParameters(alg_param);
-				writeDebug_("Parameters passed to FalseDiscoveryRate", alg_param, 3);
-			}
+    if (!alg_param.empty())
+    {
+      fdr.setParameters(alg_param);
+      writeDebug_("Parameters passed to FalseDiscoveryRate", alg_param, 3);
+    }
 
-			//input/output files
-			// either fwd_in and rev_in must be given or just the in which contains results of a search against a concatenated target decoy sequence db
-			String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in")), in(getStringOption_("in"));
-			bool combined(false);
-			if (fwd_in != "" && rev_in != "")
-			{
-				if (in != "")
-				{
-					writeLog_("Error, either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
-					return ILLEGAL_PARAMETERS;
-				}
-			}
-			else
-			{
-				if (in != "")
-				{
-					combined = true;
-				}
-				else
-				{
-					writeLog_("Error, at least 'fwd_in' and 'rev_in' or 'in' must be given");
-					return ILLEGAL_PARAMETERS;
-				}
-			}
-			String out(getStringOption_("out"));
-			bool proteins_only(getFlag_("proteins_only"));
-			bool peptides_only(getFlag_("peptides_only"));
+    //input/output files
+    // either fwd_in and rev_in must be given or just the in which contains results of a search against a concatenated target decoy sequence db
+    String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in")), in(getStringOption_("in"));
+    bool combined(false);
+    if (fwd_in != "" && rev_in != "")
+    {
+      if (in != "")
+      {
+        writeLog_("Error, either 'fwd_in' and 'rev_in' must be given or 'in', but not both");
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+    else
+    {
+      if (in != "")
+      {
+        combined = true;
+      }
+      else
+      {
+        writeLog_("Error, at least 'fwd_in' and 'rev_in' or 'in' must be given");
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+    String out(getStringOption_("out"));
+    bool proteins_only(getFlag_("proteins_only"));
+    bool peptides_only(getFlag_("peptides_only"));
+
+    //-------------------------------------------------------------
+    // loading input
+    //-------------------------------------------------------------
+
+    if (combined)         // -in was given
+    {
+      vector<PeptideIdentification> pep_ids;
+      vector<ProteinIdentification> prot_ids;
+      IdXMLFile().load(in, prot_ids, pep_ids);
+      try
+      {
+        if (!proteins_only) fdr.apply(pep_ids);
+        if (!peptides_only) fdr.apply(prot_ids);
+      }
+      catch (Exception::MissingInformation)
+      {
+        LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information (see above).\n";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+
+      for (vector<ProteinIdentification>::iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+      {
+        it->assignRanks();
+      }
+      for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+      {
+        it->assignRanks();
+      }
+
+      IdXMLFile().store(out, prot_ids, pep_ids);
+    }
+    else         // -fw_in & rev_in given
+    {
+      vector<PeptideIdentification> fwd_pep, rev_pep;
+      vector<ProteinIdentification> fwd_prot, rev_prot;
+      IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
+      IdXMLFile().load(rev_in, rev_prot, rev_pep);
 
       //-------------------------------------------------------------
-      // loading input
+      // calculations
       //-------------------------------------------------------------
 
-			if (combined) // -in was given
-			{
-				vector<PeptideIdentification> pep_ids;
-				vector<ProteinIdentification> prot_ids;
-				IdXMLFile().load(in, prot_ids, pep_ids);
-				try
-        {
-          if (!proteins_only) fdr.apply(pep_ids);
-				  if (!peptides_only) fdr.apply(prot_ids);
-				}
-        catch (Exception::MissingInformation)
-        {
-          LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information (see above).\n";
-          return INCOMPATIBLE_INPUT_DATA;
-        }
+      writeDebug_("Starting calculations", 1);
 
-				for (vector<ProteinIdentification>::iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
-				{
-					it->assignRanks();
-				}
-				for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
-				{
-					it->assignRanks();
-				}
+      if (!proteins_only)
+      {
+        fdr.apply(fwd_pep, rev_pep);
+      }
+      if (!peptides_only)
+      {
+        fdr.apply(fwd_prot, rev_prot);
+      }
 
-				IdXMLFile().store(out, prot_ids, pep_ids);
-			}
-			else // -fw_in & rev_in given
-			{
-				vector<PeptideIdentification> fwd_pep, rev_pep;
-				vector<ProteinIdentification> fwd_prot, rev_prot;
-				IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
-				IdXMLFile().load(rev_in, rev_prot, rev_pep);
+      //-------------------------------------------------------------
+      // writing output
+      //-------------------------------------------------------------
+      IdXMLFile().store(out, fwd_prot, fwd_pep);
+    }
 
-      	//-------------------------------------------------------------
-      	// calculations
-      	//-------------------------------------------------------------
+    return EXECUTION_OK;
+  }
 
-				writeDebug_("Starting calculations", 1);
-
-				if (!proteins_only)
-				{
-					fdr.apply(fwd_pep, rev_pep);
-				}
-				if (!peptides_only)
-				{
-					fdr.apply(fwd_prot, rev_prot);
-				}
-
-				//-------------------------------------------------------------
-      	// writing output
-      	//-------------------------------------------------------------
-     		IdXMLFile().store(out, fwd_prot, fwd_pep);
-			}
-
-			return EXECUTION_OK;
-		}
 };
 
 /// @endcond
 
 
-int main( int argc, const char** argv )
+int main(int argc, const char ** argv)
 {
-	TOPPFalseDiscoveryRate tool;
-	return tool.main(argc,argv);
+  TOPPFalseDiscoveryRate tool;
+  return tool.main(argc, argv);
 }
-

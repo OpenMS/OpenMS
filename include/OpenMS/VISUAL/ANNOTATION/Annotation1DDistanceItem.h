@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
 // $Authors: Johannes Junker $
@@ -40,45 +40,45 @@
 
 namespace OpenMS
 {
-	/** @brief An annotation item which represents a measured distance between two peaks.
-			@see Annotation1DItem
-	*/
-	class Annotation1DDistanceItem
-		: public Annotation1DItem
-	{
-		
-		public:
-			/// Constructor
-			Annotation1DDistanceItem(const QString& text, const PointType& start_point, const PointType& end_point);
-			/// Copy constructor
-			Annotation1DDistanceItem(const Annotation1DDistanceItem& rhs);
-			/// Destructor
-			virtual ~Annotation1DDistanceItem();
-			// Docu in base class
-			virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas);
-			// Docu in base class
-			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
-			// Docu in base class
-			virtual void move(const PointType& delta);
-			/// Sets the start point of the measured distance line
-			void setStartPoint(const PointType& start);
-			/// Sets the peak index of the end peak of the measurement
-			void setEndPoint(const PointType& end);
-			/// Returns the start point as (MZ,intensity)
-			const PointType& getStartPoint() const;
-			/// Returns the end point as (MZ,intensity)
-			const PointType& getEndPoint() const;
-      /// Set tick lines for the distance item
-      void setTicks(const std::vector<DoubleReal>& ticks);
-		protected:		
-			/// The start point of the measured distance line
-			PointType start_point_;
-			/// The end point of the measured distance line
-			PointType end_point_;
-      /// Additional tick lines for the distance item
-      std::vector<DoubleReal> ticks_;
-			
-	};
+  /** @brief An annotation item which represents a measured distance between two peaks.
+          @see Annotation1DItem
+  */
+  class Annotation1DDistanceItem :
+    public Annotation1DItem
+  {
+
+public:
+    /// Constructor
+    Annotation1DDistanceItem(const QString & text, const PointType & start_point, const PointType & end_point);
+    /// Copy constructor
+    Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs);
+    /// Destructor
+    virtual ~Annotation1DDistanceItem();
+    // Docu in base class
+    virtual void ensureWithinDataRange(Spectrum1DCanvas * const canvas);
+    // Docu in base class
+    virtual void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false);
+    // Docu in base class
+    virtual void move(const PointType & delta);
+    /// Sets the start point of the measured distance line
+    void setStartPoint(const PointType & start);
+    /// Sets the peak index of the end peak of the measurement
+    void setEndPoint(const PointType & end);
+    /// Returns the start point as (MZ,intensity)
+    const PointType & getStartPoint() const;
+    /// Returns the end point as (MZ,intensity)
+    const PointType & getEndPoint() const;
+    /// Set tick lines for the distance item
+    void setTicks(const std::vector<DoubleReal> & ticks);
+protected:
+    /// The start point of the measured distance line
+    PointType start_point_;
+    /// The end point of the measured distance line
+    PointType end_point_;
+    /// Additional tick lines for the distance item
+    std::vector<DoubleReal> ticks_;
+
+  };
 } // namespace OpenMS
 
 #endif

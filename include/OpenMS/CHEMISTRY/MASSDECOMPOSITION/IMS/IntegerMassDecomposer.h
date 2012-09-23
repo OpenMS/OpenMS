@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> $
@@ -44,14 +44,16 @@
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
-  namespace ims {
+  namespace ims
+  {
 
     /**
       @brief Implements @c MassDecomposer interface using algorithm and data
       structures described in paper "Efficient Mass Decomposition"
-      S. Böcker, Zs. Lipták, ACM SAC-BIO, 2004.
+      S. Bcker, Zs. Liptk, ACM SAC-BIO, 2004.
 
       The main idea is instead of using the classical dynamic programming
       algorithm, store the residues of the smallest decomposable numbers
@@ -67,19 +69,20 @@ namespace OpenMS {
     template <typename ValueType = long unsigned int,
               typename DecompositionValueType = unsigned int>
     class IntegerMassDecomposer :
-        public MassDecomposer<ValueType,DecompositionValueType> {
-    public:
+      public MassDecomposer<ValueType, DecompositionValueType>
+    {
+public:
       /// Type of value to be decomposed.
-      typedef typename MassDecomposer<ValueType,DecompositionValueType>::value_type value_type;
+      typedef typename MassDecomposer<ValueType, DecompositionValueType>::value_type value_type;
 
       /// Type of decomposition value.
-      typedef typename MassDecomposer<ValueType,DecompositionValueType>::decomposition_value_type decomposition_value_type;
+      typedef typename MassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type decomposition_value_type;
 
       /// Type of decomposition.
-      typedef typename MassDecomposer<ValueType,DecompositionValueType>::decomposition_type decomposition_type;
+      typedef typename MassDecomposer<ValueType, DecompositionValueType>::decomposition_type decomposition_type;
 
       /// Type of container for many decompositions.
-      typedef typename MassDecomposer<ValueType,DecompositionValueType>::decompositions_type decompositions_type;
+      typedef typename MassDecomposer<ValueType, DecompositionValueType>::decompositions_type decompositions_type;
 
       /// Type of decomposition's size.
       typedef typename decomposition_type::size_type size_type;
@@ -89,7 +92,7 @@ namespace OpenMS {
 
         @param alphabet Weights over which masses to be decomposed.
       */
-      explicit IntegerMassDecomposer(const Weights& alphabet);
+      explicit IntegerMassDecomposer(const Weights & alphabet);
 
       /**
         Returns true if decomposition over the @c mass exists, otherwise - false.
@@ -125,12 +128,12 @@ namespace OpenMS {
       */
       virtual decomposition_value_type getNumberOfDecompositions(value_type mass);
 
-    private:
+private:
 
       /**
         Type of witness vector.
       */
-      typedef std::vector< std::pair<size_type, decomposition_value_type> > witness_vector_type;
+      typedef std::vector<std::pair<size_type, decomposition_value_type> > witness_vector_type;
 
       /**
         Type of rows of residues table.
@@ -181,9 +184,9 @@ namespace OpenMS {
       /**
         Fills the extended residues table.
       */
-      void fillExtendedResidueTable_(const Weights& _alphabet, residues_table_row_type& _lcms,
-                                    residues_table_row_type& _mass_in_lcms, const value_type _infty,
-                                    witness_vector_type& _witness_vector, residues_table_type& _ertable);
+      void fillExtendedResidueTable_(const Weights & _alphabet, residues_table_row_type & _lcms,
+                                     residues_table_row_type & _mass_in_lcms, const value_type _infty,
+                                     witness_vector_type & _witness_vector, residues_table_type & _ertable);
 
       /**
         Collects decompositions for @c mass by recursion.
@@ -194,29 +197,29 @@ namespace OpenMS {
         @param decompositionsStore Container where decompositions are collected.
       */
       void collectDecompositionsRecursively_(value_type mass, size_type alphabetMassIndex,
-                                            decomposition_type decomposition, decompositions_type& decompositionsStore);
+                                             decomposition_type decomposition, decompositions_type & decompositionsStore);
     };
 
 
     template <typename ValueType, typename DecompositionValueType>
     IntegerMassDecomposer<ValueType, DecompositionValueType>::IntegerMassDecomposer(
-        const Weights& alphabet) : alphabet_(alphabet)
+      const Weights & alphabet) :
+      alphabet_(alphabet)
     {
 
       lcms_.resize(alphabet.size());
       mass_in_lcms_.resize(alphabet.size());
 
-      infty_ = alphabet.getWeight(0) * alphabet.getWeight(alphabet.size()-1);
+      infty_ = alphabet.getWeight(0) * alphabet.getWeight(alphabet.size() - 1);
 
       fillExtendedResidueTable_(alphabet, lcms_, mass_in_lcms_, infty_, witness_vector_, ertable_);
 
     }
 
-
     template <typename ValueType, typename DecompositionValueType>
     void IntegerMassDecomposer<ValueType, DecompositionValueType>::fillExtendedResidueTable_(
-        const Weights& _alphabet, residues_table_row_type& _lcms, residues_table_row_type& _mass_in_lcms,
-        const value_type _infty, witness_vector_type& _witnessVector, residues_table_type& _ertable)
+      const Weights & _alphabet, residues_table_row_type & _lcms, residues_table_row_type & _mass_in_lcms,
+      const value_type _infty, witness_vector_type & _witnessVector, residues_table_type & _ertable)
     {
 
       if (_alphabet.size() < 2)
@@ -260,7 +263,7 @@ namespace OpenMS {
       }
       // fills cache variables for i==1
       value_type d = Math::gcd(smallestMass, secondMass);
-      _lcms[1] = secondMass*smallestMass / d;
+      _lcms[1] = secondMass * smallestMass / d;
       _mass_in_lcms[1] = smallestMass / d;
 
       // fills remaining table. i is the column index.
@@ -273,18 +276,18 @@ namespace OpenMS {
 
         // fills cache for various variables.
         // note that values for i==0 are never assigned since they're unused anyway.
-        _lcms[i] = currentMass*smallestMass / d;
+        _lcms[i] = currentMass * smallestMass / d;
         _mass_in_lcms[i] = smallestMass / d;
 
         // Nijenhuis' improvement: Is currentMass composable with smaller alphabet?
-        if (currentMass >= _ertable[i-1][currentMass % smallestMass])
+        if (currentMass >= _ertable[i - 1][currentMass % smallestMass])
         {
-          _ertable[i] = _ertable[i-1];
+          _ertable[i] = _ertable[i - 1];
           continue;
         }
 
-        const residues_table_row_type& prev_column = _ertable[i-1];
-        residues_table_row_type& cur_column = _ertable[i];
+        const residues_table_row_type & prev_column = _ertable[i - 1];
+        residues_table_row_type & cur_column = _ertable[i];
 
         if (d == 1)
         {
@@ -322,7 +325,8 @@ namespace OpenMS {
             cur_column[p] = n;
           }
         }
-        else {
+        else
+        {
           // If we're here, the gcd is not 1. We can use the following cache-optimized
           // version of the algorithm. The trick is to put the iteration over all
           // residue classes into the _inner_ loop.
@@ -330,7 +334,7 @@ namespace OpenMS {
           // One could see it as going through one column in blocks which are gcd entries long.
           size_type cur = currentMass % smallestMass;
           size_type prev = 0;
-          size_type p_inc = cur-d;
+          size_type p_inc = cur - d;
           // counters for creation of one witness vector
           std::vector<decomposition_value_type> counters(smallestMass);
 
@@ -410,16 +414,14 @@ namespace OpenMS {
       }
     }
 
-
     template <typename ValueType, typename DecompositionValueType>
     bool IntegerMassDecomposer<ValueType, DecompositionValueType>::
     exist(value_type mass)
     {
 
       value_type residue = ertable_.back().at(mass % alphabet_.getWeight(0));
-      return (residue != infty_ && mass >= residue);
+      return residue != infty_ && mass >= residue;
     }
-
 
     template <typename ValueType, typename DecompositionValueType>
     typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_type
@@ -440,14 +442,14 @@ namespace OpenMS {
       value_type m = ertable_.back().at(r);
 
       decomposition.at(0) = static_cast<decomposition_value_type>
-          ((mass - m) / alphabet_.getWeight(0));
+                            ((mass - m) / alphabet_.getWeight(0));
 
       while (m != 0)
       {
         size_type i = witness_vector_.at(r).first;
         decomposition_value_type j = witness_vector_.at(r).second;
         decomposition.at(i) += j;
-        if (m < j*alphabet_.getWeight(i))
+        if (m < j * alphabet_.getWeight(i))
         {
           break;
         }
@@ -457,22 +459,20 @@ namespace OpenMS {
       return decomposition;
     }
 
-
     template <typename ValueType, typename DecompositionValueType>
     typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decompositions_type
     IntegerMassDecomposer<ValueType, DecompositionValueType>::getAllDecompositions(value_type mass)
     {
       decompositions_type decompositionsStore;
       decomposition_type decomposition(alphabet_.size());
-      collectDecompositionsRecursively_(mass, alphabet_.size()-1, decomposition, decompositionsStore);
+      collectDecompositionsRecursively_(mass, alphabet_.size() - 1, decomposition, decompositionsStore);
       return decompositionsStore;
     }
-
 
     template <typename ValueType, typename DecompositionValueType>
     void IntegerMassDecomposer<ValueType, DecompositionValueType>::
     collectDecompositionsRecursively_(value_type mass, size_type alphabetMassIndex,
-                                     decomposition_type decomposition, decompositions_type& decompositionsStore)
+                                      decomposition_type decomposition, decompositions_type & decompositionsStore)
     {
       if (alphabetMassIndex == 0)
       {
@@ -500,13 +500,13 @@ namespace OpenMS {
 
         // this check is needed because mass could have unsigned type and after reduction on i*alphabetMass will be still be positive but huge
         // and that will end up in infinite loop
-        if (mass < i*alphabet_.getWeight(alphabetMassIndex))
+        if (mass < i * alphabet_.getWeight(alphabetMassIndex))
         {
           break;
         }
 
         // r: current residue class. will stay the same in the following loop
-        value_type r = ertable_[alphabetMassIndex-1][mass_mod_alphabet0];
+        value_type r = ertable_[alphabetMassIndex - 1][mass_mod_alphabet0];
 
         // TODO: if infty was std::numeric_limits<...>... the following 'if' would not be necessary
         if (r != infty_)
@@ -516,7 +516,7 @@ namespace OpenMS {
             // the condition of the 'for' loop (m >= r) and decrementing the mass
             // in steps of the lcm ensures that m is decomposable. Therefore
             // the recursion will result in at least one witness.
-            collectDecompositionsRecursively_(m, alphabetMassIndex-1, decomposition, decompositionsStore);
+            collectDecompositionsRecursively_(m, alphabetMassIndex - 1, decomposition, decompositionsStore);
             decomposition[alphabetMassIndex] += mass_in_lcm;
             // this check is needed because mass could have unsigned type and after reduction on i*alphabetMass will be still be positive but huge
             // and that will end up in infinite loop
@@ -549,11 +549,10 @@ namespace OpenMS {
     */
     template <typename ValueType, typename DecompositionValueType>
     typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type IntegerMassDecomposer<ValueType,
-    DecompositionValueType>::getNumberOfDecompositions(value_type mass)
+                                                                                                                      DecompositionValueType>::getNumberOfDecompositions(value_type mass)
     {
       return static_cast<typename IntegerMassDecomposer<ValueType, DecompositionValueType>::decomposition_value_type>(getAllDecompositions(mass).size());
     }
-
 
   } // namespace ims
 } // namespace OpenMS

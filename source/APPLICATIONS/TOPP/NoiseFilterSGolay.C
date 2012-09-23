@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
 // $Authors: Eva Lange $
@@ -48,46 +48,46 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TOPP_NoiseFilterSGolay NoiseFilterSGolay
+    @page TOPP_NoiseFilterSGolay NoiseFilterSGolay
 
-	@brief  Executes a Savitzky Golay filter to reduce the noise in an MS experiment.
+    @brief  Executes a Savitzky Golay filter to reduce the noise in an MS experiment.
 
 <CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
       <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ NoiseFilterSGolay \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet</td>
-		</tr>
-		<tr>
+        </tr>
+        <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
     </tr>
     <tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
-		</tr>
-	</table>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
+        </tr>
+    </table>
 </CENTER>
 
 
-	The idea of the Savitzky Golay filter is to find filter-coefficients
-	that preserve higher moments, which means to approximate the underlying
-	function within the moving window by a polynomial of higher order
-	(typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
-	''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
+    The idea of the Savitzky Golay filter is to find filter-coefficients
+    that preserve higher moments, which means to approximate the underlying
+    function within the moving window by a polynomial of higher order
+    (typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
+    ''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
 
-	@note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
+    @note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
 
-	<B>The command line parameters of this tool are:</B>
+    <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_NoiseFilterSGolay.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude TOPP_NoiseFilterSGolay.html
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude TOPP_NoiseFilterSGolay.html
 
-	<B>The algorithm parameters for the Savitzky Golay filter are:</B>
+    <B>The algorithm parameters for the Savitzky Golay filter are:</B>
 @htmlinclude OpenMS_SavitzkyGolayFilter.parameters
 */
 
@@ -95,100 +95,101 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 
-class TOPPNoiseFilterSGolay
-      : public TOPPBase
+class TOPPNoiseFilterSGolay :
+  public TOPPBase
 {
-  public:
-    TOPPNoiseFilterSGolay()
-        : TOPPBase("NoiseFilterSGolay","Removes noise from profile spectra by using a Savitzky Golay filter. Requires uniform (equidistant) data.")
+public:
+  TOPPNoiseFilterSGolay() :
+    TOPPBase("NoiseFilterSGolay", "Removes noise from profile spectra by using a Savitzky Golay filter. Requires uniform (equidistant) data.")
+  {
+  }
+
+  void registerOptionsAndFlags_()
+  {
+    registerInputFile_("in", "<file>", "", "input raw data file ");
+    setValidFormats_("in", StringList::create("mzML"));
+    registerOutputFile_("out", "<file>", "", "output raw data file ");
+    setValidFormats_("out", StringList::create("mzML"));
+    addEmptyLine_();
+    addText_("Parameters for the algorithms can be given in the INI file only.");
+    addEmptyLine_();
+    addText_("Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the Resampler tool).");
+    registerSubsection_("algorithm", "Algorithm parameters section");
+  }
+
+  Param getSubsectionDefaults_(const String & /*section*/) const
+  {
+    return SavitzkyGolayFilter().getDefaults();
+  }
+
+  ExitCodes main_(int, const char **)
+  {
+    //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+
+    //-------------------------------------------------------------
+    // loading input
+    //-------------------------------------------------------------
+    MzMLFile mz_data_file;
+    mz_data_file.setLogType(log_type_);
+    MSExperiment<Peak1D> exp;
+    mz_data_file.load(in, exp);
+
+    if (exp.empty())
     {
+      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+                  " contain chromatograms. This tool currently cannot handle them, sorry.";
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+    //check for peak type (profile data required)
+    if (PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS)
+    {
+      writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }
 
-    void registerOptionsAndFlags_()
+    //check if spectra are sorted
+    for (Size i = 0; i < exp.size(); ++i)
     {
-	  	registerInputFile_("in","<file>","","input raw data file ");
-			setValidFormats_("in",StringList::create("mzML"));
-			registerOutputFile_("out","<file>","","output raw data file ");
-	  	setValidFormats_("out",StringList::create("mzML"));
-			addEmptyLine_();
-	  	addText_("Parameters for the algorithms can be given in the INI file only.");
-			addEmptyLine_();
-			addText_("Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the Resampler tool).");
-    	registerSubsection_("algorithm","Algorithm parameters section");
+      if (!exp[i].isSorted())
+      {
+        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        return INCOMPATIBLE_INPUT_DATA;
+      }
     }
 
-    Param getSubsectionDefaults_(const String& /*section*/) const
-    {
-      return SavitzkyGolayFilter().getDefaults();
-    }
+    //-------------------------------------------------------------
+    // calculations
+    //-------------------------------------------------------------
+    Param filter_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to filter", filter_param, 3);
 
-    ExitCodes main_(int , const char**)
-    {
-      //-------------------------------------------------------------
-      // parameter handling
-      //-------------------------------------------------------------
-      String in = getStringOption_("in");
-      String out = getStringOption_("out");
+    SavitzkyGolayFilter sgolay;
+    sgolay.setLogType(log_type_);
+    sgolay.setParameters(filter_param);
+    sgolay.filterExperiment(exp);
 
-      //-------------------------------------------------------------
-      // loading input
-      //-------------------------------------------------------------
-      MzMLFile mz_data_file;
-      mz_data_file.setLogType(log_type_);
-      MSExperiment<Peak1D> exp;
-      mz_data_file.load(in,exp);
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
 
-			if (exp.empty())
-			{
-				LOG_WARN << "The given file does not contain any conventional peak data, but might"
-					          " contain chromatograms. This tool currently cannot handle them, sorry.";
-				return INCOMPATIBLE_INPUT_DATA;
-			}
-			//check for peak type (profile data required)
-			if (PeakTypeEstimator().estimateType(exp[0].begin(),exp[0].end())==SpectrumSettings::PEAKS)
-			{
-				writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
-			}
+    //annotate output with data processing info
+    addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
 
-			//check if spectra are sorted
-			for (Size i=0; i< exp.size(); ++i)
-			{
-				if (!exp[i].isSorted())
-				{
-					writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
-					return INCOMPATIBLE_INPUT_DATA;
-				}
-			}
+    mz_data_file.store(out, exp);
 
-      //-------------------------------------------------------------
-      // calculations
-      //-------------------------------------------------------------
-    	Param filter_param = getParam_().copy("algorithm:",true);
-			writeDebug_("Parameters passed to filter", filter_param,3);
+    return EXECUTION_OK;
+  }
 
-      SavitzkyGolayFilter sgolay;
-      sgolay.setLogType(log_type_);
-      sgolay.setParameters( filter_param );
-      sgolay.filterExperiment(exp);
-
-      //-------------------------------------------------------------
-      // writing output
-      //-------------------------------------------------------------
-      
-      //annotate output with data processing info
-      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
-
-      mz_data_file.store(out,exp);
-
-      return EXECUTION_OK;
-    }
 };
 
 
-int main( int argc, const char** argv )
+int main(int argc, const char ** argv)
 {
   TOPPNoiseFilterSGolay tool;
-  return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }
 
 /// @endcond

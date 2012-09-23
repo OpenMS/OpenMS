@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
 // $Authors: Sandro Andreotti $
@@ -66,10 +66,11 @@ namespace OpenMS
 
    @ingroup Chemistry
    */
-  class OPENMS_DLLAPI SvmTheoreticalSpectrumGenerator: public DefaultParamHandler
+  class OPENMS_DLLAPI SvmTheoreticalSpectrumGenerator :
+    public DefaultParamHandler
   {
     friend class SvmTheoreticalSpectrumGeneratorTrainer;
-    public:    
+public:
 
     /**
      @brief nested class
@@ -85,31 +86,31 @@ namespace OpenMS
       /** @name Constructors and Destructors*/
       //@{
       //Default constructor
-      IonType():
+      IonType() :
         residue((Residue::ResidueType) 0),
         loss(),
         charge(0)
-        {
-        }
+      {
+      }
 
       //Custom construtor
-      IonType(Residue::ResidueType residue, EmpiricalFormula loss= EmpiricalFormula(), Int charge=1):
+      IonType(Residue::ResidueType residue, EmpiricalFormula loss = EmpiricalFormula(), Int charge = 1) :
         residue(residue),
         loss(loss),
         charge(charge)
-        {
-        }
+      {
+      }
 
       //Copy constructor
-      IonType(const IonType & rhs):
+      IonType(const IonType & rhs) :
         residue(rhs.residue),
         loss(rhs.loss),
         charge(rhs.charge)
-        {
-        }
+      {
+      }
 
       //Assignment operator
-      IonType & operator = (const IonType & rhs)
+      IonType & operator=(const IonType & rhs)
       {
         if (this != &rhs)
         {
@@ -120,15 +121,16 @@ namespace OpenMS
         return *this;
       }
 
-      bool operator < (const IonType &rhs) const
+      bool operator<(const IonType & rhs) const
       {
         if (residue != rhs.residue)
-          return residue<rhs.residue;
-        else if (loss.getString()!=rhs.loss.getString())
-          return loss.getString()<rhs.loss.getString();
+          return residue < rhs.residue;
+        else if (loss.getString() != rhs.loss.getString())
+          return loss.getString() < rhs.loss.getString();
         else
-          return charge <rhs.charge;
+          return charge < rhs.charge;
       }
+
     };
     //@}
 
@@ -183,87 +185,87 @@ namespace OpenMS
       std::vector<DoubleReal> intensity_bin_values;
 
       //conditional probabilities for secondary types
-      std::map<std::pair<IonType, Size>, std::vector<std::vector<DoubleReal> > >conditional_prob;
+      std::map<std::pair<IonType, Size>, std::vector<std::vector<DoubleReal> > > conditional_prob;
     };
 
 
 
-      /** @name Constructors and Destructors
-       */
-      //@{
-      /// Default constructor
-      SvmTheoreticalSpectrumGenerator();
+    /** @name Constructors and Destructors
+     */
+    //@{
+    /// Default constructor
+    SvmTheoreticalSpectrumGenerator();
 
-      /// Copy constructor
-      SvmTheoreticalSpectrumGenerator(const SvmTheoreticalSpectrumGenerator& source);
+    /// Copy constructor
+    SvmTheoreticalSpectrumGenerator(const SvmTheoreticalSpectrumGenerator & source);
 
-      /// Assignment operator
-      SvmTheoreticalSpectrumGenerator& operator =(const SvmTheoreticalSpectrumGenerator& tsg);
-
-
-      /// Destructor
-      virtual ~SvmTheoreticalSpectrumGenerator();
-      //@}
+    /// Assignment operator
+    SvmTheoreticalSpectrumGenerator & operator=(const SvmTheoreticalSpectrumGenerator & tsg);
 
 
-      /// Generate the MS/MS according to the given probabilistic model
-      void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const gsl_rng *rng, Size precursor_charge);
+    /// Destructor
+    virtual ~SvmTheoreticalSpectrumGenerator();
+    //@}
 
-      ///Load a trained Svm and Prob. models
-      void load();
 
-      ///return the set of ion types that are modeled by the loaded SVMs
-      const std::vector<IonType>& getIonTypes()
-      {
-        return mp_.ion_types;
-      }
+    /// Generate the MS/MS according to the given probabilistic model
+    void simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const gsl_rng * rng, Size precursor_charge);
 
-    protected:
-      typedef std::map<IonType, DoubleReal>IntensityMap;      
+    ///Load a trained Svm and Prob. models
+    void load();
 
-      /// charge of the precursors used for training
-      Size precursor_charge_;
+    ///return the set of ion types that are modeled by the loaded SVMs
+    const std::vector<IonType> & getIonTypes()
+    {
+      return mp_.ion_types;
+    }
 
-      /// set of model parameters read from model file
-      SvmModelParameterSet mp_;
+protected:
+    typedef std::map<IonType, DoubleReal> IntensityMap;
 
-      /// map AA to integers
-      static std::map<String,Size> aa_to_index_;
+    /// charge of the precursors used for training
+    Size precursor_charge_;
 
-      /// hydrophobicity values for each AA
-      static std::map<String,DoubleReal> hydrophobicity_;
+    /// set of model parameters read from model file
+    SvmModelParameterSet mp_;
 
-      /// helicity values for each AA
-      static std::map<String,DoubleReal> helicity_;
+    /// map AA to integers
+    static std::map<String, Size> aa_to_index_;
 
-      /// basicity values for each AA
-      static std::map<String,DoubleReal> basicity_;
+    /// hydrophobicity values for each AA
+    static std::map<String, DoubleReal> hydrophobicity_;
 
-      /// whether ion types are hidden or not
-      std::map<IonType, bool> hide_type_;
+    /// helicity values for each AA
+    static std::map<String, DoubleReal> helicity_;
 
-      /// scale value to the intervall [lower,max] given the maximal and minimal entries for a feature
-      inline void scaleSingleFeature_(double &value, double feature_min, double feature_max, double lower =-1.0, double upper=1.0);
+    /// basicity values for each AA
+    static std::map<String, DoubleReal> basicity_;
 
-      /// scale value to the intervall [lower,max] given the maximal and minimal entries for a feature
-      void scaleDescriptorSet_(DescriptorSet &desc, double lower, double upper);
+    /// whether ion types are hidden or not
+    std::map<IonType, bool> hide_type_;
 
-      /// generate the desciptors for an input peptide and a given fragmentation position
-      Size generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size precursor_charge, DescriptorSet &desc_set);
+    /// scale value to the intervall [lower,max] given the maximal and minimal entries for a feature
+    inline void scaleSingleFeature_(double & value, double feature_min, double feature_max, double lower = -1.0, double upper = 1.0);
 
-      /// Returns the ResidueType (e.g. AIon, BIon) as string for peak annotation
-      String ResidueTypeToString_(Residue::ResidueType type);
+    /// scale value to the intervall [lower,max] given the maximal and minimal entries for a feature
+    void scaleDescriptorSet_(DescriptorSet & desc, double lower, double upper);
 
-      /// initialized the maps
-      static void initializeMaps_();
+    /// generate the desciptors for an input peptide and a given fragmentation position
+    Size generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size precursor_charge, DescriptorSet & desc_set);
 
-      /// flag to indicate if the hydrophobicity, helicity, and basicity maps were already initialized
-      static bool initializedMaps_;
+    /// Returns the ResidueType (e.g. AIon, BIon) as string for peak annotation
+    String ResidueTypeToString_(Residue::ResidueType type);
 
-      void updateMembers_();
+    /// initialized the maps
+    static void initializeMaps_();
+
+    /// flag to indicate if the hydrophobicity, helicity, and basicity maps were already initialized
+    static bool initializedMaps_;
+
+    void updateMembers_();
   };
 
-  void inline SvmTheoreticalSpectrumGenerator::scaleSingleFeature_(double &value, double lower, double upper, double feature_min, double feature_max)
+  void inline SvmTheoreticalSpectrumGenerator::scaleSingleFeature_(double & value, double lower, double upper, double feature_min, double feature_max)
   {
     double prev = value;
     if (feature_max == feature_min)
@@ -281,18 +283,17 @@ namespace OpenMS
     }
     else
     {
-      value = lower + (upper-lower) *
-              (value-feature_min)/
-              (feature_max-feature_min);
+      value = lower + (upper - lower) *
+              (value - feature_min) /
+              (feature_max - feature_min);
     }
 
     if (value < 0)
     {
-      std::cerr << "negative value!! "<<value<<"  l: "<<lower<<" u: "<<upper<<" fm: "<<feature_min<<" fma: "<<feature_max<<"  prev: "<<prev<<std::endl;
+      std::cerr << "negative value!! " << value << "  l: " << lower << " u: " << upper << " fm: " << feature_min << " fma: " << feature_max << "  prev: " << prev << std::endl;
     }
   }
 
 } // namespace OpenMS
 
 #endif // #ifdef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H
-

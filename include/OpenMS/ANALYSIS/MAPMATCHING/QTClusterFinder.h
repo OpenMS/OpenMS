@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
 // $Authors: Steffen Sass, Hendrik Weisser $
@@ -43,142 +43,145 @@
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 
-namespace OpenMS 
+namespace OpenMS
 {
 
 /**
    @brief A variant of QT clustering for the detection of feature groups.
 
-	 The algorithm accumulates all features from all input maps, then applies a variant of QT clustering to find groups of corresponding features. In more detail, every feature from every input map is considered as a potential cluster center. For every center, its nearest neighbors from the other input maps are detected and added to the potential cluster. Iteratively, the cluster with the highest quality is extracted and the clustering is updated.
+     The algorithm accumulates all features from all input maps, then applies a variant of QT clustering to find groups of corresponding features. In more detail, every feature from every input map is considered as a potential cluster center. For every center, its nearest neighbors from the other input maps are detected and added to the potential cluster. Iteratively, the cluster with the highest quality is extracted and the clustering is updated.
 
-	 <b>Properties affecting the grouping</b>
+     <b>Properties affecting the grouping</b>
 
-	 To be included in a particular cluster, a feature has to fulfill the following conditions:
-	 @li differences in RT and m/z from the cluster center must be below user-defined thresholds (@p distance_RT:max_difference and @p distance_MZ:max_difference),
-	 @li the charge state must match that of the cluster center (unless @p ignore_charge is set),
-	 @li if @p use_identifications is set and both the feature and the cluster center are annotated with peptide identifications, the identifications have to match.
+     To be included in a particular cluster, a feature has to fulfill the following conditions:
+     @li differences in RT and m/z from the cluster center must be below user-defined thresholds (@p distance_RT:max_difference and @p distance_MZ:max_difference),
+     @li the charge state must match that of the cluster center (unless @p ignore_charge is set),
+     @li if @p use_identifications is set and both the feature and the cluster center are annotated with peptide identifications, the identifications have to match.
 
-	 Every cluster contains at most one feature from each input map - namely the feature closest to the cluster center that meets the criteria and does not belong to a better cluster.
+     Every cluster contains at most one feature from each input map - namely the feature closest to the cluster center that meets the criteria and does not belong to a better cluster.
 
-	 The notion of "closeness" for features is defined by the distance function implemented in @ref FeatureDistance, the parameters of which can be set by the user.
+     The notion of "closeness" for features is defined by the distance function implemented in @ref FeatureDistance, the parameters of which can be set by the user.
 
-	 The quality of a cluster is computed from the number of elements in it and their distances to the cluster center. For more details see QTCluster.
+     The quality of a cluster is computed from the number of elements in it and their distances to the cluster center. For more details see QTCluster.
 
-	 <b>Optimization</b>
+     <b>Optimization</b>
 
-	 This algorithm includes a number of optimizations to reduce run-time:
-	 @li two-dimensional hashing of features,
-	 @li a look-up table for feature distances,
-	 @li a variant of QT clustering that requires only one round of clustering.
+     This algorithm includes a number of optimizations to reduce run-time:
+     @li two-dimensional hashing of features,
+     @li a look-up table for feature distances,
+     @li a variant of QT clustering that requires only one round of clustering.
 
-	 @see FeatureGroupingAlgorithmQT
+     @see FeatureGroupingAlgorithmQT
 
    @htmlinclude OpenMS_QTClusterFinder.parameters
 
    @ingroup FeatureGrouping
 */
 
-	class OPENMS_DLLAPI QTClusterFinder: public BaseGroupFinder
-	{
-	private:
-		/// Distances between pairs of grid features
-		typedef std::map<std::pair<GridFeature*, GridFeature*>, DoubleReal> 
-			PairDistances;
+  class OPENMS_DLLAPI QTClusterFinder :
+    public BaseGroupFinder
+  {
+private:
+    /// Distances between pairs of grid features
+    typedef std::map<std::pair<GridFeature *, GridFeature *>, DoubleReal>
+    PairDistances;
 
     typedef HashGrid<GridFeature *> Grid;
-	
-		/// Number of input maps
-		Size num_maps_;
 
-		/// Consider peptide identifications for grouping?
-		bool use_IDs_;
+    /// Number of input maps
+    Size num_maps_;
 
-		/// Maximum RT difference
-		DoubleReal max_diff_rt_;
+    /// Consider peptide identifications for grouping?
+    bool use_IDs_;
 
-		/// Maximum m/z difference
-		DoubleReal max_diff_mz_;
+    /// Maximum RT difference
+    DoubleReal max_diff_rt_;
 
-		/// Feature distance functor
-		FeatureDistance feature_distance_;
+    /// Maximum m/z difference
+    DoubleReal max_diff_mz_;
 
-		/**
-			 @brief Distance map.
-		 
-			 To compute it only once, the distance between two features is accessible by searching for a pair where the first position is the smaller pointer value.
-		 */
-		PairDistances distances_;
+    /// Feature distance functor
+    FeatureDistance feature_distance_;
 
-		/**
-			 @brief Calculates the distance between two grid features.
-		 
-			 The distance is looked up in the distance map and only computed (and stored) if it's not already available.
-		 */
-		DoubleReal getDistance_(GridFeature* left, GridFeature* right);
+    /**
+         @brief Distance map.
 
-		/**
-			 @brief Checks whether the peptide IDs of a cluster and a neighboring feature are compatible.
-			 
-			 A neighboring feature without identification is always compatible. Otherwise, the cluster and feature are compatible if the best peptide hits of each of their identifications have the same sequences.
-		*/
-		bool compatibleIDs_(QTCluster& cluster, const GridFeature* neighbor);
-		
-		/// Sets algorithm parameters
-		void setParameters_(DoubleReal max_intensity, DoubleReal max_mz);
+         To compute it only once, the distance between two features is accessible by searching for a pair where the first position is the smaller pointer value.
+     */
+    PairDistances distances_;
 
-		/// Generates a consensus feature from the best cluster and updates the clustering
-		void makeConsensusFeature_(std::list<QTCluster>& clustering,
-															 ConsensusFeature& feature);
+    /**
+         @brief Calculates the distance between two grid features.
 
-		/// Computes an initial QT clustering of the points in the hash grid
-		void computeClustering_(Grid& grid, std::list<QTCluster>& clustering);
+         The distance is looked up in the distance map and only computed (and stored) if it's not already available.
+     */
+    DoubleReal getDistance_(GridFeature * left, GridFeature * right);
 
-		/// Runs the algorithm on feature maps or consensus maps
-		template <typename MapType> void run_(const std::vector<MapType>& 
-																					input_maps, ConsensusMap& result_map);
+    /**
+         @brief Checks whether the peptide IDs of a cluster and a neighboring feature are compatible.
 
-	protected:
-		enum
-		{
-			RT = Peak2D::RT,
-			MZ = Peak2D::MZ
-		};
+         A neighboring feature without identification is always compatible. Otherwise, the cluster and feature are compatible if the best peptide hits of each of their identifications have the same sequences.
+    */
+    bool compatibleIDs_(QTCluster & cluster, const GridFeature * neighbor);
 
-	public:
-		/// Constructor
-		QTClusterFinder();
+    /// Sets algorithm parameters
+    void setParameters_(DoubleReal max_intensity, DoubleReal max_mz);
 
-		/// Destructor
-		virtual ~QTClusterFinder();
+    /// Generates a consensus feature from the best cluster and updates the clustering
+    void makeConsensusFeature_(std::list<QTCluster> & clustering,
+                               ConsensusFeature & feature);
 
-		/// Returns the name of the product
-		static const String getProductName()
-		{
-			return "qt";
-		}
+    /// Computes an initial QT clustering of the points in the hash grid
+    void computeClustering_(Grid & grid, std::list<QTCluster> & clustering);
 
-		/**
-			 @brief Runs the algorithm on consensus maps
-			 
-			 @exception Exception::IllegalArgument is thrown if the input data is not valid.
-		*/
-		void run(const std::vector<ConsensusMap>& input_maps, 
-						 ConsensusMap& result_map);
+    /// Runs the algorithm on feature maps or consensus maps
+    template <typename MapType>
+    void run_(const std::vector<MapType> &
+              input_maps, ConsensusMap & result_map);
 
-		/**
-			 @brief Runs the algorithm on feature maps
-			 
-			 @exception Exception::IllegalArgument is thrown if the input data is not valid.
-		*/
-		void run(const std::vector<FeatureMap<> >& input_maps,
-						 ConsensusMap& result_map);
+protected:
+    enum
+    {
+      RT = Peak2D::RT,
+      MZ = Peak2D::MZ
+    };
 
-		/// Returns an instance of this class
-		static BaseGroupFinder*	create()
-		{
-			return new QTClusterFinder();
-		}
-	};
+public:
+    /// Constructor
+    QTClusterFinder();
+
+    /// Destructor
+    virtual ~QTClusterFinder();
+
+    /// Returns the name of the product
+    static const String getProductName()
+    {
+      return "qt";
+    }
+
+    /**
+         @brief Runs the algorithm on consensus maps
+
+         @exception Exception::IllegalArgument is thrown if the input data is not valid.
+    */
+    void run(const std::vector<ConsensusMap> & input_maps,
+             ConsensusMap & result_map);
+
+    /**
+         @brief Runs the algorithm on feature maps
+
+         @exception Exception::IllegalArgument is thrown if the input data is not valid.
+    */
+    void run(const std::vector<FeatureMap<> > & input_maps,
+             ConsensusMap & result_map);
+
+    /// Returns an instance of this class
+    static BaseGroupFinder * create()
+    {
+      return new QTClusterFinder();
+    }
+
+  };
 
 }
 

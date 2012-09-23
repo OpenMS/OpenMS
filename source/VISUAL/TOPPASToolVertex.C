@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
 // $Authors: Johannes Junker, Chris Bielow $
@@ -365,18 +365,23 @@ namespace OpenMS
     QColor progress_color;
     switch (status_)
     {
-      case TOOL_READY:
-        progress_color = Qt::lightGray; break;
-      case TOOL_SCHEDULED:
-        progress_color = Qt::darkBlue; break;
-      case TOOL_RUNNING:
-        progress_color = Qt::yellow; break;
-      case TOOL_SUCCESS:
-        progress_color = Qt::green; break;
-      case TOOL_CRASH:
-        progress_color = Qt::red; break;
-      default:
-        progress_color = Qt::magenta; break; // signal weird status by color 
+    case TOOL_READY:
+      progress_color = Qt::lightGray; break;
+
+    case TOOL_SCHEDULED:
+      progress_color = Qt::darkBlue; break;
+
+    case TOOL_RUNNING:
+      progress_color = Qt::yellow; break;
+
+    case TOOL_SUCCESS:
+      progress_color = Qt::green; break;
+
+    case TOOL_CRASH:
+      progress_color = Qt::red; break;
+
+    default:
+      progress_color = Qt::magenta; break;   // signal weird status by color
     }
     painter->setBrush(progress_color);
     painter->drawEllipse(46, -52, 14, 14);
@@ -643,9 +648,10 @@ namespace OpenMS
       connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
 
       //enqueue process
-      if (round==0) LOG_DEBUG << "Enqueue: \"" << File::getExecutablePath() + name_ << "\" \"" << String(args.join("\" \"")) << "\"" << std::endl;
+      if (round == 0)
+        LOG_DEBUG << "Enqueue: \"" << File::getExecutablePath() + name_ << "\" \"" << String(args.join("\" \"")) << "\"" << std::endl;
       toolScheduledSlot();
-      ts->enqueueProcess( TOPPASScene::TOPPProcess(p, (File::getExecutablePath() + name_).toQString(), args, this));
+      ts->enqueueProcess(TOPPASScene::TOPPProcess(p, (File::getExecutablePath() + name_).toQString(), args, this));
     }
 
     // run pending processes
@@ -690,7 +696,8 @@ namespace OpenMS
           LOG_ERROR << "SOMETHING is very fishy. The vertex is already set to finished, yet there was still a thread spawning..." << std::endl;
           throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
         }
-        if (!ts->isDryRun())  renameOutput_();                    // rename generated files by content
+        if (!ts->isDryRun())
+          renameOutput_();                                        // rename generated files by content
         finished_ = true;
         emit toolFinished();
 
@@ -945,12 +952,12 @@ namespace OpenMS
     status_ = TOOL_SCHEDULED;
     update(boundingRect());
   }
+
   void TOPPASToolVertex::toolFailedSlot()
   {
     status_ = TOOL_CRASH;
     update(boundingRect());
   }
-
 
   void TOPPASToolVertex::toolCrashedSlot()
   {
@@ -1048,7 +1055,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-    finished_ = false;
+      finished_ = false;
     status_ = TOOL_READY;
     output_files_.clear();
 

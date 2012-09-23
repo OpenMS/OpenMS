@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
 // $Authors: Steffen Sass, Holger Plattfaut $
@@ -48,7 +48,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  SILACFiltering::SpectrumInterpolation::SpectrumInterpolation(const MSSpectrum<> &s, const SILACFiltering &f)
+  SILACFiltering::SpectrumInterpolation::SpectrumInterpolation(const MSSpectrum<> & s, const SILACFiltering & f)
   {
     vector<DoubleReal> mz, intensity;
     DoubleReal last_mz = s.begin()->getMZ();
@@ -82,14 +82,15 @@ namespace OpenMS
     gsl_spline_free(spline_);
   }
 
-  SILACFiltering::SILACFiltering(MSExperiment<Peak1D>& exp, const PeakWidthEstimator::Result &peak_width, const DoubleReal intensity_cutoff, const String debug_filebase)
-    : intensity_cutoff_(intensity_cutoff),
-      exp_(exp),
-      debug_filebase_(debug_filebase),
-      peak_width(peak_width)
-  { }
+  SILACFiltering::SILACFiltering(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width, const DoubleReal intensity_cutoff, const String debug_filebase) :
+    intensity_cutoff_(intensity_cutoff),
+    exp_(exp),
+    debug_filebase_(debug_filebase),
+    peak_width(peak_width)
+  {
+  }
 
-  void SILACFiltering::addFilter(SILACFilter& filter)
+  void SILACFiltering::addFilter(SILACFilter & filter)
   {
     filters_.push_back(filter);
   }
@@ -136,41 +137,42 @@ namespace OpenMS
       // Iterate over all spectra of the experiment (iterate over rt)
       for (MSExperiment<Peak1D>::Iterator picked_rt_it = picked_exp_.begin(); picked_rt_it != picked_exp_.end(); ++picked_rt_it, ++picked_rt_id)
       {
-         DoubleReal rt = picked_rt_it->getRT();
+        DoubleReal rt = picked_rt_it->getRT();
 
-         MSSpectrum<Peak1D> debug;
-         debug.setRT(rt);
-         debug.setMSLevel(1);
-         debug.setNativeID(String("debug-seed=") + picked_rt_id);
+        MSSpectrum<Peak1D> debug;
+        debug.setRT(rt);
+        debug.setMSLevel(1);
+        debug.setNativeID(String("debug-seed=") + picked_rt_id);
 
-         // Iterate over the picked spectrum
-         for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_rt_it->begin(); picked_mz_it != picked_rt_it->end(); ++picked_mz_it) // iteration correct
-         {
-           DoubleReal picked_mz = picked_mz_it->getMZ();
+        // Iterate over the picked spectrum
+        for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_rt_it->begin(); picked_mz_it != picked_rt_it->end(); ++picked_mz_it)  // iteration correct
+        {
+          DoubleReal picked_mz = picked_mz_it->getMZ();
 
-           bool isSILAC = filter_it->isSILACPatternPicked_(*picked_rt_it, picked_mz, *this, debug);
+          bool isSILAC = filter_it->isSILACPatternPicked_(*picked_rt_it, picked_mz, *this, debug);
 
-           if (isSILAC)
-           {
-              Size spec_idx = picked_rt_it - picked_exp_.begin();
-              picked_exp_seeds_[spec_idx].push_back(*picked_mz_it);
-           }
-         }
+          if (isSILAC)
+          {
+            Size spec_idx = picked_rt_it - picked_exp_.begin();
+            picked_exp_seeds_[spec_idx].push_back(*picked_mz_it);
+          }
+        }
 
-         exp_debug.push_back(debug);
+        exp_debug.push_back(debug);
       }
 
       if (debug_filebase_ != "")
       {
         ChromatogramTools().convertSpectraToChromatograms(exp_debug, true);
         Int mass_separation = 0;
-        if (filter_it->mass_separations_.size()) mass_separation = filter_it->mass_separations_[0];
-        MzMLFile().store(debug_filebase_ + ".filtering.seeds-filters:" + 
-            filter_it->charge_ + ";" +
-            mass_separation + ";" +
-            filter_it->isotopes_per_peptide_ + ";" +
-            filter_it->model_deviation_ +
-            ".mzML", exp_debug);
+        if (filter_it->mass_separations_.size())
+          mass_separation = filter_it->mass_separations_[0];
+        MzMLFile().store(debug_filebase_ + ".filtering.seeds-filters:" +
+                         filter_it->charge_ + ";" +
+                         mass_separation + ";" +
+                         filter_it->isotopes_per_peptide_ + ";" +
+                         filter_it->model_deviation_ +
+                         ".mzML", exp_debug);
       }
     }
 
@@ -190,7 +192,7 @@ namespace OpenMS
     pickSeeds_();
     filterSeeds_();
 
-    startProgress(0, exp_.size(), "filtering raw data");    
+    startProgress(0, exp_.size(), "filtering raw data");
 
     UInt filter_id = 0;
     // Iterate over all filters
@@ -227,13 +229,14 @@ namespace OpenMS
           std::set<DoubleReal> seen_mz;
 
           // Iterate over the picked spectrum
-          for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_seed_rt_it->begin() ; picked_mz_it != picked_seed_rt_it->end(); ++picked_mz_it) // iteration correct
+          for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_seed_rt_it->begin(); picked_mz_it != picked_seed_rt_it->end(); ++picked_mz_it)  // iteration correct
           {
             DoubleReal picked_mz = picked_mz_it->getMZ();
             DoubleReal intensity = picked_mz_it->getIntensity();
 
             // XXX: Ignore duplicated peaks
-            if (!seen_mz.insert(picked_mz).second) continue;
+            if (!seen_mz.insert(picked_mz).second)
+              continue;
 
             //---------------------------------------------------------------
             // BLUNT INTENSITY FILTER (Just check that intensity at current m/z position is above the intensity cutoff)
@@ -276,10 +279,10 @@ namespace OpenMS
               for (multimap<DoubleReal, BlacklistEntry>::iterator blacklist_check_it = blacklistStartCheck; blacklist_check_it != blacklistEndCheck; ++blacklist_check_it)
               {
                 Int charge = filter_it->getCharge();
-                const vector<DoubleReal>& mass_separations = filter_it->getMassSeparations();
+                const vector<DoubleReal> & mass_separations = filter_it->getMassSeparations();
 
                 // loop over the individual isotopic peaks of the SILAC pattern (and check if they are blacklisted)
-                const vector<DoubleReal>& expectedMZshifts = filter_it->getExpectedMzShifts();
+                const vector<DoubleReal> & expectedMZshifts = filter_it->getExpectedMzShifts();
 
                 for (vector<DoubleReal>::const_iterator expectedMZshifts_it = expectedMZshifts.begin(); expectedMZshifts_it != expectedMZshifts.end(); ++expectedMZshifts_it)
                 {
@@ -288,7 +291,7 @@ namespace OpenMS
                                    && (mass_separations == blacklist_check_it->second.mass_separations)
                                    && (fabs(*expectedMZshifts_it - blacklist_check_it->second.relative_peak_position) < 0.1);
 
-                  if (inBlacklistEntry && !exception )
+                  if (inBlacklistEntry && !exception)
                   {
                     isBlacklisted = true;
                     break;
@@ -313,11 +316,11 @@ namespace OpenMS
                   DoubleReal peak_width_cur = peak_width(mz);
 
                   // loop over the individual isotopic peaks of the SILAC pattern (and blacklist the area around them)
-                  const vector<DoubleReal>& peak_positions = filter_it->getPeakPositions();
+                  const vector<DoubleReal> & peak_positions = filter_it->getPeakPositions();
 
                   // Remember the charge and mass separations (since the blacklisting should not apply to filters of the same charge and mass separations).
                   Int charge = filter_it->getCharge();
-                  const std::vector<DoubleReal>& mass_separations = filter_it->getMassSeparations();
+                  const std::vector<DoubleReal> & mass_separations = filter_it->getMassSeparations();
 
                   for (vector<DoubleReal>::const_iterator peak_positions_it = peak_positions.begin(); peak_positions_it != peak_positions.end(); ++peak_positions_it)
                   {
@@ -358,9 +361,9 @@ namespace OpenMS
                         if (blackArea.minY() > (blacklist_fill_it->second.range).minY())
                         {
                           // no new min RT => no change of key necessary
-                          (blacklist_fill_it->second.range).setMinX(min(blackArea.minX(),(blacklist_fill_it->second.range).minX()));
-                          (blacklist_fill_it->second.range).setMaxX(max(blackArea.maxX(),(blacklist_fill_it->second.range).maxX()));
-                          (blacklist_fill_it->second.range).setMaxY(max(blackArea.maxY(),(blacklist_fill_it->second.range).maxY()));
+                          (blacklist_fill_it->second.range).setMinX(min(blackArea.minX(), (blacklist_fill_it->second.range).minX()));
+                          (blacklist_fill_it->second.range).setMaxX(max(blackArea.maxX(), (blacklist_fill_it->second.range).maxX()));
+                          (blacklist_fill_it->second.range).setMaxY(max(blackArea.maxY(), (blacklist_fill_it->second.range).maxY()));
                         }
                         else
                         {
@@ -385,7 +388,7 @@ namespace OpenMS
                       }
                     }
 
-                    if ( !overlap )
+                    if (!overlap)
                     {
                       // If new and none of the old entries intersect, add a new entry.
                       BlacklistEntry newEntry;
@@ -413,7 +416,8 @@ namespace OpenMS
 
             // XXX
             const UInt threshold_points = 4;
-            if (pattern.points.size() > threshold_points) filter_it->elements_.push_back(pattern);
+            if (pattern.points.size() > threshold_points)
+              filter_it->elements_.push_back(pattern);
           }
         }
 
@@ -424,16 +428,18 @@ namespace OpenMS
       {
         ChromatogramTools().convertSpectraToChromatograms(exp_debug, true);
         Int mass_separation = 0;
-        if (filter_it->mass_separations_.size()) mass_separation = filter_it->mass_separations_[0];
-        MzMLFile().store(debug_filebase_ + ".filtering.spline-filters:" + 
-            filter_it->charge_ + ";" +
-            mass_separation + ";" +
-            filter_it->isotopes_per_peptide_ + ";" +
-            filter_it->model_deviation_ +
-            ".mzML", exp_debug);
+        if (filter_it->mass_separations_.size())
+          mass_separation = filter_it->mass_separations_[0];
+        MzMLFile().store(debug_filebase_ + ".filtering.spline-filters:" +
+                         filter_it->charge_ + ";" +
+                         mass_separation + ";" +
+                         filter_it->isotopes_per_peptide_ + ";" +
+                         filter_it->model_deviation_ +
+                         ".mzML", exp_debug);
       }
     }
 
     endProgress();
   }
+
 }

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
 // $Authors: Eva Lange $
@@ -49,7 +49,7 @@ namespace OpenMS
 {
   /**
     @brief Computes the Savitzky-Golay filter coefficients using QR decomposition.
-   
+
     This class represents a Savitzky-Golay lowpass-filter. The idea of the Savitzky-Golay filter
     is to find filtercoefficients that preserve higher moments, which means to approximate the underlying
     function within the moving window by a polynomial of higher order (typically quadratic or quartic).
@@ -57,7 +57,7 @@ namespace OpenMS
     and set \f$g_i\f$ to be the value of that polynomial at position \f$ i \f$. This method is superior
     to adjacent averaging because it tends to preserve features of the data such as peak height and width, which
     are usually 'washed out' by adjacent averaging.
-   
+
     Because of the linearity of the problem, we can reduce the work computing by fitting in advance, for fictious data
     consisiting of all zeros except for a singe 1 and then do the fits on the real data just by taking linear
     combinations. There are a particular sets of filter coefficients \f$ c_n \f$ which accomplish the process of
@@ -92,144 +92,143 @@ namespace OpenMS
     The vector \f$c=[c_0,\ldots,c_8] \f$ represents the wanted coefficients.
     Note that the solution of a least-squares problem directly from the normal equations is faster than the singular value
     decomposition but rather susceptible to roundoff error!
-   
+
     @note This filter works only for uniform profile data!
           A polynom order of 4 is recommended.
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
           of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the profile data.
-    
-		@note The data must be sorted according to ascending m/z!
-    
-		@htmlinclude OpenMS_SavitzkyGolayFilter.parameters
-    
+
+        @note The data must be sorted according to ascending m/z!
+
+        @htmlinclude OpenMS_SavitzkyGolayFilter.parameters
+
     @ingroup SignalProcessing
   */
-  class OPENMS_DLLAPI SavitzkyGolayFilter 
-  	: public ProgressLogger, 
-  		public DefaultParamHandler
+  class OPENMS_DLLAPI SavitzkyGolayFilter :
+    public ProgressLogger,
+    public DefaultParamHandler
   {
-    public:
-      /// Constructor
-      SavitzkyGolayFilter();
+public:
+    /// Constructor
+    SavitzkyGolayFilter();
 
-      /// Destructor
-      virtual ~SavitzkyGolayFilter();
+    /// Destructor
+    virtual ~SavitzkyGolayFilter();
 
-      /** 
-      	@brief Removed the noise from an MSSpectrum containing profile data.
-      */
-      template <typename PeakType>
-      void filter(MSSpectrum<PeakType>& spectrum)
+    /**
+      @brief Removed the noise from an MSSpectrum containing profile data.
+    */
+    template <typename PeakType>
+    void filter(MSSpectrum<PeakType> & spectrum)
+    {
+      UInt n = (UInt)spectrum.size();
+
+      typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
+      typename MSSpectrum<PeakType>::iterator last = spectrum.end();
+
+      //copy the data AND META DATA to the output container
+      MSSpectrum<PeakType> output = spectrum;
+
+      if (frame_size_ > n)
       {
-        UInt n = (UInt)spectrum.size();
-        
-        typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
-        typename MSSpectrum<PeakType>::iterator last = spectrum.end();
-        
-        //copy the data AND META DATA to the output container
-        MSSpectrum<PeakType> output = spectrum;
-        
-        if (frame_size_ > n)
-        {
-          return;
-        }
-
-        int i;
-        UInt j;
-        int mid=(frame_size_/2);
-        double help;
-
-        typename MSSpectrum<PeakType>::iterator it_forward;
-        typename MSSpectrum<PeakType>::iterator it_help;
-        typename MSSpectrum<PeakType>::iterator out_it = output.begin();
-
-        // compute the transient on
-        for (i=0; i <= mid; ++i)
-        {
-          it_forward=(first-i);
-          help=0;
-
-          for (j=0; j < frame_size_; ++j)
-          {
-            help+=it_forward->getIntensity()*coeffs_[(i+1)*frame_size_-1-j];
-            ++it_forward;
-          }
-
-
-          out_it->setPosition(first->getPosition());
-          out_it->setIntensity(std::max(0.0,help));
-          ++out_it;
-          ++first;
-        }
-
-        // compute the steady state output
-        it_help=(last-mid);
-        while (first!=it_help)
-        {
-          it_forward=(first-mid);
-          help=0;
-
-          for (j=0; j < frame_size_; ++j)
-          {
-            help+=it_forward->getIntensity()*coeffs_[mid*frame_size_+j];
-            ++it_forward;
-          }
-
-
-          out_it->setPosition(first->getPosition());
-          out_it->setIntensity(std::max(0.0,help));
-          ++out_it;
-          ++first;
-        }
-
-        // compute the transient off
-        for (i=(mid-1); i >= 0; --i)
-        {
-          it_forward=(first-(frame_size_-i-1));
-          help=0;
-
-          for (j=0; j < frame_size_; ++j)
-          {
-            help+=it_forward->getIntensity()*coeffs_[i*frame_size_+j];
-            ++it_forward;
-          }
-
-          out_it->setPosition(first->getPosition());
-          out_it->setIntensity(std::max(0.0,help));
-          ++out_it;
-          ++first;
-        }
-        
-        spectrum = output;
+        return;
       }
 
-      /** 
-      	@brief Removed the noise from an MSExperiment containing profile data.
-      */
-      template <typename PeakType>
-      void filterExperiment(MSExperiment<PeakType>& map)
+      int i;
+      UInt j;
+      int mid = (frame_size_ / 2);
+      double help;
+
+      typename MSSpectrum<PeakType>::iterator it_forward;
+      typename MSSpectrum<PeakType>::iterator it_help;
+      typename MSSpectrum<PeakType>::iterator out_it = output.begin();
+
+      // compute the transient on
+      for (i = 0; i <= mid; ++i)
       {
-        startProgress(0,map.size(),"smoothing data");
-        for (Size i = 0; i < map.size(); ++i)
+        it_forward = (first - i);
+        help = 0;
+
+        for (j = 0; j < frame_size_; ++j)
         {
-          filter(map[i]);
-          setProgress(i);
+          help += it_forward->getIntensity() * coeffs_[(i + 1) * frame_size_ - 1 - j];
+          ++it_forward;
         }
-        endProgress();
+
+
+        out_it->setPosition(first->getPosition());
+        out_it->setIntensity(std::max(0.0, help));
+        ++out_it;
+        ++first;
       }
-	  
-    protected:
-			/// Coefficients
-			std::vector<DoubleReal> coeffs_;
-			/// UInt of the filter kernel (number of pre-tabulated coefficients)
-      UInt frame_size_;
-      /// The order of the smoothing polynomial.
-      UInt order_;
-			// Docu in base class
-      virtual void updateMembers_();
-      
+
+      // compute the steady state output
+      it_help = (last - mid);
+      while (first != it_help)
+      {
+        it_forward = (first - mid);
+        help = 0;
+
+        for (j = 0; j < frame_size_; ++j)
+        {
+          help += it_forward->getIntensity() * coeffs_[mid * frame_size_ + j];
+          ++it_forward;
+        }
+
+
+        out_it->setPosition(first->getPosition());
+        out_it->setIntensity(std::max(0.0, help));
+        ++out_it;
+        ++first;
+      }
+
+      // compute the transient off
+      for (i = (mid - 1); i >= 0; --i)
+      {
+        it_forward = (first - (frame_size_ - i - 1));
+        help = 0;
+
+        for (j = 0; j < frame_size_; ++j)
+        {
+          help += it_forward->getIntensity() * coeffs_[i * frame_size_ + j];
+          ++it_forward;
+        }
+
+        out_it->setPosition(first->getPosition());
+        out_it->setIntensity(std::max(0.0, help));
+        ++out_it;
+        ++first;
+      }
+
+      spectrum = output;
+    }
+
+    /**
+      @brief Removed the noise from an MSExperiment containing profile data.
+    */
+    template <typename PeakType>
+    void filterExperiment(MSExperiment<PeakType> & map)
+    {
+      startProgress(0, map.size(), "smoothing data");
+      for (Size i = 0; i < map.size(); ++i)
+      {
+        filter(map[i]);
+        setProgress(i);
+      }
+      endProgress();
+    }
+
+protected:
+    /// Coefficients
+    std::vector<DoubleReal> coeffs_;
+    /// UInt of the filter kernel (number of pre-tabulated coefficients)
+    UInt frame_size_;
+    /// The order of the smoothing polynomial.
+    UInt order_;
+    // Docu in base class
+    virtual void updateMembers_();
+
   };
 
 } // namespace OpenMS
 #endif // OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
-

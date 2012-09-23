@@ -1,182 +1,182 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer$
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/MSQuantifications.h>
-#include<set>
-#include<iostream>
+#include <set>
+#include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
-		const std::string MSQuantifications::NamesOfQuantTypes[] = {"MS1LABEL", "MS2LABEL", "LABELFREE"};
+  const std::string MSQuantifications::NamesOfQuantTypes[] = {"MS1LABEL", "MS2LABEL", "LABELFREE"};
 
-			/// Constructor
-			MSQuantifications::MSQuantifications() :
-				ExperimentalSettings()
-			{
-			}
+  /// Constructor
+  MSQuantifications::MSQuantifications() :
+    ExperimentalSettings()
+  {
+  }
 
-			/// Copy constructor
-			MSQuantifications::MSQuantifications(const MSQuantifications& source) :
-				ExperimentalSettings(source)
-			{
-			}
+  /// Copy constructor
+  MSQuantifications::MSQuantifications(const MSQuantifications & source) :
+    ExperimentalSettings(source)
+  {
+  }
 
-			MSQuantifications::~MSQuantifications()
-			{
-			}
+  MSQuantifications::~MSQuantifications()
+  {
+  }
 
-			/// Assignment operator
-			MSQuantifications& MSQuantifications::operator= (const MSQuantifications& source)
-			{
-				if (&source == this) return *this;
+  /// Assignment operator
+  MSQuantifications & MSQuantifications::operator=(const MSQuantifications & source)
+  {
+    if (&source == this)
+      return *this;
 
-				ExperimentalSettings::operator=(source);
-				//~ PersistentObject::operator=(source);
+    ExperimentalSettings::operator=(source);
+    //~ PersistentObject::operator=(source);
 
-				//~ reassign members
+    //~ reassign members
 
-				return *this;
-			}
+    return *this;
+  }
 
-			/// Equality operator
-			bool MSQuantifications::operator== (const MSQuantifications& rhs) const
-			{
-				return ExperimentalSettings::operator==(rhs);
-			}
+  /// Equality operator
+  bool MSQuantifications::operator==(const MSQuantifications & rhs) const
+  {
+    return ExperimentalSettings::operator==(rhs);
+  }
 
-			/// Equality operator
-			bool MSQuantifications::operator!= (const MSQuantifications& rhs) const
-			{
-				return !(operator==(rhs));
-			}
+  /// Equality operator
+  bool MSQuantifications::operator!=(const MSQuantifications & rhs) const
+  {
+    return !(operator==(rhs));
+  }
 
-			void MSQuantifications::setDataProcessingList(std::vector<DataProcessing>& dpl)
-			{
-				data_processings_ = dpl;
-			}
+  void MSQuantifications::setDataProcessingList(std::vector<DataProcessing> & dpl)
+  {
+    data_processings_ = dpl;
+  }
 
-			const std::vector<DataProcessing> MSQuantifications::getDataProcessingList() const
-			{
-				std::vector<DataProcessing> list = data_processings_;
+  const std::vector<DataProcessing> MSQuantifications::getDataProcessingList() const
+  {
+    std::vector<DataProcessing> list = data_processings_;
 
-				//This is one way street for dataprocessing - it probably wont get mapped back after writeout and readin
-				for (std::vector<FeatureMap<> >::const_iterator fit = feature_maps_.begin(); fit != feature_maps_.end(); ++fit)
-				{
-					list.insert(list.end(),fit->getDataProcessing().begin(), fit->getDataProcessing().end());
-				}
+    //This is one way street for dataprocessing - it probably wont get mapped back after writeout and readin
+    for (std::vector<FeatureMap<> >::const_iterator fit = feature_maps_.begin(); fit != feature_maps_.end(); ++fit)
+    {
+      list.insert(list.end(), fit->getDataProcessing().begin(), fit->getDataProcessing().end());
+    }
 
-				for (std::vector<ConsensusMap>::const_iterator cit = consensus_maps_.begin(); cit != consensus_maps_.end(); ++cit)
-				{
-					list.insert(list.end(),cit->getDataProcessing().begin(), cit->getDataProcessing().end());
-				}
+    for (std::vector<ConsensusMap>::const_iterator cit = consensus_maps_.begin(); cit != consensus_maps_.end(); ++cit)
+    {
+      list.insert(list.end(), cit->getDataProcessing().begin(), cit->getDataProcessing().end());
+    }
 
-				return list;
-			}
+    return list;
+  }
 
-			const std::vector<MSQuantifications::Assay>& MSQuantifications::getAssays() const
-			{
-				return assays_;
-			}
+  const std::vector<MSQuantifications::Assay> & MSQuantifications::getAssays() const
+  {
+    return assays_;
+  }
 
-			std::vector<MSQuantifications::Assay>& MSQuantifications::getAssays()
-			{
-				return assays_;
-			}
-			
-			//~ std::map<String,ConsensusFeature::Ratio>& MSQuantifications::getRatioCalculations()
-			//~ {
-				//~ return ratio_calculations_;
-			//~ }
+  std::vector<MSQuantifications::Assay> & MSQuantifications::getAssays()
+  {
+    return assays_;
+  }
 
-			const std::vector<FeatureMap<> >& MSQuantifications::getFeatureMaps() const
-			{
-				return feature_maps_;
-			}
+  //~ std::map<String,ConsensusFeature::Ratio>& MSQuantifications::getRatioCalculations()
+  //~ {
+  //~ return ratio_calculations_;
+  //~ }
 
-			const std::vector<ConsensusMap>& MSQuantifications::getConsensusMaps() const
-			{
-				return consensus_maps_;
-			}
-			
-			std::vector<ConsensusMap>& MSQuantifications::getConsensusMaps()
-			{
-				return consensus_maps_;
-			}
+  const std::vector<FeatureMap<> > & MSQuantifications::getFeatureMaps() const
+  {
+    return feature_maps_;
+  }
 
-			const MSQuantifications::AnalysisSummary& MSQuantifications::getAnalysisSummary() const
-			{
-				return analysis_summary_;
-			}
+  const std::vector<ConsensusMap> & MSQuantifications::getConsensusMaps() const
+  {
+    return consensus_maps_;
+  }
 
-			MSQuantifications::AnalysisSummary& MSQuantifications::getAnalysisSummary()
-			{
-				return analysis_summary_;
-			}
+  std::vector<ConsensusMap> & MSQuantifications::getConsensusMaps()
+  {
+    return consensus_maps_;
+  }
 
-			void MSQuantifications::setAnalysisSummaryQuantType(MSQuantifications::QUANT_TYPES r)
-			{
-				analysis_summary_.quant_type_ = r;
-			}
+  const MSQuantifications::AnalysisSummary & MSQuantifications::getAnalysisSummary() const
+  {
+    return analysis_summary_;
+  }
 
-			void MSQuantifications::addConsensusMap(ConsensusMap& m)
-			{
-				consensus_maps_.push_back(m);
-			}
+  MSQuantifications::AnalysisSummary & MSQuantifications::getAnalysisSummary()
+  {
+    return analysis_summary_;
+  }
 
-			void MSQuantifications::assignUIDs()
-			{
-				for(std::vector<Assay>::iterator ait = assays_.begin(); ait != assays_.end(); ++ait)
-				{
-					ait->uid_ = String(UniqueIdGenerator::getUniqueId());
-				}
-			}
+  void MSQuantifications::setAnalysisSummaryQuantType(MSQuantifications::QUANT_TYPES r)
+  {
+    analysis_summary_.quant_type_ = r;
+  }
 
-			void MSQuantifications::registerExperiment(MSExperiment<Peak1D> & exp, std::vector< std::vector< std::pair<String, DoubleReal> > > label)
-			{
-				for (std::vector< std::vector< std::pair<String, DoubleReal> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
-				{
-					//TODO look for existing labels
-					Assay a;
-					a.mods_ = (*lit);
-					a.raw_files_.push_back(exp.getExperimentalSettings());
-					assays_.push_back(a);
-				}
+  void MSQuantifications::addConsensusMap(ConsensusMap & m)
+  {
+    consensus_maps_.push_back(m);
+  }
 
-				data_processings_ = exp[0].getDataProcessing(); //todo overwrite MSExperiments inherited front method to work. [0] operator is ugly!
-			}
+  void MSQuantifications::assignUIDs()
+  {
+    for (std::vector<Assay>::iterator ait = assays_.begin(); ait != assays_.end(); ++ait)
+    {
+      ait->uid_ = String(UniqueIdGenerator::getUniqueId());
+    }
+  }
 
-}//namespace OpenMS
+  void MSQuantifications::registerExperiment(MSExperiment<Peak1D> & exp, std::vector<std::vector<std::pair<String, DoubleReal> > > label)
+  {
+    for (std::vector<std::vector<std::pair<String, DoubleReal> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
+    {
+      //TODO look for existing labels
+      Assay a;
+      a.mods_ = (*lit);
+      a.raw_files_.push_back(exp.getExperimentalSettings());
+      assays_.push_back(a);
+    }
 
+    data_processings_ = exp[0].getDataProcessing();             //todo overwrite MSExperiments inherited front method to work. [0] operator is ugly!
+  }
+
+} //namespace OpenMS

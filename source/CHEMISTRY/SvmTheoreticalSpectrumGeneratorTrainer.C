@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
 // $Authors: Sandro Andreotti $
@@ -50,7 +50,7 @@ using namespace std;
 namespace OpenMS
 {
   SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer() :
-      DefaultParamHandler("SvmTheoreticalSpectrumGeneratorTrainer")
+    DefaultParamHandler("SvmTheoreticalSpectrumGeneratorTrainer")
   {
     defaults_.setValue("write_training_files", "false", "If set to true no models are trained but files (<Filename>_<ion_type>_training.dat) are produced \
 for the selected primary ion types. They can be used as input for LibSVM command line tools");
@@ -83,33 +83,33 @@ for the selected primary ion types. They can be used as input for LibSVM command
     defaults_.setValidStrings("add_y2_ions", StringList::create("true,false"));
 
     defaults_.setValue("svm:svc_type", 0, "Type of the SVC: 0=C_SVC 1=NU_SVC");
-    defaults_.setMinInt("svm:svc_type",0);
-    defaults_.setMaxInt("svm:svc_type",1);
+    defaults_.setMinInt("svm:svc_type", 0);
+    defaults_.setMaxInt("svm:svc_type", 1);
 
     defaults_.setValue("svm:svr_type", 1, "Type of the SVR: 0=EPSILON_SVR 1=NU_SVR");
-    defaults_.setMinInt("svm:svr_type",0);
-    defaults_.setMaxInt("svm:svr_type",1);
+    defaults_.setMinInt("svm:svr_type", 0);
+    defaults_.setMaxInt("svm:svr_type", 1);
 
     defaults_.setValue("svm:svc:kernel_type", 2, "Type of the kernel:  0=LINEAR 1=POLY 2=RBF 3=SIGMOID");
-    defaults_.setMinInt("svm:svc:kernel_type",0);
-    defaults_.setMaxInt("svm:svc:kernel_type",3);
+    defaults_.setMinInt("svm:svc:kernel_type", 0);
+    defaults_.setMaxInt("svm:svc:kernel_type", 3);
 
     defaults_.setValue("svm:svr:kernel_type", 2, "Type of the kernel:  0=LINEAR 1=POLY 2=RBF 3=SIGMOID");
-    defaults_.setMinInt("svm:svr:kernel_type",0);
-    defaults_.setMaxInt("svm:svr:kernel_type",3);
+    defaults_.setMinInt("svm:svr:kernel_type", 0);
+    defaults_.setMaxInt("svm:svr:kernel_type", 3);
 
 
     defaults_.setValue("svm:svc:degree", 3, "For POLY");
-    defaults_.setMinInt("svm:svc:degree",1);
+    defaults_.setMinInt("svm:svc:degree", 1);
 
     defaults_.setValue("svm:svr:degree", 3, "For POLY");
-    defaults_.setMinInt("svm:svr:degree",1);
+    defaults_.setMinInt("svm:svr:degree", 1);
 
     defaults_.setValue("svm:svc:gamma", 0.0, "For POLY/RBF/SIGMOID");
-    defaults_.setMinFloat("svm:svc:gamma",0.0);
+    defaults_.setMinFloat("svm:svc:gamma", 0.0);
 
     defaults_.setValue("svm:svr:gamma", 0.0, "For POLY/RBF/SIGMOID");
-    defaults_.setMinFloat("svm:svr:gamma",0.0);
+    defaults_.setMinFloat("svm:svr:gamma", 0.0);
 
     //defaults_.setValue("svm:svc:coef0", 0.0, "For POLY/SIGMOID");
     //defaults_.setMinFloat("svm:svc:coef0",0.0);
@@ -148,7 +148,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
     defaults_.setSectionDescription("svm:svr", "Parameters for svm - regression of peak intensities");
 
     defaults_.setValue("svm:n_fold", 5, "n_fold cross validation is performed");
-    defaults_.setMinInt("svm:n_fold",1);
+    defaults_.setMinInt("svm:n_fold", 1);
 
     defaults_.setValue("svm:grid", "false", "Perform grid search");
     defaults_.setValidStrings("svm:grid", StringList::create("true,false"));
@@ -156,53 +156,53 @@ for the selected primary ion types. They can be used as input for LibSVM command
     defaults_.setValue("svm:additive_cv", "false", "Additive step size (if false multiplicative)");
     defaults_.setValidStrings("svm:additive_cv", StringList::create("true,false"));
 
-    defaults_.setValue("svm:svc:degree_start",1,"starting point of degree");
+    defaults_.setValue("svm:svc:degree_start", 1, "starting point of degree");
     defaults_.setMinInt("svm:svc:degree_start", 1);
-    defaults_.setValue("svm:svc:degree_step_size",2,"step size point of degree");
-    defaults_.setValue("svm:svc:degree_stop",4,"stopping point of degree");
+    defaults_.setValue("svm:svc:degree_step_size", 2, "step size point of degree");
+    defaults_.setValue("svm:svc:degree_stop", 4, "stopping point of degree");
 
-    defaults_.setValue("svm:svc:gamma_start",0.00001,"starting point of gamma");
+    defaults_.setValue("svm:svc:gamma_start", 0.00001, "starting point of gamma");
     defaults_.setMinFloat("svm:svc:gamma_start", 0.0);
     defaults_.setMaxFloat("svm:svc:gamma_start", 1.0);
-    defaults_.setValue("svm:svc:gamma_step_size",100,"step size point of gamma");
-    defaults_.setValue("svm:svc:gamma_stop",0.1,"stopping point of gamma");
+    defaults_.setValue("svm:svc:gamma_step_size", 100, "step size point of gamma");
+    defaults_.setValue("svm:svc:gamma_stop", 0.1, "stopping point of gamma");
 
-    defaults_.setValue("svm:svc:c_start",0.1,"starting point of c");
-    defaults_.setValue("svm:svc:c_step_size",100,"step size of c");
-    defaults_.setValue("svm:svc:c_stop",1000,"stopping point of c");
+    defaults_.setValue("svm:svc:c_start", 0.1, "starting point of c");
+    defaults_.setValue("svm:svc:c_step_size", 100, "step size of c");
+    defaults_.setValue("svm:svc:c_stop", 1000, "stopping point of c");
 
-    defaults_.setValue("svm:svc:nu_start",0.3,"starting point of nu");
+    defaults_.setValue("svm:svc:nu_start", 0.3, "starting point of nu");
     defaults_.setMinFloat("svm:svc:nu_start", 0);
     defaults_.setMaxFloat("svm:svc:nu_start", 1);
-    defaults_.setValue("svm:svc:nu_step_size",2,"step size of nu");
-    defaults_.setValue("svm:svc:nu_stop",0.6,"stopping point of nu");
+    defaults_.setValue("svm:svc:nu_step_size", 2, "step size of nu");
+    defaults_.setValue("svm:svc:nu_stop", 0.6, "stopping point of nu");
     defaults_.setMinFloat("svm:svc:nu_stop", 0);
     defaults_.setMaxFloat("svm:svc:nu_stop", 1);
 
-    defaults_.setValue("svm:svr:degree_start",1,"starting point of degree");
+    defaults_.setValue("svm:svr:degree_start", 1, "starting point of degree");
     defaults_.setMinInt("svm:svr:degree_start", 1);
-    defaults_.setValue("svm:svr:degree_step_size",2,"step size point of degree");
-    defaults_.setValue("svm:svr:degree_stop",4,"stopping point of degree");
+    defaults_.setValue("svm:svr:degree_step_size", 2, "step size point of degree");
+    defaults_.setValue("svm:svr:degree_stop", 4, "stopping point of degree");
 
-    defaults_.setValue("svm:svr:gamma_start",0.00001,"starting point of gamma");
+    defaults_.setValue("svm:svr:gamma_start", 0.00001, "starting point of gamma");
     defaults_.setMinFloat("svm:svr:gamma_start", 0.0);
     defaults_.setMaxFloat("svm:svr:gamma_start", 1.0);
-    defaults_.setValue("svm:svr:gamma_step_size",100,"step size point of gamma");
-    defaults_.setValue("svm:svr:gamma_stop",0.1,"stopping point of gamma");
+    defaults_.setValue("svm:svr:gamma_step_size", 100, "step size point of gamma");
+    defaults_.setValue("svm:svr:gamma_stop", 0.1, "stopping point of gamma");
 
-    defaults_.setValue("svm:svr:p_start",0.00001,"starting point of p");
-    defaults_.setValue("svm:svr:p_step_size",100,"step size point of p");
-    defaults_.setValue("svm:svr:p_stop",0.1,"stopping point of p");
+    defaults_.setValue("svm:svr:p_start", 0.00001, "starting point of p");
+    defaults_.setValue("svm:svr:p_step_size", 100, "step size point of p");
+    defaults_.setValue("svm:svr:p_stop", 0.1, "stopping point of p");
 
-    defaults_.setValue("svm:svr:c_start",0.1,"starting point of c");
-    defaults_.setValue("svm:svr:c_step_size",100,"step size of c");
-    defaults_.setValue("svm:svr:c_stop",1000,"stopping point of c");
+    defaults_.setValue("svm:svr:c_start", 0.1, "starting point of c");
+    defaults_.setValue("svm:svr:c_step_size", 100, "step size of c");
+    defaults_.setValue("svm:svr:c_stop", 1000, "stopping point of c");
 
-    defaults_.setValue("svm:svr:nu_start",0.3,"starting point of nu");
+    defaults_.setValue("svm:svr:nu_start", 0.3, "starting point of nu");
     defaults_.setMinFloat("svm:svr:nu_start", 0);
     defaults_.setMaxFloat("svm:svr:nu_start", 1);
-    defaults_.setValue("svm:svr:nu_step_size",2,"step size of nu");
-    defaults_.setValue("svm:svr:nu_stop",0.6,"stopping point of nu");
+    defaults_.setValue("svm:svr:nu_step_size", 2, "step size of nu");
+    defaults_.setValue("svm:svr:nu_stop", 0.6, "stopping point of nu");
     defaults_.setMinFloat("svm:svr:nu_stop", 0);
     defaults_.setMaxFloat("svm:svr:nu_stop", 1);
 
@@ -211,17 +211,17 @@ for the selected primary ion types. They can be used as input for LibSVM command
     defaultsToParam_();
   }
 
-  SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer(const SvmTheoreticalSpectrumGeneratorTrainer& rhs) :
+  SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer(const SvmTheoreticalSpectrumGeneratorTrainer & rhs) :
     DefaultParamHandler(rhs)
   {
     updateMembers_();
   }
 
-  SvmTheoreticalSpectrumGeneratorTrainer& SvmTheoreticalSpectrumGeneratorTrainer::operator =(const SvmTheoreticalSpectrumGeneratorTrainer& rhs)
+  SvmTheoreticalSpectrumGeneratorTrainer & SvmTheoreticalSpectrumGeneratorTrainer::operator=(const SvmTheoreticalSpectrumGeneratorTrainer & rhs)
   {
     if (this != &rhs)
     {
-      DefaultParamHandler::operator=(rhs);      
+      DefaultParamHandler::operator=(rhs);
       updateMembers_();
     }
     return *this;
@@ -231,8 +231,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
   {
   }
 
-
-  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap &spectra, const std::vector<AASequence>&annotations, String filename, Int precursor_charge)
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap & spectra, const std::vector<AASequence> & annotations, String filename, Int precursor_charge)
   {
     //----------- BEGIN OF PARAMETER READING-------------------------
 
@@ -252,7 +251,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
 
     //build set of ion types
     std::vector<IonType> ion_types;
-    std::vector<bool>is_primary;
+    std::vector<bool> is_primary;
 
     if (DataValue(param_.getValue("add_b_ions")).toBool())
     {
@@ -263,30 +262,30 @@ for the selected primary ion types. They can be used as input for LibSVM command
     {
       ion_types.push_back(IonType(Residue::YIon, EmpiricalFormula(), 1));
       is_primary.push_back(true);
-    }    
+    }
     if (DataValue(param_.getValue("add_x_ions")).toBool())
     {
       ion_types.push_back(IonType(Residue::XIon, EmpiricalFormula(), 1));
       is_primary.push_back(false);
-      secondary_types=true;
+      secondary_types = true;
     }
     if (DataValue(param_.getValue("add_a_ions")).toBool())
     {
       ion_types.push_back(IonType(Residue::AIon, EmpiricalFormula(), 1));
       is_primary.push_back(false);
-      secondary_types=true;
+      secondary_types = true;
     }
     if (DataValue(param_.getValue("add_z_ions")).toBool())
     {
       ion_types.push_back(IonType(Residue::ZIon, EmpiricalFormula(), 1));
       is_primary.push_back(false);
-      secondary_types=true;
+      secondary_types = true;
     }
     if (DataValue(param_.getValue("add_c_ions")).toBool())
     {
       ion_types.push_back(IonType(Residue::CIon, EmpiricalFormula(), 1));
       is_primary.push_back(false);
-      secondary_types=true;
+      secondary_types = true;
     }
 
     if (DataValue(param_.getValue("add_losses")).toBool())
@@ -300,7 +299,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
         ion_types.push_back(IonType(Residue::BIon, loss_water, 1));
         is_primary.push_back(false);
         is_primary.push_back(false);
-        secondary_types=true;
+        secondary_types = true;
       }
       if (DataValue(param_.getValue("add_y_ions")).toBool())
       {
@@ -308,7 +307,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
         ion_types.push_back(IonType(Residue::YIon, loss_water, 1));
         is_primary.push_back(false);
         is_primary.push_back(false);
-        secondary_types=true;
+        secondary_types = true;
       }
     }
 
@@ -316,13 +315,13 @@ for the selected primary ion types. They can be used as input for LibSVM command
     {
       ion_types.push_back(IonType(Residue::YIon, EmpiricalFormula(), 2));
       is_primary.push_back(false);
-      secondary_types=true;
+      secondary_types = true;
     }
     if (DataValue(param_.getValue("add_b2_ions")).toBool())
     {
       ion_types.push_back(IonType(Residue::BIon, EmpiricalFormula(), 2));
       is_primary.push_back(false);
-      secondary_types=true;
+      secondary_types = true;
     }
 
     //-----------------------LOADING THE SVM PARAMETERS------------------
@@ -333,8 +332,8 @@ for the selected primary ion types. They can be used as input for LibSVM command
     bool scaling = param_.getValue("svm:scaling").toBool();
     if (scaling)
     {
-      upper=param_.getValue("svm:scaling_upper");
-      lower=param_.getValue("svm:scaling_lower");
+      upper = param_.getValue("svm:scaling_upper");
+      lower = param_.getValue("svm:scaling_lower");
     }
 
     SVMWrapper wrap_reg, wrap_class;
@@ -353,7 +352,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
     wrap_class.setParameter(SVMWrapper::DEGREE, (Int)param_.getValue("svm:svc:degree"));
     wrap_class.setParameter(SVMWrapper::C, (DoubleReal)param_.getValue("svm:svc:C"));
     wrap_class.setParameter(SVMWrapper::NU, (DoubleReal)param_.getValue("svm:svc:nu"));
-    wrap_class.setParameter(SVMWrapper::GAMMA, (DoubleReal)param_.getValue("svm:svc:gamma"));    
+    wrap_class.setParameter(SVMWrapper::GAMMA, (DoubleReal)param_.getValue("svm:svc:gamma"));
 
     //-----------------------LOADING THE Grid Search Parameters------------------
 
@@ -361,8 +360,8 @@ for the selected primary ion types. They can be used as input for LibSVM command
     bool additive_cv = param_.getValue("svm:additive_cv").toBool();
 
     //SVR Grid params
-    std::map< SVMWrapper::SVM_parameter_type, DoubleReal > start_values_reg, end_values_reg, step_sizes_reg;
-    if(grid)
+    std::map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values_reg, end_values_reg, step_sizes_reg;
+    if (grid)
     {
       DoubleReal gamma_start = (DoubleReal)param_.getValue("svm:svr:gamma_start");
       DoubleReal gamma_step_size = (DoubleReal)param_.getValue("svm:svr:gamma_step_size");
@@ -377,9 +376,9 @@ for the selected primary ion types. They can be used as input for LibSVM command
 
       if (wrap_reg.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
       {
-      UInt degree_start = 0;
-      UInt degree_step_size = 0;
-      UInt degree_stop = 0;
+        UInt degree_start = 0;
+        UInt degree_step_size = 0;
+        UInt degree_stop = 0;
 
         degree_start = (Int)param_.getValue("svm:svr:degree_start");
         degree_step_size = (Int)param_.getValue("svm:svr:degree_step_size");
@@ -396,9 +395,9 @@ for the selected primary ion types. They can be used as input for LibSVM command
 
       if (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR)
       {
-      DoubleReal p_start = 0.;
-      DoubleReal p_step_size = 0.;
-      DoubleReal p_stop = 0.;
+        DoubleReal p_start = 0.;
+        DoubleReal p_step_size = 0.;
+        DoubleReal p_stop = 0.;
 
         p_start = (DoubleReal)param_.getValue("svm:svr:p_start");
         p_step_size = (DoubleReal)param_.getValue("svm:svr:p_step_size");
@@ -417,8 +416,8 @@ for the selected primary ion types. They can be used as input for LibSVM command
       DoubleReal c_step_size = 0.;
       DoubleReal c_stop = 0.;
 
-      c_start =(DoubleReal)param_.getValue("svm:svr:c_start");
-      c_step_size =(DoubleReal)param_.getValue("svm:svr:c_step_size");
+      c_start = (DoubleReal)param_.getValue("svm:svr:c_start");
+      c_step_size = (DoubleReal)param_.getValue("svm:svr:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
@@ -429,11 +428,11 @@ for the selected primary ion types. They can be used as input for LibSVM command
       step_sizes_reg.insert(make_pair(SVMWrapper::C, c_step_size));
       end_values_reg.insert(make_pair(SVMWrapper::C, c_stop));
 
-      if ( (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
+      if ((wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
       {
-      DoubleReal nu_start = 0.;
-      DoubleReal nu_step_size = 0.;
-      DoubleReal nu_stop = 0.;
+        DoubleReal nu_start = 0.;
+        DoubleReal nu_step_size = 0.;
+        DoubleReal nu_stop = 0.;
 
         nu_start = (DoubleReal)param_.getValue("svm:svr:nu_start");
         nu_step_size = (DoubleReal)param_.getValue("svm:svr:nu_step_size");
@@ -450,9 +449,9 @@ for the selected primary ion types. They can be used as input for LibSVM command
     }
 
     //SVC Grid params
-    std::map< SVMWrapper::SVM_parameter_type, DoubleReal > start_values_class, end_values_class, step_sizes_class;
+    std::map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values_class, end_values_class, step_sizes_class;
 
-    if(grid)
+    if (grid)
     {
       DoubleReal gamma_start = (DoubleReal)param_.getValue("svm:svc:gamma_start");
       DoubleReal gamma_step_size = (DoubleReal)param_.getValue("svm:svc:gamma_step_size");
@@ -467,9 +466,9 @@ for the selected primary ion types. They can be used as input for LibSVM command
 
       if (wrap_class.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
       {
-      UInt degree_start = 0;
-      UInt degree_step_size = 0;
-      UInt degree_stop = 0;
+        UInt degree_start = 0;
+        UInt degree_step_size = 0;
+        UInt degree_stop = 0;
 
         degree_start = (Int)param_.getValue("svm:svc:degree_start");
         degree_step_size = (Int)param_.getValue("svm:svc:degree_step_size");
@@ -482,14 +481,14 @@ for the selected primary ion types. They can be used as input for LibSVM command
         start_values_class.insert(make_pair(SVMWrapper::DEGREE, degree_start));
         step_sizes_class.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
         end_values_class.insert(make_pair(SVMWrapper::DEGREE, degree_stop));
-      }      
+      }
 
       DoubleReal c_start = 0.;
       DoubleReal c_step_size = 0.;
       DoubleReal c_stop = 0.;
 
-      c_start =(DoubleReal)param_.getValue("svm:svc:c_start");
-      c_step_size =(DoubleReal)param_.getValue("svm:svc:c_step_size");
+      c_start = (DoubleReal)param_.getValue("svm:svc:c_start");
+      c_step_size = (DoubleReal)param_.getValue("svm:svc:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
@@ -500,11 +499,11 @@ for the selected primary ion types. They can be used as input for LibSVM command
       step_sizes_class.insert(make_pair(SVMWrapper::C, c_step_size));
       end_values_class.insert(make_pair(SVMWrapper::C, c_stop));
 
-      if ( (wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
+      if ((wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
       {
-      DoubleReal nu_start = 0.;
-      DoubleReal  nu_step_size = 0.;
-      DoubleReal nu_stop = 0.;
+        DoubleReal nu_start = 0.;
+        DoubleReal  nu_step_size = 0.;
+        DoubleReal nu_stop = 0.;
 
         nu_start = (DoubleReal)param_.getValue("svm:svc:nu_start");
         nu_step_size = (DoubleReal)param_.getValue("svm:svc:nu_step_size");
@@ -533,63 +532,63 @@ for the selected primary ion types. They can be used as input for LibSVM command
     info_outfile.push_back("<PrimaryTypes>");
 
     //count number of usable spectra
-    Size usable_spectra=spectra.size();
-    std::vector<bool>is_spectrum_usable(spectra.size(), true);
+    Size usable_spectra = spectra.size();
+    std::vector<bool> is_spectrum_usable(spectra.size(), true);
 
     for (Size index = 0; index < spectra.size(); ++index)
     {
       //test whether annotation for spectrum match. If theoretical and empirical mass differ too much skip this spectrum
-      Int empirical_charge=spectra[index].getPrecursors()[0].getCharge();
-      DoubleReal empirical_parent_mass=spectra[index].getPrecursors()[0].getMZ();
-      DoubleReal theoretical_parent_mass=annotations[index].getMonoWeight(Residue::Full, empirical_charge)/empirical_charge;
+      Int empirical_charge = spectra[index].getPrecursors()[0].getCharge();
+      DoubleReal empirical_parent_mass = spectra[index].getPrecursors()[0].getMZ();
+      DoubleReal theoretical_parent_mass = annotations[index].getMonoWeight(Residue::Full, empirical_charge) / empirical_charge;
 
-      if (abs(empirical_parent_mass-theoretical_parent_mass) > parent_tolerance)
+      if (abs(empirical_parent_mass - theoretical_parent_mass) > parent_tolerance)
       {
         is_spectrum_usable[index] = false;
         --usable_spectra;
-        std::cerr << "skipping spectrum " << index <<" due to parent mass missmatch"<<std::endl;
+        std::cerr << "skipping spectrum " << index << " due to parent mass missmatch" << std::endl;
       }
       else if (precursor_charge != empirical_charge)
       {
         is_spectrum_usable[index] = false;
         --usable_spectra;
-        std::cerr << "skipping spectrum " << index <<" due to wrong precursor charge"<<std::endl;
+        std::cerr << "skipping spectrum " << index << " due to wrong precursor charge" << std::endl;
       }
     }
 
     //only required for generatrion of descriptors
-    SvmTheoreticalSpectrumGenerator spec_gen;    
+    SvmTheoreticalSpectrumGenerator spec_gen;
 
-    //Amino acid sequences used for obtaining prefix and suffix mass    
+    //Amino acid sequences used for obtaining prefix and suffix mass
     AASequence prefix, suffix;
 
     DescriptorSet tmp_desc;
-    Size num_features = spec_gen.generateDescriptorSet_(annotations[0],0,ion_types[0], 1, tmp_desc);
+    Size num_features = spec_gen.generateDescriptorSet_(annotations[0], 0, ion_types[0], 1, tmp_desc);
 
     //use number of features to adapt gamma parameter if set to 0 (same is used in svm-train.c)
-    if(wrap_reg.getDoubleParameter(SVMWrapper::GAMMA) == 0. )
+    if (wrap_reg.getDoubleParameter(SVMWrapper::GAMMA) == 0.)
     {
-      wrap_reg.setParameter(SVMWrapper::GAMMA, 1.0/num_features);
+      wrap_reg.setParameter(SVMWrapper::GAMMA, 1.0 / num_features);
     }
-    if(wrap_class.getDoubleParameter(SVMWrapper::GAMMA) == 0. )
+    if (wrap_class.getDoubleParameter(SVMWrapper::GAMMA) == 0.)
     {
-      wrap_class.setParameter(SVMWrapper::GAMMA, 1.0/num_features);
+      wrap_class.setParameter(SVMWrapper::GAMMA, 1.0 / num_features);
     }
 
     //vectors to store the minimum and maximum value appearing in the training data for each feature (required for scaling)
     ObservedIntensMap observed_intensities;
-    std::map<Size, std::vector<DescriptorSet> >training_input;
-    std::map<Size, std::vector<double> >training_output;
+    std::map<Size, std::vector<DescriptorSet> > training_input;
+    std::map<Size, std::vector<double> > training_output;
 
     Size spec_index = 0;
     Size x = 1;
     //run over all input spectra
-    for (PeakMap::const_iterator map_it = spectra.begin(); map_it < spectra.end(); map_it+=x, spec_index+=x)
-    {      
+    for (PeakMap::const_iterator map_it = spectra.begin(); map_it < spectra.end(); map_it += x, spec_index += x)
+    {
       if (!is_spectrum_usable[spec_index])
       {
         continue;
-      }      
+      }
 
       Size precursor_charge = map_it->getPrecursors()[0].getCharge();
       PeakSpectrum input_spec_norm(*map_it);
@@ -597,17 +596,17 @@ for the selected primary ion types. They can be used as input for LibSVM command
       normalizeIntensity(input_spec_norm);
 
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
-      {        
+      {
         //store the intensities of the detected peaks for the given type in the actual spectrum (required for sec. type prob model)
         countIntensities_(input_spec_norm, annotations[spec_index], ion_types[type_nr], observed_intensities, peak_tolerance, number_of_regions);
       }
 
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
       {
-        if(!is_primary[type_nr])
+        if (!is_primary[type_nr])
         {
           continue;
-        }        
+        }
 
         DoubleReal true_offset_mass = 0.0;
         Residue::ResidueType residue = ion_types[type_nr].residue;
@@ -615,7 +614,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
         EmpiricalFormula loss = ion_types[type_nr].loss;
 
         training_input[type_nr].reserve(usable_spectra);
-        training_output[type_nr].reserve(usable_spectra);               
+        training_output[type_nr].reserve(usable_spectra);
 
         for (Size frag_pos = 1; frag_pos < annotations[spec_index].size(); ++frag_pos)
         {
@@ -646,39 +645,39 @@ for the selected primary ion types. They can be used as input for LibSVM command
           }
 
           DescriptorSet descriptors;
-          spec_gen.generateDescriptorSet_(annotations[spec_index],frag_pos-1,ion_types[type_nr], precursor_charge, descriptors);
+          spec_gen.generateDescriptorSet_(annotations[spec_index], frag_pos - 1, ion_types[type_nr], precursor_charge, descriptors);
 
           training_input[type_nr].push_back(descriptors);
-          training_output[type_nr].push_back(observed_peak_intensity);          
+          training_output[type_nr].push_back(observed_peak_intensity);
         }
-      }//end of running over all types
-    }//end of running over all spectra
+      } //end of running over all types
+    } //end of running over all spectra
 
-    //scale the input data    
-    std::vector<double>min_features;
+    //scale the input data
+    std::vector<double> min_features;
     min_features.reserve(num_features);
-    std::vector<double>max_features;
+    std::vector<double> max_features;
     max_features.reserve(num_features);
 
     min_features.assign(num_features, std::numeric_limits<double>::infinity());
     max_features.assign(num_features, -1 * std::numeric_limits<double>::infinity());
 
     //SCALING
-    if(scaling)
+    if (scaling)
     {
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
       {
         //first compute the minimal and maximal entries for each feature
         std::vector<svm_node>::iterator it;
-        for(Size train_row=0; train_row<training_input[type_nr].size(); ++train_row)
+        for (Size train_row = 0; train_row < training_input[type_nr].size(); ++train_row)
         {
           Size index = 0;
-          for(it = training_input[type_nr][train_row].descriptors.begin(); it != training_input[type_nr][train_row].descriptors.end(); ++it)
+          for (it = training_input[type_nr][train_row].descriptors.begin(); it != training_input[type_nr][train_row].descriptors.end(); ++it)
           {
-            while( (Int) index < it->index-1)
+            while ((Int) index < it->index - 1)
             {
               min_features[index] = std::min(min_features[index], 0.0);
-              max_features[index] = std::max(max_features[index],0.0);
+              max_features[index] = std::max(max_features[index], 0.0);
               ++index;
             }
             min_features[index] = std::min(min_features[index], it->value);
@@ -686,10 +685,10 @@ for the selected primary ion types. They can be used as input for LibSVM command
             ++index;
           }
 
-          while(index<num_features)
+          while (index < num_features)
           {
             min_features[index] = std::min(min_features[index], 0.0);
-            max_features[index] = std::max(max_features[index],0.0);
+            max_features[index] = std::max(max_features[index], 0.0);
             ++index;
           }
         }
@@ -702,64 +701,64 @@ for the selected primary ion types. They can be used as input for LibSVM command
 
       for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
       {
-        if(!is_primary[type_nr])
+        if (!is_primary[type_nr])
         {
           continue;
         }
 
         //with the minimal and maximal now scale
-        for(Size train_row=0; train_row<training_input[type_nr].size(); ++train_row)
+        for (Size train_row = 0; train_row < training_input[type_nr].size(); ++train_row)
         {
-          spec_gen.scaleDescriptorSet_(training_input[type_nr][train_row],lower, upper);
-        }        
+          spec_gen.scaleDescriptorSet_(training_input[type_nr][train_row], lower, upper);
+        }
       }
     }
 
 
     // Now 2 Steps - first we train a SVM classifier to predict abundance or miss of a peak.
     // In second step we train a SVM regression model to predict intensities. This svm is trained
-    // only with rows for abundant peaks    
+    // only with rows for abundant peaks
 
     //Within this loop the SVR and SVC are trained for the primary ion types
     for (Size type_nr = 0; type_nr < ion_types.size(); ++type_nr)
     {
-      if(!is_primary[type_nr])
+      if (!is_primary[type_nr])
       {
         continue;
       }
 
       String svm_model_file_class = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-                                            ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.svm";
+                                    ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.svm";
       String svm_model_file_reg = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-          ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.svm";
+                                  ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.svm";
 
 
       //------------------------------------------------------------------------------------------
       //----------------------------------Training of SVR-Model-----------------------------
       //------------------------------------------------------------------------------------------
 
-      std::vector<DescriptorSet>training_input_reg;
-      std::vector<double>training_output_reg;
+      std::vector<DescriptorSet> training_input_reg;
+      std::vector<double> training_output_reg;
       training_input_reg.reserve(training_input[type_nr].size());
       training_output_reg.reserve(training_output[type_nr].size());
 
-      for(Size i = 0; i < training_output[type_nr].size(); ++i)
+      for (Size i = 0; i < training_output[type_nr].size(); ++i)
       {
         training_input_reg.push_back(training_input[type_nr][i]);
-        training_output_reg.push_back(std::max(0.0,training_output[type_nr][i]));
+        training_output_reg.push_back(std::max(0.0, training_output[type_nr][i]));
       }
 
-      if(write_outfiles)
-      {        
+      if (write_outfiles)
+      {
         writeTrainingFile_(training_input_reg, training_output_reg, String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-                             ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.dat");
+                           ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.dat");
       }
       else
       {
         //std::vector<double> predictions_reg(training_input_reg.size(), 0);
-        svm_node ** input_training_reg = new svm_node * [training_input_reg.size()];
+        svm_node ** input_training_reg = new svm_node *[training_input_reg.size()];
         double * output_training_reg = &training_output_reg[0];
-        for(Size i = 0; i < training_input_reg.size(); ++i)
+        for (Size i = 0; i < training_input_reg.size(); ++i)
         {
           input_training_reg[i] = &(training_input_reg[i].descriptors[0]);
         }
@@ -767,12 +766,12 @@ for the selected primary ion types. They can be used as input for LibSVM command
         svm_problem svm_p_reg;
         svm_p_reg.l = (int) training_input_reg.size();
         svm_p_reg.y = output_training_reg;
-        svm_p_reg.x = input_training_reg;        
+        svm_p_reg.x = input_training_reg;
 
-        if(n_fold > 1)
-        {          
+        if (n_fold > 1)
+        {
           //perform cross validation
-          std::map< SVMWrapper::SVM_parameter_type, DoubleReal > best_parameters;
+          std::map<SVMWrapper::SVM_parameter_type, DoubleReal> best_parameters;
           wrap_reg.performCrossValidation(&svm_p_reg,
                                           SVMData(),
                                           false,
@@ -787,8 +786,8 @@ for the selected primary ion types. They can be used as input for LibSVM command
                                           );
 
           //use best parameters to train final svm on full dataset
-          std::map< SVMWrapper::SVM_parameter_type, DoubleReal >::const_iterator best_param_iter;
-          for(best_param_iter = best_parameters.begin(); best_param_iter != best_parameters.end(); ++best_param_iter)
+          std::map<SVMWrapper::SVM_parameter_type, DoubleReal>::const_iterator best_param_iter;
+          for (best_param_iter = best_parameters.begin(); best_param_iter != best_parameters.end(); ++best_param_iter)
           {
             wrap_reg.setParameter(best_param_iter->first, best_param_iter->second);
           }
@@ -798,9 +797,9 @@ for the selected primary ion types. They can be used as input for LibSVM command
         wrap_reg.train(&svm_p_reg);
         wrap_reg.saveModel(svm_model_file_reg.c_str());
 
-        delete [] input_training_reg;
+        delete[] input_training_reg;
 
-      }//end of else
+      } //end of else
 
 
       //------------------------------------------------------------------------------------------
@@ -808,29 +807,29 @@ for the selected primary ion types. They can be used as input for LibSVM command
       //------------------------------------------------------------------------------------------
 
       //make binary
-      for(Size i=0; i<training_output[type_nr].size(); ++i)
+      for (Size i = 0; i < training_output[type_nr].size(); ++i)
       {
-        training_output[type_nr][i] = training_output[type_nr][i] != -1 ? 1:0 ; //if peak was abundant class 1 else 0
+        training_output[type_nr][i] = training_output[type_nr][i] != -1 ? 1 : 0; //if peak was abundant class 1 else 0
       }
 
-      //create balanced set      
-      if(balancing)
+      //create balanced set
+      if (balancing)
       {
-        std::vector<std::vector<Size> >training_data_by_class(2);
+        std::vector<std::vector<Size> > training_data_by_class(2);
         std::vector<double>::const_iterator it;
-        std::vector<DescriptorSet>tmp_training;
-        std::vector<double>tmp_output;
-        for(it = training_output[type_nr].begin(); it != training_output[type_nr].end(); ++it)
+        std::vector<DescriptorSet> tmp_training;
+        std::vector<double> tmp_output;
+        for (it = training_output[type_nr].begin(); it != training_output[type_nr].end(); ++it)
         {
-          training_data_by_class[*it].push_back(it-training_output[type_nr].begin());
+          training_data_by_class[*it].push_back(it - training_output[type_nr].begin());
         }
-        Size min_size=std::min(training_data_by_class[0].size(),training_data_by_class[1].size());
-        std::random_shuffle(training_data_by_class[0].begin(),training_data_by_class[0].end() );
-        std::random_shuffle(training_data_by_class[1].begin(),training_data_by_class[1].end() );
+        Size min_size = std::min(training_data_by_class[0].size(), training_data_by_class[1].size());
+        std::random_shuffle(training_data_by_class[0].begin(), training_data_by_class[0].end());
+        std::random_shuffle(training_data_by_class[1].begin(), training_data_by_class[1].end());
 
-        for(Size num = 0; num < min_size; ++num)
+        for (Size num = 0; num < min_size; ++num)
         {
-          for(Size intens = 0; intens < 2; ++intens)
+          for (Size intens = 0; intens < 2; ++intens)
           {
             tmp_training.push_back(training_input[type_nr][training_data_by_class[intens][num]]);
             tmp_output.push_back(intens);
@@ -840,17 +839,16 @@ for the selected primary ion types. They can be used as input for LibSVM command
         training_output[type_nr] = tmp_output;
       }
 
-      if(write_outfiles)
+      if (write_outfiles)
       {
         writeTrainingFile_(training_input[type_nr], training_output[type_nr], String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-                             ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.dat");
+                           ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.dat");
       }
-
       else
-      {        
+      {
         double * output_training_class = &training_output[type_nr][0];
-        svm_node ** input_training_class = new svm_node * [training_input[type_nr].size()];
-        for(Size i = 0; i < training_input[type_nr].size(); ++i)
+        svm_node ** input_training_class = new svm_node *[training_input[type_nr].size()];
+        for (Size i = 0; i < training_input[type_nr].size(); ++i)
         {
           input_training_class[i] = &(training_input[type_nr][i].descriptors[0]);
         }
@@ -861,10 +859,10 @@ for the selected primary ion types. They can be used as input for LibSVM command
         svm_p_class.x = input_training_class;
 
         //perform cross validation
-        if(n_fold > 1)
+        if (n_fold > 1)
         {
           //perform cross validation
-          std::map< SVMWrapper::SVM_parameter_type, DoubleReal > best_parameters;
+          std::map<SVMWrapper::SVM_parameter_type, DoubleReal> best_parameters;
           wrap_class.performCrossValidation(&svm_p_class,
                                             SVMData(),
                                             false,
@@ -879,8 +877,8 @@ for the selected primary ion types. They can be used as input for LibSVM command
                                             );
 
           //use best parameters to train final svm on full dataset
-          std::map< SVMWrapper::SVM_parameter_type, DoubleReal >::const_iterator best_param_iter;
-          for(best_param_iter = best_parameters.begin(); best_param_iter != best_parameters.end(); ++best_param_iter)
+          std::map<SVMWrapper::SVM_parameter_type, DoubleReal>::const_iterator best_param_iter;
+          for (best_param_iter = best_parameters.begin(); best_param_iter != best_parameters.end(); ++best_param_iter)
           {
             wrap_class.setParameter(best_param_iter->first, best_param_iter->second);
           }
@@ -890,7 +888,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
         wrap_class.train(&svm_p_class);
         wrap_class.saveModel(svm_model_file_class);
 
-        delete [] input_training_class;
+        delete[] input_training_class;
 
 
         //add entries to info file
@@ -906,13 +904,13 @@ for the selected primary ion types. They can be used as input for LibSVM command
         info_outfile.push_back("</SvmModelFileReg>");
         info_outfile.push_back("</IonType>");
 
-      }//end of else
+      } //end of else
 
-    }//End of training SVR and SVC for the primary types
+    } //End of training SVR and SVC for the primary types
 
 
     //If we are only generating the outfiles we can terminare here
-    if(write_outfiles)
+    if (write_outfiles)
     {
       return;
     }
@@ -929,14 +927,14 @@ for the selected primary ion types. They can be used as input for LibSVM command
     info_outfile.push_back("</MaxFeatures>");
     info_outfile.push_back("<MinFeatures>");
     info_outfile.insert(info_outfile.end(), min_features.begin(), min_features.end());
-    info_outfile.push_back("</MinFeatures>");    
+    info_outfile.push_back("</MinFeatures>");
 
     //------------------------------------------------------------------------------------------
     //----------------------Training prob. model for secondary types------------------
     //------------------------------------------------------------------------------------------
 
     info_outfile.push_back("<SecondaryTypes>");
-    if(secondary_types)
+    if (secondary_types)
     {
       info_outfile.push_back("<IntensityLevels>");
       info_outfile.push_back(number_of_intensity_levels);
@@ -949,48 +947,47 @@ for the selected primary ion types. They can be used as input for LibSVM command
     info_outfile.store(info_outfile_name);
   }
 
-
   //like in Cong Zhou paper
-  void SvmTheoreticalSpectrumGeneratorTrainer::normalizeIntensity(PeakSpectrum &S) const
+  void SvmTheoreticalSpectrumGeneratorTrainer::normalizeIntensity(PeakSpectrum & S) const
   {
     NLargest n_larg;
-    Param larg_param=n_larg.getParameters();
-    larg_param.setValue("n", (Int)(S.size()*0.8));
+    Param larg_param = n_larg.getParameters();
+    larg_param.setValue("n", (Int)(S.size() * 0.8));
     n_larg.setParameters(larg_param);
     n_larg.filterPeakSpectrum(S);
     S.sortByPosition();
 
     Normalizer norm;
-    Param norm_param=norm.getParameters();
+    Param norm_param = norm.getParameters();
     norm_param.setValue("method", "to_TIC");
     norm.setParameters(norm_param);
     norm.filterPeakSpectrum(S);
 
-    DoubleReal min_intens=  std::numeric_limits<double>::infinity();
+    DoubleReal min_intens =  std::numeric_limits<double>::infinity();
     DoubleReal max_intens = -1 * std::numeric_limits<double>::infinity();
 
-    std::vector<DoubleReal>intensities(S.size());
-    for(Size i=0; i<S.size(); ++i)
+    std::vector<DoubleReal> intensities(S.size());
+    for (Size i = 0; i < S.size(); ++i)
     {
       //std::cerr<<"before norm: "<<S[i].getIntensity()<<std::endl;
-      if(S[i].getIntensity()>0)
+      if (S[i].getIntensity() > 0)
       {
-        intensities[i]=log(S[i].getIntensity() * 100);
-        max_intens=std::max(max_intens, intensities[i]);
-        min_intens=std::min(min_intens, intensities[i]);
+        intensities[i] = log(S[i].getIntensity() * 100);
+        max_intens = std::max(max_intens, intensities[i]);
+        min_intens = std::min(min_intens, intensities[i]);
       }
     }
 
     DoubleReal lower = 0;
     DoubleReal upper = 1;
     //normalize intensities to one
-    for(Size i=0; i<S.size(); ++i)
+    for (Size i = 0; i < S.size(); ++i)
     {
-      if(S[i].getIntensity()>0)
+      if (S[i].getIntensity() > 0)
       {
-        DoubleReal intens = lower + (upper-lower) *
-                             (intensities[i]-min_intens)/
-                             (max_intens-min_intens);
+        DoubleReal intens = lower + (upper - lower) *
+                            (intensities[i] - min_intens) /
+                            (max_intens - min_intens);
         S[i].setIntensity(intens);
       }
       else
@@ -1001,114 +998,113 @@ for the selected primary ion types. They can be used as input for LibSVM command
     }
   }
 
-
-  void SvmTheoreticalSpectrumGeneratorTrainer::trainSecondaryTypes_(TextFile &info_outfile,
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainSecondaryTypes_(TextFile & info_outfile,
                                                                     Size number_of_regions,
                                                                     Size number_of_intensity_levels,
-                                                                    ObservedIntensMap &observed_intensities,
-                                                                    const std::vector<IonType> &ion_types,
-                                                                    const std::vector<bool> &is_primary
+                                                                    ObservedIntensMap & observed_intensities,
+                                                                    const std::vector<IonType> & ion_types,
+                                                                    const std::vector<bool> & is_primary
                                                                     )
   {
-    std::vector<DoubleReal>tmp;
-    for(Size region = 0; region < number_of_regions; ++ region)
+    std::vector<DoubleReal> tmp;
+    for (Size region = 0; region < number_of_regions; ++region)
     {
-    //we start by binning the intensities. We select the bin boarders such that
-    //the intensities of the primary ions are equally split
-      std::vector<DoubleReal> &observed_b=observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
+      //we start by binning the intensities. We select the bin boarders such that
+      //the intensities of the primary ions are equally split
+      std::vector<DoubleReal> & observed_b = observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
       tmp.insert(tmp.end(), observed_b.begin(), observed_b.end());
-      std::vector<DoubleReal> &observed_y=observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
-      tmp.insert(tmp.end(),observed_y.begin(), observed_y.end());
+      std::vector<DoubleReal> & observed_y = observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
+      tmp.insert(tmp.end(), observed_y.begin(), observed_y.end());
     }
 
-    std::vector<DoubleReal>bin_boarders(number_of_intensity_levels);
-    std::vector<DoubleReal>bin_values(number_of_intensity_levels);
+    std::vector<DoubleReal> bin_boarders(number_of_intensity_levels);
+    std::vector<DoubleReal> bin_values(number_of_intensity_levels);
     std::sort(tmp.begin(), tmp.end());
 
     //find the first nonzero
-    Size first_non_zero=0;
-    while(first_non_zero<tmp.size()&& tmp[first_non_zero]==0)
+    Size first_non_zero = 0;
+    while (first_non_zero < tmp.size() && tmp[first_non_zero] == 0)
     {
       ++first_non_zero;
     }
 
-    Size non_zero_size = tmp.size()-first_non_zero;
+    Size non_zero_size = tmp.size() - first_non_zero;
     Size prev_index = 0;
-    for(Size i=1; i<number_of_intensity_levels; ++i)
+    for (Size i = 1; i < number_of_intensity_levels; ++i)
     {
-      Size index = i* (DoubleReal) non_zero_size/(number_of_intensity_levels-1) + first_non_zero;
+      Size index = i * (DoubleReal) non_zero_size / (number_of_intensity_levels - 1) + first_non_zero;
       DoubleReal count = 0;
-      for(Size j = prev_index; j < index; ++j)
+      for (Size j = prev_index; j < index; ++j)
       {
         count += tmp[j];
       }
-      bin_boarders[i-1] = tmp[index-1];
-      bin_values[i-1] = count/(index-prev_index);
+      bin_boarders[i - 1] = tmp[index - 1];
+      bin_values[i - 1] = count / (index - prev_index);
       prev_index = index;
     }
 
     info_outfile.push_back("<IntensityBinBoarders>");
-    for(Size i = 0; i < number_of_intensity_levels-1; ++i)
+    for (Size i = 0; i < number_of_intensity_levels - 1; ++i)
     {
       info_outfile.push_back(bin_boarders[i]);
     }
     info_outfile.push_back("</IntensityBinBoarders>");
     info_outfile.push_back("<IntensityBinValues>");
-    for(Size i = 0; i < number_of_intensity_levels-1; ++i)
+    for (Size i = 0; i < number_of_intensity_levels - 1; ++i)
     {
       info_outfile.push_back(bin_values[i]);
     }
     info_outfile.push_back("</IntensityBinValues>");
 
     //use the boarder values to bin the entries
-    for(Size region = 0; region < number_of_regions; ++ region)
+    for (Size region = 0; region < number_of_regions; ++region)
     {
-      for(Size i=0; i<ion_types.size(); ++i)
+      for (Size i = 0; i < ion_types.size(); ++i)
       {
         std::vector<DoubleReal> & intensities = observed_intensities[std::make_pair(ion_types[i], region)];
-        for(Size j=0; j<intensities.size(); ++j)
+        for (Size j = 0; j < intensities.size(); ++j)
         {
           DoubleReal intens = intensities[j];
-          if(intens == 0.0|| intens == -1.0)
+          if (intens == 0.0 || intens == -1.0)
             continue;
 
-          Size k=1;
-          while(k<number_of_intensity_levels-1 && intens>bin_boarders[k-1] )
+          Size k = 1;
+          while (k<number_of_intensity_levels - 1 && intens> bin_boarders[k - 1])
             ++k;
 
-          intensities[j]=k;
+          intensities[j] = k;
         }
       }
     }
 
-    std::map<std::pair<IonType,Size>, std::vector<std::vector<DoubleReal> > >joint_counts;
-    std::map<std::pair<IonType,Size>,  std::vector<DoubleReal> >background_counts;
+    std::map<std::pair<IonType, Size>, std::vector<std::vector<DoubleReal> > > joint_counts;
+    std::map<std::pair<IonType, Size>, std::vector<DoubleReal> > background_counts;
 
     //count joint appearences of primary and secondary peaks
-    for(Size i=0; i<ion_types.size(); ++i)
+    for (Size i = 0; i < ion_types.size(); ++i)
     {
       const IonType & type = ion_types[i];
-      if(is_primary[i])
+      if (is_primary[i])
         continue;
 
-      IonType primary_type=IonType(Residue::BIon);
+      IonType primary_type = IonType(Residue::BIon);
 
-      if(type.residue == Residue::YIon ||
-         type.residue == Residue::XIon ||
-         type.residue == Residue::ZIon)
+      if (type.residue == Residue::YIon ||
+          type.residue == Residue::XIon ||
+          type.residue == Residue::ZIon)
       {
-        primary_type=IonType(Residue::YIon);
+        primary_type = IonType(Residue::YIon);
       }
-      for(Size region =0; region < number_of_regions; ++region)
+      for (Size region = 0; region < number_of_regions; ++region)
       {
-        joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels,1));
+        joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels, 1));
         background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, number_of_intensity_levels);
-        const std::vector<DoubleReal> &secondary = observed_intensities[std::make_pair(type, region)];
-        const std::vector<DoubleReal> &primary = observed_intensities[std::make_pair(primary_type, region)];
+        const std::vector<DoubleReal> & secondary = observed_intensities[std::make_pair(type, region)];
+        const std::vector<DoubleReal> & primary = observed_intensities[std::make_pair(primary_type, region)];
 
-        for(Size j=0; j<primary.size(); ++j)
+        for (Size j = 0; j < primary.size(); ++j)
         {
-          if(secondary[j]!=-1.0)
+          if (secondary[j] != -1.0)
           {
             ++joint_counts[std::make_pair(type, region)][(Size)secondary[j]][(Size)primary[j]];
             ++background_counts[std::make_pair(type, region)][(Size)primary[j]];
@@ -1118,10 +1114,10 @@ for the selected primary ion types. They can be used as input for LibSVM command
     }
 
     //compute conditional probabilities and store them in the outfile
-    for(Size i=0; i<ion_types.size(); ++i)
+    for (Size i = 0; i < ion_types.size(); ++i)
     {
       const IonType & type = ion_types[i];
-      if(is_primary[i])
+      if (is_primary[i])
         continue;
 
       info_outfile.push_back("<IonType>");
@@ -1130,18 +1126,18 @@ for the selected primary ion types. They can be used as input for LibSVM command
       info_outfile.push_back(type.charge);
       info_outfile.push_back("<ConditionalProbabilities>");
 
-      for(Size region = 0; region < number_of_regions; ++region)
+      for (Size region = 0; region < number_of_regions; ++region)
       {
-        info_outfile.push_back("<Region "+ String(region) + ">");
+        info_outfile.push_back("<Region " + String(region) + ">");
         std::vector<DoubleReal> & back_counts = background_counts[std::make_pair(type, region)];
 
-        for(Size prim = 0; prim < number_of_intensity_levels; ++prim)
+        for (Size prim = 0; prim < number_of_intensity_levels; ++prim)
         {
-          for(Size sec = 0; sec < number_of_intensity_levels; ++sec)
+          for (Size sec = 0; sec < number_of_intensity_levels; ++sec)
           {
-            if(back_counts[prim]!=0)
+            if (back_counts[prim] != 0)
             {
-              joint_counts[std::make_pair(type, region)][sec][prim] = joint_counts[std::make_pair(type, region)][sec][prim]/back_counts[prim];
+              joint_counts[std::make_pair(type, region)][sec][prim] = joint_counts[std::make_pair(type, region)][sec][prim] / back_counts[prim];
               //std::cerr<<"conditional prob  "<<type.residue<<" "<<sec<<"  "<<prim<<"  "<<joint_counts[std::make_pair(type, region)][sec][prim]<<std::endl;
             }
             info_outfile.push_back(joint_counts[std::make_pair(type, region)][sec][prim]);
@@ -1151,17 +1147,16 @@ for the selected primary ion types. They can be used as input for LibSVM command
       }
       info_outfile.push_back("</ConditionalProbabilities>");
       info_outfile.push_back("</IonType>");
-      }
+    }
   }
 
-
-  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum &spectrum,
-                                           const AASequence &annotation,
-                                           IonType type,
-                                           std::map<std::pair<IonType, Size>, std::vector<DoubleReal> > & observed_intensities,
-                                           DoubleReal tolerance,
-                                           Size number_of_regions
-                                           )
+  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum & spectrum,
+                                                                 const AASequence & annotation,
+                                                                 IonType type,
+                                                                 std::map<std::pair<IonType, Size>, std::vector<DoubleReal> > & observed_intensities,
+                                                                 DoubleReal tolerance,
+                                                                 Size number_of_regions
+                                                                 )
   {
     Residue::ResidueType residue = type.residue;
     EmpiricalFormula loss = type.loss;
@@ -1178,11 +1173,11 @@ for the selected primary ion types. They can be used as input for LibSVM command
       AASequence prefix = annotation.getPrefix(frag_pos);
       AASequence suffix = annotation.getSuffix(annotation.size() - frag_pos);
 
-      Size region = std::min(number_of_regions-1, (Size)floor(number_of_regions * prefix.getMonoWeight(Residue::Internal)/annotation.getMonoWeight()));
+      Size region = std::min(number_of_regions - 1, (Size)floor(number_of_regions * prefix.getMonoWeight(Residue::Internal) / annotation.getMonoWeight()));
 
-      if (annotation[frag_pos-1].hasNeutralLoss())
+      if (annotation[frag_pos - 1].hasNeutralLoss())
       {
-        std::vector<EmpiricalFormula> loss_formulas = annotation[frag_pos-1].getLossFormulas();
+        std::vector<EmpiricalFormula> loss_formulas = annotation[frag_pos - 1].getLossFormulas();
         for (Size k = 0; k != loss_formulas.size(); ++k)
         {
           possible_n_term_losses.insert(loss_formulas[k].getString());
@@ -1190,7 +1185,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
       }
       //check for possible losses on the c-terminal ions
       possible_c_term_losses.clear();
-      for(Size pos = frag_pos; pos < annotation.size(); ++pos)
+      for (Size pos = frag_pos; pos < annotation.size(); ++pos)
       {
         if (annotation[pos].hasNeutralLoss())
         {
@@ -1200,13 +1195,13 @@ for the selected primary ion types. They can be used as input for LibSVM command
             possible_c_term_losses.insert(loss_formulas[k].getString());
           }
         }
-      }    
+      }
 
       //N-terminal fragments
       if (residue == Residue::AIon || residue == Residue::BIon || residue == Residue::CIon)
       {
         //if loss is not supported or no loss ions shall be generated -- continue
-        if(!loss.isEmpty() && (!possible_n_term_losses.count(loss.getString())))
+        if (!loss.isEmpty() && (!possible_n_term_losses.count(loss.getString())))
         {
           observed_intensities[std::make_pair(type, region)].push_back(-1);
           continue;
@@ -1218,7 +1213,7 @@ for the selected primary ion types. They can be used as input for LibSVM command
       else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
       {
         //if loss is not supported or no loss ions shall be generated -- continue
-        if(!loss.isEmpty() && (!possible_c_term_losses.count(loss.getString())))
+        if (!loss.isEmpty() && (!possible_c_term_losses.count(loss.getString())))
         {
           observed_intensities[std::make_pair(type, region)].push_back(-1);
           continue;
@@ -1240,29 +1235,23 @@ for the selected primary ion types. They can be used as input for LibSVM command
     }
   }
 
-
-  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet> &training_input, std::vector<DoubleReal> &training_output, String filename)
+  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet> & training_input, std::vector<DoubleReal> & training_output, String filename)
   {
-    std::cerr<<"Creating Training File.. "<< filename;
+    std::cerr << "Creating Training File.. " << filename;
     TextFile file;
-    for(Size i = 0; i < training_input.size(); ++i)
+    for (Size i = 0; i < training_input.size(); ++i)
     {
       std::stringstream ss;
-      ss<<training_output[i]<<" ";
+      ss << training_output[i] << " ";
       std::vector<svm_node>::iterator it_debug;
-      for(it_debug=training_input[i].descriptors.begin(); it_debug < training_input[i].descriptors.end() - 1; ++it_debug)
+      for (it_debug = training_input[i].descriptors.begin(); it_debug < training_input[i].descriptors.end() - 1; ++it_debug)
       {
-        ss<<" "<< it_debug->index << ":" << it_debug->value;
+        ss << " " << it_debug->index << ":" << it_debug->value;
       }
-      file.push_back (ss.str());
+      file.push_back(ss.str());
     }
     file.store(filename);
-    std::cerr<<" Done" <<std::endl;
+    std::cerr << " Done" << std::endl;
   }
 
-
-}//Namespace
-
-
-
-
+} //Namespace

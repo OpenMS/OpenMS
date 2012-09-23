@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
 // $Authors: Erhan Kenar, Holger Franken $
@@ -46,7 +46,7 @@
 
 namespace OpenMS
 {
-typedef Peak2D PeakType;
+  typedef Peak2D PeakType;
 
 /** @brief A container type that gathers peaks similar in m/z and moving along retention time.
 
@@ -56,8 +56,8 @@ typedef Peak2D PeakType;
 
                 @ingroup Kernel
         */
-class OPENMS_DLLAPI MassTrace
-{
+  class OPENMS_DLLAPI MassTrace
+  {
 public:
     /** @name Constructors and Destructor
         */
@@ -65,23 +65,23 @@ public:
     MassTrace();
 
     /// Detailed constructor 1
-    MassTrace(const std::list<PeakType>&, const DoubleReal& scan_time = 1.0);
+    MassTrace(const std::list<PeakType> &, const DoubleReal & scan_time = 1.0);
 
     /// Detailed constructor 2
-    MassTrace(const std::vector<PeakType>&, const DoubleReal& scan_time = 1.0);
+    MassTrace(const std::vector<PeakType> &, const DoubleReal & scan_time = 1.0);
 
     /// Destructor
     ~MassTrace();
 
     /// Copy constructor
-    MassTrace(const MassTrace&);
+    MassTrace(const MassTrace &);
 
     /// Assignment operator
-    MassTrace& operator= (const MassTrace&);
+    MassTrace & operator=(const MassTrace &);
 
     /// Random access operator
-    PeakType& operator[](const Size& mt_idx);
-    const PeakType& operator[](const Size& mt_idx) const;
+    PeakType & operator[](const Size & mt_idx);
+    const PeakType & operator[](const Size & mt_idx) const;
 
 
     /** @name Iterators
@@ -94,42 +94,42 @@ public:
 
     iterator begin()
     {
-        return trace_peaks_.begin();
+      return trace_peaks_.begin();
     }
 
     iterator end()
     {
-        return trace_peaks_.end();
+      return trace_peaks_.end();
     }
 
     const_iterator begin() const
     {
-        return trace_peaks_.begin();
+      return trace_peaks_.begin();
     }
 
     const_iterator end() const
     {
-        return trace_peaks_.end();
+      return trace_peaks_.end();
     }
 
     reverse_iterator rbegin()
     {
-        return trace_peaks_.rbegin();
+      return trace_peaks_.rbegin();
     }
 
     reverse_iterator rend()
     {
-        return trace_peaks_.rend();
+      return trace_peaks_.rend();
     }
 
     const_reverse_iterator rbegin() const
     {
-        return trace_peaks_.rbegin();
+      return trace_peaks_.rbegin();
     }
 
     const_reverse_iterator rend() const
     {
-        return trace_peaks_.rend();
+      return trace_peaks_.rend();
     }
 
     /** @name Accessor methods
@@ -138,88 +138,88 @@ public:
     /// Returns the number of peaks contained in the mass trace.
     Size getSize() const
     {
-        return trace_peaks_.size();
+      return trace_peaks_.size();
     }
 
     /// Gets label of mass trace.
     String getLabel() const
     {
-        return label_;
+      return label_;
     }
 
     /// Sets label of mass trace.
-    void setLabel(const String& label)
+    void setLabel(const String & label)
     {
-        label_ = label;
+      label_ = label;
     }
 
     /// Returns the centroid m/z.
     DoubleReal getCentroidMZ()
     {
-        return centroid_mz_;
+      return centroid_mz_;
     }
 
     DoubleReal getCentroidMZ() const
     {
-        return centroid_mz_;
+      return centroid_mz_;
     }
 
     /// Returns the centroid RT.
     DoubleReal getCentroidRT()
     {
-        return centroid_rt_;
+      return centroid_rt_;
     }
 
     DoubleReal getCentroidRT() const
     {
-        return centroid_rt_;
+      return centroid_rt_;
     }
 
     DoubleReal getCentroidSD()
     {
-        return centroid_sd_;
+      return centroid_sd_;
     }
 
     DoubleReal getCentroidSD() const
     {
-        return centroid_sd_;
+      return centroid_sd_;
     }
 
-    void setCentroidSD(const DoubleReal& tmp_sd)
+    void setCentroidSD(const DoubleReal & tmp_sd)
     {
-        centroid_sd_ = tmp_sd;
+      centroid_sd_ = tmp_sd;
     }
 
     std::pair<Size, Size> getFWHMborders()
     {
-        return std::make_pair(fwhm_start_idx_, fwhm_end_idx_);
+      return std::make_pair(fwhm_start_idx_, fwhm_end_idx_);
     }
 
     std::pair<Size, Size> getFWHMborders() const
     {
-        return std::make_pair(fwhm_start_idx_, fwhm_end_idx_);
+      return std::make_pair(fwhm_start_idx_, fwhm_end_idx_);
     }
 
     /// Gets smoothed intensities (empty if no smoothing was explicitly done beforehand!).
     std::vector<DoubleReal> getSmoothedIntensities()
     {
-        return smoothed_intensities_;
+      return smoothed_intensities_;
     }
 
     std::vector<DoubleReal> getSmoothedIntensities() const
     {
-        return smoothed_intensities_;
+      return smoothed_intensities_;
     }
 
     /// Set smoothed intensities (smoothing is done externally, e.g. by LowessSmoothing).
-    void setSmoothedIntensities(const std::vector<DoubleReal>& db_vec)
+    void setSmoothedIntensities(const std::vector<DoubleReal> & db_vec)
     {
-        if (trace_peaks_.size() != db_vec.size())
-        {
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
-        }
+      if (trace_peaks_.size() != db_vec.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
+      }
 
-        smoothed_intensities_ = db_vec;
+      smoothed_intensities_ = db_vec;
     }
 
     DoubleReal computeSmoothedPeakArea();
@@ -240,7 +240,7 @@ public:
     /// Get scan time of mass trace
     DoubleReal getScanTime()
     {
-        return scan_time_;
+      return scan_time_;
     }
 
     /** @name Computational methods
@@ -258,7 +258,7 @@ public:
     DoubleReal computeFWHMarea();
 
     /// Find local extrema within mass trace and return their indices.
-    void findLocalExtrema(const Size&, std::vector<Size>&, std::vector<Size>&);
+    void findLocalExtrema(const Size &, std::vector<Size> &, std::vector<Size> &);
 
     DoubleReal getIntensity(bool);
 
@@ -316,7 +316,7 @@ private:
 
     /// Rough estimate of a chromatographic peak's width (number of scans within the FWHM range).
     // Size fwhm_num_scans_;
-};
+  };
 
 }
 

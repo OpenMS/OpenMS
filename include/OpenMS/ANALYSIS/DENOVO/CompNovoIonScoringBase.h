@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
 // $Authors: Andreas Bertsch $
@@ -45,91 +45,92 @@
 
 namespace OpenMS
 {
-	/**
-	  @brief  run with CompNovoIonScoringBase
+  /**
+    @brief  run with CompNovoIonScoringBase
 
-		@ingroup Analysis_DeNovo
-	*/
-	class OPENMS_DLLAPI CompNovoIonScoringBase : public DefaultParamHandler
-	{
+      @ingroup Analysis_DeNovo
+  */
+  class OPENMS_DLLAPI CompNovoIonScoringBase :
+    public DefaultParamHandler
+  {
 
-		public:
+public:
 
-			enum IsotopeType
-			{
-				PARENT = 0,
-				CHILD = 1,
-				LONE = 2
-			};
+    enum IsotopeType
+    {
+      PARENT = 0,
+      CHILD = 1,
+      LONE = 2
+    };
 
-			struct OPENMS_DLLAPI IonScore
-			{
-				IonScore();
+    struct OPENMS_DLLAPI IonScore
+    {
+      IonScore();
 
-				IonScore(const IonScore& rhs);
+      IonScore(const IonScore & rhs);
 
-				virtual ~IonScore();
+      virtual ~IonScore();
 
-				IonScore& operator = (const IonScore& rhs);
-
-				
-				DoubleReal score;
-        DoubleReal s_bion;
-        DoubleReal s_yion;
-        DoubleReal s_witness;
-        DoubleReal position;
-        DoubleReal s_isotope_pattern_1; // isotope pattern score charge 1
-        Int is_isotope_1_mono; // 0 means not testet, 1 mean is, -1 is tail of isotopes
-        DoubleReal s_isotope_pattern_2; // "" charge 2
-			};
-
-						
-			/** @name constructors and destructors
-			 */
-			//@{
-			/// default constructor
-			CompNovoIonScoringBase();
-			
-			/// copy constructor
-			CompNovoIonScoringBase(const CompNovoIonScoringBase& source);
-			
-			/// destructor
-			virtual ~CompNovoIonScoringBase();
-			//@}
-		
-			///
-			CompNovoIonScoringBase& operator = (const CompNovoIonScoringBase& source);
-
-			/** @name Accessors
-			 */
-			//@{
-			DoubleReal scoreIsotopes(const PeakSpectrum& CID_spec, PeakSpectrum::ConstIterator it, Size charge);
-			//@}
-
-		protected:
-
-			/// update members method from DefaultParamHandler to update the members 
-			void updateMembers_();
+      IonScore & operator=(const IonScore & rhs);
 
 
-			IsotopeType classifyIsotopes_(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it);
+      DoubleReal score;
+      DoubleReal s_bion;
+      DoubleReal s_yion;
+      DoubleReal s_witness;
+      DoubleReal position;
+      DoubleReal s_isotope_pattern_1;   // isotope pattern score charge 1
+      Int is_isotope_1_mono;   // 0 means not testet, 1 mean is, -1 is tail of isotopes
+      DoubleReal s_isotope_pattern_2;   // "" charge 2
+    };
 
-			DoubleReal scoreIsotopes_(const PeakSpectrum& spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore>& CID_nodes, Size charge = 1);
 
-			virtual void scoreWitnessSet_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore>& CID_nodes, const PeakSpectrum& CID_orig_spec) = 0;
-			
-			void addSingleChargedIons_(Map<DoubleReal, IonScore>& ion_scores, PeakSpectrum& CID_spec);
+    /** @name constructors and destructors
+     */
+    //@{
+    /// default constructor
+    CompNovoIonScoringBase();
 
-			void initIsotopeDistributions_();
+    /// copy constructor
+    CompNovoIonScoringBase(const CompNovoIonScoringBase & source);
 
-			///
-			Map<Size, std::vector<DoubleReal> > isotope_distributions_;
+    /// destructor
+    virtual ~CompNovoIonScoringBase();
+    //@}
 
-			DoubleReal fragment_mass_tolerance_;
-		
-		public:
+    ///
+    CompNovoIonScoringBase & operator=(const CompNovoIonScoringBase & source);
 
-	};
+    /** @name Accessors
+     */
+    //@{
+    DoubleReal scoreIsotopes(const PeakSpectrum & CID_spec, PeakSpectrum::ConstIterator it, Size charge);
+    //@}
+
+protected:
+
+    /// update members method from DefaultParamHandler to update the members
+    void updateMembers_();
+
+
+    IsotopeType classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it);
+
+    DoubleReal scoreIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it, Map<DoubleReal, IonScore> & CID_nodes, Size charge = 1);
+
+    virtual void scoreWitnessSet_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec) = 0;
+
+    void addSingleChargedIons_(Map<DoubleReal, IonScore> & ion_scores, PeakSpectrum & CID_spec);
+
+    void initIsotopeDistributions_();
+
+    ///
+    Map<Size, std::vector<DoubleReal> > isotope_distributions_;
+
+    DoubleReal fragment_mass_tolerance_;
+
+public:
+
+  };
 
 }
 

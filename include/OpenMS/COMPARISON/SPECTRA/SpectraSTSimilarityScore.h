@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
 // $Authors: David Wojnar $
@@ -42,110 +42,110 @@ namespace OpenMS
 {
 
   /**
-	  @brief Similarity score of SpectraST.
+      @brief Similarity score of SpectraST.
 
-	  Unlike the other similarity scores this score is used for matching a spectrum against a whole library, although
-	  the dot poduct seems to be an effective method for scoring on its own. For calculating the Spectrast score,
-	  first preprocess the spectra if not already done. Transform them and calculate the dot product and the dot bias.
-	  Afterwards get the best two hits and calculate delta_D. Now for every spectrum from the library you can calculate the final score.
+      Unlike the other similarity scores this score is used for matching a spectrum against a whole library, although
+      the dot poduct seems to be an effective method for scoring on its own. For calculating the Spectrast score,
+      first preprocess the spectra if not already done. Transform them and calculate the dot product and the dot bias.
+      Afterwards get the best two hits and calculate delta_D. Now for every spectrum from the library you can calculate the final score.
 
-		The details of the score can be found in:
-		H. Lam et al., Development and validation of a spectral library searching method for peptide identification from MS/MS,
-		Proteomics, 7 , 655-667, 2007
-		
-		@ingroup SpectraComparison
+        The details of the score can be found in:
+        H. Lam et al., Development and validation of a spectral library searching method for peptide identification from MS/MS,
+        Proteomics, 7 , 655-667, 2007
+
+        @ingroup SpectraComparison
   */
-	
-  class OPENMS_DLLAPI SpectraSTSimilarityScore : public PeakSpectrumCompareFunctor
+
+  class OPENMS_DLLAPI SpectraSTSimilarityScore :
+    public PeakSpectrumCompareFunctor
   {
-  public:
-	
-		// @name Constructors and Destructors
-		// @{
+public:
+
+    // @name Constructors and Destructors
+    // @{
     /// default constructor
     SpectraSTSimilarityScore();
 
     /// copy constructor
-    SpectraSTSimilarityScore(const SpectraSTSimilarityScore& source);
+    SpectraSTSimilarityScore(const SpectraSTSimilarityScore & source);
 
     /// destructor
     virtual ~SpectraSTSimilarityScore();
-		// @}
+    // @}
 
     /// assignment operator
-    SpectraSTSimilarityScore& operator = (const SpectraSTSimilarityScore& source);
-	
-		/**
-			@brief: calculates the dot product of the two spectra
-		*/
-		DoubleReal operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
-		/**
-			@brief: calculates the dot product of the two spectra
-		*/		
-		DoubleReal operator() (const BinnedSpectrum& bin1,const BinnedSpectrum& bin2)	const;
-		/**
-			@brief: calculates the dot product of itself
-		*/
-		DoubleReal operator () (const PeakSpectrum& spec) const;
-		
-		/**
-			@brief Preprocesses the spectrum
+    SpectraSTSimilarityScore & operator=(const SpectraSTSimilarityScore & source);
 
-			The preprocessing removes peak below a intensity threshold, reject spectra that does
-			not have enough peaks, and cuts peaks exceeding the max_peak_number most intense peaks.
+    /**
+        @brief: calculates the dot product of the two spectra
+    */
+    DoubleReal operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const;
+    /**
+        @brief: calculates the dot product of the two spectra
+    */
+    DoubleReal operator()(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2)   const;
+    /**
+        @brief: calculates the dot product of itself
+    */
+    DoubleReal operator()(const PeakSpectrum & spec) const;
 
-			@return true if spectrum passes filtering
-		*/
-		bool preprocess(PeakSpectrum& spec, Real remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, Size min_peak_number = 5, Size max_peak_number = 150);
-		
-		
-		///spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized.
-		BinnedSpectrum transform(const PeakSpectrum& spec);
+    /**
+        @brief Preprocesses the spectrum
 
-		/**
-			@brief Calculates how much of the dot prudct is dominated by a few peaks
+        The preprocessing removes peak below a intensity threshold, reject spectra that does
+        not have enough peaks, and cuts peaks exceeding the max_peak_number most intense peaks.
 
-			@param dot_product if -1 this value will be calculated as well.
-			@param bin1 first spectrum in binned representation
-			@param bin2 second spectrum in binned representation
-		*/
-		DoubleReal dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, DoubleReal dot_product = -1) const;
-		
-		/**
-			@brief calculates the normalized distance between top_hit and runner_up.
-			@param top_hit is the best score for a given match.
-			@param runner_up a match with a worse score than top_hit. e.g. the second best score.
-			
-			@return normalized distance
-			@throw DividedByZero exception if top_hit is 0.
-			
-			@note Range of the dot products is between 0 and 1.
-		*/
-		DoubleReal delta_D(DoubleReal top_hit, DoubleReal runner_up);
-				
-		/**
-			@brief: computes the overall all score
-			@param dot_product of a match
-			@param delta_D should be calculated after all dot products for a unidentified spectrum are computed
-			@param dot_bias 
-			
-			@return the SpectraST similarity score
-		*/
-		DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal dot_bias);
-		
+        @return true if spectrum passes filtering
+    */
+    bool preprocess(PeakSpectrum & spec, Real remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, Size min_peak_number = 5, Size max_peak_number = 150);
 
 
-		///
-    static PeakSpectrumCompareFunctor* create() { return new SpectraSTSimilarityScore(); }
+    ///spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized.
+    BinnedSpectrum transform(const PeakSpectrum & spec);
 
-		///Reimplemented from PeakSpectrumCompareFunctor.
-		static const String getProductName()
-		{
-			return "SpectraSTSimilarityScore";
-		}
+    /**
+        @brief Calculates how much of the dot prudct is dominated by a few peaks
+
+        @param dot_product if -1 this value will be calculated as well.
+        @param bin1 first spectrum in binned representation
+        @param bin2 second spectrum in binned representation
+    */
+    DoubleReal dot_bias(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2, DoubleReal dot_product = -1) const;
+
+    /**
+        @brief calculates the normalized distance between top_hit and runner_up.
+        @param top_hit is the best score for a given match.
+        @param runner_up a match with a worse score than top_hit. e.g. the second best score.
+
+        @return normalized distance
+        @throw DividedByZero exception if top_hit is 0.
+
+        @note Range of the dot products is between 0 and 1.
+    */
+    DoubleReal delta_D(DoubleReal top_hit, DoubleReal runner_up);
+
+    /**
+        @brief: computes the overall all score
+        @param dot_product of a match
+        @param delta_D should be calculated after all dot products for a unidentified spectrum are computed
+        @param dot_bias
+
+        @return the SpectraST similarity score
+    */
+    DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal dot_bias);
 
 
-		protected:
+
+    ///
+    static PeakSpectrumCompareFunctor * create() { return new SpectraSTSimilarityScore(); }
+
+    ///Reimplemented from PeakSpectrumCompareFunctor.
+    static const String getProductName()
+    {
+      return "SpectraSTSimilarityScore";
+    }
+
+protected:
 
 
   };

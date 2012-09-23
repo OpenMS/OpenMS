@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm, Stephan Aiche $
@@ -69,20 +69,21 @@ namespace OpenMS
       Real intensity;
 
       /// Comparison operator
-      bool operator<(const Seed& rhs) const
+      bool operator<(const Seed & rhs) const
       {
-        return intensity<rhs.intensity;
+        return intensity < rhs.intensity;
       }
+
     };
 
     /**
      * @brief Helper struct for mass traces used in FeatureFinderAlgorithmPicked
      */
-    template<class PeakType>
+    template <class PeakType>
     struct MassTrace
     {
       ///Maximum peak pointer
-      const PeakType* max_peak;
+      const PeakType * max_peak;
       ///RT of maximum peak
       DoubleReal max_rt;
 
@@ -90,19 +91,19 @@ namespace OpenMS
       DoubleReal theoretical_int;
 
       ///Contained peaks (pair of RT and pointer to peak)
-      std::vector<std::pair<DoubleReal, const PeakType*> > peaks;
+      std::vector<std::pair<DoubleReal, const PeakType *> > peaks;
 
       ///determines the convex hull of the trace
       ConvexHull2D getConvexhull() const
       {
         ConvexHull2D::PointArrayType hull_points(peaks.size());
-        for (Size i=0; i<peaks.size(); ++i)
+        for (Size i = 0; i < peaks.size(); ++i)
         {
           hull_points[i][0] = peaks[i].first;
           hull_points[i][1] = peaks[i].second->getMZ();
         }
-				ConvexHull2D hull;
-				hull.addPoints(hull_points);
+        ConvexHull2D hull;
+        hull.addPoints(hull_points);
         return hull;
       }
 
@@ -114,9 +115,9 @@ namespace OpenMS
         max_rt = peaks.begin()->first;
         max_peak = peaks.begin()->second;
 
-        for (Size i=1; i<peaks.size(); ++i)
+        for (Size i = 1; i < peaks.size(); ++i)
         {
-          if (peaks[i].second->getIntensity()>max_peak->getIntensity())
+          if (peaks[i].second->getIntensity() > max_peak->getIntensity())
           {
             max_rt = peaks[i].first;
             max_peak = peaks[i].second;
@@ -129,9 +130,9 @@ namespace OpenMS
       {
         DoubleReal sum = 0.0;
         DoubleReal intensities = 0.0;
-        for (Size i=0; i<peaks.size(); ++i)
+        for (Size i = 0; i < peaks.size(); ++i)
         {
-          sum += peaks[i].second->getMZ()*peaks[i].second->getIntensity();
+          sum += peaks[i].second->getMZ() * peaks[i].second->getIntensity();
           intensities += peaks[i].second->getIntensity();
         }
         return sum / intensities;
@@ -140,7 +141,7 @@ namespace OpenMS
       ///Checks if this Trace is valid (has more than 2 points)
       bool isValid() const
       {
-        return (peaks.size()>=3);
+        return peaks.size() >= 3;
       }
 
     };
@@ -148,13 +149,13 @@ namespace OpenMS
     /**
      * @brief Helper struct for a collection of mass traces used in FeatureFinderAlgorithmPicked
      */
-    template<class PeakType>
-    struct MassTraces
-      : public std::vector< MassTrace<PeakType> >
+    template <class PeakType>
+    struct MassTraces :
+      public std::vector<MassTrace<PeakType> >
     {
       /// Constructor
-      MassTraces()
-        : max_trace(0)
+      MassTraces() :
+        max_trace(0)
       {
       }
 
@@ -162,7 +163,7 @@ namespace OpenMS
       Size getPeakCount() const
       {
         Size sum = 0;
-        for (Size i=0; i<this->size(); ++i)
+        for (Size i = 0; i < this->size(); ++i)
         {
           sum += this->at(i).peaks.size();
         }
@@ -173,12 +174,12 @@ namespace OpenMS
       bool isValid(DoubleReal seed_mz, DoubleReal trace_tolerance)
       {
         //Abort if too few traces were found
-        if (this->size()<2) return false;
+        if (this->size() < 2) return false;
 
         //Abort if the seed was removed
-        for (Size j=0; j<this->size(); ++j)
+        for (Size j = 0; j < this->size(); ++j)
         {
-          if (std::fabs(seed_mz-this->at(j).getAvgMZ())<=trace_tolerance)
+          if (std::fabs(seed_mz - this->at(j).getAvgMZ()) <= trace_tolerance)
           {
             return true;
           }
@@ -195,14 +196,14 @@ namespace OpenMS
       {
         if (!this->size())
         {
-          throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There must be at least one trace to determine the theoretical maximum trace!");
+          throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one trace to determine the theoretical maximum trace!");
         }
 
-        Size max=0;
-        DoubleReal max_int=this->at(0).theoretical_int;
-        for (Size i=1; i<this->size(); ++i)
+        Size max = 0;
+        DoubleReal max_int = this->at(0).theoretical_int;
+        for (Size i = 1; i < this->size(); ++i)
         {
-          if (this->at(i).theoretical_int>max_int)
+          if (this->at(i).theoretical_int > max_int)
           {
             max_int = this->at(i).theoretical_int;
             max = i;
@@ -220,9 +221,9 @@ namespace OpenMS
           return;
         }
         bool first = true;
-        for (Size i=0 ; i < this->size() ; ++i)
+        for (Size i = 0; i < this->size(); ++i)
         {
-          for (Size j=0 ; j < this->at(i).peaks.size() ; ++j)
+          for (Size j = 0; j < this->at(i).peaks.size(); ++j)
           {
             if (first)
             {
@@ -242,26 +243,26 @@ namespace OpenMS
 
         @exception Exception::Precondition is thrown if there are no mass traces (not only in debug mode)
       */
-      std::pair<DoubleReal,DoubleReal> getRTBounds() const
+      std::pair<DoubleReal, DoubleReal> getRTBounds() const
       {
         if (!this->size())
         {
-          throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There must be at least one trace to determine the RT boundaries!");
+          throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one trace to determine the RT boundaries!");
         }
 
         DoubleReal min = std::numeric_limits<DoubleReal>::max();
         DoubleReal max = -std::numeric_limits<DoubleReal>::max();
         //Abort if the seed was removed
-        for (Size i=0; i<this->size(); ++i)
+        for (Size i = 0; i < this->size(); ++i)
         {
-          for (Size j=0; j<this->at(i).peaks.size(); ++j)
+          for (Size j = 0; j < this->at(i).peaks.size(); ++j)
           {
             DoubleReal rt = this->at(i).peaks[j].first;
-            if (rt>max) max = rt;
-            if (rt<min) min = rt;
+            if (rt > max) max = rt;
+            if (rt < min) min = rt;
           }
         }
-        return std::make_pair(min,max);
+        return std::make_pair(min, max);
       }
 
       /// Maximum intensity trace
@@ -290,6 +291,7 @@ namespace OpenMS
       {
         return intensity.size();
       }
+
     };
 
     /**
@@ -311,14 +313,15 @@ namespace OpenMS
       TheoreticalIsotopePattern theoretical_pattern;
 
       /// Constructor that resizes the internal vectors
-      IsotopePattern(Size size)
-        : peak(size,-1),
-          spectrum(size),
-          intensity(size),
-          mz_score(size),
-          theoretical_mz(size)
+      IsotopePattern(Size size) :
+        peak(size, -1),
+        spectrum(size),
+        intensity(size),
+        mz_score(size),
+        theoretical_mz(size)
       {
       }
+
     };
 
   };

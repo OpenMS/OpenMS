@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
 // $Authors: Katharina Albers $
@@ -67,9 +67,9 @@ namespace OpenMS
   struct SortPepHit
   {
     bool
-    operator ()(const PepHit& a, const PepHit& b) const
+    operator()(const PepHit & a, const PepHit & b) const
     {
-      if ( a.pep_sequence != b.pep_sequence )
+      if (a.pep_sequence != b.pep_sequence)
       {
         return a.pep_sequence < b.pep_sequence;
       }
@@ -78,22 +78,24 @@ namespace OpenMS
         return a.pep_xcorr > b.pep_xcorr;
       }
     }
+
   };
 
   struct SortPepHitbyMap
   {
     bool
-    operator ()(const PepHit& a, const PepHit& b) const
+    operator()(const PepHit & a, const PepHit & b) const
     {
       return a.pep_map_nr < b.pep_map_nr;
     }
+
   };
 
   void
-  FeatureGroupingAlgorithmIdentification::group(const std::vector<FeatureMap<> >& maps, ConsensusMap& out)
+  FeatureGroupingAlgorithmIdentification::group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out)
   {
     // check that the number of maps is ok
-    if ( maps.size() < 2 )
+    if (maps.size() < 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "At least two maps must be given!");
     }
@@ -115,17 +117,17 @@ namespace OpenMS
     /* In the second step we filter the peptide annotations with respect to the retention times of the features they are assigned to.
      * If a peptide identification is assigned to two features with very different RTs in one map, it is likely that one or both features are falsely annotated.
      * This observation is used to filter out dubious identifications which otherwise might give rise to incorrect consensus features in the ground truth.
-     * For each peptide identification, we compute the mean μ and standard deviation σ of the RT positions of the features to which it is assigned.
-     * If σ > 100 s, then the identification is considered dubious and removed from all features.
-     * Moreover, the identification is removed from all features, if any, whose RT positions deviate by more than 2σ from μ.
+     * For each peptide identification, we compute the mean  and standard deviation  of the RT positions of the features to which it is assigned.
+     * If  > 100 s, then the identification is considered dubious and removed from all features.
+     * Moreover, the identification is removed from all features, if any, whose RT positions deviate by more than 2 from .
      * These filters are applied for each experiment separately.
      */
 
     std::vector<FeatureMap<> > feature_maps = maps; // copy maps, so that they can be changed. // ???? größte map als erste!?
 
-    for ( Size i = 0; i < feature_maps.size(); ++i ) // feature maps
+    for (Size i = 0; i < feature_maps.size(); ++i)   // feature maps
     {
-      // 	feature_maps[i].sortByRT();
+      //    feature_maps[i].sortByRT();
 
       std::map<AASequence, Int> abs; // absolute number of peptides with this sequence
       std::map<AASequence, DoubleReal> num_mean; // sum of rt
@@ -134,19 +136,19 @@ namespace OpenMS
       std::map<AASequence, DoubleReal> stand_dev; // standard deviation = sqrt(num_var / (abs - 1) )
 
       // features
-      for ( Size j = 0; j < feature_maps[i].size(); ++j )
+      for (Size j = 0; j < feature_maps[i].size(); ++j)
       {
-        for ( Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k ) // peptide identifications
+        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k)   // peptide identifications
         {
           std::vector<PeptideHit> peptide_hits;
-          for ( Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l ) // peptide hits
+          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l)   // peptide hits
           {
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
 
             // first step: identifications having a XCorr smaller than the threshold are discarded
-            if ( DoubleReal(peptide_hit.getMetaValue("XCorr")) > xcorr_threshold )
-            //if ( (DoubleReal)peptide_hit.getScore() >= xcorr_threshold )
+            if (DoubleReal(peptide_hit.getMetaValue("XCorr")) > xcorr_threshold)
             {
+              //if ( (DoubleReal)peptide_hit.getScore() >= xcorr_threshold )
               peptide_hit.setMetaValue("IDAlgorithm", (String) "true");
               peptide_hits.push_back(peptide_hit);
 
@@ -165,32 +167,32 @@ namespace OpenMS
       }
 
       // mean
-      for ( std::map<AASequence, Int>::iterator iter = abs.begin(); iter != abs.end(); ++iter )
+      for (std::map<AASequence, Int>::iterator iter = abs.begin(); iter != abs.end(); ++iter)
       {
         mean[iter->first] = num_mean[iter->first] / (DoubleReal) abs[iter->first];
       }
 
       // standard deviation: num_var
-      for ( Size j = 0; j < feature_maps[i].size(); ++j ) // features
+      for (Size j = 0; j < feature_maps[i].size(); ++j)   // features
       {
-        for ( Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k ) // peptide identifications
+        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k)   // peptide identifications
         {
-          for ( Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l ) // peptide hits
+          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l)   // peptide hits
           {
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
 
             // if the hit is not yet discarded, compute the denominator of the variance
-            if ( peptide_hit.getMetaValue("IDAlgorithm") == "true" )
+            if (peptide_hit.getMetaValue("IDAlgorithm") == "true")
             {
-              if ( num_var.find(peptide_hit.getSequence()) != num_var.end() )
+              if (num_var.find(peptide_hit.getSequence()) != num_var.end())
               {
                 num_var[peptide_hit.getSequence()] += (feature_maps[i][j].getRT() - mean[peptide_hit.getSequence()]) * (feature_maps[i][j].getRT()
-                    - mean[peptide_hit.getSequence()]);
+                                                                                                                        - mean[peptide_hit.getSequence()]);
               }
               else
               {
                 num_var[peptide_hit.getSequence()] = (feature_maps[i][j].getRT() - mean[peptide_hit.getSequence()]) * (feature_maps[i][j].getRT()
-                    - mean[peptide_hit.getSequence()]);
+                                                                                                                       - mean[peptide_hit.getSequence()]);
               }
             }
           }
@@ -198,10 +200,10 @@ namespace OpenMS
       }
 
       // standard deviation
-      for ( std::map<AASequence, DoubleReal>::iterator iter = num_var.begin(); iter != num_var.end(); ++iter )
+      for (std::map<AASequence, DoubleReal>::iterator iter = num_var.begin(); iter != num_var.end(); ++iter)
       {
         // if only one element exists, the stand. dev. is 0
-        if ( abs[iter->first] == 1 )
+        if (abs[iter->first] == 1)
         {
           stand_dev[iter->first] = 0.0;
         }
@@ -212,25 +214,25 @@ namespace OpenMS
       }
 
       // features
-      for ( Size j = 0; j < feature_maps[i].size(); ++j )
+      for (Size j = 0; j < feature_maps[i].size(); ++j)
       {
-        for ( Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k ) // petide identifications
+        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k)   // petide identifications
         {
           std::vector<PeptideHit> peptide_hits;
-          for ( Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l ) // peptide hits
+          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l)   // peptide hits
           {
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
 
             // if the hit is not yet discarded, test if standard deviation is to high or rt-mean_rt deviates by more than 2*standard deviation
-            if ( peptide_hit.getMetaValue("IDAlgorithm") == "true" )
+            if (peptide_hit.getMetaValue("IDAlgorithm") == "true")
             {
-              if ( stand_dev[peptide_hit.getSequence()] > rt_stdev_threshold )
+              if (stand_dev[peptide_hit.getSequence()] > rt_stdev_threshold)
               {
                 peptide_hit.setMetaValue("IDAlgorithm", (String) "discarded: rt standard deviation too big");
                 peptide_hits.push_back(peptide_hit);
               }
-              else if ( (stand_dev[peptide_hit.getSequence()] != 0.0) && (fabs(feature_maps[i][j].getRT() - mean[peptide_hit.getSequence()]) > 2
-                  * stand_dev[peptide_hit.getSequence()]) ) // MAGIC ALERT: factor 2 corresponds to about 95% quantile in a gaussian
+              else if ((stand_dev[peptide_hit.getSequence()] != 0.0) && (fabs(feature_maps[i][j].getRT() - mean[peptide_hit.getSequence()]) > 2
+                                                                         * stand_dev[peptide_hit.getSequence()])) // MAGIC ALERT: factor 2 corresponds to about 95% quantile in a gaussian
               {
                 peptide_hit.setMetaValue("IDAlgorithm", (String) "discarded: rt deviates by more than 2*standard deviation from mean");
                 peptide_hits.push_back(peptide_hit);
@@ -266,21 +268,21 @@ namespace OpenMS
     // holds all the identifications I discard in the steps three to five, so that the reason can be assigned to the features as a meta value
     std::vector<PepHit> discarded_pephits;
 
-    for ( Size i = 0; i < feature_maps.size(); ++i ) // feature maps
+    for (Size i = 0; i < feature_maps.size(); ++i)   // feature maps
     {
       std::vector<PepHit> pep_hits_map;
 
-      for ( Size j = 0; j < feature_maps[i].size(); ++j ) // features
+      for (Size j = 0; j < feature_maps[i].size(); ++j)   // features
       {
-        for ( Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k ) // petide identifications
+        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k)   // petide identifications
         {
-          for ( Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l ) // peptide hits
+          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l)   // peptide hits
           {
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
-            if ( peptide_hit.getMetaValue("IDAlgorithm") == "true" ) // put all hits that are not yet discarded in a vector
+            if (peptide_hit.getMetaValue("IDAlgorithm") == "true")   // put all hits that are not yet discarded in a vector
             {
               DoubleReal xcorr_pep;
-              if ( peptide_hit.metaValueExists("XCorr") )
+              if (peptide_hit.metaValueExists("XCorr"))
               {
                 xcorr_pep = peptide_hit.getMetaValue("XCorr");
               }
@@ -289,7 +291,7 @@ namespace OpenMS
                 xcorr_pep = 0.0;
               }
               PepHit pep_hit =
-                { i, j, k, l, peptide_hit.getSequence(), feature_maps[i][j].getRT(), feature_maps[i][j].getMZ(), xcorr_pep, "true" };
+              { i, j, k, l, peptide_hit.getSequence(), feature_maps[i][j].getRT(), feature_maps[i][j].getMZ(), xcorr_pep, "true" };
               pep_hits_map.push_back(pep_hit);
             }
           }
@@ -299,12 +301,12 @@ namespace OpenMS
       std::sort(pep_hits_map.begin(), pep_hits_map.end(), SortPepHit()); // sort hits by sequence and XCorr
 
       // for every sequence only put the hit with the highest score in the initial list of peptide hits (i.e. consensus features)
-      if ( !pep_hits_map.empty() )
+      if (!pep_hits_map.empty())
       {
         pep_hits_initial[pep_hits_map[0].pep_sequence].push_back(pep_hits_map[0]);
-        for ( std::vector<PepHit>::iterator iter = pep_hits_map.begin(); iter != pep_hits_map.end() - 1; ++iter )
+        for (std::vector<PepHit>::iterator iter = pep_hits_map.begin(); iter != pep_hits_map.end() - 1; ++iter)
         {
-          if ( iter->pep_sequence != (iter + 1)->pep_sequence ) // only one feature from every map for every identification
+          if (iter->pep_sequence != (iter + 1)->pep_sequence)   // only one feature from every map for every identification
           {
             pep_hits_initial[(iter + 1)->pep_sequence].push_back(*(iter + 1));
           }
@@ -319,35 +321,35 @@ namespace OpenMS
     }
 
     // compute m/z standard deviation and discard consensus features having one higher than the threshold
-    for ( std::map<AASequence, std::vector<PepHit> >::iterator itermap = pep_hits_initial.begin(); itermap != pep_hits_initial.end(); )
+    for (std::map<AASequence, std::vector<PepHit> >::iterator itermap = pep_hits_initial.begin(); itermap != pep_hits_initial.end(); )
     {
       Int abs = 0;
       DoubleReal num_mean_mz = 0.0;
       DoubleReal num_var_mz = 0.0;
 
       // in generateGoldStandard.py also discarded:
-      // 	DoubleReal num_mean_rt = 0.0;
-      // 	DoubleReal num_var_rt = 0.0;
+      //    DoubleReal num_mean_rt = 0.0;
+      //    DoubleReal num_var_rt = 0.0;
 
-      for ( std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec )
+      for (std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
       {
         ++abs;
         num_mean_mz += itervec->pep_mz;
-        // 	num_mean_rt += itervec->pep_rt;
+        //  num_mean_rt += itervec->pep_rt;
       }
 
       DoubleReal mean_mz = num_mean_mz / (DoubleReal) abs;
-      // 	DoubleReal mean_rt = num_mean_rt / (DoubleReal)abs;
+      //    DoubleReal mean_rt = num_mean_rt / (DoubleReal)abs;
 
-      for ( std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec )
+      for (std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
       {
         num_var_mz += (itervec->pep_mz - mean_mz) * (itervec->pep_mz - mean_mz);
-        // 		num_var_rt += (itervec->pep_rt - mean_rt) * (itervec->pep_rt - mean_rt);
+        //      num_var_rt += (itervec->pep_rt - mean_rt) * (itervec->pep_rt - mean_rt);
       }
 
       DoubleReal stand_dev_mz = sqrt(num_var_mz / (DoubleReal) (abs - 1));
-      // 	DoubleReal stand_dev_rt = sqrt( num_var_rt / (DoubleReal)(abs - 1) );
-      // 	bool dev_rt_too_big = false;
+      //    DoubleReal stand_dev_rt = sqrt( num_var_rt / (DoubleReal)(abs - 1) );
+      //    bool dev_rt_too_big = false;
 
       /*	for(std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
        {
@@ -357,9 +359,9 @@ namespace OpenMS
        }
        }	*/
 
-      if ( stand_dev_mz > mz_stdev_threshold ) // discard the consensus features which have a higher m/z standard deviation
+      if (stand_dev_mz > mz_stdev_threshold)   // discard the consensus features which have a higher m/z standard deviation
       {
-        for ( std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec )
+        for (std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
         {
           itervec->pep_id_algorithm = "discarded: mz standard deviation too big";
           discarded_pephits.push_back(*itervec);
@@ -394,11 +396,11 @@ namespace OpenMS
     std::multimap<DoubleReal, std::vector<PepHit> > pep_hits_xcorr; // consensus features sorted by total XCorr score
     std::vector<std::vector<PepHit> > pep_hits_max_xcorr; // list to add the c.f. with highest score
 
-    for ( std::map<AASequence, std::vector<PepHit> >::iterator itermap = pep_hits_initial.begin(); itermap != pep_hits_initial.end(); ++itermap )
+    for (std::map<AASequence, std::vector<PepHit> >::iterator itermap = pep_hits_initial.begin(); itermap != pep_hits_initial.end(); ++itermap)
     {
       DoubleReal xcorr_sum = 0.0;
 
-      for ( std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec )
+      for (std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
       {
         xcorr_sum += itervec->pep_xcorr;
       }
@@ -407,23 +409,23 @@ namespace OpenMS
       pep_hits_xcorr.insert(std::pair<DoubleReal, std::vector<PepHit> >(xcorr_sum, (itermap->second)));
     }
 
-    while ( !pep_hits_xcorr.empty() )
+    while (!pep_hits_xcorr.empty())
     {
-      if ( ((--pep_hits_xcorr.end())->second).size() > 1 )
+      if (((--pep_hits_xcorr.end())->second).size() > 1)
       {
-        for ( std::multimap<DoubleReal, std::vector<PepHit> >::iterator itermap = pep_hits_xcorr.begin(); itermap != --pep_hits_xcorr.end(); )
+        for (std::multimap<DoubleReal, std::vector<PepHit> >::iterator itermap = pep_hits_xcorr.begin(); itermap != --pep_hits_xcorr.end(); )
         {
           // take the c.f. with the biggest total score and remove all c.f having a not-empty intersection with it
           bool same_feature = false;
           Size i = 0;
 
-          while ( i < ((--pep_hits_xcorr.end())->second).size() ) // und immer dran denken: .end() zeigt hinter die map/den vector!!!
+          while (i < ((--pep_hits_xcorr.end())->second).size())   // und immer dran denken: .end() zeigt hinter die map/den vector!!!
           {
             Size j = 0;
-            while ( j < (itermap->second).size() )
+            while (j < (itermap->second).size())
             {
-              if ( ((--pep_hits_xcorr.end())->second)[i].pep_feature_nr == (itermap->second)[j].pep_feature_nr
-                  && ((--pep_hits_xcorr.end())->second)[i].pep_map_nr == (itermap->second)[j].pep_map_nr )
+              if (((--pep_hits_xcorr.end())->second)[i].pep_feature_nr == (itermap->second)[j].pep_feature_nr
+                 && ((--pep_hits_xcorr.end())->second)[i].pep_map_nr == (itermap->second)[j].pep_map_nr)
               {
                 i += ((--pep_hits_xcorr.end())->second).size();
                 j += (itermap->second).size();
@@ -433,9 +435,9 @@ namespace OpenMS
             }
             ++i;
           }
-          if ( same_feature )
+          if (same_feature)
           {
-            for ( std::vector<PepHit>::iterator itervec = (itermap->second).begin(); itervec != (itermap->second).end(); ++itervec )
+            for (std::vector<PepHit>::iterator itervec = (itermap->second).begin(); itervec != (itermap->second).end(); ++itervec)
             {
               itervec->pep_id_algorithm = "discarded: this feature was already inserted in another consensus feature with a better score";
               discarded_pephits.push_back(*itervec);
@@ -480,7 +482,7 @@ namespace OpenMS
          } */
         pep_hits_max_xcorr.push_back((--pep_hits_xcorr.end())->second);
         pep_hits_xcorr.erase(--pep_hits_xcorr.end());
-        // 	pep_hits_xcorr = pep_hits_xcorr_help;
+        //  pep_hits_xcorr = pep_hits_xcorr_help;
       }
       else
       {
@@ -499,16 +501,16 @@ namespace OpenMS
     DoubleReal diff_sum = 0.0;
     Int diff_abs = 0;
 
-    for ( std::vector<std::vector<PepHit> >::iterator iterout = pep_hits_max_xcorr.begin(); iterout != pep_hits_max_xcorr.end(); ++iterout )
+    for (std::vector<std::vector<PepHit> >::iterator iterout = pep_hits_max_xcorr.begin(); iterout != pep_hits_max_xcorr.end(); ++iterout)
     {
       // mean and standard deviation for every c.f.
-      // 	Int abs = 0; // denominator mean (and stand. dev.)
-      // 	DoubleReal num_mean = 0.0; // numerator mean
-      for ( std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin )
+      //    Int abs = 0; // denominator mean (and stand. dev.)
+      //    DoubleReal num_mean = 0.0; // numerator mean
+      for (std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin)
       {
-        for ( std::vector<PepHit>::iterator iterin_2 = (*iterout).begin(); iterin_2 != (*iterout).end(); ++iterin_2 )
+        for (std::vector<PepHit>::iterator iterin_2 = (*iterout).begin(); iterin_2 != (*iterout).end(); ++iterin_2)
         {
-          if ( iterin != iterin_2 )
+          if (iterin != iterin_2)
           {
             DoubleReal rt_diff = fabs(iterin->pep_rt - iterin_2->pep_rt);
             rt_diffs.push_back(rt_diff);
@@ -522,7 +524,7 @@ namespace OpenMS
     DoubleReal mean_diff = diff_sum / (DoubleReal) diff_abs;
     DoubleReal rt_diff_std_num = 0.0;
 
-    for ( std::vector<DoubleReal>::iterator iterdiff = rt_diffs.begin(); iterdiff != rt_diffs.end(); ++iterdiff )
+    for (std::vector<DoubleReal>::iterator iterdiff = rt_diffs.begin(); iterdiff != rt_diffs.end(); ++iterdiff)
     {
       rt_diff_std_num += (*iterdiff - mean_diff) * (*iterdiff - mean_diff);
     }
@@ -531,49 +533,49 @@ namespace OpenMS
 
     std::vector<std::vector<PepHit> > pep_hits_max;
 
-    for ( std::vector<std::vector<PepHit> >::iterator iterout = pep_hits_max_xcorr.begin(); iterout != pep_hits_max_xcorr.end(); ++iterout )
+    for (std::vector<std::vector<PepHit> >::iterator iterout = pep_hits_max_xcorr.begin(); iterout != pep_hits_max_xcorr.end(); ++iterout)
     {
       // mean and standard deviation for every c.f.
       Int abs = 0; // denominator mean (and stand. dev.)
       DoubleReal num_mean = 0.0; // numerator mean
-      for ( std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin )
+      for (std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin)
       {
         ++abs;
         num_mean += iterin->pep_rt;
       }
       DoubleReal mean = num_mean / (DoubleReal) abs;
       DoubleReal num_std = 0.0;
-      for ( std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin )
+      for (std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin)
       {
         num_std += (iterin->pep_rt - mean) * (iterin->pep_rt - mean);
       }
       DoubleReal std = sqrt(num_std / (DoubleReal) (--abs));
-      if ( std > 2 * rt_diff_std )
+      if (std > 2 * rt_diff_std)
       {
-        for ( std::vector<PepHit>::iterator itervec = (*iterout).begin(); itervec != (*iterout).end(); ++itervec )
+        for (std::vector<PepHit>::iterator itervec = (*iterout).begin(); itervec != (*iterout).end(); ++itervec)
         {
           itervec->pep_id_algorithm = "discarded: consensus feature has stdev greater than 2*sample_std_dev";
           discarded_pephits.push_back(*itervec);
         }
-        // 	pep_hits_max_xcorr.erase(iterout++);
+        //  pep_hits_max_xcorr.erase(iterout++);
       }
       else
       {
-        // 	++iterout;
+        //  ++iterout;
         pep_hits_max.push_back(*iterout);
       }
     }
 
     /* sortier die aussortierten mit gründen wieder ein*/
 
-    for ( std::vector<PepHit>::iterator iter = discarded_pephits.begin(); iter != discarded_pephits.end(); ++iter )
+    for (std::vector<PepHit>::iterator iter = discarded_pephits.begin(); iter != discarded_pephits.end(); ++iter)
     {
       std::vector<PeptideHit> peptide_hits;
-      for ( Size l = 0; l < feature_maps[iter->pep_map_nr][iter->pep_feature_nr].getPeptideIdentifications()[iter->pep_ident_nr].getHits().size(); ++l ) // peptide hits
+      for (Size l = 0; l < feature_maps[iter->pep_map_nr][iter->pep_feature_nr].getPeptideIdentifications()[iter->pep_ident_nr].getHits().size(); ++l)   // peptide hits
       {
         PeptideHit peptide_hit = feature_maps[iter->pep_map_nr][iter->pep_feature_nr].getPeptideIdentifications()[iter->pep_ident_nr].getHits()[l];
 
-        if ( l == iter->pep_hit_nr ) // ist das der hit, den ich im vektor habe?
+        if (l == iter->pep_hit_nr)   // ist das der hit, den ich im vektor habe?
         {
           peptide_hit.setMetaValue("IDAlgorithm", iter->pep_id_algorithm);
           peptide_hits.push_back(peptide_hit);
@@ -591,18 +593,18 @@ namespace OpenMS
     ConsensusMap consensus_map_0;
     ConsensusMap::convert(0, feature_maps[0], consensus_map_0);
 
-    for ( std::vector<std::vector<PepHit> >::iterator iterout = pep_hits_max.begin(); iterout != pep_hits_max.end(); ++iterout )
+    for (std::vector<std::vector<PepHit> >::iterator iterout = pep_hits_max.begin(); iterout != pep_hits_max.end(); ++iterout)
     {
       std::sort((*iterout).begin(), (*iterout).end(), SortPepHitbyMap());
 
-      if ( (*iterout)[0].pep_map_nr == 0 )
+      if ((*iterout)[0].pep_map_nr == 0)
       {
-        for ( std::vector<PepHit>::iterator iterin = (*iterout).begin() + 1; iterin != (*iterout).end(); ++iterin )
+        for (std::vector<PepHit>::iterator iterin = (*iterout).begin() + 1; iterin != (*iterout).end(); ++iterin)
         {
           // andere map, gleiche feature-nr, wie in erster (bzw. nullter) map, aber nicht beim insert machen, sondern in das richtige consensus feature füllen.
           // kann in featuremap ja woanders gewesen sein
           consensus_map_0[(*iterout)[0].pep_feature_nr].insert(iterin->pep_map_nr,
-              feature_maps[iterin->pep_map_nr][iterin->pep_feature_nr], iterin->pep_feature_nr);
+                                                               feature_maps[iterin->pep_map_nr][iterin->pep_feature_nr], iterin->pep_feature_nr);
           consensus_map_0[(*iterout)[0].pep_feature_nr].computeConsensus();
         }
         consensus_map_0[(*iterout)[0].pep_feature_nr].setMetaValue("IDAlgorithm_usedID", ((*iterout)[0].pep_sequence).toString());
@@ -610,7 +612,7 @@ namespace OpenMS
       else
       {
         ConsensusFeature consensus_feature;
-        for ( std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin )
+        for (std::vector<PepHit>::iterator iterin = (*iterout).begin(); iterin != (*iterout).end(); ++iterin)
         {
           // müsste gehen, weil fertiges consensus feature gepushbackt wird.
           consensus_feature.insert(iterin->pep_map_nr, feature_maps[iterin->pep_map_nr][iterin->pep_feature_nr], iterin->pep_feature_nr);
@@ -621,16 +623,16 @@ namespace OpenMS
       }
     }
 
-    for ( Size i = 1; i < feature_maps.size(); ++i ) // feature maps
+    for (Size i = 1; i < feature_maps.size(); ++i)   // feature maps
     {
       // Add protein identifications to result map
       consensus_map_0.getProteinIdentifications().insert(consensus_map_0.getProteinIdentifications().end(),
-          feature_maps[i].getProteinIdentifications().begin(), feature_maps[i].getProteinIdentifications().end());
+                                                         feature_maps[i].getProteinIdentifications().begin(), feature_maps[i].getProteinIdentifications().end());
       // hmm, benutzt dann nur den letzten identif.-run als referenz und die nummern der proteine aus denen der letzten hinzugefügten map.
 
       // Add unassigned peptide identifications to result map
       consensus_map_0.getUnassignedPeptideIdentifications().insert(consensus_map_0.getUnassignedPeptideIdentifications().end(),
-          feature_maps[i].getUnassignedPeptideIdentifications().begin(), feature_maps[i].getUnassignedPeptideIdentifications().end());
+                                                                   feature_maps[i].getUnassignedPeptideIdentifications().begin(), feature_maps[i].getUnassignedPeptideIdentifications().end());
     }
 
     // die singletons fehlen noch!!!
@@ -644,4 +646,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

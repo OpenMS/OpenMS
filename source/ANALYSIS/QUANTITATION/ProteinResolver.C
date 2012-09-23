@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
 // $Authors: David Wojnar $
@@ -50,8 +50,8 @@ using std::set;
 namespace OpenMS
 {
 
-  ProteinResolver::ProteinResolver()
-    : DefaultParamHandler("ProteinResolver"), resolver_result_(), protein_data_()
+  ProteinResolver::ProteinResolver() :
+    DefaultParamHandler("ProteinResolver"), resolver_result_(), protein_data_()
   {
     defaults_.setValue("resolver:missed_cleavages", 2, "Number of allowed missed cleavages");
     defaults_.setMinInt("resolver:missed_cleavages", 0);
@@ -65,25 +65,24 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ProteinResolver::ProteinResolver(const ProteinResolver& cp)
-    : DefaultParamHandler(cp),
+  ProteinResolver::ProteinResolver(const ProteinResolver & cp) :
+    DefaultParamHandler(cp),
     resolver_result_(cp.resolver_result_),
     protein_data_(cp.protein_data_)
   {
   }
 
-
-  ProteinResolver& ProteinResolver::operator= (const ProteinResolver& rhs)
+  ProteinResolver & ProteinResolver::operator=(const ProteinResolver & rhs)
   {
-    if (this == &rhs) return *this;
+    if (this == &rhs)
+      return *this;
 
-    DefaultParamHandler::operator= (rhs);
+    DefaultParamHandler::operator=(rhs);
     this->resolver_result_ = rhs.resolver_result_;
     this->protein_data_ = rhs.protein_data_;
 
     return *this;
   }
-
 
   ProteinResolver::~ProteinResolver()
   {
@@ -92,7 +91,7 @@ namespace OpenMS
 
   void ProteinResolver::clearResult()
   {
-    for (vector<ResolverResult>::iterator it = resolver_result_.begin(); it != resolver_result_.end(); ++it )
+    for (vector<ResolverResult>::iterator it = resolver_result_.begin(); it != resolver_result_.end(); ++it)
     {
       delete it->isds;
       delete it->msds;
@@ -104,22 +103,22 @@ namespace OpenMS
     resolver_result_.clear();
   }
 
-  void ProteinResolver::resolveID(vector<PeptideIdentification>& peptide_identifications)
+  void ProteinResolver::resolveID(vector<PeptideIdentification> & peptide_identifications)
   {
-    vector<ProteinEntry>* protein_nodes = new vector<ProteinEntry>;
+    vector<ProteinEntry> * protein_nodes = new vector<ProteinEntry>;
     protein_nodes->resize(protein_data_.size());
-    vector<PeptideEntry>* peptide_nodes = new vector<PeptideEntry>;
-    vector<ISDGroup>* isd_groups = new vector<ISDGroup>;
-    vector<MSDGroup>* msd_groups = new vector<MSDGroup>;
-    vector<Size>* reindexed_proteins = new vector<Size>;
-    vector<Size>* reindexed_peptides = new vector<Size>;
+    vector<PeptideEntry> * peptide_nodes = new vector<PeptideEntry>;
+    vector<ISDGroup> * isd_groups = new vector<ISDGroup>;
+    vector<MSDGroup> * msd_groups = new vector<MSDGroup>;
+    vector<Size> * reindexed_proteins = new vector<Size>;
+    vector<Size> * reindexed_peptides = new vector<Size>;
 
     // building ISD Groups
     buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
 
     // Including all MSMS derived peptides into the graph
     Size found_peptides;
-    found_peptides = includeMSMSPeptides_(peptide_identifications,*peptide_nodes);
+    found_peptides = includeMSMSPeptides_(peptide_identifications, *peptide_nodes);
 
     // building MSD Groups
     buildingMSDGroups_(*msd_groups, *isd_groups);
@@ -146,22 +145,22 @@ namespace OpenMS
     resolver_result_.push_back(result);
   }
 
-  void ProteinResolver::resolveConsensus(ConsensusMap& consensus)
+  void ProteinResolver::resolveConsensus(ConsensusMap & consensus)
   {
-    vector<ProteinEntry>* protein_nodes = new vector<ProteinEntry>;
+    vector<ProteinEntry> * protein_nodes = new vector<ProteinEntry>;
     protein_nodes->resize(protein_data_.size());
-    vector<PeptideEntry>* peptide_nodes = new vector<PeptideEntry>;
-    vector<ISDGroup>* isd_groups = new vector<ISDGroup>;
-    vector<MSDGroup>* msd_groups = new vector<MSDGroup>;
-    vector<Size>* reindexed_proteins = new vector<Size>;
-    vector<Size>* reindexed_peptides = new vector<Size>;
+    vector<PeptideEntry> * peptide_nodes = new vector<PeptideEntry>;
+    vector<ISDGroup> * isd_groups = new vector<ISDGroup>;
+    vector<MSDGroup> * msd_groups = new vector<MSDGroup>;
+    vector<Size> * reindexed_proteins = new vector<Size>;
+    vector<Size> * reindexed_peptides = new vector<Size>;
 
     // building ISD Groups
     buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
 
     // Including all MSMS derived peptides into the graph
     Size found_peptides;
-    found_peptides = includeMSMSPeptides_(consensus,*peptide_nodes);
+    found_peptides = includeMSMSPeptides_(consensus, *peptide_nodes);
 
     // building MSD Groups
     buildingMSDGroups_(*msd_groups, *isd_groups);
@@ -192,60 +191,66 @@ namespace OpenMS
     resolver_result_.push_back(result);
   }
 
-  void ProteinResolver::computeIntensityOfMSD_(vector<MSDGroup>& msd_groups)
+  void ProteinResolver::computeIntensityOfMSD_(vector<MSDGroup> & msd_groups)
   {
     // iteriert ueber alles msd gruppe
-    for(vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
+    for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
     {
       DoubleList intensities;
       // iterierere ueber peptide entry (peptide identification), intensitaet (summe der einzelintensitaeten)
-      for(list<PeptideEntry*>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
+      for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
         intensities.push_back((*pep)->intensity);
       }
       // median von der list ist itensity der msd group
-      group->intensity = Math::median(intensities.begin(),intensities.end());
+      group->intensity = Math::median(intensities.begin(), intensities.end());
     }
   }
 
-  void ProteinResolver::countTargetDecoy(vector<MSDGroup>& msd_groups, ConsensusMap& consensus)
+  void ProteinResolver::countTargetDecoy(vector<MSDGroup> & msd_groups, ConsensusMap & consensus)
   {
-    for(vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
+    for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
     {
-      for(list<PeptideEntry*>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
+      for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
         String tmp = getPeptideHit(consensus, *pep).getMetaValue("target_decoy");
 
-        if(tmp == "target") ++(group->number_of_target);
-        else if(tmp == "decoy") ++(group ->number_of_decoy);
-        else /*if(tmp == "target+decoy")*/ ++(group->number_of_target_plus_decoy);
+        if (tmp == "target")
+          ++(group->number_of_target);
+        else if (tmp == "decoy")
+          ++(group->number_of_decoy);
+        else /*if(tmp == "target+decoy")*/
+          ++(group->number_of_target_plus_decoy);
       }
     }
   }
 
-  void ProteinResolver::countTargetDecoy(vector<MSDGroup>& msd_groups, vector<PeptideIdentification>& peptide_nodes)
+  void ProteinResolver::countTargetDecoy(vector<MSDGroup> & msd_groups, vector<PeptideIdentification> & peptide_nodes)
   {
-    for(vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
+    for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
     {
-      for(list<PeptideEntry*>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
+      for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
         String tmp = getPeptideHit(peptide_nodes, *pep).getMetaValue("target_decoy");
 
-        if(tmp == "target") ++(group->number_of_target);
-        else if(tmp == "decoy") ++(group ->number_of_decoy);
-        else /*if(tmp == "target+decoy")*/ ++(group->number_of_target_plus_decoy);
+        if (tmp == "target")
+          ++(group->number_of_target);
+        else if (tmp == "decoy")
+          ++(group->number_of_decoy);
+        else /*if(tmp == "target+decoy")*/
+          ++(group->number_of_target_plus_decoy);
       }
     }
   }
 
   //travers Protein and peptide nodes. Once for building ISD groups and once for building MSD groups
-  void ProteinResolver::traversProtein_(ProteinEntry* prot_node, ISDGroup& group)
+  void ProteinResolver::traversProtein_(ProteinEntry * prot_node, ISDGroup & group)
   {
     group.proteins.push_back(prot_node);
     prot_node->isd_group = group.index;
-    for(list<PeptideEntry*>::iterator i = prot_node->peptides.begin(); i != prot_node->peptides.end();++i)
+    for (list<PeptideEntry *>::iterator i = prot_node->peptides.begin(); i != prot_node->peptides.end(); ++i)
     {
-      if(!(*i)->traversed)
+      if (!(*i)->traversed)
       {
         (*i)->traversed = true;
         traversPeptide_((*i), group);
@@ -253,17 +258,18 @@ namespace OpenMS
     }
   }
 
-  void ProteinResolver::traversProtein_(ProteinEntry* prot_node, MSDGroup& group)
+  void ProteinResolver::traversProtein_(ProteinEntry * prot_node, MSDGroup & group)
   {
     group.proteins.push_back(prot_node);
     prot_node->msd_group = group.index;
-    for(list<PeptideEntry*>::iterator i = prot_node->peptides.begin(); i != prot_node->peptides.end();++i)
+    for (list<PeptideEntry *>::iterator i = prot_node->peptides.begin(); i != prot_node->peptides.end(); ++i)
     {
-      if((*i)->experimental) ++(prot_node->number_of_experimental_peptides);
-      if((*i)->traversed)
+      if ((*i)->experimental)
+        ++(prot_node->number_of_experimental_peptides);
+      if ((*i)->traversed)
       {
         (*i)->traversed = false;
-        if((*i)->experimental)
+        if ((*i)->experimental)
         {
           traversPeptide_((*i), group);
         }
@@ -271,13 +277,13 @@ namespace OpenMS
     }
   }
 
-  void ProteinResolver::traversPeptide_(PeptideEntry* pep_node, ISDGroup& group)
+  void ProteinResolver::traversPeptide_(PeptideEntry * pep_node, ISDGroup & group)
   {
     group.peptides.push_back(pep_node);
     pep_node->isd_group = group.index;
-    for(list<ProteinEntry*>::iterator i = pep_node->proteins.begin(); i != pep_node->proteins.end();++i)
+    for (list<ProteinEntry *>::iterator i = pep_node->proteins.begin(); i != pep_node->proteins.end(); ++i)
     {
-      if(!(*i)->traversed)
+      if (!(*i)->traversed)
       {
         (*i)->traversed = true;
         traversProtein_((*i), group);
@@ -285,13 +291,13 @@ namespace OpenMS
     }
   }
 
-  void ProteinResolver::traversPeptide_(PeptideEntry* pep_node, MSDGroup& group)
+  void ProteinResolver::traversPeptide_(PeptideEntry * pep_node, MSDGroup & group)
   {
     group.peptides.push_back(pep_node);
     pep_node->msd_group = group.index;
-    for(list<ProteinEntry*>::iterator i = pep_node->proteins.begin(); i != pep_node->proteins.end();++i)
+    for (list<ProteinEntry *>::iterator i = pep_node->proteins.begin(); i != pep_node->proteins.end(); ++i)
     {
-      if((*i)->traversed)
+      if ((*i)->traversed)
       {
         (*i)->traversed = false;
         traversProtein_((*i), group);
@@ -300,40 +306,47 @@ namespace OpenMS
   }
 
   //searches given sequence in all  nodes and returns its index or nodes.size() if not found.
-  Size ProteinResolver::findPeptideEntry_(String seq, vector<PeptideEntry>& nodes)
+  Size ProteinResolver::findPeptideEntry_(String seq, vector<PeptideEntry> & nodes)
   {
-    if(nodes.size() == 0) return 0;
-    return binarySearchNodes_(seq, nodes, 0, nodes.size()-1);
+    if (nodes.size() == 0)
+      return 0;
+
+    return binarySearchNodes_(seq, nodes, 0, nodes.size() - 1);
   }
 
   //helper function for findPeptideEntry.
-  Size ProteinResolver::binarySearchNodes_(String& seq, vector<PeptideEntry>& nodes, Size start, Size end )
+  Size ProteinResolver::binarySearchNodes_(String & seq, vector<PeptideEntry> & nodes, Size start, Size end)
   {
 
     // Termination condition: start index greater than end index
-    if(start > end) return -1;
+    if (start > end)
+      return -1;
 
-    Size compare_value = (start + end)/2;
-    String& node_sequence = nodes[compare_value].sequence;
+    Size compare_value = (start + end) / 2;
+    String & node_sequence = nodes[compare_value].sequence;
     int compar = seq.compare(node_sequence);
-    if(start == end)
+    if (start == end)
     {
-      if(compar != 0) return nodes.size();
-      else 					 return compare_value;
+      if (compar != 0)
+        return nodes.size();
+      else
+        return compare_value;
     }
-    else if(compar <  0)
+    else if (compar <  0)
     {
       --compare_value;
-      if (compare_value < start) compare_value = start;
+      if (compare_value < start)
+        compare_value = start;
 
-      return binarySearchNodes_(seq, nodes,start,compare_value);
+      return binarySearchNodes_(seq, nodes, start, compare_value);
     }
-    else if(compar > 0)
+    else if (compar > 0)
     {
       ++compare_value;
-      if(compare_value > end) compare_value = end;
+      if (compare_value > end)
+        compare_value = end;
 
-      return binarySearchNodes_(seq,nodes,compare_value, end);
+      return binarySearchNodes_(seq, nodes, compare_value, end);
     }
     else
     {
@@ -342,16 +355,16 @@ namespace OpenMS
   }
 
   //includes all MSMS derived peptides into the graph --idXML
-  Size ProteinResolver::includeMSMSPeptides_(vector<PeptideIdentification> &peptide_identifications, vector<PeptideEntry> &peptide_nodes )
+  Size ProteinResolver::includeMSMSPeptides_(vector<PeptideIdentification> & peptide_identifications, vector<PeptideEntry> & peptide_nodes)
   {
     Size found_peptide = 0;
-    for(Size pep = 0; pep != peptide_identifications.size();++pep)
+    for (Size pep = 0; pep != peptide_identifications.size(); ++pep)
     {
-      Size peptide_entry = findPeptideEntry_(peptide_identifications[pep].getHits().front().getSequence().toUnmodifiedString(),peptide_nodes);
+      Size peptide_entry = findPeptideEntry_(peptide_identifications[pep].getHits().front().getSequence().toUnmodifiedString(), peptide_nodes);
 
-      if(peptide_entry != peptide_nodes.size())
+      if (peptide_entry != peptide_nodes.size())
       {
-        if(!peptide_nodes[peptide_entry].experimental)
+        if (!peptide_nodes[peptide_entry].experimental)
         {
           ++found_peptide;
         }
@@ -365,25 +378,25 @@ namespace OpenMS
 
   //TODO include run information for each peptide
   //includes all MSMS derived peptides into the graph --consensusXML
-  Size ProteinResolver::includeMSMSPeptides_(ConsensusMap & consensus, vector<PeptideEntry> &peptide_nodes )
+  Size ProteinResolver::includeMSMSPeptides_(ConsensusMap & consensus, vector<PeptideEntry> & peptide_nodes)
   {
     Size found_peptide = 0;
-    for(Size pep = 0; pep != consensus.size(); ++pep)
+    for (Size pep = 0; pep != consensus.size(); ++pep)
     {
-      ConsensusFeature& feature = consensus.at(pep);
+      ConsensusFeature & feature = consensus.at(pep);
 
       // get all peptide identifications
       const vector<PeptideIdentification> & pep_id  = feature.getPeptideIdentifications();
 
 
-      for(Size cons_pep = 0; cons_pep < pep_id.size(); ++cons_pep)
+      for (Size cons_pep = 0; cons_pep < pep_id.size(); ++cons_pep)
       {
         String seq = pep_id.at(cons_pep).getHits().front().getSequence().toUnmodifiedString();
         Size peptide_entry = findPeptideEntry_(seq, peptide_nodes);
 
-        if(peptide_entry != peptide_nodes.size())
+        if (peptide_entry != peptide_nodes.size())
         {
-          if(!peptide_nodes.at(peptide_entry).experimental)
+          if (!peptide_nodes.at(peptide_entry).experimental)
           {
             ++found_peptide;
           }
@@ -401,40 +414,41 @@ namespace OpenMS
   }
 
   //overloaded functions -- return a const reference to a PeptideIdentification object or a peptideHit either from a consensusMap or a vector<PeptideIdentification>
-  const PeptideIdentification& ProteinResolver::getPeptideIdentification(const ConsensusMap& consensus, const PeptideEntry* peptide)
+  const PeptideIdentification & ProteinResolver::getPeptideIdentification(const ConsensusMap & consensus, const PeptideEntry * peptide)
   {
-    return (consensus[peptide->peptide_identification].getPeptideIdentifications()[peptide->peptide_hit]);
-  }
-  const PeptideHit& ProteinResolver::getPeptideHit(const ConsensusMap& consensus,const PeptideEntry* peptide)
-  {
-    return getPeptideIdentification(consensus,peptide).getHits().front();
+    return consensus[peptide->peptide_identification].getPeptideIdentifications()[peptide->peptide_hit];
   }
 
-  const PeptideIdentification& ProteinResolver::getPeptideIdentification(const vector<PeptideIdentification>& peptide_nodes, const PeptideEntry* peptide)
+  const PeptideHit & ProteinResolver::getPeptideHit(const ConsensusMap & consensus, const PeptideEntry * peptide)
+  {
+    return getPeptideIdentification(consensus, peptide).getHits().front();
+  }
+
+  const PeptideIdentification & ProteinResolver::getPeptideIdentification(const vector<PeptideIdentification> & peptide_nodes, const PeptideEntry * peptide)
   {
     return peptide_nodes[peptide->peptide_identification];
   }
-  const PeptideHit& ProteinResolver::getPeptideHit(const vector<PeptideIdentification>& peptide_nodes,const PeptideEntry* peptide)
+
+  const PeptideHit & ProteinResolver::getPeptideHit(const vector<PeptideIdentification> & peptide_nodes, const PeptideEntry * peptide)
   {
-    return getPeptideIdentification(peptide_nodes,peptide).getHits().front();
+    return getPeptideIdentification(peptide_nodes, peptide).getHits().front();
   }
 
-
   //Proteins and Peptides get reindexed, based on whether they belong to msd groups or not. Indexes of Proteins which are in an ISD group but in none of the MSD groups will not be used anymore.
-  void ProteinResolver::reindexingNodes_(vector<MSDGroup>& msd_groups, vector<Size> &reindexed_proteins,vector<Size> &reindexed_peptides )
+  void ProteinResolver::reindexingNodes_(vector<MSDGroup> & msd_groups, vector<Size> & reindexed_proteins, vector<Size> & reindexed_peptides)
   {
     Size new_prot_index(0);
     Size new_pep_index(0);
-    for(vector<MSDGroup>::iterator msd = msd_groups.begin();msd != msd_groups.end(); ++msd)
+    for (vector<MSDGroup>::iterator msd = msd_groups.begin(); msd != msd_groups.end(); ++msd)
     {
-      for(list<ProteinEntry*>::iterator prot = msd->proteins.begin(); prot != msd->proteins.end(); ++prot)
+      for (list<ProteinEntry *>::iterator prot = msd->proteins.begin(); prot != msd->proteins.end(); ++prot)
       {
         reindexed_proteins.push_back((*prot)->index);
         (*prot)->index = new_prot_index;
         ++new_prot_index;
       }
 
-      for(list<PeptideEntry*>::iterator pep = msd->peptides.begin(); pep != msd->peptides.end(); ++pep)
+      for (list<PeptideEntry *>::iterator pep = msd->peptides.begin(); pep != msd->peptides.end(); ++pep)
       {
         reindexed_peptides.push_back((*pep)->index);
         (*pep)->index = new_pep_index;
@@ -444,22 +458,22 @@ namespace OpenMS
   }
 
   //marks Proteins which have a unique peptide as primary. Uses reindexed vector, thus reindexingNodes has to be called before.
-  void ProteinResolver::primaryProteins_(vector<PeptideEntry> &peptide_nodes,  vector<Size>& reindexed_peptides)
+  void ProteinResolver::primaryProteins_(vector<PeptideEntry> & peptide_nodes, vector<Size> & reindexed_peptides)
   {
     //primary proteins
     Size pc = 0;
-    for(vector<Size>::iterator pep = reindexed_peptides.begin(); pep != reindexed_peptides.end(); ++pep)
+    for (vector<Size>::iterator pep = reindexed_peptides.begin(); pep != reindexed_peptides.end(); ++pep)
     {
       ++pc;
-      if(peptide_nodes[*pep].proteins.size() == 1)
+      if (peptide_nodes[*pep].proteins.size() == 1)
       {
         peptide_nodes[*pep].proteins.front()->protein_type = ProteinEntry::primary;
       }
     }
   }
 
-  void ProteinResolver::buildingISDGroups_(vector<ProteinEntry>& protein_nodes, vector<PeptideEntry>& peptide_nodes,
-                                           vector<ISDGroup>& isd_groups)
+  void ProteinResolver::buildingISDGroups_(vector<ProteinEntry> & protein_nodes, vector<PeptideEntry> & peptide_nodes,
+                                           vector<ISDGroup> & isd_groups)
   {
     EnzymaticDigestion digestor;
     String enzyme_name = param_.getValue("resolver:enzyme");
@@ -474,7 +488,7 @@ namespace OpenMS
     //-------------------------------------------------------------
 
     vector<AASequence> temp_peptides;
-    map<String,set<Size> > peptides;
+    map<String, set<Size> > peptides;
 
     for (Size i = 0; i < protein_data_.size(); ++i)
     {
@@ -499,13 +513,13 @@ namespace OpenMS
     vector<PeptideEntry>::iterator pep_node = peptide_nodes.begin();
     Size peptide_counter = 0;
 
-    for(map<String,set<Size> >::iterator i  = peptides.begin(); i != peptides.end(); ++i, ++pep_node, ++peptide_counter)
+    for (map<String, set<Size> >::iterator i  = peptides.begin(); i != peptides.end(); ++i, ++pep_node, ++peptide_counter)
     {
       pep_node->index = peptide_counter;
       pep_node->traversed = false;
       pep_node->sequence = (*i).first;
       pep_node->experimental = false;
-      for (set<Size>::iterator j = (*i).second.begin(); j != (*i).second.end();++j)
+      for (set<Size>::iterator j = (*i).second.begin(); j != (*i).second.end(); ++j)
       {
         pep_node->proteins.push_back(&protein_nodes[*j]);
         protein_nodes[*j].peptides.push_back(&*pep_node);
@@ -514,43 +528,43 @@ namespace OpenMS
     //ISDGraph constructed
     Size isd_group_counter = 0;
     Size i = 0;
-    for(vector<ProteinEntry>::iterator prot_node = protein_nodes.begin(); prot_node != protein_nodes.end();++prot_node)
+    for (vector<ProteinEntry>::iterator prot_node = protein_nodes.begin(); prot_node != protein_nodes.end(); ++prot_node)
     {
       ++i;
-      if(! prot_node -> traversed)
+      if (!prot_node->traversed)
       {
-        prot_node -> traversed = true;
+        prot_node->traversed = true;
         ISDGroup group;
         group.index = isd_group_counter;
         ++isd_group_counter;
-        traversProtein_(&*prot_node,group);
+        traversProtein_(&*prot_node, group);
         isd_groups.push_back(group);
       }
     }
   }
 
-  void ProteinResolver::buildingMSDGroups_(vector<MSDGroup>& msd_groups, vector<ISDGroup>& isd_groups)
+  void ProteinResolver::buildingMSDGroups_(vector<MSDGroup> & msd_groups, vector<ISDGroup> & isd_groups)
   {
     //-------------------------------------------------------------
     // building MSDGroups
     //-------------------------------------------------------------
     Size msd_group_counter = 0;
-    for(Size isd_group = 0; isd_group != isd_groups.size(); ++isd_group)
+    for (Size isd_group = 0; isd_group != isd_groups.size(); ++isd_group)
     {
-      for(list<ProteinEntry*>::iterator prot = isd_groups[isd_group].proteins.begin(); prot != isd_groups[isd_group].proteins.end(); ++prot)
+      for (list<ProteinEntry *>::iterator prot = isd_groups[isd_group].proteins.begin(); prot != isd_groups[isd_group].proteins.end(); ++prot)
       {
-        ProteinEntry* prot_node = (*prot);
-        if(prot_node -> traversed)
+        ProteinEntry * prot_node = (*prot);
+        if (prot_node->traversed)
         {
-          prot_node -> traversed = false;
+          prot_node->traversed = false;
           MSDGroup msd_group;
           msd_group.index = msd_group_counter;
           msd_group.isd_group = &(isd_groups[isd_group]);
           msd_group.number_of_target = 0;
-          msd_group.number_of_decoy= 0;
+          msd_group.number_of_decoy = 0;
           msd_group.number_of_target_plus_decoy = 0;
-          traversProtein_(&*prot_node,msd_group);
-          if(msd_group.peptides.size()> 0)
+          traversProtein_(&*prot_node, msd_group);
+          if (msd_group.peptides.size() > 0)
           {
             msd_groups.push_back(msd_group);
             isd_groups[isd_group].msd_groups.push_back(msd_group_counter);
@@ -561,12 +575,12 @@ namespace OpenMS
     }
   }
 
-  void ProteinResolver::setProteinData(vector<FASTAFile::FASTAEntry>& protein_data)
+  void ProteinResolver::setProteinData(vector<FASTAFile::FASTAEntry> & protein_data)
   {
     protein_data_ = protein_data;
   }
 
-  const vector< ProteinResolver::ResolverResult >& ProteinResolver::getResults()
+  const vector<ProteinResolver::ResolverResult> & ProteinResolver::getResults()
   {
     return resolver_result_;
   }
@@ -676,5 +690,3 @@ namespace OpenMS
  }*/
 
 }
-
-

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Marc Sturm, Clemens Groepl, Chris Bielow $
@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
-#ifdef _OPENMP 
+#ifdef _OPENMP
 #include <omp.h>
 #endif
 
@@ -90,15 +90,15 @@ using namespace std;
 
   <B>The command line parameters of this tool are:</B> @n
   @verbinclude TOPP_MapAlignerIdentification.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude TOPP_MapAlignerIdentification.html
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude TOPP_MapAlignerIdentification.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPMapAlignerPoseClustering
-: public TOPPMapAlignerBase
+class TOPPMapAlignerPoseClustering :
+  public TOPPMapAlignerBase
 {
 
 public:
@@ -127,8 +127,8 @@ protected:
   {
     MapAlignmentAlgorithmPoseClustering algorithm;
     ExitCodes ret = TOPPMapAlignerBase::initialize_(&algorithm, true);
-    if (ret!=EXECUTION_OK) return ret;
-    
+    if (ret != EXECUTION_OK) return ret;
+
     StringList in_files = getStringList_("in");
     StringList out_files = getStringList_("out");
     StringList out_trafos = getStringList_("trafo_out");
@@ -149,16 +149,16 @@ protected:
     }
     else if (reference_index == 0) // no reference given
     {
-			LOG_INFO << "Picking a reference (by size) ..." << std::flush;
+      LOG_INFO << "Picking a reference (by size) ..." << std::flush;
       // use map with highest number of features as reference:
       Size max_count(0);
       FeatureXMLFile f;
       for (Size m = 0; m < in_files.size(); ++m)
       {
         Size s(0);
-        if (in_type==FileTypes::FEATUREXML) s = f.loadSize(in_files[m]);
-        else if (in_type==FileTypes::MZML)
-        { // this is expensive!
+        if (in_type == FileTypes::FEATUREXML) s = f.loadSize(in_files[m]);
+        else if (in_type == FileTypes::MZML) // this is expensive!
+        {
           MSExperiment<> exp;
           MzMLFile().load(in_files[m], exp);
           exp.updateRanges(1);
@@ -170,17 +170,17 @@ protected:
           reference_index = m;
         }
       }
-			LOG_INFO << " done" << std::endl;
+      LOG_INFO << " done" << std::endl;
       file = in_files[reference_index];
     }
 
     FeatureXMLFile f_fxml;
-    if (out_files.size()==0) // no need to store featureXML, thus we can load only minimum required information
+    if (out_files.size() == 0) // no need to store featureXML, thus we can load only minimum required information
     {
       f_fxml.getOptions().setLoadConvexHull(false);
       f_fxml.getOptions().setLoadSubordinates(false);
     }
-    if (in_type==FileTypes::FEATUREXML)
+    if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap<> map_ref;
       FeatureXMLFile f_fxml_tmp; // for the reference, we never need CH or subordinates
@@ -189,33 +189,33 @@ protected:
       f_fxml_tmp.load(file, map_ref);
       algorithm.setReference(map_ref);
     }
-    else if (in_type==FileTypes::MZML)
+    else if (in_type == FileTypes::MZML)
     {
       MSExperiment<> map_ref;
       MzMLFile().load(file, map_ref);
       algorithm.setReference(map_ref);
     }
 
-		ProgressLogger plog;
-		plog.setLogType(log_type_);
-		
-		plog.startProgress(0, in_files.size(), "Aligning input maps");
-		Size progress(0); // thread-safe progress
+    ProgressLogger plog;
+    plog.setLogType(log_type_);
+
+    plog.startProgress(0, in_files.size(), "Aligning input maps");
+    Size progress(0);     // thread-safe progress
     // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
-    #ifdef _OPENMP 
-    #pragma omp parallel for schedule(dynamic, 1)
-    #endif
-    for (Int i=0; i<in_files.size(); ++i)
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 1)
+#endif
+    for (Int i = 0; i < in_files.size(); ++i)
     {
       TransformationDescription trafo;
-      if (in_type==FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML)
       {
         FeatureMap<> map;
         // workaround for loading: use temporary FeatureXMLFile since it is not thread-safe
         FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();
         f_fxml_tmp.load(in_files[i], map);
-        if (i==reference_index) trafo.fitModel("identity");
+        if (i == reference_index) trafo.fitModel("identity");
         else algorithm.align(map, trafo);
         if (out_files.size())
         {
@@ -225,11 +225,11 @@ protected:
           f_fxml_tmp.store(out_files[i], map);
         }
       }
-      else if (in_type==FileTypes::MZML)
+      else if (in_type == FileTypes::MZML)
       {
         MSExperiment<> map;
         MzMLFile().load(in_files[i], map);
-        if (i==reference_index) trafo.fitModel("identity");
+        if (i == reference_index) trafo.fitModel("identity");
         else algorithm.align(map, trafo);
         if (out_files.size())
         {
@@ -238,26 +238,27 @@ protected:
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
           MzMLFile().store(out_files[i], map);
         }
-      }      
-      
+      }
+
       if (out_trafos.size())
       {
         TransformationXMLFile().store(out_trafos[i], trafo);
       }
 
-		  #ifdef _OPENMP 
-      #pragma omp critical (MAPose_Progress)
-      #endif
-			{
-      plog.setProgress(++progress); // thread safe progress counter
-			}
+#ifdef _OPENMP
+#pragma omp critical (MAPose_Progress)
+#endif
+      {
+        plog.setProgress(++progress); // thread safe progress counter
+      }
 
     }
-    
-		plog.endProgress();
+
+    plog.endProgress();
     return EXECUTION_OK;
 
   }
+
 };
 
 int main(int argc, const char ** argv)

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: $
@@ -46,203 +46,209 @@ namespace OpenMS
 
   /**
     @brief Representation of a (putative) link between two Features, which stem from the same compound
-	  but have different charge (including different adduct ions (H+, Na+, ..)
-    
+      but have different charge (including different adduct ions (H+, Na+, ..)
+
     A ChargePair represents an edge between two Features and specifies their respective charge and adducts,
     so that when decharged they can be explained as stemming from the same compound.
-    
-  	
-  	@ingroup Datastructures
+
+
+    @ingroup Datastructures
   */
   class OPENMS_DLLAPI ChargePair
   {
-  	
-	 public:
+
+public:
     ///@name Constructors and destructor
     //@{
-		/// Default constructor
-		ChargePair()
-			: feature0_index_(0),
-				feature1_index_(0),
-				feature0_charge_(0),
-				feature1_charge_(0),
-				compomer_(),
-				mass_diff_(0),
-				score_(1),
-				is_active_(false)
-		{
-		}
-		/// Constructor from map index, element index and Feature
-		ChargePair(const Size& index0,
-							 const Size& index1,
-							 const Int& charge0,
-							 const Int& charge1,
-							 const Compomer& compomer, 
-							 const DoubleReal& mass_diff, 
-						   const bool active)
-			:	feature0_index_(index0),
-				feature1_index_(index1),
-				feature0_charge_(charge0),
-				feature1_charge_(charge1),
-				compomer_(compomer),
-				mass_diff_(mass_diff),
-				score_(1),
-				is_active_(active)
-		{
-		}
-		/// Copy constructor
-		ChargePair(const ChargePair& rhs)
-			: feature0_index_(rhs.feature0_index_),
-				feature1_index_(rhs.feature1_index_),
-				feature0_charge_(rhs.feature0_charge_),
-				feature1_charge_(rhs.feature1_charge_),
-				compomer_(rhs.compomer_),
-				mass_diff_(rhs.mass_diff_),
-				score_(rhs.score_),
-				is_active_(rhs.is_active_)
-		{
-		}
-		/// Assignment operator
-		ChargePair& operator = (const ChargePair& rhs)
-		{
-				if (&rhs == this) return *this;
+    /// Default constructor
+    ChargePair() :
+      feature0_index_(0),
+      feature1_index_(0),
+      feature0_charge_(0),
+      feature1_charge_(0),
+      compomer_(),
+      mass_diff_(0),
+      score_(1),
+      is_active_(false)
+    {
+    }
 
-				feature0_index_ = rhs.feature0_index_;
-				feature1_index_ = rhs.feature1_index_;
-				feature0_charge_ = rhs.feature0_charge_;
-				feature1_charge_ = rhs.feature1_charge_;
-				compomer_ = rhs.compomer_;
-				mass_diff_ = rhs.mass_diff_;
-				score_ = rhs.score_;
-				is_active_ = rhs.is_active_;
+    /// Constructor from map index, element index and Feature
+    ChargePair(const Size & index0,
+               const Size & index1,
+               const Int & charge0,
+               const Int & charge1,
+               const Compomer & compomer,
+               const DoubleReal & mass_diff,
+               const bool active) :
+      feature0_index_(index0),
+      feature1_index_(index1),
+      feature0_charge_(charge0),
+      feature1_charge_(charge1),
+      compomer_(compomer),
+      mass_diff_(mass_diff),
+      score_(1),
+      is_active_(active)
+    {
+    }
 
-				return *this;
-		}
-		
-		/// Destructor
-		virtual ~ChargePair()
-		{
-		}
+    /// Copy constructor
+    ChargePair(const ChargePair & rhs) :
+      feature0_index_(rhs.feature0_index_),
+      feature1_index_(rhs.feature1_index_),
+      feature0_charge_(rhs.feature0_charge_),
+      feature1_charge_(rhs.feature1_charge_),
+      compomer_(rhs.compomer_),
+      mass_diff_(rhs.mass_diff_),
+      score_(rhs.score_),
+      is_active_(rhs.is_active_)
+    {
+    }
+
+    /// Assignment operator
+    ChargePair & operator=(const ChargePair & rhs)
+    {
+      if (&rhs == this) return *this;
+
+      feature0_index_ = rhs.feature0_index_;
+      feature1_index_ = rhs.feature1_index_;
+      feature0_charge_ = rhs.feature0_charge_;
+      feature1_charge_ = rhs.feature1_charge_;
+      compomer_ = rhs.compomer_;
+      mass_diff_ = rhs.mass_diff_;
+      score_ = rhs.score_;
+      is_active_ = rhs.is_active_;
+
+      return *this;
+    }
+
+    /// Destructor
+    virtual ~ChargePair()
+    {
+    }
+
     //@}
-    
+
     //@name Accessors
     //@{
-		/// Returns the charge (for element 0 or 1)
-		Int getCharge(UInt pairID) const
-		{
-			if (pairID == 0) return feature0_charge_;
-			else return feature1_charge_;
-		}
-		/// Set the charge (for element 0 or 1)
-		void setCharge(UInt pairID, Int e)
-		{
-			if (pairID == 0) feature0_charge_ = e;
-			else feature1_charge_ = e;
-		}
-				
-		/// Returns the element index (for element 0 or 1)
-		Size getElementIndex(UInt pairID) const
-		{
-			if (pairID == 0) return feature0_index_;
-			else return feature1_index_;
-		}
-		/// Set the element index (for element 0 or 1)
-		void setElementIndex(UInt pairID, Size e)
-		{
-			if (pairID == 0) feature0_index_ = e;
-			else feature1_index_ = e;
-		}
+    /// Returns the charge (for element 0 or 1)
+    Int getCharge(UInt pairID) const
+    {
+      if (pairID == 0) return feature0_charge_;
+      else return feature1_charge_;
+    }
 
-		
-		/// Returns the Id of the compomer that explains the mass difference
-		const Compomer& getCompomer() const
-		{
-				return compomer_;
-		}
-		/// Set the compomer id
-		void setCompomer(const Compomer& compomer)
-		{
-			compomer_ = compomer;
-		}
-		
-		/// Returns the mass difference
-		DoubleReal getMassDiff() const
-		{
-			return mass_diff_;
-		}
-		/// Sets the mass difference
-		void setMassDiff(DoubleReal mass_diff)
-		{
-			mass_diff_ = mass_diff;
-		}
-		
-		/// Returns the ILP edge score
-		DoubleReal getEdgeScore() const
-		{
-			return score_;
-		}
-		/// Sets the ILP edge score
-		void setEdgeScore(DoubleReal score)
-		{
-			score_ = score;
-		}		
+    /// Set the charge (for element 0 or 1)
+    void setCharge(UInt pairID, Int e)
+    {
+      if (pairID == 0) feature0_charge_ = e;
+      else feature1_charge_ = e;
+    }
 
-		/// is this pair realized?
-		bool isActive() const
-		{
-				return is_active_;
-		}
-		
-		void setActive(const bool active) 
-		{
-				is_active_ = active;
-		}
-		
-		//@}
-				
-		/// Equality operator
-		virtual bool operator == (const ChargePair& i) const
-		{
-			return ((feature0_index_ == i.feature0_index_) && 
-							(feature1_index_ == i.feature1_index_) && 
-							(feature0_charge_ == i.feature0_charge_) && 
-							(feature1_charge_ == i.feature1_charge_) && 
-							(compomer_ == i.compomer_) && 
-							(mass_diff_ == i.mass_diff_) &&
-							(is_active_ == i.is_active_) );
-		}
+    /// Returns the element index (for element 0 or 1)
+    Size getElementIndex(UInt pairID) const
+    {
+      if (pairID == 0) return feature0_index_;
+      else return feature1_index_;
+    }
 
-		/// Equality operator
-		virtual bool operator != (const ChargePair& i) const
-		{
-			return !(this->operator ==(i));
-		}
-			
+    /// Set the element index (for element 0 or 1)
+    void setElementIndex(UInt pairID, Size e)
+    {
+      if (pairID == 0) feature0_index_ = e;
+      else feature1_index_ = e;
+    }
 
-	 protected:
-    	
-		/// Int of the first element within the FeatureMap
-		Size feature0_index_;
-		/// Int of the second element within the FeatureMap
-		Size feature1_index_;
-		/// Assumed charge of the first feature
-		Int feature0_charge_;
-		/// Assumed charge of the second feature
-		Int feature1_charge_;
-		/// Compomer that explains the mass difference
-		Compomer compomer_;
-		/// mass difference (after explanation by compomer)
-		DoubleReal mass_diff_;
-		/// Score of this edge used in ILP
-		DoubleReal score_;
-		/// was this pair realized by ILP?
-		bool is_active_;
+    /// Returns the Id of the compomer that explains the mass difference
+    const Compomer & getCompomer() const
+    {
+      return compomer_;
+    }
+
+    /// Set the compomer id
+    void setCompomer(const Compomer & compomer)
+    {
+      compomer_ = compomer;
+    }
+
+    /// Returns the mass difference
+    DoubleReal getMassDiff() const
+    {
+      return mass_diff_;
+    }
+
+    /// Sets the mass difference
+    void setMassDiff(DoubleReal mass_diff)
+    {
+      mass_diff_ = mass_diff;
+    }
+
+    /// Returns the ILP edge score
+    DoubleReal getEdgeScore() const
+    {
+      return score_;
+    }
+
+    /// Sets the ILP edge score
+    void setEdgeScore(DoubleReal score)
+    {
+      score_ = score;
+    }
+
+    /// is this pair realized?
+    bool isActive() const
+    {
+      return is_active_;
+    }
+
+    void setActive(const bool active)
+    {
+      is_active_ = active;
+    }
+
+    //@}
+
+    /// Equality operator
+    virtual bool operator==(const ChargePair & i) const
+    {
+      return (feature0_index_ == i.feature0_index_) &&
+             (feature1_index_ == i.feature1_index_) &&
+             (feature0_charge_ == i.feature0_charge_) &&
+             (feature1_charge_ == i.feature1_charge_) &&
+             (compomer_ == i.compomer_) &&
+             (mass_diff_ == i.mass_diff_) &&
+             (is_active_ == i.is_active_);
+    }
+
+    /// Equality operator
+    virtual bool operator!=(const ChargePair & i) const
+    {
+      return !(this->operator==(i));
+    }
+
+protected:
+
+    /// Int of the first element within the FeatureMap
+    Size feature0_index_;
+    /// Int of the second element within the FeatureMap
+    Size feature1_index_;
+    /// Assumed charge of the first feature
+    Int feature0_charge_;
+    /// Assumed charge of the second feature
+    Int feature1_charge_;
+    /// Compomer that explains the mass difference
+    Compomer compomer_;
+    /// mass difference (after explanation by compomer)
+    DoubleReal mass_diff_;
+    /// Score of this edge used in ILP
+    DoubleReal score_;
+    /// was this pair realized by ILP?
+    bool is_active_;
   };
 
   ///Print the contents of a ChargePair to a stream.
-  OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const ChargePair& cons);
-  	
+  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ChargePair & cons);
+
 } // namespace OpenMS
 
 #endif // OPENMS_DATASTRUCTURES_CHARGEPAIR_H
- 

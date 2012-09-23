@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
@@ -61,22 +61,23 @@ using namespace std;
 #include <mach-o/dyld.h>
 #endif
 
-namespace OpenMS 
+namespace OpenMS
 {
-	
+
   String File::getExecutablePath()
   {
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
     static String spath = "";
     static bool path_checked = false;
 
-    if (path_checked) return spath; // short route. Only inquire the path once. The result will be the same every time.
+    if (path_checked)
+      return spath;                 // short route. Only inquire the path once. The result will be the same every time.
 
     char path[1024];
 
 #ifdef OPENMS_WINDOWSPLATFORM
     int size = sizeof(path);
-    if( GetModuleFileName( NULL, path, size ) )
+    if (GetModuleFileName(NULL, path, size))
 #elif  defined(__APPLE__)
     uint size = sizeof(path);
     if (_NSGetExecutablePath(path, &size) == 0)
@@ -85,7 +86,7 @@ namespace OpenMS
     int ch = readlink("/proc/self/exe", path, size);
     if (ch != -1)
 #endif
-    { 
+    {
       spath = File::path(String(path));
       if (File::exists(spath)) // check if directory exists
       {
@@ -107,201 +108,203 @@ namespace OpenMS
     return spath;
   }
 
-	bool File::exists(const String& file)
-	{
-		QFileInfo fi(file.toQString());
-		return fi.exists();
-	}
+  bool File::exists(const String & file)
+  {
+    QFileInfo fi(file.toQString());
+    return fi.exists();
+  }
 
-	bool File::empty(const String& file)
-	{
-		QFileInfo fi(file.toQString());
-		return (!fi.exists() || fi.size()==0);
-	}
+  bool File::empty(const String & file)
+  {
+    QFileInfo fi(file.toQString());
+    return !fi.exists() || fi.size() == 0;
+  }
 
-	bool File::remove(const String& file)
-	{
-		if (!exists(file)) return true;
-		
-	  if( std::remove(file.c_str()) != 0 ) return false;
-	  return true;
-	}
-	
-	bool File::removeDirRecursively(const String& dir_name)
-	{
-		bool fail = false;
-		QString path = dir_name.toQString();
+  bool File::remove(const String & file)
+  {
+    if (!exists(file))
+      return true;
+
+    if (std::remove(file.c_str()) != 0)
+      return false;
+
+    return true;
+  }
+
+  bool File::removeDirRecursively(const String & dir_name)
+  {
+    bool fail = false;
+    QString path = dir_name.toQString();
     QDir dir(path);
-		QStringList files = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
-		foreach (const QString& file_name, files)
-		{
-			if (!dir.remove(file_name))
-			{
-				LOG_WARN << "Could not remove file " << String(file_name) << "!" << std::endl;
-				fail = true;
-			}
-		}
-		QStringList contained_dirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-		foreach (const QString& contained_dir, contained_dirs)
-		{
-			if (!removeDirRecursively(path + QDir::separator() + contained_dir))
-			{
-				fail = true;
-			}
-		}
-		
-		QDir parent_dir(path);
-		if (parent_dir.cdUp())
-		{
-			if (!parent_dir.rmdir(path))
-			{
-				std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
-				fail = true;
-			}
-		}
-		
-		return !fail;
-	}
+    QStringList files = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
+    foreach(const QString &file_name, files)
+    {
+      if (!dir.remove(file_name))
+      {
+        LOG_WARN << "Could not remove file " << String(file_name) << "!" << std::endl;
+        fail = true;
+      }
+    }
+    QStringList contained_dirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    foreach(const QString &contained_dir, contained_dirs)
+    {
+      if (!removeDirRecursively(path + QDir::separator() + contained_dir))
+      {
+        fail = true;
+      }
+    }
 
-	String File::absolutePath(const String& file)
-	{
-		QFileInfo fi(file.toQString());
-		return fi.absoluteFilePath();
-	}
+    QDir parent_dir(path);
+    if (parent_dir.cdUp())
+    {
+      if (!parent_dir.rmdir(path))
+      {
+        std::cerr << "Could not remove directory " << String(dir.dirName()) << "!" << std::endl;
+        fail = true;
+      }
+    }
 
-	String File::basename(const String& file)
-	{
-		QFileInfo fi(file.toQString());
-		return fi.fileName();
-	}
+    return !fail;
+  }
 
-	String File::path(const String& file)
-	{
-		QFileInfo fi(file.toQString());
-		return fi.path();
-	}
+  String File::absolutePath(const String & file)
+  {
+    QFileInfo fi(file.toQString());
+    return fi.absoluteFilePath();
+  }
 
-	bool File::readable(const String& file)
-	{
-		QFileInfo fi(file.toQString());
-		return (fi.exists() && fi.isReadable());
-	}
+  String File::basename(const String & file)
+  {
+    QFileInfo fi(file.toQString());
+    return fi.fileName();
+  }
 
-	bool File::writable(const String& file)
-	{
-		QFileInfo fi(file.toQString());
-		
-		bool tmp = false ;
-		if (fi.exists())
-		{
-			tmp = fi.isWritable();
-		}
-		else
-		{
-			QFile f;
-			f.setFileName(file.toQString());
-			f.open(QIODevice::WriteOnly);
-			tmp = f.isWritable();
-			f.remove();
-		}
-		
-		return tmp;
-	}
+  String File::path(const String & file)
+  {
+    QFileInfo fi(file.toQString());
+    return fi.path();
+  }
 
-	String File::find(const String& filename, StringList directories)
-	{
-		String filename_new = filename;
-		
-		//add data dir in OpenMS data path
-		directories.push_back(getOpenMSDataPath());
-		
-		//add path suffix to all specified directories
-		String path = File::path(filename);
-		if (path!="")
-		{
-			for (StringList::iterator it=directories.begin(); it!=directories.end(); ++it)
-			{
-				it->ensureLastChar('/');
-				*it += path;
-			}
-			filename_new = File::basename(filename);
-		}
-		
-		//look up file
-		for (StringList::const_iterator it=directories.begin(); it!=directories.end(); ++it)
-		{
-			String loc = *it;
-			loc.ensureLastChar('/');
-			loc = loc + filename_new;
-			
-			if (exists(loc))
-			{
+  bool File::readable(const String & file)
+  {
+    QFileInfo fi(file.toQString());
+    return fi.exists() && fi.isReadable();
+  }
+
+  bool File::writable(const String & file)
+  {
+    QFileInfo fi(file.toQString());
+
+    bool tmp = false;
+    if (fi.exists())
+    {
+      tmp = fi.isWritable();
+    }
+    else
+    {
+      QFile f;
+      f.setFileName(file.toQString());
+      f.open(QIODevice::WriteOnly);
+      tmp = f.isWritable();
+      f.remove();
+    }
+
+    return tmp;
+  }
+
+  String File::find(const String & filename, StringList directories)
+  {
+    String filename_new = filename;
+
+    //add data dir in OpenMS data path
+    directories.push_back(getOpenMSDataPath());
+
+    //add path suffix to all specified directories
+    String path = File::path(filename);
+    if (path != "")
+    {
+      for (StringList::iterator it = directories.begin(); it != directories.end(); ++it)
+      {
+        it->ensureLastChar('/');
+        *it += path;
+      }
+      filename_new = File::basename(filename);
+    }
+
+    //look up file
+    for (StringList::const_iterator it = directories.begin(); it != directories.end(); ++it)
+    {
+      String loc = *it;
+      loc.ensureLastChar('/');
+      loc = loc + filename_new;
+
+      if (exists(loc))
+      {
         return String(QDir::cleanPath(loc.toQString()));
-			}
-		}
-		
-		//if the file was not found, throw an exception
-		throw Exception::FileNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,filename);
-		
-		//this is never reached, but needs to be there to avoid compiler warnings
-		return "";
-	}
+      }
+    }
 
-	bool File::fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path)
-	{
-		QDir d(dir.toQString(), file_pattern.toQString(), QDir::Name, QDir::Files);
-		QFileInfoList list = d.entryInfoList();
+    //if the file was not found, throw an exception
+    throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 
-		//clear and check if empty
-		output.clear();
-		if (list.empty())
-		{
-			return false;
-		}
-		
-		//resize output
-		output.resize(list.size());
-		
-		//fill output
-		UInt i = 0;
-		for (QFileInfoList::const_iterator it = list.constBegin(); it != list.constEnd(); ++it)
-		{
-			output[i++] = full_path ? it->filePath() : it->fileName();
-		}
-		
-		return true;
-	}
+    //this is never reached, but needs to be there to avoid compiler warnings
+    return "";
+  }
 
-	
-	String File::getUniqueName()
-	{
-		DateTime now = DateTime::now();
-		String pid;
-		#ifdef OPENMS_WINDOWSPLATFORM
-			pid = (String)GetCurrentProcessId();
-		#else
-			pid = (String)getpid();	
-		#endif		
-		static int number = 0;
-		return now.getDate() + "_" + now.getTime().remove(':') + "_" + String(QHostInfo::localHostName()) + "_" + pid + "_" + (++number);
-	}
-  
+  bool File::fileList(const String & dir, const String & file_pattern, StringList & output, bool full_path)
+  {
+    QDir d(dir.toQString(), file_pattern.toQString(), QDir::Name, QDir::Files);
+    QFileInfoList list = d.entryInfoList();
+
+    //clear and check if empty
+    output.clear();
+    if (list.empty())
+    {
+      return false;
+    }
+
+    //resize output
+    output.resize(list.size());
+
+    //fill output
+    UInt i = 0;
+    for (QFileInfoList::const_iterator it = list.constBegin(); it != list.constEnd(); ++it)
+    {
+      output[i++] = full_path ? it->filePath() : it->fileName();
+    }
+
+    return true;
+  }
+
+  String File::getUniqueName()
+  {
+    DateTime now = DateTime::now();
+    String pid;
+#ifdef OPENMS_WINDOWSPLATFORM
+    pid = (String)GetCurrentProcessId();
+#else
+    pid = (String)getpid();
+#endif
+    static int number = 0;
+    return now.getDate() + "_" + now.getTime().remove(':') + "_" + String(QHostInfo::localHostName()) + "_" + pid + "_" + (++number);
+  }
+
   String File::getOpenMSDataPath()
   {
-		String path;
+    String path;
     bool from_env(false);
-		if (getenv("OPENMS_DATA_PATH") != 0)
-		{
-			path = getenv("OPENMS_DATA_PATH");
+    if (getenv("OPENMS_DATA_PATH") != 0)
+    {
+      path = getenv("OPENMS_DATA_PATH");
       from_env = true;
-		}
-		else
-		{
-			path = OPENMS_DATA_PATH;
-		}
+    }
+    else
+    {
+      path = OPENMS_DATA_PATH;
+    }
 
     // make its a proper path:
-		path.substitute("\\","/").ensureLastChar('/').chop(1);
+    path.substitute("\\", "/").ensureLastChar('/').chop(1);
 #ifdef OPENMS_WINDOWSPLATFORM
     String share_dir = "c:\\Program Files\\OpenMS\\share\\OpenMS";
 #else
@@ -309,42 +312,42 @@ namespace OpenMS
 #endif
 
 
-		if (!exists(path + "/CHEMISTRY/Elements.xml"))
-		{ // - now we're in big trouble as './share' is not were its supposed to be...
-      // - do NOT use LOG_ERROR or similar for the messages below! (it might not even usable at this point)
+    if (!exists(path + "/CHEMISTRY/Elements.xml")) // - now we're in big trouble as './share' is not were its supposed to be...
+    { // - do NOT use LOG_ERROR or similar for the messages below! (it might not even usable at this point)
       std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
       if (from_env)
       {
         std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << path << "', which is incorrect!\n";
       }
-			std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
+      std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
       std::cerr << "Exiting now.\n";
-			exit(1);
-		}
-		
-		return path;
+      exit(1);
+    }
+
+    return path;
   }
 
-	String File::removeExtension(const OpenMS::String& file) 
-	{
-		if (!file.has('.')) return file;
-		
-		SignedSize ext_length = file.suffix('.').size() + 1;
-		return file.chop(ext_length);
-	}
+  String File::removeExtension(const OpenMS::String & file)
+  {
+    if (!file.has('.'))
+      return file;
 
-	bool File::isDirectory(const String& path)
-	{
-		QFileInfo fi(path.toQString());
-		return fi.isDir();
-	}
+    SignedSize ext_length = file.suffix('.').size() + 1;
+    return file.chop(ext_length);
+  }
+
+  bool File::isDirectory(const String & path)
+  {
+    QFileInfo fi(path.toQString());
+    return fi.isDir();
+  }
 
   String File::getTempDirectory()
   {
     Param p = getSystemParameters();
     if (p.exists("temp_dir") && String(p.getValue("temp_dir")).trim() != "")
     {
-       return p.getValue("temp_dir");
+      return p.getValue("temp_dir");
     }
     return String(QDir::tempPath());
   }
@@ -366,7 +369,7 @@ namespace OpenMS
     return dir;
   }
 
-  String File::findDatabase(const String& db_name)
+  String File::findDatabase(const String & db_name)
   {
     Param sys_p = getSystemParameters();
     String full_db_name;
@@ -375,7 +378,7 @@ namespace OpenMS
       full_db_name = find(db_name, sys_p.getValue("id_db_dir"));
       LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'" << std::endl;
     }
-    catch (Exception::FileNotFound& e)
+    catch (Exception::FileNotFound & e)
     {
       LOG_ERROR << "Input database '" + db_name + "' not found (" << e.getMessage() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
       throw;
@@ -388,9 +391,8 @@ namespace OpenMS
   {
     String filename = String(QDir::homePath()) + "/.OpenMS/OpenMS.ini";
     Param p;
-    if (!File::readable(filename))
-    { // create file
-
+    if (!File::readable(filename)) // create file
+    {
       p = getSystemParameterDefaults_();
 
       if (!File::writable(filename))
@@ -413,15 +415,15 @@ namespace OpenMS
       // check version
       if (!p.exists("version") || (p.getValue("version") != VersionInfo::getVersion()))
       {
-			  if (!p.exists("version"))
+        if (!p.exists("version"))
         {
-          LOG_WARN << "Broken file '"<< filename << "' discovered. The 'version' tag is missing." << std::endl;
+          LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing." << std::endl;
         }
         else // old version
         {
-          LOG_WARN << "File '"<< filename << "' is deprecated." << std::endl;
+          LOG_WARN << "File '" << filename << "' is deprecated." << std::endl;
         }
-        LOG_WARN << "Updating missing/wrong entries in '"<< filename << "' with defaults!" << std::endl;
+        LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!" << std::endl;
         Param p_new = getSystemParameterDefaults_();
         p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
         p_new.update(p);
@@ -438,15 +440,14 @@ namespace OpenMS
     p.setValue("home_dir", ""); // only active when user enters something in this value
     p.setValue("temp_dir", ""); // only active when user enters something in this value
     p.setValue("id_db_dir", StringList::create(""),
-                            String("Default directory for FASTA and psq files used as databased for id engines. ") + \
-                                   "This allows you to specify just the filename of the DB in the " + \
-                                   "respective TOPP tool, and the database will be searched in the directories specified here " + \
-                                   "");// only active when user enters something in this value
+               String("Default directory for FASTA and psq files used as databased for id engines. ") + \
+               "This allows you to specify just the filename of the DB in the " + \
+               "respective TOPP tool, and the database will be searched in the directories specified here " + \
+               "");                    // only active when user enters something in this value
     p.setValue("threads", 1);
     // TODO: maybe we add -log, -debug.... or....
 
     return p;
   }
-
 
 } // namespace OpenMS

@@ -1,34 +1,34 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $ 
+// $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -48,129 +48,129 @@ namespace OpenMS
   class Adduct;
 
 /**
-	@brief Holds information on an edge connecting two features from a (putative) charge ladder
-	
-	A compomer is storing information on the adducts used on LEFT and RIGHT nodes (Features) that are connected by the egde (i.e. ChargePair)
-	holding the compomer. Additionally meta information on the edge (net_charge, edge score, id)
-	which is kept up-to-date when adducts are added to either side is stored.
-	
+    @brief Holds information on an edge connecting two features from a (putative) charge ladder
+
+    A compomer is storing information on the adducts used on LEFT and RIGHT nodes (Features) that are connected by the egde (i.e. ChargePair)
+    holding the compomer. Additionally meta information on the edge (net_charge, edge score, id)
+    which is kept up-to-date when adducts are added to either side is stored.
+
 */
-class OPENMS_DLLAPI Compomer
-{
+  class OPENMS_DLLAPI Compomer
+  {
 public:
-	/// side of compomer (LEFT ^ substract; RIGHT ^ add)
-	enum SIDE {LEFT, RIGHT, BOTH};
-	
-	typedef Map<String, Adduct> CompomerSide; /// adducts and their abundance etc
-	typedef std::vector<CompomerSide> CompomerComponents; /// container for the two sides [0]=left, [1]=right
-	
-	/// Default Constructor
-	Compomer();
+    /// side of compomer (LEFT ^ substract; RIGHT ^ add)
+    enum SIDE {LEFT, RIGHT, BOTH};
 
-	/// Constructor with net-charge and mass
-	Compomer(Int net_charge, DoubleReal mass, DoubleReal log_p);
-	
-	/// Copy C'tor
-	Compomer(const Compomer& p);
-	
-	/// Assignment Operator
-	Compomer& operator=(const Compomer& source);
-	
-	/// Add a.amount of Adduct @param a to Compomer's @param side and update its properties
-	void add(const Adduct& a, UInt side);
-	
-	/**
-	 *  indicates if these two compomers can coexist for one feature
-	 * @param cmp The other Compomer we compare to
-	 * @param side_this Indicates which "side"(negative or positive adducts) we are looking at. Negative adducts belong to the left side of the ChargePair.
-	 * @param side_other See above.
-	 */
-	bool isConflicting(const Compomer& cmp, UInt side_this, UInt side_other) const;
+    typedef Map<String, Adduct> CompomerSide; /// adducts and their abundance etc
+    typedef std::vector<CompomerSide> CompomerComponents; /// container for the two sides [0]=left, [1]=right
 
-	/// set an Id which allows unique identification of a compomer
-	void setID(const Size& id);
-	/// return Id which allows unique identification of this compomer
-	const Size& getID() const;
-	/// left and right adducts of this compomer
-	const CompomerComponents& getComponent() const;
+    /// Default Constructor
+    Compomer();
 
-	/// net charge of compomer (i.e. difference between left and right side of compomer)
-	const Int& getNetCharge() const;
+    /// Constructor with net-charge and mass
+    Compomer(Int net_charge, DoubleReal mass, DoubleReal log_p);
 
-	/// mass of all contained adducts
-	const DoubleReal& getMass() const;
+    /// Copy C'tor
+    Compomer(const Compomer & p);
 
-	/// summed positive charges of contained adducts
-	const Int& getPositiveCharges() const;
-	
-	/// summed negative charges of contained adducts
-	const Int& getNegativeCharges() const;
-	
-	/// return log probability
-	const DoubleReal& getLogP() const;
+    /// Assignment Operator
+    Compomer & operator=(const Compomer & source);
 
-	/// return log probability
-	const DoubleReal& getRTShift() const;
+    /// Add a.amount of Adduct @param a to Compomer's @param side and update its properties
+    void add(const Adduct & a, UInt side);
 
-	/// get adducts with their abundance as compact string for both sides
-	String getAdductsAsString() const;
+    /**
+     *  indicates if these two compomers can coexist for one feature
+     * @param cmp The other Compomer we compare to
+     * @param side_this Indicates which "side"(negative or positive adducts) we are looking at. Negative adducts belong to the left side of the ChargePair.
+     * @param side_other See above.
+     */
+    bool isConflicting(const Compomer & cmp, UInt side_this, UInt side_other) const;
 
-	/// get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)
-	/// @param side Use LEFT for left, RIGHT for right
-	String getAdductsAsString(UInt side) const;
-	
-	/// check if Compomer only contains a single adduct on side @p side
-	bool isSingleAdduct(Adduct& a, const UInt side) const;
-	
-	/**
-		@brief Remove all adducts of type @p a
-	
-		Remove ALL instances of the given adduct,
-		BUT use the given adducts parameters (charge, logp, mass etc) to update the compomers members
-	**/
-	Compomer removeAdduct(const Adduct& a) const;
-	
-	/**
-		@brief Remove all adducts of type @p a from @p side (LEFT or RIGHT)
-		
-		remove ALL instances of the given adduct from the given side (LEFT or RIGHT),
-		BUT use the given adducts parameters (charge, logp, mass etc) to update the compomers members
-	*/
-	Compomer removeAdduct(const Adduct& a, const UInt side) const;
-	
-	/**
-		@brief Returns the adduct labels from @p side (LEFT or RIGHT)
-		
-		Get a list of labels for the @p side
-		(useful for assigning channels (light, heavy etc) to features).
-	*/
-	StringList getLabels(const UInt side) const;
-	
-	
-	/// Adds @p add_side to this compomer.
-	void add(const CompomerSide& add_side, UInt side);
-	
-	/// Sort compomer by (in order of importance): net-charge, mass, probability
-	friend OPENMS_DLLAPI bool operator< (const Compomer &c1, const Compomer &c2); 
+    /// set an Id which allows unique identification of a compomer
+    void setID(const Size & id);
+    /// return Id which allows unique identification of this compomer
+    const Size & getID() const;
+    /// left and right adducts of this compomer
+    const CompomerComponents & getComponent() const;
 
-	/// Print the contents of a Compomer to a stream.
-	friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Compomer & cmp);
+    /// net charge of compomer (i.e. difference between left and right side of compomer)
+    const Int & getNetCharge() const;
 
-	/// Comparator
-	friend OPENMS_DLLAPI bool operator==(const Compomer& a, const  Compomer& b);
-	
-private:	
-	
-	CompomerComponents cmp_; //< adducts of left and right side
-	Int net_charge_;		 //< net charge (right - left)
-	DoubleReal mass_;		 //< net mass (right - left)
-	Int pos_charges_;		 //< net charges on the right
-	Int neg_charges_;		 //< net charges on the left
-	DoubleReal log_p_;   //< log probability of compomer
-	DoubleReal rt_shift_; //< expected net RT shift of compomer (-shift_leftside + shift_rightside)
-	Size id_;
+    /// mass of all contained adducts
+    const DoubleReal & getMass() const;
 
-}; // \Compomer
+    /// summed positive charges of contained adducts
+    const Int & getPositiveCharges() const;
+
+    /// summed negative charges of contained adducts
+    const Int & getNegativeCharges() const;
+
+    /// return log probability
+    const DoubleReal & getLogP() const;
+
+    /// return log probability
+    const DoubleReal & getRTShift() const;
+
+    /// get adducts with their abundance as compact string for both sides
+    String getAdductsAsString() const;
+
+    /// get adducts with their abundance as compact string (amounts are absolute unless side=BOTH)
+    /// @param side Use LEFT for left, RIGHT for right
+    String getAdductsAsString(UInt side) const;
+
+    /// check if Compomer only contains a single adduct on side @p side
+    bool isSingleAdduct(Adduct & a, const UInt side) const;
+
+    /**
+        @brief Remove all adducts of type @p a
+
+        Remove ALL instances of the given adduct,
+        BUT use the given adducts parameters (charge, logp, mass etc) to update the compomers members
+    **/
+    Compomer removeAdduct(const Adduct & a) const;
+
+    /**
+        @brief Remove all adducts of type @p a from @p side (LEFT or RIGHT)
+
+        remove ALL instances of the given adduct from the given side (LEFT or RIGHT),
+        BUT use the given adducts parameters (charge, logp, mass etc) to update the compomers members
+    */
+    Compomer removeAdduct(const Adduct & a, const UInt side) const;
+
+    /**
+        @brief Returns the adduct labels from @p side (LEFT or RIGHT)
+
+        Get a list of labels for the @p side
+        (useful for assigning channels (light, heavy etc) to features).
+    */
+    StringList getLabels(const UInt side) const;
+
+
+    /// Adds @p add_side to this compomer.
+    void add(const CompomerSide & add_side, UInt side);
+
+    /// Sort compomer by (in order of importance): net-charge, mass, probability
+    friend OPENMS_DLLAPI bool operator<(const Compomer & c1, const Compomer & c2);
+
+    /// Print the contents of a Compomer to a stream.
+    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Compomer & cmp);
+
+    /// Comparator
+    friend OPENMS_DLLAPI bool operator==(const Compomer & a, const  Compomer & b);
+
+private:
+
+    CompomerComponents cmp_; //< adducts of left and right side
+    Int net_charge_;         //< net charge (right - left)
+    DoubleReal mass_;        //< net mass (right - left)
+    Int pos_charges_;        //< net charges on the right
+    Int neg_charges_;        //< net charges on the left
+    DoubleReal log_p_;   //< log probability of compomer
+    DoubleReal rt_shift_; //< expected net RT shift of compomer (-shift_leftside + shift_rightside)
+    Size id_;
+
+  }; // \Compomer
 
 } // namespace OpenMS
 

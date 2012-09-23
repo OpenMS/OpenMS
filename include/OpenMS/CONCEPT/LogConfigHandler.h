@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche$
@@ -41,9 +41,9 @@
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-namespace OpenMS 
+namespace OpenMS
 {
-  
+
   /**
     @brief The LogConfigHandler provides the functionality to configure the internal logging of OpenMS algorithms that use the
     global instances of LogStream.
@@ -52,10 +52,10 @@ namespace OpenMS
    */
   class OPENMS_DLLAPI LogConfigHandler
   {
-  public:
-    
+public:
+
     static String PARAM_NAME; ///< Name of the parameter in which the configuration should be stored
-        
+
     /**
       @brief Translates the given list of parameter settings into a LogStream configuration
 
@@ -107,8 +107,8 @@ namespace OpenMS
       @throw Exception::IllegalArgument If a stream should be registered, that was already registered with a different type.
      */
     void configure(const Param & param);
-    
-    
+
+
     /**
       @brief Returns a reference to the registered stream with the name @p stream_name.
 
@@ -116,17 +116,17 @@ namespace OpenMS
 
       @return Reference to the stream.
      */
-    ostream& getStream(const String & stream_name);
+    ostream & getStream(const String & stream_name);
 
     /**
       @brief Returns the instance of LogConfigHandler.
      */
-    static LogConfigHandler& getInstance();
+    static LogConfigHandler & getInstance();
 
     /// Destructor
     virtual ~LogConfigHandler();
-  protected:
-    
+protected:
+
     /**
       @brief Returns the named global instance of the LogStream. (OpenMS::Log_debug, OpenMS::Log_info, OpenMS::Log_warn, OpenMS::Log_error, OpenMS::Log_fatal)
 
@@ -137,7 +137,7 @@ namespace OpenMS
       @return A reference to the named LogStream
      */
     Logger::LogStream & getLogStreamByName_(const String & stream_name);
-    
+
     /**
       @brief Returns the correct set of registered streams for the given stream type (e.g. DEBUG, INFO, ..)
 
@@ -163,14 +163,14 @@ namespace OpenMS
     std::set<String> warn_streams_; ///< List of all streams that were appended to OpenMS::Log_warn
     std::set<String> error_streams_; ///< List of all streams that were appended to OpenMS::Log_error
     std::set<String> fatal_streams_; ///< List of all streams that were appended to OpenMS::Log_fatal
-    
+
     std::map<String, StreamHandler::StreamType> stream_type_map_; ///< Maps the registered streams to a StreamHandler::StreamType
 
-  private:
-    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, LogConfigHandler const & lch);
+private:
+    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, LogConfigHandler const & lch);
 
     // the pointer to the single instance
-    static LogConfigHandler* instance_;
+    static LogConfigHandler * instance_;
 
     // it is a singleton so we hide all c' and d'tors
 
@@ -178,15 +178,15 @@ namespace OpenMS
     LogConfigHandler();
 
     /// Copy constructor
-    LogConfigHandler(const LogConfigHandler& source);
+    LogConfigHandler(const LogConfigHandler & source);
 
     /// Assignment operator
-    virtual LogConfigHandler& operator = (const LogConfigHandler& source);
+    virtual LogConfigHandler & operator=(const LogConfigHandler & source);
   };
-  
+
   /// Overload for the \a insertion \a operator (operator<<) to have a formated output of the LogConfigHandler
-  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, LogConfigHandler const & lch);
-  
+  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, LogConfigHandler const & lch);
+
 } // end namespace OpenMS
 
 #endif // #ifndef OPENMS_CONCEPT_LOGCONFIGHANDLER_H

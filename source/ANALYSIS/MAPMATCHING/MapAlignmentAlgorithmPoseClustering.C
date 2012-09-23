@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
 // $Authors: Eva Lange, Clemens Groepl $
@@ -54,46 +54,46 @@ namespace OpenMS
     defaults_.insert("pairfinder:", StablePairFinder().getParameters());
     defaults_.setValue("max_num_peaks_considered", 1000, "The maximal number of peaks/features to be considered per map. To use all, set to '-1'.");
     defaults_.setMinInt("max_num_peaks_considered", -1);
-    
+
     defaultsToParam_();
 
   }
 
-   void MapAlignmentAlgorithmPoseClustering::updateMembers_()
-   {
-     superimposer_.setParameters(param_.copy("superimposer:", true));
-     superimposer_.setLogType(getLogType());
+  void MapAlignmentAlgorithmPoseClustering::updateMembers_()
+  {
+    superimposer_.setParameters(param_.copy("superimposer:", true));
+    superimposer_.setLogType(getLogType());
 
-     pairfinder_.setParameters(param_.copy("pairfinder:", true));
-     pairfinder_.setLogType(getLogType());
+    pairfinder_.setParameters(param_.copy("pairfinder:", true));
+    pairfinder_.setLogType(getLogType());
 
-     max_num_peaks_considered_ = param_.getValue("max_num_peaks_considered");
-   }
+    max_num_peaks_considered_ = param_.getValue("max_num_peaks_considered");
+  }
 
   MapAlignmentAlgorithmPoseClustering::~MapAlignmentAlgorithmPoseClustering()
-  {}
+  {
+  }
 
-
-  void MapAlignmentAlgorithmPoseClustering::align( const FeatureMap<>& map, TransformationDescription& trafo )
+  void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap<> & map, TransformationDescription & trafo)
   {
     ConsensusMap map_scene;
     ConsensusMap::convert(1, map, map_scene, max_num_peaks_considered_);
     align(map_scene, trafo);
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align( const MSExperiment<>& map, TransformationDescription& trafo )
+  void MapAlignmentAlgorithmPoseClustering::align(const MSExperiment<> & map, TransformationDescription & trafo)
   {
     ConsensusMap map_scene;
-	MSExperiment<> map2(map);
+    MSExperiment<> map2(map);
     ConsensusMap::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
     align(map_scene, trafo);
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align( const ConsensusMap& map, TransformationDescription& trafo )
+  void MapAlignmentAlgorithmPoseClustering::align(const ConsensusMap & map, TransformationDescription & trafo)
   {
     // TODO: move this to updateMembers_? (if consensusMap prevails)
     // TODO: why does superimposer work on consensus map???
-    const ConsensusMap& map_model = reference_;
+    const ConsensusMap & map_model = reference_;
     ConsensusMap map_scene = map;
 
     // run superimposer to find the global transformation
@@ -116,7 +116,7 @@ namespace OpenMS
     //run pairfinder to find pairs
     ConsensusMap result;
     //TODO: add another 2map interface to pairfinder?
-    std::vector< ConsensusMap > input(2);
+    std::vector<ConsensusMap> input(2);
     input[0] = map_model;
     input[1] = map_scene;
     pairfinder_.run(input, result);
@@ -125,7 +125,7 @@ namespace OpenMS
     si_trafo.invert();         // to undo the transformation applied above
     TransformationDescription::DataPoints data;
     for (ConsensusMap::Iterator it = result.begin(); it != result.end();
-      ++it)
+         ++it)
     {
       if (it->size() == 2)           // two matching features
       {

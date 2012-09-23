@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
@@ -56,363 +56,366 @@
 #endif
 
 
-namespace OpenMS 
+namespace OpenMS
 {
 
-	PointerSizeInt StopWatch::cpu_speed_ = 0L;
+  PointerSizeInt StopWatch::cpu_speed_ = 0L;
 
-	#ifdef OPENMS_WINDOWSPLATFORM
-		PointerSizeInt StopWatch::clock_speed_ = 0L;
-	#endif
+#ifdef OPENMS_WINDOWSPLATFORM
+  PointerSizeInt StopWatch::clock_speed_ = 0L;
+#endif
 
-	StopWatch::StopWatch()
-		:	is_running_(false),
-			last_secs_(0),
-			last_usecs_(0),
-			last_user_time_(0),
-			last_system_time_(0),
-			current_secs_(0),
-			current_usecs_(0),
-			current_user_time_(0),
-			current_system_time_(0)
-	{
-		#ifdef OPENMS_HAS_SYSCONF
-		if (cpu_speed_ == 0L)
-		{
-			cpu_speed_ = sysconf(_SC_CLK_TCK);
-		}
-		#endif
-	
-		#ifdef OPENMS_WINDOWSPLATFORM
-			if (cpu_speed_ == 0L)
-			{
-				LARGE_INTEGER ticks;
-				if (QueryPerformanceFrequency(&ticks))
-				{
-					cpu_speed_ = (PointerSizeInt) ticks.QuadPart;
-				}
-				else 
-				{
-					cpu_speed_ = 1L;
-				}
-				clock_speed_ = CLOCKS_PER_SEC;
-			}
-		#endif
-	}
+  StopWatch::StopWatch() :
+    is_running_(false),
+    last_secs_(0),
+    last_usecs_(0),
+    last_user_time_(0),
+    last_system_time_(0),
+    current_secs_(0),
+    current_usecs_(0),
+    current_user_time_(0),
+    current_system_time_(0)
+  {
+#ifdef OPENMS_HAS_SYSCONF
+    if (cpu_speed_ == 0L)
+    {
+      cpu_speed_ = sysconf(_SC_CLK_TCK);
+    }
+#endif
 
-	StopWatch::StopWatch(const StopWatch& stop_watch)
-		:	is_running_(stop_watch.is_running_),
-			last_secs_(stop_watch.last_secs_),
-			last_usecs_(stop_watch.last_usecs_),
-			last_user_time_(stop_watch.last_user_time_),
-			last_system_time_(stop_watch.last_system_time_),
-			current_secs_(stop_watch.current_secs_),
-			current_usecs_(stop_watch.current_usecs_),
-			current_user_time_(stop_watch.current_user_time_),
-			current_system_time_(stop_watch.current_system_time_)
-	{
-	}
+#ifdef OPENMS_WINDOWSPLATFORM
+    if (cpu_speed_ == 0L)
+    {
+      LARGE_INTEGER ticks;
+      if (QueryPerformanceFrequency(&ticks))
+      {
+        cpu_speed_ = (PointerSizeInt) ticks.QuadPart;
+      }
+      else
+      {
+        cpu_speed_ = 1L;
+      }
+      clock_speed_ = CLOCKS_PER_SEC;
+    }
+#endif
+  }
 
-	StopWatch::~StopWatch()
-	{
-	}
+  StopWatch::StopWatch(const StopWatch & stop_watch) :
+    is_running_(stop_watch.is_running_),
+    last_secs_(stop_watch.last_secs_),
+    last_usecs_(stop_watch.last_usecs_),
+    last_user_time_(stop_watch.last_user_time_),
+    last_system_time_(stop_watch.last_system_time_),
+    current_secs_(stop_watch.current_secs_),
+    current_usecs_(stop_watch.current_usecs_),
+    current_user_time_(stop_watch.current_user_time_),
+    current_system_time_(stop_watch.current_system_time_)
+  {
+  }
 
-	void StopWatch::clear()
-	{
-		is_running_ = false;
-		current_secs_ = 0L;
-		current_usecs_ = 0L;
-		current_user_time_ = 0L;
-		current_system_time_ = (clock_t)0;
-	}
+  StopWatch::~StopWatch()
+  {
+  }
 
-	bool StopWatch::start()
-	{
-		if (is_running_ == true)
-		{ 
-			/* tried to start a running stop_watch */
-			return false;
-		}
+  void StopWatch::clear()
+  {
+    is_running_ = false;
+    current_secs_ = 0L;
+    current_usecs_ = 0L;
+    current_user_time_ = 0L;
+    current_system_time_ = (clock_t)0;
+  }
 
-		#ifdef OPENMS_WINDOWSPLATFORM
-			LARGE_INTEGER tms;
-			FILETIME kt,ut,ct,et;
-			
-			QueryPerformanceCounter(&tms);
-			HANDLE my_id = GetCurrentProcess();
-			GetProcessTimes(my_id, &ct, &et, &kt, &ut);
-			ULARGE_INTEGER kernel_time; 
-			kernel_time.HighPart = kt.dwHighDateTime;
-			kernel_time.LowPart = kt.dwLowDateTime;
-			ULARGE_INTEGER user_time; 
-			user_time.HighPart = ut.dwHighDateTime;
-			user_time.LowPart = ut.dwLowDateTime;
+  bool StopWatch::start()
+  {
+    if (is_running_ == true)
+    {
+      /* tried to start a running stop_watch */
+      return false;
+    }
 
-			last_secs_  = tms.QuadPart / cpu_speed_;			
-			last_usecs_ = (PointerSizeInt)((DoubleReal)(tms.QuadPart - (last_secs_*cpu_speed_)) / (DoubleReal)(cpu_speed_) * 1000000.0);
+#ifdef OPENMS_WINDOWSPLATFORM
+    LARGE_INTEGER tms;
+    FILETIME kt, ut, ct, et;
 
-			last_user_time_ = (clock_t) (user_time.QuadPart / 10);
-			last_system_time_ = (clock_t) (kernel_time.QuadPart / 10);
+    QueryPerformanceCounter(&tms);
+    HANDLE my_id = GetCurrentProcess();
+    GetProcessTimes(my_id, &ct, &et, &kt, &ut);
+    ULARGE_INTEGER kernel_time;
+    kernel_time.HighPart = kt.dwHighDateTime;
+    kernel_time.LowPart = kt.dwLowDateTime;
+    ULARGE_INTEGER user_time;
+    user_time.HighPart = ut.dwHighDateTime;
+    user_time.LowPart = ut.dwLowDateTime;
 
-		#else
+    last_secs_  = tms.QuadPart / cpu_speed_;
+    last_usecs_ = (PointerSizeInt)((DoubleReal)(tms.QuadPart - (last_secs_ * cpu_speed_)) / (DoubleReal)(cpu_speed_) * 1000000.0);
 
-			struct tms tms_buffer; 
-			struct timeval timeval_buffer;	
-			struct timezone timezone_buffer; 
+    last_user_time_ = (clock_t) (user_time.QuadPart / 10);
+    last_system_time_ = (clock_t) (kernel_time.QuadPart / 10);
 
-			gettimeofday(&timeval_buffer, &timezone_buffer);
-			times(&tms_buffer);
-		
-			last_secs_ = timeval_buffer.tv_sec;
-			last_usecs_ = timeval_buffer.tv_usec;
-			last_user_time_ = tms_buffer.tms_utime;
-			last_system_time_ = tms_buffer.tms_stime;
-		#endif
+#else
 
-		is_running_ = true;
+    struct tms tms_buffer;
+    struct timeval timeval_buffer;
+    struct timezone timezone_buffer;
 
-		return true;
-	}
+    gettimeofday(&timeval_buffer, &timezone_buffer);
+    times(&tms_buffer);
 
-	bool StopWatch::stop()
-	{
-		if (is_running_ == false)
-		{ /* tried to stop a stopped stop_watch */
-			return false;
-		}
-		#ifdef OPENMS_WINDOWSPLATFORM
-			LARGE_INTEGER tms;
-	
-			QueryPerformanceCounter(&tms);
-			FILETIME kt,ut,ct,et;
-			
-			HANDLE my_id=GetCurrentProcess();
-			GetProcessTimes(my_id,&ct,&et,&kt, &ut);
-			
-			ULARGE_INTEGER kernel_time; 
-			kernel_time.HighPart = kt.dwHighDateTime;
-			kernel_time.LowPart = kt.dwLowDateTime;
-			ULARGE_INTEGER user_time; 
-			user_time.HighPart = ut.dwHighDateTime;
-			user_time.LowPart = ut.dwLowDateTime;
+    last_secs_ = timeval_buffer.tv_sec;
+    last_usecs_ = timeval_buffer.tv_usec;
+    last_user_time_ = tms_buffer.tms_utime;
+    last_system_time_ = tms_buffer.tms_stime;
+#endif
 
-			PointerSizeInt secs_to_add = tms.QuadPart/cpu_speed_;
-			current_secs_ += secs_to_add - last_secs_;
-			PointerSizeInt usecs_to_add = (PointerSizeInt)((DoubleReal)(tms.QuadPart - secs_to_add*cpu_speed_) /(DoubleReal)(cpu_speed_) * 1000000.0);
-			current_usecs_ += usecs_to_add - last_usecs_;
-			
-			current_user_time_ += (clock_t) (user_time.QuadPart / 10 - last_user_time_);
-			current_system_time_ += (clock_t) (kernel_time.QuadPart / 10 - last_system_time_);
-		#else
-			struct tms tms_buffer;
-			struct timeval timeval_buffer;
-			struct timezone timezone_buffer;
+    is_running_ = true;
 
-			gettimeofday(&timeval_buffer, &timezone_buffer);
-			times(&tms_buffer);
+    return true;
+  }
 
-			current_secs_ += timeval_buffer.tv_sec - last_secs_;
-			current_usecs_ += timeval_buffer.tv_usec - last_usecs_;
+  bool StopWatch::stop()
+  {
+    if (is_running_ == false) /* tried to stop a stopped stop_watch */
+    {
+      return false;
+    }
+#ifdef OPENMS_WINDOWSPLATFORM
+    LARGE_INTEGER tms;
 
-			current_user_time_ += tms_buffer.tms_utime - last_user_time_;
-			current_system_time_ += tms_buffer.tms_stime - last_system_time_;
-		#endif
-		
-		is_running_ = false;
+    QueryPerformanceCounter(&tms);
+    FILETIME kt, ut, ct, et;
 
-		return true;
-	}
+    HANDLE my_id = GetCurrentProcess();
+    GetProcessTimes(my_id, &ct, &et, &kt, &ut);
 
-	void StopWatch::reset()
-	{
-		if (is_running_ == false)
-		{
-			clear();
-		} 
-		else 
-		{
-			stop();
-			clear();
-			start();
-		}
-	}
+    ULARGE_INTEGER kernel_time;
+    kernel_time.HighPart = kt.dwHighDateTime;
+    kernel_time.LowPart = kt.dwLowDateTime;
+    ULARGE_INTEGER user_time;
+    user_time.HighPart = ut.dwHighDateTime;
+    user_time.LowPart = ut.dwLowDateTime;
 
+    PointerSizeInt secs_to_add = tms.QuadPart / cpu_speed_;
+    current_secs_ += secs_to_add - last_secs_;
+    PointerSizeInt usecs_to_add = (PointerSizeInt)((DoubleReal)(tms.QuadPart - secs_to_add * cpu_speed_) / (DoubleReal)(cpu_speed_) * 1000000.0);
+    current_usecs_ += usecs_to_add - last_usecs_;
 
-	//getClockTime returns the current amount of real (clock) time			
-	//accumulated by this stop_watch.  If the stop_watch is stopped, this is just		
-	//the total accumulated time.  If the stop_watch is running, this is the		
-	//accumulated time + the time since the stop_watch was last started.				
-	DoubleReal StopWatch::getClockTime() const
-	{
-		PointerSizeInt elapsed_seconds;
-		PointerSizeInt elapsed_useconds;
+    current_user_time_ += (clock_t) (user_time.QuadPart / 10 - last_user_time_);
+    current_system_time_ += (clock_t) (kernel_time.QuadPart / 10 - last_system_time_);
+#else
+    struct tms tms_buffer;
+    struct timeval timeval_buffer;
+    struct timezone timezone_buffer;
 
-		if (is_running_ == false)
-		{ 
-			/* stop_watch is currently off, so just return accumulated time */
-			elapsed_seconds = current_secs_;
-			elapsed_useconds = current_usecs_;
-		} 
-		else 
-		{ 
-			/* stop_watch is currently running, so add the elapsed time since */
-			/* the stop_watch was last started to the accumulated time        */
-			#ifdef OPENMS_WINDOWSPLATFORM
-				LARGE_INTEGER tms;
-				if (QueryPerformanceCounter(&tms))
-				{
-					PointerSizeInt secs_to_add = tms.QuadPart / cpu_speed_;
-					elapsed_seconds = current_secs_ + secs_to_add - last_secs_;
-					PointerSizeInt usecs_to_add = (PointerSizeInt)((DoubleReal)(tms.QuadPart - secs_to_add * cpu_speed_) /(DoubleReal)(cpu_speed_) * 1000000.0);
-					elapsed_useconds  = current_usecs_ + usecs_to_add - last_usecs_;
-				}
-			#else
-				struct timeval timeval_buffer;
-				struct timezone timezone_buffer;
+    gettimeofday(&timeval_buffer, &timezone_buffer);
+    times(&tms_buffer);
 
-				gettimeofday(&timeval_buffer, &timezone_buffer);
+    current_secs_ += timeval_buffer.tv_sec - last_secs_;
+    current_usecs_ += timeval_buffer.tv_usec - last_usecs_;
 
-				elapsed_seconds = current_secs_ + timeval_buffer.tv_sec - last_secs_;
-				elapsed_useconds = current_usecs_ + timeval_buffer.tv_usec - last_usecs_;
-			#endif
-		}
+    current_user_time_ += tms_buffer.tms_utime - last_user_time_;
+    current_system_time_ += tms_buffer.tms_stime - last_system_time_;
+#endif
 
-		/* Adjust for the fact that the useconds may be negative. */
-		/* If they are, take away 1 second and add 1 million      */
-		/* microseconds until they are positive.                  */
-		while (elapsed_useconds < 0L)
-		{
-			elapsed_useconds += 1000000L;
-			elapsed_seconds--;
-		}
+    is_running_ = false;
 
-		/* convert into floating point number of seconds */
-		return (DoubleReal)((DoubleReal)elapsed_seconds + (DoubleReal)elapsed_useconds / 1000000.0);
-	}
+    return true;
+  }
 
-	//getUserTime reports the current amount of user cpu time
-	//accumulated by this StopWatch.  If the stop_watch is currently off,
-	//this is just the accumulated time.  If the StopWatch is running, this
-	//is the accumulated time plust the time since the stop_watch was last started.
-	DoubleReal StopWatch::getUserTime() const
-	{
-		DoubleReal temp_value;
+  void StopWatch::reset()
+  {
+    if (is_running_ == false)
+    {
+      clear();
+    }
+    else
+    {
+      stop();
+      clear();
+      start();
+    }
+  }
 
-		#ifdef OPENMS_WINDOWSPLATFORM
-			FILETIME kt,ut,ct,et;
-		#else
-			struct tms tms_buffer;	
-		#endif
-		if (is_running_ == false)
-		{ 
-			/* stop_watch is off, just return accumulated time */
-			temp_value = (DoubleReal)current_user_time_;
-		}	
-		else 
-		{
-			/* stop_watch is on, add current running time to accumulated time */
-			#ifdef OPENMS_WINDOWSPLATFORM
-				HANDLE my_id=GetCurrentProcess();
-				GetProcessTimes(my_id,&ct,&et,&kt,&ut);
-				
-				ULARGE_INTEGER kernel_time; 
-				kernel_time.HighPart = kt.dwHighDateTime;
-				kernel_time.LowPart = kt.dwLowDateTime;
-				ULARGE_INTEGER user_time; 
-				user_time.HighPart = ut.dwHighDateTime;
-				user_time.LowPart = ut.dwLowDateTime;
-				
-				temp_value = (DoubleReal)(current_user_time_ + user_time.QuadPart / 10.0 - last_user_time_);
-			#else
-				times(&tms_buffer);
-				temp_value = (DoubleReal)(current_user_time_ + tms_buffer.tms_utime - last_user_time_);
-			#endif
-		}
+  //getClockTime returns the current amount of real (clock) time
+  //accumulated by this stop_watch.  If the stop_watch is stopped, this is just
+  //the total accumulated time.  If the stop_watch is running, this is the
+  //accumulated time + the time since the stop_watch was last started.
+  DoubleReal StopWatch::getClockTime() const
+  {
+    PointerSizeInt elapsed_seconds;
+    PointerSizeInt elapsed_useconds;
 
-		#ifdef OPENMS_WINDOWSPLATFORM
-			return (DoubleReal)(temp_value / 1000000.0);
-		#else		
-			/* convert from clock ticks to seconds using the */
-			/* cpu-speed value obtained in the constructor   */
-			return (DoubleReal)(temp_value / (DoubleReal)cpu_speed_);
-		#endif	
-	}
+    if (is_running_ == false)
+    {
+      /* stop_watch is currently off, so just return accumulated time */
+      elapsed_seconds = current_secs_;
+      elapsed_useconds = current_usecs_;
+    }
+    else
+    {
+      /* stop_watch is currently running, so add the elapsed time since */
+      /* the stop_watch was last started to the accumulated time        */
+#ifdef OPENMS_WINDOWSPLATFORM
+      LARGE_INTEGER tms;
+      if (QueryPerformanceCounter(&tms))
+      {
+        PointerSizeInt secs_to_add = tms.QuadPart / cpu_speed_;
+        elapsed_seconds = current_secs_ + secs_to_add - last_secs_;
+        PointerSizeInt usecs_to_add = (PointerSizeInt)((DoubleReal)(tms.QuadPart - secs_to_add * cpu_speed_) / (DoubleReal)(cpu_speed_) * 1000000.0);
+        elapsed_useconds  = current_usecs_ + usecs_to_add - last_usecs_;
+      }
+#else
+      struct timeval timeval_buffer;
+      struct timezone timezone_buffer;
 
-	// system_time reports the current amount of system cpu time 
-	// accumulated by this StopWatch.  If the stop_watch is currently off,
-	// this is just the accumulated time.  If the StopWatch is running, this
-	// is the accumulated time plus  the time since the stop_watch was last started
-	DoubleReal StopWatch::getSystemTime() const
-	{
-		DoubleReal temp_value = 0.0;
+      gettimeofday(&timeval_buffer, &timezone_buffer);
 
-		#ifdef OPENMS_WINDOWSPLATFORM
-			//struct tms tms_buffer;
-			FILETIME kt,ut,ct,et;
-		#endif												
-		
-		if (is_running_ == false)
-		{ 
-			/* stop_watch is off, just return accumulated time */
-			temp_value = (DoubleReal)current_system_time_;
-		} 
-		else 
-		{ 
-			/* stop_watch is on, return accumulated plus current */
-			#ifdef OPENMS_WINDOWSPLATFORM
-				//times(&tms_buffer);
-				HANDLE my_id=GetCurrentProcess();
-				GetProcessTimes(my_id,&ct,&et,&kt,&ut);
-			
-				ULARGE_INTEGER kernel_time; 
-				kernel_time.HighPart = kt.dwHighDateTime;
-				kernel_time.LowPart = kt.dwLowDateTime;
-				ULARGE_INTEGER user_time; 
-				user_time.HighPart = ut.dwHighDateTime;
-				user_time.LowPart = ut.dwLowDateTime;
-				temp_value = (DoubleReal)((DoubleReal)current_system_time_ + kernel_time.QuadPart / 10.0 - (DoubleReal)last_system_time_);
-			#endif
-		}
+      elapsed_seconds = current_secs_ + timeval_buffer.tv_sec - last_secs_;
+      elapsed_useconds = current_usecs_ + timeval_buffer.tv_usec - last_usecs_;
+#endif
+    }
 
-		/* convert from clock ticks to seconds using the */
-		/* cpu-speed value obtained by the constructor   */
-		#ifndef OPENMS_WINDOWSPLATFORM
-			return (DoubleReal)(temp_value / 1000000.0);
-		#else 
-			return 0.0;
-		#endif
-	}
+    /* Adjust for the fact that the useconds may be negative. */
+    /* If they are, take away 1 second and add 1 million      */
+    /* microseconds until they are positive.                  */
+    while (elapsed_useconds < 0L)
+    {
+      elapsed_useconds += 1000000L;
+      elapsed_seconds--;
+    }
 
-	StopWatch& StopWatch::operator = (const StopWatch& stop_watch)
-	{
-		if (this == &stop_watch)
-		{
-			return *this;
-		}
+    /* convert into floating point number of seconds */
+    return (DoubleReal)((DoubleReal)elapsed_seconds + (DoubleReal)elapsed_useconds / 1000000.0);
+  }
 
-		is_running_ = stop_watch.is_running_;
-		last_secs_ = stop_watch.last_secs_;	
-		last_usecs_ = stop_watch.last_usecs_;		
-		last_user_time_ = stop_watch.last_user_time_;   
-		last_system_time_ = stop_watch.last_system_time_; 
-		current_secs_ = stop_watch.current_secs_;		
-		current_usecs_ = stop_watch.current_usecs_;		
-		current_user_time_ = stop_watch.current_user_time_;		
-		current_system_time_ = stop_watch.current_system_time_;
+  //getUserTime reports the current amount of user cpu time
+  //accumulated by this StopWatch.  If the stop_watch is currently off,
+  //this is just the accumulated time.  If the StopWatch is running, this
+  //is the accumulated time plust the time since the stop_watch was last started.
+  DoubleReal StopWatch::getUserTime() const
+  {
+    DoubleReal temp_value;
 
-		return *this;
-	}
+#ifdef OPENMS_WINDOWSPLATFORM
+    FILETIME kt, ut, ct, et;
+#else
+    struct tms tms_buffer;
+#endif
+    if (is_running_ == false)
+    {
+      /* stop_watch is off, just return accumulated time */
+      temp_value = (DoubleReal)current_user_time_;
+    }
+    else
+    {
+      /* stop_watch is on, add current running time to accumulated time */
+#ifdef OPENMS_WINDOWSPLATFORM
+      HANDLE my_id = GetCurrentProcess();
+      GetProcessTimes(my_id, &ct, &et, &kt, &ut);
 
-	bool StopWatch::operator == (const StopWatch& stop_watch) const
-	{
-		return (last_secs_ == stop_watch.last_secs_
-									&& last_usecs_ == stop_watch.last_usecs_
-									&& last_user_time_ == stop_watch.last_user_time_
-									&& last_system_time_ == stop_watch.last_system_time_
-									&& current_secs_ == stop_watch.current_secs_
-									&& current_usecs_ == stop_watch.current_usecs_
-									&& current_user_time_ == stop_watch.current_user_time_
-									&& current_system_time_ == stop_watch.current_system_time_);
-	}
+      ULARGE_INTEGER kernel_time;
+      kernel_time.HighPart = kt.dwHighDateTime;
+      kernel_time.LowPart = kt.dwLowDateTime;
+      ULARGE_INTEGER user_time;
+      user_time.HighPart = ut.dwHighDateTime;
+      user_time.LowPart = ut.dwLowDateTime;
+
+      temp_value = (DoubleReal)(current_user_time_ + user_time.QuadPart / 10.0 - last_user_time_);
+#else
+      times(&tms_buffer);
+      temp_value = (DoubleReal)(current_user_time_ + tms_buffer.tms_utime - last_user_time_);
+#endif
+    }
+
+#ifdef OPENMS_WINDOWSPLATFORM
+    return (DoubleReal)(temp_value / 1000000.0);
+
+#else
+    /* convert from clock ticks to seconds using the */
+    /* cpu-speed value obtained in the constructor   */
+    return (DoubleReal)(temp_value / (DoubleReal)cpu_speed_);
+
+#endif
+  }
+
+  // system_time reports the current amount of system cpu time
+  // accumulated by this StopWatch.  If the stop_watch is currently off,
+  // this is just the accumulated time.  If the StopWatch is running, this
+  // is the accumulated time plus  the time since the stop_watch was last started
+  DoubleReal StopWatch::getSystemTime() const
+  {
+    DoubleReal temp_value = 0.0;
+
+#ifdef OPENMS_WINDOWSPLATFORM
+    //struct tms tms_buffer;
+    FILETIME kt, ut, ct, et;
+#endif
+
+    if (is_running_ == false)
+    {
+      /* stop_watch is off, just return accumulated time */
+      temp_value = (DoubleReal)current_system_time_;
+    }
+    else
+    {
+      /* stop_watch is on, return accumulated plus current */
+#ifdef OPENMS_WINDOWSPLATFORM
+      //times(&tms_buffer);
+      HANDLE my_id = GetCurrentProcess();
+      GetProcessTimes(my_id, &ct, &et, &kt, &ut);
+
+      ULARGE_INTEGER kernel_time;
+      kernel_time.HighPart = kt.dwHighDateTime;
+      kernel_time.LowPart = kt.dwLowDateTime;
+      ULARGE_INTEGER user_time;
+      user_time.HighPart = ut.dwHighDateTime;
+      user_time.LowPart = ut.dwLowDateTime;
+      temp_value = (DoubleReal)((DoubleReal)current_system_time_ + kernel_time.QuadPart / 10.0 - (DoubleReal)last_system_time_);
+#endif
+    }
+
+    /* convert from clock ticks to seconds using the */
+    /* cpu-speed value obtained by the constructor   */
+#ifndef OPENMS_WINDOWSPLATFORM
+    return (DoubleReal)(temp_value / 1000000.0);
+
+#else
+    return 0.0;
+
+#endif
+  }
+
+  StopWatch & StopWatch::operator=(const StopWatch & stop_watch)
+  {
+    if (this == &stop_watch)
+    {
+      return *this;
+    }
+
+    is_running_ = stop_watch.is_running_;
+    last_secs_ = stop_watch.last_secs_;
+    last_usecs_ = stop_watch.last_usecs_;
+    last_user_time_ = stop_watch.last_user_time_;
+    last_system_time_ = stop_watch.last_system_time_;
+    current_secs_ = stop_watch.current_secs_;
+    current_usecs_ = stop_watch.current_usecs_;
+    current_user_time_ = stop_watch.current_user_time_;
+    current_system_time_ = stop_watch.current_system_time_;
+
+    return *this;
+  }
+
+  bool StopWatch::operator==(const StopWatch & stop_watch) const
+  {
+    return last_secs_ == stop_watch.last_secs_
+           && last_usecs_ == stop_watch.last_usecs_
+           && last_user_time_ == stop_watch.last_user_time_
+           && last_system_time_ == stop_watch.last_system_time_
+           && current_secs_ == stop_watch.current_secs_
+           && current_usecs_ == stop_watch.current_usecs_
+           && current_user_time_ == stop_watch.current_user_time_
+           && current_system_time_ == stop_watch.current_system_time_;
+  }
 
 } // namespace OpenMS

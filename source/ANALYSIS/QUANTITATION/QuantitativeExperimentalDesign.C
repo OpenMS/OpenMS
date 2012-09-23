@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Immanuel Luhn $
 // $Authors: Immanuel Luhn$
@@ -49,8 +49,8 @@ using std::endl;
 
 namespace OpenMS
 {
-  QuantitativeExperimentalDesign::QuantitativeExperimentalDesign()
-    : DefaultParamHandler("QuantitativeExperimentDesign")
+  QuantitativeExperimentalDesign::QuantitativeExperimentalDesign() :
+    DefaultParamHandler("QuantitativeExperimentDesign")
   {
     defaults_.setValue("designer:experiment", "ExperimentalSetting", "Identifier for the experimental design.");
     defaults_.setValue("designer:file", "File", "Identifier for the file name.");
@@ -67,8 +67,7 @@ namespace OpenMS
   {
   }
 
-
-  void QuantitativeExperimentalDesign::applyDesign2Resolver(ProteinResolver& resolver, TextFile& file, StringList& file_paths)
+  void QuantitativeExperimentalDesign::applyDesign2Resolver(ProteinResolver & resolver, TextFile & file, StringList & file_paths)
   {
 
     //create mapping from experimental setting to all respective file names
@@ -76,17 +75,17 @@ namespace OpenMS
     mapFiles2Design_(design2FileBaseName, file);
     //filter out all non-existing files
     map<String, StringList> design2FilePath;
-    findRelevantFilePaths_(design2FileBaseName,design2FilePath,file_paths);
+    findRelevantFilePaths_(design2FileBaseName, design2FilePath, file_paths);
 
     //determine wether we deal with idXML or featureXML
     FileTypes::Type in_type = FileHandler::getType(file_paths.front());
 
-    if ( in_type == FileTypes::IDXML)
+    if (in_type == FileTypes::IDXML)
     {
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
 
-      for ( map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
+      for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
         // merge the respective files
         mergeIDFiles_(proteins, peptides, iter->first, iter->second);
@@ -98,7 +97,7 @@ namespace OpenMS
     {
       ConsensusMap consensus;
 
-      for ( map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
+      for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
         mergeConsensusMaps_(consensus, iter->first, iter->second);
       }
@@ -107,60 +106,60 @@ namespace OpenMS
     }
   }
 
-  void QuantitativeExperimentalDesign::applyDesign2Quantifier(PeptideAndProteinQuant& quantifier, TextFile& file, StringList& file_paths)
-                                                      //        vector< pair<PeptideAndProteinQuant::PeptideData,PeptideAndProteinQuant::ProteinQuant> >& result)
+  void QuantitativeExperimentalDesign::applyDesign2Quantifier(PeptideAndProteinQuant & quantifier, TextFile & file, StringList & file_paths)
   {
+    //        vector< pair<PeptideAndProteinQuant::PeptideData,PeptideAndProteinQuant::ProteinQuant> >& result)
     //create mapping from experimental setting to all respective file names
     map<String, StringList> design2FileBaseName;
     mapFiles2Design_(design2FileBaseName, file);
     //filter out all non-existing files
     map<String, StringList> design2FilePath;
-    findRelevantFilePaths_(design2FileBaseName,design2FilePath,file_paths);
+    findRelevantFilePaths_(design2FileBaseName, design2FilePath, file_paths);
 
     //determine wether we deal with idXML or featureXML
     FileTypes::Type in_type = FileHandler::getType(file_paths.front());
 
-    if ( in_type == FileTypes::FEATUREXML)
+    if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap<> features;
 
-      for ( map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
+      for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
         mergeFeatureMaps_(features, iter->first, iter->second);
       }
       LOG_INFO << "Number of proteinIdentifications: " << features.getProteinIdentifications().size() << endl;
-      ProteinIdentification& proteins = features.getProteinIdentifications()[0];
+      ProteinIdentification & proteins = features.getProteinIdentifications()[0];
 
       quantifier.quantifyPeptides(features);
-      const PeptideAndProteinQuant::PeptideQuant& pep_result = quantifier.getPeptideResults();
+      const PeptideAndProteinQuant::PeptideQuant & pep_result = quantifier.getPeptideResults();
 
       quantifier.quantifyProteins(proteins);
-      const PeptideAndProteinQuant::ProteinQuant& prot_result = quantifier.getProteinResults();
+      const PeptideAndProteinQuant::ProteinQuant & prot_result = quantifier.getProteinResults();
 
-     // result.push_back(make_pair(pep_result,prot_result));
+      // result.push_back(make_pair(pep_result,prot_result));
     }
     else
     {
       ConsensusMap consensus;
 
-      for ( map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
+      for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
         mergeConsensusMaps_(consensus, iter->first, iter->second);
       }
 
       LOG_INFO << "Number of proteinIdentifications: " << consensus.getProteinIdentifications().size() << endl;
-      ProteinIdentification& proteins = consensus.getProteinIdentifications()[0];
+      ProteinIdentification & proteins = consensus.getProteinIdentifications()[0];
 
       quantifier.quantifyPeptides(consensus);
-      const PeptideAndProteinQuant::PeptideQuant& pep_result = quantifier.getPeptideResults();
+      const PeptideAndProteinQuant::PeptideQuant & pep_result = quantifier.getPeptideResults();
 
       quantifier.quantifyProteins(proteins);
-      const PeptideAndProteinQuant::ProteinQuant& prot_result = quantifier.getProteinResults();
+      const PeptideAndProteinQuant::ProteinQuant & prot_result = quantifier.getProteinResults();
 
     }
   }
 
-  void QuantitativeExperimentalDesign::mergeConsensusMaps_(ConsensusMap& out, const String& experiment, StringList& file_paths)
+  void QuantitativeExperimentalDesign::mergeConsensusMaps_(ConsensusMap & out, const String & experiment, StringList & file_paths)
   {
     ConsensusMap map;
 
@@ -179,7 +178,7 @@ namespace OpenMS
     LOG_INFO << endl;
   }
 
-  void QuantitativeExperimentalDesign::mergeFeatureMaps_(FeatureMap<>& out, const String& experiment, StringList& file_paths)
+  void QuantitativeExperimentalDesign::mergeFeatureMaps_(FeatureMap<> & out, const String & experiment, StringList & file_paths)
   {
     FeatureMap<> map;
 
@@ -197,7 +196,7 @@ namespace OpenMS
     }
   }
 
-  void QuantitativeExperimentalDesign::mergeIDFiles_(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, const String& experiment, StringList& file_paths)
+  void QuantitativeExperimentalDesign::mergeIDFiles_(vector<ProteinIdentification> & proteins, vector<PeptideIdentification> & peptides, const String & experiment, StringList & file_paths)
   {
     set<String> used_ids;
     vector<ProteinIdentification> additional_proteins;
@@ -211,14 +210,14 @@ namespace OpenMS
 
       for (vector<ProteinIdentification>::iterator prot_it =
              additional_proteins.begin(); prot_it !=
-             additional_proteins.end(); ++prot_it)
+           additional_proteins.end(); ++prot_it)
       {
         prot_it->setMetaValue("experiment", DataValue(experiment));
       }
 
       for (vector<PeptideIdentification>::iterator pep_it =
              additional_peptides.begin(); pep_it !=
-             additional_peptides.end(); ++pep_it)
+           additional_peptides.end(); ++pep_it)
       {
         pep_it->setMetaValue("experiment", DataValue(experiment));
       }
@@ -246,11 +245,13 @@ namespace OpenMS
           prot_it->setDateTime(date_time);
           for (vector<PeptideIdentification>::iterator pep_it = additional_peptides.begin(); pep_it != additional_peptides.end(); ++pep_it)
           {
-            if (pep_it->getIdentifier() == id) pep_it->setIdentifier(new_id);
+            if (pep_it->getIdentifier() == id)
+              pep_it->setIdentifier(new_id);
           }
           used_ids.insert(new_id);
         }
-        else used_ids.insert(id);
+        else
+          used_ids.insert(id);
       }
 
       proteins.insert(proteins.end(), additional_proteins.begin(), additional_proteins.end());
@@ -258,40 +259,41 @@ namespace OpenMS
     }
   }
 
-  void QuantitativeExperimentalDesign::findRelevantFilePaths_( map<String, StringList>& design2FileBaseName,  map<String, StringList>& design2FilePath, StringList& filePaths)
+  void QuantitativeExperimentalDesign::findRelevantFilePaths_(map<String, StringList> & design2FileBaseName, map<String, StringList> & design2FilePath, StringList & filePaths)
   {
     //find all file from the input file that belong to an experimental setting
     // files without a mapping are ignored
 
     // for every experimental setup
-    for ( map<String, StringList>::iterator iter =  design2FileBaseName.begin(); iter != design2FileBaseName.end(); ++iter)
+    for (map<String, StringList>::iterator iter =  design2FileBaseName.begin(); iter != design2FileBaseName.end(); ++iter)
     {
-      StringList& files_base_name_design = iter->second;
+      StringList & files_base_name_design = iter->second;
 
       StringList existing_files_input;
 
       // for every base file name
-      for ( StringList::Iterator it = files_base_name_design.begin(); it != files_base_name_design.end(); ++it )
+      for (StringList::Iterator it = files_base_name_design.begin(); it != files_base_name_design.end(); ++it)
       {
         // search against all files from the user input
-        for ( StringList::Iterator it2 = filePaths.begin(); it2 != filePaths.end(); ++it2)
+        for (StringList::Iterator it2 = filePaths.begin(); it2 != filePaths.end(); ++it2)
         {
           // QFileInfo fi("/tmp/archive.tar.gz");
           // QString name = fi.baseName(); --> name = "archive"
           const String file_ = QFileInfo(it2->toQString()).baseName().toStdString();
           // if given store file path in string list
-          if ( it->compare(file_) == 0)
+          if (it->compare(file_) == 0)
           {
             existing_files_input.push_back(*it2);
           }
         }
       }
       // iff files are provided for an setup, create a map entry
-      if ( !existing_files_input.empty() ) design2FilePath.insert(make_pair(iter->first,existing_files_input));
+      if (!existing_files_input.empty())
+        design2FilePath.insert(make_pair(iter->first, existing_files_input));
     }
   }
 
-  void QuantitativeExperimentalDesign::analyzeHeader_(UInt& expCol, UInt& fileCol, StringList& header)
+  void QuantitativeExperimentalDesign::analyzeHeader_(UInt & expCol, UInt & fileCol, StringList & header)
   {
     // read parameter
     String experiment = param_.getValue("designer:experiment");
@@ -299,41 +301,47 @@ namespace OpenMS
 
     // iterate through header strings to look for matching identifier
     UInt col = 0;
-    for ( StringList::Iterator iter = header.begin(); iter != header.end(); ++iter, ++col)
+    for (StringList::Iterator iter = header.begin(); iter != header.end(); ++iter, ++col)
     {
-      if ( experiment.compare(*iter) == 0 ) expCol = col;
-      if ( fileName.compare(*iter) == 0 ) fileCol = col;
+      if (experiment.compare(*iter) == 0)
+        expCol = col;
+      if (fileName.compare(*iter) == 0)
+        fileCol = col;
     }
 
     // in case one or all identifier could not be found throw an exception
     UInt invalid = -1;
-    if ( expCol == invalid || fileCol == invalid )
+    if (expCol == invalid || fileCol == invalid)
     {
-      if ( expCol == invalid && fileCol == invalid)
+      if (expCol == invalid && fileCol == invalid)
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                           "Both identifier (experimental design and file name) are not correct");
-      if ( expCol == invalid )
+      if (expCol == invalid)
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                           "Identifier for experimental design is not correct");
-      if ( fileCol == invalid )
+      if (fileCol == invalid)
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                           "Identifier for the file name is not correct");
     }
   }
 
-  void QuantitativeExperimentalDesign::getSeparator_(String& separator)
+  void QuantitativeExperimentalDesign::getSeparator_(String & separator)
   {
     // get separator from parameter setting
     String sep = param_.getValue("designer:separator");
 
     // assign
-    if ( sep.compare("tab") == 0 ) separator = "\t";
-    else if ( sep.compare("semi-colon") == 0) separator = ";";
-    else if ( sep.compare("comma" ) == 0) separator = ",";
-    else if ( sep.compare("whitespace") == 0)separator = " ";
+    if (sep.compare("tab") == 0)
+      separator = "\t";
+    else if (sep.compare("semi-colon") == 0)
+      separator = ";";
+    else if (sep.compare("comma") == 0)
+      separator = ",";
+    else if (sep.compare("whitespace") == 0)
+      separator = " ";
   }
 
-  void QuantitativeExperimentalDesign::mapFiles2Design_(map<String, StringList>& experiments, TextFile& file)
+  void QuantitativeExperimentalDesign::mapFiles2Design_(map<String, StringList> & experiments, TextFile & file)
   {
     // get the defined separator from the parameter setting
     String separator;
@@ -342,7 +350,7 @@ namespace OpenMS
     // read the header and split according separator
     StringList header;
     TextFile::Iterator iter = file.begin();
-    iter->split(separator,header);
+    iter->split(separator, header);
     ++iter;
 
     // define the column of file name and experimental setting
@@ -355,14 +363,14 @@ namespace OpenMS
     for (; iter != file.end(); ++iter)
     {
       StringList column;
-      iter->split(separator,column);
+      iter->split(separator, column);
       rows.push_back(column);
     }
 
     // map all file names to the respective experimental setting
-    map<String, StringList >::iterator it;
+    map<String, StringList>::iterator it;
 
-    for(vector<StringList>::iterator iter = rows.begin() ; iter != rows.end() ; ++iter)
+    for (vector<StringList>::iterator iter = rows.begin(); iter != rows.end(); ++iter)
     {
       // get experimental setting and file name
       String experiment = iter->at(expCol);
@@ -372,9 +380,9 @@ namespace OpenMS
       it = experiments.find(experiment);
 
       // if experimental setting is already present, add file name
-      if ( it != experiments.end() )
+      if (it != experiments.end())
       {
-        StringList& list = it->second;
+        StringList & list = it->second;
         list.push_back(fileName);
       }
       // otherwise create new list
@@ -382,15 +390,15 @@ namespace OpenMS
       {
         StringList newList;
         newList.push_back(fileName);
-        experiments.insert(make_pair(experiment,newList));
+        experiments.insert(make_pair(experiment, newList));
       }
     }
 
     LOG_INFO << "\n Statistics: \n";
-    for( it = experiments.begin(); it != experiments.end(); ++it ) {
+    for (it = experiments.begin(); it != experiments.end(); ++it)
+    {
       LOG_INFO << "Experiment: " << it->first << ", number datasets: " << it->second.size() << endl;
     }
   }
 
 } // namespace OpenMS
-

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> $
@@ -59,7 +59,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
 }
 */
 
-    IMSIsotopeDistribution & IMSIsotopeDistribution::operator = (const IMSIsotopeDistribution &distribution)
+    IMSIsotopeDistribution & IMSIsotopeDistribution::operator=(const IMSIsotopeDistribution & distribution)
     {
       if (this != &distribution)
       {
@@ -69,22 +69,19 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
       return *this;
     }
 
-
-    bool IMSIsotopeDistribution::operator == (const IMSIsotopeDistribution &distribution) const
+    bool IMSIsotopeDistribution::operator==(const IMSIsotopeDistribution & distribution) const
     {
       return this == &distribution ||
              (peaks_ == distribution.peaks_ &&
               nominal_mass_ == distribution.nominal_mass_);
     }
 
-
-    bool IMSIsotopeDistribution::operator != (const IMSIsotopeDistribution &distribution) const
+    bool IMSIsotopeDistribution::operator!=(const IMSIsotopeDistribution & distribution) const
     {
-      return !this->operator == (distribution);
+      return !this->operator==(distribution);
     }
 
-
-    IMSIsotopeDistribution & IMSIsotopeDistribution::operator *= (const IMSIsotopeDistribution &distribution)
+    IMSIsotopeDistribution & IMSIsotopeDistribution::operator*=(const IMSIsotopeDistribution & distribution)
     {
 
       if (distribution.empty())
@@ -93,7 +90,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
       }
       if (this->empty())
       {
-        return operator = (distribution);
+        return operator=(distribution);
       }
       // creates a temporary destination container to store peaks
       // (abundances and masses)
@@ -159,7 +156,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
 
       @return The distribution folded with itself @c power times.
     */
-    IMSIsotopeDistribution & IMSIsotopeDistribution::operator *= (unsigned int power)
+    IMSIsotopeDistribution & IMSIsotopeDistribution::operator*=(unsigned int power)
     {
       if (power <= 1)
       {
@@ -184,7 +181,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
       }
 
       // initializes distribution which will folded iteratively upto each entry
-      IMSIsotopeDistribution this_power_two_index(* this);
+      IMSIsotopeDistribution this_power_two_index(*this);
 
       // initializes result distribution where foldings will be collected
       IMSIsotopeDistribution result;
@@ -208,7 +205,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
         }
       }
 
-      return operator = (result);
+      return operator=(result);
 
     }
 
@@ -267,7 +264,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
       }
     }
 
-    std::ostream & operator << (std::ostream & os, const IMSIsotopeDistribution &distribution)
+    std::ostream & operator<<(std::ostream & os, const IMSIsotopeDistribution & distribution)
     {
       for (IMSIsotopeDistribution::size_type i = 0; i < distribution.size(); ++i)
       {
@@ -276,5 +273,6 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
       }
       return os;
     }
+
   } // namespace ims
 } // namespace OpenMS

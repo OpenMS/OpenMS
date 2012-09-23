@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
 // $Authors: Alexandra Zerck, Chris Bielow$
@@ -51,26 +51,26 @@ using namespace std;
 
    @brief A tool for creating inclusion and/or exclusion lists for LC-MS/MS.
 
-	<CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ InclusionExclusionListCreator \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
-		</tr>
-		<tr>
+    <CENTER>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ InclusionExclusionListCreator \f$ \longrightarrow \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+        </tr>
+        <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
-		</tr>
-	</table>
-	</CENTER>
+        </tr>
+    </table>
+    </CENTER>
 
    Currently this tool can create tab-delimited inclusion or exclusion lists (m/z, RT start, RT stop).
-	 The input can either be peptide identifications from previous runs, a feature map or a FASTA-file with proteins.
-	 Inclusion and exclusion charges can be specified for FASTA and idXML input. If no charges are specified in the case of peptide id input, only
+     The input can either be peptide identifications from previous runs, a feature map or a FASTA-file with proteins.
+     Inclusion and exclusion charges can be specified for FASTA and idXML input. If no charges are specified in the case of peptide id input, only
    the charge state of the peptide id is in/excluded, otherwise all given charge states are entered to the list.
 
    The RT window size can be specified in the RT section of the INI file, either as relative window
@@ -80,20 +80,20 @@ using namespace std;
 
    <B>The command line parameters of this tool are:</B>
    @verbinclude TOPP_InclusionExclusionListCreator.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude TOPP_InclusionExclusionListCreator.html
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude TOPP_InclusionExclusionListCreator.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 
-class TOPPInclusionExclusionListCreator
-  : public TOPPBase
+class TOPPInclusionExclusionListCreator :
+  public TOPPBase
 {
 public:
-  TOPPInclusionExclusionListCreator()
-    : TOPPBase("InclusionExclusionListCreator","Creates inclusion and/or exclusion lists.")
+  TOPPInclusionExclusionListCreator() :
+    TOPPBase("InclusionExclusionListCreator", "Creates inclusion and/or exclusion lists.")
   {
   }
 
@@ -101,39 +101,39 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("include", "<file>", "", "Inclusion list input file in FASTA or featureXML format.",false);
-    setValidFormats_("include",StringList::create("featureXML,fasta"));
-    registerInputFile_("exclude","<file>", "", "Exclusion list input file in featureXML, idXML or FASTA format.",false);
-    setValidFormats_("exclude",StringList::create("featureXML,idXML,fasta"));
+    registerInputFile_("include", "<file>", "", "Inclusion list input file in FASTA or featureXML format.", false);
+    setValidFormats_("include", StringList::create("featureXML,fasta"));
+    registerInputFile_("exclude", "<file>", "", "Exclusion list input file in featureXML, idXML or FASTA format.", false);
+    setValidFormats_("exclude", StringList::create("featureXML,idXML,fasta"));
     registerOutputFile_("out", "<file>", "", "Output file (tab delimited).");
-    registerInputFile_("rt_model","<file>","","RTModel file used for the rt prediction of peptides in FASTA files.",false);
-    registerInputFile_("pt_model","<file>","","PTModel file used for the pt prediction of peptides in FASTA files (only needed for inclusion_strategy PreotinBased_LP).",false);
+    registerInputFile_("rt_model", "<file>", "", "RTModel file used for the rt prediction of peptides in FASTA files.", false);
+    registerInputFile_("pt_model", "<file>", "", "PTModel file used for the pt prediction of peptides in FASTA files (only needed for inclusion_strategy PreotinBased_LP).", false);
     //in FASTA or featureXML
-    registerIntList_("inclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the inclusion list compounds, space separated.",false);
+    registerIntList_("inclusion_charges", "<charge>", IntList(), "List containing the charge states to be considered for the inclusion list compounds, space separated.", false);
     setMinInt_("inclusion_charges", 1);
-    registerStringOption_("inclusion_strategy","<name>","ALL","strategy to be used for selection",false);
+    registerStringOption_("inclusion_strategy", "<name>", "ALL", "strategy to be used for selection", false);
     setValidStrings_("inclusion_strategy", StringList::create("FeatureBased_LP,ProteinBased_LP,ALL"));
-    registerIntList_("exclusion_charges","<charge>",IntList(),"List containing the charge states to be considered for the exclusion list compounds (for idXML and FASTA input), space separated.",false);
+    registerIntList_("exclusion_charges", "<charge>", IntList(), "List containing the charge states to be considered for the exclusion list compounds (for idXML and FASTA input), space separated.", false);
     setMinInt_("exclusion_charges", 1);
-    registerInputFile_("raw_data","<mzMLFile>","","File containing the raw data (only needed for FeatureBased_LP).",false);
+    registerInputFile_("raw_data", "<mzMLFile>", "", "File containing the raw data (only needed for FeatureBased_LP).", false);
 
     //    setValidFormats_("out", StringList::create("traML"));
 
-    registerSubsection_("algorithm","Inclusion/Exclusion algorithm section");
+    registerSubsection_("algorithm", "Inclusion/Exclusion algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the InclusionExclusionList param
     InclusionExclusionList fdc;
     OfflinePrecursorIonSelection ops;
     Param tmp;
-    tmp.insert("InclusionExclusionList:",fdc.getParameters());
-    tmp.insert("PrecursorSelection:",ops.getParameters());
+    tmp.insert("InclusionExclusionList:", fdc.getParameters());
+    tmp.insert("PrecursorSelection:", ops.getParameters());
     return tmp;
   }
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int, const char **)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -144,9 +144,9 @@ protected:
     String exclude(getStringOption_("exclude"));
     String out(getStringOption_("out"));
     String strategy = getStringOption_("inclusion_strategy");
-    std::cout << "strategy "<<strategy<<std::endl;
+    std::cout << "strategy " << strategy << std::endl;
     String pt_model_file(getStringOption_("pt_model"));
-    
+
     if (include == "" && exclude == "")
     {
       writeLog_("Error: No input file given.");
@@ -159,7 +159,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-		IntList incl_charges(getIntList_("inclusion_charges"));
+    IntList incl_charges(getIntList_("inclusion_charges"));
     IntList excl_charges(getIntList_("exclusion_charges"));
     String rt_model_file(getStringOption_("rt_model"));
 
@@ -167,9 +167,9 @@ protected:
     // loading input: inclusion list part
     //-------------------------------------------------------------
 
-		FileHandler fh;
+    FileHandler fh;
     TargetedExperiment exp;
-    Param const& iel_param = getParam_().copy("algorithm:InclusionExclusionList:",true);
+    Param const & iel_param = getParam_().copy("algorithm:InclusionExclusionList:", true);
     writeDebug_("Parameters passed to InclusionExclusionList", iel_param, 3);
 
     InclusionExclusionList list;
@@ -183,104 +183,104 @@ protected:
     {
       FileTypes::Type in_type = fh.getType(include);
       std::vector<IncludeExcludeTarget> incl_targets;
-      if(in_type == FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML)
       {
         // load feature map
         FeatureMap<> map;
-        FeatureXMLFile().load(include,map);
+        FeatureXMLFile().load(include, map);
 
-        if(!incl_charges.empty())
+        if (!incl_charges.empty())
         {
           writeLog_("Warning: 'inclusion_charges' parameter is not honored for featureXML input.");
-					return ILLEGAL_PARAMETERS;
+          return ILLEGAL_PARAMETERS;
         }
-        if(strategy == "ALL")
-          {
-            
-            // convert to targeted experiment
-            // for traML output
-            //            list.loadTargets(map,incl_targets,exp);
-            // for tab-delimited output
-            try
-              {
-                list.writeTargets(map,out);
-              }
-            catch(Exception::UnableToCreateFile)
-              {
-                writeLog_("Error: Unable to create output file.");
-                return CANNOT_WRITE_OUTPUT_FILE;
-              }
-          }
-        else if(strategy == "FeatureBased_LP") 
-          {
-            String raw_data_path = getStringOption_("raw_data");
-            MSExperiment<> exp,ms2;
-            FeatureMap<> out_map;
-            MzMLFile().load(raw_data_path,exp);
-            IntList levels;
-            levels << 1;
-            exp.erase(remove_if(exp.begin(), exp.end(),
-                                InMSLevelRange<MSSpectrum<> >(levels, true)), exp.end());
-            exp.sortSpectra(true);
-            OfflinePrecursorIonSelection opis;
-            Param param = getParam_().copy("algorithm:PrecursorSelection:",true);
-            UInt spot_cap = param.getValue("ms2_spectra_per_rt_bin");
-            std::cout << "spot_cap "<< spot_cap << std::endl;
-            opis.setParameters(param);
-            
-            std::set<Int> charges_set;
-            charges_set.insert(0);
-            
-            // create ILP
-            PSLPFormulation ilp_wrapper;
-            // get the mass ranges for each features for each scan it occurs in
-            std::vector<std::vector<std::pair<Size,Size> > >  indices;
-            opis.getMassRanges(map,exp,indices);
-            
-            std::vector<PSLPFormulation::IndexTriple> variable_indices;
-            std::vector<int> solution_indices;
-            ilp_wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(map, exp,variable_indices,indices,charges_set,spot_cap,solution_indices);
-            
-            sort(variable_indices.begin(),variable_indices.end(),PSLPFormulation::IndexLess());
-#ifdef DEBUG_OPS
-            std::cout << "best_solution "<<std::endl;
-#endif
-            std::vector<Int> rt_sizes(exp.size(),0);
-            // print best solution
-            // create inclusion list
-            for(Size i = 0; i < solution_indices.size();++i)
-              {
-                Size feature_index = variable_indices[solution_indices[i]].feature;
-                Size scan = variable_indices[solution_indices[i]].scan;
-                out_map.push_back(map[feature_index]);
-                std::cout << map[feature_index].getMetaValue("msms_score")<<std::endl;
-                ++rt_sizes[scan];
-              }
-            
-            for(Size r = 0; r < rt_sizes.size();++r)
-              {
-                std::cout << r << "\t"<<rt_sizes[r] << "\n";
-              }
-            try
-              {
-                if(out.hasSuffix("featureXML"))
-                  {
-                    FeatureXMLFile().store(out,out_map);
-                  }
-                else  list.writeTargets(out_map,out);
-              }
-            catch(Exception::UnableToCreateFile)
-              {
-                writeLog_("Error: Unable to create output file.");
-                return CANNOT_WRITE_OUTPUT_FILE;
-              }
+        if (strategy == "ALL")
+        {
 
-          }//else if(strategy == "ILP") // ILP
-        else
+          // convert to targeted experiment
+          // for traML output
+          //            list.loadTargets(map,incl_targets,exp);
+          // for tab-delimited output
+          try
           {
-            writeLog_("Warning: 'ProteinBased_LP' inclusion strategy is not valid for featureXML input.");
-            return ILLEGAL_PARAMETERS;
+            list.writeTargets(map, out);
           }
+          catch (Exception::UnableToCreateFile)
+          {
+            writeLog_("Error: Unable to create output file.");
+            return CANNOT_WRITE_OUTPUT_FILE;
+          }
+        }
+        else if (strategy == "FeatureBased_LP")
+        {
+          String raw_data_path = getStringOption_("raw_data");
+          MSExperiment<> exp, ms2;
+          FeatureMap<> out_map;
+          MzMLFile().load(raw_data_path, exp);
+          IntList levels;
+          levels << 1;
+          exp.erase(remove_if(exp.begin(), exp.end(),
+                              InMSLevelRange<MSSpectrum<> >(levels, true)), exp.end());
+          exp.sortSpectra(true);
+          OfflinePrecursorIonSelection opis;
+          Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
+          UInt spot_cap = param.getValue("ms2_spectra_per_rt_bin");
+          std::cout << "spot_cap " << spot_cap << std::endl;
+          opis.setParameters(param);
+
+          std::set<Int> charges_set;
+          charges_set.insert(0);
+
+          // create ILP
+          PSLPFormulation ilp_wrapper;
+          // get the mass ranges for each features for each scan it occurs in
+          std::vector<std::vector<std::pair<Size, Size> > >  indices;
+          opis.getMassRanges(map, exp, indices);
+
+          std::vector<PSLPFormulation::IndexTriple> variable_indices;
+          std::vector<int> solution_indices;
+          ilp_wrapper.createAndSolveILPForKnownLCMSMapFeatureBased(map, exp, variable_indices, indices, charges_set, spot_cap, solution_indices);
+
+          sort(variable_indices.begin(), variable_indices.end(), PSLPFormulation::IndexLess());
+#ifdef DEBUG_OPS
+          std::cout << "best_solution " << std::endl;
+#endif
+          std::vector<Int> rt_sizes(exp.size(), 0);
+          // print best solution
+          // create inclusion list
+          for (Size i = 0; i < solution_indices.size(); ++i)
+          {
+            Size feature_index = variable_indices[solution_indices[i]].feature;
+            Size scan = variable_indices[solution_indices[i]].scan;
+            out_map.push_back(map[feature_index]);
+            std::cout << map[feature_index].getMetaValue("msms_score") << std::endl;
+            ++rt_sizes[scan];
+          }
+
+          for (Size r = 0; r < rt_sizes.size(); ++r)
+          {
+            std::cout << r << "\t" << rt_sizes[r] << "\n";
+          }
+          try
+          {
+            if (out.hasSuffix("featureXML"))
+            {
+              FeatureXMLFile().store(out, out_map);
+            }
+            else list.writeTargets(out_map, out);
+          }
+          catch (Exception::UnableToCreateFile)
+          {
+            writeLog_("Error: Unable to create output file.");
+            return CANNOT_WRITE_OUTPUT_FILE;
+          }
+
+        }  //else if(strategy == "ILP") // ILP
+        else
+        {
+          writeLog_("Warning: 'ProteinBased_LP' inclusion strategy is not valid for featureXML input.");
+          return ILLEGAL_PARAMETERS;
+        }
       }
       else // FASTA format
       {
@@ -289,60 +289,60 @@ protected:
           writeLog_("Error: RT model file required for FASTA input to predict RT elution time.");
           return MISSING_PARAMETERS;
         }
-        if(incl_charges.empty())
+        if (incl_charges.empty())
         {
           writeLog_("Error: Protein sequences for inclusion given, but no charge states specified.");
           return MISSING_PARAMETERS;
         }
-        if(strategy == "ProteinBased_LP")
+        if (strategy == "ProteinBased_LP")
+        {
+          OfflinePrecursorIonSelection opis;
+          Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
+          opis.setParameters(param);
+
+          FeatureMap<> precursors;
+          opis.createProteinSequenceBasedLPInclusionList(include, rt_model_file, pt_model_file, precursors);
+          if (out.hasSuffix("featureXML"))
           {
-            OfflinePrecursorIonSelection opis;        
-            Param param = getParam_().copy("algorithm:PrecursorSelection:",true);
-            opis.setParameters(param);
-
-            FeatureMap<> precursors;
-            opis.createProteinSequenceBasedLPInclusionList(include,rt_model_file,pt_model_file,precursors);
-            if(out.hasSuffix("featureXML"))
-              {
-                FeatureXMLFile().store(out,precursors);
-              }
-            else list.writeTargets(precursors,out);
-
+            FeatureXMLFile().store(out, precursors);
           }
+          else list.writeTargets(precursors, out);
+
+        }
         else
+        {
+          std::vector<FASTAFile::FASTAEntry> entries;
+          // load fasta-file
+          FASTAFile().load(include, entries);
+
+          // convert to targeted experiment
+          // if traML output
+          //list.loadTargets(entries,incl_targets,exp,missed_cleavages);
+          // if tab-delimited output
+          try
           {
-            std::vector<FASTAFile::FASTAEntry> entries;
-            // load fasta-file
-            FASTAFile().load(include,entries);
-            
-            // convert to targeted experiment
-            // if traML output
-            //list.loadTargets(entries,incl_targets,exp,missed_cleavages);
-            // if tab-delimited output
-            try
-              {
-                list.writeTargets(entries,out,incl_charges,rt_model_file);
-              }
-            catch(Exception::UnableToCreateFile)
-              {
-                writeLog_("Error: Unable to create output file.");
-                return CANNOT_WRITE_OUTPUT_FILE;
-              }
+            list.writeTargets(entries, out, incl_charges, rt_model_file);
           }
+          catch (Exception::UnableToCreateFile)
+          {
+            writeLog_("Error: Unable to create output file.");
+            return CANNOT_WRITE_OUTPUT_FILE;
+          }
+        }
       }
 
-			//        exp.setIncludeTargets(incl_targets);
+      //        exp.setIncludeTargets(incl_targets);
     }
     //-------------------------------------------------------------
     // loading input: exclusion list part
     //-------------------------------------------------------------
-    if(exclude != "")
+    if (exclude != "")
     {
       FileTypes::Type ex_type = fh.getType(exclude);
       //        std::vector<IncludeExcludeTarget> excl_targets;
-      if(ex_type == FileTypes::FEATUREXML)
+      if (ex_type == FileTypes::FEATUREXML)
       {
-        if(!excl_charges.empty())
+        if (!excl_charges.empty())
         {
           writeLog_("Warning: 'exclusion_charges' parameter is not honored for featureXML input.");
           return ILLEGAL_PARAMETERS;
@@ -350,46 +350,46 @@ protected:
 
         // load feature map
         FeatureMap<> map;
-        FeatureXMLFile().load(exclude,map);
+        FeatureXMLFile().load(exclude, map);
 
         // convert to targeted experiment if traML output is selected
-				//            list.loadTargets(map,excl_targets,exp);
-				// else write tab-delimited file directly
-				try
-				{
-					list.writeTargets(map,out);
-				}
-				catch(Exception::UnableToCreateFile)
+        //            list.loadTargets(map,excl_targets,exp);
+        // else write tab-delimited file directly
+        try
+        {
+          list.writeTargets(map, out);
+        }
+        catch (Exception::UnableToCreateFile)
         {
           writeLog_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
         }
       }
-      else if(ex_type == FileTypes::IDXML)
+      else if (ex_type == FileTypes::IDXML)
       {
         std::vector<PeptideIdentification> pep_ids;
         std::vector<ProteinIdentification> prot_ids;
-        IdXMLFile().load(exclude,prot_ids,pep_ids);
-				try
-				{
-					list.writeTargets(pep_ids,out,excl_charges);
-				}
-				catch(Exception::UnableToCreateFile)
+        IdXMLFile().load(exclude, prot_ids, pep_ids);
+        try
+        {
+          list.writeTargets(pep_ids, out, excl_charges);
+        }
+        catch (Exception::UnableToCreateFile)
         {
           writeLog_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
         }
-				catch(Exception::InvalidSize)
-				{
-					writeLog_("Error: Peptide identification contains several hits. Use IDFilter to filter for significant peptide hits.");
-					return ILLEGAL_PARAMETERS;
-				}
-				catch(Exception::MissingInformation)
-				{
-					writeLog_("Error: Peptide identification contains no RT information.");
-					return ILLEGAL_PARAMETERS;
-				}
-			}
+        catch (Exception::InvalidSize)
+        {
+          writeLog_("Error: Peptide identification contains several hits. Use IDFilter to filter for significant peptide hits.");
+          return ILLEGAL_PARAMETERS;
+        }
+        catch (Exception::MissingInformation)
+        {
+          writeLog_("Error: Peptide identification contains no RT information.");
+          return ILLEGAL_PARAMETERS;
+        }
+      }
       else   // FASTA format ...
       {
         if (!File::exists(rt_model_file))
@@ -397,22 +397,22 @@ protected:
           writeLog_("Error: RT model file required for FASTA input to predict RT elution time.");
           return MISSING_PARAMETERS;
         }
-        if(excl_charges.empty())
+        if (excl_charges.empty())
         {
           writeLog_("Error: Protein sequences for exclusion given, but no charge states specified.");
           return MISSING_PARAMETERS;
         }
         std::vector<FASTAFile::FASTAEntry> entries;
         // load fasta-file
-        FASTAFile().load(exclude,entries);
+        FASTAFile().load(exclude, entries);
         // convert to targeted experiment for traML output
-				//            list.loadTargets(entries,excl_targets,exp,missed_cleavages);
-				// else for tab-delimited output
-				try
-				{
-					list.writeTargets(entries,out,excl_charges,rt_model_file);
-				}
-				catch(Exception::UnableToCreateFile)
+        //            list.loadTargets(entries,excl_targets,exp,missed_cleavages);
+        // else for tab-delimited output
+        try
+        {
+          list.writeTargets(entries, out, excl_charges, rt_model_file);
+        }
+        catch (Exception::UnableToCreateFile)
         {
           writeLog_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -433,10 +433,10 @@ protected:
 };
 
 
-int main( int argc, const char** argv )
+int main(int argc, const char ** argv)
 {
   TOPPInclusionExclusionListCreator tool;
-  return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }
 
 /// @endcond

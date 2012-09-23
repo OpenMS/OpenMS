@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
 // $Authors: Johannes Junker $
@@ -39,77 +39,77 @@
 #include <QtCore/QPoint>
 
 namespace OpenMS
-{	
+{
 
-  Annotation1DPeakItem::Annotation1DPeakItem(const PointType& peak_position, const QString& text, const QColor& color)
-		: Annotation1DItem(text),
-      peak_position_(peak_position),
-      position_(peak_position),
-      color_(color)
-	{
-	}
-	
-	Annotation1DPeakItem::Annotation1DPeakItem(const Annotation1DPeakItem& rhs)
-		: Annotation1DItem(rhs)
-	{
+  Annotation1DPeakItem::Annotation1DPeakItem(const PointType & peak_position, const QString & text, const QColor & color) :
+    Annotation1DItem(text),
+    peak_position_(peak_position),
+    position_(peak_position),
+    color_(color)
+  {
+  }
+
+  Annotation1DPeakItem::Annotation1DPeakItem(const Annotation1DPeakItem & rhs) :
+    Annotation1DItem(rhs)
+  {
     peak_position_ = rhs.peak_position_;
     position_ = rhs.position_;
     color_ = rhs.color_;
-	}
-	
-	Annotation1DPeakItem::~Annotation1DPeakItem()
-	{
-	}
-	
-	void Annotation1DPeakItem::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
-	{
+  }
+
+  Annotation1DPeakItem::~Annotation1DPeakItem()
+  {
+  }
+
+  void Annotation1DPeakItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  {
     painter.save();
 
     painter.setPen(color_);
-		//translate mz/intensity to pixel coordinates
+    //translate mz/intensity to pixel coordinates
     QPoint position_widget, peak_position_widget;
 
     canvas->dataToWidget(position_.getX(), position_.getY(), position_widget, flipped, true);
     canvas->dataToWidget(peak_position_.getX(), peak_position_.getY(), peak_position_widget, flipped, true);
 
-		// compute bounding box of text_item on the specified painter
+    // compute bounding box of text_item on the specified painter
     bounding_box_ = painter.boundingRect(QRectF(position_widget, position_widget), Qt::AlignCenter, text_);
 
     DoubleReal vertical_shift = 0;
     DoubleReal horizontal_shift = 0;
 
-		if (canvas->isMzToXAxis())
-		{
+    if (canvas->isMzToXAxis())
+    {
       // shift pos - annotation should be over peak or, if not possible, next to it
-      vertical_shift = bounding_box_.height()/2 + 5;
+      vertical_shift = bounding_box_.height() / 2 + 5;
       if (!flipped)
       {
-       vertical_shift *= -1;
+        vertical_shift *= -1;
       }
 
-			bounding_box_.translate(0.0, vertical_shift);
+      bounding_box_.translate(0.0, vertical_shift);
 
-			if (flipped && bounding_box_.bottom() > canvas->height())
-			{
-				bounding_box_.moveBottom(canvas->height());
-        bounding_box_.moveLeft(position_widget.x() + 5.0);
-			}
-			else if (!flipped && bounding_box_.top() < 0.0)
-			{
-				bounding_box_.moveTop(0.0);
+      if (flipped && bounding_box_.bottom() > canvas->height())
+      {
+        bounding_box_.moveBottom(canvas->height());
         bounding_box_.moveLeft(position_widget.x() + 5.0);
       }
-		}
-		else
-		{
-			// annotation should be next to the peak (to its right)
-      horizontal_shift = bounding_box_.width()/2 + 5;
-			bounding_box_.translate(horizontal_shift, 0.0);
-			if (bounding_box_.right() > canvas->width())
-			{
-				bounding_box_.moveRight(canvas->width());
-			}
-		}
+      else if (!flipped && bounding_box_.top() < 0.0)
+      {
+        bounding_box_.moveTop(0.0);
+        bounding_box_.moveLeft(position_widget.x() + 5.0);
+      }
+    }
+    else
+    {
+      // annotation should be next to the peak (to its right)
+      horizontal_shift = bounding_box_.width() / 2 + 5;
+      bounding_box_.translate(horizontal_shift, 0.0);
+      if (bounding_box_.right() > canvas->width())
+      {
+        bounding_box_.moveRight(canvas->width());
+      }
+    }
 
     // draw connection line between anker point and current position if pixel coordinates differ significantly
     if ((position_widget - peak_position_widget).manhattanLength() > 2)
@@ -122,8 +122,8 @@ namespace OpenMS
       QLineF bottom(bounding_box_.x(), bounding_box_.y() + bounding_box_.height(), bounding_box_.x() + bounding_box_.width(), bounding_box_.y() + bounding_box_.height());
 
       QLineF::IntersectType itype;
-      QPointF* ip = new QPointF();
-      QPointF* closest_ip = new QPointF(-10e10, -10e10);
+      QPointF * ip = new QPointF();
+      QPointF * closest_ip = new QPointF(-10e10, -10e10);
       bool found_intersection = false;
 
       // intersection with top
@@ -159,7 +159,7 @@ namespace OpenMS
       {
         found_intersection = true;
         *closest_ip = *ip;
-      }           
+      }
 
       painter.save();
       painter.setPen(Qt::DashLine);
@@ -167,7 +167,8 @@ namespace OpenMS
       {
         painter.drawLine(peak_position_widget, position_widget);
         painter.drawLine(peak_position_widget, position_widget);
-      } else
+      }
+      else
       {
         painter.drawLine(peak_position_widget, *closest_ip);
         painter.drawLine(peak_position_widget, *closest_ip);
@@ -177,38 +178,38 @@ namespace OpenMS
       delete(closest_ip);
     }
 
-		painter.drawText(bounding_box_, Qt::AlignCenter, text_);
-		if (selected_)
-		{
-			drawBoundingBox_(painter);
-		}
+    painter.drawText(bounding_box_, Qt::AlignCenter, text_);
+    if (selected_)
+    {
+      drawBoundingBox_(painter);
+    }
 
     painter.restore();
-	}
-	
-  void Annotation1DPeakItem::move(const PointType& delta)
-	{
+  }
+
+  void Annotation1DPeakItem::move(const PointType & delta)
+  {
     position_.setX(position_.getX() + delta.getX());
     position_.setY(position_.getY() + delta.getY());
-	}
-	
-	void Annotation1DPeakItem::setPosition(const Annotation1DPeakItem::PointType& position)
-	{
-		position_ = position;
-	}
-	
- 	const Annotation1DPeakItem::PointType& Annotation1DPeakItem::getPosition() const
- 	{
- 		return position_;
- 	}
+  }
 
-  const Annotation1DPeakItem::PointType& Annotation1DPeakItem::getPeakPosition() const
+  void Annotation1DPeakItem::setPosition(const Annotation1DPeakItem::PointType & position)
+  {
+    position_ = position;
+  }
+
+  const Annotation1DPeakItem::PointType & Annotation1DPeakItem::getPosition() const
+  {
+    return position_;
+  }
+
+  const Annotation1DPeakItem::PointType & Annotation1DPeakItem::getPeakPosition() const
   {
     return peak_position_;
   }
- 	
-  void Annotation1DPeakItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
-	{
+
+  void Annotation1DPeakItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
+  {
     DRange<3> data_range = canvas->getDataRange();
 
     CoordinateType x_pos = position_.getX();
@@ -230,20 +231,16 @@ namespace OpenMS
     {
       position_.setY(data_range.maxPosition()[1] / canvas->getPercentageFactor());
     }
-	}
-	
-  void Annotation1DPeakItem::setColor(const QColor& color)
+  }
+
+  void Annotation1DPeakItem::setColor(const QColor & color)
   {
     color_ = color;
   }
 
-  const QColor& Annotation1DPeakItem::getColor() const
+  const QColor & Annotation1DPeakItem::getColor() const
   {
     return color_;
   }
 
-}//Namespace
-
-
-
-
+} //Namespace

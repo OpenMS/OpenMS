@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
 // $Authors: Alexandra Zerck $
@@ -43,25 +43,28 @@
 // only declare them here
 class CoinModel;
 #define GLP_PROB_DEFINED
-typedef struct { double _opaque_prob[100]; } glp_prob;
+typedef struct
+{
+  double _opaque_prob[100];
+} glp_prob;
 
 namespace OpenMS
 {
 
   class OPENMS_DLLAPI LPWrapper
   {
-  public:
+public:
     /**
        @brief Struct that holds the parameters of the LP solver
     */
     struct SolverParam
     {
-      SolverParam(): message_level(3),branching_tech(4),backtrack_tech(3),
-                     preprocessing_tech(2),enable_feas_pump_heuristic(true),enable_gmi_cuts(true),
-                     enable_mir_cuts(true),enable_cov_cuts(true),enable_clq_cuts(true),mip_gap(0.0),
-                     time_limit((std::numeric_limits<Int>::max)()), output_freq(5000),output_delay(10000),enable_presolve(true),
-                     enable_binarization(true)
-
+      SolverParam() :
+        message_level(3), branching_tech(4), backtrack_tech(3),
+        preprocessing_tech(2), enable_feas_pump_heuristic(true), enable_gmi_cuts(true),
+        enable_mir_cuts(true), enable_cov_cuts(true), enable_clq_cuts(true), mip_gap(0.0),
+        time_limit((std::numeric_limits<Int>::max)()), output_freq(5000), output_delay(10000), enable_presolve(true),
+        enable_binarization(true)
       {
       }
 
@@ -93,20 +96,20 @@ namespace OpenMS
 
     enum VariableType
     {
-      CONTINUOUS=1,
+      CONTINUOUS = 1,
       INTEGER,
       BINARY
     };
 
     enum Sense
     {
-      MIN=1,
+      MIN = 1,
       MAX
     };
-    
+
     enum WriteFormat
     {
-      FORMAT_LP =0,
+      FORMAT_LP = 0,
       FORMAT_MPS,
       FORMAT_GLPK
     };
@@ -114,9 +117,9 @@ namespace OpenMS
     enum SOLVER
     {
       SOLVER_GLPK = 0
-#if COINOR_SOLVER==1
+#if COINOR_SOLVER == 1
       , SOLVER_COINOR
-#endif      
+#endif
     };
 
     enum SolverStatus
@@ -127,16 +130,16 @@ namespace OpenMS
       NO_FEASIBLE_SOL = 4
     };
 
-		LPWrapper();
+    LPWrapper();
     virtual ~LPWrapper();
-    
+
     // problem creation/manipulation
     /// adds a row to the LP matrix, returns index
-    Int addRow(std::vector<Int> row_indices,std::vector<DoubleReal> row_values,const String& name); 
+    Int addRow(std::vector<Int> row_indices, std::vector<DoubleReal> row_values, const String & name);
     /// adds an empty column to the LP matrix, returns index
     Int addColumn();
     /// adds a column to the LP matrix, returns index
-    Int addColumn(std::vector<Int> column_indices,std::vector<DoubleReal> column_values,const String& name);
+    Int addColumn(std::vector<Int> column_indices, std::vector<DoubleReal> column_values, const String & name);
 
     /**
       @brief Adds a row with boundaries to the LP matrix, returns index
@@ -150,7 +153,7 @@ namespace OpenMS
       @param upper_bound
       @param type Type of the row 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Int addRow(std::vector<Int>& row_indices,std::vector<DoubleReal>& row_values,const String& name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
+    Int addRow(std::vector<Int> & row_indices, std::vector<DoubleReal> & row_values, const String & name, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
 
     /**
       @brief Adds a column with boundaries to the LP matrix, returns index
@@ -162,20 +165,20 @@ namespace OpenMS
       @param upper_bound
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Int addColumn(std::vector<Int>& column_indices,std::vector<DoubleReal>& column_values,const String& name,DoubleReal lower_bound,DoubleReal upper_bound,Type type);
-    
+    Int addColumn(std::vector<Int> & column_indices, std::vector<DoubleReal> & column_values, const String & name, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
+
     /// delete index-th row
     void deleteRow(Int index);
     /// sets name of the index-th column
-    void setColumnName(Int index,const String& name);
+    void setColumnName(Int index, const String & name);
     /// gets name of the index-th column
     String getColumnName(Int index);
     /// sets name of the index-th row
     String getRowName(Int index);
     /// gets index of the row with name
-    Int getRowIndex(const String& name);
+    Int getRowIndex(const String & name);
     /// gets index of the column with name
-    Int getColumnIndex(const String& name);
+    Int getColumnIndex(const String & name);
     /// gets column's upper bound
     DoubleReal getColumnUpperBound(Int index);
     /// gets column's lower bound
@@ -185,7 +188,7 @@ namespace OpenMS
     /// gets row's lower bound
     DoubleReal getRowLowerBound(Int index);
     /// sets name of the index-th row
-    void setRowName(Int index,const String& name);
+    void setRowName(Int index, const String & name);
 
     /**
       @brief Set column bounds.
@@ -241,9 +244,9 @@ namespace OpenMS
     /// get number of rows
     Int getNumberOfRows();
 
-    void setElement(Int row_index,Int column_index, DoubleReal value);
+    void setElement(Int row_index, Int column_index, DoubleReal value);
     DoubleReal getElement(Int row_index, Int column_index);
-    
+
     // problem reading/writing
     /**
       @brief Read LP from file
@@ -251,7 +254,7 @@ namespace OpenMS
       @param filename Filename where to store the LP problem.
       @param format LP, MPS or GLPK.
      */
-    void readProblem(String filename,String format); 
+    void readProblem(String filename, String format);
 
     /**
       @brief Write LP formulation to a file.
@@ -259,8 +262,8 @@ namespace OpenMS
       @param filename output filename, if the filename ends with '.gz' it will be compressed
       @param format MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
      */
-    void writeProblem(const String& filename, const WriteFormat format) const;
-    
+    void writeProblem(const String & filename, const WriteFormat format) const;
+
     /**
       @brief solve problems, parameters like enabled heuristics can be given via solver_param
 
@@ -271,8 +274,8 @@ namespace OpenMS
 
       @return solver dependent (todo: fix)
     */
-    Int solve(SolverParam& solver_param, const Size verbose_level = 0); 
-    
+    Int solve(SolverParam & solver_param, const Size verbose_level = 0);
+
     /**
       @brief Get solution status.
 
@@ -285,7 +288,7 @@ namespace OpenMS
     DoubleReal getColumnValue(Int index);
 
     Int getNumberOfNonZeroEntriesInRow(Int idx);
-    void getMatrixRow(Int idx,std::vector<Int>& indexes);
+    void getMatrixRow(Int idx, std::vector<Int> & indexes);
 
     /// choose solver; by default, only GLPK is available
     /// set this only at the very beginning of building your model, as otherwise your model is incomplete
@@ -294,13 +297,13 @@ namespace OpenMS
     /// get currently active solver
     SOLVER getSolver() const;
 
-	protected:
-#if COINOR_SOLVER==1
-    CoinModel* model_;
+protected:
+#if COINOR_SOLVER == 1
+    CoinModel * model_;
     std::vector<DoubleReal> solution_;
 #endif
 
-    glp_prob* lp_problem_;
+    glp_prob * lp_problem_;
 
     SOLVER solver_;
 

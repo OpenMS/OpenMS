@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Florian Zeller $
 // $Authors: Florian Zeller $
@@ -38,30 +38,30 @@
 
 namespace OpenMS
 {
-  PeakPickerSH::PeakPickerSH()
-    : DefaultParamHandler("PeakPickerSH"),
-      ProgressLogger()
+  PeakPickerSH::PeakPickerSH() :
+    DefaultParamHandler("PeakPickerSH"),
+    ProgressLogger()
   {
     defaultsToParam_();
   }
-  
+
   PeakPickerSH::~PeakPickerSH()
   {
     // FLO: Do not care at the moment
   }
-  
+
   template <typename PeakType>
-  void PeakPickerSH::pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, float fWindowWidth)
+  void PeakPickerSH::pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, float fWindowWidth)
   {
     int i, hw, j;
     double cm, toti, min_dh;
-    
+
     // Hack: Prepare data structures for Lukas' algorithm
-    std::vector<double> masses,intens;
+    std::vector<double> masses, intens;
     // TODO: Probably we could save some time when we resize the vectors... # PeakPickerSH.C
     //masses.resize(input.size());
     //intens.resize(input.size());
-    for (Size k = 0; k < input.size()-1; ++k)
+    for (Size k = 0; k < input.size() - 1; ++k)
     {
       // Lukas requires a minimum of intensity (=50). His vectors do not contain
       // other data, so I strip the low ones out right here.
@@ -72,27 +72,30 @@ namespace OpenMS
         intens.push_back(input[k].getIntensity());
       }
     }
-    
-    min_dh = 50.0;				// min height
-    hw = fWindowWidth/2;
-    
-    for (i=2;i<(int)masses.size()-2;i++) { 
-      
+
+    min_dh = 50.0;              // min height
+    hw = fWindowWidth / 2;
+
+    for (i = 2; i < (int)masses.size() - 2; i++)
+    {
+
       // Peak must be concave in the interval [i-2 .. i+2]
-      if (intens[i]>min_dh && intens[i]>intens[i-1]+min_dh && intens[i]>=intens[i+1] && intens[i-1]>intens[i-2]+min_dh && intens[i+1]>=intens[i+2]) {
-        
-        cm = 0.0;					// centroid mass:
-        toti = 0.0;				// total intensity:
-        
-        for (j= -hw;j<=hw;j++) {
-          double inte = intens[i-j];
-          double mz = masses[i-j];
-          
-          cm += inte*mz;
-          toti += (double) intens[i-j];
+      if (intens[i] > min_dh && intens[i] > intens[i - 1] + min_dh && intens[i] >= intens[i + 1] && intens[i - 1] > intens[i - 2] + min_dh && intens[i + 1] >= intens[i + 2])
+      {
+
+        cm = 0.0;                   // centroid mass:
+        toti = 0.0;             // total intensity:
+
+        for (j = -hw; j <= hw; j++)
+        {
+          double inte = intens[i - j];
+          double mz = masses[i - j];
+
+          cm += inte * mz;
+          toti += (double) intens[i - j];
         }
-        cm = cm/toti;			// Centre of gravity = centroid
-        
+        cm = cm / toti;           // Centre of gravity = centroid
+
         PeakType peak;
         peak.setMZ(cm);
         peak.setIntensity(intens[i]);
@@ -100,22 +103,22 @@ namespace OpenMS
       }
     }
   }
-  
-  void PeakPickerSH::pickExperiment(const MSExperiment<>& input, MSExperiment<>& output)
+
+  void PeakPickerSH::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
   {
     // make sure that output is clear
     output.clear(true);
-    
+
     // copy experimental settings
-    static_cast<ExperimentalSettings&>(output) = input;
-    
+    static_cast<ExperimentalSettings &>(output) = input;
+
     // resize output with respect to input
     output.resize(input.size());
-    
+
     std::cout << "Before loop, input size = " << input.size() << std::endl;
     Size progress = 0;
     for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
-    {	
+    {
       output[scan_idx].clear(true);
       output[scan_idx].SpectrumSettings::operator=(input[scan_idx]);
       output[scan_idx].MetaInfoInterface::operator=(input[scan_idx]);
@@ -123,11 +126,11 @@ namespace OpenMS
       output[scan_idx].setMSLevel(input[scan_idx].getMSLevel());
       output[scan_idx].setName(input[scan_idx].getName());
       output[scan_idx].setType(SpectrumSettings::PEAKS);
-      
+
       if (input[scan_idx].getMSLevel() != 1)
       {
         // When not considering MS2 data (MS2 fragment mass tracing=0), Lukas leaves out
-        // the entire scan (instead of just copying it to the output as seen in 
+        // the entire scan (instead of just copying it to the output as seen in
         // another plugin).
         // pick(input[scan_idx], output[scan_idx], 4.0);
       }
@@ -139,7 +142,8 @@ namespace OpenMS
       setProgress(++progress);
     }
     std::cout << "After loop" << std::endl;
-    
+
     endProgress();
   }
+
 }

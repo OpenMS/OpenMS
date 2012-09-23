@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
 // $Authors: Lars Nilse, Steffen Sass, Holger Plattfaut $
@@ -46,33 +46,34 @@ using namespace std;
 
 namespace OpenMS
 {
-  IsotopeDistributionCache *SILACFilter::isotope_distribution_;
+  IsotopeDistributionCache * SILACFilter::isotope_distribution_;
 
   SILACFilter::SILACFilter(std::vector<DoubleReal> mass_separations, Int charge, DoubleReal model_deviation, Int isotopes_per_peptide,
-      DoubleReal intensity_cutoff, DoubleReal intensity_correlation, bool allow_missing_peaks)
-    : mass_separations_(mass_separations),
-      charge_(charge),
-      model_deviation_(model_deviation),
-      isotopes_per_peptide_(isotopes_per_peptide),
-      intensity_cutoff_(intensity_cutoff),
-      intensity_correlation_(intensity_correlation),
-      allow_missing_peaks_(allow_missing_peaks)
+                           DoubleReal intensity_cutoff, DoubleReal intensity_correlation, bool allow_missing_peaks) :
+    mass_separations_(mass_separations),
+    charge_(charge),
+    model_deviation_(model_deviation),
+    isotopes_per_peptide_(isotopes_per_peptide),
+    intensity_cutoff_(intensity_cutoff),
+    intensity_correlation_(intensity_correlation),
+    allow_missing_peaks_(allow_missing_peaks)
   {
     // Init isotope distribution cache only once
     // XXX: Not thread save, no cleanup after the last user is gone
     // XXX: Move into own caller supplied class?
-    if (!isotope_distribution_) isotope_distribution_ = new IsotopeDistributionCache(20000.0, 1.0, 0.0, 0.0);
+    if (!isotope_distribution_)
+      isotope_distribution_ = new IsotopeDistributionCache(20000.0, 1.0, 0.0, 0.0);
 
     isotope_distance_ = 1.003355 / (DoubleReal)charge_;    // distance between isotopic peaks of a peptide [Th]
     number_of_peptides_ = (Int) mass_separations_.size() + 1;    // number of labelled peptides +1 [e.g. for SILAC triplet =3]
-    
+
     // m/z shifts from mass shifts
     mz_peptide_separations_.push_back(0.0);
     for (std::vector<DoubleReal>::iterator it = mass_separations_.begin(); it != mass_separations_.end(); ++it)
     {
       mz_peptide_separations_.push_back(*it / (DoubleReal)charge_);
     }
-    
+
     expected_mz_shifts_.clear();
     for (std::vector<DoubleReal>::iterator it = mz_peptide_separations_.begin(); it != mz_peptide_separations_.end(); ++it)
     {
@@ -83,7 +84,7 @@ namespace OpenMS
     }
   }
 
-  bool SILACFilter::extractMzShiftsAndIntensities_(const MSSpectrum<Peak1D> &s, const SILACFiltering::SpectrumInterpolation &spec_interpolation, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &f)
+  bool SILACFilter::extractMzShiftsAndIntensities_(const MSSpectrum<Peak1D> & s, const SILACFiltering::SpectrumInterpolation & spec_interpolation, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering & f)
   {
     bool missing_peak_seen_yet = false;  // Did we encounter a missing peak in this SILAC pattern yet?
 
@@ -114,7 +115,7 @@ namespace OpenMS
         DoubleReal nearest_peak_mz = s[nearest_peak_idx].getMZ();
 
         // calculate error between expected and actual position
-        DoubleReal nearestPeakError = fabs( nearest_peak_mz - next_peak_expected);
+        DoubleReal nearestPeakError = fabs(nearest_peak_mz - next_peak_expected);
 
         DoubleReal deltaMZ;
 
@@ -122,13 +123,14 @@ namespace OpenMS
         if (nearestPeakError < f.peak_width(mz) / 3)
         {
           deltaMZ = nearest_peak_mz - picked_mz;
-        } else
+        }
+        else
         {
           deltaMZ = -1; // peak not found
         }
 
 
-        if ( deltaMZ < 0)
+        if (deltaMZ < 0)
         {
           if (allow_missing_peaks_ == false)
           {
@@ -149,14 +151,14 @@ namespace OpenMS
           }
         }
 
-        exact_shifts_singlePeptide.push_back( deltaMZ );
+        exact_shifts_singlePeptide.push_back(deltaMZ);
 
         expected_shifts_singlePeptide.push_back(mz_peptide_separations_[peptide] + isotope * isotope_distance_);      // store expected_shift for blacklisting
 
-        if ( deltaMZ < 0 )
+        if (deltaMZ < 0)
         {
-          exact_mz_positions_singlePeptide.push_back( -1 );
-          exact_intensities_singlePeptide.push_back( -1 );
+          exact_mz_positions_singlePeptide.push_back(-1);
+          exact_intensities_singlePeptide.push_back(-1);
         }
         else
         {
@@ -173,7 +175,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SILACFilter::extractMzShiftsAndIntensitiesPicked_(const MSSpectrum<Peak1D> &s, DoubleReal mz, const SILACFiltering &f)
+  bool SILACFilter::extractMzShiftsAndIntensitiesPicked_(const MSSpectrum<Peak1D> & s, DoubleReal mz, const SILACFiltering & f)
   {
     bool debug = false;
 
@@ -213,11 +215,11 @@ namespace OpenMS
 
 
         // calculate error between expected and actual position
-        DoubleReal nearestPeakError = fabs( nearest_peak_mz - next_peak_expected);
+        DoubleReal nearestPeakError = fabs(nearest_peak_mz - next_peak_expected);
 
         DoubleReal deltaMZ;
 
-        if(debug)
+        if (debug)
         {
           cout << "exp_mz, mz, err, pw/2 " << next_peak_expected << " " << nearest_peak_mz << " " << nearestPeakError << " " << f.peak_width(mz) / 2.0 << endl;
         }
@@ -226,16 +228,17 @@ namespace OpenMS
         if (nearestPeakError < f.peak_width(mz) / 2.0)
         {
           deltaMZ = nearest_peak_mz - mz;
-        } else
+        }
+        else
         {
           deltaMZ = -1; // peak not found
         }
 
-        if ( deltaMZ < 0)
+        if (deltaMZ < 0)
         {
           if (allow_missing_peaks_ == false)
           {
-            if(debug)
+            if (debug)
             {
               cout << "Missing Peak!" << endl;
             }
@@ -256,18 +259,18 @@ namespace OpenMS
           }
         }
 
-        exact_shifts_singlePeptide.push_back( deltaMZ );
+        exact_shifts_singlePeptide.push_back(deltaMZ);
 
         expected_shifts_singlePeptide.push_back(mz_peptide_separations_[peptide] + isotope * isotope_distance_);      // store expected_shift for blacklisting
 
-        if ( deltaMZ < 0 )
+        if (deltaMZ < 0)
         {
-            exact_mz_positions_singlePeptide.push_back( -1 );
-          exact_intensities_singlePeptide.push_back( -1 );
+          exact_mz_positions_singlePeptide.push_back(-1);
+          exact_intensities_singlePeptide.push_back(-1);
         }
         else
         {
-            exact_mz_positions_singlePeptide.push_back(nearest_peak_mz);
+          exact_mz_positions_singlePeptide.push_back(nearest_peak_mz);
           exact_intensities_singlePeptide.push_back(nearest_peak_intensity);
         }
       }
@@ -278,14 +281,14 @@ namespace OpenMS
       expected_shifts_.push_back(expected_shifts_singlePeptide);      // store expected_shifts for blacklisting
     }
 
-    if(debug)
+    if (debug)
     {
       cout << "Success!" << endl;
     }
     return true;
   }
 
-  bool SILACFilter::extractMzShiftsAndIntensitiesPickedToPattern_(const MSSpectrum<Peak1D> &s, DoubleReal mz, const SILACFiltering &f, SILACPattern &pattern)
+  bool SILACFilter::extractMzShiftsAndIntensitiesPickedToPattern_(const MSSpectrum<Peak1D> & s, DoubleReal mz, const SILACFiltering & f, SILACPattern & pattern)
   {
     if (!extractMzShiftsAndIntensitiesPicked_(s, mz, f))
       return false;
@@ -333,7 +336,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SILACFilter::correlationFilter1_(const SILACFiltering::SpectrumInterpolation &si, DoubleReal mz, const SILACFiltering &f)
+  bool SILACFilter::correlationFilter1_(const SILACFiltering::SpectrumInterpolation & si, DoubleReal mz, const SILACFiltering & f)
   {
     bool missing_peak_seen_yet = false;
 
@@ -345,15 +348,15 @@ namespace OpenMS
         std::vector<DoubleReal> intensities2;    // intensities in region around following peak
         DoubleReal mzWindow = 0.7 * f.peak_width(mz);    // width of the window around m/z in which the correlation is calculated
 
-        for (DoubleReal dmz = - mzWindow; dmz <= mzWindow; dmz += 0.2 * mzWindow)     // fill intensity vectors
+        for (DoubleReal dmz = -mzWindow; dmz <= mzWindow; dmz += 0.2 * mzWindow)      // fill intensity vectors
         {
           DoubleReal intens1 = si(mz + exact_shifts_[peptide][0] + dmz);
           DoubleReal intens2 = si(mz + exact_shifts_[peptide][isotope2] + dmz);
-          intensities1.push_back( intens1 );
-          intensities2.push_back( intens2 );
+          intensities1.push_back(intens1);
+          intensities2.push_back(intens2);
         }
 
-        DoubleReal intensityCorrelation = Math::pearsonCorrelationCoefficient( intensities1.begin(), intensities1.end(), intensities2.begin(), intensities2.end());    // calculate Pearson correlation coefficient
+        DoubleReal intensityCorrelation = Math::pearsonCorrelationCoefficient(intensities1.begin(), intensities1.end(), intensities2.begin(), intensities2.end());     // calculate Pearson correlation coefficient
 
         if (intensityCorrelation < intensity_correlation_)
         {
@@ -374,7 +377,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SILACFilter::correlationFilter2_(const SILACFiltering::SpectrumInterpolation &si, DoubleReal mz, const SILACFiltering &f)
+  bool SILACFilter::correlationFilter2_(const SILACFiltering::SpectrumInterpolation & si, DoubleReal mz, const SILACFiltering & f)
   {
     if (!(number_of_peptides_ == 1 && exact_shifts_[0][0] == 0))     // If we are looking for single peptides, this filter is not needed.
     {
@@ -384,15 +387,15 @@ namespace OpenMS
         std::vector<DoubleReal> intensities4;    // intensities in region around first peak of following peptide
         DoubleReal mzWindow = 0.7 * f.peak_width(mz);    // width of the window around m/z in which the correlation is calculated
 
-        for (DoubleReal dmz = - mzWindow; dmz <= mzWindow; dmz += 0.2 * mzWindow)     // fill intensity vectors
+        for (DoubleReal dmz = -mzWindow; dmz <= mzWindow; dmz += 0.2 * mzWindow)      // fill intensity vectors
         {
           DoubleReal intens3 = si(mz + exact_shifts_[0][0] + dmz);
           DoubleReal intens4 = si(mz + exact_shifts_[peptide + 1][0] + dmz);
-          intensities3.push_back( intens3 );
-          intensities4.push_back( intens4 );
+          intensities3.push_back(intens3);
+          intensities4.push_back(intens4);
         }
 
-        DoubleReal intensityCorrelation = Math::pearsonCorrelationCoefficient( intensities3.begin(), intensities3.end(), intensities4.begin(), intensities4.end());    // calculate Pearson correlation coefficient
+        DoubleReal intensityCorrelation = Math::pearsonCorrelationCoefficient(intensities3.begin(), intensities3.end(), intensities4.begin(), intensities4.end());     // calculate Pearson correlation coefficient
 
         if (intensityCorrelation < intensity_correlation_)
         {
@@ -417,7 +420,7 @@ namespace OpenMS
         //IsotopeDistribution isoDistribution;    // isotope distribution of an averagene peptide
         //isoDistribution.estimateFromPeptideWeight((mz + exact_shifts_[peptide][0]) * charge_);    // mass of averagene peptide
 
-        const TheoreticalIsotopePattern& pattern = isotope_distribution_->getIsotopeDistribution((mz + exact_shifts_[peptide][0]) * charge_);
+        const TheoreticalIsotopePattern & pattern = isotope_distribution_->getIsotopeDistribution((mz + exact_shifts_[peptide][0]) * charge_);
 
         DoubleReal averagine_mono = pattern.intensity[0];    // intensity of monoisotopic peak of the averagine model
         DoubleReal intensity_mono = exact_intensities_[peptide][0];    // intensity around the (potential) monoisotopic peak in the real data
@@ -455,7 +458,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SILACFilter::isSILACPattern_(const MSSpectrum<Peak1D> &s, const SILACFiltering::SpectrumInterpolation &si, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering &f, MSSpectrum<Peak1D> &debug, SILACPattern &pattern)
+  bool SILACFilter::isSILACPattern_(const MSSpectrum<Peak1D> & s, const SILACFiltering::SpectrumInterpolation & si, DoubleReal mz, DoubleReal picked_mz, const SILACFiltering & f, MSSpectrum<Peak1D> & debug, SILACPattern & pattern)
   {
     current_mz_ = mz;
 
@@ -513,7 +516,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SILACFilter::isSILACPatternPicked_(const MSSpectrum<Peak1D> &s, DoubleReal mz, const SILACFiltering &f, MSSpectrum<Peak1D> &debug)
+  bool SILACFilter::isSILACPatternPicked_(const MSSpectrum<Peak1D> & s, DoubleReal mz, const SILACFiltering & f, MSSpectrum<Peak1D> & debug)
   {
     current_mz_ = mz;
 
@@ -551,24 +554,24 @@ namespace OpenMS
   }
 
   std::vector<DoubleReal> SILACFilter::getPeakPositions()
-	{
+  {
     peak_positions_.clear();
     for (Size peptide = 0; peptide != number_of_peptides_; ++peptide)
-		{
+    {
       for (Size isotope = 0; isotope < isotopes_per_peptide_; ++isotope)
-			{
+      {
         peak_positions_.push_back(current_mz_ + expected_shifts_[peptide][isotope]);
-			}
-		}
+      }
+    }
     return peak_positions_;
   }
-	
-  const std::vector<DoubleReal>& SILACFilter::getExpectedMzShifts()
-	{
+
+  const std::vector<DoubleReal> & SILACFilter::getExpectedMzShifts()
+  {
     return expected_mz_shifts_;
   }
 
-  std::vector<SILACPattern>& SILACFilter::getElements()
+  std::vector<SILACPattern> & SILACFilter::getElements()
   {
     return elements_;
   }
@@ -578,8 +581,9 @@ namespace OpenMS
     return charge_;
   }
 
-  std::vector<DoubleReal>& SILACFilter::getMassSeparations()
+  std::vector<DoubleReal> & SILACFilter::getMassSeparations()
   {
     return mass_separations_;
   }
+
 }

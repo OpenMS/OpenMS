@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
@@ -52,14 +52,19 @@
 
 
 
-namespace OpenMS {
+namespace OpenMS
+{
 
-	ILPDCWrapper::ILPDCWrapper(){}
+  ILPDCWrapper::ILPDCWrapper()
+  {
+  }
 
-	ILPDCWrapper::~ILPDCWrapper(){}
+  ILPDCWrapper::~ILPDCWrapper()
+  {
+  }
 
-	DoubleReal ILPDCWrapper::compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level) const
-	{
+  DoubleReal ILPDCWrapper::compute(const FeatureMap<> fm, PairsType & pairs, Size verbose_level) const
+  {
     DoubleReal score = 0;
 
     if (fm.empty())
@@ -67,10 +72,10 @@ namespace OpenMS {
       LOG_INFO << "ILPDC wrapper received empty feature list. Nothing to compute! Exiting..." << std::endl;
       return -1;
     }
-    
+
     PairsType pairs_clique_ordered;
     pairs_clique_ordered.reserve(pairs.size());
-    typedef std::vector < std::pair <Size, Size> > BinType;
+    typedef std::vector<std::pair<Size, Size> > BinType;
     BinType bins;
     // check number of components for complete putative edge graph (usually not all will be set to 'active' during ILP):
     {
@@ -82,7 +87,7 @@ namespace OpenMS {
       Map<Size, std::set<Size> > g2pairs; // group id to all pairs involved
       Map<Size, std::set<Size> > g2f;     // group id to all features involved
 
-      for	(Size i=0;i<pairs.size();++i)
+      for (Size i = 0; i < pairs.size(); ++i)
       {
         Size f1 = pairs[i].getElementIndex(0);
         Size f2 = pairs[i].getElementIndex(1);
@@ -95,7 +100,7 @@ namespace OpenMS {
             // point group2 to group1
             g2pairs[group1].insert(g2pairs[group2].begin(), g2pairs[group2].end());
             g2pairs.erase(group2);
-            for (std::set<Size>::const_iterator its=g2f[group2].begin(); its != g2f[group2].end(); ++its)
+            for (std::set<Size>::const_iterator its = g2f[group2].begin(); its != g2f[group2].end(); ++its)
             {
               g2f[group1].insert(*its);
               f2g[*its] = group1; // reassign features of group2 to group1
@@ -132,17 +137,17 @@ namespace OpenMS {
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Clique construction failed! Unequal number of groups produced!", String(g2pairs.size()) + "!=" + String(g2f.size()));
       }
 
-      Map <Size,Size> hist_component_sum;
+      Map<Size, Size> hist_component_sum;
       // now walk though groups and see the size:
-      for ( Map<Size, std::set<Size> >::const_iterator it=g2f.begin();it!=g2f.end();++it)
+      for (Map<Size, std::set<Size> >::const_iterator it = g2f.begin(); it != g2f.end(); ++it)
       {
-        ++hist_component_sum[it->second.size()]; // e.g. component 2 has size 4; thus increase count for size 4 
+        ++hist_component_sum[it->second.size()]; // e.g. component 2 has size 4; thus increase count for size 4
       }
       if (verbose_level > 1)
       {
         LOG_INFO << "Components:\n";
         LOG_INFO << "  Size 1 occurs ?x\n";
-        for (OpenMS::Map <Size,Size>::const_iterator it=hist_component_sum.begin();it!=hist_component_sum.end();++it)
+        for (OpenMS::Map<Size, Size>::const_iterator it = hist_component_sum.begin(); it != hist_component_sum.end(); ++it)
         {
           LOG_INFO << "  Size " << it->first << " occurs " << it->second << "x\n";
         }
@@ -154,17 +159,18 @@ namespace OpenMS {
 
       Size start(0);
       Size count(0);
-      for (Map<Size, std::set<Size> >::ConstIterator it = g2pairs.begin(); it!=g2pairs.end(); ++it)
+      for (Map<Size, std::set<Size> >::ConstIterator it = g2pairs.begin(); it != g2pairs.end(); ++it)
       {
         Size clique_size = it->second.size();
         if (count > pairs_per_bin || clique_size > big_clique_bin_threshold)
         {
           if (count > 0) // either bin is full or we have to close it due to big clique
           {
-            if (verbose_level > 2) LOG_INFO << "Overstepping border of " << pairs_per_bin << " by " << SignedSize(count - pairs_per_bin) << " elements!\n";
+            if (verbose_level > 2)
+              LOG_INFO << "Overstepping border of " << pairs_per_bin << " by " << SignedSize(count - pairs_per_bin) << " elements!\n";
             bins.push_back(std::make_pair(start, pairs_clique_ordered.size()));
             start = pairs_clique_ordered.size();
-            count=0;
+            count = 0;
           }
           if (clique_size > big_clique_bin_threshold) // extra bin for this big clique
           {
@@ -172,7 +178,8 @@ namespace OpenMS {
             {
               pairs_clique_ordered.push_back(pairs[*i_p]);
             }
-            if (verbose_level > 2) LOG_INFO << "Extra bin for big clique (" << clique_size << ") prepended to schedule\n";
+            if (verbose_level > 2)
+              LOG_INFO << "Extra bin for big clique (" << clique_size << ") prepended to schedule\n";
             bins.insert(bins.begin(), std::make_pair(start, pairs_clique_ordered.size()));
             start = pairs_clique_ordered.size();
             continue; // next clique (this one is already processed)
@@ -184,7 +191,8 @@ namespace OpenMS {
           pairs_clique_ordered.push_back(pairs[*i_p]);
         }
       }
-      if (count>0) bins.push_back(std::make_pair(start, pairs_clique_ordered.size()));
+      if (count > 0)
+        bins.push_back(std::make_pair(start, pairs_clique_ordered.size()));
     }
 
     if (pairs_clique_ordered.size() != pairs.size())
@@ -197,14 +205,14 @@ namespace OpenMS {
     //PairsType pt2 = pairs;
     StopWatch time1;
     time1.start();
-		// split problem into slices and have each one solved by the ILPS
+    // split problem into slices and have each one solved by the ILPS
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for	(SignedSize i=0; i < (SignedSize)bins.size(); ++i)
-		{
+    for (SignedSize i = 0; i < (SignedSize)bins.size(); ++i)
+    {
       score += computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
-		}
+    }
     time1.stop();
     LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
              << " with objective value: " << score << "."
@@ -228,22 +236,21 @@ namespace OpenMS {
     */
 
     return score;
-	}
+  }
 
-
-  void ILPDCWrapper::updateFeatureVariant_(FeatureType_& f_set, const String& rota_l, const Size& v) const
+  void ILPDCWrapper::updateFeatureVariant_(FeatureType_ & f_set, const String & rota_l, const Size & v) const
   {
     f_set[rota_l].insert(v);
   }
 
   double ILPDCWrapper::computeSlice_(const FeatureMap<> fm,
-                                    PairsType& pairs, 
-                                    const PairsIndex margin_left, 
-                                    const PairsIndex margin_right,
-                                    const Size verbose_level) const
+                                     PairsType & pairs,
+                                     const PairsIndex margin_left,
+                                     const PairsIndex margin_right,
+                                     const Size verbose_level) const
   {
     // feature --> variants set  (with scores)
-    typedef std::map<Size, FeatureType_ > r_type;
+    typedef std::map<Size, FeatureType_> r_type;
     r_type features;
 
 
@@ -252,7 +259,7 @@ namespace OpenMS {
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
     // add ALL edges first. Their result is what is interesting to us later
-    for (PairsIndex i=margin_left; i<margin_right; ++i)
+    for (PairsIndex i = margin_left; i < margin_right; ++i)
     {
       // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
       // ... so we just add normal probabilities...
@@ -274,12 +281,12 @@ namespace OpenMS {
 
     // ADD Features (multiple variants of one feature are constrained to size=1)
     Size count(0); // each entry is a feature idx --->    Map["AdductCgf"]->adjacentEdges
-    for (r_type::iterator it=features.begin(); it!= features.end(); ++it)
+    for (r_type::iterator it = features.begin(); it != features.end(); ++it)
     {
       ++count;
       std::vector<Int> columns;
       std::vector<double> elements;
-      for (FeatureType_::const_iterator iti=it->second.begin(); iti!=it->second.end(); ++iti)
+      for (FeatureType_::const_iterator iti = it->second.begin(); iti != it->second.end(); ++iti)
       {
         Int index = build.addColumn();
         build.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
@@ -292,9 +299,9 @@ namespace OpenMS {
         /* get adjacent edges */
         std::vector<Int> columns_e;
         std::vector<double> elements_e;
-        for (std::set<Size>::const_iterator it_e = iti->second.begin(); it_e!=iti->second.end(); ++it_e)
+        for (std::set<Size>::const_iterator it_e = iti->second.begin(); it_e != iti->second.end(); ++it_e)
         {
-          columns_e.push_back((Int) *it_e);
+          columns_e.push_back((Int) * it_e);
           elements_e.push_back(-1.0);
         }
         columns_e.push_back((Int) index);
@@ -308,22 +315,22 @@ namespace OpenMS {
     }
 
     LPWrapper::SolverParam param;
-    param.enable_mir_cuts= true;
-    param.enable_cov_cuts= true;
-    param.enable_feas_pump_heuristic=true;
-    param.enable_binarization=false;
-    param.enable_clq_cuts =true;
+    param.enable_mir_cuts = true;
+    param.enable_cov_cuts = true;
+    param.enable_feas_pump_heuristic = true;
+    param.enable_binarization = false;
+    param.enable_clq_cuts = true;
     param.enable_gmi_cuts = true;
     param.enable_presolve = true;
 
     build.solve(param);
 
-    for (UInt iColumn = 0; iColumn < margin_right-margin_left; ++iColumn)
+    for (UInt iColumn = 0; iColumn < margin_right - margin_left; ++iColumn)
     {
-      double value=build.getColumnValue(iColumn);
-      if (fabs(value)>0.5)
+      double value = build.getColumnValue(iColumn);
+      if (fabs(value) > 0.5)
       {
-        pairs[margin_left+iColumn].setActive(true);
+        pairs[margin_left + iColumn].setActive(true);
       }
       else
       {
@@ -336,228 +343,233 @@ namespace OpenMS {
 
   }
 
-  
-
   // old version, slower, as ILP has different layout (i.e, the same as described in paper)
 
-	DoubleReal ILPDCWrapper::computeSliceOld_(const FeatureMap<> fm,
-																			   PairsType& pairs, 
-																			   const PairsIndex margin_left, 
-																			   const PairsIndex margin_right,
-                                         const Size verbose_level) const
-	{
-		LPWrapper build;
+  DoubleReal ILPDCWrapper::computeSliceOld_(const FeatureMap<> fm,
+                                            PairsType & pairs,
+                                            const PairsIndex margin_left,
+                                            const PairsIndex margin_right,
+                                            const Size verbose_level) const
+  {
+    LPWrapper build;
     //build.setSolver(LPWrapper::SOLVER_GLPK);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
-		//------------------------------------objective function-----------------------------------------------
-		// find maximal objective value
-		DoubleReal score = 0;
-		DoubleReal score_min=10e10f, score_max = -10e10f;
+    //------------------------------------objective function-----------------------------------------------
+    // find maximal objective value
+    DoubleReal score = 0;
+    DoubleReal score_min = 10e10f, score_max = -10e10f;
 
-		// fill in objective values 
-		std::ostringstream namebuf;
+    // fill in objective values
+    std::ostringstream namebuf;
 
-		for (PairsIndex i=margin_left; i<margin_right; ++i)
-		{
-		
-			// log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
-			// ... so we just add normal probabilities...
+    for (PairsIndex i = margin_left; i < margin_right; ++i)
+    {
+
+      // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
+      // ... so we just add normal probabilities...
       score = exp(getLogScore_(pairs[i], fm));
-			pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
-			namebuf.str("");
-			namebuf<<"x#"<<i;
-			// create the new variable object
+      pairs[i].setEdgeScore(score * pairs[i].getEdgeScore());       // multiply with preset score
+      namebuf.str("");
+      namebuf << "x#" << i;
+      // create the new variable object
       Int index = build.addColumn();
       build.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
-			build.setColumnType(index, LPWrapper::INTEGER); // integer variable
-			build.setObjective(index, pairs[i].getEdgeScore());
-			if (score_min > score ) score_min = score;
-			if (score_max < score ) score_max = score;
-			
-			// DEBUG:
-			//std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
-		}
-		if (verbose_level > 2) LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
+      build.setColumnType(index, LPWrapper::INTEGER);       // integer variable
+      build.setObjective(index, pairs[i].getEdgeScore());
+      if (score_min > score)
+        score_min = score;
+      if (score_max < score)
+        score_max = score;
 
-		//------------------------------------adding constraints--------------------------------------------------
+      // DEBUG:
+      //std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
+    }
+    if (verbose_level > 2)
+      LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
 
-		bool is_conflicting;
-		std::vector<int> conflict_idx(4);
+    //------------------------------------adding constraints--------------------------------------------------
 
-		for (PairsIndex i=margin_left; i<margin_right; ++i)
-		{
-			const Compomer& ci = pairs[i].getCompomer();
-	
+    bool is_conflicting;
+    std::vector<int> conflict_idx(4);
+
+    for (PairsIndex i = margin_left; i < margin_right; ++i)
+    {
+      const Compomer & ci = pairs[i].getCompomer();
+
       // TODO: only go until next clique...
-			for (PairsIndex j=i+1; j<margin_right; ++j)
-			{
-				const Compomer& cj = pairs[j].getCompomer();
-				
-				is_conflicting = false;
-				// add pairwise constraints (one for each two conflicting ChargePairs)
-				// if features are identical they must have identical charges (because any single
-				// feature can only have one unique charge)
+      for (PairsIndex j = i + 1; j < margin_right; ++j)
+      {
+        const Compomer & cj = pairs[j].getCompomer();
+
+        is_conflicting = false;
+        // add pairwise constraints (one for each two conflicting ChargePairs)
+        // if features are identical they must have identical charges (because any single
+        // feature can only have one unique charge)
 
 
-				//outgoing edges (from one feature)
-				if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(0))
-				{
-					if ( (pairs[i].getCharge(0) != pairs[j].getCharge(0))  ||
-							 ci.isConflicting(cj, Compomer::LEFT, Compomer::LEFT) )
-					{
-						is_conflicting = true;
-						++conflict_idx[0];
-					}
-				}
+        //outgoing edges (from one feature)
+        if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(0))
+        {
+          if ((pairs[i].getCharge(0) != pairs[j].getCharge(0))  ||
+              ci.isConflicting(cj, Compomer::LEFT, Compomer::LEFT))
+          {
+            is_conflicting = true;
+            ++conflict_idx[0];
+          }
+        }
 
-				//incoming edges (into one feature)
-				if (pairs[i].getElementIndex(1) == pairs[j].getElementIndex(1))
-				{
-					if ( (pairs[i].getCharge(1) != pairs[j].getCharge(1))  ||
-							 ci.isConflicting(cj, Compomer::RIGHT, Compomer::RIGHT) )
-					{
-						is_conflicting = true;
-						++conflict_idx[1];
-					}
-				}
+        //incoming edges (into one feature)
+        if (pairs[i].getElementIndex(1) == pairs[j].getElementIndex(1))
+        {
+          if ((pairs[i].getCharge(1) != pairs[j].getCharge(1))  ||
+              ci.isConflicting(cj, Compomer::RIGHT, Compomer::RIGHT))
+          {
+            is_conflicting = true;
+            ++conflict_idx[1];
+          }
+        }
 
-				//incoming/outgoing edge (from one feature) 
-				if (pairs[i].getElementIndex(1) == pairs[j].getElementIndex(0))
-				{
-					if ( (pairs[i].getCharge(1) != pairs[j].getCharge(0))  ||
-							 ci.isConflicting(cj, Compomer::RIGHT, Compomer::LEFT) )
-					{
-						is_conflicting = true;
-						++conflict_idx[2];
-					}
-				}
-				
-				//incoming/outgoing edge (from one feature) -- this should only happen to additionally inferred edges
-				if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(1))
-				{
-					if ( (pairs[i].getCharge(0) != pairs[j].getCharge(1))  ||
-							 ci.isConflicting(cj, Compomer::LEFT, Compomer::RIGHT) )
-					{
-						is_conflicting = true;
-						++conflict_idx[3];
-					}
-				}
-				
-								
-				if (is_conflicting)
-				{
-					String s = String("C") + i + "." + j;
+        //incoming/outgoing edge (from one feature)
+        if (pairs[i].getElementIndex(1) == pairs[j].getElementIndex(0))
+        {
+          if ((pairs[i].getCharge(1) != pairs[j].getCharge(0))  ||
+              ci.isConflicting(cj, Compomer::RIGHT, Compomer::LEFT))
+          {
+            is_conflicting = true;
+            ++conflict_idx[2];
+          }
+        }
+
+        //incoming/outgoing edge (from one feature) -- this should only happen to additionally inferred edges
+        if (pairs[i].getElementIndex(0) == pairs[j].getElementIndex(1))
+        {
+          if ((pairs[i].getCharge(0) != pairs[j].getCharge(1))  ||
+              ci.isConflicting(cj, Compomer::LEFT, Compomer::RIGHT))
+          {
+            is_conflicting = true;
+            ++conflict_idx[3];
+          }
+        }
+
+
+        if (is_conflicting)
+        {
+          String s = String("C") + i + "." + j;
 
           // Now build rows: two variables, with indices 'columns', factors '1', and 0-1 bounds.
-          std::vector<double> element(2,1.0);
-					std::vector<int> columns;
-          columns.push_back(int(i-margin_left));
-          columns.push_back(int(j-margin_left));
-					build.addRow(columns, element,s, 0., 1.,LPWrapper::DOUBLE_BOUNDED);
-				}
-			}
-		}
-    
-		if (verbose_level > 2) LOG_INFO << "node count: " << fm.size() << "\n";
-		if (verbose_level > 2) LOG_INFO << "edge count: " << pairs.size() << "\n";
-		if (verbose_level > 2) LOG_INFO << "constraint count: " << (conflict_idx[0]+conflict_idx[1]+conflict_idx[2]+conflict_idx[3]) << " = " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl;
-	
-		//---------------------------------------------------------------------------------------------------------
-		//----------------------------------------Solving and querying result--------------------------------------
-		//---------------------------------------------------------------------------------------------------------
+          std::vector<double> element(2, 1.0);
+          std::vector<int> columns;
+          columns.push_back(int(i - margin_left));
+          columns.push_back(int(j - margin_left));
+          build.addRow(columns, element, s, 0., 1., LPWrapper::DOUBLE_BOUNDED);
+        }
+      }
+    }
 
-    if (verbose_level > 0) LOG_INFO << "Starting to solve..." << std::endl;
+    if (verbose_level > 2)
+      LOG_INFO << "node count: " << fm.size() << "\n";
+    if (verbose_level > 2)
+      LOG_INFO << "edge count: " << pairs.size() << "\n";
+    if (verbose_level > 2)
+      LOG_INFO << "constraint count: " << (conflict_idx[0] + conflict_idx[1] + conflict_idx[2] + conflict_idx[3]) << " = " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl;
+
+    //---------------------------------------------------------------------------------------------------------
+    //----------------------------------------Solving and querying result--------------------------------------
+    //---------------------------------------------------------------------------------------------------------
+
+    if (verbose_level > 0)
+      LOG_INFO << "Starting to solve..." << std::endl;
     LPWrapper::SolverParam param;
-    param.enable_mir_cuts= true;
-    param.enable_cov_cuts= true;
-    param.enable_feas_pump_heuristic=true;
-    param.enable_binarization=false;
-    param.enable_clq_cuts =true;
+    param.enable_mir_cuts = true;
+    param.enable_cov_cuts = true;
+    param.enable_feas_pump_heuristic = true;
+    param.enable_binarization = false;
+    param.enable_clq_cuts = true;
     param.enable_gmi_cuts = true;
     param.enable_presolve = true;
     StopWatch time1;
     time1.start();
     build.solve(param);
     time1.stop();
-		if (verbose_level > 0) LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
-						                        << " with objective value: " << build.getObjectiveValue() << "."
-						                        << " Status: " << (!build.getStatus() ? " Finished" : " Not finished")
-						                        << std::endl;
+    if (verbose_level > 0)
+      LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
+               << " with objective value: " << build.getObjectiveValue() << "."
+               << " Status: " << (!build.getStatus() ? " Finished" : " Not finished")
+               << std::endl;
 
-		// variable values 
-		UInt active_edges = 0;
-		Map <String, Size> count_cmp;
+    // variable values
+    UInt active_edges = 0;
+    Map<String, Size> count_cmp;
 
-      for (Int iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
-        {
-          double value=build.getColumnValue(iColumn);
-          if (fabs(value)>0.5)
-            {
-              ++active_edges;
-              pairs[margin_left+iColumn].setActive(true);
-              // for statistical purposes: collect compomer distribution
-              String cmp = pairs[margin_left+iColumn].getCompomer().getAdductsAsString();
-              ++count_cmp[cmp];
-            }
-			else
-			{
-				// DEBUG
-				//std::cerr << " edge " << iColumn << " with " << value << "\n";
-			}
-		}
-		if (verbose_level > 2) LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
+    for (Int iColumn = 0; iColumn < build.getNumberOfColumns(); ++iColumn)
+    {
+      double value = build.getColumnValue(iColumn);
+      if (fabs(value) > 0.5)
+      {
+        ++active_edges;
+        pairs[margin_left + iColumn].setActive(true);
+        // for statistical purposes: collect compomer distribution
+        String cmp = pairs[margin_left + iColumn].getCompomer().getAdductsAsString();
+        ++count_cmp[cmp];
+      }
+      else
+      {
+        // DEBUG
+        //std::cerr << " edge " << iColumn << " with " << value << "\n";
+      }
+    }
+    if (verbose_level > 2)
+      LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
 
-		for (Map < String, Size >::const_iterator it=count_cmp.begin(); it != count_cmp.end(); ++it)
-		{
-			//std::cout << "Cmp " << it->first << " x " << it->second << "\n";
-		}
+    for (Map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
+    {
+      //std::cout << "Cmp " << it->first << " x " << it->second << "\n";
+    }
 
-		DoubleReal opt_value = build.getObjectiveValue();
+    DoubleReal opt_value = build.getObjectiveValue();
 
-		//objective function value of optimal(?) solution
-		return opt_value;
-	} // !compute_slice
-  
+    //objective function value of optimal(?) solution
+    return opt_value;
+  }   // !compute_slice
 
-	DoubleReal ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm) const
-	{
-		DoubleReal score;
-		String e;
-		if (getenv ("M") != 0) e = String(getenv ("M"));
-		if (e == "")
-		{
-			//std::cout << "1";
-			score = pair.getCompomer().getLogP();
-			/*DoubleReal charge_enhance = 0;
-			
-			if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge()) 
-				charge_enhance += log(0.9); else charge_enhance += log(0.1);
-				
-			if (pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge()) 
-				charge_enhance += log(0.9); else charge_enhance += log(0.1);
-		
-			score += charge_enhance;
-			*/
+  DoubleReal ILPDCWrapper::getLogScore_(const PairsType::value_type & pair, const FeatureMap<> & fm) const
+  {
+    DoubleReal score;
+    String e;
+    if (getenv("M") != 0)
+      e = String(getenv("M"));
+    if (e == "")
+    {
+      //std::cout << "1";
+      score = pair.getCompomer().getLogP();
+      /*DoubleReal charge_enhance = 0;
 
-		}
-		else 
-		{
-			//std::cout << "2";
-			DoubleReal rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
-			// enhance correct charge
-			DoubleReal charge_enhance = ( (pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
-																	&&
-																		(pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()) )
-																	? 100 : 1;
-			score = charge_enhance * (1 / (pair.getMassDiff()+1) + 1 / (rt_diff+1));
-		}
-		
-		//std::cout << "logscore: " << score << "\n";
-		
-		return score;
-	}
+      if (pairs[i].getCharge(0) == fm[pairs[i].getElementIndex(0)].getCharge())
+          charge_enhance += log(0.9); else charge_enhance += log(0.1);
 
+      if (pairs[i].getCharge(1) == fm[pairs[i].getElementIndex(1)].getCharge())
+          charge_enhance += log(0.9); else charge_enhance += log(0.1);
+
+      score += charge_enhance;
+      */
+
+    }
+    else
+    {
+      //std::cout << "2";
+      DoubleReal rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
+      // enhance correct charge
+      DoubleReal charge_enhance = ((pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
+                                  &&
+                                   (pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()))
+                                  ? 100 : 1;
+      score = charge_enhance * (1 / (pair.getMassDiff() + 1) + 1 / (rt_diff + 1));
+    }
+
+    //std::cout << "logscore: " << score << "\n";
+
+    return score;
+  }
 
 }
-

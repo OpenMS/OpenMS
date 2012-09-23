@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche, Marc Sturm $
@@ -43,182 +43,181 @@
 namespace OpenMS
 {
 
-namespace Exception
-{
+  namespace Exception
+  {
 
 /**
   @brief OpenMS global exception handler
 
   @ingroup Exceptions
 */
-class OPENMS_DLLAPI GlobalExceptionHandler
-{
-  private:
-    /**	@name	Constructors
-    */
-    //@{
-
-    /**	@brief Default constructor.
-
-        This constructor installs the OPENMS specific handlers for
-        <tt>terminate</tt>, <tt>unexpected</tt>, and <tt>new_handler</tt>.
-        <tt>terminate</tt> or <tt>unexpected</tt> are called to abort a
-        program if an exception was not caught or a function exits via an
-        exception that is not allowed by its exception specification. Both
-        functions are replaced by a function of GlobalExceptionHandler that
-        tries to determine the last exception thrown. This mechanism only
-        works, if all exceptions are derived from Base.
-
-        The default <tt>new_handler</tt> is replaced by #newHandler and
-        throws an exception of type OutOfMemory instead of
-        <tt>bad_alloc</tt> (the default behaviour defined in the ANSI C++
-        standard).
-    */
-    GlobalExceptionHandler()
-      throw();
-
-    //@}
-
-    /// private version of c'tor to avoid initialization
-    GlobalExceptionHandler(const GlobalExceptionHandler&) {}
-
-    ~GlobalExceptionHandler() {}
-  public:
-
-    /// The accessor for the singleton. It also serves as a replacement for the constructor.
-    static GlobalExceptionHandler& getInstance()
+    class OPENMS_DLLAPI GlobalExceptionHandler
     {
-      static GlobalExceptionHandler* globalExceptionHandler_;
+private:
+      /**	@name	Constructors
+      */
+      //@{
 
-      if (globalExceptionHandler_ == 0)
+      /**	@brief Default constructor.
+
+          This constructor installs the OPENMS specific handlers for
+          <tt>terminate</tt>, <tt>unexpected</tt>, and <tt>new_handler</tt>.
+          <tt>terminate</tt> or <tt>unexpected</tt> are called to abort a
+          program if an exception was not caught or a function exits via an
+          exception that is not allowed by its exception specification. Both
+          functions are replaced by a function of GlobalExceptionHandler that
+          tries to determine the last exception thrown. This mechanism only
+          works, if all exceptions are derived from Base.
+
+          The default <tt>new_handler</tt> is replaced by #newHandler and
+          throws an exception of type OutOfMemory instead of
+          <tt>bad_alloc</tt> (the default behaviour defined in the ANSI C++
+          standard).
+      */
+      GlobalExceptionHandler()
+      throw();
+
+      //@}
+
+      /// private version of c'tor to avoid initialization
+      GlobalExceptionHandler(const GlobalExceptionHandler &) {}
+
+      ~GlobalExceptionHandler() {}
+public:
+
+      /// The accessor for the singleton. It also serves as a replacement for the constructor.
+      static GlobalExceptionHandler & getInstance()
       {
-        globalExceptionHandler_ = new GlobalExceptionHandler;
+        static GlobalExceptionHandler * globalExceptionHandler_;
+
+        if (globalExceptionHandler_ == 0)
+        {
+          globalExceptionHandler_ = new GlobalExceptionHandler;
+        }
+        return *globalExceptionHandler_;
       }
-      return *globalExceptionHandler_;
-    }
 
-    /**	@name	Accessors
-    */
-    //@{
+      /**	@name	Accessors
+      */
+      //@{
 
-    /**
-    */
-    static void setName(const std::string& name)
+      /**
+      */
+      static void setName(const std::string & name)
       throw();
 
-    /**
-    */
-    static void setMessage(const std::string& message)
+      /**
+      */
+      static void setMessage(const std::string & message)
       throw();
 
-    /**
-    */
-    static void setLine(int line)
+      /**
+      */
+      static void setLine(int line)
       throw();
 
-    /**
-    */
-    static void setFile(const std::string& file)
+      /**
+      */
+      static void setFile(const std::string & file)
       throw();
 
-    /**
-    */
-    static void setFunction(const std::string& function)
+      /**
+      */
+      static void setFunction(const std::string & function)
       throw();
 
-    /**
-    */
-    static void set
-      (const std::string& file, int line, const std::string& function,
-       const std::string& name, const std::string& message)
+      /**
+      */
+      static void set(const std::string & file, int line, const std::string & function,
+                      const std::string & name, const std::string & message)
       throw();
-    //@}
-  protected:
+      //@}
+protected:
 
-    /// The OPENMS replacement for terminate
-    static void terminate()
+      /// The OPENMS replacement for terminate
+      static void terminate()
       throw();
 
-    /// The OPENMS new handler
+      /// The OPENMS new handler
 #ifdef OPENMS_COMPILER_MSVC
-    static void newHandler();
+      static void newHandler();
 #else
-    static void newHandler() throw(OutOfMemory);
+      static void newHandler() throw(OutOfMemory);
 #endif
 
-    /**
-      @name	Wrapper for static member.
+      /**
+        @name	Wrapper for static member.
 
-      @note To avoid problems when accessing uninitialised static
-      members we replaced them with static functions returning
-      references to the members.
-     */
-    //@{
+        @note To avoid problems when accessing uninitialised static
+        members we replaced them with static functions returning
+        references to the members.
+       */
+      //@{
 
-    /// wrapper for static member file_
-    static std::string& file_()
-    {
-      static std::string * file_ = 0;
-      if(file_ == 0)
+      /// wrapper for static member file_
+      static std::string & file_()
       {
-        file_  = new std::string;
-        *file_ = "unknown";
+        static std::string * file_ = 0;
+        if (file_ == 0)
+        {
+          file_  = new std::string;
+          *file_ = "unknown";
+        }
+        return *file_;
       }
-      return *file_;
-    }
 
-    /// wrapper for static member line_
-    static int& line_()
-    {
-      static int * line_ = 0;
-      if(line_ == 0)
+      /// wrapper for static member line_
+      static int & line_()
       {
-        line_  = new int;
-        *line_ = -1;
+        static int * line_ = 0;
+        if (line_ == 0)
+        {
+          line_  = new int;
+          *line_ = -1;
+        }
+        return *line_;
       }
-      return *line_;
-    }
 
-    /// wrapper for static member function_
-    static std::string& function_()
-    {
-      static std::string * function_ = 0;
-      if(function_ == 0)
+      /// wrapper for static member function_
+      static std::string & function_()
       {
-        function_  = new std::string;
-        *function_ = "unknown";
+        static std::string * function_ = 0;
+        if (function_ == 0)
+        {
+          function_  = new std::string;
+          *function_ = "unknown";
+        }
+        return *function_;
       }
-      return *function_;
-    }
 
-    /// wrapper for static member name_
-    static std::string& name_()
-    {
-      static std::string * name_ = 0;
-      if(name_ == 0)
+      /// wrapper for static member name_
+      static std::string & name_()
       {
-        name_  = new std::string;
-        *name_ = "unknown exception";
+        static std::string * name_ = 0;
+        if (name_ == 0)
+        {
+          name_  = new std::string;
+          *name_ = "unknown exception";
+        }
+        return *name_;
       }
-      return *name_;
-    }
 
-    /// wrapper for static member what_
-    static std::string& what_()
-    {
-      static std::string * what_ = 0;
-      if(what_ == 0)
+      /// wrapper for static member what_
+      static std::string & what_()
       {
-        what_  = new std::string;
-        *what_ = " - ";
+        static std::string * what_ = 0;
+        if (what_ == 0)
+        {
+          what_  = new std::string;
+          *what_ = " - ";
+        }
+        return *what_;
       }
-      return *what_;
-    }
 
-    //@}
-};
+      //@}
+    };
 
-} // namespace Exception
+  } // namespace Exception
 
 } // namespace OpenMS
 

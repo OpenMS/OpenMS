@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
 // $Authors: $
@@ -107,24 +107,24 @@ public:
                                                              const MSExperiment<InputPeakType> & experiment,
                                                              std::vector<IndexTriple> & variable_indices,
                                                              std::vector<int> & solution_indices,
-                                                             std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+                                                             std::vector<std::vector<std::pair<Size, Size> > > & mass_ranges,
                                                              std::set<Int> & charges_set, UInt ms2_spectra_per_rt_bin,
                                                              Size step_size = 0, bool sequential_order = false);
 
     void updateStepSizeConstraint(Size iteration, UInt step_size);
-    void updateFeatureILPVariables(FeatureMap<> & new_features, std::vector<IndexTriple> & variable_indices, std::map<Size,std::vector<String> > & feature_constraints_map);
+    void updateFeatureILPVariables(FeatureMap<> & new_features, std::vector<IndexTriple> & variable_indices, std::map<Size, std::vector<String> > & feature_constraints_map);
     void updateRTConstraintsForSequentialILP(Size & rt_index, UInt ms2_spectra_per_rt_bin, Size max_rt_index);
     void updateCombinedILP(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, std::vector<IndexTriple> & variable_indices,
                            std::vector<String> & new_protein_accs, std::vector<String> & protein_accs, PSProteinInference & prot_inference, Size & variable_counter,
-                           std::map<String,std::vector<Size> > & protein_feature_map, Feature& new_feature, std::map<String,Size> & protein_variable_index_map,
-                           std::map<String,std::set<String> > & prot_id_counter);
+                           std::map<String, std::vector<Size> > & protein_feature_map, Feature & new_feature, std::map<String, Size> & protein_variable_index_map,
+                           std::map<String, std::set<String> > & prot_id_counter);
 
-    
+
     /**
        @brief Solve the ILP.
     */
     void solveILP(std::vector<int> & solution_indices);
-    
+
     void setLPSolver(LPWrapper::SOLVER solver)
     {
       solver_ = solver;
@@ -196,7 +196,7 @@ protected:
                             UInt ms2_spectra_per_rt_bin, Size number_of_scans);
 
     void createAndSolveCombinedLPFeatureBased_(const FeatureMap<> & features, std::vector<std::vector<DoubleReal> > & intensity_weights,
-                                               std::set<Int> & charges_set, std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+                                               std::set<Int> & charges_set, std::vector<std::vector<std::pair<Size, Size> > > & mass_ranges,
                                                std::vector<IndexTriple> & variable_indices, std::vector<Int> & solution_indices,
                                                UInt ms2_spectra_per_rt_bin, Size number_of_scans, Size step_size = 0, bool sequential_order = false);
 
@@ -207,7 +207,7 @@ protected:
                           std::map<String, Size> & protein_penalty_index_map, FeatureMap<> & precursors);
 
     void addPrecursorAcquisitionNumberConstraint_(std::vector<IndexTriple> & variable_indices, Size number_of_features, UInt number_of_msms_per_precursor);
-    
+
     void addMaxInclusionListSizeConstraints_(std::vector<IndexTriple> & variable_indices, /*Size number_of_features,*/ UInt max_list_size);
 
     void addRTBinCapacityConstraint_(std::vector<IndexTriple> & variable_indices,
@@ -222,11 +222,11 @@ protected:
 
     void assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple> & variable_indices, FeatureMap<> & precursors, std::vector<int> & solution_indices, PrecursorIonSelectionPreprocessing & preprocessing);
 
-    void updateObjFunction_(String acc, FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, std::vector<IndexTriple>& variable_indices);
+    void updateObjFunction_(String acc, FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, std::vector<IndexTriple> & variable_indices);
 
 
-   Int getNumberOfPrecsInSpectrum_(Int constr_idx);
-   
+    Int getNumberOfPrecsInSpectrum_(Int constr_idx);
+
     LPWrapper * model_;
     LPWrapper::SOLVER solver_;
   };
@@ -311,29 +311,25 @@ protected:
   }
 
   template <typename InputPeakType>
-	void PSLPFormulation::createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap<> & features,
+  void PSLPFormulation::createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap<> & features,
                                                                             const MSExperiment<InputPeakType> & experiment,
                                                                             std::vector<IndexTriple> & variable_indices,
                                                                             std::vector<Int> & solution_indices,
-                                                                            std::vector<std::vector<std::pair<Size,Size> > > & mass_ranges,
+                                                                            std::vector<std::vector<std::pair<Size, Size> > > & mass_ranges,
                                                                             std::set<Int> & charges_set, UInt ms2_spectra_per_rt_bin,
                                                                             Size step_size, bool sequential_order)
-	{
-    
-		std::vector<std::vector<DoubleReal> > intensity_weights;
-		calculateXICs_(intensity_weights, features, experiment, mass_ranges, true);
+  {
+
+    std::vector<std::vector<DoubleReal> > intensity_weights;
+    calculateXICs_(intensity_weights, features, experiment, mass_ranges, true);
 #ifdef DEBUG_OPS
-		std::cout << "got xics"<<std::endl;
+    std::cout << "got xics" << std::endl;
 #endif
-		
-		createAndSolveCombinedLPFeatureBased_(features, intensity_weights, charges_set, mass_ranges, variable_indices, solution_indices, ms2_spectra_per_rt_bin,
+
+    createAndSolveCombinedLPFeatureBased_(features, intensity_weights, charges_set, mass_ranges, variable_indices, solution_indices, ms2_spectra_per_rt_bin,
                                           experiment.size(), step_size, sequential_order);
-	}
-	
+  }
 
- 
-
-  
 } // namespace
 
 #endif // OPENMS_ANALYSIS_ID_PSLPFORMULATION_H

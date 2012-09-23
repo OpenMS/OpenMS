@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar$
 // $Authors: Erhan Kenar, Holger Franken $
@@ -57,55 +57,55 @@ namespace OpenMS
 
   @ingroup Quantitation
 */
-    class OPENMS_DLLAPI ElutionPeakDetection
-        : public DefaultParamHandler, public ProgressLogger
+  class OPENMS_DLLAPI ElutionPeakDetection :
+    public DefaultParamHandler, public ProgressLogger
+  {
+public:
+    /// Default Constructor
+    ElutionPeakDetection();
+
+    /// Destructor
+    virtual ~ElutionPeakDetection();
+
+    /// Getter & setter methods
+    void setScanTime(const DoubleReal & st)
     {
-    public:
-        /// Default Constructor
-        ElutionPeakDetection();
+      scan_time_ = st;
+    }
 
-        /// Destructor
-        virtual ~ElutionPeakDetection();
+    DoubleReal getFWHM()
+    {
+      return chrom_fwhm_;
+    }
 
-        /// Getter & setter methods
-        void setScanTime(const DoubleReal& st)
-        {
-            scan_time_ = st;
-        }
+    /** @name Main computation methods
+        */
+    /// Extracts chromatographic peaks from a single MassTrace and stores the splits into a vector of new mass traces.
+    void detectPeaks(MassTrace &, std::vector<MassTrace> &);
 
-        DoubleReal getFWHM()
-        {
-            return chrom_fwhm_;
-        }
+    /// Applies the aforementioned detection method on a series of mass traces as input.
+    void detectPeaks(std::vector<MassTrace> &, std::vector<MassTrace> &);
 
-        /** @name Main computation methods
-            */
-        /// Extracts chromatographic peaks from a single MassTrace and stores the splits into a vector of new mass traces.
-        void detectPeaks(MassTrace&, std::vector<MassTrace>&);
+    /// Computes an estimate of the average peak width of the experiment based on smoothed intensities (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviances).
+    void estimatePeakWidth(std::vector<MassTrace> &);
 
-        /// Applies the aforementioned detection method on a series of mass traces as input.
-        void detectPeaks(std::vector<MassTrace>&, std::vector<MassTrace>&);
-
-        /// Computes an estimate of the average peak width of the experiment based on smoothed intensities (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviances).
-        void estimatePeakWidth(std::vector<MassTrace>&);
-
-        void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
+    void filterByPeakWidth(std::vector<MassTrace> &, std::vector<MassTrace> &);
 
 
-    protected:
-        virtual void updateMembers_();
+protected:
+    virtual void updateMembers_();
 
-    private:
-        DoubleReal chrom_fwhm_;
-        DoubleReal scan_time_;
-        DoubleReal chrom_peak_snr_;
-        DoubleReal noise_threshold_int_;
-        DoubleReal sample_rate_;
+private:
+    DoubleReal chrom_fwhm_;
+    DoubleReal scan_time_;
+    DoubleReal chrom_peak_snr_;
+    DoubleReal noise_threshold_int_;
+    DoubleReal sample_rate_;
 
-        bool pw_filtering_;
-        bool mt_snr_filtering_;
+    bool pw_filtering_;
+    bool mt_snr_filtering_;
 
-        void detectElutionPeaks_(MassTrace&, std::vector<MassTrace>&);
-    };
+    void detectElutionPeaks_(MassTrace &, std::vector<MassTrace> &);
+  };
 } // namespace OpenMS
 #endif // OPENMS_ElutionPeakDetection_H

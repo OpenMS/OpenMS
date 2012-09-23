@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Florian Zeller $
 // $Authors: Lukas Mueller, Markus Mueller $
@@ -44,7 +44,7 @@
 //  December 2010
 //
 //  Group of Prof. Ruedi Aebersold, IMSB, ETH Hoenggerberg, Zurich
-// 
+//
 //
 #include <map>
 
@@ -62,223 +62,224 @@ namespace OpenMS
 // Constructor & destructor
 ///////////////////////////////////////////////////////////////////////////////
 
-	using namespace std;
+  using namespace std;
 
-	LCMSCData::LCMSCData()
-	{
-	}
+  LCMSCData::LCMSCData()
+  {
+  }
+
 ///////////////////////////////////////////////////////////////////////////////
 
-	LCMSCData::~LCMSCData()
-	{
-		DATA.clear();
-	}
+  LCMSCData::~LCMSCData()
+  {
+    DATA.clear();
+  }
 
 ////////////////////////////////////////////////
 // constructor for the object :
-	LCMSCData::LCMSCData(const LCMSCData* tmp)
-	{
-		DATA = tmp->DATA;
-	}
+  LCMSCData::LCMSCData(const LCMSCData * tmp)
+  {
+    DATA = tmp->DATA;
+  }
 
 ////////////////////////////////////////////////
 // constructor for the object :
-	LCMSCData::LCMSCData(const LCMSCData& tmp)
-	{
-		DATA = tmp.DATA;
-	}
+  LCMSCData::LCMSCData(const LCMSCData & tmp)
+  {
+    DATA = tmp.DATA;
+  }
 
 ////////////////////////////////////////////////
 // constructor for the object :
-	LCMSCData& LCMSCData::operator=(const LCMSCData& tmp)
-	{
-		DATA = tmp.DATA;
-		return *this;
-	}
+  LCMSCData & LCMSCData::operator=(const LCMSCData & tmp)
+  {
+    DATA = tmp.DATA;
+    return *this;
+  }
 
 // Public methods
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 // find data of a specific m/z:
-	MZ_LIST_ITERATOR LCMSCData::get_MZ_by_iterator(double MZ)
-	{
+  MZ_LIST_ITERATOR LCMSCData::get_MZ_by_iterator(double MZ)
+  {
 
-		MZ_LIST_ITERATOR P = DATA.find(MZ);
+    MZ_LIST_ITERATOR P = DATA.find(MZ);
 
-		return P;
-	}
+    return P;
+  }
 
 ///////////////////////////////////////////////////////////////////////////////
 // add data into the structure:
-	void LCMSCData::add_LC_elution_peak(double MZ, LCElutionPeak* IN)
-	{
+  void LCMSCData::add_LC_elution_peak(double MZ, LCElutionPeak * IN)
+  {
 
-		// get the scan apex:
-		int APEX = IN->get_scan_apex();
+    // get the scan apex:
+    int APEX = IN->get_scan_apex();
 
-		// check if this mass is already stored:
-		MZ_LIST_ITERATOR P = get_MZ_by_iterator(MZ);
+    // check if this mass is already stored:
+    MZ_LIST_ITERATOR P = get_MZ_by_iterator(MZ);
 
-		if (P == get_DATA_end())
-		{
+    if (P == get_DATA_end())
+    {
 
-			// ok, not yet inserted this mass:
-			elution_peak_list tmp;
-			tmp.insert(pair<int, LCElutionPeak>(APEX, *IN));
-			IN = NULL;
+      // ok, not yet inserted this mass:
+      elution_peak_list tmp;
+      tmp.insert(pair<int, LCElutionPeak>(APEX, *IN));
+      IN = NULL;
 
-			// insert into m/z list:
-			DATA.insert(pair<double, elution_peak_list>(MZ, tmp));
+      // insert into m/z list:
+      DATA.insert(pair<double, elution_peak_list>(MZ, tmp));
 
-		}
-		else
-		{
+    }
+    else
+    {
 
-			// ok, already existing:
-			(*P).second.insert(pair<int, LCElutionPeak>(APEX, *IN));
-			IN = NULL;
-		}
-	}
-
-///////////////////////////////////////////////////////////////////////////////
-// get a list of m/z observed in a scan +/- scan_tolerance:
-// return the area of the LC elution peaks 
-	vector<LCElutionPeak> LCMSCData::get_MZ_list(int SCAN)
-	{
-
-		int start_scan = SCAN;
-		int end_scan = SCAN;
-
-		vector<LCElutionPeak> OUT;
-
-		// go through the structure and find all m/z at this scan:
-		MZ_LIST_ITERATOR P = get_DATA_start();
-
-		while (P != get_DATA_end())
-		{
-
-			double this_INT = 0;
-			LCElutionPeak* TMP = NULL;
-
-			// search around some scan region:
-			for (int this_scan = start_scan; this_scan < end_scan; this_scan++)
-			{
-
-				// find elution peaks by the apex:
-				elution_peak_list_ITERATOR Q = (*P).second.find(this_scan);
-
-				if (Q != (*P).second.end())
-				{
-					double tmp = (*Q).second.get_total_peak_area();
-					if (this_INT < tmp)
-					{
-						this_INT = tmp;
-						TMP = &((*Q).second);
-					}
-				}
-			}
-
-			if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != NULL))
-			{
-				OUT.push_back(*TMP);
-			}
-
-			// next m/z:
-			P++;
-		}
-
-		return OUT;
-	}
+      // ok, already existing:
+      (*P).second.insert(pair<int, LCElutionPeak>(APEX, *IN));
+      IN = NULL;
+    }
+  }
 
 ///////////////////////////////////////////////////////////////////////////////
 // get a list of m/z observed in a scan +/- scan_tolerance:
-// return the area of the LC elution peaks 
-	vector<LCElutionPeak> LCMSCData::get_MZ_list(int SCAN, int TOL)
-	{
+// return the area of the LC elution peaks
+  vector<LCElutionPeak> LCMSCData::get_MZ_list(int SCAN)
+  {
 
-		int start_scan = SCAN - TOL;
-		int end_scan = SCAN + TOL;
+    int start_scan = SCAN;
+    int end_scan = SCAN;
 
-		LCElutionPeak* TMP = NULL;
-		vector<LCElutionPeak> OUT;
+    vector<LCElutionPeak> OUT;
 
-		// go through the structure and find all m/z at this scan:
-		MZ_LIST_ITERATOR P = get_DATA_start();
+    // go through the structure and find all m/z at this scan:
+    MZ_LIST_ITERATOR P = get_DATA_start();
 
-		while (P != get_DATA_end())
-		{
+    while (P != get_DATA_end())
+    {
 
-			double this_INT = 0;
+      double this_INT = 0;
+      LCElutionPeak * TMP = NULL;
 
-			// search around some scan region:
-			for (int this_scan = start_scan; this_scan < end_scan; this_scan++)
-			{
+      // search around some scan region:
+      for (int this_scan = start_scan; this_scan < end_scan; this_scan++)
+      {
 
-				// find elution peaks by the apex:
-				elution_peak_list_ITERATOR Q = (*P).second.find(this_scan);
+        // find elution peaks by the apex:
+        elution_peak_list_ITERATOR Q = (*P).second.find(this_scan);
 
-				if (Q != (*P).second.end())
-				{
-					double tmp = (*Q).second.get_total_peak_area();
-					if (this_INT < tmp)
-					{
-						this_INT = tmp;
-						TMP = &((*Q).second);
-					}
-				}
-			}
+        if (Q != (*P).second.end())
+        {
+          double tmp = (*Q).second.get_total_peak_area();
+          if (this_INT < tmp)
+          {
+            this_INT = tmp;
+            TMP = &((*Q).second);
+          }
+        }
+      }
 
-			if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != NULL))
-			{
-				OUT.push_back(*TMP);
-			}
+      if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != NULL))
+      {
+        OUT.push_back(*TMP);
+      }
 
-			// next m/z:
-			P++;
-		}
+      // next m/z:
+      P++;
+    }
 
-		return OUT;
-	}
+    return OUT;
+  }
+
+///////////////////////////////////////////////////////////////////////////////
+// get a list of m/z observed in a scan +/- scan_tolerance:
+// return the area of the LC elution peaks
+  vector<LCElutionPeak> LCMSCData::get_MZ_list(int SCAN, int TOL)
+  {
+
+    int start_scan = SCAN - TOL;
+    int end_scan = SCAN + TOL;
+
+    LCElutionPeak * TMP = NULL;
+    vector<LCElutionPeak> OUT;
+
+    // go through the structure and find all m/z at this scan:
+    MZ_LIST_ITERATOR P = get_DATA_start();
+
+    while (P != get_DATA_end())
+    {
+
+      double this_INT = 0;
+
+      // search around some scan region:
+      for (int this_scan = start_scan; this_scan < end_scan; this_scan++)
+      {
+
+        // find elution peaks by the apex:
+        elution_peak_list_ITERATOR Q = (*P).second.find(this_scan);
+
+        if (Q != (*P).second.end())
+        {
+          double tmp = (*Q).second.get_total_peak_area();
+          if (this_INT < tmp)
+          {
+            this_INT = tmp;
+            TMP = &((*Q).second);
+          }
+        }
+      }
+
+      if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != NULL))
+      {
+        OUT.push_back(*TMP);
+      }
+
+      // next m/z:
+      P++;
+    }
+
+    return OUT;
+  }
 
 ///////////////////////////////////////////////////////////////////////////////
 // get all extracted LC peaks:
-	vector<LCElutionPeak*> LCMSCData::get_ALL_peak()
-	{
+  vector<LCElutionPeak *> LCMSCData::get_ALL_peak()
+  {
 
-		LCElutionPeak* TMP = NULL;
-		vector<LCElutionPeak*> OUT;
+    LCElutionPeak * TMP = NULL;
+    vector<LCElutionPeak *> OUT;
 
-		// go through the structure and find all m/z at this scan:
-		MZ_LIST_ITERATOR P = get_DATA_start();
+    // go through the structure and find all m/z at this scan:
+    MZ_LIST_ITERATOR P = get_DATA_start();
 
-		while (P != get_DATA_end())
-		{
+    while (P != get_DATA_end())
+    {
 
-			// find elution peaks by the apex:
-			elution_peak_list_ITERATOR Q = (*P).second.begin();
+      // find elution peaks by the apex:
+      elution_peak_list_ITERATOR Q = (*P).second.begin();
 
-			while (Q != (*P).second.end())
-			{
-				TMP = &((*Q).second);
-				// cout<<TMP->get_apex_MZ()<<endl;
-				OUT.push_back(TMP);
-				Q++;
-			}
+      while (Q != (*P).second.end())
+      {
+        TMP = &((*Q).second);
+        // cout<<TMP->get_apex_MZ()<<endl;
+        OUT.push_back(TMP);
+        Q++;
+      }
 
-			// next m/z:
-			P++;
-		}
+      // next m/z:
+      P++;
+    }
 
-		return OUT;
-	}
+    return OUT;
+  }
 
 /////////////////////////////////////////////////////////////////////////////
 // get a vector with all LC peaks ordered by their score:
-	vector<LCElutionPeak*> LCMSCData::get_ALL_peak_ordered()
-	{
-		vector<LCElutionPeak*> DATA = get_ALL_peak();
-		return DATA;
-	}
+  vector<LCElutionPeak *> LCMSCData::get_ALL_peak_ordered()
+  {
+    vector<LCElutionPeak *> DATA = get_ALL_peak();
+    return DATA;
+  }
 
 }

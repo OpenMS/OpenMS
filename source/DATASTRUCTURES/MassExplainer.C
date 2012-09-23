@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
@@ -43,9 +43,9 @@
 
 namespace OpenMS
 {
-	
-  MassExplainer::MassExplainer()
-    : explanations_(),
+
+  MassExplainer::MassExplainer() :
+    explanations_(),
     adduct_base_(),
     q_min_(1),
     q_max_(5),
@@ -56,8 +56,8 @@ namespace OpenMS
   }
 
   /// Constructor
-  MassExplainer::MassExplainer(AdductsType adduct_base)
-    :	explanations_(),
+  MassExplainer::MassExplainer(AdductsType adduct_base) :
+    explanations_(),
     adduct_base_(adduct_base),
     q_min_(1),
     q_max_(5),
@@ -68,8 +68,8 @@ namespace OpenMS
   }
 
   /// Constructor
-  MassExplainer::MassExplainer(Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp)
-    :	explanations_(),
+  MassExplainer::MassExplainer(Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp) :
+    explanations_(),
     adduct_base_(),
     q_min_(q_min),
     q_max_(q_max),
@@ -81,8 +81,8 @@ namespace OpenMS
   }
 
   /// Constructor
-  MassExplainer::MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp, Size max_neutrals)
-    :	explanations_(),
+  MassExplainer::MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp, Size max_neutrals) :
+    explanations_(),
     adduct_base_(adduct_base),
     q_min_(q_min),
     q_max_(q_max),
@@ -93,7 +93,6 @@ namespace OpenMS
     init_(false);
   }
 
-
   /// check consistency of input
   /// @param init_thresh_p set default threshold (set to "false" to keep current value)
   void MassExplainer::init_(bool init_thresh_p)
@@ -101,8 +100,8 @@ namespace OpenMS
     if (init_thresh_p)
     {
       // every compound with log_p_<thresh_p_ will be discarded
-      // we allow at most two Na+ 
-      thresh_p_ = log(0.15)*2 + log(0.7)*(q_max_-2);
+      // we allow at most two Na+
+      thresh_p_ = log(0.15) * 2 + log(0.7) * (q_max_ - 2);
     }
 
     // check consistency of members
@@ -125,18 +124,19 @@ namespace OpenMS
       //default adducts are: H+, Na+, K+, NH4+
       // do NOT use "+" in empirical formula, as every + will add a proton weight!
 
-      adduct_base_.push_back(createAdduct_("H",1, 0.7));
-      adduct_base_.push_back(createAdduct_("Na",1, 0.1));
-      adduct_base_.push_back(createAdduct_("NH4",1, 0.1));
-      adduct_base_.push_back(createAdduct_("K",1, 0.1));
+      adduct_base_.push_back(createAdduct_("H", 1, 0.7));
+      adduct_base_.push_back(createAdduct_("Na", 1, 0.1));
+      adduct_base_.push_back(createAdduct_("NH4", 1, 0.1));
+      adduct_base_.push_back(createAdduct_("K", 1, 0.1));
 
     }
   }
 
   /// Assignment operator
-  MassExplainer& MassExplainer::operator = (const MassExplainer& rhs)
+  MassExplainer & MassExplainer::operator=(const MassExplainer & rhs)
   {
-    if (this == &rhs) return *this;
+    if (this == &rhs)
+      return *this;
 
     explanations_ = rhs.explanations_;
     adduct_base_ = rhs.adduct_base_;
@@ -152,6 +152,7 @@ namespace OpenMS
   MassExplainer::~MassExplainer()
   {
   }
+
   //@}
 
 
@@ -160,25 +161,27 @@ namespace OpenMS
   {
     // differentiate between neutral and charged adducts
     AdductsType adduct_neutral, adduct_charged;
-    for (AdductsType::const_iterator it=adduct_base_.begin(); it!=adduct_base_.end(); ++it)
+    for (AdductsType::const_iterator it = adduct_base_.begin(); it != adduct_base_.end(); ++it)
     {
-      if (it->getCharge()==0) adduct_neutral.push_back(*it);
-      else adduct_charged.push_back(*it);
+      if (it->getCharge() == 0)
+        adduct_neutral.push_back(*it);
+      else
+        adduct_charged.push_back(*it);
     }
 
     // calculate some initial boundaries that can be used to shorten the enumeration process
     //Int q_comp_min = -max_span_; //minimal expected charge of compomer
     //Int q_comp_max = max_span_;  //maximal expected charge of compomer
-    Int max_pq = q_max_;				 //maximal number of positve adduct-charges for a compomer
+    Int max_pq = q_max_;                 //maximal number of positve adduct-charges for a compomer
     //Int max_nq = q_max_;				 //maximal number of negative adduct-charges for a compomer
 
-    for (AdductsType::const_iterator it=adduct_charged.begin(); it!=adduct_charged.end(); ++it)
+    for (AdductsType::const_iterator it = adduct_charged.begin(); it != adduct_charged.end(); ++it)
     {
-      std::vector <Adduct> new_adducts; 
+      std::vector<Adduct> new_adducts;
       //create new compomers
-      Int i=1;
+      Int i = 1;
       //warning: the following code assumes that max_nq == max_pq!!
-      while (abs(i*it->getCharge()) <= max_pq)
+      while (abs(i * it->getCharge()) <= max_pq)
       {
         Adduct a(*it);
         // positive amount
@@ -190,33 +193,33 @@ namespace OpenMS
       }
 
       // combine all new compomers with existing compomers
-      std::vector <Adduct>::const_iterator new_it;
-      std::vector <Adduct>::const_iterator new_begin = new_adducts.begin();
-      std::vector <Adduct>::const_iterator new_end   = new_adducts.end();
+      std::vector<Adduct>::const_iterator new_it;
+      std::vector<Adduct>::const_iterator new_begin = new_adducts.begin();
+      std::vector<Adduct>::const_iterator new_end   = new_adducts.end();
 
-      std::size_t idx_last=explanations_.size();
-      for (size_t ci=0; ci < idx_last; ++ci)
+      std::size_t idx_last = explanations_.size();
+      for (size_t ci = 0; ci < idx_last; ++ci)
       {
-        for (new_it = new_begin; new_it!=new_end; ++new_it)
+        for (new_it = new_begin; new_it != new_end; ++new_it)
         {
           Compomer cmpl(explanations_[ci]);
-          cmpl.add(*new_it,Compomer::LEFT);
+          cmpl.add(*new_it, Compomer::LEFT);
           explanations_.push_back(cmpl);
 
           Compomer cmpr(explanations_[ci]);
-          cmpr.add(*new_it,Compomer::RIGHT);
+          cmpr.add(*new_it, Compomer::RIGHT);
           explanations_.push_back(cmpr);
         }
       }
       // finally add new compomers to the list itself
-      for (new_it = new_begin; new_it!=new_end; ++new_it)
+      for (new_it = new_begin; new_it != new_end; ++new_it)
       {
         Compomer cmpl;
-        cmpl.add(*new_it,Compomer::LEFT);
+        cmpl.add(*new_it, Compomer::LEFT);
         explanations_.push_back(cmpl);
 
         Compomer cmpr;
-        cmpr.add(*new_it,Compomer::RIGHT);
+        cmpr.add(*new_it, Compomer::RIGHT);
         explanations_.push_back(cmpr);
       }
 
@@ -225,41 +228,42 @@ namespace OpenMS
     } // END adduct add
 
 
-    std::vector< Compomer > valids_only;
-    for (size_t ci=0; ci < explanations_.size(); ++ci)
+    std::vector<Compomer> valids_only;
+    for (size_t ci = 0; ci < explanations_.size(); ++ci)
     {
-      if (compomerValid_(explanations_[ci])) valids_only.push_back(explanations_[ci]);
+      if (compomerValid_(explanations_[ci]))
+        valids_only.push_back(explanations_[ci]);
     }
     explanations_.swap(valids_only);
 
     // add neutral adducts
     Size size_of_explanations = explanations_.size();
-    for (AdductsType::const_iterator it_neutral=adduct_neutral.begin(); it_neutral!=adduct_neutral.end(); ++it_neutral)
+    for (AdductsType::const_iterator it_neutral = adduct_neutral.begin(); it_neutral != adduct_neutral.end(); ++it_neutral)
     {
       std::cout << "Adding neutral: " << *it_neutral << "\n";
-      for (Int n=1;n<=(SignedSize)max_neutrals_;++n)
+      for (Int n = 1; n <= (SignedSize)max_neutrals_; ++n)
       {
         // neutral itself:
         Compomer cmpr1;
-        cmpr1.add((*it_neutral)*n,Compomer::RIGHT);
+        cmpr1.add((*it_neutral) * n, Compomer::RIGHT);
         explanations_.push_back(cmpr1);
 
         Compomer cmpr2;
-        cmpr2.add((*it_neutral)*n,Compomer::LEFT);
+        cmpr2.add((*it_neutral) * n, Compomer::LEFT);
         explanations_.push_back(cmpr2);
 
 
         // neutral in combination with others
-        for (Size i=0;i<size_of_explanations;++i)
+        for (Size i = 0; i < size_of_explanations; ++i)
         {
           {
             Compomer cmpr(explanations_[i]);
-            cmpr.add((*it_neutral)*n,Compomer::RIGHT);
+            cmpr.add((*it_neutral) * n, Compomer::RIGHT);
             explanations_.push_back(cmpr);
           }
           {
             Compomer cmpr(explanations_[i]);
-            cmpr.add((*it_neutral)*n,Compomer::LEFT);
+            cmpr.add((*it_neutral) * n, Compomer::LEFT);
             explanations_.push_back(cmpr);
           }
         }
@@ -271,10 +275,11 @@ namespace OpenMS
     std::sort(explanations_.begin(), explanations_.end());
 
     // set Ids of compomers, which allows to uniquely identify them (for later lookup)
-    for (size_t i=0;i<explanations_.size(); ++i) explanations_[i].setID(i);
+    for (size_t i = 0; i < explanations_.size(); ++i)
+      explanations_[i].setID(i);
 
     //#if DEBUG_FD
-    for (size_t ci=0; ci < explanations_.size(); ++ci)
+    for (size_t ci = 0; ci < explanations_.size(); ++ci)
     {
       std::cerr << explanations_[ci] << " ";
     }
@@ -284,7 +289,6 @@ namespace OpenMS
 
   }
 
-
   //@name Accessors
   //@{
 
@@ -293,6 +297,7 @@ namespace OpenMS
   {
     adduct_base_ = adduct_base;
   }
+
   /// Returns the set of adducts
   MassExplainer::AdductsType MassExplainer::getAdductBase() const
   {
@@ -300,10 +305,11 @@ namespace OpenMS
   }
 
   /// return a compomer by its Id (useful after a query() ).
-  const Compomer& MassExplainer::getCompomerById(Size id) const
+  const Compomer & MassExplainer::getCompomerById(Size id) const
   {
     return explanations_[id];
   }
+
   //@}
 
 
@@ -315,11 +321,11 @@ namespace OpenMS
   /// @param firstExplanation begin range with candidates according to net_charge and mass
   /// @param lastExplanation  end range
   SignedSize MassExplainer::query(const Int net_charge,
-    const float mass_to_explain,
-    const float mass_delta,
-    const float thresh_log_p,
-    std::vector< Compomer >::const_iterator & firstExplanation,
-    std::vector< Compomer >::const_iterator & lastExplanation) const
+                                  const float mass_to_explain,
+                                  const float mass_delta,
+                                  const float thresh_log_p,
+                                  std::vector<Compomer>::const_iterator & firstExplanation,
+                                  std::vector<Compomer>::const_iterator & lastExplanation) const
   {
 #ifdef DEBUG_FD
     if (fabs(mass_to_explain) < 120.0)
@@ -328,27 +334,31 @@ namespace OpenMS
     }
 #endif
 
-    Compomer cmp_low(net_charge, mass_to_explain-fabs(mass_delta), 1);
-    firstExplanation = lower_bound (explanations_.begin(), explanations_.end(), cmp_low);
+    Compomer cmp_low(net_charge, mass_to_explain - fabs(mass_delta), 1);
+    firstExplanation = lower_bound(explanations_.begin(), explanations_.end(), cmp_low);
 
-    Compomer cmp_high(net_charge, mass_to_explain+fabs(mass_delta), thresh_log_p);
-    lastExplanation  = lower_bound (explanations_.begin(), explanations_.end(), cmp_high);
+    Compomer cmp_high(net_charge, mass_to_explain + fabs(mass_delta), thresh_log_p);
+    lastExplanation  = lower_bound(explanations_.begin(), explanations_.end(), cmp_high);
 
     return std::distance(firstExplanation, lastExplanation);
   }
 
-
   ///check if the generated compomer is valid judged by its probability, charges etc
-  bool MassExplainer::compomerValid_(const Compomer& cmp)
+  bool MassExplainer::compomerValid_(const Compomer & cmp)
   {
     // probability ok?
-    if (cmp.getLogP() < thresh_p_) return false;
+    if (cmp.getLogP() < thresh_p_)
+      return false;
 
     // limit the net charge by the maximal span of co-features
-    if (abs(cmp.getNetCharge()) >= max_span_) return false;
+    if (abs(cmp.getNetCharge()) >= max_span_)
+      return false;
 
-    if (cmp.getNegativeCharges() > q_max_) return false;
-    if (cmp.getPositiveCharges() > q_max_) return false;
+    if (cmp.getNegativeCharges() > q_max_)
+      return false;
+
+    if (cmp.getPositiveCharges() > q_max_)
+      return false;
 
     //TODO include mass?
     //if (abs(cmp.mass_) > mass_max_) return false;
@@ -366,10 +376,9 @@ namespace OpenMS
     ef -= ("H" + String(charge)); // subtracts x hydrogen
     ef.setCharge(charge); // adds x protons
 
-    Adduct a(charge, 1, ef.getMonoWeight(), formula, log(p),0);
+    Adduct a(charge, 1, ef.getMonoWeight(), formula, log(p), 0);
 
     return a;
   }
 
-} 
-
+}

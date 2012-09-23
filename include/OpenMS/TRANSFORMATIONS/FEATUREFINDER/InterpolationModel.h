@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
 // $Authors: $
@@ -41,155 +41,156 @@
 
 namespace OpenMS
 {
-  /** 
-  	@brief Abstract class for 1D-models that are approximated using linear interpolation
-		
-		Model wrapping LinearInterpolation for speed-up in calculation of predicted intensities
-		Derived classes have to implement setSamples()
-		
+  /**
+    @brief Abstract class for 1D-models that are approximated using linear interpolation
+
+        Model wrapping LinearInterpolation for speed-up in calculation of predicted intensities
+        Derived classes have to implement setSamples()
+
     @htmlinclude OpenMS_InterpolationModel.parameters
 
-		@ingroup FeatureFinder
+        @ingroup FeatureFinder
 
-	*/
-    class OPENMS_DLLAPI InterpolationModel
-    	: public BaseModel<1>
+    */
+  class OPENMS_DLLAPI InterpolationModel :
+    public BaseModel<1>
+  {
+
+public:
+    typedef DoubleReal IntensityType;
+    typedef DPosition<1> PositionType;
+    typedef DoubleReal CoordinateType;
+    typedef Math::LinearInterpolation<DoubleReal> LinearInterpolation;
+
+    /// Default constructor
+    InterpolationModel() :
+      BaseModel<1>(),
+      interpolation_()
     {
+      this->defaults_.setValue("interpolation_step", 0.1, "Sampling rate for the interpolation of the model function ");
+      this->defaults_.setValue("intensity_scaling", 1.0, "Scaling factor used to adjust the model distribution to the intensities of the data");
+    }
 
-      public:
-			typedef DoubleReal IntensityType;
-      typedef DPosition<1> PositionType;
-			typedef DoubleReal CoordinateType;
-			typedef Math::LinearInterpolation<DoubleReal> LinearInterpolation;
+    /// copy constructor
+    InterpolationModel(const InterpolationModel & source) :
+      BaseModel<1>(source),
+      interpolation_(source.interpolation_),
+      interpolation_step_(source.interpolation_step_),
+      scaling_(source.scaling_)
+    {
+    }
 
-      /// Default constructor
-      InterpolationModel()
-				: BaseModel<1>(),
-					interpolation_()
-			{
-				this->defaults_.setValue("interpolation_step",0.1,"Sampling rate for the interpolation of the model function ");
-				this->defaults_.setValue("intensity_scaling",1.0,"Scaling factor used to adjust the model distribution to the intensities of the data");
-			}
+    /// destructor
+    virtual ~InterpolationModel()
+    {
+    }
 
-      /// copy constructor
-      InterpolationModel(const InterpolationModel& source)
-				: BaseModel<1>(source),
-					interpolation_(source.interpolation_),
-					interpolation_step_(source.interpolation_step_),
-					scaling_(source.scaling_)
-			{
-			}
+    /// assignment operator
+    virtual InterpolationModel & operator=(const InterpolationModel & source)
+    {
+      if (&source == this) return *this;
 
-      /// destructor
-      virtual ~InterpolationModel()
+      BaseModel<1>::operator=(source);
+      interpolation_step_ = source.interpolation_step_;
+      interpolation_ = source.interpolation_;
+      scaling_ = source.scaling_;
+
+      return *this;
+    }
+
+    /// access model predicted intensity at position @p pos
+    IntensityType getIntensity(const PositionType & pos) const
+    {
+      return interpolation_.value(pos[0]);
+    }
+
+    /// access model predicted intensity at position @p pos
+    IntensityType getIntensity(CoordinateType coord) const
+    {
+      return interpolation_.value(coord);
+    }
+
+    /// Returns the interpolation class
+    const LinearInterpolation & getInterpolation() const
+    {
+      return interpolation_;
+    }
+
+    /** @brief get the scaling for the model
+
+        A scaling factor of @p scaling means that the area under the model equals
+        @p scaling. Default is 1.
+    */
+    CoordinateType getScalingFactor() const
+    {
+      return scaling_;
+    }
+
+    /** @brief set the offset of the model
+
+        The whole model will be shifted to the new offset without being recomputed all over.
+        Setting takes affect immediately.
+    */
+    virtual void setOffset(CoordinateType offset)
+    {
+      interpolation_.setOffset(offset);
+    }
+
+    /// get reasonable set of samples from the model (i.e. for printing)
+    void getSamples(SamplesType & cont) const
+    {
+      cont = SamplesType();
+      BaseModel<1>::PeakType peak;
+      for (Size i = 0; i < interpolation_.getData().size(); ++i)
       {
+        peak.setIntensity(interpolation_.getData()[i]);
+        peak.getPosition()[0] = interpolation_.index2key(i);
+        cont.push_back(peak);
       }
+    }
 
-      /// assignment operator
-      virtual InterpolationModel& operator = (const InterpolationModel& source)
-			{
-				if (&source ==this) return *this;
+    /// "center" of the model, particular definition (depends on the derived model)
+    virtual CoordinateType getCenter() const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      return CoordinateType();           // we will never get here, but this avoids a warning
+    }
 
-				BaseModel<1>::operator = (source);
-				interpolation_step_ = source.interpolation_step_;
-				interpolation_ = source.interpolation_;
-				scaling_ = source.scaling_;
+    /// set sample/supporting points of interpolation wrt params.
+    virtual void setSamples()
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
 
-				return *this;
-			}
+    /**
+        @brief Set the interpolation step for the linear interpolation of the model
 
-      /// access model predicted intensity at position @p pos
-      IntensityType getIntensity(const PositionType& pos) const
-			{
-				return interpolation_.value(pos[0]);
-			}
+        For setting to take affect, call setSamples().
+    */
+    void setInterpolationStep(CoordinateType interpolation_step)
+    {
+      interpolation_step_ = interpolation_step;
+      this->param_.setValue("interpolation_step", interpolation_step_);
+    }
 
-			/// access model predicted intensity at position @p pos
-      IntensityType getIntensity(CoordinateType coord) const
-			{
-				return interpolation_.value(coord);
-			}
+    void setScalingFactor(CoordinateType scaling)
+    {
+      scaling_ = scaling;
+      this->param_.setValue("intensity_scaling", scaling_);
+    }
 
-			/// Returns the interpolation class
-			const LinearInterpolation& getInterpolation() const
-			{
-				return interpolation_;
-			}
+protected:
+    LinearInterpolation interpolation_;
+    CoordinateType interpolation_step_;
+    CoordinateType scaling_;
 
-			/** @brief get the scaling for the model
+    void updateMembers_()
+    {
+      BaseModel<1>::updateMembers_();
+      interpolation_step_ = this->param_.getValue("interpolation_step");
+      scaling_ = this->param_.getValue("intensity_scaling");
+    }
 
-				A scaling factor of @p scaling means that the area under the model equals
-				@p scaling. Default is 1.
-			*/
-			CoordinateType getScalingFactor() const
-			{
-				return scaling_;
-			}
-
-			/** @brief set the offset of the model
-
-				The whole model will be shifted to the new offset without being recomputed all over.
-				Setting takes affect immediately.
-			*/
-			virtual void setOffset(CoordinateType offset)
-			{
-				interpolation_.setOffset(offset);
-			}
-
-			/// get reasonable set of samples from the model (i.e. for printing)
-			void getSamples(SamplesType& cont) const
-			{
-				cont = SamplesType();
-				BaseModel<1>::PeakType peak;
-				for (Size i=0; i<interpolation_.getData().size(); ++i)
-				{
-					peak.setIntensity( interpolation_.getData()[i] );
-					peak.getPosition()[0] = interpolation_.index2key(i);
-					cont.push_back(peak);
-				}
-			}
-
-			/// "center" of the model, particular definition (depends on the derived model)
-			virtual CoordinateType getCenter() const
-			{
-				throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				return CoordinateType(); // we will never get here, but this avoids a warning
-			}
-
-			/// set sample/supporting points of interpolation wrt params.
-			virtual void setSamples()
-			{
-				throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-			};
-
-			/**
-				@brief Set the interpolation step for the linear interpolation of the model
-
-				For setting to take affect, call setSamples().
-			*/
-			void setInterpolationStep(CoordinateType interpolation_step)
-			{
-				interpolation_step_ = interpolation_step;
-				this->param_.setValue("interpolation_step",interpolation_step_);
-			}
-
-			void setScalingFactor(CoordinateType scaling)
-			{
-			  scaling_ = scaling;
-				this->param_.setValue("intensity_scaling",scaling_);
-			}
-
-		protected:
-			LinearInterpolation interpolation_;
-			CoordinateType interpolation_step_;
-			CoordinateType scaling_;
-
-			void updateMembers_()
-			{
-				BaseModel<1>::updateMembers_();
-				interpolation_step_ = this->param_.getValue("interpolation_step");
-				scaling_ = this->param_.getValue("intensity_scaling");
-			}
   };
 }
 

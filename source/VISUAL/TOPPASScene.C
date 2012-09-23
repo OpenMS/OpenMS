@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Junker $
 // $Authors: Johannes Junker, Chris Bielow $
@@ -592,7 +592,8 @@ namespace OpenMS
 
       //reset logfile
       QFile logfile(out_dir_ + QDir::separator() + "TOPPAS.log");
-      if (logfile.exists()) logfile.remove();
+      if (logfile.exists())
+        logfile.remove();
 
       //reset processes
       topp_processes_queue_.clear();
@@ -600,7 +601,8 @@ namespace OpenMS
       // start at input nodes
       for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
       {
-        if (error_occured_) break;                   // someone raised an error
+        if (error_occured_)
+          break;                                     // someone raised an error
 
         TOPPASInputFileListVertex * iflv = qobject_cast<TOPPASInputFileListVertex *>(*it);
         if (iflv)
@@ -741,9 +743,9 @@ namespace OpenMS
   void TOPPASScene::load(const String & file)
   {
     file_name_ = file;
-    
-    if (File::empty(file))
-    { // allow opening of 0-byte files as pretend they are empty, new TOPPAS files
+
+    if (File::empty(file)) // allow opening of 0-byte files as pretend they are empty, new TOPPAS files
+    {
       return;
     }
 
@@ -1643,7 +1645,8 @@ namespace OpenMS
         }
       }
 
-      if (this->isPipelineRunning()) disable_resume = true;
+      if (this->isPipelineRunning())
+        disable_resume = true;
 
       QSet<QString> action;
 
@@ -1844,7 +1847,7 @@ namespace OpenMS
     event->accept();
   }
 
-  void TOPPASScene::enqueueProcess(const TOPPProcess& process)
+  void TOPPASScene::enqueueProcess(const TOPPProcess & process)
   {
     topp_processes_queue_ << process;
   }
@@ -1852,7 +1855,9 @@ namespace OpenMS
   void TOPPASScene::runNextProcess()
   {
     static bool used = false;
-    if (used) return;
+    if (used)
+      return;
+
     used = true;
 
     while (!topp_processes_queue_.empty() && threads_active_ < allowed_threads_)
@@ -1861,7 +1866,8 @@ namespace OpenMS
       TOPPProcess tp = topp_processes_queue_.first();
       topp_processes_queue_.pop_front();
       FakeProcess * p = qobject_cast<FakeProcess *>(tp.proc);
-      if (p) p->start(tp.command, tp.args);
+      if (p)
+        p->start(tp.command, tp.args);
       else
       {
         tp.tv->emitToolStarted();
@@ -2078,15 +2084,14 @@ namespace OpenMS
   void TOPPASScene::changedParameter(const TOPPASToolVertex::TOOLSTATUS status)
   {
     if (status == TOPPASToolVertex::TOOL_SCHEDULED ||
-        status== TOPPASToolVertex::TOOL_RUNNING || 
+        status == TOPPASToolVertex::TOOL_RUNNING ||
         status == TOPPASToolVertex::TOOL_SUCCESS)
     { // abort only if TTV's new parameters invalidate the results
       abortPipeline();
     }
     setChanged(true); // to allow "Store" of pipeline
-    resetDownstream(dynamic_cast<TOPPASVertex*> (sender()));
+    resetDownstream(dynamic_cast<TOPPASVertex *>(sender()));
   }
-  
 
   void TOPPASScene::loadResources(const TOPPASResources & resources)
   {

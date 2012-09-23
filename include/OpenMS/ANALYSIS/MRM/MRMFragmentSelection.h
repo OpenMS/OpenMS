@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // $Authors: Andreas Bertsch $
@@ -42,50 +42,50 @@
 
 namespace OpenMS
 {
-	/**
-		@brief This class can select appropriate fragment ions of an MS/MS spectrum of a peptide
+  /**
+      @brief This class can select appropriate fragment ions of an MS/MS spectrum of a peptide
 
-		@htmlinclude OpenMS_MRMFragmentSelection.parameters
+      @htmlinclude OpenMS_MRMFragmentSelection.parameters
 
-		Several user choices can influence the selection of the ions from the MS/MS spectrum. These
-		choices can be done using the parameters as described on the parameters page (see below). 
-		Basically there are two different ways of selecting suitable ions. One, using standardized 
-		names, e.g. given in the meta value "IonName" of each peaks of the spectrum (this can be 
-		written from TheoreticalSpectrumGenerator, PILISModel...). The second one is simply using
-		the most abundant peaks in a specified m/z range.
+      Several user choices can influence the selection of the ions from the MS/MS spectrum. These
+      choices can be done using the parameters as described on the parameters page (see below).
+      Basically there are two different ways of selecting suitable ions. One, using standardized
+      names, e.g. given in the meta value "IonName" of each peaks of the spectrum (this can be
+      written from TheoreticalSpectrumGenerator, PILISModel...). The second one is simply using
+      the most abundant peaks in a specified m/z range.
 
-		@ingroup Analysis_MRM
-	*/
-	class OPENMS_DLLAPI MRMFragmentSelection : public DefaultParamHandler
-	{
+      @ingroup Analysis_MRM
+  */
+  class OPENMS_DLLAPI MRMFragmentSelection :
+    public DefaultParamHandler
+  {
 
-		public:
+public:
 
-		/** @name Constructors and destructors
-		*/
-		//@{
-		/// default constructor
-		MRMFragmentSelection();
+    /** @name Constructors and destructors
+    */
+    //@{
+    /// default constructor
+    MRMFragmentSelection();
 
-		/// copy constructor
-		MRMFragmentSelection(const MRMFragmentSelection& rhs);
+    /// copy constructor
+    MRMFragmentSelection(const MRMFragmentSelection & rhs);
 
-		/// destructor
-		virtual ~MRMFragmentSelection();
-		//@}
+    /// destructor
+    virtual ~MRMFragmentSelection();
+    //@}
 
-		/// assignment operator 
-		MRMFragmentSelection& operator = (const MRMFragmentSelection& rhs);
+    /// assignment operator
+    MRMFragmentSelection & operator=(const MRMFragmentSelection & rhs);
 
-		/// selects accordingly to the parameters the best peaks of spec and writes them into selected_peaks
-		void selectFragments(std::vector<RichPeak1D>& selected_peaks, const RichPeakSpectrum& spec);
-	
-		protected:
+    /// selects accordingly to the parameters the best peaks of spec and writes them into selected_peaks
+    void selectFragments(std::vector<RichPeak1D> & selected_peaks, const RichPeakSpectrum & spec);
 
-		/// returns true if the selection of peak is allowed, according to the parameters set
-		bool peakselectionIsAllowed_(const RichPeak1D& peak);
-	};
+protected:
+
+    /// returns true if the selection of peak is allowed, according to the parameters set
+    bool peakselectionIsAllowed_(const RichPeak1D & peak);
+  };
 }
 
 #endif
-
