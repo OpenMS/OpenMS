@@ -71,12 +71,15 @@ using namespace std;
   Use this instead of FeatureFinder, if you have bad features  which are not recognized (much noise etc)
     or if you want to quantify non-peptides.
 
-    The EDTA file will specify where to search for signal.
-    Retention time is in seconds [s].
-    'int' and 'charge' are ignored but need to be present. However, you MUST specify a 'rank' column. Rows with equal rank are
-    summed up in intensity (e.g. useful if you have charge variants you want to sum up to enhance quantitation robustness).
-    Each rank represents a so called Master Compound, which constists of one or more sub compounds.
+	The EDTA file will specify where to search for signal.
+	Retention time is in seconds [s].
+	'int' and 'charge' are ignored but need to be present. However, you MUST specify a 'rank' column. Rows with equal rank are
+	summed up in intensity (e.g. useful if you have charge variants you want to sum up to enhance quantitation robustness).
+	Each rank represents a so called Master Compound, which constists of one or more sub compounds.
+	If you do not require ranks, give each row a unique number, e.g. start numbering from 1 to n.
 
+	The intensity reported is the MAXIMUM intensity of all peaks each within the given tolerances for this row's position.
+	
 Example:<br>
     <pre>
 RT	m/z	int	charge	rank
