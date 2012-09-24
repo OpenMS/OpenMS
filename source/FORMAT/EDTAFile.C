@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
@@ -40,56 +40,59 @@ using namespace std;
 namespace OpenMS
 {
 
-	EDTAFile::EDTAFile()
-	{
-	}
-
-	EDTAFile::~EDTAFile()
-	{
-	}
-
-  DoubleReal EDTAFile::checkedToDouble_(const std::vector<String> &parts, Size index, DoubleReal def)
+  EDTAFile::EDTAFile()
   {
-    if (index < parts.size() && parts[index]!="NA")
+  }
+
+  EDTAFile::~EDTAFile()
+  {
+  }
+
+  DoubleReal EDTAFile::checkedToDouble_(const std::vector<String> & parts, Size index, DoubleReal def)
+  {
+    if (index < parts.size() && parts[index] != "NA")
     {
       return parts[index].toDouble();
     }
     return def;
   }
 
-  Int EDTAFile::checkedToInt_(const std::vector<String> &parts, Size index, Int def)
+  Int EDTAFile::checkedToInt_(const std::vector<String> & parts, Size index, Int def)
   {
-    if (index < parts.size() && parts[index]!="NA")
+    if (index < parts.size() && parts[index] != "NA")
     {
       return parts[index].toInt();
     }
     return def;
   }
 
-  void EDTAFile::load(const String& filename, ConsensusMap& consensus_map)
+  void EDTAFile::load(const String & filename, ConsensusMap & consensus_map)
   {
     // load input
-		TextFile input(filename);
-		
+    TextFile input(filename);
+
     // reset map
     consensus_map = ConsensusMap();
     consensus_map.setUniqueId();
 
     char separator = ' ';
-    if (input[0].hasSubstring("\t")) separator = '\t';
-    else if (input[0].hasSubstring(" ")) separator = ' ';
-    else if (input[0].hasSubstring(",")) separator = ',';
+    if (input[0].hasSubstring("\t"))
+      separator = '\t';
+    else if (input[0].hasSubstring(" "))
+      separator = ' ';
+    else if (input[0].hasSubstring(","))
+      separator = ',';
 
-		// parsing header line
-		std::vector<String> headers;
-		input[0].split(separator, headers);
-		int offset = 0;
-		for (Size i=0; i<headers.size(); ++i)
-		{
-			headers[i].trim();
-		}
-		String header_trimmed = input[0];
-		header_trimmed.trim();
+    // parsing header line
+    std::vector<String> headers;
+    input[0].split(separator, headers);
+    int offset = 0;
+    for (Size i = 0; i < headers.size(); ++i)
+    {
+      headers[i].trim();
+    }
+    String header_trimmed = input[0];
+    header_trimmed.trim();
 
     enum
     {
@@ -110,27 +113,31 @@ namespace OpenMS
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
-    else if (headers.size() == 3) input_type = TYPE_OLD_NOCHARGE;
-    else if (headers.size() == 4) input_type = TYPE_OLD_CHARGE;
+    else if (headers.size() == 3)
+      input_type = TYPE_OLD_NOCHARGE;
+    else if (headers.size() == 4)
+      input_type = TYPE_OLD_CHARGE;
 
-		// see if we have a header
-		try
-		{
+    // see if we have a header
+    try
+    {
       // try to convert... if not: thats a header
       rt = headers[0].toDouble();
-			mz = headers[1].toDouble();
-			it = headers[2].toDouble();
-		}
-		catch (Exception::BaseException&)
-		{
-			offset=1;
-			LOG_INFO << "Detected a header line.\n";
-		}
-        
+      mz = headers[1].toDouble();
+      it = headers[2].toDouble();
+    }
+    catch (Exception::BaseException &)
+    {
+      offset = 1;
+      LOG_INFO << "Detected a header line.\n";
+    }
+
     if (headers.size() >= 5)
     {
-      if (String(headers[4].trim()).toUpper() == "RT1") input_type = TYPE_CONSENSUS;
-      else input_type = TYPE_OLD_CHARGE;
+      if (String(headers[4].trim()).toUpper() == "RT1")
+        input_type = TYPE_CONSENSUS;
+      else
+        input_type = TYPE_OLD_CHARGE;
     }
     if (input_type == TYPE_CONSENSUS)
     {
@@ -139,7 +146,7 @@ namespace OpenMS
       input_features = headers.size() / 4;
     }
 
-    if (offset==0 && (input_type==TYPE_OLD_CHARGE || input_type==TYPE_CONSENSUS))
+    if (offset == 0 && (input_type == TYPE_OLD_CHARGE || input_type == TYPE_CONSENSUS))
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
@@ -152,27 +159,28 @@ namespace OpenMS
     // parsing features
     consensus_map.reserve(input.size());
 
-		for (Size i=offset; i<input.size(); ++i)
-		{
-			//do nothing for empty lines
-			String line_trimmed = input[i];
-			line_trimmed.trim();
-			if (line_trimmed=="")
-			{
-				if (i<input.size()-1) LOG_WARN << "Notice: Empty line ignored (line " << (i+1) << ").";
-				continue;
-			}
-					
-			//split line to tokens
-			std::vector<String> parts;
-			input[i].split(separator, parts);
+    for (Size i = offset; i < input.size(); ++i)
+    {
+      //do nothing for empty lines
+      String line_trimmed = input[i];
+      line_trimmed.trim();
+      if (line_trimmed == "")
+      {
+        if (i < input.size() - 1)
+          LOG_WARN << "Notice: Empty line ignored (line " << (i + 1) << ").";
+        continue;
+      }
 
-			//abort if line does not contain enough fields
-			if (parts.size()<3)
-			{
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i+1) + ": At least three columns are needed! (got  " + String(parts.size()) + ")\nOffending line: '" + line_trimmed + "'  (line " + (i+1) + ")\n");
-			}
-					
+      //split line to tokens
+      std::vector<String> parts;
+      input[i].split(separator, parts);
+
+      //abort if line does not contain enough fields
+      if (parts.size() < 3)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i + 1) + ": At least three columns are needed! (got  " + String(parts.size()) + ")\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
+      }
+
       ConsensusFeature cf;
       cf.setUniqueId();
 
@@ -187,9 +195,10 @@ namespace OpenMS
         cf.setRT(rt);
         cf.setMZ(mz);
         cf.setIntensity(it);
-        if (input_type != TYPE_OLD_NOCHARGE) cf.setCharge(ch);
+        if (input_type != TYPE_OLD_NOCHARGE)
+          cf.setCharge(ch);
       }
-      catch (Exception::BaseException&)
+      catch (Exception::BaseException &)
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
       }
@@ -216,44 +225,44 @@ namespace OpenMS
             f.setIntensity(it);
             f.setCharge(ch);
 
-            cf.insert(j-1, f);
+            cf.insert(j - 1, f);
           }
         }
-        catch (Exception::BaseException&)
+        catch (Exception::BaseException &)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j*4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
         }
       }
 
- 			//parse meta data
+      //parse meta data
       for (Size j = input_features * 4; j < parts.size(); ++j)
-			{
-				String part_trimmed = parts[j];
-				part_trimmed.trim();
-				if (part_trimmed!="")
-				{
-					//check if column name is ok
-					if (headers.size()<=j || headers[j]=="")
-					{
+      {
+        String part_trimmed = parts[j];
+        part_trimmed.trim();
+        if (part_trimmed != "")
+        {
+          //check if column name is ok
+          if (headers.size() <= j || headers[j] == "")
+          {
             throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
-							String("Error: Missing meta data header for column ") + (j+1) + "!"
-              + String("Offending header line: '") + header_trimmed + "'  (line 1)");
-					}
-					//add meta value
-					cf.setMetaValue(headers[j],part_trimmed);
-				}
+                                        String("Error: Missing meta data header for column ") + (j + 1) + "!"
+                                        + String("Offending header line: '") + header_trimmed + "'  (line 1)");
+          }
+          //add meta value
+          cf.setMetaValue(headers[j], part_trimmed);
+        }
       }
 
       //insert feature to map
       consensus_map.push_back(cf);
-		}
-    
+    }
+
     // register FileDescriptions
     ConsensusMap::FileDescription fd;
     fd.filename = filename;
     fd.size = consensus_map.size();
-    Size maps = std::max(input_features-1, Size(1)); // its either a simple feature or a consensus map
-                                               // (in this case the 'input_features' includes the centroid, which we do not count)
+    Size maps = std::max(input_features - 1, Size(1)); // its either a simple feature or a consensus map
+    // (in this case the 'input_features' includes the centroid, which we do not count)
     for (Size i = 0; i < maps; ++i)
     {
       fd.label = String("EDTA_Map ") + String(i);
@@ -262,40 +271,40 @@ namespace OpenMS
 
   }
 
-  void EDTAFile::store(const String& filename, const ConsensusMap& map) const
+  void EDTAFile::store(const String & filename, const ConsensusMap & map) const
   {
     TextFile tf;
 
     // search for maximum number of sub-features (since this determines the number of columns)
     Size max_sub(0);
-    for (Size i=0; i<map.size(); ++i)
+    for (Size i = 0; i < map.size(); ++i)
     {
       max_sub = std::max(max_sub, map[i].getFeatures().size());
     }
 
     // write header
     String header("RT\tm/z\tintensity\tcharge");
-    for (Size i=1; i<=max_sub; ++i)
+    for (Size i = 1; i <= max_sub; ++i)
     {
       header += "\tRT" + String(i) + "\tm/z" + String(i) + "\tintensity" + String(i) + "\tcharge" + String(i);
     }
     tf.push_back(header);
 
-    for (Size i=0; i<map.size(); ++i)
+    for (Size i = 0; i < map.size(); ++i)
     {
       ConsensusFeature f = map[i];
       // consensus
       String entry = String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge();
       // sub-features
       ConsensusFeature::HandleSetType handle = f.getFeatures();
-      for (ConsensusFeature::HandleSetType::const_iterator it=handle.begin(); it!=handle.end(); ++it)
+      for (ConsensusFeature::HandleSetType::const_iterator it = handle.begin(); it != handle.end(); ++it)
       {
         entry += String("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();
       }
       // missing sub-features
-      for (Size i=handle.size(); i<max_sub; ++i)
+      for (Size i = handle.size(); i < max_sub; ++i)
       {
-         entry += "\tNA\tNA\tNA\tNA";
+        entry += "\tNA\tNA\tNA\tNA";
       }
       tf.push_back(entry);
     }
@@ -304,13 +313,12 @@ namespace OpenMS
     tf.store(filename);
   }
 
-
-  void EDTAFile::store(const String& filename, const FeatureMap<>& map) const
+  void EDTAFile::store(const String & filename, const FeatureMap<> & map) const
   {
     TextFile tf;
     tf.push_back("RT\tm/z\tintensity\tcharge");
 
-    for (Size i=0; i<map.size(); ++i)
+    for (Size i = 0; i < map.size(); ++i)
     {
       const Feature & f = map[i];
       tf.push_back(String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge());
@@ -320,5 +328,5 @@ namespace OpenMS
     tf.store(filename);
 
   }
-} // namespace OpenMS
 
+} // namespace OpenMS
