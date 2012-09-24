@@ -89,8 +89,8 @@ public:
 protected:
   StringList out_formats_; //< valid output formats for image
 
-  void addMS2Point_(int x, int y, QImage & image, QColor color = Qt::black,
-                    Size size = 2)
+  void addPoint_(int x, int y, QImage & image, QColor color = Qt::black,
+                 Size size = 2)
   {
     int h = image.height(), w = image.width();
     vector<int> xs(1, x), ys(1, y);
@@ -158,7 +158,7 @@ protected:
           x = int(xcoef * (mz - exp.getMinMZ()));
           y = int(ycoef * (exp.getMaxRT() - rt));
         }
-        addMS2Point_(x, y, image, color, size);
+        addPoint_(x, y, image, color, size);  //mark MS2
       }
     }
   }
@@ -210,7 +210,7 @@ protected:
       }
 
       addFeatureBox_(ly, lx, uy, ux, image, color);
-      addMS2Point_(cx, cy, image, Qt::black);
+      addPoint_(cx, cy, image, Qt::black); // mark center
     }
   }
 
@@ -231,6 +231,7 @@ protected:
     registerIntOption_("height", "<number>", 1024, "Number of pixels in RT dimension.\nIf 0, one pixel per spectrum.", false);
     setMinInt_("height", 0);
     registerStringOption_("background_color", "<color>", "#FFFFFF", "Background color e.g.: \"#FF0000\" to choose red as background color", false);
+    registerStringOption_("feature_color", "<color>", "#000000", "Feature color e.g.: \"#00FF00\" to choose green as feature color", false);
 
     registerStringOption_("gradient", "<gradient>", "", "Intensity gradient that defines colors for the range between 0 and 100.\n"
                                                         "Example: '0,#FFFFFF;50,#FF0000;100,#000000'", false);
@@ -265,6 +266,12 @@ protected:
       catch (Exception::ElementNotFound & /*e*/)
       {
         format = "nosuffix";
+      }
+      out_formats_.toUpper();
+      if (!out_formats_.contains(format.toUpper()))
+      {
+        LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
+        return ILLEGAL_PARAMETERS;
       }
     }
     MSExperiment<> exp;
@@ -365,6 +372,9 @@ protected:
     string s = getStringOption_("background_color");
     QColor background_color(s.c_str());
 
+    string feature_color_string = getStringOption_("feature_color");
+    QColor feature_color(feature_color_string.c_str());
+
     QPainter * painter = new QPainter(&image);
     painter->setPen(background_color);
     painter->fillRect(0, 0, peaks, scans, Qt::SolidPattern);
@@ -408,7 +418,7 @@ protected:
       FeatureMap<> feature_map;
       FeatureXMLFile ff;
       ff.load(in_featureXML, feature_map);
-      markFeatureLocations_(feature_map, exp, image, getFlag_("transpose"), Qt::black);
+      markFeatureLocations_(feature_map, exp, image, getFlag_("transpose"), feature_color);
     }
 
     if (image.save(out.toQString(), format.c_str())) return EXECUTION_OK;
