@@ -313,7 +313,7 @@ public:
     */
     void sortByIntensity(bool reverse = false)
     {
-      if (float_data_arrays_.empty() && string_data_arrays_.size() && integer_data_arrays_.size())
+      if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
       {
         if (reverse)
         {
