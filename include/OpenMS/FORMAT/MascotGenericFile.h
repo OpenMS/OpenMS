@@ -147,7 +147,7 @@ protected:
     void writeHeader_(std::ostream & os);
 
     /// writes the spectrum
-    void writeSpectrum_(std::ostream & os, const PeakSpectrum & spec);
+    void writeSpectrum_(std::ostream & os, const PeakSpectrum & spec, String filename);
 
     /// writes the MSExperiment
     void writeMSExperiment_(std::ostream & os, const String & filename, const PeakMap & experiment);
