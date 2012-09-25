@@ -258,9 +258,21 @@ namespace OpenMS
       os << "\t\t</ProteinIdentification>\n";
 
       //write PeptideIdentifications
+
+      Size count_wrong_id(0);
+      Size count_empty(0);
+
       for (Size l = 0; l < peptide_ids.size(); ++l)
       {
-        if (peptide_ids[l].getIdentifier() == protein_ids[i].getIdentifier() && peptide_ids[l].getHits().size() != 0)
+        if (peptide_ids[l].getIdentifier() != protein_ids[i].getIdentifier())
+        {
+          ++count_wrong_id;
+        }
+        else if (peptide_ids[l].getHits().size() == 0)
+        {
+          ++count_empty;
+        }
+        else
         {
           os << "\t\t<PeptideIdentification ";
           os << "score_type=\"" << writeXMLEscape(peptide_ids[l].getScoreType()) << "\" ";
@@ -315,9 +327,9 @@ namespace OpenMS
               {
                 if (accs != "")
                 {
-                  accs = accs + " ";
+                  accs += " ";
                 }
-                accs = accs + "PH_" + accession_to_id[peptide_ids[l].getHits()[j].getProteinAccessions()[m]];
+                accs += "PH_" + accession_to_id[peptide_ids[l].getHits()[j].getProteinAccessions()[m]];
               }
               os << "protein_refs=\"" << accs << "\" ";
             }
@@ -337,7 +349,13 @@ namespace OpenMS
       }
 
       os << "\t</IdentificationRun>\n";
+
+      if (count_wrong_id) LOG_WARN << "Omitted writing of " << count_wrong_id << " peptide identifications due to wrong protein mapping." << std::endl;
+      if (count_empty) LOG_WARN << "Omitted writing of " << count_empty << " peptide identifications due to empty hits." << std::endl;
     }
+
+
+
     //empty protein ids  parameters
     if (protein_ids.empty())
     {

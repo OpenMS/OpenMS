@@ -85,8 +85,8 @@ namespace OpenMS
 
     String
       line,
-      score_type,
-      version,
+      score_type = "PepNovo",
+      version = "unknown",
       identifier,
       filename,
       sequence,
@@ -106,9 +106,8 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
     }
 
-    UInt line_number(0);     // used to report in which line an error occured
-    score_type = "PepNovo";
-    version = "unknown";
+    Size line_number(0);     // used to report in which line an error occurred
+    Size id_count(0);        // number of IDs seen (not necessarily the ones finally returned)
 
     getSearchEngineAndVersion(result_filename, protein_identification);
     //if information could not be retrieved from the outfile use defaults
@@ -157,12 +156,12 @@ namespace OpenMS
 
     while (getline(result_file, line))
     {
-      if (!line.empty() && (line[line.length() - 1] < 33))
-        line.resize(line.length() - 1);
+      if (!line.empty() && (line[line.length() - 1] < 33)) line.resize(line.length() - 1); // remove weird EOL character
       line.trim();
       ++line_number;
       if (line.hasPrefix(">> "))         // >> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta
       {
+        ++id_count;
         if (!peptide_identifications.empty() || !peptide_identification.getHits().empty())
           peptide_identifications.push_back(peptide_identification);
 
@@ -266,10 +265,15 @@ namespace OpenMS
       }
     }
     if (!peptide_identifications.empty() || !peptide_identification.getHits().empty())
+    {
       peptide_identifications.push_back(peptide_identification);
+    }
 
     result_file.close();
     result_file.clear();
+
+    LOG_INFO << "Parsed " << id_count << " ids, retained " << peptide_identifications.size() << "." << std::endl;
+
   }
 
   void
