@@ -439,6 +439,10 @@ namespace OpenMS
     qreal width = x2 - x1;
     qreal height = y2 - y1;
 
+    DoubleReal h = param_.getValue("image:height");
+    DoubleReal w = param_.getValue("image:width");
+    setGeometry(QRect(0,0,w,h)); // does the layout -- otherwise we'd need show() to get it right
+
     if (svg)
     {
       QSvgGenerator svg_gen;
@@ -452,9 +456,6 @@ namespace OpenMS
     }
     else
     {
-      DoubleReal h = param_.getValue("image:height");
-      DoubleReal w = param_.getValue("image:width");
-
       spec_1d_->resize(w, h);
 
       QImage img(w, h, QImage::Format_ARGB32_Premultiplied);

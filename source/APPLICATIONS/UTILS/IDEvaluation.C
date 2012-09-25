@@ -171,7 +171,6 @@ protected:
     mw->setParameters(alg_param);
     mw->loadFiles(in_list);
     mw->setVisibleArea(q_min, q_max);
-    mw->show(); // required to get the size of the images right
 
     if (out != "") // save as image and exit
     {
