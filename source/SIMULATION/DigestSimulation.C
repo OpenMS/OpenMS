@@ -176,7 +176,7 @@ namespace OpenMS
 
       // mean number of "atomic" peptides per digestion product is now: number_atomic_whole / number_of_digestion_products
       // -> thus abundance of a digestion product is: #proteins / avg#of"atomic"peptides
-      //																				i.e.: protein->second / (number_atomic_whole / number_of_digestion_products)
+      // i.e.: protein->second / (number_atomic_whole / number_of_digestion_products)
 
       Map<String, SimIntensityType> intensities;
       StringList keys;

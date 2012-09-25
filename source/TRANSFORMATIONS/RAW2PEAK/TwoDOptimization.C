@@ -336,7 +336,7 @@ namespace OpenMS
                           gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 1) :
                           gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 2);
           ++count;
-//									DoubleReal weight = step*((picked_peaks[peak_iter->first]).begin()+peak_iter->second)->getIntensity();
+// DoubleReal weight = step*((picked_peaks[peak_iter->first]).begin()+peak_iter->second)->getIntensity();
           DoubleReal weight = step * picked_peaks[peak_iter->first].getFloatDataArrays()[1][peak_iter->second];
           ov_weight[map_idx] += weight;
           DoubleReal ddx0_old = gsl_matrix_get(J, counter_posf, total_nr_peaks + 3 * map_idx);
@@ -498,7 +498,7 @@ namespace OpenMS
       old_width_l /= weight;
       old_width_r /= weight;
 
-      //					std::cout << old_position << "vs. ";
+      // std::cout << old_position << "vs. ";
       DoubleReal p_position   = gsl_vector_get(x, total_nr_peaks + 3 * current_peak);
       DoubleReal p_width_l    = gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 1);
       DoubleReal p_width_r    = gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 2);

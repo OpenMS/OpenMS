@@ -203,9 +203,9 @@ namespace OpenMS
       //
       // The matrix J is supposed to contain the result when we return from this function.
       // Note: GSL expects the Jacobian as follows:
-      //    - each row corresponds to one data point
-      //    - each column corresponds to one parameter
-      //	std::vector<DoubleReal>& signal = static_cast<OptimizePick::Data*> (params) ->signal;
+      // - each row corresponds to one data point
+      // - each column corresponds to one parameter
+      // std::vector<DoubleReal>& signal = static_cast<OptimizePick::Data*> (params) ->signal;
       std::vector<DoubleReal> & positions = static_cast<OptimizePick::Data *>(params)->positions;
       std::vector<PeakShape> & peaks = static_cast<OptimizePick::Data *>(params)->peaks;
       OptimizationFunctions::PenaltyFactors & penalties = static_cast<OptimizePick::Data *>(params)->penalties;
@@ -427,7 +427,7 @@ namespace OpenMS
     std::cout << "chisq/dof = " << pow(chi, 2.0) / (data.positions.size() - 4 * data.peaks.size());
 #endif
 
-    //		OptimizationFunctions::printSignal(fit->x, 5.,param);
+    // OptimizationFunctions::printSignal(fit->x, 5.,param);
 
     // iterate over all peaks and store the optimized values in peaks
     for (size_t current_peak = 0; current_peak < data.peaks.size(); current_peak++)
@@ -438,7 +438,7 @@ namespace OpenMS
       peaks[global_peak_number + current_peak].left_width  = gsl_vector_get(fit->x, 4 * current_peak + 1);
       peaks[global_peak_number + current_peak].right_width = gsl_vector_get(fit->x, 4 * current_peak + 2);
 
-      //	compute the area
+      // compute the area
       // is it a Lorentz or a Sech - Peak?
       if (peaks[global_peak_number + current_peak].type == PeakShape::LORENTZ_PEAK)
       {

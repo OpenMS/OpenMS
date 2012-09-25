@@ -186,8 +186,8 @@ namespace OpenMS
   }
 
   //-------------------------------------------------------------------------------
-  //	overloaded visualize functions to call the corresponding data visualizer
-  //	(in alphabetical oeder)
+  // overloaded visualize functions to call the corresponding data visualizer
+  // (in alphabetical oeder)
   //-------------------------------------------------------------------------------
 
   //Visualizing AcquisitionInfo object

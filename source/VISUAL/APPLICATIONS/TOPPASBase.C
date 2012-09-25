@@ -1204,7 +1204,7 @@ namespace OpenMS
     //update if the current layer has a path associated TODO
     //if (activeCanvas_() && activeCanvas_()->getLayerCount()!=0 && activeCanvas_()->getCurrentLayer().filename!="")
     //{
-    //	current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
+    // current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
     //}
   }
 

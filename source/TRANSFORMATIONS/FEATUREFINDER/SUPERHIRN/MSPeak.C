@@ -226,7 +226,7 @@ namespace OpenMS
       while (I != ISOPEAKS.end())
       {
         printf("%0.4f(%0.0f[%0.0f]) ", (*I).getMass(), (*I).getFittedIntensity(), (*I).getOrgIntensity());
-        I++;
+        ++I;
       }
       printf("\n");
     }
@@ -275,13 +275,14 @@ namespace OpenMS
     }
 
     // ok if not, then check the isotopes:
-    // highest isotope to consider:
-    int max = 2;
+    
     // check now also the isotopes
     if (!ISOPEAKS.empty())
     {
       vector<CentroidPeak>::iterator I = ISOPEAKS.begin();
       int i = 1;
+      // highest isotope to consider:
+	int max = 2;
       while (I != ISOPEAKS.end())
       {
         if (simple_math_compareMassValuesAtPPMLevel2(mass, (*I).getMass(), mzTolerance))
@@ -289,7 +290,7 @@ namespace OpenMS
           return true;
         }
         i++;
-        I++;
+        ++I;
         if (i > max)
         {
           break;

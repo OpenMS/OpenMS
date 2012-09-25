@@ -73,8 +73,7 @@ namespace OpenMS
   {
     return CVTermList::operator==(rhs) &&
            name_ == rhs.name_ &&
-           version_ == rhs.version_
-    ;
+           version_ == rhs.version_;
   }
 
   bool Software::operator!=(const Software & rhs) const

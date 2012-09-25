@@ -73,15 +73,15 @@ namespace OpenMS
 
   using namespace std;
 
-//	bool FTPeakDetectController::CREATE_FEATURE_ELUTION_PROFILES = false;
-//	bool FTPeakDetectController::LCelutionPeakDebugging = false;
-//	double FTPeakDetectController::LCelutionPeakMassMin = -1;
-//	double FTPeakDetectController::LCelutionPeakMassMax = -2;
+// bool FTPeakDetectController::CREATE_FEATURE_ELUTION_PROFILES = false;
+// bool FTPeakDetectController::LCelutionPeakDebugging = false;
+// double FTPeakDetectController::LCelutionPeakMassMin = -1;
+// double FTPeakDetectController::LCelutionPeakMassMax = -2;
 
-//	MS2Feature* FTPeakDetectController::SearchedM2Feature;
+// MS2Feature* FTPeakDetectController::SearchedM2Feature;
 
 // if this option is on, then construct fake features for available MS2 features
-//	bool FTPeakDetectController::FEATURE_FAKE_INSERTION_BASED_ON_MS2_FEATURE = true;
+// bool FTPeakDetectController::FEATURE_FAKE_INSERTION_BASED_ON_MS2_FEATURE = true;
 
 
 ////////////////////////////////////////////////

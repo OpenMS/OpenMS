@@ -58,7 +58,7 @@ namespace OpenMS
 
   using namespace std;
 
-// int	CentroidPeak::sfCentroidWindowWidth = 5; // Centroid window width
+// int CentroidPeak::sfCentroidWindowWidth = 5; // Centroid window width
 
 // public methods
 

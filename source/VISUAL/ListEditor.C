@@ -36,7 +36,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 
-//für DIALOG
+// for DIALOG
 #include <QtGui/QPushButton>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QHeaderView>

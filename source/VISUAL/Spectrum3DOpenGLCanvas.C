@@ -825,7 +825,7 @@ namespace OpenMS
     double i_rt = (rt * canvas_3d_.visible_area_.max_[1] - canvas_3d_.visible_area_.min_[1] * rt);
     i_rt = i_rt / 200.0;
     i_rt = i_rt + canvas_3d_.visible_area_.min_[1];
-    //	cout<<"rt"<<rt<<"  "<<"scaledinver"<<i_rt<<endl;
+    // cout<<"rt"<<rt<<"  "<<"scaledinver"<<i_rt<<endl;
     return i_rt;
   }
 

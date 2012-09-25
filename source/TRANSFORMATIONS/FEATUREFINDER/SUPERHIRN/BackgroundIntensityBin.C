@@ -144,18 +144,18 @@ namespace OpenMS
   double simple_math_WEIGHTED_AVERAGE(map<double, double> * IN)
   {
 
-    double AVERAGE = 0;
-    double TOT_WEIGHT = 0;
 
     if (IN->size() > 1)
     {
+    	double AVERAGE = 0;
+    	double TOT_WEIGHT = 0;
 
       map<double, double>::iterator START = IN->begin();
       while (START != IN->end())
       {
         TOT_WEIGHT += (*START).second;
         AVERAGE += ((*START).first * (*START).second);
-        START++;
+        ++START;
       }
 
       return AVERAGE / TOT_WEIGHT;
@@ -204,11 +204,10 @@ namespace OpenMS
         // check this one:
         map<double, double>::iterator check = F;
         double mainLow = fabs(check->first - intens);
-        double deltaHigh = 1000000;
         if (check != intensityHist_.begin())
         {
-          check--;
-          deltaHigh = fabs(check->first - intens);
+          --check;
+          double deltaHigh = fabs(check->first - intens);
           if (mainLow > deltaHigh)
           {
             mainLow = deltaHigh;
@@ -230,7 +229,7 @@ namespace OpenMS
         intensityHist_.insert(make_pair(intens, 1.0));
       }
 
-      P++;
+      ++P;
     }
 
     // filter out bins of only 1 counts:
@@ -244,7 +243,7 @@ namespace OpenMS
       }
       else
       {
-        F++;
+        ++F;
       }
     }
   }

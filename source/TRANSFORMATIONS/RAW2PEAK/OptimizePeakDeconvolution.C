@@ -474,7 +474,7 @@ namespace OpenMS
 
       fit_function.p    = 2 + 2 * data.peaks.size();
       data.penalties = penalties_;
-//				fit_function.params = &penalties_;
+// fit_function.params = &penalties_;
       data.charge = l;
       fit_function.params = &data;
 #ifdef DEBUG_DECONV
@@ -586,8 +586,8 @@ namespace OpenMS
 
 
 
-        //	compute the area
-        //  is it a Lorentz or a Sech - Peak?
+        // compute the area
+        // is it a Lorentz or a Sech - Peak?
         if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
         {
           PeakShape p = peaks[current_peak];

@@ -245,8 +245,8 @@ namespace OpenMS
 // Calculates centroides of peaks from raw data
   void CentroidData::calcCentroids(boost::shared_ptr<RawData> pRawData)   // Profile data object
   { // Calculates centroide data from profile data
-    int i, hw, j;
-    double cm, toti, min_dh;
+    // int i, hw, j;
+    // double cm, toti, min_dh;
     vector<double> masses, intens;
 
     pRawData->get(masses, intens);
@@ -256,7 +256,7 @@ namespace OpenMS
 
     if (centroidDataModus_) // if data alread centroided in mzXML file
     {
-      for (i = 0; i < (int) masses.size(); i++)
+      for (int i = 0; i < (int) masses.size(); i++)
       {
 
         double inte = intens[i];
@@ -275,10 +275,10 @@ namespace OpenMS
 
       ////////////////////////////////////////////
       // centroid raw data
-      min_dh = SuperHirnParameters::instance()->getLowIntensityMSSignalThreshold();       // min height
-      hw = fWindowWidth / 2;
+      double min_dh = SuperHirnParameters::instance()->getLowIntensityMSSignalThreshold();       // min height
+      int hw = fWindowWidth / 2;
 
-      for (i = 2; i < (int) masses.size() - 2; i++)
+      for (int i = 2; i < (int) masses.size() - 2; i++)
       {
 
         // Peak must be concave in the interval [i-2 .. i+2]
@@ -290,9 +290,9 @@ namespace OpenMS
         {
 
           // centroid mass:
-          cm = 0.0;
+          double cm = 0.0;
           // total intensity:
-          toti = 0.0;
+          double toti = 0.0;
 
           // double Tinte = intens[i];
           double Tmz = masses[i];

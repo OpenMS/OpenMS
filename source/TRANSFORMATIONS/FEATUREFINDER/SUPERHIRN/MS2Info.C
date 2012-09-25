@@ -74,9 +74,9 @@ namespace OpenMS
     'V', 'W', 'Y'
   };
 
-//	double MS2Info::MS2_TR_TOL;
-//	bool MS2Info::THEO_MATCH_MODUS;
-//	double MS2Info::MS2_MZ_PPM_TOLERANCE;
+// double MS2Info::MS2_TR_TOL;
+// bool MS2Info::THEO_MATCH_MODUS;
+// double MS2Info::MS2_MZ_PPM_TOLERANCE;
 
 ////////////////////////////////////////////////
 // constructor for the object MS2Info:
@@ -204,7 +204,7 @@ namespace OpenMS
     PREV_AA = tmp.PREV_AA;
     FULL_SQ = tmp.FULL_SQ;
     MOD_LIST = tmp.MOD_LIST;
-//		ORIGINAL_INTERACT_FILE = tmp.ORIGINAL_INTERACT_FILE;
+// ORIGINAL_INTERACT_FILE = tmp.ORIGINAL_INTERACT_FILE;
     MS2_TYPE_TAG = tmp.MS2_TYPE_TAG;
   }
 
@@ -228,7 +228,7 @@ namespace OpenMS
     PREV_AA = tmp->PREV_AA;
     FULL_SQ = tmp->FULL_SQ;
     MOD_LIST = tmp->MOD_LIST;
-//		ORIGINAL_INTERACT_FILE = tmp->ORIGINAL_INTERACT_FILE;
+// ORIGINAL_INTERACT_FILE = tmp->ORIGINAL_INTERACT_FILE;
     MS2_TYPE_TAG = tmp->MS2_TYPE_TAG;
   }
 
@@ -252,7 +252,7 @@ namespace OpenMS
     PREV_AA = tmp.PREV_AA;
     FULL_SQ = tmp.FULL_SQ;
     MOD_LIST = tmp.MOD_LIST;
-//		ORIGINAL_INTERACT_FILE = tmp.ORIGINAL_INTERACT_FILE;
+// ORIGINAL_INTERACT_FILE = tmp.ORIGINAL_INTERACT_FILE;
     MS2_TYPE_TAG = tmp.MS2_TYPE_TAG;
     return *this;
   }

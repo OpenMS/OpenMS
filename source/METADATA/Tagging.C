@@ -79,10 +79,9 @@ namespace OpenMS
       return false;
 
     const Tagging * tmp = dynamic_cast<const Tagging *>(&rhs);
-    return Modification::operator==(rhs) &&
-           mass_shift_ == tmp->mass_shift_ &&
-           variant_ == tmp->variant_
-    ;
+    return Modification::operator==(rhs)
+    && mass_shift_ == tmp->mass_shift_
+    && variant_ == tmp->variant_;
   }
 
   SampleTreatment * Tagging::clone() const

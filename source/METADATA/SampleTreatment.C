@@ -96,8 +96,7 @@ namespace OpenMS
   bool SampleTreatment::operator==(const SampleTreatment & rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
-           comment_ == rhs.comment_
-    ;
+           comment_ == rhs.comment_;
   }
 
 }

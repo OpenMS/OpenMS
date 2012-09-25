@@ -224,9 +224,9 @@ namespace OpenMS
         while (k != p->end())
         {
           out += k->second.get_intensity();
-          k++;
+          ++k;
         }
-        p++;
+        ++p;
       }
       return out;
     }
@@ -268,7 +268,7 @@ namespace OpenMS
 
       if (P == SuperHirnParameters::instance()->getScanTRIndex()->end())
       {
-        P--;
+        --P;
         return (*P).second;
       }
 
@@ -283,7 +283,7 @@ namespace OpenMS
         if (P != SuperHirnParameters::instance()->getScanTRIndex()->begin())
         {
           double SCAN_up = double((*P).first);
-          P--;
+          --P;
           double TR_down = (*P).second;
           double SCAN_down = double((*P).first);
           double w_up = (SCAN_up - SCAN_down) / (SCAN_up - IN);
@@ -362,7 +362,7 @@ namespace OpenMS
       }
 
       PEAK = NULL;
-      P++;
+      ++P;
     }
 
   }
@@ -506,8 +506,8 @@ namespace OpenMS
       double match_mz = (*LCP).first;
 
       // calculate the average mass, get # of observed in the m/z cluster:
-      double nb_elements = 1;
-      nb_elements = (double) LCP->second.rbegin()->size();
+      // double nb_elements = 1;
+      // nb_elements = (double) LCP->second.rbegin()->size();
 
       // calculate the new cluster average mass:
       double peakIntens = getPeakIntensitySum(match_mz);
@@ -708,7 +708,7 @@ namespace OpenMS
           //P->second.show_info();
         }
 
-        P++;
+        ++P;
       }
 
       return false;
@@ -754,7 +754,7 @@ namespace OpenMS
       double SN = peak->get_intensity() / bgLevel;
       peak->setSignalToNoise(SN);
 
-      I++;
+      ++I;
     }
 
   }
@@ -872,7 +872,7 @@ namespace OpenMS
           smallScanDiff = ScanDiff;
         }
 
-        Z++;
+        ++Z;
 
       }
 

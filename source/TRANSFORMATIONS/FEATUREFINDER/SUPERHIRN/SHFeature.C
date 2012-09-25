@@ -74,14 +74,14 @@ namespace OpenMS
   double SHFeature::_MONO_O = 15.99943;
 
 // tolerance in m/z and TR:
-//	double SHFeature::PPM_MZ_TOL;
-//double SHFeature::MZ_TOL = 0.01;
-//	double SHFeature::TR_TOL = 0.5;
-//	double SHFeature::PEPTIDE_PROBABILITY_THRESHOLD = 0.9;
+// double SHFeature::PPM_MZ_TOL;
+// double SHFeature::MZ_TOL = 0.01;
+// double SHFeature::TR_TOL = 0.5;
+// double SHFeature::PEPTIDE_PROBABILITY_THRESHOLD = 0.9;
 
 // option to store all low probability scans in the feature
-//	bool SHFeature::STORE_ALL_LOW_PROBABILITY_MS2_SCANS = false;
-//	bool SHFeature::PRINT_ALL_ACs = true;
+// bool SHFeature::STORE_ALL_LOW_PROBABILITY_MS2_SCANS = false;
+// bool SHFeature::PRINT_ALL_ACs = true;
 
 ////////////////////////////////////////////////
 // constructor for the object feature:
@@ -708,7 +708,7 @@ namespace OpenMS
       map<int, SHFeature>::iterator P = matched_feature_list.begin();
       while (P != matched_feature_list.end())
       {
-//				MS2Info* TMP = (*P).second.get_best_MS2_SCAN(PP_T);    PKUNSZT THIS SHOULD BE THE CORRECT LINE?
+// MS2Info* TMP = (*P).second.get_best_MS2_SCAN(PP_T);    PKUNSZT THIS SHOULD BE THE CORRECT LINE?
         MS2Info * TMP = (*P).second.get_best_MS2_SCAN();
         if (TMP != NULL)
         {

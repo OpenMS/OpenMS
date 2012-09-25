@@ -75,8 +75,7 @@ namespace OpenMS
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
-           && hits_ == rhs.hits_
-    ;
+           && hits_ == rhs.hits_;
   }
 
   // Inequality operator

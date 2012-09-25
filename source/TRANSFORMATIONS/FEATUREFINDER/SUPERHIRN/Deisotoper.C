@@ -58,8 +58,8 @@ namespace OpenMS
 
   using namespace std;
 
-//	int Deisotoper::sfMinCharge = 1; // minimum charge considered in peak detection
-//	int Deisotoper::sfMaxCharge = 5; // maximum charge considered in peak detection
+// int Deisotoper::sfMinCharge = 1; // minimum charge considered in peak detection
+// int Deisotoper::sfMaxCharge = 5; // maximum charge considered in peak detection
 
 // Default constructor
   Deisotoper::Deisotoper()
@@ -219,10 +219,10 @@ namespace OpenMS
       end = pi;
 
       for (pi = beg; pi != fDeconvPeaks.end() && pi != end; ++pi) // remove all 'very' small peak within cluster
-      { //			cout << "remove: " << pi->getMass() << " " << pi->getIntensity() << " " << pi->getCharge() << " | " << most_intense->getMass() << " " << most_intense->getIntensity() << endl;
+      { // cout << "remove: " << pi->getMass() << " " << pi->getIntensity() << " " << pi->getCharge() << " | " << most_intense->getMass() << " " << most_intense->getIntensity() << endl;
         if (most_intense->getIntensity() > 2.0 * pi->getIntensity())
         {
-//				cout << "remove: " << pi->getMass() << " " << pi->getIntensity() << endl;
+// cout << "remove: " << pi->getMass() << " " << pi->getIntensity() << endl;
           pi = fDeconvPeaks.erase(pi);
           if (pi != fDeconvPeaks.begin())           // FLO: Fix windows error (crash "could not decrement")
             --pi;

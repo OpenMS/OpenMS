@@ -1993,7 +1993,7 @@ namespace OpenMS
       }
       //else
       //{
-      //	assume the pipeline was tested in the gui, continue
+      // assume the pipeline was tested in the gui, continue
       //}
     }
 
@@ -2029,7 +2029,7 @@ namespace OpenMS
       }
       //else
       //{
-      //	assume the pipeline was tested in the gui, continue
+      // assume the pipeline was tested in the gui, continue
       //}
     }
 

@@ -481,9 +481,7 @@ namespace OpenMS
   bool weight_compare_less(Feature * f1, Feature * f2)
   {
     return (f1->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula().getMonoWeight()
-           <
-           (f2->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula().getMonoWeight()
-    ;
+           < (f2->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula().getMonoWeight();
   }
 
 // TODO: rewrite

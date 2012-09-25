@@ -97,8 +97,7 @@ namespace OpenMS
            file_type_ == rhs.file_type_ &&
            checksum_ == rhs.checksum_ &&
            checksum_type_ == rhs.checksum_type_ &&
-           native_id_type_ == rhs.native_id_type_
-    ;
+           native_id_type_ == rhs.native_id_type_;
   }
 
   bool SourceFile::operator!=(const SourceFile & rhs) const

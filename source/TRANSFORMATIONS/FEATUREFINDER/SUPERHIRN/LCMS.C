@@ -62,7 +62,7 @@ namespace OpenMS
   using namespace std;
 
   double LCMS::MINIMAL_PEP_PROPHET_THERSHOLD = -3.0;
-//	double LCMS::PEP_PROPHET_THERSHOLD;
+// double LCMS::PEP_PROPHET_THERSHOLD;
 
 ////////////////////////////////////////////////
 // constructor

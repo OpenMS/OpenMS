@@ -56,8 +56,8 @@
 namespace OpenMS
 {
 
-  //double	IsotopicDist::sfDetectableIsoFact = 0.05; // determines which isotopes must match for peak detection
-//double	IsotopicDist::sfIntensityCV = 0.3; // maximal deviation between expected and measured isotopic intensities
+// double IsotopicDist::sfDetectableIsoFact = 0.05; // determines which isotopes must match for peak detection
+// double IsotopicDist::sfIntensityCV = 0.3; // maximal deviation between expected and measured isotopic intensities
 // NOTE the sfIntensityCV is overwritten from config!
 
 
@@ -967,12 +967,12 @@ namespace OpenMS
 
     pMonoPeak.setNrIsotopes(cnt);
     pMonoPeak.setCharge(pCharge);
-    //	pMonoPeak.setIntensity(pAlpha*sfIsoDist50[idx][0]);
+    // pMonoPeak.setIntensity(pAlpha*sfIsoDist50[idx][0]);
     pMonoPeak.setIntensity(h_tot);
     pMonoPeak.setC13MassError(dmC13);
     pMonoPeak.setScore(h_tot);
     pMonoPeak.setIsotopicPeaks(isotopicDist);
-    //	pMonoPeak.setScore(h_tot/(abs(dmC13)+0.000001));
+    // pMonoPeak.setScore(h_tot/(abs(dmC13)+0.000001));
   }
 
 }

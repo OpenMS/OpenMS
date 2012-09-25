@@ -57,7 +57,7 @@ namespace OpenMS
     addTextEdit_(treatmentcomment_, "Comment");
     addLineEdit_(digestionenzyme_, "Enzyme");
     addDoubleLineEdit_(digestiontime_, "Digestion time (in minutes)");
-    addDoubleLineEdit_(digestiontemperature_, "Temperature (in °C)");
+    addDoubleLineEdit_(digestiontemperature_, "Temperature (in \xa7C)");
     addDoubleLineEdit_(digestionPH_, "PH");
 
     finishAdding_();

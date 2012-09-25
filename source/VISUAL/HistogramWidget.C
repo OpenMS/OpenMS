@@ -298,7 +298,7 @@ namespace OpenMS
       painter.drawLine(last_point, point);
       last_point = point;
     }
-    //draw coord system	(on top distribution)
+    // draw coord system (on top distribution)
     painter.setPen(Qt::black);
     painter.drawLine(0, h - 1, w - margin_ + Int(0.5 * pen_width), h - 1);
 

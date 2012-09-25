@@ -207,7 +207,7 @@ namespace OpenMS
     Internal::Spectrum3DPrefDialog dlg(this);
     LayerData & layer = getCurrentLayer_();
 
-//		cout << "IN: " << param_ << endl;
+// cout << "IN: " << param_ << endl;
 
     ColorSelector * bg_color = dlg.findChild<ColorSelector *>("bg_color");
     QComboBox * shade = dlg.findChild<QComboBox *>("shade");

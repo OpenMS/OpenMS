@@ -832,7 +832,7 @@ namespace OpenMS
       {
         DoubleReal step = ((pi)->getMZ() - (pi - 1)->getMZ());
         peak_area_left += step * pi->getIntensity();
-        //						peak_area_left += pi->getIntensity();
+        // peak_area_left += pi->getIntensity();
       }
 
       DoubleReal peak_area_right = 0.;
@@ -1409,13 +1409,13 @@ namespace OpenMS
         // if the peak achieves a minimal width, start the peak fitting
         if (regular_endpoints)
         {
-          //#ifdef DEBUG_PEAK_PICKING
-          //					std::cout << "The endpoints are "
-          //										<< area.left->getPosition()
-          //										<< " and "
-          //										<< area.right->getPosition()
-          //										<< std::endl;
-          //#endif
+          // #ifdef DEBUG_PEAK_PICKING
+          // std::cout << "The endpoints are "
+          // << area.left->getPosition()
+          // << " and "
+          // << area.right->getPosition()
+          // << std::endl;
+          // #endif
           // determine the best fitting lorezian or sech2 function
           PeakShape shape = fitPeakShape_(area, centroid_fit);
           shape.setLeftEndpoint((input.begin() + distance(raw_peak_array.begin(), area.left)));
@@ -1434,10 +1434,10 @@ namespace OpenMS
           }
           else
           {
-            //#ifdef DEBUG_PEAK_PICKING
-            //						std::cout << "Corr: " << shape.r_value << " SN: " << sne.getSignalToNoise(area.max) << " FWHM: " << shape.getFWHM() << std::endl;
-            //						std::cout << "Bad fitting peak "<< std::endl;
-            //#endif
+            // #ifdef DEBUG_PEAK_PICKING
+            // std::cout << "Corr: " << shape.r_value << " SN: " << sne.getSignalToNoise(area.max) << " FWHM: " << shape.getFWHM() << std::endl;
+            // std::cout << "Bad fitting peak "<< std::endl;
+            // #endif
           }
         }
 

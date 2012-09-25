@@ -108,8 +108,7 @@ namespace OpenMS
            precursors_ == rhs.precursors_ &&
            products_ == rhs.products_ &&
            identification_ == rhs.identification_ &&
-           data_processing_ == rhs.data_processing_
-    ;
+           data_processing_ == rhs.data_processing_;
   }
 
   bool SpectrumSettings::operator!=(const SpectrumSettings & rhs) const

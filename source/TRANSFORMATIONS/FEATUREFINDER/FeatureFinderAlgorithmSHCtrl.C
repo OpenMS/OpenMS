@@ -225,7 +225,7 @@ namespace OpenMS
     // Key: ms1:mz_tolerance
     // Unit: ppm
     SuperHirnParameters::instance()->mzTolPpm_ = param.getValue("ms1:mz_tolerance");     // 0.0;
-    //		ConsensusIsotopePattern::FT_MZ_TOLERANCE = SHFeature::PPM_MZ_TOL;
+    // ConsensusIsotopePattern::FT_MZ_TOLERANCE = SHFeature::PPM_MZ_TOL;
 
     // MS2_M2_matcher parameters:
     //def->search_tag("MS2 mass matching modus", &TMP_B);
@@ -245,13 +245,13 @@ namespace OpenMS
     //def->search_tag("MS2 retention time tolerance", &TMP);
     // Key: general:ms2_retention_time_tolerance
     // Unit: retention time tolerance with which MS2 identifications will be associated
-    //					to a defined MS1 LC elution peak [min]
-    //					(if set to -1, then the MS1 retention time tolerance will be used
+    // to a defined MS1 LC elution peak [min]
+    // (if set to -1, then the MS1 retention time tolerance will be used
     //if( TMP > 0 ){
     //  MS2Info::MS2_TR_TOL = TMP;
     //}
     //else{
-    //		MS2Info::MS2_TR_TOL = SHFeature::TR_TOL;
+    // MS2Info::MS2_TR_TOL = SHFeature::TR_TOL;
     //}
 
     //  def->search_tag("Peptide Prophet Threshold", &TMP);
@@ -259,17 +259,17 @@ namespace OpenMS
     // only MS2 related
     //double d = param.getValue("general:peptide_prophet_threshold"); // 0.9;
 
-    //		double d = 0.9;
+    // double d = 0.9;
     // ------ peptide_DELTA_group::PEPTIDE_PROBABILITY_THRESHOLD = d;
-    //		SHFeature::PEPTIDE_PROBABILITY_THRESHOLD = d;
+    // SHFeature::PEPTIDE_PROBABILITY_THRESHOLD = d;
     // PKUNSZT: commented out: the default is 0.9 already.
     // SuperHirnParameters::instance()->peptideProbabilityThreshold_ = d;
     // ------ interact_parser::PEPTIDE_PROBABILITY_THRESHOLD = d;
-    //		LCMS::PEP_PROPHET_THERSHOLD = d;    // THIS IS NEVER USED
+    // LCMS::PEP_PROPHET_THERSHOLD = d;    // THIS IS NEVER USED
 
     //def->search_tag("Create monoisotopic LC profile", &TMP_B);
     // ------- LCMSDataImporter::CREATE_FEATURE_ELUTION_PROFILES = 1;
-    //		FTPeakDetectController::CREATE_FEATURE_ELUTION_PROFILES = 1;
+    // FTPeakDetectController::CREATE_FEATURE_ELUTION_PROFILES = 1;
     SuperHirnParameters::instance()->createFeatureElutionProfiles_ = true;
     // ------- LC_MS_XML_writer::STORE_FEATURE_ELUTION_PROFILES = 1;
 
@@ -277,31 +277,31 @@ namespace OpenMS
     // Parameters for the peak merging:
     //def->search_tag("Activation of MS1 feature merging post processing", &TMP_B);
     // Key: ms1_feature_merger:active
-//		MS1FeatureMerger::MS1_FEATURE_CLUSTERING = param.getValue("ms1_feature_merger:active").toBool(); //1;
+// MS1FeatureMerger::MS1_FEATURE_CLUSTERING = param.getValue("ms1_feature_merger:active").toBool(); //1;
     SuperHirnParameters::instance()->ms1FeatureClustering_ = param.getValue("ms1_feature_merger:active").toBool();     //1;
 
     //def->search_tag("MS1 LC retention time resolution", &TMP); // belongs to MS1 PEAK DETECTION PARAMETERS FOR THE DIFFERENT FILTER METHODS:
     // Key: ms1_feature_merger:tr_resolution
-//		MS1FeatureMerger::MS1_PEAK_AREA_TR_RESOLUTION = param.getValue("ms1_feature_merger:tr_resolution"); //0.01;
+// MS1FeatureMerger::MS1_PEAK_AREA_TR_RESOLUTION = param.getValue("ms1_feature_merger:tr_resolution"); //0.01;
     SuperHirnParameters::instance()->ms1PeakAreaTrResolution_ = param.getValue("ms1_feature_merger:tr_resolution");     //0.01;
 
     //def->search_tag("Initial Apex Tr tolerance", &TMP);
     // Key: ms1_feature_merger:initial_apex_tr_tolerance
-//		MS1FeatureMerger::INITIAL_TR_TOLERANCE = param.getValue("ms1_feature_merger:initial_apex_tr_tolerance"); //5.0;
+// MS1FeatureMerger::INITIAL_TR_TOLERANCE = param.getValue("ms1_feature_merger:initial_apex_tr_tolerance"); //5.0;
     SuperHirnParameters::instance()->initialTrTolerance_ = param.getValue(
       "ms1_feature_merger:initial_apex_tr_tolerance");           //5.0;
 
     //def->search_tag("MS1 feature Tr merging tolerance", &TMP);
     // Key: ms1_feature_merger:feature_merging_tr_tolerance
-//		MS1FeatureMerger::MS1_FEATURE_MERGING_TR_TOLERANCE = param.getValue(
-//				"ms1_feature_merger:feature_merging_tr_tolerance"); //1.0;
+// MS1FeatureMerger::MS1_FEATURE_MERGING_TR_TOLERANCE = param.getValue(
+// "ms1_feature_merger:feature_merging_tr_tolerance"); //1.0;
     SuperHirnParameters::instance()->ms1FeatureMergingTrTolerance_ = param.getValue(
       "ms1_feature_merger:feature_merging_tr_tolerance");           //1.0;
 
     //def->search_tag("Percentage of intensity variation between LC border peaks", &TMP);
     // Key: ms1_feature_merger:intensity_variation_percentage
-//		MS1FeatureMerger::PERCENTAGE_INTENSITY_ELUTION_BORDER_VARIATION = param.getValue(
-//				"ms1_feature_merger:intensity_variation_percentage"); //25;
+// MS1FeatureMerger::PERCENTAGE_INTENSITY_ELUTION_BORDER_VARIATION = param.getValue(
+// "ms1_feature_merger:intensity_variation_percentage"); //25;
     SuperHirnParameters::instance()->percentageIntensityElutionBorderVariation_ = param.getValue(
       "ms1_feature_merger:intensity_variation_percentage");           //25;
 

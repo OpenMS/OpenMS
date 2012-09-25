@@ -200,12 +200,12 @@ namespace OpenMS
 
   void TOPPASWidget::resizeEvent(QResizeEvent * /*event*/)
   {
-//		QGraphicsView::resizeEvent(event);
-//		if (scene_)
-//		{
-//			QRectF items_rect = scene_->itemsBoundingRect();
-//			scene_->setSceneRect(items_rect.united(mapToScene(viewport()->rect()).boundingRect()));
-//		}
+// QGraphicsView::resizeEvent(event);
+// if (scene_)
+// {
+// QRectF items_rect = scene_->itemsBoundingRect();
+// scene_->setSceneRect(items_rect.united(mapToScene(viewport()->rect()).boundingRect()));
+// }
   }
 
   void TOPPASWidget::closeEvent(QCloseEvent * e)
