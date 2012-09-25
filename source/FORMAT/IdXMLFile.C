@@ -327,9 +327,9 @@ namespace OpenMS
               {
                 if (accs != "")
                 {
-                  accs += " ";
+                  accs = accs + " ";
                 }
-                accs += "PH_" + accession_to_id[peptide_ids[l].getHits()[j].getProteinAccessions()[m]];
+                accs = accs + "PH_" + accession_to_id[peptide_ids[l].getHits()[j].getProteinAccessions()[m]];
               }
               os << "protein_refs=\"" << accs << "\" ";
             }
