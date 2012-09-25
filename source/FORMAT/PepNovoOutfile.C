@@ -130,7 +130,7 @@ namespace OpenMS
       {
         //cout<<keys_to_id.find(*mod_it)->second<<endl;
         ResidueModification tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
-        if (mod_it->prefix(1) == "^" || mod_it->prefix(1) == "'$")
+        if (mod_it->prefix(1) == "^" || mod_it->prefix(1) == "$")
         {
           mod_mask_map[*mod_it] = "(" + tmp_mod.getId() + ")";
         }
@@ -162,8 +162,10 @@ namespace OpenMS
       if (line.hasPrefix(">> "))         // >> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta
       {
         ++id_count;
-        if (!peptide_identifications.empty() || !peptide_identification.getHits().empty())
+        if (!peptide_identification.empty() && !peptide_identification.getHits().empty())
+        {
           peptide_identifications.push_back(peptide_identification);
+        }
 
         peptide_identification = PeptideIdentification();
         line.split(' ', substrings);
