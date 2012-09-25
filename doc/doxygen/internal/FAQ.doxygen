@@ -514,7 +514,7 @@ svn propset svn:eol-style native MyClass.C
 				<UL>
 					<LI> Submit the bug to the tracker (TRAC)
 					<LI> Fix the bug and add a test for it in the HEAD
-					<LI> Commit bugfix and test as a single commit and add the bug number to the comment.<BR>E.g.: "Fixed bug #123"
+					<LI> Commit bugfix and test as a single commit and add the bug number to the comment.<BR>E.g.: "[FIX] Fixed bug #123"
 					<LI> Close the bug in the tracker and add the the revision of the fix to the comment.<BR>E.g.: "Fixed in revision [3005]"
 					<LI> Merge the revision into the current release branch (see SVN section above)
 				</UL>
@@ -554,9 +554,10 @@ svn propset svn:eol-style native MyClass.C
 							<LI> TOPP
 								<UL>
 									<LI> Write / correct tutorial
+									<LI> Check if each TOPP/UTIL is listed on the TOPP/UTIL documentation page
 									<LI> Write / correct doxygen documentation of each tool
 									<LI> Proof-read the output of @a &lt;TOPP-tool&gt; @a --help
-									<LI> Check if all parameters and sections are documented (@a -write_ini and @a INIFileEditor).
+									<LI> Check if all parameters and sections are documented in INI files (@a -write_ini and @a INIFileEditor).
 								</UL>
 						</UL>
 				</OL>
@@ -580,10 +581,10 @@ svn propset svn:eol-style native MyClass.C
 					<OL>
 						<LI> Year numbers update in:
 							<OL>
-								<LI> &lt;OpenMS&gt;/source/COPYRIGHT
+								<LI> &lt;%OpenMS&gt;/source/COPYRIGHT
 								<LI> All headers and C files and License.txt (adapt years accordingly)
 										<code>
-										cd &lt;OpenMS&gt;
+										cd &lt;%OpenMS&gt;
 										find . -name "*.h" -o -name "*.C" -o -name "*.txt" | xargs sed -i 's/(C) 2003-2011/(C) 2003-2012/g' 
 										</code>
 							</OL>	
