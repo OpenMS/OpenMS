@@ -297,7 +297,7 @@ namespace OpenMS
           // double Tinte = intens[i];
           double Tmz = masses[i];
 
-          for (j = -hw; j <= hw; j++)
+          for (Int j = -hw; j <= hw; j++)
           {
             double inte = intens[i - j];
             double mz = masses[i - j];
