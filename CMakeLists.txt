@@ -347,12 +347,18 @@ if (MSVC)
 endif()	
 
 ## update the openms_svn_revision.h file before compiling OpenMS
-add_custom_target(svn_revision_update ALL
-	    COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE} -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
-	                             -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake)
-add_dependencies(OpenMS svn_revision_update)
-set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
-
+set(ENABLE_SVN ON CACHE STRING "Use svnversion (if available) to implant a svn revision number into the library!")
+if (ENABLE_SVN)
+	message(STATUS "SVN revision information enabled. Use 'ENABLE_SVN=OFF' to disable!")
+	add_custom_target(svn_revision_update ALL
+				COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE} -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
+																 -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake)
+	add_dependencies(OpenMS svn_revision_update)
+	set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
+else()
+	message(STATUS "SVN revision information disabled. Use 'ENABLE_SVN=ON' to enable!")
+endif()
+	
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
 set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${DEP_LIBSVM_LIBRARY} ${CONTRIB_XERCESC} ${Boost_LIBRARIES} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB} ${CONTRIB_GLPK})
 if (TBB_FOUND)
