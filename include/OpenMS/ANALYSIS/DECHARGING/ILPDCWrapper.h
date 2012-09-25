@@ -60,7 +60,7 @@ public:
     /// Compute optimal solution and return value of objective function
     /// If the input feature map is empty, a warning is issued and -1 is returned.
     /// @return value of objective function
-    ///		and @p pairs will have all realized edges set to "active"
+    ///	and @p pairs will have all realized edges set to "active"
     DoubleReal compute(const FeatureMap<> fm, PairsType & pairs, Size verbose_level) const;
 
 private:

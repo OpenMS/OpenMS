@@ -35,12 +35,6 @@
 #ifndef OPENMS_CONCEPT_CLASSTEST_H
 #define OPENMS_CONCEPT_CLASSTEST_H
 
-//-------------------------------------------------------------------------
-//	Note: Emacs has a fantastic command "backslashify" that you can use to
-//	line up the backslashes in the define blocks.
-//-------------------------------------------------------------------------
-
-
 // Avoid OpenMS includes here at all costs
 // When the included headers are changed, *all* tests have to be recompiled!
 // Use the ClassTest class if you need add high-level functionality.
@@ -497,7 +491,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
   }                                                                                                                                           \
   else                                                                                                                                    \
   {                                                                                                                                           \
-    /* remove temporary files	*/                                                                              \
+    /* remove temporary files*/                                                                              \
     for (OpenMS::Size i = 0; i < TEST::tmp_file_list.size(); ++i)                                                     \
     {                                                                                                                                       \
       if (!OpenMS::File::remove(TEST::tmp_file_list[i]))                                                          \

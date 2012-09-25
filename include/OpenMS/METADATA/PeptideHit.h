@@ -83,7 +83,7 @@ public:
     };
     //@}
 
-    /**	@name Constructors and Destructor */
+    /** @name Constructors and Destructor */
     //@{
     /// default constructor
     PeptideHit();

@@ -132,8 +132,7 @@ public:
     {
       return MSSpectrum<>::operator==(rhs) &&
              rhs.getBinSize() == this->bin_size_ &&
-             rhs.getBinSpread() == this->bin_spread_
-      ;
+             rhs.getBinSpread() == this->bin_spread_;
     }
 
     /// inequality operator

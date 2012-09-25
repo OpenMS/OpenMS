@@ -116,10 +116,10 @@ public:
       */
       //@{
 
-      ///	Returns the name of the exception
+      /// Returns the name of the exception
       const char * getName() const throw();
 
-      ///	Returns the error message of the exception
+      /// Returns the error message of the exception
       virtual const char * what() const throw();
 
       /// Returns the line number where it occured

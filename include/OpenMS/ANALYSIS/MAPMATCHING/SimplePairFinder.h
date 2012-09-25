@@ -132,8 +132,7 @@ protected:
     */
     DoubleReal similarity_(ConsensusFeature const & left, ConsensusFeature const & right) const;
 
-  }
-  ; // SimplePairFinder
+  }; // SimplePairFinder
 
 } // namespace OpenMS
 

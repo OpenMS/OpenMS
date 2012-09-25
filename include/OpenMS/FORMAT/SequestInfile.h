@@ -157,16 +157,16 @@ public:
     /// returns the nucleotide reading frame
     Size getNucleotideReadingFrame() const;
     /// sets the nucleotide reading frame:
-    ///		0   The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
-    ///		1   The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
-    ///		2   The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the second DNA code.
-    ///		3   The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the third DNA code.
-    ///		4   The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the first DNA code.
-    ///		5   The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the second DNA code.
-    ///		6   The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the third DNA code.
-    ///		7   Use each of the DNA translations of the codes 1, 2, 3.
-    ///		8   Use each of the DNA translations of the codes 4, 5, 6.
-    ///		9   Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6.
+    /// 0   The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
+    /// 1   The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
+    /// 2   The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the second DNA code.
+    /// 3   The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the third DNA code.
+    /// 4   The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the first DNA code.
+    /// 5   The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the second DNA code.
+    /// 6   The DNA sequence is scanned right to left (backward direction for the complementary strand). The amino acid code starts with the third DNA code.
+    /// 7   Use each of the DNA translations of the codes 1, 2, 3.
+    /// 8   Use each of the DNA translations of the codes 4, 5, 6.
+    /// 9   Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6.
     void setNucleotideReadingFrame(Size nucleotide_reading_frame);
 
     /// returns the maximum number of internal cleavage sites

@@ -102,10 +102,10 @@ public:
 
 
     /// search the mass database for explanations
-    /// @param net_charge       net charge of compomer seeked
-    /// @param mass_to_explain  mass in Da that needs explanation
-    /// @param mass_delta       allowed deviation from exact mass
-    /// @param thresh_log_p		  minimal log probability required
+    /// @param net_charge net charge of compomer seeked
+    /// @param mass_to_explain mass in Da that needs explanation
+    /// @param mass_delta allowed deviation from exact mass
+    /// @param thresh_log_p  minimal log probability required
     /// @param firstExplanation begin range with candidates according to net_charge and mass
     /// @param lastExplanation  end range
     SignedSize query(const Int net_charge,

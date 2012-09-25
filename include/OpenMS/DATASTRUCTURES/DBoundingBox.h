@@ -73,7 +73,7 @@ public:
     using Base::min_;
     using Base::max_;
 
-    /**	@name Constructors and Destructor */
+    /**@name Constructors and Destructor */
     //@{
     ///Default constructor.
     DBoundingBox() :
@@ -114,7 +114,7 @@ public:
 
     //@}
 
-    /**	@name Accessors */
+    /**@name Accessors */
     //@{
 
     /// Enlarges the bounding box such that it contains a position.
@@ -135,7 +135,7 @@ public:
 
     //}@
 
-    /**	@name Predicates */
+    /**@name Predicates */
     //@{
 
     /// Equality operator

@@ -1259,7 +1259,7 @@ private:
       /// the position in the underlying map of SparseVector
       map_const_iterator valit_;
 
-    };      //end of class	SparseVectorConstIterator
+    };      //end of class SparseVectorConstIterator
 
     /// const_reverse_iterator for SparseVector
     class SparseVectorConstReverseIterator
@@ -1402,7 +1402,7 @@ private:
       // the position in the underlying map of SparseVector
       reverse_map_const_iterator valrit_;
 
-    };      //end of class	SparseVectorConstReverseIterator
+    };      //end of class SparseVectorConstReverseIterator
 
 
   };  //end of class SparseVector

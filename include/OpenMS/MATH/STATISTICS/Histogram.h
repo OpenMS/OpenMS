@@ -333,7 +333,7 @@ protected:
     {
       for (Size i = 0; i < hist.size(); ++i)
       {
-        os << hist.centerOfBin(i) << "	"<< hist[i] << std::endl;
+        os << hist.centerOfBin(i) << "\t"<< hist[i] << std::endl;
       }
       return os;
     }

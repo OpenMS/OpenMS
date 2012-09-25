@@ -181,7 +181,7 @@ public:
     /// returns the terminal specificity name which is set or given as parameter
     String getTermSpecificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
 
-    ///	sets the origin (ie amino acid)
+    ///sets the origin (ie amino acid)
     void setOrigin(const String & origin);
 
     /// returns the origin (ie amino acid) if set

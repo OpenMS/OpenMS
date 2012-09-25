@@ -91,7 +91,7 @@ public:
     };
     //@}
 
-    /**	@name Constructors and Destructor */
+    /** @name Constructors and Destructor */
     //@{
 
     /// default constructor
@@ -120,7 +120,7 @@ public:
     bool operator!=(const ProteinHit & rhs) const;
 
 
-    /**	@name Accessors */
+    /** @name Accessors */
     //@{
 
     /// returns the score of the protein hit

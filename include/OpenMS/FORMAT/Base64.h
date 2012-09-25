@@ -805,7 +805,7 @@ private:
     // char[8] (Real) and push_back when necessary.
     for (Size i = 0; i < src_size; i += 4)
     {
-//		printf ("start: i=%d, offset %d\n", i, offset);
+//printf ("start: i=%d, offset %d\n", i, offset);
 
       // decode 4 Base64-Chars to 3 Byte
       a = decoder_[(int)in[i] - 43] - 62;
@@ -814,7 +814,7 @@ private:
         b = 0;
       element[offset] = (unsigned char) ((a << 2) | (b >> 4));
       written++;
-//		printf ("1: i=%d, offset %d, wrote %d\n", i, offset, element[offset]);
+//printf ("1: i=%d, offset %d, wrote %d\n", i, offset, element[offset]);
       offset = (offset + inc) % element_size;
 
       if (written % element_size == 0)

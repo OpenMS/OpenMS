@@ -86,7 +86,7 @@ public:
     using Base::min_;
     using Base::max_;
 
-    /**	@name Constructors and Destructor */
+    /**@name Constructors and Destructor */
     //@{
     /**
         @brief Default constructor.
@@ -147,7 +147,7 @@ public:
 
     //@}
 
-    /**	@name Predicates */
+    /**@name Predicates */
     //@{
     ///Equality operator
     bool operator==(const DRange & rhs) const

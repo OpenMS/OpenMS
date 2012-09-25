@@ -148,10 +148,10 @@ public:
         }
       }
 
-//			for (std::vector<DRange<1> >::const_iterator rit = ranges.begin(); rit != ranges.end(); ++rit)
-//			{
-//				std::cerr << *rit << std::endl;
-//			}
+//for (std::vector<DRange<1> >::const_iterator rit = ranges.begin(); rit != ranges.end(); ++rit)
+//{
+//std::cerr << *rit << std::endl;
+//}
 
       // apply the intensity reduction to the collected ranges
       for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)

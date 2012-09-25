@@ -224,7 +224,7 @@ private:
     storeMetaInfo_("META_MSExperiment", exp.getPersistenceId(), exp);
 
     //----------------------------------------------------------------------------------------
-    //----------- store	PROTEIN IDENTIFICATIONS/HITS / SEARCHPARAMETERS-----------------------
+    //----------- store PROTEIN IDENTIFICATIONS/HITS / SEARCHPARAMETERS-----------------------
     //----------------------------------------------------------------------------------------
 
     std::vector<ProteinIdentification> & pi = exp.getProteinIdentifications();
@@ -1108,7 +1108,7 @@ private:
     ProteinHit ph;
 
     query.str("");
-    query << "SELECT id, SearchEngine, SearchEngineVersion, Date, ScoreType, HigherScoreBetter, SignificanceThreshold, fid_MetaInfo, fid_File	FROM ID_ProteinIdentification WHERE fid_MSExperiment='"<< id << "'";
+    query << "SELECT id, SearchEngine, SearchEngineVersion, Date, ScoreType, HigherScoreBetter, SignificanceThreshold, fid_MetaInfo, fid_File FROM ID_ProteinIdentification WHERE fid_MSExperiment='"<< id << "'";
     result = db_con_.executeQuery(query.str());
     while (result.next())
     {
@@ -1122,7 +1122,7 @@ private:
 
       loadMetaInfo_(result.value(7).toInt(), pi);
       //needs getter and setter methods first
-      //			loadFile_(result.value(8).toInt(), pi.getSourceFile());
+      //loadFile_(result.value(8).toInt(), pi.getSourceFile());
 
       //load searchparameters
       query.str("");
@@ -1272,7 +1272,7 @@ private:
     }
 
     //----------------------------------------------------------------------------------------
-    //------------------------------- load INSTRUMENT	----------------------------------------
+    //------------------------------- load INSTRUMENT ----------------------------------------
     //----------------------------------------------------------------------------------------
 
     query.str("");
@@ -1300,7 +1300,7 @@ private:
     }
 
     //----------------------------------------------------------------------------------------
-    //------------------------------- load IONDETECTORS	--------------------------------------
+    //------------------------------- load IONDETECTORS --------------------------------------
     //----------------------------------------------------------------------------------------
     std::vector<IonDetector> detectors;
     query.str("");
@@ -1321,7 +1321,7 @@ private:
     exp.getInstrument().setIonDetectors(detectors);
 
     //----------------------------------------------------------------------------------------
-    //------------------------------- load IONSOURCES	--------------------------------------
+    //------------------------------- load IONSOURCES --------------------------------------
     //----------------------------------------------------------------------------------------
     std::vector<IonSource> sources;
     query.str("");
@@ -1341,7 +1341,7 @@ private:
     exp.getInstrument().setIonSources(sources);
 
     //----------------------------------------------------------------------------------------
-    //------------------------------- load MASSANALYZERS	------------------------------------
+    //------------------------------- load MASSANALYZERS ------------------------------------
     //----------------------------------------------------------------------------------------
     std::vector<MassAnalyzer> analyzers;
     query.str("");
@@ -1381,7 +1381,7 @@ private:
     }
 
     //----------------------------------------------------------------------------------------
-    //----------------------------------- load SPECTRAS	--------------------------------------
+    //----------------------------------- load SPECTRAS --------------------------------------
     //----------------------------------------------------------------------------------------
     query.str("");
     query << "SELECT id FROM DATA_Spectrum WHERE fid_MSExperiment=" << id;
@@ -1446,7 +1446,7 @@ private:
     loadFile_(result.value(6).toInt(), spec.getSourceFile());
 
     //----------------------------------------------------------------------------------------
-    //------------------------------- load INSTRUMENTSETTINGS	--------------------------------
+    //------------------------------- load INSTRUMENTSETTINGS --------------------------------
     //----------------------------------------------------------------------------------------
     query.str("");
     query << "SELECT Polarity-1, ScanMode-1, ZoomScan, fid_MetaInfo FROM META_InstrumentSettings WHERE fid_Spectrum=" << id;
@@ -1459,7 +1459,7 @@ private:
     loadMetaInfo_(result.value(3).toInt(), spec.getInstrumentSettings());
 
     //----------------------------------------------------------------------------------------
-    //------------------------------- load SCANWINDOWS	--------------------------------------
+    //------------------------------- load SCANWINDOWS --------------------------------------
     //----------------------------------------------------------------------------------------
     query.str("");
     query << "SELECT MZRangeBegin,MZRangeEnd,fid_MetaInfo FROM META_ScanWindows WHERE fid_Spectrum=" << id;
@@ -1474,7 +1474,7 @@ private:
     }
 
     //----------------------------------------------------------------------------------------
-    //----------------- load PEPTIDEIDENTIFICATION / PEPTIDEHITS	----------------------------
+    //----------------- load PEPTIDEIDENTIFICATION / PEPTIDEHITS ----------------------------
     //----------------------------------------------------------------------------------------
 
 
@@ -1496,7 +1496,7 @@ private:
 
       loadMetaInfo_(result.value(4).toInt(), pei);
       //needs getter and setter methods first
-      //			loadFile_(result.value(5).toInt(), pei.getSourceFile());
+      //loadFile_(result.value(5).toInt(), pei.getSourceFile());
 
       query.str("");
       query << "SELECT Score, Sequence, Charge, AABefore, AAAfter, fid_MetaInfo FROM ID_PeptideHit WHERE fid_Identification='" << parent_id << "'";
@@ -1523,7 +1523,7 @@ private:
     spec.setPeptideIdentifications(pei_vec);
 
     //----------------------------------------------------------------------------------------
-    //------------------------------- load AQUISITIONINFO	--------------------------------------
+    //------------------------------- load AQUISITIONINFO --------------------------------------
     //----------------------------------------------------------------------------------------
 
     query.str("");
@@ -1597,7 +1597,7 @@ private:
     }
 
     //----------------------------------------------------------------------------------------
-    //----------------- load METAINFODESCRIPTION/METADATAARRAYS	------------------------------
+    //----------------- load METAINFODESCRIPTION/METADATAARRAYS ------------------------------
     //----------------------------------------------------------------------------------------
 
     query.str("");
@@ -1614,7 +1614,7 @@ private:
     }
 
     //----------------------------------------------------------------------------------------
-    //------------------------------- load PRECURSOR	----------------------------------------
+    //------------------------------- load PRECURSOR ----------------------------------------
     //----------------------------------------------------------------------------------------
     if (spec.getMSLevel() > 1)
     {
@@ -1656,7 +1656,7 @@ private:
     }
 
     //----------------------------------------------------------------------------------------
-    //------------------------------ load PRODUCTS	------------------------------------------
+    //------------------------------ load PRODUCTS ------------------------------------------
     //----------------------------------------------------------------------------------------
     query.str("");
     query << "SELECT WindowMz,WindowLow,WindowUp,fid_MetaInfo FROM DATA_Products WHERE fid_Spectrum='" << id << "'";
@@ -1673,7 +1673,7 @@ private:
     }
 
     //----------------------------------------------------------------------------------------
-    //--------------------------- load PEAKS/METADATAARRAYS	----------------------------------
+    //--------------------------- load PEAKS/METADATAARRAYS ----------------------------------
     //----------------------------------------------------------------------------------------
 
     query.str("");

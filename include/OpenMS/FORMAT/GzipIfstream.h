@@ -120,7 +120,7 @@ protected:
     //needed if one wants to know whetther file is okay
     //unsigned long original_crc;
     //needed if one wants to know whetther file is okay
-    //		unsigned long crc;
+    //unsigned long crc;
 
     ///not implemented
     GzipIfstream(const GzipIfstream & bzip2);

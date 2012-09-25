@@ -97,7 +97,7 @@ public:
    */
     void load(const String & result_filename, std::vector<PeptideIdentification> & peptide_identifications, ProteinIdentification & protein_identification, const DoubleReal p_value_threshold, std::vector<DoubleReal> & pvalues, const String & database = "", const bool ignore_proteins_per_peptide = false);
 
-//			/// retrieve the p-values from the out files
+// /// retrieve the p-values from the out files
 //          void getPValuesFromOutFiles(vector< pair < String, vector< DoubleReal > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);
 
     /// retrieve columns from a Sequest outfile line

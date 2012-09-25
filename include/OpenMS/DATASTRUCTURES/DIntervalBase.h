@@ -68,7 +68,7 @@ public:
       typedef typename PositionType::CoordinateType CoordinateType;
       //@}
 
-      /**	@name Constructors and Destructor */
+      /**@name Constructors and Destructor */
       //@{
 
       /**
@@ -114,7 +114,7 @@ public:
 
       //@}
 
-      /**	@name Accessors */
+      /**@name Accessors */
       //@{
 
       /// Accessor to minimum position
@@ -186,7 +186,7 @@ public:
 
       //}@
 
-      /**	@name Predicates */
+      /**@name Predicates */
       //@{
       /// Equality operator
       bool operator==(const DIntervalBase & rhs) const
@@ -208,7 +208,7 @@ public:
 
       //@}
 
-      /**	@name Misc */
+      /**@name Misc */
       //@{
 
       ///Returns the center of the interval
@@ -233,7 +233,7 @@ public:
 
       //}@
 
-      /**	@name Accessors for 2D-intervals (for convenience) */
+      /**@name Accessors for 2D-intervals (for convenience) */
       //@{
 
       /// Accessor for min_ coordinate minimum
