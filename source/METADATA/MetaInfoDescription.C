@@ -80,8 +80,7 @@ namespace OpenMS
     return comment_ == rhs.comment_ &&
            name_ == rhs.name_ &&
            data_processing_ == rhs.data_processing_ &&
-           MetaInfoInterface::operator==(rhs)
-    ;
+           MetaInfoInterface::operator==(rhs);
   }
 
   void MetaInfoDescription::setName(const String & name)

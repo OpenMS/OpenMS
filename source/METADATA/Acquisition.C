@@ -67,9 +67,7 @@ namespace OpenMS
 
   bool Acquisition::operator==(const Acquisition & rhs) const
   {
-    return identifier_ == rhs.identifier_ &&
-           MetaInfoInterface::operator==(rhs)
-    ;
+    return identifier_ == rhs.identifier_ && MetaInfoInterface::operator==(rhs);
   }
 
   bool Acquisition::operator!=(const Acquisition & rhs) const

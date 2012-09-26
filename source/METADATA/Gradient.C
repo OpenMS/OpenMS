@@ -80,8 +80,7 @@ namespace OpenMS
   {
     return (eluents_ == rhs.eluents_) &&
            (times_ == rhs.times_) &&
-           (percentages_ == rhs.percentages_)
-    ;
+           (percentages_ == rhs.percentages_);
   }
 
   bool Gradient::operator!=(const Gradient & rhs) const

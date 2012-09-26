@@ -91,8 +91,7 @@ namespace OpenMS
            && hits_ == rhs.getHits()
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
-           && higher_score_better_ == rhs.higher_score_better_
-    ;
+           && higher_score_better_ == rhs.higher_score_better_;
   }
 
   // Inequality operator

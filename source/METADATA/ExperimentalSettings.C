@@ -105,8 +105,7 @@ namespace OpenMS
            comment_ == rhs.comment_ &&
            fraction_identifier_ == rhs.fraction_identifier_ &&
            MetaInfoInterface::operator==(rhs) &&
-           DocumentIdentifier::operator==(rhs)
-    ;
+           DocumentIdentifier::operator==(rhs);
   }
 
   bool ExperimentalSettings::operator!=(const ExperimentalSettings & rhs) const

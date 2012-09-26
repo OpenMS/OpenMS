@@ -102,8 +102,7 @@ namespace OpenMS
            precursor_ == rhs.precursor_ &&
            product_ == rhs.product_ &&
            data_processing_ == rhs.data_processing_ &&
-           type_ == rhs.type_
-    ;
+           type_ == rhs.type_;
   }
 
   bool ChromatogramSettings::operator!=(const ChromatogramSettings & rhs) const

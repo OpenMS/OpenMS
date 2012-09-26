@@ -147,8 +147,8 @@ namespace OpenMS
 
     if (IN->size() > 1)
     {
-    	double AVERAGE = 0;
-    	double TOT_WEIGHT = 0;
+      double AVERAGE = 0;
+      double TOT_WEIGHT = 0;
 
       map<double, double>::iterator START = IN->begin();
       while (START != IN->end())

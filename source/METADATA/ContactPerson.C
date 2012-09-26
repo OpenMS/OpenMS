@@ -96,8 +96,7 @@ namespace OpenMS
            contact_info_ == rhs.contact_info_ &&
            url_ == rhs.url_ &&
            address_ == rhs.address_ &&
-           MetaInfoInterface::operator==(rhs)
-    ;
+           MetaInfoInterface::operator==(rhs);
   }
 
   bool ContactPerson::operator!=(const ContactPerson & rhs) const

@@ -104,8 +104,7 @@ namespace OpenMS
     return software_ == rhs.software_ &&
            processing_actions_ == rhs.processing_actions_ &&
            completion_time_ == rhs.completion_time_ &&
-           MetaInfoInterface::operator==(rhs)
-    ;
+           MetaInfoInterface::operator==(rhs);
   }
 
   bool DataProcessing::operator!=(const DataProcessing & rhs) const

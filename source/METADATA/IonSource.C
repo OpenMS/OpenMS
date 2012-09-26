@@ -87,8 +87,7 @@ namespace OpenMS
            inlet_type_ == rhs.inlet_type_ &&
            ionization_method_ == rhs.ionization_method_ &&
            polarity_ == rhs.polarity_ &&
-           MetaInfoInterface::operator==(rhs)
-    ;
+           MetaInfoInterface::operator==(rhs);
   }
 
   bool IonSource::operator!=(const IonSource & rhs) const

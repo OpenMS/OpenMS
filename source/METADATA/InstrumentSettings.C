@@ -82,8 +82,7 @@ namespace OpenMS
            zoom_scan_  == rhs.zoom_scan_ &&
            polarity_ == rhs.polarity_ &&
            scan_windows_ == rhs.scan_windows_ &&
-           MetaInfoInterface::operator==(rhs)
-    ;
+           MetaInfoInterface::operator==(rhs);
   }
 
   bool InstrumentSettings::operator!=(const InstrumentSettings & rhs) const

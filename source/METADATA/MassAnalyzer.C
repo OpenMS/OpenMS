@@ -140,8 +140,7 @@ namespace OpenMS
            isolation_width_ == rhs.isolation_width_ &&
            final_MS_exponent_ == rhs.final_MS_exponent_ &&
            magnetic_field_strength_ == rhs.magnetic_field_strength_ &&
-           MetaInfoInterface::operator==(rhs)
-    ;
+           MetaInfoInterface::operator==(rhs);
   }
 
   bool MassAnalyzer::operator!=(const MassAnalyzer & rhs) const

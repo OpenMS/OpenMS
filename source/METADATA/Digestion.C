@@ -95,8 +95,7 @@ namespace OpenMS
            enzyme_ == tmp->enzyme_ &&
            digestion_time_ == tmp->digestion_time_ &&
            temperature_ == tmp->temperature_ &&
-           ph_ == tmp->ph_
-    ;
+           ph_ == tmp->ph_;
   }
 
   const String & Digestion::getEnzyme() const

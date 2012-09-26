@@ -95,9 +95,7 @@ namespace OpenMS
            charge_ == rhs.charge_ &&
            possible_charge_states_ == rhs.possible_charge_states_ &&
            Peak1D::operator==(rhs) &&
-           CVTermList::operator==(rhs)
-
-    ;
+           CVTermList::operator==(rhs);
   }
 
   bool Precursor::operator!=(const Precursor & rhs) const

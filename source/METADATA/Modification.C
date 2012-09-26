@@ -90,8 +90,7 @@ namespace OpenMS
            reagent_name_ == tmp->reagent_name_ &&
            mass_ == tmp->mass_ &&
            specificity_type_ == tmp->specificity_type_ &&
-           affected_amino_acids_ == tmp->affected_amino_acids_
-    ;
+           affected_amino_acids_ == tmp->affected_amino_acids_;
   }
 
   SampleTreatment * Modification::clone() const

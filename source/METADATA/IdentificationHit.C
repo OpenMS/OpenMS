@@ -95,8 +95,7 @@ namespace OpenMS
            && experimental_mass_to_charge_ == rhs.experimental_mass_to_charge_
            && name_ == rhs.name_
            && pass_threshold_ == rhs.pass_threshold_
-           && rank_ == rhs.rank_
-    ;
+           && rank_ == rhs.rank_;
   }
 
   // Inequality operator

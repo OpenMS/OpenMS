@@ -77,8 +77,7 @@ namespace OpenMS
     return mz_ == rhs.mz_ &&
            window_low_ == rhs.window_low_ &&
            window_up_ == rhs.window_up_ &&
-           CVTermList::operator==(rhs)
-    ;
+           CVTermList::operator==(rhs);
   }
 
   bool Product::operator!=(const Product & rhs) const

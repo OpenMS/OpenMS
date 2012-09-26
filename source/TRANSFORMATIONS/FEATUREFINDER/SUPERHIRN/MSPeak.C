@@ -282,7 +282,7 @@ namespace OpenMS
       vector<CentroidPeak>::iterator I = ISOPEAKS.begin();
       int i = 1;
       // highest isotope to consider:
-	int max = 2;
+      int max = 2;
       while (I != ISOPEAKS.end())
       {
         if (simple_math_compareMassValuesAtPPMLevel2(mass, (*I).getMass(), mzTolerance))

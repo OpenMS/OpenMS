@@ -92,8 +92,7 @@ namespace OpenMS
            acquisition_mode_ == rhs.acquisition_mode_ &&
            resolution_ == rhs.resolution_ &&
            ADC_sampling_frequency_ == rhs.ADC_sampling_frequency_ &&
-           MetaInfoInterface::operator==(rhs)
-    ;
+           MetaInfoInterface::operator==(rhs);
   }
 
   bool IonDetector::operator!=(const IonDetector & rhs) const
