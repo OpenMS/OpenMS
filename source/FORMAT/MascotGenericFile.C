@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <QFileInfo>
 #include <QtCore/QRegExp>
 
 using namespace std;
@@ -227,7 +228,7 @@ namespace OpenMS
     os << param_.getValue("charges") << "\n";
   }
 
-  void MascotGenericFile::writeSpectrum_(ostream & os, const PeakSpectrum & spec, String filename)
+  void MascotGenericFile::writeSpectrum_(ostream & os, const PeakSpectrum & spec, const String filename)
   {
     Precursor precursor;
     if (spec.getPrecursors().size() > 0)
@@ -302,7 +303,8 @@ namespace OpenMS
         cout << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
       }
 
-      QString filtered_filename = filename.c_str();
+      QFileInfo fileinfo(filename.c_str());
+      QString filtered_filename = fileinfo.completeBaseName();
       filtered_filename.remove(QRegExp("[^a-zA-Z]"));
       if (experiment[i].getMSLevel() == 2)
       {
