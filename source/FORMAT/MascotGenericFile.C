@@ -228,7 +228,7 @@ namespace OpenMS
     os << param_.getValue("charges") << "\n";
   }
 
-  void MascotGenericFile::writeSpectrum_(ostream & os, const PeakSpectrum & spec, const String filename)
+  void MascotGenericFile::writeSpectrum_(ostream & os, const PeakSpectrum & spec, const String & filename)
   {
     Precursor precursor;
     if (spec.getPrecursors().size() > 0)
@@ -296,6 +296,9 @@ namespace OpenMS
       os << enc.first;
     }
 
+    QFileInfo fileinfo(filename.c_str());
+    QString filtered_filename = fileinfo.completeBaseName();
+    filtered_filename.remove(QRegExp("[^a-zA-Z0-9]"));
     for (Size i = 0; i < experiment.size(); i++)
     {
       if (experiment[i].getMSLevel() == 0)
@@ -303,9 +306,6 @@ namespace OpenMS
         cout << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
       }
 
-      QFileInfo fileinfo(filename.c_str());
-      QString filtered_filename = fileinfo.completeBaseName();
-      filtered_filename.remove(QRegExp("[^a-zA-Z]"));
       if (experiment[i].getMSLevel() == 2)
       {
         writeSpectrum_(os, experiment[i], filtered_filename);
