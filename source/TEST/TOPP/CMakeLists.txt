@@ -147,6 +147,11 @@ add_test("TOPP_MassTraceExtractor_1" ${TOPP_BIN_PATH}/MassTraceExtractor -test -
 add_test("TOPP_MassTraceExtractor_1_out" ${DIFF} -in1 MassTraceExtractor_1.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_1_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_1")
 
+### FeatureFinderMetabo test
+add_test("TOPP_FeatureFinderMetabo_1" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out FeatureFinderMetabo_1.tmp)
+add_test("TOPP_FeatureFinderMetabo_1_out" ${DIFF} -in1 FeatureFinderMetabo_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_output.featureXML)
+set_tests_properties("TOPP_FeatureFinderMetabo_1_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_1")
+
 ### FeatureFinderCentroided test
 add_test("TOPP_FeatureFinderCentroided_1" ${TOPP_BIN_PATH}/FeatureFinderCentroided -test -ini ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out FeatureFinderCentroided_1.tmp)
 add_test("TOPP_FeatureFinderCentroided_1_out1" ${DIFF} -in1 FeatureFinderCentroided_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_output.featureXML )
