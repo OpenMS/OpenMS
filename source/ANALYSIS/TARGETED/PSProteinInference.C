@@ -121,7 +121,7 @@ namespace OpenMS
     for (set<String>::const_iterator p = all_accs.begin(); p != all_accs.end(); ++p)
     {
       // create column with boundaries 0-1 and integer/binary variable
-      Size index = problem.addColumn();
+      Int index = problem.addColumn();
       problem.setColumnBounds(index, 0., 1., LPWrapper::DOUBLE_BOUNDED);
       problem.setColumnName(index, *p);
       problem.setColumnType(index, LPWrapper::BINARY);
