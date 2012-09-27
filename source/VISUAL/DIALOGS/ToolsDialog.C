@@ -76,6 +76,7 @@ namespace OpenMS
            << "MapNormalizer" << "InternalCalibration"
            << "TOFCalibration" << "FeatureFinderRaw"
            << "FeatureFinderCentroided" << "FeatureFinderIsotopeWavelet"
+           << "MassTraceExtractor" << "FeatureFinderMetabo"
            << "FeatureFinderMRM" << "SILACAnalyzer"
            << "ITRAQAnalyzer" << "SpectraFilterWindowMower"
            << "SpectraFilterThresholdMower" << "SpectraFilterSqrtMower"
