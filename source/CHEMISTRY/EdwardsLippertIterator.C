@@ -56,7 +56,7 @@ namespace OpenMS
     @brief constructor
     @param t const reference to the tolerance
     */
-    FloatsWithTolLess(const DoubleReal & t) :
+    explicit FloatsWithTolLess(const DoubleReal & t) :
       tol_(t) {}
     /**
     @brief copy constructor

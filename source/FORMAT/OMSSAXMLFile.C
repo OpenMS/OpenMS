@@ -331,12 +331,12 @@ namespace OpenMS
 
     // modifications
     //<MSHits_mods>
-    //	<MSModHit>
-    //		<MSModHit_site>4</MSModHit_site>
-    //		<MSModHit_modtype>
-    //			<MSMod>2</MSMod>
-    //		</MSModHit_modtype>
-    //	</MSModHit>
+    // <MSModHit>
+    //  <MSModHit_site>4</MSModHit_site>
+    //  <MSModHit_modtype>
+    //   <MSMod>2</MSMod>
+    //  </MSModHit_modtype>
+    // </MSModHit>
     //</MSHits_mods>
 
 

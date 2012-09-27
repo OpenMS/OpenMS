@@ -498,8 +498,8 @@ namespace OpenMS
         }
         else
         {
-          //temp[0] = ((temp_divider + temp_divider + dividing_score)/2);
-          //	temp[2] = 1;
+          // temp[0] = ((temp_divider + temp_divider + dividing_score)/2);
+          // temp[2] = 1;
           ++bin;
           points[bin][2] = 1;
           temp_divider += dividing_score;
@@ -508,9 +508,9 @@ namespace OpenMS
 
       for (vector<DPosition<3> >::iterator it = points.begin(); it < points.end(); ++it)
       {
-        //	if((*it)[1] > (*it)[2])
-        //	{(*it)[1] = (*it)[1] + (*it)[2];}
-        /*	else{/(*it)[2] = (*it)[1] + (*it)[2];//}*/
+        // if((*it)[1] > (*it)[2])
+        // {(*it)[1] = (*it)[1] + (*it)[2];}
+        /* else{/(*it)[2] = (*it)[1] + (*it)[2];//}*/
 
         (*it)[1] = ((*it)[1] / ((decoy.size() + target.size())  * dividing_score));
         (*it)[2] = ((*it)[2] / ((decoy.size() + target.size())  * dividing_score));

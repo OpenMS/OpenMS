@@ -327,7 +327,7 @@ namespace OpenMS
 
     DoubleReal predict = svm_predict(isotope_filt_svm, nodes);
 
-    delete(nodes);
+    delete[] nodes;
 
     return (predict == 2.0) ? true : false;
   }
@@ -835,7 +835,7 @@ namespace OpenMS
           }
 
 
-          std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << "\t" "ch: " << charge << " isopos: " << iso_pos << " rt: " << rt_score << "mz: " << mz_score << "int: " << int_score << std::endl;
+          // std::cout << fh_tmp.getLabel() << "_" << candidates[mt_idx]->getLabel() << "\t" "ch: " << charge << " isopos: " << iso_pos << " rt: " << rt_score << "mz: " << mz_score << "int: " << int_score << std::endl;
 
           DoubleReal total_pair_score(0.0);
 
@@ -928,7 +928,7 @@ namespace OpenMS
 
       std::map<String, bool> trace_excl_map;
 
-      std::cout << "size of hypotheses: " << feat_hypos.size() << std::endl;
+      // std::cout << "size of hypotheses: " << feat_hypos.size() << std::endl;
 
       // output all hypotheses:
 //        for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)

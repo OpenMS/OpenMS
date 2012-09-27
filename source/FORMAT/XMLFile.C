@@ -57,7 +57,7 @@ namespace OpenMS
     class XMLCleaner_
     {
 public:
-      XMLCleaner_(XMLHandler * handler) :
+      explicit XMLCleaner_(XMLHandler * handler) :
         p_(handler)
       {
 
@@ -176,7 +176,7 @@ private:
     {
       XMLCh * xmlch = xercesc::XMLString::transcode(to_escape.c_str());
 
-      std::string out;
+      std::string out = "";
       OpenMSXMLFormatTarget ft(out);
       xercesc::XMLFormatter f("UTF-8", /* XMLUni::fgVersion1_1 */ "1.1", &ft);
       f << xercesc::XMLFormatter::StdEscapes << xmlch;

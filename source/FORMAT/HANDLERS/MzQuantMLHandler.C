@@ -1170,7 +1170,7 @@ namespace OpenMS
       //~ {
       //~ ConvexHull2D current_hull = hulls[i];
       //~ current_hull.compress();
-      //~ Size hull_size	= current_hull.getHullPoints().size();
+      //~ Size hull_size = current_hull.getHullPoints().size();
 
       //~ for (Size j=0;j<hull_size;j++)
       //~ {

@@ -338,16 +338,16 @@ namespace OpenMS
     bool debug = false;
     UID file_id = 0;
 
-//		// If there is no file to save, set empty reference and return
-//		if (file.isFileEmpty())
-//		{
-//			if (debug) cout << "Empty file for " << parent_table << " given, skipping..." << endl;
-//			query.str("");
-//			query << "UPDATE " << parent_table << " SET fid_File=NULL";
-//			query << " WHERE id=" << String(parent_id);
-//			result = db_con_.executeQuery(query.str());
-//			return 0;
-//		}
+// If there is no file to save, set empty reference and return
+// if (file.isFileEmpty())
+// {
+// if (debug) cout << "Empty file for " << parent_table << " given, skipping..." << endl;
+// query.str("");
+// query << "UPDATE " << parent_table << " SET fid_File=NULL";
+// query << " WHERE id=" << String(parent_id);
+// result = db_con_.executeQuery(query.str());
+// return 0;
+// }
 
     if (debug)
       cout << "file given, saving to entry '" << parent_id << "' in table '" << parent_table << endl;

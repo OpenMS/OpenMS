@@ -226,8 +226,6 @@ namespace OpenMS
 #pragma omp critical
 #endif
       {
-        static char buf[BUFFER_LENGTH];
-
         // sync our streambuffer...
         if (pptr() != pbase())
         {
@@ -237,6 +235,8 @@ namespace OpenMS
           {
             char * line_start = pbase();
             char * line_end = pbase();
+            
+            static char buf[BUFFER_LENGTH];
 
             while (line_end < pptr())
             {

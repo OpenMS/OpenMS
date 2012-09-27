@@ -178,7 +178,7 @@ protected:
             }
             if (indices.first != indices.second)
             {
-//								os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
+            // os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
             }
             ++spectrum_count;
             if (unique_peptides.find(temp_hits[0].getSequence().toString()) == unique_peptides.end())
@@ -196,15 +196,15 @@ protected:
           }
         }
       }
-/*				os << proteins[j].sequence << endl;
+/* << proteins[j].sequence << endl;
                 for (Size k = 0; k < coverage.size(); ++k)
                 {
                     os << coverage[k];
                 }
                 os << endl;
 */
-      //				statistics[j] = make_pair(,
-      //													accumulate(coverage.begin(), coverage.end(), 0) / proteins[j].sequence.size());
+      // statistics[j] = make_pair(,
+      // accumulate(coverage.begin(), coverage.end(), 0) / proteins[j].sequence.size());
       statistics[j] = ((DoubleReal) accumulate(coverage.begin(), coverage.end(), Size(0))) / proteins[j].sequence.size();
       counts[j] = temp_unique_peptides.size();
       mod_counts[j] = temp_modified_unique_peptides.size();
@@ -215,10 +215,10 @@ protected:
         os << proteins[j].identifier << "(coverage%, #unique hits): " <<  statistics[j] * 100 << "%, " << counts[j] << "\n";
       }
 
-//				os << statistics[j] << endl;
+// os << statistics[j] << endl;
     }
 
-//			os << "Sum of coverage is " << accumulate(statistics.begin(), statistics.end(), 0.) << endl;
+// os << "Sum of coverage is " << accumulate(statistics.begin(), statistics.end(), 0.) << endl;
     os << "Average coverage per protein is " << (accumulate(statistics.begin(), statistics.end(), 0.) / statistics.size()) << endl;
     os << "Average number of peptides per protein is " << (((DoubleReal) accumulate(counts.begin(), counts.end(), 0.)) / counts.size()) << endl;
     os << "Average number of un/modified peptides per protein is " << (((DoubleReal) accumulate(mod_counts.begin(), mod_counts.end(), 0.)) / mod_counts.size()) << endl;

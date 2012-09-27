@@ -428,8 +428,7 @@ L260:
               /*                 Apply procedure G2 (CC,SS,A(J-1,L),A(J,L)) */
 
               temp = a[j - 1 + l * a_dim1];
-              a[j - 1 + l * a_dim1] = cc * temp + ss * a[j + l * a_dim1]
-              ;
+              a[j - 1 + l * a_dim1] = cc * temp + ss * a[j + l * a_dim1];
               a[j + l * a_dim1] = -ss * temp + cc * a[j + l * a_dim1];
             }
             /* L270: */
@@ -791,7 +790,7 @@ L100:
           i4 += *ice;
         }
 L120:
-        ;
+        {}
       }
 L130:
       return 0;

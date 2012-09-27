@@ -38,7 +38,7 @@
 
 
 // debugging
-#define V_UniqueIdGenerator(a) ;
+#define V_UniqueIdGenerator(a);
 // #define V_UniqueIdGenerator(a) std::cout << "line " << __LINE__ << ": " << a << std::endl;
 
 namespace OpenMS

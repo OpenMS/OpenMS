@@ -102,10 +102,10 @@ END_SECTION
 MSExperiment<Peak1D> input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input);
 
-Size exp_mt_lengths[3] = {93, 31, 16};
-DoubleReal exp_mt_rts[3] = {347.883, 346.881, 346.836};
+Size exp_mt_lengths[3] = {86, 31, 16};
+DoubleReal exp_mt_rts[3] = {347.778, 346.881, 346.836};
 DoubleReal exp_mt_mzs[3] = {437.26675, 438.27241, 439.27594};
-DoubleReal exp_mt_ints[3] = {3153.84, 631.45, 116.966};
+DoubleReal exp_mt_ints[3] = {3124.76, 631.45, 116.966};
 
 std::vector<MassTrace> output_mt;
 

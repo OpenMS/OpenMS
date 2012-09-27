@@ -52,9 +52,7 @@ namespace OpenMS
   SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer() :
     DefaultParamHandler("SvmTheoreticalSpectrumGeneratorTrainer")
   {
-    defaults_.setValue("write_training_files", "false", "If set to true no models are trained but files (<Filename>_<ion_type>_training.dat) are produced \
-for the selected primary ion types. They can be used as input for LibSVM command line tools");
-
+    defaults_.setValue("write_training_files", "false", "If set to true no models are trained but files (<Filename>_<ion_type>_training.dat) are produced for the selected primary ion types. They can be used as input for LibSVM command line tools");
     defaults_.setValidStrings("write_training_files", StringList::create("true,false"));
 
     defaults_.setValue("number_intensity_levels", 7, "The number of intensity bins (for secondary type models)");

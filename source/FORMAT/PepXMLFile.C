@@ -117,7 +117,7 @@ namespace OpenMS
       f << "average";
     }
     f << "\" out_data_type=\"\" out_data=\"\" search_id=\"1\">" << "\n";
-    f << "		<search_database local_path=\""<< search_params.db << "\" type=\"AA\"/>" << "\n";
+    f << "\t\t<search_database local_path=\""<< search_params.db << "\" type=\"AA\"/>" << "\n";
 
 
     // register modifications
@@ -221,7 +221,7 @@ namespace OpenMS
           scan_index = count;
         }
 
-        f << "		<spectrum_query spectrum=\""<< count << "\""
+        f << "\t\t<spectrum_query spectrum=\""<< count << "\""
           << " start_scan=\"" << scan_index << "\""
           << " end_scan=\"" << scan_index << "\""
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
@@ -235,7 +235,7 @@ namespace OpenMS
 
         f << ">\n";
         f << "      <search_result>" << "\n";
-        f << "			<search_hit hit_rank=\"1\" peptide=\""
+        f << "\t\t\t<search_hit hit_rank=\"1\" peptide=\""
           << seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
           << h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter()
           << "\" protein=\"Protein1\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
@@ -278,18 +278,18 @@ namespace OpenMS
         }
 
         f << "          <analysis_result analysis=\"peptideprophet\">" << "\n";
-        f << "			<peptideprophet_result probability=\""<< h.getScore()
+        f << "\t\t\t<peptideprophet_result probability=\""<< h.getScore()
           << "\" all_ntt_prob=\"(" << h.getScore() << "," << h.getScore()
           << "," << h.getScore() << ")\">" << "\n";
-        f << "			</peptideprophet_result>"<< "\n";
-        f << "			</analysis_result>"<< "\n";
-        f << "			</search_hit>"<< "\n";
-        f << "		</search_result>"<< "\n";
-        f << "		</spectrum_query>"<< "\n";
+        f << "\t\t\t</peptideprophet_result>"<< "\n";
+        f << "\t\t\t</analysis_result>"<< "\n";
+        f << "\t\t\t</search_hit>"<< "\n";
+        f << "\t\t</search_result>"<< "\n";
+        f << "\t\t</spectrum_query>"<< "\n";
       }
     }
 
-    f << "	</msms_run_summary>"<< "\n";
+    f << "\t</msms_run_summary>"<< "\n";
     f << "</msms_pipeline_analysis>" << "\n";
 
     f.close();

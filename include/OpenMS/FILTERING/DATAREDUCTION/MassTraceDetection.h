@@ -94,7 +94,7 @@ private:
     DoubleReal chrom_peak_snr_;
 
     DoubleReal min_sample_rate_;
-    DoubleReal min_peak_width_;
+    DoubleReal min_trace_length_;
 
     bool reestimate_mt_sd_;
   };

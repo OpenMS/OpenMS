@@ -80,7 +80,7 @@ namespace OpenMS
       else if (bzerror_ != BZ_STREAM_END)
       {
         close();
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "	", "bzip2 compression failed: ");
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, " ", "bzip2 compression failed: ");
       }
       else
       {

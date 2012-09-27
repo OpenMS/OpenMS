@@ -105,15 +105,15 @@ protected:
     setValidFormats_("out", StringList::create("idXML"));
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 3, "Precursor mass tolerance, (Th)", false);
     registerIntOption_("round_precursor_to_integer", "<number>", 10, "many precursor m/z multipling number lead to the same number; are packed in the same vector for faster search.Should be higher for high-resolution data", false, true);
-    //	registerDoubleOption_("fragment_mass_tolerance","<tolerance>",0.3,"Fragment mass error",false);
+    // registerDoubleOption_("fragment_mass_tolerance","<tolerance>",0.3,"Fragment mass error",false);
 
-    //   registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
+    // registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
     // registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
     // vector<String> valid_strings;
     // valid_strings.push_back("Da");
     // setValidStrings_("precursor_error_units", valid_strings);
     // setValidStrings_("fragment_error_units", valid_strings);
-    //	registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
+    // registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
     // registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
     registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparisson", false);
     PeakSpectrumCompareFunctor::registerChildren();

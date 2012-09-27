@@ -152,7 +152,7 @@ namespace OpenMS
     {
       for (CompomerSide::const_iterator it = cmp_[side_this].begin(); it != cmp_[side_this].end(); ++it)
       {
-        // is it there at all?!															, if yes: has it the same amount?!
+        // is it there at all?! if yes: has it the same amount?!
         if ((!cmp.getComponent()[side_other].has(it->first)) || cmp.getComponent()[side_other][it->first].getAmount() != it->second.getAmount())
         {
           conflict_found = true;
@@ -163,8 +163,8 @@ namespace OpenMS
     else
       conflict_found = true;
     //
-    //if (conflict_found) std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
-    //										<< "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
+    // if (conflict_found) std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
+    // << "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
     return conflict_found;
   }
 

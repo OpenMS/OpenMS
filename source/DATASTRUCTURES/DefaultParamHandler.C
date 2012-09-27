@@ -83,8 +83,7 @@ namespace OpenMS
            subsections_ == rhs.subsections_ &&
            error_name_ == rhs.error_name_ &&
            check_defaults_ == rhs.check_defaults_ &&
-           warn_empty_defaults_ == rhs.warn_empty_defaults_
-    ;
+           warn_empty_defaults_ == rhs.warn_empty_defaults_;
   }
 
   DefaultParamHandler::~DefaultParamHandler()

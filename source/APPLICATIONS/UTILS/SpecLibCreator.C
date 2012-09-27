@@ -80,14 +80,14 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("info", "<file>", "", "Holds id, peptide, retention time etc.");
-    //setValidFormats_("info",StringList::create("csv"));
+    // setValidFormats_("info",StringList::create("csv"));
     registerStringOption_("itemseperator", "<char>", ",", " Seperator between items. e.g. ,", false);
     registerStringOption_("itemenclosed", "<bool>", "false", "'true' or 'false' if true every item is enclosed e.g. '$peptide$,$run$...", false);
-    //setValidFormats_("itemenclosed",StringList::create("true,false"));
+    // setValidFormats_("itemenclosed",StringList::create("true,false"));
     registerInputFile_("spec", "<file>", "", "spectra");
     setValidFormats_("spec", StringList::create("mzData,mzXML"));
     registerOutputFile_("out", "<file>", "", "output MSP formated spectra library");
-    //	setValidFormats_("out",StringList::create("msp"));
+    // setValidFormats_("out",StringList::create("msp"));
 
     addEmptyLine_();
     addText_("Note: information file should have the following information: peptide, retention time, measured weight, charge state");
@@ -233,12 +233,12 @@ protected:
           cout << "Found Peptide " << list[i][peptide] << " with id: " << list[i][Experimental_id] << "\n";
           cout << "rt: " << it->getRT() << " and mz: " << it->getPrecursors()[0].getMZ() << "\n";
 
-          //		MSSpectrum<RichPeak1D> spec;
-          //	for(UInt k = 0; k < it->size(); ++k)
-          //		{
-          //	spec.push_back(it->operator[](k));
+          // MSSpectrum<RichPeak1D> spec;
+          // for(UInt k = 0; k < it->size(); ++k)
+          // {
+          //  spec.push_back(it->operator[](k));
           //
-          //		}
+          // }
           MSSpectrum<RichPeak1D> speci;
           speci.setRT(it->getRT());
           speci.setMSLevel(2);

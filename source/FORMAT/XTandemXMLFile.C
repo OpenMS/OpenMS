@@ -86,10 +86,10 @@ namespace OpenMS
       }
 
       PeptideIdentification id;
-      //if (descriptions_.find(it->first) != descriptions_.end())
-      //{
-      //	id.setMetaValue("Description", descriptions_[it->first]);
-      //}
+      // if (descriptions_.find(it->first) != descriptions_.end())
+      // {
+      // id.setMetaValue("Description", descriptions_[it->first]);
+      // }
       for (map<String, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
       {
         if (it1->second.size() > 0)
@@ -240,11 +240,11 @@ namespace OpenMS
         ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
       }
 
-      //cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << "\n";
-      //for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
-      //{
-      //	cerr << *it << " " << ModificationsDB::getInstance()->getModification(*it).getTermSpecificity() << "\n";
-      //}
+      // cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << "\n";
+      // for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
+      // {
+      // cerr << *it << " " << ModificationsDB::getInstance()->getModification(*it).getTermSpecificity() << "\n";
+      // }
 
       set<String> mod_names = mod_def_set_.getModificationNames();
 
@@ -257,11 +257,11 @@ namespace OpenMS
         }
       }
 
-      //cerr << "Possible mods (#=" << possible_mods.size() << "): " << "\n";
-      //for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
-      //{
-      //	cerr << *it << "\n";
-      //}
+      // cerr << "Possible mods (#=" << possible_mods.size() << "): " << "\n";
+      // for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
+      // {
+      // cerr << *it << "\n";
+      // }
 
       // maybe we missed the real modification, even it is not terminal
       if (possible_mods.empty() && mod_pos == 0)
@@ -367,13 +367,13 @@ namespace OpenMS
                 }
               }
               possible_mods = new_possible_mods;
-              //}
-              //else
-              //{
-              //	for (set<String>::const_iterator it = specific_ones.begin(); it != specific_ones.end(); ++it)
-              //	{
-              //		possible_mods.push_back(*it);
-              //	}
+              // }
+              // else
+              // {
+              // for (set<String>::const_iterator it = specific_ones.begin(); it != specific_ones.end(); ++it)
+              // {
+              // possible_mods.push_back(*it);
+              // }
             }
           }
           if (possible_mods.size() > 1)

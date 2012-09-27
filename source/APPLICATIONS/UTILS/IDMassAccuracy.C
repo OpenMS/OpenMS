@@ -118,7 +118,7 @@ protected:
     registerFlag_("fragment_error_ppm", "If this flag is used, the fragment mass tolerances are estimated in ppm instead of Da.");
 
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Maximal fragment mass tolerance which is allowed for MS/MS spectra, used for the calculation of matching ions.", false, false);
-    registerStringOption_("separator", "<character>", "	", "character which should be used to separate the columns in the output files", false);
+    registerStringOption_("separator", "<character>", " ", "character which should be used to separate the columns in the output files", false);
 
     registerIntOption_("number_of_bins", "<#bins>", 100, "Number of bins that should be used to calculate the histograms for the fitting.", false, true);
     setMinInt_("number_of_bins", 10);

@@ -92,7 +92,7 @@ namespace OpenMS
 
     if (temp1[i].size() != temp2[j].size())
     {
-      //	std::cout<< temp1[i].size() << temp2[j].size() << std::endl;
+      // std::cout<< temp1[i].size() << temp2[j].size() << std::endl;
       return 0.0;
     }
     else
@@ -104,7 +104,7 @@ namespace OpenMS
 
         sum = sum + temp1[i][k] - temp2[j][k];
       }
-      //	std::cout << sum << " summe " << std::endl;
+      // std::cout << sum << " summe " << std::endl;
       if (sum != 0)
       {
         return 0;

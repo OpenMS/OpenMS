@@ -1068,7 +1068,7 @@ namespace OpenMS
     Feature * f1 = 0;
     if (map_->empty())
     {
-      // do NOT throw an exception here. this is a valid case!	e.g. the
+      // do NOT throw an exception here. this is a valid case! e.g. the
       // only one feature in a map was discarded during endElement(), thus
       // the map_ is empty() now and we cannot assign a current_feature,
       // because there is none!

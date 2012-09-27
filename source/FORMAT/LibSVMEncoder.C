@@ -187,7 +187,7 @@ namespace OpenMS
     }
     problem->x = node_vectors;
 
-//		cout << "Problem encoded" << "\n";
+// cout << "Problem encoded" << "\n";
 
     return problem;
   }

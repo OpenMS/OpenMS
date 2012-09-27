@@ -884,7 +884,7 @@ namespace OpenMS
   void SequestInfile::setStandardEnzymeInfo_()
   {
     vector<String> info;
-    //		 cuts n to c?							 cuts before							doesn't cut after
+    // cuts n to c?							 cuts before							doesn't cut after
     info.push_back("0"); info.push_back("-"); info.push_back("-"); enzyme_info_["No_Enzyme"] = info; info.clear();
     info.push_back("1"); info.push_back("KR"); info.push_back("-"); enzyme_info_["Trypsin_Strict"] = info; info.clear();
     info.push_back("1"); info.push_back("KRLNH"); info.push_back("-"); enzyme_info_["Trypsin"] = info; info.clear();

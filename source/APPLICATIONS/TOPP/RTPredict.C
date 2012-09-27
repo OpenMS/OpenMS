@@ -424,7 +424,7 @@ protected:
           ++temp_counter;
         }
         temp_modified_peptides.insert(temp_modified_peptides.end(), it_from_mod, it_to_mod);
-        //					temp_modified_peptides.insert(temp_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
+        // temp_modified_peptides.insert(temp_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
         temp_rts.resize(temp_modified_peptides.size(), 0);
 
         encoder.encodeProblemWithOligoBorderVectors(temp_modified_peptides,

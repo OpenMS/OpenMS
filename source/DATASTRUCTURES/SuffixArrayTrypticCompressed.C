@@ -62,7 +62,7 @@ holds a reference of the string and compairs two substrings. It will be used for
     @brief constructor
     @param str const reference to the string
     */
-    SubstringLess(const String & str) :
+    explicit SubstringLess(const String & str) :
       str_(str) {}
     /**
     @brief copy constructor
@@ -95,7 +95,7 @@ protected:
     @brief constructor
     @param t const reference to the tolerance
     */
-    FloatsWithTolLess(const DoubleReal & t) :
+    explicit FloatsWithTolLess(const DoubleReal & t) :
       tol_(t) {}
     /**
     @brief copy constructor
@@ -471,7 +471,7 @@ protected:
 
       //if (history.size()==1)
       //{
-      //	modification_map.clear();
+      // modification_map.clear();
       //}
 
       if (tag_pos > history.top().second.first + 1 - 3)

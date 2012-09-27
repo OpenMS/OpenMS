@@ -385,7 +385,7 @@ protected:
     if (getStringOption_("out_roc") != "")
     {
       TextFile tf;
-      tf.push_back("false	correct	FDR	TPR");
+      tf.push_back("false\tcorrect\tFDR\tTPR");
 
       features_in.sortByIntensity(true);
       UInt f_correct = 0;
@@ -402,7 +402,7 @@ protected:
         {
           ++f_false;
         }
-        tf.push_back(String(f_false) + "	"+ f_correct + "	"+ String::number(f_false / found, 3) + "	"+ String::number(f_correct / correct, 3));
+        tf.push_back(String(f_false) + "\t"+ f_correct + "\t"+ String::number(f_false / found, 3) + "\t"+ String::number(f_correct / correct, 3));
       }
       tf.store(getStringOption_("out_roc"));
     }

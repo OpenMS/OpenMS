@@ -1087,7 +1087,7 @@ namespace OpenMS
     vector<String> substrings;
     header_line.split('\t', substrings);
 
-    // #SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	SpecFilePos
+    // #SpectrumFile Scan# Annotation Protein Charge MQScore Length TotalPRMScore MedianPRMScore FractionY FractionB Intensity NTT p-value F-Score DeltaScore DeltaScoreOther RecordNumber DBFilePos SpecFilePos
     for (vector<String>::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i)
     {
       if ((*s_i) == "#SpectrumFile")

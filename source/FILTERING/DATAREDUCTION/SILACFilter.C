@@ -408,13 +408,12 @@ namespace OpenMS
 
   bool SILACFilter::averageneFilter_(DoubleReal mz)
   {
-    bool missing_peak_seen_yet = false;
-
-    bool debug = false;
     //debug = abs(mz - 1788) < 1;
 
     if (isotopes_per_peptide_ > 1)
     {
+      bool missing_peak_seen_yet = false;
+
       for (Size peptide = 0; peptide != number_of_peptides_; ++peptide)
       {
         //IsotopeDistribution isoDistribution;    // isotope distribution of an averagene peptide
@@ -425,7 +424,9 @@ namespace OpenMS
         DoubleReal averagine_mono = pattern.intensity[0];    // intensity of monoisotopic peak of the averagine model
         DoubleReal intensity_mono = exact_intensities_[peptide][0];    // intensity around the (potential) monoisotopic peak in the real data
         DoubleReal ratio_mono = intensity_mono / averagine_mono;
-
+        
+        bool debug = false;
+    
         for (Size isotope = 1; isotope < isotopes_per_peptide_; ++isotope)
         {
           DoubleReal averagine_current = pattern.intensity[isotope];

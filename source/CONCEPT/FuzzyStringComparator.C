@@ -453,7 +453,9 @@ namespace OpenMS
         continue;                                // shortcut
       std::string::const_iterator iter = line_string.begin();       // loop initialization
       for (; iter != line_string.end() && isspace((unsigned char)*iter); ++iter)
-        ;                                                                                  // skip over whitespace
+      {
+      }
+                                                                                        // skip over whitespace
       if (iter != line_string.end())
         break;                                      // line is not empty or whitespace only
     }

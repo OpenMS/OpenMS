@@ -273,7 +273,8 @@ namespace OpenMS
     {
       // find binary logarithm of n
       for (; (Size(1) << log2n) < n; ++log2n)
-        ;
+      {
+      }
     }
 
 

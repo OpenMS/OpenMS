@@ -390,7 +390,7 @@ namespace OpenMS
       }
     }
 
-    //TODO invariante prüfen
+    // TODO check the invariant!
     while (row_index > 0 && col_index > 0)
     {
       //from diagonal - peaks aligned

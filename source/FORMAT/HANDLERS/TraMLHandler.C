@@ -478,7 +478,7 @@ namespace OpenMS
     {
       const TargetedExperiment & exp = *(cexp_);
       logger_.startProgress(0, exp.getTransitions().size(), "storing TraML file");
-      int progress = 0;
+      // int progress = 0;
 
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
       os << "<TraML version=\"1.0.0\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML1.0.0.xsd\">" << "\n";
@@ -703,6 +703,8 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       if (exp.getTransitions().size() > 0)
       {
+      	int progress = 0;
+      
         os << "  <TransitionList>" << "\n";
         for (std::vector<ReactionMonitoringTransition>::const_iterator it = exp.getTransitions().begin(); it != exp.getTransitions().end(); ++it)
         {
@@ -749,7 +751,7 @@ namespace OpenMS
           writeUserParam_(os, (MetaInfoInterface)it->getPrecursorCVTermList(), 4);
           os << "      </Precursor>" << "\n";
 
-          for (ProductListType::const_iterator prod_it = it->getIntermediateProducts().begin(); prod_it != it->getIntermediateProducts().end(); prod_it++)
+          for (ProductListType::const_iterator prod_it = it->getIntermediateProducts().begin(); prod_it != it->getIntermediateProducts().end(); ++prod_it)
           {
             os << "      <IntermediateProduct>" << "\n";
             write_product_(os, prod_it);
@@ -882,7 +884,7 @@ namespace OpenMS
       if (!prod_it->getInterpretationList().empty())
       {
         os << "        <InterpretationList>" << "\n";
-        for (std::vector<CVTermList>::const_iterator inter_it = prod_it->getInterpretationList().begin(); inter_it != prod_it->getInterpretationList().end(); inter_it++)
+        for (std::vector<CVTermList>::const_iterator inter_it = prod_it->getInterpretationList().begin(); inter_it != prod_it->getInterpretationList().end(); ++inter_it)
         {
           os << "          <Interpretation>" << "\n";
           writeCVParams_(os, *inter_it, 6);
@@ -894,7 +896,7 @@ namespace OpenMS
       if (!prod_it->getConfigurationList().empty())
       {
         os << "        <ConfigurationList>" << "\n";
-        for (ConfigurationListType::const_iterator config_it = prod_it->getConfigurationList().begin(); config_it != prod_it->getConfigurationList().end(); config_it++)
+        for (ConfigurationListType::const_iterator config_it = prod_it->getConfigurationList().begin(); config_it != prod_it->getConfigurationList().end(); ++config_it)
         {
           write_configuration_(os, config_it);
         }

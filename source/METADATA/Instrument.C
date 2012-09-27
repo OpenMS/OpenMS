@@ -109,8 +109,7 @@ namespace OpenMS
            mass_analyzers_ == rhs.mass_analyzers_ &&
            ion_detectors_ == rhs.ion_detectors_ &&
            ion_optics_ == rhs.ion_optics_ &&
-           MetaInfoInterface::operator==(rhs)
-    ;
+           MetaInfoInterface::operator==(rhs);
   }
 
   bool Instrument::operator!=(const Instrument & rhs) const

@@ -108,7 +108,7 @@ namespace OpenMS
 
         //update original_distance matrix
         //complete linkage: new distcance between clusteres is the minimum distance between elements of each cluster
-        //lance-williams update für d((i,j),k): 0.5* d(i,k) + 0.5* d(j,k) + 0.5* |d(i,k)-d(j,k)|
+        //lance-williams update for d((i,j),k): 0.5* d(i,k) + 0.5* d(j,k) + 0.5* |d(i,k)-d(j,k)|
         for (Size k = 0; k < min.second; ++k)
         {
           Real dik = original_distance.getValue(min.first, k);

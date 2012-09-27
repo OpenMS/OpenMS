@@ -80,13 +80,13 @@ test_mtd.run(input, output_mt);
 
 ElutionPeakDetection test_epd;
 test_epd.detectPeaks(output_mt, splitted_mt);
-test_epd.filterByPeakWidth(splitted_mt, filtered_mt);
+// test_epd.filterByPeakWidth(splitted_mt, filtered_mt);
 
 
 START_SECTION((void run(std::vector< MassTrace > &, FeatureMap<> &)))
 {
     FeatureFindingMetabo test_ffm;
-    test_ffm.run(filtered_mt, test_fm);
+    test_ffm.run(splitted_mt, test_fm);
     test_fm.sortByMZ();
 
     TEST_EQUAL(exp_fm.size(), test_fm.size());

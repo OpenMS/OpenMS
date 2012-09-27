@@ -59,8 +59,8 @@ namespace OpenMS
     defaults_.setValidStrings("reestimate_mt_sd", StringList::create(("true,false")));
 
     // advanced parameters
-    defaults_.setValue("min_sample_rate", 0.7, "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
-    defaults_.setValue("min_peak_width", 3.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
+    defaults_.setValue("min_sample_rate", 0.3, "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
+    defaults_.setValue("min_trace_length", 3.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
 
 
 
@@ -264,7 +264,7 @@ namespace OpenMS
 
     DoubleReal tmp_sd = std::sqrt(denom / (weights_sum));
 
-    std::cout << "tmp_sd" << tmp_sd << std::endl;
+    // std::cout << "tmp_sd" << tmp_sd << std::endl;
 
     if (tmp_sd > std::numeric_limits<DoubleReal>::epsilon())
     {
@@ -339,7 +339,7 @@ namespace OpenMS
     Size min_fwhm_scans(3);
     DoubleReal scan_time(std::fabs(input_exp[input_exp.size() - 1].getRT() - input_exp[0].getRT()) / input_exp.size());
 
-    Size scan_nums(std::floor(min_peak_width_ / scan_time));
+    Size scan_nums(std::floor(min_trace_length_ / scan_time));
 
     if (scan_nums > min_fwhm_scans)
     {
@@ -348,7 +348,7 @@ namespace OpenMS
 
     Size min_flank_scans(std::floor((DoubleReal)min_fwhm_scans / 2.0));
 
-    std::cout << "min_fwhm_scans: " << min_fwhm_scans << " fwhm: " << " time: " << scan_time << "input size" << work_exp.size() << " " << chrom_apeces.size() << std::endl;
+    // std::cout << "min_fwhm_scans: " << min_fwhm_scans << " fwhm: " << " time: " << scan_time << "input size" << work_exp.size() << " " << chrom_apeces.size() << std::endl;
 
     // this->endProgress();
 
@@ -723,11 +723,11 @@ namespace OpenMS
       DoubleReal mt_quality((DoubleReal)current_trace.size() / (DoubleReal)num_scans);
       DoubleReal rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
 
-      std::cout << "T" << trace_number << " down: " << down_scan_counter << " up: " << up_scan_counter << " cons down " << conseq_down << " cons_up" << conseq_up << " idx " << trace_up_idx - trace_down_idx << " minscans: " << num_scans << " peaks: " << current_trace.size() << " " << mt_quality << std::endl;
+      // std::cout << "T" << trace_number << " down: " << down_scan_counter << " up: " << up_scan_counter << " cons down " << conseq_down << " cons_up" << conseq_up << " idx " << trace_up_idx - trace_down_idx << " minscans: " << num_scans << " peaks: " << current_trace.size() << " " << mt_quality << std::endl;
 
 // if (current_trace.size() >= min_fwhm_scans)
       // if (current_trace.size() >= std::floor(num_scans*min_sample_rate_) && num_scans >= min_fwhm_scans)
-      if (rt_range >= min_peak_width_ && mt_quality >= min_sample_rate_)
+      if (rt_range >= min_trace_length_ && mt_quality >= min_sample_rate_)
       {
 
 
@@ -783,7 +783,7 @@ namespace OpenMS
     // chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
 
     min_sample_rate_ = (DoubleReal)param_.getValue("min_sample_rate");
-    min_peak_width_ = (DoubleReal)param_.getValue("min_peak_width");
+    min_trace_length_ = (DoubleReal)param_.getValue("min_trace_length");
     reestimate_mt_sd_ = param_.getValue("reestimate_mt_sd").toBool();
   }
 

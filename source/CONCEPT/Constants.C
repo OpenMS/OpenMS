@@ -47,7 +47,7 @@ namespace OpenMS
     // Euler's number - base of the natural logarithm
     const double  E  = 2.718281828459045235L;
 
-    ///	Elementary charge
+    // Elementary charge
     const double    ELEMENTARY_CHARGE = 1.60217738E-19L;         // C
 
     // Elementary charge (alias)

@@ -62,7 +62,7 @@ namespace OpenMS
     @brief constructor
     @param t const reference to the tolerance
     */
-    FloatsWithTolLess(const DoubleReal & t) :
+    explicit FloatsWithTolLess(const DoubleReal & t) :
       tol_(t) {}
     /**
     @brief copy constructor
@@ -178,7 +178,7 @@ protected:
     }
 
     it_ = new TIter(index_);
-    // TODO was:	it_ = new Iter<TIndex, VSTree< TopDown< ParentLinks<Preorder> > > > (index_);
+    // TODO was: it_ = new Iter<TIndex, VSTree< TopDown< ParentLinks<Preorder> > > > (index_);
 
   }
 
@@ -378,8 +378,6 @@ protected:
       char start_char = s_[start_index_in_text];
       char next_char = ((Size)start_index_in_text == length(s_) - 1) ? 'R' : s_[start_index_in_text + 1];
 
-      // br indicates if break was used
-      bool br = false;
       map<DoubleReal, SignedSize> modification_map(history.top());
 
       /*
@@ -394,6 +392,9 @@ protected:
 
         DoubleReal subm = 0;
         DoubleReal mm = 0;
+        
+        // br indicates if break was used
+        bool br = false;
 
         for (SignedSize i = 0; i < edge_length; ++i)
         {

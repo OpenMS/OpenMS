@@ -246,8 +246,7 @@ namespace OpenMS
                                     String(spec.size()));
     }
     DoubleReal mz(precursor.getMZ()), rt(spec.getRT());
-    int charge(precursor.getCharge());
-
+    
     if (mz == 0)
     {
       //retention time
@@ -262,6 +261,9 @@ namespace OpenMS
       os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
 
       bool skip_spectrum_charges(param_.getValue("skip_spectrum_charges").toBool());
+      
+      int charge(precursor.getCharge());
+
       if (charge != 0)
       {
         if (!skip_spectrum_charges)

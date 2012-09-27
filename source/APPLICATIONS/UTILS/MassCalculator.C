@@ -214,7 +214,6 @@ protected:
         {
           ++conversion_failed_count;
         }
-        ;
       }
       if (conversion_failed_count)
       {

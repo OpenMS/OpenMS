@@ -252,7 +252,8 @@ namespace OpenMS
         if (!inst_type_correct)
         {
           while (getline(is, line) && ++line_number && line.size() > 0 && isdigit(line[0]))
-            ;
+          {
+          }
         }
         else
         {

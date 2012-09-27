@@ -1629,7 +1629,7 @@ void TOPPSILACAnalyzer::readFilterConsensusByPattern(ConsensusMap & in)
 const String & TOPPSILACAnalyzer::selectColor(UInt nr)
 {
   // 15 HTML colors
-  const static String colors[] =
+  static const String colors[] =
   {
     "#00FFFF", "#000000", "#0000FF", "#FF00FF", "#008000",
     "#808080", "#00FF00", "#800000", "#000080", "#808000",

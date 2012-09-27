@@ -187,6 +187,7 @@ protected:
 
     MassTraceDetection mt_ext;
     mtd_param.insert("", com_param);
+    mtd_param.remove("chrom_fwhm");
     mt_ext.setParameters(mtd_param);
     mt_ext.run(ms_peakmap, m_traces);
 
@@ -262,7 +263,7 @@ protected:
 
     //annotate output with data processing info TODO
     addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
-    ms_feat_map.setUniqueId();
+    // ms_feat_map.setUniqueId();
 
     FeatureXMLFile().store(out, ms_feat_map);
 

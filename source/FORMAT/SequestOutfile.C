@@ -340,9 +340,9 @@ namespace OpenMS
 
             getACAndACType(line, accession, accession_type);
             protein_hit.setAccession(accession);
-            //                  protein_hit.setRank(ac_position_map.size());
-            /// @todo score einfach zusammenrechnen? (Martin)
-            //				protein_hit.setScore(0.0);
+            // protein_hit.setRank(ac_position_map.size());
+            // @todo score einfach zusammenrechnen? (Martin)
+            // protein_hit.setScore(0.0);
 
             if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
               protein_hits.push_back(protein_hit);
@@ -678,7 +678,7 @@ namespace OpenMS
     Int & xcorr_column,
     Int & sp_column,
     Int & sf_column,
-//		Int& P_column,
+// Int& P_column,
     Int & ions_column,
     Int & reference_column,
     Int & peptide_column,

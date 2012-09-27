@@ -138,7 +138,7 @@ protected:
     fdrs.push_back(0.45);
     fdrs.push_back(0.5);
     vector<Size> temp_performances;
-//			ofstream tempfile("test.txt");
+    // ofstream tempfile("test.txt");
     vector<vector<Size> > performances;
 
 
@@ -264,7 +264,7 @@ protected:
           {
             ++tps_rt1;
             state_rt1 = TP;
-            //						tempfile <<     filtered_identification.getHits()[0].getSequence() << " " << filtered_identification.getMetaValue("MZ") << " " << filtered_identification.getMetaValue("RT") << endl;
+            // tempfile <<     filtered_identification.getHits()[0].getSequence() << " " << filtered_identification.getMetaValue("MZ") << " " << filtered_identification.getMetaValue("RT") << endl;
           }
         }
         else if (state == FP)

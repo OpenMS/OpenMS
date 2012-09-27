@@ -173,7 +173,7 @@ namespace OpenMS
     //Int q_comp_min = -max_span_; //minimal expected charge of compomer
     //Int q_comp_max = max_span_;  //maximal expected charge of compomer
     Int max_pq = q_max_;                 //maximal number of positve adduct-charges for a compomer
-    //Int max_nq = q_max_;				 //maximal number of negative adduct-charges for a compomer
+    //Int max_nq = q_max_; //maximal number of negative adduct-charges for a compomer
 
     for (AdductsType::const_iterator it = adduct_charged.begin(); it != adduct_charged.end(); ++it)
     {
@@ -317,7 +317,7 @@ namespace OpenMS
   /// @param net_charge       net charge of compomer
   /// @param mass_to_explain  mass in Da that needs explanation
   /// @param mass_delta       allowed deviation from exact mass
-  /// @param thresh_log_p		  minimal log probability required
+  /// @param thresh_log_p     minimal log probability required
   /// @param firstExplanation begin range with candidates according to net_charge and mass
   /// @param lastExplanation  end range
   SignedSize MassExplainer::query(const Int net_charge,
