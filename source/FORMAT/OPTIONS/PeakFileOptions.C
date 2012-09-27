@@ -46,9 +46,13 @@ namespace OpenMS
     has_rt_range_(false),
     has_mz_range_(false),
     has_intensity_range_(false),
-    zlib_compression_(false),
     mz_32_bit_(false),
-    int_32_bit_(true)
+    int_32_bit_(true),
+		rt_range_(),
+		mz_range_(),
+		intensity_range_(),
+		ms_levels_(),
+    zlib_compression_(false)
   {
   }
 

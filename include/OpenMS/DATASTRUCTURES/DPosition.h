@@ -252,14 +252,20 @@ public:
     DPosition operator+(const DPosition & point) const
     {
       DPosition result(*this);
-      for (Size i = 0; i < D; result.coordinate_[i] += point.coordinate_[i], ++i);
+      for (Size i = 0; i < D; ++i)
+			{
+				result.coordinate_[i] += point.coordinate_[i];
+			}
       return result;
     }
 
     /// Addition
     DPosition & operator+=(const DPosition & point)
     {
-      for (Size i = 0; i < D; coordinate_[i] += point.coordinate_[i], ++i);
+      for (Size i = 0; i < D; ++i)
+			{
+				coordinate_[i] += point.coordinate_[i];
+			}
       return *this;
     }
 
@@ -267,22 +273,31 @@ public:
     DPosition operator-(const DPosition & point) const
     {
       DPosition result(*this);
-      for (Size i = 0; i < D; result.coordinate_[i] -= point.coordinate_[i], ++i);
+      for (Size i = 0; i < D; ++i)
+			{
+				result.coordinate_[i] -= point.coordinate_[i];
+			}
       return result;
     }
 
     /// Subtraction
     DPosition & operator-=(const DPosition & point)
     {
-      for (Size i = 0; i < D; coordinate_[i] -= point.coordinate_[i], ++i);
+      for (Size i = 0; i < D; ++i) 
+			{
+				coordinate_[i] -= point.coordinate_[i];
+			}
       return *this;
     }
 
     /// Negation (a bit inefficient)
-    DPosition   operator-() const
+    DPosition   operator - () const
     {
       DPosition<D, CoordinateType> result(*this);
-      for (Size i = 0; i < D; result.coordinate_[i] = -result.coordinate_[i], ++i);
+      for (Size i = 0; i < D; ++i)
+			{
+				result.coordinate_[i] = -result.coordinate_[i];
+			}
       return result;
     }
 
@@ -290,21 +305,30 @@ public:
     CoordinateType operator*(const DPosition & point) const
     {
       CoordinateType prod(0);
-      for (Size i = 0; i < D; prod += (point.coordinate_[i] * coordinate_[i]), ++i);
+      for (Size i = 0; i < D; ++i)
+			{
+				prod += (point.coordinate_[i] * coordinate_[i]);
+			}
       return prod;
     }
 
     /// Scalar multiplication
     DPosition & operator*=(CoordinateType scalar)
     {
-      for (Size i = 0; i < D; coordinate_[i] *= scalar, ++i);
+      for (Size i = 0; i < D; ++i)
+			{
+				coordinate_[i] *= scalar;
+			}
       return *this;
     }
 
     /// Scalar division
     DPosition & operator/=(CoordinateType scalar)
     {
-      for (Size i = 0; i < D; coordinate_[i] /= scalar, ++i);
+      for (Size i = 0; i < D; ++i)
+			{
+				coordinate_[i] /= scalar;
+			}
       return *this;
     }
 
@@ -317,7 +341,10 @@ public:
     /// Set all dimensions to zero
     void clear()
     {
-      for (Size i = 0; i < D; coordinate_[i++] = (CoordinateType) 0);
+      for (Size i = 0; i < D; ++i)
+			{
+				coordinate_[i] = (CoordinateType) 0;
+			}
     }
 
     //@}
@@ -387,7 +414,10 @@ protected:
   template <UInt D, typename TCoordinateType>
   DPosition<D, TCoordinateType> operator*(DPosition<D, TCoordinateType> position, typename DPosition<D, TCoordinateType>::CoordinateType scalar)
   {
-    for (Size i = 0; i < D; position[i] *= scalar, ++i);
+    for (Size i = 0; i < D; ++i)
+		{
+			position[i] *= scalar;
+		}
     return position;
   }
 
@@ -406,7 +436,10 @@ protected:
   template <UInt D, typename TCoordinateType>
   DPosition<D, TCoordinateType> operator/(DPosition<D, TCoordinateType> position, typename DPosition<D, TCoordinateType>::CoordinateType scalar)
   {
-    for (Size i = 0; i < D; position[i] /= scalar, ++i);
+    for (Size i = 0; i < D; ++i)
+		{
+			position[i] /= scalar;
+		}
     return position;
   }
 
