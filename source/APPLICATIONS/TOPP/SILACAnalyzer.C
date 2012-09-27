@@ -951,7 +951,7 @@ public:
           {
             std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin();             // this is unlabeled
             fit++;
-            for (fit; fit != feature_handles.end(); ++fit)
+            for (; fit != feature_handles.end(); ++fit)
             {
               Size ri = std::distance(feature_handles.begin(), fit);
               rts[ri - 1].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity();             // a proper silacalanyzer algo should never have 0-intensities so no 0devison ...

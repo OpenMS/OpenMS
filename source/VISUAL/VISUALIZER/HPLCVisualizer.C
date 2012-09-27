@@ -54,9 +54,9 @@ namespace OpenMS
     addSeparator_();
     addLineEdit_(hplcinstrument_, "Instrument");
     addLineEdit_(hplccolumn_, "Column");
-    addIntLineEdit_(hplctemperature_, "Temperature (in \xa7 C)");
+    addIntLineEdit_(hplctemperature_, "Temperature (in deg. C)");
     addIntLineEdit_(hplcpressure_, "Pressure (in bar)");
-    addIntLineEdit_(hplcflux_, "Flux (in \xE6 l/sec)");
+    addIntLineEdit_(hplcflux_, "Flux (in ul/sec)");
     addTextEdit_(hplccomment_, "Comment");
 
     finishAdding_();

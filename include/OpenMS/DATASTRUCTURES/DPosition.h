@@ -395,7 +395,10 @@ protected:
   template <UInt D, typename TCoordinateType>
   DPosition<D, TCoordinateType> operator*(typename DPosition<D, TCoordinateType>::CoordinateType scalar, DPosition<D, TCoordinateType> position)
   {
-    for (Size i = 0; i < D; position[i] *= scalar, ++i);
+    for (Size i = 0; i < D; ++i) 
+		{
+			position[i] *= scalar;
+		}
     return position;
   }
 
