@@ -650,7 +650,7 @@ public:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-        for (Size i = 0; i < seeds.size(); ++i)
+        for (SignedSize i = 0; i < (SignedSize)seeds.size(); ++i)
         {
           //------------------------------------------------------------------
           //Step 3.3.1:
