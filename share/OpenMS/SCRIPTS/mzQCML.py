@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*- 
 
 #
-# Generated Thu Feb 23 15:13:10 2012 by generateDS.py version 2.7b.
+# Generated Fri Sep 28 14:04:47 2012 by generateDS.py version 2.7b.
 #
 
 import sys
@@ -182,8 +182,7 @@ except ImportError, exp:
 # Globals
 #
 
-#~ ExternalEncoding = 'ascii'
-ExternalEncoding = 'UTF-8'
+ExternalEncoding = 'ascii'
 Tag_pattern_ = re_.compile(r'({.*})?(.*)')
 String_cleanup_pat_ = re_.compile(r"[\n\r\s]+")
 Namespace_extract_pat_ = re_.compile(r'{(.*)}(.*)')
@@ -302,7 +301,7 @@ class MixedContainer:
     def export(self, outfile, level, name, namespace):
         if self.category == MixedContainer.CategoryText:
             # Prevent exporting empty content as empty lines.
-            if self.value.strip():
+            if self.value.strip(): 
                 outfile.write(self.value)
         elif self.category == MixedContainer.CategorySimple:
             self.exportSimple(outfile, level, name)
@@ -368,11 +367,6 @@ def _cast(typ, value):
 
 class MzQualityMLType(GeneratedsSuper):
     """The type of the root element"""
-    member_data_items_ = {
-        'RunQuality': MemberSpec_('RunQuality', 'RunQualityAssessmentType', 1),
-        'SetQuality': MemberSpec_('SetQuality', 'SetQualityAssessmentType', 0),
-        'cvList': MemberSpec_('cvList', 'CVListType', 0),
-        }
     subclass = None
     superclass = None
     def __init__(self, RunQuality=None, SetQuality=None, cvList=None):
@@ -392,13 +386,10 @@ class MzQualityMLType(GeneratedsSuper):
     def set_RunQuality(self, RunQuality): self.RunQuality = RunQuality
     def add_RunQuality(self, value): self.RunQuality.append(value)
     def insert_RunQuality(self, index, value): self.RunQuality[index] = value
-    RunQualityProp = property(get_RunQuality, set_RunQuality)
     def get_SetQuality(self): return self.SetQuality
     def set_SetQuality(self, SetQuality): self.SetQuality = SetQuality
-    SetQualityProp = property(get_SetQuality, set_SetQuality)
     def get_cvList(self): return self.cvList
     def set_cvList(self, cvList): self.cvList = cvList
-    cvListProp = property(get_cvList, set_cvList)
     def export(self, outfile, level, namespace_='', name_='MzQualityMLType', namespacedef_=''):
         showIndent(outfile, level)
         outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
@@ -486,9 +477,6 @@ class MzQualityMLType(GeneratedsSuper):
 
 class CVListType(GeneratedsSuper):
     """The list of controlled vocabularies used in the file."""
-    member_data_items_ = {
-        'cv': MemberSpec_('cv', 'cvType', 1),
-        }
     subclass = None
     superclass = None
     def __init__(self, cv=None):
@@ -506,7 +494,6 @@ class CVListType(GeneratedsSuper):
     def set_cv(self, cv): self.cv = cv
     def add_cv(self, value): self.cv.append(value)
     def insert_cv(self, index, value): self.cv[index] = value
-    cvProp = property(get_cv, set_cv)
     def export(self, outfile, level, namespace_='', name_='CVListType', namespacedef_=''):
         showIndent(outfile, level)
         outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
@@ -568,10 +555,6 @@ class CVListType(GeneratedsSuper):
 
 class QualityAssessmentType(GeneratedsSuper):
     """The abstract base Type for QualityParameter container"""
-    member_data_items_ = {
-        'QualityParameter': MemberSpec_('QualityParameter', 'CVParamType', 1),
-        'Attachment': MemberSpec_('Attachment', 'AttachmentType', 1),
-        }
     subclass = None
     superclass = None
     def __init__(self, QualityParameter=None, Attachment=None, extensiontype_=None):
@@ -594,12 +577,10 @@ class QualityAssessmentType(GeneratedsSuper):
     def set_QualityParameter(self, QualityParameter): self.QualityParameter = QualityParameter
     def add_QualityParameter(self, value): self.QualityParameter.append(value)
     def insert_QualityParameter(self, index, value): self.QualityParameter[index] = value
-    QualityParameterProp = property(get_QualityParameter, set_QualityParameter)
     def get_Attachment(self): return self.Attachment
     def set_Attachment(self, Attachment): self.Attachment = Attachment
     def add_Attachment(self, value): self.Attachment.append(value)
     def insert_Attachment(self, index, value): self.Attachment[index] = value
-    AttachmentProp = property(get_Attachment, set_Attachment)
     def get_extensiontype_(self): return self.extensiontype_
     def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
     def export(self, outfile, level, namespace_='', name_='QualityAssessmentType', namespacedef_=''):
@@ -646,8 +627,8 @@ class QualityAssessmentType(GeneratedsSuper):
         level += 1
         for QualityParameter_ in self.QualityParameter:
             showIndent(outfile, level)
-            outfile.write('model_.CVParamType(\n')
-            QualityParameter_.exportLiteral(outfile, level, name_='CVParamType')
+            outfile.write('model_.QualityParameterType(\n')
+            QualityParameter_.exportLiteral(outfile, level, name_='QualityParameterType')
             showIndent(outfile, level)
             outfile.write('),\n')
         level -= 1
@@ -658,8 +639,8 @@ class QualityAssessmentType(GeneratedsSuper):
         level += 1
         for Attachment_ in self.Attachment:
             showIndent(outfile, level)
-            outfile.write('model_.AttachmentType(\n')
-            Attachment_.exportLiteral(outfile, level, name_='AttachmentType')
+            outfile.write('model_.Attachment(\n')
+            Attachment_.exportLiteral(outfile, level)
             showIndent(outfile, level)
             outfile.write('),\n')
         level -= 1
@@ -677,11 +658,11 @@ class QualityAssessmentType(GeneratedsSuper):
             self.extensiontype_ = value
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
         if nodeName_ == 'QualityParameter':
-            obj_ = CVParamType.factory()
+            obj_ = QualityParameterType.factory()
             obj_.build(child_)
             self.QualityParameter.append(obj_)
         elif nodeName_ == 'Attachment':
-            obj_ = AttachmentType.factory()
+            obj_ = Attachment.factory()
             obj_.build(child_)
             self.Attachment.append(obj_)
 # end class QualityAssessmentType
@@ -689,8 +670,6 @@ class QualityAssessmentType(GeneratedsSuper):
 
 class RunQualityAssessmentType(QualityAssessmentType):
     """The derived Type for QualityParameter container of a run"""
-    member_data_items_ = {
-        }
     subclass = None
     superclass = QualityAssessmentType
     def __init__(self, QualityParameter=None, Attachment=None):
@@ -749,8 +728,6 @@ class RunQualityAssessmentType(QualityAssessmentType):
 
 class SetQualityAssessmentType(QualityAssessmentType):
     """The derived Type for QualityParameter container of a Set"""
-    member_data_items_ = {
-        }
     subclass = None
     superclass = QualityAssessmentType
     def __init__(self, QualityParameter=None, Attachment=None):
@@ -810,17 +787,11 @@ class SetQualityAssessmentType(QualityAssessmentType):
 class AbstractParamType(GeneratedsSuper):
     """Abstract entity allowing either cvParam or userParam to be
     referenced in other schemas. The name of the parameter.The user-
-    entered value of the parameter.An accession number identifying
-    the unit within the OBO foundry Unit CV. The name of the unit.If
-    a unit term is referenced, this attribute must refer to the CV
-    'id' attribute defined in the cvList in this file."""
-    member_data_items_ = {
-        'unitCvRef': MemberSpec_('unitCvRef', 'xsd:string', 0),
-        'unitName': MemberSpec_('unitName', 'xsd:string', 0),
-        'name': MemberSpec_('name', 'xsd:string', 0),
-        'value': MemberSpec_('value', 'xsd:string', 0),
-        'unitAccession': MemberSpec_('unitAccession', 'xsd:string', 0),
-        }
+    entered value of the parameter, e.g. ppm value of accuracy or
+    the file name if CV is a mime typeAn accession number
+    identifying the unit within the OBO foundry Unit CV. The name of
+    the unit.If a unit term is referenced, this attribute must refer
+    to the CV 'id' attribute defined in the cvList in this file."""
     subclass = None
     superclass = None
     def __init__(self, unitCvRef=None, unitName=None, name=None, value=None, unitAccession=None, extensiontype_=None):
@@ -838,19 +809,14 @@ class AbstractParamType(GeneratedsSuper):
     factory = staticmethod(factory)
     def get_unitCvRef(self): return self.unitCvRef
     def set_unitCvRef(self, unitCvRef): self.unitCvRef = unitCvRef
-    unitCvRefProp = property(get_unitCvRef, set_unitCvRef)
     def get_unitName(self): return self.unitName
     def set_unitName(self, unitName): self.unitName = unitName
-    unitNameProp = property(get_unitName, set_unitName)
     def get_name(self): return self.name
     def set_name(self, name): self.name = name
-    nameProp = property(get_name, set_name)
     def get_value(self): return self.value
     def set_value(self, value): self.value = value
-    valueProp = property(get_value, set_value)
     def get_unitAccession(self): return self.unitAccession
     def set_unitAccession(self, unitAccession): self.unitAccession = unitAccession
-    unitAccessionProp = property(get_unitAccession, set_unitAccession)
     def get_extensiontype_(self): return self.extensiontype_
     def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
     def export(self, outfile, level, namespace_='', name_='AbstractParamType', namespacedef_=''):
@@ -956,130 +922,17 @@ class AbstractParamType(GeneratedsSuper):
 # end class AbstractParamType
 
 
-class AttachmentType(AbstractParamType):
-    """A single attachment containing binary data and a cvParam containing
-    the MIME type of the binary dataA reference to the cv element
-    from which this term originates. The accession or ID number of
-    this CV term in the source CV."""
-    member_data_items_ = {
-        'cvRef': MemberSpec_('cvRef', 'xsd:string', 0),
-        'accession': MemberSpec_('accession', 'xsd:string', 0),
-        'binary': MemberSpec_('binary', 'xsd:base64Binary', 0),
-        }
-    subclass = None
-    superclass = AbstractParamType
-    def __init__(self, unitCvRef=None, unitName=None, name=None, value=None, unitAccession=None, cvRef=None, accession=None, binary=None):
-        super(AttachmentType, self).__init__(unitCvRef, unitName, name, value, unitAccession, )
-        self.cvRef = _cast(None, cvRef)
-        self.accession = _cast(None, accession)
-        self.binary = binary
-    def factory(*args_, **kwargs_):
-        if AttachmentType.subclass:
-            return AttachmentType.subclass(*args_, **kwargs_)
-        else:
-            return AttachmentType(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_binary(self): return self.binary
-    def set_binary(self, binary): self.binary = binary
-    binaryProp = property(get_binary, set_binary)
-    def get_cvRef(self): return self.cvRef
-    def set_cvRef(self, cvRef): self.cvRef = cvRef
-    cvRefProp = property(get_cvRef, set_cvRef)
-    def get_accession(self): return self.accession
-    def set_accession(self, accession): self.accession = accession
-    accessionProp = property(get_accession, set_accession)
-    def export(self, outfile, level, namespace_='', name_='AttachmentType', namespacedef_=''):
-        showIndent(outfile, level)
-        outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = []
-        self.exportAttributes(outfile, level, already_processed, namespace_, name_='AttachmentType')
-        if self.hasContent_():
-            outfile.write('>\n')
-            self.exportChildren(outfile, level + 1, namespace_, name_)
-            showIndent(outfile, level)
-            outfile.write('</%s%s>\n' % (namespace_, name_))
-        else:
-            outfile.write('/>\n')
-    def exportAttributes(self, outfile, level, already_processed, namespace_='', name_='AttachmentType'):
-        super(AttachmentType, self).exportAttributes(outfile, level, already_processed, namespace_, name_='AttachmentType')
-        if self.cvRef is not None and 'cvRef' not in already_processed:
-            already_processed.append('cvRef')
-            outfile.write(' cvRef=%s' % (self.gds_format_string(quote_attrib(self.cvRef).encode(ExternalEncoding), input_name='cvRef'), ))
-        if self.accession is not None and 'accession' not in already_processed:
-            already_processed.append('accession')
-            outfile.write(' accession=%s' % (self.gds_format_string(quote_attrib(self.accession).encode(ExternalEncoding), input_name='accession'), ))
-    def exportChildren(self, outfile, level, namespace_='', name_='AttachmentType', fromsubclass_=False):
-        super(AttachmentType, self).exportChildren(outfile, level, namespace_, name_, True)
-        if self.binary is not None:
-            showIndent(outfile, level)
-            outfile.write('<%sbinary>%s</%sbinary>\n' % (namespace_, self.gds_format_string(quote_xml(self.binary).encode(ExternalEncoding), input_name='binary'), namespace_))
-    def hasContent_(self):
-        if (
-            self.binary is not None or
-            super(AttachmentType, self).hasContent_()
-            ):
-            return True
-        else:
-            return False
-    def exportLiteral(self, outfile, level, name_='AttachmentType'):
-        level += 1
-        self.exportLiteralAttributes(outfile, level, [], name_)
-        if self.hasContent_():
-            self.exportLiteralChildren(outfile, level, name_)
-    def exportLiteralAttributes(self, outfile, level, already_processed, name_):
-        if self.cvRef is not None and 'cvRef' not in already_processed:
-            already_processed.append('cvRef')
-            showIndent(outfile, level)
-            outfile.write('cvRef = "%s",\n' % (self.cvRef,))
-        if self.accession is not None and 'accession' not in already_processed:
-            already_processed.append('accession')
-            showIndent(outfile, level)
-            outfile.write('accession = "%s",\n' % (self.accession,))
-        super(AttachmentType, self).exportLiteralAttributes(outfile, level, already_processed, name_)
-    def exportLiteralChildren(self, outfile, level, name_):
-        super(AttachmentType, self).exportLiteralChildren(outfile, level, name_)
-        if self.binary is not None:
-            showIndent(outfile, level)
-            outfile.write('binary=%s,\n' % quote_python(self.binary).encode(ExternalEncoding))
-    def build(self, node):
-        self.buildAttributes(node, node.attrib, [])
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self.buildChildren(child, node, nodeName_)
-    def buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('cvRef', node)
-        if value is not None and 'cvRef' not in already_processed:
-            already_processed.append('cvRef')
-            self.cvRef = value
-        value = find_attr_value_('accession', node)
-        if value is not None and 'accession' not in already_processed:
-            already_processed.append('accession')
-            self.accession = value
-        super(AttachmentType, self).buildAttributes(node, attrs, already_processed)
-    def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
-        if nodeName_ == 'binary':
-            binary_ = child_.text
-            binary_ = self.gds_validate_string(binary_, node, 'binary')
-            self.binary = binary_
-        super(AttachmentType, self).buildChildren(child_, node, nodeName_, True)
-# end class AttachmentType
-
-
 class CVParamType(AbstractParamType):
     """A single entry from an ontology or a controlled vocabulary.A
     reference to the cv element from which this term originates. The
     accession or ID number of this CV term in the source CV."""
-    member_data_items_ = {
-        'cvRef': MemberSpec_('cvRef', 'xsd:string', 0),
-        'accession': MemberSpec_('accession', 'xsd:string', 0),
-        }
     subclass = None
     superclass = AbstractParamType
-    def __init__(self, unitCvRef=None, unitName=None, name=None, value=None, unitAccession=None, cvRef=None, accession=None):
-        super(CVParamType, self).__init__(unitCvRef, unitName, name, value, unitAccession, )
+    def __init__(self, unitCvRef=None, unitName=None, name=None, value=None, unitAccession=None, cvRef=None, accession=None, extensiontype_=None):
+        super(CVParamType, self).__init__(unitCvRef, unitName, name, value, unitAccession, extensiontype_, )
         self.cvRef = _cast(None, cvRef)
         self.accession = _cast(None, accession)
-        pass
+        self.extensiontype_ = extensiontype_
     def factory(*args_, **kwargs_):
         if CVParamType.subclass:
             return CVParamType.subclass(*args_, **kwargs_)
@@ -1088,10 +941,10 @@ class CVParamType(AbstractParamType):
     factory = staticmethod(factory)
     def get_cvRef(self): return self.cvRef
     def set_cvRef(self, cvRef): self.cvRef = cvRef
-    cvRefProp = property(get_cvRef, set_cvRef)
     def get_accession(self): return self.accession
     def set_accession(self, accession): self.accession = accession
-    accessionProp = property(get_accession, set_accession)
+    def get_extensiontype_(self): return self.extensiontype_
+    def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
     def export(self, outfile, level, namespace_='', name_='CVParamType', namespacedef_=''):
         showIndent(outfile, level)
         outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
@@ -1111,6 +964,10 @@ class CVParamType(AbstractParamType):
         if self.accession is not None and 'accession' not in already_processed:
             already_processed.append('accession')
             outfile.write(' accession=%s' % (self.gds_format_string(quote_attrib(self.accession).encode(ExternalEncoding), input_name='accession'), ))
+        if self.extensiontype_ is not None and 'xsi:type' not in already_processed:
+            already_processed.append('xsi:type')
+            outfile.write(' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"')
+            outfile.write(' xsi:type="%s"' % self.extensiontype_)
     def exportChildren(self, outfile, level, namespace_='', name_='CVParamType', fromsubclass_=False):
         super(CVParamType, self).exportChildren(outfile, level, namespace_, name_, True)
         pass
@@ -1153,6 +1010,10 @@ class CVParamType(AbstractParamType):
         if value is not None and 'accession' not in already_processed:
             already_processed.append('accession')
             self.accession = value
+        value = find_attr_value_('xsi:type', node)
+        if value is not None and 'xsi:type' not in already_processed:
+            already_processed.append('xsi:type')
+            self.extensiontype_ = value
         super(CVParamType, self).buildAttributes(node, attrs, already_processed)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
         super(CVParamType, self).buildChildren(child_, node, nodeName_, True)
@@ -1165,12 +1026,6 @@ class cvType(GeneratedsSuper):
     obtained.The full name of the CV.The version of the CV.The URI
     of the source CV.The unique identifier of this cv within the
     document to be referenced by cvParam elements."""
-    member_data_items_ = {
-        'fullName': MemberSpec_('fullName', 'xsd:string', 0),
-        'version': MemberSpec_('version', 'xsd:string', 0),
-        'uri': MemberSpec_('uri', 'xsd:anyURI', 0),
-        'id': MemberSpec_('id', 'xsd:string', 0),
-        }
     subclass = None
     superclass = None
     def __init__(self, fullName=None, version=None, uri=None, id=None):
@@ -1187,16 +1042,12 @@ class cvType(GeneratedsSuper):
     factory = staticmethod(factory)
     def get_fullName(self): return self.fullName
     def set_fullName(self, fullName): self.fullName = fullName
-    fullNameProp = property(get_fullName, set_fullName)
     def get_version(self): return self.version
     def set_version(self, version): self.version = version
-    versionProp = property(get_version, set_version)
     def get_uri(self): return self.uri
     def set_uri(self, uri): self.uri = uri
-    uriProp = property(get_uri, set_uri)
     def get_id(self): return self.id
     def set_id(self, id): self.id = id
-    idProp = property(get_id, set_id)
     def export(self, outfile, level, namespace_='', name_='cvType', namespacedef_=''):
         showIndent(outfile, level)
         outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
@@ -1281,6 +1132,283 @@ class cvType(GeneratedsSuper):
 # end class cvType
 
 
+class QualityParameterType(CVParamType):
+    """A single attachment containing binary data and a cvParam containing
+    the MIME type of the binary data"""
+    subclass = None
+    superclass = CVParamType
+    def __init__(self, unitCvRef=None, unitName=None, name=None, value=None, unitAccession=None, cvRef=None, accession=None, ID=None, TableColumnTypes=None, TableRowValues=None):
+        super(QualityParameterType, self).__init__(unitCvRef, unitName, name, value, unitAccession, cvRef, accession, )
+        self.ID = _cast(None, ID)
+        self.TableColumnTypes = TableColumnTypes
+        if TableRowValues is None:
+            self.TableRowValues = []
+        else:
+            self.TableRowValues = TableRowValues
+    def factory(*args_, **kwargs_):
+        if QualityParameterType.subclass:
+            return QualityParameterType.subclass(*args_, **kwargs_)
+        else:
+            return QualityParameterType(*args_, **kwargs_)
+    factory = staticmethod(factory)
+    def get_TableColumnTypes(self): return self.TableColumnTypes
+    def set_TableColumnTypes(self, TableColumnTypes): self.TableColumnTypes = TableColumnTypes
+    def validate_listOfStrings(self, value):
+        # Validate type listOfStrings, a restriction on xsd:string.
+        pass
+    def get_TableRowValues(self): return self.TableRowValues
+    def set_TableRowValues(self, TableRowValues): self.TableRowValues = TableRowValues
+    def add_TableRowValues(self, value): self.TableRowValues.append(value)
+    def insert_TableRowValues(self, index, value): self.TableRowValues[index] = value
+    def validate_listOfDoublesOrNulls(self, value):
+        # Validate type listOfDoublesOrNulls, a restriction on doubleOrNullType.
+        pass
+    def get_ID(self): return self.ID
+    def set_ID(self, ID): self.ID = ID
+    def export(self, outfile, level, namespace_='', name_='QualityParameterType', namespacedef_=''):
+        showIndent(outfile, level)
+        outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
+        already_processed = []
+        self.exportAttributes(outfile, level, already_processed, namespace_, name_='QualityParameterType')
+        if self.hasContent_():
+            outfile.write('>\n')
+            self.exportChildren(outfile, level + 1, namespace_, name_)
+            showIndent(outfile, level)
+            outfile.write('</%s%s>\n' % (namespace_, name_))
+        else:
+            outfile.write('/>\n')
+    def exportAttributes(self, outfile, level, already_processed, namespace_='', name_='QualityParameterType'):
+        super(QualityParameterType, self).exportAttributes(outfile, level, already_processed, namespace_, name_='QualityParameterType')
+        if self.ID is not None and 'ID' not in already_processed:
+            already_processed.append('ID')
+            outfile.write(' ID=%s' % (self.gds_format_string(quote_attrib(self.ID).encode(ExternalEncoding), input_name='ID'), ))
+    def exportChildren(self, outfile, level, namespace_='', name_='QualityParameterType', fromsubclass_=False):
+        super(QualityParameterType, self).exportChildren(outfile, level, namespace_, name_, True)
+        if self.TableColumnTypes is not None:
+            showIndent(outfile, level)
+            outfile.write('<%sTableColumnTypes>%s</%sTableColumnTypes>\n' % (namespace_, self.gds_format_string(quote_xml(' '.join(self.TableColumnTypes)).encode(ExternalEncoding), input_name='TableColumnTypes'), namespace_))
+        for TableRowValues_ in self.TableRowValues:
+            showIndent(outfile, level)
+            outfile.write('<%sTableRowValues>%s</%sTableRowValues>\n' % (namespace_, self.gds_format_string(quote_xml(TableRowValues_).encode(ExternalEncoding), input_name='TableRowValues'), namespace_))
+    def hasContent_(self):
+        if (
+            self.TableColumnTypes is not None or
+            self.TableRowValues or
+            super(QualityParameterType, self).hasContent_()
+            ):
+            return True
+        else:
+            return False
+    def exportLiteral(self, outfile, level, name_='QualityParameterType'):
+        level += 1
+        self.exportLiteralAttributes(outfile, level, [], name_)
+        if self.hasContent_():
+            self.exportLiteralChildren(outfile, level, name_)
+    def exportLiteralAttributes(self, outfile, level, already_processed, name_):
+        if self.ID is not None and 'ID' not in already_processed:
+            already_processed.append('ID')
+            showIndent(outfile, level)
+            outfile.write('ID = "%s",\n' % (self.ID,))
+        super(QualityParameterType, self).exportLiteralAttributes(outfile, level, already_processed, name_)
+    def exportLiteralChildren(self, outfile, level, name_):
+        super(QualityParameterType, self).exportLiteralChildren(outfile, level, name_)
+        if self.TableColumnTypes is not None:
+            showIndent(outfile, level)
+            if self.TableColumnTypes:
+                outfile.write('TableColumnTypes=%s,\n' % quote_python(' '.join(self.TableColumnTypes)).encode(ExternalEncoding)) 
+            else:
+                outfile.write('TableColumnTypes=None,\n')
+        showIndent(outfile, level)
+        outfile.write('TableRowValues=[\n')
+        level += 1
+        for TableRowValues_ in self.TableRowValues:
+            showIndent(outfile, level)
+            outfile.write('%s,\n' % quote_python(TableRowValues_).encode(ExternalEncoding))
+        level -= 1
+        showIndent(outfile, level)
+        outfile.write('],\n')
+    def build(self, node):
+        self.buildAttributes(node, node.attrib, [])
+        for child in node:
+            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
+            self.buildChildren(child, node, nodeName_)
+    def buildAttributes(self, node, attrs, already_processed):
+        value = find_attr_value_('ID', node)
+        if value is not None and 'ID' not in already_processed:
+            already_processed.append('ID')
+            self.ID = value
+        super(QualityParameterType, self).buildAttributes(node, attrs, already_processed)
+    def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
+        if nodeName_ == 'TableColumnTypes':
+            TableColumnTypes_ = child_.text
+            self.TableColumnTypes = TableColumnTypes_
+            self.TableColumnTypes = self.TableColumnTypes.split()
+            self.validate_listOfStrings(self.TableColumnTypes)    # validate type listOfStrings
+        elif nodeName_ == 'TableRowValues':
+            TableRowValues_ = child_.text
+            TableRowValues_ = re_.sub(String_cleanup_pat_, " ", TableRowValues_).strip()
+            self.TableRowValues.append(TableRowValues_)
+            self.TableRowValues = self.TableRowValues.split()
+            self.validate_listOfDoublesOrNulls(self.TableRowValues)    # validate type listOfDoublesOrNulls
+        super(QualityParameterType, self).buildChildren(child_, node, nodeName_, True)
+# end class QualityParameterType
+
+
+class AttachmentType(CVParamType):
+    """A single attachment containing binary data and a cvParam containing
+    the MIME type of the binary data"""
+    subclass = None
+    superclass = CVParamType
+    def __init__(self, unitCvRef=None, unitName=None, name=None, value=None, unitAccession=None, cvRef=None, accession=None, qualityParameterRef=None, binary=None, extensiontype_=None):
+        super(AttachmentType, self).__init__(unitCvRef, unitName, name, value, unitAccession, cvRef, accession, extensiontype_, )
+        self.qualityParameterRef = _cast(None, qualityParameterRef)
+        self.binary = binary
+        self.extensiontype_ = extensiontype_
+    def factory(*args_, **kwargs_):
+        if AttachmentType.subclass:
+            return AttachmentType.subclass(*args_, **kwargs_)
+        else:
+            return AttachmentType(*args_, **kwargs_)
+    factory = staticmethod(factory)
+    def get_binary(self): return self.binary
+    def set_binary(self, binary): self.binary = binary
+    def get_qualityParameterRef(self): return self.qualityParameterRef
+    def set_qualityParameterRef(self, qualityParameterRef): self.qualityParameterRef = qualityParameterRef
+    def get_extensiontype_(self): return self.extensiontype_
+    def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
+    def export(self, outfile, level, namespace_='', name_='AttachmentType', namespacedef_=''):
+        showIndent(outfile, level)
+        outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
+        already_processed = []
+        self.exportAttributes(outfile, level, already_processed, namespace_, name_='AttachmentType')
+        if self.hasContent_():
+            outfile.write('>\n')
+            self.exportChildren(outfile, level + 1, namespace_, name_)
+            showIndent(outfile, level)
+            outfile.write('</%s%s>\n' % (namespace_, name_))
+        else:
+            outfile.write('/>\n')
+    def exportAttributes(self, outfile, level, already_processed, namespace_='', name_='AttachmentType'):
+        super(AttachmentType, self).exportAttributes(outfile, level, already_processed, namespace_, name_='AttachmentType')
+        if self.qualityParameterRef is not None and 'qualityParameterRef' not in already_processed:
+            already_processed.append('qualityParameterRef')
+            outfile.write(' qualityParameterRef=%s' % (self.gds_format_string(quote_attrib(self.qualityParameterRef).encode(ExternalEncoding), input_name='qualityParameterRef'), ))
+        if self.extensiontype_ is not None and 'xsi:type' not in already_processed:
+            already_processed.append('xsi:type')
+            outfile.write(' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"')
+            outfile.write(' xsi:type="%s"' % self.extensiontype_)
+    def exportChildren(self, outfile, level, namespace_='', name_='AttachmentType', fromsubclass_=False):
+        super(AttachmentType, self).exportChildren(outfile, level, namespace_, name_, True)
+        if self.binary is not None:
+            showIndent(outfile, level)
+            outfile.write('<%sbinary>%s</%sbinary>\n' % (namespace_, self.gds_format_string(quote_xml(self.binary).encode(ExternalEncoding), input_name='binary'), namespace_))
+    def hasContent_(self):
+        if (
+            self.binary is not None or
+            super(AttachmentType, self).hasContent_()
+            ):
+            return True
+        else:
+            return False
+    def exportLiteral(self, outfile, level, name_='AttachmentType'):
+        level += 1
+        self.exportLiteralAttributes(outfile, level, [], name_)
+        if self.hasContent_():
+            self.exportLiteralChildren(outfile, level, name_)
+    def exportLiteralAttributes(self, outfile, level, already_processed, name_):
+        if self.qualityParameterRef is not None and 'qualityParameterRef' not in already_processed:
+            already_processed.append('qualityParameterRef')
+            showIndent(outfile, level)
+            outfile.write('qualityParameterRef = "%s",\n' % (self.qualityParameterRef,))
+        super(AttachmentType, self).exportLiteralAttributes(outfile, level, already_processed, name_)
+    def exportLiteralChildren(self, outfile, level, name_):
+        super(AttachmentType, self).exportLiteralChildren(outfile, level, name_)
+        if self.binary is not None:
+            showIndent(outfile, level)
+            outfile.write('binary=%s,\n' % quote_python(self.binary).encode(ExternalEncoding))
+    def build(self, node):
+        self.buildAttributes(node, node.attrib, [])
+        for child in node:
+            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
+            self.buildChildren(child, node, nodeName_)
+    def buildAttributes(self, node, attrs, already_processed):
+        value = find_attr_value_('qualityParameterRef', node)
+        if value is not None and 'qualityParameterRef' not in already_processed:
+            already_processed.append('qualityParameterRef')
+            self.qualityParameterRef = value
+        value = find_attr_value_('xsi:type', node)
+        if value is not None and 'xsi:type' not in already_processed:
+            already_processed.append('xsi:type')
+            self.extensiontype_ = value
+        super(AttachmentType, self).buildAttributes(node, attrs, already_processed)
+    def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
+        if nodeName_ == 'binary':
+            binary_ = child_.text
+            binary_ = self.gds_validate_string(binary_, node, 'binary')
+            self.binary = binary_
+        super(AttachmentType, self).buildChildren(child_, node, nodeName_, True)
+# end class AttachmentType
+
+
+class Attachment(AttachmentType):
+    """the element for the binary data of a QualityParameter reference with
+    the MIME type as additional cvParam"""
+    subclass = None
+    superclass = AttachmentType
+    def __init__(self, unitCvRef=None, unitName=None, name=None, value=None, unitAccession=None, cvRef=None, accession=None, qualityParameterRef=None, binary=None):
+        super(Attachment, self).__init__(unitCvRef, unitName, name, value, unitAccession, cvRef, accession, qualityParameterRef, binary, )
+        pass
+    def factory(*args_, **kwargs_):
+        if Attachment.subclass:
+            return Attachment.subclass(*args_, **kwargs_)
+        else:
+            return Attachment(*args_, **kwargs_)
+    factory = staticmethod(factory)
+    def export(self, outfile, level, namespace_='', name_='Attachment', namespacedef_=''):
+        showIndent(outfile, level)
+        outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
+        already_processed = []
+        self.exportAttributes(outfile, level, already_processed, namespace_, name_='Attachment')
+        if self.hasContent_():
+            outfile.write('>\n')
+            self.exportChildren(outfile, level + 1, namespace_, name_)
+            showIndent(outfile, level)
+            outfile.write('</%s%s>\n' % (namespace_, name_))
+        else:
+            outfile.write('/>\n')
+    def exportAttributes(self, outfile, level, already_processed, namespace_='', name_='Attachment'):
+        super(Attachment, self).exportAttributes(outfile, level, already_processed, namespace_, name_='Attachment')
+    def exportChildren(self, outfile, level, namespace_='', name_='Attachment', fromsubclass_=False):
+        super(Attachment, self).exportChildren(outfile, level, namespace_, name_, True)
+    def hasContent_(self):
+        if (
+            super(Attachment, self).hasContent_()
+            ):
+            return True
+        else:
+            return False
+    def exportLiteral(self, outfile, level, name_='Attachment'):
+        level += 1
+        self.exportLiteralAttributes(outfile, level, [], name_)
+        if self.hasContent_():
+            self.exportLiteralChildren(outfile, level, name_)
+    def exportLiteralAttributes(self, outfile, level, already_processed, name_):
+        super(Attachment, self).exportLiteralAttributes(outfile, level, already_processed, name_)
+    def exportLiteralChildren(self, outfile, level, name_):
+        super(Attachment, self).exportLiteralChildren(outfile, level, name_)
+    def build(self, node):
+        self.buildAttributes(node, node.attrib, [])
+        for child in node:
+            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
+            self.buildChildren(child, node, nodeName_)
+    def buildAttributes(self, node, attrs, already_processed):
+        super(Attachment, self).buildAttributes(node, attrs, already_processed)
+    def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
+        super(Attachment, self).buildChildren(child_, node, nodeName_, True)
+        pass
+# end class Attachment
+
+
 USAGE_TEXT = """
 Usage: python <Parser>.py [ -s ] <in_xml_file>
 """
@@ -1302,14 +1430,14 @@ def parse(inFileName):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'MzQualityML'
-        rootClass = MzQualityML
+        rootClass = MzQualityMLType
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
     # Enable Python to collect the space used by the DOM.
     doc = None
-    sys.stdout.write('<?xml version="1.0" ?>\n')
-    rootObj.export(sys.stdout, 0, name_=rootTag,
-        namespacedef_='')
+##     sys.stdout.write('<?xml version="1.0" ?>\n')
+##     rootObj.export(sys.stdout, 0, name_=rootTag, 
+##         namespacedef_='')
     return rootObj
 
 
@@ -1320,14 +1448,14 @@ def parseString(inString):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'MzQualityML'
-        rootClass = MzQualityML
+        rootClass = MzQualityMLType
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
     # Enable Python to collect the space used by the DOM.
     doc = None
-    sys.stdout.write('<?xml version="1.0" ?>\n')
-    rootObj.export(sys.stdout, 0, name_="MzQualityML",
-        namespacedef_='')
+##     sys.stdout.write('<?xml version="1.0" ?>\n')
+##     rootObj.export(sys.stdout, 0, name_="MzQualityML",
+##         namespacedef_='')
     return rootObj
 
 
@@ -1337,16 +1465,16 @@ def parseLiteral(inFileName):
     rootTag, rootClass = get_root_tag(rootNode)
     if rootClass is None:
         rootTag = 'MzQualityML'
-        rootClass = MzQualityML
+        rootClass = MzQualityMLType
     rootObj = rootClass.factory()
     rootObj.build(rootNode)
     # Enable Python to collect the space used by the DOM.
     doc = None
-    sys.stdout.write('#from qcML import *\n\n')
-    sys.stdout.write('import qcML as model_\n\n')
-    sys.stdout.write('rootObj = model_.rootTag(\n')
-    rootObj.exportLiteral(sys.stdout, 0, name_=rootTag)
-    sys.stdout.write(')\n')
+##     sys.stdout.write('#from mzQCML import *\n\n')
+##     sys.stdout.write('import mzQCML as model_\n\n')
+##     sys.stdout.write('rootObj = model_.rootTag(\n')
+##     rootObj.exportLiteral(sys.stdout, 0, name_=rootTag)
+##     sys.stdout.write(')\n')
     return rootObj
 
 
@@ -1365,11 +1493,13 @@ if __name__ == '__main__':
 
 __all__ = [
     "AbstractParamType",
+    "Attachment",
     "AttachmentType",
     "CVListType",
     "CVParamType",
     "MzQualityMLType",
     "QualityAssessmentType",
+    "QualityParameterType",
     "RunQualityAssessmentType",
     "SetQualityAssessmentType",
     "cvType"
