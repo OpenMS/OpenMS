@@ -106,8 +106,8 @@ using namespace std;
 	@htmlinclude TOPP_PepNovoAdapter.html
 */
 
-// We do not want this class to show up in the docu -> cond
-// @cond
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 
 class TOPPPepNovoAdapter :
   public TOPPBase
@@ -395,7 +395,6 @@ class TOPPPepNovoAdapter :
 
 };
 
-//@endcond
 
 int main( int argc, const char** argv )
 {
@@ -403,3 +402,6 @@ int main( int argc, const char** argv )
 
 	return tool.main(argc,argv);
 }
+
+/// @endcond
+

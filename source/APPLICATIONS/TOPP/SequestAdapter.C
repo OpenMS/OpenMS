@@ -112,8 +112,8 @@ using namespace std;
     @htmlinclude TOPP_SequestAdapter.html
 */
 
-// We do not want this class to show up in the docu -> cond
-// @cond
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 
 class TOPPSequestAdapter :
   public TOPPBase
@@ -1307,9 +1307,6 @@ protected:
 
 };
 
-//@endcond
-
-
 
 int main(int argc, const char ** argv)
 {
@@ -1317,3 +1314,5 @@ int main(int argc, const char ** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond
