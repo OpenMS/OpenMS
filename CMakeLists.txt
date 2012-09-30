@@ -82,6 +82,11 @@ else()
 endif()
 set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 
+########################################################
+### build openswath lib ###
+########################################################
+ENABLE_TESTING()
+add_subdirectory(source/ANALYSIS/OPENSWATH)
 
 ########################################################
 ###    compiler flags																 ###
@@ -193,7 +198,7 @@ endif()
 
 
 #########################################################
-#							 Useful third party libs (optional)       #
+#	     Useful third party libs (optional)       #
 #########################################################
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
