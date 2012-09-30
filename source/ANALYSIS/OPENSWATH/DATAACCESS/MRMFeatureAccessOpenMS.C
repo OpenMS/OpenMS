@@ -32,31 +32,21 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
+#include "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h"
 
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
-
-namespace OpenMS 
+namespace OpenMS
 {
-  /**
-    @brief A helper class that is used by several OpenSWATH tools 
-  */
-  class OpenSwathHelper 
+
+  MRMFeatureOpenMS::MRMFeatureOpenMS(MRMFeature & mrmfeature) : mrmfeature_(mrmfeature)
   {
+    std::vector<String> ids;
+    mrmfeature.getFeatureIDs(ids);
+    for(std::vector<String>::iterator it = ids.begin(); it != ids.end(); it++)
+    {
+      boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getFeature(*it)));
+      features_[*it] = ptr;
+    }
+  }
 
-public:
+} //end namespace OpenMS
 
-    /// Select transitions between lower and upper and write them into the new TargetedExperiment
-    static void selectSwathTransitions(const OpenMS::TargetedExperiment & targeted_exp,
-        OpenMS::TargetedExperiment & transition_exp_used, double min_upper_edge_dist, 
-        double lower, double upper);
-
-    /// Get the lower / upper offset for this SWATH map and do some sanity checks
-    static void checkSwathMap(const OpenMS::MSExperiment<Peak1D> & swath_map,
-        double & lower, double & upper);
-  };
-}
-
-#endif

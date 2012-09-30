@@ -515,6 +515,9 @@ set(swath_executables_list
   OSW_OpenMSHelper_test
   DIAScoring_test
   DiaPrescoring2_test
+  OpenSwathMRMFeatureAccessOpenMS_test
+  OpenSwathSpectrumAccessOpenMS_test
+  OpenSwathDataAccessHelper_test
 )
 
 ############### GUI executables (require MOC) ########

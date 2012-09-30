@@ -42,6 +42,7 @@ include(source/COMPARISON/SPECTRA/sources.cmake)
 include(source/SIMULATION/sources.cmake)
 include(source/SIMULATION/LABELING/sources.cmake)
 include(source/ANALYSIS/OPENSWATH/sources.cmake)
+include(source/ANALYSIS/OPENSWATH/DATAACCESS/sources.cmake)
 include(source/APPLICATIONS/sources.cmake)
 
 ## added to OpenMSVisual library: ${OpenMSVisual_sources}
@@ -99,6 +100,7 @@ include(include/OpenMS/TRANSFORMATIONS/RAW2PEAK/sources.cmake)
 include(include/OpenMS/SIMULATION/sources.cmake)
 include(include/OpenMS/SIMULATION/LABELING/sources.cmake)
 include(include/OpenMS/ANALYSIS/OPENSWATH/sources.cmake)
+include(include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/sources.cmake)
 include(include/OpenMS/APPLICATIONS/sources.cmake)
 
 ## added to OpenMSVisual library: ${OpenMSVisual_sources}

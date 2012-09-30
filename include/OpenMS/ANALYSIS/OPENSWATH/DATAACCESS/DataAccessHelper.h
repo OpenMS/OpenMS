@@ -32,31 +32,37 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H_
+#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H_
+
+#include <fstream>
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 
-namespace OpenMS 
+namespace OpenMS
 {
   /**
-    @brief A helper class that is used by several OpenSWATH tools 
+    @brief Several helpers to convert OpenMS datastructures to structures that
+           implement the OpenSWATH interfaces. 
   */
-  class OpenSwathHelper 
+  class OpenSwathDataAccessHelper 
   {
+    /// Convert a SpectrumPtr to an OpenMS Spectrum
+    static void convertToOpenMSSpectrum(OpenMS::MSSpectrum<> * spectrum, const OpenSwath::SpectrumPtr sptr);
 
-public:
+    /// Convert a ChromatogramPtr to an OpenMS Chromatogram
+    static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<>* chromatogram, const OpenSwath::ChromatogramPtr cptr);
 
-    /// Select transitions between lower and upper and write them into the new TargetedExperiment
-    static void selectSwathTransitions(const OpenMS::TargetedExperiment & targeted_exp,
-        OpenMS::TargetedExperiment & transition_exp_used, double min_upper_edge_dist, 
-        double lower, double upper);
+    /// convert from the OpenMS Targeted experiment to the light Targeted Experiment
+    static void convertTargetedExp(OpenMS::TargetedExperiment& transition_exp_, OpenSwath::LightTargetedExperiment& transition_exp);
 
-    /// Get the lower / upper offset for this SWATH map and do some sanity checks
-    static void checkSwathMap(const OpenMS::MSExperiment<Peak1D> & swath_map,
-        double & lower, double & upper);
+    /// Factory method to get a SpectrumAccess Ptr from an MSExperiment
+    static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(MSExperiment<Peak1D>& exp);
   };
-}
 
-#endif
+} //end namespace OpenMS
+
+#endif 

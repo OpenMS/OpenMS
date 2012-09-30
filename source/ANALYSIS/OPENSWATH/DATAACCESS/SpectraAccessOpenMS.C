@@ -32,31 +32,64 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
+#include "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h"
 
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
-
-namespace OpenMS 
+namespace OpenMS
 {
-  /**
-    @brief A helper class that is used by several OpenSWATH tools 
-  */
-  class OpenSwathHelper 
-  {
+	OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id) const
+	{
+		const MSSpectrumType& spectrum = (*ms_experiment_)[id];
+		OpenSwath::BinaryDataArrayPtr intensity_array(
+				new OpenSwath::BinaryDataArray);
+		OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
+		for (MSSpectrumType::const_iterator it = spectrum.begin();
+				it != spectrum.end(); it++) {
+			mz_array->data.push_back(it->getMZ());
+			intensity_array->data.push_back(it->getIntensity());
+		}
 
-public:
+		// push back mz first, then intensity.
+		// TODO annotate which is which
+		std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
+		binaryDataArrayPtrs.push_back(mz_array);
+		binaryDataArrayPtrs.push_back(intensity_array);
 
-    /// Select transitions between lower and upper and write them into the new TargetedExperiment
-    static void selectSwathTransitions(const OpenMS::TargetedExperiment & targeted_exp,
-        OpenMS::TargetedExperiment & transition_exp_used, double min_upper_edge_dist, 
-        double lower, double upper);
+		OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
+		sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+		return sptr;
+	}
 
-    /// Get the lower / upper offset for this SWATH map and do some sanity checks
-    static void checkSwathMap(const OpenMS::MSExperiment<Peak1D> & swath_map,
-        double & lower, double & upper);
-  };
-}
+	OpenSwath::SpectrumMeta SpectrumAccessOpenMS::getSpectrumMetaById(
+			int id) const
+	{
+		OpenSwath::SpectrumMeta meta;
+		meta.RT = (*ms_experiment_)[id].getRT();
+		meta.ms_level = (*ms_experiment_)[id].getMSLevel();
+		return meta;
+	}
 
-#endif
+	OpenSwath::ChromatogramPtr SpectrumAccessOpenMS::getChromatogramById(
+			int id) const
+	{
+		const MSChromatogramType& chromatogram =
+				ms_experiment_->getChromatograms()[id];
+		OpenSwath::BinaryDataArrayPtr intensity_array(
+				new OpenSwath::BinaryDataArray);
+		OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
+		for (MSChromatogramType::const_iterator it = chromatogram.begin();
+				it != chromatogram.end(); it++) {
+			rt_array->data.push_back(it->getRT());
+			intensity_array->data.push_back(it->getIntensity());
+		}
+
+		std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
+		binaryDataArrayPtrs.push_back(rt_array);
+		binaryDataArrayPtrs.push_back(intensity_array);
+
+		OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
+		cptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+		return cptr;
+	}
+
+} //end namespace OpenMS
+
