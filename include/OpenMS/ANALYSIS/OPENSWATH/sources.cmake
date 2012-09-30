@@ -10,6 +10,7 @@ ChromatogramExtractor.h
 OpenMSHelper.h
 DIAScoring.h
 DiaPrescoring2.h
+MRMFeatureFinderScoring.h
 )
 
 ### add path to the filenames

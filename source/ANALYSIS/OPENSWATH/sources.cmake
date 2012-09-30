@@ -11,6 +11,7 @@ MRMTransitionGroupPicker.C
 OpenMSHelper.C
 DIAScoring.C
 DiaPrescoring2.C
+MRMFeatureFinderScoring.C
 )
 
 ### add path to the filenames

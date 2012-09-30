@@ -518,6 +518,8 @@ set(swath_executables_list
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
   OpenSwathDataAccessHelper_test
+  MRMFeatureScoring_test
+  MRMFeatureFinderScoring_test 
 )
 
 ############### GUI executables (require MOC) ########

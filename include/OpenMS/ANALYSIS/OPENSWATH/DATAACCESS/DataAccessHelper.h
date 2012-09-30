@@ -50,6 +50,7 @@ namespace OpenMS
   */
   class OpenSwathDataAccessHelper 
   {
+  public:
     /// Convert a SpectrumPtr to an OpenMS Spectrum
     static void convertToOpenMSSpectrum(OpenMS::MSSpectrum<> * spectrum, const OpenSwath::SpectrumPtr sptr);
 
