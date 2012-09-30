@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -36,60 +36,61 @@
 
 namespace OpenMS
 {
-	OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id) const
-	{
-		const MSSpectrumType& spectrum = (*ms_experiment_)[id];
-		OpenSwath::BinaryDataArrayPtr intensity_array(
-				new OpenSwath::BinaryDataArray);
-		OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-		for (MSSpectrumType::const_iterator it = spectrum.begin();
-				it != spectrum.end(); it++) {
-			mz_array->data.push_back(it->getMZ());
-			intensity_array->data.push_back(it->getIntensity());
-		}
+  OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id) const
+  {
+    const MSSpectrumType & spectrum = (*ms_experiment_)[id];
+    OpenSwath::BinaryDataArrayPtr intensity_array(
+      new OpenSwath::BinaryDataArray);
+    OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
+    for (MSSpectrumType::const_iterator it = spectrum.begin();
+         it != spectrum.end(); it++)
+    {
+      mz_array->data.push_back(it->getMZ());
+      intensity_array->data.push_back(it->getIntensity());
+    }
 
-		// push back mz first, then intensity.
-		// TODO annotate which is which
-		std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-		binaryDataArrayPtrs.push_back(mz_array);
-		binaryDataArrayPtrs.push_back(intensity_array);
+    // push back mz first, then intensity.
+    // TODO annotate which is which
+    std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
+    binaryDataArrayPtrs.push_back(mz_array);
+    binaryDataArrayPtrs.push_back(intensity_array);
 
-		OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-		sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
-		return sptr;
-	}
+    OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
+    sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+    return sptr;
+  }
 
-	OpenSwath::SpectrumMeta SpectrumAccessOpenMS::getSpectrumMetaById(
-			int id) const
-	{
-		OpenSwath::SpectrumMeta meta;
-		meta.RT = (*ms_experiment_)[id].getRT();
-		meta.ms_level = (*ms_experiment_)[id].getMSLevel();
-		return meta;
-	}
+  OpenSwath::SpectrumMeta SpectrumAccessOpenMS::getSpectrumMetaById(
+    int id) const
+  {
+    OpenSwath::SpectrumMeta meta;
+    meta.RT = (*ms_experiment_)[id].getRT();
+    meta.ms_level = (*ms_experiment_)[id].getMSLevel();
+    return meta;
+  }
 
-	OpenSwath::ChromatogramPtr SpectrumAccessOpenMS::getChromatogramById(
-			int id) const
-	{
-		const MSChromatogramType& chromatogram =
-				ms_experiment_->getChromatograms()[id];
-		OpenSwath::BinaryDataArrayPtr intensity_array(
-				new OpenSwath::BinaryDataArray);
-		OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
-		for (MSChromatogramType::const_iterator it = chromatogram.begin();
-				it != chromatogram.end(); it++) {
-			rt_array->data.push_back(it->getRT());
-			intensity_array->data.push_back(it->getIntensity());
-		}
+  OpenSwath::ChromatogramPtr SpectrumAccessOpenMS::getChromatogramById(
+    int id) const
+  {
+    const MSChromatogramType & chromatogram =
+      ms_experiment_->getChromatograms()[id];
+    OpenSwath::BinaryDataArrayPtr intensity_array(
+      new OpenSwath::BinaryDataArray);
+    OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
+    for (MSChromatogramType::const_iterator it = chromatogram.begin();
+         it != chromatogram.end(); it++)
+    {
+      rt_array->data.push_back(it->getRT());
+      intensity_array->data.push_back(it->getIntensity());
+    }
 
-		std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-		binaryDataArrayPtrs.push_back(rt_array);
-		binaryDataArrayPtrs.push_back(intensity_array);
+    std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
+    binaryDataArrayPtrs.push_back(rt_array);
+    binaryDataArrayPtrs.push_back(intensity_array);
 
-		OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
-		cptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
-		return cptr;
-	}
+    OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
+    cptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+    return cptr;
+  }
 
 } //end namespace OpenMS
-

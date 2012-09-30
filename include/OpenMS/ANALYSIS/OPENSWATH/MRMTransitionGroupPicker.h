@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -69,7 +69,6 @@ namespace OpenMS
 
   class MRMTransitionGroupPicker :
     public DefaultParamHandler
-
   {
 
 private:
@@ -96,19 +95,19 @@ private:
 
     // create an empty master peak container that has the correct mz / RT values set
     template <template <typename> class SpectrumT, typename PeakT, typename ChromatogramPeakT, typename TransitionT>
-    void prepare_master_container_(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, 
-        SpectrumT<ChromatogramPeakT> & master_peak_container, int chr_idx, double best_left, double best_right)
+    void prepare_master_container_(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group,
+                                   SpectrumT<ChromatogramPeakT> & master_peak_container, int chr_idx, double best_left, double best_right)
     {
       const SpectrumT<ChromatogramPeakT> * ref_chromatogram = &transition_group.getChromatograms()[chr_idx];
 
       // search for begin / end of the reference chromatogram (and add one more point)
       typename SpectrumT<ChromatogramPeakT>::const_iterator begin = ref_chromatogram->begin();
-      while(begin != ref_chromatogram->end() && begin->getMZ() < best_left) {begin++;}
-      if (begin != ref_chromatogram->begin()) {begin--;}
+      while (begin != ref_chromatogram->end() && begin->getMZ() < best_left) {begin++; }
+      if (begin != ref_chromatogram->begin()) {begin--; }
 
       typename SpectrumT<ChromatogramPeakT>::const_iterator end = begin;
-      while(end != ref_chromatogram->end() && end->getMZ() < best_right) {end++;}
-      if (end != ref_chromatogram->end()) {end++;}
+      while (end != ref_chromatogram->end() && end->getMZ() < best_right) {end++; }
+      if (end != ref_chromatogram->end()) {end++; }
 
       // resize the master container and set the m/z values to the ones of the master container
       master_peak_container.resize(distance(begin, end));
@@ -121,45 +120,45 @@ private:
 
     // use the master container from above to resample a chromatogram at those points stored in the master container
     template <template <typename> class SpectrumT, typename ChromatogramPeakT>
-    SpectrumT<ChromatogramPeakT> resample_chromatogram_(const SpectrumT<ChromatogramPeakT> & chromatogram, 
-        SpectrumT<ChromatogramPeakT> & master_peak_container, double best_left, double best_right)
+    SpectrumT<ChromatogramPeakT> resample_chromatogram_(const SpectrumT<ChromatogramPeakT> & chromatogram,
+                                                        SpectrumT<ChromatogramPeakT> & master_peak_container, double best_left, double best_right)
     {
       // get the start / end point of this chromatogram => go one past
       // best_left / best_right to make the resampling accurate also at the
       // edge.
       typename SpectrumT<ChromatogramPeakT>::const_iterator begin = chromatogram.begin();
-      while(begin != chromatogram.end() && begin->getMZ() < best_left) {begin++;}
-      if (begin != chromatogram.begin()) {begin--;}
+      while (begin != chromatogram.end() && begin->getMZ() < best_left) {begin++; }
+      if (begin != chromatogram.begin()) {begin--; }
 
       typename SpectrumT<ChromatogramPeakT>::const_iterator end = begin;
-      while(end != chromatogram.end() && end->getMZ() < best_right) {end++;}
-      if (end != chromatogram.end()) {end++;}
+      while (end != chromatogram.end() && end->getMZ() < best_right) {end++; }
+      if (end != chromatogram.end()) {end++; }
 
       SpectrumT<ChromatogramPeakT> resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
       LinearResamplerAlign lresampler;
       lresampler.raster(begin, end, resampled_peak_container.begin(), resampled_peak_container.end());
 
 #if DEBUG_TRANSITIONGROUPPICKER
+      {
+        std::cout << "===========================================================================  " << std::endl;
+        double tot;
+        tot = 0;
+        for (typename SpectrumT<ChromatogramPeakT>::const_iterator it = begin; it != end; it++)
         {
-          std::cout << "===========================================================================  " << std::endl;
-          double tot;
-          tot = 0;
-          for (typename SpectrumT<ChromatogramPeakT>::const_iterator it = begin;it != end; it++)
-          {
-            std::cout << " before resampl " << *it << std::endl;
-            tot += it->getIntensity();
-          }
-            std::cout << " total " << tot << std::endl;
-
-          tot = 0;
-          for (typename SpectrumT<ChromatogramPeakT>::iterator it = resampled_peak_container.begin();it != resampled_peak_container.end(); it++)
-          {
-            std::cout << " resampl " << *it << std::endl;
-            tot += it->getIntensity();
-          }
-          std::cout << " total " << tot << std::endl;
-          std::cout << " resampled size " << resampled_peak_container.size() << std::endl;
+          std::cout << " before resampl " << *it << std::endl;
+          tot += it->getIntensity();
         }
+        std::cout << " total " << tot << std::endl;
+
+        tot = 0;
+        for (typename SpectrumT<ChromatogramPeakT>::iterator it = resampled_peak_container.begin(); it != resampled_peak_container.end(); it++)
+        {
+          std::cout << " resampl " << *it << std::endl;
+          tot += it->getIntensity();
+        }
+        std::cout << " total " << tot << std::endl;
+        std::cout << " resampled size " << resampled_peak_container.size() << std::endl;
+      }
 #endif
       return resampled_peak_container;
     }
@@ -187,8 +186,8 @@ private:
         {
           double left = picked_chroms[k].getFloatDataArrays()[1][i];
           double right = picked_chroms[k].getFloatDataArrays()[2][i];
-          if ( (left >= best_left && left <= best_right)
-            || (right >= best_left && right <= best_right) )
+          if ((left >= best_left && left <= best_right)
+             || (right >= best_left && right <= best_right))
           {
             picked_chroms[k][i].setIntensity(0.0);
           }
@@ -221,7 +220,7 @@ public:
       picked_chroms.clear();
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
-        RichPeakChromatogram& chromatogram = transition_group.getChromatograms()[k];
+        RichPeakChromatogram & chromatogram = transition_group.getChromatograms()[k];
         if (!chromatogram.isSorted()) { chromatogram.sortByPosition(); }
 
         // pickChromatogram will return the picked and the smoothed chromatogram
@@ -251,9 +250,9 @@ public:
 
         // get feature, prevent non-extended zero features to be added
         MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, chr_idx, peak_idx);
-        if (mrm_feature.getIntensity() > 0) 
+        if (mrm_feature.getIntensity() > 0)
         {
-          transition_group.addFeature(mrm_feature); 
+          transition_group.addFeature(mrm_feature);
         }
 
         cnt++;
@@ -267,11 +266,11 @@ public:
     /// Finds peaks in a chromatogram and annotates left/right borders
     // This function will return a smoothed chromatogram and a picked chromatogram
     void pickChromatogram(const RichPeakChromatogram & chromatogram, RichPeakChromatogram & smoothed_chrom, RichPeakChromatogram & picked_chrom);
-  
+
     /// Create feature from a vector of chromatograms and a specified peak
     template <template <typename> class SpectrumT, typename PeakT, typename ChromatogramPeakT, typename TransitionT>
     MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group,
-      std::vector<SpectrumT<ChromatogramPeakT> > & picked_chroms, int & chr_idx, int & peak_idx)
+                                std::vector<SpectrumT<ChromatogramPeakT> > & picked_chroms, int & chr_idx, int & peak_idx)
     {
       MRMFeature mrmFeature;
       const double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
@@ -307,7 +306,7 @@ public:
         double quality = 0;
         f.setQuality(0, quality);
         f.setOverallQuality(quality);
-  
+
         ConvexHull2D::PointArrayType hull_points;
         DoubleReal intensity_sum(0.0), rt_sum(0.0);
         double peak_apex_int = -1;
@@ -325,12 +324,12 @@ public:
               peak_apex_int = p[1];
               peak_apex_dist = std::fabs(it->getMZ() - peak_apex);
             }
-  
+
             rt_sum += it->getMZ();
             intensity_sum += it->getIntensity();
           }
         }
-  
+
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
         f.setMZ(chromatogram.getMetaValue("product_mz"));
         f.setIntensity(intensity_sum);
@@ -354,7 +353,7 @@ public:
       mrmFeature.setMetaValue("rightWidth", best_right);
       mrmFeature.setMetaValue("total_xic", total_xic);
       mrmFeature.setMetaValue("peak_apices_sum", total_peak_apices);
-  
+
       return mrmFeature;
     }
 

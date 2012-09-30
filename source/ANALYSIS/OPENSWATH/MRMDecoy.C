@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: George Rosenberger $
 // $Authors: George Rosenberger, Hannes Roest, Witold Wolski $
@@ -53,8 +53,8 @@ namespace OpenMS
 
     // Iterate over ion type and then ordinal
     std::pair<String, DoubleReal> ion;
-		String unannotated = "unannotated";
-		ion = make_pair(unannotated, -1);
+    String unannotated = "unannotated";
+    ion = make_pair(unannotated, -1);
     for (std::vector<String>::iterator iontype = SpectraST_order.begin(); iontype != SpectraST_order.end(); ++iontype)
     {
       for (std::map<String, DoubleReal>::iterator ordinal = decoy_ionseries[*iontype].begin(); ordinal != decoy_ionseries[*iontype].end(); ++ordinal)
@@ -118,7 +118,7 @@ namespace OpenMS
           if (j > 0)
           {
             bionseries_isotopes["b" + String(i) + "/" + String(charge) + "+" + "/" + "iso" + String(j)] = ((double) (
-              pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
+                                                                                                             pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
           }
         }
       }
@@ -170,7 +170,7 @@ namespace OpenMS
           if (j > 0)
           {
             yionseries_isotopes["y" + String(i) + "/" + String(charge) + "+" + "/" + "iso" + String(j)] = ((double) (
-              pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
+                                                                                                             pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
           }
         }
       }
@@ -223,7 +223,7 @@ namespace OpenMS
           if (j > 0)
           {
             aionseries_isotopes["a" + String(i) + "/" + String(charge) + "+" + "/" + "iso" + String(j)] = ((double) (
-              pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
+                                                                                                             pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
           }
         }
       }
@@ -311,7 +311,7 @@ namespace OpenMS
       {
         peptide_index.erase(peptide_index.begin() + it->first);
       }
-      
+
       // shuffle the peptide index (without the K/P/R which we leave in place)
       std::random_shuffle(peptide_index.begin(), peptide_index.end(), pseudoRNG);
 
@@ -322,9 +322,9 @@ namespace OpenMS
       }
 
       // use the shuffled index to first get the new peptide sequence and then to place the mods
-      for (Size i = 0; i < peptide_index.size(); i++) 
-      { 
-        shuffled.sequence[i] = peptide.sequence[ peptide_index[i] ];
+      for (Size i = 0; i < peptide_index.size(); i++)
+      {
+        shuffled.sequence[i] = peptide.sequence[peptide_index[i]];
       }
       for (Size j = 0; j < shuffled.mods.size(); j++)
       {
@@ -352,11 +352,11 @@ namespace OpenMS
       }
     }
 
-		if (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold)
-		{
-			std::cout << "Sequence identity: " << MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) << " Identity threshold: " << identity_threshold << std::endl;
-			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"AA Sequences couldn't be shuffled. Either decrease identity_threshold or increase max_attempts.");
-		}
+    if (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold)
+    {
+      std::cout << "Sequence identity: " << MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) << " Identity threshold: " << identity_threshold << std::endl;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AA Sequences couldn't be shuffled. Either decrease identity_threshold or increase max_attempts.");
+    }
 
     return shuffled;
   }
@@ -372,7 +372,7 @@ namespace OpenMS
     }
 
     peptide.sequence = peptide.sequence.substr(0, peptide.sequence.size() - 1).reverse()
-      + peptide.sequence.substr(peptide.sequence.size() - 1, 1);       // pseudo-reverse
+                       + peptide.sequence.substr(peptide.sequence.size() - 1, 1); // pseudo-reverse
     std::reverse(peptide_index.begin(), peptide_index.end() - 1);
 
     for (Size j = 0; j < peptide.mods.size(); j++)
@@ -419,7 +419,7 @@ namespace OpenMS
   }
 
   void MRMDecoy::restrictTransitions(OpenMS::TargetedExperiment & exp, int min_transitions,
-    int max_transitions)
+                                     int max_transitions)
   {
     OpenMS::TargetedExperiment restricted_exp;
     MRMDecoy::PeptideVectorType peptides;
@@ -458,7 +458,7 @@ namespace OpenMS
         {
           ReactionMonitoringTransition tr = *tr_it;
           if (std::find(LibraryIntensity.begin(), LibraryIntensity.begin() + max_transitions,
-            boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.begin() + max_transitions)
+                        boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.begin() + max_transitions)
           {
             transitions.push_back(tr);
           }
@@ -498,7 +498,7 @@ namespace OpenMS
 
   OpenMS::AASequence MRMDecoy::getAASequence(const OpenMS::TargetedExperiment::Peptide & peptide)
   {
-	// The workaround expects a TraML with UniMod CVTerms for each peptide. The problem in ModificationsDB has been described in TRAC #458.
+    // The workaround expects a TraML with UniMod CVTerms for each peptide. The problem in ModificationsDB has been described in TRAC #458.
 #if (1)
     OpenMS::AASequence aas = peptide.sequence;
     for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it =
@@ -536,7 +536,7 @@ namespace OpenMS
   }
 
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment & exp, OpenMS::TargetedExperiment & dec,
-    String method, String decoy_tag, double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift)
+                                String method, String decoy_tag, double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift)
   {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
@@ -578,7 +578,7 @@ namespace OpenMS
     dec.setPeptides(peptides);
     dec.setProteins(proteins);
 
-    // hash of the peptide reference containing all transitions 
+    // hash of the peptide reference containing all transitions
     MRMDecoy::PeptideTransitionMapType peptide_trans_map;
     for (Size i = 0; i < exp.getTransitions().size(); i++)
     {
@@ -613,11 +613,11 @@ namespace OpenMS
         // the appropriate decoy ion for this target transition
         std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries);
         std::pair<String, double> decoyion = getDecoyIon(targetion.first, decoy_ionseries);
-				if (method == "shift")
-				{
-        	decoy_tr.setProductMZ(decoyion.second + mz_shift);
-				}
-				else
+        if (method == "shift")
+        {
+          decoy_tr.setProductMZ(decoyion.second + mz_shift);
+        }
+        else
         {
           decoy_tr.setProductMZ(decoyion.second);
         }
@@ -649,4 +649,5 @@ namespace OpenMS
       exp.setTransitions(target_transitions);
     }
   }
+
 }

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -48,7 +48,7 @@
 #include <OpenMS/KERNEL/MRMFeature.h>
 
 // peak picking
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h> 
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 // data access
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
@@ -60,7 +60,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h> 
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -71,22 +71,22 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double> & left, const std
 namespace OpenMS
 {
 
-  struct OpenSwath_Scores 
+  struct OpenSwath_Scores
   {
     double elution_model_fit_score;
-    double library_corr           ;
-    double library_rmsd           ;
-    double norm_rt_score          ;
-    double isotope_correlation    ;
-    double isotope_overlap        ;
-    double massdev_score          ;
-    double xcorr_coelution_score  ;
-    double xcorr_shape_score      ;
-    double yseries_score          ;
-    double log_sn_score           ;
+    double library_corr;
+    double library_rmsd;
+    double norm_rt_score;
+    double isotope_correlation;
+    double isotope_overlap;
+    double massdev_score;
+    double xcorr_coelution_score;
+    double xcorr_shape_score;
+    double yseries_score;
+    double log_sn_score;
 
     double get_quick_lda_score(double library_corr, double library_rmsd, double norm_rt_score, double xcorr_coelution_score,
-        double xcorr_shape_score, double log_sn_score)
+                               double xcorr_shape_score, double log_sn_score)
     {
       // some scores based on manual evaluation of 80 chromatograms
       // quick LDA average model on 100 2xCrossvalidated runs (0.85 TPR/0.17 FDR)
@@ -125,14 +125,13 @@ namespace OpenMS
       xcorr_shape_score     * -0.4699841;
       */
 
-      return \
-        scores.library_corr                     * -0.34664267 +
-        scores.library_rmsd                     *  2.98700722 +
-        scores.norm_rt_score                    *  7.05496384 +
-        scores.xcorr_coelution_score            *  0.09445371 +
-        scores.xcorr_shape_score                * -5.71823862 +
-        scores.log_sn_score                     * -0.72989582 +
-        scores.elution_model_fit_score          *  1.88443209;
+      return scores.library_corr                     * -0.34664267 +
+             scores.library_rmsd                     *  2.98700722 +
+             scores.norm_rt_score                    *  7.05496384 +
+             scores.xcorr_coelution_score            *  0.09445371 +
+             scores.xcorr_shape_score                * -5.71823862 +
+             scores.log_sn_score                     * -0.72989582 +
+             scores.elution_model_fit_score          *  1.88443209;
     }
 
     double calculate_swath_lda_prescore(OpenSwath_Scores scores)
@@ -160,17 +159,16 @@ namespace OpenMS
       isotope_overlap              *  2.890688e-01  ;
       */
 
-      return \
-        scores.library_corr              * -0.19011762 +
-        scores.library_rmsd              *  2.47298914 +
-        scores.norm_rt_score             *  5.63906731 +
-        scores.isotope_correlation       * -0.62640133 +
-        scores.isotope_overlap           *  0.36006925 +
-        scores.massdev_score             *  0.08814003 +
-        scores.xcorr_coelution_score     *  0.13978311 +
-        scores.xcorr_shape_score         * -1.16475032 +
-        scores.yseries_score             * -0.19267813 +
-        scores.log_sn_score              * -0.61712054;
+      return scores.library_corr              * -0.19011762 +
+             scores.library_rmsd              *  2.47298914 +
+             scores.norm_rt_score             *  5.63906731 +
+             scores.isotope_correlation       * -0.62640133 +
+             scores.isotope_overlap           *  0.36006925 +
+             scores.massdev_score             *  0.08814003 +
+             scores.xcorr_coelution_score     *  0.13978311 +
+             scores.xcorr_shape_score         * -1.16475032 +
+             scores.yseries_score             * -0.19267813 +
+             scores.log_sn_score              * -0.61712054;
     }
 
   };
@@ -269,7 +267,7 @@ public:
         loadLibraryForLocalFDR(tr_library);
       }
 
-      // If we have a swath map, we need to ensure the spectra are sorted 
+      // If we have a swath map, we need to ensure the spectra are sorted
       // TODO!
 #if 0
       if (swath_map.size() > 0 && !swath_map.isSorted())
@@ -324,9 +322,9 @@ public:
     // when they share identifiers, e.g. if the transition id is the same as the
     // chromatogram native id.
     void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment & transition_exp,
-      TransitionGroupMapType & transition_group_map, TransformationDescription trafo, double rt_extraction_window);
+                                       TransitionGroupMapType & transition_group_map, TransformationDescription trafo, double rt_extraction_window);
 
-    void setStrictFlag(bool f) 
+    void setStrictFlag(bool f)
     {
       strict = f;
     }
@@ -336,7 +334,7 @@ private:
     /// Score all peak groups
     template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
     void scorePeakgroups(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, TransformationDescription & trafo,
-                        OpenSwath::SpectrumAccessPtr  swath_map, FeatureMap<Feature> & output)
+                         OpenSwath::SpectrumAccessPtr  swath_map, FeatureMap<Feature> & output)
     {
       //std::vector<SignalToNoiseEstimatorMedian<RichPeakChromatogram> > signal_noise_estimators;
       std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
@@ -344,7 +342,7 @@ private:
 
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
-        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS<PeakT>(transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_ ));
+        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS<PeakT>(transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_));
         signal_noise_estimators.push_back(snptr);
       }
 
@@ -375,8 +373,8 @@ private:
         int group_size = transition_group.size();
         if (group_size == 0)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-            "Error: Transition group " + transition_group.getTransitionGroupID() + " has no chromatograms.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                           "Error: Transition group " + transition_group.getTransitionGroupID() + " has no chromatograms.");
         }
         if (group_size < 2)
         {
@@ -441,7 +439,7 @@ private:
 
         if (use_library_score_)
         {
-          mrmscore.calcLibraryScore(imrmfeature, transition_group.getTransitions(), library_corr, library_rmsd,library_manhattan, library_dotprod);
+          mrmscore.calcLibraryScore(imrmfeature, transition_group.getTransitions(), library_corr, library_rmsd, library_manhattan, library_dotprod);
           mrmfeature->addScore("var_library_corr", library_corr);
           mrmfeature->addScore("var_library_rmsd", library_rmsd);
           mrmfeature->addScore("var_library_manhattan", library_manhattan); // new score
@@ -508,7 +506,7 @@ private:
 
         OpenSwath_Scores scores;
         double quick_lda_dismiss = 0;
-        double lda_quick_score = - scores.get_quick_lda_score(library_corr, library_rmsd, norm_rt_score, xcorr_coelution_score, xcorr_shape_score, log_sn_score);
+        double lda_quick_score = -scores.get_quick_lda_score(library_corr, library_rmsd, norm_rt_score, xcorr_coelution_score, xcorr_shape_score, log_sn_score);
 
         if (lda_quick_score < quick_lda_dismiss)
         {
@@ -523,17 +521,17 @@ private:
         }
 
         double xx_lda_prescore;
-        scores.library_corr              = library_corr           ;
-        scores.library_rmsd              = library_rmsd           ;
-        scores.norm_rt_score             = norm_rt_score          ;
+        scores.library_corr              = library_corr;
+        scores.library_rmsd              = library_rmsd;
+        scores.norm_rt_score             = norm_rt_score;
         scores.elution_model_fit_score   = elution_model_fit_score;
-        scores.log_sn_score              = log_sn_score           ;
-        scores.xcorr_coelution_score     = xcorr_coelution_score  ;
-        scores.xcorr_shape_score         = xcorr_shape_score      ;
-        xx_lda_prescore = - scores.calculate_lda_prescore(scores);
+        scores.log_sn_score              = log_sn_score;
+        scores.xcorr_coelution_score     = xcorr_coelution_score;
+        scores.xcorr_shape_score         = xcorr_shape_score;
+        xx_lda_prescore = -scores.calculate_lda_prescore(scores);
 
         bool swath_present = (swath_map->getNrSpectra() > 0);
-        if(!swath_present)
+        if (!swath_present)
         {
           mrmfeature->addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);
           mrmfeature->setOverallQuality(xx_lda_prescore);
@@ -563,9 +561,9 @@ private:
         PeptideIdentification pep_id_ = PeptideIdentification();
         PeptideHit pep_hit_ = PeptideHit();
 
-        if(pep->getChargeState() != -1)
+        if (pep->getChargeState() != -1)
         {
-          pep_hit_.setCharge(pep->getChargeState()); 
+          pep_hit_.setCharge(pep->getChargeState());
         }
         pep_hit_.setScore(xx_lda_prescore);
         if (swath_present)
@@ -582,9 +580,9 @@ private:
         mrmfeature->setMetaValue("PrecursorMZ", transition_group.getTransitions()[0].getPrecursorMZ());
         mrmfeature->setSubordinates(mrmfeature->getFeatures()); // add all the subfeatures as subordinates
         double total_intensity = 0, total_peak_apices = 0;
-        for (std::vector< Feature >::iterator sub_it = mrmfeature->getSubordinates().begin(); sub_it != mrmfeature->getSubordinates().end(); sub_it++)
+        for (std::vector<Feature>::iterator sub_it = mrmfeature->getSubordinates().begin(); sub_it != mrmfeature->getSubordinates().end(); sub_it++)
         {
-          if (!write_convex_hull_) {sub_it->getConvexHulls().clear();}
+          if (!write_convex_hull_) {sub_it->getConvexHulls().clear(); }
           sub_it->ensureUniqueId();
           if (sub_it->getMZ() > quantification_cutoff_)
           {
@@ -602,21 +600,21 @@ private:
       }
 
       // Order by quality
-      std::sort(feature_list.begin(), feature_list.end(), OpenMS::Feature::OverallQualityLess() );
-      std::reverse(feature_list.begin(), feature_list.end() );
+      std::sort(feature_list.begin(), feature_list.end(), OpenMS::Feature::OverallQualityLess());
+      std::reverse(feature_list.begin(), feature_list.end());
 
       for (Size i = 0; i < feature_list.size(); i++)
       {
-        if (stop_report_after_feature_ >= 0 && i >= stop_report_after_feature_ ) {break;} // TODO cast to (size_t)
+        if (stop_report_after_feature_ >= 0 && i >= stop_report_after_feature_) {break; } // TODO cast to (size_t)
         output.push_back(feature_list[i]);
       }
     }
 
     template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
-    void calculate_swath_scores(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, MRMFeature& mrmfeature_,
-                        OpenSwath::SpectrumAccessPtr swath_map, std::vector<double>& normalized_library_intensity, OpenSwath_Scores scores)
+    void calculate_swath_scores(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, MRMFeature & mrmfeature_,
+                                OpenSwath::SpectrumAccessPtr swath_map, std::vector<double> & normalized_library_intensity, OpenSwath_Scores scores)
     {
-      MRMFeature* mrmfeature = &mrmfeature_;
+      MRMFeature * mrmfeature = &mrmfeature_;
 
       // parameters
       int nr_isotopes = 4;
@@ -628,18 +626,18 @@ private:
       // TODO we just assume charge state 1 -- all will be wrong if this is not true!
       int putative_charge_state = 1; // TODO  => get this from the transition information?!
 
-      diascoring.set_dia_parameters( dia_extract_window_ , dia_centroided_, dia_byseries_intensity_min_, dia_byseries_ppm_diff_, nr_isotopes, nr_charges);
+      diascoring.set_dia_parameters(dia_extract_window_, dia_centroided_, dia_byseries_intensity_min_, dia_byseries_ppm_diff_, nr_isotopes, nr_charges);
 
       // find spectrum that is closest to the apex of the peak using binary search
       std::vector<std::size_t> indices = swath_map->getSpectraByRT(mrmfeature->getRT(), 0.0);
       int closest_idx = indices[0];
       OpenSwath::SpectrumPtr spectrum_;
       if (indices[0] != 0 &&
-          std::fabs(swath_map->getSpectrumMetaById(indices[0]-1).RT - mrmfeature->getRT()) <
+          std::fabs(swath_map->getSpectrumMetaById(indices[0] - 1).RT - mrmfeature->getRT()) <
           std::fabs(swath_map->getSpectrumMetaById(indices[0]).RT - mrmfeature->getRT()))
       { closest_idx--; }
       spectrum_ = swath_map->getSpectrumById(closest_idx);
-      OpenSwath::SpectrumPtr* spectrum = &spectrum_;
+      OpenSwath::SpectrumPtr * spectrum = &spectrum_;
 #if 0
       MSSpectrum<SwathPeakType> * spectrum = &(*swath_map.RTBegin(mrmfeature->getRT()));
       if (spectrum != &(*swath_map.begin()) &&
@@ -653,11 +651,11 @@ private:
       OpenSwath::IMRMFeature * imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
       double isotope_corr = 0, isotope_overlap = 0;
       diascoring.dia_isotope_scores(transition_group.getTransitions(),
-                                  (*spectrum), imrmfeature, putative_charge_state, isotope_corr, isotope_overlap);
+                                    (*spectrum), imrmfeature, putative_charge_state, isotope_corr, isotope_overlap);
       // Mass deviation score
       double ppm_score = 0, ppm_score_weighted = 0;
       diascoring.dia_massdiff_score(transition_group.getTransitions(),
-                                  (*spectrum), normalized_library_intensity, ppm_score, ppm_score_weighted);
+                                    (*spectrum), normalized_library_intensity, ppm_score, ppm_score_weighted);
 
       // Presence of b/y series score
       double bseries_score = 0, yseries_score = 0;
@@ -696,16 +694,16 @@ private:
       double dotprod_score_dia;
       double manhatt_score_dia;
 
-      diascoring.score_with_isotopes((*spectrum),transition_group.getTransitions(),dotprod_score_dia,manhatt_score_dia );
+      diascoring.score_with_isotopes((*spectrum), transition_group.getTransitions(), dotprod_score_dia, manhatt_score_dia);
 
       mrmfeature->addScore("var_dotprod_score", dotprod_score_dia);
       mrmfeature->addScore("var_manhatt_score", manhatt_score_dia);
 
-      scores.yseries_score             = yseries_score  ;
-      scores.isotope_correlation       = isotope_corr   ;
+      scores.yseries_score             = yseries_score;
+      scores.isotope_correlation       = isotope_corr;
       scores.isotope_overlap           = isotope_overlap;
-      scores.massdev_score             = massdev_score  ;
-      double xx_swath_prescore = - scores.calculate_swath_lda_prescore(scores);
+      scores.massdev_score             = massdev_score;
+      double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
       mrmfeature->addScore("main_var_xx_swath_prelim_score", xx_swath_prescore);
       mrmfeature->setOverallQuality(xx_swath_prescore);
 #ifdef DEBUG_MRMPEAKPICKER
@@ -715,10 +713,10 @@ private:
     }
 
     template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
-    void calculate_local_fdr_scores(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, MRMFeature& mrmfeature_, TransformationDescription & trafo)
+    void calculate_local_fdr_scores(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, MRMFeature & mrmfeature_, TransformationDescription & trafo)
     {
       int group_size = transition_group.size();
-      MRMFeature* mrmfeature = &mrmfeature_;
+      MRMFeature * mrmfeature = &mrmfeature_;
 
       double local_fdr_score = 0;
 

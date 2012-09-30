@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -103,7 +103,7 @@ namespace OpenMS
     defaults_.setValidStrings("do_local_fdr", StringList::create("true,false"));
     defaults_.setValue("local_fdr_lib", "", "Library for the local FDR score", StringList::create("advanced"));
 
-    defaults_.setValue("write_convex_hull","false","Whether to write out all points of all features into the featureXML", StringList::create("advanced"));
+    defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", StringList::create("advanced"));
     defaults_.setValidStrings("write_convex_hull", StringList::create("true,false"));
 
     // write defaults into Param object param_
@@ -155,7 +155,7 @@ namespace OpenMS
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
 
     Param fitter_param;
-    fitter_param.setValue( "max_iteration", emgfitter_maxiterations_);
+    fitter_param.setValue("max_iteration", emgfitter_maxiterations_);
     emgscoring.setFitterParam(fitter_param);
   }
 
@@ -189,109 +189,110 @@ namespace OpenMS
 
   }
 
+  void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
+                                                              TargetedExpType & transition_exp, TransitionGroupMapType & transition_group_map,
+                                                              TransformationDescription trafo, double rt_extraction_window)
+  {
+    double rt_min, rt_max, expected_rt;
+    trafo.invert();
 
-    void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-      TargetedExpType & transition_exp, TransitionGroupMapType & transition_group_map,
-      TransformationDescription trafo, double rt_extraction_window)
+    std::map<String, int> chromatogram_map;
+    Size nr_chromatograms = input->getNrChromatograms();
+    for (Size i = 0; i < input->getNrChromatograms(); i++)
     {
-      double rt_min, rt_max, expected_rt;
-      trafo.invert();
-
-      std::map<String, int> chromatogram_map;
-      Size nr_chromatograms = input->getNrChromatograms();
-      for (Size i = 0; i < input->getNrChromatograms(); i++)
-      {
-        chromatogram_map[input->getChromatogramNativeID(i)] = i;
-      }
-
-      // Iterate thorugh all transitions and store the transition with the
-      // corresponding chromatogram in the corresponding transition group
-      Size progress = 0;
-      startProgress(0, nr_chromatograms, "Mapping transitions to chromatograms ");
-      for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
-      {
-        // get the current transition and try to find the corresponding chromatogram
-        const TransitionType * transition = &transition_exp.getTransitions()[i];
-        if(chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
-        { 
-          std::cerr << "Error: Transition " + transition->getNativeID() + " from group " +
-              transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
-          if (strict)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                "Error: Transition " + transition->getNativeID() + " from group " +
-                transition->getPeptideRef() + " does not have a corresponding chromatogram");
-          }
-          continue;
-        } 
-        MSChromatogram<ChromatogramPeak>* chromatogram_old = new MSChromatogram<ChromatogramPeak>;
-        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-        RichPeakChromatogram chromatogram;
-
-        // Create the chromatogram information
-        // Get the expected retention time, apply the RT-transformation
-        // (which describes the normalization) and then take the difference.
-        // Note that we inverted the transformation in the beginning because
-        // we want to transform from normalized to real RTs here and not the
-        // other way round.
-        rt_max = rt_min = 0;
-        expected_rt = PeptideRTMap[transition->getPeptideRef()];
-        double de_normalized_experimental_rt = trafo.apply(expected_rt);
-        rt_max = de_normalized_experimental_rt + rt_extraction_window;
-        rt_min = de_normalized_experimental_rt - rt_extraction_window;
-        for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old->begin(); it != chromatogram_old->end(); ++it)
-        {
-          if (rt_extraction_window >= 0 && (it->getRT() < rt_min || it->getRT() > rt_max)) {continue; }
-          ChromatogramPeak peak;
-          peak.setMZ(it->getRT());
-          peak.setIntensity(it->getIntensity());
-          chromatogram.push_back(peak);
-        }
-        if (chromatogram.empty())
-        {
-          std::cerr << "Error: Could not find any points for chromatogram " + transition->getNativeID() + \
-            ". Maybe your retention time transformation is off?" << std::endl;
-          if (strict)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-             "Error: Could not find any points for chromatogram " + transition->getNativeID() + \
-              ". Maybe your retention time transformation is off?" );
-          }
-        }
-        chromatogram.setMetaValue("product_mz", transition->getProductMZ());
-        chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
-        chromatogram.setNativeID(transition->getNativeID());
-
-        // Create new transition group if there is none for this peptide
-        if (transition_group_map.find(transition->getPeptideRef()) == transition_group_map.end())
-        {
-          MRMTransitionGroupType transition_group;
-          transition_group.setTransitionGroupID(transition->getPeptideRef());
-          transition_group_map[transition->getPeptideRef()] = transition_group;
-        }
-
-        // Now add the transition and the chromatogram to the group
-        MRMTransitionGroupType& transition_group = transition_group_map[transition->getPeptideRef()];
-        transition_group.addTransition(*transition, transition->getNativeID());
-        transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
-
-        setProgress(++progress);
-        delete chromatogram_old;
-      }
-      endProgress();
-
-      // The assumption is that for each transition that is in the TargetedExperiment we have exactly one chromatogram 
-      for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
-      {
-        if (trgroup_it->second.getChromatograms().size() > 0 && (trgroup_it->second.getChromatograms().size() != trgroup_it->second.getTransitions().size()))
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not match all transition to all chromatograms:\nFor chromatogram " + \
-                                           trgroup_it->second.getTransitionGroupID() + " I found " + String(trgroup_it->second.getChromatograms().size()) + \
-                                           " chromatograms but " + String(trgroup_it->second.getTransitions().size()) + " transitions.");
-        }
-      }
+      chromatogram_map[input->getChromatogramNativeID(i)] = i;
     }
 
+    // Iterate thorugh all transitions and store the transition with the
+    // corresponding chromatogram in the corresponding transition group
+    Size progress = 0;
+    startProgress(0, nr_chromatograms, "Mapping transitions to chromatograms ");
+    for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
+    {
+      // get the current transition and try to find the corresponding chromatogram
+      const TransitionType * transition = &transition_exp.getTransitions()[i];
+      if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
+      {
+        std::cerr << "Error: Transition " + transition->getNativeID() + " from group " +
+        transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
+        if (strict)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                           "Error: Transition " + transition->getNativeID() + " from group " +
+                                           transition->getPeptideRef() + " does not have a corresponding chromatogram");
+        }
+        continue;
+      }
+      MSChromatogram<ChromatogramPeak> * chromatogram_old = new MSChromatogram<ChromatogramPeak>;
+      OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+      OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
+      RichPeakChromatogram chromatogram;
+
+      // Create the chromatogram information
+      // Get the expected retention time, apply the RT-transformation
+      // (which describes the normalization) and then take the difference.
+      // Note that we inverted the transformation in the beginning because
+      // we want to transform from normalized to real RTs here and not the
+      // other way round.
+      rt_max = rt_min = 0;
+      expected_rt = PeptideRTMap[transition->getPeptideRef()];
+      double de_normalized_experimental_rt = trafo.apply(expected_rt);
+      rt_max = de_normalized_experimental_rt + rt_extraction_window;
+      rt_min = de_normalized_experimental_rt - rt_extraction_window;
+      for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old->begin(); it != chromatogram_old->end(); ++it)
+      {
+        if (rt_extraction_window >= 0 && (it->getRT() < rt_min || it->getRT() > rt_max))
+        {
+          continue;
+        }
+        ChromatogramPeak peak;
+        peak.setMZ(it->getRT());
+        peak.setIntensity(it->getIntensity());
+        chromatogram.push_back(peak);
+      }
+      if (chromatogram.empty())
+      {
+        std::cerr << "Error: Could not find any points for chromatogram " + transition->getNativeID() + \
+        ". Maybe your retention time transformation is off?" << std::endl;
+        if (strict)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                           "Error: Could not find any points for chromatogram " + transition->getNativeID() + \
+                                           ". Maybe your retention time transformation is off?");
+        }
+      }
+      chromatogram.setMetaValue("product_mz", transition->getProductMZ());
+      chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
+      chromatogram.setNativeID(transition->getNativeID());
+
+      // Create new transition group if there is none for this peptide
+      if (transition_group_map.find(transition->getPeptideRef()) == transition_group_map.end())
+      {
+        MRMTransitionGroupType transition_group;
+        transition_group.setTransitionGroupID(transition->getPeptideRef());
+        transition_group_map[transition->getPeptideRef()] = transition_group;
+      }
+
+      // Now add the transition and the chromatogram to the group
+      MRMTransitionGroupType & transition_group = transition_group_map[transition->getPeptideRef()];
+      transition_group.addTransition(*transition, transition->getNativeID());
+      transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+
+      setProgress(++progress);
+      delete chromatogram_old;
+    }
+    endProgress();
+
+    // The assumption is that for each transition that is in the TargetedExperiment we have exactly one chromatogram
+    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
+    {
+      if (trgroup_it->second.getChromatograms().size() > 0 && (trgroup_it->second.getChromatograms().size() != trgroup_it->second.getTransitions().size()))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not match all transition to all chromatograms:\nFor chromatogram " + \
+                                         trgroup_it->second.getTransitionGroupID() + " I found " + String(trgroup_it->second.getChromatograms().size()) + \
+                                         " chromatograms but " + String(trgroup_it->second.getTransitions().size()) + " transitions.");
+      }
+    }
+  }
 
 }

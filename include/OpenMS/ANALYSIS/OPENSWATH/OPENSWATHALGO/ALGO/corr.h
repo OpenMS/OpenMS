@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Witold Wolski $
 // $Authors: Witold Wolski $
@@ -58,12 +58,12 @@ method = c("pearson", "kendall", "spearman"))
 cov2cor(V)
 
 Arguments
-x 	a numeric vector, matrix or data frame.
-y 	NULL (default) or a vector, matrix or data frame with compatible dimensions to x. The default is equivalent to y = x (but more efficient).
-na.rm 	logical. Should missing values be removed?
-use 	an optional character string giving a method for computing covariances in the presence of missing values. This must be (an abbreviation of) one of the strings "everything", "all.obs", "complete.obs", "na.or.complete", or "pairwise.complete.obs".
-method 	a character string indicating which correlation coefficient (or covariance) is to be computed. One of "pearson" (default), "kendall", or "spearman", can be abbreviated.
-V 	symmetric numeric matrix, usually positive definite such as a covariance matrix.
+x   a numeric vector, matrix or data frame.
+y   NULL (default) or a vector, matrix or data frame with compatible dimensions to x. The default is equivalent to y = x (but more efficient).
+na.rm   logical. Should missing values be removed?
+use     an optional character string giving a method for computing covariances in the presence of missing values. This must be (an abbreviation of) one of the strings "everything", "all.obs", "complete.obs", "na.or.complete", or "pairwise.complete.obs".
+method  a character string indicating which correlation coefficient (or covariance) is to be computed. One of "pearson" (default), "kendall", or "spearman", can be abbreviated.
+V   symmetric numeric matrix, usually positive definite such as a covariance matrix.
 Details
 
 For cov and cor one must either give a matrix or data frame for x or give both x and y.
@@ -112,43 +112,44 @@ using namespace std;
 namespace OpenSwath
 {
 
-				template<typename TInputIterator, typename TInputIteratorY>
-				typename std::iterator_traits<TInputIterator>::value_type cor_pearson(
-					TInputIterator xBeg,
-					TInputIterator xEnd,
-					TInputIteratorY yBeg
-					)
-				{
-					typedef typename std::iterator_traits<TInputIterator>::value_type value_type;
-					value_type   m1, m2;
-					value_type   s1, s2;
-					value_type   corr;
-					m1 = m2 = s1 = s2 = 0.0;
-					corr = 0.0;
-					ptrdiff_t n = std::distance(xBeg , xEnd );
-					value_type nd= static_cast<value_type>(n);
-					for(; xBeg != xEnd ;++xBeg,++yBeg)
-					{
-						corr += *xBeg * *yBeg;
-						m1 += *xBeg;
-						m2 += *yBeg;
-						s1 += *xBeg* *xBeg;
-						s2 += *yBeg* *yBeg;
-					}
-					m1 /= nd;
-					m2 /= nd;
-					s1 -= m1*m1*nd;
-					s2 -= m2*m2*nd;
+  template <typename TInputIterator, typename TInputIteratorY>
+  typename std::iterator_traits<TInputIterator>::value_type cor_pearson(
+    TInputIterator xBeg,
+    TInputIterator xEnd,
+    TInputIteratorY yBeg
+    )
+  {
+    typedef typename std::iterator_traits<TInputIterator>::value_type value_type;
+    value_type   m1, m2;
+    value_type   s1, s2;
+    value_type   corr;
+    m1 = m2 = s1 = s2 = 0.0;
+    corr = 0.0;
+    ptrdiff_t n = std::distance(xBeg, xEnd);
+    value_type nd = static_cast<value_type>(n);
+    for (; xBeg != xEnd; ++xBeg, ++yBeg)
+    {
+      corr += *xBeg * *yBeg;
+      m1 += *xBeg;
+      m2 += *yBeg;
+      s1 += *xBeg * *xBeg;
+      s2 += *yBeg * *yBeg;
+    }
+    m1 /= nd;
+    m2 /= nd;
+    s1 -= m1 * m1 * nd;
+    s2 -= m2 * m2 * nd;
 
-					if( s1 < 1.0e-12 || s2 < 1.0e-12 )
-						return(0.0);
-					else
-					{
-						corr -= m1*m2*(double)n;
-						corr /= sqrt(s1*s2);
-						return(corr);
-					}
-				}
+    if (s1 < 1.0e-12 || s2 < 1.0e-12)
+      return 0.0;
+    else
+    {
+      corr -= m1 * m2 * (double)n;
+      corr /= sqrt(s1 * s2);
+      return corr;
+    }
+  }
+
 }
 
 #endif

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -74,7 +74,7 @@ namespace OpenMS
       XCorrArrayType::iterator max_it = array.begin();
       double max = array.begin()->second;
       for (XCorrArrayType::iterator it = array.begin();
-          it != array.end(); it++)
+           it != array.end(); it++)
       {
         if (it->second > max)
         {
@@ -91,10 +91,10 @@ namespace OpenMS
 
       // subtract the mean and divide by the standard deviation
       double mean = std::accumulate(data.begin(), data.end(), 0.0)
-          / (double) data.size();
+                    / (double) data.size();
       double sqsum = 0;
       for (std::vector<double>::iterator it = data.begin(); it != data.end();
-          it++)
+           it++)
       {
         sqsum += (*it - mean) * (*it - mean);
       }
@@ -107,7 +107,7 @@ namespace OpenMS
     }
 
     XCorrArrayType normalizedCalcxcorr(std::vector<double> & data1,
-        std::vector<double> & data2, int maxdelay, int lag = 1)
+                                       std::vector<double> & data2, int maxdelay, int lag = 1)
     {
       //OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
@@ -116,7 +116,7 @@ namespace OpenMS
       standardize_data(data2);
       std::map<int, double> result = calcxcorr_new(data1, data2, maxdelay, lag);
       for (std::map<int, double>::iterator it = result.begin();
-          it != result.end(); it++)
+           it != result.end(); it++)
       {
         it->second = it->second / data1.size();
       }
@@ -124,7 +124,7 @@ namespace OpenMS
     }
 
     XCorrArrayType calcxcorr_new(std::vector<double> & data1,
-        std::vector<double> & data2, int maxdelay, int lag)
+                                 std::vector<double> & data2, int maxdelay, int lag)
     {
       // OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
@@ -151,7 +151,7 @@ namespace OpenMS
     }
 
     XCorrArrayType calcxcorr(std::vector<double> & data1,
-        std::vector<double> & data2, bool normalize)
+                             std::vector<double> & data2, bool normalize)
     {
       //OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
       int maxdelay = data1.size();
@@ -159,9 +159,9 @@ namespace OpenMS
 
       XCorrArrayType result;
       double mean1 = std::accumulate(data1.begin(), data1.end(), 0.)
-          / (double)data1.size();
+                     / (double)data1.size();
       double mean2 = std::accumulate(data2.begin(), data2.end(), 0.)
-          / (double)data2.size();
+                     / (double)data2.size();
       double denominator = 1;
       int datasize = data1.size();
       int i, j, delay;
@@ -172,13 +172,13 @@ namespace OpenMS
         double sqsum1 = 0;
         double sqsum2 = 0;
         for (std::vector<double>::iterator it = data1.begin();
-            it != data1.end(); it++)
+             it != data1.end(); it++)
         {
           sqsum1 += (*it - mean1) * (*it - mean1);
         }
 
         for (std::vector<double>::iterator it = data2.begin();
-            it != data2.end(); it++)
+             it != data2.end(); it++)
         {
           sqsum2 += (*it - mean2) * (*it - mean2);
         }
@@ -221,4 +221,3 @@ namespace OpenMS
 
   } //end namespace Scoring
 }
-
