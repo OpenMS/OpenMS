@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DIAHELPERS_H_
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DIAHELPERS_H_
+#ifndef OPENSWATH_DIAHELPERS_H_
+#define OPENSWATH_DIAHELPERS_H_
 
 #include <cmath>
 #include <vector>
@@ -49,9 +49,7 @@
 namespace OpenSwath
 {
 
-	void normalize(const std::vector<double> & intensities,
-			double normalization_factor,
-			std::vector<double> & normalized_intensities);
+	void normalize(const std::vector<double> & intensities, double normalization_factor, std::vector<double> & normalized_intensities);
 
 	template<typename T>
 	double norm(T beg, T end)
@@ -84,10 +82,8 @@ namespace OpenSwath
 		return sum;
 	}
 
-	inline double dotprodScoring(std::vector<double> intExp,
-			std::vector<double> theorint)
+	inline double dotprodScoring(std::vector<double> intExp, std::vector<double> theorint)
 	{
-
 		for(int i = 0 ; i < intExp.size(); ++i)
     {
 			intExp[i] = sqrt(intExp[i]);
@@ -117,8 +113,7 @@ namespace OpenSwath
 		return sum;
 	}
 
-	inline double manhattanScoring(std::vector<double> intExp,
-			std::vector<double> theorint)
+	inline double manhattanScoring(std::vector<double> intExp, std::vector<double> theorint)
 	{
 
 		for(int i = 0 ; i < intExp.size(); ++i)

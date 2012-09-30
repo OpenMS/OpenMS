@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MEANANDSD_H_
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MEANANDSD_H_
+#ifndef OPENSWATH_ALGO_MEANANDSD_H_
+#define OPENSWATH_ALGO_MEANANDSD_H_
 #include <cmath>
 
 namespace OpenSwath

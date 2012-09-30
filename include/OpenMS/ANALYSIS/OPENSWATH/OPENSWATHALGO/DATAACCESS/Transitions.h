@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_TRANSITIONS_H_
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_TRANSITIONS_H_
+#ifndef OPENSWATH_DATAACCESS_TRANSITIONS_H_
+#define OPENSWATH_DATAACCESS_TRANSITIONS_H_
 
 namespace OpenSwath
 {

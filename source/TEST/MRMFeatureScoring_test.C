@@ -51,7 +51,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h> 
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h> 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/mQuestScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
 
 ///////////////////////////

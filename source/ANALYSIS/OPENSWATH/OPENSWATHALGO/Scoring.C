@@ -220,5 +220,5 @@ namespace OpenMS
     }
 
   } //end namespace Scoring
-} //end namespace
+}
 

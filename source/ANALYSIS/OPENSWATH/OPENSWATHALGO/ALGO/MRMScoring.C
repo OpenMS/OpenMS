@@ -32,21 +32,15 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MRMFEATURESCORING_C
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MRMFEATURESCORING_C
-
 //#define MRMSCORING_TESTING
 #include <algorithm>
 #include <algorithm>
 #include <iterator>
 #include <iostream>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/mQuestScoring.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/meanAndSd.h"
-
-//#include <gsl/gsl_statistics_int.h>
-//#include <gsl/gsl_statistics_double.h>
 
 namespace OpenMS
 {
@@ -55,6 +49,37 @@ namespace OpenMS
 	{
 		return xcorr_matrix_;
 	}
+
+  void MRMFeatureScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize)
+  {
+    std::vector<double> intensityi, intensityj;
+    xcorr_matrix_.resize(transition_group->size());
+    for (std::size_t i = 0; i < transition_group->size(); i++)
+    {
+      String native_id = transition_group->getNativeIDs()[i];
+      FeatureType fi = mrmfeature->getFeature(native_id);
+      xcorr_matrix_[i].resize(transition_group->size());
+      intensityi.clear();
+      fi->getIntensity(intensityi);
+      for (std::size_t j = i; j < transition_group->size(); j++)
+      {
+        String native_id2 = transition_group->getNativeIDs()[j];
+        FeatureType fj = mrmfeature->getFeature(native_id2);
+        intensityj.clear();
+        fj->getIntensity(intensityj);
+        //std::cout << " = Computing crosscorrelation " << i << " / "  << j << " or " << native_id << " vs " << native_id2 << std::endl;
+        if (normalize)
+        {
+          xcorr_matrix_[i][j] = Scoring::normalizedCalcxcorr(intensityi, intensityj, intensityi.size(), 1);
+        }
+        else
+        {
+          throw "not implemented";
+        }
+
+      }
+    }
+  }
 
 	// see /IMSB/users/reiterl/bin/code/biognosys/trunk/libs/mrm_libs/MRM_pgroup.pm
 	// _calc_xcorr_coelution_score
@@ -141,6 +166,7 @@ namespace OpenMS
 	//
 	//   for each i,j get xcorr_matrix array => find max of the crosscorrelation
 	//   calculate whether the maximal crosscorrelation coincides with the maximal intensity
+  /// 
 	double MRMFeatureScoring::calcXcorrShape_score()
 	{
 		//TODO OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
@@ -188,7 +214,77 @@ namespace OpenMS
 		return std::accumulate(intensities.begin(), intensities.end(), 0.0);
 	}
 
+  void MRMFeatureScoring::calcLibraryScore(OpenSwath::IMRMFeature * mrmfeature, const std::vector<TransitionType> & transitions,
+      double & correlation, double & rmsd, double & manhattan, double & dotprod)
+  {
+    std::vector<double> library_intensity;
+    std::vector<double> experimental_intensity;
+    String native_id;
 
+    for (std::size_t k = 0; k < transitions.size(); k++)
+    {
+      // TODO get apex or integrated intensity?
+      native_id = transitions[k].getNativeID();
+      double intensity = transitions[k].getLibraryIntensity();
+      // the library intensity should never be below zero
+      if (intensity < 0.0) 
+      {
+        intensity = 0.0;
+      }
+      experimental_intensity.push_back(mrmfeature->getFeature(native_id)->getIntensity());
+      library_intensity.push_back(intensity);
+    }
+
+    //OPENMS_PRECONDITION(library_intensity.size() == experimental_intensity.size(), "Both vectors need to have the same size");
+
+#ifdef MRMSCORING_TESTING
+    for (std::size_t k = 0; k < transitions.size(); k++)
+    {
+      native_id = transitions[k].getNativeID();
+      std::cout << native_id << " Lib vs exp " << library_intensity[k] << " " << experimental_intensity[k] << std::endl;
+    }
+#endif
+
+    manhattan = OpenSwath::manhattanScoring(experimental_intensity,library_intensity);
+    dotprod = OpenSwath::dotprodScoring(experimental_intensity,library_intensity);
+
+
+    Scoring::normalize_sum(&experimental_intensity[0], transitions.size());
+    Scoring::normalize_sum(&library_intensity[0], transitions.size());
+
+    rmsd = Scoring::RMSD(&experimental_intensity[0], &library_intensity[0], transitions.size());
+    correlation = OpenSwath::cor_pearson(experimental_intensity.begin(), experimental_intensity.end(),library_intensity.begin());
+
+
+    //double c0, c1, cov00, cov01, cov11, sumsq;
+    //int ret = gsl_fit_linear(normx, 1, normy, 1, transitions.size(), &c0, &c1, &cov00, &cov01, &cov11, &sumsq);
+    if (boost::math::isnan(correlation)) correlation = -1.0;
+  }
+
+  double MRMFeatureScoring::calcRTScore(const PeptideType & peptide, double normalized_experimental_rt)
+  {
+    double expected_rt;
+    expected_rt = peptide.rt;
+
+    if (expected_rt <= -1000)
+    {
+      return 0;
+    }
+
+    // use the transformed experimental retention time and then take the difference.
+    double rt_score = std::fabs(normalized_experimental_rt - expected_rt);
+    return rt_score;
+  }
+
+  double MRMFeatureScoring::calcSNScore(OpenSwath::IMRMFeature * mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr> & signal_noise_estimators)
+  {
+    double sn_score = 0;
+
+    for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)
+    {
+      sn_score += signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT());
+    }
+    return sn_score / signal_noise_estimators.size();
+  }
 }
 
-#endif

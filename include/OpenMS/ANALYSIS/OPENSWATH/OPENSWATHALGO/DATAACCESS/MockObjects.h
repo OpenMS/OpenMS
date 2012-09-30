@@ -32,16 +32,15 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MOCKOBJECTS_H_
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MOCKOBJECTS_H_
+#ifndef OPENSWATH_DATAACCESS_MOCKOBJECTS_H_
+#define OPENSWATH_DATAACCESS_MOCKOBJECTS_H_
 
 #include "vector"
 #include "map"
 #include "boost/shared_ptr.hpp"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 
-//TODO why mock objects are in namespace OpenMS
-namespace OpenMS
+namespace OpenSwath
 {
 
   class MockFeature: public OpenSwath::IFeature
@@ -151,7 +150,8 @@ namespace OpenMS
 
     double getValueAtRT(double RT)
     {
-      return m_sn_value;
+      // to prevent unused RT warning
+      return m_sn_value * RT / RT;
     }
 
     double m_sn_value;

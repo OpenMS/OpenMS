@@ -1,7 +1,7 @@
 project(tests)
 
 set(my_tests
-mQuestScoring_test
+MRMScoring_test
 Scoring_test
 TestConvert
 DiaHelpers_test

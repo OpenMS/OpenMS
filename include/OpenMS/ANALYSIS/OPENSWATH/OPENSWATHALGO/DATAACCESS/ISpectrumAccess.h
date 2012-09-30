@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ISPECTRUMACCESS_H_
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ISPECTRUMACCESS_H_
+#ifndef OPENSWATH_DATAACCESS_ISPECTRUMACCESS_H_
+#define OPENSWATH_DATAACCESS_ISPECTRUMACCESS_H_
 
 #include "DataStructures.h"
 #include <vector>

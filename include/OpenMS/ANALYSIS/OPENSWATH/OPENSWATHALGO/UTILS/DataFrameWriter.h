@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAFRAMEWRITER_H_
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAFRAMEWRITER_H_
+#ifndef OPENSWATH_UTILS_DATAFRAMEWRITER_H_
+#define OPENSWATH_UTILS_DATAFRAMEWRITER_H_
 
 #include <iostream>
 #include <iomanip>

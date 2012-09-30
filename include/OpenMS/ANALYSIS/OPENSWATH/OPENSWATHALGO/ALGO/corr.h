@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO__stats_COR__H__
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO__stats_COR__H__
+#ifndef OPENSWATH_ALGO__stats_COR__H__
+#define OPENSWATH_ALGO__stats_COR__H__
 
 /*! \file Corr.h cor {stats} R Documentation
 
@@ -149,7 +149,7 @@ namespace OpenSwath
 						return(corr);
 					}
 				}
-}//namespace ralab
+}
 
 #endif
 

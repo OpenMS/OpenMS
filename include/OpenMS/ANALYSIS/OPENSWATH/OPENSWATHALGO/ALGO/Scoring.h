@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef MRMFEATURESCORING_H_
-#define MRMFEATURESCORING_H_
+#ifndef OPENSWATH_ALGO_SCORING_H
+#define OPENSWATH_ALGO_SCORING_H
 
 #include <numeric>
 #include <map>
@@ -81,4 +81,4 @@ namespace OpenMS
   }
 }
 
-#endif /* MRMFEATURESCORING_H_ */
+#endif 

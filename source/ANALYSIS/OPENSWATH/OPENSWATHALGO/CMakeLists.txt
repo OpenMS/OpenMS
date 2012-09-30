@@ -2,7 +2,7 @@ project(OpenSwath)
 
 set(OpenSwathAlgorithmFiles
   Scoring.C
-  mQuestScoring.C
+  ALGO/MRMScoring.C
   DIAHelpers.C
 )
 

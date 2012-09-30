@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MRMFEATURESCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MRMFEATURESCORING_H
+#ifndef OPENSWATH_ALGO_MQUESTSCORING_H
+#define OPENSWATH_ALGO_MQUESTSCORING_H
 
 #include <string>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
@@ -100,36 +100,7 @@ public:
     /** @name Scores */
     //@{
     /// Initialize the scoring object and building the cross-correlation matrix
-    void initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize)
-    {
-      std::vector<double> intensityi, intensityj;
-      xcorr_matrix_.resize(transition_group->size());
-      for (std::size_t i = 0; i < transition_group->size(); i++)
-      {
-        String native_id = transition_group->getNativeIDs()[i];
-        FeatureType fi = mrmfeature->getFeature(native_id);
-        xcorr_matrix_[i].resize(transition_group->size());
-        intensityi.clear();
-        fi->getIntensity(intensityi);
-        for (std::size_t j = i; j < transition_group->size(); j++)
-        {
-          String native_id2 = transition_group->getNativeIDs()[j];
-          FeatureType fj = mrmfeature->getFeature(native_id2);
-          intensityj.clear();
-          fj->getIntensity(intensityj);
-          //std::cout << " = Computing crosscorrelation " << i << " / "  << j << " or " << native_id << " vs " << native_id2 << std::endl;
-          if (normalize)
-          {
-            xcorr_matrix_[i][j] = Scoring::normalizedCalcxcorr(intensityi, intensityj, intensityi.size(), 1);
-          }
-          else
-          {
-            throw "not implemented";
-          }
-
-        }
-      }
-    }
+    void initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize);
 
     /// calculate the cross-correlation score
     double calcXcorrCoelutionScore();
@@ -145,136 +116,24 @@ public:
 
     /// calculate the library correlation score (correlation and rmsd)
     static void calcLibraryScore(OpenSwath::IMRMFeature * mrmfeature, const std::vector<TransitionType> & transitions,
-        double & correlation, double & rmsd, double & manhattan, double & dotprod)
-    {
-      std::vector<double> library_intensity;
-      std::vector<double> experimental_intensity;
-      String native_id;
-
-      for (std::size_t k = 0; k < transitions.size(); k++)
-      {
-        // TODO get apex or integrated intensity?
-        native_id = transitions[k].getNativeID();
-        double intensity = transitions[k].getLibraryIntensity();
-        // the library intensity should never be below zero
-        if (intensity < 0.0) 
-        {
-          intensity = 0.0;
-        }
-        experimental_intensity.push_back(mrmfeature->getFeature(native_id)->getIntensity());
-        library_intensity.push_back(intensity);
-      }
-
-      //OPENMS_PRECONDITION(library_intensity.size() == experimental_intensity.size(), "Both vectors need to have the same size");
-
-#ifdef MRMSCORING_TESTING
-      for (std::size_t k = 0; k < transitions.size(); k++)
-      {
-        native_id = transitions[k].getNativeID();
-        std::cout << native_id << " Lib vs exp " << library_intensity[k] << " " << experimental_intensity[k] << std::endl;
-      }
-#endif
-
-      manhattan = OpenSwath::manhattanScoring(experimental_intensity,library_intensity);
-      dotprod = OpenSwath::dotprodScoring(experimental_intensity,library_intensity);
-
-
-      Scoring::normalize_sum(&experimental_intensity[0], transitions.size());
-      Scoring::normalize_sum(&library_intensity[0], transitions.size());
-
-      rmsd = Scoring::RMSD(&experimental_intensity[0], &library_intensity[0], transitions.size());
-      correlation = OpenSwath::cor_pearson(experimental_intensity.begin(), experimental_intensity.end(),library_intensity.begin());
-
-
-      //double c0, c1, cov00, cov01, cov11, sumsq;
-      //int ret = gsl_fit_linear(normx, 1, normy, 1, transitions.size(), &c0, &c1, &cov00, &cov01, &cov11, &sumsq);
-      if (boost::math::isnan(correlation)) correlation = -1.0;
-    }
+        double & correlation, double & rmsd, double & manhattan, double & dotprod);
 
     /// calculate the retention time correlation score
-    static double calcRTScore(const PeptideType & peptide, double normalized_experimental_rt)
-    {
-      double experimental_rt, expected_rt;
-      expected_rt = peptide.rt;
-
-      if (expected_rt <= -1000)
-      {
-        return 0;
-      }
-
-      // use the transformed experimental retention time and then take the difference.
-      double rt_score = std::fabs(normalized_experimental_rt - expected_rt);
-      return rt_score;
-    }
+    static double calcRTScore(const PeptideType & peptide, double normalized_experimental_rt);
 
     /// calculate the Signal to Noise ratio
     //  using a vector of SignalToNoiseEstimatorMedian that were calculated for
     //  each chromatogram of the transition_group.
-    static double calcSNScore(OpenSwath::IMRMFeature * mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr> & signal_noise_estimators)
-    {
-      double sn_score = 0;
-
-      for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)
-      {
-      	sn_score += signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT());
-      }
-      return sn_score / signal_noise_estimators.size();
-    }
+    static double calcSNScore(OpenSwath::IMRMFeature * mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr> & signal_noise_estimators);
 
     //@}
 
-    /** @name Helper functions */
-    //@{
-/*
-    double RMSD(double x[], double y[], int n);
-
-    XCorrArrayType calcxcorr(std::vector<double> & data1, std::vector<double> & data2, bool normalize);
-
-    /// Calculate crosscorrelation on std::vector data (which is first normalized)
-    MRMFeatureScoring::XCorrArrayType normalizedCalcxcorr(std::vector<double> & data1, std::vector<double> & data2, int maxdelay, int lag);
-
-    /// Calculate crosscorrelation on std::vector data without normalization
-    MRMFeatureScoring::XCorrArrayType calcxcorr_new(std::vector<double> & data1, std::vector<double> & data2, int maxdelay, int lag);
-
-    MRMFeatureScoring::XCorrArrayType calcxcorr_lag1(std::vector<double> & data1, std::vector<double> & data2, int maxdelay);
-
-    /// Find best peak in an cross-correlation (highest apex)
-    XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType array);
-
-    /// Standardize a vector (subtract mean, divide by standard deviation)
-    void standardize_data(std::vector<double> & data);
-
-    /// divide each element of x by the sum of the vector
-    void normalize_sum(double x[], int n);
-*/
-
-     //@}
-
-
 private:
-
-
-
-    /// Calculate crosscorrelation on Convex Hulls
-
-    /// Fxn from mQuest to calculate similarity between library intensity and experimental ones
-    //double deltaRatioSum(double x[], double y[], int n);
-
-    /// Fxn from FeatureFinderAlgorithmMRM
 
     /** @name Members */
     //@{
-
-    /// An Emg fitter for the elution profile score
-    //TODO remove EmgFitter and related methods to own class.
-
-    //EmgFitter1D fitter_emg1D;
-
     /// the precomputed cross correlation matrix
     XCorrMatrixType xcorr_matrix_;
-
-
-
     //@}
 
   };

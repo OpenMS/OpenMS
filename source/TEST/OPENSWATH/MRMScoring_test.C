@@ -32,7 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/mQuestScoring.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
