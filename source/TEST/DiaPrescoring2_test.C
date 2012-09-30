@@ -45,17 +45,17 @@ START_TEST(DiaPrescore2, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DiaPrescore2* ptr = 0;
-DiaPrescore2* nullPointer = 0;
+DiaPrescore* ptr = 0;
+DiaPrescore* nullPointer = 0;
 
-START_SECTION(DiaPrescore2())
+START_SECTION(DiaPrescore())
 {
-  ptr = new DiaPrescore2();
+  ptr = new DiaPrescore();
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~DiaPrescore2())
+START_SECTION(~DiaPrescore())
 {
   delete ptr;
 }

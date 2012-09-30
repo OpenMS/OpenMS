@@ -36,4 +36,143 @@
 
 namespace OpenMS
 {
+
+  void getNormalizedLibraryIntensities(
+    const std::vector<OpenSwath::LightTransition> & transitions,
+    std::vector<double> & normalizedLibraryIntensities     //normalized intensities
+    )
+  {
+    double totalInt = 0.;
+    for (std::size_t i = 0; i < transitions.size(); ++i)
+    {
+      double libInt = transitions[i].getLibraryIntensity();
+      if (libInt < 0.)
+        libInt = 0.;
+      totalInt += libInt;
+      normalizedLibraryIntensities.push_back(libInt);
+    }
+    std::transform(normalizedLibraryIntensities.begin(),
+                   normalizedLibraryIntensities.end(),
+                   normalizedLibraryIntensities.begin(),
+                   boost::bind(std::divides<double>(), _1, totalInt));
+  }
+
+
+  void getMZIntensityFromTransition(const std::vector<OpenSwath::LightTransition> & trans, std::vector<std::pair<double, double> > & res)
+  {
+    for (std::size_t i = 0; i < trans.size(); ++i)
+    {
+      res.push_back(std::make_pair(trans[i].product_mz, trans[i].library_intensity));
+    }
+  }
+  void DiaPrescore::operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
+                 OpenSwath::LightTargetedExperiment & transition_exp_used,
+                 OpenSwath::IDataFrameWriter * ivw)
+  {
+    getParams();
+    typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;
+    Mmap transmap;
+    convert(transition_exp_used, transmap);
+      // std::cout << "nr peptides : " << transmap.size() << std::endl;
+
+    Mmap::iterator beg = transmap.begin();
+    Mmap::iterator end = transmap.end();
+    std::vector<std::string> transitionsNames;
+
+    for (; beg != end; ++beg)
+    {
+      transitionsNames.push_back(beg->first);
+    }
+
+    ivw->colnames(transitionsNames);
+    //iterate over spectra
+
+    for (uint32_t i = 0; i < swath_ptr->getNrSpectra(); ++i)
+    {
+
+      OpenSwath::SpectrumPtr spec = swath_ptr->getSpectrumById(i);
+      OpenSwath::SpectrumMeta specmeta = swath_ptr->getSpectrumMetaById(i);
+      std::cout << "Processing Spectrum  " << i << "RT " << specmeta.RT << std::endl;
+
+      //iterate over spectra
+      size_t xx = 0;
+      Mmap::iterator beg = transmap.begin();
+      Mmap::iterator end = transmap.end();
+      std::vector<double> score1v;
+      std::vector<double> score2v;
+      for (; beg != end; ++beg, ++xx)
+      {
+        //std::cout << "analysing transtion" << xx << beg->second.size()
+        //    << " " << beg->first << std::endl;
+        double score1;
+        double score2;
+        //OpenSwath::LightPeptide pep;
+        score(spec, beg->second, score1, score2);
+
+        score1v.push_back(score1);
+        score2v.push_back(score2);
+      }           //end of forloop over transitions
+
+      //std::string ispectrum = boost::lexical_cast<std::string>(i);
+      std::string specRT = boost::lexical_cast<std::string>(specmeta.RT);
+      ivw->store("score1_" + specRT, score1v);
+      ivw->store("score2_" + specRT, score2v);
+    }           //end of forloop over spectra
+  }
+
+  void DiaPrescore::score(OpenSwath::SpectrumPtr spec,
+             const std::vector<OpenSwath::LightTransition> & lt,
+             double & dotprod,
+             double & manhattan)
+  {
+    std::vector<std::pair<double, double> > res;
+    getMZIntensityFromTransition(lt, res);
+    std::vector<double> firstIstotope, theomasses;
+    extractFirst(res, firstIstotope);
+    std::vector<std::pair<double, double> > spectrum, spectrum2;
+    addIsotopes2Spec(res, spectrum);
+    spectrum2.resize(spectrum.size());
+    std::copy(spectrum.begin(), spectrum.end(), spectrum2.begin());
+    //std::cout << spectrum.size() << std::endl;
+    addPreisotopeWeights(firstIstotope, spectrum, 2, 0.0);
+    //extracts masses from spectrum
+    extractFirst(spectrum, theomasses);
+    std::vector<double>  theorint;
+    extractSecond(spectrum, theorint);
+    std::vector<double> intExp, mzExp;
+    integrateWindows(spec, theomasses, dia_extract_window_, intExp,
+                     mzExp);
+    std::transform(intExp.begin(), intExp.end(), intExp.begin(), mySqrt());
+    std::transform(theorint.begin(), theorint.end(), theorint.begin(), mySqrt());
+
+    double intExptotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
+    double intTheorTotal = std::accumulate(theorint.begin(), theorint.end(), 0.0);
+
+    OpenSwath::normalize(intExp, intExptotal, intExp);
+    OpenSwath::normalize(theorint, intTheorTotal, theorint);
+
+    std::cout <<  "Exp " << intExp.size() << std::endl;
+    std::cout <<  "theor" << theorint.size() << std::endl;
+    //std::copy(theorint.begin(),theorint.end(),std::ostream_iterator<double>(std::cout,", "));
+    //std::cout << std::endl;
+
+    manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
+
+    //std::cout << spectrum.size() << std::endl;
+    addPreisotopeWeights(firstIstotope, spectrum2, 2, -0.5);
+    std::vector<double>  theorint2;
+    extractSecond(spectrum, theorint2);
+    std::transform(theorint2.begin(), theorint2.end(), theorint2.begin(), mySqrt());
+
+    intExptotal = OpenSwath::norm(intExp.begin(), intExp.end());
+    intTheorTotal = OpenSwath::norm(theorint2.begin(), theorint2.end());
+
+    OpenSwath::normalize(intExp, intExptotal, intExp);
+    OpenSwath::normalize(theorint2, intTheorTotal, theorint2);
+    std::copy(intExp.begin(), intExp.end(), std::ostream_iterator<double>(std::cout, ", "));
+    std::cout << std::endl;
+    std::copy(theorint2.begin(), theorint2.end(), std::ostream_iterator<double>(std::cout, ", "));
+    std::cout << std::endl;
+    dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), theorint2.begin());
+  }
 }

@@ -178,7 +178,7 @@ namespace OpenMS
   void DIAScoring::score_with_isotopes(SpectrumType spectrum, const std::vector<TransitionType> & transitions,
     double & dotprod, double & manhattan)
   {
-    OpenMS::DiaPrescore2 dp;
+    OpenMS::DiaPrescore dp;
     dp.score(spectrum, transitions, dotprod, manhattan);
   }
 

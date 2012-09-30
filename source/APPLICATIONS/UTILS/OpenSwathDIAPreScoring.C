@@ -107,7 +107,7 @@ class DIAPreScoring: public TOPPBase
 
 		Param getSubsectionDefaults_(const String &) const
 		{
-			return OpenMS::DiaPrescore2().getDefaults();
+			return OpenMS::DiaPrescore().getDefaults();
 		}
 
 		ExitCodes main_(int, const char **)
@@ -194,8 +194,8 @@ class DIAPreScoring: public TOPPBase
 
 				//std::cout << "using data frame writer for storing data. Outfile :" << out << std::endl;
                 OpenSwath::IDataFrameWriter * dfw = new OpenSwath::CSVWriter(fname);
-				OpenMS::DiaPrescore2 dp;
-				dp.Prescore2(spectrumAccess,transition_exp_used ,dfw);
+                                OpenMS::DiaPrescore dp;
+                                dp.operator()(spectrumAccess,transition_exp_used ,dfw);
 				delete dfw;
 				//featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
 				//		transition_exp_used, trafo, swath_ptr, transition_group_map);
