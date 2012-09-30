@@ -18,6 +18,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
 
 #include <map>
 #include <utility>  //for pair
@@ -27,19 +29,17 @@
 
 namespace OpenMS
 {
-  std::pair<String, DoubleReal> MRMDecoy::getDecoyIon(String ionid,
-    std::map<String, std::map<String, DoubleReal> > & decoy_ionseries)
+  std::pair<String, DoubleReal> MRMDecoy::getDecoyIon(String ionid, std::map<String, std::map<String, DoubleReal> > & decoy_ionseries)
   {
     using namespace boost::assign;
     // Select SpectraST Style
     std::vector<String> SpectraST_order;
     SpectraST_order += "b", "b_loss", "y", "y_loss", "a", "b_isotopes", "b_isotopes_loss", "y_isotopes", "y_isotopes_loss", "a_isotopes";
 
-    // TODO(georger): later you check whether ion.second is larger than zero,
-    // however if you do not initialize the method then ion.second could have
-    // any value if this method fails!
     // Iterate over ion type and then ordinal
     std::pair<String, DoubleReal> ion;
+		String unannotated = "unannotated";
+		ion = make_pair(unannotated, -1);
     for (std::vector<String>::iterator iontype = SpectraST_order.begin(); iontype != SpectraST_order.end(); ++iontype)
     {
       for (std::map<String, DoubleReal>::iterator ordinal = decoy_ionseries[*iontype].begin(); ordinal != decoy_ionseries[*iontype].end(); ++ordinal)
@@ -53,8 +53,7 @@ namespace OpenMS
     return ion;
   }
 
-  std::pair<String, double> MRMDecoy::getTargetIon(double ProductMZ, double mz_threshold,
-    std::map<String, std::map<String, double> > target_ionseries)
+  std::pair<String, double> MRMDecoy::getTargetIon(double ProductMZ, double mz_threshold, std::map<String, std::map<String, double> > target_ionseries)
   {
     // make sure to only use annotated transitions and to use the theoretical MZ
     using namespace boost::assign;
@@ -62,11 +61,10 @@ namespace OpenMS
     std::vector<String> SpectraST_order;
     SpectraST_order += "b", "b_loss", "y", "y_loss", "a", "b_isotopes", "b_isotopes_loss", "y_isotopes", "y_isotopes_loss", "a_isotopes";
 
-    // TODO(georger): later you check whether ion.second is larger than zero,
-    // however if you do not initialize the method then ion.second could have
-    // any value if this method fails!
     // Iterate over ion type and then ordinal
     std::pair<String, double> ion;
+    String unannotated = "unannotated";
+    ion = make_pair(unannotated, -1);
     for (std::vector<String>::iterator iontype = SpectraST_order.begin(); iontype != SpectraST_order.end(); ++iontype)
     {
       for (std::map<String, double>::iterator ordinal = target_ionseries[*iontype].begin(); ordinal != target_ionseries[*iontype].end(); ++ordinal)
@@ -81,31 +79,22 @@ namespace OpenMS
     return ion;
   }
 
-  std::map<String, std::map<String, double> > MRMDecoy::getIonSeries(
-    AASequence sequence, int precursor_charge)
+  std::map<String, std::map<String, double> > MRMDecoy::getIonSeries(AASequence sequence, int precursor_charge, int max_isotope)
   {
     std::map<String, std::map<String, double> > ionseries;
     std::map<String, double> bionseries, bionseries_isotopes, bionseries_loss,
                              bionseries_isotopes_loss, yionseries, yionseries_isotopes,
                              yionseries_loss, yionseries_isotopes_loss, aionseries,
                              aionseries_isotopes;
-    //TODO(georger): make isotope a parameter here?
-    int max_isotope = 2;
 
-    for (int charge = 1; charge < precursor_charge; ++charge)
+    for (int charge = 1; charge <= precursor_charge; ++charge)
     {
       for (Size i = 1; i < sequence.size(); ++i)
       {
         AASequence ion = sequence.getPrefix(i);
         double pos = ion.getMonoWeight(Residue::BIon, charge) / (double) charge;
 
-        //TODO(georger): Proton Hack Check if correct => write test for it!!
-        if (i == 1)
-        {
-          pos -= Constants::PROTON_MASS_U;
-        }
-
-        bionseries["b" + String(i) + String(charge, '+')] = pos;
+        bionseries["b" + String(i) + "/" + String(charge) + "+"] = pos;
 
         IsotopeDistribution dist = ion.getFormula(Residue::BIon, charge).getIsotopeDistribution(max_isotope);
         UInt j(0);
@@ -113,7 +102,7 @@ namespace OpenMS
         {
           if (j > 0)
           {
-            bionseries_isotopes["b" + String(i) + String(charge, '+') + "iso" + String(j)] = ((double) (
+            bionseries_isotopes["b" + String(i) + "/" + String(charge) + "+" + "/" + "iso" + String(j)] = ((double) (
               pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
           }
         }
@@ -151,13 +140,13 @@ namespace OpenMS
     }
     ionseries["b_isotopes_loss"] = bionseries_isotopes_loss;
 
-    for (int charge = 1; charge < precursor_charge; ++charge)
+    for (int charge = 1; charge <= precursor_charge; ++charge)
     {
       for (Size i = 1; i < sequence.size(); ++i)
       {
         AASequence ion = sequence.getSuffix(i);
         double pos = ion.getMonoWeight(Residue::YIon, charge) / (double) charge;
-        yionseries["y" + String(i) + String(charge, '+')] = pos;
+        yionseries["y" + String(i) + "/" + String(charge) + "+"] = pos;
 
         IsotopeDistribution dist = ion.getFormula(Residue::YIon, charge).getIsotopeDistribution(max_isotope);
         UInt j(0);
@@ -165,7 +154,7 @@ namespace OpenMS
         {
           if (j > 0)
           {
-            yionseries_isotopes["y" + String(i) + String(charge, '+') + "iso" + String(j)] = ((double) (
+            yionseries_isotopes["y" + String(i) + "/" + String(charge) + "+" + "/" + "iso" + String(j)] = ((double) (
               pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
           }
         }
@@ -203,20 +192,14 @@ namespace OpenMS
     }
     ionseries["y_isotopes_loss"] = yionseries_isotopes_loss;
 
-    for (int charge = 1; charge < precursor_charge; ++charge)
+    for (int charge = 1; charge <= precursor_charge; ++charge)
     {
       for (Size i = 1; i < sequence.size(); ++i)
       {
         AASequence ion = sequence.getPrefix(i);
         double pos = ion.getMonoWeight(Residue::AIon, charge) / (double) charge;
 
-        //TODO(georger): Proton Hack Check if correct => write test for it!!
-        if (i == 1)
-        {
-          pos -= Constants::PROTON_MASS_U;
-        }
-
-        aionseries["a" + String(i) + String(charge, '+')] = pos;
+        aionseries["a" + String(i) + "/" + String(charge) + "+"] = pos;
 
         IsotopeDistribution dist = ion.getFormula(Residue::AIon, charge).getIsotopeDistribution(max_isotope);
         UInt j(0);
@@ -224,7 +207,7 @@ namespace OpenMS
         {
           if (j > 0)
           {
-            aionseries_isotopes["a" + String(i) + String(charge, '+') + "iso" + String(j)] = ((double) (
+            aionseries_isotopes["a" + String(i) + "/" + String(charge) + "+" + "/" + "iso" + String(j)] = ((double) (
               pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
           }
         }
@@ -276,7 +259,7 @@ namespace OpenMS
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::shufflePeptide(
     OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed,
-    int maxattempts)
+    int max_attempts)
   {
     if (seed == -1)
     {
@@ -298,7 +281,7 @@ namespace OpenMS
     int aa_size = 17;
 
     int attempts = 0;
-    while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold && attempts < maxattempts)
+    while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold && attempts < max_attempts)
     {
       // copy the original peptide, shuffle again
       shuffled = peptide;
@@ -354,10 +337,16 @@ namespace OpenMS
       }
     }
 
+		if (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold)
+		{
+			std::cout << "Sequence identity: " << MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) << " Identity threshold: " << identity_threshold << std::endl;
+			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"AA Sequences couldn't be shuffled. Either decrease identity_threshold or increase max_attempts.");
+		}
+
     return shuffled;
   }
 
-  OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
+  OpenMS::TargetedExperiment::Peptide MRMDecoy::pseudoreversePeptide(
     OpenMS::TargetedExperiment::Peptide peptide)
   {
     OpenMS::TargetedExperiment::Peptide peptideorig = peptide;
@@ -367,7 +356,6 @@ namespace OpenMS
       peptide_index.push_back(i);
     }
 
-    //reversed = sequence.reverse(); // reverse
     peptide.sequence = peptide.sequence.substr(0, peptide.sequence.size() - 1).reverse()
       + peptide.sequence.substr(peptide.sequence.size() - 1, 1);       // pseudo-reverse
     std::reverse(peptide_index.begin(), peptide_index.end() - 1);
@@ -387,7 +375,7 @@ namespace OpenMS
     return peptide;
   }
 
-  OpenMS::TargetedExperiment::Peptide MRMDecoy::trypticreversePeptide(
+  OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
     OpenMS::TargetedExperiment::Peptide peptide)
   {
     OpenMS::TargetedExperiment::Peptide peptideorig = peptide;
@@ -495,6 +483,7 @@ namespace OpenMS
 
   OpenMS::AASequence MRMDecoy::getAASequence(const OpenMS::TargetedExperiment::Peptide & peptide)
   {
+	// The workaround expects a TraML with UniMod CVTerms for each peptide. The problem in ModificationsDB has been described in TRAC #458.
 #if (1)
     OpenMS::AASequence aas = peptide.sequence;
     for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it =
@@ -513,7 +502,7 @@ namespace OpenMS
       }
     }
 #else //TODO(georger) : make test example of what fails and submit to OpenMS
-    ModificationsDB * mod_db = ModificationsDB::getInstance();
+    OpenMS::ModificationsDB * mod_db = OpenMS::ModificationsDB::getInstance();
     OpenMS::AASequence aas = peptide.sequence;
 
     for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it = peptide.mods.begin(); it != peptide.mods.end(); ++it)
@@ -532,7 +521,7 @@ namespace OpenMS
   }
 
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment & exp, OpenMS::TargetedExperiment & dec,
-    String method, String decoy_tag, double identity_threshold, double mz_threshold, bool theoretical)
+    String method, String decoy_tag, double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift)
   {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
@@ -546,31 +535,24 @@ namespace OpenMS
     }
 
     // Go through all peptides and apply the decoy method to the sequence
-    // (reverse or shuffle). Then set the peptides and proteins of the deco
+    // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
     // experiment.
     for (Size i = 0; i < exp.getPeptides().size(); i++)
     {
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
       peptide.id = decoy_tag + peptide.id;
 
-      if (method == "reverse")
+      if (method == "pseudo-reverse")
+      {
+        peptide = MRMDecoy::pseudoreversePeptide(peptide);
+      }
+      else if (method == "reverse")
       {
         peptide = MRMDecoy::reversePeptide(peptide);
       }
-      else if (method == "trypticreverse")
-      {
-        peptide = MRMDecoy::trypticreversePeptide(peptide);
-      }
       else if (method == "shuffle")
       {
-        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold);
-      }
-      else
-      {
-        // TODO(georger,hroest): rather throw an exception?
-        std::cout
-        << "Warning: No valid decoy method selected! Same transitions will be returned."
-        << std::endl;
+        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, max_attempts);
       }
       for (Size i = 0; i < peptide.protein_refs.size(); i++)
       {
@@ -616,7 +598,14 @@ namespace OpenMS
         // the appropriate decoy ion for this target transition
         std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries);
         std::pair<String, double> decoyion = getDecoyIon(targetion.first, decoy_ionseries);
-        decoy_tr.setProductMZ(decoyion.second);
+				if (method == "shift")
+				{
+        	decoy_tr.setProductMZ(decoyion.second + mz_shift);
+				}
+				else
+        {
+          decoy_tr.setProductMZ(decoyion.second);
+        }
         decoy_tr.setPeptideRef(decoy_tag + tr.getPeptideRef());
 
         // correct the masses of the input experiment if requested

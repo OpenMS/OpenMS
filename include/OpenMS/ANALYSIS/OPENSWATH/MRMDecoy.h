@@ -40,8 +40,16 @@ namespace OpenMS
 /**
  @brief This class generates a TargetedExperiment object with decoys based on a TargetedExperiment object
 
- This class implements functions to generate decoy peptides with decoy
- transitions from a set of real peptides with real transitions. For this, several 
+ There are multiple methods to create the decoy transitions, the simplest ones
+ are reverse and pseudo-reverse which reverse the sequence either completely or
+ leaving the last (tryptic) AA untouched respectively.
+
+ Another decoy generation method is "shuffle" which uses an algorithm similar
+ to the one described in Lam, Henry, et al. (2010). "Artificial decoy spectral
+ libraries for false discovery rate estimation in spectral library searching in
+ proteomics".  Journal of Proteome Research 9, 605-610. It shuffles the amino
+ acid sequence and shuffles the fragment ion intensities accordingly, however
+ for this to work the fragment ions need to be matched to annotated before. 
 
  */
 
@@ -51,12 +59,12 @@ class OPENMS_DLLAPI MRMDecoy: public ProgressLogger
   MRMDecoy() {} // empty, no members
 
   /**
-    @brief Generate decoys from an TargetedExperiment
+    @brief Generate decoys from a TargetedExperiment
 
     Will generate decoy peptides for each target peptide provided in exp and
     write them into the decoy experiment. 
 
-    Valid methods: reverse, trypticreverse, shuffle
+    Valid methods: shuffle, reverse, pseudo-reverse
 
     If theoretical is true, the target transitions will be returned but their
     masses will be adjusted to match the theoretical value of the fragment ion
@@ -67,7 +75,7 @@ class OPENMS_DLLAPI MRMDecoy: public ProgressLogger
   */
   void generateDecoys(OpenMS::TargetedExperiment& exp,
       OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
-      double identity_threshold, double mz_threshold, bool theoretical);
+      double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift);
 
   /**
     @brief Remove transitions s.t. all peptides have a defined set of transitions.
@@ -114,10 +122,10 @@ class OPENMS_DLLAPI MRMDecoy: public ProgressLogger
       -17, -18, -34, -35, -36, -44, -45, -46, -64, -98.
 
     TODO: a more generic mechanism to specify which series and losses should be
-    generated.
+    generated. possible integration with TheoreticalSpectrumGenerator?
   */
   std::map< String , std::map<String, double> > getIonSeries(
-      AASequence sequence, int precursor_charge);
+      AASequence sequence, int precursor_charge, int max_isotopes = 2);
 
   /**
     @brief Find all tryptic sites in a sequence
@@ -126,7 +134,7 @@ class OPENMS_DLLAPI MRMDecoy: public ProgressLogger
       std::string sequence);
 
   /**
-    @brief Compute (Manhatten?) distance between two sequences
+    @brief Compute relative identity (relative number of matches of amino acids at the same position) between two sequences
   */
   float AASequenceIdentity(const String & sequence, const String & decoy);
 
@@ -134,27 +142,25 @@ class OPENMS_DLLAPI MRMDecoy: public ProgressLogger
     @brief Shuffle a peptide (with its modifications) sequence
 
     This function will shuffle the given peptide sequences and its
-    modifications such that the resulting sequence similarity is below
-    identity_threshold (TODO: how is seq. similiary measured?). 
-
-    TODO : what is the failure scenario if it cannot be achieved in maxattempts?
+    modifications such that the resulting relative sequence identity is below
+    identity_threshold.
   */
   OpenMS::TargetedExperiment::Peptide shufflePeptide(
       OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed = -1,
-      int maxattempts = 10);
+      int max_attempts = 10);
 
   /**
     @brief Pseudo-reverse a peptide sequence (with its modifications)
 
     Pseudo reverses a peptide sequence, leaving the last AA constant
   */
-  OpenMS::TargetedExperiment::Peptide reversePeptide(
+  OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(
       OpenMS::TargetedExperiment::Peptide peptide);
 
   /**
     @brief Reverse a peptide sequence (with its modifications)
   */
-  OpenMS::TargetedExperiment::Peptide trypticreversePeptide(
+  OpenMS::TargetedExperiment::Peptide reversePeptide(
       OpenMS::TargetedExperiment::Peptide peptide);
 
   /**
