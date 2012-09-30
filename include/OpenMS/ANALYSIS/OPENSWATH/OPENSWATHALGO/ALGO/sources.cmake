@@ -1,5 +1,5 @@
 ### the directory name
-set(directory include/OpenMS/ANALYSIS/OPENSWATH)
+set(directory include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO)
 
 ### list all header files of the directory here
 set(sources_list_h
@@ -17,7 +17,7 @@ foreach(i ${sources_list_h})
 endforeach(i)
 
 ### source group definition
-source_group("Header Files\\OpenMS\\ANALYSIS\\OPENSWATH" FILES ${sources_h})
+source_group("Header Files\\OpenMS\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\ALGO" FILES ${sources_h})
 set_source_files_properties(${directory}/sources.cmake PROPERTIES HEADER_FILE_ONLY TRUE)
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
