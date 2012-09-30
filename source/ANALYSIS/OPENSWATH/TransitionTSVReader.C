@@ -100,61 +100,6 @@ namespace OpenMS
         mytransition.group_label = "light";
       }
 
-      /*
-      TODO: read in more properties
-
-      PrecursorMz
-      ProductMz
-      Tr_recalibrated
-      transition_name
-      CE
-      LibraryIntensity
-      transition_group_id
-      decoy
-      PeptideSequence
-      protein_name
-
-      uniprot_id
-      mod
-      isotype
-      PrecursorCharge
-      frg_type
-      frg_nr
-      frg_z
-      Tr_original
-      DP_project
-      DP_subproject
-
-      JPT_plate_id
-      PI
-      Q1_average
-      Q1_mono assaytype
-      col dummy
-      loss_type
-      machine
-      ModifiedSequence
-      modification_code
-      modifications_id
-
-      mysql_assay_id
-      mysql_peptides_id
-      mysql_transitions_id
-      original_spec_name
-      projects_id rank
-      redundancy
-      row score_type
-      spectrum_score
-      validation_score
-      iRT dwelltime
-
-      DP
-      inputfile
-      decoy_algorithm
-      target_decoy_transition_group_id
-      X
-      decoy_transition_group_id
-      */
-
       transition_list.push_back(mytransition);
     }
   }

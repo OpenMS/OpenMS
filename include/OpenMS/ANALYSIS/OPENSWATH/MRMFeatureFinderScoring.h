@@ -183,7 +183,7 @@ namespace OpenMS
   MRMFeatureScoring class.
 
   */
-  class MRMFeatureFinderScoring :
+  class OPENMS_DLLAPI MRMFeatureFinderScoring :
     public DefaultParamHandler,
     public ProgressLogger
   {
@@ -266,15 +266,6 @@ public:
         String tr_library = param_.getValue("local_fdr_lib");
         //loadLibraryForLocalFDR(tr_library);
       }
-
-      // If we have a swath map, we need to ensure the spectra are sorted
-      // TODO!
-#if 0
-      if (swath_map.size() > 0 && !swath_map.isSorted())
-      {
-        swath_map.sortSpectra(true); // sort spectra and peaks in spectra by RT / mz respectively
-      }
-#endif
 
       //
       // Step 3
@@ -393,12 +384,6 @@ private:
         bool normalize = true;
         mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, normalize);
 
-        // TODO
-        // This works nicely for equally spaced data but if the data is not
-        // sampled at equal rate during the peak, this will fail. This may happen
-        // when a scheduled SRM run changes the number of acquiring transitions
-        // during the peak elution.
-
         // XCorr score (coelution)
         double xcorr_coelution_score = 0;
         if (use_coelution_score_)
@@ -416,8 +401,8 @@ private:
 
         // XCorr score (shape)
         // mean over the intensities at the max of the crosscorrelation
-        // TODO weigh by the intensity as done by mQuest
-        // TODO normalize with the intensity at the peak group apex?
+        // FEATURE : weigh by the intensity as done by mQuest
+        // FEATURE : normalize with the intensity at the peak group apex?
         double xcorr_shape_score = 0;
         if (use_shape_score_)
         {
@@ -432,8 +417,8 @@ private:
           mrmfeature->addScore("var_xcorr_shape_weighted", weighted_xcorr_shape);
         }
 
-        // TODO how should we best calculate correlation between library and experiment?
-        // use spectral angle
+        // FEATURE : how should we best calculate correlation between library and experiment?
+        // FEATURE : spectral angle
         double library_corr = 0, library_rmsd = 0;
         double library_manhattan, library_dotprod;
 
@@ -546,10 +531,12 @@ private:
           calculate_swath_scores(transition_group, *mrmfeature, swath_map, normalized_library_intensity, scores);
         }
 
+#if 0
         if (do_local_fdr_)
         {
           calculate_local_fdr_scores(transition_group, *mrmfeature, trafo);
         }
+#endif
 
         ///////////////////////////////////////////////////////////////////////////
         // add the peptide hit information to the feature
@@ -623,12 +610,13 @@ private:
 
       int group_size = transition_group.size();
 
-      // TODO we just assume charge state 1 -- all will be wrong if this is not true!
-      int putative_charge_state = 1; // TODO  => get this from the transition information?!
+      // TODO (hroest) we just assume charge state 1 => get this from the transition information?!
+      int putative_charge_state = 1; 
 
       diascoring.set_dia_parameters(dia_extract_window_, dia_centroided_, dia_byseries_intensity_min_, dia_byseries_ppm_diff_, nr_isotopes, nr_charges);
 
       // find spectrum that is closest to the apex of the peak using binary search
+      // TODO (hroest): add up multiple spectra (as optional parameter)
       std::vector<std::size_t> indices = swath_map->getSpectraByRT(mrmfeature->getRT(), 0.0);
       int closest_idx = indices[0];
       OpenSwath::SpectrumPtr spectrum_;
@@ -645,17 +633,18 @@ private:
           std::fabs((spectrum)->getRT() - mrmfeature->getRT()))
       { spectrum--; }
 #endif
+
       // Isotope correlation / overlap score: Is this peak part of an
       // isotopic pattern or is it the monoisotopic peak in an isotopic
       // pattern?
       OpenSwath::IMRMFeature * imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
       double isotope_corr = 0, isotope_overlap = 0;
       diascoring.dia_isotope_scores(transition_group.getTransitions(),
-                                    (*spectrum), imrmfeature, putative_charge_state, isotope_corr, isotope_overlap);
+        (*spectrum), imrmfeature, putative_charge_state, isotope_corr, isotope_overlap);
       // Mass deviation score
       double ppm_score = 0, ppm_score_weighted = 0;
       diascoring.dia_massdiff_score(transition_group.getTransitions(),
-                                    (*spectrum), normalized_library_intensity, ppm_score, ppm_score_weighted);
+        (*spectrum), normalized_library_intensity, ppm_score, ppm_score_weighted);
 
       // Presence of b/y series score
       double bseries_score = 0, yseries_score = 0;
@@ -673,8 +662,7 @@ private:
       cout << "added overlap isotope_score " << isotope_overlap << endl;
 #endif
 
-
-      // TODO we should not punish so much when one transition is missing!
+      // FEATURE we should not punish so much when one transition is missing!
       double massdev_score = ppm_score / group_size;
       double massdev_score_weighted = ppm_score_weighted;
       mrmfeature->addScore("var_massdev_score", massdev_score);
@@ -712,6 +700,7 @@ private:
       delete imrmfeature;
     }
 
+#if 0
     template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
     void calculate_local_fdr_scores(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, MRMFeature & mrmfeature_, TransformationDescription & trafo)
     {
@@ -785,7 +774,7 @@ private:
         // get the peptide retention time
         Tr_predicted = PeptideRTMap[transition_group.getTransitions()[0].getPeptideRef()];
 
-        // TODO some mapping magic on how to map this assay on the one we have
+        // TODO (weissrh) some mapping magic on how to map this assay on the one we have
         for (Size k = 0; k < all_itr->second.getTransitions().size(); k++)
         {
           double inten = all_itr->second.getTransitions()[k].getLibraryIntensity();
@@ -825,7 +814,7 @@ private:
         // double this_score = 3*delta + 3*rmsd ; //+ 3*correlation;
         double this_score = 4.699867 - 0.0001334994 * delta - 17.16685 * rmsd;
 
-        // TODO do something smarter than counting how many assays have a better score!
+        // TODO (weisserh) do something smarter than counting how many assays have a better score!
         if (this_score > assay_score)
         {
           //cout << " glm score " << this_score << " ( 3*" << delta<< " + 3*" <<  rmsd<< " ) " << lib_int.size( ) << " " << all_itr->second.size()  << " " << exp_int.size() <<  " vs assay score " << assay_score << endl;
@@ -839,6 +828,7 @@ private:
 #endif
 
     }
+#endif
 
     void handle_params();
 

@@ -137,7 +137,7 @@ private:
       for each of these, the following neutral losses are calculated:
         -17, -18, -34, -35, -36, -44, -45, -46, -64, -98.
 
-      TODO: a more generic mechanism to specify which series and losses should be
+      FEATURE (george): a more generic mechanism to specify which series and losses should be
       generated. possible integration with TheoreticalSpectrumGenerator?
     */
     std::map<String, std::map<String, double> > getIonSeries(

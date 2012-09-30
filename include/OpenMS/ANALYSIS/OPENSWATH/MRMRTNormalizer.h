@@ -51,7 +51,7 @@ namespace OpenMS
   TODO : elaborate
 
   */
-  class MRMRTNormalizer
+  class OPENMS_DLLAPI MRMRTNormalizer
   {
 
 public:

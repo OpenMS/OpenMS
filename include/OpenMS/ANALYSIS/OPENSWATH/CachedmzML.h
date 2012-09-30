@@ -56,7 +56,7 @@ namespace OpenMS
     write a cached mzML file.
 
   */
-  class CachedmzML
+  class OPENMS_DLLAPI CachedmzML
     : public ProgressLogger
   {
     int int_field;

@@ -111,7 +111,7 @@ public:
   struct LightTargetedExperiment
   {
     std::vector<LightTransition> transitions;
-    std::vector<LightPeptide> peptides;         //TODO Compound
+    std::vector<LightPeptide> peptides;
     std::vector<LightProtein> proteins;
     std::vector<LightTransition> & getTransitions()
     {

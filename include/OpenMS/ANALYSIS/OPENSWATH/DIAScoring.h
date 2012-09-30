@@ -71,7 +71,7 @@ namespace OpenSwath
     (defined in OPENSWATHALGO/DATAACCESS/TransitionExperiment.h).
 
   */
-  class DIAScoring
+  class OPENMS_DLLAPI DIAScoring
   {
     ///Type definitions
     //@{

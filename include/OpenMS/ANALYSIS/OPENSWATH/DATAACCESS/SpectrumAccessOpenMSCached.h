@@ -54,7 +54,7 @@ namespace OpenMS
     write a cached mzML file.
 
   */
-	class SpectrumAccessOpenMSCached : 
+	class OPENMS_DLLAPI SpectrumAccessOpenMSCached : 
     public OpenSwath::ISpectrumAccess
 	{
 
@@ -84,13 +84,12 @@ namespace OpenMS
 				// beginning of the RT domain. Then we add this spectrum and try to add
 				// further spectra as long as they are below RT + deltaRT.
 				std::vector<std::size_t> result;
-				MSExperimentType::ConstIterator spectrum = meta_ms_experiment_.RTBegin(
-						RT - deltaRT);
+				MSExperimentType::ConstIterator spectrum = meta_ms_experiment_.RTBegin( RT - deltaRT);
 				// TODO use std::distance
 				result.push_back(spectrum - meta_ms_experiment_.begin());
 				spectrum++;
-				while (spectrum->getRT() < RT + deltaRT
-						&& spectrum != meta_ms_experiment_.end()) {
+				while (spectrum->getRT() < RT + deltaRT && spectrum != meta_ms_experiment_.end()) 
+        {
 					result.push_back(spectrum - meta_ms_experiment_.begin());
 					spectrum++;
 				}
@@ -108,7 +107,10 @@ namespace OpenMS
 			}
 
 			OpenSwath::ChromatogramPtr getChromatogramById(int id) const;
+
+      // FEATURE ?
 			// ChromatogramPtr getChromatogramByPrecursorMZ(double mz, double deltaMZ);
+
 			size_t getNrChromatograms() const
 			{
 				return meta_ms_experiment_.getChromatograms().size();

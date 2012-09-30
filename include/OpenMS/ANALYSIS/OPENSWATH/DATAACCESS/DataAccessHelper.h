@@ -49,7 +49,7 @@ namespace OpenMS
     @brief Several helpers to convert OpenMS datastructures to structures that
            implement the OpenSWATH interfaces.
   */
-  class OpenSwathDataAccessHelper
+  class OPENMS_DLLAPI OpenSwathDataAccessHelper
   {
 public:
     /// Convert a SpectrumPtr to an OpenMS Spectrum

@@ -46,12 +46,9 @@ namespace OpenMS
     typedef std::map<int, double> XCorrArrayType;
     /** @name Helper functions */
     //@{
-    // TODO use iterators
     /// Fxn "deltaRatioSum" from mQuest to calculate similarity between library intensity and experimental ones
     double RMSD(double x[], double y[], int n);
 
-    // TODO use iterators => put in OpenMS stats
-    // TODO normalize extern
     /// Calculate crosscorrelation on std::vector data
     XCorrArrayType calcxcorr(std::vector<double> & data1,
                              std::vector<double> & data2, bool normalize);

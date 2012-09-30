@@ -49,8 +49,7 @@ namespace OpenSwath
     double res = 0;
     if (normalizer > 0)
     {
-      std::transform(intensities.begin(), intensities.end(),
-                     normalized_intensities.begin(), std::bind2nd(std::divides<double>(), normalizer));
+      std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(), std::bind2nd(std::divides<double>(), normalizer));
     }
   }
 
@@ -84,22 +83,23 @@ namespace OpenSwath
     }
   }
 
-  /* integrate all masses in window */
+  /// integrate all masses in window 
   bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
                        double mz_end, double & mz, double & intensity, bool centroided)
   {
+#ifdef OPENMS_ASSERTIONS
     //check precondtion
     if (std::adjacent_find(spectrum->getMZArray()->data.begin(), spectrum->getMZArray()->data.end(), std::greater<double>()) != spectrum->getMZArray()->data.end())
     {
       throw std::runtime_error("Precondition MZ vector needs to be sorted!");
     }
+#endif
 
     intensity = 0;
     if (!centroided)
     {
       // get the weighted average for noncentroided data.
-      // TODO this is not optimal if there are two peaks in this window (e.g. if
-      // the window is too large)
+      // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
       mz = 0;
       intensity = 0;
 
@@ -108,7 +108,7 @@ namespace OpenSwath
 
       // this assumes that the spectra are sorted!
       std::vector<double>::const_iterator mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(),
-                                                                   spectrum->getMZArray()->data.end(), mz_start);
+        spectrum->getMZArray()->data.end(), mz_start);
       std::vector<double>::const_iterator mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
 
       // also advance intensity iterator now

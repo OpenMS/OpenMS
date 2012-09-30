@@ -138,9 +138,8 @@ namespace OpenMS
     {
 
       // Find the peak width and best RT
-      // TODO we could use
-      // #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
-      //
+      // FEATURE : we could use #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h> 
+      // --> this sounds costly, fitting a spline and then linear regression ...
       double central_peak_mz = picked_chrom[i].getMZ();
       double min_d = std::fabs(central_peak_mz - chromatogram[0].getMZ());
       Size min_i = 0;

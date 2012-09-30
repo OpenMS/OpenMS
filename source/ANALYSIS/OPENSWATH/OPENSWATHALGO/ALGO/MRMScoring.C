@@ -42,6 +42,14 @@
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/meanAndSd.h"
 
+#ifdef OPENMS_ASSERTIONS
+#define OPENMS_PRECONDITION(condition, message)\
+	if (!(condition))\
+    { throw std::runtime_error(message); }
+#else
+#define OPENMS_PRECONDITION(condition, message)
+#endif
+
 namespace OpenMS
 {
 
@@ -89,7 +97,7 @@ namespace OpenMS
   // return $deltascore_mean + $deltascore_stdev
   double MRMFeatureScoring::calcXcorrCoelutionScore()
   {
-    //TODO OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
     std::vector<int> deltas;
     for (std::size_t i = 0; i < xcorr_matrix_.size(); i++)
@@ -118,7 +126,7 @@ namespace OpenMS
   double MRMFeatureScoring::calcXcorrCoelutionScore_weighted(
     const std::vector<double> & normalized_library_intensity)
   {
-    //TODO OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
 #ifdef MRMSCORING_TESTING
     double weights = 0;
@@ -173,7 +181,7 @@ namespace OpenMS
   ///
   double MRMFeatureScoring::calcXcorrShape_score()
   {
-    //TODO OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
     std::vector<double> intensities;
     for (std::size_t i = 0; i < xcorr_matrix_.size(); i++)
@@ -192,7 +200,7 @@ namespace OpenMS
   double MRMFeatureScoring::calcXcorrShape_score_weighted(
     const std::vector<double> & normalized_library_intensity)
   {
-    // TODO OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
     // TODO : see _calc_weighted_xcorr_shape_score in MRM_pgroup.pm
     //         -- they only multiply up the intensity once
@@ -243,7 +251,7 @@ namespace OpenMS
       library_intensity.push_back(intensity);
     }
 
-    //OPENMS_PRECONDITION(library_intensity.size() == experimental_intensity.size(), "Both vectors need to have the same size");
+    OPENMS_PRECONDITION(library_intensity.size() == experimental_intensity.size(), "Both vectors need to have the same size");
 
 #ifdef MRMSCORING_TESTING
     for (std::size_t k = 0; k < transitions.size(); k++)

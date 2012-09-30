@@ -56,7 +56,7 @@ namespace OpenMS
   experiment.
 
   */
-  class ChromatogramExtractor :
+  class OPENMS_DLLAPI ChromatogramExtractor :
     public ProgressLogger
   {
 

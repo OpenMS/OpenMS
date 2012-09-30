@@ -48,7 +48,7 @@ namespace OpenMS
 		OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
 		int ms_level = -1;
 		double rt = -1.0;
-		// TODO check if we can keep the filestream open -> risky if someone else
+		// FEATURE check if we can keep the filestream open -> risky if someone else
 		// accesses the file in the meantime
 		std::ifstream ifs((filename_cached_).c_str(), std::ios::binary);
 		ifs.seekg(cache.getSpectraIndex()[id]);

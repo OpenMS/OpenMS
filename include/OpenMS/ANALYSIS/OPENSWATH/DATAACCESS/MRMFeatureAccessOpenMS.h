@@ -56,7 +56,7 @@ namespace OpenMS
     @brief An implementation of the OpenSWATH Feature Access interface using OpenMS
 
   */
-  class FeatureOpenMS :
+  class OPENMS_DLLAPI FeatureOpenMS :
     public OpenSwath::IFeature
   {
 public:
@@ -108,7 +108,7 @@ private:
     @brief An implementation of the OpenSWATH MRM Feature Access interface using OpenMS
 
   */
-  class MRMFeatureOpenMS :
+  class OPENMS_DLLAPI MRMFeatureOpenMS :
     public OpenSwath::IMRMFeature
   {
 public:
@@ -144,7 +144,7 @@ private:
 
   */
   template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
-  class TransitionGroupOpenMS :
+  class OPENMS_DLLAPI TransitionGroupOpenMS :
     public OpenSwath::ITransitionGroup
   {
 public:
@@ -187,7 +187,7 @@ private:
 
   */
   template <typename PeakT>
-  class SignalToNoiseOpenMS :
+  class OPENMS_DLLAPI SignalToNoiseOpenMS :
     public OpenSwath::ISignalToNoise
   {
 public:

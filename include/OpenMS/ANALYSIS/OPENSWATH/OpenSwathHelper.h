@@ -43,7 +43,7 @@ namespace OpenMS
   /**
     @brief A helper class that is used by several OpenSWATH tools
   */
-  class OpenSwathHelper
+  class OPENMS_DLLAPI OpenSwathHelper
   {
 
 public:

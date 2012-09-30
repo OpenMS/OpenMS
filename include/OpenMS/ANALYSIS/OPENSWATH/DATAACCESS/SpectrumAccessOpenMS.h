@@ -46,7 +46,7 @@ namespace OpenMS
     @brief An implementation of the OpenSWATH Spectrum Access interface using OpenMS
 
   */
-  class SpectrumAccessOpenMS :
+  class OPENMS_DLLAPI SpectrumAccessOpenMS :
     public OpenSwath::ISpectrumAccess
   {
 public:
