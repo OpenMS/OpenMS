@@ -373,7 +373,7 @@ if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 
-target_link_libraries(OpenMS ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
 target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
@@ -581,7 +581,7 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 			export(PACKAGE OpenMS)
 		endif()
 		## export our lib
-		export(TARGETS OpenMS FILE ${CF_LibOpenMSExport})
+                export(TARGETS OpenMS OpenSwathAlgo FILE ${CF_LibOpenMSExport})
 	else()
 		include(cmake/OpenMSBuildSystem_install.cmake)
 	endif()
