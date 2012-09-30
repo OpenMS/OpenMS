@@ -44,12 +44,17 @@
 #include <cmath>
 
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
-// TODO wolski : comment these methods (doxygen)
 namespace OpenSwath
 {
 
+  /**
+    @brief Normalize intensities in vector by normalization_factor
+  */
   void normalize(const std::vector<double> & intensities, double normalization_factor, std::vector<double> & normalized_intensities);
 
+  /**
+  @brief compute the norm of the vector
+  */
   template <typename T>
   double norm(T beg, T end)
   {
@@ -63,6 +68,10 @@ namespace OpenSwath
   }
 
 
+
+  /**
+  @brief compute dotprod of vecotrs
+  */
   template <typename Texp, typename Ttheo>
   double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
   {
@@ -72,14 +81,20 @@ namespace OpenSwath
     return sum;
   }
 
+
+  /**
+    @brief the dot product scoring
+
+    sqrt data,
+    normalize by vector norm
+    compute dotprod
+  */
   inline double dotprodScoring(std::vector<double> intExp, std::vector<double> theorint)
   {
     for (unsigned int i = 0; i < intExp.size(); ++i)
     {
       intExp[i] = sqrt(intExp[i]);
       theorint[i] = sqrt(theorint[i]);
-      //std::transform(intExp.begin(), intExp.end(), intExp.begin(), sqrt);
-      //std::transform(theorint.begin(), theorint.end(), theorint.begin(), sqrt);
     }
 
     double intExptotal = norm(intExp.begin(), intExp.end());
@@ -90,6 +105,9 @@ namespace OpenSwath
     return score2;
   }
 
+  /**
+    @brief compute manhattan distance between Exp and Theo
+  */
   template <typename Texp, typename Ttheo>
   double manhattanDist(Texp itExpBeg, Texp itExpEnd, Ttheo itTheo)
   {
@@ -103,6 +121,13 @@ namespace OpenSwath
     return sum;
   }
 
+  /**
+    @brief manhattan scoring
+
+    sqrt intensities
+    normalize vector by TIC
+    compute manhattan score
+   */
   inline double manhattanScoring(std::vector<double> intExp, std::vector<double> theorint)
   {
 
@@ -123,7 +148,9 @@ namespace OpenSwath
   }
 
 
-
+/**
+  @brief compute prearson correlation of vector x and y
+*/
   template <typename TInputIterator, typename TInputIteratorY>
   typename std::iterator_traits<TInputIterator>::value_type cor_pearson(
     TInputIterator xBeg,
@@ -162,6 +189,10 @@ namespace OpenSwath
     }
   }
 
+
+  /**
+    @brief functor to compute the mean and stddev of sequence using the std::foreach algorithm
+  */
   class mean_and_stddev
   {
     double m_, q_;
@@ -226,7 +257,6 @@ public:
     }
 
   };
-
 
 }
 

@@ -35,27 +35,30 @@
 #ifndef OPENSWATH_SPECTRUMHELPERS_H_
 #define OPENSWATH_SPECTRUMHELPERS_H_
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
-// TODO wolski : comment these methods (doxygen)
 namespace OpenSwath
 {
 
+
+  /**
+    @brief Integrate intensity in a spectrum from start to end
+
+    This function will integrate the intensity in a spectrum between mz_start
+    and mz_end, returning the total intensity and an intensity-weighted m/z
+    value.
+
+    @note If there is no signal, mz will be set to -1 and intensity to 0
+  */
 //integrate Window
 bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
                      double mz_end, double & mz, double & intensity, bool centroided = false);
 
-
 /**
-  @brief Integrate intensity in a spectrum from start to end
-
-  This function will integrate the intensity in a spectrum between mz_start
-  and mz_end, returning the total intensity and an intensity-weighted m/z
-  value.
-
-  @note If there is no signal, mz will be set to -1 and intensity to 0
+  @brief Integrate intensities in a spectrum from start to end
 */
 //integrate Window
-void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
-                      const std::vector<double> & windowsCenter, double width,
+void integrateWindows(const OpenSwath::SpectrumPtr spectrum,//!< [in] Spectrum
+                      const std::vector<double> & windowsCenter,//!< [in] center location
+                      double width,
                       std::vector<double> & integratedWindowsIntensity,
                       std::vector<double> & integratedWindowsMZ, bool remZero = false);
 
