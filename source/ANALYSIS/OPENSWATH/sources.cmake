@@ -9,6 +9,8 @@ OpenSwathHelper.C
 ChromatogramExtractor.C
 MRMTransitionGroupPicker.C
 OpenMSHelper.C
+DIAScoring.C
+DiaPrescoring2.C
 )
 
 ### add path to the filenames

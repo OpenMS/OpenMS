@@ -513,6 +513,8 @@ set(swath_executables_list
   OpenSwathHelper_test
   MRMTransitionGroupPicker_test
   OSW_OpenMSHelper_test
+  DIAScoring_test
+  DiaPrescoring2_test
 )
 
 ############### GUI executables (require MOC) ########

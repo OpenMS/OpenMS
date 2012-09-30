@@ -41,8 +41,14 @@
 namespace OpenSwath
 {
   using namespace OpenMS;
+  /**
+    @brief Helper functions for the DIA scoring of OpenSWAT 
+  */
+
+  /// compute the b and y series masses for a given AASequence
 	void getBYSeries(AASequence & a,
 			std::vector<double> & bseries, std::vector<double> & yseries, uint32_t charge = 1u);
+
 	// for SWATH -- get the theoretical b and y series masses for a sequence
 	void getTheorMasses(AASequence & a,	std::vector<double> & masses,  uint32_t charge = 1u);
 
