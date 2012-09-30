@@ -8,6 +8,7 @@ MRMRTNormalizer.C
 TransitionTSVReader.C
 OpenSwathHelper.C
 ChromatogramExtractor.C
+SpectrumAddition.C
 MRMTransitionGroupPicker.C
 DIAHelper.C
 DIAScoring.C

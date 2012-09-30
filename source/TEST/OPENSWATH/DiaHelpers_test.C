@@ -69,8 +69,6 @@ START_TEST(DIAHelpers, "$Id$")
 
 BOOST_AUTO_TEST_CASE(testIntegrateWindows_test)
 {
-
-
 	OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
 	OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
 

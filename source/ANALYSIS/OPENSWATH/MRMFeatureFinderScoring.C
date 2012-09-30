@@ -54,6 +54,10 @@ namespace OpenMS
     defaults_.setMinFloat("quantification_cutoff", 0.0);
     defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", StringList::create("advanced"));
     defaults_.setValidStrings("write_convex_hull", StringList::create("true,false"));
+    defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer)", StringList::create("advanced"));
+    defaults_.setMinInt("add_up_spectra", 1);
+    defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", StringList::create("advanced"));
+    defaults_.setMinFloat("spacing_for_spectra_resampling", 0.0);
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -105,6 +109,8 @@ namespace OpenMS
     rt_normalization_factor_ = (DoubleReal)param_.getValue("rt_normalization_factor");
     quantification_cutoff_ = (DoubleReal)param_.getValue("quantification_cutoff");
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
+    add_up_spectra_ = param_.getValue("add_up_spectra");
+    spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
 
     diascoring.setParameters(param_.copy("DIAScoring:",true));
     emgscoring.setFitterParam(param_.copy("EmgScoring:", true));

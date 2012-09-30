@@ -62,6 +62,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -303,7 +305,7 @@ private:
     /// Score all peak groups
     template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
     void scorePeakgroups(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, TransformationDescription & trafo,
-                         OpenSwath::SpectrumAccessPtr  swath_map, FeatureMap<Feature> & output)
+      OpenSwath::SpectrumAccessPtr  swath_map, FeatureMap<Feature> & output)
     {
       //std::vector<SignalToNoiseEstimatorMedian<RichPeakChromatogram> > signal_noise_estimators;
       std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
@@ -577,9 +579,41 @@ private:
       }
     }
 
+    /// Returns the addition of "nr_spectra_to_add" spectra around the given RT 
+    OpenSwath::SpectrumPtr getAddedSpectra(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add)
+    {
+      std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
+      int closest_idx = indices[0];
+      if (indices[0] != 0 &&
+          std::fabs(swath_map->getSpectrumMetaById(indices[0] - 1).RT - RT) <
+          std::fabs(swath_map->getSpectrumMetaById(indices[0]).RT - RT))
+      { 
+        closest_idx--; 
+      }
+
+      if (nr_spectra_to_add == 1)
+      {
+        OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
+        return spectrum_;
+      }
+      else 
+      {
+        std::vector<OpenSwath::SpectrumPtr> all_spectra;
+        // always add the spectrum 0, then add those right and left  
+        all_spectra.push_back(swath_map->getSpectrumById(closest_idx));
+        for (int i = 1; i <= nr_spectra_to_add / 2; i ++) // cast to int is intended!
+        {
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx-i));
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx+i));
+        }
+        OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
+        return spectrum_;
+      }
+    }
+
     template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
     void calculate_swath_scores(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, MRMFeature & mrmfeature_,
-                                OpenSwath::SpectrumAccessPtr swath_map, std::vector<double> & normalized_library_intensity, OpenSwath_Scores scores)
+      OpenSwath::SpectrumAccessPtr swath_map, std::vector<double> & normalized_library_intensity, OpenSwath_Scores scores)
     {
       MRMFeature * mrmfeature = &mrmfeature_;
 
@@ -590,24 +624,8 @@ private:
 
       // find spectrum that is closest to the apex of the peak using binary search
       // TODO (hroest): add up multiple spectra (as optional parameter)
-      std::vector<std::size_t> indices = swath_map->getSpectraByRT(mrmfeature->getRT(), 0.0);
-      int closest_idx = indices[0];
-      OpenSwath::SpectrumPtr spectrum_;
-      if (indices[0] != 0 &&
-          std::fabs(swath_map->getSpectrumMetaById(indices[0] - 1).RT - mrmfeature->getRT()) <
-          std::fabs(swath_map->getSpectrumMetaById(indices[0]).RT - mrmfeature->getRT()))
-      { 
-        closest_idx--; 
-      }
-      spectrum_ = swath_map->getSpectrumById(closest_idx);
+      OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra(swath_map, mrmfeature->getRT(), add_up_spectra_);
       OpenSwath::SpectrumPtr * spectrum = &spectrum_;
-#if 0
-      MSSpectrum<SwathPeakType> * spectrum = &(*swath_map.RTBegin(mrmfeature->getRT()));
-      if (spectrum != &(*swath_map.begin()) &&
-          std::fabs((spectrum - 1)->getRT() - mrmfeature->getRT()) <
-          std::fabs((spectrum)->getRT() - mrmfeature->getRT()))
-      { spectrum--; }
-#endif
 
       // Isotope correlation / overlap score: Is this peak part of an
       // isotopic pattern or is it the monoisotopic peak in an isotopic
@@ -826,6 +844,8 @@ private:
     bool use_sn_score_;
     
     int stop_report_after_feature_;
+    int add_up_spectra_;
+    DoubleReal spacing_for_spectra_resampling_;
 
     // bool do_local_fdr_;
     bool write_convex_hull_;

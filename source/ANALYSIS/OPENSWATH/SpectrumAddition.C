@@ -32,58 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H_
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H_
-
-#include <fstream>
-
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
 namespace OpenMS
 {
-  /**
-    @brief Several helpers to convert OpenMS datastructures to structures that
-           implement the OpenSWATH interfaces.
-  */
-  class OPENMS_DLLAPI OpenSwathDataAccessHelper
-  {
-public:
-    /// Convert a SpectrumPtr to an OpenMS Spectrum
-    static void convertToOpenMSSpectrum(OpenMS::MSSpectrum<> * spectrum, const OpenSwath::SpectrumPtr sptr);
-
-    static OpenSwath::SpectrumPtr convertToSpectrumPtr(const OpenMS::MSSpectrum<> & spectrum)
-    {
-      // const MSSpectrumType & spectrum = (*ms_experiment_)[id];
-      OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-      OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-      for (MSSpectrum<>::const_iterator it = spectrum.begin(); it != spectrum.end(); it++)
-      {
-        mz_array->data.push_back(it->getMZ());
-        intensity_array->data.push_back(it->getIntensity());
-      }
-
-      // push back mz first, then intensity.
-      // FEATURE (hroest) annotate which is which
-      std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-      binaryDataArrayPtrs.push_back(mz_array);
-      binaryDataArrayPtrs.push_back(intensity_array);
-
-      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-      sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
-      return sptr;
-    }
-
-    /// Convert a ChromatogramPtr to an OpenMS Chromatogram
-    static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<> * chromatogram, const OpenSwath::ChromatogramPtr cptr);
-
-    /// convert from the OpenMS Targeted experiment to the light Targeted Experiment
-    static void convertTargetedExp(OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
-
-
-  };
-
-} //end namespace OpenMS
-
-#endif
+}

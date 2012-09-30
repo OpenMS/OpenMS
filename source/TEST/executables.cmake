@@ -517,6 +517,7 @@ set(swath_executables_list
   DIAScoring_test
   DIAPrescoring_test
   OpenSwathMRMFeatureAccessOpenMS_test
+  OpenSwathSpectrumAddition_test
   OpenSwathSpectrumAccessOpenMS_test
   OpenSwathDataAccessHelper_test
   MRMFeatureScoring_test

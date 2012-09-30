@@ -85,8 +85,8 @@ public:
     typename std::vector<PeakType>::iterator it = resampled_peak_container.begin();
     for (int i=0; i < number_resampled_points; ++i)
     {
-        it->setMZ( start_pos + i*spacing_);
-        ++it;
+      it->setMZ( start_pos + i*spacing_);
+      ++it;
     }
 
     raster(spectrum.begin(), spectrum.end(), resampled_peak_container.begin(), resampled_peak_container.end());
