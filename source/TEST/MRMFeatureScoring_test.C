@@ -474,7 +474,6 @@ START_SECTION((virtual void test_dia_scores()))
   transition_group_  = transition_group;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), swath_map);
 
-  int putative_charge_state = 1;
   int by_charge_state = 1;
 
   // create the corresponding mrm feature
@@ -528,8 +527,7 @@ START_SECTION((virtual void test_dia_scores()))
   std::vector<TransitionType> transitions;
   reorder_transitions(transitions, transition_group);
   double isotope_corr = 0, isotope_overlap = 0;
-  diascoring.dia_isotope_scores(transitions,
-    (*spectrum), imrmfeature, putative_charge_state, isotope_corr, isotope_overlap);
+  diascoring.dia_isotope_scores(transitions, (*spectrum), imrmfeature, isotope_corr, isotope_overlap);
 
   // Mass deviation score
   double ppm_score = 0, ppm_score_weighted = 0;

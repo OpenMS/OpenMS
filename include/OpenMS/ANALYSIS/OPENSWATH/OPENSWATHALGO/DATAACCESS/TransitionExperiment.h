@@ -49,6 +49,13 @@ public:
     double library_intensity;
     double product_mz;
     double precursor_mz;
+    int charge;
+
+    int getProductChargeState() const
+    {
+      return charge;
+    }
+
     std::string getNativeID() const
     {
       return transition_name;

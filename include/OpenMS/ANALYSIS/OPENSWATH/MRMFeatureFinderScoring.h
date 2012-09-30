@@ -604,15 +604,11 @@ private:
       MRMFeature * mrmfeature = &mrmfeature_;
 
       // parameters
-      int nr_isotopes = 4;
-      int nr_charges = 4;
-      int by_charge_state = 1;
+      int nr_isotopes = 4; // how many isotopes to consider
+      int nr_charges = 4; // how many charges to look at for lower m/z
+      int by_charge_state = 1; // for which charge states should we check b/y series
 
       int group_size = transition_group.size();
-
-      // TODO (hroest) we just assume charge state 1 => get this from the transition information?!
-      int putative_charge_state = 1; 
-
       diascoring.set_dia_parameters(dia_extract_window_, dia_centroided_, dia_byseries_intensity_min_, dia_byseries_ppm_diff_, nr_isotopes, nr_charges);
 
       // find spectrum that is closest to the apex of the peak using binary search
@@ -640,7 +636,7 @@ private:
       OpenSwath::IMRMFeature * imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
       double isotope_corr = 0, isotope_overlap = 0;
       diascoring.dia_isotope_scores(transition_group.getTransitions(),
-        (*spectrum), imrmfeature, putative_charge_state, isotope_corr, isotope_overlap);
+        (*spectrum), imrmfeature, isotope_corr, isotope_overlap);
       // Mass deviation score
       double ppm_score = 0, ppm_score_weighted = 0;
       diascoring.dia_massdiff_score(transition_group.getTransitions(),

@@ -143,10 +143,12 @@ END_SECTION
 
 OpenSwath::LightTransition mock_tr1; 
 mock_tr1.product_mz = 500;
+mock_tr1.charge = 1;
 mock_tr1.transition_name = "group1";
 
 OpenSwath::LightTransition mock_tr2; 
 mock_tr2.product_mz = 600;
+mock_tr2.charge = 1;
 mock_tr2.transition_name = "group2";
 
 START_SECTION ( forward
@@ -201,7 +203,7 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
   DIAScoring diascoring;
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity 
   double isotope_corr = 0, isotope_overlap = 0;
-  diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, 1, isotope_corr, isotope_overlap);
+  diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
   // >>> exp = [240, 74, 39, 15, 0]
   // >>> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
   // >>> from scipy.stats.stats import pearsonr
@@ -266,7 +268,7 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
   DIAScoring diascoring;
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity 
   double isotope_corr = 0, isotope_overlap = 0;
-  diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, 1, isotope_corr, isotope_overlap);
+  diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
   // >>> exp = [74, 39, 15, 0, 0]
   // >>> theo = [1, 0.266799519434277, 0.0486475002325161, 0.0066525896497495, 0.000747236543377621]
@@ -332,7 +334,7 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
   DIAScoring diascoring;
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity 
   double isotope_corr = 0, isotope_overlap = 0;
-  diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, 1, isotope_corr, isotope_overlap);
+  diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
   // see above for the the two individual numbers (forward and backward)
   TEST_REAL_SIMILAR(isotope_corr, 0.959570883150479 * 0.3 + 0.99463189043051314 * 0.7)

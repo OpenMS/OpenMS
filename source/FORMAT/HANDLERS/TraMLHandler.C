@@ -878,6 +878,10 @@ namespace OpenMS
 
     void TraMLHandler::write_product_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator & prod_it) const
     {
+      if ( prod_it->getChargeState() != -1 )
+      {
+        os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  prod_it->getChargeState() << "\"/>\n";
+      }
       writeCVParams_(os, *prod_it, 4);
       writeUserParam_(os, (MetaInfoInterface) * prod_it, 4);
 
@@ -1159,7 +1163,14 @@ namespace OpenMS
       }
       else if (parent_tag == "Product")
       {
-        actual_product_.addCVTerm(cv_term);
+        if (cv_term.getAccession() == "MS:1000041")
+        {
+          actual_product_.setChargeState(cv_term.getValue().toString().toDouble());
+        }
+        else 
+        {
+          actual_product_.addCVTerm(cv_term);
+        }
       }
       else if (parent_tag == "SourceFile")
       {

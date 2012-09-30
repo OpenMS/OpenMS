@@ -54,14 +54,12 @@ namespace OpenSwath
   // DIA / SWATH scoring
 
   void DIAScoring::dia_isotope_scores(const std::vector<TransitionType> & transitions, SpectrumType spectrum,
-    OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge,
-    double & isotope_corr, double & isotope_overlap)
+    OpenSwath::IMRMFeature * mrmfeature, double & isotope_corr, double & isotope_overlap)
   {
-    OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");
     // first compute a map of relative intensities from the feature, then compute the score
     std::map<std::string, double> intensities;
     getFirstIsotopeRelativeIntensities(transitions, mrmfeature, intensities);
-    dia_isotope_scores_sub(transitions, spectrum, intensities, putative_fragment_charge, isotope_corr, isotope_overlap);
+    dia_isotope_scores_sub(transitions, spectrum, intensities, isotope_corr, isotope_overlap);
   } 
 
   void DIAScoring::dia_massdiff_score(const std::vector<TransitionType> & transitions, SpectrumType spectrum,
@@ -215,7 +213,7 @@ namespace OpenSwath
 
   void DIAScoring::dia_isotope_scores_sub(const std::vector<TransitionType> & transitions, SpectrumType spectrum,
     std::map<std::string, double> & intensities,  //relative intensities
-    int putative_fragment_charge, double & isotope_corr, double & isotope_overlap)
+    double & isotope_corr, double & isotope_overlap)
   {
     std::vector<double> isotopes_int;
     double max_ppm_diff = 20.0; // TODO (hroest) make this a proper parameter
@@ -225,6 +223,13 @@ namespace OpenSwath
       isotopes_int.clear();
       String native_id = transitions[k].getNativeID(); 
       double rel_intensity = intensities[native_id];
+
+      // If no charge is given, we assume it to be 1
+      int putative_fragment_charge = 1; 
+      if (transitions[k].charge > 0)
+      {
+        putative_fragment_charge = transitions[k].charge; 
+      }
 
       // collect the potential isotopes of this peak
       for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)

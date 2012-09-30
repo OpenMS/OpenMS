@@ -56,8 +56,8 @@ namespace OpenMS
     precursor_cv_terms_(rhs.precursor_cv_terms_),
     product_(rhs.product_),
     intermediate_products_(rhs.intermediate_products_),
-    prediction_(rhs.prediction_),
     rts(rhs.rts),
+    prediction_(rhs.prediction_),
     decoy_type_(rhs.decoy_type_),
     library_intensity_(rhs.library_intensity_)
   {
@@ -78,9 +78,9 @@ namespace OpenMS
       precursor_mz_ = rhs.precursor_mz_;
       precursor_cv_terms_ = rhs.precursor_cv_terms_;
       intermediate_products_ = rhs.intermediate_products_;
-      prediction_ = rhs.prediction_;
       product_ = rhs.product_;
       rts = rhs.rts;
+      prediction_ = rhs.prediction_;
       decoy_type_ = rhs.decoy_type_;
       library_intensity_ = rhs.library_intensity_;
     }
@@ -97,8 +97,8 @@ namespace OpenMS
            precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
            product_ == rhs.product_ &&
            intermediate_products_ == rhs.intermediate_products_ &&
-           prediction_ == rhs.prediction_ &&
            rts == rhs.rts &&
+           prediction_ == rhs.prediction_ &&
            decoy_type_ == rhs.decoy_type_ &&
            library_intensity_ == rhs.library_intensity_;
   }

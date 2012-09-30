@@ -281,12 +281,12 @@ public:
                peptide_group_labels_ == rhs.peptide_group_labels_;
       }
 
-      void setChargeState(UInt charge)
+      void setChargeState(int charge)
       {
         charge_ = charge;
       }
 
-      Int getChargeState() const
+      int getChargeState() const
       {
         return charge_;
       }
@@ -324,7 +324,7 @@ public:
       std::vector<Modification> mods;
 
 protected:
-      UInt charge_;
+      int charge_;
       Int peptide_group_label_;
       std::vector<String> * peptide_group_labels_;
     };
@@ -450,11 +450,13 @@ protected:
       TraMLProduct() :
         CVTermList()
       {
+        charge_ = -1;
       }
 
       bool operator==(const TraMLProduct & rhs) const
       {
         return CVTermList::operator==(rhs) &&
+               charge_ == rhs.charge_ &&
                configuration_list_ == rhs.configuration_list_ &&
                interpretation_list_ == rhs.interpretation_list_;
       }
@@ -464,10 +466,21 @@ protected:
         if (&rhs != this)
         {
           CVTermList::operator=(rhs);
+          charge_ = rhs.charge_;
           configuration_list_ = rhs.configuration_list_;
           interpretation_list_ = rhs.interpretation_list_;
         }
         return *this;
+      }
+
+      void setChargeState(int charge)
+      {
+        charge_ = charge;
+      }
+
+      int getChargeState() const
+      {
+        return charge_;
       }
 
       const std::vector<Configuration> & getConfigurationList() const
@@ -496,6 +509,7 @@ protected:
       }
 
 private:
+      int charge_;
       std::vector<Configuration> configuration_list_;
       std::vector<CVTermList> interpretation_list_;
 

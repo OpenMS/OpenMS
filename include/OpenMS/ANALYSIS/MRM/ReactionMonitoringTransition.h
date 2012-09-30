@@ -222,7 +222,6 @@ protected:
     DecoyTransitionType decoy_type_;
 
     DoubleReal library_intensity_;
-
   };
 }
 

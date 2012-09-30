@@ -116,8 +116,7 @@ public:
     //@{
     /// Isotope scores, see class description
     void dia_isotope_scores(const std::vector<TransitionType> & transitions,
-      SpectrumType spectrum, OpenSwath::IMRMFeature * mrmfeature,
-      int putative_fragment_charge, double & isotope_corr,
+      SpectrumType spectrum, OpenSwath::IMRMFeature * mrmfeature, double & isotope_corr,
       double & isotope_overlap);
 
     /// Massdiff scores, see class description
@@ -145,7 +144,7 @@ private:
     /// Subfunction of dia_isotop_scores
     void dia_isotope_scores_sub(const std::vector<TransitionType> & transitions,
       SpectrumType spectrum, std::map<std::string, double> & intensities,
-      int putative_fragment_charge, double & isotope_corr, double & isotope_overlap);
+      double & isotope_corr, double & isotope_overlap);
 
     /// retrieves intensities from MRMFeature
     /// computes a vector of relative intensities for each feature (output to intensities) 

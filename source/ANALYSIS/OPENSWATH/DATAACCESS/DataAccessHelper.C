@@ -119,6 +119,7 @@ namespace OpenMS
       t.precursor_mz = transition_exp_.getTransitions()[i].getPrecursorMZ();
       t.library_intensity = transition_exp_.getTransitions()[i].getLibraryIntensity();
       t.peptide_ref = transition_exp_.getTransitions()[i].getPeptideRef();
+      t.charge = transition_exp_.getTransitions()[i].getProduct().getChargeState();
       transition_exp.transitions.push_back(t);
     }
   }
