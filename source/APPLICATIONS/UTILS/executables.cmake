@@ -30,6 +30,7 @@ MSSimulator
 MapAlignmentEvaluation
 OpenMSInfo
 OpenSwathDecoyGenerator
+OpenSwathFeatureXMLToTSV
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
