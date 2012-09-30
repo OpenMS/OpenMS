@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest , Witold Wolski$
 // --------------------------------------------------------------------------
 
 #ifndef OPENSWATH_DATAACCESS_DATASTRUCTURES_H_

@@ -46,7 +46,6 @@ namespace OpenSwath
   {
     //compute total intensities
     //normalize intensities
-    double res = 0;
     if (normalizer > 0)
     {
       std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(), std::bind2nd(std::divides<double>(), normalizer));
@@ -61,7 +60,6 @@ namespace OpenSwath
   {
     std::vector<double>::const_iterator beg = windowsCenter.begin();
     std::vector<double>::const_iterator end = windowsCenter.end();
-
     double mz, intensity;
     for (; beg != end; ++beg)
     {

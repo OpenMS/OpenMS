@@ -35,6 +35,7 @@ OpenSwathChromatogramExtractor
 OpenSwathAnalyzer
 OpenSwathRTNormalizer
 OpenSwathmzMLFileCacher
+OpenSwathDIAPreScoring
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator

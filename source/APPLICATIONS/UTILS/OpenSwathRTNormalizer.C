@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest, George Rosenberger $
-// $Authors: Hannes Roest, George Rosenberger $
+// $Authors: Hannes Roest, George Rosenberger, Witold Wolski $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

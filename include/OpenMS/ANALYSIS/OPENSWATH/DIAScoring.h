@@ -154,13 +154,13 @@ private:
       );
 
 #if 0
-    /// TODO (wolski): what is this doing here? is this code dead? where is the implementation?
+    /// TODO (wolski): what is this doing here? is this code dead?
     void dia_isotope_scores(const std::vector<TransitionType> & transitions,
       SpectrumType spectrum, int putative_fragment_charge,
       double & isotope_corr, double & isotope_overlap);
 
     /* computes apex mz and area for a given spectrum fragment */
-    /// TODO (wolski): what is this doing here? is this code dead? where is the implementation?
+    /// TODO (wolski): what is this doing here? is this code dead?
     void getSpectrumIntensities(const std::vector<TransitionType> & transitions,
       SpectrumType spectrum, double extractWindow,
       std::vector<double> & mzv, std::vector<double> & intensityv);
