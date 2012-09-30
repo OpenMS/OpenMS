@@ -93,6 +93,11 @@ namespace OpenMS
   {
   }
 
+  void MRMFeatureFinderScoring::updateMembers_()
+  {
+    handle_params();
+  }
+
   void MRMFeatureFinderScoring::handle_params()
   {
     stop_report_after_feature_ = (int)param_.getValue("stop_report_after_feature");

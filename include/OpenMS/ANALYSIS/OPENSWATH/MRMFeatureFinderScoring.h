@@ -807,6 +807,9 @@ private:
 
     void handle_params();
 
+    /// Synchronize members with param class
+    void updateMembers_();        
+
     // Variables
     DoubleReal rt_extraction_window_;
     DoubleReal quantification_cutoff_;
