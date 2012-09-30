@@ -35,9 +35,6 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_DIAPRESCORING_H_
 #define OPENMS_ANALYSIS_OPENSWATH_DIAPRESCORING_H_
 
-// TODO (wolski): adhere to OpenMS coding conventions http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/OpenMS-release/html/coding__conventions.html
-// TODO (wolski): comment the class and each method
-
 #include <algorithm>
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
@@ -76,6 +73,8 @@ namespace OpenMS
     int nr_isotopes;
     int nr_charges;
   public:
+
+
     DiaPrescore() :
       DefaultParamHandler("DIAPrescore2"), nr_isotopes(4), nr_charges(4)
     {

@@ -50,25 +50,27 @@ namespace DIAHelpers
   void getBYSeries(AASequence & a,
                    std::vector<double> & bseries, std::vector<double> & yseries, uint32_t charge = 1u);
 
-  // for SWATH -- get the theoretical b and y series masses for a sequence
+  /// for SWATH -- get the theoretical b and y series masses for a sequence
   void getTheorMasses(AASequence & a, std::vector<double> & masses, uint32_t charge = 1u);
 
+  /// get averagine distribution given mass
   void getAveragineIsotopeDistribution(double product_mz,
                                        std::vector<std::pair<double, double> > & isotopesSpec, double charge = 1., int nr_isotopes =
                                          4, double mannmass = 1.00048);
 
-  //simulate spectrum from AASequence
+  /// simulate spectrum from AASequence
   void simulateSpectrumFromAASequence(AASequence & aa,
                                       std::vector<double> & firstIsotopeMasses, //[out]
                                       std::vector<std::pair<double, double> > & isotopeMasses, //[out]
                                       double charge = 1.);
 
-  //modified mass
+  /// modify masses by charge
   void modifyMassesByCharge(const std::vector<std::pair<double, double> > & masses,  //![in]
                             std::vector<std::pair<double, double> > & modmass, //!< [out]
                             double charge = 1.
                             );
 
+  /// add negative preisotope weights to spectrum
   void addPreisotopeWeights(const std::vector<double> & firstIsotopeMasses,
                             std::vector<std::pair<double, double> > & isotopeSpec, // output
                             uint32_t nrpeaks = 2, //nr of preisotope peaks
@@ -77,14 +79,16 @@ namespace DIAHelpers
                             double charge = 1.
                             );
 
-  //given an experimental spectrum add isotope pattern.
+  /// given an experimental spectrum add isotope pattern.
   void addIsotopes2Spec(const std::vector<std::pair<double, double> > & spec,
                         std::vector<std::pair<double, double> > & isotopeMasses, //[out]
                         double charge = 1.);
 
-  //sorts by first
+  /// sorts vector of pairs by first
   void sortByFirst(std::vector<std::pair<double, double> > & tmp);
+  /// extract first from vector of pairs
   void extractFirst(const std::vector<std::pair<double, double> > & peaks, std::vector<double> & mass);
+  /// extract second from vector of pairs
   void extractSecond(const std::vector<std::pair<double, double> > & peaks, std::vector<double> & mass);
 
 }
