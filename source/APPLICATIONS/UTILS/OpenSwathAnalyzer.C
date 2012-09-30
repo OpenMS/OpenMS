@@ -1,0 +1,313 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry               
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// 
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution 
+//    may be used to endorse or promote products derived from this software 
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS. 
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// 
+// --------------------------------------------------------------------------
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#include <fstream>
+
+using namespace OpenMS;
+using namespace std;
+
+//
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+ @page TOPP_MRMAnalyzer MRMAnalyzer
+
+ @brief  Executes a peak-picking and scoring algorithm on MRM/SRM data.
+
+ The idea of the MRM peak-picker is to analyze a series of chromatograms
+ together with the associated meta information (stored in TraML format) in
+ order to determine likely places of elution of a peptide in MRM/SRM.
+
+ <B>The command line parameters of this tool are:</B>
+ @verbinclude TOPP_MRMAnalyzer.cli
+
+ <B>The algorithm parameters for the Savitzky Golay filter are:</B>
+ @htmlinclude OpenMS_MRMAnalyzer.parameters
+ */
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+class TOPPMRMAnalyzer: public TOPPBase
+{
+	public:
+
+		TOPPMRMAnalyzer() :
+				TOPPBase("MRMAnalyzer",
+						"Picks peaks and finds features in an SRM experiment.", false)
+		{
+		}
+
+	protected:
+
+		typedef MSExperiment<Peak1D> MapType;
+
+		void registerModelOptions_(const String & default_model)
+		{
+			registerTOPPSubsection_("model",
+					"Options to control the modeling of retention time transformations from data");
+			registerStringOption_("model:type", "<name>", default_model,
+					"Type of model", false);
+			StringList model_types;
+			TransformationDescription::getModelTypes(model_types);
+			if (!model_types.contains(default_model)) {
+				model_types.insert(model_types.begin(), default_model);
+			}
+			setValidStrings_("model:type", model_types);
+			registerFlag_("model:symmetric_regression",
+					"Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
+			registerIntOption_("model:num_breakpoints", "<number>", 5,
+					"Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.",
+					false);
+			setMinInt_("model:num_breakpoints", 2);
+			registerStringOption_("model:interpolation_type", "<name>", "cspline",
+					"Only for 'interpolated' model: Type of interpolation to apply.",
+					false);
+		}
+
+		void registerOptionsAndFlags_()
+		{
+			registerInputFile_("in", "<file>", "",
+					"input file containing the chromatograms." /* , false */);
+			setValidFormats_("in", StringList::create("mzML"));
+
+			registerInputFile_("tr", "<file>", "", "transition file");
+			setValidFormats_("tr", StringList::create("TraML"));
+
+			registerInputFile_("rt_norm", "<file>", "",
+					"RT normalization file (how to map the RTs of this run to the ones stored in the library)",
+					false);
+			setValidFormats_("rt_norm", StringList::create("trafoXML"));
+
+			registerOutputFile_("out", "<file>", "", "output file");
+			setValidFormats_("out", StringList::create("featureXML"));
+
+			registerFlag_("no-strict",
+					"run in non-strict mode and allow some chromatograms to not be mapped.");
+
+			addEmptyLine_();
+			addText_(
+					"SWATH specific parameters (do only apply if you have full MS2 spectra maps)");
+
+			registerInputFileList_("swath_files", "<files>", StringList(),
+					"Swath files that were used to extract the transitions. If present, SWATH specific scoring will be applied.",
+					false);
+			setValidFormats_("swath_files", StringList::create("mzML"));
+
+			registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
+					"Minimal distance to the edge to still consider a precursor, in Thomson (only in SWATH)",
+					false);
+
+			addEmptyLine_();
+			addText_(
+					"Parameters for the MRMAnalyzer algorithm can be given in the 'algorithm' part of INI file.");
+			registerSubsection_("algorithm", "Algorithm parameters section");
+
+			registerModelOptions_("linear");
+
+		}
+
+		Param getSubsectionDefaults_(const String &) const
+		{
+			return MRMFeatureFinderScoring().getDefaults();
+		}
+
+		ExitCodes main_(int, const char **)
+		{
+
+			StringList file_list = getStringList_("swath_files");
+			String in = getStringOption_("in");
+			String tr_file = getStringOption_("tr");
+			String out = getStringOption_("out");
+			DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+			bool nostrict = getFlag_("no-strict");
+
+			// If we have a transformation file, trafo will transform the RT in the
+			// scoring according to the model. If we dont have one, it will apply the
+			// null transformation.
+			String trafo_in = getStringOption_("rt_norm");
+			TransformationDescription trafo;
+			if (trafo_in.size() > 0) 
+      {
+				TransformationXMLFile trafoxml;
+
+				String model_type = getStringOption_("model:type");
+				Param model_params = getParam_().copy("model:", true);
+				trafoxml.load(trafo_in, trafo);
+				trafo.fitModel(model_type, model_params);
+			}
+
+			Param feature_finder_param = getParam_().copy("algorithm:", true);
+
+			// Create the output map, load the input TraML file and the chromatograms
+			MapType exp;
+			FeatureMap<> out_featureFile;
+			OpenSwath::LightTargetedExperiment transition_exp;
+
+			std::cout << "Loading TraML file" << std::endl;
+			{
+				TargetedExperiment* transition_exp__ = new TargetedExperiment();
+				TargetedExperiment& transition_exp_ = *transition_exp__;
+				{
+					TraMLFile* t = new TraMLFile;
+					t->load(tr_file, transition_exp_);
+					delete t;
+				}
+        OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
+				delete transition_exp__;
+			}
+
+			MzMLFile mzmlfile;
+			mzmlfile.setLogType(log_type_);
+			mzmlfile.load(in, exp);
+
+			// If there are no SWATH files its, just regular SRM/MRM Scoring
+			if (file_list.size() == 0) 
+      {
+				MRMFeatureFinderScoring featureFinder;
+				MapType empty_swath_map;
+				featureFinder.setParameters(feature_finder_param);
+				featureFinder.setLogType(log_type_);
+				featureFinder.setStrictFlag(!nostrict);
+				OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
+				OpenSwath::SpectrumAccessPtr empty_swath_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(empty_swath_map);
+				OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(exp);
+				featureFinder.pickExperiment(chromatogram_ptr, out_featureFile, transition_exp, trafo, empty_swath_ptr, transition_group_map);
+				out_featureFile.ensureUniqueId();
+				FeatureXMLFile().store(out, out_featureFile);
+				return EXECUTION_OK;
+			}
+
+			// Here we deal with SWATH files (can be multiple files)
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+			for (Size i = 0; i < file_list.size(); ++i) 
+      {
+				MRMFeatureFinderScoring featureFinder;
+				MzMLFile swath_file;
+				MapType swath_map;
+				FeatureMap<> featureFile;
+				cout << "Loading file " << file_list[i] << endl;
+
+////#ifndef _OPENMP
+				// no progress log on the console in parallel
+				swath_file.setLogType(log_type_);
+				featureFinder.setLogType(log_type_);
+//#endif
+
+				swath_file.load(file_list[i], swath_map);
+
+				// Logging and output to the console
+#ifdef _OPENMP
+#pragma omp critical (featureFinder)
+#endif
+				{
+					cout << "Doing file " << file_list[i]
+#ifdef _OPENMP
+							<< " (" << i << " out of " << file_list.size() / omp_get_num_threads() << " -- total for all threads: " << file_list.size() << ")" << endl;
+#else
+							<< " (" << i << " out of " << file_list.size() << ")" << endl;
+#endif
+				}
+
+				// Find the transitions to extract and extract them
+				OpenSwath::LightTargetedExperiment transition_exp_used;
+				if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0) 
+        {
+					std::cerr << "WARNING: File " << swath_map.getLoadedFilePath()
+							<< " does not have any experiments or any precursors. Is it a SWATH map?"
+							<< std::endl;
+					continue;
+				}
+
+        double upper, lower;
+        OpenSwathHelper::checkSwathMap(exp, lower, upper);
+        OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used, min_upper_edge_dist, lower, upper);
+				if (transition_exp_used.getTransitions().size() == 0) 
+        {
+					std::cerr << "WARNING: For file " << swath_map.getLoadedFilePath()
+							<< " there are no transitions to extract." << std::endl;
+					continue;
+				}
+
+				featureFinder.setParameters(feature_finder_param);
+				featureFinder.setStrictFlag(!nostrict);
+				OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
+				OpenSwath::SpectrumAccessPtr  swath_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(swath_map);
+				OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(exp);
+				featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
+
+				// write all features and the protein identifications from tmp_featureFile into featureFile
+#ifdef _OPENMP
+#pragma omp critical (featureFinder)
+#endif
+				{
+					for (FeatureMap<Feature>::iterator feature_it = featureFile.begin();
+							feature_it != featureFile.end(); feature_it++) {
+						out_featureFile.push_back(*feature_it);
+					}
+					for (std::vector<ProteinIdentification>::iterator protid_it =
+							featureFile.getProteinIdentifications().begin();
+							protid_it != featureFile.getProteinIdentifications().end();
+							protid_it++) {
+						out_featureFile.getProteinIdentifications().push_back(*protid_it);
+					}
+
+				}
+			} // end of loop over all files / end of OpenMP
+
+			out_featureFile.ensureUniqueId();
+			FeatureXMLFile().store(out, out_featureFile);
+
+			return EXECUTION_OK;
+		}
+};
+
+int main(int argc, const char ** argv)
+{
+	TOPPMRMAnalyzer tool;
+	return tool.main(argc, argv);
+}
+

@@ -32,6 +32,7 @@ OpenMSInfo
 OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathChromatogramExtractor
+OpenSwathAnalyzer
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator

@@ -62,6 +62,10 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/mQuestScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h> 
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 bool SortDoubleDoublePairFirst(const std::pair<double, double> & left, const std::pair<double, double> & right);
 
 namespace OpenMS

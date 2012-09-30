@@ -89,4 +89,22 @@ namespace OpenMS
 
     }
   }
+
+  void OpenSwathHelper::selectSwathTransitions(const OpenSwath::LightTargetedExperiment & targeted_exp,
+      OpenSwath::LightTargetedExperiment & transition_exp_used, double min_upper_edge_dist,
+      double lower, double upper)
+  {
+
+    transition_exp_used.peptides = targeted_exp.peptides;
+    transition_exp_used.proteins = targeted_exp.proteins;
+    for (Size i = 0; i < targeted_exp.transitions.size(); i++)
+    {
+      ::OpenSwath::LightTransition tr = targeted_exp.transitions[i];
+      if (lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < upper &&
+          std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
+      {
+        transition_exp_used.transitions.push_back(tr);
+      }
+    }
+  }
 }
