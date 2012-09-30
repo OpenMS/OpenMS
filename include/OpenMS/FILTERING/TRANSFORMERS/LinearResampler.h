@@ -79,7 +79,7 @@ public:
     }
 
     /**
-        @brief Applies the resampling algorithm to to an MSSpectrum.
+        @brief Applies the resampling algorithm to an MSSpectrum.
     */
     template <typename PeakType>
     void raster(MSSpectrum<PeakType> & spectrum)

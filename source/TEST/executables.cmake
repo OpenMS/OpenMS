@@ -240,6 +240,7 @@ FeatureFindingMetabo_test
   IsotopeDistributionCache_test
   IsotopeMarker_test
   LinearResampler_test
+  LinearResamplerAlign_test
   LowessSmoothing_test
   MarkerMower_test
 MassTraceDetection_test  
