@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest ,  Witold Wolski$
-// $Authors:  Hannes Roest , Witold Wolski$
+// $Maintainer: Hannes Roest,  Witold Wolski$
+// $Authors:  Hannes Roest, Witold Wolski$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>

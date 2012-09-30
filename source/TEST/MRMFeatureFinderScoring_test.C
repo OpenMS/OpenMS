@@ -36,6 +36,7 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 ///////////////////////////
@@ -89,8 +90,8 @@ START_SECTION((virtual void run()))
 
   // Pick features in the experiment
 #ifdef USE_SP_INTERFACE
-  OpenSwath::SpectrumAccessPtr swath_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(swath_map);
-  OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(exp);
+  OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+  OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_ptr, transition_group_map);
 #else
       ff.pickExperiment(exp, featureFile, transitions, trafo, swath_map, transition_group_map);
@@ -184,7 +185,7 @@ START_SECTION(void mapExperimentToTransitionList(const MSExperiment<PeakType> & 
 
   // Pick features in the experiment
 #ifdef USE_SP_INTERFACE
-  OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(exp);
+  OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   ff.mapExperimentToTransitionList(chromatogram_ptr, transitions, transition_group_map, trafo, -1);
 #else
   ff.mapExperimentToTransitionList(exp, transitions, transition_group_map, trafo, -1);
