@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: George Rosenberger $
-// $Authors: George Rosenberger, Hannes Roest, Witold Wolski $
+// $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>

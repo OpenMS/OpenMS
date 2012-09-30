@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest , Witold Wolski$
+// $Authors: Darren Kessner, Hannes Roest, Witold Wolski$
 // --------------------------------------------------------------------------
 
 #ifndef OPENSWATH_DATAACCESS_DATASTRUCTURES_H_
@@ -43,6 +43,14 @@ namespace OpenSwath
 {
   /**
     @brief The datastructures used by the OpenSwath interfaces  
+
+    Many of them are closely related to Proteowizard data structures,
+    originally written by Darren Kessner and released under the Apache 2.0 licence.
+
+    Original author: Darren Kessner <darren@proteowizard.org>
+    
+    Copyright 2007 Spielberg Family Center for Applied Proteomics
+      Cedars-Sinai Medical Center, Los Angeles, California  90048
     
     
     The following datastructures are used :
@@ -79,7 +87,6 @@ namespace OpenSwath
     }
 
   };
-
   typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
 
   /// A single chromatogram.
@@ -136,7 +143,6 @@ namespace OpenSwath
     }
 
   };
-
   typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
 
   /// Identifying information for a spectrum
@@ -174,6 +180,7 @@ namespace OpenSwath
 
     /// returns true iff the element contains no params and all members are empty or null
     bool empty() const;
+
     /// get m/z array (may be null)
     BinaryDataArrayPtr getMZArray() const
     {

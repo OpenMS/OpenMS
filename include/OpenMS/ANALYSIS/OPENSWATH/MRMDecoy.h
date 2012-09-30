@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: George Rosenberger $
-// $Authors: George Rosenberger, Hannes Roest, Witold Wolski $
+// $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H
