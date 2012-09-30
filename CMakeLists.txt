@@ -83,12 +83,6 @@ endif()
 set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 
 ########################################################
-### build openswath lib ###
-########################################################
-
-add_subdirectory(source/ANALYSIS/OPENSWATH)
-
-########################################################
 ###    compiler flags																 ###
 ########################################################
 
@@ -295,14 +289,17 @@ set (OPENMS_CONFIGURED_FILES ${SVN_REVISION_FILE} ${CONFIGURED_CONFIG_H} ${CONFI
 include(cmake/OpenMSBuildSystem_testConfig.cmake)
 
 
-
 ########################################################
 ###    Documentation                                 ###
 ########################################################
 
 include(cmake/OpenMSBuildSystem_doc.cmake)
 
+########################################################
+### build openswath lib ###
+########################################################
 
+add_subdirectory(source/ANALYSIS/OPENSWATH)
 
 ########################################################
 ###    BUILD the lib                                 ###

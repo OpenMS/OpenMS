@@ -15,3 +15,4 @@ foreach(i ${my_tests})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)
 
+add_dependencies(test_build ${my_tests} )
