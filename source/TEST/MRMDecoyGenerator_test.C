@@ -20,16 +20,18 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
 
-//#include "OpenSWATH_Test.h"
+///////////////////////////
+#define private public
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
+///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(MRMDecoy, "$Id: MRMDecoy.C 8215 2011-03-29 14:18:26Z aiche $")
+START_TEST(MRMDecoy, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -39,8 +41,8 @@ MRMDecoy* nullPointer = 0;
 
 START_SECTION(MRMDecoy())
 {
-	ptr = new MRMDecoy();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new MRMDecoy();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -177,6 +179,8 @@ END_SECTION
 START_SECTION(shuffle_peptide_with_modifications_and2attempts)
 {
   // Regression test for JIRA issue ABL-749
+  // A peptide with modifications that was shuffled twice did not get its
+  // modifications shuffled as well.
   MRMDecoy gen;
   OpenMS::TargetedExperiment::Peptide peptide;
   peptide.sequence = "GPPSEDGPGVPPPSPR";
