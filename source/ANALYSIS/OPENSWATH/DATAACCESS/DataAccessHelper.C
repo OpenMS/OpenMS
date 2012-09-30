@@ -87,7 +87,7 @@ namespace OpenMS
       p.sequence = transition_exp_.getPeptides()[i].sequence;
       p.protein_ref = transition_exp_.getPeptides()[i].protein_refs[0];
 
-      // TODO merge with code in MRMDecoyGenerator
+      // TODO (hroest/georger) merge with code in MRMDecoyGenerator
       // Mapping of peptide modifications
       const OpenMS::TargetedExperiment::Peptide * pep = &transition_exp_.getPeptides()[i];
       for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it =

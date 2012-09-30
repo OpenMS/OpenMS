@@ -35,7 +35,8 @@
 #ifndef OPENSWATH_DATAACCESS_ISPECTRUMACCESS_H_
 #define OPENSWATH_DATAACCESS_ISPECTRUMACCESS_H_
 
-#include "DataStructures.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+
 #include <vector>
 #include <string>
 #include <boost/shared_ptr.hpp>
@@ -43,19 +44,29 @@
 namespace OpenSwath
 {
 
+  /**
+    @brief The interface of a mass spectrometry experiment.
+  */
   class ISpectrumAccess
   {
 public:
     virtual ~ISpectrumAccess(){}
+    /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) const = 0;
+    /// Return a vector of ids of spectra that are within RT +/- deltaRT 
     virtual std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const = 0;
+    /// Returns the number of spectra available
     virtual size_t getNrSpectra() const = 0;
+    /// Returns the meta information for a spectrum
     virtual SpectrumMeta getSpectrumMetaById(int id) const = 0;
 
+    /// Return a pointer to a chromatogram at the given id
     virtual ChromatogramPtr getChromatogramById(int id) const = 0;
     //virtual std::vector<std::size_t> getChromatogramByPrecursorMZ(double mz,
     //    double deltaMZ) const = 0;
+    /// Returns the number of chromatograms available
     virtual std::size_t getNrChromatograms() const = 0;
+    /// Returns the native id of the chromatogram at the given id
     virtual std::string getChromatogramNativeID(int id) const = 0;
   };
 

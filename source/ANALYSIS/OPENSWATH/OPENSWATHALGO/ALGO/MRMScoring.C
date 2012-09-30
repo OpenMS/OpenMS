@@ -202,7 +202,8 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
-    // TODO : see _calc_weighted_xcorr_shape_score in MRM_pgroup.pm
+    // TODO (hroest) : check implementation
+    //         see _calc_weighted_xcorr_shape_score in MRM_pgroup.pm
     //         -- they only multiply up the intensity once
     std::vector<double> intensities;
     for (std::size_t i = 0; i < xcorr_matrix_.size(); i++)
@@ -239,7 +240,6 @@ namespace OpenMS
 
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
-      // TODO get apex or integrated intensity?
       native_id = transitions[k].getNativeID();
       double intensity = transitions[k].getLibraryIntensity();
       // the library intensity should never be below zero

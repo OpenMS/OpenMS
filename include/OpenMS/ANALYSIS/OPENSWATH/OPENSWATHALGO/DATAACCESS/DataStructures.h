@@ -41,8 +41,32 @@
 
 namespace OpenSwath
 {
+  /**
+    @brief The datastructures used by the OpenSwath interfaces  
+    
+    
+    The following datastructures are used :
+    - BinaryDataArray : a struct that holds a std::vector<double> with the data
+    - ChromatogramMeta : meta information of a chromatogram (index)
+    - Chromatogram : chromatogram data. Contains a vector of pointers to BinaryDataArray, 
+                     the first one is time array (RT), the second one is intensity
+    - SpectrumMeta : meta information of a spectrum (index, identifier, RT, ms_level)
+    - Spectrum :     spectrum data. Contains a vector of pointers to BinaryDataArray, 
+                     the first one is mz array, the second one is intensity
+  */
 
-/// Identifying information for a chromatogram
+  /// The structure into which encoded binary data goes.
+  struct BinaryDataArray
+  {
+    /// this optional attribute may reference the 'id' attribute of the appropiate dataProcessing.
+    //DataProcessingPtr dataProcessingPtr;
+
+    /// the binary data.
+    std::vector<double> data;
+  };
+  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
+
+  /// Identifying information for a chromatogram
   struct ChromatogramMeta
   {
     /// the zero-based, consecutive index of the chromatogram in the ChromatogramList.
@@ -58,18 +82,7 @@ namespace OpenSwath
 
   typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
 
-/// The structure into which encoded binary data goes.
-  struct BinaryDataArray
-  {
-    /// this optional attribute may reference the 'id' attribute of the appropriate dataProcessing.
-    //DataProcessingPtr dataProcessingPtr;
-
-    /// the binary data.
-    std::vector<double> data;
-  };
-  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
-
-/// A single chromatogram.
+  /// A single chromatogram.
   struct Chromatogram
   {
     /// default length of binary data arrays contained in this element.
@@ -146,7 +159,7 @@ namespace OpenSwath
 
   };
 
-/// The structure that captures the generation of a peak list (including the underlying acquisitions)
+  /// The structure that captures the generation of a peak list (including the underlying acquisitions)
   struct Spectrum
   {
     /// default length of binary data arrays contained in this element.

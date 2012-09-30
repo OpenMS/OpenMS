@@ -48,7 +48,7 @@ namespace OpenMS
   retention time to write out a transformation file on how to transoform the
   RT space into the normalized space.
 
-  TODO : elaborate
+  TODO (georger) : elaborate
 
   */
   class OPENMS_DLLAPI MRMRTNormalizer
@@ -59,7 +59,7 @@ public:
     /**
       @brief This function computes the outlier
 
-      TODO george
+      TODO (georger) : more comments
 
       @return If an error occured during the fit.
 
@@ -70,7 +70,7 @@ public:
     /**
       @brief This function removes potential outliers from a set of paired points
 
-      TODO george
+      TODO (georger) : more comments
 
       @return If an error occured during the fit.
 

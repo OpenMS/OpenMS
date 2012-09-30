@@ -58,8 +58,6 @@ namespace OpenSwath
     double & isotope_corr, double & isotope_overlap)
   {
     OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");
-    //double max_ppm_diff = 20.0; // TODO (hroest) make this a proper parameter
-
     // first compute a map of relative intensities from the feature, then compute the score
     std::map<std::string, double> intensities;
     getFirstIsotopeRelativeIntensities(transitions, mrmfeature, intensities);

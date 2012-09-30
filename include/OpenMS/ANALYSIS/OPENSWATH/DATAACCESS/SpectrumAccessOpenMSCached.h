@@ -54,85 +54,87 @@ namespace OpenMS
     write a cached mzML file.
 
   */
-	class OPENMS_DLLAPI SpectrumAccessOpenMSCached : 
+  class OPENMS_DLLAPI SpectrumAccessOpenMSCached : 
     public OpenSwath::ISpectrumAccess
-	{
+  {
 
-		public:
-			typedef OpenMS::MSExperiment<Peak1D> MSExperimentType;
-			typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
+    public:
+      typedef OpenMS::MSExperiment<Peak1D> MSExperimentType;
+      typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
 
-			SpectrumAccessOpenMSCached(String filename)
-			{
-				filename_cached_ = filename + ".cached";
-				std::ifstream ifs((filename_cached_).c_str(), std::ios::binary);
-				MzMLFile f;
-				f.load(filename, meta_ms_experiment_);
-				filename_ = filename;
-			}
+      SpectrumAccessOpenMSCached(String filename)
+      {
+        filename_cached_ = filename + ".cached";
+        std::ifstream ifs((filename_cached_).c_str(), std::ios::binary);
+        MzMLFile f;
+        f.load(filename, meta_ms_experiment_);
+        filename_ = filename;
+      }
 
-			~SpectrumAccessOpenMSCached()
-			{
-			}
+      ~SpectrumAccessOpenMSCached()
+      {
+      }
 
-			OpenSwath::SpectrumPtr getSpectrumById(int id) const;
-			OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
+      OpenSwath::SpectrumPtr getSpectrumById(int id) const;
 
-			std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const
-			{
-				// we first perform a search for the spectrum that is past the
-				// beginning of the RT domain. Then we add this spectrum and try to add
-				// further spectra as long as they are below RT + deltaRT.
-				std::vector<std::size_t> result;
-				MSExperimentType::ConstIterator spectrum = meta_ms_experiment_.RTBegin( RT - deltaRT);
-				// TODO use std::distance
-				result.push_back(spectrum - meta_ms_experiment_.begin());
-				spectrum++;
-				while (spectrum->getRT() < RT + deltaRT && spectrum != meta_ms_experiment_.end()) 
+      OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
+
+      std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const
+      {
+        OPENMS_PRECONDITION(deltaRT >= 0, "Delta RT needs to be a positive number");
+
+        // we first perform a search for the spectrum that is past the
+        // beginning of the RT domain. Then we add this spectrum and try to add
+        // further spectra as long as they are below RT + deltaRT.
+        std::vector<std::size_t> result;
+        MSExperimentType::ConstIterator spectrum = meta_ms_experiment_.RTBegin( RT - deltaRT);
+        result.push_back( std::distance(meta_ms_experiment_.begin(), spectrum) ); 
+        spectrum++;
+        while (spectrum->getRT() < RT + deltaRT && spectrum != meta_ms_experiment_.end()) 
         {
-					result.push_back(spectrum - meta_ms_experiment_.begin());
-					spectrum++;
-				}
-				return result;
-			}
+          result.push_back(spectrum - meta_ms_experiment_.begin());
+          spectrum++;
+        }
+        return result;
+      }
 
-			size_t getNrSpectra() const
-			{
-				return meta_ms_experiment_.size();
-			}
+      size_t getNrSpectra() const
+      {
+        return meta_ms_experiment_.size();
+      }
 
-			SpectrumSettings getSpectraMetaInfo(int id) const
-			{
-				return meta_ms_experiment_[id];
-			}
+      SpectrumSettings getSpectraMetaInfo(int id) const
+      {
+        return meta_ms_experiment_[id];
+      }
 
-			OpenSwath::ChromatogramPtr getChromatogramById(int id) const;
+      OpenSwath::ChromatogramPtr getChromatogramById(int id) const;
 
       // FEATURE ?
-			// ChromatogramPtr getChromatogramByPrecursorMZ(double mz, double deltaMZ);
+      // ChromatogramPtr getChromatogramByPrecursorMZ(double mz, double deltaMZ);
 
-			size_t getNrChromatograms() const
-			{
-				return meta_ms_experiment_.getChromatograms().size();
-			}
+      size_t getNrChromatograms() const
+      {
+        return meta_ms_experiment_.getChromatograms().size();
+      }
 
-			ChromatogramSettings getChromatogramMetaInfo(int id) const
-			{
-				return meta_ms_experiment_.getChromatograms()[id];
-			}
+      ChromatogramSettings getChromatogramMetaInfo(int id) const
+      {
+        return meta_ms_experiment_.getChromatograms()[id];
+      }
 
-			std::string getChromatogramNativeID(int id) const
-			{
-				return meta_ms_experiment_.getChromatograms()[id].getNativeID();
-			}
+      std::string getChromatogramNativeID(int id) const
+      {
+        return meta_ms_experiment_.getChromatograms()[id].getNativeID();
+      }
 
-		private:
-			MSExperimentType meta_ms_experiment_;
-			std::ifstream ifs;
-			CachedmzML cache;
-			String filename_;
-			String filename_cached_;
-	};
+    private:
+      MSExperimentType meta_ms_experiment_;
+      std::ifstream ifs;
+      CachedmzML cache;
+      String filename_;
+      String filename_cached_;
+  };
 
 } //end namespace
 

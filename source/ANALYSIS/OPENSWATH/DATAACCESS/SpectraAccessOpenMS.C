@@ -48,7 +48,7 @@ namespace OpenMS
     }
 
     // push back mz first, then intensity.
-    // TODO annotate which is which
+    // FEATURE (hroest) annotate which is which
     std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
     binaryDataArrayPtrs.push_back(mz_array);
     binaryDataArrayPtrs.push_back(intensity_array);
@@ -78,7 +78,7 @@ namespace OpenMS
     }
 
     // push back rt first, then intensity.
-    // TODO annotate which is which
+    // FEATURE (hroest) annotate which is which
     std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
     binaryDataArrayPtrs.push_back(rt_array);
     binaryDataArrayPtrs.push_back(intensity_array);
