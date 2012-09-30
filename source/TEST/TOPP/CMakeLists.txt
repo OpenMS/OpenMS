@@ -535,6 +535,10 @@ ADD_TEST("TOPP_ConvertTraMLToTSV_test_1" ${TOPP_BIN_PATH}/ConvertTraMLToTSV -in 
 ADD_TEST("TOPP_ConvertTraMLToTSV_test_1_out1" ${DIFF} -in1 ConvertTraMLToTSV_output.tsv.tmp -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_input.tsv)
 set_tests_properties("TOPP_ConvertTraMLToTSV_test_1_out1" PROPERTIES DEPENDS "TOPP_ConvertTraMLToTSV_test_1")
 
+ADD_TEST("TOPP_MRMMapping_test_1" ${TOPP_BIN_PATH}/MRMMapper -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out MRMMapping_output.chrom.mzML.tmp -test)
+ADD_TEST("TOPP_MRMMapping_test_1_out_1" ${DIFF} -in1 MRMMapping_output.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML)
+set_tests_properties("TOPP_MRMMapping_test_1_out_1" PROPERTIES DEPENDS "TOPP_MRMMapping_test_1")
+
 ### NoiseFilter tests
 add_test("TOPP_NoiseFilterGaussian_1" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out NoiseFilterGaussian_1.tmp)
 add_test("TOPP_NoiseFilterGaussian_1_out1" ${DIFF} -in1 NoiseFilterGaussian_1.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_output.mzML )

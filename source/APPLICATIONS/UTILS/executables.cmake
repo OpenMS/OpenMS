@@ -25,6 +25,7 @@ INIUpdater
 LabeledEval
 MassCalculator
 MRMPairFinder
+MRMMapper
 MSSimulator
 MapAlignmentEvaluation
 OpenMSInfo
