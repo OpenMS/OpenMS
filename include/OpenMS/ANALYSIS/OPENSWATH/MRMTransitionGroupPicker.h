@@ -292,7 +292,7 @@ public:
         if (chr_idx == -1 && peak_idx == -1) break;
 
         /*
-        // TODO (hroest) check that this left/right do not collide with any already present features -- if so, re-set the left/right
+        // FEATURE (hroest) check that this left/right do not collide with any already present features -- if so, re-set the left/right
         double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
         double best_right = picked_chroms[chr_idx].getFloatDataArrays()[2][peak_idx];
         */

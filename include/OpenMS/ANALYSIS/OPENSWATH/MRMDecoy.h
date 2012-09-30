@@ -182,7 +182,7 @@ private:
     /**
       @brief get AASequence from a peptide
 
-      TODO(georger,hroest): this method should go into a more generic OpenMS
+      TODO (georger,hroest): this method should go into a more generic OpenMS
       class like TargetedExperimentHelper
     */
     OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide & peptide);
