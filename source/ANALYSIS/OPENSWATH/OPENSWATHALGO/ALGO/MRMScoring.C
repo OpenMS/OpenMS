@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
 //#define MRMSCORING_TESTING
@@ -40,7 +40,7 @@
 
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/meanAndSd.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
 
 #ifdef OPENMS_ASSERTIONS
 #define OPENMS_PRECONDITION(condition, message)\

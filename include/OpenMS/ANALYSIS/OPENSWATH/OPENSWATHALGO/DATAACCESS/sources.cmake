@@ -11,6 +11,7 @@ ITransition.h
 MockObjects.h
 TransitionExperiment.h
 Transitions.h
+SpectrumHelpers.h
 )
 
 ### add path to the filenames

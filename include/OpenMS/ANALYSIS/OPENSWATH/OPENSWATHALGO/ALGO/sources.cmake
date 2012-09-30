@@ -3,9 +3,7 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO)
 
 ### list all header files of the directory here
 set(sources_list_h
-corr.h
-DIAHelpers.h
-meanAndSd.h
+StatsHelpers.h
 MRMScoring.h
 Scoring.h
 )

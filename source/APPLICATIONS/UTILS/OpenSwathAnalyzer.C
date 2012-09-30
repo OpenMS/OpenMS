@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest, Witold Wolski $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>

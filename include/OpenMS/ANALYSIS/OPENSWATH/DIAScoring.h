@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H_
@@ -153,45 +153,7 @@ private:
       std::map<std::string, double> & intensities     //experimental intensities of transitions
       );
 
-#if 0
-    /// TODO (wolski): what is this doing here? is this code dead?
-    void dia_isotope_scores(const std::vector<TransitionType> & transitions,
-      SpectrumType spectrum, int putative_fragment_charge,
-      double & isotope_corr, double & isotope_overlap);
-
-    /* computes apex mz and area for a given spectrum fragment */
-    /// TODO (wolski): what is this doing here? is this code dead?
-    void getSpectrumIntensities(const std::vector<TransitionType> & transitions,
-      SpectrumType spectrum, double extractWindow,
-      std::vector<double> & mzv, std::vector<double> & intensityv);
-
-
-    // TODO (wolski) what does this method do, is it called somewhere? 
-    void getFirstIsotopeRelativeIntensities(
-      const std::vector<TransitionType> & transitions,
-      SpectrumType spectrum, std::map<std::string, double> & intensities     //experimental intensities of transitions
-      );
-
-    // TODO (wolski) this method is dead? where is the implementation?
-    void getFirstIsotopeRelativeIntensities(
-      const std::vector<TransitionType> & transitions,
-      SpectrumType spectrum, std::vector<double> & intensities     //experimental intensities of transitions
-      );
-#endif
-
 private:
-
-    /**
-      @brief Integrate intensity in a spectrum from start to end 
-
-      This function will integrate the intensity in a spectrum between mz_start
-      and mz_end, returning the total intensity and an intensity-weighted m/z
-      value.
-
-      @note If there is no signal, mz will be set to -1 and intensity to 0
-    */
-    void getIntensePeakInWindow(const SpectrumType spectrum, double mz_start,
-      double mz_end, double & mz, double & intensity, bool centroided);
 
     /**
       @brief Search for a large peak _before_ (lower m/z) the current peak 

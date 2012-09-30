@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
@@ -37,7 +37,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/corr.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenMSHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring.h>
@@ -77,7 +78,7 @@ namespace OpenSwath
       // Calculate the difference of the theoretical mass and the actually measured mass
       left = transition->getProductMZ() - dia_extract_window_ / 2.0;
       right = transition->getProductMZ() + dia_extract_window_ / 2.0;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       if (mz == -1)
       {
         mz = (left + right) / 2.0;
@@ -109,7 +110,7 @@ namespace OpenSwath
     {
       left = bseries[it] - dia_extract_window_ / 2.0;
       right = bseries[it] + dia_extract_window_ / 2.0;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       ppmdiff = std::fabs(bseries[it] - mz) * 1000000 / bseries[it];
       if (mz != -1 && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
@@ -120,7 +121,7 @@ namespace OpenSwath
     {
       left = yseries[it] - dia_extract_window_ / 2.0;
       right = yseries[it] + dia_extract_window_ / 2.0;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       ppmdiff = std::fabs(yseries[it] - mz) * 1000000 / yseries[it];
       if (mz != -1 && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
@@ -140,7 +141,8 @@ namespace OpenSwath
   // Private methods
 
   /// computes a vector of relative intensities for each feature (output to intensities) 
-  void DIAScoring::getFirstIsotopeRelativeIntensities(const std::vector<TransitionType> & transitions,
+  void DIAScoring::getFirstIsotopeRelativeIntensities(
+          const std::vector<TransitionType> & transitions,
     OpenSwath::IMRMFeature * mrmfeature, std::map<std::string, double> & intensities)
   {
     double rel_intensity;
@@ -152,66 +154,6 @@ namespace OpenSwath
     }
   }
 
-#if 0
-
-  void DIAScoring::getSpectrumIntensities(const std::vector<TransitionType> & transitions, SpectrumType spectrum, double extractWindow,
-    std::vector<double> & mzv, std::vector<double> & intensityv)
-  {
-    for (std::size_t k = 0; k < transitions.size(); ++k)
-    {
-      // Calculate the difference of the theoretical mass and the actually measured mass
-      double left = transitions[k].getProductMZ() - extractWindow / 2.0;
-      double right = transitions[k].getProductMZ() + extractWindow / 2.0;
-      double mz, intensity;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      if (mz == -1)
-      {
-        mz = (left + right) / 2.0;
-      }
-      mzv.push_back(mz);
-      intensityv.push_back(intensity);
-    }
-  }
-  //gets the relative intensities from spectrum
-  void DIAScoring::getFirstIsotopeRelativeIntensities(
-    const std::vector<TransitionType> & transitions,
-    SpectrumType spectrum,
-    std::map<std::string, double> & intensities   //experimental intensities of transitions
-    )
-  {
-    typedef std::pair<std::string, double> TPair;
-    typedef std::vector<TransitionType> Transitiontypevec;
-    Transitiontypevec::const_iterator beg = transitions.begin();
-    Transitiontypevec::const_iterator end = transitions.end();
-
-    std::vector<double> tmpint;
-    std::vector<std::string> refs;
-    double mz, intensity;
-    for (; beg != end; ++beg)
-    {
-      std::string native_id = beg->getNativeID();
-      double left = beg->getProductMZ() - dia_extract_window_ / 2.0;
-      double right = beg->getProductMZ() + dia_extract_window_ / 2.0;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      tmpint.push_back(intensity);
-      refs.push_back(native_id);
-    }
-
-    //compute total intensities
-    double totalInt = std::accumulate(tmpint.begin(), tmpint.end(), 0.0);
-    //normalize intensities
-    if (totalInt > 0)
-    {
-      std::transform(tmpint.begin(), tmpint.end(), tmpint.begin(),
-                     std::bind2nd(std::divides<double>(), totalInt));
-    }
-    //add to result
-    for (uint32_t i = 0; i < tmpint.size(); ++i)
-    {
-      intensities.insert(TPair(refs[i], tmpint[i]));
-    }
-  }
-#endif
 
   void DIAScoring::dia_isotope_scores_sub(const std::vector<TransitionType> & transitions, SpectrumType spectrum,
     std::map<std::string, double> & intensities,  //relative intensities
@@ -239,7 +181,7 @@ namespace OpenSwath
         double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U/ static_cast<DoubleReal>(putative_fragment_charge);
         double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<DoubleReal>(putative_fragment_charge);
         double mz, intensity;
-        getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+        integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
         isotopes_int.push_back(intensity);
       }
 
@@ -263,7 +205,7 @@ namespace OpenSwath
     {
       left = product_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
       right = product_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       if (mz == -1)
       {
         mz = (left + right) / 2.0;
@@ -340,78 +282,6 @@ namespace OpenSwath
     return int_score;
 
   } //end of dia_isotope_corr_sub
-
-  void DIAScoring::getIntensePeakInWindow(const SpectrumType spectrum, double mz_start, 
-      double mz_end, double & mz, double & intensity, bool centroided)
-  {
-    OPENMS_PRECONDITION(
-        std::adjacent_find(spectrum->getMZArray()->data.begin(), spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
-      "MZ vector needs to be sorted!");
-
-    intensity = 0;
-    if (!centroided)
-    {
-      // get the weighted average for noncentroided data.
-      // TODO this is not optimal if there are two peaks in this window (e.g. if
-      // the window is too large)
-      mz = 0;
-      intensity = 0;
-
-      std::vector<double>::const_iterator mz_arr_end =
-        spectrum->getMZArray()->data.end();
-      std::vector<double>::const_iterator int_it =
-        spectrum->getIntensityArray()->data.begin();
-
-      // this assumes that the spectra are sorted!
-      std::vector<double>::const_iterator mz_it = std::lower_bound(
-        spectrum->getMZArray()->data.begin(),
-        spectrum->getMZArray()->data.end(), mz_start);
-      std::vector<double>::const_iterator mz_it_end = std::lower_bound(mz_it,
-                                                                       mz_arr_end, mz_end);
-
-      // also advance intensity iterator now
-      int iterator_pos =
-        std::distance(
-          (std::vector<double>::const_iterator)spectrum->getMZArray()->data.begin(),
-          mz_it);
-      std::advance(int_it, iterator_pos);
-
-      for (; mz_it != mz_it_end; ++mz_it, ++int_it)
-      {
-        intensity += (*int_it);
-        mz += (*int_it) * (*mz_it);
-      }
-
-      // This is equivalent to (but faster)
-      // * std::vector<double>::const_iterator mz_arr_end = spectrum->getMZArray()->data.end();
-      // * std::vector<double>::const_iterator int_it = spectrum->getIntensityArray()->data.begin();
-      // * std::vector<double>::const_iterator mz_it = spectrum->getMZArray()->data.begin();
-      // * for (; mz_it != mz_arr_end; mz_it++, int_it++)
-      // * {
-      // *   if ((*mz_it) < mz_start) continue;
-      // *   if ((*mz_it) > mz_end) break;
-      // *   std::cout << " add " <<  (*int_it) << " @ " << (*mz_it) << std::endl;
-      // *   intensity += (*int_it);
-      // *   mz += (*int_it) * (*mz_it);
-      // * }
-
-      if (intensity != 0)
-      {
-        mz /= intensity;
-      }
-      else
-      {
-        mz = -1;
-        intensity = 0;
-      }
-
-    }
-    else
-    {
-      // not implemented
-      throw "Not implemented";
-    }
-  }
 
 //mrmfeature
 }

@@ -53,7 +53,8 @@
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenMSHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/DIAHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 
 #include "OpenMS/DATASTRUCTURES/DefaultParamHandler.h"
 #include <iterator>

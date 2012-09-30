@@ -469,7 +469,7 @@ START_SECTION ( void dia_by_ion_score(SpectrumType & spectrum, AASequence & sequ
 }
 END_SECTION
 
-START_SECTION (void getIntensePeakInWindow(const SpectrumType spectrum, const double & mz_start, const double & mz_end, double & mz, double & intensity, bool centroided))
+START_SECTION (void integrateWindows(const SpectrumType spectrum, const double & mz_start, const double & mz_end, double & mz, double & intensity, bool centroided))
 {
   // TODO is tested above, maybe seperate test here?
 }

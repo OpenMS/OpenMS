@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest, Witold Wolski $
-// $Authors: Hannes Roest, Witold Wolski $
+// $Maintainer: Witold Wolski, Hannes Roest  $
+// $Authors: Witold Wolski, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #ifndef OPENSWATH_DIAHELPERS_H_
@@ -62,15 +62,6 @@ namespace OpenSwath
     return sqrt(res);
   }
 
-  //integrate Window
-  bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
-                       double mz_end, double & mz, double & intensity, bool centroided = false);
-
-  //integrate Window
-  void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
-                        const std::vector<double> & windowsCenter, double width,
-                        std::vector<double> & integratedWindowsIntensity,
-                        std::vector<double> & integratedWindowsMZ, bool remZero = false);
 
   template <typename Texp, typename Ttheo>
   double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
@@ -131,6 +122,114 @@ namespace OpenSwath
     return score2;
   }
 
+
+
+  template <typename TInputIterator, typename TInputIteratorY>
+  typename std::iterator_traits<TInputIterator>::value_type cor_pearson(
+    TInputIterator xBeg,
+    TInputIterator xEnd,
+    TInputIteratorY yBeg
+    )
+  {
+    typedef typename std::iterator_traits<TInputIterator>::value_type value_type;
+    value_type   m1, m2;
+    value_type   s1, s2;
+    value_type   corr;
+    m1 = m2 = s1 = s2 = 0.0;
+    corr = 0.0;
+    ptrdiff_t n = std::distance(xBeg, xEnd);
+    value_type nd = static_cast<value_type>(n);
+    for (; xBeg != xEnd; ++xBeg, ++yBeg)
+    {
+      corr += *xBeg * *yBeg;
+      m1 += *xBeg;
+      m2 += *yBeg;
+      s1 += *xBeg * *xBeg;
+      s2 += *yBeg * *yBeg;
+    }
+    m1 /= nd;
+    m2 /= nd;
+    s1 -= m1 * m1 * nd;
+    s2 -= m2 * m2 * nd;
+
+    if (s1 < 1.0e-12 || s2 < 1.0e-12)
+      return 0.0;
+    else
+    {
+      corr -= m1 * m2 * (double)n;
+      corr /= sqrt(s1 * s2);
+      return corr;
+    }
+  }
+
+  class mean_and_stddev
+  {
+    double m_, q_;
+    unsigned long c_;
+public:
+    typedef double argument_type, result_type;
+    mean_and_stddev() :
+      m_(0.0), q_(0.0), c_(0u)
+    {
+    }
+
+    void operator()(double sample)
+    {
+      double const delta = sample - m_;
+      m_ += delta / ++c_;
+      q_ += delta * (sample - m_);
+    }
+
+    double sample_variance() const
+    {
+      return (c_ > 1u) ? (q_ / (c_ - 1)) : 0;
+    }
+
+    double standard_variance() const
+    {
+      return (c_ > 1u) ? (q_ / c_) : 0;
+    }
+
+    double sample_stddev() const
+    {
+      return std::sqrt(sample_variance());
+    }
+
+    double standard_stddev() const
+    {
+      return std::sqrt(standard_variance());
+    }
+
+    double mean() const
+    {
+      return m_;
+    }
+
+    unsigned long count() const
+    {
+      return c_;
+    }
+
+    double variance() const
+    {
+      return sample_variance();
+    }
+
+    double stddev() const
+    {
+      return sample_stddev();
+    }
+
+    double operator()() const
+    {
+      return stddev();
+    }
+
+  };
+
+
 }
+
+
 
 #endif

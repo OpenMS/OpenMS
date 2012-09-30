@@ -32,25 +32,14 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DIAHelpers.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h"
+
 #include <algorithm>
 #include <numeric>
 #include <stdexcept>
 
 namespace OpenSwath
 {
-  void normalize(
-    const std::vector<double> & intensities,
-    double normalizer,
-    std::vector<double> & normalized_intensities)
-  {
-    //compute total intensities
-    //normalize intensities
-    if (normalizer > 0)
-    {
-      std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(), std::bind2nd(std::divides<double>(), normalizer));
-    }
-  }
 
   void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
                         const std::vector<double> & windowsCenter, double width,
@@ -81,7 +70,7 @@ namespace OpenSwath
     }
   }
 
-  /// integrate all masses in window 
+  /// integrate all masses in window
   bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
                        double mz_end, double & mz, double & intensity, bool centroided)
   {

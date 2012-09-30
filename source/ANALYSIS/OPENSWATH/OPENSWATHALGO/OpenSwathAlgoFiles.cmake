@@ -5,7 +5,8 @@ set(directory source/ANALYSIS/OPENSWATH/OPENSWATHALGO)
 set(sources_list
   ALGO/Scoring.C
   ALGO/MRMScoring.C
-  ALGO/DIAHelpers.C
+  ALGO/StatsHelpers.C
+  DATAACCESS/SpectrumHelpers.C
 )
 
 ### add path to the filenames

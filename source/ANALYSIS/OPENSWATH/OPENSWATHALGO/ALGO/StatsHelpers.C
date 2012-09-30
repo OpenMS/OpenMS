@@ -28,65 +28,29 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest$
-// $Authors: Hannes Roest$
+// $Maintainer: Hannes Roest, Witold Wolski $
+// $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_ALGO_SCORING_H
-#define OPENSWATH_ALGO_SCORING_H
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
 
+#include <algorithm>
 #include <numeric>
-#include <map>
-#include <vector>
-namespace OpenMS
+#include <stdexcept>
+
+namespace OpenSwath
 {
-
-  /**
-    @brief Scoring functions used by MRMScoring 
-
-    Many helper functions to calculate crosscorrelations between data
-  */
-  namespace Scoring
+  void normalize(
+    const std::vector<double> & intensities,
+    double normalizer,
+    std::vector<double> & normalized_intensities)
   {
-    /** @name Type defs */
-    //@{
-    /// Cross Correlation array
-    typedef std::map<int, double> XCorrArrayType;
-    //@}
-
-    /** @name Helper functions */
-    //@{
-    /// Fxn "deltaRatioSum" from mQuest to calculate similarity between library intensity and experimental ones
-    double RMSD(double x[], double y[], int n);
-
-    /// Calculate crosscorrelation on std::vector data
-    XCorrArrayType calcxcorr(std::vector<double> & data1,
-      std::vector<double> & data2, bool normalize);
-
-    /// Calculate crosscorrelation on std::vector data (which is first normalized)
-    XCorrArrayType normalizedCalcxcorr(std::vector<double> & data1,
-      std::vector<double> & data2, int maxdelay, int lag);
-
-    /// Calculate crosscorrelation on std::vector data without normalization
-    XCorrArrayType calcxcorr_new(std::vector<double> & data1,
-      std::vector<double> & data2, int maxdelay, int lag);
-
-    /*
-    XCorrArrayType calcxcorr_lag1(std::vector<double> & data1,
-        std::vector<double> & data2, int maxdelay);
-    */
-
-    /// Find best peak in an cross-correlation (highest apex)
-    XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType array);
-
-    /// Standardize a vector (subtract mean, divide by standard deviation)
-    void standardize_data(std::vector<double> & data);
-
-    /// divide each element of x by the sum of the vector
-    void normalize_sum(double x[], int n);
-    //@}
-
+    //compute total intensities
+    //normalize intensities
+    if (normalizer > 0)
+    {
+      std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(), std::bind2nd(std::divides<double>(), normalizer));
+    }
   }
-}
 
-#endif
+}

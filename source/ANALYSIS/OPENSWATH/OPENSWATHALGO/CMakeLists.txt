@@ -3,7 +3,8 @@ project(OpenSwath)
 set(OpenSwathAlgorithmFiles
   ALGO/Scoring.C
   ALGO/MRMScoring.C
-  ALGO/DIAHelpers.C
+  ALGO/StatsHelpers.C
+  DATAACCESS/SpectrumHelpers.C
 )
 
 # message(STATUS ">>>>>>openswath<<<<<<")
