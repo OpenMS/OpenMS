@@ -4,6 +4,7 @@ set(directory source/ANALYSIS/OPENSWATH)
 ### list all header files of the directory here
 set(sources_list
 MRMDecoy.C
+MRMRTNormalizer.C
 TransitionTSVReader.C
 OpenSwathHelper.C
 ChromatogramExtractor.C

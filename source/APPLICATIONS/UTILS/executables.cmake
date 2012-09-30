@@ -33,6 +33,7 @@ OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathChromatogramExtractor
 OpenSwathAnalyzer
+OpenSwathRTNormalizer
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator

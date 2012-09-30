@@ -508,6 +508,7 @@ set(simulation_executables_list
 
 set(swath_executables_list
   MRMDecoy_test
+  MRMRTNormalizer_test
   TransitionTSVReader_test
   ChromatogramExtractor_test
   OpenSwathHelper_test
