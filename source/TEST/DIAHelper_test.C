@@ -32,7 +32,7 @@
 // $Authors: Witold Wolski, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenMSHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #ifdef USE_BOOST_UNIT_TEST
 #define BOOST_TEST_DYN_LINK
@@ -55,11 +55,11 @@
 
 using namespace std;
 using namespace OpenMS;
-using namespace OpenMS::OpenSWATH;
+//using namespace OpenMS::OpenSWATH;
 
 ///////////////////////////
 
-START_TEST(OpenMSHelper, "$Id$")
+START_TEST(DIAHelper, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -69,9 +69,9 @@ START_SECTION(getBYSeries_test)
 	String sequence = "SYVAWDR";
 	std::vector<double> bseries, yseries;
 	OpenMS::AASequence a = OpenMS::AASequence(sequence);
-  OpenMS::OpenSWATH::getBYSeries(a, bseries, yseries);
+  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries);
 	bseries.clear();
-  OpenMS::OpenSWATH::getTheorMasses(a, bseries);
+  OpenMS::DIAHelpers::getTheorMasses(a, bseries);
 
 }
 END_SECTION
@@ -80,7 +80,7 @@ START_SECTION(getAveragineIsotopeDistribution_test)
 {
 
 	std::vector<std::pair<double, double> > tmp;
-	getAveragineIsotopeDistribution(100., tmp);
+	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(100., tmp);
 	TEST_EQUAL(tmp.size() == 4, true);
 
 	double mass1[] = { 100, 101.00048, 102.00096, 103.00144 };
@@ -98,7 +98,7 @@ START_SECTION(getAveragineIsotopeDistribution_test)
 	}
 
 	tmp.clear();
-	getAveragineIsotopeDistribution(30., tmp);
+	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(30., tmp);
 	double mass2[] = { 30, 31.0005, 32.001, 33.0014 };
 	double int2[] = { 0.989072, 0.010925, 2.4738e-06, 1.41508e-10 };
 	mm = &mass2[0];
@@ -114,28 +114,28 @@ START_SECTION(getAveragineIsotopeDistribution_test)
 	}
 
 	tmp.clear();
-	getAveragineIsotopeDistribution(110., tmp);
+	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(110., tmp);
 	for (int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
 
 	tmp.clear();
-	getAveragineIsotopeDistribution(120., tmp);
+	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(120., tmp);
 	for (int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
 
 	tmp.clear();
-	getAveragineIsotopeDistribution(300., tmp);
+	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(300., tmp);
 	for (int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
 
 	tmp.clear();
-	getAveragineIsotopeDistribution(500., tmp);
+	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(500., tmp);
 	for (int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
@@ -150,7 +150,7 @@ START_SECTION(simulateSpectrumFromAASequence_test)
 	OpenMS::AASequence a = OpenMS::AASequence(sequence);
 	std::vector<double> masses1;
 	std::vector<std::pair<double, double> > tmp, out;
-	simulateSpectrumFromAASequence(a, masses1, tmp);
+	OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp);
 
 	std::copy(masses1.begin(), masses1.end(),
 			std::ostream_iterator<double>(std::cout, " "));
@@ -159,8 +159,8 @@ START_SECTION(simulateSpectrumFromAASequence_test)
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
-	modifyMassesByCharge(tmp, out, 2.);
-	addPreisotopeWeights(masses1, tmp);
+	OpenMS::DIAHelpers::modifyMassesByCharge(tmp, out, 2.);
+	OpenMS::DIAHelpers::addPreisotopeWeights(masses1, tmp);
 	std::cout << "preisotope weights added" << std::endl;
 
 	for (int i = 0; i < tmp.size(); ++i) {
@@ -178,7 +178,7 @@ START_SECTION(addIsotopesToSpec_test)
 	tmp_.push_back(std::make_pair(200., 300.));
 	tmp_.push_back(std::make_pair(300., 200.));
 
-  OpenMS::OpenSWATH::addIsotopes2Spec(tmp_, out);
+  OpenMS::DIAHelpers::addIsotopes2Spec(tmp_, out);
 	std::cout << "addIsotopesToSpec_test" << std::endl;
 	for (int i = 0; i < out.size(); ++i) {
 		std::cout << out[i].first << " " << out[i].second << std::endl;
@@ -187,7 +187,7 @@ START_SECTION(addIsotopesToSpec_test)
 }
 END_SECTION
 
-// TODO (wolski): write tests for all methods in OpenMSHelper
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

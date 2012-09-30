@@ -35,7 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenMSHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
@@ -92,7 +92,7 @@ START_SECTION((void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, st
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence(sequence);
-  OpenMS::OpenSWATH::getBYSeries(a,  bseries, yseries, 1);
+  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
@@ -117,7 +117,7 @@ START_SECTION((void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, st
   bseries.clear();
   yseries.clear();
   a.setModification(1, "Phospho" ); // modify the Y
-  OpenMS::OpenSWATH::getBYSeries(a,  bseries, yseries ,1);
+  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries ,1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)

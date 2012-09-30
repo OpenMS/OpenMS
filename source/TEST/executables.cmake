@@ -513,9 +513,9 @@ set(swath_executables_list
   ChromatogramExtractor_test
   OpenSwathHelper_test
   MRMTransitionGroupPicker_test
-  OSW_OpenMSHelper_test
+  DIAHelper_test
   DIAScoring_test
-  DiaPrescoring2_test
+  DIAPrescoring_test
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
   OpenSwathDataAccessHelper_test
