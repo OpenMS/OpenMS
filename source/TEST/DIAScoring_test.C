@@ -210,7 +210,7 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
   // >>> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(isotope_corr, 0.99463189043051314)
+  TEST_REAL_SIMILAR(isotope_corr, 0.995361286111832)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0)
 }
 END_SECTION
@@ -337,7 +337,7 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
   // see above for the the two individual numbers (forward and backward)
-  TEST_REAL_SIMILAR(isotope_corr, 0.959570883150479 * 0.3 + 0.99463189043051314 * 0.7)
+  TEST_REAL_SIMILAR(isotope_corr, 0.984624164796771)
   TEST_REAL_SIMILAR(isotope_overlap, 1.0 * 0.3)
 
 }

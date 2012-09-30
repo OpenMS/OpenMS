@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
@@ -47,7 +48,8 @@
 
 #include <boost/bind.hpp>
 
-// const double C13C12_MASSDIFF_U = 1.0033548; // ou
+const double C13C12_MASSDIFF_U = 1.0033548; 
+
 namespace OpenSwath
 {
   ///////////////////////////////////////////////////////////////////////////
@@ -234,10 +236,8 @@ namespace OpenSwath
       // collect the potential isotopes of this peak
       for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
       {
-        // TODO (hroest) multiply with C13C12_MASSDIFF_U -->  +iso * C13C12_MASSDIFF_U / charge
-        // TODO (hroest) get fragment charge from transition --> add to Transition interface
-        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 + iso / static_cast<DoubleReal>(putative_fragment_charge);
-        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + iso / static_cast<DoubleReal>(putative_fragment_charge);
+        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U/ static_cast<DoubleReal>(putative_fragment_charge);
+        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<DoubleReal>(putative_fragment_charge);
         double mz, intensity;
         getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
         isotopes_int.push_back(intensity);
@@ -261,9 +261,8 @@ namespace OpenSwath
 
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
-      // TODO (hroest) multiply with C13C12_MASSDIFF_U -->  + 1.0 * C13C12_MASSDIFF_U / charge
-      left = product_mz - dia_extract_window_ / 2.0 - 1.0 / (DoubleReal) ch;
-      right = product_mz + dia_extract_window_ / 2.0 - 1.0 / (DoubleReal) ch;
+      left = product_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
+      right = product_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
       getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       if (mz == -1)
       {
