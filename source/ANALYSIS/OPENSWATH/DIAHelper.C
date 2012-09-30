@@ -32,7 +32,7 @@
 // $Authors: Witold Wolski, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenMSHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <utility>
 #include <boost/bind.hpp>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -41,7 +41,7 @@
 
 namespace OpenMS
 {
-namespace OpenSWATH
+namespace DIAHelpers
 {
   // for SWATH -- get the theoretical b and y series masses for a sequence
   void getBYSeries(AASequence & a,   //

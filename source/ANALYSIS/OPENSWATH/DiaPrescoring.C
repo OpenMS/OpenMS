@@ -33,7 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring.h>
-
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 namespace OpenMS
 {
 
@@ -65,6 +67,8 @@ namespace OpenMS
       res.push_back(std::make_pair(trans[i].product_mz, trans[i].library_intensity));
     }
   }
+
+
   void DiaPrescore::operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
                  OpenSwath::LightTargetedExperiment & transition_exp_used,
                  OpenSwath::IDataFrameWriter * ivw)
@@ -128,17 +132,17 @@ namespace OpenMS
     std::vector<std::pair<double, double> > res;
     getMZIntensityFromTransition(lt, res);
     std::vector<double> firstIstotope, theomasses;
-    extractFirst(res, firstIstotope);
+    DIAHelpers::extractFirst(res, firstIstotope);
     std::vector<std::pair<double, double> > spectrum, spectrum2;
-    addIsotopes2Spec(res, spectrum);
+    DIAHelpers::addIsotopes2Spec(res, spectrum);
     spectrum2.resize(spectrum.size());
     std::copy(spectrum.begin(), spectrum.end(), spectrum2.begin());
     //std::cout << spectrum.size() << std::endl;
-    addPreisotopeWeights(firstIstotope, spectrum, 2, 0.0);
+    DIAHelpers::addPreisotopeWeights(firstIstotope, spectrum, 2, 0.0);
     //extracts masses from spectrum
-    extractFirst(spectrum, theomasses);
+    DIAHelpers::extractFirst(spectrum, theomasses);
     std::vector<double>  theorint;
-    extractSecond(spectrum, theorint);
+    DIAHelpers::extractSecond(spectrum, theorint);
     std::vector<double> intExp, mzExp;
     integrateWindows(spec, theomasses, dia_extract_window_, intExp,
                      mzExp);
@@ -159,9 +163,9 @@ namespace OpenMS
     manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
 
     //std::cout << spectrum.size() << std::endl;
-    addPreisotopeWeights(firstIstotope, spectrum2, 2, -0.5);
+    DIAHelpers::addPreisotopeWeights(firstIstotope, spectrum2, 2, -0.5);
     std::vector<double>  theorint2;
-    extractSecond(spectrum, theorint2);
+    DIAHelpers::extractSecond(spectrum, theorint2);
     std::transform(theorint2.begin(), theorint2.end(), theorint2.begin(), mySqrt());
 
     intExptotal = OpenSwath::norm(intExp.begin(), intExp.end());

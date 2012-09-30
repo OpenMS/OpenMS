@@ -42,22 +42,14 @@
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 
-//#include "OpenSwath/Utils/DataFrameWriter.h"
-//#include "OpenSwath/DataAccess/ITrans2Trans.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITrans2Trans.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h"
-
-//#include "OpenSwath/DataAccess/ISpectrumAccess.h"
-//#include "OpenSwath/DataAccess/TransitionExperiment.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenMSHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
+
 
 #include "OpenMS/DATASTRUCTURES/DefaultParamHandler.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
 #include <iterator>
 
 namespace OpenMS

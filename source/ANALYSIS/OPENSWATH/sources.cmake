@@ -9,7 +9,7 @@ TransitionTSVReader.C
 OpenSwathHelper.C
 ChromatogramExtractor.C
 MRMTransitionGroupPicker.C
-OpenMSHelper.C
+DIAHelper.C
 DIAScoring.C
 DiaPrescoring.C
 MRMFeatureFinderScoring.C

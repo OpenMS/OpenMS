@@ -8,7 +8,7 @@ MRMRTNormalizer.h
 TransitionTSVReader.h
 OpenSwathHelper.h
 ChromatogramExtractor.h
-OpenMSHelper.h
+DIAHelper.h
 DIAScoring.h
 DiaPrescoring.h
 MRMFeatureFinderScoring.h

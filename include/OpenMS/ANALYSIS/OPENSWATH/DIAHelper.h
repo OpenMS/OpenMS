@@ -40,7 +40,7 @@
 
 namespace OpenMS
 {
-namespace OpenSWATH
+namespace DIAHelpers
 {
   /**
     @brief Helper functions for the DIA scoring of OpenSWAT

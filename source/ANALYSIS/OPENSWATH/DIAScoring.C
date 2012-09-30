@@ -39,7 +39,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h"
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenMSHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring.h>
 
@@ -149,7 +149,7 @@ namespace OpenMS
     double mz, intensity, left, right;
     std::vector<double> yseries, bseries;
     std::vector<double> extr_yseries, extr_bseries;
-    OpenMS::OpenSWATH::getBYSeries(sequence, bseries, yseries, charge);
+    OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, charge);
     double ppmdiff;
     for (Size it = 0; it < bseries.size(); it++)
     {
