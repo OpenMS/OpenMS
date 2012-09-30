@@ -37,6 +37,7 @@
 
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
@@ -71,6 +72,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI DIAScoring
+    : public DefaultParamHandler
   {
     ///Type definitions
     //@{
@@ -87,7 +89,7 @@ public:
     ///@name Constructors and Destructor
     //@{
     /// Default constructor
-    DIAScoring() {}
+    DIAScoring();
 
     /// Destructor
     virtual ~DIAScoring() {}
@@ -97,15 +99,7 @@ public:
     //@{
     /// set parameters for the algorithm
     void set_dia_parameters(double dia_extract_window, double dia_centroided,
-      double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges)
-    {
-      dia_extract_window_ = dia_extract_window;
-      dia_centroided_ = dia_centroided;
-      dia_byseries_intensity_min_ = dia_byseries_intensity_min;
-      dia_byseries_ppm_diff_ = dia_byseries_ppm_diff;
-      dia_nr_isotopes_ = dia_nr_isotopes;
-      dia_nr_charges_ = dia_nr_charges;
-    }
+      double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges);
     //@}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -139,6 +133,9 @@ private:
 
     /// Assignment operator (algorithm class)
     DIAScoring & operator=(const DIAScoring & rhs);
+
+    /// Synchronize members with param class
+		void updateMembers_();        
 
     /// Subfunction of dia_isotop_scores
     void dia_isotope_scores_sub(const std::vector<TransitionType> & transitions,

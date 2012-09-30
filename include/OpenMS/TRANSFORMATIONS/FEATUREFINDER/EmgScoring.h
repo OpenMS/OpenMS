@@ -61,9 +61,19 @@ namespace OpenMS
   {
 
   public :
-    void setFitterParam(Param& param)
+
+    EmgScoring() { }
+
+    ~EmgScoring() { }
+
+    void setFitterParam(Param param)
     {
       fitter_emg1D.setParameters(param);
+    }
+
+    Param getDefaults()
+    {
+      return fitter_emg1D.getDefaults();
     }
 
     /// calculate the elution profile fit score

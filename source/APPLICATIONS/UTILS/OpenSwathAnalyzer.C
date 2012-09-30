@@ -86,25 +86,22 @@ class TOPPOpenSwathAnalyzer: public TOPPBase
 
 		void registerModelOptions_(const String & default_model)
 		{
-			registerTOPPSubsection_("model",
-					"Options to control the modeling of retention time transformations from data");
-			registerStringOption_("model:type", "<name>", default_model,
-					"Type of model", false);
+			registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
+			registerStringOption_("model:type", "<name>", default_model, "Type of model", false, true);
 			StringList model_types;
 			TransformationDescription::getModelTypes(model_types);
-			if (!model_types.contains(default_model)) {
+			if (!model_types.contains(default_model)) 
+      {
 				model_types.insert(model_types.begin(), default_model);
 			}
 			setValidStrings_("model:type", model_types);
-			registerFlag_("model:symmetric_regression",
-					"Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
+			registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.", true);
 			registerIntOption_("model:num_breakpoints", "<number>", 5,
 					"Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.",
-					false);
+					false, true);
 			setMinInt_("model:num_breakpoints", 2);
 			registerStringOption_("model:interpolation_type", "<name>", "cspline",
-					"Only for 'interpolated' model: Type of interpolation to apply.",
-					false);
+					"Only for 'interpolated' model: Type of interpolation to apply.", false, true);
 		}
 
 		void registerOptionsAndFlags_()
@@ -172,7 +169,6 @@ class TOPPOpenSwathAnalyzer: public TOPPBase
 			if (trafo_in.size() > 0) 
       {
 				TransformationXMLFile trafoxml;
-
 				String model_type = getStringOption_("model:type");
 				Param model_params = getParam_().copy("model:", true);
 				trafoxml.load(trafo_in, trafo);

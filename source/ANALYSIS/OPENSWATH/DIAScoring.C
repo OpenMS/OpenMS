@@ -53,6 +53,51 @@ const double C13C12_MASSDIFF_U = 1.0033548;
 
 namespace OpenMS
 {
+   DIAScoring::DIAScoring() :
+    DefaultParamHandler("DIAScoring")
+   {
+
+    defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th.");
+    defaults_.setMinFloat("dia_extraction_window", 0.0);
+    defaults_.setValue("dia_centroided", "false", "Use centroded DIA data.");
+    defaults_.setValidStrings("dia_centroided", StringList::create("true,false"));
+    defaults_.setValue("dia_byseries_intensity_min", 300.0, "DIA b/y series minimum intensity to consider.");
+    defaults_.setMinFloat("dia_byseries_intensity_min", 0.0);
+    defaults_.setValue("dia_byseries_ppm_diff", 10.0, "DIA b/y series minimal difference in ppm to consider.");
+    defaults_.setMinFloat("dia_byseries_ppm_diff", 0.0);
+
+    defaults_.setValue("dia_nr_isotopes", 4, "DIA nr of isotopes to consider.");
+    defaults_.setMinInt("dia_nr_isotopes", 0);
+    defaults_.setValue("dia_nr_charges", 4, "DIA nr of charges to consider.");
+    defaults_.setMinInt("dia_nr_charges", 0);
+
+    // write defaults into Param object param_
+    defaultsToParam_();
+  }
+
+  void DIAScoring::updateMembers_()
+  {
+    dia_extract_window_ = (DoubleReal)param_.getValue("dia_extraction_window");
+    dia_centroided_ = param_.getValue("dia_centroided").toBool();
+    dia_byseries_intensity_min_ = (DoubleReal)param_.getValue("dia_byseries_intensity_min");
+    dia_byseries_ppm_diff_ = (DoubleReal)param_.getValue("dia_byseries_ppm_diff");
+
+    dia_nr_isotopes_ = (int)param_.getValue("dia_nr_isotopes");
+    dia_nr_charges_ = (int)param_.getValue("dia_nr_charges");
+  }
+
+  void DIAScoring::set_dia_parameters(double dia_extract_window, double dia_centroided,
+    double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges)
+  {
+    dia_extract_window_ = dia_extract_window;
+    dia_centroided_ = dia_centroided;
+    dia_byseries_intensity_min_ = dia_byseries_intensity_min;
+    dia_byseries_ppm_diff_ = dia_byseries_ppm_diff;
+
+    dia_nr_isotopes_ = dia_nr_isotopes;
+    dia_nr_charges_ = dia_nr_charges;
+  }
+
   ///////////////////////////////////////////////////////////////////////////
   // DIA / SWATH scoring
 

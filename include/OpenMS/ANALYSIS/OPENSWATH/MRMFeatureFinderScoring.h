@@ -258,15 +258,6 @@ public:
       }
       std::cout << "Will analyse " << counter << " peptides with a total of " << transition_exp.getTransitions().size() << " transitions " << std::endl;
 
-      // Local FDR is a comparison whether there is any other assay that could
-      // explain the current peak group. Thus we compare this MRMFeature to all
-      // the other assays we have in the database and calculate the score.
-      if (do_local_fdr_)
-      {
-        String tr_library = param_.getValue("local_fdr_lib");
-        //loadLibraryForLocalFDR(tr_library);
-      }
-
       //
       // Step 3
       //
@@ -284,22 +275,9 @@ public:
         }
 
         MRMTransitionGroupPicker trgroup_picker;
-        Param trgroup_picker_parameters = trgroup_picker.getParameters();
-        trgroup_picker_parameters.setValue("sgolay_frame_length", sgolay_frame_length_);
-        trgroup_picker_parameters.setValue("sgolay_polynomial_order", sgolay_polynomial_order_);
-        trgroup_picker_parameters.setValue("gauss_width", gauss_width_);
-        trgroup_picker_parameters.setValue("peak_width", peak_width_);
-        trgroup_picker_parameters.setValue("signal_to_noise", signal_to_noise_);
-        trgroup_picker_parameters.setValue("sn_win_len", sn_win_len_);
-        trgroup_picker_parameters.setValue("sn_bin_count", sn_bin_count_);
-        trgroup_picker_parameters.setValue("stop_after_feature", stop_after_feature_);
-        trgroup_picker_parameters.setValue("stop_report_after_feature", stop_report_after_feature_);
-        trgroup_picker_parameters.setValue("stop_after_intensity_ratio", stop_after_intensity_ratio_);
-        trgroup_picker.setParameters(trgroup_picker_parameters);
+        trgroup_picker.setParameters(param_.copy("TransitionGroupPicker:",true));
         trgroup_picker.handle_params();
-
         trgroup_picker.pickTransitionGroup(transition_group);
-
         scorePeakgroups(trgroup_it->second, trafo, swath_map, output);
 
       }
@@ -331,6 +309,9 @@ private:
       std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
       std::vector<MRMFeature> feature_list;
 
+
+      DoubleReal sn_win_len_ = (DoubleReal)param_.getValue("TransitionGroupPicker:sn_win_len");
+      DoubleReal sn_bin_count_ = (DoubleReal)param_.getValue("TransitionGroupPicker:sn_bin_count");
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS<PeakT>(transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_));
@@ -421,7 +402,6 @@ private:
         // FEATURE : spectral angle
         double library_corr = 0, library_rmsd = 0;
         double library_manhattan, library_dotprod;
-
         if (use_library_score_)
         {
           mrmscore.calcLibraryScore(imrmfeature, transition_group.getTransitions(), library_corr, library_rmsd, library_manhattan, library_dotprod);
@@ -604,12 +584,9 @@ private:
       MRMFeature * mrmfeature = &mrmfeature_;
 
       // parameters
-      int nr_isotopes = 4; // how many isotopes to consider
-      int nr_charges = 4; // how many charges to look at for lower m/z
       int by_charge_state = 1; // for which charge states should we check b/y series
 
       int group_size = transition_group.size();
-      diascoring.set_dia_parameters(dia_extract_window_, dia_centroided_, dia_byseries_intensity_min_, dia_byseries_ppm_diff_, nr_isotopes, nr_charges);
 
       // find spectrum that is closest to the apex of the peak using binary search
       // TODO (hroest): add up multiple spectra (as optional parameter)
@@ -619,7 +596,9 @@ private:
       if (indices[0] != 0 &&
           std::fabs(swath_map->getSpectrumMetaById(indices[0] - 1).RT - mrmfeature->getRT()) <
           std::fabs(swath_map->getSpectrumMetaById(indices[0]).RT - mrmfeature->getRT()))
-      { closest_idx--; }
+      { 
+        closest_idx--; 
+      }
       spectrum_ = swath_map->getSpectrumById(closest_idx);
       OpenSwath::SpectrumPtr * spectrum = &spectrum_;
 #if 0
@@ -829,31 +808,8 @@ private:
     void handle_params();
 
     // Variables
-
-    UInt sgolay_frame_length_;
-    UInt sgolay_polynomial_order_;
-    DoubleReal gauss_width_;
-
-    DoubleReal peak_width_;
-    DoubleReal signal_to_noise_;
-
-    DoubleReal sn_win_len_;
-    UInt sn_bin_count_;
-
-    int stop_after_feature_;
-    int stop_report_after_feature_;
-    DoubleReal stop_after_intensity_ratio_;
-
-    int emgfitter_maxiterations_;
-
     DoubleReal rt_extraction_window_;
     DoubleReal quantification_cutoff_;
-
-    // for the SWATH analysis
-    DoubleReal dia_byseries_ppm_diff_;
-    DoubleReal dia_byseries_intensity_min_;
-    DoubleReal dia_extract_window_;
-    bool dia_centroided_;
 
     // Which scores to use
     bool use_coelution_score_;
@@ -865,10 +821,11 @@ private:
     bool use_total_xic_score_;
     bool use_nr_peaks_score_;
     bool use_sn_score_;
+    
+    int stop_report_after_feature_;
 
-    bool do_local_fdr_;
+    // bool do_local_fdr_;
     bool write_convex_hull_;
-
     bool strict;
 
     DoubleReal rt_normalization_factor_;
@@ -883,7 +840,6 @@ private:
     OpenSwath::MRMScoring mrmscore;
     OpenMS::DIAScoring diascoring;
     OpenMS::EmgScoring emgscoring;
-
   };
 }
 

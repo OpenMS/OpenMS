@@ -47,64 +47,41 @@ namespace OpenMS
     DefaultParamHandler("MRMFeatureFinderScoring"),
     ProgressLogger()
   {
-
-    defaults_.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
-    defaults_.setValue("sgolay_polynomial_order", 3, "Order or the polynomial that is fitted.");
-    defaults_.setValue("gauss_width", 50.0, "Gaussian width in seconds, estimated peak size.");
-
-    defaults_.setValue("peak_width", 40.0, "Estimated peak width in seconds.");
-    defaults_.setMinFloat("peak_width", 0.0);
-    defaults_.setValue("signal_to_noise", 1.0, "Signal to noise.");
-    defaults_.setMinFloat("signal_to_noise", 0.0);
-
-    defaults_.setValue("sn_win_len", 1000.0, "Signal to noise window length.");
-    defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
-
-    defaults_.setValue("stop_after_feature", -1, "Stop finding after feature (ordered by intensity; -1 means do not stop).");
-    defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
-    defaults_.setValue("stop_report_after_feature", -1, "Stop reporting after feature (ordered by quality; 1 means do not stop).");
-
-    defaults_.setValue("rt_extraction_window", -1.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 500 means to extract around +/- 500 s of the expected elution).");
+    defaults_.setValue("stop_report_after_feature", -1, "Stop reporting after feature (ordered by quality; -1 means do not stop).");
+    defaults_.setValue("rt_extraction_window", -1.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 500 means to extract around +/- 500 s of the expected elution). For this to work, the TraML input file needs to contain normalized RT values.");
     defaults_.setValue("rt_normalization_factor", 1.0, "The normalized RT is expected to be between 0 and 1. If your normalized RT has a different range, pass this here (e.g. it goes from 0 to 100, set this value to 100)");
-
-    defaults_.setValue("emgfitter_maxiterations", 100, "Maximal number of iterators the EMG fitter is allowed to perform (influences performance)");
-
-    defaults_.setValue("dia_byseries_ppm_diff", 10.0, "DIA b/y series minimal difference in ppm to consider.");
-    defaults_.setMinFloat("dia_byseries_ppm_diff", 0.0);
-    defaults_.setValue("dia_byseries_intensity_min", 300.0, "DIA b/y series minimum intensity to consider.");
-    defaults_.setMinFloat("dia_byseries_intensity_min", 0.0);
-    defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th.");
-    defaults_.setMinFloat("dia_extraction_window", 0.0);
-    defaults_.setValue("dia_centroided", "false", "Use centroded DIA data.");
-    defaults_.setValidStrings("dia_centroided", StringList::create("true,false"));
-    defaults_.setValue("quantification_cutoff", 0.0, "Cutoff below which peaks should not be used for quantification any more");
+    defaults_.setValue("quantification_cutoff", 0.0, "Cutoff below which peaks should not be used for quantification any more", StringList::create("advanced"));
     defaults_.setMinFloat("quantification_cutoff", 0.0);
-
-    defaults_.setValue("use_shape_score", "true", "Use the retention time score", StringList::create("advanced"));
-    defaults_.setValidStrings("use_shape_score", StringList::create("true,false"));
-    defaults_.setValue("use_coelution_score", "true", "Use the retention time score", StringList::create("advanced"));
-    defaults_.setValidStrings("use_coelution_score", StringList::create("true,false"));
-    defaults_.setValue("use_rt_score", "true", "Use the retention time score", StringList::create("advanced"));
-    defaults_.setValidStrings("use_rt_score", StringList::create("true,false"));
-    defaults_.setValue("use_library_score", "true", "Use the retention time score", StringList::create("advanced"));
-    defaults_.setValidStrings("use_library_score", StringList::create("true,false"));
-    defaults_.setValue("use_elution_model_score", "true", "Use the retention time score", StringList::create("advanced"));
-    defaults_.setValidStrings("use_elution_model_score", StringList::create("true,false"));
-    defaults_.setValue("use_intensity_score", "true", "Use the retention time score", StringList::create("advanced"));
-    defaults_.setValidStrings("use_intensity_score", StringList::create("true,false"));
-    defaults_.setValue("use_nr_peaks_score", "true", "Use the retention time score", StringList::create("advanced"));
-    defaults_.setValidStrings("use_nr_peaks_score", StringList::create("true,false"));
-    defaults_.setValue("use_total_xic_score", "true", "Use the retention time score", StringList::create("advanced"));
-    defaults_.setValidStrings("use_total_xic_score", StringList::create("true,false"));
-    defaults_.setValue("use_sn_score", "true", "Use the retention time score", StringList::create("advanced"));
-    defaults_.setValidStrings("use_sn_score", StringList::create("true,false"));
-
-    defaults_.setValue("do_local_fdr", "false", "Use the local FDR score", StringList::create("advanced"));
-    defaults_.setValidStrings("do_local_fdr", StringList::create("true,false"));
-    defaults_.setValue("local_fdr_lib", "", "Library for the local FDR score", StringList::create("advanced"));
-
     defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", StringList::create("advanced"));
     defaults_.setValidStrings("write_convex_hull", StringList::create("true,false"));
+
+    defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
+
+    defaults_.insert("DIAScoring:", DIAScoring().getDefaults());
+
+    defaults_.insert("EMGScoring:", EmgScoring().getDefaults());
+
+    // One can turn on / off each score individually 
+    Param scores_to_use;
+    scores_to_use.setValue("use_shape_score", "true", "Use the shape score", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_shape_score", StringList::create("true,false"));
+    scores_to_use.setValue("use_coelution_score", "true", "Use the coelution score", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_coelution_score", StringList::create("true,false"));
+    scores_to_use.setValue("use_rt_score", "true", "Use the retention time score", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_rt_score", StringList::create("true,false"));
+    scores_to_use.setValue("use_library_score", "true", "Use the library score", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_library_score", StringList::create("true,false"));
+    scores_to_use.setValue("use_elution_model_score", "true", "Use the elution model (EMG) score", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_elution_model_score", StringList::create("true,false"));
+    scores_to_use.setValue("use_intensity_score", "true", "Use the intensity score", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_intensity_score", StringList::create("true,false"));
+    scores_to_use.setValue("use_nr_peaks_score", "true", "Use the number of peaks score", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_nr_peaks_score", StringList::create("true,false"));
+    scores_to_use.setValue("use_total_xic_score", "true", "Use the total XIC score", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_total_xic_score", StringList::create("true,false"));
+    scores_to_use.setValue("use_sn_score", "true", "Use the SN (signal to noise) score", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_sn_score", StringList::create("true,false"));
+    defaults_.insert("Scores:", scores_to_use);
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -118,50 +95,29 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::handle_params()
   {
-    sgolay_frame_length_ = (UInt)param_.getValue("sgolay_frame_length");
-    sgolay_polynomial_order_ = (UInt)param_.getValue("sgolay_polynomial_order");
-    gauss_width_ = (DoubleReal)param_.getValue("gauss_width");
-    peak_width_ = (DoubleReal)param_.getValue("peak_width");
-    signal_to_noise_ = (DoubleReal)param_.getValue("signal_to_noise");
-    sn_win_len_ = (DoubleReal)param_.getValue("sn_win_len");
-    sn_bin_count_ = (UInt)param_.getValue("sn_bin_count");
-
-    stop_after_feature_ = (int)param_.getValue("stop_after_feature");
     stop_report_after_feature_ = (int)param_.getValue("stop_report_after_feature");
-    stop_after_intensity_ratio_ = (DoubleReal)param_.getValue("stop_after_intensity_ratio");
     rt_extraction_window_ = (DoubleReal)param_.getValue("rt_extraction_window");
-
-    emgfitter_maxiterations_ = (int)param_.getValue("emgfitter_maxiterations");
-
-    dia_byseries_ppm_diff_ = (DoubleReal)param_.getValue("dia_byseries_ppm_diff");
-    dia_byseries_intensity_min_ = (DoubleReal)param_.getValue("dia_byseries_intensity_min");
-    dia_extract_window_ = (DoubleReal)param_.getValue("dia_extraction_window");
-    dia_centroided_ = param_.getValue("dia_centroided").toBool();
-
     rt_normalization_factor_ = (DoubleReal)param_.getValue("rt_normalization_factor");
     quantification_cutoff_ = (DoubleReal)param_.getValue("quantification_cutoff");
-
-    use_coelution_score_ = param_.getValue("use_coelution_score").toBool();
-    use_shape_score_ = param_.getValue("use_shape_score").toBool();
-    use_rt_score_ = param_.getValue("use_rt_score").toBool();
-    use_library_score_ = param_.getValue("use_library_score").toBool();
-    use_elution_model_score_ = param_.getValue("use_elution_model_score").toBool();
-    use_intensity_score_ = param_.getValue("use_intensity_score").toBool();
-    use_total_xic_score_ = param_.getValue("use_total_xic_score").toBool();
-    use_nr_peaks_score_ = param_.getValue("use_nr_peaks_score").toBool();
-    use_sn_score_ = param_.getValue("use_sn_score").toBool();
-
-    do_local_fdr_ = param_.getValue("do_local_fdr").toBool();
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
 
-    Param fitter_param;
-    fitter_param.setValue("max_iteration", emgfitter_maxiterations_);
-    emgscoring.setFitterParam(fitter_param);
+    diascoring.setParameters(param_.copy("DIAScoring:",true));
+    emgscoring.setFitterParam(param_.copy("EmgScoring:", true));
+
+    use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
+    use_shape_score_         = param_.getValue("Scores:use_shape_score").toBool();
+    use_rt_score_            = param_.getValue("Scores:use_rt_score").toBool();
+    use_library_score_       = param_.getValue("Scores:use_library_score").toBool();
+    use_elution_model_score_ = param_.getValue("Scores:use_elution_model_score").toBool();
+    use_intensity_score_     = param_.getValue("Scores:use_intensity_score").toBool();
+    use_total_xic_score_     = param_.getValue("Scores:use_total_xic_score").toBool();
+    use_nr_peaks_score_      = param_.getValue("Scores:use_nr_peaks_score").toBool();
+    use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-                                                              TargetedExpType & transition_exp, TransitionGroupMapType & transition_group_map,
-                                                              TransformationDescription trafo, double rt_extraction_window)
+    TargetedExpType & transition_exp, TransitionGroupMapType & transition_group_map,
+    TransformationDescription trafo, double rt_extraction_window)
   {
     double rt_min, rt_max, expected_rt;
     trafo.invert();

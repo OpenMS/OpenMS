@@ -88,7 +88,6 @@ namespace OpenMS
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
 
     stop_after_feature_ = (int)param_.getValue("stop_after_feature");
-    stop_report_after_feature_ = (int)param_.getValue("stop_report_after_feature");
     stop_after_intensity_ratio_ = (DoubleReal)param_.getValue("stop_after_intensity_ratio");
 
   }
