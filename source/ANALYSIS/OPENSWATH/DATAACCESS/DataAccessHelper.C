@@ -125,7 +125,7 @@ namespace OpenMS
 
   OpenSwath::SpectrumAccessPtr OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(MSExperiment<Peak1D> & exp)
   {
-#if 0
+#if 1
     bool is_cached = false;
     for (Size i = 0; i < exp.size(); ++i)
     {

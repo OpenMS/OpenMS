@@ -5,6 +5,7 @@ set(directory source/ANALYSIS/OPENSWATH/DATAACCESS)
 set(sources_list
 MRMFeatureAccessOpenMS.C
 SpectraAccessOpenMS.C
+SpectraAccessOpenMSCached.C
 DataAccessHelper.C
 )
 

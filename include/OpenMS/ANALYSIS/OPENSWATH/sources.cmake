@@ -12,6 +12,7 @@ OpenMSHelper.h
 DIAScoring.h
 DiaPrescoring.h
 MRMFeatureFinderScoring.h
+CachedmzML.h
 )
 
 ### add path to the filenames

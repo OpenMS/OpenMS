@@ -6,6 +6,7 @@ set(sources_list_h
 DataAccessHelper.h
 MRMFeatureAccessOpenMS.h
 SpectrumAccessOpenMS.h
+SpectrumAccessOpenMSCached.h
 )
 
 ### add path to the filenames

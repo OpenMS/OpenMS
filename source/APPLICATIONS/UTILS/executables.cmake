@@ -34,6 +34,7 @@ OpenSwathFeatureXMLToTSV
 OpenSwathChromatogramExtractor
 OpenSwathAnalyzer
 OpenSwathRTNormalizer
+OpenSwathmzMLFileCacher
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator

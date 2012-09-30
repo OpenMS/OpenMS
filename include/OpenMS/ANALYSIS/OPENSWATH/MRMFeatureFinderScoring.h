@@ -488,7 +488,7 @@ private:
           mrmfeature->addScore("nr_peaks", nr_peaks_score);
         }
 
-        double sn_score = 0, log_sn_score;
+        double sn_score = 0, log_sn_score = 0;
         if (use_sn_score_)
         {
           sn_score = mrmscore.calcSNScore(imrmfeature, signal_noise_estimators);
