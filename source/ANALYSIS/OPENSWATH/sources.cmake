@@ -5,6 +5,8 @@ set(directory source/ANALYSIS/OPENSWATH)
 set(sources_list
 MRMDecoy.C
 TransitionTSVReader.C
+OpenSwathHelper.C
+ChromatogramExtractor.C
 )
 
 ### add path to the filenames

@@ -5,6 +5,8 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH)
 set(sources_list_h
 MRMDecoy.h
 TransitionTSVReader.h
+OpenSwathHelper.h
+ChromatogramExtractor.h
 )
 
 ### add path to the filenames

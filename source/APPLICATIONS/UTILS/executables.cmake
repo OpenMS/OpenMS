@@ -31,6 +31,7 @@ MapAlignmentEvaluation
 OpenMSInfo
 OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
+OpenSwathChromatogramExtractor
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator

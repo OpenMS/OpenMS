@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TraML version="0.9.2" xmlns="http://psi.hupo.org/ms/traml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/traml TraML0.9.2.xsd">
+  <cvList>
+    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="unknown" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
+    <cv id="UO" fullName="Unit Ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+  </cvList>
+  <ProteinList>
+    <Protein id="" >
+      <Sequence></Sequence>
+    </Protein>
+  </ProteinList>
+  <CompoundList>
+    <Peptide id="tr_gr1" sequence="PEPTIDEA">
+      <ProteinRef ref=""/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="44"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="tr_gr2" sequence="PEPTIDEB">
+      <ProteinRef ref=""/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="2"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+  </CompoundList>
+  <TransitionList>
+    <Transition id="tr1" peptideRef="tr_gr1" >
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="628.45" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="tr2" peptideRef="tr_gr1" >
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.38" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="tr3" peptideRef="tr_gr2" >
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10000"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="618.31" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+  </TransitionList>
+</TraML>
