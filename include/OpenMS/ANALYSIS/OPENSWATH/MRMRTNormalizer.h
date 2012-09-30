@@ -36,9 +36,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_randist.h>
-
 namespace OpenMS
 {
 

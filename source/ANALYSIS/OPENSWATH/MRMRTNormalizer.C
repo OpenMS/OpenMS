@@ -34,6 +34,12 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 
+#include <boost/math/distributions/normal.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/accumulators.hpp>
+
 using namespace std;
 
 namespace OpenMS
@@ -141,16 +147,12 @@ namespace OpenMS
 
   bool MRMRTNormalizer::chauvenet(std::vector<double> & residuals, int pos)
   {
-    // Chauvenet's criterion for outlier exclusion: Return vector with one removed outlier, if criterion is fullfilled.
-    double mean;
-    double sd;
-    double p;
+    boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::variance> > acc;
+    // std::for_each(residuals.begin(), residuals.end(), bind<void>(boost::ref(acc), _1));
 
-    // TODO : what happens with mean here?
-    mean = gsl_stats_mean(&residuals[0], 1, residuals.size());
-    sd = gsl_stats_sd(&residuals[0], 1, residuals.size());
-    p = gsl_ran_gaussian_pdf(pos, sd);
+    boost::math::normal_distribution<> dist(boost::accumulators::mean(acc), sqrt(boost::accumulators::variance(acc)));
 
+    double p = boost::math::pdf(dist, residuals[pos]);
     if (p * residuals.size() < 0.5)
     {
       return 1;
@@ -160,5 +162,4 @@ namespace OpenMS
       return 0;
     }
   }
-
 }
