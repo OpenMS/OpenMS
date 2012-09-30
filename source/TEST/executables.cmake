@@ -422,6 +422,7 @@ set(transformations_executables_list
   EGHTraceFitter_test
   EmgFitter1D_test
   EmgModel_test
+  EmgScoring_test
   ExtendedIsotopeFitter1D_test
   ExtendedIsotopeModel_test
   FeaFiModule_test

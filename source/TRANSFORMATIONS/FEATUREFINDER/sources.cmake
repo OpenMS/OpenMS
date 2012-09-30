@@ -9,6 +9,7 @@ BiGaussModel.C
 EGHTraceFitter.C
 EmgFitter1D.C
 EmgModel.C
+EmgScoring.C
 ExtendedIsotopeFitter1D.C
 ExtendedIsotopeModel.C
 FeaFiModule.C
