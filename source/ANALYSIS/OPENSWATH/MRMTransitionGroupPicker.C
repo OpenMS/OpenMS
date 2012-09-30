@@ -57,6 +57,9 @@ namespace OpenMS
     defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
     defaults_.setValue("stop_report_after_feature", -1, "Stop reporting after feature (ordered by quality; 1 means do not stop).");
 
+    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that."); //, StringList::create("advanced"));
+    defaults_.setValidStrings("background_subtraction", StringList::create("none,smoothed,original"));
+
     // write defaults into Param object param_
     defaultsToParam_();
     handle_params();
@@ -76,6 +79,11 @@ namespace OpenMS
     return *this;
   }
 
+  void MRMTransitionGroupPicker::updateMembers_()
+  {
+    handle_params();
+  }
+
   void MRMTransitionGroupPicker::handle_params()
   {
     sgolay_frame_length_ = (UInt)param_.getValue("sgolay_frame_length");
@@ -90,6 +98,7 @@ namespace OpenMS
     stop_after_feature_ = (int)param_.getValue("stop_after_feature");
     stop_after_intensity_ratio_ = (DoubleReal)param_.getValue("stop_after_intensity_ratio");
 
+    background_subtraction_ = param_.getValue("background_subtraction");
   }
 
   void MRMTransitionGroupPicker::pickChromatogram(const RichPeakChromatogram & chromatogram, RichPeakChromatogram & smoothed_chrom, RichPeakChromatogram & picked_chrom)

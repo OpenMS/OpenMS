@@ -566,6 +566,10 @@ ADD_TEST("TOPP_OpenSwathAnalyzer_test_6_nomod" ${TOPP_BIN_PATH}/OpenSwathAnalyze
 ADD_TEST("TOPP_OpenSwathAnalyzer_test_6_nomod_out1" ${DIFF} -in1 OpenSwathAnalyzer_6_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_6_output.featureXML)
 set_tests_properties("TOPP_OpenSwathAnalyzer_test_6_nomod_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_6_nomod")
 
+ADD_TEST("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_7_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/OpenSwathAnalyzer_7_backgroundSubtraction.ini -test)
+ADD_TEST("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_out1" ${DIFF} -in1 OpenSwathAnalyzer_7_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_7_output.featureXML)
+set_tests_properties("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction")
+
 ADD_TEST("TOPP_OpenSwathRTNormalizer_test_1" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_1_output.trafoXML.tmp -test)
 ADD_TEST("TOPP_OpenSwathRTNormalizer_test_1_out1" ${DIFF} -in1 OpenSwathRTNormalizer_1_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_output.trafoXML)
 set_tests_properties("TOPP_OpenSwathRTNormalizer_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_1")
