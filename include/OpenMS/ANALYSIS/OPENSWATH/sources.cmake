@@ -10,7 +10,7 @@ OpenSwathHelper.h
 ChromatogramExtractor.h
 OpenMSHelper.h
 DIAScoring.h
-DiaPrescoring2.h
+DiaPrescoring.h
 MRMFeatureFinderScoring.h
 )
 

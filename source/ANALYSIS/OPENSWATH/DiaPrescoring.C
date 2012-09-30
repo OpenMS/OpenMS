@@ -32,7 +32,7 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring2.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring.h>
 
 namespace OpenMS
 {

@@ -39,7 +39,7 @@
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/corr.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenMSHelper.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring2.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring.h>
 
 #include <numeric>
 #include <algorithm>
@@ -49,7 +49,6 @@
 
 namespace OpenSwath
 {
-
   ///////////////////////////////////////////////////////////////////////////
   // DIA / SWATH scoring
 
@@ -61,8 +60,8 @@ namespace OpenSwath
     )
   {
     typedef std::pair<std::string, double> MPair;
-    double rel_intensity, score;
-    std::vector<double> isotopes_int;
+    double rel_intensity;
+    //std::vector<double> isotopes_int;
     //TODO move mapping to prepare function.
     //change function signature to 2 vectors. experimental int and productMZ
     for (Size k = 0; k < transitions.size(); k++)
@@ -124,7 +123,7 @@ namespace OpenSwath
   {
     OPENMS_PRECONDITION(putative_fragment_charge > 0,
                         "Charge is a positive integer");
-    double max_ppm_diff = 20.0; // TODO make this a proper parameter
+    //double max_ppm_diff = 20.0; // TODO make this a proper parameter
     std::map<std::string, double> intensities;
     getFirstIsotopeRelativeIntensities(transitions, mrmfeature, intensities);
     dia_isotope_scores(transitions, spectrum, intensities,

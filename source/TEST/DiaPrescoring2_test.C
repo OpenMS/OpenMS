@@ -34,7 +34,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring2.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring.h>
 
 using namespace std;
 using namespace OpenMS;

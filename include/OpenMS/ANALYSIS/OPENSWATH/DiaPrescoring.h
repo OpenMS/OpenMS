@@ -179,13 +179,10 @@ public:
                    OpenSwath::IDataFrameWriter * ivw)
     {
       getParams();
-      int trans = transition_exp_used.transitions.size();
-      std::cout << swath_ptr->getNrSpectra() << std::endl;
-
       typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;
       Mmap transmap;
       convert(transition_exp_used, transmap);
-      std::cout << "nr peptides : " << transmap.size() << std::endl;
+        // std::cout << "nr peptides : " << transmap.size() << std::endl;
 
       Mmap::iterator beg = transmap.begin();
       Mmap::iterator end = transmap.end();
@@ -225,95 +222,11 @@ public:
           score2v.push_back(score2);
         }           //end of forloop over transitions
 
-        std::string ispectrum = boost::lexical_cast<std::string>(i);
+        //std::string ispectrum = boost::lexical_cast<std::string>(i);
         std::string specRT = boost::lexical_cast<std::string>(specmeta.RT);
         ivw->store("score1_" + specRT, score1v);
         ivw->store("score2_" + specRT, score2v);
       }           //end of forloop over spectra
-    }
-
-    //iterate over all spectra and compute the DIA scores
-    void Prescore(OpenSwath::SpectrumAccessPtr swath_ptr,
-                  OpenSwath::LightTargetedExperiment & transition_exp_used,
-                  OpenSwath::IDataFrameWriter * ivw)
-    {
-      getParams();
-      int trans = transition_exp_used.transitions.size();
-      std::cout << swath_ptr->getNrSpectra() << std::endl;
-
-      typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;
-      Mmap transmap;
-      convert(transition_exp_used, transmap);
-      std::cout << "nr peptides : " << transmap.size() << std::endl;
-
-      Mmap::iterator beg = transmap.begin();
-      Mmap::iterator end = transmap.end();
-      std::vector<std::string> transitionsNames;
-
-      for (; beg != end; ++beg)
-      {
-        transitionsNames.push_back(beg->first);
-      }
-
-      ivw->colnames(transitionsNames);
-      //iterate over spectra
-      for (uint32_t i = 0; i < swath_ptr->getNrSpectra(); ++i)
-      {
-        std::cout << "processing spec  " << i << std::endl;
-        OpenSwath::SpectrumPtr spec = swath_ptr->getSpectrumById(i);
-        //iterate over spectra
-        size_t xx = 0;
-        Mmap::iterator beg = transmap.begin();
-        Mmap::iterator end = transmap.end();
-        std::vector<double> score1v;
-        std::vector<double> score2v;
-        for (; beg != end; ++beg, ++xx)
-        {
-          //std::cout << "analysing transtion" << xx << beg->second.size()
-          //    << " " << beg->first << std::endl;
-          double score1;
-          double score2;
-          OpenSwath::LightPeptide pep;
-          findPeptide(transition_exp_used, beg->first, pep);
-
-          double bseries_score = 0, yseries_score = 0;
-          OpenMS::AASequence aas(pep.sequence);
-          for (std::vector<OpenSwath::LightModification>::const_iterator it =
-                 pep.modifications.begin(); it != pep.modifications.end();
-               ++it)
-          {
-            aas.setModification(it->location, "UniMod:" + it->unimod_id);
-          }
-          std::vector<double> firstIstotope, theomasses;
-          std::vector<std::pair<double, double> > spectrum;
-
-          simulateSpectrumFromAASequence(aas, firstIstotope, spectrum);
-          //addPreisotopeWeights(firstIstotope, spectrum);
-
-          extractFirst(spectrum, theomasses);
-          std::vector<double> intExp, mzExp;
-          integrateWindows(spec, theomasses, dia_extract_window_, intExp,
-                           mzExp);
-
-
-          std::vector<double>  theorint;
-          extractSecond(spectrum, theorint);
-          for (int k = 0; k < intExp.size(); ++k)
-          {
-            //std::cout << intExp[k]<< " " << theorint[k] << std::endl;
-          }
-          score1 = OpenSwath::dotProd(intExp.begin(), intExp.end(), theorint.begin());
-          //std::cout << "score1 :" << score1 << std::endl;
-          score1v.push_back(score1);
-
-
-          //score2v.push_back(score2);
-        }   //end of forloop over transitions
-
-        std::string ispectrum = boost::lexical_cast<std::string>(i);
-        ivw->store("score1_" + ispectrum, score1v);
-        //ivw->store("score2_" + ispectrum, score2v);
-      }   //end of forloop over spectra
     }
 
     void getNormalizedLibraryIntensities(

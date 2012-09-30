@@ -55,12 +55,13 @@ namespace OpenSwath
     IDataFrameWriter
   {
 private:
+    std::vector<std::string> colnames_;
     std::vector<std::string> rownames_;
     std::vector<std::vector<double> > store_;
-    std::vector<std::string> colnames_;
+
 public:
     DataMatrix() :
-      colnames_(), store_()
+        colnames_(),rownames_(), store_()
     {
     }
 

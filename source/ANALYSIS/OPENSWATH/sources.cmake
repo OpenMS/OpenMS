@@ -11,7 +11,7 @@ ChromatogramExtractor.C
 MRMTransitionGroupPicker.C
 OpenMSHelper.C
 DIAScoring.C
-DiaPrescoring2.C
+DiaPrescoring.C
 MRMFeatureFinderScoring.C
 )
 

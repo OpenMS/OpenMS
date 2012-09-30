@@ -32,7 +32,7 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DIAHelpers.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/DIAHelpers.h"
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/timer.hpp>
