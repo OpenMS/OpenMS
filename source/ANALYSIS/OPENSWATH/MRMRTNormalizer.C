@@ -28,13 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest, George Rosenberger $
-// $Authors: Hannes Roest, George Rosenberger $
+// $Maintainer: George Rosenberger $
+// $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
-
-using namespace std;
 
 namespace OpenMS
 {

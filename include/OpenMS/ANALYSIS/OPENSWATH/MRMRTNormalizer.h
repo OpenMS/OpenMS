@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest, George Rosenberger $
-// $Authors: Hannes Roest, George Rosenberger $
+// $Maintainer: George Rosenberger $
+// $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
@@ -48,11 +48,12 @@ namespace OpenMS
   @brief The MRMRTNormalizer will find retention time peptides in data.
 
   This tool will take a description of RT peptides and their normalized
-  retention time to write out a transformation file on how to transoform the
+  retention time to write out a transformation file on how to transform the
   RT space into the normalized space.
 
-  TODO (georger) : elaborate
+  The principle is adapted from Escher et al.
 
+  Escher, C. et al. Using iRT, a normalized retention time for more targeted measurement of peptides. PROTEOMICS 12, 1111–1121 (2012).
   */
   class OPENMS_DLLAPI MRMRTNormalizer
   {
@@ -60,39 +61,49 @@ namespace OpenMS
 public:
 
     /**
-      @brief This function computes the outlier
-
-      TODO (georger) : more comments
-
-      @return If an error occured during the fit.
+      @brief This function computes a candidate outlier peptide by iteratively
+       leaving one peptide out to find the one which results in the maximum R^2
+       of a first order linear regression of the remaining ones. The datapoints
+       are submitted as two vectors of doubles (x- and y-coordinates).
+      
+      @return The position of the candidate outlier peptide as supplied by the
+       vector is returned.
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
     static int outlier_candidate(std::vector<double> & x, std::vector<double> & y);
 
     /**
-      @brief This function removes potential outliers from a set of paired points
+      @brief This function removes potential outliers from a set of paired points.
+       Two thresholds need to be defined, first a lower R^2 limit to accept the
+       regression for the RT normalization and second, the lower limit of peptide
+       coverage. The algorithms then selects candidate outlier peptides and applies
+       the Chauvenet's criterion on the assumption that the residuals are normal
+       distributed to determine whether the peptides can be removed. This is done
+       iteratively until both limits are reached.
 
-      TODO (georger) : more comments
-
-      @return If an error occured during the fit.
+      @return A vector of pairs is returned if the R^2 limit was reached without
+       reaching the coverage limit. If the limits are reached, an exception is
+       thrown. 
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static std::vector<std::pair<double, double> > rm_outliers(std::vector<std::pair<double, double> > & pairs, double rsq_limit, double coverage_limit);
+    static std::vector<std::pair<double, double> > rm_outliers(std::vector<std::pair<double, double> > & pairs, double rsq_limit, double coverage_limit); 
 
     /**
-      @brief This function computes Chauvenet's criterion probability for a vector.
+      @brief This function computes Chauvenet's criterion probability for a vector
+       and a value whose position is submitted.
 
-      @return If an error occured during the fit.
+      @return Chauvenet's criterion probability
     */
     static double chauvenet_probability(std::vector<double> & residuals, int pos);
 
 
     /**
-      @brief This function computes Chauvenet's criterion for a vector.
+      @brief This function computes Chauvenet's criterion for a vector and a value
+       whose position is submitted.
 
-      @return If an error occured during the fit.
+      @return TRUE, if Chauvenet's criterion is fullfilled and the outlier can be removed.
     */
     static bool chauvenet(std::vector<double> & residuals, int pos);
   };

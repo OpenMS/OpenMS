@@ -88,6 +88,7 @@ namespace OpenMS
       p.protein_ref = transition_exp_.getPeptides()[i].protein_refs[0];
 
       // TODO (hroest/georger) merge with code in MRMDecoyGenerator
+      // The workaround expects a TraML with UniMod CVTerms for each peptide. The problem in ModificationsDB has been described in TRAC #458.
       // Mapping of peptide modifications
       const OpenMS::TargetedExperiment::Peptide * pep = &transition_exp_.getPeptides()[i];
       for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it =

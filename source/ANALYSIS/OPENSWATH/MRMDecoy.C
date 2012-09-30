@@ -516,7 +516,7 @@ namespace OpenMS
         }
       }
     }
-#else //TODO(georger) : make test example of what fails and submit to OpenMS
+#else 
     OpenMS::ModificationsDB * mod_db = OpenMS::ModificationsDB::getInstance();
     OpenMS::AASequence aas = peptide.sequence;
 
