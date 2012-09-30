@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MRMFEATURESCORING_H
-#define OPENMS_KERNEL_MRMFEATURESCORING_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MRMFEATURESCORING_H
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MRMFEATURESCORING_H
 
 #include <string>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan

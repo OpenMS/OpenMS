@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef DATASTRUCTURES_H_
-#define DATASTRUCTURES_H_
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATASTRUCTURES_H_
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATASTRUCTURES_H_
 
 #include <string>
 #include <vector>
@@ -185,4 +185,4 @@ namespace OpenSwath
 
 } //end Namespace OpenSwath
 
-#endif /* DATASTRUCTURES_H_ */
+#endif 

@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef MOCKOBJECTS_H_
-#define MOCKOBJECTS_H_
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MOCKOBJECTS_H_
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MOCKOBJECTS_H_
 
 #include "vector"
 #include "map"
@@ -158,4 +158,5 @@ namespace OpenMS
   };
 
 } //end namespace OpenMS
+
 #endif

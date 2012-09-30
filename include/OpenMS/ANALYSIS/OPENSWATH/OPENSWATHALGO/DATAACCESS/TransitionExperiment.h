@@ -32,9 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-
-#ifndef TRANSITIONEXPERIMENT_H_
-#define TRANSITIONEXPERIMENT_H_
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_TRANSITIONEXPERIMENT_H_
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_TRANSITIONEXPERIMENT_H_
 
 #include <string>
 #include <vector>
@@ -122,4 +121,4 @@ namespace OpenSwath
 
 } //end Namespace OpenSwath
 
-#endif /* ITRANSITIONEXPERIMENT_H_ */
+#endif 

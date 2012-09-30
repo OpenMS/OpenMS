@@ -1,12 +1,39 @@
-/*
- * DIAHelpers.h
- *
- *  Created on: Aug 24, 2012
- *      Author: witold
- */
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry               
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// 
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution 
+//    may be used to endorse or promote products derived from this software 
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS. 
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// 
+// --------------------------------------------------------------------------
+// $Maintainer: Hannes Roest, Witold Wolski $
+// $Authors: Hannes Roest, Witold Wolski $
+// --------------------------------------------------------------------------
 
-#ifndef DIAHELPERS_H_
-#define DIAHELPERS_H_
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DIAHELPERS_H_
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DIAHELPERS_H_
 
 #include <cmath>
 #include <vector>
@@ -18,6 +45,7 @@
 
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
+
 namespace OpenSwath
 {
 
@@ -29,7 +57,8 @@ namespace OpenSwath
 	double norm(T beg, T end)
 	{
 		double res = 0.0;
-		for (; beg != end; ++beg) {
+		for (; beg != end; ++beg) 
+    {
 			double tmp = *beg;
 			res += tmp * tmp;
 		}
@@ -39,6 +68,7 @@ namespace OpenSwath
 	//integrate Window
 	bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
 			double mz_end, double & mz, double & intensity, bool centroided = false);
+
 	//integrate Window
 	void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
 			const std::vector<double> & windowsCenter, double width,
@@ -49,8 +79,7 @@ namespace OpenSwath
 	double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
 	{
 		std::vector<double> res(std::distance(intExpBeg, intExpEnd));
-		std::transform(intExpBeg, intExpEnd, intTheo, res.begin(),
-				std::multiplies<double>());
+		std::transform(intExpBeg, intExpEnd, intTheo, res.begin(), std::multiplies<double>());
 		double sum = std::accumulate(res.begin(), res.end(), 0.);
 		return sum;
 	}
@@ -59,8 +88,8 @@ namespace OpenSwath
 			std::vector<double> theorint)
 	{
 
-		for(int i = 0 ; i < intExp.size(); ++i){
-
+		for(int i = 0 ; i < intExp.size(); ++i)
+    {
 			intExp[i] = sqrt(intExp[i]);
 			theorint[i] = sqrt(theorint[i]);
 			//std::transform(intExp.begin(), intExp.end(), intExp.begin(), sqrt);
@@ -71,8 +100,7 @@ namespace OpenSwath
 		double intTheorTotal = norm(theorint.begin(), theorint.end());
 		OpenSwath::normalize(intExp, intExptotal, intExp);
 		OpenSwath::normalize(theorint, intTheorTotal, theorint);
-		double score2 = OpenSwath::dotProd(intExp.begin(), intExp.end(),
-				theorint.begin());
+		double score2 = OpenSwath::dotProd(intExp.begin(), intExp.end(), theorint.begin());
 		return score2;
 	}
 
@@ -80,7 +108,8 @@ namespace OpenSwath
 	double manhattanDist(Texp itExpBeg, Texp itExpEnd, Ttheo itTheo)
 	{
 		double sum = 0.0;
-		for (std::size_t i = 0; itExpBeg < itExpEnd; ++itExpBeg, ++itTheo, ++i) {
+		for (std::size_t i = 0; itExpBeg < itExpEnd; ++itExpBeg, ++itTheo, ++i) 
+    {
 			double x = *itExpBeg - *itTheo;
 			x = fabs(x);
 			sum += x;
@@ -92,8 +121,8 @@ namespace OpenSwath
 			std::vector<double> theorint)
 	{
 
-		for(int i = 0 ; i < intExp.size(); ++i){
-
+		for(int i = 0 ; i < intExp.size(); ++i)
+    {
 			intExp[i] = sqrt(intExp[i]);
 			theorint[i] = sqrt(theorint[i]);
 			//std::transform(intExp.begin(), intExp.end(), intExp.begin(), sqrt);
@@ -101,14 +130,12 @@ namespace OpenSwath
 		}
 
 		double intExptotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
-		double intTheorTotal = std::accumulate(theorint.begin(), theorint.end(),
-				0.0);
+		double intTheorTotal = std::accumulate(theorint.begin(), theorint.end(), 0.0);
 		OpenSwath::normalize(intExp, intExptotal, intExp);
 		OpenSwath::normalize(theorint, intTheorTotal, theorint);
-		double score2 = OpenSwath::manhattanDist(intExp.begin(), intExp.end(),
-				theorint.begin());
+		double score2 = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
 		return score2;
 	}
 }
 
-#endif /* DIAHELPERS_H_ */
+#endif 
