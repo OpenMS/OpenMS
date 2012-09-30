@@ -32,23 +32,33 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE MyTest
-
-#include <boost/test/unit_test.hpp>
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/mQuestScoring.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
 
+//#define USE_BOOST_UNIT_TEST
+#ifdef USE_BOOST_UNIT_TEST
+// include boost unit test framework
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE MyTest
+#include <boost/test/unit_test.hpp>
+// macros for boost
 #define EPS_05 boost::test_tools::fraction_tolerance(1.e-5)
-#define END_SECTION
 #define TEST_REAL_SIMILAR(val1, val2) \
-  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, boost::test_tools::fraction_tolerance(1.e-5) ));
+  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, EPS_05 ));
 #define TEST_EQUAL(val1, val2) BOOST_CHECK_EQUAL(val1, val2);
+#define END_SECTION
+#define START_TEST(var1, var2)
+#define END_TEST
+#else
+#include <OpenMS/CONCEPT/ClassTest.h>
+#define BOOST_AUTO_TEST_CASE START_SECTION
+#endif
 
 using namespace std;
 using namespace OpenMS;
+using namespace OpenSwath;
 
 void fill_mock_objects(MockMRMFeature * imrmfeature, MockTransitionGroup * itransition_group)
 {
@@ -79,6 +89,33 @@ void fill_mock_objects(MockMRMFeature * imrmfeature, MockTransitionGroup * itran
   imrmfeature->m_features = features;
 
 }
+
+///////////////////////////
+
+START_TEST(MRMFeatureScoring, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+#ifndef USE_BOOST_UNIT_TEST
+{
+MRMFeatureScoring* ptr = 0;
+MRMFeatureScoring* nullPointer = 0;
+
+START_SECTION(MRMFeatureScoring())
+{
+  ptr = new MRMFeatureScoring();
+  TEST_NOT_EQUAL(ptr, nullPointer)
+}
+END_SECTION
+
+START_SECTION(~MRMFeatureScoring())
+{
+  delete ptr;
+}
+END_SECTION
+}
+#endif
 
 //START_SECTION((void initializeXCorrMatrix(MRMFeature& mrmfeature, MRMTransitionGroup< SpectrumType, PeakType >& transition_group, bool normalize)))
 BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
@@ -279,3 +316,6 @@ BOOST_AUTO_TEST_CASE(test_SN_score)
 }
 END_SECTION
 
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

@@ -32,22 +32,39 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE MyTest
-
-#include <boost/test/unit_test.hpp>
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DIAHelpers.h"
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/timer.hpp>
 
+//#define USE_BOOST_UNIT_TEST
+#ifdef USE_BOOST_UNIT_TEST
+// include boost unit test framework
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE MyTest
+#include <boost/test/unit_test.hpp>
+// macros for boost
 #define EPS_05 boost::test_tools::fraction_tolerance(1.e-5)
-#define END_SECTION
 #define TEST_REAL_SIMILAR(val1, val2) \
-  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, boost::test_tools::fraction_tolerance(1.e-5) ));
+  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, EPS_05 ));
 #define TEST_EQUAL(val1, val2) BOOST_CHECK_EQUAL(val1, val2);
+#define END_SECTION
+#define START_TEST(var1, var2)
+#define END_TEST
+#else
+#include <OpenMS/CONCEPT/ClassTest.h>
+#define BOOST_AUTO_TEST_CASE START_SECTION
+#endif
 
 using namespace std;
+using namespace OpenMS;
+
+///////////////////////////
+
+START_TEST(DIAHelpers, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 BOOST_AUTO_TEST_CASE(testIntegrateWindows_test)
 {
@@ -81,7 +98,7 @@ BOOST_AUTO_TEST_CASE(testIntegrateWindows_test)
 	windows.push_back(101.);
 	windows.push_back(103.);
 	windows.push_back(105.);
-	OpenSwath: integrateWindows(spec, windows, 2, intInt, intMz);
+	OpenSwath::integrateWindows(spec, windows, 2, intInt, intMz);
 
 	std::cout << "print Int" << std::endl;
 	std::copy(intInt.begin(), intInt.end(),
@@ -114,13 +131,17 @@ BOOST_AUTO_TEST_CASE(testDotProdScore)
 	//0.8604286
 	double scor = OpenSwath::dotprodScoring(vec1,vec2);
 
-	BOOST_CHECK ( boost::test_tools::check_is_close(scor, 0.8604286, boost::test_tools::fraction_tolerance(1.e-5) ));
+	TEST_REAL_SIMILAR (scor, 0.8604286);
 
 	//xsm <- xs/sum(xs)
 	//ysm <-ys/sum(ys)
 	//sum(fabs(ysm-xsm))
 	scor = OpenSwath::manhattanScoring(vec1,vec2);
-	BOOST_CHECK ( boost::test_tools::check_is_close(scor, 0.4950837, boost::test_tools::fraction_tolerance(1.e-5) ));
+	TEST_REAL_SIMILAR (scor, 0.4950837);
 	//0.4950837
 }
 END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
