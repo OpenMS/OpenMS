@@ -506,6 +506,7 @@ set(simulation_executables_list
 
 set(swath_executables_list
   MRMDecoy_test
+  TransitionTSVReader_test
 )
 
 ############### GUI executables (require MOC) ########
