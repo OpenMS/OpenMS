@@ -1,12 +1,16 @@
 ### the directory name
-set(directory include/OpenMS/ANALYSIS/OPENSWATH)
+set(directory include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS)
 
 ### list all header files of the directory here
 set(sources_list_h
-MRMDecoy.h
-TransitionTSVReader.h
-OpenSwathHelper.h
-ChromatogramExtractor.h
+DataFrameWriter.h
+DataStructures.h
+ISpectrumAccess.h
+ITrans2Trans.h
+ITransition.h
+MockObjects.h
+TransitionExperiment.h
+Transitions.h
 )
 
 ### add path to the filenames
@@ -16,7 +20,7 @@ foreach(i ${sources_list_h})
 endforeach(i)
 
 ### source group definition
-source_group("Header Files\\OpenMS\\ANALYSIS\\OPENSWATH" FILES ${sources_h})
+source_group("Header Files\\OpenMS\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\DATAACCESS" FILES ${sources_h})
 set_source_files_properties(${directory}/sources.cmake PROPERTIES HEADER_FILE_ONLY TRUE)
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
