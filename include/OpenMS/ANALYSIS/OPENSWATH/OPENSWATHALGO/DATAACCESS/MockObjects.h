@@ -39,7 +39,7 @@
 #include "map"
 #include "boost/shared_ptr.hpp"
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
 namespace OpenSwath
 {
 

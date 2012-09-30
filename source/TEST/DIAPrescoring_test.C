@@ -35,10 +35,12 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 
 using namespace std;
 using namespace OpenMS;
 using namespace OpenSwath;
+
 
 START_TEST(DiaPrescore2, "$Id$")
 
@@ -61,11 +63,20 @@ START_SECTION(~DiaPrescore())
 }
 END_SECTION
 
-START_SECTION ( forward
-void dia_isotope_scores(const std::vector<TransitionType> & transitions,
-                       SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge,
-                       double & isotope_corr, double & isotope_overlap))
+
+START_SECTION ( testscorefunction)
 {
+
+  OpenSwath::LightTransition mock_tr1;
+  mock_tr1.product_mz = 500;
+  mock_tr1.charge = 1;
+  mock_tr1.transition_name = "group1";
+
+  OpenSwath::LightTransition mock_tr2;
+  mock_tr2.product_mz = 600;
+  mock_tr2.charge = 1;
+  mock_tr2.transition_name = "group2";
+
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
   OpenSwath::BinaryDataArrayPtr data1(new OpenSwath::BinaryDataArray);
@@ -104,24 +115,23 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
   binaryDataArrayPtrs.push_back(data2);
   sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
 
-  MockMRMFeature * imrmfeature_test = new MockMRMFeature();
-  getMRMFeatureTest(imrmfeature_test);
-  imrmfeature_test->m_intensity = 0.7;
   std::vector<OpenSwath::LightTransition> transitions;
+  transitions.push_back(mock_tr1);
   transitions.push_back(mock_tr2);
 
-  DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
-  double isotope_corr = 0, isotope_overlap = 0;
-  diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
+  DiaPrescore diaprescore;
+  double manhattan = 0., dotprod = 0.;
+  diaprescore.score(sptr, transitions , dotprod, manhattan);
+  std::cout << "dotprod : " << dotprod << std::endl;
+  std::cout << "manhattan : " << manhattan << std::endl;
   // >>> exp = [240, 74, 39, 15, 0]
   // >>> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
   // >>> from scipy.stats.stats import pearsonr
   // >>> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(isotope_corr, 0.995361286111832)
-  TEST_REAL_SIMILAR(isotope_overlap, 0.0)
+  //TEST_REAL_SIMILAR(dotprod, 0.995361286111832)
+  //TEST_REAL_SIMILAR(manhattan, )
 }
 END_SECTION
 
