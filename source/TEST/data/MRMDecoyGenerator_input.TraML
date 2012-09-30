@@ -397,5 +397,90 @@
        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="633.321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
     </Transition>
+    <Transition id="copy1_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="YILAGVENSK" >
+      <cvParam cvRef="" accession="" name="annotation" value="YILAGVENSK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="29.58"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="154.1"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.297" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="633.321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="copy2_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="YILAGVENSK" >
+      <cvParam cvRef="" accession="" name="annotation" value="YILAGVENSK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="29.58"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="254.1"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.297" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="633.321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="copy3_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="YILAGVENSK" >
+      <cvParam cvRef="" accession="" name="annotation" value="YILAGVENSK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="29.58"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="354.1"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.297" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="633.321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="copy4_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="YILAGVENSK" >
+      <cvParam cvRef="" accession="" name="annotation" value="YILAGVENSK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="29.58"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="454.1"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.297" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="633.321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="copy5_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="YILAGVENSK" >
+      <cvParam cvRef="" accession="" name="annotation" value="YILAGVENSK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="29.58"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="554.1"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.297" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="633.321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="copy6_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="YILAGVENSK" >
+      <cvParam cvRef="" accession="" name="annotation" value="YILAGVENSK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="29.58"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="654.1"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.297" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="633.321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="copy7_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="YILAGVENSK" >
+      <cvParam cvRef="" accession="" name="annotation" value="YILAGVENSK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="29.58"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="754.1"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.297" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="633.321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+
   </TransitionList>
 </TraML>

@@ -458,7 +458,7 @@ namespace OpenMS
         {
           ReactionMonitoringTransition tr = *tr_it;
           if (std::find(LibraryIntensity.begin(), LibraryIntensity.begin() + max_transitions,
-            boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end())
+            boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.begin() + max_transitions)
           {
             transitions.push_back(tr);
           }
