@@ -504,6 +504,10 @@ set(simulation_executables_list
   ICPLLabeler_test
 )
 
+set(swath_executables_list
+  MRMDecoyGenerator_test
+)
+
 ############### GUI executables (require MOC) ########
 set(GUI_executables_list
 	TOPPView_test
@@ -526,5 +530,6 @@ set(TEST_executables
 		${transformations_executables_list}
 		${simulation_executables_list}
 		${visual_executables_list}
+		${swath_executables_list}
 		## NO GUI lists here! (GUI is handled in source/TEST/CMakeLists.txt separately)
 		)
