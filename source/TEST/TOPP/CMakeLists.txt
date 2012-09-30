@@ -520,13 +520,13 @@ add_test("TOPP_MascotAdapter_2" ${TOPP_BIN_PATH}/MascotAdapter -in ${DATA_DIR_TO
 add_test("TOPP_MascotAdapter_2_out1" ${DIFF} -in1 MascotAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_2_output.idXML )
 set_tests_properties("TOPP_MascotAdapter_2_out1" PROPERTIES DEPENDS "TOPP_MascotAdapter_2")
 
-### MRM / SWATH tests
-add_test("TOPP_MRMDecoyGenerator_test_1" ${TOPP_BIN_PATH}/MRMDecoyGenerator -in ${DATA_DIR_TOPP}/MRMDecoyGenerator_input.TraML -out MRMDecoyGenerator.TraML.tmp -method reverse -test)
-add_test("TOPP_MRMDecoyGenerator_test_1_out1" ${DIFF} -in1 MRMDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/MRMDecoyGenerator_output.TraML)
-set_tests_properties("TOPP_MRMDecoyGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_MRMDecoyGenerator_test_1")
-add_test("TOPP_MRMDecoyGenerator_test_2" ${TOPP_BIN_PATH}/MRMDecoyGenerator -in ${DATA_DIR_TOPP}/MRMDecoyGenerator_input_2.TraML -out MRMDecoyGenerator_2.TraML.tmp -append -method reverse -test -theoretical)
-add_test("TOPP_MRMDecoyGenerator_test_2_out1" ${DIFF} -in1 MRMDecoyGenerator_2.TraML.tmp -in2 ${DATA_DIR_TOPP}/MRMDecoyGenerator_output_2.TraML)
-set_tests_properties("TOPP_MRMDecoyGenerator_test_2_out1" PROPERTIES DEPENDS "TOPP_MRMDecoyGenerator_test_2")
+### MRM / SWATH tests (from OpenSWATH)
+add_test("TOPP_OpenSwathDecoyGenerator_test_1" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -test)
+add_test("TOPP_OpenSwathDecoyGenerator_test_1_out1" ${DIFF} -in1 OpenSwathDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output.TraML)
+set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_1")
+add_test("TOPP_OpenSwathDecoyGenerator_test_2" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -append -method pseudo-reverse -test -theoretical)
+add_test("TOPP_OpenSwathDecoyGenerator_test_2_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_2.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_2.TraML)
+set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_2")
 
 ### NoiseFilter tests
 add_test("TOPP_NoiseFilterGaussian_1" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out NoiseFilterGaussian_1.tmp)

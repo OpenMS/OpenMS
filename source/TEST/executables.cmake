@@ -505,7 +505,7 @@ set(simulation_executables_list
 )
 
 set(swath_executables_list
-  MRMDecoyGenerator_test
+  MRMDecoy_test
 )
 
 ############### GUI executables (require MOC) ########

@@ -29,24 +29,24 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MRMDecoyGenerator MRMDecoyGenerator
+  @page TOPP_OpenSwathDecoyGenerator OpenSwathDecoyGenerator
 
   @brief Generates decoys according to different models for a specific TraML
 
- This module generates "decoy" transitions from a set of real or "target"
- transitions. The idea is to use the decoy transitions in a statistical scoring
- process to estimate the false hits in an SRM / SWATH experiment.
+  This module generates "decoy" transitions from a set of real or "target"
+  transitions. The idea is to use the decoy transitions in a statistical scoring
+  process to estimate the false hits in an SRM / SWATH experiment.
 
- There are multiple methods to create the decoy transitions, the simplest ones
- are reverse and pseudo-reverse which reverse the sequence either completely or
- leaving the last (tryptic) AA untouched respectively.
+  There are multiple methods to create the decoy transitions, the simplest ones
+  are reverse and pseudo-reverse which reverse the sequence either completely or
+  leaving the last (tryptic) AA untouched respectively.
 
- Another decoy generation method is "shuffle" which uses an algorithm similar
- to the one described in Lam, Henry, et al. (2010). "Artificial decoy spectral
- libraries for false discovery rate estimation in spectral library searching in
- proteomics".  Journal of Proteome Research 9, 605-610. It shuffles the amino
- acid sequence and shuffles the fragment ion intensities accordingly, however
- for this to work the fragment ions need to be matched to annotated before. 
+  Another decoy generation method is "shuffle" which uses an algorithm similar
+  to the one described in Lam, Henry, et al. (2010). "Artificial decoy spectral
+  libraries for false discovery rate estimation in spectral library searching in
+  proteomics".  Journal of Proteome Research 9, 605-610. It shuffles the amino
+  acid sequence and shuffles the fragment ion intensities accordingly, however
+  for this to work the fragment ions need to be matched to annotated before. 
 
 
 TODO: could theoretical also produce an annotation in the TraML of what it thinks the ion is?
@@ -57,13 +57,13 @@ TODO: could theoretical also produce an annotation in the TraML of what it think
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPMRMDecoyGenerator
+class TOPPOpenSwathDecoyGenerator
   : public TOPPBase
 {
  public:
 
-  TOPPMRMDecoyGenerator()
-    : TOPPBase("MRMDecoyGenerator","Generates decoys according to different models for a specific TraML", false)
+  TOPPOpenSwathDecoyGenerator()
+    : TOPPBase("OpenSwathDecoyGenerator","Generates decoys according to different models for a specific TraML", false)
   {
   }
 
@@ -138,7 +138,7 @@ class TOPPMRMDecoyGenerator
 
 int main( int argc, const char** argv )
 {
-  TOPPMRMDecoyGenerator gen;
+  TOPPOpenSwathDecoyGenerator gen;
   return gen.main(argc,argv);
 }
 
