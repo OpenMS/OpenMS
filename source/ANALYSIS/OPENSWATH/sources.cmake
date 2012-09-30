@@ -8,6 +8,7 @@ TransitionTSVReader.C
 OpenSwathHelper.C
 ChromatogramExtractor.C
 MRMTransitionGroupPicker.C
+OpenMSHelper.C
 )
 
 ### add path to the filenames

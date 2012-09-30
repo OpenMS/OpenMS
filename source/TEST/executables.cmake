@@ -512,6 +512,7 @@ set(swath_executables_list
   ChromatogramExtractor_test
   OpenSwathHelper_test
   MRMTransitionGroupPicker_test
+  OSW_OpenMSHelper_test
 )
 
 ############### GUI executables (require MOC) ########

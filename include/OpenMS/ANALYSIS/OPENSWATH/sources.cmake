@@ -7,6 +7,7 @@ MRMDecoy.h
 TransitionTSVReader.h
 OpenSwathHelper.h
 ChromatogramExtractor.h
+OpenMSHelper.h
 )
 
 ### add path to the filenames
