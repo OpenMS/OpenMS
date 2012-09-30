@@ -85,17 +85,52 @@ START_SECTION((static std::vector<std::pair<double, double> > rm_outliers(std::v
 }
 END_SECTION
 
+START_SECTION((static bool chauvenet_probability(std::vector<double> & residuals, int pos)))
+{
+
+  static const double arr1[] = { 1,2,3,4,2,10,11,75,5,8,3,5,6,9,130 };
+  std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 0), 0.61831553);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 1), 0.6387955);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 2), 0.65955473);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 3), 0.68057951);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 4), 0.6387955);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 5), 0.81146293);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 6), 0.8339146);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 7), 0.10161557);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 8), 0.70185552);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 9), 0.76703896);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 10), 0.65955473);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 11), 0.70185552);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 12), 0.72336784);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 13), 0.78916526);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 14), 0.00126358);
+
+}
+END_SECTION
+
 START_SECTION((static bool chauvenet(std::vector<double> & residuals, int pos)))
 {
 
-  static const double arr1[] = { 1,2,3,4,2,10 };
+  static const double arr1[] = { 1,2,3,4,2,10,11,75,5,8,3,5,6,9,130 };
   std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  static const double arr2[] = { 1,2,3,4,2};
-  std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
-  // TODO (georger) : check chauvinet, what does it do?
   TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 0), false);
-  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 5), true);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 1), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 2), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 3), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 4), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 5), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 6), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 7), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 8), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 9), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 10), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 11), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 12), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 13), false);
+  TEST_EQUAL( MRMRTNormalizer::chauvenet(data1, 14), true);
 
 }
 END_SECTION

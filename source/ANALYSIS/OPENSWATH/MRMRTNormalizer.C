@@ -147,19 +147,28 @@ namespace OpenMS
 
   bool MRMRTNormalizer::chauvenet(std::vector<double> & residuals, int pos)
   {
-    boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::variance> > acc;
-    // std::for_each(residuals.begin(), residuals.end(), bind<void>(boost::ref(acc), _1));
+    double criterion = 1.0 / (2 * residuals.size());
+    double prob = MRMRTNormalizer::chauvenet_probability(residuals,pos);
 
-    boost::math::normal_distribution<> dist(boost::accumulators::mean(acc), sqrt(boost::accumulators::variance(acc)));
-
-    double p = boost::math::pdf(dist, residuals[pos]);
-    if (p * residuals.size() < 0.5)
+    if (prob < criterion)
     {
-      return 1;
+      return(true);
     }
     else
     {
-      return 0;
+      return(false);
     }
+  }
+
+  double MRMRTNormalizer::chauvenet_probability(std::vector<double> & residuals, int pos)
+  {
+    double mean = std::accumulate(residuals.begin(), residuals.end(), 0.0) / residuals.size();
+    double stdev = std::sqrt(std::inner_product(residuals.begin(), residuals.end(), residuals.begin(), 0.0) / residuals.size() - mean * mean);
+
+    double d = abs(residuals[pos]-mean)/stdev;
+    d /= pow(2.0,0.5);
+    double prob=boost::math::erfc(d);
+
+    return(prob);
   }
 }

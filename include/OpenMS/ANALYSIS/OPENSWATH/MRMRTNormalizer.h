@@ -35,6 +35,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <numeric>
+#include <boost/math/special_functions/erf.hpp>
 
 namespace OpenMS
 {
@@ -77,9 +79,15 @@ public:
     static std::vector<std::pair<double, double> > rm_outliers(std::vector<std::pair<double, double> > & pairs, double rsq_limit, double coverage_limit);
 
     /**
-      @brief This function computes Chauvenet's criterion for a vector.
+      @brief This function computes Chauvenet's criterion probability for a vector.
 
-      TODO george
+      @return If an error occured during the fit.
+    */
+    static double chauvenet_probability(std::vector<double> & residuals, int pos);
+
+
+    /**
+      @brief This function computes Chauvenet's criterion for a vector.
 
       @return If an error occured during the fit.
     */
