@@ -35,6 +35,14 @@
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
 #include <cmath>
 
+#ifdef OPENMS_ASSERTIONS
+#define OPENMS_PRECONDITION(condition, message)\
+ if (!(condition))\
+    { throw std::runtime_error(message); }
+#else
+#define OPENMS_PRECONDITION(condition, message)
+#endif
+
 namespace OpenMS
 {
   namespace Scoring
@@ -55,7 +63,7 @@ namespace OpenMS
 
     double RMSD(double x[], double y[], int n)
     {
-      //OPENMS_PRECONDITION(n > 0, "Need at least one element");
+      OPENMS_PRECONDITION(n > 0, "Need at least one element");
 
       double delta_ratio_sum = 0;
       normalize_sum(x, n);
@@ -69,12 +77,11 @@ namespace OpenMS
 
     XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType array)
     {
-      //OPENMS_PRECONDITION(array.size() > 0, "Cannot get highest apex from empty array.");
+      OPENMS_PRECONDITION(array.size() > 0, "Cannot get highest apex from empty array.");
 
       XCorrArrayType::iterator max_it = array.begin();
       double max = array.begin()->second;
-      for (XCorrArrayType::iterator it = array.begin();
-           it != array.end(); it++)
+      for (XCorrArrayType::iterator it = array.begin(); it != array.end(); it++)
       {
         if (it->second > max)
         {
@@ -87,14 +94,12 @@ namespace OpenMS
 
     void standardize_data(std::vector<double> & data)
     {
-      // OPENMS_PRECONDITION(data.size() > 0, "Need non-empty array.");
+      OPENMS_PRECONDITION(data.size() > 0, "Need non-empty array.");
 
       // subtract the mean and divide by the standard deviation
-      double mean = std::accumulate(data.begin(), data.end(), 0.0)
-                    / (double) data.size();
+      double mean = std::accumulate(data.begin(), data.end(), 0.0) / (double) data.size();
       double sqsum = 0;
-      for (std::vector<double>::iterator it = data.begin(); it != data.end();
-           it++)
+      for (std::vector<double>::iterator it = data.begin(); it != data.end(); it++)
       {
         sqsum += (*it - mean) * (*it - mean);
       }
@@ -107,16 +112,15 @@ namespace OpenMS
     }
 
     XCorrArrayType normalizedCalcxcorr(std::vector<double> & data1,
-                                       std::vector<double> & data2, int maxdelay, int lag = 1)
+      std::vector<double> & data2, int maxdelay, int lag = 1)
     {
-      //OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
+      OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       // normalize the data
       standardize_data(data1);
       standardize_data(data2);
       std::map<int, double> result = calcxcorr_new(data1, data2, maxdelay, lag);
-      for (std::map<int, double>::iterator it = result.begin();
-           it != result.end(); it++)
+      for (std::map<int, double>::iterator it = result.begin(); it != result.end(); it++)
       {
         it->second = it->second / data1.size();
       }
@@ -124,9 +128,9 @@ namespace OpenMS
     }
 
     XCorrArrayType calcxcorr_new(std::vector<double> & data1,
-                                 std::vector<double> & data2, int maxdelay, int lag)
+      std::vector<double> & data2, int maxdelay, int lag)
     {
-      // OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
+      OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       XCorrArrayType result;
       int datasize = data1.size();
@@ -151,17 +155,15 @@ namespace OpenMS
     }
 
     XCorrArrayType calcxcorr(std::vector<double> & data1,
-                             std::vector<double> & data2, bool normalize)
+      std::vector<double> & data2, bool normalize)
     {
-      //OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
+      OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
       int maxdelay = data1.size();
       int lag = 1;
 
       XCorrArrayType result;
-      double mean1 = std::accumulate(data1.begin(), data1.end(), 0.)
-                     / (double)data1.size();
-      double mean2 = std::accumulate(data2.begin(), data2.end(), 0.)
-                     / (double)data2.size();
+      double mean1 = std::accumulate(data1.begin(), data1.end(), 0.) / (double)data1.size();
+      double mean2 = std::accumulate(data2.begin(), data2.end(), 0.) / (double)data2.size();
       double denominator = 1;
       int datasize = data1.size();
       int i, j, delay;
@@ -171,14 +173,12 @@ namespace OpenMS
       {
         double sqsum1 = 0;
         double sqsum2 = 0;
-        for (std::vector<double>::iterator it = data1.begin();
-             it != data1.end(); it++)
+        for (std::vector<double>::iterator it = data1.begin(); it != data1.end(); it++)
         {
           sqsum1 += (*it - mean1) * (*it - mean1);
         }
 
-        for (std::vector<double>::iterator it = data2.begin();
-             it != data2.end(); it++)
+        for (std::vector<double>::iterator it = data2.begin(); it != data2.end(); it++)
         {
           sqsum2 += (*it - mean2) * (*it - mean2);
         }

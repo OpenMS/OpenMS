@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest, Witold Wolski $
-// $Authors: Hannes Roest, Witold Wolski $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
@@ -53,159 +53,20 @@ namespace OpenSwath
   ///////////////////////////////////////////////////////////////////////////
   // DIA / SWATH scoring
 
-  //gets the relative intensities from feature
-  void DIAScoring::getFirstIsotopeRelativeIntensities(
-    const std::vector<TransitionType> & transitions,
-    OpenSwath::IMRMFeature * mrmfeature,
-    std::map<std::string, double> & intensities   //experimental intensities of transitions
-    )
-  {
-    typedef std::pair<std::string, double> MPair;
-    double rel_intensity;
-    //std::vector<double> isotopes_int;
-    //TODO (wolski) move mapping to prepare function.
-    //change function signature to 2 vectors. experimental int and productMZ
-    for (Size k = 0; k < transitions.size(); k++)
-    {
-      //const TransitionType * transition = &transitions[k];
-      std::string native_id = transitions[k].getNativeID(); // rel_intensity = intens_map[native_id]
-      rel_intensity = mrmfeature->getFeature(native_id)->getIntensity()
-                      / mrmfeature->getIntensity();
-
-      intensities.insert(MPair(native_id, rel_intensity));
-    }
-  }
-
-  //gets the relative intensities from spectrum
-  void DIAScoring::getFirstIsotopeRelativeIntensities(
-    const std::vector<TransitionType> & transitions,
-    SpectrumType spectrum,
-    std::map<std::string, double> & intensities   //experimental intensities of transitions
-    )
-  {
-    typedef std::pair<std::string, double> TPair;
-    typedef std::vector<TransitionType> Transitiontypevec;
-    Transitiontypevec::const_iterator beg = transitions.begin();
-    Transitiontypevec::const_iterator end = transitions.end();
-
-    std::vector<double> tmpint;
-    std::vector<std::string> refs;
-    double mz, intensity;
-    for (; beg != end; ++beg)
-    {
-      std::string native_id = beg->getNativeID();
-      double left = beg->getProductMZ() - dia_extract_window_ / 2.0;
-      double right = beg->getProductMZ() + dia_extract_window_ / 2.0;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity,
-                             dia_centroided_);
-      tmpint.push_back(intensity);
-      refs.push_back(native_id);
-    }
-
-    //compute total intensities
-    double totalInt = std::accumulate(tmpint.begin(), tmpint.end(), 0.0);
-    //normalize intensities
-    if (totalInt > 0)
-    {
-      std::transform(tmpint.begin(), tmpint.end(), tmpint.begin(),
-                     std::bind2nd(std::divides<double>(), totalInt));
-    }
-    //add to result
-    for (uint32_t i = 0; i < tmpint.size(); ++i)
-    {
-      intensities.insert(TPair(refs[i], tmpint[i]));
-    }
-  }
-
-  void DIAScoring::dia_isotope_scores(
-    const std::vector<TransitionType> & transitions, SpectrumType spectrum,
+  void DIAScoring::dia_isotope_scores(const std::vector<TransitionType> & transitions, SpectrumType spectrum,
     OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge,
     double & isotope_corr, double & isotope_overlap)
   {
-    OPENMS_PRECONDITION(putative_fragment_charge > 0,
-                        "Charge is a positive integer");
+    OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");
     //double max_ppm_diff = 20.0; // TODO (hroest) make this a proper parameter
+
+    // first compute a map of relative intensities from the feature, then compute the score
     std::map<std::string, double> intensities;
     getFirstIsotopeRelativeIntensities(transitions, mrmfeature, intensities);
-    dia_isotope_scores(transitions, spectrum, intensities,
-                       putative_fragment_charge, isotope_corr, isotope_overlap);
-  } //end line
+    dia_isotope_scores_sub(transitions, spectrum, intensities, putative_fragment_charge, isotope_corr, isotope_overlap);
+  } 
 
-  //bb///////
-
-  void DIAScoring::score_with_isotopes(SpectrumType spectrum,
-
-                                       const std::vector<TransitionType> & transitions,
-                                       double & dotprod,
-                                       double & manhattan
-                                       )
-  {
-
-    OpenMS::DiaPrescore2 dp;
-    dp.score(spectrum, transitions, dotprod, manhattan);
-  }
-
-  void DIAScoring::dia_isotope_scores(
-    const std::vector<TransitionType> & transitions, SpectrumType spectrum,
-    std::map<std::string, double> & intensities,  //relative intensities
-    int putative_fragment_charge,
-    double & isotope_corr, double & isotope_overlap)
-  {
-    //TODO(wolski) move mapping to prepare function.
-    //change functon signature to 2 vectors. experimental int and productMZ
-    std::vector<double> isotopes_int;
-    double max_ppm_diff = 20.0; // TODO (hroest) make this a proper parameter
-
-    for (Size k = 0; k < transitions.size(); k++)
-    {
-      isotopes_int.clear();
-      String native_id = transitions[k].getNativeID(); // rel_intensity = intens_map[native_id]
-      double rel_intensity = intensities[native_id];
-      // collect the potential isotopes of this peak
-      for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
-      {
-        // TODO (hroest) multiply with C13C12_MASSDIFF_U -->  +iso * C13C12_MASSDIFF_U / charge
-        // TODO (hroest) get fragment charge from transition --> add to Transition interface
-        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 + iso / static_cast<DoubleReal>(putative_fragment_charge);
-        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + iso / static_cast<DoubleReal>(putative_fragment_charge);
-        double mz, intensity;
-        getIntensePeakInWindow(spectrum, left, right, mz, intensity,
-                               dia_centroided_);
-        isotopes_int.push_back(intensity);
-      }
-      // calculate the isotope correlation (forward) and the isotope overlap (backward) scores
-      double score = get_normalized_isotope_pattern(transitions[k].getProductMZ(),
-                                                    isotopes_int, putative_fragment_charge);
-      isotope_corr += score * rel_intensity;
-
-      score = largePeaksBeforeFirstIsotope(transitions[k].getProductMZ(), spectrum,
-                                           max_ppm_diff, isotopes_int[0]);
-      isotope_overlap += score * rel_intensity;
-    }
-  }
-
-  void DIAScoring::getSpectrumIntensities(
-    const std::vector<TransitionType> & transitions, SpectrumType spectrum, double extractWindow,
-    std::vector<double> & mzv, std::vector<double> & intensityv)
-  {
-    for (std::size_t k = 0; k < transitions.size(); ++k)
-    {
-      // Calculate the difference of the theoretical mass and the actually measured mass
-      double left = transitions[k].getProductMZ() - extractWindow / 2.0;
-      double right = transitions[k].getProductMZ() + extractWindow / 2.0;
-      double mz, intensity;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      if (mz == -1)
-      {
-        mz = (left + right) / 2.0;
-      }
-      mzv.push_back(mz);
-      intensityv.push_back(intensity);
-    }
-  }
-
-  void DIAScoring::dia_massdiff_score(
-    const std::vector<TransitionType> & transitions, SpectrumType spectrum,
+  void DIAScoring::dia_massdiff_score(const std::vector<TransitionType> & transitions, SpectrumType spectrum,
     const std::vector<double> & normalized_library_intensity,
     double & ppm_score, double & ppm_score_weighted)
   {
@@ -218,16 +79,14 @@ namespace OpenSwath
       // Calculate the difference of the theoretical mass and the actually measured mass
       left = transition->getProductMZ() - dia_extract_window_ / 2.0;
       right = transition->getProductMZ() + dia_extract_window_ / 2.0;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity,
-                             dia_centroided_);
+      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       if (mz == -1)
       {
         mz = (left + right) / 2.0;
       }
 
       //double diff = std::fabs( mz - transition->getProductMZ() );
-      double diff_ppm = std::fabs(mz - transition->getProductMZ()) * 1000000
-                        / transition->getProductMZ();
+      double diff_ppm = std::fabs(mz - transition->getProductMZ()) * 1000000 / transition->getProductMZ();
       //ppm_score += diff_ppm * diff_ppm;
       ppm_score += diff_ppm;
       ppm_score_weighted += diff_ppm * normalized_library_intensity[k];
@@ -252,18 +111,10 @@ namespace OpenSwath
     {
       left = bseries[it] - dia_extract_window_ / 2.0;
       right = bseries[it] + dia_extract_window_ / 2.0;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity,
-                             dia_centroided_);
+      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       ppmdiff = std::fabs(bseries[it] - mz) * 1000000 / bseries[it];
-#ifdef MRMSCORING_TESTING
-      std::cout << "try b-series with " << bseries[it] << " with int " << intensity << " and diff " << ppmdiff << std::endl;
-#endif
-      if (mz != -1 && ppmdiff < dia_byseries_ppm_diff_
-         && intensity > dia_byseries_intensity_min_)
+      if (mz != -1 && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
-#ifdef MRMSCORING_TESTING
-        cout << " found ! " << endl;
-#endif
         bseries_score++;
       }
     }
@@ -271,38 +122,146 @@ namespace OpenSwath
     {
       left = yseries[it] - dia_extract_window_ / 2.0;
       right = yseries[it] + dia_extract_window_ / 2.0;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity,
-                             dia_centroided_);
-
-      double ppmdiff = std::fabs(yseries[it] - mz) * 1000000 / yseries[it];
-#ifdef MRMSCORING_TESTING
-      std::cout << "try y-series with " << yseries[it] << " with int " << intensity << " and diff " << ppmdiff << std::endl;
-#endif
-      if (mz != -1 && ppmdiff < dia_byseries_ppm_diff_
-         && intensity > dia_byseries_intensity_min_)
+      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      ppmdiff = std::fabs(yseries[it] - mz) * 1000000 / yseries[it];
+      if (mz != -1 && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
-#ifdef MRMSCORING_TESTING
-        cout << " found ! " << endl;
-#endif
         yseries_score++;
       }
     }
   }
 
-  //Count How Often Intensity Of Peak Before First Isotope
+  void DIAScoring::score_with_isotopes(SpectrumType spectrum, const std::vector<TransitionType> & transitions,
+    double & dotprod, double & manhattan)
+  {
+    OpenMS::DiaPrescore2 dp;
+    dp.score(spectrum, transitions, dotprod, manhattan);
+  }
+
+  ///////////////////////////////////////////////////////////////////////////
+  // Private methods
+
+  /// computes a vector of relative intensities for each feature (output to intensities) 
+  void DIAScoring::getFirstIsotopeRelativeIntensities(const std::vector<TransitionType> & transitions,
+    OpenSwath::IMRMFeature * mrmfeature, std::map<std::string, double> & intensities)
+  {
+    double rel_intensity;
+    for (Size k = 0; k < transitions.size(); k++)
+    {
+      std::string native_id = transitions[k].getNativeID(); 
+      rel_intensity = mrmfeature->getFeature(native_id)->getIntensity() / mrmfeature->getIntensity();
+      intensities.insert(std::pair<std::string, double>(native_id, rel_intensity));
+    }
+  }
+
+#if 0
+
+  void DIAScoring::getSpectrumIntensities(const std::vector<TransitionType> & transitions, SpectrumType spectrum, double extractWindow,
+    std::vector<double> & mzv, std::vector<double> & intensityv)
+  {
+    for (std::size_t k = 0; k < transitions.size(); ++k)
+    {
+      // Calculate the difference of the theoretical mass and the actually measured mass
+      double left = transitions[k].getProductMZ() - extractWindow / 2.0;
+      double right = transitions[k].getProductMZ() + extractWindow / 2.0;
+      double mz, intensity;
+      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      if (mz == -1)
+      {
+        mz = (left + right) / 2.0;
+      }
+      mzv.push_back(mz);
+      intensityv.push_back(intensity);
+    }
+  }
+  //gets the relative intensities from spectrum
+  void DIAScoring::getFirstIsotopeRelativeIntensities(
+    const std::vector<TransitionType> & transitions,
+    SpectrumType spectrum,
+    std::map<std::string, double> & intensities   //experimental intensities of transitions
+    )
+  {
+    typedef std::pair<std::string, double> TPair;
+    typedef std::vector<TransitionType> Transitiontypevec;
+    Transitiontypevec::const_iterator beg = transitions.begin();
+    Transitiontypevec::const_iterator end = transitions.end();
+
+    std::vector<double> tmpint;
+    std::vector<std::string> refs;
+    double mz, intensity;
+    for (; beg != end; ++beg)
+    {
+      std::string native_id = beg->getNativeID();
+      double left = beg->getProductMZ() - dia_extract_window_ / 2.0;
+      double right = beg->getProductMZ() + dia_extract_window_ / 2.0;
+      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      tmpint.push_back(intensity);
+      refs.push_back(native_id);
+    }
+
+    //compute total intensities
+    double totalInt = std::accumulate(tmpint.begin(), tmpint.end(), 0.0);
+    //normalize intensities
+    if (totalInt > 0)
+    {
+      std::transform(tmpint.begin(), tmpint.end(), tmpint.begin(),
+                     std::bind2nd(std::divides<double>(), totalInt));
+    }
+    //add to result
+    for (uint32_t i = 0; i < tmpint.size(); ++i)
+    {
+      intensities.insert(TPair(refs[i], tmpint[i]));
+    }
+  }
+#endif
+
+  void DIAScoring::dia_isotope_scores_sub(const std::vector<TransitionType> & transitions, SpectrumType spectrum,
+    std::map<std::string, double> & intensities,  //relative intensities
+    int putative_fragment_charge, double & isotope_corr, double & isotope_overlap)
+  {
+    std::vector<double> isotopes_int;
+    double max_ppm_diff = 20.0; // TODO (hroest) make this a proper parameter
+
+    for (Size k = 0; k < transitions.size(); k++)
+    {
+      isotopes_int.clear();
+      String native_id = transitions[k].getNativeID(); 
+      double rel_intensity = intensities[native_id];
+
+      // collect the potential isotopes of this peak
+      for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
+      {
+        // TODO (hroest) multiply with C13C12_MASSDIFF_U -->  +iso * C13C12_MASSDIFF_U / charge
+        // TODO (hroest) get fragment charge from transition --> add to Transition interface
+        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 + iso / static_cast<DoubleReal>(putative_fragment_charge);
+        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + iso / static_cast<DoubleReal>(putative_fragment_charge);
+        double mz, intensity;
+        getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+        isotopes_int.push_back(intensity);
+      }
+
+      // calculate the scores:
+      // isotope correlation (forward) and the isotope overlap (backward) scores
+      double score = scoreIsotopePattern(transitions[k].getProductMZ(), isotopes_int, putative_fragment_charge);
+      isotope_corr += score * rel_intensity;
+      score = largePeaksBeforeFirstIsotope(transitions[k].getProductMZ(), spectrum, max_ppm_diff, isotopes_int[0]);
+      isotope_overlap += score * rel_intensity;
+    }
+  }
+
+  /// Search for a large peak _before_ (lower m/z) the current peak 
   DoubleReal DIAScoring::largePeaksBeforeFirstIsotope(double product_mz,
     SpectrumType & spectrum, double max_ppm_diff, double main_peak)
   {
     double result = 0;
-
     double mz, intensity, left, right, ratio;
-    // integrate the isotopes in the back of us
+
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
+      // TODO (hroest) multiply with C13C12_MASSDIFF_U -->  + 1.0 * C13C12_MASSDIFF_U / charge
       left = product_mz - dia_extract_window_ / 2.0 - 1.0 / (DoubleReal) ch;
       right = product_mz + dia_extract_window_ / 2.0 - 1.0 / (DoubleReal) ch;
-      getIntensePeakInWindow(spectrum, left, right, mz, intensity,
-                             dia_centroided_);
+      getIntensePeakInWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       if (mz == -1)
       {
         mz = (left + right) / 2.0;
@@ -313,8 +272,7 @@ namespace OpenSwath
       {
         ratio = 0;
       }
-      double ddiff_ppm = std::fabs(mz - (product_mz - 1.0 / (DoubleReal) ch)) * 1000000
-                         / product_mz;
+      double ddiff_ppm = std::fabs(mz - (product_mz - 1.0 / (DoubleReal) ch)) * 1000000 / product_mz;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
       if (ratio > 1 && ddiff_ppm < max_ppm_diff)
@@ -331,11 +289,11 @@ namespace OpenSwath
     return result;
   }
 
-  DoubleReal DIAScoring::get_normalized_isotope_pattern(double product_mz,
+  /// Compare an experimental isotope pattern to a theoretical one 
+  DoubleReal DIAScoring::scoreIsotopePattern(double product_mz,
     const std::vector<double> & isotopes_int, int putative_fragment_charge)
   {
-    OPENMS_PRECONDITION(putative_fragment_charge > 0,
-                        "Charge is a positive integer");
+    OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");
 
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern IsotopePattern;
@@ -360,13 +318,14 @@ namespace OpenSwath
     for (Size i = 0; i < isotopes.intensity.size(); ++i)
     {
       if (isotopes.intensity[i] > max)
+      {
         max = isotopes.intensity[i];
+      }
     }
     isotopes.max = max;
     for (Size i = 0; i < isotopes.intensity.size(); ++i)
     {
       isotopes.intensity[i] /= max;
-      //cout << " theoretical " << i << " int "<< isotopes.intensity[i] << endl;
     }
     isotopes.trimmed_left = 0;
 
@@ -380,9 +339,8 @@ namespace OpenSwath
 
   } //end of dia_isotope_corr_sub
 
-  void DIAScoring::getIntensePeakInWindow(const SpectrumType spectrum,
-    double mz_start, double mz_end, double & mz, double & intensity,
-    bool centroided)
+  void DIAScoring::getIntensePeakInWindow(const SpectrumType spectrum, double mz_start, 
+      double mz_end, double & mz, double & intensity, bool centroided)
   {
     OPENMS_PRECONDITION(
         std::adjacent_find(spectrum->getMZArray()->data.begin(), spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),

@@ -36,6 +36,7 @@
 #define OPENSWATH_ALGO_MEANANDSD_H_
 #include <cmath>
 
+// TODO wolski : comment these methods (doxygen)
 namespace OpenSwath
 {
   class mean_and_stddev

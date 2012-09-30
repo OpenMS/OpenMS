@@ -180,7 +180,7 @@ namespace OpenMS
   creating consensus / meta-peaks (MRMFeatures) that contain the information of
   all corresponding chromatograms at the peak-position. It then goes on to
   score those MRMFeatures using different criteria described in the
-  MRMFeatureScoring class.
+  MRMScoring class.
 
   */
   class OPENMS_DLLAPI MRMFeatureFinderScoring :
@@ -884,7 +884,7 @@ private:
 
     TransitionGroupMapType lib_transition_group_map;
 
-    MRMFeatureScoring mrmscore;
+    MRMScoring mrmscore;
     OpenSwath::DIAScoring diascoring;
     EmgScoring emgscoring;
 

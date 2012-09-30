@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_ALGO_MQUESTSCORING_H
-#define OPENSWATH_ALGO_MQUESTSCORING_H
+#ifndef OPENSWATH_ALGO_MRMSCORING_H
+#define OPENSWATH_ALGO_MRMSCORING_H
 
 #include <string>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
@@ -69,7 +69,7 @@ namespace OpenMS
       - elution_fit_score: how well the elution profile fits a theoretical elution profile
 
   */
-  class MRMFeatureScoring
+  class MRMScoring
   {
 
 public:

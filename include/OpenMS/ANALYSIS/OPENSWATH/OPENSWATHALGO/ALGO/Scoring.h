@@ -40,10 +40,20 @@
 #include <vector>
 namespace OpenMS
 {
+
+  /**
+    @brief Scoring functions used by MRMScoring 
+
+    Many helper functions to calculate crosscorrelations between data
+  */
   namespace Scoring
   {
+    /** @name Type defs */
+    //@{
     /// Cross Correlation array
     typedef std::map<int, double> XCorrArrayType;
+    //@}
+
     /** @name Helper functions */
     //@{
     /// Fxn "deltaRatioSum" from mQuest to calculate similarity between library intensity and experimental ones
@@ -51,15 +61,15 @@ namespace OpenMS
 
     /// Calculate crosscorrelation on std::vector data
     XCorrArrayType calcxcorr(std::vector<double> & data1,
-                             std::vector<double> & data2, bool normalize);
+      std::vector<double> & data2, bool normalize);
 
     /// Calculate crosscorrelation on std::vector data (which is first normalized)
     XCorrArrayType normalizedCalcxcorr(std::vector<double> & data1,
-                                       std::vector<double> & data2, int maxdelay, int lag);
+      std::vector<double> & data2, int maxdelay, int lag);
 
     /// Calculate crosscorrelation on std::vector data without normalization
     XCorrArrayType calcxcorr_new(std::vector<double> & data1,
-                                 std::vector<double> & data2, int maxdelay, int lag);
+      std::vector<double> & data2, int maxdelay, int lag);
 
     /*
     XCorrArrayType calcxcorr_lag1(std::vector<double> & data1,
@@ -74,6 +84,7 @@ namespace OpenMS
 
     /// divide each element of x by the sum of the vector
     void normalize_sum(double x[], int n);
+    //@}
 
   }
 }

@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest, Witold Wolski $
-// $Authors: Hannes Roest, Witold Wolski $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H_
@@ -98,8 +98,7 @@ public:
     //@{
     /// set parameters for the algorithm
     void set_dia_parameters(double dia_extract_window, double dia_centroided,
-                            double dia_byseries_intensity_min, double dia_byseries_ppm_diff,
-                            double dia_nr_isotopes, double dia_nr_charges)
+      double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges)
     {
       dia_extract_window_ = dia_extract_window;
       dia_centroided_ = dia_centroided;
@@ -108,35 +107,32 @@ public:
       dia_nr_isotopes_ = dia_nr_isotopes;
       dia_nr_charges_ = dia_nr_charges;
     }
-
     //@}
 
     ///////////////////////////////////////////////////////////////////////////
     // DIA / SWATH scoring
 
+    ///@name DIA Scores
+    //@{
     /// Isotope scores, see class description
     void dia_isotope_scores(const std::vector<TransitionType> & transitions,
-                            SpectrumType spectrum, OpenSwath::IMRMFeature * mrmfeature,
-                            int putative_fragment_charge, double & isotope_corr,
-                            double & isotope_overlap);
+      SpectrumType spectrum, OpenSwath::IMRMFeature * mrmfeature,
+      int putative_fragment_charge, double & isotope_corr,
+      double & isotope_overlap);
 
     /// Massdiff scores, see class description
     void dia_massdiff_score(const std::vector<TransitionType> & transitions,
-                            SpectrumType spectrum,
-                            const std::vector<double> & normalized_library_intensity,
-                            double & ppm_score, double & ppm_score_weighted);
+      SpectrumType spectrum, const std::vector<double> & normalized_library_intensity,
+      double & ppm_score, double & ppm_score_weighted);
 
     /// b/y ion scores
     void dia_by_ion_score(SpectrumType spectrum, AASequence & sequence,
-                          int charge, double & bseries_score, double & yseries_score);
+      int charge, double & bseries_score, double & yseries_score);
 
     /// Dotproduct / Manhatten score with theoretical spectrum
-    /// @Author Witold Wolski
-    void score_with_isotopes(SpectrumType spectrum,
-                             const std::vector<TransitionType> & transitions,
-                             double & dotprod,
-                             double & manhattan
-                             );
+    void score_with_isotopes(SpectrumType spectrum, const std::vector<TransitionType> & transitions,
+      double & dotprod, double & manhattan);
+    //@}
 
 private:
 
@@ -146,55 +142,76 @@ private:
     /// Assignment operator (algorithm class)
     DIAScoring & operator=(const DIAScoring & rhs);
 
-    void dia_isotope_scores(const std::vector<TransitionType> & transitions,
-                            SpectrumType spectrum, int putative_fragment_charge,
-                            double & isotope_corr, double & isotope_overlap);
+    /// Subfunction of dia_isotop_scores
+    void dia_isotope_scores_sub(const std::vector<TransitionType> & transitions,
+      SpectrumType spectrum, std::map<std::string, double> & intensities,
+      int putative_fragment_charge, double & isotope_corr, double & isotope_overlap);
 
-    /* computes apex mz and area for a given  spectrum fragment */
-    void getSpectrumIntensities(
-      const std::vector<TransitionType> & transitions,
-      SpectrumType spectrum, double extractWindow,
-      std::vector<double> & mzv, std::vector<double> & intensityv);
-
-    void dia_isotope_scores(const std::vector<TransitionType> & transitions,
-                            SpectrumType spectrum, std::map<std::string, double> & intensities,
-                            int putative_fragment_charge, double & isotope_corr,
-                            double & isotope_overlap);
-
-    /**
-     * retrieves intensities from MRMFeature
-     * */
-    void getFirstIsotopeRelativeIntensities(
-      const std::vector<TransitionType> & transitions,
+    /// retrieves intensities from MRMFeature
+    /// computes a vector of relative intensities for each feature (output to intensities) 
+    void getFirstIsotopeRelativeIntensities(const std::vector<TransitionType> & transitions,
       OpenSwath::IMRMFeature * mrmfeature,
       std::map<std::string, double> & intensities     //experimental intensities of transitions
       );
 
+#if 0
+    /// TODO (wolski): what is this doing here? is this code dead? where is the implementation?
+    void dia_isotope_scores(const std::vector<TransitionType> & transitions,
+      SpectrumType spectrum, int putative_fragment_charge,
+      double & isotope_corr, double & isotope_overlap);
+
+    /* computes apex mz and area for a given spectrum fragment */
+    /// TODO (wolski): what is this doing here? is this code dead? where is the implementation?
+    void getSpectrumIntensities(const std::vector<TransitionType> & transitions,
+      SpectrumType spectrum, double extractWindow,
+      std::vector<double> & mzv, std::vector<double> & intensityv);
+
+
+    // TODO (wolski) what does this method do, is it called somewhere? 
     void getFirstIsotopeRelativeIntensities(
       const std::vector<TransitionType> & transitions,
       SpectrumType spectrum, std::map<std::string, double> & intensities     //experimental intensities of transitions
       );
 
+    // TODO (wolski) this method is dead? where is the implementation?
     void getFirstIsotopeRelativeIntensities(
       const std::vector<TransitionType> & transitions,
       SpectrumType spectrum, std::vector<double> & intensities     //experimental intensities of transitions
       );
+#endif
 
 private:
+
+    /**
+      @brief Integrate intensity in a spectrum from start to end 
+
+      This function will integrate the intensity in a spectrum between mz_start
+      and mz_end, returning the total intensity and an intensity-weighted m/z
+      value.
+
+      @note If there is no signal, mz will be set to -1 and intensity to 0
+    */
     void getIntensePeakInWindow(const SpectrumType spectrum, double mz_start,
-                                double mz_end, double & mz, double & intensity, bool centroided);
+      double mz_end, double & mz, double & intensity, bool centroided);
 
-    /// This function will try to determine whether the current peak is part of
-    // an isotopic pattern that does NOT have the current peak as monoisotopic
-    // peak.
+    /**
+      @brief Search for a large peak _before_ (lower m/z) the current peak 
+
+      This function will try to determine whether the current peak is part of
+      an isotopic pattern that does NOT have the current peak as monoisotopic
+      peak.
+    */
     DoubleReal largePeaksBeforeFirstIsotope(double product_mz,
-                                            SpectrumType & spectrum, double max_ppm_diff, double main_peak);
+      SpectrumType & spectrum, double max_ppm_diff, double main_peak);
 
-    // This function will take an array of isotope intensities and compare them
-    // to the theoritcally expected ones using pearson correlation.
-    DoubleReal get_normalized_isotope_pattern(double product_mz,
-                                              const std::vector<double> & isotopes_int,
-                                              int putative_fragment_charge);
+    /**
+      @brief Compare an experimental isotope pattern to a theoretical one 
+
+      This function will take an array of isotope intensities and compare them
+      to the theoritcally expected ones using pearson correlation.
+    */
+    DoubleReal scoreIsotopePattern(double product_mz,
+      const std::vector<double> & isotopes_int, int putative_fragment_charge);
 
     // Parameters
     double dia_extract_window_;

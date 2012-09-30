@@ -282,49 +282,49 @@ void reorder_transitions(std::vector<TransitionType> & transitions, MRMTransitio
 
 }
 
-START_TEST(MRMFeatureScoring, "$Id: MRMFeatureScoring.C 8215 2011-03-29 14:18:26Z aiche $")
+START_TEST(MRMScoring, "$Id: MRMScoring.C 8215 2011-03-29 14:18:26Z aiche $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureScoring* ptr = 0;
-MRMFeatureScoring* nullPointer = 0;
+MRMScoring* ptr = 0;
+MRMScoring* nullPointer = 0;
 
-START_SECTION(MRMFeatureScoring())
+START_SECTION(MRMScoring())
 {
-  ptr = new MRMFeatureScoring();
+  ptr = new MRMScoring();
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~MRMFeatureScoring())
+START_SECTION(~MRMScoring())
 {
   delete ptr;
 }
 END_SECTION
 
-START_SECTION((void MRMFeatureScoring::standardize_data(std::vector<double>& data)))
+START_SECTION((void MRMScoring::standardize_data(std::vector<double>& data)))
 {
 // see seperate test
 NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((MRMFeatureScoring::XCorrArrayType MRMFeatureScoring::calcxcorr_new(std::vector<double>& data1, std::vector<double>& data2, int maxdelay, int lag)))
+START_SECTION((MRMScoring::XCorrArrayType MRMScoring::calcxcorr_new(std::vector<double>& data1, std::vector<double>& data2, int maxdelay, int lag)))
 {
 // see seperate test
 NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((MRMFeatureScoring::XCorrArrayType MRMFeatureScoring::normalizedCalcxcorr(std::vector<double>& data1, std::vector<double>& data2, int maxdelay, int lag)))
+START_SECTION((MRMScoring::XCorrArrayType MRMScoring::normalizedCalcxcorr(std::vector<double>& data1, std::vector<double>& data2, int maxdelay, int lag)))
 {
 // see seperate test
 NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((MRMFeatureScoring::XCorrArrayType MRMFeatureScoring::calcxcorr(std::vector<double>& data1, std::vector<double>& data2, bool normalize)))
+START_SECTION((MRMScoring::XCorrArrayType MRMScoring::calcxcorr(std::vector<double>& data1, std::vector<double>& data2, bool normalize)))
 {
 // see seperate test
 NOT_TESTABLE
@@ -392,7 +392,7 @@ START_SECTION((virtual void test_scores()))
   itransition_group = new TransitionGroupOpenMS<MSSpectrum, ChromatogramPeak, TransitionType>(transition_group);
 
   //initialize the XCorr Matrix
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
   mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, true);
 
   // calculate the normalized library intensity (expected value of the intensities)
@@ -503,7 +503,7 @@ START_SECTION((virtual void test_dia_scores()))
   sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
   OpenSwath::SpectrumPtr* spectrum = &sptr;
 
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
   OpenSwath::DIAScoring diascoring;
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity -- because our peptide does not match with the testdata :-)
 

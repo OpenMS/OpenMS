@@ -44,6 +44,7 @@
 #include <cmath>
 
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
+// TODO wolski : comment these methods (doxygen)
 namespace OpenSwath
 {
 

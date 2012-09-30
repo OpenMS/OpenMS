@@ -1,9 +1,9 @@
 project(OpenSwath)
 
 set(OpenSwathAlgorithmFiles
-  Scoring.C
+  ALGO/Scoring.C
   ALGO/MRMScoring.C
-  DIAHelpers.C
+  ALGO/DIAHelpers.C
 )
 
 # message(STATUS ">>>>>>openswath<<<<<<")

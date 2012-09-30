@@ -92,24 +92,24 @@ void fill_mock_objects(MockMRMFeature * imrmfeature, MockTransitionGroup * itran
 
 ///////////////////////////
 
-START_TEST(MRMFeatureScoring, "$Id$")
+START_TEST(MRMScoring, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 #ifndef USE_BOOST_UNIT_TEST
 {
-MRMFeatureScoring* ptr = 0;
-MRMFeatureScoring* nullPointer = 0;
+MRMScoring* ptr = 0;
+MRMScoring* nullPointer = 0;
 
-START_SECTION(MRMFeatureScoring())
+START_SECTION(MRMScoring())
 {
-  ptr = new MRMFeatureScoring();
+  ptr = new MRMScoring();
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~MRMFeatureScoring())
+START_SECTION(~MRMScoring())
 {
   delete ptr;
 }
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
 
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MockTransitionGroup * itransition_group = new MockTransitionGroup();
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
 
   fill_mock_objects(imrmfeature, itransition_group);
 
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MockTransitionGroup * itransition_group = new MockTransitionGroup();
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
 
   fill_mock_objects(imrmfeature, itransition_group);
 
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore_weighted)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MockTransitionGroup * itransition_group = new MockTransitionGroup();
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
 
   static const double weights_[] = { 0.5, 0.5 };
   std::vector<double> weights (weights_, weights_ + sizeof(weights_) / sizeof(weights_[0]) );
@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MockTransitionGroup * itransition_group = new MockTransitionGroup();
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
 
   fill_mock_objects(imrmfeature, itransition_group);
 
@@ -227,7 +227,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score_weighted)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MockTransitionGroup * itransition_group = new MockTransitionGroup();
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
 
   fill_mock_objects(imrmfeature, itransition_group);
 
@@ -271,7 +271,7 @@ BOOST_AUTO_TEST_CASE(test_Library_score)
   { OpenSwath::LightTransition t; t.library_intensity = 10000; t.transition_name = "group2"; transitions.push_back(t); }
   { OpenSwath::LightTransition t; t.library_intensity = 2000;  t.transition_name = "group3"; transitions.push_back(t); }
 
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
   double d1, d2;
   mrmscore.calcLibraryScore(imrmfeature, transitions, library_corr, library_rmsd, d1, d2);
   TEST_REAL_SIMILAR(library_corr, -0.654591316)
@@ -283,7 +283,7 @@ END_SECTION
 
 BOOST_AUTO_TEST_CASE(test_RT_score)
 {
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
   OpenSwath::LightPeptide pep;
   pep.rt = 100;
   TEST_REAL_SIMILAR(mrmscore.calcRTScore(pep, 100), 0)
@@ -293,7 +293,7 @@ END_SECTION
 
 BOOST_AUTO_TEST_CASE(test_SN_score)
 {
-  MRMFeatureScoring mrmscore;
+  MRMScoring mrmscore;
   std::vector<OpenSwath::ISignalToNoisePtr> sn_estimators;
   boost::shared_ptr<MockSignalToNoise> sn1 = boost::shared_ptr<MockSignalToNoise>(new MockSignalToNoise());
   sn1->m_sn_value = 500;

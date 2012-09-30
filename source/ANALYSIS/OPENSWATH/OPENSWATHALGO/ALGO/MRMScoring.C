@@ -53,12 +53,12 @@
 namespace OpenMS
 {
 
-  const MRMFeatureScoring::XCorrMatrixType & MRMFeatureScoring::getXCorrMatrix() const
+  const MRMScoring::XCorrMatrixType & MRMScoring::getXCorrMatrix() const
   {
     return xcorr_matrix_;
   }
 
-  void MRMFeatureScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize)
+  void MRMScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize)
   {
     std::vector<double> intensityi, intensityj;
     xcorr_matrix_.resize(transition_group->size());
@@ -95,7 +95,7 @@ namespace OpenMS
   //   for each i,j get xcorr_matrix array => find max of the crosscorrelation
   //   store the delta to the retention time
   // return $deltascore_mean + $deltascore_stdev
-  double MRMFeatureScoring::calcXcorrCoelutionScore()
+  double MRMScoring::calcXcorrCoelutionScore()
   {
     OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
@@ -123,7 +123,7 @@ namespace OpenMS
     return xcorr_coelution_score;
   }
 
-  double MRMFeatureScoring::calcXcorrCoelutionScore_weighted(
+  double MRMScoring::calcXcorrCoelutionScore_weighted(
     const std::vector<double> & normalized_library_intensity)
   {
     OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
@@ -179,7 +179,7 @@ namespace OpenMS
   //   for each i,j get xcorr_matrix array => find max of the crosscorrelation
   //   calculate whether the maximal crosscorrelation coincides with the maximal intensity
   ///
-  double MRMFeatureScoring::calcXcorrShape_score()
+  double MRMScoring::calcXcorrShape_score()
   {
     OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
 
@@ -197,7 +197,7 @@ namespace OpenMS
     return msc.mean();
   }
 
-  double MRMFeatureScoring::calcXcorrShape_score_weighted(
+  double MRMScoring::calcXcorrShape_score_weighted(
     const std::vector<double> & normalized_library_intensity)
   {
     OPENMS_PRECONDITION(xcorr_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
@@ -230,7 +230,7 @@ namespace OpenMS
     return std::accumulate(intensities.begin(), intensities.end(), 0.0);
   }
 
-  void MRMFeatureScoring::calcLibraryScore(OpenSwath::IMRMFeature * mrmfeature, const std::vector<TransitionType> & transitions,
+  void MRMScoring::calcLibraryScore(OpenSwath::IMRMFeature * mrmfeature, const std::vector<TransitionType> & transitions,
                                            double & correlation, double & rmsd, double & manhattan, double & dotprod)
   {
     std::vector<double> library_intensity;
@@ -278,7 +278,7 @@ namespace OpenMS
       correlation = -1.0;
   }
 
-  double MRMFeatureScoring::calcRTScore(const PeptideType & peptide, double normalized_experimental_rt)
+  double MRMScoring::calcRTScore(const PeptideType & peptide, double normalized_experimental_rt)
   {
     double expected_rt;
     expected_rt = peptide.rt;
@@ -293,7 +293,7 @@ namespace OpenMS
     return rt_score;
   }
 
-  double MRMFeatureScoring::calcSNScore(OpenSwath::IMRMFeature * mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr> & signal_noise_estimators)
+  double MRMScoring::calcSNScore(OpenSwath::IMRMFeature * mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr> & signal_noise_estimators)
   {
     double sn_score = 0;
 
