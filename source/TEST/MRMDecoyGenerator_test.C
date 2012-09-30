@@ -161,7 +161,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_01;
   shuffleAASequence_target_sequence_01.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_01;
-  shuffleAASequence_expected_01.sequence = "TIDEPEPETDSTC";
+  shuffleAASequence_expected_01.sequence = "EEDEPTPTGICST";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_01;
   shuffleAASequence_result_01 = gen.shufflePeptide(shuffleAASequence_target_sequence_01, 0.1 , 42);
   TEST_EQUAL(shuffleAASequence_result_01.sequence, shuffleAASequence_expected_01.sequence)
@@ -169,7 +169,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_00;
   shuffleAASequence_target_sequence_00.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_00;
-  shuffleAASequence_expected_00.sequence = "TIDEPEPETDSTC";
+  shuffleAASequence_expected_00.sequence = "EEDEPTPTGICST";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
   shuffleAASequence_result_00 = gen.shufflePeptide(shuffleAASequence_target_sequence_00, 0.0 , 42);
   TEST_EQUAL(shuffleAASequence_result_00.sequence, shuffleAASequence_expected_00.sequence)
@@ -204,6 +204,21 @@ START_SECTION(shuffle_peptide_with_modifications_and2attempts)
   TEST_EQUAL(shuffled.sequence, expected_sequence)
   TEST_EQUAL(shuffled.mods[1].location,expected_location_1)
   TEST_EQUAL(shuffled.mods[0].location,expected_location_2)
+}
+END_SECTION
+
+START_SECTION(shuffle_peptide_with_KPR)
+{
+  MRMDecoy gen;
+  OpenMS::TargetedExperiment::Peptide peptide;
+  peptide.sequence = "KPRKPRPK";
+  OpenMS::String expected_sequence = "KPRKPRPKLN";
+  OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7 , 130);
+
+  TEST_EQUAL(shuffled.sequence, expected_sequence)
+  TEST_REAL_SIMILAR(gen.AASequenceIdentity(peptide.sequence, shuffled.sequence), 1.0)
+  // TODO(georger) this is not a successfull execution of the shufflePeptide method! The
+  // sequence identity is still 100% => how to indicate failure?
 }
 END_SECTION
 

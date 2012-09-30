@@ -279,31 +279,28 @@ namespace OpenMS
     int maxattempts)
   {
     if (seed == -1)
+    {
       seed = time(0);
-    boost::mt19937 generator(seed);
-    boost::mt19937 generator2(seed + 1000);
-    boost::uniform_int<> uni_dist;
-
-    //TODO(wolski): I guess
-    //what is the todo here?
-    //TODO: why is it called copy if its a different seed and everyhing?
-    boost::variate_generator<boost::mt19937 &, boost::uniform_int<> > randomNumber(generator, uni_dist);
-    boost::variate_generator<boost::mt19937 &, boost::uniform_int<> > randomCopy(generator2, uni_dist); 
-
+    }
+    int attempts_to_add_aa = 5;
     OpenMS::TargetedExperiment::Peptide shuffled = peptide;
 
-    std::locale loc;
+    boost::mt19937 generator(seed);
+    boost::uniform_int<> uni_dist;
+    boost::variate_generator<boost::mt19937 &, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+
     std::vector<std::pair<std::string::size_type, std::string> > idx = MRMDecoy::find_all_tryptic(peptide.sequence);
     std::string aa[] =
     {
       "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
       "Y", "V"
     };
+    int aa_size = 17;
 
     int attempts = 0;
     while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold && attempts < maxattempts)
     {
-      // restore the original sequence, shuffle again
+      // copy the original peptide, shuffle again
       shuffled = peptide;
       std::vector<Size> peptide_index;
       for (Size i = 0; i < peptide.sequence.size(); i++)
@@ -318,7 +315,7 @@ namespace OpenMS
       }
       
       // shuffle the peptide index (without the K/P/R which we leave in place)
-      std::random_shuffle(peptide_index.begin(), peptide_index.end(), randomNumber);
+      std::random_shuffle(peptide_index.begin(), peptide_index.end(), pseudoRNG);
 
       // re-insert the missing K/P/R at the appropriate places
       for (std::vector<std::pair<std::string::size_type, std::string> >::iterator it = idx.begin(); it != idx.end(); ++it)
@@ -345,15 +342,14 @@ namespace OpenMS
 
       ++attempts;
 
-      // TODO comment: what happens here ?
-      // why do we need a copy of the random number generator for this?
-      // why the value 5 and 17 ? 
-      // we append two random amino acid, why?
-      if (attempts == 5)
+      // If our attempts have failed so far, we will append two random AA to
+      // the sequence and see whether we can achieve sufficient shuffling with
+      // these additional AA added to the sequence.
+      if (attempts == attempts_to_add_aa)
       {
-        int pos = (randomCopy() % 17);
+        int pos = (pseudoRNG() % aa_size);
         peptide.sequence.append(aa[pos]);
-        pos = (randomCopy() % 17);
+        pos = (pseudoRNG() % aa_size);
         peptide.sequence.append(aa[pos]);
       }
     }
@@ -549,11 +545,12 @@ namespace OpenMS
       proteins.push_back(protein);
     }
 
-
+    // Go through all peptides and apply the decoy method to the sequence
+    // (reverse or shuffle). Then set the peptides and proteins of the deco
+    // experiment.
     for (Size i = 0; i < exp.getPeptides().size(); i++)
     {
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
-
       peptide.id = decoy_tag + peptide.id;
 
       if (method == "reverse")
@@ -584,6 +581,7 @@ namespace OpenMS
     dec.setPeptides(peptides);
     dec.setProteins(proteins);
 
+    // hash of the peptide reference containing all transitions 
     MRMDecoy::PeptideTransitionMapType peptide_trans_map;
     for (Size i = 0; i < exp.getTransitions().size(); i++)
     {
@@ -596,7 +594,7 @@ namespace OpenMS
          pep_it != peptide_trans_map.end(); pep_it++)
     {
       String peptide_ref = pep_it->first;
-      String decoy_peptide_ref = decoy_tag + pep_it->first;
+      String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
       OpenMS::AASequence target_peptide_sequence = MRMDecoy::getAASequence(target_peptide);
@@ -610,11 +608,21 @@ namespace OpenMS
         const ReactionMonitoringTransition tr = *(pep_it->second[i]);
         ReactionMonitoringTransition decoy_tr = tr; // copy the target transition
 
-        // correct the masses of the input experiment
+        decoy_tr.setNativeID(decoy_tag + tr.getNativeID());
+        decoy_tr.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
+        decoy_tr.setPrecursorMZ(tr.getPrecursorMZ() + 0.1); // fix for TOPPView: Duplicate precursor MZ is not displayed.
+
+        // determine the current annotation for the target ion and then select
+        // the appropriate decoy ion for this target transition
+        std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries);
+        std::pair<String, double> decoyion = getDecoyIon(targetion.first, decoy_ionseries);
+        decoy_tr.setProductMZ(decoyion.second);
+        decoy_tr.setPeptideRef(decoy_tag + tr.getPeptideRef());
+
+        // correct the masses of the input experiment if requested
         if (theoretical)
         {
           ReactionMonitoringTransition transition = *(pep_it->second[i]); // copy the transition
-          std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries);
           if (targetion.second > 0)
           {
             transition.setProductMZ(targetion.second);
@@ -622,23 +630,12 @@ namespace OpenMS
           }
         }
 
-        decoy_tr.setNativeID(decoy_tag + tr.getNativeID());
-        decoy_tr.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
-        decoy_tr.setPrecursorMZ(tr.getPrecursorMZ() + 0.1); // fix for TOPPView: Duplicate precursor MZ is not displayed.
-
-        // select the appropriate decoy ion for this target transition
-        std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries);
-        std::pair<String, double> decoyion = getDecoyIon(targetion.first, decoy_ionseries);
-        decoy_tr.setProductMZ(decoyion.second);
-
-        decoy_tr.setPeptideRef(decoy_tag + tr.getPeptideRef());
-
         if (decoyion.second > 0)
         {
           decoy_transitions.push_back(decoy_tr);
         }
-      }
-    }
+      } // end loop over transitions
+    } // end loop over peptides
 
     endProgress();
     dec.setTransitions(decoy_transitions);

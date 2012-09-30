@@ -109,6 +109,12 @@ class OPENMS_DLLAPI MRMDecoy: public ProgressLogger
     bionseries, bionseries_isotopes, bionseries_loss, bionseries_isotopes_loss, 
     yionseries, yionseries_isotopes, yionseries_loss, yionseries_isotopes_loss, 
     aionseries, aionseries_isotopes
+
+    for each of these, the following neutral losses are calculated:
+      -17, -18, -34, -35, -36, -44, -45, -46, -64, -98.
+
+    TODO: a more generic mechanism to specify which series and losses should be
+    generated.
   */
   std::map< String , std::map<String, double> > getIonSeries(
       AASequence sequence, int precursor_charge);
@@ -153,6 +159,9 @@ class OPENMS_DLLAPI MRMDecoy: public ProgressLogger
 
   /**
     @brief get AASequence from a peptide
+
+    TODO(georger,hroest): this method should go into a more generic OpenMS
+    class like TargetedExperimentHelper 
   */
   OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide & peptide);
 };
