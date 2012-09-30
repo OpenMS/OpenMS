@@ -105,6 +105,56 @@ protected:
     // registerFlag_("ppm", "extraction_window is in ppm");
   }
 
+  void simple_find_best_feature(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+      std::vector<std::pair<double, double> > & pairs)
+  {
+    for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
+    {
+      // we need at least one feature to find the best one
+      OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
+      if (transition_group->getFeatures().size() == 0)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "Did not find any features for group " + transition_group->getTransitionGroupID());
+      }
+
+      MRMFeature * bestf = 0;
+      // MRMFeature * secondbest = 0;
+
+      // Find the feature with the highest intensity
+      double highest_int = 0;
+      for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
+           mrmfeature != transition_group->getFeaturesMuteable().end(); mrmfeature++)
+      {
+        if (mrmfeature->getIntensity() > highest_int)
+        {
+          bestf = &(*mrmfeature);
+          highest_int = mrmfeature->getIntensity();
+        }
+      }
+
+      // Find the feature with the highest score
+      double highest_score = -1000;
+      //double second_highest_score = -1000;
+      for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
+           mrmfeature != transition_group->getFeaturesMuteable().end(); mrmfeature++)
+      {
+        if (mrmfeature->getOverallQuality() > highest_score)
+        {
+          //second_highest_score = highest_score;
+          bestf = &(*mrmfeature);
+          highest_score = mrmfeature->getOverallQuality();
+        }
+        // else if (mrmfeature->getOverallQuality() > second_highest_score)
+        // {
+        //   second_highest_score = mrmfeature->getOverallQuality();
+        //   secondbest = &(*mrmfeature);
+        // }
+      }
+      String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
+      pairs.push_back(make_pair(bestf->getRT(), PeptideRTMap[pepref]));
+    }
+  }
   ExitCodes main_(int, const char **)
   {
 
@@ -121,11 +171,6 @@ protected:
     MapType all_xic_maps; // all XICs from all files
     OpenSwath::LightTargetedExperiment targeted_exp;
 
-    //TraMLFile traml;
-    //traml.load(tr_file, targeted_exp);
-    cout << "Loaded RT peptides" << endl;
-    // TODO allow the user to specify peptides of certain proteins to be RT peptides
-
     std::cout << "Loading TraML file" << std::endl;
     {
       TargetedExperiment transition_exp_;
@@ -134,16 +179,9 @@ protected:
     }
 
     // Store the peptide retention times in an intermediate map
-    std::map<OpenMS::String, double> PeptideRTMap;
+    PeptideRTMap.clear();
     for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
     {
-      // Get peptide i, get its first retention time, get the CV term "Normalized RT" and convert it to a double
-      // OpenMS::TargetedExperiment::Peptide pep = targeted_exp.getPeptides()[i];
-      // if (pep.rts.size() != 1 || pep.rts[0].getCVTerms()["MS:1000896"].size() != 1)
-      // {
-      //   throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-      //       "The peptide " + pep.id + " / " + pep.sequence + " does not have a normalized retention time. Please use CV term 1000896 to store normalized retention times. Abort.");
-      // }
       PeptideRTMap[targeted_exp.getPeptides()[i].id] = targeted_exp.getPeptides()[i].rt; 
     }
 
@@ -228,79 +266,7 @@ protected:
       }
 
       // find most likely correct feature for each group
-      for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
-      {
-        // we need at least one feature to find the best one
-        OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
-        if (transition_group->getFeatures().size() == 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "Did not find any features for group " + transition_group->getTransitionGroupID());
-        }
-
-        MRMFeature * bestf = 0;
-        MRMFeature * secondbest = 0;
-
-        // Find the feature with the highest intensity
-        double highest_int = 0;
-        for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-             mrmfeature != transition_group->getFeaturesMuteable().end(); mrmfeature++)
-        {
-          if (mrmfeature->getIntensity() > highest_int)
-          {
-            bestf = &(*mrmfeature);
-            highest_int = mrmfeature->getIntensity();
-          }
-        }
-
-        // Find the feature with the highest score
-        double highest_score = -1000;
-        double second_highest_score = -1000;
-        for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-             mrmfeature != transition_group->getFeaturesMuteable().end(); mrmfeature++)
-        {
-          if (mrmfeature->getOverallQuality() > highest_score)
-          {
-            second_highest_score = highest_score;
-            bestf = &(*mrmfeature);
-            highest_score = mrmfeature->getOverallQuality();
-          }
-          else if (mrmfeature->getOverallQuality() > second_highest_score)
-          {
-            second_highest_score = mrmfeature->getOverallQuality();
-            secondbest = &(*mrmfeature);
-          }
-        }
-        String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
-
-#if 0
-        const OpenMS::TargetedExperiment::Peptide& pep = transition_exp_used.getPeptideByRef(transition_group->getTransitionGroupID());
-        cout << "= best feature " << bestf->getRT() << " (RT)  " << bestf->getIntensity() << " (int) " << transition_group->getTransitionGroupID() 
-          << " "  << pep.sequence << " " <<  PeptideRTMap[pepref] << " (" <<   //endl;
-        "highest score " << highest_score  << " vs  second highest " << second_highest_score << "  at " << secondbest->getRT() << ")" << std::endl;
-
-        std::cout << " Intensity correlation " << bestf->getScore("library_corr") << " secondbset " << secondbest->getScore("library_corr") << std::endl;
-        std::cout << " S/N score " << bestf->getScore("sn_score") << " secondbset " << secondbest->getScore("sn_score") << std::endl;
-        std::cout << " RT score " << bestf->getScore("rt_score") << " secondbset " << secondbest->getScore("rt_score") << std::endl;
-
-
-        for (MRMFeature::PGScoresType::const_iterator score = bestf->getScores().begin();
-             score != bestf->getScores().end(); score++)
-        {
-          std::cout << score->first << " : "  << score->second << "\n";
-        }
-
-        std::cout << " second best feature " << endl;
-
-        for (MRMFeature::PGScoresType::const_iterator score = secondbest->getScores().begin();
-             score != secondbest->getScores().end(); score++)
-        {
-          std::cout << score->first << " : "  << score->second << "\n";
-        }
-#endif
-
-        pairs.push_back(make_pair(bestf->getRT(), PeptideRTMap[pepref]));
-      }
+      simple_find_best_feature(transition_group_map, pairs);
     }
 
     std::vector<std::pair<double, double> > pairs_corrected;
@@ -316,6 +282,8 @@ protected:
     }
     return EXECUTION_OK;
   }
+
+  std::map<OpenMS::String, double> PeptideRTMap;
 
 };
 

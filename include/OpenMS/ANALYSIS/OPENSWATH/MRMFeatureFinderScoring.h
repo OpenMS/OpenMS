@@ -264,7 +264,7 @@ public:
       if (do_local_fdr_)
       {
         String tr_library = param_.getValue("local_fdr_lib");
-        loadLibraryForLocalFDR(tr_library);
+        //loadLibraryForLocalFDR(tr_library);
       }
 
       // If we have a swath map, we need to ensure the spectra are sorted
@@ -605,7 +605,7 @@ private:
 
       for (Size i = 0; i < feature_list.size(); i++)
       {
-        if (stop_report_after_feature_ >= 0 && i >= stop_report_after_feature_) {break; } // TODO cast to (size_t)
+        if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_ ) {break;} 
         output.push_back(feature_list[i]);
       }
     }
@@ -839,8 +839,6 @@ private:
 #endif
 
     }
-
-    void loadLibraryForLocalFDR(String tr_library);
 
     void handle_params();
 

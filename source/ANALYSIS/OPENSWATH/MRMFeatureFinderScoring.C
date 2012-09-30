@@ -159,36 +159,6 @@ namespace OpenMS
     emgscoring.setFitterParam(fitter_param);
   }
 
-  // for local FDR -- load a library into lib_transition_group_map
-  void MRMFeatureFinderScoring::loadLibraryForLocalFDR(String tr_library)
-  {
-
-    /*
-    OpenMS::TargetedExperiment lib_transition_exp;
-
-    // read in the library and created a targeted experiment
-    TraMLFile().load(tr_library, lib_transition_exp);
-
-    // Iterate thorugh all transition
-    for (Size i = 0; i < lib_transition_exp.getTransitions().size(); i++)
-    {
-      const ReactionMonitoringTransition * transition = &lib_transition_exp.getTransitions()[i];
-
-      // Create new transition group if it does not yet exist
-      if (lib_transition_group_map.find(transition->getPeptideRef()) == lib_transition_group_map.end())
-      {
-        MRMTransitionGroupType transition_group;
-        transition_group.setTransitionGroupID(transition->getPeptideRef());
-        lib_transition_group_map[transition->getPeptideRef()] = transition_group;
-      }
-
-      MRMTransitionGroupType * transition_group = &lib_transition_group_map[transition->getPeptideRef()];
-      transition_group->addTransition(*transition, transition->getNativeID());
-    }
-    */
-
-  }
-
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
                                                               TargetedExpType & transition_exp, TransitionGroupMapType & transition_group_map,
                                                               TransformationDescription trafo, double rt_extraction_window)
