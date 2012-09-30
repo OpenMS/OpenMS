@@ -32,7 +32,7 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>

@@ -32,7 +32,7 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h"
 
 #include <fstream>
 #include <iostream>
@@ -44,7 +44,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <QFileInfo>
+
 
 
 

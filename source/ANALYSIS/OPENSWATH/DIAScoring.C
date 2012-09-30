@@ -41,7 +41,7 @@
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h"
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DiaPrescoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
 
 #include <numeric>
 #include <algorithm>
