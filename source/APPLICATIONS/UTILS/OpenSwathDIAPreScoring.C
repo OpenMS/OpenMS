@@ -49,9 +49,11 @@
 
 
 #include "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h"
 #include "OpenMS/SYSTEM/File.h"
+#include "OpenMS/FORMAT/MzMLFile.h"
 
 //using namespace OpenMS;
 //using namespace std;
@@ -131,9 +133,9 @@ class DIAPreScoring: public TOPPBase
                 OpenMS::TargetedExperiment transition_exp_;
 				TraMLFile t;
 				t.load(tr_file, transition_exp_);
-				int pept =  transition_exp_.getPeptides().size();
-				int prot = transition_exp_.getProteins().size();
-				int trans = transition_exp_.getTransitions().size();
+				//int pept =  transition_exp_.getPeptides().size();
+				//int prot = transition_exp_.getProteins().size();
+				//int trans = transition_exp_.getTransitions().size();
                 OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
 				int ltrans = transition_exp.transitions.size();
 
@@ -187,7 +189,7 @@ class DIAPreScoring: public TOPPBase
 				}
 				//OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
 				std::cout << "Using Spectrum Interface!" << std::endl;
-                OpenSwath::SpectrumAccessPtr  spectrumAccess = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(
+		OpenSwath::SpectrumAccessPtr  spectrumAccess = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(
 						swath_map);
 
 				//std::cout << "using data frame writer for storing data. Outfile :" << out << std::endl;

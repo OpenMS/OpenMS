@@ -124,45 +124,5 @@ namespace OpenMS
     }
   }
 
-  OpenSwath::SpectrumAccessPtr OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(MSExperiment<Peak1D> & exp)
-  {
-#if 1
-    bool is_cached = false;
-    for (Size i = 0; i < exp.size(); ++i)
-    {
-      for (Size j = 0; j < exp[i].getDataProcessing().size(); j++)
-      {
-        const DataProcessing & dp = exp[i].getDataProcessing()[j];
-        if (dp.metaValueExists("cached_data"))
-        {
-          is_cached = true;
-        }
-      }
-    }
-    for (Size i = 0; i < exp.getChromatograms().size(); ++i)
-    {
-      for (Size j = 0; j < exp.getChromatograms()[i].getDataProcessing().size(); j++)
-      {
-        const DataProcessing & dp = exp.getChromatograms()[i].getDataProcessing()[j];
-        if (dp.metaValueExists("cached_data"))
-        {
-          is_cached = true;
-        }
-      }
-    }
-
-    //OpenSwath::ISpectrumAccess * experiment;
-    if (is_cached)
-    {
-      OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMSCached(exp.getLoadedFilePath()));
-      return experiment;
-    }
-    else
-#endif
-    {
-      OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMS(exp));
-      return experiment;
-    }
-  }
 
 }

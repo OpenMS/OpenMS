@@ -28,40 +28,51 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Hannes Roest ,  Witold Wolski$
+// $Authors:  Hannes Roest , Witold Wolski$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H_
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H_
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 
-#include <fstream>
+namespace OpenMS{
 
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-
-namespace OpenMS
-{
-  /**
-    @brief Several helpers to convert OpenMS datastructures to structures that
-           implement the OpenSWATH interfaces.
-  */
-  class OPENMS_DLLAPI OpenSwathDataAccessHelper
+  OpenSwath::SpectrumAccessPtr SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(OpenMS::MSExperiment<OpenMS::Peak1D> & exp)
   {
-public:
-    /// Convert a SpectrumPtr to an OpenMS Spectrum
-    static void convertToOpenMSSpectrum(OpenMS::MSSpectrum<> * spectrum, const OpenSwath::SpectrumPtr sptr);
+    bool is_cached = false;
+    for (std::size_t i = 0; i < exp.size(); ++i)
+      {
+        for (std::size_t j = 0; j < exp[i].getDataProcessing().size(); j++)
+          {
+            const OpenMS::DataProcessing & dp = exp[i].getDataProcessing()[j];
+            if (dp.metaValueExists("cached_data"))
+              {
+                is_cached = true;
+              }
+          }
+      }
+    for (std::size_t i = 0; i < exp.getChromatograms().size(); ++i)
+      {
+        for (std::size_t j = 0; j < exp.getChromatograms()[i].getDataProcessing().size(); j++)
+          {
+            const OpenMS::DataProcessing & dp = exp.getChromatograms()[i].getDataProcessing()[j];
+            if (dp.metaValueExists("cached_data"))
+              {
+                is_cached = true;
+              }
+          }
+      }
+    if (is_cached)
+      {
+        OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMSCached(exp.getLoadedFilePath()));
+        return experiment;
+      }
+    else
+      {
+        OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMS(exp));
+        return experiment;
+      }
+  }
 
-    /// Convert a ChromatogramPtr to an OpenMS Chromatogram
-    static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<> * chromatogram, const OpenSwath::ChromatogramPtr cptr);
-
-    /// convert from the OpenMS Targeted experiment to the light Targeted Experiment
-    static void convertTargetedExp(OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
-
-
-  };
-
-} //end namespace OpenMS
-
-#endif
+}//end Namespace

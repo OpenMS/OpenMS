@@ -40,6 +40,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
@@ -252,8 +254,8 @@ protected:
       featureFinder.setParameters(scoring_params);
       
 #ifdef USE_SP_INTERFACE
-      OpenSwath::SpectrumAccessPtr swath_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(swath_map);
-      OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(xic_map);
+      OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+      OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(xic_map);
       featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
 #else
       featureFinder.pickExperiment(xic_map, featureFile, transition_exp_used, trafo, swath_map, transition_group_map);

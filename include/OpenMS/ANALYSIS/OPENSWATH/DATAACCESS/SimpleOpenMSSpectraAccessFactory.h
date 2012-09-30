@@ -28,40 +28,28 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Hannes Roest, Witold Wolski $
+// $Authors:  Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H_
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H_
+#ifndef OPENMS_SIMPLE_OPENMS_SPECTRA_ACCESS_FACTORY_H_
+#define OPENMS_SIMPLE_OPENMS_SPECTRA_ACCESS_FACTORY_H_
 
 #include <fstream>
 
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
-namespace OpenMS
-{
+
+namespace OpenMS{
   /**
-    @brief Several helpers to convert OpenMS datastructures to structures that
-           implement the OpenSWATH interfaces.
+    @brief A factory method that returns two ISpectrumAccess implementations
   */
-  class OPENMS_DLLAPI OpenSwathDataAccessHelper
-  {
-public:
-    /// Convert a SpectrumPtr to an OpenMS Spectrum
-    static void convertToOpenMSSpectrum(OpenMS::MSSpectrum<> * spectrum, const OpenSwath::SpectrumPtr sptr);
-
-    /// Convert a ChromatogramPtr to an OpenMS Chromatogram
-    static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<> * chromatogram, const OpenSwath::ChromatogramPtr cptr);
-
-    /// convert from the OpenMS Targeted experiment to the light Targeted Experiment
-    static void convertTargetedExp(OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
-
-
+  OPENMS_DLLAPI class SimpleOpenMSSpectraFactory{
+    public:
+    /// Simple Factory method to get a SpectrumAccess Ptr from an MSExperiment
+    static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(OpenMS::MSExperiment<OpenMS::Peak1D> & exp);
   };
-
-} //end namespace OpenMS
+}
 
 #endif

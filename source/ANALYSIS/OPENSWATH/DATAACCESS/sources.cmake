@@ -7,6 +7,7 @@ MRMFeatureAccessOpenMS.C
 SpectraAccessOpenMS.C
 SpectraAccessOpenMSCached.C
 DataAccessHelper.C
+SimpleOpenMSSpectraAccessFactory.C
 )
 
 ### add path to the filenames

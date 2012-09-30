@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -211,8 +212,8 @@ class TOPPOpenSwathAnalyzer: public TOPPBase
 				featureFinder.setLogType(log_type_);
 				featureFinder.setStrictFlag(!nostrict);
 				OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-				OpenSwath::SpectrumAccessPtr empty_swath_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(empty_swath_map);
-				OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(exp);
+				OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(empty_swath_map);
+				OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 				featureFinder.pickExperiment(chromatogram_ptr, out_featureFile, transition_exp, trafo, empty_swath_ptr, transition_group_map);
 				out_featureFile.ensureUniqueId();
 				FeatureXMLFile().store(out, out_featureFile);
@@ -275,8 +276,8 @@ class TOPPOpenSwathAnalyzer: public TOPPBase
 				featureFinder.setParameters(feature_finder_param);
 				featureFinder.setStrictFlag(!nostrict);
 				OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-				OpenSwath::SpectrumAccessPtr  swath_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(swath_map);
-				OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwathDataAccessHelper::getSpectrumAccessOpenMSPtr(exp);
+				OpenSwath::SpectrumAccessPtr  swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+				OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 				featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
 
 				// write all features and the protein identifications from tmp_featureFile into featureFile

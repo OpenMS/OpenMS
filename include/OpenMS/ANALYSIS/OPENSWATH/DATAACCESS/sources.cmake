@@ -7,6 +7,7 @@ DataAccessHelper.h
 MRMFeatureAccessOpenMS.h
 SpectrumAccessOpenMS.h
 SpectrumAccessOpenMSCached.h
+SimpleOpenMSSpectraAccessFactory.h
 )
 
 ### add path to the filenames
