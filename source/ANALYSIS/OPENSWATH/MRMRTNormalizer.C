@@ -81,7 +81,7 @@ namespace OpenMS
 
       rsq = lin_reg.getRSquared();
 
-      cout << "rsq: " << rsq << " points: " << x.size() << endl;
+      std::cout << "rsq: " << rsq << " points: " << x.size() << std::endl;
 
       if (rsq < rsq_limit)
       {
@@ -125,7 +125,7 @@ namespace OpenMS
 
     for (Size i = 0; i < x.size(); i++)
     {
-      pairs_corrected.push_back(make_pair(x[i], y[i]));
+      pairs_corrected.push_back(std::make_pair(x[i], y[i]));
     }
 
     return pairs_corrected;
