@@ -510,6 +510,7 @@ set(swath_executables_list
   TransitionTSVReader_test
   ChromatogramExtractor_test
   OpenSwathHelper_test
+  MRMTransitionGroupPicker_test
 )
 
 ############### GUI executables (require MOC) ########

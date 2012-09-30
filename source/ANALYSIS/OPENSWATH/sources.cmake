@@ -7,6 +7,7 @@ MRMDecoy.C
 TransitionTSVReader.C
 OpenSwathHelper.C
 ChromatogramExtractor.C
+MRMTransitionGroupPicker.C
 )
 
 ### add path to the filenames
