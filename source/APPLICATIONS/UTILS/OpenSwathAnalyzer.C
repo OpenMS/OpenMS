@@ -51,7 +51,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_MRMAnalyzer MRMAnalyzer
+ @page TOPP_OpenSwathAnalyzer OpenSwathAnalyzer
 
  @brief  Executes a peak-picking and scoring algorithm on MRM/SRM data.
 
@@ -60,21 +60,21 @@ using namespace std;
  order to determine likely places of elution of a peptide in MRM/SRM.
 
  <B>The command line parameters of this tool are:</B>
- @verbinclude TOPP_MRMAnalyzer.cli
+ @verbinclude TOPP_OpenSwathAnalyzer.cli
 
  <B>The algorithm parameters for the Savitzky Golay filter are:</B>
- @htmlinclude OpenMS_MRMAnalyzer.parameters
+ @htmlinclude OpenMS_OpenSwathAnalyzer.parameters
  */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPMRMAnalyzer: public TOPPBase
+class TOPPOpenSwathAnalyzer: public TOPPBase
 {
 	public:
 
-		TOPPMRMAnalyzer() :
-				TOPPBase("MRMAnalyzer",
+		TOPPOpenSwathAnalyzer() :
+				TOPPBase("OpenSwathAnalyzer",
 						"Picks peaks and finds features in an SRM experiment.", false)
 		{
 		}
@@ -141,7 +141,7 @@ class TOPPMRMAnalyzer: public TOPPBase
 
 			addEmptyLine_();
 			addText_(
-					"Parameters for the MRMAnalyzer algorithm can be given in the 'algorithm' part of INI file.");
+					"Parameters for the OpenSwathAnalyzer algorithm can be given in the 'algorithm' part of INI file.");
 			registerSubsection_("algorithm", "Algorithm parameters section");
 
 			registerModelOptions_("linear");
@@ -263,7 +263,7 @@ class TOPPMRMAnalyzer: public TOPPBase
 				}
 
         double upper, lower;
-        OpenSwathHelper::checkSwathMap(exp, lower, upper);
+        OpenSwathHelper::checkSwathMap(swath_map, lower, upper);
         OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used, min_upper_edge_dist, lower, upper);
 				if (transition_exp_used.getTransitions().size() == 0) 
         {
@@ -307,7 +307,7 @@ class TOPPMRMAnalyzer: public TOPPBase
 
 int main(int argc, const char ** argv)
 {
-	TOPPMRMAnalyzer tool;
+	TOPPOpenSwathAnalyzer tool;
 	return tool.main(argc, argv);
 }
 
