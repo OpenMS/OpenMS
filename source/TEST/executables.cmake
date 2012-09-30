@@ -113,6 +113,8 @@ set(kernel_executables_list
 	FeatureMap_test
 	Feature_test
 	MassTrace_test
+  MRMFeature_test
+  MRMTransitionGroup_test
 	MSChromatogram_test
 	MSExperiment_test
 	MSSpectrum_test

@@ -13,6 +13,8 @@ Feature.C
 FeatureHandle.C
 FeatureMap.C
 MassTrace.C
+MRMFeature.C
+MRMTransitionGroup.C
 MSExperiment.C
 MSSpectrum.C
 Peak1D.C
