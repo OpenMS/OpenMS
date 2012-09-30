@@ -5,13 +5,12 @@ else()	## Linux & MacOS
 endif()
 
 ## CPack installation and packaging procedures
-install(TARGETS OpenMS OpenMS_GUI EXPORT OpenMSLibExportGroup
+install(TARGETS OpenMS OpenMS_GUI OpenSwathAlgo EXPORT OpenMSLibExportGroup
   LIBRARY DESTINATION ${OPENMS_LIB_INSTALL_PATH}
   ARCHIVE DESTINATION ${OPENMS_LIB_INSTALL_PATH}
 	RUNTIME DESTINATION ${OPENMS_LIB_INSTALL_PATH}
   COMPONENT library)
 
-		  
 ## install UTILS tools (using 'install(TARGETS UTILS...)' as shortcut does not work)
 foreach(util ${UTILS_executables})
   install(TARGETS ${util}

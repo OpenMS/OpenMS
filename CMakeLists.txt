@@ -299,7 +299,8 @@ include(cmake/OpenMSBuildSystem_doc.cmake)
 ### build openswath lib ###
 ########################################################
 
-add_subdirectory(source/ANALYSIS/OPENSWATH)
+include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
+add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
 
 ########################################################
 ###    BUILD the lib                                 ###
@@ -372,6 +373,7 @@ endif()
 
 target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
 target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
+target_link_libraries(OpenSwathAlgo ${OPENMS_DEP_LIBRARIES}) 
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 ## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
@@ -578,7 +580,7 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 			export(PACKAGE OpenMS)
 		endif()
 		## export our lib
-                export(TARGETS OpenMS OpenSwathAlgo FILE ${CF_LibOpenMSExport})
+		export(TARGETS OpenMS OpenSwathAlgo FILE ${CF_LibOpenMSExport})
 	else()
 		include(cmake/OpenMSBuildSystem_install.cmake)
 	endif()
