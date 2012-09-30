@@ -45,7 +45,7 @@
 //#include "OpenSwath/Utils/DataFrameWriter.h"
 //#include "OpenSwath/DataAccess/ITrans2Trans.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITrans2Trans.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/UTILS/DataFrameWriter.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h"
 
 //#include "OpenSwath/DataAccess/ISpectrumAccess.h"
 //#include "OpenSwath/DataAccess/TransitionExperiment.h"
@@ -53,7 +53,7 @@
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenMSHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DIAHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/DIAHelpers.h>
 
 #include "OpenMS/DATASTRUCTURES/DefaultParamHandler.h"
 #include <iterator>
