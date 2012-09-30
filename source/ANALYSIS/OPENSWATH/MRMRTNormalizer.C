@@ -34,12 +34,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 
-#include <boost/math/distributions/normal.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
-#include <boost/accumulators/accumulators.hpp>
-
 using namespace std;
 
 namespace OpenMS
@@ -109,11 +103,7 @@ namespace OpenMS
         // get candidate outlier: removal of which datapoint results in best rsq?
         pos = outlier_candidate(x, y);
 
-        bool rm;
-        // test for outlier: is the residual an outlier according to Chauvenet's criterion?
-        rm = chauvenet(residuals, pos);
-
-        if (rm >= 0)
+        if (chauvenet(residuals, pos)) // test for outlier: is the residual an outlier according to Chauvenet's criterion?
         {
           x.erase(x.begin() + pos);
           y.erase(y.begin() + pos);
@@ -132,9 +122,7 @@ namespace OpenMS
     if (rsq < rsq_limit)
     {
       // If the rsq is below the limit, this is an indication that something went wrong!
-      std::cerr << "WARNING: rsq: " << rsq << " is below limit of " << rsq_limit << ". Validate assays for RT-peptides and adjust the limit for rsq." << endl;
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer",
-                                   "Error: Not able to fit retention time peptides to a linear curve.");
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer","WARNING: rsq: " + boost::lexical_cast<std::string>(rsq) + " is below limit of " + boost::lexical_cast<std::string>(rsq_limit) + ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
     for (Size i = 0; i < x.size(); i++)
