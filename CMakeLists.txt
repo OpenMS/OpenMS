@@ -85,7 +85,7 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 ########################################################
 ### build openswath lib ###
 ########################################################
-ENABLE_TESTING()
+
 add_subdirectory(source/ANALYSIS/OPENSWATH)
 
 ########################################################

@@ -158,3 +158,7 @@ source_group("" FILES ${sources_VS})
 
 ############## TOPP test ####################
 add_subdirectory(TOPP)
+
+############## OpenSWATH test ####################
+add_subdirectory(OPENSWATH)
+
