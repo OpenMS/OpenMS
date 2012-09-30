@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest, Witold Wolski $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
 //#define MRMSCORING_TESTING
