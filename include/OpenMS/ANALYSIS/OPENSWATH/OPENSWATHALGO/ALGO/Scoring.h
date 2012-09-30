@@ -38,7 +38,7 @@
 #include <numeric>
 #include <map>
 #include <vector>
-namespace OpenMS
+namespace OpenSwath
 {
 
   /**

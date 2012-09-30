@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DIAHELPERS_H_
-#define OPENSWATH_DIAHELPERS_H_
+#ifndef OPENSWATH_ALGO_STATSHELPERS_H_
+#define OPENSWATH_ALGO_STATSHELPERS_H_
 
 #include <cmath>
 #include <vector>

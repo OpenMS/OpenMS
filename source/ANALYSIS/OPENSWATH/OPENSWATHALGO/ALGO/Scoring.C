@@ -43,7 +43,7 @@
 #define OPENMS_PRECONDITION(condition, message)
 #endif
 
-namespace OpenMS
+namespace OpenSwath
 {
   namespace Scoring
   {

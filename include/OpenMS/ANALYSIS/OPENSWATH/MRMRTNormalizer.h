@@ -32,6 +32,9 @@
 // $Authors: Hannes Roest, George Rosenberger $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
+#define OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
@@ -95,3 +98,4 @@ public:
   };
 
 }
+#endif

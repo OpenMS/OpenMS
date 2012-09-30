@@ -139,7 +139,6 @@ namespace OpenMS
       std::ifstream ifs(filename.c_str(), std::ios::binary);
       Size exp_size, chrom_size;
       Peak1D current_peak;
-      std::string identifier;
 
       int magic_number;
       ifs.read( (char *)&magic_number , sizeof(magic_number));
@@ -215,8 +214,6 @@ namespace OpenMS
       std::ifstream ifs(filename.c_str(), std::ios::binary);
       Size exp_size, chrom_size;
       Peak1D current_peak;
-
-      std::string identifier;
 
       spectra_index.clear();
       chrom_index.clear();

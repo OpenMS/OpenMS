@@ -55,7 +55,7 @@
 
 using namespace std;
 using namespace OpenMS;
-using namespace OpenSwath;
+using namespace OpenMS::OpenSWATH;
 
 ///////////////////////////
 
@@ -69,9 +69,9 @@ START_SECTION(getBYSeries_test)
 	String sequence = "SYVAWDR";
 	std::vector<double> bseries, yseries;
 	OpenMS::AASequence a = OpenMS::AASequence(sequence);
-	OpenSwath::getBYSeries(a, bseries, yseries);
+  OpenMS::OpenSWATH::getBYSeries(a, bseries, yseries);
 	bseries.clear();
-	OpenSwath::getTheorMasses(a, bseries);
+  OpenMS::OpenSWATH::getTheorMasses(a, bseries);
 
 }
 END_SECTION
@@ -178,7 +178,7 @@ START_SECTION(addIsotopesToSpec_test)
 	tmp_.push_back(std::make_pair(200., 300.));
 	tmp_.push_back(std::make_pair(300., 200.));
 
-	OpenSwath::addIsotopes2Spec(tmp_, out);
+  OpenMS::OpenSWATH::addIsotopes2Spec(tmp_, out);
 	std::cout << "addIsotopesToSpec_test" << std::endl;
 	for (int i = 0; i < out.size(); ++i) {
 		std::cout << out[i].first << " " << out[i].second << std::endl;

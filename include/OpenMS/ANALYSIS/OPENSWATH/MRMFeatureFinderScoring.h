@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest , Witold Wolski$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMPEAKPICKER_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMPEAKPICKER_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
+#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
 
 #define run_identifier "unique_run_identifier"
 #define USE_SP_INTERFACE
@@ -377,7 +377,7 @@ private:
         // calculate the normalized library intensity (expected value of the intensities)
         std::vector<double> normalized_library_intensity;
         transition_group.getLibraryIntensity(normalized_library_intensity);
-        Scoring::normalize_sum(&normalized_library_intensity[0], normalized_library_intensity.size());
+        OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], normalized_library_intensity.size());
 
         // calcxcorr -> for each lag do the correlation, normally use lag 0
         // xcorr_matrix  => correlate chromatogram i with chromatogram j
@@ -880,9 +880,9 @@ private:
 
     TransitionGroupMapType lib_transition_group_map;
 
-    MRMScoring mrmscore;
-    OpenSwath::DIAScoring diascoring;
-    EmgScoring emgscoring;
+    OpenSwath::MRMScoring mrmscore;
+    OpenMS::DIAScoring diascoring;
+    OpenMS::EmgScoring emgscoring;
 
   };
 }

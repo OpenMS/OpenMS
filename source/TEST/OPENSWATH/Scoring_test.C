@@ -54,6 +54,7 @@
 #endif
 
 using namespace std;
+using namespace OpenSwath;
 using namespace OpenMS;
 
 ///////////////////////////

@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DIAPRESCORING2_H_
-#define OPENMS_ANALYSIS_OPENSWATH_DIAPRESCORING2_H_
+#ifndef OPENMS_ANALYSIS_OPENSWATH_DIAPRESCORING_H_
+#define OPENMS_ANALYSIS_OPENSWATH_DIAPRESCORING_H_
 
 // TODO (wolski): adhere to OpenMS coding conventions http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/OpenMS-release/html/coding__conventions.html
 // TODO (wolski): comment the class and each method
@@ -116,17 +116,17 @@ public:
       std::vector<std::pair<double, double> > res;
       getMZIntensityFromTransition(lt, res);
       std::vector<double> firstIstotope, theomasses;
-      extractFirst(res, firstIstotope);
+      OpenMS::OpenSWATH::extractFirst(res, firstIstotope);
       std::vector<std::pair<double, double> > spectrum, spectrum2;
-      addIsotopes2Spec(res, spectrum);
+      OpenMS::OpenSWATH::addIsotopes2Spec(res, spectrum);
       spectrum2.resize(spectrum.size());
       std::copy(spectrum.begin(), spectrum.end(), spectrum2.begin());
       //std::cout << spectrum.size() << std::endl;
-      addPreisotopeWeights(firstIstotope, spectrum, 2, 0.0);
+      OpenMS::OpenSWATH::addPreisotopeWeights(firstIstotope, spectrum, 2, 0.0);
       //extracts masses from spectrum
-      extractFirst(spectrum, theomasses);
+      OpenMS::OpenSWATH::extractFirst(spectrum, theomasses);
       std::vector<double>  theorint;
-      extractSecond(spectrum, theorint);
+      OpenMS::OpenSWATH::extractSecond(spectrum, theorint);
       std::vector<double> intExp, mzExp;
       integrateWindows(spec, theomasses, dia_extract_window_, intExp,
                        mzExp);
@@ -147,9 +147,9 @@ public:
       manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
 
       //std::cout << spectrum.size() << std::endl;
-      addPreisotopeWeights(firstIstotope, spectrum2, 2, -0.5);
+      OpenMS::OpenSWATH::addPreisotopeWeights(firstIstotope, spectrum2, 2, -0.5);
       std::vector<double>  theorint2;
-      extractSecond(spectrum, theorint2);
+      OpenMS::OpenSWATH::extractSecond(spectrum, theorint2);
       std::transform(theorint2.begin(), theorint2.end(), theorint2.begin(), mySqrt());
 
       intExptotal = OpenSwath::norm(intExp.begin(), intExp.end());

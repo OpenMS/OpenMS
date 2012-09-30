@@ -1,19 +1,16 @@
 project(OpenSwath)
 
-set(OpenSwathAlgorithmFiles
-  ALGO/Scoring.C
-  ALGO/MRMScoring.C
-  ALGO/StatsHelpers.C
-  DATAACCESS/SpectrumHelpers.C
-)
+include(OpenSwathAlgoFiles.cmake)
 
-# message(STATUS ">>>>>>openswath<<<<<<")
-# message(STATUS "src -------- ${src} -------")
-# message(STATUS "lib -------- ${lib} -------")
-# message(STATUS "inc -------- ${inc} -------")
+set(inc "../../../../include/")
+
+message(STATUS ">>>>>>openswath<<<<<<")
+message(STATUS "src -------- ${src} -------")
+message(STATUS "lib -------- ${lib} -------")
+message(STATUS "inc -------- ${inc} -------")
 
 include_directories(${inc})
 ##link_directories(${lib})
 ## library with additional classes from above
-add_library(OpenSwathAlgo SHARED ${OpenSwathAlgorithmFiles})
+add_library(OpenSwathAlgo SHARED ${sources_list})
 

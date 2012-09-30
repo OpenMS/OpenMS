@@ -88,11 +88,11 @@ END_SECTION
 START_SECTION((void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)))
 {
 
-  OpenSwath::DIAScoring diascoring;
+  OpenMS::DIAScoring diascoring;
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence(sequence);
-  OpenSwath::getBYSeries(a,  bseries, yseries, 1);
+  OpenMS::OpenSWATH::getBYSeries(a,  bseries, yseries, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
@@ -117,7 +117,7 @@ START_SECTION((void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, st
   bseries.clear();
   yseries.clear();
   a.setModification(1, "Phospho" ); // modify the Y
-  OpenSwath::getBYSeries(a,  bseries, yseries ,1);
+  OpenMS::OpenSWATH::getBYSeries(a,  bseries, yseries ,1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)

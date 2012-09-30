@@ -39,7 +39,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
-namespace OpenSwath
+namespace OpenMS
+{
+namespace OpenSWATH
 {
   // for SWATH -- get the theoretical b and y series masses for a sequence
   void getBYSeries(AASequence & a,   //
@@ -218,4 +220,5 @@ namespace OpenSwath
 //			std::vector<double> & firstIsotopeMasses,
 //			std::vector<std::pair<double, double> > & isotopeMasses, uint32_t charge)
 
+}
 }

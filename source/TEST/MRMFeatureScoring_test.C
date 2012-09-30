@@ -282,17 +282,17 @@ void reorder_transitions(std::vector<TransitionType> & transitions, MRMTransitio
 
 }
 
-START_TEST(MRMScoring, "$Id: MRMScoring.C 8215 2011-03-29 14:18:26Z aiche $")
+START_TEST(MRMScoring, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMScoring* ptr = 0;
-MRMScoring* nullPointer = 0;
+OpenSwath::MRMScoring* ptr = 0;
+OpenSwath::MRMScoring* nullPointer = 0;
 
 START_SECTION(MRMScoring())
 {
-  ptr = new MRMScoring();
+  ptr = new OpenSwath::MRMScoring();
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -392,7 +392,7 @@ START_SECTION((virtual void test_scores()))
   itransition_group = new TransitionGroupOpenMS<MSSpectrum, ChromatogramPeak, TransitionType>(transition_group);
 
   //initialize the XCorr Matrix
-  MRMScoring mrmscore;
+  OpenSwath::MRMScoring mrmscore;
   mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, true);
 
   // calculate the normalized library intensity (expected value of the intensities)
@@ -502,8 +502,8 @@ START_SECTION((virtual void test_dia_scores()))
   sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
   OpenSwath::SpectrumPtr* spectrum = &sptr;
 
-  MRMScoring mrmscore;
-  OpenSwath::DIAScoring diascoring;
+  OpenSwath::MRMScoring mrmscore;
+  DIAScoring diascoring;
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity -- because our peptide does not match with the testdata :-)
 
   // calculate the normalized library intensity (expected value of the intensities)

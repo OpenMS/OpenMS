@@ -32,15 +32,16 @@
 // $Authors: Witold Wolski, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_OPENMSHELPER_H_
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_OPENMSHELPER_H_
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENMSHELPER_H_
+#define OPENMS_ANALYSIS_OPENSWATH_OPENMSHELPER_H_
 
 #include <vector>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
-namespace OpenSwath
+namespace OpenMS
 {
-  using namespace OpenMS;
+namespace OpenSWATH
+{
   /**
     @brief Helper functions for the DIA scoring of OpenSWAT
   */
@@ -87,5 +88,5 @@ namespace OpenSwath
   void extractSecond(const std::vector<std::pair<double, double> > & peaks, std::vector<double> & mass);
 
 }
-
+}
 #endif

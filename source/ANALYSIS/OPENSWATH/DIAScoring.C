@@ -51,7 +51,7 @@
 
 const double C13C12_MASSDIFF_U = 1.0033548; 
 
-namespace OpenSwath
+namespace OpenMS
 {
   ///////////////////////////////////////////////////////////////////////////
   // DIA / SWATH scoring
@@ -104,7 +104,7 @@ namespace OpenSwath
     double mz, intensity, left, right;
     std::vector<double> yseries, bseries;
     std::vector<double> extr_yseries, extr_bseries;
-    OpenMS::getBYSeries(sequence, bseries, yseries, charge);
+    OpenMS::OpenSWATH::getBYSeries(sequence, bseries, yseries, charge);
     double ppmdiff;
     for (Size it = 0; it < bseries.size(); it++)
     {
@@ -153,7 +153,6 @@ namespace OpenSwath
       intensities.insert(std::pair<std::string, double>(native_id, rel_intensity));
     }
   }
-
 
   void DIAScoring::dia_isotope_scores_sub(const std::vector<TransitionType> & transitions, SpectrumType spectrum,
     std::map<std::string, double> & intensities,  //relative intensities

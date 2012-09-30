@@ -50,7 +50,7 @@
 #define OPENMS_PRECONDITION(condition, message)
 #endif
 
-namespace OpenMS
+namespace OpenSwath
 {
 
   const MRMScoring::XCorrMatrixType & MRMScoring::getXCorrMatrix() const

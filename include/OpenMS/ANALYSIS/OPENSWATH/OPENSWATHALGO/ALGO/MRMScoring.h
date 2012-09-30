@@ -45,7 +45,7 @@
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
 //#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/DIAHelpers.h"
 
-namespace OpenMS
+namespace OpenSwath
 {
 
   /**

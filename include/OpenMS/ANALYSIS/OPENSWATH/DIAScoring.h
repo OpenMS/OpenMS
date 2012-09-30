@@ -43,9 +43,8 @@
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
 
-namespace OpenSwath
+namespace OpenMS
 {
-  using namespace OpenMS;
   /**
     @brief Scoring of an spectrum at the peak apex of an chromatographic elution peak.
 

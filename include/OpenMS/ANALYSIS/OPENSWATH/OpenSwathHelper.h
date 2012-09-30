@@ -50,19 +50,18 @@ public:
 
     /// Select transitions between lower and upper and write them into the new TargetedExperiment
     static void selectSwathTransitions(const OpenMS::TargetedExperiment & targeted_exp,
-                                       OpenMS::TargetedExperiment & transition_exp_used, double min_upper_edge_dist,
-                                       double lower, double upper);
+      OpenMS::TargetedExperiment & transition_exp_used, double min_upper_edge_dist,
+      double lower, double upper);
 
     /// Get the lower / upper offset for this SWATH map and do some sanity checks
     static void checkSwathMap(const OpenMS::MSExperiment<Peak1D> & swath_map,
-                              double & lower, double & upper);
+      double & lower, double & upper);
 
     /// Select transitions between lower and upper and write them into the new TargetedExperiment
     static void selectSwathTransitions(const OpenSwath::LightTargetedExperiment & targeted_exp,
-                                       OpenSwath::LightTargetedExperiment & transition_exp_used, double min_upper_edge_dist,
-                                       double lower, double upper);
+      OpenSwath::LightTargetedExperiment & transition_exp_used, double min_upper_edge_dist,
+      double lower, double upper);
 
   };
 }
-
 #endif
