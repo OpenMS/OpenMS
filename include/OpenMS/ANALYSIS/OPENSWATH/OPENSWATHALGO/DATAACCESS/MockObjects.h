@@ -154,8 +154,7 @@ public:
 
     double getValueAtRT(double RT)
     {
-      // to prevent unused RT warning
-      return m_sn_value * RT / RT;
+      return m_sn_value;
     }
 
     double m_sn_value;

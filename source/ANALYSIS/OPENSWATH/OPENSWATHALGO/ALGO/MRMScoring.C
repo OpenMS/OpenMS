@@ -105,9 +105,9 @@ namespace OpenSwath
       for (std::size_t  j = i; j < xcorr_matrix_.size(); j++)
       {
         // first is the X value (RT), should be an int
-        deltas.push_back(std::fabs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first));
+        deltas.push_back(std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first));
 #ifdef MRMSCORING_TESTING
-        std::cout << "&&_xcoel append " << std::fabs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first) << std::endl;
+        std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first) << std::endl;
 #endif
       }
     }
@@ -135,7 +135,7 @@ namespace OpenSwath
     for (std::size_t i = 0; i < xcorr_matrix_.size(); i++)
     {
       deltas.push_back(
-        std::fabs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][i])->first)
+        std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][i])->first)
         * normalized_library_intensity[i]
         * normalized_library_intensity[i]);
 #ifdef MRMSCORING_TESTING
@@ -147,7 +147,7 @@ namespace OpenSwath
       {
         // first is the X value (RT), should be an int
         deltas.push_back(
-          std::fabs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first)
+          std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first)
           * normalized_library_intensity[i]
           * normalized_library_intensity[j] * 2);
 #ifdef MRMSCORING_TESTING
@@ -295,7 +295,13 @@ namespace OpenSwath
 
   double MRMScoring::calcSNScore(OpenSwath::IMRMFeature * mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr> & signal_noise_estimators)
   {
+    OPENMS_PRECONDITION(signal_noise_estimators.size() > 1, "Input S/N estimators needs to be larger than 1");
+
     double sn_score = 0;
+    if (signal_noise_estimators.size() == 0) 
+    {
+      return 0;
+    }
 
     for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)
     {
