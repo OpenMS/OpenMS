@@ -89,7 +89,7 @@ START_SECTION(getAveragineIsotopeDistribution_test)
 
 	double * mm = &mass1[0];
 	double * ii = &int1[0];
-	for (int i = 0; i < tmp.size(); ++i, ++mm, ++ii) {
+	for (unsigned int i = 0; i < tmp.size(); ++i, ++mm, ++ii) {
 
 		std::cout << "mass :" << std::setprecision(10) << tmp[i].first
 				<< "intensity :" << tmp[i].second << std::endl;
@@ -103,7 +103,7 @@ START_SECTION(getAveragineIsotopeDistribution_test)
 	double int2[] = { 0.989072, 0.010925, 2.4738e-06, 1.41508e-10 };
 	mm = &mass2[0];
 	ii = &int2[0];
-	for (int i = 0; i < tmp.size(); ++i, ++mm, ++ii) {
+	for (unsigned int i = 0; i < tmp.size(); ++i, ++mm, ++ii) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 		std::cout << "mass :" << std::setprecision(10) << tmp[i].first
@@ -115,28 +115,28 @@ START_SECTION(getAveragineIsotopeDistribution_test)
 
 	tmp.clear();
 	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(110., tmp);
-	for (int i = 0; i < tmp.size(); ++i) {
+	for (unsigned int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
 
 	tmp.clear();
 	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(120., tmp);
-	for (int i = 0; i < tmp.size(); ++i) {
+	for (unsigned int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
 
 	tmp.clear();
 	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(300., tmp);
-	for (int i = 0; i < tmp.size(); ++i) {
+	for (unsigned int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
 
 	tmp.clear();
 	OpenMS::DIAHelpers::getAveragineIsotopeDistribution(500., tmp);
-	for (int i = 0; i < tmp.size(); ++i) {
+	for (unsigned int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
@@ -155,7 +155,7 @@ START_SECTION(simulateSpectrumFromAASequence_test)
 	std::copy(masses1.begin(), masses1.end(),
 			std::ostream_iterator<double>(std::cout, " "));
 	std::cout << std::endl;
-	for (int i = 0; i < tmp.size(); ++i) {
+	for (unsigned int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
@@ -163,7 +163,7 @@ START_SECTION(simulateSpectrumFromAASequence_test)
 	OpenMS::DIAHelpers::addPreisotopeWeights(masses1, tmp);
 	std::cout << "preisotope weights added" << std::endl;
 
-	for (int i = 0; i < tmp.size(); ++i) {
+	for (unsigned int i = 0; i < tmp.size(); ++i) {
 		std::cout << "mass :" << tmp[i].first << "intensity :" << tmp[i].second
 				<< std::endl;
 	}
@@ -180,7 +180,7 @@ START_SECTION(addIsotopesToSpec_test)
 
   OpenMS::DIAHelpers::addIsotopes2Spec(tmp_, out);
 	std::cout << "addIsotopesToSpec_test" << std::endl;
-	for (int i = 0; i < out.size(); ++i) {
+	for (unsigned int i = 0; i < out.size(); ++i) {
 		std::cout << out[i].first << " " << out[i].second << std::endl;
 	}
 
