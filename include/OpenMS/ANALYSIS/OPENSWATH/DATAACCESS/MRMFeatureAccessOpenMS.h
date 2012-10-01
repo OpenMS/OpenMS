@@ -61,7 +61,7 @@ namespace OpenMS
   {
 public:
 
-    FeatureOpenMS(Feature & feature)
+    explicit FeatureOpenMS(Feature & feature)
     {
       feature_ = &feature;   // store raw ptr to the feature
     }
@@ -113,7 +113,7 @@ private:
   {
 public:
 
-    MRMFeatureOpenMS(MRMFeature & mrmfeature);
+    explicit MRMFeatureOpenMS(MRMFeature & mrmfeature);
 
     ~MRMFeatureOpenMS()
     {

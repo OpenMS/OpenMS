@@ -99,7 +99,7 @@ namespace OpenMS
 
   void MRMFeature::getFeatureIDs(std::vector<String> & result) const
   {
-    for(std::map<String, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); it++ )
+    for (std::map<String, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); it++ )
     {
       result.push_back(it->first);
     }

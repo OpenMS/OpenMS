@@ -85,7 +85,8 @@ public:
     std::ofstream file_stream_;
     std::string sep_;
     std::string eol_;
-    CSVWriter(std::string filename) :
+
+    explicit CSVWriter(std::string filename) :
       sep_("\t"), eol_("\n")
     {
       file_stream_.open(filename.c_str());

@@ -54,7 +54,7 @@ public:
     typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
     typedef OpenMS::MSChromatogram<ChromatogramPeak> MSChromatogramType;
 
-    SpectrumAccessOpenMS(MSExperimentType & ms_experiment)
+    explicit SpectrumAccessOpenMS(MSExperimentType & ms_experiment)
     {
       ms_experiment_ = &ms_experiment;           // store raw ptr to the experiment
     }

@@ -62,7 +62,7 @@ namespace OpenMS
       typedef OpenMS::MSExperiment<Peak1D> MSExperimentType;
       typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
 
-      SpectrumAccessOpenMSCached(String filename)
+      explicit SpectrumAccessOpenMSCached(String filename)
       {
         filename_cached_ = filename + ".cached";
         std::ifstream ifs((filename_cached_).c_str(), std::ios::binary);
