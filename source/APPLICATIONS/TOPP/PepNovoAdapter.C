@@ -365,7 +365,7 @@ class TOPPPepNovoAdapter :
 
           //resolve PTMs (match them back to the OpenMs Identifier String)
           std::vector<ProteinIdentification>prot_ids;
-          p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, (-1)*std::numeric_limits<DoubleReal>::max(), id_to_rt, mods_and_keys);
+          p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, -std::numeric_limits<DoubleReal>::infinity(), id_to_rt, mods_and_keys);
           prot_ids.push_back(protein_identification);
           IdXMLFile().store(outputfile_name, prot_ids, peptide_identifications);
         }
