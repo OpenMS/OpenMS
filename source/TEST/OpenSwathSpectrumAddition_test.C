@@ -80,11 +80,11 @@ START_SECTION ( ( OpenSwath::SpectrumPtr addUpSpectra(std::vector<OpenSwath::Spe
   mass2->data = mass4;
 
 
-  spec1->binaryDataArrayPtrs.push_back(mass1);
-  spec1->binaryDataArrayPtrs.push_back(intensity1);
+  spec1->setMZArray( mass1);
+  spec1->setIntensityArray(intensity1);
 
-  spec2->binaryDataArrayPtrs.push_back(mass2);
-  spec2->binaryDataArrayPtrs.push_back(intensity2);
+  spec2->setMZArray( mass2);
+  spec2->setIntensityArray(intensity2);
 
   std::vector<OpenSwath::SpectrumPtr> all_spectra;
 

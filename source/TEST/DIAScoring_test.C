@@ -190,9 +190,8 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
   std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
   data1->data = mz;
   data2->data = intensity;
-  binaryDataArrayPtrs.push_back(data1);
-  binaryDataArrayPtrs.push_back(data2);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+  sptr->setMZArray( data1 );
+  sptr->setIntensityArray( data2 );
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
@@ -255,9 +254,8 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
   std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
   data1->data = mz;
   data2->data = intensity;
-  binaryDataArrayPtrs.push_back(data1);
-  binaryDataArrayPtrs.push_back(data2);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+  sptr->setMZArray( data1 );
+  sptr->setIntensityArray( data2);
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
@@ -319,9 +317,9 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
   std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
   data1->data = mz;
   data2->data = intensity;
-  binaryDataArrayPtrs.push_back(data1);
-  binaryDataArrayPtrs.push_back(data2);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+
+  sptr->setMZArray(data1);
+  sptr->setIntensityArray( data2 );
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
@@ -391,9 +389,8 @@ void dia_massdiff_score(const std::vector<TransitionType> & transitions,
   }
   data1->data = mz;
   data2->data = intensity;
-  binaryDataArrayPtrs.push_back(data1);
-  binaryDataArrayPtrs.push_back(data2);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+  sptr->setMZArray( data1 );
+  sptr->setIntensityArray( data2 );
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
@@ -443,9 +440,9 @@ START_SECTION ( void dia_by_ion_score(SpectrumType & spectrum, AASequence & sequ
 
   data1->data = mz;
   data2->data = intensity;
-  binaryDataArrayPtrs.push_back(data1);
-  binaryDataArrayPtrs.push_back(data2);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+
+  sptr->setMZArray(data1);
+  sptr->setIntensityArray( data2 );
 
   DIAScoring diascoring;
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
@@ -482,12 +479,13 @@ START_SECTION((void score_with_isotopes(SpectrumType spectrum, const std::vector
   mock_tr1.product_mz = 500.;
   mock_tr1.charge = 1;
   mock_tr1.transition_name = "group1";
+  mock_tr1.library_intensity = 5.;
 
   OpenSwath::LightTransition mock_tr2;
   mock_tr2.product_mz = 600.;
   mock_tr2.charge = 1;
   mock_tr2.transition_name = "group2";
-
+  mock_tr2.library_intensity = 5.;
 
   static const double arr1[] = {
 
@@ -524,9 +522,9 @@ START_SECTION((void score_with_isotopes(SpectrumType spectrum, const std::vector
   std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(double) );
   data1->data = mz;
   data2->data = intensity;
-  binaryDataArrayPtrs.push_back(data1);
-  binaryDataArrayPtrs.push_back(data2);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+  sptr->setMZArray(data1);
+  sptr->setIntensityArray( data2 );
+
   std::vector<OpenSwath::LightTransition> transitions;
   transitions.push_back(mock_tr1);
   transitions.push_back(mock_tr2);
@@ -535,9 +533,8 @@ START_SECTION((void score_with_isotopes(SpectrumType spectrum, const std::vector
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
   double dotprod, manhattan;
   diascoring.score_with_isotopes(sptr,transitions,dotprod,manhattan);
-  std::cout << dotprod << manhattan << std::endl;
-  TEST_REAL_SIMILAR (dotprod, 0.778866762463421);
-  TEST_REAL_SIMILAR (manhattan, 0.557408134572686);
+  TEST_REAL_SIMILAR (dotprod, 0.780323971186655);
+  TEST_REAL_SIMILAR (manhattan, 0.556106737504223);
 }
 END_SECTION
 

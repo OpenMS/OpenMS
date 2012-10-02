@@ -88,8 +88,9 @@ BOOST_AUTO_TEST_CASE(testIntegrateWindows_test)
 	intensity->data.push_back(1.);
 	intensity->data.push_back(1.);
 	intensity->data.push_back(1.);
-	spec->binaryDataArrayPtrs.push_back(mass);
-	spec->binaryDataArrayPtrs.push_back(intensity);
+
+	spec->setMZArray( mass);
+	spec->setIntensityArray( intensity);
 	double mz, intens;
 	OpenSwath::integrateWindow(spec, 101., 103., mz, intens);
 	std::cout << "mz : " << mz << " int : " << intens << std::endl;
@@ -106,7 +107,6 @@ BOOST_AUTO_TEST_CASE(testIntegrateWindows_test)
 	std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
 	std::copy(intMz.begin(), intMz.end(),
 			std::ostream_iterator<double>(std::cout, " "));
-
 }
 END_SECTION
 

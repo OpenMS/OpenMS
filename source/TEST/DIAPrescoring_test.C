@@ -111,9 +111,8 @@ START_SECTION ( testscorefunction)
   std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(double) );
   data1->data = mz;
   data2->data = intensity;
-  binaryDataArrayPtrs.push_back(data1);
-  binaryDataArrayPtrs.push_back(data2);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+  sptr->setMZArray( data1);
+  sptr->setIntensityArray( data2);
 
   std::vector<OpenSwath::LightTransition> transitions;
   transitions.push_back(mock_tr1);

@@ -155,8 +155,8 @@ namespace OpenMS
     OpenSwath::normalize(intExp, intExptotal, intExp);
     OpenSwath::normalize(theorint, intTheorTotal, theorint);
 
-    std::cout <<  "Exp " << intExp.size() << std::endl;
-    std::cout <<  "theor" << theorint.size() << std::endl;
+    //std::cout <<  "Exp " << intExp.size() << std::endl;
+    //std::cout <<  "theor" << theorint.size() << std::endl;
     //std::copy(theorint.begin(),theorint.end(),std::ostream_iterator<double>(std::cout,", "));
     //std::cout << std::endl;
 

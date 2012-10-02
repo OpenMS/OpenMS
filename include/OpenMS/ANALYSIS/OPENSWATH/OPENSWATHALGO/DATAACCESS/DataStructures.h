@@ -163,13 +163,15 @@ namespace OpenSwath
     std::size_t defaultArrayLength;
 
     /// list of binary data arrays.
+  private:
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
+  public:
     Spectrum() :
       defaultArrayLength(2),
       binaryDataArrayPtrs(defaultArrayLength)
     {
+      initvec();
     }
-
 
   private:
 
@@ -185,21 +187,28 @@ namespace OpenSwath
   public:
 
     /// get m/z array (may be null)
-    BinaryDataArrayPtr getMZArray()
+    BinaryDataArrayPtr getMZArray() const
     {
       return binaryDataArrayPtrs[0];
     }
 
+    void setMZArray(BinaryDataArrayPtr data) {
+      binaryDataArrayPtrs[0] = data;
+    }
+
     /// get intensity array (may be null)
-    BinaryDataArrayPtr getIntensityArray()
+    BinaryDataArrayPtr getIntensityArray() const
     {
       return binaryDataArrayPtrs[1];
     }
 
+    /// get intensity array (may be null)
+    void setIntensityArray(BinaryDataArrayPtr data)
+    {
+      binaryDataArrayPtrs[1] = data;
+    }
   };
   typedef boost::shared_ptr<Spectrum> SpectrumPtr;
-
-
 } //end Namespace OpenSwath
 
 #endif

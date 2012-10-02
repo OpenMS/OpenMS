@@ -47,14 +47,9 @@ namespace OpenMS
       intensity_array->data.push_back(it->getIntensity());
     }
 
-    // push back mz first, then intensity.
-    // FEATURE (hroest) annotate which is which
-    std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-    binaryDataArrayPtrs.push_back(mz_array);
-    binaryDataArrayPtrs.push_back(intensity_array);
-
     OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-    sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+    sptr->setMZArray(mz_array);
+    sptr->setIntensityArray(intensity_array);
     return sptr;
   }
 

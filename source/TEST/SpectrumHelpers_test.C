@@ -83,9 +83,9 @@ START_SECTION ( testscorefunction)
   std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
   data1->data = mz;
   data2->data = intensity;
-  binaryDataArrayPtrs.push_back(data1);
-  binaryDataArrayPtrs.push_back(data2);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+  sptr->setMZArray( data1);
+  sptr->setIntensityArray( data2);
+
   double mzres, intensityres;
   OpenSwath::integrateWindow(sptr,499.,501.,mzres, intensityres);
 

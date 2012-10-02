@@ -494,13 +494,12 @@ START_SECTION((virtual void test_dia_scores()))
 
   // push back mz first, then intensity.
   // TODO annotate which is which
-  std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-  binaryDataArrayPtrs.push_back(mz_array);
-  binaryDataArrayPtrs.push_back(intensity_array);
 
   OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
-  OpenSwath::SpectrumPtr* spectrum = &sptr;
+  sptr->setMZArray( mz_array );
+  sptr->setIntensityArray( intensity_array);
+
+  //OpenSwath::SpectrumPtr* spectrum = &sptr;
 
   OpenSwath::MRMScoring mrmscore;
   DIAScoring diascoring;
@@ -527,18 +526,18 @@ START_SECTION((virtual void test_dia_scores()))
   std::vector<TransitionType> transitions;
   reorder_transitions(transitions, transition_group);
   double isotope_corr = 0, isotope_overlap = 0;
-  diascoring.dia_isotope_scores(transitions, (*spectrum), imrmfeature, isotope_corr, isotope_overlap);
+  diascoring.dia_isotope_scores(transitions, (sptr), imrmfeature, isotope_corr, isotope_overlap);
 
   // Mass deviation score
   double ppm_score = 0, ppm_score_weighted = 0;
   diascoring.dia_massdiff_score(transition_group_.getTransitions(),
-    (*spectrum), normalized_library_intensity, ppm_score, ppm_score_weighted);
+    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted);
 
   // Presence of b/y series score
   double bseries_score = 0, yseries_score = 0;
   String sequence = "SYVAWDR";
   OpenMS::AASequence aas = sequence;
-  diascoring.dia_by_ion_score( (*spectrum), aas, by_charge_state, bseries_score, yseries_score);
+  diascoring.dia_by_ion_score( sptr, aas, by_charge_state, bseries_score, yseries_score);
 
   TEST_REAL_SIMILAR(isotope_corr, 0.286635451556 * transition_group_.getTransitions().size() )
   TEST_REAL_SIMILAR(isotope_corr, 0.859906354668202)
@@ -552,7 +551,7 @@ START_SECTION((virtual void test_dia_scores()))
   // b/y series score with modifications
   bseries_score = 0, yseries_score = 0;
   aas.setModification(1, "Phospho" ); // modify the Y
-  diascoring.dia_by_ion_score( (*spectrum), aas, by_charge_state, bseries_score, yseries_score);
+  diascoring.dia_by_ion_score( sptr, aas, by_charge_state, bseries_score, yseries_score);
   TEST_EQUAL(bseries_score, 0)
   TEST_EQUAL(yseries_score, 1)
 }
