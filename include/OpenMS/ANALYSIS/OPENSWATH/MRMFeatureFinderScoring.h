@@ -344,7 +344,7 @@ private:
         " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
 #endif
 
-        int group_size = transition_group.size();
+        unsigned int group_size = transition_group.size();
         if (group_size == 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -620,8 +620,6 @@ private:
       // parameters
       int by_charge_state = 1; // for which charge states should we check b/y series
 
-      int group_size = transition_group.size();
-
       // find spectrum that is closest to the apex of the peak using binary search
       OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra(swath_map, mrmfeature->getRT(), add_up_spectra_);
       OpenSwath::SpectrumPtr * spectrum = &spectrum_;
@@ -655,7 +653,7 @@ private:
 #endif
 
       // FEATURE we should not punish so much when one transition is missing!
-      double massdev_score = ppm_score / group_size;
+      double massdev_score = ppm_score / transition_group.size();
       double massdev_score_weighted = ppm_score_weighted;
       mrmfeature->addScore("var_massdev_score", massdev_score);
       mrmfeature->addScore("var_massdev_score_weighted", massdev_score_weighted);

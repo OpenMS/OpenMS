@@ -48,14 +48,14 @@ namespace OpenSwath
   namespace Scoring
   {
 
-    void normalize_sum(double x[], int n)
+    void normalize_sum(double x[], unsigned int n)
     {
       double sumx = std::accumulate(&x[0], &x[0] + n, 0.0);
       if (sumx == 0.0)
       {
         return;
       } // do not divide by zero
-      for (int i = 0; i < n; i++)
+      for (unsigned int i = 0; i < n; i++)
       {
         x[i] = x[i] / sumx;
       }

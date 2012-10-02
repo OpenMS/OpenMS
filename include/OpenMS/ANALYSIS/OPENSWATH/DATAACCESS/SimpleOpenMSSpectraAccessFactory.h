@@ -45,7 +45,7 @@ namespace OpenMS{
   /**
     @brief A factory method that returns two ISpectrumAccess implementations
   */
-  OPENMS_DLLAPI class SimpleOpenMSSpectraFactory{
+  class OPENMS_DLLAPI SimpleOpenMSSpectraFactory{
     public:
     /// Simple Factory method to get a SpectrumAccess Ptr from an MSExperiment
     static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(OpenMS::MSExperiment<OpenMS::Peak1D> & exp);

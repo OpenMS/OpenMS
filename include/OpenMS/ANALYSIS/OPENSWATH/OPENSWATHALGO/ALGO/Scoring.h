@@ -83,7 +83,7 @@ namespace OpenSwath
     void standardize_data(std::vector<double> & data);
 
     /// divide each element of x by the sum of the vector
-    void normalize_sum(double x[], int n);
+    void normalize_sum(double x[], unsigned int n);
     //@}
 
   }
