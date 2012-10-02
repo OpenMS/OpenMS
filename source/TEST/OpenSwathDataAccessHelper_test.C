@@ -73,7 +73,7 @@ START_SECTION(OpenSwathDataAccessHelper::convertToSpectrumPtr(sptr))
   sptr.push_back(p2);
   sptr.push_back(p3);
   OpenSwath::SpectrumPtr p = OpenSwathDataAccessHelper::convertToSpectrumPtr(sptr);
-  OpenSwathDataAccessHelper::convertToOpenMSSpectrum(omsptr,p);
+  OpenSwathDataAccessHelper::convertToOpenMSSpectrum(p,omsptr);
   TEST_REAL_SIMILAR(p->getMZArray()->data[0],2.0);
   TEST_REAL_SIMILAR(p->getMZArray()->data[1],10.0);
   TEST_REAL_SIMILAR(p->getMZArray()->data[2],30.0);
@@ -127,7 +127,7 @@ START_SECTION(convertToOpenMSSpectrum(spectrum,sptr))
   cptr->getIntensityArray()->data.push_back(1.0);
 
   MSSpectrum<> spectrum;
-  OpenSwathDataAccessHelper::convertToOpenMSSpectrum(spectrum,cptr);
+  OpenSwathDataAccessHelper::convertToOpenMSSpectrum(cptr, spectrum);
 
   TEST_REAL_SIMILAR(spectrum[0].getMZ(),1.);
   TEST_REAL_SIMILAR(spectrum[0].getIntensity(),4.);

@@ -52,32 +52,10 @@ namespace OpenMS
   {
 public:
     /// Convert a SpectrumPtr to an OpenMS Spectrum
-    static void convertToOpenMSSpectrum(OpenMS::MSSpectrum<> & spectrum, const OpenSwath::SpectrumPtr sptr);
+    static void convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum<> & spectrum);
 
-    static OpenSwath::SpectrumPtr convertToSpectrumPtr(const OpenMS::MSSpectrum<> & spectrum)
-    {
-      // const MSSpectrumType & spectrum = (*ms_experiment_)[id];
-      OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-      OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-      for (MSSpectrum<>::const_iterator it = spectrum.begin(); it != spectrum.end(); it++)
-      {
-        mz_array->data.push_back(it->getMZ());
-        intensity_array->data.push_back(it->getIntensity());
-      }
-
-      // push back mz first, then intensity.
-      // FEATURE (hroest) annotate which is which
-      //std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-      //binaryDataArrayPtrs.push_back(mz_array);
-      //binaryDataArrayPtrs.push_back(intensity_array);
-
-      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-      //sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
-      sptr->setMZArray(mz_array);
-      sptr->setIntensityArray(intensity_array);
-
-      return sptr;
-    }
+    /// Convert an OpenMS Spectrum to an SpectrumPtr
+    static OpenSwath::SpectrumPtr convertToSpectrumPtr(const OpenMS::MSSpectrum<> & spectrum);
 
     /// Convert a ChromatogramPtr to an OpenMS Chromatogram
     static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr);

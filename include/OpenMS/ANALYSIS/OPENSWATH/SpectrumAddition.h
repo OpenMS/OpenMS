@@ -98,7 +98,7 @@ public:
         SpectrumT output_spectrum = resampled_peak_container;
 
         // convert input spectrum to OpenMS, then resample
-        OpenSwathDataAccessHelper::convertToOpenMSSpectrum(input_spectrum, all_spectra[curr_sp]);
+        OpenSwathDataAccessHelper::convertToOpenMSSpectrum(all_spectra[curr_sp], input_spectrum);
         lresampler.raster(input_spectrum.begin(), input_spectrum.end(), output_spectrum.begin(), output_spectrum.end());
 
         // add to master spectrum

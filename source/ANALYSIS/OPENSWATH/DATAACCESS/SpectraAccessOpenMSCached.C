@@ -54,10 +54,6 @@ namespace OpenMS
 		ifs.seekg(cache.getSpectraIndex()[id]);
 		cache.readSpectrumFast(mz_array, intensity_array, ifs, ms_level, rt);
 
-		//std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-		//binaryDataArrayPtrs.push_back(mz_array);
-		//binaryDataArrayPtrs.push_back(intensity_array);
-
 		OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
 		sptr->setMZArray(mz_array);
 		sptr->setIntensityArray( intensity_array);
@@ -86,6 +82,8 @@ namespace OpenMS
 		ifs.seekg(cache.getChromatogramIndex()[id]);
 		cache.readChromatogramFast(rt_array, intensity_array, ifs);
 
+    // push back rt first, then intensity.
+    // FEATURE (hroest) annotate which is which
 		std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
 		binaryDataArrayPtrs.push_back(rt_array);
 		binaryDataArrayPtrs.push_back(intensity_array);
