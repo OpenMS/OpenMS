@@ -70,29 +70,40 @@ namespace OpenMS
     DefaultParamHandler
   {
     double dia_extract_window_;   //done
-    int nr_isotopes;
-    int nr_charges;
+    int nr_isotopes_;
+    int nr_charges_;
   public:
 
-
-    DiaPrescore() :
-      DefaultParamHandler("DIAPrescore"), dia_extract_window_(0.1), nr_isotopes(4), nr_charges(4)
+    DiaPrescore():DefaultParamHandler("DIAPrescore")
     {
       defineDefaults();
+      // std::cout << dia_extract_window_ << "XXXXX" << nr_isotopes_ << "xxx" << nr_charges_ << std::endl;
     }
+
+    DiaPrescore(double dia_extract_window, int nr_isotopes = 4, int nr_charges = 4) :
+      DefaultParamHandler("DIAPrescore"), dia_extract_window_(dia_extract_window),
+      nr_isotopes_(nr_isotopes), nr_charges_(nr_charges)
+    {
+      // std::cout << dia_extract_window_ << "XXXXX" << nr_isotopes_ << "xxx" << nr_charges_ << std::endl;
+    }
+
 
     void defineDefaults()
     {
       defaults_.setValue("dia_extraction_window", 0.1,
                          "DIA extraction window in Th.");
       defaults_.setMinFloat("dia_extraction_window", 0.0);   //done
+      defaults_.setValue("nr_isotopes",4,"nr of istopes");
+      defaults_.setValue("nr_charges",4,"nr charges");
       defaultsToParam_();
     }
 
-    void getParams()
+    void updateMembers_()
     {
       dia_extract_window_ = (DoubleReal) param_.getValue(
         "dia_extraction_window");
+      nr_isotopes_ = (int) param_.getValue("nr_isotopes");
+      nr_charges_= (int) param_.getValue("nr_charges");
     }
     /**
       @brief Score a spectrum given a transition group.

@@ -71,11 +71,13 @@ START_SECTION ( testscorefunction)
   mock_tr1.product_mz = 500.;
   mock_tr1.charge = 1;
   mock_tr1.transition_name = "group1";
+  mock_tr1.library_intensity = 5.;
 
   OpenSwath::LightTransition mock_tr2;
   mock_tr2.product_mz = 600.;
   mock_tr2.charge = 1;
   mock_tr2.transition_name = "group2";
+  mock_tr2.library_intensity = 5.;
 
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
@@ -118,19 +120,19 @@ START_SECTION ( testscorefunction)
   transitions.push_back(mock_tr1);
   transitions.push_back(mock_tr2);
 
-  DiaPrescore diaprescore;
+  DiaPrescore diaprescore(0.05);
   double manhattan = 0., dotprod = 0.;
   diaprescore.score(sptr, transitions , dotprod, manhattan);
-  std::cout << "dotprod : " << dotprod << std::endl;
-  std::cout << "manhattan : " << manhattan << std::endl;
+  //std::cout << "dotprod : " << dotprod << std::endl;
+  //std::cout << "manhattan : " << manhattan << std::endl;
   // >>> exp = [240, 74, 39, 15, 0]
   // >>> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
   // >>> from scipy.stats.stats import pearsonr
   // >>> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(dotprod, 0.9879162932)
-  TEST_REAL_SIMILAR(manhattan,0.20567254498 )
+  TEST_REAL_SIMILAR(dotprod, 0.644465)
+  TEST_REAL_SIMILAR(manhattan, 1.00201 )
 }
 END_SECTION
 

@@ -71,15 +71,15 @@
 			<userParam type="float" name="var_log_sn_score" value="4.45439541136954"/>
 			<userParam type="float" name="var_elution_model_fit_score" value="0.985403060913086"/>
 			<userParam type="float" name="xx_lda_prelim_score" value="-21994.8526298809"/>
-			<userParam type="float" name="var_isotope_correlation_score" value="0.998107822098306"/>
+			<userParam type="float" name="var_isotope_correlation_score" value="0.998097615851474"/>
 			<userParam type="float" name="var_isotope_overlap_score" value="0"/>
 			<userParam type="float" name="var_massdev_score" value="0.698521654473665"/>
 			<userParam type="float" name="var_massdev_score_weighted" value="0.666143770195331"/>
 			<userParam type="float" name="var_bseries_score" value="0"/>
 			<userParam type="float" name="var_yseries_score" value="0"/>
-			<userParam type="float" name="var_dotprod_score" value="0"/>
-			<userParam type="float" name="var_manhatt_score" value="1"/>
-			<userParam type="float" name="main_var_xx_swath_prelim_score" value="-17581.8917888841"/>
+			<userParam type="float" name="var_dotprod_score" value="0.748525353691781"/>
+			<userParam type="float" name="var_manhatt_score" value="0.79154758288722"/>
+			<userParam type="float" name="main_var_xx_swath_prelim_score" value="-17581.8917952773"/>
 			<userParam type="float" name="PrecursorMZ" value="500"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
@@ -157,15 +157,15 @@
 			<userParam type="float" name="var_log_sn_score" value="1.18541761153185"/>
 			<userParam type="float" name="var_elution_model_fit_score" value="0.88344677289327"/>
 			<userParam type="float" name="xx_lda_prelim_score" value="-21551.916238951"/>
-			<userParam type="float" name="var_isotope_correlation_score" value="0.965390798547598"/>
+			<userParam type="float" name="var_isotope_correlation_score" value="0.972817678336498"/>
 			<userParam type="float" name="var_isotope_overlap_score" value="0"/>
 			<userParam type="float" name="var_massdev_score" value="1.37354439334282"/>
 			<userParam type="float" name="var_massdev_score_weighted" value="1.18664964107839"/>
 			<userParam type="float" name="var_bseries_score" value="0"/>
 			<userParam type="float" name="var_yseries_score" value="0"/>
-			<userParam type="float" name="var_dotprod_score" value="0"/>
-			<userParam type="float" name="var_manhatt_score" value="1"/>
-			<userParam type="float" name="main_var_xx_swath_prelim_score" value="-17227.6261587944"/>
+			<userParam type="float" name="var_dotprod_score" value="0.819626719315996"/>
+			<userParam type="float" name="var_manhatt_score" value="0.656132040800217"/>
+			<userParam type="float" name="main_var_xx_swath_prelim_score" value="-17227.621506587"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
@@ -243,15 +243,15 @@
 			<userParam type="float" name="var_log_sn_score" value="3.40718216971789"/>
 			<userParam type="float" name="var_elution_model_fit_score" value="0.902421613534292"/>
 			<userParam type="float" name="xx_lda_prelim_score" value="-22000.3232536088"/>
-			<userParam type="float" name="var_isotope_correlation_score" value="0.904684641939969"/>
+			<userParam type="float" name="var_isotope_correlation_score" value="0.907446211872997"/>
 			<userParam type="float" name="var_isotope_overlap_score" value="0.0754514560103416"/>
 			<userParam type="float" name="var_massdev_score" value="1.44105090200075"/>
 			<userParam type="float" name="var_massdev_score_weighted" value="1.08854278297821"/>
 			<userParam type="float" name="var_bseries_score" value="1"/>
 			<userParam type="float" name="var_yseries_score" value="0"/>
-			<userParam type="float" name="var_dotprod_score" value="0"/>
-			<userParam type="float" name="var_manhatt_score" value="1"/>
-			<userParam type="float" name="main_var_xx_swath_prelim_score" value="-17585.6624320811"/>
+			<userParam type="float" name="var_dotprod_score" value="0.647934002663614"/>
+			<userParam type="float" name="var_manhatt_score" value="0.880419233774317"/>
+			<userParam type="float" name="main_var_xx_swath_prelim_score" value="-17585.66070223"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>

@@ -73,7 +73,7 @@ namespace OpenMS
                  OpenSwath::LightTargetedExperiment & transition_exp_used,
                  OpenSwath::IDataFrameWriter * ivw)
   {
-    getParams();
+    //getParams();
     typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;
     Mmap transmap;
     convert(transition_exp_used, transmap);
@@ -134,7 +134,7 @@ namespace OpenMS
     std::vector<double> firstIstotope, theomasses;
     DIAHelpers::extractFirst(res, firstIstotope);
     std::vector<std::pair<double, double> > spectrum, spectrum2;
-    DIAHelpers::addIsotopes2Spec(res, spectrum);
+    DIAHelpers::addIsotopes2Spec(res, spectrum, nr_charges_);
     spectrum2.resize(spectrum.size());
     std::copy(spectrum.begin(), spectrum.end(), spectrum2.begin());
     //std::cout << spectrum.size() << std::endl;
@@ -155,11 +155,6 @@ namespace OpenMS
     OpenSwath::normalize(intExp, intExptotal, intExp);
     OpenSwath::normalize(theorint, intTheorTotal, theorint);
 
-    //std::cout <<  "Exp " << intExp.size() << std::endl;
-    //std::cout <<  "theor" << theorint.size() << std::endl;
-    //std::copy(theorint.begin(),theorint.end(),std::ostream_iterator<double>(std::cout,", "));
-    //std::cout << std::endl;
-
     manhattan = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
 
     //std::cout << spectrum.size() << std::endl;
@@ -173,10 +168,11 @@ namespace OpenMS
 
     OpenSwath::normalize(intExp, intExptotal, intExp);
     OpenSwath::normalize(theorint2, intTheorTotal, theorint2);
-    std::copy(intExp.begin(), intExp.end(), std::ostream_iterator<double>(std::cout, ", "));
-    std::cout << std::endl;
-    std::copy(theorint2.begin(), theorint2.end(), std::ostream_iterator<double>(std::cout, ", "));
-    std::cout << std::endl;
+
+    //    std::copy(intExp.begin(), intExp.end(), std::ostream_iterator<double>(std::cout, ", "));
+    //    std::cout << std::endl;
+    //    std::copy(theorint2.begin(), theorint2.end(), std::ostream_iterator<double>(std::cout, ", "));
+    //    std::cout << std::endl;
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), theorint2.begin());
   }
 }
