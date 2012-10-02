@@ -88,13 +88,13 @@ namespace OpenMS
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPChromatogramExtractor 
+class TOPPOpenSwathChromatogramExtractor 
   : public TOPPBase
 {
 public:
 
-  TOPPChromatogramExtractor() 
-    : TOPPBase("ChromatogramExtractor", "Extract chromatograms (XIC) from a MS2 map file.", false)
+  TOPPOpenSwathChromatogramExtractor() 
+    : TOPPBase("OpenSwathChromatogramExtractor", "Extract chromatograms (XIC) from a MS2 map file.", false)
   {
   }
 
@@ -203,7 +203,7 @@ protected:
       IF_MASTERTHREAD f.setLogType(log_type_); 
 
 #ifdef _OPENMP
-#pragma omp critical (ChromatogramExtractor)
+#pragma omp critical (OpenSwathChromatogramExtractor)
 #endif
       {
         cout << "Doing file " << file_list[i]
@@ -252,7 +252,7 @@ protected:
 
       // adding the chromatogram to the output needs to be atomic
 #ifdef _OPENMP
-#pragma omp critical (ChromatogramExtractor)
+#pragma omp critical (OpenSwathChromatogramExtractor)
 #endif
       {
         for (Size k = 0; k < tmp_out.getChromatograms().size(); k++)
@@ -278,6 +278,6 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  OpenMS::TOPPChromatogramExtractor tool;
+  OpenMS::TOPPOpenSwathChromatogramExtractor tool;
   return tool.main(argc, argv);
 }

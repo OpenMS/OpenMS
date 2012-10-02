@@ -65,14 +65,14 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class MzMLFileCacher
+class OpenSwathMzMLFileCacher
   : public TOPPBase,
     public ProgressLogger
 {
  public:
 
-  MzMLFileCacher()
-    : TOPPBase("MzMLFileCacher","MzMLFileCacher:", false)
+  OpenSwathMzMLFileCacher()
+    : TOPPBase("OpenSwathMzMLFileCacher","OpenSwathMzMLFileCacher:", false)
   {
   }
 
@@ -206,7 +206,7 @@ class MzMLFileCacher
 int main( int argc, const char** argv )
 {
 
-  MzMLFileCacher tool;
+  OpenSwathMzMLFileCacher tool;
   return tool.main(argc,argv);
 }
 

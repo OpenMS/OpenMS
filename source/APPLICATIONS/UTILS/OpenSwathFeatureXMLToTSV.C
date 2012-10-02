@@ -300,7 +300,7 @@ void write_out_body_best_score(std::ostream &os, FeatureMap<Feature> &feature_ma
 //-------------------------------------------------------------
 
 /**
-  @page TOPPFeatureXMLToTSV FeatureXMLToTSV
+  @page TOPPOpenSwathFeatureXMLToTSV OpenSwathFeatureXMLToTSV
 
   @brief Converts a featureXML to a mProphet tsv
 
@@ -313,13 +313,13 @@ void write_out_body_best_score(std::ostream &os, FeatureMap<Feature> &feature_ma
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPFeatureXMLToTSV
+class TOPPOpenSwathFeatureXMLToTSV
 : public TOPPBase, public ProgressLogger
 {
 public:
 
-  TOPPFeatureXMLToTSV() :
-    TOPPBase("FeatureXMLToTSV", "Converts a featureXML to a mProphet tsv.", false)
+  TOPPOpenSwathFeatureXMLToTSV() :
+    TOPPBase("OpenSwathFeatureXMLToTSV", "Converts a featureXML to a mProphet tsv.", false)
   {
   }
 
@@ -475,7 +475,7 @@ protected:
 int main(int argc, const char **argv)
 {
 
-  TOPPFeatureXMLToTSV tool;
+  TOPPOpenSwathFeatureXMLToTSV tool;
   int code = tool.main(argc, argv);
   return code;
 

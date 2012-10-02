@@ -47,7 +47,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 
 using namespace OpenMS;
-using namespace std;
 
 //
 //-------------------------------------------------------------
@@ -57,7 +56,7 @@ using namespace std;
 /**
  @page TOPP_OpenSwathRTNormalizer OpenSwathRTNormalizer
 
- @brief The MRMRTNormalizer will find retention time peptides in data.
+ @brief The OpenSwathRTNormalizer will find retention time peptides in data.
 
  This tool will take a description of RT peptides and their normalized
  retention time to write out a transformation file on how to transoform the
@@ -67,12 +66,12 @@ using namespace std;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPMRMRTNormalizer : public TOPPBase
+class TOPPOpenSwathRTNormalizer : public TOPPBase
 {
 public:
 
-  TOPPMRMRTNormalizer() :
-  TOPPBase("MRMRTNormalizer",
+  TOPPOpenSwathRTNormalizer() :
+  TOPPBase("OpenSwathRTNormalizer",
            "This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transoform the RT space into the normalized space.  ",
            false)
   {
@@ -97,14 +96,8 @@ protected:
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library)", false);
     setValidFormats_("rt_norm", StringList::create("trafoXML"));
 
-    registerStringOption_("out_xic", "<file>", "", "also write out the extracted ion chromatigrams (XIC)", false);
-    registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
-    // registerDoubleOption_("extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flat)", false);
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false);
-
-    registerFlag_("is_swath", "Set this flag if the data is SWATH / DIA data");
-    // registerFlag_("ppm", "extraction_window is in ppm");
   }
 
   void simple_find_best_feature(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
@@ -154,7 +147,7 @@ protected:
         // }
       }
       String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
-      pairs.push_back(make_pair(bestf->getRT(), PeptideRTMap[pepref]));
+      pairs.push_back(std::make_pair(bestf->getRT(), PeptideRTMap[pepref]));
     }
   }
   ExitCodes main_(int, const char **)
@@ -163,9 +156,6 @@ protected:
     StringList file_list = getStringList_("in");
     String tr_file_str = getStringOption_("tr");
     String out = getStringOption_("out");
-    String out_xic = getStringOption_("out_xic");
-    bool is_swath =  getFlag_("is_swath");
-    DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     DoubleReal min_rsq = getDoubleOption_("min_rsq");
     DoubleReal min_coverage = getDoubleOption_("min_coverage");
     const char * tr_file  = tr_file_str.c_str();
@@ -209,48 +199,22 @@ protected:
       MapType xic_map;  // the map with the extracted ion chromatograms
       MapType swath_map; // the original swath file (not used)
       FeatureMap<> featureFile;
-      cout << "RT Normalization working on " << file_list[i] << endl;
+      std::cout << "RT Normalization working on " << file_list[i] << std::endl;
       f.load(file_list[i], exp);
 
       // get the transitions that we want to use (in swath, only select those
       // from the current window).
       OpenSwath::LightTargetedExperiment transition_exp_used;
-      if (is_swath)
-      {
-        if (exp.size() == 0 || exp[0].getPrecursors().size() == 0)
-        {
-          std::cerr << "WARNING: File " << exp.getLoadedFilePath() << " does not have any experiments or any precursors. Is it a SWATH map?" << std::endl;
-          continue;
-        }
-        /*
-        double upper, lower;
-        const std::vector<Precursor> prec = exp[0].getPrecursors();
-        lower = prec[0].getIsolationWindowLowerOffset();
-        upper = prec[0].getIsolationWindowUpperOffset();
+      transition_exp_used = targeted_exp;
 
-        selectSwathTransitions(targeted_exp, transition_exp_used, min_upper_edge_dist, lower, upper);
-        */
-
-        double upper, lower;
-        OpenSwathHelper::checkSwathMap(exp, lower, upper);
-        OpenSwathHelper::selectSwathTransitions(targeted_exp, transition_exp_used, min_upper_edge_dist, lower, upper);
-        if (transition_exp_used.getTransitions().size() == 0)
-        {
-          continue;
-        }
-      }
-      else
-      {
-        transition_exp_used = targeted_exp;
-      }
-      cout << "nr transitions " << transition_exp_used.getTransitions().size() << endl;
+      std::cout << "nr transitions " << transition_exp_used.getTransitions().size() << std::endl;
 
       xic_map = exp;
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
 
       MRMFeatureFinderScoring featureFinder;
       Param scoring_params = MRMFeatureFinderScoring().getDefaults();
-      scoring_params.setValue("use_rt_score", "false");
+      scoring_params.setValue("Scores:use_rt_score", "false");
       featureFinder.setParameters(scoring_params);
       
 #ifdef USE_SP_INTERFACE
@@ -283,10 +247,6 @@ protected:
     trafo_out.fitModel(model_type, model_params);
     trafoxml.store(out, trafo_out);
 
-    if (out_xic.size() > 0)
-    {
-      f.store(out_xic, all_xic_maps);
-    }
     return EXECUTION_OK;
   }
 
@@ -296,6 +256,6 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  TOPPMRMRTNormalizer tool;
+  TOPPOpenSwathRTNormalizer tool;
   return tool.main(argc, argv);
 }
