@@ -70,18 +70,17 @@
 namespace OpenMS
 {
   /**
-      @brief FeatureFinderAlgorithm for picked peaks.
+    @brief FeatureFinderAlgorithm for picked peaks.
 
-  @htmlinclude OpenMS_FeatureFinderAlgorithmPicked.parameters
+    @htmlinclude OpenMS_FeatureFinderAlgorithmPicked.parameters
 
-      @improvement RT model with tailing/fronting (Marc)
-      @improvement More general MZ model - e.g. based on co-elution or with sulfur-averagines (Marc)
+    @improvement RT model with tailing/fronting (Marc)
+    @improvement More general MZ model - e.g. based on co-elution or with sulfur-averagines (Marc)
 
-      @todo Fix output in parallel mode, change assignment of charges to threads, add parallel TOPP test (Marc)
-      @todo Implement user-specified seed lists support (Marc)
+    @todo Fix output in parallel mode, change assignment of charges to threads, add parallel TOPP test (Marc)
+    @todo Implement user-specified seed lists support (Marc)
 
-
-      @ingroup FeatureFinder
+    @ingroup FeatureFinder
   */
   template <class PeakType, class FeatureType>
   class FeatureFinderAlgorithmPicked :
@@ -205,7 +204,7 @@ public:
     }
 
     // docu in base class
-    virtual void setSeeds(const FeatureMapType & seeds)
+    virtual void setSeeds(const FeatureMapType& seeds)
     {
       seeds_ = seeds;
     }
@@ -278,9 +277,9 @@ public:
       }
 
       int gl_progress = 0;
-      bool debug = ((String)(param_.getValue("debug")) == "true");
+      debug_ = ((String)(param_.getValue("debug")) == "true");
       //clean up / create folders for debug information
-      if (debug)
+      if (debug_)
       {
         QDir dir(".");
         dir.mkpath("debug/features");
@@ -295,7 +294,7 @@ public:
       //Step 1:
       //Precalculate intensity scores for peaks
       //---------------------------------------------------------------------------
-      log_ << "Precalculating intensity thresholds ..." << std::endl;
+      if (debug_) log_ << "Precalculating intensity thresholds ..." << std::endl;
       //new scope to make local variables disappear
       {
         ff_->startProgress(0, intensity_bins_ * intensity_bins_, "Precalculating intensity scores");
@@ -360,7 +359,7 @@ public:
         for (Size s = min_spectra_; s < end_iteration; ++s)
         {
           ff_->setProgress(s);
-          const SpectrumType & spectrum = map_[s];
+          const SpectrumType& spectrum = map_[s];
           //iterate over all peaks of the scan
           for (Size p = 0; p < spectrum.size(); ++p)
           {
@@ -370,7 +369,7 @@ public:
             DoubleReal pos = spectrum[p].getMZ();
             Real inte = spectrum[p].getIntensity();
 
-            //log_ << std::endl << "Peak: " << pos << std::endl;
+            //if(debug_) log_ << std::endl << "Peak: " << pos << std::endl;
             bool is_max_peak = true;                 //checking the maximum intensity peaks -> use them later as feature seeds.
             for (Size i = 1; i <= min_spectra_; ++i)
             {
@@ -427,7 +426,7 @@ public:
         //calculate distribution if necessary
         for (Size index = 0; index < num_isotopes; ++index)
         {
-          //log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
+          //if(debug_) log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
           IsotopeDistribution d;
           d.setMaxIsotope(20);
           d.estimateFromPeptideWeight(0.5 * mass_window_width_ + index * mass_window_width_);
@@ -440,7 +439,7 @@ public:
           for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
           {
             isotope_distributions_[index].intensity.push_back(it->second);
-            //log_ << " - " << it->second << std::endl;
+            //if(debug_) log_ << " - " << it->second << std::endl;
           }
 
           //determine the number of optional peaks at the beginning/end
@@ -479,7 +478,7 @@ public:
             isotope_distributions_[index].intensity[i] /= max;
           }
 
-          //log_ << " - optinal begin/end:" << begin << " / " << end << std::endl;
+          //if(debug_) log_ << " - optinal begin/end:" << begin << " / " << end << std::endl;
         }
 
         ff_->endProgress();
@@ -506,13 +505,13 @@ public:
         for (Size s = 0; s < map_.size(); ++s)
         {
           ff_->setProgress(s);
-          const SpectrumType & spectrum = map_[s];
+          const SpectrumType& spectrum = map_[s];
           for (Size p = 0; p < spectrum.size(); ++p)
           {
             DoubleReal mz = spectrum[p].getMZ();
 
             //get isotope distribution for this mass
-            const TheoreticalIsotopePattern & isotopes = getIsotopeDistribution_(mz * c);
+            const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(mz * c);
             //determine highest peak in isotope distribution
             Size max_isotope = std::max_element(isotopes.intensity.begin(), isotopes.intensity.end()) - isotopes.intensity.begin();
             //Look up expected isotopic peaks (in the current spectrum or adjacent spectra)
@@ -522,10 +521,10 @@ public:
             for (Size i = 0; i < isotopes.size(); ++i)
             {
               DoubleReal isotope_pos = mz + ((DoubleReal)i - max_isotope) / c;
-              findIsotope_(isotope_pos, s, pattern, i, false, peak_index);
+              findIsotope_(isotope_pos, s, pattern, i, peak_index);
             }
 
-            DoubleReal pattern_score = isotopeScore_(isotopes, pattern, true, false);
+            DoubleReal pattern_score = isotopeScore_(isotopes, pattern, true);
 
             //update pattern scores of all contained peaks (if necessary)
             if (pattern_score > 0.0)
@@ -557,7 +556,7 @@ public:
           //iterate over peaks
           for (Size p = 0; p < map_[s].size(); ++p)
           {
-            FloatDataArrays & meta = map_[s].getFloatDataArrays();
+            FloatDataArrays& meta = map_[s].getFloatDataArrays();
             DoubleReal overall_score = std::pow(meta[0][p] * meta[1][p] * meta[meta_index_isotope][p], 1.0f / 3.0f);
             meta[meta_index_overall][p] = overall_score;
 
@@ -603,7 +602,7 @@ public:
         //sort seeds according to intensity
         std::sort(seeds.rbegin(), seeds.rend());
         //create and store seeds map and selected peak map
-        if (debug)
+        if (debug_)
         {
           //seeds
           FeatureMap<> seed_map;
@@ -612,7 +611,7 @@ public:
           {
             Size spectrum = seeds[i].spectrum;
             Size peak = seeds[i].peak;
-            const FloatDataArrays & meta = map_[spectrum].getFloatDataArrays();
+            const FloatDataArrays& meta = map_[spectrum].getFloatDataArrays();
             Feature tmp;
             tmp.setIntensity(seeds[i].intensity);
             tmp.setOverallQuality(meta[meta_index_overall][peak]);
@@ -657,17 +656,21 @@ public:
           //Extend all mass traces
           //------------------------------------------------------------------
 
-          const SpectrumType & spectrum = map_[seeds[i].spectrum];
-          const PeakType & peak = spectrum[seeds[i].peak];
+          const SpectrumType& spectrum = map_[seeds[i].spectrum];
+          const PeakType& peak = spectrum[seeds[i].peak];
 
           IF_MASTERTHREAD
           {
             ff_->setProgress(gl_progress++);
-            log_ << std::endl << "Seed " << i << ":" << std::endl;
-            //If the intensity is zero this seed is already uses in another feature
-            log_ << " - Int: " << peak.getIntensity() << std::endl;
-            log_ << " - RT: " << spectrum.getRT() << std::endl;
-            log_ << " - MZ: " << peak.getMZ() << std::endl;
+
+            if (debug_)
+            {
+              log_ << std::endl << "Seed " << i << ":" << std::endl;
+              //If the intensity is zero this seed is already uses in another feature
+              log_ << " - Int: " << peak.getIntensity() << std::endl;
+              log_ << " - RT: " << spectrum.getRT() << std::endl;
+              log_ << " - MZ: " << peak.getMZ() << std::endl;
+            }
           }
 
           //----------------------------------------------------------------
@@ -677,7 +680,7 @@ public:
 
           if (isotope_fit_quality < min_isotope_fit_)
           {
-            abort_(debug, seeds[i], "Could not find good enough isotope pattern containing the seed");
+            abort_(seeds[i], "Could not find good enough isotope pattern containing the seed");
             //continue;
           }
           else
@@ -693,7 +696,7 @@ public:
 
             if (!traces.isValid(seed_mz, trace_tolerance_))
             {
-              abort_(debug, seeds[i], "Could not extend seed");
+              abort_(seeds[i], "Could not extend seed");
               //continue;
             }
             else
@@ -723,13 +726,13 @@ public:
 
               // choose fitter
               double egh_tau = 0.0;
-              TraceFitter<PeakType> * fitter = chooseTraceFitter_(egh_tau);
+              TraceFitter<PeakType>* fitter = chooseTraceFitter_(egh_tau);
 
               fitter->setParameters(trace_fitter_params);
               fitter->fit(traces);
 
 #if 0
-              TraceFitter<PeakType> * alt_fitter = new GaussTraceFitter<PeakType>();
+              TraceFitter<PeakType>* alt_fitter = new GaussTraceFitter<PeakType>();
               Param alt_p;
               alt_p.setValue("max_iteration", max_iterations);
               alt_p.setValue("epsilon_abs", epsilon_abs);
@@ -772,7 +775,7 @@ public:
 #endif
               {
                 //write debug output of feature
-                if (debug)
+                if (debug_)
                 {
                   writeFeatureDebugInfo_(fitter, traces, new_traces, feature_ok, error_msg, final_score, plot_nr, peak);
                 }
@@ -783,7 +786,7 @@ public:
               //validity output
               if (!feature_ok)
               {
-                abort_(debug, seeds[i], error_msg);
+                abort_(seeds[i], error_msg);
                 //continue;
               }
               else
@@ -806,10 +809,10 @@ public:
                 // Extract some of the model parameters.
                 if (egh_tau != 0.0)
                 {
-                  egh_tau = (static_cast<EGHTraceFitter<PeakType> *>(fitter))->getTau();
+                  egh_tau = (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getTau();
                   f.setMetaValue("EGH_tau", egh_tau);
-                  f.setMetaValue("EGH_height", (static_cast<EGHTraceFitter<PeakType> *>(fitter))->getHeight());
-                  f.setMetaValue("EGH_sigma", (static_cast<EGHTraceFitter<PeakType> *>(fitter))->getSigmaSquare());
+                  f.setMetaValue("EGH_height", (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getHeight());
+                  f.setMetaValue("EGH_sigma", (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getSigmaSquare());
                 }
 
                 // Calculate the mass of the feature: maximum, average, monoisotopic
@@ -925,7 +928,7 @@ public:
       //Resolve contradicting and overlapping features
       //------------------------------------------------------------------
       ff_->startProgress(0, features_->size() * features_->size(), "Resolving overlapping features");
-      log_ << "Resolving intersecting features (" << features_->size() << " candidates)" << std::endl;
+      if (debug_) log_ << "Resolving intersecting features (" << features_->size() << " candidates)" << std::endl;
       //sort features according to m/z in order to speed up the resolution
       features_->sortByMZ();
       //precalculate BBs and maximum mz span
@@ -945,11 +948,11 @@ public:
       //intersect
       for (Size i = 0; i < features_->size(); ++i)
       {
-        Feature & f1((*features_)[i]);
+        Feature& f1((*features_)[i]);
         for (Size j = i + 1; j < features_->size(); ++j)
         {
           ff_->setProgress(i * features_->size() + j);
-          Feature & f2((*features_)[j]);
+          Feature& f2((*features_)[j]);
           //features that are more than 2 times the maximum m/z span apart do not overlap => abort
           if (f2.getMZ() - f1.getMZ() > 2.0 * max_mz_span) break;
           //do nothing if one of the features is already removed
@@ -963,31 +966,31 @@ public:
           {
             ++removed;
 
-            log_ << " - Intersection (" << (i + 1) << "/" << (j + 1) << "): " << intersection << std::endl;
+            if (debug_) log_ << " - Intersection (" << (i + 1) << "/" << (j + 1) << "): " << intersection << std::endl;
             if (f1.getCharge() == f2.getCharge())
             {
               if (f1.getIntensity() * f1.getOverallQuality() > f2.getIntensity() * f2.getOverallQuality())
               {
-                log_ << "   - same charge -> removing duplicate " << (j + 1) << std::endl;
+                if (debug_) log_ << "   - same charge -> removing duplicate " << (j + 1) << std::endl;
                 f1.getSubordinates().push_back(f2);
                 f2.setIntensity(0.0);
               }
               else
               {
-                log_ << "   - same charge -> removing duplicate " << (i + 1) << std::endl;
+                if (debug_) log_ << "   - same charge -> removing duplicate " << (i + 1) << std::endl;
                 f2.getSubordinates().push_back(f1);
                 f1.setIntensity(0.0);
               }
             }
             else if (f2.getCharge() % f1.getCharge() == 0)
             {
-              log_ << "   - different charge (one is the multiple of the other) -> removing lower charge " << (i + 1) << std::endl;
+              if (debug_) log_ << "   - different charge (one is the multiple of the other) -> removing lower charge " << (i + 1) << std::endl;
               f2.getSubordinates().push_back(f1);
               f1.setIntensity(0.0);
             }
             else if (f1.getCharge() % f2.getCharge() == 0)
             {
-              log_ << "   - different charge (one is the multiple of the other) -> removing lower charge " << (i + 1) << std::endl;
+              if (debug_) log_ << "   - different charge (one is the multiple of the other) -> removing lower charge " << (i + 1) << std::endl;
               f1.getSubordinates().push_back(f2);
               f2.setIntensity(0.0);
             }
@@ -995,13 +998,13 @@ public:
             {
               if (f1.getOverallQuality() > f2.getOverallQuality())
               {
-                log_ << "   - different charge -> removing lower score " << (j + 1) << std::endl;
+                if (debug_) log_ << "   - different charge -> removing lower score " << (j + 1) << std::endl;
                 f1.getSubordinates().push_back(f2);
                 f2.setIntensity(0.0);
               }
               else
               {
-                log_ << "   - different charge -> removing lower score " << (i + 1) << std::endl;
+                if (debug_) log_ << "   - different charge -> removing lower score " << (i + 1) << std::endl;
                 f2.getSubordinates().push_back(f1);
                 f1.setIntensity(0.0);
               }
@@ -1033,7 +1036,7 @@ public:
       {
         std::cout << "- " << it->first << ": " << it->second << std::endl;
       }
-      if (debug)
+      if (debug_)
       {
         //store map of abort reasons for failed seeds
         FeatureMap<> abort_map;
@@ -1066,7 +1069,7 @@ public:
       std::cout << "Execution time: " << stop_watch.getCPUTime() << " s" << std::endl;
     }
 
-    static FeatureFinderAlgorithm<PeakType, FeatureType> * create()
+    static FeatureFinderAlgorithm<PeakType, FeatureType>* create()
     {
       return new FeatureFinderAlgorithmPicked();
     }
@@ -1081,6 +1084,8 @@ protected:
     MapType map_;
     /// Output stream for log/debug info
     mutable std::ofstream log_;
+    /// debug flag
+    bool debug_;
     /// Array of abort reasons
     std::map<String, UInt> aborts_;
     /// Array of abort reasons
@@ -1143,22 +1148,22 @@ protected:
     }
 
     /// Writes the abort reason to the log file and counts occurrences for each reason
-    void abort_(bool debug, const Seed & seed, const String & reason)
+    void abort_(const Seed& seed, const String& reason)
     {
-      log_ << "Abort: " << reason << std::endl;
+      if (debug_) log_ << "Abort: " << reason << std::endl;
       aborts_[reason]++;
-      if (debug) abort_reasons_[seed] = reason;
+      if (debug_) abort_reasons_[seed] = reason;
     }
 
     /**
      * Calculates the intersection between features.
      * The value is normalized by the size of the smaller feature, so it ranges from 0 to 1.
      */
-    DoubleReal intersection_(const Feature & f1, const Feature & f2) const
+    DoubleReal intersection_(const Feature& f1, const Feature& f2) const
     {
       //calculate the RT range sum of feature 1
       DoubleReal s1 = 0.0;
-      const std::vector<ConvexHull2D> & hulls1 = f1.getConvexHulls();
+      const std::vector<ConvexHull2D>& hulls1 = f1.getConvexHulls();
       for (Size i = 0; i < hulls1.size(); ++i)
       {
         s1 += hulls1[i].getBoundingBox().width();
@@ -1166,7 +1171,7 @@ protected:
 
       //calculate the RT range sum of feature 2
       DoubleReal s2 = 0.0;
-      const std::vector<ConvexHull2D> & hulls2 = f2.getConvexHulls();
+      const std::vector<ConvexHull2D>& hulls2 = f2.getConvexHulls();
       for (Size j = 0; j < hulls2.size(); ++j)
       {
         s2 += hulls2[j].getBoundingBox().width();
@@ -1210,7 +1215,7 @@ protected:
     }
 
     /// Returns the isotope distribution for a certain mass window
-    const TheoreticalIsotopePattern & getIsotopeDistribution_(DoubleReal mass) const
+    const TheoreticalIsotopePattern& getIsotopeDistribution_(DoubleReal mass) const
     {
       //calculate index in the vector
       Size index = (Size) std::floor(mass / mass_window_width_);
@@ -1225,22 +1230,22 @@ protected:
     }
 
     /**
-        @brief Finds the best fitting position of the isotopic pattern estimate defined by @p center
+      @brief Finds the best fitting position of the isotopic pattern estimate defined by @p center
 
-        @param center the maximum peak of the isotope distribution (contains charge as well)
-        @param charge The charge of the pattern
-        @param best_pattern Returns the indices of the isotopic peaks. If a isopopic peak is missing -1 is returned.
+      @param center the maximum peak of the isotope distribution (contains charge as well)
+      @param charge The charge of the pattern
+      @param best_pattern Returns the indices of the isotopic peaks. If a isopopic peak is missing -1 is returned.
     */
-    DoubleReal findBestIsotopeFit_(const Seed & center, UInt charge, IsotopePattern & best_pattern) const
+    DoubleReal findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern) const
     {
-      log_ << "Testing isotope patterns for charge " << charge << ": " << std::endl;
-      const SpectrumType & spectrum = map_[center.spectrum];
-      const TheoreticalIsotopePattern & isotopes = getIsotopeDistribution_(spectrum[center.peak].getMZ() * charge);
-      log_ << " - Seed: " << center.peak << " (mz:" << spectrum[center.peak].getMZ() << ")" << std::endl;
+      if (debug_) log_ << "Testing isotope patterns for charge " << charge << ": " << std::endl;
+      const SpectrumType& spectrum = map_[center.spectrum];
+      const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(spectrum[center.peak].getMZ() * charge);
+      if (debug_) log_ << " - Seed: " << center.peak << " (mz:" << spectrum[center.peak].getMZ() << ")" << std::endl;
 
       //Find m/z boundaries of search space (linear search as this is local and we have the center already)
       DoubleReal mass_window = (DoubleReal)(isotopes.size() + 1) / (DoubleReal)charge;
-      log_ << " - Mass window: " << mass_window << std::endl;
+      if (debug_) log_ << " - Mass window: " << mass_window << std::endl;
       Size end = center.peak;
       while (end < spectrum.size() &&
              spectrum[end].getMZ() < spectrum[center.peak].getMZ() + mass_window)
@@ -1257,8 +1262,8 @@ protected:
         --begin;
       }
       ++begin;
-      log_ << " - Begin: " << begin << " (mz:" << spectrum[begin].getMZ() << ")" << std::endl;
-      log_ << " - End: " << end << " (mz:" << spectrum[end].getMZ() << ")" << std::endl;
+      if (debug_) log_ << " - Begin: " << begin << " (mz:" << spectrum[begin].getMZ() << ")" << std::endl;
+      if (debug_) log_ << " - End: " << end << " (mz:" << spectrum[end].getMZ() << ")" << std::endl;
 
       //fit isotope distribution to peaks
       DoubleReal max_score = 0.0;
@@ -1267,11 +1272,11 @@ protected:
         //find isotope peaks for the current start peak
         Size peak_index = start;
         IsotopePattern pattern(isotopes.size());
-        log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")" << std::endl;
+        if (debug_) log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")" << std::endl;
         for (Size iso = 0; iso < isotopes.size(); ++iso)
         {
           DoubleReal pos = spectrum[start].getMZ() + iso / (DoubleReal)charge;
-          findIsotope_(pos, center.spectrum, pattern, iso, true, peak_index);
+          findIsotope_(pos, center.spectrum, pattern, iso, peak_index);
         }
 
         //check if the seed is contained, otherwise abort
@@ -1286,11 +1291,11 @@ protected:
         }
         if (!seed_contained)
         {
-          log_ << "   - aborting: seed is not contained!" << std::endl;
+          if (debug_) log_ << "   - aborting: seed is not contained!" << std::endl;
           continue;
         }
 
-        DoubleReal score = isotopeScore_(isotopes, pattern, false, true);
+        DoubleReal score = isotopeScore_(isotopes, pattern, false);
 
         //check if the seed is still contained, otherwise abort
         seed_contained = false;
@@ -1305,18 +1310,18 @@ protected:
         }
         if (!seed_contained)
         {
-          log_ << "   - aborting: seed was removed during isotope fit!" << std::endl;
+          if (debug_) log_ << "   - aborting: seed was removed during isotope fit!" << std::endl;
           continue;
         }
 
-        log_ << "   - final score: " << score << std::endl;
+        if (debug_) log_ << "   - final score: " << score << std::endl;
         if (score > max_score)
         {
           max_score = score;
           best_pattern = pattern;
         }
       }
-      log_ << " - best score              : " << max_score << std::endl;
+      if (debug_) log_ << " - best score              : " << max_score << std::endl;
       best_pattern.theoretical_pattern = isotopes;
       return max_score;
     }
@@ -1328,7 +1333,7 @@ protected:
       @param traces The MassTraces datastructure where the extended mass traces will be stored in.
       @param meta_index_overall The index of the data array where the qualtiy scores for the given charge are stored.
     */
-    void extendMassTraces_(const IsotopePattern & pattern, MassTraces & traces, Size meta_index_overall) const
+    void extendMassTraces_(const IsotopePattern& pattern, MassTraces& traces, Size meta_index_overall) const
     {
       //find index of the trace with the maximum intensity
       DoubleReal max_int =  0.0;
@@ -1345,11 +1350,11 @@ protected:
 
       //extend the maximum intensity trace to determine the boundaries in RT dimension
       Size start_index = pattern.spectrum[max_trace_index];
-      const PeakType * start_peak = &(map_[pattern.spectrum[max_trace_index]][pattern.peak[max_trace_index]]);
+      const PeakType* start_peak = &(map_[pattern.spectrum[max_trace_index]][pattern.peak[max_trace_index]]);
       DoubleReal start_mz = start_peak->getMZ();
       DoubleReal start_rt = map_[start_index].getRT();
-      log_ << " - Trace " << max_trace_index << " (maximum intensity)" << std::endl;
-      log_ << "   - extending from: " << map_[start_index].getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")" << std::endl;
+      if (debug_) log_ << " - Trace " << max_trace_index << " (maximum intensity)" << std::endl;
+      if (debug_) log_ << "   - extending from: " << map_[start_index].getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")" << std::endl;
       //initialize the trace and extend
       MassTrace max_trace;
       max_trace.peaks.push_back(std::make_pair(start_rt, start_peak));
@@ -1358,19 +1363,19 @@ protected:
 
       DoubleReal rt_max = max_trace.peaks.back().first;
       DoubleReal rt_min = max_trace.peaks.begin()->first;
-      log_ << "   - rt bounds: " << rt_min << "-" << rt_max << std::endl;
+      if (debug_) log_ << "   - rt bounds: " << rt_min << "-" << rt_max << std::endl;
       //Abort if too few peak were found
       if (!max_trace.isValid() || max_trace.peaks.size() < 2 * min_spectra_ - max_missing_trace_peaks_)
       {
-        log_ << "   - could not extend trace with maximum intensity => abort" << std::endl;
+        if (debug_) log_ << "   - could not extend trace with maximum intensity => abort" << std::endl;
         return;
       }
       for (Size p = 0; p < pattern.peak.size(); ++p)
       {
-        log_ << " - Trace " << p << std::endl;
+        if (debug_) log_ << " - Trace " << p << std::endl;
         if (p == max_trace_index)
         {
-          log_ << "   - previously extended maximum trace" << std::endl;
+          if (debug_) log_ << "   - previously extended maximum trace" << std::endl;
           traces.push_back(max_trace);
           traces.back().theoretical_int = pattern.theoretical_pattern.intensity[p];
           traces.max_trace = traces.size() - 1;
@@ -1381,16 +1386,16 @@ protected:
         starting_peak.peak = pattern.peak[p];
         if (pattern.peak[p] == -2)
         {
-          log_ << "   - removed during isotope fit" << std::endl;
+          if (debug_) log_ << "   - removed during isotope fit" << std::endl;
           continue;
         }
         else if (pattern.peak[p] == -1)
         {
-          log_ << "   - missing" << std::endl;
+          if (debug_) log_ << "   - missing" << std::endl;
           continue;
         }
         starting_peak.intensity = map_[starting_peak.spectrum][starting_peak.peak].getIntensity();
-        log_ << "   - trace seed: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")" << std::endl;
+        if (debug_) log_ << "   - trace seed: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")" << std::endl;
 
         //search for nearby maximum of the mass trace as the extension assumes that it starts at the maximum
         Size begin = std::max((Size)0, starting_peak.spectrum - min_spectra_);
@@ -1422,12 +1427,12 @@ protected:
           starting_peak.peak = peak_index;
           inte = map_[spectrum_index][peak_index].getIntensity();
         }
-        log_ << "   - extending from: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")" << std::endl;
+        if (debug_) log_ << "   - extending from: " << map_[starting_peak.spectrum].getRT() << " / " << map_[starting_peak.spectrum][starting_peak.peak].getMZ() << " (int: " << map_[starting_peak.spectrum][starting_peak.peak].getIntensity() << ")" << std::endl;
 
         //------------------------------------------------------------------
         //Extend seed to a mass trace
         MassTrace trace;
-        const PeakType * seed = &(map_[starting_peak.spectrum][starting_peak.peak]);
+        const PeakType* seed = &(map_[starting_peak.spectrum][starting_peak.peak]);
         //initialize trace with seed data and extend
         trace.peaks.push_back(std::make_pair(map_[starting_peak.spectrum].getRT(), seed));
         extendMassTrace_(trace, starting_peak.spectrum, seed->getMZ(), false, meta_index_overall, rt_min, rt_max);
@@ -1436,7 +1441,7 @@ protected:
         //check if enough peaks were found
         if (!trace.isValid())
         {
-          log_ << "   - could not extend trace " << std::endl;
+          if (debug_) log_ << "   - could not extend trace " << std::endl;
           //Missing traces in the middle of a pattern are not acceptable => fix this
           if (p < traces.max_trace)
           {
@@ -1454,24 +1459,24 @@ protected:
     }
 
     /**
-        @brief Extends a single mass trace in one RT direction
+      @brief Extends a single mass trace in one RT direction
 
-        How to use this method:
+      How to use this method:
         - Add the starting peak to the @p trace
-- Indicate using @c increase_rt whether to extend in downstream or upstream direction
-@param trace The trace that should be extended
-@param spectrum_index The index of the spectrum from which on the mass trace should be extended
-@param mz The mz location (center) of the trace
-@param increase_rt Indicator whether the extension is done in forward or backward direction (with respect to the current spectrum)
-@param meta_index_overall The index of the overall score
-@param min_rt The rt minimum up to which the trace will be extended.
-@param max_rt The rt maximum up to which the trace will be extended.
+        - Indicate using @c increase_rt whether to extend in downstream or upstream direction
 
-@note This method assumes that it extends from a local maximum.
-@note If @c min_rt or @c max_rt are set to 0.0 no boundary is assumed in the respective direction.
+      @param trace The trace that should be extended
+      @param spectrum_index The index of the spectrum from which on the mass trace should be extended
+      @param mz The mz location (center) of the trace
+      @param increase_rt Indicator whether the extension is done in forward or backward direction (with respect to the current spectrum)
+      @param meta_index_overall The index of the overall score
+      @param min_rt The rt minimum up to which the trace will be extended.
+      @param max_rt The rt maximum up to which the trace will be extended.
 
+      @note This method assumes that it extends from a local maximum.
+      @note If @c min_rt or @c max_rt are set to 0.0 no boundary is assumed in the respective direction.
     */
-    void extendMassTrace_(MassTrace & trace, SignedSize spectrum_index, DoubleReal mz, bool increase_rt, Size meta_index_overall, DoubleReal min_rt = 0.0, DoubleReal max_rt = 0.0) const
+    void extendMassTrace_(MassTrace& trace, SignedSize spectrum_index, DoubleReal mz, bool increase_rt, Size meta_index_overall, DoubleReal min_rt = 0.0, DoubleReal max_rt = 0.0) const
     {
       //Reverse peaks if we run the method for the second time (to keep them in chronological order)
       if (increase_rt)
@@ -1568,12 +1573,12 @@ protected:
         if (increase_rt) ++spectrum_index;
         else --spectrum_index;
       }
-      log_ << "   - Added " << (trace.peaks.size() - peaks_before_extension) << " peaks (abort: " << abort_reason << ")" << std::endl;
+      if (debug_) log_ << "   - Added " << (trace.peaks.size() - peaks_before_extension) << " peaks (abort: " << abort_reason << ")" << std::endl;
     }
 
     /// Returns the index of the peak nearest to m/z @p pos in spectrum @p spec (linear search starting from index @p start)
     template <typename SpectrumType>
-    Size nearest_(DoubleReal pos, const SpectrumType & spec, Size start) const
+    Size nearest_(DoubleReal pos, const SpectrumType& spec, Size start) const
     {
       Size index = start;
       DoubleReal distance = std::fabs(pos - spec[index].getMZ());
@@ -1595,32 +1600,31 @@ protected:
     }
 
     /**
-        @brief Searches for an isotopic peak in the current spectrum and the adjacent spectra
+      @brief Searches for an isotopic peak in the current spectrum and the adjacent spectra
 
-        @param pos m/z position of the searched for peak
-        @param spectrum_index index of the central spectrum
-        @param pattern IsotopePattern to store found peaks
-        @param pattern_index index of the isotope in the pattern
-        @param debug Flag that turn on debug info
-        @param peak_index starting index of the search (to avoid multiple binary searches)
+      @param pos m/z position of the searched for peak
+      @param spectrum_index index of the central spectrum
+      @param pattern IsotopePattern to store found peaks
+      @param pattern_index index of the isotope in the pattern
+      @param peak_index starting index of the search (to avoid multiple binary searches)
     */
-    void findIsotope_(DoubleReal pos, Size spectrum_index, IsotopePattern & pattern, Size pattern_index, bool debug, Size & peak_index) const
+    void findIsotope_(DoubleReal pos, Size spectrum_index, IsotopePattern& pattern, Size pattern_index, Size& peak_index) const
     {
-      if (debug) log_ << "   - Isotope " << pattern_index << ": ";
+      if (debug_) log_ << "   - Isotope " << pattern_index << ": ";
 
       DoubleReal intensity = 0.0;
       DoubleReal pos_score = 0.0;
       UInt matches = 0;
 
       //search in the center spectrum
-      const SpectrumType & spectrum = map_[spectrum_index];
+      const SpectrumType& spectrum = map_[spectrum_index];
       peak_index = nearest_(pos, spectrum, peak_index);
       DoubleReal mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
       pattern.theoretical_mz[pattern_index] = pos;
 
       if (mz_score != 0.0)
       {
-        if (debug) log_ << String::number(spectrum[peak_index].getIntensity(), 1) << " ";
+        if (debug_) log_ << String::number(spectrum[peak_index].getIntensity(), 1) << " ";
         pattern.peak[pattern_index] = peak_index;
         pattern.spectrum[pattern_index] = spectrum_index;
         intensity += spectrum[peak_index].getIntensity();
@@ -1631,12 +1635,12 @@ protected:
       //previous spectrum
       if (spectrum_index != 0 && !map_[spectrum_index - 1].empty())
       {
-        const SpectrumType & spectrum_before = map_[spectrum_index - 1];
+        const SpectrumType& spectrum_before = map_[spectrum_index - 1];
         Size index_before = spectrum_before.findNearest(pos);
         DoubleReal mz_score = positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_);
         if (mz_score != 0.0)
         {
-          if (debug) log_ << String::number(spectrum_before[index_before].getIntensity(), 1) << "b ";
+          if (debug_) log_ << String::number(spectrum_before[index_before].getIntensity(), 1) << "b ";
           intensity += spectrum_before[index_before].getIntensity();
           pos_score += mz_score;
           ++matches;
@@ -1651,12 +1655,12 @@ protected:
       //next spectrum
       if (spectrum_index != map_.size() - 1 && !map_[spectrum_index + 1].empty())
       {
-        const SpectrumType & spectrum_after = map_[spectrum_index + 1];
+        const SpectrumType& spectrum_after = map_[spectrum_index + 1];
         Size index_after = spectrum_after.findNearest(pos);
         DoubleReal mz_score = positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_);
         if (mz_score != 0.0)
         {
-          if (debug) log_ << String::number(spectrum_after[index_after].getIntensity(), 1) << "a ";
+          if (debug_) log_ << String::number(spectrum_after[index_after].getIntensity(), 1) << "a ";
           intensity += spectrum_after[index_after].getIntensity();
           pos_score += mz_score;
           ++matches;
@@ -1671,14 +1675,14 @@ protected:
       //no isotope found
       if (matches == 0)
       {
-        if (debug) log_ << " missing" << std::endl;
+        if (debug_) log_ << " missing" << std::endl;
         pattern.peak[pattern_index] = -1;
         pattern.mz_score[pattern_index] = 0.0;
         pattern.intensity[pattern_index] = 0.0;
       }
       else
       {
-        if (debug) log_ << "=> " << intensity / matches << std::endl;
+        if (debug_) log_ << "=> " << intensity / matches << std::endl;
         pattern.mz_score[pattern_index] = pos_score / matches;
         pattern.intensity[pattern_index] = intensity / matches;
       }
@@ -1700,15 +1704,15 @@ protected:
     }
 
     /// Calculates a score between 0 and 1 for the correlation between theoretical and found isotope pattern
-    DoubleReal isotopeScore_(const TheoreticalIsotopePattern & isotopes, IsotopePattern & pattern, bool consider_mz_distances, bool debug) const
+    DoubleReal isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool consider_mz_distances) const
     {
-      if (debug) log_ << "   - fitting " << pattern.intensity.size() << " peaks" << std::endl;
+      if (debug_) log_ << "   - fitting " << pattern.intensity.size() << " peaks" << std::endl;
       //Abort if a core peak is missing
       for (Size iso = 0 + isotopes.optional_begin; iso < pattern.peak.size() - isotopes.optional_end; ++iso)
       {
         if (pattern.peak[iso] == -1)
         {
-          if (debug) log_ << "   - aborting: core peak is missing" << std::endl;
+          if (debug_) log_ << "   - aborting: core peak is missing" << std::endl;
           return 0.0;
         }
       }
@@ -1734,7 +1738,7 @@ protected:
           break;
         }
       }
-      if (debug) log_ << "   - best_begin/end: " << best_begin << "/" << best_end << std::endl;
+      if (debug_) log_ << "   - best_begin/end: " << best_begin << "/" << best_end << std::endl;
       for (Size b = best_begin; b <= isotopes.optional_begin; ++b)
       {
         for (Size e = best_end; e <= isotopes.optional_end; ++e)
@@ -1747,15 +1751,15 @@ protected:
             DoubleReal int_score = Math::pearsonCorrelationCoefficient(isotopes.intensity.begin() + b, isotopes.intensity.end() - e, pattern.intensity.begin() + b, pattern.intensity.end() - e);
             if (boost::math::isnan(int_score)) int_score = 0.0;
             if (isotopes.size() - b - e == 2 && int_score > min_isotope_fit_) int_score = min_isotope_fit_;         //special case for the first loop iteration (otherwise the score is 1)
-            if (debug) log_ << "   - fit (" << b << "/" << e << "): " << int_score;
+            if (debug_) log_ << "   - fit (" << b << "/" << e << "): " << int_score;
             if (int_score / best_int_score >= 1.0 + optional_fit_improvement_)
             {
-              if (debug) log_ << " - new best fit ";
+              if (debug_) log_ << " - new best fit ";
               best_int_score = int_score;
               best_begin = b;
               best_end = e;
             }
-            if (debug) log_ << std::endl;
+            if (debug_) log_ << std::endl;
           }
         }
       }
@@ -1793,15 +1797,15 @@ protected:
     }
 
     /**
-    @brief Compute the intensity score for the peak @p peak in spectrum @p spectrum.
+      @brief Compute the intensity score for the peak @p peak in spectrum @p spectrum.
 
-    The intensity score is computed by interpolating the score between the 4 nearest intensity
-    bins. The scores from the different bins are weighted by the distance of the bin center to
-    the peak.
+      The intensity score is computed by interpolating the score between the 4 nearest intensity
+      bins. The scores from the different bins are weighted by the distance of the bin center to
+      the peak.
 
-    @param spectrum Index of the spectrum we are currently looking at
-    @param peak Index of the peak that should be scored inside the spectrum @p spectrum
-     */
+      @param spectrum Index of the spectrum we are currently looking at
+      @param peak Index of the peak that should be scored inside the spectrum @p spectrum
+    */
     DoubleReal intensityScore_(Size spectrum, Size peak) const
     {
       // calculate (half) bin numbers
@@ -1871,12 +1875,12 @@ protected:
     }
 
     /**
-    @brief Choose a the best trace fitter for the current mass traces based on the user parameter
-           (symmetric, asymmetric) or based on an inspection of the mass trace (auto)
+      @brief Choose a the best trace fitter for the current mass traces based on the user parameter
+             (symmetric, asymmetric) or based on an inspection of the mass trace (auto)
 
-    @return A pointer to the trace fitter that should be used.
+      @return A pointer to the trace fitter that should be used.
      */
-    TraceFitter<PeakType> * chooseTraceFitter_(double & tau)
+    TraceFitter<PeakType>* chooseTraceFitter_(double& tau)
     {
       // choose fitter
       if (param_.getValue("feature:rt_shape") == "asymmetric")
@@ -1895,7 +1899,7 @@ protected:
     DoubleReal intensityScore_(Size rt_bin, Size mz_bin, DoubleReal intensity) const
     {
       // interpolate score value according to quantiles(20)
-      const std::vector<DoubleReal> & quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
+      const std::vector<DoubleReal>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
       // get iterator pointing to quantile that is >= intensity
       std::vector<DoubleReal>::const_iterator it = std::lower_bound(quantiles20.begin(), quantiles20.end(), intensity);
       // bigger than the biggest value => return 1.0
@@ -1930,28 +1934,29 @@ protected:
       @name Handling of fitted mass traces
 
       Methods to handle the results of the mass trace fitting process.
-       */
+    */
     //@{
-    /**
-    @brief Creates new mass traces @p new_traces based on the fitting result and the
-           original traces @p traces.
 
-    @param fitter The TraceFitter containing the results from the rt profile fitting step.
-    @param traces Original mass traces found in the experiment.
-    @param new_traces Mass traces created by cropping the original mass traces.
+    /**
+      @brief Creates new mass traces @p new_traces based on the fitting result and the
+      original traces @p traces.
+
+      @param fitter The TraceFitter containing the results from the rt profile fitting step.
+      @param traces Original mass traces found in the experiment.
+      @param new_traces Mass traces created by cropping the original mass traces.
      */
-    void cropFeature_(TraceFitter<PeakType> * fitter,
-                      const MassTraces & traces,
-                      MassTraces & new_traces)
+    void cropFeature_(TraceFitter<PeakType>* fitter,
+                      const MassTraces& traces,
+                      MassTraces& new_traces)
     {
       DoubleReal low_bound = fitter->getLowerRTBound();
       DoubleReal high_bound = fitter->getUpperRTBound();
 
-      log_ << "    => RT bounds: " << low_bound << " - " << high_bound << std::endl;
+      if (debug_) log_ << "    => RT bounds: " << low_bound << " - " << high_bound << std::endl;
       for (Size t = 0; t < traces.size(); ++t)
       {
-        const MassTrace & trace = traces[t];
-        log_ << "   - Trace " << t << ": (" << trace.theoretical_int << ")" << std::endl;
+        const MassTrace& trace = traces[t];
+        if (debug_) log_ << "   - Trace " << t << ": (" << trace.theoretical_int << ")" << std::endl;
 
         MassTrace new_trace;
         //compute average relative deviation and correlation
@@ -1981,26 +1986,26 @@ protected:
           correlation = std::max(0.0, Math::pearsonCorrelationCoefficient(v_theo.begin(), v_theo.end(), v_real.begin(), v_real.end()));
           final_score = std::sqrt(correlation * std::max(0.0, 1.0 - fit_score));
         }
-        log_ << "     - peaks: " << new_trace.peaks.size() << " / " << trace.peaks.size() << " - relative deviation: " << fit_score << " - correlation: " << correlation << " - final score: " << correlation << std::endl;
+        if (debug_) log_ << "     - peaks: " << new_trace.peaks.size() << " / " << trace.peaks.size() << " - relative deviation: " << fit_score << " - correlation: " << correlation << " - final score: " << correlation << std::endl;
         //remove badly fitting traces
         if (!new_trace.isValid() || final_score < min_trace_score_)
         {
           if (t < traces.max_trace)
           {
             new_traces = MassTraces();
-            log_ << "     - removed this and previous traces due to bad fit" << std::endl;
+            if (debug_) log_ << "     - removed this and previous traces due to bad fit" << std::endl;
             new_traces.clear();   //remove earlier traces
             continue;
           }
           else if (t == traces.max_trace)
           {
             new_traces = MassTraces();
-            log_ << "     - aborting (max trace was removed)" << std::endl;
+            if (debug_) log_ << "     - aborting (max trace was removed)" << std::endl;
             break;
           }
           else if (t > traces.max_trace)
           {
-            log_ << "     - removed due to bad fit => omitting the rest" << std::endl;
+            if (debug_) log_ << "     - removed due to bad fit => omitting the rest" << std::endl;
             break;   //no more traces are possible
           }
         }
@@ -2019,31 +2024,32 @@ protected:
     }
 
     /**
-    @brief Checks the feature based on different score thresholds and model constraints
+      @brief Checks the feature based on different score thresholds and model constraints
 
-    Feature can get invalid for following reasons:
-    <ul>
-     <li>Invalid fit: Fitted model is bigger than 'max_rt_span'</li>
-     <li>Invalid feature after fit - too few traces or peaks left</li>
-     <li>Invalid fit: Center outside of feature bounds</li>
-     <li>Invalid fit: Less than 'min_rt_span' left after fit</li>
-     <li>Feature quality too low after fit</li>
-    </ul>
+      Feature can get invalid for following reasons:
+      <ul>
+        <li>Invalid fit: Fitted model is bigger than 'max_rt_span'</li>
+        <li>Invalid feature after fit - too few traces or peaks left</li>
+        <li>Invalid fit: Center outside of feature bounds</li>
+        <li>Invalid fit: Less than 'min_rt_span' left after fit</li>
+        <li>Feature quality too low after fit</li>
+      </ul>
 
-    @param fitter The TraceFitter containing the results from the rt profile fitting step.
-    @param feature_traces Cropped feature mass traces.
-    @param seed_mz Mz of the seed
-    @param min_feature_score Minimal required feature score
-    @param error_msg Will be filled with the error message, if the feature is invalid
-    @param fit_score Will be filled with the fit score
-    @param correlation Will be filled with correlation between feature and model
-    @param final_score Will be filled with the final score
-    @return true if the feature is valid
+      @param fitter The TraceFitter containing the results from the rt profile fitting step.
+      @param feature_traces Cropped feature mass traces.
+      @param seed_mz Mz of the seed
+      @param min_feature_score Minimal required feature score
+      @param error_msg Will be filled with the error message, if the feature is invalid
+      @param fit_score Will be filled with the fit score
+      @param correlation Will be filled with correlation between feature and model
+      @param final_score Will be filled with the final score
+
+      @return true if the feature is valid
      */
-    bool checkFeatureQuality_(TraceFitter<PeakType> * fitter,
-                              MassTraces & feature_traces,
-                              const DoubleReal & seed_mz, const DoubleReal & min_feature_score,
-                              String & error_msg, DoubleReal & fit_score, DoubleReal & correlation, DoubleReal & final_score)
+    bool checkFeatureQuality_(TraceFitter<PeakType>* fitter,
+                              MassTraces& feature_traces,
+                              const DoubleReal& seed_mz, const DoubleReal& min_feature_score,
+                              String& error_msg, DoubleReal& fit_score, DoubleReal& correlation, DoubleReal& final_score)
     {
       bool feature_ok = true;
 
@@ -2094,7 +2100,7 @@ protected:
         DoubleReal deviation = 0.0;
         for (Size t = 0; t < feature_traces.size(); ++t)
         {
-          MassTrace & trace = feature_traces[t];
+          MassTrace& trace = feature_traces[t];
           for (Size k = 0; k < trace.peaks.size(); ++k)
           {
             // was DoubleReal theo = new_traces.baseline + trace.theoretical_int *  height * exp(-0.5 * pow(trace.peaks[k].first - x0, 2) / pow(sigma, 2) );
@@ -2116,32 +2122,35 @@ protected:
         }
 
         //quality output
-        log_ << "Quality estimation:" << std::endl;
-        log_ << " - relative deviation: " << fit_score << std::endl;
-        log_ << " - correlation: " << correlation << std::endl;
-        log_ << " => final score: " << final_score << std::endl;
+        if (debug_)
+        {
+          log_ << "Quality estimation:" << std::endl;
+          log_ << " - relative deviation: " << fit_score << std::endl;
+          log_ << " - correlation: " << correlation << std::endl;
+          log_ << " => final score: " << final_score << std::endl;
+        }
       }
 
       return feature_ok;
     }
 
     /**
-    @brief Creates several files containing plots and viewable data of the fitted mass trace
+      @brief Creates several files containing plots and viewable data of the fitted mass trace
 
-    @param fitter The TraceFitter containing the results from the rt profile fitting step.
-    @param traces Original mass traces found in the spectra
-    @param new_traces Cropped feature mass traces
-    @param feature_ok Status of the feature
-    @param error_msg If the feature is invalid, @p error_msg contains the reason
-    @param final_score Final score of the feature
-    @param plot_nr Index of the feature
-    @param peak The Seed Peak
-    @param path The path where to put the debug files (default is debug/features)
-     */
-    void writeFeatureDebugInfo_(TraceFitter<PeakType> * fitter,
-                                const MassTraces & traces,
-                                const MassTraces & new_traces,
-                                bool feature_ok, const String error_msg, const DoubleReal final_score, const Int plot_nr, const PeakType & peak,
+      @param fitter The TraceFitter containing the results from the rt profile fitting step.
+      @param traces Original mass traces found in the spectra
+      @param new_traces Cropped feature mass traces
+      @param feature_ok Status of the feature
+      @param error_msg If the feature is invalid, @p error_msg contains the reason
+      @param final_score Final score of the feature
+      @param plot_nr Index of the feature
+      @param peak The Seed Peak
+      @param path The path where to put the debug files (default is debug/features)
+    */
+    void writeFeatureDebugInfo_(TraceFitter<PeakType>* fitter,
+                                const MassTraces& traces,
+                                const MassTraces& new_traces,
+                                bool feature_ok, const String error_msg, const DoubleReal final_score, const Int plot_nr, const PeakType& peak,
                                 const String path  = "debug/features/")
     {
 
@@ -2207,9 +2216,9 @@ protected:
 private:
 
     /// Not implemented
-    FeatureFinderAlgorithmPicked & operator=(const FeatureFinderAlgorithmPicked &);
+    FeatureFinderAlgorithmPicked& operator=(const FeatureFinderAlgorithmPicked&);
     /// Not implemented
-    FeatureFinderAlgorithmPicked(const FeatureFinderAlgorithmPicked &);
+    FeatureFinderAlgorithmPicked(const FeatureFinderAlgorithmPicked&);
   };
 
 } // namespace OpenMS
