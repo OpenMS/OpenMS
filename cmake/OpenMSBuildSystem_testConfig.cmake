@@ -25,9 +25,10 @@ endif()
 MACRO (OPENMS_FINDBINARY varname binaryname name)
   find_program(${varname} ${binaryname} PATHS ENV PATH)
   if (${${varname}} STREQUAL "${varname}-NOTFOUND")
-    message(STATUS "  - ${name} not found.")
+    message(STATUS "  - ${name} not found")
   else()
-    message(STATUS "  + ${name} binary found at ${binaryname}. Enabling corresponding tests.")
+    get_filename_component(found_executable_name ${${varname}} NAME)
+    message(STATUS "  + ${name} binary found at ${found_executable_name} -> Enabling corresponding tests.")
   endif()  
 ENDMACRO (OPENMS_FINDBINARY)
 
@@ -37,7 +38,7 @@ message(STATUS "Searching for MS2 search engines ...")
 OPENMS_FINDBINARY(OMSSA_BINARY "omssacl" "OMSSA")
 
 ## X!Tandem
-OPENMS_FINDBINARY(XTANDEM_BINARY "tandem" "X!Tandem")
+OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X!Tandem")
 
 ## MyriMatch
 OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
