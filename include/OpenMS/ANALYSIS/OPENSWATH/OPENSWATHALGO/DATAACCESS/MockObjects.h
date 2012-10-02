@@ -152,7 +152,7 @@ public:
     {
     }
 
-    double getValueAtRT(double RT)
+    double getValueAtRT(double /* RT */)
     {
       return m_sn_value;
     }
