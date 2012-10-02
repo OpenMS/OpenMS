@@ -273,9 +273,14 @@ protected:
 
     std::vector<std::pair<double, double> > pairs_corrected;
     pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage);
-    // store transformation
+
+    // store transformation, using a linear model as default
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
+    Param model_params;
+    model_params.setValue("symmetric_regression", "false");
+    String model_type = "linear";
+    trafo_out.fitModel(model_type, model_params);
     trafoxml.store(out, trafo_out);
 
     if (out_xic.size() > 0)
