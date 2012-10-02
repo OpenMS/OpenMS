@@ -36,34 +36,34 @@
 
 namespace OpenMS
 {
-  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(OpenMS::MSSpectrum<> * spectrum, const OpenSwath::SpectrumPtr sptr)
+  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(OpenMS::MSSpectrum<> & spectrum, const OpenSwath::SpectrumPtr sptr)
   {
     // recreate a spectrum from the data arrays!
     OpenSwath::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
     OpenSwath::BinaryDataArrayPtr int_arr = sptr->getIntensityArray();
-    spectrum->reserve(mz_arr->data.size());
+    spectrum.reserve(mz_arr->data.size());
     for (Size i = 0; i < mz_arr->data.size(); i++)
     {
       Peak1D p;
       p.setMZ(mz_arr->data[i]);
       p.setIntensity(int_arr->data[i]);
-      spectrum->push_back(p);
+      spectrum.push_back(p);
     }
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram<> * chromatogram,
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram,
                                                               const OpenSwath::ChromatogramPtr cptr)
   {
     // recreate a spectrum from the data arrays!
     OpenSwath::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();
     OpenSwath::BinaryDataArrayPtr int_arr = cptr->getIntensityArray();
-    chromatogram->reserve(rt_arr->data.size());
+    chromatogram.reserve(rt_arr->data.size());
     for (Size i = 0; i < rt_arr->data.size(); i++)
     {
       ChromatogramPeak p;
       p.setRT(rt_arr->data[i]);
       p.setIntensity(int_arr->data[i]);
-      chromatogram->push_back(p);
+      chromatogram.push_back(p);
     }
   }
 

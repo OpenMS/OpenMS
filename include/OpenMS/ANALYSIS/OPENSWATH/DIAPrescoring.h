@@ -76,14 +76,14 @@ namespace OpenMS
 
 
     DiaPrescore() :
-      DefaultParamHandler("DIAPrescore2"), nr_isotopes(4), nr_charges(4)
+      DefaultParamHandler("DIAPrescore"), dia_extract_window_(0.1), nr_isotopes(4), nr_charges(4)
     {
       defineDefaults();
     }
 
     void defineDefaults()
     {
-      defaults_.setValue("dia_extraction_window", 0.05,
+      defaults_.setValue("dia_extraction_window", 0.1,
                          "DIA extraction window in Th.");
       defaults_.setMinFloat("dia_extraction_window", 0.0);   //done
       defaultsToParam_();

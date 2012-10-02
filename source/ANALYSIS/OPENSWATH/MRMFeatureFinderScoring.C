@@ -160,7 +160,7 @@ namespace OpenMS
         }
         continue;
       }
-      MSChromatogram<ChromatogramPeak> * chromatogram_old = new MSChromatogram<ChromatogramPeak>;
+      MSChromatogram<ChromatogramPeak> chromatogram_old;
       OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
       OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
       RichPeakChromatogram chromatogram;
@@ -176,7 +176,7 @@ namespace OpenMS
       double de_normalized_experimental_rt = trafo.apply(expected_rt);
       rt_max = de_normalized_experimental_rt + rt_extraction_window;
       rt_min = de_normalized_experimental_rt - rt_extraction_window;
-      for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old->begin(); it != chromatogram_old->end(); ++it)
+      for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
       {
         if (rt_extraction_window >= 0 && (it->getRT() < rt_min || it->getRT() > rt_max))
         {
@@ -216,7 +216,6 @@ namespace OpenMS
       transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
 
       setProgress(++progress);
-      delete chromatogram_old;
     }
     endProgress();
 

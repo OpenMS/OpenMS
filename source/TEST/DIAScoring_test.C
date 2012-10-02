@@ -469,19 +469,76 @@ START_SECTION ( void dia_by_ion_score(SpectrumType & spectrum, AASequence & sequ
 }
 END_SECTION
 
-START_SECTION (void integrateWindows(const SpectrumType spectrum, const double & mz_start, const double & mz_end, double & mz, double & intensity, bool centroided))
-{
-  // TODO is tested above, maybe seperate test here?
-}
-END_SECTION
 
 START_SECTION((void set_dia_parameters(double dia_extract_window, double dia_centroided, double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges)))
 {
   NOT_TESTABLE
 }
 END_SECTION
+
 START_SECTION((void score_with_isotopes(SpectrumType spectrum, const std::vector<TransitionType> & transitions, double & dotprod, double & manhattan);))
-// TODO (wolski): write tests
+{
+  OpenSwath::LightTransition mock_tr1;
+  mock_tr1.product_mz = 500.;
+  mock_tr1.charge = 1;
+  mock_tr1.transition_name = "group1";
+
+  OpenSwath::LightTransition mock_tr2;
+  mock_tr2.product_mz = 600.;
+  mock_tr2.charge = 1;
+  mock_tr2.transition_name = "group2";
+
+
+  static const double arr1[] = {
+
+    10, 20, 50, 100, 50, 20, 10, // peak at 499
+    3, 7, 15, 30, 15, 7, 3,      // peak at 500
+    1, 3, 9, 15, 9, 3, 1,        // peak at 501
+    3, 9, 3,                     // peak at 502
+
+
+    10, 20, 50, 100, 50, 20, 10, // peak at 600
+    3, 7, 15, 30, 15, 7, 3,      // peak at 601
+    1, 3, 9, 15, 9, 3, 1,        // peak at 602
+    3, 9, 3                      // peak at 603
+  };
+  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(double) );
+  static const double arr2[] = {
+
+    498.97, 498.98, 498.99, 499.0, 499.01, 499.02, 499.03,
+    499.97, 499.98, 499.99, 500.0, 500.01, 500.02, 500.03,
+    500.97, 500.98, 500.99, 501.0, 501.01, 501.02, 501.03,
+    501.99, 502.0, 502.01,
+
+    599.97, 599.98, 599.99, 600.0, 600.01, 600.02, 600.03,
+    600.97, 600.98, 600.99, 601.0, 601.01, 601.02, 601.03,
+    601.97, 601.98, 601.99, 602.0, 602.01, 602.02, 602.03,
+    602.99, 603.0, 603.01
+  };
+
+  OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
+  std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
+  OpenSwath::BinaryDataArrayPtr data1(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr data2(new OpenSwath::BinaryDataArray);
+
+  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(double) );
+  data1->data = mz;
+  data2->data = intensity;
+  binaryDataArrayPtrs.push_back(data1);
+  binaryDataArrayPtrs.push_back(data2);
+  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+  std::vector<OpenSwath::LightTransition> transitions;
+  transitions.push_back(mock_tr1);
+  transitions.push_back(mock_tr2);
+
+  DIAScoring diascoring;
+  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
+  double dotprod, manhattan;
+  diascoring.score_with_isotopes(sptr,transitions,dotprod,manhattan);
+  std::cout << dotprod << manhattan << std::endl;
+  TEST_REAL_SIMILAR (dotprod, 0.778866762463421);
+  TEST_REAL_SIMILAR (manhattan, 0.557408134572686);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

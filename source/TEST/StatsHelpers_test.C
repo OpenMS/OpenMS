@@ -34,88 +34,42 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
 
 using namespace std;
 using namespace OpenMS;
 using namespace OpenSwath;
+
 
 START_TEST(DiaPrescore2, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-
-
 START_SECTION ( testscorefunction)
 {
-
-
-  OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
-  std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-  OpenSwath::BinaryDataArrayPtr data1(new OpenSwath::BinaryDataArray);
-  OpenSwath::BinaryDataArrayPtr data2(new OpenSwath::BinaryDataArray);
-
   static const double arr1[] = {
-
-    10, 20, 50, 100, 50, 20, 10, // peak at 499
-    3, 7, 15, 30, 15, 7, 3,      // peak at 500
-    1, 3, 9, 15, 9, 3, 1,        // peak at 501
-    3, 9, 3,                     // peak at 502
-
     10, 20, 50, 100, 50, 20, 10, // peak at 600
     3, 7, 15, 30, 15, 7, 3,      // peak at 601
     1, 3, 9, 15, 9, 3, 1,        // peak at 602
     3, 9, 3                      // peak at 603
   };
-  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(double) );
   static const double arr2[] = {
-    498.97, 498.98, 498.99, 499.0, 499.01, 499.02, 499.03,
-    499.97, 499.98, 499.99, 500.0, 500.01, 500.02, 500.03,
-    500.97, 500.98, 500.99, 501.0, 501.01, 501.02, 501.03,
-    501.99, 502.0, 502.01,
     599.97, 599.98, 599.99, 600.0, 600.01, 600.02, 600.03,
     600.97, 600.98, 600.99, 601.0, 601.01, 601.02, 601.03,
     601.97, 601.98, 601.99, 602.0, 602.01, 602.02, 602.03,
     602.99, 603.0, 603.01
   };
-  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
-  data1->data = mz;
-  data2->data = intensity;
-  binaryDataArrayPtrs.push_back(data1);
-  binaryDataArrayPtrs.push_back(data2);
-  sptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
-  double mzres, intensityres;
-  OpenSwath::integrateWindow(sptr,499.,501.,mzres, intensityres);
-
-  TEST_REAL_SIMILAR(mzres, 499.392014652015);
-  TEST_REAL_SIMILAR(intensityres,273 );
-
-
-  // >>> exp = [240, 74, 39, 15, 0] >> 121 / 500.338842975207
-  // >>> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
-  // >>> from scipy.stats.stats import pearsonr
-  // >>> pearsonr(exp, theo)
-  // (0.99463189043051314, 0.00047175434098498532)
-  //
-  OpenSwath::integrateWindow(sptr,499.6,501.4,mzres, intensityres);
-
-  std::cout << "mz" << mzres << std::endl;
-  std::cout << "intensity" << intensityres << std::endl;
-  TEST_REAL_SIMILAR(mzres, 500.338842975207);
-  TEST_REAL_SIMILAR(intensityres,121 );
-
-  std::vector<double> wincenter, mzresv, intresv;
-  wincenter.push_back(300.);
-  wincenter.push_back(200.);
-  wincenter.push_back(500.);
-  wincenter.push_back(600.);
-  OpenSwath::integrateWindows(sptr,wincenter,0.5, intresv, mzresv);
-  TEST_REAL_SIMILAR(mzresv[0], 300);
-  TEST_REAL_SIMILAR(intresv[0],0 );
-  TEST_REAL_SIMILAR(mzresv[1],200 );
-  TEST_REAL_SIMILAR(intresv[1],0 );
+  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(double) );
+  double norm = OpenSwath::norm(mz.begin(),mz.end());
+  std::vector<double> normalized;
+  OpenSwath::normalize(mz,norm,normalized);
+  TEST_REAL_SIMILAR(OpenSwath::norm(normalized.begin(),normalized.end()), 1.);
+  double x = dotProd(normalized.begin(),normalized.end(),normalized.begin());
+  TEST_REAL_SIMILAR(x, 1.);
+  double man = manhattanDist(normalized.begin(),normalized.end(),normalized.begin());
+  TEST_REAL_SIMILAR(man, 0.);
 }
 END_SECTION
 

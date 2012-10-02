@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski, Hannes Roest  $
-// $Authors: Witold Wolski, Hannes Roest $
+// $Maintainer: Witold Wolski  $
+// $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
 #ifndef OPENSWATH_ALGO_STATSHELPERS_H_
@@ -96,21 +96,7 @@ namespace OpenSwath
     normalize by vector norm
     compute dotprod
   */
-  inline double dotprodScoring(std::vector<double> intExp, std::vector<double> theorint)
-  {
-    for (unsigned int i = 0; i < intExp.size(); ++i)
-    {
-      intExp[i] = sqrt(intExp[i]);
-      theorint[i] = sqrt(theorint[i]);
-    }
-
-    double intExptotal = norm(intExp.begin(), intExp.end());
-    double intTheorTotal = norm(theorint.begin(), theorint.end());
-    OpenSwath::normalize(intExp, intExptotal, intExp);
-    OpenSwath::normalize(theorint, intTheorTotal, theorint);
-    double score2 = OpenSwath::dotProd(intExp.begin(), intExp.end(), theorint.begin());
-    return score2;
-  }
+  double dotprodScoring(std::vector<double> intExp, std::vector<double> theorint);
 
   /**
     @brief compute manhattan distance between Exp and Theo
@@ -135,24 +121,7 @@ namespace OpenSwath
     normalize vector by TIC
     compute manhattan score
    */
-  inline double manhattanScoring(std::vector<double> intExp, std::vector<double> theorint)
-  {
-
-    for (unsigned int i = 0; i < intExp.size(); ++i)
-    {
-      intExp[i] = sqrt(intExp[i]);
-      theorint[i] = sqrt(theorint[i]);
-      //std::transform(intExp.begin(), intExp.end(), intExp.begin(), sqrt);
-      //std::transform(theorint.begin(), theorint.end(), theorint.begin(), sqrt);
-    }
-
-    double intExptotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
-    double intTheorTotal = std::accumulate(theorint.begin(), theorint.end(), 0.0);
-    OpenSwath::normalize(intExp, intExptotal, intExp);
-    OpenSwath::normalize(theorint, intTheorTotal, theorint);
-    double score2 = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
-    return score2;
-  }
+  double manhattanScoring(std::vector<double> intExp, std::vector<double> theorint);
 
 
 /**
@@ -265,7 +234,7 @@ public:
 
   };
 
-}
+}//end namespace OpenSwath
 
 
 

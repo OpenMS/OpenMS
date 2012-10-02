@@ -51,7 +51,7 @@ namespace OpenMS
   {
 public:
     /// Convert a SpectrumPtr to an OpenMS Spectrum
-    static void convertToOpenMSSpectrum(OpenMS::MSSpectrum<> * spectrum, const OpenSwath::SpectrumPtr sptr);
+    static void convertToOpenMSSpectrum(OpenMS::MSSpectrum<> & spectrum, const OpenSwath::SpectrumPtr sptr);
 
     static OpenSwath::SpectrumPtr convertToSpectrumPtr(const OpenMS::MSSpectrum<> & spectrum)
     {
@@ -76,11 +76,10 @@ public:
     }
 
     /// Convert a ChromatogramPtr to an OpenMS Chromatogram
-    static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<> * chromatogram, const OpenSwath::ChromatogramPtr cptr);
+    static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr);
 
     /// convert from the OpenMS Targeted experiment to the light Targeted Experiment
     static void convertTargetedExp(OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
-
 
   };
 

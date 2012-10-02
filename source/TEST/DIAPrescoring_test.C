@@ -68,12 +68,12 @@ START_SECTION ( testscorefunction)
 {
 
   OpenSwath::LightTransition mock_tr1;
-  mock_tr1.product_mz = 500;
+  mock_tr1.product_mz = 500.;
   mock_tr1.charge = 1;
   mock_tr1.transition_name = "group1";
 
   OpenSwath::LightTransition mock_tr2;
-  mock_tr2.product_mz = 600;
+  mock_tr2.product_mz = 600.;
   mock_tr2.charge = 1;
   mock_tr2.transition_name = "group2";
 
@@ -95,7 +95,7 @@ START_SECTION ( testscorefunction)
     1, 3, 9, 15, 9, 3, 1,        // peak at 602
     3, 9, 3                      // peak at 603
   };
-  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(double) );
   static const double arr2[] = {
     /*
     498.97, 498.98, 498.99, 499.0, 499.01, 499.02, 499.03,
@@ -108,7 +108,7 @@ START_SECTION ( testscorefunction)
     601.97, 601.98, 601.99, 602.0, 602.01, 602.02, 602.03,
     602.99, 603.0, 603.01
   };
-  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(double) );
   data1->data = mz;
   data2->data = intensity;
   binaryDataArrayPtrs.push_back(data1);
@@ -130,8 +130,8 @@ START_SECTION ( testscorefunction)
   // >>> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  //TEST_REAL_SIMILAR(dotprod, 0.995361286111832)
-  //TEST_REAL_SIMILAR(manhattan, )
+  TEST_REAL_SIMILAR(dotprod, 0.9879162932)
+  TEST_REAL_SIMILAR(manhattan,0.20567254498 )
 }
 END_SECTION
 

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
+// $Maintainer: Hannes Roest, Witold Wolski $
 // $Authors: Darren Kessner, Hannes Roest, Witold Wolski$
 // --------------------------------------------------------------------------
 
@@ -106,42 +106,33 @@ namespace OpenSwath
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
 
     Chromatogram() :
-      defaultArrayLength(0)
+      defaultArrayLength(2),
+      binaryDataArrayPtrs(defaultArrayLength)
     {
+      initvec();
     }
 
-    /// get time array (may be null)
-    BinaryDataArrayPtr getTimeArray() const
-    {
-      if (!binaryDataArrayPtrs.empty())
-      {
-        return binaryDataArrayPtrs[0];
-      }
-      else
-      {
-        // error handling
-        BinaryDataArrayPtr empty(new BinaryDataArray);
-        return empty;
-      }
+  private:
 
+    void initvec(){
+      for(std::size_t i = 0 ; i < defaultArrayLength ; ++i)
+        {
+          BinaryDataArrayPtr empty(new BinaryDataArray);
+          binaryDataArrayPtrs[i]= empty;
+        }
+    }
+  public:
+    /// get time array (may be null)
+    BinaryDataArrayPtr getTimeArray()
+    {
+        return binaryDataArrayPtrs[0];
     }
 
     /// get intensity array (may be null)
-    BinaryDataArrayPtr getIntensityArray() const
+    BinaryDataArrayPtr getIntensityArray()
     {
-      if (!binaryDataArrayPtrs.empty())
-      {
-        return binaryDataArrayPtrs[1];
-      }
-      else
-      {
-        // error handling
-        BinaryDataArrayPtr empty(new BinaryDataArray);
-        return empty;
-      }
-
+      return binaryDataArrayPtrs[1];
     }
-
   };
   typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
 
@@ -174,43 +165,35 @@ namespace OpenSwath
     /// list of binary data arrays.
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
     Spectrum() :
-      defaultArrayLength(0)
+      defaultArrayLength(2),
+      binaryDataArrayPtrs(defaultArrayLength)
     {
     }
 
-    /// returns true iff the element contains no params and all members are empty or null
-    bool empty() const;
+
+  private:
+
+    void initvec(){
+      for(std::size_t i = 0 ; i < defaultArrayLength ; ++i)
+        {
+          BinaryDataArrayPtr empty(new BinaryDataArray);
+          binaryDataArrayPtrs[i]= empty;
+        }
+    }
+
+
+  public:
 
     /// get m/z array (may be null)
-    BinaryDataArrayPtr getMZArray() const
+    BinaryDataArrayPtr getMZArray()
     {
-      if (!binaryDataArrayPtrs.empty())
-      {
-        return binaryDataArrayPtrs[0];
-      }
-      else
-      {
-        // error handling
-        BinaryDataArrayPtr empty(new BinaryDataArray);
-        return empty;
-      }
-
+      return binaryDataArrayPtrs[0];
     }
 
     /// get intensity array (may be null)
-    BinaryDataArrayPtr getIntensityArray() const
+    BinaryDataArrayPtr getIntensityArray()
     {
-      if (!binaryDataArrayPtrs.empty())
-      {
-        return binaryDataArrayPtrs[1];
-      }
-      else
-      {
-        // error handling
-        BinaryDataArrayPtr empty(new BinaryDataArray);
-        return empty;
-      }
-
+      return binaryDataArrayPtrs[1];
     }
 
   };

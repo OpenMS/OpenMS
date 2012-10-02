@@ -268,11 +268,9 @@ public:
       {
         return left < right;
       }
-
     };
     //@}
 protected:
-
     /// The data point position
     PositionType    position_;
     /// The data point intensity
