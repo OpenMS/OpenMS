@@ -35,8 +35,9 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
 #define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
 
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenMS
 {

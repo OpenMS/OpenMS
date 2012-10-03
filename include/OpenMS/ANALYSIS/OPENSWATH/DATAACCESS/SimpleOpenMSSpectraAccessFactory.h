@@ -40,12 +40,13 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-
-namespace OpenMS{
+namespace OpenMS
+{
   /**
     @brief A factory method that returns two ISpectrumAccess implementations
   */
-  class OPENMS_DLLAPI SimpleOpenMSSpectraFactory{
+  class OPENMS_DLLAPI SimpleOpenMSSpectraFactory
+  {
     public:
     /// Simple Factory method to get a SpectrumAccess Ptr from an MSExperiment
     static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(OpenMS::MSExperiment<OpenMS::Peak1D> & exp);

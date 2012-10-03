@@ -35,12 +35,13 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_CACHEDMZML_H
 #define OPENMS_ANALYSIS_OPENSWATH_CACHEDMZML_H
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <fstream>
 

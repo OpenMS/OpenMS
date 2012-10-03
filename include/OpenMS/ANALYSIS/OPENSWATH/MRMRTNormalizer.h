@@ -35,9 +35,11 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
 #define OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
 
+// TODO (georger) check if needed
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+
 #include <numeric>
 #include <boost/math/special_functions/erf.hpp>
 

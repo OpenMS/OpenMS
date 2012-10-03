@@ -35,12 +35,11 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITON_H
 #define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITON_H
 
-//#include <OpenMS/FORMAT/MzMLFile.h>
-//#include <OpenMS/FORMAT/FeatureXMLFile.h>
-//#include <OpenMS/FORMAT/TransformationXMLFile.h>
-//#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 namespace OpenMS

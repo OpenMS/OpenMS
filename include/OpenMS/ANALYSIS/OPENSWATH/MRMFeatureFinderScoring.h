@@ -38,16 +38,19 @@
 #define run_identifier "unique_run_identifier"
 #define USE_SP_INTERFACE
 
+// move to TOPPTool
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
-// peak picking
+// peak picking & noise estimation
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 // data access
@@ -62,6 +65,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
+// auxiliary
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
 #ifdef _OPENMP

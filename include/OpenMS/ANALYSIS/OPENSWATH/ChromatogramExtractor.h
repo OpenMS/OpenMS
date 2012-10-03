@@ -35,14 +35,16 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_EXTRACTCHROMATOGRAM_H
 #define OPENMS_ANALYSIS_OPENSWATH_EXTRACTCHROMATOGRAM_H
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
+// move to TOPPTool
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h> 
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
 
 namespace OpenMS
 {
