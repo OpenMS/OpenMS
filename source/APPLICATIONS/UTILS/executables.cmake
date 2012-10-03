@@ -3,7 +3,7 @@ set(directory source/APPLICATIONS/UTILS)
 
 ### list all filenames of the directory here
 set(UTILS_executables
-AnnotationInfo
+#AnnotationInfo
 ConvertTSVToTraML
 ConvertTraMLToTSV
 CVInspector
@@ -24,7 +24,7 @@ RTEvaluation
 ImageCreator
 INIUpdater
 LabeledEval
-LinkingEvaluation
+#LinkingEvaluation
 MassCalculator
 MRMPairFinder
 MRMMapper
@@ -38,12 +38,13 @@ OpenSwathDecoyGenerator
 OpenSwathDIAPreScoring
 OpenSwathFeatureXMLToTSV
 OpenSwathmzMLFileCacher
+OpenSwathRewriteToFeatureXML
 OpenSwathRTNormalizer
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
-TotalIntensity
+#TotalIntensity
 TransformationEvaluation
 XMLValidator
 QCCalculator
