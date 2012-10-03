@@ -187,11 +187,12 @@ protected:
 		setValidFormats_("in", StringList::create("featureXML"));
 		registerInputFile_("lib", "<file>", "", "Assay library");
 		setValidFormats_("lib", StringList::create("traML"));
-		registerInputFile_("trafo", "<file>", "", "Retention time transformation");
-		setValidFormats_("trafo", StringList::create("trafoXML"));
 		registerOutputFile_("out", "<file>", "", 
 												"Output file (results with confidence scores)");
 		setValidFormats_("out", StringList::create("featureXML"));
+		registerInputFile_("trafo", "<file>", "", "Retention time transformation",
+											 false);
+		setValidFormats_("trafo", StringList::create("trafoXML"));
 		registerIntOption_("decoys", "<number>", 1000, "Number of decoy assays to "
 											 "select from the library for every true assay (0 for "
 											 "\"all\")", false);
@@ -426,8 +427,8 @@ protected:
 		LOG_DEBUG << "Reading parameters..." << endl;
     String in = getStringOption_("in");
 		String lib = getStringOption_("lib");
-		String trafo = getStringOption_("trafo");
     String out = getStringOption_("out");
+		String trafo = getStringOption_("trafo");
 		n_decoys_ = getIntOption_("decoys");
 		n_transitions_ = getIntOption_("transitions");
 
@@ -439,10 +440,21 @@ protected:
 		FeatureMap<> features;
 		FeatureXMLFile().load(in, features);
 		TraMLFile().load(lib, library_);
-		TransformationXMLFile().load(trafo, rt_trafo_);
-		if (rt_trafo_.getModelType() == "none") // fit a linear model now
+
+		if (trafo.empty())
 		{
-			rt_trafo_.fitModel("linear");
+			LOG_WARN << "Warning: You have not supplied an RT transformation file "
+							 << "(parameter 'trafo'). You should be sure that the retention "
+							 << "times of your features ('in') and library ('lib') are on "
+							 << "the same scale." << endl;
+		}
+		else
+		{
+			TransformationXMLFile().load(trafo, rt_trafo_);
+			if (rt_trafo_.getModelType() == "none") // fit a linear model now
+			{
+				rt_trafo_.fitModel("linear");
+			}
 		}
 
 		// are there enough assays in the library?
@@ -480,6 +492,7 @@ protected:
 				 ++it)
 		{
 			DoubleReal current_rt = getAssayRT_(*it);
+			if (current_rt == -1.0) continue; // indicates a missing value
 			rt_norm_.min_rt = min(rt_norm_.min_rt, current_rt);
 			rt_norm_.max_rt = max(rt_norm_.max_rt, current_rt);
 		}
