@@ -32,6 +32,24 @@
 
 using namespace OpenMS;
 
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+  @page TOPP_OpenSwathFeatureXMLToTSV OpenSwathFeatureXMLToTSV
+
+  @brief Converts a featureXML to a mProphet tsv
+
+  Creates a tsv that is compatible as input to mProphet.
+  Furthermore it creates the columns "decoy" and
+  "transition_group_id" which are required by mProphet.
+
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
 std::map<String, std::vector<const ReactionMonitoringTransition *> > peptide_transition_map;
 
 void write_out_header(std::ostream &os, FeatureMap<Feature> &feature_map, /* String main_var_name,  */ std::vector<String> &meta_value_names, bool short_format)
@@ -295,23 +313,6 @@ void write_out_body_best_score(std::ostream &os, FeatureMap<Feature> &feature_ma
   }
 }
 
-//-------------------------------------------------------------
-//Doxygen docu
-//-------------------------------------------------------------
-
-/**
-  @page TOPPOpenSwathFeatureXMLToTSV OpenSwathFeatureXMLToTSV
-
-  @brief Converts a featureXML to a mProphet tsv
-
-  Creates a tsv that is compatible as input to mProphet.
-  Furthermore it creates the columns "decoy" and
-  "transition_group_id" which are required by mProphet.
-
-*/
-
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
 
 class TOPPOpenSwathFeatureXMLToTSV
 : public TOPPBase, public ProgressLogger
