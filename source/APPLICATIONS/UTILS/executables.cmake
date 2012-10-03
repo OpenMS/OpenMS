@@ -3,7 +3,6 @@ set(directory source/APPLICATIONS/UTILS)
 
 ### list all filenames of the directory here
 set(UTILS_executables
-#AnnotationInfo
 ConvertTSVToTraML
 ConvertTraMLToTSV
 CVInspector
@@ -24,7 +23,6 @@ RTEvaluation
 ImageCreator
 INIUpdater
 LabeledEval
-#LinkingEvaluation
 MassCalculator
 MRMPairFinder
 MRMMapper
@@ -44,7 +42,6 @@ SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
-#TotalIntensity
 TransformationEvaluation
 XMLValidator
 QCCalculator
