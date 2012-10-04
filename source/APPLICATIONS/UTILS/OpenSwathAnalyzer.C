@@ -250,53 +250,39 @@ protected:
 #endif
       }
 
-      // Find the transitions to extract and extract them
       OpenSwath::LightTargetedExperiment transition_exp_used;
-      if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
+      bool do_continue = OpenSwathHelper::checkSwathMapAndSelectTransitions(swath_map, transition_exp, transition_exp_used, min_upper_edge_dist);  
+
+      if (do_continue)
       {
-        std::cerr << "WARNING: File " << swath_map.getLoadedFilePath()
-                  << " does not have any experiments or any precursors. Is it a SWATH map?"
-                  << std::endl;
-        continue; // illegal!
-      }
+        featureFinder.setParameters(feature_finder_param);
+        featureFinder.setStrictFlag(!nostrict);
+        OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
+        OpenSwath::SpectrumAccessPtr  swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+        OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
+        featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
 
-      double upper, lower;
-      OpenSwathHelper::checkSwathMap(swath_map, lower, upper);
-      OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used, min_upper_edge_dist, lower, upper);
-      if (transition_exp_used.getTransitions().size() == 0)
-      {
-        std::cerr << "WARNING: For file " << swath_map.getLoadedFilePath()
-                  << " there are no transitions to extract." << std::endl;
-        continue; // illegal!
-      }
-
-      featureFinder.setParameters(feature_finder_param);
-      featureFinder.setStrictFlag(!nostrict);
-      OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-      OpenSwath::SpectrumAccessPtr  swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
-      OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-      featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
-
-      // write all features and the protein identifications from tmp_featureFile into featureFile
+        // write all features and the protein identifications from tmp_featureFile into featureFile
 #ifdef _OPENMP
 #pragma omp critical (featureFinder)
 #endif
-      {
-        for (FeatureMap<Feature>::iterator feature_it = featureFile.begin();
-             feature_it != featureFile.end(); feature_it++)
         {
-          out_featureFile.push_back(*feature_it);
-        }
-        for (std::vector<ProteinIdentification>::iterator protid_it =
-               featureFile.getProteinIdentifications().begin();
-             protid_it != featureFile.getProteinIdentifications().end();
-             protid_it++)
-        {
-          out_featureFile.getProteinIdentifications().push_back(*protid_it);
-        }
+          for (FeatureMap<Feature>::iterator feature_it = featureFile.begin();
+               feature_it != featureFile.end(); feature_it++)
+          {
+            out_featureFile.push_back(*feature_it);
+          }
+          for (std::vector<ProteinIdentification>::iterator protid_it =
+                 featureFile.getProteinIdentifications().begin();
+               protid_it != featureFile.getProteinIdentifications().end();
+               protid_it++)
+          {
+            out_featureFile.getProteinIdentifications().push_back(*protid_it);
+          }
 
-      }
-    }         // end of loop over all files / end of OpenMP
+        }
+      } // end of do_continue
+    } // end of loop over all files / end of OpenMP
 
     addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
     out_featureFile.ensureUniqueId();

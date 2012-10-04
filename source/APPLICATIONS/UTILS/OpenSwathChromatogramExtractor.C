@@ -219,27 +219,10 @@ protected:
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
       f.load(file_list[i], exp);
+      bool do_continue = true;
       if (is_swath)
       {
-        if (exp.size() == 0 || exp[0].getPrecursors().size() == 0)
-        {
-          std::cerr << "WARNING: File " << exp.getLoadedFilePath()
-              << " does not have any experiments or any precursors. Is it a SWATH map? "
-              << "I will move to the next map."
-              << std::endl;
-          continue; // illegal!
-        }
-        double upper, lower;
-        OpenSwathHelper::checkSwathMap(exp, lower, upper);
-        OpenSwathHelper::selectSwathTransitions(targeted_exp, transition_exp_used, min_upper_edge_dist, lower, upper);
-        if (transition_exp_used.getTransitions().size() == 0)
-        {
-          std::cerr << "WARNING: For File " << exp.getLoadedFilePath()
-              << " no transition were within the precursor window of " << lower << " to " << upper 
-              << "I will move to the next map."
-              << std::endl;
-          continue; // illegal!
-        }
+        do_continue = OpenSwathHelper::checkSwathMapAndSelectTransitions(exp, targeted_exp, transition_exp_used, min_upper_edge_dist);  
       }
       else
       {
@@ -256,22 +239,26 @@ protected:
         out_exp.clear(false);
       }
 
-      std::cout << "Extracting " << transition_exp_used.getTransitions().size() << " transitions" << std::endl;
-      ChromatogramExtractor extractor;
-      IF_MASTERTHREAD extractor.setLogType(log_type_); // no progress log on the console in parallel
-      extractor.extractChromatograms(exp, tmp_out, transition_exp_used, extraction_window, ppm, trafo, rt_extraction_window, extraction_function);
+      // continue if the map is not empty
+      if (do_continue)
+      {
+        std::cout << "Extracting " << transition_exp_used.getTransitions().size() << " transitions" << std::endl;
+        ChromatogramExtractor extractor;
+        IF_MASTERTHREAD extractor.setLogType(log_type_); // no progress log on the console in parallel
+        extractor.extractChromatograms(exp, tmp_out, transition_exp_used, extraction_window, ppm, trafo, rt_extraction_window, extraction_function);
 
-      // adding the chromatogram to the output needs to be atomic
+        // adding the chromatogram to the output needs to be atomic
 #ifdef _OPENMP
 #pragma omp critical (OpenSwathChromatogramExtractor)
 #endif
-      {
-        for (Size k = 0; k < tmp_out.getChromatograms().size(); k++)
         {
-          out_exp.addChromatogram(tmp_out.getChromatograms()[k]);
+          for (Size k = 0; k < tmp_out.getChromatograms().size(); k++)
+          {
+            out_exp.addChromatogram(tmp_out.getChromatograms()[k]);
+          }
         }
-      }
 
+      } // end of do_continue
     } // end of loop over all files / end of OpenMP
 
     // TODO check that no chromatogram IDs occur multiple times !
