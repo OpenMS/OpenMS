@@ -8,6 +8,13 @@
 		<fileContent>
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
+		<sourceFileList count="1">
+			<sourceFile id="sf_ru_0" name="file://C:/Program Files/pwiz-bin-windows-x86-vc90-release-2_2_2815/../../Documents and Settings/thermo/Desktop/Hannes/weisserh_L110812_004_SW.wiff" location="">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a577061a82721858070fef755537e7e03e4740db" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
+				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+			</sourceFile>
+		</sourceFileList>
 	</fileDescription>
 	<sampleList count="1">
 		<sample id="sa_0" name="">
@@ -16,12 +23,33 @@
 			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="0" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
 		</sample>
 	</sampleList>
-	<softwareList count="2">
-		<software id="so_in_0" version="" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+	<softwareList count="9">
+		<software id="so_in_0" version="unknown" >
+			<cvParam cvRef="MS" accession="MS:1000551" name="Analyst" />
 		</software>
 		<software id="so_default" version="" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+		</software>
+		<software id="so_dp_sp_0_pm_0" version="2.2.2814" >
+			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard" />
+		</software>
+		<software id="so_dp_sp_0_pm_1" version="1.9.0" >
+			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
+		</software>
+		<software id="so_dp_sp_0_pm_2" version="1.8.0" >
+			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
+		</software>
+		<software id="so_dp_sp_0_pm_3" version="1.8.0" >
+			<cvParam cvRef="MS" accession="MS:1000761" name="MapNormalizer" />
+		</software>
+		<software id="so_dp_sp_0_pm_4" version="1.8.0" >
+			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
+		</software>
+		<software id="so_dp_sp_0_pm_5" version="1.8.0" >
+			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
+		</software>
+		<software id="so_dp_sp_0_pm_6" version="version_string" >
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="OpenSwathChromatogramExtractor" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -38,13 +66,172 @@
 			</processingMethod>
 		</dataProcessing>
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
+				<cvParam cvRef="MS" accession="MS:1000543" name="data processing action" />
+				<userParam name="#type" type="xsd:string" value="conversion"/>
+				<userParam name="Conversion to mzML" type="xsd:string" value=""/>
+				<userParam name="performed_on_spectra" type="xsd:string" value="true"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2011-09-16+09:40" />
+				<userParam name="parameter: in" type="xsd:string" value="split_weisserh_L110812_004_SW-inf02_20.mzXML"/>
+				<userParam name="parameter: out" type="xsd:string" value="split_weisserh_L110812_004_SW-inf02_20.mzML"/>
+				<userParam name="parameter: in_type" type="xsd:string" value=""/>
+				<userParam name="parameter: out_type" type="xsd:string" value=""/>
+				<userParam name="parameter: log" type="xsd:string" value=""/>
+				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
+				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
+				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
+				<userParam name="parameter: test" type="xsd:string" value="false"/>
+				<userParam name="performed_on_spectra" type="xsd:string" value="true"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
+				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2011-09-16+11:06" />
+				<userParam name="parameter: in" type="xsd:string" value="split_weisserh_L110812_004_SW-inf02_20.mzML.gz"/>
+				<userParam name="parameter: out" type="xsd:string" value="small_004_20.mzML"/>
+				<userParam name="parameter: in_type" type="xsd:string" value=""/>
+				<userParam name="parameter: out_type" type="xsd:string" value=""/>
+				<userParam name="parameter: log" type="xsd:string" value=""/>
+				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
+				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
+				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
+				<userParam name="parameter: test" type="xsd:string" value="false"/>
+				<userParam name="parameter: mz" type="xsd:string" value="600:670"/>
+				<userParam name="parameter: rt" type="xsd:string" value=":"/>
+				<userParam name="parameter: int" type="xsd:string" value=":"/>
+				<userParam name="parameter: sort" type="xsd:string" value="false"/>
+				<userParam name="parameter: sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: level" type="xsd:string" value="[1, 2, 3]"/>
+				<userParam name="parameter: map" type="xsd:string" value="[]"/>
+				<userParam name="parameter: sort_peaks" type="xsd:string" value="false"/>
+				<userParam name="parameter: no_chromatograms" type="xsd:string" value="false"/>
+				<userParam name="parameter: remove_chromatograms" type="xsd:string" value="false"/>
+				<userParam name="parameter: map_and" type="xsd:string" value="false"/>
+				<userParam name="parameter: remove_zoom" type="xsd:string" value="false"/>
+				<userParam name="parameter: remove_mode" type="xsd:string" value=""/>
+				<userParam name="parameter: remove_activation" type="xsd:string" value=""/>
+				<userParam name="parameter: select_zoom" type="xsd:string" value="false"/>
+				<userParam name="parameter: select_mode" type="xsd:string" value=""/>
+				<userParam name="parameter: select_activation" type="xsd:string" value=""/>
+				<userParam name="parameter: charge" type="xsd:string" value=":"/>
+				<userParam name="parameter: size" type="xsd:string" value=":"/>
+				<userParam name="parameter: q" type="xsd:string" value=":"/>
+				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
+				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="performed_on_spectra" type="xsd:string" value="true"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_3">
+				<cvParam cvRef="MS" accession="MS:1001484" name="intensity normalization" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2011-09-16+11:42" />
+				<userParam name="parameter: in" type="xsd:string" value="small_004_20.mzML"/>
+				<userParam name="parameter: out" type="xsd:string" value="small_004_20Normalized.mzML"/>
+				<userParam name="parameter: log" type="xsd:string" value=""/>
+				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
+				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
+				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
+				<userParam name="parameter: test" type="xsd:string" value="false"/>
+				<userParam name="performed_on_spectra" type="xsd:string" value="true"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_4">
+				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2011-09-16+12:22" />
+				<userParam name="parameter: in" type="xsd:string" value="dataOpenMS/weisserh/small_004_20Normalized.mzML"/>
+				<userParam name="parameter: out" type="xsd:string" value="target.mzML"/>
+				<userParam name="parameter: in_type" type="xsd:string" value=""/>
+				<userParam name="parameter: out_type" type="xsd:string" value=""/>
+				<userParam name="parameter: log" type="xsd:string" value=""/>
+				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
+				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
+				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
+				<userParam name="parameter: test" type="xsd:string" value="false"/>
+				<userParam name="parameter: mz" type="xsd:string" value=":"/>
+				<userParam name="parameter: rt" type="xsd:string" value="3000:3200"/>
+				<userParam name="parameter: int" type="xsd:string" value=":"/>
+				<userParam name="parameter: sort" type="xsd:string" value="false"/>
+				<userParam name="parameter: sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: level" type="xsd:string" value="[1, 2, 3]"/>
+				<userParam name="parameter: map" type="xsd:string" value="[]"/>
+				<userParam name="parameter: sort_peaks" type="xsd:string" value="false"/>
+				<userParam name="parameter: no_chromatograms" type="xsd:string" value="false"/>
+				<userParam name="parameter: remove_chromatograms" type="xsd:string" value="false"/>
+				<userParam name="parameter: map_and" type="xsd:string" value="false"/>
+				<userParam name="parameter: remove_zoom" type="xsd:string" value="false"/>
+				<userParam name="parameter: remove_mode" type="xsd:string" value=""/>
+				<userParam name="parameter: remove_activation" type="xsd:string" value=""/>
+				<userParam name="parameter: select_zoom" type="xsd:string" value="false"/>
+				<userParam name="parameter: select_mode" type="xsd:string" value=""/>
+				<userParam name="parameter: select_activation" type="xsd:string" value=""/>
+				<userParam name="parameter: charge" type="xsd:string" value=":"/>
+				<userParam name="parameter: size" type="xsd:string" value=":"/>
+				<userParam name="parameter: q" type="xsd:string" value=":"/>
+				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
+				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="performed_on_spectra" type="xsd:string" value="true"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_5">
+				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2012-04-05+10:59" />
+				<userParam name="parameter: in" type="xsd:string" value="ExtractChromatogram_input_old.mzML"/>
+				<userParam name="parameter: out" type="xsd:string" value="ExtractChromatogram_input.mzML"/>
+				<userParam name="parameter: in_type" type="xsd:string" value=""/>
+				<userParam name="parameter: out_type" type="xsd:string" value=""/>
+				<userParam name="parameter: log" type="xsd:string" value=""/>
+				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
+				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
+				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
+				<userParam name="parameter: test" type="xsd:string" value="false"/>
+				<userParam name="parameter: mz" type="xsd:string" value="617:656"/>
+				<userParam name="parameter: rt" type="xsd:string" value=":"/>
+				<userParam name="parameter: int" type="xsd:string" value=":"/>
+				<userParam name="parameter: sort" type="xsd:string" value="false"/>
+				<userParam name="parameter: sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: level" type="xsd:string" value="[1, 2, 3]"/>
+				<userParam name="parameter: map" type="xsd:string" value="[]"/>
+				<userParam name="parameter: sort_peaks" type="xsd:string" value="false"/>
+				<userParam name="parameter: no_chromatograms" type="xsd:string" value="false"/>
+				<userParam name="parameter: remove_chromatograms" type="xsd:string" value="false"/>
+				<userParam name="parameter: map_and" type="xsd:string" value="false"/>
+				<userParam name="parameter: remove_zoom" type="xsd:string" value="false"/>
+				<userParam name="parameter: remove_mode" type="xsd:string" value=""/>
+				<userParam name="parameter: remove_activation" type="xsd:string" value=""/>
+				<userParam name="parameter: select_zoom" type="xsd:string" value="false"/>
+				<userParam name="parameter: select_mode" type="xsd:string" value=""/>
+				<userParam name="parameter: select_activation" type="xsd:string" value=""/>
+				<userParam name="parameter: charge" type="xsd:string" value=":"/>
+				<userParam name="parameter: size" type="xsd:string" value=":"/>
+				<userParam name="parameter: q" type="xsd:string" value=":"/>
+				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
+				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="performed_on_spectra" type="xsd:string" value="true"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_6">
+				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
+				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
-	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
 		<chromatogramList count="3" defaultDataProcessingRef="dp_sp_0">
       <chromatogram id="tr3" index="0" defaultArrayLength="8">
             <cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />

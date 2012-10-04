@@ -202,6 +202,7 @@ protected:
       // Logging and output to the console
       IF_MASTERTHREAD f.setLogType(log_type_); 
 
+
 #ifdef _OPENMP
 #pragma omp critical (OpenSwathChromatogramExtractor)
 #endif
@@ -245,6 +246,16 @@ protected:
         transition_exp_used = targeted_exp;
       }
 
+#ifdef _OPENMP
+#pragma omp critical (OpenSwathChromatogramExtractor)
+#endif
+      // after loading the first file, copy the meta data from that experiment
+      if (i == 0) 
+      {
+        out_exp = exp;
+        out_exp.clear(false);
+      }
+
       std::cout << "Extracting " << transition_exp_used.getTransitions().size() << " transitions" << std::endl;
       ChromatogramExtractor extractor;
       IF_MASTERTHREAD extractor.setLogType(log_type_); // no progress log on the console in parallel
@@ -268,6 +279,8 @@ protected:
     // store the output
     MzMLFile f;
     f.setLogType(log_type_); 
+    addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::SMOOTHING));
+    //addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::DATA_PROCESSING));
     f.store(out, out_exp);
 
     return EXECUTION_OK;

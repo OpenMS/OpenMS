@@ -230,6 +230,13 @@ private:
         chrom.setAcquisitionInfo(settings.getAcquisitionInfo());
         chrom.setSourceFile(settings.getSourceFile());
 
+        for (Size i=0; i<settings.getDataProcessing().size(); ++i)
+        {
+          DataProcessing dp = settings.getDataProcessing()[i];
+          dp.setMetaValue("performed_on_spectra", "true");
+          chrom.getDataProcessing().push_back(dp);
+        }
+
         // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
         chrom.setNativeID(transition->getNativeID());
         chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);

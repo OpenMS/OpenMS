@@ -212,6 +212,7 @@ protected:
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
       featureFinder.pickExperiment(chromatogram_ptr, out_featureFile, transition_exp, trafo, empty_swath_ptr, transition_group_map);
       out_featureFile.ensureUniqueId();
+      addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
       FeatureXMLFile().store(out, out_featureFile);
       return EXECUTION_OK;
     }
@@ -297,6 +298,7 @@ protected:
       }
     }         // end of loop over all files / end of OpenMP
 
+    addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
     out_featureFile.ensureUniqueId();
     FeatureXMLFile().store(out, out_featureFile);
 
