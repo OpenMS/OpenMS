@@ -907,13 +907,19 @@ protected:
     }
 
     ///Data processing setter for peak maps
-    template <typename PeakType>
-    void addDataProcessing_(MSExperiment<PeakType> & map, const DataProcessing & dp) const
+    template < typename PeakType, typename CT> 
+    void addDataProcessing_(MSExperiment<PeakType, CT> & map, const DataProcessing & dp) const
     {
       for (Size i = 0; i < map.size(); ++i)
       {
         map[i].getDataProcessing().push_back(dp);
       }
+      std::vector<MSChromatogram<CT> > chromatograms = map.getChromatograms();
+      for (Size i=0; i<chromatograms.size(); ++i)
+      {
+        chromatograms[i].getDataProcessing().push_back(dp);
+      }
+      map.setChromatograms(chromatograms);
     }
 
     ///Returns the the data processing information
