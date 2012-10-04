@@ -40,6 +40,8 @@
 
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <vector>
 
@@ -108,7 +110,7 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
 	
 	file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"),data);
 	sequences_iterator = data.begin();
-	TEST_EQUAL(data.size(), 3)
+	TEST_EQUAL(data.size(), 5)
 	TEST_EQUAL(sequences_iterator->identifier, String("P68509|1433F_BOVIN"))
 	TEST_EQUAL(sequences_iterator->description, String("This is the description of the first protein"))
 	TEST_EQUAL(sequences_iterator->sequence, String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") + 
@@ -131,6 +133,38 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
     + String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY")
     + String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD")
     + String("AGEGEN"))
+
+  sequences_iterator++;			
+  TEST_EQUAL(sequences_iterator->identifier, "sp|P00000|0000A_UNKNOWN")
+  TEST_EQUAL(sequences_iterator->description, String("Artificially modified version of sp|P31946|1433B_HUMAN"))
+  TEST_EQUAL(sequences_iterator->sequence, String("(ICPL:13C(6))MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS")
+    + String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY")
+    + String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY")
+    + String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD")
+    + String("AGEGEN"))
+
+  // test if the modifed sequence is convertable
+  AASequence aa(sequences_iterator->sequence);
+  TEST_EQUAL(aa.toUnmodifiedString(), String("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS")
+    + String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY")
+    + String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY")
+    + String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD")
+    + String("AGEGEN"))
+	
+  TEST_EQUAL(aa.isModified(), true)
+  String expectedModification = ModificationsDB::getInstance()->getTerminalModification("ICPL:13C(6)",ResidueModification::N_TERM).getId();
+  TEST_EQUAL(aa.getNTerminalModification(), expectedModification)
+  
+  sequences_iterator++;
+  TEST_EQUAL(sequences_iterator->identifier, "test")
+  TEST_EQUAL(sequences_iterator->description, String(" ##0"))
+  TEST_EQUAL(sequences_iterator->sequence, String("GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVS")
+    + String("PAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSVGSMTVDMQEIGSTEMPYEVPTQ")
+    + String("PNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGL")
+    + String("FVQNASESLTSDDPSDVPTQRTFKSDFQSVAXXSTFDFYQRRLVTLAESPRAPSPGSMTV")
+    + String("DMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSF")
+    + String("KEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSV"))      
+      
 END_SECTION
 
 START_SECTION((void store(const String& filename, const std::vector< FASTAEntry > &data) const))

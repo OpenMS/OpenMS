@@ -78,7 +78,7 @@ public:
       {
       }
 
-      bool operator==(const FASTAEntry & rhs) const
+      bool operator==(const FASTAEntry& rhs) const
       {
         return identifier == rhs.identifier
                && description == rhs.description
@@ -99,14 +99,14 @@ public:
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
     */
-    void load(const String & filename, std::vector<FASTAEntry> & data);
+    void load(const String& filename, std::vector<FASTAEntry>& data);
 
     /**
       @brief stores the data given by 'data' at the file 'filename'
 
       @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
     */
-    void store(const String & filename, const std::vector<FASTAEntry> & data) const;
+    void store(const String& filename, const std::vector<FASTAEntry>& data) const;
 
   };
 

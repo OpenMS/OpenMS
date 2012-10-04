@@ -38,6 +38,9 @@
 
 #include <fstream>
 
+#include <seqan/seq_io.h>
+#include <seqan/sequence.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -52,10 +55,11 @@ namespace OpenMS
 
   }
 
-  void FASTAFile::load(const String & filename, vector<FASTAEntry> & data)
+  void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
   {
     String temp = "";
     string::size_type position = String::npos;
+    Size size_read(0);
 
     data.clear();
 
@@ -69,79 +73,53 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 
-    String tag, seq;
 
-    ifstream in(filename.c_str());
-    String line;
-    Size size_read(0);
-    while (getline(in, line, '\n'))
+    std::fstream in(filename.c_str(), std::ios::binary | std::ios::in);
+    seqan::RecordReader<std::fstream, seqan::SinglePass<> > reader(in);
+
+    String id, seq;
+
+    while (!atEnd(reader))
     {
-      size_read += line.size();
-      if (line.size() > 0)
+      if (readRecord(id, seq, reader, seqan::Fasta()) != 0)
       {
-        if (line[0] == '>')
-        {
-          if (tag != "" && seq != "")
-          {
-            FASTAEntry entry;
-            position = tag.find_first_of(" \v\t");
-            if (position == String::npos)
-            {
-              entry.identifier = tag;
-              entry.description = "";
-            }
-            else
-            {
-              entry.identifier = tag.substr(0, position);
-              entry.description = tag.suffix(tag.size() - position - 1);
-            }
-            entry.sequence = seq;
-            entry.sequence.removeWhitespaces();
-            data.push_back(entry);
-            tag = "";
-            seq = "";
-          }
-
-          line.erase(line.begin());
-          tag = line.trim();
-        }
-        else
-        {
-          seq += line.trim();
-        }
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Error while parsing FASTA file!");
       }
-    }
 
-    if (tag != "" && seq != "")
-    {
-      FASTAEntry entry;
-      // allow only " \t" and nothing else, especially not "|"=="\v",
-      // since NCBI or Ensemble use >ENSG00000203832|ENST00000430395|ENSP00000412476|NBPF20
-      //                         or >gi|129295|sp|P01013|OVAX_CHICK
-      // as Identifier! (with description following)
-      position = tag.find_first_of(" \t");
+      FASTAEntry newEntry;
+      newEntry.sequence = seq;
+      newEntry.sequence.removeWhitespaces();
+
+      // handle id
+      id = id.trim();
+      position = id.find_first_of(" \v\t");
       if (position == String::npos)
       {
-        entry.identifier = tag;
-        entry.description = "";
+        newEntry.identifier = id;
+        newEntry.description = "";
       }
       else
       {
-        entry.identifier = tag.substr(0, position);
-        entry.description = tag.suffix(tag.size() - position - 1);
+        newEntry.identifier = id.substr(0, position);
+        newEntry.description = id.suffix(id.size() - position - 1);
       }
-      entry.sequence = seq;
-      data.push_back(entry);
+      id.clear();
+      seq.clear();
+      data.push_back(newEntry);
+      size_read += newEntry.sequence.length();
     }
+
     in.close();
 
     if (size_read > 0 && data.empty())
-      LOG_WARN << "No entries from FASTA file read. Does the file have MacOS line endings? Convert to Unix or Windows line endings to fix!" << std::endl;
+      LOG_WARN << "No entries from FASTA file read. Does the file have MacOS "
+               << "line endings? Convert to Unix or Windows line endings to"
+               << " fix!" << std::endl;
 
     return;
   }
 
-  void FASTAFile::store(const String & filename, const vector<FASTAEntry> & data) const
+  void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const
   {
     ofstream outfile;
     outfile.open(filename.c_str(), ofstream::out);
@@ -153,11 +131,10 @@ namespace OpenMS
 
     for (vector<FASTAEntry>::const_iterator it = data.begin(); it != data.end(); ++it)
     {
-
       outfile << ">" << it->identifier << " " << it->description << "\n";
 
       String tmp(it->sequence);
-      while (tmp.size() > 80)       // surprisingly fast, even though its using erase(). For-loop with substr() is much SLOWER!
+      while (tmp.size() > 80) // surprisingly fast, even though its using erase(). For-loop with substr() is much SLOWER!
       {
         outfile << tmp.prefix(80) << "\n";
         tmp.erase(0, 80);
