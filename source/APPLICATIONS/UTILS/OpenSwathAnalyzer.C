@@ -220,7 +220,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (Size i = 0; i < file_list.size(); ++i)
+    for (SignedSize i = 0; i < file_list.size(); ++i)
     {
       MRMFeatureFinderScoring featureFinder;
       MzMLFile swath_file;
@@ -256,7 +256,7 @@ protected:
         std::cerr << "WARNING: File " << swath_map.getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map?"
                   << std::endl;
-        continue;
+        continue; // illegal!
       }
 
       double upper, lower;
@@ -266,7 +266,7 @@ protected:
       {
         std::cerr << "WARNING: For file " << swath_map.getLoadedFilePath()
                   << " there are no transitions to extract." << std::endl;
-        continue;
+        continue; // illegal!
       }
 
       featureFinder.setParameters(feature_finder_param);

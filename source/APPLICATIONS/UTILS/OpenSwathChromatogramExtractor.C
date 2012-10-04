@@ -195,7 +195,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (Size i = 0; i < file_list.size(); ++i)
+    for (SignedSize i = 0; i < file_list.size(); ++i)
     {
       MapType exp;
       MzMLFile f;
@@ -226,7 +226,7 @@ protected:
               << " does not have any experiments or any precursors. Is it a SWATH map? "
               << "I will move to the next map."
               << std::endl;
-          continue;
+          continue; // illegal!
         }
         double upper, lower;
         OpenSwathHelper::checkSwathMap(exp, lower, upper);
@@ -237,7 +237,7 @@ protected:
               << " no transition were within the precursor window of " << lower << " to " << upper 
               << "I will move to the next map."
               << std::endl;
-          continue;
+          continue; // illegal!
         }
       }
       else
