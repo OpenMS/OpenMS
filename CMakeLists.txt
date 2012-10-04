@@ -249,7 +249,6 @@ endif()
 
 include(cmake/OpenMSBuildSystem_externalLibs.cmake)
 
-
 ########################################################
 ###    useful programms															 ###
 ########################################################
@@ -299,8 +298,11 @@ include(cmake/OpenMSBuildSystem_doc.cmake)
 ### build openswath lib ###
 ########################################################
 
-include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
-add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
+set(DISABLE_OPENSWATH OFF CACHE INTERNAL "Set to ON to disable building OpenSWATH library and the related parts of OpenMS." FORCE)
+if(NOT DISABLE_OPENSWATH)
+  include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
+  add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
+endif(NOT DISABLE_OPENSWATH)
 
 ########################################################
 ###    BUILD the lib                                 ###
@@ -371,9 +373,17 @@ if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 
-target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+if(NOT DISABLE_OPENSWATH)
+  target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+else()
+  target_link_libraries(OpenMS ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+endif(NOT DISABLE_OPENSWATH)
+
 target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
-target_link_libraries(OpenSwathAlgo ${OPENMS_DEP_LIBRARIES}) 
+
+if(NOT DISABLE_OPENSWATH)
+  target_link_libraries(OpenSwathAlgo ${OPENMS_DEP_LIBRARIES}) 
+endif(NOT DISABLE_OPENSWATH)
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 ## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
@@ -580,7 +590,11 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 			export(PACKAGE OpenMS)
 		endif()
 		## export our lib
-		export(TARGETS OpenMS OpenSwathAlgo FILE ${CF_LibOpenMSExport})
+    if(NOT DISABLE_OPENSWATH)
+      export(TARGETS OpenMS OpenSwathAlgo FILE ${CF_LibOpenMSExport})
+    else()
+      export(TARGETS OpenMS FILE ${CF_LibOpenMSExport})
+    endif(NOT DISABLE_OPENSWATH)
 	else()
 		include(cmake/OpenMSBuildSystem_install.cmake)
 	endif()

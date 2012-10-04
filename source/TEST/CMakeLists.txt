@@ -160,5 +160,6 @@ source_group("" FILES ${sources_VS})
 add_subdirectory(TOPP)
 
 ############## OpenSWATH test ####################
-add_subdirectory(OPENSWATH)
-
+if(NOT DISABLE_OPENSWATH)
+  add_subdirectory(OPENSWATH)
+endif(NOT DISABLE_OPENSWATH)

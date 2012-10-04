@@ -422,7 +422,6 @@ set(transformations_executables_list
   EGHTraceFitter_test
   EmgFitter1D_test
   EmgModel_test
-  EmgScoring_test
   ExtendedIsotopeFitter1D_test
   ExtendedIsotopeModel_test
   FeaFiModule_test
@@ -488,6 +487,13 @@ set(transformations_executables_list
 	TraceFitter_test
 )
 
+if(NOT DISABLE_OPENSWATH)
+set(transformations_executables_list
+  ${transformations_executables_list}
+  EmgScoring_test
+)
+endif(NOT DISABLE_OPENSWATH)
+
 set(simulation_executables_list
   DetectabilitySimulation_test
   DigestSimulation_test
@@ -506,25 +512,27 @@ set(simulation_executables_list
   ICPLLabeler_test
 )
 
-set(swath_executables_list
-  MRMDecoy_test
-  MRMRTNormalizer_test
-  TransitionTSVReader_test
-  ChromatogramExtractor_test
-  OpenSwathHelper_test
-  MRMTransitionGroupPicker_test
-  DIAHelper_test
-  DIAScoring_test
-  DIAPrescoring_test
-  OpenSwathMRMFeatureAccessOpenMS_test
-  OpenSwathSpectrumAddition_test
-  OpenSwathSpectrumAccessOpenMS_test
-  OpenSwathDataAccessHelper_test
-  MRMFeatureScoring_test
-  MRMFeatureFinderScoring_test 
-  SpectrumHelpers_test
-  StatsHelpers_test
-)
+if(NOT DISABLE_OPENSWATH)
+  set(swath_executables_list
+    MRMDecoy_test
+    MRMRTNormalizer_test
+    TransitionTSVReader_test
+    ChromatogramExtractor_test
+    OpenSwathHelper_test
+    MRMTransitionGroupPicker_test
+    DIAHelper_test
+    DIAScoring_test
+    DIAPrescoring_test
+    OpenSwathMRMFeatureAccessOpenMS_test
+    OpenSwathSpectrumAddition_test
+    OpenSwathSpectrumAccessOpenMS_test
+    OpenSwathDataAccessHelper_test
+    MRMFeatureScoring_test
+    MRMFeatureFinderScoring_test 
+    SpectrumHelpers_test
+    StatsHelpers_test
+  )
+endif(NOT DISABLE_OPENSWATH)
 
 ############### GUI executables (require MOC) ########
 set(GUI_executables_list
