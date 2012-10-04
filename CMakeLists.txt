@@ -298,7 +298,7 @@ include(cmake/OpenMSBuildSystem_doc.cmake)
 ### build openswath lib ###
 ########################################################
 
-set(DISABLE_OPENSWATH OFF CACHE INTERNAL "Set to ON to disable building OpenSWATH library and the related parts of OpenMS." FORCE)
+set(DISABLE_OPENSWATH OFF CACHE INTERNAL "Set to ON to disable building OpenSWATH library and the related parts of OpenMS.")
 if(NOT DISABLE_OPENSWATH)
   include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
   add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
