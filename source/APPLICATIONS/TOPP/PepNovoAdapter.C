@@ -349,8 +349,8 @@ class TOPPPepNovoAdapter :
         arguments<<"-model_dir" << tmp_models_dir.toQString();
         //arguments<<">" << temp_pepnovo_outfile.toQString();
 
-				writeLog_("Use this line to call PepNovo: ");
-        writeLog_(arguments.join(" "));
+				writeDebug_("Use this line to call PepNovo: ", 1);
+        writeDebug_(pepnovo_executable + " " + String(arguments.join(" ")), 1);
         QProcess process;
         process.setStandardOutputFile(temp_pepnovo_outfile.toQString());
         process.setStandardErrorFile(temp_pepnovo_outfile.toQString());
@@ -365,7 +365,7 @@ class TOPPPepNovoAdapter :
 
           //resolve PTMs (match them back to the OpenMs Identifier String)
           std::vector<ProteinIdentification>prot_ids;
-          p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, -std::numeric_limits<DoubleReal>::infinity(), id_to_rt, mods_and_keys);
+          p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, -1e5, id_to_rt, mods_and_keys);
           prot_ids.push_back(protein_identification);
           IdXMLFile().store(outputfile_name, prot_ids, peptide_identifications);
         }
