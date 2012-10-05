@@ -49,7 +49,7 @@ namespace OpenMS
     @brief The representation of a 1D spectrum.
 
     It contains peak data and metadata about specific instrument settings,
-    aquisition settings, description of the meta values used in the peaks and precursor info
+    acquisition settings, description of the meta values used in the peaks and precursor info
     (SpectrumSettings).
 
     Several MSSpectrum instances are contained in a peak map (MSExperiment), which is essentially
