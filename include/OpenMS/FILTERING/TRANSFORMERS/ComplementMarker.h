@@ -116,7 +116,7 @@ public:
       {
         if (cmit->second >= marks)
         {
-          marked.insert(std::make_pair<double, bool>(cmit->first, true));
+          marked.insert(std::pair<double, bool>(cmit->first, true));
         }
       }
     }
