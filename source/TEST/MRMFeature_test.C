@@ -80,8 +80,8 @@ START_SECTION (void setScores(const PGScoresType & scores))
   mrmfeature.setScores(scores);
   TEST_EQUAL(mrmfeature.getScore("score1"), 1)
   TEST_EQUAL(mrmfeature.getScore("score2"), 2)
-  TEST_EQUAL(mrmfeature.getScores().at("score1"), 1)
-  TEST_EQUAL(mrmfeature.getScores().at("score2"), 2)
+  TEST_EQUAL(mrmfeature.getScores()["score1"], 1)
+  TEST_EQUAL(mrmfeature.getScores()["score2"], 2)
 }
 END_SECTION
 
@@ -93,8 +93,8 @@ START_SECTION (void addScore(const String & score_name, double score))
   mrmfeature.addScore("score2",2);
   TEST_EQUAL(mrmfeature.getScore("score1"), 1)
   TEST_EQUAL(mrmfeature.getScore("score2"), 2)
-  TEST_EQUAL(mrmfeature.getScores().at("score1"), 1)
-  TEST_EQUAL(mrmfeature.getScores().at("score2"), 2)
+  TEST_EQUAL(mrmfeature.getScores()["score1"], 1)
+  TEST_EQUAL(mrmfeature.getScores()["score2"], 2)
 }
 END_SECTION
 

@@ -242,13 +242,15 @@ public:
           for (; itt != exp.areaEnd(); ++itt)
           {
             mz.push_back(itt->getMZ());
+            //std::cerr << "ppm: " << itt.getRT() << " " <<  itt->getMZ() << " " << itt->getIntensity() << std::endl;
           }
 
-          if ((SignedSize)mz.size() > (low + high + 1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]\n";
+          if ((SignedSize)mz.size() > (low + high + 1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]" << std::endl;
 
           if (!mz.empty())
           {
             DoubleReal avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / DoubleReal(mz.size());
+            //std::cerr << "avg: " << avg_mz << "\n";
             ppm = (avg_mz - cm[i].getMZ()) / cm[i].getMZ() * 1e6;
           }
 
@@ -296,7 +298,7 @@ public:
         tf_single[i + 2] += "\t" + String(max_peak.getRT() - cm[i].getRT()) + "\t" + String(ppm)  + "\t" + String(q);
       }
 
-      LOG_INFO << "No peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
+      if (not_found) LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
 
       //-------------------------------------------------------------
       // writing output
