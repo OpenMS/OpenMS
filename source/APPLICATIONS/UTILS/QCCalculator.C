@@ -93,13 +93,22 @@ protected:
     setValidFormats_("consensus", StringList::create("consensusXML"));
     registerInputFile_("raw", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)", false);
     setValidFormats_("raw", StringList::create("mzML"));
-    registerOutputFile_("out", "<file>", "", "your export file. If you want to remove duplicated features, use a featureXML file as output. Give only the basename - endings will be generated automatically.");
+    registerOutputFile_("out_id", "<file>", "", "Your export file for id stats.", false, true);
+    setValidFormats_("out_id", StringList::create("_id.tsv"));
+    registerOutputFile_("out_consensus", "<file>", "", "Your export file for consensus stats.", false, true);
+    setValidFormats_("out_consensus", StringList::create("_consensus.tsv"));
+    registerOutputFile_("out_feature", "<file>", "", "Your export file for feature stats.", false, true);
+    setValidFormats_("out_feature", StringList::create("tsv"));
+    registerOutputFile_("out_precursor", "<file>", "", "Your export file for precursor stats.", false, true);
+    setValidFormats_("out_precursor", StringList::create("_PRECURSOR.tsv"));
+    registerOutputFile_("out_MS2", "<file>", "", "Your export file for MS2 stats.", false, true);
+    setValidFormats_("out_MS2", StringList::create("_MS2.tsv"));
+    registerOutputFile_("out_MS1", "<file>", "", "Your export file for MS1 stats.", false, true);
+    setValidFormats_("out_MS1", StringList::create("_MS1.tsv"));
+    registerOutputFile_("out_TIC", "<file>", "", "Your export file for TIC stats,if you are exporting MS1 and MS2 data, but you want to have TIC intensities instead of the MS1 table. Note that TICs, in this case are the sums of all intensities per spectrum.", false, true);
+    setValidFormats_("out_TIC", StringList::create("_TIC.tsv"));
     registerFlag_("AllHits", "If set, the exporter takes all peptide candidates per spectrum into account.");
     registerFlag_("remove_duplicate_features", "This flag should be set, if you work with a set of merged features.");
-    registerFlag_("output_MS1_peaks", "This flag should be set, if you are interested in all MS1 peak data.");
-    registerFlag_("output_MS2_peaks", "This flag should be set, if you are interested in all MS2 peak data.");
-    registerFlag_("output_precursor_peaks", "This flag should be set, if you are interested in all precursor peak data.");
-    registerFlag_("TIC", "This flag should be set, if you are exporting MS1 and MS2 data, but you want to have TIC intensities instead of the MS1 table. Note that TICs, in this case are the sums of all intensities per spectrum.");
   }
 
   ExitCodes main_(int, const char **)
@@ -116,26 +125,32 @@ protected:
     String inputfile_feature    = getStringOption_("feature");
     String inputfile_consensus  = getStringOption_("consensus");
     String inputfile_raw        = getStringOption_("raw");
-    outputfile_name             = getStringOption_("out");
+    //~ outputfile_name             = getStringOption_("out");
+		
+		String out_id = getStringOption_("out_id");
+    String out_feature = getStringOption_("out_feature");
+    String out_consensus = getStringOption_("out_consensus");
+    String out_ms1 = getStringOption_("out_MS1");
+    String out_ms2 = getStringOption_("out_MS2");
+    String out_precursor = getStringOption_("out_precursor");
+    String out_tic = getStringOption_("out_TIC");
+
     bool AllHits(getFlag_("AllHits"));
     bool remove_duplicate_features(getFlag_("remove_duplicate_features"));
-    bool output_MS1_peaks(getFlag_("output_MS1_peaks"));
-    bool output_MS2_peaks(getFlag_("output_MS2_peaks"));
-    bool output_precursor_peaks(getFlag_("output_precursor_peaks"));
-    bool TIC(getFlag_("TIC"));
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-    if (inputfile_name != "")      // -InclusionList was given
+    if (inputfile_name != "" && out_id != "")      // -InclusionList was given
     {
-      String ID_NAME = "_id.tsv";
+      //~ String ID_NAME = "_id.tsv";
       IdXMLFile().load(inputfile_name, prot_ids, pep_ids);
       cerr << "ended. Found " << pep_ids.size() << " peptide identifications." << endl;
       cerr << "Writing text file..." << endl;
       ProteinIdentification::SearchParameters params = prot_ids[0].getSearchParameters();
       vector<String> var_mods = params.variable_modifications;
-      String combined_out = outputfile_name + ID_NAME;
-      ofstream out(combined_out.c_str());
+      //~ String combined_out = outputfile_name + ID_NAME;
+      //~ ofstream out(combined_out.c_str());
+      ofstream out(out_id.c_str());
       out << "RT" << SEP << "MZ" << SEP << "uniqueness" << SEP << "ProteinID" << SEP << "target/decoy" << SEP << "Score" << SEP << "PeptideSequence" << SEP << "Annots" << SEP << "Similarity" << SEP << "Charge" << SEP << "TheoreticalWeight";
       for (UInt w = 0; w < var_mods.size(); ++w)
       {
@@ -230,11 +245,12 @@ protected:
       }
       out.close();
     }
-    if (inputfile_feature != "" && !remove_duplicate_features)      //
+    if (inputfile_feature != "" && !remove_duplicate_features && out_feature	!= "")      //
     {
-      String FEATURE_NAME_NO_REMOVE = "_features.tsv";
-      String combined_out = outputfile_name + FEATURE_NAME_NO_REMOVE;
-      ofstream out(combined_out.c_str());
+      //~ String FEATURE_NAME_NO_REMOVE = "_features.tsv";
+      //~ String combined_out = outputfile_name + FEATURE_NAME_NO_REMOVE;
+      //~ ofstream out(combined_out.c_str());
+      ofstream out(out_feature.c_str());
       FeatureMap<> map;
       FeatureXMLFile f;
       f.load(inputfile_feature, map);
@@ -249,7 +265,7 @@ protected:
       }
       out.close();
     }
-    else if (inputfile_feature != "" && remove_duplicate_features)      //
+    else if (inputfile_feature != "" && remove_duplicate_features && out_feature != "")      //
     {
       FeatureMap<> map, map_out;
       FeatureXMLFile f;
@@ -288,20 +304,22 @@ protected:
         }
       }
 
-      String FEATURE_NAME_REMOVE = "_features.tsv";
-      String combined_out = outputfile_name + FEATURE_NAME_REMOVE;
-      ofstream out(combined_out.c_str());
-      FeatureXMLFile().store(combined_out, map_out);
+      //~ String FEATURE_NAME_REMOVE = "_features.tsv";
+      //~ String combined_out = outputfile_name + FEATURE_NAME_REMOVE;
+      //~ ofstream out(combined_out.c_str());
+      ofstream out(out_feature.c_str());
+      FeatureXMLFile().store(out_feature, map_out);
     }
-    if (inputfile_consensus != "")
+    if (inputfile_consensus != "" && out_consensus != "")
     {
       cout << "Reading consensusXML file..." << endl;
       ConsensusXMLFile f;
       ConsensusMap map;
       f.load(inputfile_consensus, map);
-      String CONSENSUS_NAME = "_consensus.tsv";
-      String combined_out = outputfile_name + CONSENSUS_NAME;
-      ofstream out(combined_out.c_str());
+      //~ String CONSENSUS_NAME = "_consensus.tsv";
+      //~ String combined_out = outputfile_name + CONSENSUS_NAME;
+      //~ ofstream out(combined_out.c_str());
+      ofstream out(out_consensus.c_str());
       cout << "Writing text file..." << endl;
       out << "Native spectrum ID" << SEP << "DECON RT (sec)" << SEP << "DECON MZ (Th)" << SEP << "DECON Intensity" << SEP << " Feature RT (sec)" << SEP << " Feature MZ (Th)" << SEP << "Feature Intensity" << SEP << "Feature Charge" << endl;
       for (ConsensusMap::const_iterator cmit = map.begin(); cmit != map.end(); ++cmit)
@@ -315,16 +333,17 @@ protected:
       }
       out.close();
     }
-    if (output_MS1_peaks)
-    {
+		if (out_ms1 != "")
+		{
       cout << "Reading mzML file..." << endl;
       MzMLFile mz_data_file;
       MSExperiment<Peak1D> exp;
       MzMLFile().load(inputfile_raw, exp);
       cout << "Writing text file..." << endl;
-      String MS1_NAME = "_MS1.tsv";
-      String combined_out = outputfile_name + MS1_NAME;
-      ofstream out(combined_out.c_str());
+      //~ String MS1_NAME = "_MS1.tsv";
+      //~ String combined_out = outputfile_name + MS1_NAME;
+      //~ ofstream out(combined_out.c_str());
+      ofstream out(out_ms1.c_str());
       //three different output formats can be created depending on the choice of the ouput type
 
       out << "Native ID" << SEP << "RT (sec)" << SEP << "MZ (Th)" << SEP << "Intensity" << endl;
@@ -340,16 +359,17 @@ protected:
       }
       out.close();
     }
-    if (output_MS2_peaks)
-    {
+		if (out_ms2 != "")
+		{
       cout << "Reading mzML file..." << endl;
       MzMLFile mz_data_file;
       MSExperiment<Peak1D> exp;
       MzMLFile().load(inputfile_raw, exp);
       cout << "Writing text file..." << endl;
-      String MS2_NAME = "_MS2.tsv";
-      String combined_out = outputfile_name + MS2_NAME;
-      ofstream out(combined_out.c_str());
+      //~ String MS2_NAME = "_MS2.tsv";
+      //~ String combined_out = outputfile_name + MS2_NAME;
+      //~ ofstream out(combined_out.c_str());
+      ofstream out(out_ms2.c_str());
       out << "Native ID" << SEP << "RT (sec)" << SEP << "MZ (Th)" << SEP << "Intensity" << SEP << "Precursor" << endl;
       for (Size i = 0; i < exp.size(); ++i)
       {
@@ -363,16 +383,17 @@ protected:
       }
       out.close();
     }
-    if (output_precursor_peaks)
-    {
+		if (out_precursor != "")
+		{
       cout << "Reading mzML file..." << endl;
       MzMLFile mz_data_file;
       MSExperiment<Peak1D> exp;
       MzMLFile().load(inputfile_raw, exp);
       cout << "Writing text file..." << endl;
-      String PREC_NAME = "_PRECURSOR.tsv";
-      String combined_out = outputfile_name + PREC_NAME;
-      ofstream out(combined_out.c_str());
+      //~ String PREC_NAME = "_PRECURSOR.tsv";
+      //~ String combined_out = outputfile_name + PREC_NAME;
+      //~ ofstream out(combined_out.c_str());
+      ofstream out(out_precursor.c_str());
       out << "Native ID" << SEP << "RT (sec)" << SEP << "Precursor" << endl;
       for (Size i = 0; i < exp.size(); ++i)
       {
@@ -384,18 +405,17 @@ protected:
       out.close();
     }
 
-    if (TIC)
-    {
-
-
+		if (out_tic != "")
+		{
       cout << "Reading mzML file..." << endl;
       MzMLFile mz_data_file;
       MSExperiment<Peak1D> exp;
       MzMLFile().load(inputfile_raw, exp);
       cout << "Writing text file..." << endl;
-      String MS1_NAME = "_TIC.tsv";
-      String combined_out = outputfile_name + MS1_NAME;
-      ofstream out(combined_out.c_str());
+      //~ String MS1_NAME = "_TIC.tsv";
+      //~ String combined_out = outputfile_name + MS1_NAME;
+      //~ ofstream out(combined_out.c_str());
+      ofstream out(out_tic.c_str());
       //three different output formats can be created depending on the choice of the ouput type
 
       out << "Native ID" << SEP << "RT (sec)" << SEP << "TIC" << endl;

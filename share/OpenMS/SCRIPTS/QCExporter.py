@@ -46,9 +46,13 @@ print sys.argv
 
 #~ script needs to be called by #python script
 #~ datapath = sys.argv[1]
-mzmlfile = sys.argv[1]
-idxmlfile = sys.argv[2]
-outfilepath = sys.argv[3] + '/'
+mzmlfile = sys.argv[2]
+idxmlfile = sys.argv[3]
+precursortsv = sys.argv[4]
+tictsv = sys.argv[5]
+idtsv = sys.argv[6]
+print mzmlfile,idxmlfile,precursortsv,tictsv,idtsv
+outfilepath = sys.argv[1] + '/'
 #~ mzmlfile = '20100219_SvNa_SA_Ecoli_PP.mzML'
 #~ idxmlfile = '20100219_SvNa_SA_Ecoli_OMSSA_pep_ind_fdr_001.idXML'
 qcfilename = outfilepath + 'genericwrapper' + '.qcML'
@@ -59,7 +63,66 @@ root = mzQCML.MzQualityMLType()
 root.RunQuality = list()
 RunElement = mzQCML.RunQualityAssessmentType()
 
-#~ os.chdir(datapath)
+if tictsv != "":
+	rscript = 'ProduceQCFigures_tic.R ' + tictsv + ' ' + outfilepath
+	Rcmd = 'Rscript %s'
+	p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
+
+	file = open(outfilepath+"tic.png", "rb")
+	data = file.read()
+	file.close()
+	byte_arr = base64.b64encode(data)
+	atta = mzQCML.AttachmentType()
+	atta.set_binary(byte_arr)
+	atta.set_name("tic")
+	atta.set_cvRef("QCML:1000007") #tic
+	#~ atta.set_UnitCvRef("QCML:1000006") #png
+	atta.set_accession(os.urandom(9).encode('hex'))
+	RunElement.add_Attachment(atta)
+
+if precursortsv != "" and idtsv != "":
+	rscript = 'ProduceQCFigures_spec.R ' + precursortsv + ' '+ idtsv + ' ' + outfilepath
+	Rcmd = 'Rscript %s'
+	p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
+
+	file = open(outfilepath+"spec.png", "rb")
+	data = file.read()
+	file.close()
+	byte_arr = base64.b64encode(data)
+	atta = mzQCML.AttachmentType()
+	atta.set_binary(byte_arr)
+	atta.set_name("spec")
+	atta.set_cvRef("QCML:1000008") #precursors
+	#~ atta.set_UnitCvRef("QCML:1000006") #png
+	atta.set_accession(os.urandom(9).encode('hex'))
+	RunElement.add_Attachment(atta)
+
+if precursortsv != "" and idtsv != "":
+	rscript = 'ProduceQCFigures_acc.R ' + idtsv + ' ' + outfilepath
+	Rcmd = 'Rscript %s'
+	p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
+
+	file = open(outfilepath+"accuracy.png", "rb")
+	data = file.read()
+	file.close()
+	byte_arr = base64.b64encode(data)
+	atta = mzQCML.AttachmentType()
+	atta.set_binary(byte_arr)
+	atta.set_name("accuracy")
+	atta.set_cvRef("QCML:1000009") # accuracy
+	#~ atta.set_UnitCvRef("QCML:1000006") #png
+	atta.set_accession(os.urandom(9).encode('hex'))
+	RunElement.add_Attachment(atta)
+
+kbsize = os.path.getsize(mzmlfile)/1024
+qp = mzQCML.CVParamType()
+qp.set_value(kbsize)
+qp.set_name("size")
+qp.set_accession(os.urandom(9).encode('hex'))
+qp.set_cvRef('QCML:1000010') # rawfilesize
+qp.set_unitCvRef('UO:0000234') #kb
+RunElement.add_QualityParameter(qp)
+
 
 FIcmd = 'FileInfo -in %s'
 p = Popen( (FIcmd % mzmlfile), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
@@ -125,54 +188,7 @@ for p in output:
 			#~ <QualityParameter accession="String" name="#ms2spectra" value="30358" cvRef="mzstart"/>
 
 #run r script get pictures
-#~ rscript = 'ProduceQCFigures_new.R ' + outfilepath
-#~ Rcmd = 'Rscript %s'
-#~ p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
 
-file = open(outfilepath+"tic.png", "rb")
-data = file.read()
-file.close()
-byte_arr = base64.b64encode(data)
-atta = mzQCML.AttachmentType()
-atta.set_binary(byte_arr)
-atta.set_name("tic")
-atta.set_cvRef("QCML:1000007") #tic
-#~ atta.set_UnitCvRef("QCML:1000006") #png
-atta.set_accession(os.urandom(9).encode('hex'))
-RunElement.add_Attachment(atta)
-
-file = open(outfilepath+"spec.png", "rb")
-data = file.read()
-file.close()
-byte_arr = base64.b64encode(data)
-atta = mzQCML.AttachmentType()
-atta.set_binary(byte_arr)
-atta.set_name("spec")
-atta.set_cvRef("QCML:1000008") #precursors
-#~ atta.set_UnitCvRef("QCML:1000006") #png
-atta.set_accession(os.urandom(9).encode('hex'))
-RunElement.add_Attachment(atta)
-
-file = open(outfilepath+"accuracy.png", "rb")
-data = file.read()
-file.close()
-byte_arr = base64.b64encode(data)
-atta = mzQCML.AttachmentType()
-atta.set_binary(byte_arr)
-atta.set_name("accuracy")
-atta.set_cvRef("QCML:1000009") # accuracy
-#~ atta.set_UnitCvRef("QCML:1000006") #png
-atta.set_accession(os.urandom(9).encode('hex'))
-RunElement.add_Attachment(atta)
-
-kbsize = os.path.getsize(mzmlfile)/1024
-qp = mzQCML.CVParamType()
-qp.set_value(kbsize)
-qp.set_name("size")
-qp.set_accession(os.urandom(9).encode('hex'))
-qp.set_cvRef('QCML:1000010') # rawfilesize
-qp.set_unitCvRef('UO:0000234') #kb
-RunElement.add_QualityParameter(qp)
 
 root.RunQuality.append(RunElement)
 #TODO Set qualities
