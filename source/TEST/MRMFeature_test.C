@@ -73,28 +73,29 @@ END_SECTION
 
 START_SECTION (void setScores(const PGScoresType & scores))
 {
-  MRMFeature::PGScoresType scores;
   MRMFeature mrmfeature;
+  MRMFeature::PGScoresType scores;
   scores["score1"] = 1;
   scores["score2"] = 2;
   mrmfeature.setScores(scores);
+  scores = mrmfeature.getScores();
   TEST_EQUAL(mrmfeature.getScore("score1"), 1)
   TEST_EQUAL(mrmfeature.getScore("score2"), 2)
-  TEST_EQUAL(mrmfeature.getScores()["score1"], 1)
-  TEST_EQUAL(mrmfeature.getScores()["score2"], 2)
+  TEST_EQUAL(scores[String("score1")], 1)
+  TEST_EQUAL(scores[String("score2")], 2)
 }
 END_SECTION
 
 START_SECTION (void addScore(const String & score_name, double score))
 {
-  MRMFeature::PGScoresType scores;
   MRMFeature mrmfeature;
   mrmfeature.addScore("score1",1);
   mrmfeature.addScore("score2",2);
+  MRMFeature::PGScoresType scores = mrmfeature.getScores();
   TEST_EQUAL(mrmfeature.getScore("score1"), 1)
   TEST_EQUAL(mrmfeature.getScore("score2"), 2)
-  TEST_EQUAL(mrmfeature.getScores()["score1"], 1)
-  TEST_EQUAL(mrmfeature.getScores()["score2"], 2)
+  TEST_EQUAL(scores[String("score1")], 1)
+  TEST_EQUAL(scores[String("score2")], 2)
 }
 END_SECTION
 
