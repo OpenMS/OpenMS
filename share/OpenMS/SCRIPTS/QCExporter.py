@@ -32,7 +32,7 @@
 # $Authors: Mathias Walzer $
 # --------------------------------------------------------------------------
 
-#~ import pymzml
+#~ from lxml import etree
 import mzQCML
 import os
 import base64
@@ -65,7 +65,8 @@ RunElement = mzQCML.RunQualityAssessmentType()
 
 if tictsv != "":
 	rscript = 'ProduceQCFigures_tic.R ' + tictsv + ' ' + outfilepath
-	Rcmd = 'Rscript %s'
+	Rcmd = 'Rscript --vanilla %s'
+	print Rcmd % rscript
 	p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
 
 	file = open(outfilepath+"tic.png", "rb")
@@ -82,7 +83,7 @@ if tictsv != "":
 
 if precursortsv != "" and idtsv != "":
 	rscript = 'ProduceQCFigures_spec.R ' + precursortsv + ' '+ idtsv + ' ' + outfilepath
-	Rcmd = 'Rscript %s'
+	Rcmd = 'Rscript --vanilla %s'
 	p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
 
 	file = open(outfilepath+"spec.png", "rb")
@@ -99,7 +100,7 @@ if precursortsv != "" and idtsv != "":
 
 if precursortsv != "" and idtsv != "":
 	rscript = 'ProduceQCFigures_acc.R ' + idtsv + ' ' + outfilepath
-	Rcmd = 'Rscript %s'
+	Rcmd = 'Rscript --vanilla %s'
 	p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
 
 	file = open(outfilepath+"accuracy.png", "rb")
@@ -197,13 +198,67 @@ cvl = mzQCML.CVListType()
 
 #~ that might be neccessary due to unicode
 f = open(qcfilename, 'w')
+
+xmlHeader = """<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xml" href="#stylesheet"?>
+<!DOCTYPE catelog [
+<!ATTLIST xsl:stylesheet
+  id    ID  #REQUIRED>
+]>"""
+
+xmlStyle = """
+<xsl:stylesheet id="stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:template match="/">
+  <html>
+  <body>
+		<h2>The Quality Parameters</h2>
+			<table border="1">
+				<tr bgcolor="#9acd32">
+					<th>Parameter</th>
+					<th>Value</th>
+				</tr>
+				<xsl:for-each select="MzQualityMLType/RunQuality/QualityParameter">
+				<tr>
+					<td><xsl:value-of select="@name" /></td>
+					<td><xsl:value-of select="@value" /></td>
+				</tr>
+				</xsl:for-each>
+			</table><br/>
+		<h2>The Quality Plots</h2>
+      <xsl:for-each select="MzQualityMLType/RunQuality/Attachment">
+        <img>
+				  <xsl:attribute name="src">
+						data:image/png;base64,<xsl:value-of select="binary" />
+					</xsl:attribute>
+				</img> <br/>
+      </xsl:for-each>
+  </body>
+  </html>
+</xsl:template>
+</xsl:stylesheet>
+"""
+
+#~ h = etree.fromstring(xmlHeader)
+#~ root.append(h)
+#~ s = etree.fromstring(xmlStyle)
+#~ root.append(s)
+
 # c = codecs.lookup ("UTF-8")
 # eout = c.streamwriter(f)
 # root.export(eout, 0, namespace_='', name_='MzQualityMLType', namespacedef_='')
 root.export(f, 0, namespace_='', name_='MzQualityMLType', namespacedef_='')
 # eout.write ("\n")
-f.close()
 
+f.close()
+xmlstring = xmlHeader
+f = open(qcfilename,'r')
+L = f.readlines()
+L.insert(0,xmlHeader)
+L.insert(2,xmlStyle)
+f.close()
+f = open(qcfilename,'w')
+f.write('\n'.join(L))
+f.close()
 
 #~ os.chdir(currentpath)
 
