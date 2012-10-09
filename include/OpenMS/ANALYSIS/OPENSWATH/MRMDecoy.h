@@ -48,7 +48,7 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <utility>  // for pair
+#include <utility> // for pair
 
 namespace OpenMS
 {
@@ -89,8 +89,8 @@ public:
       mz_threshold is used for the matching of theoretical ion series to the observed one
 
     */
-    void generateDecoys(OpenMS::TargetedExperiment & exp,
-                        OpenMS::TargetedExperiment & dec, String method, String decoy_tag,
+    void generateDecoys(OpenMS::TargetedExperiment& exp,
+                        OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
                         double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift);
 
     /**
@@ -100,7 +100,7 @@ public:
       peptides with less than min_transitions also get deleted.
 
     */
-    void restrictTransitions(OpenMS::TargetedExperiment & exp, int min_transitions,
+    void restrictTransitions(OpenMS::TargetedExperiment& exp, int min_transitions,
                              int max_transitions);
 
 private:
@@ -111,13 +111,13 @@ private:
     typedef std::map<String, std::map<String, double> > IonSeries;
     typedef std::map<String, IonSeries> IonSeriesMapType;
 
-    typedef std::map<String, std::vector<const ReactionMonitoringTransition *> > PeptideTransitionMapType;
+    typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
 
     /**
       @brief Selects a decoy ion from a set of ions.
     */
     std::pair<String, DoubleReal> getDecoyIon(String ionid,
-                                              std::map<String, std::map<String, DoubleReal> > & decoy_ionseries);
+                                              std::map<String, std::map<String, DoubleReal> >& decoy_ionseries);
 
     /**
       @brief Selects a target ion from a set of ions.
@@ -152,7 +152,7 @@ private:
     /**
       @brief Compute relative identity (relative number of matches of amino acids at the same position) between two sequences
     */
-    float AASequenceIdentity(const String & sequence, const String & decoy);
+    float AASequenceIdentity(const String& sequence, const String& decoy);
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence
@@ -185,7 +185,7 @@ private:
       TODO (georger,hroest): this method should go into a more generic OpenMS
       class like TargetedExperimentHelper
     */
-    OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide & peptide);
+    OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide);
   };
 }
 

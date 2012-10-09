@@ -36,8 +36,8 @@
 
 namespace OpenMS
 {
-  void OpenSwathHelper::selectSwathTransitions(const OpenMS::TargetedExperiment & targeted_exp,
-                                               OpenMS::TargetedExperiment & transition_exp_used, double min_upper_edge_dist,
+  void OpenSwathHelper::selectSwathTransitions(const OpenMS::TargetedExperiment& targeted_exp,
+                                               OpenMS::TargetedExperiment& transition_exp_used, double min_upper_edge_dist,
                                                double lower, double upper)
   {
     transition_exp_used.setPeptides(targeted_exp.getPeptides());
@@ -53,8 +53,8 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathHelper::checkSwathMap(const OpenMS::MSExperiment<Peak1D> & swath_map,
-                                      double & lower, double & upper)
+  void OpenSwathHelper::checkSwathMap(const OpenMS::MSExperiment<Peak1D>& swath_map,
+                                      double& lower, double& upper)
   {
     if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
     {
@@ -90,8 +90,8 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathHelper::selectSwathTransitions(const OpenSwath::LightTargetedExperiment & targeted_exp,
-                                               OpenSwath::LightTargetedExperiment & transition_exp_used, double min_upper_edge_dist,
+  void OpenSwathHelper::selectSwathTransitions(const OpenSwath::LightTargetedExperiment& targeted_exp,
+                                               OpenSwath::LightTargetedExperiment& transition_exp_used, double min_upper_edge_dist,
                                                double lower, double upper)
   {
 
@@ -107,6 +107,5 @@ namespace OpenMS
       }
     }
   }
-
 
 }

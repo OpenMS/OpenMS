@@ -35,15 +35,16 @@
 #ifndef OPENSWATH_DATAACCESS_MOCKOBJECTS_H_
 #define OPENSWATH_DATAACCESS_MOCKOBJECTS_H_
 
-#include "vector"
-#include "map"
-#include "boost/shared_ptr.hpp"
+#include <vector>
+#include <map>
+#include <boost/shared_ptr.hpp>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
+
 namespace OpenSwath
 {
 
-  class MockFeature :
+  class OPENSWATHALGO_DLLAPI MockFeature :
     public OpenSwath::IFeature
   {
 public:
@@ -56,12 +57,12 @@ public:
     {
     }
 
-    void getRT(std::vector<double> & rt)
+    void getRT(std::vector<double>& rt)
     {
       rt = m_rt_vec;
     }
 
-    void getIntensity(std::vector<double> & intens)
+    void getIntensity(std::vector<double>& intens)
     {
       intens = m_intensity_vec;
     }
@@ -82,7 +83,7 @@ public:
     double m_rt;
   };
 
-  class MockMRMFeature :
+  class OPENSWATHALGO_DLLAPI MockMRMFeature :
     public OpenSwath::IMRMFeature
   {
 public:
@@ -111,7 +112,7 @@ public:
     double m_rt;
   };
 
-  class MockTransitionGroup :
+  class OPENSWATHALGO_DLLAPI MockTransitionGroup :
     public OpenSwath::ITransitionGroup
   {
 public:
@@ -134,7 +135,7 @@ public:
       return m_native_ids;
     }
 
-    void getLibraryIntensities(std::vector<double> & intensities)
+    void getLibraryIntensities(std::vector<double>& intensities)
     {
       intensities = m_library_intensities;
     }
@@ -144,7 +145,7 @@ public:
     std::vector<double> m_library_intensities;
   };
 
-  class MockSignalToNoise :
+  class OPENSWATHALGO_DLLAPI MockSignalToNoise :
     public OpenSwath::ISignalToNoise
   {
 public:

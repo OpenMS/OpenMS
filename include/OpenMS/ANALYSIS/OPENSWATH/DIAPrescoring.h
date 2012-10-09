@@ -64,15 +64,17 @@ namespace OpenMS
     and simulated spectrum.
   */
 
-  class DiaPrescore : public
+  class OPENMS_DLLAPI DiaPrescore :
+    public
     DefaultParamHandler
   {
-    double dia_extract_window_;   //done
+    double dia_extract_window_; //done
     int nr_isotopes_;
     int nr_charges_;
-  public:
+public:
 
-    DiaPrescore():DefaultParamHandler("DIAPrescore")
+    DiaPrescore() :
+      DefaultParamHandler("DIAPrescore")
     {
       defineDefaults();
       // std::cout << dia_extract_window_ << "XXXXX" << nr_isotopes_ << "xxx" << nr_charges_ << std::endl;
@@ -85,14 +87,13 @@ namespace OpenMS
       // std::cout << dia_extract_window_ << "XXXXX" << nr_isotopes_ << "xxx" << nr_charges_ << std::endl;
     }
 
-
     void defineDefaults()
     {
       defaults_.setValue("dia_extraction_window", 0.1,
                          "DIA extraction window in Th.");
-      defaults_.setMinFloat("dia_extraction_window", 0.0);   //done
-      defaults_.setValue("nr_isotopes",4,"nr of istopes");
-      defaults_.setValue("nr_charges",4,"nr charges");
+      defaults_.setMinFloat("dia_extraction_window", 0.0); //done
+      defaults_.setValue("nr_isotopes", 4, "nr of istopes");
+      defaults_.setValue("nr_charges", 4, "nr charges");
       defaultsToParam_();
     }
 
@@ -101,8 +102,9 @@ namespace OpenMS
       dia_extract_window_ = (DoubleReal) param_.getValue(
         "dia_extraction_window");
       nr_isotopes_ = (int) param_.getValue("nr_isotopes");
-      nr_charges_= (int) param_.getValue("nr_charges");
+      nr_charges_ = (int) param_.getValue("nr_charges");
     }
+
     /**
       @brief Score a spectrum given a transition group.
 
@@ -111,17 +113,17 @@ namespace OpenMS
       and simulated spectrum.
     */
     void score(OpenSwath::SpectrumPtr spec,
-               const std::vector<OpenSwath::LightTransition> & lt,
-               double & dotprod,
-               double & manhattan);
+               const std::vector<OpenSwath::LightTransition>& lt,
+               double& dotprod,
+               double& manhattan);
 
     /**
       @brief Compute manhattan and dotprod score for all spectra which can be accessed by
       the SpectrumAccessPtr for all transitions groups in the LightTargetedExperiment.
     */
     void operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
-                   OpenSwath::LightTargetedExperiment & transition_exp_used,
-                   OpenSwath::IDataFrameWriter * ivw);
+                    OpenSwath::LightTargetedExperiment& transition_exp_used,
+                    OpenSwath::IDataFrameWriter* ivw);
   };
 
 

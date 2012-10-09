@@ -37,7 +37,7 @@
 namespace OpenMS
 {
 
-  int MRMRTNormalizer::outlier_candidate(std::vector<double> & x, std::vector<double> & y)
+  int MRMRTNormalizer::outlier_candidate(std::vector<double>& x, std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and rsq is calculated for the data points with one removed pair. The combination resulting in highest rsq is considered corresponding to the outlier candidate. The corresponding iterator position is then returned.
     std::vector<double> x_tmp, y_tmp, rsq_tmp;
@@ -57,7 +57,7 @@ namespace OpenMS
     return max_element(rsq_tmp.begin(), rsq_tmp.end()) - rsq_tmp.begin();
   }
 
-  std::vector<std::pair<double, double> > MRMRTNormalizer::rm_outliers(std::vector<std::pair<double, double> > & pairs, double rsq_limit, double coverage_limit)
+  std::vector<std::pair<double, double> > MRMRTNormalizer::rm_outliers(std::vector<std::pair<double, double> >& pairs, double rsq_limit, double coverage_limit)
   {
     // Removes outliers from vector of pairs until upper rsq and lower coverage limits are reached.
     std::vector<double> x, y;
@@ -120,7 +120,7 @@ namespace OpenMS
     if (rsq < rsq_limit)
     {
       // If the rsq is below the limit, this is an indication that something went wrong!
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer","WARNING: rsq: " + boost::lexical_cast<std::string>(rsq) + " is below limit of " + boost::lexical_cast<std::string>(rsq_limit) + ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " + boost::lexical_cast<std::string>(rsq) + " is below limit of " + boost::lexical_cast<std::string>(rsq_limit) + ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
     for (Size i = 0; i < x.size(); i++)
@@ -131,30 +131,31 @@ namespace OpenMS
     return pairs_corrected;
   }
 
-  bool MRMRTNormalizer::chauvenet(std::vector<double> & residuals, int pos)
+  bool MRMRTNormalizer::chauvenet(std::vector<double>& residuals, int pos)
   {
     double criterion = 1.0 / (2 * residuals.size());
-    double prob = MRMRTNormalizer::chauvenet_probability(residuals,pos);
+    double prob = MRMRTNormalizer::chauvenet_probability(residuals, pos);
 
     if (prob < criterion)
     {
-      return(true);
+      return true;
     }
     else
     {
-      return(false);
+      return false;
     }
   }
 
-  double MRMRTNormalizer::chauvenet_probability(std::vector<double> & residuals, int pos)
+  double MRMRTNormalizer::chauvenet_probability(std::vector<double>& residuals, int pos)
   {
     double mean = std::accumulate(residuals.begin(), residuals.end(), 0.0) / residuals.size();
     double stdev = std::sqrt(std::inner_product(residuals.begin(), residuals.end(), residuals.begin(), 0.0) / residuals.size() - mean * mean);
 
-    double d = fabs(residuals[pos]-mean)/stdev;
-    d /= pow(2.0,0.5);
-    double prob=boost::math::erfc(d);
+    double d = fabs(residuals[pos] - mean) / stdev;
+    d /= pow(2.0, 0.5);
+    double prob = boost::math::erfc(d);
 
-    return(prob);
+    return prob;
   }
+
 }

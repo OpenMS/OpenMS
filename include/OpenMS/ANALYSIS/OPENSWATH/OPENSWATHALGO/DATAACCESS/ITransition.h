@@ -37,6 +37,9 @@
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+
 namespace OpenSwath
 {
   // Datastructures for Scoring
@@ -44,13 +47,13 @@ namespace OpenSwath
   {
 public:
     virtual ~IFeature(){}
-    virtual void getRT(std::vector<double> & rt) = 0;
-    virtual void getIntensity(std::vector<double> & intens) = 0;
+    virtual void getRT(std::vector<double>& rt) = 0;
+    virtual void getIntensity(std::vector<double>& intens) = 0;
     virtual float getIntensity() = 0;
     virtual double getRT() = 0;
   };
 
-  class IMRMFeature
+  class OPENSWATHALGO_DLLAPI IMRMFeature
   {
 public:
     virtual ~IMRMFeature(){}
@@ -59,15 +62,15 @@ public:
     virtual double getRT() = 0;
   };
 
-  struct ITransitionGroup
+  struct OPENSWATHALGO_DLLAPI ITransitionGroup
   {
     virtual ~ITransitionGroup() {}
     virtual std::size_t size() = 0;
     virtual std::vector<std::string> getNativeIDs() = 0;
-    virtual void getLibraryIntensities(std::vector<double> & intensities) = 0;
+    virtual void getLibraryIntensities(std::vector<double>& intensities) = 0;
   };
 
-  struct ISignalToNoise
+  struct OPENSWATHALGO_DLLAPI ISignalToNoise
   {
     virtual ~ISignalToNoise() {}
     virtual double getValueAtRT(double RT) = 0;

@@ -55,7 +55,7 @@ namespace OpenMS
 
   The principle is adapted from Escher et al.
 
-  Escher, C. et al. Using iRT, a normalized retention time for more targeted measurement of peptides. PROTEOMICS 12, 1111–1121 (2012).
+  Escher, C. et al. Using iRT, a normalized retention time for more targeted measurement of peptides. PROTEOMICS 12, 11111121 (2012).
   */
   class OPENMS_DLLAPI MRMRTNormalizer
   {
@@ -67,13 +67,13 @@ public:
        leaving one peptide out to find the one which results in the maximum R^2
        of a first order linear regression of the remaining ones. The datapoints
        are submitted as two vectors of doubles (x- and y-coordinates).
-      
+
       @return The position of the candidate outlier peptide as supplied by the
        vector is returned.
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int outlier_candidate(std::vector<double> & x, std::vector<double> & y);
+    static int outlier_candidate(std::vector<double>& x, std::vector<double>& y);
 
     /**
       @brief This function removes potential outliers from a set of paired points.
@@ -86,11 +86,11 @@ public:
 
       @return A vector of pairs is returned if the R^2 limit was reached without
        reaching the coverage limit. If the limits are reached, an exception is
-       thrown. 
+       thrown.
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static std::vector<std::pair<double, double> > rm_outliers(std::vector<std::pair<double, double> > & pairs, double rsq_limit, double coverage_limit); 
+    static std::vector<std::pair<double, double> > rm_outliers(std::vector<std::pair<double, double> >& pairs, double rsq_limit, double coverage_limit);
 
     /**
       @brief This function computes Chauvenet's criterion probability for a vector
@@ -98,7 +98,7 @@ public:
 
       @return Chauvenet's criterion probability
     */
-    static double chauvenet_probability(std::vector<double> & residuals, int pos);
+    static double chauvenet_probability(std::vector<double>& residuals, int pos);
 
 
     /**
@@ -107,7 +107,7 @@ public:
 
       @return TRUE, if Chauvenet's criterion is fullfilled and the outlier can be removed.
     */
-    static bool chauvenet(std::vector<double> & residuals, int pos);
+    static bool chauvenet(std::vector<double>& residuals, int pos);
   };
 
 }

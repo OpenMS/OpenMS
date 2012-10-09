@@ -51,18 +51,18 @@ namespace OpenSwath
     @note If there is no signal, mz will be set to -1 and intensity to 0
   */
 //integrate Window
-bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
-                     double mz_end, double & mz, double & intensity, bool centroided = false);
+  OPENSWATHALGO_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
+                                            double mz_end, double& mz, double& intensity, bool centroided = false);
 
 /**
   @brief Integrate intensities in a spectrum from start to end
 */
 //integrate Window
-void integrateWindows(const OpenSwath::SpectrumPtr spectrum,//!< [in] Spectrum
-                      const std::vector<double> & windowsCenter,//!< [in] center location
-                      double width,
-                      std::vector<double> & integratedWindowsIntensity,
-                      std::vector<double> & integratedWindowsMZ, bool remZero = false);
+  OPENSWATHALGO_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr spectrum, //!< [in] Spectrum
+                                             const std::vector<double>& windowsCenter, //!< [in] center location
+                                             double width,
+                                             std::vector<double>& integratedWindowsIntensity,
+                                             std::vector<double>& integratedWindowsMZ, bool remZero = false);
 
 }
 

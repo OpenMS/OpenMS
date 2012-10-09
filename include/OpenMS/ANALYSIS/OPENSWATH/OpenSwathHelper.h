@@ -50,29 +50,29 @@ namespace OpenMS
 public:
 
     /// Select transitions between lower and upper and write them into the new TargetedExperiment
-    static void selectSwathTransitions(const OpenMS::TargetedExperiment & targeted_exp,
-      OpenMS::TargetedExperiment & transition_exp_used, double min_upper_edge_dist,
-      double lower, double upper);
+    static void selectSwathTransitions(const OpenMS::TargetedExperiment& targeted_exp,
+                                       OpenMS::TargetedExperiment& transition_exp_used, double min_upper_edge_dist,
+                                       double lower, double upper);
 
     /// Get the lower / upper offset for this SWATH map and do some sanity checks
-    static void checkSwathMap(const OpenMS::MSExperiment<Peak1D> & swath_map,
-      double & lower, double & upper);
+    static void checkSwathMap(const OpenMS::MSExperiment<Peak1D>& swath_map,
+                              double& lower, double& upper);
 
     /// Select transitions between lower and upper and write them into the new TargetedExperiment
-    static void selectSwathTransitions(const OpenSwath::LightTargetedExperiment & targeted_exp,
-      OpenSwath::LightTargetedExperiment & transition_exp_used, double min_upper_edge_dist,
-      double lower, double upper);
+    static void selectSwathTransitions(const OpenSwath::LightTargetedExperiment& targeted_exp,
+                                       OpenSwath::LightTargetedExperiment& transition_exp_used, double min_upper_edge_dist,
+                                       double lower, double upper);
 
-    template <class TargetedExperimentT> 
-    static bool checkSwathMapAndSelectTransitions(const OpenMS::MSExperiment<Peak1D> & exp,
-      const TargetedExperimentT & targeted_exp, TargetedExperimentT & transition_exp_used, double min_upper_edge_dist)
+    template <class TargetedExperimentT>
+    static bool checkSwathMapAndSelectTransitions(const OpenMS::MSExperiment<Peak1D>& exp,
+                                                  const TargetedExperimentT& targeted_exp, TargetedExperimentT& transition_exp_used, double min_upper_edge_dist)
     {
       if (exp.size() == 0 || exp[0].getPrecursors().size() == 0)
       {
         std::cerr << "WARNING: File " << exp.getLoadedFilePath()
-            << " does not have any experiments or any precursors. Is it a SWATH map? "
-            << "I will move to the next map."
-            << std::endl;
+                  << " does not have any experiments or any precursors. Is it a SWATH map? "
+                  << "I will move to the next map."
+                  << std::endl;
         return false;
       }
       double upper, lower;
@@ -81,9 +81,9 @@ public:
       if (transition_exp_used.getTransitions().size() == 0)
       {
         std::cerr << "WARNING: For File " << exp.getLoadedFilePath()
-            << " no transition were within the precursor window of " << lower << " to " << upper 
-            << "I will move to the next map."
-            << std::endl;
+                  << " no transition were within the precursor window of " << lower << " to " << upper
+                  << "I will move to the next map."
+                  << std::endl;
         return false;
       }
       return true;

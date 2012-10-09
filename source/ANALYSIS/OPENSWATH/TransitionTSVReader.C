@@ -36,12 +36,12 @@
 
 namespace OpenMS
 {
-  void TransitionTSVReader::readTSVInput(const char * filename, std::vector<TSVTransition> & transition_list)
+  void TransitionTSVReader::readTSVInput(const char* filename, std::vector<TSVTransition>& transition_list)
   {
     std::ifstream data(filename);
     std::string   line;
     std::string   tmp;
-    std::getline(data, line);   //skip header
+    std::getline(data, line); //skip header
     while (std::getline(data, line))
     {
       std::stringstream lineStream(line);
@@ -104,7 +104,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVReader::TSVToTargetedExperiment(std::vector<TSVTransition> & transition_list, OpenMS::TargetedExperiment & exp)
+  void TransitionTSVReader::TSVToTargetedExperiment(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp)
   {
     // For the CV terms, see
     // http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo
@@ -129,7 +129,7 @@ namespace OpenMS
 
       CVTerm CE;
       CE.setCVIdentifierRef("MS");
-      CE.setAccession("MS:1000045");   // collision energy
+      CE.setAccession("MS:1000045"); // collision energy
       CE.setName("collision energy");
       CE.setValue(tr_it->CE);
       rm_trans.addCVTerm(CE);
@@ -172,18 +172,18 @@ namespace OpenMS
     exp.setProteins(proteins);
   }
 
-  void TransitionTSVReader::writeTSVOutput(const char * filename, OpenMS::TargetedExperiment & targeted_exp)
+  void TransitionTSVReader::writeTSVOutput(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     std::vector<TSVTransition> mytransitions;
     //for (const std::vector<ReactionMonitoringTransition>::iterator it = targeted_exp.getTransitions().begin(); it != targeted_exp.getTransitions().end(); it++)
     for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
       // get the current transition and try to find the corresponding chromatogram
-      const ReactionMonitoringTransition * it = &targeted_exp.getTransitions()[i];
+      const ReactionMonitoringTransition* it = &targeted_exp.getTransitions()[i];
 
       TSVTransition mytransition;
 
-      const OpenMS::TargetedExperiment::Peptide & pep = targeted_exp.getPeptideByRef(it->getPeptideRef());
+      const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getPeptideRef());
 
 
       mytransition.precursor = it->getPrecursorMZ();
@@ -220,7 +220,7 @@ namespace OpenMS
       mytransition.ProteinName = "NA";
       if (!pep.protein_refs.empty())
       {
-        const OpenMS::TargetedExperiment::Protein & prot = targeted_exp.getProteinByRef(pep.protein_refs[0]);
+        const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(pep.protein_refs[0]);
         mytransition.ProteinName = prot.id;
       }
       mytransition.Annotation = "NA";
@@ -278,7 +278,7 @@ namespace OpenMS
     os.close();
   }
 
-  void TransitionTSVReader::createPeptide_(std::vector<TSVTransition>::iterator & tr_it, OpenMS::TargetedExperiment::Peptide & peptide)
+  void TransitionTSVReader::createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
   {
 
     peptide.id = tr_it->group_id;
@@ -300,7 +300,7 @@ namespace OpenMS
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
           TargetedExperiment::Peptide::Modification mod;
-          ModificationsDB * mod_db = ModificationsDB::getInstance();
+          ModificationsDB* mod_db = ModificationsDB::getInstance();
           ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
                                                              aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
           String unimod_str = rmod.getUniModAccession();
@@ -334,7 +334,7 @@ namespace OpenMS
     CVTerm rt;
     OpenMS::DataValue dtype(tr_it->rt_calibrated);
     rt.setCVIdentifierRef("MS");
-    rt.setAccession("MS:1000896");    // normalized RT
+    rt.setAccession("MS:1000896"); // normalized RT
     rt.setName("normalized retention time");
     rt.setValue(dtype);
     retention_time.addCVTerm(rt);
@@ -346,19 +346,19 @@ namespace OpenMS
     peptide.protein_refs = tmp_proteins;
   }
 
-  void TransitionTSVReader::convertTargetedExperimentToTSV(const char * filename, OpenMS::TargetedExperiment & targeted_exp)
+  void TransitionTSVReader::convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     writeTSVOutput(filename, targeted_exp);
   }
 
-  void TransitionTSVReader::convertTSVToTargetedExperiment(const char * filename, OpenMS::TargetedExperiment & targeted_exp)
+  void TransitionTSVReader::convertTSVToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     std::vector<TSVTransition> transition_list;
     readTSVInput(filename, transition_list);
     TSVToTargetedExperiment(transition_list, targeted_exp);
   }
 
-  void TransitionTSVReader::validateTargetedExperiment(OpenMS::TargetedExperiment & targeted_exp)
+  void TransitionTSVReader::validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp)
   {
     // check that all proteins ids are unique
     std::map<String, int> unique_protein_map;

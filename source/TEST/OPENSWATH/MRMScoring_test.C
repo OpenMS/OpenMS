@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore)
   
   // xcorr_deltas = [0, 3, 0]
   // xcorr_coeltion = mean(xcorr_deltas) + std(xcorr_deltas, ddof=1)
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore(), 1 + std::sqrt(3)) // mean + std deviation
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore(), 1 + std::sqrt(3.0)) // mean + std deviation
 }
 END_SECTION
 

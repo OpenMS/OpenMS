@@ -39,27 +39,29 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+
 namespace OpenSwath
 {
   /**
-    @brief The datastructures used by the OpenSwath interfaces  
+    @brief The datastructures used by the OpenSwath interfaces
 
     Many of them are closely related to Proteowizard data structures,
     originally written by Darren Kessner and released under the Apache 2.0 licence.
 
     Original author: Darren Kessner <darren@proteowizard.org>
-    
+
     Copyright 2007 Spielberg Family Center for Applied Proteomics
       Cedars-Sinai Medical Center, Los Angeles, California  90048
-    
-    
+
+
     The following datastructures are used :
     - BinaryDataArray : a struct that holds a std::vector<double> with the data
     - ChromatogramMeta : meta information of a chromatogram (index)
-    - Chromatogram : chromatogram data. Contains a vector of pointers to BinaryDataArray, 
+    - Chromatogram : chromatogram data. Contains a vector of pointers to BinaryDataArray,
                      the first one is time array (RT), the second one is intensity
     - SpectrumMeta : meta information of a spectrum (index, identifier, RT, ms_level)
-    - Spectrum :     spectrum data. Contains a vector of pointers to BinaryDataArray, 
+    - Spectrum :     spectrum data. Contains a vector of pointers to BinaryDataArray,
                      the first one is mz array, the second one is intensity
   */
 
@@ -72,7 +74,7 @@ namespace OpenSwath
     /// the binary data.
     std::vector<double> data;
   };
-  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
+  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
 
   /// Identifying information for a chromatogram
   struct ChromatogramMeta
@@ -87,7 +89,7 @@ namespace OpenSwath
     }
 
   };
-  typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
+  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
 
   /// A single chromatogram.
   struct Chromatogram
@@ -112,20 +114,22 @@ namespace OpenSwath
       initvec();
     }
 
-  private:
+private:
 
-    void initvec(){
-      for(std::size_t i = 0 ; i < defaultArrayLength ; ++i)
-        {
-          BinaryDataArrayPtr empty(new BinaryDataArray);
-          binaryDataArrayPtrs[i]= empty;
-        }
+    void initvec()
+    {
+      for (std::size_t i = 0; i < defaultArrayLength; ++i)
+      {
+        BinaryDataArrayPtr empty(new BinaryDataArray);
+        binaryDataArrayPtrs[i] = empty;
+      }
     }
-  public:
+
+public:
     /// get time array (may be null)
     BinaryDataArrayPtr getTimeArray()
     {
-        return binaryDataArrayPtrs[0];
+      return binaryDataArrayPtrs[0];
     }
 
     /// get intensity array (may be null)
@@ -133,8 +137,9 @@ namespace OpenSwath
     {
       return binaryDataArrayPtrs[1];
     }
+
   };
-  typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
+  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
 
   /// Identifying information for a spectrum
   struct SpectrumMeta
@@ -163,9 +168,9 @@ namespace OpenSwath
     std::size_t defaultArrayLength;
 
     /// list of binary data arrays.
-  private:
+private:
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
-  public:
+public:
     Spectrum() :
       defaultArrayLength(2),
       binaryDataArrayPtrs(defaultArrayLength)
@@ -173,18 +178,18 @@ namespace OpenSwath
       initvec();
     }
 
-  private:
+private:
 
-    void initvec(){
-      for(std::size_t i = 0 ; i < defaultArrayLength ; ++i)
-        {
-          BinaryDataArrayPtr empty(new BinaryDataArray);
-          binaryDataArrayPtrs[i]= empty;
-        }
+    void initvec()
+    {
+      for (std::size_t i = 0; i < defaultArrayLength; ++i)
+      {
+        BinaryDataArrayPtr empty(new BinaryDataArray);
+        binaryDataArrayPtrs[i] = empty;
+      }
     }
 
-
-  public:
+public:
 
     /// get m/z array (may be null)
     BinaryDataArrayPtr getMZArray() const
@@ -192,7 +197,8 @@ namespace OpenSwath
       return binaryDataArrayPtrs[0];
     }
 
-    void setMZArray(BinaryDataArrayPtr data) {
+    void setMZArray(BinaryDataArrayPtr data)
+    {
       binaryDataArrayPtrs[0] = data;
     }
 
@@ -207,8 +213,9 @@ namespace OpenSwath
     {
       binaryDataArrayPtrs[1] = data;
     }
+
   };
-  typedef boost::shared_ptr<Spectrum> SpectrumPtr;
+  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<Spectrum> SpectrumPtr;
 } //end Namespace OpenSwath
 
 #endif

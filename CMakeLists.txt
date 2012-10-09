@@ -279,6 +279,9 @@ set(INSTALL_PREFIX "." CACHE PATH "Installation prefix for OpenMS and TOPP")
 ## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
 set(BUILD_SHARED_LIBS true)
 
+if(NOT DISABLE_OPENSWATH)
+  include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFilesConfigure.cmake)
+endif()
 include(cmake/OpenMSBuildSystem_configh.cmake)
 
 ## add configured files (used in 'cmake/includes.cmake')
@@ -293,16 +296,6 @@ include(cmake/OpenMSBuildSystem_testConfig.cmake)
 ########################################################
 
 include(cmake/OpenMSBuildSystem_doc.cmake)
-
-########################################################
-### build openswath lib ###
-########################################################
-
-set(DISABLE_OPENSWATH OFF CACHE BOOL "Set to ON to disable building OpenSWATH library and the related parts of OpenMS.")
-if(NOT DISABLE_OPENSWATH)
-  include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
-  add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
-endif(NOT DISABLE_OPENSWATH)
 
 ########################################################
 ###    BUILD the lib                                 ###
@@ -373,7 +366,15 @@ if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 
+########################################################
+### build openswath lib ###
+########################################################
+
+set(DISABLE_OPENSWATH OFF CACHE BOOL "Set to ON to disable building OpenSWATH library and the related parts of OpenMS.")
 if(NOT DISABLE_OPENSWATH)
+  include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
+  add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
+
   target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
 else()
   target_link_libraries(OpenMS ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})

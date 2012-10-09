@@ -38,11 +38,14 @@
 #include <numeric>
 #include <map>
 #include <vector>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+
 namespace OpenSwath
 {
 
   /**
-    @brief Scoring functions used by MRMScoring 
+    @brief Scoring functions used by MRMScoring
 
     Many helper functions to calculate crosscorrelations between data
   */
@@ -57,19 +60,19 @@ namespace OpenSwath
     /** @name Helper functions */
     //@{
     /// Fxn "deltaRatioSum" from mQuest to calculate similarity between library intensity and experimental ones
-    double RMSD(double x[], double y[], int n);
+    OPENSWATHALGO_DLLAPI double RMSD(double x[], double y[], int n);
 
     /// Calculate crosscorrelation on std::vector data
-    XCorrArrayType calcxcorr(std::vector<double> & data1,
-      std::vector<double> & data2, bool normalize);
+    OPENSWATHALGO_DLLAPI XCorrArrayType calcxcorr(std::vector<double>& data1,
+                                                  std::vector<double>& data2, bool normalize);
 
     /// Calculate crosscorrelation on std::vector data (which is first normalized)
-    XCorrArrayType normalizedCalcxcorr(std::vector<double> & data1,
-      std::vector<double> & data2, int maxdelay, int lag);
+    OPENSWATHALGO_DLLAPI XCorrArrayType normalizedCalcxcorr(std::vector<double>& data1,
+                                                            std::vector<double>& data2, int maxdelay, int lag);
 
     /// Calculate crosscorrelation on std::vector data without normalization
-    XCorrArrayType calcxcorr_new(std::vector<double> & data1,
-      std::vector<double> & data2, int maxdelay, int lag);
+    OPENSWATHALGO_DLLAPI XCorrArrayType calcxcorr_new(std::vector<double>& data1,
+                                                      std::vector<double>& data2, int maxdelay, int lag);
 
     /*
     XCorrArrayType calcxcorr_lag1(std::vector<double> & data1,
@@ -77,13 +80,13 @@ namespace OpenSwath
     */
 
     /// Find best peak in an cross-correlation (highest apex)
-    XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType array);
+    OPENSWATHALGO_DLLAPI XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType array);
 
     /// Standardize a vector (subtract mean, divide by standard deviation)
-    void standardize_data(std::vector<double> & data);
+    OPENSWATHALGO_DLLAPI void standardize_data(std::vector<double>& data);
 
     /// divide each element of x by the sum of the vector
-    void normalize_sum(double x[], unsigned int n);
+    OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
     //@}
 
   }

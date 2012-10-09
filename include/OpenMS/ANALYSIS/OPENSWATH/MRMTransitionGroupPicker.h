@@ -103,10 +103,10 @@ private:
     //@{
     /// create an empty master peak container that has the correct mz / RT values set
     template <template <typename> class SpectrumT, typename PeakT, typename ChromatogramPeakT, typename TransitionT>
-    void prepare_master_container_(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group,
-      SpectrumT<ChromatogramPeakT> & master_peak_container, int chr_idx, double best_left, double best_right)
+    void prepare_master_container_(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group,
+                                   SpectrumT<ChromatogramPeakT>& master_peak_container, int chr_idx, double best_left, double best_right)
     {
-      const SpectrumT<ChromatogramPeakT> * ref_chromatogram = &transition_group.getChromatograms()[chr_idx];
+      const SpectrumT<ChromatogramPeakT>* ref_chromatogram = &transition_group.getChromatograms()[chr_idx];
 
       // search for begin / end of the reference chromatogram (and add one more point)
       typename SpectrumT<ChromatogramPeakT>::const_iterator begin = ref_chromatogram->begin();
@@ -128,8 +128,8 @@ private:
 
     /// use the master container from above to resample a chromatogram at those points stored in the master container
     template <template <typename> class SpectrumT, typename ChromatogramPeakT>
-    SpectrumT<ChromatogramPeakT> resample_chromatogram_(const SpectrumT<ChromatogramPeakT> & chromatogram,
-      SpectrumT<ChromatogramPeakT> & master_peak_container, double best_left, double best_right)
+    SpectrumT<ChromatogramPeakT> resample_chromatogram_(const SpectrumT<ChromatogramPeakT>& chromatogram,
+                                                        SpectrumT<ChromatogramPeakT>& master_peak_container, double best_left, double best_right)
     {
       // get the start / end point of this chromatogram => go one past
       // best_left / best_right to make the resampling accurate also at the
@@ -170,11 +170,12 @@ private:
 #endif
       return resampled_peak_container;
     }
+
     //@}
 
     /// Remove overlaping features that are within the current seed feature or overlap with it
     template <template <typename> class SpectrumT, typename ChromatogramPeakT>
-    void remove_overlapping_features(std::vector<SpectrumT<ChromatogramPeakT> > & picked_chroms, double best_left, double best_right)
+    void remove_overlapping_features(std::vector<SpectrumT<ChromatogramPeakT> >& picked_chroms, double best_left, double best_right)
     {
       // delete all seeds that lie within the current seed
       for (Size k = 0; k < picked_chroms.size(); k++)
@@ -205,48 +206,13 @@ private:
     }
 
     /// Find largest peak in a vector of chromatograms
-    void findLargestPeak(std::vector<RichPeakChromatogram> & picked_chroms, int & chr_idx, int & peak_idx);
+    void findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx);
 
     /// Will use the smoothed chromatograms
-    double calculate_bg_estimation(const RichPeakChromatogram & smoothed_chromat, double best_left, double best_right)
-    {
-      // determine (in the smoothed chrom) the intensity at the left / right border
-      RichPeakChromatogram::const_iterator it = smoothed_chromat.begin();
-      int nr_points = 0;
-      for (; it != smoothed_chromat.end(); it++)
-      {
-        if (it->getMZ() > best_left) 
-        {
-          nr_points++; 
-          break;
-        }
-      }
-      double intensity_left = it->getIntensity();
-      for (; it != smoothed_chromat.end(); it++)
-      {
-        if (it->getMZ() > best_right) 
-        {
-          break;
-        }
-        nr_points++; 
-      }
-      if (it == smoothed_chromat.begin() || nr_points < 1) 
-      {
-        // something is fishy, the endpoint of the peak is the beginning of the chromatogram
-        std::cerr << "Tried to calculate background but no points were found "<< std::endl;
-        return 0;
-      }
-
-      // decrease the iterator and the nr_points by one (because we went one too far)
-      double intensity_right = (it--)->getIntensity();
-      nr_points--;
- 
-      double avg_noise_level = (intensity_right + intensity_left ) / 2;
-      return avg_noise_level * nr_points;
-    }
+    double calculate_bg_estimation(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right);
 
     /// Synchronize members with param class
-    void updateMembers_();        
+    void updateMembers_();
 
 public:
 
@@ -259,7 +225,7 @@ public:
     //@}
 
     /// Assignment operator
-    MRMTransitionGroupPicker & operator=(const MRMTransitionGroupPicker & rhs);
+    MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
 
     void handle_params();
 
@@ -267,13 +233,13 @@ public:
     /// create features on it and add the features back to the
     /// MRMTransitionGroup.
     template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
-    void pickTransitionGroup(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group)
+    void pickTransitionGroup(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group)
     {
       // Pick chromatograms
       picked_chroms.clear();
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
-        RichPeakChromatogram & chromatogram = transition_group.getChromatograms()[k];
+        RichPeakChromatogram& chromatogram = transition_group.getChromatograms()[k];
         if (!chromatogram.isSorted()) { chromatogram.sortByPosition(); }
 
         // pickChromatogram will return the picked and the smoothed chromatogram
@@ -318,12 +284,12 @@ public:
 
     /// Finds peaks in a chromatogram and annotates left/right borders
     // This function will return a smoothed chromatogram and a picked chromatogram
-    void pickChromatogram(const RichPeakChromatogram & chromatogram, RichPeakChromatogram & smoothed_chrom, RichPeakChromatogram & picked_chrom);
+    void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& smoothed_chrom, RichPeakChromatogram& picked_chrom);
 
     /// Create feature from a vector of chromatograms and a specified peak
     template <template <typename> class SpectrumT, typename PeakT, typename ChromatogramPeakT, typename TransitionT>
-    MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group,
-      std::vector<SpectrumT<ChromatogramPeakT> > & picked_chroms, int & chr_idx, int & peak_idx)
+    MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group,
+                                std::vector<SpectrumT<ChromatogramPeakT> >& picked_chroms, int& chr_idx, int& peak_idx)
     {
       MRMFeature mrmFeature;
       const double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
@@ -345,7 +311,7 @@ public:
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
-        const SpectrumT<ChromatogramPeakT> & chromatogram = transition_group.getChromatograms()[k];
+        const SpectrumT<ChromatogramPeakT>& chromatogram = transition_group.getChromatograms()[k];
         for (typename SpectrumT<ChromatogramPeakT>::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
         {
           total_xic += it->getIntensity();
@@ -389,7 +355,7 @@ public:
           // we use the smoothed chromatogram here to have a more accurate estimatation of the noise at the flanks of the peak
           if (background_subtraction_ == "smoothed")
           {
-            if (smoothed_chroms.size() <= k) 
+            if (smoothed_chroms.size() <= k)
             {
               std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
               background =  0;

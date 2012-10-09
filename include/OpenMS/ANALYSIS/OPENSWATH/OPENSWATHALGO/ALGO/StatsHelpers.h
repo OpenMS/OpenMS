@@ -42,6 +42,9 @@
 #include <complex>
 #include <algorithm>
 #include <cmath>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
 
 namespace OpenSwath
@@ -50,7 +53,7 @@ namespace OpenSwath
   /**
     @brief Normalize intensities in vector by normalization_factor
   */
-  void normalize(const std::vector<double> & intensities, double normalization_factor, std::vector<double> & normalized_intensities);
+  OPENSWATHALGO_DLLAPI void normalize(const std::vector<double>& intensities, double normalization_factor, std::vector<double>& normalized_intensities);
 
   /**
   @brief compute the norm of the vector
@@ -74,6 +77,7 @@ namespace OpenSwath
     {
       return sqrt(x);
     }
+
   };
 
   /**
@@ -88,7 +92,6 @@ namespace OpenSwath
     return sum;
   }
 
-
   /**
     @brief the dot product scoring
 
@@ -96,7 +99,7 @@ namespace OpenSwath
     normalize by vector norm
     compute dotprod
   */
-  double dotprodScoring(std::vector<double> intExp, std::vector<double> theorint);
+  OPENSWATHALGO_DLLAPI double dotprodScoring(std::vector<double> intExp, std::vector<double> theorint);
 
   /**
     @brief compute manhattan distance between Exp and Theo
@@ -121,7 +124,7 @@ namespace OpenSwath
     normalize vector by TIC
     compute manhattan score
    */
-  double manhattanScoring(std::vector<double> intExp, std::vector<double> theorint);
+  OPENSWATHALGO_DLLAPI double manhattanScoring(std::vector<double> intExp, std::vector<double> theorint);
 
 
 /**
@@ -165,11 +168,10 @@ namespace OpenSwath
     }
   }
 
-
   /**
     @brief functor to compute the mean and stddev of sequence using the std::foreach algorithm
   */
-  class mean_and_stddev
+  class OPENSWATHALGO_DLLAPI mean_and_stddev
   {
     double m_, q_;
     unsigned long c_;
@@ -234,7 +236,7 @@ public:
 
   };
 
-}//end namespace OpenSwath
+} //end namespace OpenSwath
 
 
 

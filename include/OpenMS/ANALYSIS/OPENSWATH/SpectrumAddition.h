@@ -45,10 +45,10 @@
 namespace OpenMS
 {
   /**
-  @brief The SpectrumAddition adds together a list of spectra 
+  @brief The SpectrumAddition adds together a list of spectra
 
   */
-  class OPENMS_DLLAPI SpectrumAddition 
+  class OPENMS_DLLAPI SpectrumAddition
   {
 
 public:
@@ -62,7 +62,7 @@ public:
         return sptr;
       }
 
-      typedef MSSpectrum<Peak1D> SpectrumT ;
+      typedef MSSpectrum<Peak1D> SpectrumT;
       LinearResamplerAlign lresampler;
       // typedef std::vector<Peak1D> SpectrumT ;
 
@@ -72,9 +72,9 @@ public:
       for (Size i = 0; i < all_spectra.size(); i++)
       {
         if (all_spectra[i]->getMZArray()->data[0] < min)
-        {min = all_spectra[i]->getMZArray()->data[0];}
+        {min = all_spectra[i]->getMZArray()->data[0]; }
         if (all_spectra[i]->getMZArray()->data.back() > max)
-        {max = all_spectra[i]->getMZArray()->data.back();}
+        {max = all_spectra[i]->getMZArray()->data.back(); }
       }
 
       // generate the resampled peaks at positions origin+i*spacing_
@@ -82,10 +82,10 @@ public:
       SpectrumT resampled_peak_container;
       resampled_peak_container.resize(number_resampled_points);
       SpectrumT::iterator it = resampled_peak_container.begin();
-      for (int i=0; i < number_resampled_points; ++i)
+      for (int i = 0; i < number_resampled_points; ++i)
       {
-        it->setMZ( min + i*sampling_rate);
-        it->setIntensity( 0 );
+        it->setMZ(min + i * sampling_rate);
+        it->setIntensity(0);
         ++it;
       }
 
@@ -101,9 +101,9 @@ public:
         lresampler.raster(input_spectrum.begin(), input_spectrum.end(), output_spectrum.begin(), output_spectrum.end());
 
         // add to master spectrum
-        for (Size i=0; i < output_spectrum.size(); ++i)
+        for (Size i = 0; i < output_spectrum.size(); ++i)
         {
-          master_spectrum[i].setIntensity( master_spectrum[i].getIntensity() + output_spectrum[i].getIntensity() );
+          master_spectrum[i].setIntensity(master_spectrum[i].getIntensity() + output_spectrum[i].getIntensity());
         }
       }
 
@@ -115,9 +115,9 @@ public:
       else
       {
         SpectrumT master_spectrum_filtered;
-        for (Size i=0; i < master_spectrum.size(); ++i)
+        for (Size i = 0; i < master_spectrum.size(); ++i)
         {
-          if(master_spectrum[i].getIntensity() > 0)
+          if (master_spectrum[i].getIntensity() > 0)
           {
             master_spectrum_filtered.push_back(master_spectrum[i]);
           }

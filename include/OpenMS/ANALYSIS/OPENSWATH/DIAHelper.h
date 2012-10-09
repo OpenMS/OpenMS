@@ -40,57 +40,58 @@
 
 namespace OpenMS
 {
-namespace DIAHelpers
-{
-  /**
-    @brief Helper functions for the DIA scoring of OpenSWAT
-  */
+  namespace DIAHelpers
+  {
+    /**
+      @brief Helper functions for the DIA scoring of OpenSWATH
+    */
+    ///@{
+    /// compute the b and y series masses for a given AASequence
+    OPENMS_DLLAPI void getBYSeries(AASequence& a,
+                     std::vector<double>& bseries, std::vector<double>& yseries, uint32_t charge = 1u);
 
-  /// compute the b and y series masses for a given AASequence
-  void getBYSeries(AASequence & a,
-                   std::vector<double> & bseries, std::vector<double> & yseries, uint32_t charge = 1u);
+    /// for SWATH -- get the theoretical b and y series masses for a sequence
+    OPENMS_DLLAPI void getTheorMasses(AASequence& a, std::vector<double>& masses, uint32_t charge = 1u);
 
-  /// for SWATH -- get the theoretical b and y series masses for a sequence
-  void getTheorMasses(AASequence & a, std::vector<double> & masses, uint32_t charge = 1u);
+    /// get averagine distribution given mass
+    OPENMS_DLLAPI void getAveragineIsotopeDistribution(double product_mz,
+                                         std::vector<std::pair<double, double> >& isotopesSpec, 
+                                         double charge = 1.,
+                                         int nr_isotopes = 4,
+                                         double mannmass = 1.00048);
 
-  /// get averagine distribution given mass
-  void getAveragineIsotopeDistribution(double product_mz,
-                                       std::vector<std::pair<double, double> > & isotopesSpec, double charge = 1., int nr_isotopes =
-                                         4, double mannmass = 1.00048);
+    /// simulate spectrum from AASequence
+    OPENMS_DLLAPI void simulateSpectrumFromAASequence(AASequence& aa,
+                                        std::vector<double>& firstIsotopeMasses, //[out]
+                                        std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                                        double charge = 1.);
 
-  /// simulate spectrum from AASequence
-  void simulateSpectrumFromAASequence(AASequence & aa,
-                                      std::vector<double> & firstIsotopeMasses, //[out]
-                                      std::vector<std::pair<double, double> > & isotopeMasses, //[out]
-                                      double charge = 1.);
+    /// modify masses by charge
+    OPENMS_DLLAPI void modifyMassesByCharge(const std::vector<std::pair<double, double> >& masses, //![in]
+                              std::vector<std::pair<double, double> >& modmass, //!< [out]
+                              double charge = 1.);
 
-  /// modify masses by charge
-  void modifyMassesByCharge(const std::vector<std::pair<double, double> > & masses,  //![in]
-                            std::vector<std::pair<double, double> > & modmass, //!< [out]
-                            double charge = 1.
-                            );
+    /// add negative preisotope weights to spectrum
+    OPENMS_DLLAPI void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
+                              std::vector<std::pair<double, double> >& isotopeSpec, // output
+                              uint32_t nrpeaks = 2, //nr of preisotope peaks
+                              double preIsotopePeaksWeight = -0.5, // weight of preisotope peaks
+                              double mannmass = 1.000482, //
+                              double charge = 1.);
 
-  /// add negative preisotope weights to spectrum
-  void addPreisotopeWeights(const std::vector<double> & firstIsotopeMasses,
-                            std::vector<std::pair<double, double> > & isotopeSpec, // output
-                            uint32_t nrpeaks = 2, //nr of preisotope peaks
-                            double preIsotopePeaksWeight = -0.5, // weight of preisotope peaks
-                            double mannmass = 1.000482, //
-                            double charge = 1.
-                            );
+    /// given an experimental spectrum add isotope pattern.
+    OPENMS_DLLAPI void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
+                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                          double charge = 1.);
 
-  /// given an experimental spectrum add isotope pattern.
-  void addIsotopes2Spec(const std::vector<std::pair<double, double> > & spec,
-                        std::vector<std::pair<double, double> > & isotopeMasses, //[out]
-                        double charge = 1.);
-
-  /// sorts vector of pairs by first
-  void sortByFirst(std::vector<std::pair<double, double> > & tmp);
-  /// extract first from vector of pairs
-  void extractFirst(const std::vector<std::pair<double, double> > & peaks, std::vector<double> & mass);
-  /// extract second from vector of pairs
-  void extractSecond(const std::vector<std::pair<double, double> > & peaks, std::vector<double> & mass);
-
-}
+    /// sorts vector of pairs by first
+    OPENMS_DLLAPI void sortByFirst(std::vector<std::pair<double, double> >& tmp);
+    /// extract first from vector of pairs
+    OPENMS_DLLAPI void extractFirst(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
+    /// extract second from vector of pairs
+    OPENMS_DLLAPI void extractSecond(const std::vector<std::pair<double, double> >& peaks, std::vector<double>& mass);
+    
+    ///}@
+  }
 }
 #endif

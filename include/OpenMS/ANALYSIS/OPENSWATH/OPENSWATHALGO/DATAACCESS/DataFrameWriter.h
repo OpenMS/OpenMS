@@ -41,14 +41,16 @@
 #include <string>
 #include <vector>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+
 namespace OpenSwath
 {
   struct IDataFrameWriter
   {
     virtual ~IDataFrameWriter(){}
-    virtual void colnames(const std::vector<std::string> & colnames) = 0;
-    virtual void store(const std::string & rowname,
-                       const std::vector<double> & values) = 0;
+    virtual void colnames(const std::vector<std::string>& colnames) = 0;
+    virtual void store(const std::string& rowname,
+                       const std::vector<double>& values) = 0;
   };
 
   struct DataMatrix :
@@ -61,18 +63,18 @@ private:
 
 public:
     DataMatrix() :
-        colnames_(),rownames_(), store_()
+      colnames_(), rownames_(), store_()
     {
     }
 
-    void store(const std::string & rowname,
-               const std::vector<double> & values)
+    void store(const std::string& rowname,
+               const std::vector<double>& values)
     {
       rownames_.push_back(rowname);
       store_.push_back(values);
     }
 
-    void colnames(const std::vector<std::string> & colnames)
+    void colnames(const std::vector<std::string>& colnames)
     {
       colnames_ = colnames;
     }
@@ -92,8 +94,8 @@ public:
       file_stream_.open(filename.c_str());
     }
 
-    void store(const std::string & rowname,
-               const std::vector<double> & values)
+    void store(const std::string& rowname,
+               const std::vector<double>& values)
     {
       file_stream_ << rowname;
       file_stream_ << sep_;
@@ -104,7 +106,7 @@ public:
         if (i < (ncol - 1))
           file_stream_ << sep_;
       }
-      file_stream_ << eol_;           //append line-end
+      file_stream_ << eol_; //append line-end
     }
 
     virtual ~CSVWriter()
@@ -114,7 +116,7 @@ public:
       std::cout << "have flushed and closed the file stream" << std::endl;
     }
 
-    void colnames(const std::vector<std::string> & colnames)
+    void colnames(const std::vector<std::string>& colnames)
     {
       std::size_t ncol = colnames.size();
       for (size_t i = 0; i < ncol; ++i)
@@ -123,7 +125,7 @@ public:
         if (i < (ncol - 1))
           file_stream_ << sep_;
       }
-      file_stream_ << eol_;                           //append line-end
+      file_stream_ << eol_; //append line-end
     }
 
   };

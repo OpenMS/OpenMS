@@ -1,3 +1,8 @@
+// IMPORTANT:
+// This is OpenSwathAlgoConfig.h / OpenSwathAlgoConfig.h.in
+// Please do ONLY change *.in, as *.h is automagically
+// created by CMAKE from *.h.in
+
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
@@ -28,12 +33,37 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Maintainer: Stephan Aiche, Hannes Roest $
+// $Authors: Stephan Aiche, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/MRMTransitionGroup.h>
+// based on config.h.in of OpenMS
 
-namespace OpenMS
-{
-}
+// let Cmake decide if we are using Windows (ie if windows.h is available).
+//   GCC and MSVC have pre-defined macros for this as well but using -ansi in GCC will disable those, thus asking the compiler is fragile
+#ifndef WIN32 //avoid warning of redefinition
+#cmakedefine WIN32
+#endif
+
+#ifdef WIN32 //should be true on: MinGW (32bit + 64bit) & MSVS compiler
+#define OPENSWATHALGO_WINDOWSPLATFORM 1
+#endif
+
+// are we building a shared lib?
+#cmakedefine BUILD_SHARED_LIBS
+
+#ifdef OPENSWATHALGO_WINDOWSPLATFORM
+# ifdef BUILD_SHARED_LIBS
+#  if defined OpenSwathAlgo_EXPORTS //automatically defined by CMake when building OpenMS dll
+#    define OPENSWATHALGO_DLLAPI __declspec(dllexport)
+#  else
+#    define OPENSWATHALGO_DLLAPI __declspec(dllimport)
+#  endif
+# endif
+#endif
+#ifndef OPENSWATHALGO_DLLAPI //leave empty when not building DLL
+# define OPENSWATHALGO_DLLAPI
+#endif
+#ifndef OPENSWATHALGO_DLLAPI //leave empty when not building DLL
+# define OPENSWATHALGO_DLLAPI
+#endif

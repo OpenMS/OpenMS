@@ -38,6 +38,8 @@
 #include <string>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
@@ -54,7 +56,7 @@ namespace OpenSwath
       It uses scores based on different parameters of the peaks from the
       individual transitions and stores them individually. The idea and the
       scores are based on the following paper:
-        Reiter L, Rinner O, Picotti P, Hüttenhain R, Beck M, Brusniak MY,
+        Reiter L, Rinner O, Picotti P, Httenhain R, Beck M, Brusniak MY,
         Hengartner MO, Aebersold R.  mProphet: automated data processing and
         statistical validation for large-scale SRM experiments.  Nat Methods.
         2011 May;8(5):430-5. Epub 2011 Mar 20.
@@ -69,7 +71,7 @@ namespace OpenSwath
       - elution_fit_score: how well the elution profile fits a theoretical elution profile
 
   */
-  class MRMScoring
+  class OPENSWATHALGO_DLLAPI MRMScoring
   {
 
 public:
@@ -94,13 +96,13 @@ public:
     /** @name Accessors */
     //@{
     /// non-muteable access to the Cross-correlation matrix
-    const XCorrMatrixType & getXCorrMatrix() const;
+    const XCorrMatrixType& getXCorrMatrix() const;
     //@}
 
     /** @name Scores */
     //@{
     /// Initialize the scoring object and building the cross-correlation matrix
-    void initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize);
+    void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, OpenSwath::ITransitionGroup* transition_group, bool normalize);
 
     /// calculate the cross-correlation score
     double calcXcorrCoelutionScore();
@@ -109,22 +111,22 @@ public:
     double calcXcorrShape_score();
 
     /// calculate the weighted cross-correlation shape score
-    double calcXcorrShape_score_weighted(const std::vector<double> & normalized_library_intensity);
+    double calcXcorrShape_score_weighted(const std::vector<double>& normalized_library_intensity);
 
     /// calculate the weighted cross-correlation score
-    double calcXcorrCoelutionScore_weighted(const std::vector<double> & normalized_library_intensity);
+    double calcXcorrCoelutionScore_weighted(const std::vector<double>& normalized_library_intensity);
 
     /// calculate the library correlation score (correlation and rmsd)
-    static void calcLibraryScore(OpenSwath::IMRMFeature * mrmfeature, const std::vector<TransitionType> & transitions,
-                                 double & correlation, double & rmsd, double & manhattan, double & dotprod);
+    static void calcLibraryScore(OpenSwath::IMRMFeature* mrmfeature, const std::vector<TransitionType>& transitions,
+                                 double& correlation, double& rmsd, double& manhattan, double& dotprod);
 
     /// calculate the retention time correlation score
-    static double calcRTScore(const PeptideType & peptide, double normalized_experimental_rt);
+    static double calcRTScore(const PeptideType& peptide, double normalized_experimental_rt);
 
     /// calculate the Signal to Noise ratio
     //  using a vector of SignalToNoiseEstimatorMedian that were calculated for
     //  each chromatogram of the transition_group.
-    static double calcSNScore(OpenSwath::IMRMFeature * mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr> & signal_noise_estimators);
+    static double calcSNScore(OpenSwath::IMRMFeature* mrmfeature, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
 
     //@}
 

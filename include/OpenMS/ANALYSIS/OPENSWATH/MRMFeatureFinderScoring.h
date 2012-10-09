@@ -72,7 +72,7 @@
 #include <omp.h>
 #endif
 
-bool SortDoubleDoublePairFirst(const std::pair<double, double> & left, const std::pair<double, double> & right);
+bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right);
 
 namespace OpenMS
 {
@@ -218,8 +218,8 @@ public:
     ~MRMFeatureFinderScoring();
 
     // pick features in one experiment containing chromatograms
-    void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature> & output, OpenSwath::LightTargetedExperiment & transition_exp,
-                        TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType & transition_group_map)
+    void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
+                        TransformationDescription& trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map)
     {
       handle_params();
 
@@ -239,7 +239,7 @@ public:
       std::vector<ProteinHit> protein_hits;
       for (Size i = 0; i < transition_exp.getProteins().size(); i++)
       {
-        const ProteinType & prot = transition_exp.getProteins()[i];
+        const ProteinType& prot = transition_exp.getProteins()[i];
         ProteinRefMap[transition_exp.getProteins()[i].id] = &transition_exp.getProteins()[i];
         ProteinHit prot_hit = ProteinHit();
         prot_hit.setSequence(prot.sequence);
@@ -274,14 +274,14 @@ public:
       {
 
         setProgress(++progress);
-        MRMTransitionGroupType & transition_group = trgroup_it->second;
+        MRMTransitionGroupType& transition_group = trgroup_it->second;
         if (transition_group.getChromatograms().size() == 0 || transition_group.getTransitions().size() == 0)
         {
           continue;
         }
 
         MRMTransitionGroupPicker trgroup_picker;
-        trgroup_picker.setParameters(param_.copy("TransitionGroupPicker:",true));
+        trgroup_picker.setParameters(param_.copy("TransitionGroupPicker:", true));
         trgroup_picker.handle_params();
         trgroup_picker.pickTransitionGroup(transition_group);
         scorePeakgroups(trgroup_it->second, trafo, swath_map, output);
@@ -296,8 +296,8 @@ public:
     // Map an input experiment (mzML) and transition list (TraML) onto each other
     // when they share identifiers, e.g. if the transition id is the same as the
     // chromatogram native id.
-    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment & transition_exp,
-                                       TransitionGroupMapType & transition_group_map, TransformationDescription trafo, double rt_extraction_window);
+    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment& transition_exp,
+                                       TransitionGroupMapType& transition_group_map, TransformationDescription trafo, double rt_extraction_window);
 
     void setStrictFlag(bool f)
     {
@@ -308,8 +308,8 @@ private:
 
     /// Score all peak groups
     template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
-    void scorePeakgroups(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, TransformationDescription & trafo,
-      OpenSwath::SpectrumAccessPtr  swath_map, FeatureMap<Feature> & output)
+    void scorePeakgroups(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group, TransformationDescription& trafo,
+                         OpenSwath::SpectrumAccessPtr  swath_map, FeatureMap<Feature>& output)
     {
       //std::vector<SignalToNoiseEstimatorMedian<RichPeakChromatogram> > signal_noise_estimators;
       std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
@@ -335,10 +335,10 @@ private:
            mrmfeature != transition_group.getFeaturesMuteable().end(); mrmfeature++)
       {
 
-        OpenSwath::IMRMFeature * imrmfeature;
+        OpenSwath::IMRMFeature* imrmfeature;
         imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
 
-        OpenSwath::ITransitionGroup * itransition_group;
+        OpenSwath::ITransitionGroup* itransition_group;
         itransition_group = new TransitionGroupOpenMS<SpectrumT, PeakT, TransitionT>(transition_group);
 
 #ifdef DEBUG_MRMPEAKPICKER
@@ -424,7 +424,7 @@ private:
           // get the id, then get the expected and the experimental retention time
           String native_id = transition_group.getChromatograms()[0].getNativeID();
           TransitionType tr = transition_group.getTransition(native_id);
-          const PeptideType * pep = PeptideRefMap[tr.getPeptideRef()];
+          const PeptideType* pep = PeptideRefMap[tr.getPeptideRef()];
           double experimental_rt = mrmfeature->getFeature(native_id).getRT();
           double normalized_experimental_rt = trafo.apply(experimental_rt);
           // rt score is delta iRT
@@ -528,8 +528,8 @@ private:
         // add the peptide hit information to the feature
         ///////////////////////////////////////////////////////////////////////////
 
-        const PeptideType * pep = PeptideRefMap[transition_group.getTransitions()[0].getPeptideRef()];
-        const ProteinType * prot = ProteinRefMap[pep->protein_ref];
+        const PeptideType* pep = PeptideRefMap[transition_group.getTransitions()[0].getPeptideRef()];
+        const ProteinType* prot = ProteinRefMap[pep->protein_ref];
 
         PeptideIdentification pep_id_ = PeptideIdentification();
         PeptideHit pep_hit_ = PeptideHit();
@@ -578,12 +578,12 @@ private:
 
       for (Size i = 0; i < feature_list.size(); i++)
       {
-        if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_ ) {break;} 
+        if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break; }
         output.push_back(feature_list[i]);
       }
     }
 
-    /// Returns the addition of "nr_spectra_to_add" spectra around the given RT 
+    /// Returns the addition of "nr_spectra_to_add" spectra around the given RT
     OpenSwath::SpectrumPtr getAddedSpectra(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add)
     {
       std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
@@ -591,8 +591,8 @@ private:
       if (indices[0] != 0 &&
           std::fabs(swath_map->getSpectrumMetaById(indices[0] - 1).RT - RT) <
           std::fabs(swath_map->getSpectrumMetaById(indices[0]).RT - RT))
-      { 
-        closest_idx--; 
+      {
+        closest_idx--;
       }
 
       if (nr_spectra_to_add == 1)
@@ -600,15 +600,15 @@ private:
         OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
         return spectrum_;
       }
-      else 
+      else
       {
         std::vector<OpenSwath::SpectrumPtr> all_spectra;
-        // always add the spectrum 0, then add those right and left  
+        // always add the spectrum 0, then add those right and left
         all_spectra.push_back(swath_map->getSpectrumById(closest_idx));
-        for (int i = 1; i <= nr_spectra_to_add / 2; i ++) // cast to int is intended!
+        for (int i = 1; i <= nr_spectra_to_add / 2; i++) // cast to int is intended!
         {
-          all_spectra.push_back(swath_map->getSpectrumById(closest_idx-i));
-          all_spectra.push_back(swath_map->getSpectrumById(closest_idx+i));
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
         }
         OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
         return spectrum_;
@@ -616,33 +616,33 @@ private:
     }
 
     template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
-    void calculate_swath_scores(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group, MRMFeature & mrmfeature_,
-      OpenSwath::SpectrumAccessPtr swath_map, std::vector<double> & normalized_library_intensity, OpenSwath_Scores scores)
+    void calculate_swath_scores(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group, MRMFeature& mrmfeature_,
+                                OpenSwath::SpectrumAccessPtr swath_map, std::vector<double>& normalized_library_intensity, OpenSwath_Scores scores)
     {
-      MRMFeature * mrmfeature = &mrmfeature_;
+      MRMFeature* mrmfeature = &mrmfeature_;
 
       // parameters
       int by_charge_state = 1; // for which charge states should we check b/y series
 
       // find spectrum that is closest to the apex of the peak using binary search
       OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra(swath_map, mrmfeature->getRT(), add_up_spectra_);
-      OpenSwath::SpectrumPtr * spectrum = &spectrum_;
+      OpenSwath::SpectrumPtr* spectrum = &spectrum_;
 
       // Isotope correlation / overlap score: Is this peak part of an
       // isotopic pattern or is it the monoisotopic peak in an isotopic
       // pattern?
-      OpenSwath::IMRMFeature * imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
+      OpenSwath::IMRMFeature* imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
       double isotope_corr = 0, isotope_overlap = 0;
       diascoring.dia_isotope_scores(transition_group.getTransitions(),
-        (*spectrum), imrmfeature, isotope_corr, isotope_overlap);
+                                    (*spectrum), imrmfeature, isotope_corr, isotope_overlap);
       // Mass deviation score
       double ppm_score = 0, ppm_score_weighted = 0;
       diascoring.dia_massdiff_score(transition_group.getTransitions(),
-        (*spectrum), normalized_library_intensity, ppm_score, ppm_score_weighted);
+                                    (*spectrum), normalized_library_intensity, ppm_score, ppm_score_weighted);
 
       // Presence of b/y series score
       double bseries_score = 0, yseries_score = 0;
-      const PeptideType * pep = PeptideRefMap[transition_group.getTransitions()[0].getPeptideRef()];
+      const PeptideType* pep = PeptideRefMap[transition_group.getTransitions()[0].getPeptideRef()];
       OpenMS::AASequence aas = (String)pep->sequence;
       for (std::vector<ModificationType>::const_iterator it = pep->modifications.begin(); it != pep->modifications.end(); ++it)
       {
@@ -697,7 +697,7 @@ private:
     void handle_params();
 
     /// Synchronize members with param class
-    void updateMembers_();        
+    void updateMembers_();
 
     // Variables
     DoubleReal rt_extraction_window_;
@@ -713,7 +713,7 @@ private:
     bool use_total_xic_score_;
     bool use_nr_peaks_score_;
     bool use_sn_score_;
-    
+
     int stop_report_after_feature_;
     int add_up_spectra_;
     DoubleReal spacing_for_spectra_resampling_;
@@ -726,8 +726,8 @@ private:
 
     std::map<OpenMS::String, double> PeptideRTMap;
 
-    std::map<OpenMS::String, const PeptideType *> PeptideRefMap;
-    std::map<OpenMS::String, const ProteinType *> ProteinRefMap;
+    std::map<OpenMS::String, const PeptideType*> PeptideRefMap;
+    std::map<OpenMS::String, const ProteinType*> ProteinRefMap;
 
     TransitionGroupMapType lib_transition_group_map;
 

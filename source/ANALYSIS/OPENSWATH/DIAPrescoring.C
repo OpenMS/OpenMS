@@ -40,8 +40,8 @@ namespace OpenMS
 {
 
   void getNormalizedLibraryIntensities(
-    const std::vector<OpenSwath::LightTransition> & transitions,
-    std::vector<double> & normalizedLibraryIntensities     //normalized intensities
+    const std::vector<OpenSwath::LightTransition>& transitions,
+    std::vector<double>& normalizedLibraryIntensities //normalized intensities
     )
   {
     double totalInt = 0.;
@@ -59,8 +59,7 @@ namespace OpenMS
                    boost::bind(std::divides<double>(), _1, totalInt));
   }
 
-
-  void getMZIntensityFromTransition(const std::vector<OpenSwath::LightTransition> & trans, std::vector<std::pair<double, double> > & res)
+  void getMZIntensityFromTransition(const std::vector<OpenSwath::LightTransition>& trans, std::vector<std::pair<double, double> >& res)
   {
     for (std::size_t i = 0; i < trans.size(); ++i)
     {
@@ -68,16 +67,15 @@ namespace OpenMS
     }
   }
 
-
   void DiaPrescore::operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
-                 OpenSwath::LightTargetedExperiment & transition_exp_used,
-                 OpenSwath::IDataFrameWriter * ivw)
+                               OpenSwath::LightTargetedExperiment& transition_exp_used,
+                               OpenSwath::IDataFrameWriter* ivw)
   {
     //getParams();
     typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;
     Mmap transmap;
     convert(transition_exp_used, transmap);
-      // std::cout << "nr peptides : " << transmap.size() << std::endl;
+    // std::cout << "nr peptides : " << transmap.size() << std::endl;
 
     Mmap::iterator beg = transmap.begin();
     Mmap::iterator end = transmap.end();
@@ -115,19 +113,19 @@ namespace OpenMS
 
         score1v.push_back(score1);
         score2v.push_back(score2);
-      }           //end of forloop over transitions
+      } //end of forloop over transitions
 
       //std::string ispectrum = boost::lexical_cast<std::string>(i);
       std::string specRT = boost::lexical_cast<std::string>(specmeta.RT);
       ivw->store("score1_" + specRT, score1v);
       ivw->store("score2_" + specRT, score2v);
-    }           //end of forloop over spectra
+    } //end of forloop over spectra
   }
 
   void DiaPrescore::score(OpenSwath::SpectrumPtr spec,
-             const std::vector<OpenSwath::LightTransition> & lt,
-             double & dotprod,
-             double & manhattan)
+                          const std::vector<OpenSwath::LightTransition>& lt,
+                          double& dotprod,
+                          double& manhattan)
   {
     std::vector<std::pair<double, double> > res;
     getMZIntensityFromTransition(lt, res);
@@ -175,4 +173,5 @@ namespace OpenMS
     //    std::cout << std::endl;
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), theorint2.begin());
   }
+
 }

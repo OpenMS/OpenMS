@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
-bool SortDoubleDoublePairFirst(const std::pair<double, double> & left, const std::pair<double, double> & right)
+bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right)
 {
   return left.first < right.first;
 }
@@ -65,7 +65,7 @@ namespace OpenMS
 
     defaults_.insert("EMGScoring:", EmgScoring().getDefaults());
 
-    // One can turn on / off each score individually 
+    // One can turn on / off each score individually
     Param scores_to_use;
     scores_to_use.setValue("use_shape_score", "true", "Use the shape score", StringList::create("advanced"));
     scores_to_use.setValidStrings("use_shape_score", StringList::create("true,false"));
@@ -112,7 +112,7 @@ namespace OpenMS
     add_up_spectra_ = param_.getValue("add_up_spectra");
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
 
-    diascoring.setParameters(param_.copy("DIAScoring:",true));
+    diascoring.setParameters(param_.copy("DIAScoring:", true));
     emgscoring.setFitterParam(param_.copy("EmgScoring:", true));
 
     use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
@@ -127,8 +127,8 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-    TargetedExpType & transition_exp, TransitionGroupMapType & transition_group_map,
-    TransformationDescription trafo, double rt_extraction_window)
+                                                              TargetedExpType& transition_exp, TransitionGroupMapType& transition_group_map,
+                                                              TransformationDescription trafo, double rt_extraction_window)
   {
     double rt_min, rt_max, expected_rt;
     trafo.invert();
@@ -147,7 +147,7 @@ namespace OpenMS
     for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
     {
       // get the current transition and try to find the corresponding chromatogram
-      const TransitionType * transition = &transition_exp.getTransitions()[i];
+      const TransitionType* transition = &transition_exp.getTransitions()[i];
       if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
       {
         std::cerr << "Error: Transition " + transition->getNativeID() + " from group " +
@@ -211,7 +211,7 @@ namespace OpenMS
       }
 
       // Now add the transition and the chromatogram to the group
-      MRMTransitionGroupType & transition_group = transition_group_map[transition->getPeptideRef()];
+      MRMTransitionGroupType& transition_group = transition_group_map[transition->getPeptideRef()];
       transition_group.addTransition(*transition, transition->getNativeID());
       transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
 

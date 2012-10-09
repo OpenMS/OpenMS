@@ -37,14 +37,14 @@
 
 
 #include <map>
-#include <utility>  //for pair
+#include <utility> //for pair
 #include <string>
 #include <vector>
 #include <algorithm> // for sort
 
 namespace OpenMS
 {
-  std::pair<String, DoubleReal> MRMDecoy::getDecoyIon(String ionid, std::map<String, std::map<String, DoubleReal> > & decoy_ionseries)
+  std::pair<String, DoubleReal> MRMDecoy::getDecoyIon(String ionid, std::map<String, std::map<String, DoubleReal> >& decoy_ionseries)
   {
     using namespace boost::assign;
     // Select SpectraST Style
@@ -256,7 +256,7 @@ namespace OpenMS
     return idx;
   }
 
-  float MRMDecoy::AASequenceIdentity(const String & sequence, const String & decoy)
+  float MRMDecoy::AASequenceIdentity(const String& sequence, const String& decoy)
   {
     std::vector<char> sequence_v(sequence.begin(), sequence.end());
     std::vector<char> decoy_v(decoy.begin(), decoy.end());
@@ -285,7 +285,7 @@ namespace OpenMS
 
     boost::mt19937 generator(seed);
     boost::uniform_int<> uni_dist;
-    boost::variate_generator<boost::mt19937 &, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
 
     std::vector<std::pair<std::string::size_type, std::string> > idx = MRMDecoy::find_all_tryptic(peptide.sequence);
     std::string aa[] =
@@ -418,7 +418,7 @@ namespace OpenMS
     return peptide;
   }
 
-  void MRMDecoy::restrictTransitions(OpenMS::TargetedExperiment & exp, int min_transitions,
+  void MRMDecoy::restrictTransitions(OpenMS::TargetedExperiment& exp, int min_transitions,
                                      int max_transitions)
   {
     OpenMS::TargetedExperiment restricted_exp;
@@ -496,7 +496,7 @@ namespace OpenMS
     exp = restricted_exp;
   }
 
-  OpenMS::AASequence MRMDecoy::getAASequence(const OpenMS::TargetedExperiment::Peptide & peptide)
+  OpenMS::AASequence MRMDecoy::getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide)
   {
     // The workaround expects a TraML with UniMod CVTerms for each peptide. The problem in ModificationsDB has been described in TRAC #458.
 #if (1)
@@ -516,8 +516,8 @@ namespace OpenMS
         }
       }
     }
-#else 
-    OpenMS::ModificationsDB * mod_db = OpenMS::ModificationsDB::getInstance();
+#else
+    OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
     OpenMS::AASequence aas = peptide.sequence;
 
     for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it = peptide.mods.begin(); it != peptide.mods.end(); ++it)
@@ -535,7 +535,7 @@ namespace OpenMS
     return aas;
   }
 
-  void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment & exp, OpenMS::TargetedExperiment & dec,
+  void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 String method, String decoy_tag, double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift)
   {
     MRMDecoy::PeptideVectorType peptides;

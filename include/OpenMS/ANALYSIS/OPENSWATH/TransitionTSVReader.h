@@ -96,23 +96,23 @@ private:
       String group_label;
     };
 
-    void readTSVInput(const char * filename, std::vector<TSVTransition> & transition_list);
+    void readTSVInput(const char* filename, std::vector<TSVTransition>& transition_list);
 
-    void TSVToTargetedExperiment(std::vector<TSVTransition> & transition_list, OpenMS::TargetedExperiment & exp);
+    void TSVToTargetedExperiment(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
-    void writeTSVOutput(const char * filename, OpenMS::TargetedExperiment & targeted_exp);
+    void writeTSVOutput(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
-    void createPeptide_(std::vector<TSVTransition>::iterator & tr_it, OpenMS::TargetedExperiment::Peptide & peptide);
+    void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
 public:
     /// Write out a targeted experiment (TraML structure) into a tsv file
-    void convertTargetedExperimentToTSV(const char * filename, OpenMS::TargetedExperiment & targeted_exp);
+    void convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
     /// Read in a tsv file and construct a targeted experiment (TraML structure)
-    void convertTSVToTargetedExperiment(const char * filename, OpenMS::TargetedExperiment & targeted_exp);
+    void convertTSVToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
     /// Validate a TargetedExperiment (check that all ids are unique)
-    void validateTargetedExperiment(OpenMS::TargetedExperiment & targeted_exp);
+    void validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp);
 
   };
 }

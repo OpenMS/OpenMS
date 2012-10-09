@@ -40,7 +40,7 @@
 
 // move to TOPPTool
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h> 
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -76,8 +76,8 @@ public:
 
     /// Extract chromatograms defined by the TargetedExperiment from the input map and write them to the output map
     template <typename ExperimentType>
-    void extractChromatograms(const ExperimentType & input, ExperimentType & output, OpenMS::TargetedExperiment & transition_exp, double & extract_window, bool ppm,
-                              TransformationDescription & trafo, double rt_extraction_window, String filter)
+    void extractChromatograms(const ExperimentType& input, ExperimentType& output, OpenMS::TargetedExperiment& transition_exp, double& extract_window, bool ppm,
+                              TransformationDescription& trafo, double rt_extraction_window, String filter)
     {
 
       // invert the trafo because we want to transform nRT values to "real" RT values
@@ -108,7 +108,7 @@ public:
       PeptideRTMap.clear();
       for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
       {
-        const TargetedExperiment::Peptide & pep = transition_exp.getPeptides()[i];
+        const TargetedExperiment::Peptide& pep = transition_exp.getPeptides()[i];
         if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
         {
           // we dont have retention times -> this is only a problem if we actually
@@ -185,13 +185,13 @@ private:
 
     /// This populates the chromatograms vector with empty chromatograms (but sets their meta-information)
     template <class SpectrumSettings, class ExperimentType>
-    void prepare_spectra(SpectrumSettings & settings, std::vector<ExperimentType> & chromatograms, OpenMS::TargetedExperiment & transition_exp)
+    void prepare_spectra(SpectrumSettings& settings, std::vector<ExperimentType>& chromatograms, OpenMS::TargetedExperiment& transition_exp)
     {
 
       // first prepare all the spectra (but leave them empty)
       for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
       {
-        const ReactionMonitoringTransition * transition = &transition_exp.getTransitions()[i];
+        const ReactionMonitoringTransition* transition = &transition_exp.getTransitions()[i];
 
         ExperimentType chrom;
         // Create precursor and set
@@ -210,7 +210,7 @@ private:
         String pepref = transition->getPeptideRef();
         for (Size pep_idx = 0; pep_idx < transition_exp.getPeptides().size(); pep_idx++)
         {
-          const OpenMS::TargetedExperiment::Peptide * pep = &transition_exp.getPeptides()[pep_idx];
+          const OpenMS::TargetedExperiment::Peptide* pep = &transition_exp.getPeptides()[pep_idx];
           if (pep->id == pepref)
           {
             prec.setMetaValue("peptide_sequence", pep->sequence);
@@ -230,7 +230,7 @@ private:
         chrom.setAcquisitionInfo(settings.getAcquisitionInfo());
         chrom.setSourceFile(settings.getSourceFile());
 
-        for (Size i=0; i<settings.getDataProcessing().size(); ++i)
+        for (Size i = 0; i < settings.getDataProcessing().size(); ++i)
         {
           DataProcessing dp = settings.getDataProcessing()[i];
           dp.setMetaValue("performed_on_spectra", "true");
@@ -246,7 +246,7 @@ private:
     }
 
     template <typename SpectrumType>
-    void extract_value_tophat(const SpectrumType & input, const double & mz, Size & peak_idx, double & integrated_intensity, const double & extract_window, const bool ppm)
+    void extract_value_tophat(const SpectrumType& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
     {
       // calculate extraction window
       double left, right;
@@ -299,7 +299,7 @@ private:
     }
 
     template <typename SpectrumType>
-    void extract_value_bartlett(const SpectrumType & input, const double & mz, Size & peak_idx, double & integrated_intensity, const double & extract_window, const bool ppm)
+    void extract_value_bartlett(const SpectrumType& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
     {
       // calculate extraction window
       double left, right, half_window_size, weight;
@@ -356,9 +356,9 @@ private:
       }
     }
 
-    void extract_value_tophat(const std::vector<double>::const_iterator & mz_start, std::vector<double>::const_iterator & mz_it,
-                              const std::vector<double>::const_iterator & mz_end, std::vector<double>::const_iterator & int_it,
-                              const double & mz, double & integrated_intensity, double & extract_window, bool ppm)
+    void extract_value_tophat(const std::vector<double>::const_iterator& mz_start, std::vector<double>::const_iterator& mz_it,
+                              const std::vector<double>::const_iterator& mz_end, std::vector<double>::const_iterator& int_it,
+                              const double& mz, double& integrated_intensity, double& extract_window, bool ppm)
     {
       // calculate extraction window
       double left, right;
@@ -419,8 +419,8 @@ private:
       }
     }
 
-    bool outside_extraction_window(const ReactionMonitoringTransition & transition, double current_rt,
-                                   const TransformationDescription & trafo, double rt_extraction_window)
+    bool outside_extraction_window(const ReactionMonitoringTransition& transition, double current_rt,
+                                   const TransformationDescription& trafo, double rt_extraction_window)
     {
       if (rt_extraction_window < 0)
       {

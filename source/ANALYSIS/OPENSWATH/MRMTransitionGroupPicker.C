@@ -69,7 +69,7 @@ namespace OpenMS
   {
   }
 
-  MRMTransitionGroupPicker & MRMTransitionGroupPicker::operator = (const MRMTransitionGroupPicker &rhs)
+  MRMTransitionGroupPicker& MRMTransitionGroupPicker::operator=(const MRMTransitionGroupPicker& rhs)
   {
     if (&rhs == this)
       return *this;
@@ -101,7 +101,7 @@ namespace OpenMS
     background_subtraction_ = param_.getValue("background_subtraction");
   }
 
-  void MRMTransitionGroupPicker::pickChromatogram(const RichPeakChromatogram & chromatogram, RichPeakChromatogram & smoothed_chrom, RichPeakChromatogram & picked_chrom)
+  void MRMTransitionGroupPicker::pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& smoothed_chrom, RichPeakChromatogram& picked_chrom)
   {
     // Smooth the chromatogram
     smoothed_chrom = chromatogram;
@@ -146,7 +146,7 @@ namespace OpenMS
     {
 
       // Find the peak width and best RT
-      // FEATURE : we could use #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h> 
+      // FEATURE : we could use #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
       // --> this sounds costly, fitting a spline and then linear regression ...
       double central_peak_mz = picked_chrom[i].getMZ();
       double min_d = std::fabs(central_peak_mz - chromatogram[0].getMZ());
@@ -222,7 +222,44 @@ namespace OpenMS
 
   }
 
-  void MRMTransitionGroupPicker::findLargestPeak(std::vector<RichPeakChromatogram> & picked_chroms, int & chr_idx, int & peak_idx)
+  double MRMTransitionGroupPicker::calculate_bg_estimation(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right)
+  {
+    // determine (in the smoothed chrom) the intensity at the left / right border
+    RichPeakChromatogram::const_iterator it = smoothed_chromat.begin();
+    int nr_points = 0;
+    for (; it != smoothed_chromat.end(); it++)
+    {
+      if (it->getMZ() > best_left)
+      {
+        nr_points++;
+        break;
+      }
+    }
+    double intensity_left = it->getIntensity();
+    for (; it != smoothed_chromat.end(); it++)
+    {
+      if (it->getMZ() > best_right)
+      {
+        break;
+      }
+      nr_points++;
+    }
+    if (it == smoothed_chromat.begin() || nr_points < 1)
+    {
+      // something is fishy, the endpoint of the peak is the beginning of the chromatogram
+      std::cerr << "Tried to calculate background but no points were found " << std::endl;
+      return 0;
+    }
+
+    // decrease the iterator and the nr_points by one (because we went one too far)
+    double intensity_right = (it--)->getIntensity();
+    nr_points--;
+
+    double avg_noise_level = (intensity_right + intensity_left) / 2;
+    return avg_noise_level * nr_points;
+  }
+
+  void MRMTransitionGroupPicker::findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx)
   {
     double largest = 0.0;
     ChromatogramPeak largest_pos;

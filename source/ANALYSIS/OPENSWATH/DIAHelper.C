@@ -41,184 +41,185 @@
 
 namespace OpenMS
 {
-namespace DIAHelpers
-{
-  // for SWATH -- get the theoretical b and y series masses for a sequence
-  void getBYSeries(AASequence & a,   //
-                   std::vector<double> & bseries, //
-                   std::vector<double> & yseries, //
-                   uint32_t charge //
-                   )
+  namespace DIAHelpers
   {
-    OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-    TheoreticalSpectrumGenerator generator;
-    Param p;
-    p.setValue("add_metainfo", "true",
-               "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    generator.setParameters(p);
-
-    RichPeakSpectrum rich_spec;
-    generator.addPeaks(rich_spec, a, Residue::BIon, charge);
-    generator.addPeaks(rich_spec, a, Residue::YIon, charge);
-
-    for (RichPeakSpectrum::iterator it = rich_spec.begin();
-         it != rich_spec.end(); it++)
+    // for SWATH -- get the theoretical b and y series masses for a sequence
+    void getBYSeries(AASequence& a, //
+                     std::vector<double>& bseries, //
+                     std::vector<double>& yseries, //
+                     uint32_t charge //
+                     )
     {
-      if (it->getMetaValue("IonName").toString()[0] == 'y')
+      OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
+      TheoreticalSpectrumGenerator generator;
+      Param p;
+      p.setValue("add_metainfo", "true",
+                 "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+      generator.setParameters(p);
+
+      RichPeakSpectrum rich_spec;
+      generator.addPeaks(rich_spec, a, Residue::BIon, charge);
+      generator.addPeaks(rich_spec, a, Residue::YIon, charge);
+
+      for (RichPeakSpectrum::iterator it = rich_spec.begin();
+           it != rich_spec.end(); it++)
       {
-        yseries.push_back(it->getMZ());
+        if (it->getMetaValue("IonName").toString()[0] == 'y')
+        {
+          yseries.push_back(it->getMZ());
+        }
+        else if (it->getMetaValue("IonName").toString()[0] == 'b')
+        {
+          bseries.push_back(it->getMZ());
+        }
       }
-      else if (it->getMetaValue("IonName").toString()[0] == 'b')
+    } // end getBYSeries
+
+    // for SWATH -- get the theoretical b and y series masses for a sequence
+    void getTheorMasses(AASequence& a, std::vector<double>& masses,
+                        uint32_t charge)
+    {
+      OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
+      TheoreticalSpectrumGenerator generator;
+      Param p;
+      p.setValue("add_metainfo", "true",
+                 "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+      generator.setParameters(p);
+      RichPeakSpectrum rich_spec;
+      generator.addPeaks(rich_spec, a, Residue::BIon, charge);
+      generator.addPeaks(rich_spec, a, Residue::YIon, charge);
+      generator.addPrecursorPeaks(rich_spec, a, charge);
+      for (RichPeakSpectrum::iterator it = rich_spec.begin();
+           it != rich_spec.end(); it++)
       {
-        bseries.push_back(it->getMZ());
+        masses.push_back(it->getMZ());
       }
-    }
-  }   // end getBYSeries
+    } // end getBYSeries
 
-  // for SWATH -- get the theoretical b and y series masses for a sequence
-  void getTheorMasses(AASequence & a, std::vector<double> & masses,
-                      uint32_t charge)
-  {
-    OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-    TheoreticalSpectrumGenerator generator;
-    Param p;
-    p.setValue("add_metainfo", "true",
-               "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    generator.setParameters(p);
-    RichPeakSpectrum rich_spec;
-    generator.addPeaks(rich_spec, a, Residue::BIon, charge);
-    generator.addPeaks(rich_spec, a, Residue::YIon, charge);
-    generator.addPrecursorPeaks(rich_spec, a, charge);
-    for (RichPeakSpectrum::iterator it = rich_spec.begin();
-         it != rich_spec.end(); it++)
+    void getAveragineIsotopeDistribution(double product_mz,
+                                         std::vector<std::pair<double, double> >& isotopesSpec, double charge,
+                                         int nr_isotopes, double mannmass)
     {
-      masses.push_back(it->getMZ());
-    }
-  }   // end getBYSeries
+      typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
+      typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern IsotopePattern;
+      // create the theoretical distribution
+      IsotopeDistribution d;
+      TheoreticalIsotopePattern isotopes;
+      d.setMaxIsotope(nr_isotopes);
+      //std::cout << product_mz * charge << std::endl;
+      d.estimateFromPeptideWeight(product_mz * charge);
 
-  void getAveragineIsotopeDistribution(double product_mz,
-                                       std::vector<std::pair<double, double> > & isotopesSpec, double charge,
-                                       int nr_isotopes, double mannmass)
-  {
-    typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
-    typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern IsotopePattern;
-    // create the theoretical distribution
-    IsotopeDistribution d;
-    TheoreticalIsotopePattern isotopes;
-    d.setMaxIsotope(nr_isotopes);
-    //std::cout << product_mz * charge << std::endl;
-    d.estimateFromPeptideWeight(product_mz * charge);
-
-    double mass = product_mz;
-    for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
-    {
-      isotopesSpec.push_back(std::make_pair(mass, it->second));
-      mass += mannmass;
-    }
-  }   //end of dia_isotope_corr_sub
-
-  //simulate spectrum from AASequence
-  void simulateSpectrumFromAASequence(AASequence & aa,
-                                      std::vector<double> & firstIsotopeMasses, //[out]
-                                      std::vector<std::pair<double, double> > & isotopeMasses, //[out]
-                                      double charge)
-  {
-    getTheorMasses(aa, firstIsotopeMasses, charge);
-    for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
-    {
-      getAveragineIsotopeDistribution(firstIsotopeMasses[i], isotopeMasses,
-                                      charge);
-    }
-  }
-
-  //given an experimental spectrum add isotope pattern.
-  void addIsotopes2Spec(const std::vector<std::pair<double, double> > & spec,
-                        std::vector<std::pair<double, double> > & isotopeMasses, //[out]
-                        double charge)
-  {
-
-    for (std::size_t i = 0; i < spec.size(); ++i)
-    {
-      std::vector<std::pair<double, double> > isotopes;
-      getAveragineIsotopeDistribution(spec[i].first, isotopes, charge);
-      for (Size j = 0; j < isotopes.size(); ++j)
+      double mass = product_mz;
+      for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
-        isotopes[j].second *= spec[i].second;        //multiple isotope intensity by spec intensity
-        isotopeMasses.push_back(isotopes[j]);
+        isotopesSpec.push_back(std::make_pair(mass, it->second));
+        mass += mannmass;
+      }
+    } //end of dia_isotope_corr_sub
+
+    //simulate spectrum from AASequence
+    void simulateSpectrumFromAASequence(AASequence& aa,
+                                        std::vector<double>& firstIsotopeMasses, //[out]
+                                        std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                                        double charge)
+    {
+      getTheorMasses(aa, firstIsotopeMasses, charge);
+      for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
+      {
+        getAveragineIsotopeDistribution(firstIsotopeMasses[i], isotopeMasses,
+                                        charge);
       }
     }
-  }
 
-  //Add masses before first isotope
-  void addPreisotopeWeights(const std::vector<double> & firstIsotopeMasses,
-                            std::vector<std::pair<double, double> > & isotopeSpec, // output
-                            uint32_t nrpeaks, double preIsotopePeaksWeight, // weight of pre isotope peaks
-                            double mannmass, double charge)
-  {
-    for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
+    //given an experimental spectrum add isotope pattern.
+    void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
+                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
+                          double charge)
     {
-      double mul = 1.;
-      for (uint32_t j = 0; j < nrpeaks; ++j, ++mul)
+
+      for (std::size_t i = 0; i < spec.size(); ++i)
       {
-        isotopeSpec.push_back(
-          std::make_pair(firstIsotopeMasses[i] - (mul * mannmass) / charge,
-                         preIsotopePeaksWeight));
+        std::vector<std::pair<double, double> > isotopes;
+        getAveragineIsotopeDistribution(spec[i].first, isotopes, charge);
+        for (Size j = 0; j < isotopes.size(); ++j)
+        {
+          isotopes[j].second *= spec[i].second; //multiple isotope intensity by spec intensity
+          isotopeMasses.push_back(isotopes[j]);
+        }
       }
     }
-    sortByFirst(isotopeSpec);
-  }
 
-  struct MassSorter : std::binary_function<double, double, bool>
-  {
-    bool operator() (const std::pair<double, double>&left,
-                     const std::pair<double, double>&right)
+    //Add masses before first isotope
+    void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
+                              std::vector<std::pair<double, double> >& isotopeSpec, // output
+                              uint32_t nrpeaks, double preIsotopePeaksWeight, // weight of pre isotope peaks
+                              double mannmass, double charge)
     {
-      return left.first < right.first;
+      for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
+      {
+        double mul = 1.;
+        for (uint32_t j = 0; j < nrpeaks; ++j, ++mul)
+        {
+          isotopeSpec.push_back(
+            std::make_pair(firstIsotopeMasses[i] - (mul * mannmass) / charge,
+                           preIsotopePeaksWeight));
+        }
+      }
+      sortByFirst(isotopeSpec);
     }
-  };
 
-  void sortByFirst(std::vector<std::pair<double, double> > & tmp)
-  {
-    std::sort(tmp.begin(), tmp.end(), MassSorter());
-  }
-
-  void extractFirst(const std::vector<std::pair<double, double> > & peaks,
-                    std::vector<double> & mass)
-  {
-    for (std::size_t i = 0; i < peaks.size(); ++i)
+    struct MassSorter :
+      std::binary_function<double, double, bool>
     {
-      mass.push_back(peaks[i].first);
-    }
-  }
+      bool operator()(const std::pair<double, double>& left,
+                      const std::pair<double, double>& right)
+      {
+        return left.first < right.first;
+      }
+    };
 
-  void extractSecond(const std::vector<std::pair<double, double> > & peaks,
-                     std::vector<double> & mass)
-  {
-    for (std::size_t i = 0; i < peaks.size(); ++i)
+    void sortByFirst(std::vector<std::pair<double, double> >& tmp)
     {
-      mass.push_back(peaks[i].second);
+      std::sort(tmp.begin(), tmp.end(), MassSorter());
     }
-  }
 
-  //modify masses by charge
-  void modifyMassesByCharge(
-    const std::vector<std::pair<double, double> > & isotopeSpec,
-    std::vector<std::pair<double, double> > & resisotopeSpec, double charge)
-  {
-    resisotopeSpec.clear();
-    std::pair<double, double> tmp_;
-    for (std::size_t i = 0; i < isotopeSpec.size(); ++i)
+    void extractFirst(const std::vector<std::pair<double, double> >& peaks,
+                      std::vector<double>& mass)
     {
-      tmp_ = isotopeSpec[i];
-      tmp_.first /= charge;
-      resisotopeSpec.push_back(tmp_);
+      for (std::size_t i = 0; i < peaks.size(); ++i)
+      {
+        mass.push_back(peaks[i].first);
+      }
     }
-  }
+
+    void extractSecond(const std::vector<std::pair<double, double> >& peaks,
+                       std::vector<double>& mass)
+    {
+      for (std::size_t i = 0; i < peaks.size(); ++i)
+      {
+        mass.push_back(peaks[i].second);
+      }
+    }
+
+    //modify masses by charge
+    void modifyMassesByCharge(
+      const std::vector<std::pair<double, double> >& isotopeSpec,
+      std::vector<std::pair<double, double> >& resisotopeSpec, double charge)
+    {
+      resisotopeSpec.clear();
+      std::pair<double, double> tmp_;
+      for (std::size_t i = 0; i < isotopeSpec.size(); ++i)
+      {
+        tmp_ = isotopeSpec[i];
+        tmp_.first /= charge;
+        resisotopeSpec.push_back(tmp_);
+      }
+    }
 
 //simulate spectrum from AASequence
 //void simulateSpectrumFromTransitions(AASequence & aa,
 //			std::vector<double> & firstIsotopeMasses,
 //			std::vector<std::pair<double, double> > & isotopeMasses, uint32_t charge)
 
-}
+  }
 }

@@ -53,7 +53,7 @@ public:
     virtual ~ISpectrumAccess(){}
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) const = 0;
-    /// Return a vector of ids of spectra that are within RT +/- deltaRT 
+    /// Return a vector of ids of spectra that are within RT +/- deltaRT
     virtual std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const = 0;
     /// Returns the number of spectra available
     virtual size_t getNrSpectra() const = 0;
