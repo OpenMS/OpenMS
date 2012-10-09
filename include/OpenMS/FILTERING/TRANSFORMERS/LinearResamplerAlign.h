@@ -65,14 +65,14 @@ public:
 	/** 
 		@brief Applies the resampling algorithm to an MSSpectrum.
 	*/
-  template <template <typename> class MSSpectrum, typename PeakType>
-  void raster(MSSpectrum<PeakType>& spectrum)
+  template <template <typename> class SpecT, typename PeakType>
+  void raster(SpecT<PeakType>& spectrum)
   {
     //return if nothing to do
     if (spectrum.empty()) return;
     
-    typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
-    typename MSSpectrum<PeakType>::iterator last = spectrum.end();
+    typename SpecT<PeakType>::iterator first = spectrum.begin();
+    typename SpecT<PeakType>::iterator last = spectrum.end();
     
     double end_pos = (last-1)->getMZ();
     double start_pos = first->getMZ();
@@ -97,20 +97,20 @@ public:
 	/** 
 		@brief Applies the resampling algorithm to an MSSpectrum but it will be aligned between start_pos and end_pos
 	*/
-  template <template <typename> class MSSpectrum, typename PeakType>
-  void raster_align(MSSpectrum<PeakType>& spectrum, double start_pos, double end_pos)
+  template <template <typename> class SpecT, typename PeakType>
+  void raster_align(SpecT<PeakType>& spectrum, double start_pos, double end_pos)
   {
     //return if nothing to do
     if (spectrum.empty()) return;
     if (end_pos < start_pos)
     {
-      MSSpectrum<PeakType> empty;
+      SpecT<PeakType> empty;
       empty.swap(spectrum);
       return;
     }
     
-    typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
-    typename MSSpectrum<PeakType>::iterator last = spectrum.end();
+    typename SpecT<PeakType>::iterator first = spectrum.begin();
+    typename SpecT<PeakType>::iterator last = spectrum.end();
 
     // get the iterators just before / after the two points start_pos / end_pos
     while (first != spectrum.end() && (first)->getMZ() < start_pos) {first++;}
