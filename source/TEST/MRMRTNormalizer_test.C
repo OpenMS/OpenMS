@@ -137,21 +137,21 @@ START_SECTION((static bool chauvenet_probability(std::vector<double> & residuals
   static const double arr1[] = { 1,2,3,4,2,10,11,75,5,8,3,5,6,9,130 };
   std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
 
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 0), 0.623748799996959);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 1), 0.644304547179036);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 2), 0.665135956818003);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 3), 0.68622915649017);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 4), 0.644304547179036);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 5), 0.817435709843657);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 6), 0.839925461552478);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 7), 0.10611364585905);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 8), 0.70756966095458);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 9), 0.772921582138277);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 10), 0.665135956818003);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 11), 0.70756966095458);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 12), 0.729142401093635);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 13), 0.79509525736484);
-  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 14), 0.00136020212636574);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 0), 0.61831553);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 1), 0.6387955);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 2), 0.65955473);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 3), 0.68057951);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 4), 0.6387955);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 5), 0.81146293);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 6), 0.8339146);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 7), 0.10161557);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 8), 0.70185552);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 9), 0.76703896);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 10), 0.65955473);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 11), 0.70185552);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 12), 0.72336784);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 13), 0.78916526);
+  TEST_REAL_SIMILAR( MRMRTNormalizer::chauvenet_probability(data1, 14), 0.00126358);
 
 }
 END_SECTION

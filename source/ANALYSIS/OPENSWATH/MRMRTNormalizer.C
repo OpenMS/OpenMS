@@ -151,7 +151,7 @@ namespace OpenMS
     double mean = std::accumulate(residuals.begin(), residuals.end(), 0.0) / residuals.size();
     double stdev = std::sqrt(std::inner_product(residuals.begin(), residuals.end(), residuals.begin(), 0.0) / residuals.size() - mean * mean);
 
-    double d = abs(residuals[pos]-mean)/stdev;
+    double d = fabs(residuals[pos]-mean)/stdev;
     d /= pow(2.0,0.5);
     double prob=boost::math::erfc(d);
 
