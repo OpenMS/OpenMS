@@ -90,7 +90,6 @@ function realOutput($text,$user,$filename)
 $GLOBALS["all_tests"] = array(
 															"(none)"		     => "performs all tests",
 															"guards"         => "check if header guards present and correct",
-															"tab"            => "check tab settings for editors",
 															"maintainers"    => "check if maintainers are consistent in header, source and test file",
 															"missing_tests"  => "check for missing tests",
 															"old_files"			 => "check for unneeded .C files",
@@ -101,7 +100,8 @@ $GLOBALS["all_tests"] = array(
 															"topp_output"    => "check TOPP test output for warnings and errors",
 															"svn_keywords"   => "check if the SVN keywords are set for tests",
 															"coding"				 => "check if coding convention is followed",
-															"defaults"		   => "check if DefautParamHandler classes all have a linked parameters section"
+															"defaults"		   => "check if DefautParamHandler classes all have a linked parameters section",
+                              "license"        => "check if the license header is correctly included in the file"
 															);
 
 															$options = array("-u","-t","-d","-s");
@@ -504,24 +504,6 @@ $GLOBALS["all_tests"] = array(
 							realOutput("Missing header guard in '$f' ",$user,$f);
 						}
 					}
-				}
-			}
-
-			########################### tab settings #####################################
-			if (in_array("tab",$tests))
-			{
-				$tab_count = 0;
-				for ($i=0;$i<min(30,count($file));$i++)
-				{
-					$line = trim($file[$i]);
-					if (strpos($line,"vi: set ts=2:")!==false )
-					{
-						$tab_count++;
-					}
-				}
-				if ($tab_count!=1)
-				{
-					realOutput("Missing tab settings in '$f'",$user,$f);
 				}
 			}
 
@@ -976,65 +958,113 @@ $GLOBALS["all_tests"] = array(
 					}
 				}
 			}
+      
+			########################### Check license header  ################################
+      if (in_array("license",$tests))
+      {
+        $LICENSE_FILE = file($src_path."/LICENSE");
+        $LICENSE = array();
+        foreach($LICENSE_FILE as $line) 
+        {
+          array_push($LICENSE, rtrim($line));
+        }
+        $LICENSE_LEN = count($LICENSE);
 
-															}//End of files loop
+        $isEqual = True;
+        $offendingLine = "";
 
-															################### doxygen errors in .doxygen-files  ##########################
-															if ($user == "all" && in_array("doxygen_errors",$tests) )
-															{
-																$file = file("$bin_path/doc/doxygen/doxygen-error.log");
-																foreach ($file as $line)
-																{
-																	$line = trim($line);
-																	if (ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:",$line,$parts))
-																	{
-																		realOutput("Doxygen errors in '".$parts[1]."'",$user,"");
-																		print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
-																	}
-																}
-															}
+        # line breaks to remove
+        $breaks = array("\r\n", "\n", "\r");
+
+        # every file should contain at least as much lines as the LICENSE header 
+        if(count($file) >= $LICENSE_LEN)
+        {
+          foreach($LICENSE as $index => $line)
+          {
+            $licenseLine = rtrim("// ".str_replace($breaks, "", $line));
+            $fileLine = str_replace($breaks, "", rtrim($file[$index]));
+            if(strcmp($licenseLine, $fileLine) != 0)
+            {
+              $isEqual = False;
+              $offendingLine = "\tshould be: ".$licenseLine."\n\tbut is:    ".$fileLine;
+              break;
+            }
+          }
+        }
+        else
+        {
+          realOutput("Missing LICENSE header in '$f'", $user, $f);
+        }
+        
+        if(!$isEqual)
+        {
+          realOutput("Invalid LICENSE header in '$f'", $user, $f);
+          if ($debug > 0)
+          {
+            print "Offending line: \n".$offendingLine;
+          }
+        }
+        
+      }
+      
+    }//End of files loop
+
+  ################### doxygen errors in .doxygen-files  ##########################
+  if ($user == "all" && in_array("doxygen_errors",$tests) )
+  {
+  	$file = file("$bin_path/doc/doxygen/doxygen-error.log");
+  	foreach ($file as $line)
+  	{
+  		$line = trim($line);
+  		if (ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:",$line,$parts))
+  		{
+  			realOutput("Doxygen errors in '".$parts[1]."'",$user,"");
+  			print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
+  		}
+  	}
+  }
 
 
-															########################### warnings TOPP test  #################################
-															if (in_array("topp_output",$tests))
-															{
-																$file_warnings = array();
-																foreach ($test_log as $name => $warnings)
-																{
-																	if (beginsWith($name,"TOPP_"))
-																	{
-																		$name = substr($name,5);
-																		$name = substr($name,0,strpos($name,'_'));
-																		$topp_file = "source/APPLICATIONS/TOPP/".$name.".C";
-																		if (in_array($topp_file,$files_todo))
-																		{
-																			if (!isset($file_warnings[$topp_file])) $file_warnings[$topp_file] = array();
-																			$file_warnings[$topp_file] = array_merge($file_warnings[$topp_file],$warnings);
-																		}
-																	}
-																}
-																//print errors/warnings bundled for each TOPP tool
-																foreach($file_warnings as $file => $warnings)
-																{
-																	realOutput("Error/warnings in TOPP tool test of '$file'",$user,$file);
-																	$warnings = array_unique($warnings);
-																	foreach ($warnings as $e)
-																	{
-																		print "  '$e'\n";
-																	}
-																}
-															}
+  ########################### warnings TOPP test  #################################
+  if (in_array("topp_output",$tests))
+  {
+  	$file_warnings = array();
+  	foreach ($test_log as $name => $warnings)
+  	{
+  		if (beginsWith($name,"TOPP_"))
+  		{
+  			$name = substr($name,5);
+  			$name = substr($name,0,strpos($name,'_'));
+  			$topp_file = "source/APPLICATIONS/TOPP/".$name.".C";
+  			if (in_array($topp_file,$files_todo))
+  			{
+  				if (!isset($file_warnings[$topp_file])) $file_warnings[$topp_file] = array();
+  				$file_warnings[$topp_file] = array_merge($file_warnings[$topp_file],$warnings);
+  			}
+  		}
+  	}
+  	//print errors/warnings bundled for each TOPP tool
+  	foreach($file_warnings as $file => $warnings)
+  	{
+  		realOutput("Error/warnings in TOPP tool test of '$file'",$user,$file);
+  		$warnings = array_unique($warnings);
+  		foreach ($warnings as $e)
+  		{
+  			print "  '$e'\n";
+  		}
+  	}
+  }
 
-															########################### maintainer summary #################################
-															if ($user == "all")
-															{
-																print "\nMaintainers:\n";
-																foreach ($GLOBALS["maintainer_info"] as $m => $info)
-																{
-																	print "  $m (Files: ".$info["files"]."  Errors: ".$info["errors"].")\n";
-																}
-															}
+  ########################### maintainer summary #################################
+  if ($user == "all")
+  {
+  	print "\nMaintainers:\n";
+  	foreach ($GLOBALS["maintainer_info"] as $m => $info)
+  	{
+  		print "  $m (Files: ".$info["files"]."  Errors: ".$info["errors"].")\n";
+  	}
+  }
 
-															print "\nchecker.php finished: " . date("c") . "\n";
+  print "\nchecker.php finished: " . date("c") . "\n";
 
-															?>
+?>
