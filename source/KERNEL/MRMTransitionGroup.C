@@ -33,7 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenMS
 {
+  MRMTransitionGroup<MSSpectrum, Peak1D, ReactionMonitoringTransition> default_mrmtransitiongroup_;
+  MRMTransitionGroup<MSSpectrum, Peak1D, OpenSwath::LightTransition> default_openswath_mrmtransitiongroup_;
 }
