@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="file:////Users/kenar/OpenMS-FF/share/OpenMS/XSL/IdXML.xsl"?>
-<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="HUMAN_decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+5" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="15" peak_mass_tolerance="0.7" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<FixedModification name="Label:2H(4) (K)" />
