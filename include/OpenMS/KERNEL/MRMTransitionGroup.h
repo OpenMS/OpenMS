@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MRMTRANSITIONGROUP_C
-#define OPENMS_KERNEL_MRMTRANSITIONGROUP_C
+#ifndef OPENMS_KERNEL_MRMTRANSITIONGROUP_H
+#define OPENMS_KERNEL_MRMTRANSITIONGROUP_H
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 

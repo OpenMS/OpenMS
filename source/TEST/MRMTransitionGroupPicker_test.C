@@ -98,20 +98,20 @@ START_TEST(MRMTransitionGroupPicker, "$Id$")
 MRMTransitionGroupPicker* ptr = 0;
 MRMTransitionGroupPicker* nullPointer = 0;
 
-START_SECTION(TransitionGroupPicker())
+START_SECTION(MRMTransitionGroupPicker())
 {
 	ptr = new MRMTransitionGroupPicker();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~TransitionGroupPicker())
+START_SECTION(~MRMTransitionGroupPicker())
 {
   delete ptr;
 }
 END_SECTION
 
-START_SECTION((void pickTransitionGroup(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & transition_group)))
+START_SECTION((template < template< typename > class SpectrumT, typename PeakT, typename TransitionT > void pickTransitionGroup(MRMTransitionGroup< SpectrumT, PeakT, TransitionT > &transition_group)))
 { 
   MRMTransitionGroupType transition_group;
   setup_transition_group(transition_group);
@@ -149,7 +149,7 @@ START_SECTION((void pickTransitionGroup(MRMTransitionGroup<SpectrumT, PeakT, Tra
 }
 END_SECTION
 
-START_SECTION(( void pickChromatogram(const RichPeakChromatogram & chromatogram, RichPeakChromatogram & smoothed_chrom, RichPeakChromatogram & picked_chrom) ) TESTDATA)
+START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, RichPeakChromatogram &smoothed_chrom, RichPeakChromatogram &picked_chrom))
 {
   MRMTransitionGroupType transition_group;
   setup_transition_group(transition_group);
@@ -187,7 +187,7 @@ START_SECTION(( void pickChromatogram(const RichPeakChromatogram & chromatogram,
 }
 END_SECTION
 
-START_SECTION( (MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, PeakT> & transition_group, std::vector<SpectrumT<ChromatogramPeakT> > & picked_chroms, int & chr_idx, int & peak_idx) nonaligned) )
+START_SECTION((template < template< typename > class SpectrumT, typename PeakT, typename ChromatogramPeakT, typename TransitionT > MRMFeature createMRMFeature(MRMTransitionGroup< SpectrumT, PeakT, TransitionT > &transition_group, std::vector< SpectrumT< ChromatogramPeakT > > &picked_chroms, int &chr_idx, int &peak_idx)))
 {
   MRMTransitionGroupType transition_group;
   setup_transition_group(transition_group);
@@ -295,9 +295,8 @@ START_SECTION(( void findLargestPeak(std::vector<RichPeakChromatogram> & picked_
 }
 END_SECTION
 
-START_SECTION((void remove_overlapping_features(std::vector<SpectrumT<ChromatogramPeakT> > & picked_chroms, double best_left, double best_right)))
+START_SECTION(void remove_overlapping_features(std::vector<SpectrumT<ChromatogramPeakT> > & picked_chroms, double best_left, double best_right))
 {
-  // TODO
   MRMTransitionGroupType transition_group;
   std::vector< RichPeakChromatogram > picked_chroms;
   MRMTransitionGroupPicker picker;
@@ -413,4 +412,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
 

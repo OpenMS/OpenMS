@@ -524,7 +524,7 @@ if(NOT DISABLE_OPENSWATH)
     DIAScoring_test
     DIAPrescoring_test
     OpenSwathMRMFeatureAccessOpenMS_test
-    OpenSwathSpectrumAddition_test
+    SpectrumAddition_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
     MRMFeatureScoring_test

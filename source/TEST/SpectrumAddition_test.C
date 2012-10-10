@@ -47,7 +47,7 @@ START_TEST(SpectrumAddition, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION ( ( OpenSwath::SpectrumPtr addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra, double sampling_rate)))
+START_SECTION((static OpenSwath::SpectrumPtr addUpSpectra(std::vector< OpenSwath::SpectrumPtr > all_spectra, double sampling_rate, double filter_zeros)) )
 {
   OpenSwath::SpectrumPtr spec1(new OpenSwath::Spectrum());
   OpenSwath::BinaryDataArrayPtr mass1(new OpenSwath::BinaryDataArray);

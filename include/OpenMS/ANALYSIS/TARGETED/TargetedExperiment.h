@@ -222,9 +222,9 @@ public:
 
 protected:
 
-    void createProteinReferenceMap();
+    void createProteinReferenceMap_();
 
-    void createPeptideReferenceMap();
+    void createPeptideReferenceMap_();
 
     std::vector<CV> cvs_;
 

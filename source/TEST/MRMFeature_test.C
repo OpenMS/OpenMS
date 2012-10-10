@@ -63,6 +63,33 @@ START_SECTION(~MRMFeature())
 }
 END_SECTION
 
+START_SECTION(MRMFeature(const MRMFeature &rhs))
+{
+  MRMFeature tmp;
+  tmp.setIntensity(100.0);
+  tmp.addScore("testscore", 200);
+
+  MRMFeature tmp2 (tmp);
+
+  TEST_EQUAL(tmp2.getScore("testscore"), 200)
+  TEST_REAL_SIMILAR(tmp2.getIntensity(), 100.0)
+}
+END_SECTION
+
+START_SECTION(MRMFeature& operator=(const MRMFeature &rhs))
+{
+  MRMFeature tmp;
+  tmp.setIntensity(100.0);
+  tmp.addScore("testscore", 200);
+
+  MRMFeature tmp2;
+  tmp2 = tmp;
+
+  TEST_EQUAL(tmp2.getScore("testscore"), 200)
+  TEST_REAL_SIMILAR(tmp2.getIntensity(), 100.0)
+}
+END_SECTION
+
 START_SECTION (const PGScoresType & getScores() const)
 {
   // tested with set/add score

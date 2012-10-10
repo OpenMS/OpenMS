@@ -38,11 +38,11 @@ namespace OpenMS
 {
 	OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id) const
 	{
-		if (cache.getSpectraIndex().empty()) 
+		if (cache_.getSpectraIndex().empty()) 
     {
 			// remove const from the cache since we need to recalculate the index
 			// and re-read the data.
-			(const_cast<CachedmzML*>(&cache))->createMemdumpIndex(filename_cached_);
+			(const_cast<CachedmzML*>(&cache_))->createMemdumpIndex(filename_cached_);
 		}
 		OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
 		OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
@@ -50,9 +50,9 @@ namespace OpenMS
 		double rt = -1.0;
 		// FEATURE check if we can keep the filestream open -> risky if someone else
 		// accesses the file in the meantime
-		std::ifstream ifs((filename_cached_).c_str(), std::ios::binary);
-		ifs.seekg(cache.getSpectraIndex()[id]);
-		cache.readSpectrumFast(mz_array, intensity_array, ifs, ms_level, rt);
+		std::ifstream ifs_((filename_cached_).c_str(), std::ios::binary);
+		ifs_.seekg(cache_.getSpectraIndex()[id]);
+		cache_.readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
 		OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
 		sptr->setMZArray(mz_array);
@@ -70,17 +70,17 @@ namespace OpenMS
 
 	OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id) const
 	{
-		if (cache.getChromatogramIndex().empty()) 
+		if (cache_.getChromatogramIndex().empty()) 
     {
 			// remove const from the cache since we need to recalculate the index
 			// and re-read the data.
-			(const_cast<CachedmzML*>(&cache))->createMemdumpIndex(filename_cached_);
+			(const_cast<CachedmzML*>(&cache_))->createMemdumpIndex(filename_cached_);
 		}
 		OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
 		OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-		std::ifstream ifs((filename_cached_).c_str(), std::ios::binary);
-		ifs.seekg(cache.getChromatogramIndex()[id]);
-		cache.readChromatogramFast(rt_array, intensity_array, ifs);
+		std::ifstream ifs_((filename_cached_).c_str(), std::ios::binary);
+		ifs_.seekg(cache_.getChromatogramIndex()[id]);
+		cache_.readChromatogramFast(rt_array, intensity_array, ifs_);
 
     // push back rt first, then intensity.
     // FEATURE (hroest) annotate which is which

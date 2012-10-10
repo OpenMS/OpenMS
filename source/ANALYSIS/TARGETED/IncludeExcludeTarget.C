@@ -57,7 +57,7 @@ namespace OpenMS
     compound_ref_(rhs.compound_ref_),
     configurations_(rhs.configurations_),
     prediction_(rhs.prediction_),
-    rts(rhs.rts)
+    rts_(rhs.rts_)
   {
   }
 
@@ -80,7 +80,7 @@ namespace OpenMS
       compound_ref_ = rhs.compound_ref_;
       configurations_ = rhs.configurations_;
       prediction_ = rhs.prediction_;
-      rts = rhs.rts;
+      rts_ = rhs.rts_;
     }
     return *this;
   }
@@ -98,7 +98,7 @@ namespace OpenMS
            compound_ref_ == rhs.compound_ref_ &&
            configurations_ == rhs.configurations_ &&
            prediction_ == rhs.prediction_ &&
-           rts == rhs.rts;
+           rts_ == rhs.rts_;
   }
 
   bool IncludeExcludeTarget::operator!=(const IncludeExcludeTarget & rhs) const
@@ -237,12 +237,12 @@ namespace OpenMS
 
   void IncludeExcludeTarget::setRetentionTime(IncludeExcludeTarget::RetentionTime rt)
   {
-    rts = rt;
+    rts_ = rt;
   }
 
   const IncludeExcludeTarget::RetentionTime & IncludeExcludeTarget::getRetentionTime() const
   {
-    return rts;
+    return rts_;
   }
 
 }

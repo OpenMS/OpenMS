@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: George Rosenberger, Hannes Roest $
+// $Maintainer: George Rosenberger $
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 

@@ -754,7 +754,7 @@ namespace OpenMS
           for (ProductListType::const_iterator prod_it = it->getIntermediateProducts().begin(); prod_it != it->getIntermediateProducts().end(); ++prod_it)
           {
             os << "      <IntermediateProduct>" << "\n";
-            write_product_(os, prod_it);
+            writeProduct_(os, prod_it);
             os << "      </IntermediateProduct>" << "\n";
           }
 
@@ -762,7 +762,7 @@ namespace OpenMS
           os << "      <Product>" << "\n";
           ProductListType dummy_vect;
           dummy_vect.push_back(it->getProduct());
-          write_product_(os, dummy_vect.begin());
+          writeProduct_(os, dummy_vect.begin());
           os << "      </Product>" << "\n";
 
           const IncludeExcludeTarget::RetentionTime * rit = &it->getRetentionTime();
@@ -809,7 +809,7 @@ namespace OpenMS
           os << "    <TargetIncludeList>" << "\n";
           for (std::vector<IncludeExcludeTarget>::const_iterator it = exp.getIncludeTargets().begin(); it != exp.getIncludeTargets().end(); ++it)
           {
-            write_target_(os, it);
+            writeTarget_(os, it);
           }
           os << "    </TargetIncludeList>" << "\n";
         }
@@ -819,7 +819,7 @@ namespace OpenMS
           os << "    <TargetExcludeList>" << "\n";
           for (std::vector<IncludeExcludeTarget>::const_iterator it = exp.getExcludeTargets().begin(); it != exp.getExcludeTargets().end(); ++it)
           {
-            write_target_(os, it);
+            writeTarget_(os, it);
           }
           os << "    </TargetExcludeList>" << "\n";
         }
@@ -832,7 +832,7 @@ namespace OpenMS
       return;
     }
 
-    void TraMLHandler::write_target_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const
+    void TraMLHandler::writeTarget_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const
     {
       os << "      <Target id=\"" << it->getName() << "\"";
       if (!it->getPeptideRef().empty())
@@ -868,7 +868,7 @@ namespace OpenMS
         os << "        <ConfigurationList>\n";
         for (std::vector<TargetedExperimentHelper::Configuration>::const_iterator config_it = it->getConfigurations().begin(); config_it != it->getConfigurations().end(); ++config_it)
         {
-          write_configuration_(os, config_it);
+          writeConfiguration_(os, config_it);
         }
         os << "        </ConfigurationList>\n";
       }
@@ -876,7 +876,7 @@ namespace OpenMS
 
     }
 
-    void TraMLHandler::write_product_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator & prod_it) const
+    void TraMLHandler::writeProduct_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator & prod_it) const
     {
       if ( prod_it->getChargeState() != -1 )
       {
@@ -902,13 +902,13 @@ namespace OpenMS
         os << "        <ConfigurationList>" << "\n";
         for (ConfigurationListType::const_iterator config_it = prod_it->getConfigurationList().begin(); config_it != prod_it->getConfigurationList().end(); ++config_it)
         {
-          write_configuration_(os, config_it);
+          writeConfiguration_(os, config_it);
         }
         os << "        </ConfigurationList>" << "\n";
       }
     }
 
-    void TraMLHandler::write_configuration_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator & cit) const
+    void TraMLHandler::writeConfiguration_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator & cit) const
     {
       os << "          <Configuration instrumentRef=\"" << cit->instrument_ref << "\"";
       if (cit->contact_ref != "")

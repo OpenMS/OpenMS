@@ -168,7 +168,7 @@ protected:
 
     CVTermList prediction_;
 
-    RetentionTime rts;
+    RetentionTime rts_;
 
   };
 }

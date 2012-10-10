@@ -282,7 +282,7 @@ namespace OpenMS
   {
     if (protein_reference_map_dirty_)
     {
-      createProteinReferenceMap();
+      createProteinReferenceMap_();
     }
     return *(protein_reference_map_[ref]);
   }
@@ -323,7 +323,7 @@ namespace OpenMS
   {
     if (peptide_reference_map_dirty_)
     {
-      createPeptideReferenceMap();
+      createPeptideReferenceMap_();
     }
     return *(peptide_reference_map_[ref]);
   }
@@ -399,7 +399,7 @@ namespace OpenMS
     std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess());
   }
 
-  void TargetedExperiment::createProteinReferenceMap()
+  void TargetedExperiment::createProteinReferenceMap_()
   {
     for (Size i = 0; i < getProteins().size(); i++)
     {
@@ -408,7 +408,7 @@ namespace OpenMS
     protein_reference_map_dirty_ = false;
   }
 
-  void TargetedExperiment::createPeptideReferenceMap()
+  void TargetedExperiment::createPeptideReferenceMap_()
   {
     for (Size i = 0; i < getPeptides().size(); i++)
     {

@@ -68,12 +68,12 @@ namespace OpenMS
 
     void setFitterParam(Param param)
     {
-      fitter_emg1D.setParameters(param);
+      fitter_emg1D_.setParameters(param);
     }
 
     Param getDefaults()
     {
-      return fitter_emg1D.getDefaults();
+      return fitter_emg1D_.getDefaults();
     }
 
     /// calculate the elution profile fit score
@@ -122,7 +122,7 @@ namespace OpenMS
       // Set parameter for fitter
       //fitter_emg1D.setParameters(param);
       // Construct model for rt
-      quality = fitter_emg1D.fit1d(rt_input_data, model);
+      quality = fitter_emg1D_.fit1d(rt_input_data, model);
 
       // Check quality
       if (boost::math::isnan(quality)) quality = -1.0;
@@ -145,7 +145,7 @@ namespace OpenMS
 
       // -- cut line 301 of FeatureFinderAlgorithmMRM
       std::vector<LocalPeakType> data_to_fit;
-      prepare_fit(current_section, data_to_fit, smooth_data);
+      prepareFit(current_section, data_to_fit, smooth_data);
       InterpolationModel * model_rt = 0;
       DoubleReal quality = fitRT_(data_to_fit, model_rt);
       // cut line 354 of FeatureFinderAlgorithmMRM
@@ -158,7 +158,7 @@ namespace OpenMS
     // Fxn from FeatureFinderAlgorithmMRM
     // TODO: check whether we can leave out some of the steps here, e.g. gaussian smoothing
     template<class LocalPeakType>
-    void prepare_fit(const ConvexHull2D::PointArrayType & current_section, std::vector<LocalPeakType> & data_to_fit, bool smooth_data)
+    void prepareFit(const ConvexHull2D::PointArrayType & current_section, std::vector<LocalPeakType> & data_to_fit, bool smooth_data)
     {
       // typedef Peak1D LocalPeakType;
       PeakSpectrum filter_spec;
@@ -220,7 +220,7 @@ namespace OpenMS
       }
     }
 
-    EmgFitter1D fitter_emg1D;
+    EmgFitter1D fitter_emg1D_;
   };
 }
 

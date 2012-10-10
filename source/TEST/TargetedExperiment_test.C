@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Hannes Roest $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 

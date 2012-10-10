@@ -146,11 +146,11 @@ protected:
       void writeCVParams_(std::ostream & os, const CVTermList & cv_terms, UInt indent) const;
 
       // subfunctions of write
-      void write_target_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const;
+      void writeTarget_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const;
 
-      void write_product_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator & prod_it) const;
+      void writeProduct_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator & prod_it) const;
 
-      void write_configuration_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator & cit) const;
+      void writeConfiguration_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator & cit) const;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String & parent_accession, const String & name) const;

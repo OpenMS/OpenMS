@@ -65,7 +65,7 @@ namespace OpenMS
       explicit SpectrumAccessOpenMSCached(String filename)
       {
         filename_cached_ = filename + ".cached";
-        std::ifstream ifs((filename_cached_).c_str(), std::ios::binary);
+        std::ifstream ifs_((filename_cached_).c_str(), std::ios::binary);
         MzMLFile f;
         f.load(filename, meta_ms_experiment_);
         filename_ = filename;
@@ -130,8 +130,8 @@ namespace OpenMS
 
     private:
       MSExperimentType meta_ms_experiment_;
-      std::ifstream ifs;
-      CachedmzML cache;
+      std::ifstream ifs_;
+      CachedmzML cache_;
       String filename_;
       String filename_cached_;
   };

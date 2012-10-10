@@ -85,7 +85,7 @@ input_spectrum[4].setIntensity(1.0f);
 // spacing away.
 double default_spacing = 0.75;
 
-START_SECTION((template < template< typename > class MSSpectrum, typename PeakType > void raster(MSSpectrum< PeakType > &spectrum)))
+START_SECTION(( template < template< typename > class SpecT, typename PeakType > void raster(SpecT< PeakType > &spectrum)))
 {
 
   MSSpectrum< Peak1D > spec = input_spectrum;
@@ -137,7 +137,7 @@ START_SECTION([EXTRA] test_linear_res_chromat)
 END_SECTION
 
 // it should work with alignment to 0, 1.8 and give the same result
-START_SECTION((template < template< typename > class MSSpectrum, typename PeakType > void raster_align(MSSpectrum< PeakType > &spectrum, double start_pos, double end_pos)))
+START_SECTION((template < template< typename > class SpecT, typename PeakType > void raster_align(SpecT< PeakType > &spectrum, double start_pos, double end_pos)))
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
 
