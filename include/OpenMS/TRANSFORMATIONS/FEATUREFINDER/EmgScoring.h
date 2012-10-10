@@ -89,8 +89,7 @@ namespace OpenMS
         // get the id, then find the corresponding transition and features within this peakgroup
         String native_id = transition_group.getChromatograms()[k].getNativeID();
         Feature f = mrmfeature.getFeature(native_id);
-        OPENMS_PRECONDITION(f.getConvexHulls().size() == 1,
-            "Convex hulls need to have exactly one hull point structure");
+        OPENMS_PRECONDITION(f.getConvexHulls().size() == 1, "Convex hulls need to have exactly one hull point structure");
 
         // TODO what if score is -1 ?? e.g. if it is undefined
         double fscore = elutionModelFit(f.getConvexHulls()[0].getHullPoints(), smooth_data);
@@ -100,6 +99,32 @@ namespace OpenMS
 
       avg_score /= transition_group.size();
       return avg_score;
+    }
+
+    // Fxn from FeatureFinderAlgorithmMRM
+    // TODO: check whether we can leave out some of the steps here, e.g. gaussian smoothing
+    double elutionModelFit(ConvexHull2D::PointArrayType current_section, bool smooth_data)
+    {
+      if (current_section.size() == 0)
+      {
+        return -1;
+      }
+
+      // local PeakType is a small hack since here we *need* data of type
+      // Peak1D, otherwise our fitter will not accept it.
+      typedef Peak1D LocalPeakType;
+
+
+      // -- cut line 301 of FeatureFinderAlgorithmMRM
+      std::vector<LocalPeakType> data_to_fit;
+      prepareFit_(current_section, data_to_fit, smooth_data);
+      InterpolationModel * model_rt = 0;
+      DoubleReal quality = fitRT_(data_to_fit, model_rt);
+      // cut line 354 of FeatureFinderAlgorithmMRM
+      delete model_rt;
+
+      return quality;
+
     }
 
   protected:
@@ -131,34 +156,8 @@ namespace OpenMS
 
     // Fxn from FeatureFinderAlgorithmMRM
     // TODO: check whether we can leave out some of the steps here, e.g. gaussian smoothing
-    double elutionModelFit(ConvexHull2D::PointArrayType current_section, bool smooth_data)
-    {
-      if (current_section.size() == 0)
-      {
-        return -1;
-      }
-
-      // local PeakType is a small hack since here we *need* data of type
-      // Peak1D, otherwise our fitter will not accept it.
-      typedef Peak1D LocalPeakType;
-
-
-      // -- cut line 301 of FeatureFinderAlgorithmMRM
-      std::vector<LocalPeakType> data_to_fit;
-      prepareFit(current_section, data_to_fit, smooth_data);
-      InterpolationModel * model_rt = 0;
-      DoubleReal quality = fitRT_(data_to_fit, model_rt);
-      // cut line 354 of FeatureFinderAlgorithmMRM
-      delete model_rt;
-
-      return quality;
-
-    }
-
-    // Fxn from FeatureFinderAlgorithmMRM
-    // TODO: check whether we can leave out some of the steps here, e.g. gaussian smoothing
     template<class LocalPeakType>
-    void prepareFit(const ConvexHull2D::PointArrayType & current_section, std::vector<LocalPeakType> & data_to_fit, bool smooth_data)
+    void prepareFit_(const ConvexHull2D::PointArrayType & current_section, std::vector<LocalPeakType> & data_to_fit, bool smooth_data)
     {
       // typedef Peak1D LocalPeakType;
       PeakSpectrum filter_spec;

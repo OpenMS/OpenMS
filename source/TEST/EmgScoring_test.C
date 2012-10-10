@@ -33,22 +33,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/KERNEL/MRMTransitionGroup.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
-
-// for setup
-#include "OpenSwathTestHelper.h"
 
 ///////////////////////////
+
+#include "OpenSwathTestHelper.h"
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
+#include <OpenMS/KERNEL/MRMTransitionGroup.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
-using namespace std;
-using namespace std;
-
-typedef OpenSWATH_Test::RichPeakChromatogram RichPeakChromatogram;
-typedef OpenSWATH_Test::MRMTransitionGroupType MRMTransitionGroupType;
 
 START_TEST(EmgScoring, "$Id$")
 
@@ -71,28 +68,49 @@ START_SECTION(~EmgScoring())
 }
 END_SECTION
 
-START_SECTION(double calcElutionFitScore(MRMFeature & mrmfeature, MRMTransitionGroup<SpectrumType, PeakType, TransitionT> & transition_group) )
+START_SECTION(Param getDefaults())
 {
-  MRMTransitionGroupType transition_group;
-  std::vector< RichPeakChromatogram > picked_chroms;
-
-  OpenSWATH_Test::setup_MRMFeatureFinderScoring(transition_group, picked_chroms);
-
-  // create the corresponding mrm feature
-  int chr_idx = 0, peak_idx = 0;
-  MRMFeature mrmfeature = MRMTransitionGroupPicker().createMRMFeature(transition_group, picked_chroms, chr_idx, peak_idx);
-
   EmgScoring emgscore;
-  double elution_model_fit_score = emgscore.calcElutionFitScore(mrmfeature, transition_group);
+  Param p = emgscore.getDefaults();
+  TEST_NOT_EQUAL(&p, nullPointer)
+}
+END_SECTION
+
+START_SECTION(void setFitterParam(Param param))
+{
+  EmgScoring emgscore;
+  Param p = emgscore.getDefaults();
+  TEST_NOT_EQUAL(&p, nullPointer)
+  emgscore.setFitterParam(p);
+}
+END_SECTION
+
+START_SECTION((template < template< class > class SpectrumType, class PeakType, class TransitionT > double calcElutionFitScore(MRMFeature &mrmfeature, MRMTransitionGroup< SpectrumType, PeakType, TransitionT > &transition_group)))
+{
+  // test a set of feature (belonging to the same peptide)
+  double elution_model_fit_score;
+  EmgScoring emgscore;
+
+  MRMFeature feature = OpenSWATH_Test::createMockFeature();
+  OpenSWATH_Test::MRMTransitionGroupType transition_group = OpenSWATH_Test::createMockTransitionGroup();
+
+  elution_model_fit_score = emgscore.calcElutionFitScore(feature, transition_group);
   TEST_REAL_SIMILAR(elution_model_fit_score, 0.924365639)
 
 }
 END_SECTION
 
-START_SECTION (void setFitterParam(Param& param))
+START_SECTION( double elutionModelFit(ConvexHull2D::PointArrayType current_section, bool smooth_data) )
 {
-  // just handing the parameters to the internal fitter
-  NOT_TESTABLE
+  // test a single feature
+  double elution_model_fit_score;
+  EmgScoring emgscore;
+
+  MRMFeature feature = OpenSWATH_Test::createMockFeature();
+  Feature f = feature.getFeature("tr1");
+
+  elution_model_fit_score = emgscore.elutionModelFit(f.getConvexHulls()[0].getHullPoints() , false);
+  TEST_REAL_SIMILAR(elution_model_fit_score, 0.981013417243958) 
 }
 END_SECTION
 

@@ -35,14 +35,12 @@
 #ifndef OPENMS_OPENSWATH_TEST_H
 #define OPENMS_OPENSWATH_TEST_H
 
-// #include "DataAccessImpl/OpenSWATH.h"
-// #include "OpenSwath/DataAccess/DataStructures.h"
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/KERNEL/ChromatogramPeak.h>
+
+#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenSWATH_Test
 {
@@ -61,101 +59,206 @@ namespace OpenSWATH_Test
   typedef MRMTransitionGroup<MSChromatogram, ChromatogramPeak> MRMTransitionGroupType;
 #else
   typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
-  //typedef MRMTransitionGroup<MSSpectrum, ChromatogramPeak, OpenSwath::LightTransition> MRMTransitionGroupType;
-  typedef MRMTransitionGroup<MSSpectrum, ChromatogramPeak, ReactionMonitoringTransition> MRMTransitionGroupType;
+  typedef OpenSwath::LightTransition TransitionType;
+  //typedef ReactionMonitoringTransition TransitionType;
+  typedef MRMTransitionGroup<MSSpectrum, ChromatogramPeak, TransitionType> MRMTransitionGroupType;
 #endif
 
-  void setup_MRMFeatureFinderScoring(MRMTransitionGroupType& transition_group, std::vector< RichPeakChromatogram >& picked_chroms)
+  MRMFeature createMockFeature()
   {
 
-    // Load the chromatograms (mzML) and the meta-information (TraML)
-    PeakMap exp;
-    //OpenSwath::LightTargetedExperiment transitions;
-    TargetedExperiment transitions;
-    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), exp);
+    MRMFeature feature;
+    feature.setRT(3120);
+    feature.setIntensity(973.122);
 
     {
-      TargetedExperiment transition_exp_;
-      TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.TraML"), transition_exp_);
-      //convertTargetedExp(transition_exp_, transitions);
-      transitions = transition_exp_;
+      Feature f;
+      static const double arr1[] = 
+      {
+        3103.13,
+        3106.56,
+        3109.98,
+        3113.41,
+        3116.84,
+        3120.26,
+        3123.69,
+        3127.11,
+        3130.54,
+        3133.97,
+        3137.4 
+      };
+      std::vector<double> mz (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+      static const double arr2[] = 
+      {
+        5.97544,
+        4.27492,
+        3.33018,
+        4.08597,
+        5.50307,
+        5.24327,
+        8.40812,
+        2.8342 ,
+        6.94379,
+        7.69957,
+        4.08597
+      };
+      std::vector<double> intensity (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+
+      ConvexHull2D::PointArrayType hull_points;
+      for (Size i = 0; i < mz.size(); i++)
+      {
+        DPosition<2> p(mz[i],intensity[i]);
+        hull_points.push_back(p);
+      }
+      ConvexHull2D hull;
+      hull.setHullPoints(hull_points);
+      f.getConvexHulls().push_back(hull);
+      f.setIntensity(58.38450);
+      feature.addFeature(f, "tr3");
     }
 
-    // add all the transitions to the peakgroup
-    transition_group.setTransitionGroupID("mypeptide");
-    transition_group.addTransition(transitions.getTransitions()[0], transitions.getTransitions()[2].getNativeID());
-    transition_group.addTransition(transitions.getTransitions()[2], transitions.getTransitions()[0].getNativeID());
-    transition_group.addTransition(transitions.getTransitions()[3], transitions.getTransitions()[4].getNativeID());
-
-    // add all the chromatograms to the peakgroup
     {
-      Chromatogram chromatogram_old = exp.getChromatograms()[1];
-      RichPeakChromatogram chromatogram;
-      for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
-      {   
-        ChromatogramPeak peak;
-        peak.setMZ(it->getRT());
-        peak.setIntensity(it->getIntensity());
-        chromatogram.push_back(peak);
-      } 
-      //cout << "Chromatogram 0 has size " << chromatogram.size() << " and native id " << chromatogram_old.getNativeID() << endl;
-      chromatogram.setMetaValue("product_mz", 618.31);
-      chromatogram.setNativeID(chromatogram_old.getNativeID());
-      transition_group.addChromatogram(chromatogram, chromatogram_old.getNativeID());
-    }
-    {
-      Chromatogram chromatogram_old = exp.getChromatograms()[0];
-      RichPeakChromatogram chromatogram;
-      for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
-      {   
-        ChromatogramPeak peak;
-        peak.setMZ(it->getRT());
-        peak.setIntensity(it->getIntensity());
-        chromatogram.push_back(peak);
-      } 
-      //cout << "Chromatogram 2 has size " << chromatogram.size() << " and native id " << chromatogram_old.getNativeID() << endl;
-      chromatogram.setMetaValue("product_mz", 628.45);
-      chromatogram.setNativeID(chromatogram_old.getNativeID());
-      transition_group.addChromatogram(chromatogram, chromatogram_old.getNativeID());
-    }
-    {
-      Chromatogram chromatogram_old = exp.getChromatograms()[4]; 
-      RichPeakChromatogram chromatogram;
-      for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
-      {   
-        ChromatogramPeak peak;
-        peak.setMZ(it->getRT());
-        peak.setIntensity(it->getIntensity());
-        chromatogram.push_back(peak);
-      } 
-      //cout << "Chromatogram 3 has size " << chromatogram.size() << " and native id " << chromatogram_old.getNativeID() << endl;
-      chromatogram.setMetaValue("product_mz", 651.3);
-      chromatogram.setNativeID(chromatogram_old.getNativeID());
-      transition_group.addChromatogram(chromatogram, chromatogram_old.getNativeID());
-    }
+      Feature f;
+      static const double arr1[] = 
+      {
+        3103.13,     
+        3106.56,
+        3109.98,
+        3113.41,
+        3116.84,
+        3120.26,
+        3123.69,
+        3127.11,
+        3130.54,
+        3133.97,
+        3137.4 
+      };
+      std::vector<double> mz (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+      static const double arr2[] =
+      {
+        15.8951,     
+        41.5446,
+        76.0746,
+        109.069,
+        111.904,
+        169.792,
+        121.044,
+        63.0137,
+        44.615 ,
+        21.4927,
+       7.93576 
+      };
+      std::vector<double> intensity (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
-    // do peakpicking, e.g. find a peak at 3120 RT / 170 intensity in all the spectra
-    for(Size k = 0; k < transition_group.getChromatograms().size(); k++)
-    {
-      RichPeakChromatogram picked_chrom;
-      ChromatogramPeak peak;
-      peak.setMZ(3120);
-      peak.setIntensity(170);
-      picked_chrom.push_back(peak);
-
-      picked_chrom.getFloatDataArrays().clear();
-      picked_chrom.getFloatDataArrays().resize(3);
-      picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
-      picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-      picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
-      picked_chrom.getFloatDataArrays()[0].push_back(1000.0);
-      picked_chrom.getFloatDataArrays()[1].push_back(3100.0);
-      picked_chrom.getFloatDataArrays()[2].push_back(3140.0);
-
-      picked_chroms.push_back(picked_chrom);
+      ConvexHull2D::PointArrayType hull_points;
+      for (Size i = 0; i < mz.size(); i++)
+      {
+        DPosition<2> p(mz[i],intensity[i]);
+        hull_points.push_back(p);
+      }
+      ConvexHull2D hull;
+      hull.setHullPoints(hull_points);
+      f.setIntensity(782.38073);
+      f.getConvexHulls().push_back(hull);
+      feature.addFeature(f, "tr1");
     }
 
+    {  
+      Feature f;
+      static const double arr1[] = 
+      {
+        3103.13,
+        3106.56,
+        3109.98,
+        3113.41,
+        3116.84,
+        3120.26,
+        3123.69,
+        3127.11,
+        3130.54,
+        3133.97,
+        3137.4 
+      };
+      std::vector<double> mz (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+      static const double arr2[] = 
+      {
+        5.73925,
+        6.7076 ,
+        2.85782,
+        5.0307 ,
+        8.95135,
+        14.4544,
+        20.9731,
+        24.3033,
+        20.6897,
+        13.7459,
+        8.90411
+      };
+      std::vector<double> intensity (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+
+      ConvexHull2D::PointArrayType hull_points;
+      for (Size i = 0; i < mz.size(); i++)
+      {
+        DPosition<2> p(mz[i],intensity[i]);
+        hull_points.push_back(p);
+      }
+      ConvexHull2D hull;
+      hull.setHullPoints(hull_points);
+      f.setIntensity(58.38450);
+      f.getConvexHulls().push_back(hull);
+      feature.addFeature(f, "tr5");
+    }
+
+    return feature;
   }
+
+  MRMTransitionGroupType createMockTransitionGroup()
+  {
+
+    MRMTransitionGroupType transition_group;
+    {
+      String native_id = "tr3";
+      RichPeakChromatogram chrom;
+      chrom.setNativeID(native_id);
+      transition_group.addChromatogram(chrom, native_id );
+
+      TransitionType tr;
+      tr.library_intensity = 10000;
+      tr.product_mz = 618.31;
+      tr.charge = 1;
+      tr.transition_name = native_id;
+      transition_group.addTransition(tr, native_id );
+    }
+    {
+      String native_id = "tr1";
+      RichPeakChromatogram chrom;
+      chrom.setNativeID(native_id);
+      transition_group.addChromatogram(chrom, native_id );
+
+      TransitionType tr;
+      tr.library_intensity = 1;
+      tr.product_mz = 628.435;
+      tr.charge = 1;
+      tr.transition_name = native_id;
+      transition_group.addTransition(tr, native_id );
+    }
+    {
+      String native_id = "tr5";
+      RichPeakChromatogram chrom;
+      chrom.setNativeID(native_id);
+      transition_group.addChromatogram(chrom, native_id );
+
+      TransitionType tr;
+      tr.library_intensity = 2000;
+      tr.product_mz = 628.435;
+      tr.charge = 1;
+      tr.transition_name = native_id;
+      transition_group.addTransition(tr, native_id );
+    }
+
+    return transition_group;
+  }
+
 }
 
 #endif

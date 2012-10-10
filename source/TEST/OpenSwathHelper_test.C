@@ -33,22 +33,22 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 
+///////////////////////////
+
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
-///////////////////////////
-
-using namespace OpenMS;
-using namespace std;
 
 START_TEST(OpenSwathHelper, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+using namespace std;
+using namespace OpenMS;
 
 OpenSwathHelper* ptr = 0;
 OpenSwathHelper* nullPointer = 0;
