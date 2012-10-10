@@ -75,8 +75,8 @@ public:
     }
 
     /// Extract chromatograms defined by the TargetedExperiment from the input map and write them to the output map
-    template <typename ExperimentType>
-    void extractChromatograms(const ExperimentType& input, ExperimentType& output, OpenMS::TargetedExperiment& transition_exp, double& extract_window, bool ppm,
+    template <typename ExperimentT>
+    void extractChromatograms(const ExperimentT& input, ExperimentT& output, OpenMS::TargetedExperiment& transition_exp, double& extract_window, bool ppm,
                               TransformationDescription& trafo, double rt_extraction_window, String filter)
     {
 
@@ -128,7 +128,7 @@ public:
       transition_exp.sortTransitionsByProductMZ();
 
       // prepare all the spectra (but leave them empty)
-      std::vector<typename ExperimentType::ChromatogramType> chromatograms;
+      std::vector<typename ExperimentT::ChromatogramType> chromatograms;
       prepare_spectra(settings, chromatograms, transition_exp);
 
       //go through all spectra
@@ -158,7 +158,7 @@ public:
             continue;
           }
 
-          typename ExperimentType::ChromatogramType::PeakType p;
+          typename ExperimentT::ChromatogramType::PeakType p;
           mz = transition_exp.getTransitions()[k].getProductMZ();
 
           if (used_filter == 1)
@@ -184,8 +184,8 @@ public:
 private:
 
     /// This populates the chromatograms vector with empty chromatograms (but sets their meta-information)
-    template <class SpectrumSettings, class ExperimentType>
-    void prepare_spectra(SpectrumSettings& settings, std::vector<ExperimentType>& chromatograms, OpenMS::TargetedExperiment& transition_exp)
+    template <class SpectrumSettingsT, class ChromatogramT>
+    void prepare_spectra(SpectrumSettingsT& settings, std::vector<ChromatogramT>& chromatograms, OpenMS::TargetedExperiment& transition_exp)
     {
 
       // first prepare all the spectra (but leave them empty)
@@ -193,7 +193,7 @@ private:
       {
         const ReactionMonitoringTransition* transition = &transition_exp.getTransitions()[i];
 
-        ExperimentType chrom;
+        ChromatogramT chrom;
         // Create precursor and set
         // 1) the target m/z
         // 2) the isolation window (upper/lower)
@@ -245,8 +245,8 @@ private:
 
     }
 
-    template <typename SpectrumType>
-    void extract_value_tophat(const SpectrumType& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
+    template <typename SpectrumT>
+    void extract_value_tophat(const SpectrumT& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
     {
       // calculate extraction window
       double left, right;
@@ -298,8 +298,8 @@ private:
       }
     }
 
-    template <typename SpectrumType>
-    void extract_value_bartlett(const SpectrumType& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
+    template <typename SpectrumT>
+    void extract_value_bartlett(const SpectrumT& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
     {
       // calculate extraction window
       double left, right, half_window_size, weight;
