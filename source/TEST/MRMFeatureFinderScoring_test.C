@@ -44,7 +44,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef std::map<String, MRMTransitionGroup< MSSpectrum, ChromatogramPeak, OpenSwath::LightTransition > > TransitionGroupMapType;
+typedef std::map<String, MRMTransitionGroup< MSSpectrum <ChromatogramPeak>, OpenSwath::LightTransition > > TransitionGroupMapType;
 
 START_TEST(MRMFeatureFinderScoring, "$Id$")
 

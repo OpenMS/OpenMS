@@ -77,8 +77,8 @@ namespace OpenMS
     }
 
     /// calculate the elution profile fit score
-    template<template<class > class SpectrumType, class PeakType, class TransitionT>
-    double calcElutionFitScore(MRMFeature & mrmfeature, MRMTransitionGroup<SpectrumType, PeakType, TransitionT> & transition_group)
+    template<typename SpectrumType, class TransitionT>
+    double calcElutionFitScore(MRMFeature & mrmfeature, MRMTransitionGroup<SpectrumType, TransitionT> & transition_group)
     {
 
       std::vector<double> fit_scores;

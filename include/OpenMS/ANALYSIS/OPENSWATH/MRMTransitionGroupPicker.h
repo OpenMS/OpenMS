@@ -75,10 +75,12 @@ namespace OpenMS
     public DefaultParamHandler
   {
 
-private:
+public:
 
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; // this is the type in which we store the chromatograms for this analysis
+    // this is the type in which we store the chromatograms for this analysis
+    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; 
 
+protected:
     UInt sgolay_frame_length_;
     UInt sgolay_polynomial_order_;
     DoubleReal gauss_width_;
@@ -102,47 +104,47 @@ private:
     /// @name Resampling methods
     //@{
     /// create an empty master peak container that has the correct mz / RT values set
-    template <template <typename> class SpectrumT, typename PeakT, typename ChromatogramPeakT, typename TransitionT>
-    void prepare_master_container_(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group,
-                                   SpectrumT<ChromatogramPeakT>& master_peak_container, int chr_idx, double best_left, double best_right)
+    template <typename SpectrumT, typename TransitionT>
+    void prepare_master_container_(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
+      SpectrumT & master_peak_container, int chr_idx, double best_left, double best_right)
     {
-      const SpectrumT<ChromatogramPeakT>* ref_chromatogram = &transition_group.getChromatograms()[chr_idx];
+      const SpectrumT & ref_chromatogram = transition_group.getChromatograms()[chr_idx];
 
       // search for begin / end of the reference chromatogram (and add one more point)
-      typename SpectrumT<ChromatogramPeakT>::const_iterator begin = ref_chromatogram->begin();
-      while (begin != ref_chromatogram->end() && begin->getMZ() < best_left) {begin++; }
-      if (begin != ref_chromatogram->begin()) {begin--; }
+      typename SpectrumT::const_iterator begin = ref_chromatogram.begin();
+      while (begin != ref_chromatogram.end() && begin->getMZ() < best_left) {begin++; }
+      if (begin != ref_chromatogram.begin()) {begin--; }
 
-      typename SpectrumT<ChromatogramPeakT>::const_iterator end = begin;
-      while (end != ref_chromatogram->end() && end->getMZ() < best_right) {end++; }
-      if (end != ref_chromatogram->end()) {end++; }
+      typename SpectrumT::const_iterator end = begin;
+      while (end != ref_chromatogram.end() && end->getMZ() < best_right) {end++; }
+      if (end != ref_chromatogram.end()) {end++; }
 
       // resize the master container and set the m/z values to the ones of the master container
       master_peak_container.resize(distance(begin, end));
-      typename SpectrumT<ChromatogramPeakT>::iterator it = master_peak_container.begin();
-      for (typename SpectrumT<ChromatogramPeakT>::const_iterator chrom_it = begin; chrom_it != end; chrom_it++, it++)
+      typename SpectrumT::iterator it = master_peak_container.begin();
+      for (typename SpectrumT::const_iterator chrom_it = begin; chrom_it != end; chrom_it++, it++)
       {
         it->setMZ(chrom_it->getMZ());
       }
     }
 
     /// use the master container from above to resample a chromatogram at those points stored in the master container
-    template <template <typename> class SpectrumT, typename ChromatogramPeakT>
-    SpectrumT<ChromatogramPeakT> resample_chromatogram_(const SpectrumT<ChromatogramPeakT>& chromatogram,
-                                                        SpectrumT<ChromatogramPeakT>& master_peak_container, double best_left, double best_right)
+    template <typename SpectrumT>
+    SpectrumT resample_chromatogram_(const SpectrumT & chromatogram,
+      SpectrumT & master_peak_container, double best_left, double best_right)
     {
       // get the start / end point of this chromatogram => go one past
       // best_left / best_right to make the resampling accurate also at the
       // edge.
-      typename SpectrumT<ChromatogramPeakT>::const_iterator begin = chromatogram.begin();
+      typename SpectrumT::const_iterator begin = chromatogram.begin();
       while (begin != chromatogram.end() && begin->getMZ() < best_left) {begin++; }
       if (begin != chromatogram.begin()) {begin--; }
 
-      typename SpectrumT<ChromatogramPeakT>::const_iterator end = begin;
+      typename SpectrumT::const_iterator end = begin;
       while (end != chromatogram.end() && end->getMZ() < best_right) {end++; }
       if (end != chromatogram.end()) {end++; }
 
-      SpectrumT<ChromatogramPeakT> resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
+      SpectrumT resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
       LinearResamplerAlign lresampler;
       lresampler.raster(begin, end, resampled_peak_container.begin(), resampled_peak_container.end());
 
@@ -151,7 +153,7 @@ private:
         std::cout << "===========================================================================  " << std::endl;
         double tot;
         tot = 0;
-        for (typename SpectrumT<ChromatogramPeakT>::const_iterator it = begin; it != end; it++)
+        for (typename SpectrumT::const_iterator it = begin; it != end; it++)
         {
           std::cout << " before resampl " << *it << std::endl;
           tot += it->getIntensity();
@@ -159,7 +161,7 @@ private:
         std::cout << " total " << tot << std::endl;
 
         tot = 0;
-        for (typename SpectrumT<ChromatogramPeakT>::iterator it = resampled_peak_container.begin(); it != resampled_peak_container.end(); it++)
+        for (typename SpectrumT::iterator it = resampled_peak_container.begin(); it != resampled_peak_container.end(); it++)
         {
           std::cout << " resampl " << *it << std::endl;
           tot += it->getIntensity();
@@ -174,8 +176,8 @@ private:
     //@}
 
     /// Remove overlaping features that are within the current seed feature or overlap with it
-    template <template <typename> class SpectrumT, typename ChromatogramPeakT>
-    void remove_overlapping_features(std::vector<SpectrumT<ChromatogramPeakT> >& picked_chroms, double best_left, double best_right)
+    template <typename SpectrumT>
+    void remove_overlapping_features(std::vector<SpectrumT> & picked_chroms, double best_left, double best_right)
     {
       // delete all seeds that lie within the current seed
       for (Size k = 0; k < picked_chroms.size(); k++)
@@ -232,8 +234,8 @@ public:
     /// This function will accept a MRMTransitionGroup with raw chromatograms,
     /// create features on it and add the features back to the
     /// MRMTransitionGroup.
-    template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
-    void pickTransitionGroup(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group)
+    template <typename SpectrumT, typename TransitionT>
+    void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group)
     {
       // Pick chromatograms
       picked_chroms.clear();
@@ -287,9 +289,9 @@ public:
     void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& smoothed_chrom, RichPeakChromatogram& picked_chrom);
 
     /// Create feature from a vector of chromatograms and a specified peak
-    template <template <typename> class SpectrumT, typename PeakT, typename ChromatogramPeakT, typename TransitionT>
-    MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group,
-                                std::vector<SpectrumT<ChromatogramPeakT> >& picked_chroms, int& chr_idx, int& peak_idx)
+    template <typename SpectrumT, typename TransitionT>
+    MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
+      std::vector<SpectrumT> & picked_chroms, int & chr_idx, int & peak_idx)
     {
       MRMFeature mrmFeature;
       const double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
@@ -305,21 +307,21 @@ public:
       // Prepare linear resampling of all the chromatograms, here creating the
       // empty master_peak_container with the same RT (m/z) values as the reference
       // chromatogram.
-      SpectrumT<ChromatogramPeakT> master_peak_container;
+      SpectrumT master_peak_container;
       prepare_master_container_(transition_group, master_peak_container, chr_idx, best_left, best_right);
 
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
-        const SpectrumT<ChromatogramPeakT>& chromatogram = transition_group.getChromatograms()[k];
-        for (typename SpectrumT<ChromatogramPeakT>::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
+        const SpectrumT& chromatogram = transition_group.getChromatograms()[k];
+        for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
         {
           total_xic += it->getIntensity();
         }
 
         // resample the current chromatogram
-        const SpectrumT<ChromatogramPeakT> used_chromatogram = resample_chromatogram_(chromatogram, master_peak_container, best_left, best_right);
-        // const SpectrumT<ChromatogramPeakT> & used_chromatogram = chromatogram; // instead of resampling
+        const SpectrumT used_chromatogram = resample_chromatogram_(chromatogram, master_peak_container, best_left, best_right);
+        // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
 
         Feature f;
         double quality = 0;
@@ -331,7 +333,7 @@ public:
         double peak_apex_int = -1;
         double peak_apex_dist = std::fabs(used_chromatogram.begin()->getMZ() - peak_apex);
         // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
-        for (typename SpectrumT<ChromatogramPeakT>::const_iterator it = used_chromatogram.begin(); it != used_chromatogram.end(); it++)
+        for (typename SpectrumT::const_iterator it = used_chromatogram.begin(); it != used_chromatogram.end(); it++)
         {
           if (it->getMZ() > best_left && it->getMZ() < best_right)
           {

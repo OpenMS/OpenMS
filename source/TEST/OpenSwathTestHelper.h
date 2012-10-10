@@ -61,7 +61,7 @@ namespace OpenSWATH_Test
   typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
   typedef OpenSwath::LightTransition TransitionType;
   //typedef ReactionMonitoringTransition TransitionType;
-  typedef MRMTransitionGroup<MSSpectrum, ChromatogramPeak, TransitionType> MRMTransitionGroupType;
+  typedef MRMTransitionGroup<RichPeakChromatogram, TransitionType> MRMTransitionGroupType;
 #endif
 
   MRMFeature createMockFeature()

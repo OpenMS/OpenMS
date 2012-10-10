@@ -43,8 +43,8 @@ using namespace OpenMS;
 using namespace std;
 
 typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
-typedef MRMTransitionGroup<MSSpectrum, ChromatogramPeak, OpenMS::ReactionMonitoringTransition> MRMTransitionGroupType;
 typedef OpenMS::ReactionMonitoringTransition TransitionType;
+typedef MRMTransitionGroup<RichPeakChromatogram, TransitionType> MRMTransitionGroupType;
 
 ///////////////////////////
 

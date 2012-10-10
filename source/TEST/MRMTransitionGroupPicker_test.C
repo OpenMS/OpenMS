@@ -39,7 +39,7 @@
 #include <boost/assign/std/vector.hpp>
 
 // here we also test private methods
-#define private public
+#define protected public
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 using namespace OpenMS;
@@ -47,8 +47,8 @@ using namespace std;
 
 typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
 // TODO also test the picker with the LightTransition interface
-// typedef MRMTransitionGroup<MSSpectrum, ChromatogramPeak, OpenSwath::LightTransition> MRMTransitionGroupType;
-typedef MRMTransitionGroup<MSSpectrum, ChromatogramPeak, ReactionMonitoringTransition> MRMTransitionGroupType;
+// typedef MRMTransitionGroup<RichPeakChromatogram, OpenSwath::LightTransition> MRMTransitionGroupType;
+typedef MRMTransitionGroup<RichPeakChromatogram, ReactionMonitoringTransition> MRMTransitionGroupType;
 
 void setup_transition_group(MRMTransitionGroupType & transition_group)
 {

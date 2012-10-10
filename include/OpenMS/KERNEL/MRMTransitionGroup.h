@@ -51,7 +51,7 @@ namespace OpenMS
   structures, this needs to accept also MSSpectrum as a type for raw data
   storage.
   */
-  template <template <typename> class SpectrumType, typename PeakType, typename TransitionType>
+  template <typename SpectrumType, typename TransitionType>
   class MRMTransitionGroup
   {
 
@@ -62,12 +62,9 @@ public:
     /// List of MRM Features type
     typedef std::vector<MRMFeature> MRMFeatureListType;
     /// List of Reaction Monitoring transitions (meta data) type
-    //typedef OpenSWATH::LightTransition TransitionType;
     typedef std::vector<TransitionType> TransitionsType;
-    
-    
-    /// List of Chromatograms (measured data) type
-    typedef SpectrumType<PeakType> SpectrumPeakType;
+    /// Peak type
+    typedef typename SpectrumType::PeakType PeakType;
     //@}
 
     /// Constructor
@@ -147,23 +144,23 @@ public:
       return transition_map_.find(key) != transition_map_.end();
     }
 
-    inline const std::vector<SpectrumPeakType> & getChromatograms() const
+    inline const std::vector<SpectrumType> & getChromatograms() const
     {
       return chromatograms_;
     }
 
-    inline std::vector<SpectrumPeakType> & getChromatograms()
+    inline std::vector<SpectrumType> & getChromatograms()
     {
       return chromatograms_;
     }
 
-    inline void addChromatogram(SpectrumPeakType & chromatogram, String key)
+    inline void addChromatogram(SpectrumType & chromatogram, String key)
     {
       chromatograms_.push_back(chromatogram);
       chromatogram_map_[key] = chromatograms_.size() - 1;
     }
 
-    inline SpectrumPeakType & getChromatogram(String key)
+    inline SpectrumType & getChromatogram(String key)
     {
       return chromatograms_[chromatogram_map_[key]];
     }
@@ -213,7 +210,7 @@ protected:
     TransitionsType transitions_;
 
     /// chromatogram list
-    std::vector<SpectrumPeakType> chromatograms_;
+    std::vector<SpectrumType> chromatograms_;
 
     /// feature list
     MRMFeatureListType cons_features_;

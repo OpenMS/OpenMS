@@ -143,13 +143,13 @@ private:
     @brief An implementation of the OpenSWATH Transition Group Access interface using OpenMS
 
   */
-  template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
+  template <typename SpectrumT, typename TransitionT>
   class OPENMS_DLLAPI TransitionGroupOpenMS :
     public OpenSwath::ITransitionGroup
   {
 public:
 
-    TransitionGroupOpenMS(MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & trgroup) :
+    TransitionGroupOpenMS(MRMTransitionGroup<SpectrumT, TransitionT> & trgroup) :
       trgroup_(trgroup)
     {
     }
@@ -179,7 +179,7 @@ public:
     }
 
 private:
-    const MRMTransitionGroup<SpectrumT, PeakT, TransitionT> & trgroup_;
+    const MRMTransitionGroup<SpectrumT, TransitionT> & trgroup_;
   };
 
   /**

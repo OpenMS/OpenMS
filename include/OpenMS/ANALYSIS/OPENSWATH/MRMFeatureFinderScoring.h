@@ -207,7 +207,7 @@ public:
     typedef OpenSwath::LightPeptide PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
-    typedef MRMTransitionGroup<MSSpectrum, ChromatogramPeak, TransitionType> MRMTransitionGroupType; // a transition group holds the MSSpectra with the Chromatogram peaks from above
+    typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType; // a transition group holds the MSSpectra with the Chromatogram peaks from above
     typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
     //@}
 
@@ -307,11 +307,12 @@ public:
 private:
 
     /// Score all peak groups
-    template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
-    void scorePeakgroups(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group, TransformationDescription& trafo,
+    template <typename SpectrumT, typename TransitionT>
+    void scorePeakgroups(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group, TransformationDescription & trafo,
                          OpenSwath::SpectrumAccessPtr  swath_map, FeatureMap<Feature>& output)
     {
       //std::vector<SignalToNoiseEstimatorMedian<RichPeakChromatogram> > signal_noise_estimators;
+      typedef typename MRMTransitionGroup<SpectrumT, TransitionT>::PeakType PeakT;
       std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
       std::vector<MRMFeature> feature_list;
 
@@ -320,7 +321,7 @@ private:
       DoubleReal sn_bin_count_ = (DoubleReal)param_.getValue("TransitionGroupPicker:sn_bin_count");
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
-        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS<PeakT>(transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_));
+        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_));
         signal_noise_estimators.push_back(snptr);
       }
 
@@ -339,7 +340,7 @@ private:
         imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
 
         OpenSwath::ITransitionGroup* itransition_group;
-        itransition_group = new TransitionGroupOpenMS<SpectrumT, PeakT, TransitionT>(transition_group);
+        itransition_group = new TransitionGroupOpenMS<SpectrumT, TransitionT>(transition_group);
 
 #ifdef DEBUG_MRMPEAKPICKER
         std::cout << "000000000000000000000000000000000000000000000000000000000000000000000000000 " << std::endl;
@@ -615,8 +616,8 @@ private:
       }
     }
 
-    template <template <typename> class SpectrumT, typename PeakT, typename TransitionT>
-    void calculate_swath_scores(MRMTransitionGroup<SpectrumT, PeakT, TransitionT>& transition_group, MRMFeature& mrmfeature_,
+    template <typename SpectrumT, typename TransitionT>
+    void calculate_swath_scores(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group, MRMFeature & mrmfeature_,
                                 OpenSwath::SpectrumAccessPtr swath_map, std::vector<double>& normalized_library_intensity, OpenSwath_Scores scores)
     {
       MRMFeature* mrmfeature = &mrmfeature_;

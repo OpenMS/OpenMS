@@ -99,7 +99,7 @@ START_SECTION([EXTRA] test_scores())
   OpenSwath::IMRMFeature * imrmfeature;
   imrmfeature = new MRMFeatureOpenMS(mrmfeature);
   OpenSwath::ITransitionGroup * itransition_group;
-  itransition_group = new TransitionGroupOpenMS<MSSpectrum, ChromatogramPeak, OpenSWATH_Test::TransitionType>(transition_group);
+  itransition_group = new TransitionGroupOpenMS <MSSpectrum <ChromatogramPeak>, OpenSWATH_Test::TransitionType>(transition_group);
 
   //initialize the XCorr Matrix
   OpenSwath::MRMScoring mrmscore;

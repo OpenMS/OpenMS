@@ -41,8 +41,8 @@
 
 namespace OpenMS
 {
-  MRMTransitionGroup<MSSpectrum, Peak1D, ReactionMonitoringTransition> default_mrmtransitiongroup_;
-  MRMTransitionGroup<MSSpectrum, Peak1D, OpenSwath::LightTransition> default_openswath_mrmtransitiongroup_;
-  MRMTransitionGroup<MSSpectrum, ChromatogramPeak, ReactionMonitoringTransition> default_chrompeak_mrmtransitiongroup_;
-  MRMTransitionGroup<MSSpectrum, ChromatogramPeak, OpenSwath::LightTransition> default_chrompeak_openswath_mrmtransitiongroup_;
+  MRMTransitionGroup<MSSpectrum<Peak1D>, ReactionMonitoringTransition> default_mrmtransitiongroup_;
+  MRMTransitionGroup<MSSpectrum<Peak1D>, OpenSwath::LightTransition> default_openswath_mrmtransitiongroup_;
+  MRMTransitionGroup<MSSpectrum<ChromatogramPeak>, ReactionMonitoringTransition> default_chrompeak_mrmtransitiongroup_;
+  MRMTransitionGroup<MSSpectrum<ChromatogramPeak>, OpenSwath::LightTransition> default_chrompeak_openswath_mrmtransitiongroup_;
 }
