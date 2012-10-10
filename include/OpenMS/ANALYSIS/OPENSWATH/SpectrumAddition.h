@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITON_H
-#define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITON_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
+#define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>

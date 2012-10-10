@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_ISPECTRUMACCESS_H_
-#define OPENSWATH_DATAACCESS_ISPECTRUMACCESS_H_
+#ifndef OPENSWATH_DATAACCESS_ISPECTRUMACCESS_H
+#define OPENSWATH_DATAACCESS_ISPECTRUMACCESS_H
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 

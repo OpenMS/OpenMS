@@ -260,3 +260,5 @@ int main(int argc, const char ** argv)
   TOPPOpenSwathRTNormalizer tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

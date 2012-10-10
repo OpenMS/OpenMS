@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_ITRANSITION_H_
-#define OPENSWATH_DATAACCESS_ITRANSITION_H_
+#ifndef OPENSWATH_DATAACCESS_ITRANSITION_H
+#define OPENSWATH_DATAACCESS_ITRANSITION_H
 
 #include <vector>
 #include <boost/shared_ptr.hpp>

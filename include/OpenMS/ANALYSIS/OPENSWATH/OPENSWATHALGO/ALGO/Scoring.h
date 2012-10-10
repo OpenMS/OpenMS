@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_ALGO_SCORING_H
-#define OPENSWATH_ALGO_SCORING_H
+#ifndef OPENSWATHALGO_ALGO_SCORING_H
+#define OPENSWATHALGO_ALGO_SCORING_H
 
 #include <numeric>
 #include <map>

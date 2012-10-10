@@ -32,8 +32,8 @@
 // $Authors: Darren Kessner, Hannes Roest, Witold Wolski$
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_DATASTRUCTURES_H_
-#define OPENSWATH_DATAACCESS_DATASTRUCTURES_H_
+#ifndef OPENSWATH_DATAACCESS_DATASTRUCTURES_H
+#define OPENSWATH_DATAACCESS_DATASTRUCTURES_H
 
 #include <string>
 #include <vector>

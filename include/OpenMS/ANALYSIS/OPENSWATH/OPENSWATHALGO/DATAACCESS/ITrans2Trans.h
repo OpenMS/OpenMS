@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_ITRANS2TRANS_H_
-#define OPENSWATH_DATAACCESS_ITRANS2TRANS_H_
+#ifndef OPENSWATH_DATAACCESS_ITRANS2TRANS_H
+#define OPENSWATH_DATAACCESS_ITRANS2TRANS_H
 
 #include <map>
 #include "TransitionExperiment.h"

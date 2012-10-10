@@ -441,3 +441,5 @@ int main(int argc, const char ** argv)
   TOPPQCCalculator tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

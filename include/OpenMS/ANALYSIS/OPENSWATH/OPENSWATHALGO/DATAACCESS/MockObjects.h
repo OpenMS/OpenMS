@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_MOCKOBJECTS_H_
-#define OPENSWATH_DATAACCESS_MOCKOBJECTS_H_
+#ifndef OPENSWATH_DATAACCESS_MOCKOBJECTS_H
+#define OPENSWATH_DATAACCESS_MOCKOBJECTS_H
 
 #include <vector>
 #include <map>

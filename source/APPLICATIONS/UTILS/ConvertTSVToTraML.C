@@ -129,3 +129,5 @@ int main(int argc, const char ** argv)
   TOPPConvertTSVToTraML tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

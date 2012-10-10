@@ -205,3 +205,5 @@ int main(int argc, const char ** argv)
   TOPPMRMMapper tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

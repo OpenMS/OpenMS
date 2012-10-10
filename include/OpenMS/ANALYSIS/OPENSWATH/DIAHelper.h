@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENMSHELPER_H_
-#define OPENMS_ANALYSIS_OPENSWATH_OPENMSHELPER_H_
+#ifndef OPENMS_ANALYSIS_OPENSWATH_DIAHELPER_H
+#define OPENMS_ANALYSIS_OPENSWATH_DIAHELPER_H
 
 #include <vector>
 #include <OpenMS/CHEMISTRY/AASequence.h>

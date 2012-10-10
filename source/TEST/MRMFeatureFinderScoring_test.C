@@ -67,7 +67,8 @@ START_SECTION(~MRMFeatureFinderScoring())
 }
 END_SECTION
 
-START_SECTION((virtual void run()))
+START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature> & output, OpenSwath::LightTargetedExperiment & transition_exp,
+  TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType & transition_group_map))
 {
   MRMFeatureFinderScoring ff;
   MRMFeature feature;
@@ -162,7 +163,8 @@ START_SECTION((virtual void run()))
 }
 END_SECTION
     
-START_SECTION(void mapExperimentToTransitionList(const MSExperiment<PeakType> & input, TargetedExperiment & transition_exp, TransitionGroupMapType & transition_group_map, TransformationDescription trafo))
+START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment & transition_exp,
+  TransitionGroupMapType & transition_group_map, TransformationDescription trafo, double rt_extraction_window) )
 {
 
   MRMFeatureFinderScoring ff;

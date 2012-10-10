@@ -33,8 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/ChromatogramPeak.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
@@ -82,7 +85,7 @@ input_spectrum[4].setIntensity(1.0f);
 // spacing away.
 double default_spacing = 0.75;
 
-START_SECTION(void raster(MSSpectrum<PeakType>& spectrum))
+START_SECTION((template < template< typename > class MSSpectrum, typename PeakType > void raster(MSSpectrum< PeakType > &spectrum)))
 {
 
   MSSpectrum< Peak1D > spec = input_spectrum;
@@ -108,7 +111,7 @@ START_SECTION(void raster(MSSpectrum<PeakType>& spectrum))
 END_SECTION
 
 // it should also work with chromatograms
-START_SECTION(test_linear_res_chromat)
+START_SECTION([EXTRA] test_linear_res_chromat)
 {
   MSChromatogram< Peak1D > spec;
   spec.resize(5);
@@ -134,7 +137,7 @@ START_SECTION(test_linear_res_chromat)
 END_SECTION
 
 // it should work with alignment to 0, 1.8 and give the same result
-START_SECTION(void raster_align(MSSpectrum<PeakType>& spectrum, double start_pos, double end_pos))
+START_SECTION((template < template< typename > class MSSpectrum, typename PeakType > void raster_align(MSSpectrum< PeakType > &spectrum, double start_pos, double end_pos)))
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
 
@@ -149,7 +152,7 @@ START_SECTION(void raster_align(MSSpectrum<PeakType>& spectrum, double start_pos
 END_SECTION
 
 // it should work with alignment to -0.25, 1.8 
-START_SECTION(test_linear_res_align_3)
+START_SECTION([EXTRA] test_linear_res_align_3)
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
 
@@ -176,7 +179,7 @@ START_SECTION(test_linear_res_align_3)
 END_SECTION
 
 // it should work with alignment to -2.25, 1.8
-START_SECTION(test_linear_res_align_4)
+START_SECTION([EXTRA] test_linear_res_align_4)
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
 
@@ -204,7 +207,7 @@ START_SECTION(test_linear_res_align_4)
 END_SECTION
 
 // it should work with alignment to -0.25, 1.25
-START_SECTION(test_linear_res_align_5)
+START_SECTION([EXTRA] test_linear_res_align_5)
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
 
@@ -229,7 +232,7 @@ START_SECTION(test_linear_res_align_5)
 END_SECTION
 
 // it should work with alignment to 0.25, 1.8
-START_SECTION(test_linear_res_align_6)
+START_SECTION([EXTRA] test_linear_res_align_6)
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
 
@@ -254,7 +257,7 @@ START_SECTION(test_linear_res_align_6)
 END_SECTION
 
 // it should also work when we scale the m/z
-START_SECTION(test_linear_res_align_scaling)
+START_SECTION([EXTRA] test_linear_res_align_scaling)
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
   for (Size i = 0; i < spec.size(); i++)
@@ -283,7 +286,7 @@ START_SECTION(test_linear_res_align_scaling)
 END_SECTION
 
 // also the interpolation should work
-START_SECTION((void raster_interpolate(PeakTypeIterator raw_it, PeakTypeIterator raw_end, PeakTypeIterator it, PeakTypeIterator resampled_end)))
+START_SECTION((template < typename PeakTypeIterator > void raster_interpolate(PeakTypeIterator raw_it, PeakTypeIterator raw_end, PeakTypeIterator it, PeakTypeIterator resampled_end)))
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
   MSSpectrum< Peak1D > resampled;
@@ -321,7 +324,7 @@ START_SECTION((void raster_interpolate(PeakTypeIterator raw_it, PeakTypeIterator
 }                        
 END_SECTION
 
-START_SECTION((void raster(PeakTypeIterator raw_it, PeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end) ))
+START_SECTION(( template < typename PeakTypeIterator, typename ConstPeakTypeIterator > void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)))
 {
 
   MSSpectrum< Peak1D > spec = input_spectrum;
@@ -366,7 +369,7 @@ START_SECTION((void raster(PeakTypeIterator raw_it, PeakTypeIterator raw_end, Pe
 END_SECTION
 
 // it should accept nonsense input values
-START_SECTION(test_linear_res_align_input)
+START_SECTION([EXTRA] test_linear_res_align_input)
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
 

@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H_
-#define OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H_
+#ifndef OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H
+#define OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H
 
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <OpenMS/CHEMISTRY/AASequence.h>

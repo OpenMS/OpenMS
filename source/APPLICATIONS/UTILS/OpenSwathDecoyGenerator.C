@@ -156,3 +156,5 @@ int main(int argc, const char **argv)
   TOPPOpenSwathDecoyGenerator gen;
   return gen.main(argc, argv);
 }
+
+/// @endcond

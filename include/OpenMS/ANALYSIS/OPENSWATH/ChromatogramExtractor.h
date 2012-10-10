@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_EXTRACTCHROMATOGRAM_H
-#define OPENMS_ANALYSIS_OPENSWATH_EXTRACTCHROMATOGRAM_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H
+#define OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>

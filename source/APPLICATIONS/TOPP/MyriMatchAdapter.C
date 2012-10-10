@@ -477,3 +477,5 @@ int main(int argc, const char ** argv)
   MyriMatchAdapter tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

@@ -97,3 +97,5 @@ int main(int argc, const char ** argv)
   TOPPConvertTraMLToTSV tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

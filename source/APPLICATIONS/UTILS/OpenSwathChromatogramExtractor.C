@@ -281,3 +281,5 @@ int main(int argc, const char ** argv)
   OpenMS::TOPPOpenSwathChromatogramExtractor tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

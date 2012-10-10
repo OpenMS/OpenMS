@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_TRANSITIONEXPERIMENT_H_
-#define OPENSWATH_DATAACCESS_TRANSITIONEXPERIMENT_H_
+#ifndef OPENSWATH_DATAACCESS_TRANSITIONEXPERIMENT_H
+#define OPENSWATH_DATAACCESS_TRANSITIONEXPERIMENT_H
 
 #include <string>
 #include <vector>

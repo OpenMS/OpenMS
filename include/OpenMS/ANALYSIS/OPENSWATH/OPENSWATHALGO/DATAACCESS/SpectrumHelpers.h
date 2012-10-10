@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_SPECTRUMHELPERS_H_
-#define OPENSWATH_SPECTRUMHELPERS_H_
+#ifndef OPENSWATH_SPECTRUMHELPERS_H
+#define OPENSWATH_SPECTRUMHELPERS_H
 
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
 

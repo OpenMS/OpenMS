@@ -78,16 +78,10 @@ START_SECTION(~DIAScoring())
 }
 END_SECTION
 
-START_SECTION((void MRMFeatureScoring::standardize_data(std::vector<double>& data)))
-{
-// see seperate test
-NOT_TESTABLE
-}
-END_SECTION
-
 START_SECTION((void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)))
 {
 
+  /// TODO move to DIAHelpers
   OpenMS::DIAScoring diascoring;
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
@@ -281,10 +275,7 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
 }
 END_SECTION
 
-START_SECTION (
-void dia_isotope_scores(const std::vector<TransitionType> & transitions,
-                       SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge,
-                       double & isotope_corr, double & isotope_overlap))
+START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &transitions, SpectrumType spectrum, OpenSwath::IMRMFeature *mrmfeature, double &isotope_corr, double &isotope_overlap) )
 {
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
@@ -341,10 +332,7 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
 }
 END_SECTION
 
-START_SECTION (
-void dia_massdiff_score(const std::vector<TransitionType> & transitions,
-                       SpectrumType  spectrum, const std::vector<double> & normalized_library_intensity,
-                       double & ppm_score, double & ppm_score_weighted))
+START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &transitions, SpectrumType spectrum, const std::vector< double > &normalized_library_intensity, double &ppm_score, double &ppm_score_weighted) )
 { 
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
@@ -413,7 +401,7 @@ void dia_massdiff_score(const std::vector<TransitionType> & transitions,
 }
 END_SECTION
 
-START_SECTION ( void dia_by_ion_score(SpectrumType & spectrum, AASequence & sequence, int charge, double & bseries_score, double & yseries_score))
+START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequence, int charge, double &bseries_score, double &yseries_score) )
 {
 
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
@@ -473,7 +461,7 @@ START_SECTION((void set_dia_parameters(double dia_extract_window, double dia_cen
 }
 END_SECTION
 
-START_SECTION((void score_with_isotopes(SpectrumType spectrum, const std::vector<TransitionType> & transitions, double & dotprod, double & manhattan);))
+START_SECTION( void score_with_isotopes(SpectrumType spectrum, const std::vector< TransitionType > &transitions, double &dotprod, double &manhattan))
 {
   OpenSwath::LightTransition mock_tr1;
   mock_tr1.product_mz = 500.;
