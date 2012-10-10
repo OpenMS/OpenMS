@@ -47,15 +47,15 @@ namespace OpenMS
 {
 
   /**
-  @brief The MRMRTNormalizer will find retention time peptides in data.
+    @brief The MRMRTNormalizer will find retention time peptides in data.
 
-  This tool will take a description of RT peptides and their normalized
-  retention time to write out a transformation file on how to transform the
-  RT space into the normalized space.
+    This tool will take a description of RT peptides and their normalized
+    retention time to write out a transformation file on how to transform the
+    RT space into the normalized space.
 
-  The principle is adapted from Escher et al.
-
-  Escher, C. et al. Using iRT, a normalized retention time for more targeted measurement of peptides. PROTEOMICS 12, 11111121 (2012).
+    The principle is adapted from Escher et al.
+    Escher, C. et al. (2012), Using iRT, a normalized retention time for more 
+    targeted measurement of peptides. Proteomics, 12: 1111-1121.
   */
   class OPENMS_DLLAPI MRMRTNormalizer
   {
@@ -90,7 +90,9 @@ public:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static std::vector<std::pair<double, double> > rm_outliers(std::vector<std::pair<double, double> >& pairs, double rsq_limit, double coverage_limit);
+    static std::vector<std::pair<double, double> > rm_outliers(std::vector<std::pair<double, double> >& pairs,
+                                                               double rsq_limit, 
+                                                               double coverage_limit);
 
     /**
       @brief This function computes Chauvenet's criterion probability for a vector
