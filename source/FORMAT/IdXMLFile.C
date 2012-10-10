@@ -100,15 +100,7 @@ namespace OpenMS
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    //add XSLT file if it can be found
-    try
-    {
-      String xslt_file =  File::find("XSL/IdXML.xsl");
-      os << "<?xml-stylesheet type=\"text/xsl\" href=\"http://open-ms.sourceforge.net/XSL/IdXML.xsl\" ?>\n";
-    }
-    catch (Exception::FileNotFound &)
-    {
-    }
+    os << "<?xml-stylesheet type=\"text/xsl\" href=\"http://open-ms.sourceforge.net/XSL/IdXML.xsl\" ?>\n";
     os << "<IdXML version=\"" << getVersion() << "\"";
     if (document_id != "")
     {
