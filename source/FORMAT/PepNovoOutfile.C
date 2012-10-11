@@ -79,7 +79,7 @@ namespace OpenMS
     )
   {
     // generally used variables
-    vector<String> substrings;
+    StringList substrings;
     map<String, Int> columns;
     PeptideHit peptide_hit;
 
@@ -187,14 +187,38 @@ namespace OpenMS
         
         //cout<<"INDEX: "<<index<<endl;
         peptide_identification = PeptideIdentification();
-        if (index_to_precursor.find(index) != index_to_precursor.end())
+        bool success = false;
+        if (index_to_precursor.size()>0)
         {
-          peptide_identification.setMetaValue("RT", index_to_precursor.find(index)->second.first);
-          peptide_identification.setMetaValue("MZ", index_to_precursor.find(index)->second.second);
+          if (index_to_precursor.find(index) != index_to_precursor.end())
+          {
+            peptide_identification.setMetaValue("RT", index_to_precursor.find(index)->second.first);
+            peptide_identification.setMetaValue("MZ", index_to_precursor.find(index)->second.second);
+            success = true;
+          }
+          else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + index + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
         }
-        else
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + index + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
+        
+        if (!success)
+        { // try to reconstruct from title entry (usually sensible when MGF is supplied to PepNovo)
+          try
+          {
+            if (substrings.size() >= 4)
+            {
+              StringList parts = StringList::create(substrings[3], '_');
+              if (parts.size() >= 2)
+              {
+                peptide_identification.setMetaValue("RT", parts[1].toDouble());
+                peptide_identification.setMetaValue("MZ", parts[0].toDouble());
+                success = true;
+              }
+            }
+          }
+          catch (...)
+          {
+            
+          }
+          if (!success) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
         }
         peptide_identification.setSignificanceThreshold(score_threshold);
         peptide_identification.setScoreType(score_type);

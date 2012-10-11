@@ -91,7 +91,7 @@ using namespace std;
 	for MS/MS spectra.
 
 	The whole process of identification via PepNovo is executed.
-	Inputfile is one mzML file containing the MS/MS spectra
+	Input file is one mzML file containing the MS/MS spectra
 	for which the identifications are to be found. The results are written
 	as an idXML output file.
 
@@ -147,7 +147,7 @@ class TOPPPepNovoAdapter :
 
 			registerIntOption_("num_solutions", "<num>", 20, "Number of solutions to be computed", false);
 			setMinInt_("num_solutions",1);
-    setMaxInt_("num_solutions", 2000);
+      setMaxInt_("num_solutions", 2000);
 
 			std::vector<String>all_possible_modifications;
 			ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
@@ -247,11 +247,11 @@ class TOPPPepNovoAdapter :
 			{
 			  //temporary File to store PepNovo output
 			  String temp_pepnovo_outfile = qdir_temp.absoluteFilePath("tmp_pepnovo_out.txt");
-      String tmp_models_dir = qdir_temp.absoluteFilePath("Models");
+        String tmp_models_dir = qdir_temp.absoluteFilePath("Models");
 
         std::map<String, String>mods_and_keys; //, key_to_id;
 
-				if(qdir_temp.cd("Models"))
+				if (qdir_temp.cd("Models"))
 				{
 					writeLog_("The temporary directory already contains \"Model\" Folder. Please delete it and re-run. Aborting!");
 					return CANNOT_WRITE_OUTPUT_FILE;
@@ -302,7 +302,7 @@ class TOPPPepNovoAdapter :
 
 					for(std::map<String, String>::const_iterator key_it=mods_and_keys.begin(); key_it!=mods_and_keys.end();++key_it)
 					{
-						if(ptm_command!="")
+						if (ptm_command!="")
 						{
 							ptm_command+=":";
 						}
@@ -317,7 +317,7 @@ class TOPPPepNovoAdapter :
         QStringList arguments;
 
         arguments << "-file" << mgf_file.toQString();
-        arguments <<"-model" << model_name.toQString();
+        arguments << "-model" << model_name.toQString();
         if (pm_tolerance != -1 ) arguments << "-pm_tolerance"<<String(pm_tolerance).toQString();
         if (fragment_tolerance != -1 ) arguments << "-fragment_tolerance" <<String(fragment_tolerance).toQString();
         if (!ptm_command.empty()) arguments <<"-PTMs" <<ptm_command.toQString();
