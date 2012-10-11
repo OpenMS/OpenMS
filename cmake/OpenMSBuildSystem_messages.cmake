@@ -90,11 +90,19 @@ if (MSVC)
 	## copy OpenMS_GUI.dll
 	add_custom_command(TARGET OpenMS_GUI
                     POST_BUILD
-					COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y
+										COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y
                     COMMENT "GUI Library build. Copying OpenMS_GUI(d).dll to test binary dir"
                     VERBATIM)
 
-					
+	if(NOT DISABLE_OPENSWATH)
+		## copy OpenSWATHAlgo(d).dll
+		add_custom_command(TARGET OpenSwathAlgo
+											POST_BUILD
+											COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/source/TEST/bin/$(ConfigurationName)"
+											COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y
+											COMMENT "OpenSwathAlgo Library build. Copying OpenSwathAlgo(d).dll to test binary dir"
+											VERBATIM)
+	endif(NOT DISABLE_OPENSWATH)
 else()
   add_custom_command(TARGET OpenMS
                     POST_BUILD
