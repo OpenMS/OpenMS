@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
-// $Authors: $
+// $Authors: Sandro Andreotti, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_PEPNOVOOUTFILE_H
@@ -57,6 +57,9 @@ namespace OpenMS
   class OPENMS_DLLAPI PepNovoOutfile
   {
 public:
+    
+    typedef std::map<Size, std::pair<DoubleReal, DoubleReal> > IndexPosMappingType;
+    
     /// Constructor
     PepNovoOutfile();
 
@@ -87,7 +90,7 @@ public:
     void load(const std::string & result_filename, std::vector<PeptideIdentification> & peptide_identifications,
               ProteinIdentification & protein_identification,
               const DoubleReal & score_threshold,
-              const std::map<String, std::pair<DoubleReal, DoubleReal> > & id_rt_mz,
+              const IndexPosMappingType & id_rt_mz,
               const std::map<String, String> & mod_id_map);
 
     /** @brief get the search engine version and search parameters from a PepNovo output file

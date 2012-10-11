@@ -216,28 +216,10 @@ class TOPPPepNovoAdapter :
 
 			// we map the native id to the MZ and RT to be able to
 			// map the IDs back to the spectra (RT, and MZ Meta Information)
-			std::map<String, pair<DoubleReal, DoubleReal> >id_to_rt;
-			for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+			PepNovoOutfile::IndexPosMappingType index_to_precursor;
+			for (Size i = 0; i < exp.size(); ++i)
 			{
-			  Int valid_id;
-			  Size num_pos=0;
-			  String native_id=it->getNativeID();
-
-			  while(!isdigit(native_id[num_pos]) && num_pos<native_id.length())
-			  {
-			    ++num_pos;
-			  }
-			  if(num_pos==native_id.length())
-			  {
-			    writeLog_("No valid NativeId for spectrum. Aborting!");
-          return INPUT_FILE_CORRUPT;
-			  }
-			  else
-			  {
-			    valid_id=native_id.substr(num_pos).toInt();
-			  }
-			  id_to_rt[valid_id]=make_pair(it->getRT(), it->getPrecursors()[0].getPosition()[0]); //set entry <RT, MZ>
-				//std::cout<<"stored id: "<<valid_id<<std::endl;
+			  index_to_precursor[i]= make_pair(exp[i].getRT(), exp[i].getPrecursors()[0].getPosition()[0]); //set entry <RT, MZ>
 			}
 
 			logfile = getStringOption_("log");
@@ -365,7 +347,7 @@ class TOPPPepNovoAdapter :
 
           //resolve PTMs (match them back to the OpenMs Identifier String)
           std::vector<ProteinIdentification>prot_ids;
-          p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, -1e5, id_to_rt, mods_and_keys);
+          p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, -1e5, index_to_precursor, mods_and_keys);
           prot_ids.push_back(protein_identification);
           IdXMLFile().store(outputfile_name, prot_ids, peptide_identifications);
         }

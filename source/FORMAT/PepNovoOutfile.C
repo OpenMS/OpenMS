@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
-// $Authors: $
+// $Authors: Sandro Andreotti, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -74,7 +74,7 @@ namespace OpenMS
     vector<PeptideIdentification> & peptide_identifications,
     ProteinIdentification & protein_identification,
     const DoubleReal & score_threshold,
-    const map<String, pair<DoubleReal, DoubleReal> > & pnovoid_to_rt_mz,
+    const IndexPosMappingType & index_to_precursor,
     const map<String, String> & pnovo_modkey_to_mod_id
     )
   {
@@ -153,7 +153,9 @@ namespace OpenMS
         }
       }
     }
-
+    
+    
+    Size index;
     while (getline(result_file, line))
     {
       if (!line.empty() && (line[line.length() - 1] < 33)) line.resize(line.length() - 1); // remove weird EOL character
@@ -167,19 +169,32 @@ namespace OpenMS
           peptide_identifications.push_back(peptide_identification);
         }
 
-        peptide_identification = PeptideIdentification();
         line.split(' ', substrings);
         //String index = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
-        if (substrings.size() < 2)
+        if (substrings.size() < 3)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns (spectrum Id)in file in line " + String(line_number) + String(" (should be 3)!"), result_filename);
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns (spectrum Id) in file in line " + String(line_number) + String(" (should be 2 or more)!"), result_filename);
         }
-        String index = substrings[2].trim();
-        //cout<<"INDEX: "<<index<<endl;
-        if (pnovoid_to_rt_mz.find(index) != pnovoid_to_rt_mz.end())
+        
+        try
         {
-          peptide_identification.setMetaValue("RT", pnovoid_to_rt_mz.find(index)->second.first);
-          peptide_identification.setMetaValue("MZ", pnovoid_to_rt_mz.find(index)->second.second);
+          index = substrings[2].trim().toInt();
+        }
+        catch (...)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Expected an index number in line " + String(line_number) + String(" at position 2 (line was: '" + line + "')!"), result_filename);
+        }
+        
+        //cout<<"INDEX: "<<index<<endl;
+        peptide_identification = PeptideIdentification();
+        if (index_to_precursor.find(index) != index_to_precursor.end())
+        {
+          peptide_identification.setMetaValue("RT", index_to_precursor.find(index)->second.first);
+          peptide_identification.setMetaValue("MZ", index_to_precursor.find(index)->second.second);
+        }
+        else
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + index + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
         }
         peptide_identification.setSignificanceThreshold(score_threshold);
         peptide_identification.setScoreType(score_type);
@@ -242,7 +257,7 @@ namespace OpenMS
               peptide_hit.setCharge(substrings[columns["Charge"]].toInt());
               peptide_hit.setRank(substrings[columns["Index"]].toInt() + 1);
               peptide_hit.setScore(substrings[columns["RnkScr"]].toFloat());
-              peptide_hit.setMetaValue("RnkScr", substrings[columns["PnvScr"]].toFloat());
+              peptide_hit.setMetaValue("PnvScr", substrings[columns["PnvScr"]].toFloat());
               peptide_hit.setMetaValue("N-Gap", substrings[columns["N-Gap"]].toFloat());
               peptide_hit.setMetaValue("C-Gap", substrings[columns["C-Gap"]].toFloat());
               peptide_hit.setMetaValue("MZ", substrings[columns["[M+H]"]].toFloat());
