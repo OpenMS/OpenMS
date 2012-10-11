@@ -48,10 +48,10 @@ namespace OpenMS
     ///@{
     /// compute the b and y series masses for a given AASequence
     OPENMS_DLLAPI void getBYSeries(AASequence& a,
-                     std::vector<double>& bseries, std::vector<double>& yseries, uint32_t charge = 1u);
+                     std::vector<double>& bseries, std::vector<double>& yseries, UInt charge = 1u);
 
     /// for SWATH -- get the theoretical b and y series masses for a sequence
-    OPENMS_DLLAPI void getTheorMasses(AASequence& a, std::vector<double>& masses, uint32_t charge = 1u);
+    OPENMS_DLLAPI void getTheorMasses(AASequence& a, std::vector<double>& masses, UInt charge = 1u);
 
     /// get averagine distribution given mass
     OPENMS_DLLAPI void getAveragineIsotopeDistribution(double product_mz,
@@ -74,7 +74,7 @@ namespace OpenMS
     /// add negative preisotope weights to spectrum
     OPENMS_DLLAPI void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
                               std::vector<std::pair<double, double> >& isotopeSpec, // output
-                              uint32_t nrpeaks = 2, //nr of preisotope peaks
+                              UInt nrpeaks = 2, //nr of preisotope peaks
                               double preIsotopePeaksWeight = -0.5, // weight of preisotope peaks
                               double mannmass = 1.000482, //
                               double charge = 1.);

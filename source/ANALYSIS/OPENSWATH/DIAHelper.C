@@ -47,7 +47,7 @@ namespace OpenMS
     void getBYSeries(AASequence& a, //
                      std::vector<double>& bseries, //
                      std::vector<double>& yseries, //
-                     uint32_t charge //
+                     UInt charge //
                      )
     {
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
@@ -77,7 +77,7 @@ namespace OpenMS
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
     void getTheorMasses(AASequence& a, std::vector<double>& masses,
-                        uint32_t charge)
+                        UInt charge)
     {
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
       TheoreticalSpectrumGenerator generator;
@@ -152,13 +152,13 @@ namespace OpenMS
     //Add masses before first isotope
     void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
                               std::vector<std::pair<double, double> >& isotopeSpec, // output
-                              uint32_t nrpeaks, double preIsotopePeaksWeight, // weight of pre isotope peaks
+                              UInt nrpeaks, double preIsotopePeaksWeight, // weight of pre isotope peaks
                               double mannmass, double charge)
     {
       for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
       {
         double mul = 1.;
-        for (uint32_t j = 0; j < nrpeaks; ++j, ++mul)
+        for (UInt j = 0; j < nrpeaks; ++j, ++mul)
         {
           isotopeSpec.push_back(
             std::make_pair(firstIsotopeMasses[i] - (mul * mannmass) / charge,

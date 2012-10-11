@@ -89,7 +89,7 @@ namespace OpenMS
     ivw->colnames(transitionsNames);
     //iterate over spectra
 
-    for (uint32_t i = 0; i < swath_ptr->getNrSpectra(); ++i)
+    for (UInt i = 0; i < swath_ptr->getNrSpectra(); ++i)
     {
 
       OpenSwath::SpectrumPtr spec = swath_ptr->getSpectrumById(i);
