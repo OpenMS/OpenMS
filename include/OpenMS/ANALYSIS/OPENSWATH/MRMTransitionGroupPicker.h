@@ -95,7 +95,6 @@ protected:
     UInt sn_bin_count_;
 
     int stop_after_feature_;
-    int stop_report_after_feature_;
     DoubleReal stop_after_intensity_ratio_;
 
     std::vector<RichPeakChromatogram> picked_chroms;
