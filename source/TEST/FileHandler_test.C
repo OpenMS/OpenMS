@@ -64,6 +64,8 @@ START_SECTION((static String typeToName(FileTypes::Type type)))
 	TEST_EQUAL(tmp.typeToName(FileTypes::INI),"ini");
 	TEST_EQUAL(tmp.typeToName(FileTypes::TOPPAS),"toppas");
   TEST_EQUAL(tmp.typeToName(FileTypes::PNG),"png");
+  TEST_EQUAL(tmp.typeToName(FileTypes::TXT),"txt");
+  TEST_EQUAL(tmp.typeToName(FileTypes::CSV),"csv");
 END_SECTION
 
 START_SECTION((static FileTypes::Type nameToType(const String &name)))
@@ -97,6 +99,8 @@ START_SECTION((static FileTypes::Type nameToType(const String &name)))
 	TEST_EQUAL(FileTypes::KROENIK, tmp.nameToType("kroenik"));
 	TEST_EQUAL(FileTypes::FASTA, tmp.nameToType("fasta"));
 	TEST_EQUAL(FileTypes::EDTA, tmp.nameToType("edta"));
+  TEST_EQUAL(FileTypes::CSV, tmp.nameToType("csv"));
+  TEST_EQUAL(FileTypes::TXT, tmp.nameToType("txt"));
 END_SECTION
 
 
@@ -134,6 +138,8 @@ START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename))
 	TEST_EQUAL(tmp.getTypeByFileName("test.HARDKLOER"), FileTypes::HARDKLOER)
 	TEST_EQUAL(tmp.getTypeByFileName("test.fasta"), FileTypes::FASTA)
 	TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
+  TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
+  TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
 END_SECTION
 
 START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
@@ -158,11 +164,13 @@ END_SECTION
 
 START_SECTION((static FileTypes::Type getType(const String &filename)))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::UNKNOWN)
+  TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("XMassFile_test.h")), FileTypes::UNKNOWN)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::TXT)
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile.consensusXML")), FileTypes::CONSENSUSXML)
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileTypes::TRANSFORMATIONXML)
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
+  TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT)
 
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getType("/bli/bla/bluff"))
 END_SECTION

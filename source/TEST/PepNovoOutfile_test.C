@@ -106,10 +106,11 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
 	
 	// test the actual program
 	map<String, String> key_to_mod;
-	PepNovoOutfile::IndexPosMappingType rt_and_index, rt_and_index2;
+  key_to_mod["K+42"]="Acetyl (K)";
+  key_to_mod["Y+42"]="Acetyl (Y)";
+  
+  PepNovoOutfile::IndexPosMappingType rt_and_index, rt_and_index2;
 
-	key_to_mod["K+42"]="Acetyl (K)";
-	key_to_mod["Y+42"]="Acetyl (Y)";
 
   rt_and_index[0] = std::make_pair(1510.5732421875, 747.761901855469);
   rt_and_index[1] = std::make_pair(1530.11535644531, 549.856262207031);

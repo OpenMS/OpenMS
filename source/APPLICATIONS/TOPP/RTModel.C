@@ -39,6 +39,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <map>
 #include <numeric>
@@ -172,9 +173,8 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "This is the name of the input file (RT prediction). It is assumed that the file type is idXML. If it is just a textfile having a sequence and the corresponding rt per line, the 'textfile_input' flag has to be set.\n", false);
-    setValidFormats_("in", StringList::create("idXML"));
-    registerFlag_("textfile_input", "Has to be set if the input file is a textfile containing a sequence with corresponding rt per line (separated by space).");
+    registerInputFile_("in", "<file>", "", "This is the name of the input file (RT prediction). It is assumed that the file type is idXML. Alternatively you can provide a .txt file having a sequence and the corresponding rt per line.\n", false);
+    setValidFormats_("in", StringList::create("idXML,txt"));
     registerInputFile_("in_positive", "<file>", "", "input file with positive examples (peptide separation prediction)\n", false);
     setValidFormats_("in_positive", StringList::create("idXML"));
     registerInputFile_("in_negative", "<file>", "", "input file with negative examples (peptide separation prediction)\n", false);
@@ -350,9 +350,9 @@ protected:
     else
     {
       inputfile_name = getStringOption_("in");
+      textfile_input = (FileHandler::getTypeByFileName(inputfile_name) == FileTypes::TXT);
     }
     String outputfile_name = getStringOption_("out");
-    textfile_input = getFlag_("textfile_input");
     additive_cv = getFlag_("additive_cv");
     skip_cv = getFlag_("skip_cv");
     if (skip_cv) LOG_INFO << "Cross-validation disabled!\n";
