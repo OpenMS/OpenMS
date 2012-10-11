@@ -1,7 +1,7 @@
 ## optional tests. Configured in OpenMS/cmake/OpenMSBuildSystem_testConfig.cmake
 if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
   add_test("TOPP_OMSSAAdapter_1" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}")
-  add_test("TOPP_OMSSAAdapter_1_out" ${DIFF} -in1 OMSSAAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1_out.idXML -whitelist "IdentificationRun date")
+  add_test("TOPP_OMSSAAdapter_1_out" ${DIFF} -in1 OMSSAAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
   set_tests_properties("TOPP_OMSSAAdapter_1_out" PROPERTIES DEPENDS "TOPP_OMSSAAdapter_1")
 endif()
 
