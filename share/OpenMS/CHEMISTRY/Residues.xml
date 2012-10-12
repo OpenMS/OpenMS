@@ -392,6 +392,23 @@
 				<ITEM name="Tyr" value="Tyr" type="string" />
 			</NODE>
 		</NODE>
+		<NODE name="Pyrrolysine">
+			<ITEM name="Name" value="Pyrrolysine" type="string" />
+			<ITEM name="ShortName" value="Pyr" type="string" />
+			<ITEM name="ThreeLetterCode" value="PYR" type="string" />
+			<ITEM name="OneLetterCode" value="O" type="string" />
+			<ITEM name="Formula" value="C12H21N3O3" type="string" />
+			<ITEM name="pka" value="0.0" type="string" />
+			<ITEM name="pkb" value="0.0" type="string" />
+			<ITEM name="pkc" value="0.0" type="string" />
+			<ITEM name="GB_SC" value="0.0" type="string" />
+			<ITEM name="GB_BB_L" value="0.0" type="string" />
+			<ITEM name="GB_BB_R" value="0.0" type="string" />
+			<ITEM name="ResidueSets" value="All,AmbiguousWithoutX,Ambiguous,AllNatural" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Pyr" value="Pyr" type="string" />
+			</NODE>
+		</NODE>
 		<NODE name="Ambiguous_ASN_or_ASP" >
 			<ITEM name="Name" value="Asparagine/Aspartate" type="string" />
 			<ITEM name="ShortName" value="Asx" type="string" />
