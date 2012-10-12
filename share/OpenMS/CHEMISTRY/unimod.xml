@@ -16801,7 +16801,133 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
          </umod:delta>
          <umod:alt_name>amino_sulfate</umod:alt_name>
       </umod:mod>
-   </umod:modifications>
+
+      <umod:mod title="RNAXLCysteineAdduct" full_name="C4H8O2S2 Cysteine Adduct" username_of_poster="Timo"
+                group_of_poster="admin"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2008-02-15 05:20:02"
+                approved="0"
+		record_id="99991">
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational"
+		 spec_group="1"/>
+         <umod:delta mono_mass="151.99657" avge_mass="152.23832" composition="H(8) C(4) O(2) S(2)">
+            <umod:element symbol="H" number="8"/>
+            <umod:element symbol="C" number="4"/>
+            <umod:element symbol="O" number="2"/>
+            <umod:element symbol="S" number="2"/>
+         </umod:delta>
+      </umod:mod>	  
+      <umod:mod title="RNAXLU0-C5H9O7P" full_name="U-H20 loss of C5H9O7P" username_of_poster="Timo"
+                group_of_poster="admin"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2008-02-15 05:20:02"
+                approved="0"
+		record_id="99992">
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational"
+		 spec_group="1">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="212.0085891536" avge_mass="212.094742" flag="false" composition="C(5) H(9) O(7) P(1)">
+              <umod:element symbol="C" number="5"/>
+              <umod:element symbol="H" number="9"/>
+              <umod:element symbol="O" number="7"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational"
+		 spec_group="2">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="212.0085891536" avge_mass="212.094742" flag="false" composition="C(5) H(9) O(7) P(1)">
+              <umod:element symbol="C" number="5"/>
+              <umod:element symbol="H" number="9"/>
+              <umod:element symbol="O" number="7"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational"
+		 spec_group="3">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="212.0085891536" avge_mass="212.094742" flag="false" composition="C(5) H(9) O(7) P(1)">
+              <umod:element symbol="C" number="5"/>
+              <umod:element symbol="H" number="9"/>
+              <umod:element symbol="O" number="7"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:delta mono_mass="306.0253018503" avge_mass="306.166458" composition="C(9) H(11) N(2) O(8) P(1)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="11"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="8"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="RNAXLU0-H2PO3" full_name="U-H20 loss of H2PO3" username_of_poster="Timo"
+                group_of_poster="admin"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2008-02-15 05:20:02"
+                approved="0"
+		record_id="99993">
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="80.97415" avge_mass="80.97415" flag="false" composition="H(2) P(1) O(3)">
+              <umod:element symbol="H" number="2"/>
+              <umod:element symbol="O" number="3"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="2">
+         </umod:specificity>
+         <umod:delta mono_mass="306.0253018503" avge_mass="306.166458" composition="C(9) H(11) N(2) O(8) P(1)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="11"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="8"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
+      </umod:mod>	
+      <umod:mod title="RNAXLU0+152" full_name="U-H20 gain of 152" username_of_poster="Timo"
+                group_of_poster="admin"
+                date_time_posted="2002-08-19 19:17:11"
+                date_time_modified="2008-02-15 05:20:02"
+                approved="0"
+		record_id="99994">
+         <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational" spec_group="1">
+         </umod:specificity>
+         <umod:delta mono_mass="458.02186" avge_mass="458.02186" composition="C(13) H(19) N(2) O(10) P(1) S(2)">
+            <umod:element symbol="C" number="13"/>
+            <umod:element symbol="H" number="19"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="10"/>
+            <umod:element symbol="P" number="1"/>
+            <umod:element symbol="S" number="2"/>
+         </umod:delta>
+      </umod:mod>	  	  
+	<umod:mod title="RNAXLU-H3PO4" full_name="U potential loss of H3PO4" username_of_poster="Timo"
+		group_of_poster="admin"
+		date_time_posted="2002-08-19 19:17:11"
+		date_time_modified="2008-02-15 05:20:02"
+		approved="0"
+		record_id="99995">
+         <umod:specificity hidden="0" site="F" position="Anywhere" classification="Post-translational" spec_group="1">
+            <umod:NeutralLoss mono_mass="0.000000" avge_mass="0.0000" flag="false" composition="0"/>
+            <umod:NeutralLoss mono_mass="97.9768950947" avge_mass="97.995203" flag="false" composition="H(3) P(1) O(4)">
+              <umod:element symbol="H" number="3"/>
+              <umod:element symbol="O" number="4"/>
+              <umod:element symbol="P" number="1"/>
+            </umod:NeutralLoss>
+         </umod:specificity>
+         <umod:specificity hidden="0" site="Y" position="Anywhere" classification="Post-translational" spec_group="2">
+         </umod:specificity>
+         <umod:delta mono_mass="324.03585" avge_mass="324.03585" composition="C(9) H(13) N(2) O(9) P(1)">
+            <umod:element symbol="C" number="9"/>
+            <umod:element symbol="H" number="13"/>
+            <umod:element symbol="N" number="2"/>
+            <umod:element symbol="O" number="9"/>
+            <umod:element symbol="P" number="1"/>
+         </umod:delta>
+      </umod:mod>	
+  </umod:modifications>
+
    <umod:amino_acids>
       <umod:aa title="-" three_letter="" full_name="" mono_mass="0.0" avge_mass="0.0"/>
       <umod:aa title="A" three_letter="Ala" full_name="Alanine" mono_mass="71.037114"
