@@ -38,8 +38,6 @@
 
 #include <boost/assign/std/vector.hpp>
 
-// here we also test private methods
-#define protected public
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 using namespace OpenMS;

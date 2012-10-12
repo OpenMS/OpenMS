@@ -103,7 +103,6 @@ public:
     void restrictTransitions(OpenMS::TargetedExperiment& exp, int min_transitions,
                              int max_transitions);
 
-private:
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;

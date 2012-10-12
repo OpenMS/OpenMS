@@ -35,7 +35,6 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 
-#define private public
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 
 using namespace OpenMS;
@@ -153,6 +152,10 @@ START_SECTION((void extractChromatograms(const ExperimentType & input, Experimen
 
 }
 END_SECTION
+
+///////////////////////////////////////////////////////////////////////////
+/// Private functions
+///////////////////////////////////////////////////////////////////////////
 
 //  mz_a = [400+0.01*i for i in range(20)]
 //  int_a = [0 + i*100.0 for i in range(10)] + [900 - i*100.0 for i in range(10)]

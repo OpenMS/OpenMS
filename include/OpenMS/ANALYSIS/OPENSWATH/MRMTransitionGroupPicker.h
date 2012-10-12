@@ -174,41 +174,6 @@ protected:
 
     //@}
 
-    /// Remove overlaping features that are within the current seed feature or overlap with it
-    template <typename SpectrumT>
-    void remove_overlapping_features(std::vector<SpectrumT> & picked_chroms, double best_left, double best_right)
-    {
-      // delete all seeds that lie within the current seed
-      for (Size k = 0; k < picked_chroms.size(); k++)
-      {
-        for (Size i = 0; i < picked_chroms[k].size(); i++)
-        {
-          if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
-          {
-            picked_chroms[k][i].setIntensity(0.0);
-          }
-        }
-      }
-
-      // delete all seeds that overlap within the current seed
-      for (Size k = 0; k < picked_chroms.size(); k++)
-      {
-        for (Size i = 0; i < picked_chroms[k].size(); i++)
-        {
-          double left = picked_chroms[k].getFloatDataArrays()[1][i];
-          double right = picked_chroms[k].getFloatDataArrays()[2][i];
-          if ((left >= best_left && left <= best_right)
-             || (right >= best_left && right <= best_right))
-          {
-            picked_chroms[k][i].setIntensity(0.0);
-          }
-        }
-      }
-    }
-
-    /// Find largest peak in a vector of chromatograms
-    void findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx);
-
     /// Will use the smoothed chromatograms
     double calculate_bg_estimation(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right);
 
@@ -405,6 +370,42 @@ public:
       return mrmFeature;
     }
 
+    // maybe private, but we have tests
+
+    /// Remove overlaping features that are within the current seed feature or overlap with it
+    template <typename SpectrumT>
+    void remove_overlapping_features(std::vector<SpectrumT> & picked_chroms, double best_left, double best_right)
+    {
+      // delete all seeds that lie within the current seed
+      for (Size k = 0; k < picked_chroms.size(); k++)
+      {
+        for (Size i = 0; i < picked_chroms[k].size(); i++)
+        {
+          if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
+          {
+            picked_chroms[k][i].setIntensity(0.0);
+          }
+        }
+      }
+
+      // delete all seeds that overlap within the current seed
+      for (Size k = 0; k < picked_chroms.size(); k++)
+      {
+        for (Size i = 0; i < picked_chroms[k].size(); i++)
+        {
+          double left = picked_chroms[k].getFloatDataArrays()[1][i];
+          double right = picked_chroms[k].getFloatDataArrays()[2][i];
+          if ((left >= best_left && left <= best_right)
+             || (right >= best_left && right <= best_right))
+          {
+            picked_chroms[k][i].setIntensity(0.0);
+          }
+        }
+      }
+    }
+
+    /// Find largest peak in a vector of chromatograms
+    void findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx);
   };
 }
 

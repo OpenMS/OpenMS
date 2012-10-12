@@ -39,7 +39,6 @@
 #include <boost/assign/list_of.hpp>
 
 ///////////////////////////
-#define private public
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 ///////////////////////////
@@ -215,7 +214,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
 }
 END_SECTION
 
-START_SECTION(shuffle_peptide_with_modifications_and2attempts)
+START_SECTION([EXTRA] shuffle_peptide_with_modifications_and2attempts)
 {
   // Regression test for JIRA issue ABL-749
   // A peptide with modifications that was shuffled twice did not get its
@@ -326,6 +325,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
 }
 END_SECTION
 
+/// Public methods
 START_SECTION(void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec, String method, String decoy_tag, double identity_threshold, double mz_threshold, bool theoretical, double mz_shift))
 {
   String method = "pseudo-reverse";
