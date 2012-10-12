@@ -53,6 +53,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #endif
 
+#include <iterator>
+
 using namespace std;
 using namespace OpenMS;
 //using namespace OpenMS::OpenSWATH;
