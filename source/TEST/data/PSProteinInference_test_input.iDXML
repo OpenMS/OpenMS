@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/takifugu/zerck/OpenMS/precursor_selection/share/OpenMS/XSL/IdXML.xsl"?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/export/local-1/public/zerck/data/ids/bruker/new/SwissProt_2011_human_target_decoy.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+1" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="10" peak_mass_tolerance="0.3" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (W)" />
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2012-03-22T10:20:04" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="A2RUR9" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="O00762" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="O14795" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="O15085" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="1166.59" RT="1080" >
+			<PeptideHit score="3.47473178809753e-48" sequence="HQTVPQNTGGK" charge="1" aa_before="K" aa_after="N" protein_refs="PH_0" >
+				<UserParam type="float" name="E-Value" value="4.3e-07"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="46.3"/>
+				<UserParam type="float" name="Search engine score" value="0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="1178.59" RT="1080" >
+			<PeptideHit score="0.926608328499892" sequence="YNPVLNDSQK" charge="1" aa_before="K" aa_after="T" protein_refs="PH_1" >
+				<UserParam type="float" name="E-Value" value="2.8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="13.4"/>
+				<UserParam type="float" name="Search engine score" value="0.255813953488372"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="2373.06" RT="1080" >
+			<PeptideHit score="4.18893724734834e-36" sequence="ASTSSSSSSSSNQQTEKETNTPK" charge="1" aa_before="R" aa_after="K" protein_refs="PH_3" >
+				<UserParam type="float" name="E-Value" value="3.7e-06"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="39.6"/>
+				<UserParam type="float" name="Search engine score" value="0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="942.447" RT="1110" >
+			<PeptideHit score="9.12033678108282e-07" sequence="HPQYNQR" charge="1" aa_before="R" aa_after="T" protein_refs="PH_3" >
+				<UserParam type="float" name="E-Value" value="0.0093"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="29.9"/>
+				<UserParam type="float" name="Search engine score" value="0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="996.498" RT="1110" >
+			<PeptideHit score="6.98169195352063e-11" sequence="TPPSSGEPPK" charge="1" aa_before="K" aa_after="S" protein_refs="PH_2 PH_3" >
+				<UserParam type="float" name="E-Value" value="0.0019"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="37"/>
+				<UserParam type="float" name="Search engine score" value="0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="929.474" RT="1140" >
+			<PeptideHit score="0.936053860205577" sequence="DVSLQDPR" charge="1" aa_before="R" aa_after="D" protein_refs="PH_1 PH_3" >
+				<UserParam type="float" name="E-Value" value="4.9"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="19"/>
+				<UserParam type="float" name="Search engine score" value="0.0280898876404494"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

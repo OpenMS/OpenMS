@@ -397,6 +397,7 @@ set(analysis_executables_list
 	ProtonDistributionModel_test
   ProteinResolver_test
 	PSLPFormulation_test
+  PSProteinInference_test
 	QTClusterFinder_test
   #QuantitativeExperimentalDesign_test
 	ReactionMonitoringTransition_test
