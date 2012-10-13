@@ -47,7 +47,7 @@ namespace OpenSwath
   /**
     @brief The interface of a mass spectrometry experiment.
   */
-  class ISpectrumAccess
+  class OPENSWATHALGO_DLLAPI ISpectrumAccess
   {
 public:
     virtual ~ISpectrumAccess(){}
@@ -70,7 +70,7 @@ public:
     virtual std::string getChromatogramNativeID(int id) const = 0;
   };
 
-  typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
+  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 }
 
 #endif

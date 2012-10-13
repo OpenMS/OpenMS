@@ -43,7 +43,7 @@
 namespace OpenSwath
 {
   // Datastructures for Scoring
-  class IFeature
+  class OPENSWATHALGO_DLLAPI IFeature
   {
 public:
     virtual ~IFeature(){}
@@ -75,7 +75,7 @@ public:
     virtual ~ISignalToNoise() {}
     virtual double getValueAtRT(double RT) = 0;
   };
-  typedef boost::shared_ptr<ISignalToNoise> ISignalToNoisePtr;
+  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<ISignalToNoise> ISignalToNoisePtr;
 
 
 } //end Namespace OpenSwath

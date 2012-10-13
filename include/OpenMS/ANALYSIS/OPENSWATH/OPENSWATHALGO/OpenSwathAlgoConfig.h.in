@@ -52,6 +52,8 @@
 // are we building a shared lib?
 #cmakedefine BUILD_SHARED_LIBS
 
+#cmakedefine USE_BOOST_UNIT_TEST
+
 #ifdef OPENSWATHALGO_WINDOWSPLATFORM
 # ifdef BUILD_SHARED_LIBS
 #  if defined OpenSwathAlgo_EXPORTS //automatically defined by CMake when building OpenMS dll

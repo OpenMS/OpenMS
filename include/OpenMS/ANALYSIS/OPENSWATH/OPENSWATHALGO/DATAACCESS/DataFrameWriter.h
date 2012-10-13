@@ -45,7 +45,7 @@
 
 namespace OpenSwath
 {
-  struct IDataFrameWriter
+  struct OPENSWATHALGO_DLLAPI IDataFrameWriter
   {
     virtual ~IDataFrameWriter(){}
     virtual void colnames(const std::vector<std::string>& colnames) = 0;
@@ -53,7 +53,7 @@ namespace OpenSwath
                        const std::vector<double>& values) = 0;
   };
 
-  struct DataMatrix :
+  struct OPENSWATHALGO_DLLAPI DataMatrix :
     IDataFrameWriter
   {
 private:
@@ -81,7 +81,7 @@ public:
 
   };
 
-  struct CSVWriter :
+  struct OPENSWATHALGO_DLLAPI CSVWriter :
     IDataFrameWriter
   {
     std::ofstream file_stream_;

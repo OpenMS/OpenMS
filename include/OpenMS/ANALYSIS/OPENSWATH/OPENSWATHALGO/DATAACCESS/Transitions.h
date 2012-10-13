@@ -38,7 +38,7 @@
 namespace OpenSwath
 {
 
-  struct Peptide
+  struct OPENSWATHALGO_DLLAPI Peptide
   {
     double rt;
     int charge;
@@ -53,15 +53,14 @@ namespace OpenSwath
     std::vector<LightTransition> transitions;
   };
 
-  struct Protein
+  struct OPENSWATHALGO_DLLAPI Protein
   {
     std::string id;
     std::string sequence;
     std::vector<Peptide> peptides;
   };
 
-  ///
-  struct TargetedExperiment
+  struct OPENSWATHALGO_DLLAPI TargetedExperiment
   {
     std::vector<Protein> proteins;
   };

@@ -41,7 +41,7 @@
 
 namespace OpenSwath
 {
-  struct LightTransition
+  struct OPENSWATHALGO_DLLAPI LightTransition
   {
 public:
     std::string transition_name;
@@ -88,13 +88,13 @@ public:
 
   };
 
-  struct LightModification
+  struct OPENSWATHALGO_DLLAPI LightModification
   {
     int location;
     std::string unimod_id;
   };
 
-  struct LightPeptide
+  struct OPENSWATHALGO_DLLAPI LightPeptide
   {
     double rt;
     int charge;
@@ -109,13 +109,13 @@ public:
     std::vector<LightModification> modifications;
   };
 
-  struct LightProtein
+  struct OPENSWATHALGO_DLLAPI LightProtein
   {
     std::string id;
     std::string sequence;
   };
 
-  struct LightTargetedExperiment
+  struct OPENSWATHALGO_DLLAPI LightTargetedExperiment
   {
     std::vector<LightTransition> transitions;
     std::vector<LightPeptide> peptides;

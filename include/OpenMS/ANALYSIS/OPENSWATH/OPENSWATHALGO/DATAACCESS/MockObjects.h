@@ -145,6 +145,7 @@ public:
     std::vector<double> m_library_intensities;
   };
 
+
   class OPENSWATHALGO_DLLAPI MockSignalToNoise :
     public OpenSwath::ISignalToNoise
   {

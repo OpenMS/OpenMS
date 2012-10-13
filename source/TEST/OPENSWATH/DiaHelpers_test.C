@@ -32,14 +32,16 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h"
+
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h"
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/timer.hpp>
 
-//#define USE_BOOST_UNIT_TEST
 #ifdef USE_BOOST_UNIT_TEST
+
 // include boost unit test framework
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE MyTest
@@ -52,13 +54,16 @@
 #define END_SECTION
 #define START_TEST(var1, var2)
 #define END_TEST
+
 #else
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #define BOOST_AUTO_TEST_CASE START_SECTION
+using namespace OpenMS;
+
 #endif
 
 using namespace std;
-using namespace OpenMS;
 
 ///////////////////////////
 

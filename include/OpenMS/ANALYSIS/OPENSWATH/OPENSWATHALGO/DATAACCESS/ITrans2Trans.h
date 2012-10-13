@@ -42,7 +42,7 @@
 namespace OpenSwath
 {
 
-  inline void convert(LightTargetedExperiment & lte,
+  OPENSWATHALGO_DLLAPI inline void convert(LightTargetedExperiment & lte,
                       std::map<std::string, std::vector<OpenSwath::LightTransition> > & transmap)
   {
 
@@ -72,7 +72,7 @@ namespace OpenSwath
   }   //end convert
 
   // spiegel
-  inline bool findPeptide(const LightTargetedExperiment & lte, const std::string & peptideRef,
+  OPENSWATHALGO_DLLAPI inline bool findPeptide(const LightTargetedExperiment & lte, const std::string & peptideRef,
                           LightPeptide & pep)
   {
     std::vector<LightPeptide>::const_iterator beg = lte.peptides.begin();
