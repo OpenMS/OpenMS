@@ -50,7 +50,7 @@ namespace OpenSwath
   class OPENSWATHALGO_DLLAPI ISpectrumAccess
   {
 public:
-    virtual ~ISpectrumAccess(){}
+    virtual ~ISpectrumAccess();
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) const = 0;
     /// Return a vector of ids of spectra that are within RT +/- deltaRT

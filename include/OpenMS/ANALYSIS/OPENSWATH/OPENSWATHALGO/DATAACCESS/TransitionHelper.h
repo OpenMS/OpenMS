@@ -32,64 +32,34 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_DATAFRAMEWRITER_H
-#define OPENSWATH_DATAACCESS_DATAFRAMEWRITER_H
+#ifndef OPENSWATH_DATAACCESS_ITRANS2TRANS_H
+#define OPENSWATH_DATAACCESS_ITRANS2TRANS_H
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <string>
+#include <map>
 #include <vector>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transitions.h>
+
 namespace OpenSwath
 {
-  struct OPENSWATHALGO_DLLAPI IDataFrameWriter
+
+  struct OPENSWATHALGO_DLLAPI TransitionHelper
   {
-    virtual ~IDataFrameWriter();
-    virtual void colnames(const std::vector<std::string>& colnames) = 0;
-    virtual void store(const std::string& rowname,
-                       const std::vector<double>& values) = 0;
+
+    static void convert(LightTargetedExperiment& lte,
+                        std::map<std::string,
+                                 std::vector<OpenSwath::LightTransition> >& transmap);
+
+
+    // spiegel
+    static bool findPeptide(const LightTargetedExperiment& lte,
+                            const std::string& peptideRef,
+                            LightPeptide& pep);
   };
 
-  struct OPENSWATHALGO_DLLAPI DataMatrix :
-    IDataFrameWriter
-  {
-private:
-    std::vector<std::string> colnames_;
-    std::vector<std::string> rownames_;
-    std::vector<std::vector<double> > store_;
-
-public:
-    DataMatrix();
-
-    void store(const std::string& rowname,
-               const std::vector<double>& values);
-
-    void colnames(const std::vector<std::string>& colnames);
-
-  };
-
-  struct OPENSWATHALGO_DLLAPI CSVWriter :
-    IDataFrameWriter
-  {
-private:
-    std::ofstream file_stream_;
-    std::string sep_;
-    std::string eol_;
-
-public:
-    explicit CSVWriter(std::string filename);
-
-    void store(const std::string& rowname,
-               const std::vector<double>& values);
-
-    virtual ~CSVWriter();
-
-    void colnames(const std::vector<std::string>& colnames);
-
-  };
-}
+} //end namespace
 
 #endif

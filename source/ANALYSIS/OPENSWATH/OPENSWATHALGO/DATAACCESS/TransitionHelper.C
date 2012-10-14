@@ -32,18 +32,14 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_ITRANS2TRANS_H
-#define OPENSWATH_DATAACCESS_ITRANS2TRANS_H
-
-#include <map>
-#include "TransitionExperiment.h"
-#include "Transitions.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
 
 namespace OpenSwath
 {
 
-  OPENSWATHALGO_DLLAPI inline void convert(LightTargetedExperiment & lte,
-                      std::map<std::string, std::vector<OpenSwath::LightTransition> > & transmap)
+  void TransitionHelper::convert(LightTargetedExperiment& lte,
+                                 std::map<std::string,
+                                          std::vector<OpenSwath::LightTransition> >& transmap)
   {
 
     typedef std::pair<std::string, std::vector<OpenSwath::LightTransition> > Mpair;
@@ -69,11 +65,11 @@ namespace OpenSwath
         it->second.push_back(*ltrit);
       }
     }
-  }   //end convert
+  } //end convert
 
-  // spiegel
-  OPENSWATHALGO_DLLAPI inline bool findPeptide(const LightTargetedExperiment & lte, const std::string & peptideRef,
-                          LightPeptide & pep)
+  bool TransitionHelper::findPeptide(const LightTargetedExperiment& lte,
+                                     const std::string& peptideRef,
+                                     LightPeptide& pep)
   {
     std::vector<LightPeptide>::const_iterator beg = lte.peptides.begin();
     std::vector<LightPeptide>::const_iterator end = lte.peptides.end();
@@ -89,6 +85,4 @@ namespace OpenSwath
     return false;
   }
 
-} //end namespace
-
-#endif
+} // namespace OpenSwath

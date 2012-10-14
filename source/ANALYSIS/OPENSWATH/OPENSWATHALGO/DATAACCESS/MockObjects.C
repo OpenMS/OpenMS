@@ -28,68 +28,96 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski $
-// $Authors: Witold Wolski $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_DATAFRAMEWRITER_H
-#define OPENSWATH_DATAACCESS_DATAFRAMEWRITER_H
-
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <string>
-#include <vector>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h>
 
 namespace OpenSwath
 {
-  struct OPENSWATHALGO_DLLAPI IDataFrameWriter
+
+  MockFeature::MockFeature()
   {
-    virtual ~IDataFrameWriter();
-    virtual void colnames(const std::vector<std::string>& colnames) = 0;
-    virtual void store(const std::string& rowname,
-                       const std::vector<double>& values) = 0;
-  };
+  }
 
-  struct OPENSWATHALGO_DLLAPI DataMatrix :
-    IDataFrameWriter
+  MockFeature::~MockFeature()
   {
-private:
-    std::vector<std::string> colnames_;
-    std::vector<std::string> rownames_;
-    std::vector<std::vector<double> > store_;
+  }
 
-public:
-    DataMatrix();
-
-    void store(const std::string& rowname,
-               const std::vector<double>& values);
-
-    void colnames(const std::vector<std::string>& colnames);
-
-  };
-
-  struct OPENSWATHALGO_DLLAPI CSVWriter :
-    IDataFrameWriter
+  void MockFeature::getRT(std::vector<double>& rt)
   {
-private:
-    std::ofstream file_stream_;
-    std::string sep_;
-    std::string eol_;
+    rt = m_rt_vec;
+  }
 
-public:
-    explicit CSVWriter(std::string filename);
+  void MockFeature::getIntensity(std::vector<double>& intens)
+  {
+    intens = m_intensity_vec;
+  }
 
-    void store(const std::string& rowname,
-               const std::vector<double>& values);
+  float MockFeature::getIntensity()
+  {
+    return m_intensity;
+  }
 
-    virtual ~CSVWriter();
+  double MockFeature::getRT()
+  {
+    return m_rt;
+  }
 
-    void colnames(const std::vector<std::string>& colnames);
+  MockMRMFeature::MockMRMFeature()
+  {
+  }
 
-  };
+  MockMRMFeature::~MockMRMFeature()
+  {
+  }
+
+  boost::shared_ptr<OpenSwath::IFeature> MockMRMFeature::getFeature(std::string nativeID)
+  {
+    return boost::static_pointer_cast<OpenSwath::IFeature>(m_features[nativeID]);
+  }
+
+  float MockMRMFeature::getIntensity()
+  {
+    return m_intensity;
+  }
+
+  double MockMRMFeature::getRT()
+  {
+    return m_rt;
+  }
+
+  MockTransitionGroup::MockTransitionGroup()
+  {
+  }
+
+  MockTransitionGroup::~MockTransitionGroup()
+  {
+  }
+
+  std::size_t MockTransitionGroup::size()
+  {
+    return m_size;
+  }
+
+  std::vector<std::string> MockTransitionGroup::getNativeIDs()
+  {
+    return m_native_ids;
+  }
+
+  void MockTransitionGroup::getLibraryIntensities(std::vector<double>& intensities)
+  {
+    intensities = m_library_intensities;
+  }
+
+  MockSignalToNoise::MockSignalToNoise()
+  {
+  }
+
+  double MockSignalToNoise::getValueAtRT(double /* RT */)
+  {
+    return m_sn_value;
+  }
+
 }
-
-#endif

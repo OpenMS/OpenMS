@@ -382,16 +382,13 @@ endif(NOT DISABLE_OPENSWATH)
 
 target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 
-if(NOT DISABLE_OPENSWATH)
-  target_link_libraries(OpenSwathAlgo ${OPENMS_DEP_LIBRARIES}) 
-endif(NOT DISABLE_OPENSWATH)
-
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 ## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
 ## we fix this by adding the dependencies of OpenMS directly to the executables as well.
 set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES})
 if (MSVC) ## Windows
 	list(APPEND OPENMS_LIBRARIES ${OPENMS_DEP_LIBRARIES})
+	list(APPEND OPENMS_LIBRARIES OpenSwathAlgo)
 endif()
 
 ## link libraries for GUI Tools

@@ -32,13 +32,23 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 
 namespace OpenMS
 {
+  SpectrumAccessOpenMS::SpectrumAccessOpenMS(MSExperimentType& ms_experiment)
+  {
+    // store raw ptr to the experiment
+    ms_experiment_ = &ms_experiment;
+  }
+
+  SpectrumAccessOpenMS::~SpectrumAccessOpenMS()
+  {
+  }
+
   OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id) const
   {
-    const MSSpectrumType & spectrum = (*ms_experiment_)[id];
+    const MSSpectrumType& spectrum = (*ms_experiment_)[id];
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
     for (MSSpectrumType::const_iterator it = spectrum.begin(); it != spectrum.end(); it++)
@@ -63,7 +73,7 @@ namespace OpenMS
 
   OpenSwath::ChromatogramPtr SpectrumAccessOpenMS::getChromatogramById(int id) const
   {
-    const MSChromatogramType & chromatogram = ms_experiment_->getChromatograms()[id];
+    const MSChromatogramType& chromatogram = ms_experiment_->getChromatograms()[id];
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
     for (MSChromatogramType::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
@@ -81,6 +91,50 @@ namespace OpenMS
     OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
     cptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
     return cptr;
+  }
+
+  std::vector<std::size_t> SpectrumAccessOpenMS::getSpectraByRT(double RT, double deltaRT) const
+  {
+    OPENMS_PRECONDITION(deltaRT >= 0, "Delta RT needs to be a positive number");
+
+    // we first perform a search for the spectrum that is past the
+    // beginning of the RT domain. Then we add this spectrum and try to add
+    // further spectra as long as they are below RT + deltaRT.
+    MSExperimentType::Iterator spectrum = ms_experiment_->RTBegin(RT - deltaRT);
+    std::vector<std::size_t> result;
+    result.push_back(std::distance(ms_experiment_->begin(), spectrum));
+    spectrum++;
+    while (spectrum->getRT() <= RT + deltaRT && spectrum != ms_experiment_->end())
+    {
+      result.push_back(spectrum - ms_experiment_->begin());
+      spectrum++;
+    }
+    return result;
+  }
+
+  size_t SpectrumAccessOpenMS::getNrChromatograms() const
+  {
+    return ms_experiment_->getChromatograms().size();
+  }
+
+  ChromatogramSettings SpectrumAccessOpenMS::getChromatogramMetaInfo(int id) const
+  {
+    return ms_experiment_->getChromatograms()[id];
+  }
+
+  std::string SpectrumAccessOpenMS::getChromatogramNativeID(int id) const
+  {
+    return ms_experiment_->getChromatograms()[id].getNativeID();
+  }
+
+  size_t SpectrumAccessOpenMS::getNrSpectra() const
+  {
+    return ms_experiment_->size();
+  }
+
+  SpectrumSettings SpectrumAccessOpenMS::getSpectraMetaInfo(int id) const
+  {
+    return (*ms_experiment_)[id];
   }
 
 } //end namespace OpenMS

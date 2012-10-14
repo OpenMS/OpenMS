@@ -40,7 +40,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -56,70 +55,33 @@ public:
     typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
     typedef OpenMS::MSChromatogram<ChromatogramPeak> MSChromatogramType;
 
-    explicit SpectrumAccessOpenMS(MSExperimentType & ms_experiment)
-    {
-      ms_experiment_ = &ms_experiment;           // store raw ptr to the experiment
-    }
+    explicit SpectrumAccessOpenMS(MSExperimentType& ms_experiment);
 
-    ~SpectrumAccessOpenMS()
-    {
-    }
+    ~SpectrumAccessOpenMS();
 
     OpenSwath::SpectrumPtr getSpectrumById(int id) const;
 
     OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
 
-    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const
-    {
-      OPENMS_PRECONDITION(deltaRT >= 0, "Delta RT needs to be a positive number");
+    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const;
 
-      // we first perform a search for the spectrum that is past the
-      // beginning of the RT domain. Then we add this spectrum and try to add
-      // further spectra as long as they are below RT + deltaRT.
-      MSExperimentType::Iterator spectrum = ms_experiment_->RTBegin(RT - deltaRT);
-      std::vector<std::size_t> result;
-      result.push_back( std::distance(ms_experiment_->begin(), spectrum));
-      spectrum++;
-      while (spectrum->getRT() <= RT + deltaRT && spectrum != ms_experiment_->end())
-      {
-        result.push_back(spectrum - ms_experiment_->begin());
-        spectrum++;
-      }
-      return result;
-    }
+    size_t getNrSpectra() const;
 
-    size_t getNrSpectra() const
-    {
-      return ms_experiment_->size();
-    }
-
-    SpectrumSettings getSpectraMetaInfo(int id) const
-    {
-      return (*ms_experiment_)[id];
-    }
+    SpectrumSettings getSpectraMetaInfo(int id) const;
 
     OpenSwath::ChromatogramPtr getChromatogramById(int id) const;
 
     // FEATURE ?
     // ChromatogramPtr getChromatogramByPrecursorMZ(double mz, double deltaMZ);
 
-    size_t getNrChromatograms() const
-    {
-      return ms_experiment_->getChromatograms().size();
-    }
+    size_t getNrChromatograms() const;
 
-    ChromatogramSettings getChromatogramMetaInfo(int id) const
-    {
-      return ms_experiment_->getChromatograms()[id];
-    }
+    ChromatogramSettings getChromatogramMetaInfo(int id) const;
 
-    std::string getChromatogramNativeID(int id) const
-    {
-      return ms_experiment_->getChromatograms()[id].getNativeID();
-    }
+    std::string getChromatogramNativeID(int id) const;
 
 private:
-    MSExperimentType * ms_experiment_;
+    MSExperimentType* ms_experiment_;
 
   };
 } //end namespace OpenMS

@@ -42,7 +42,7 @@
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
-#include "boost/shared_ptr.hpp"
+#include <boost/shared_ptr.hpp>
 
 // These classes are minimal implementations of the interfaces defined in ITransition:
 //  - IFeature
@@ -61,47 +61,20 @@ namespace OpenMS
   {
 public:
 
-    explicit FeatureOpenMS(Feature & feature)
-    {
-      feature_ = &feature;   // store raw ptr to the feature
-    }
+    explicit FeatureOpenMS(Feature& feature);
 
-    ~FeatureOpenMS()
-    {
-    }
+    ~FeatureOpenMS();
 
-    void getRT(std::vector<double> & rt)
-    {
-      OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
-      ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-      for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); it++)
-      {
-        rt.push_back(it->getX());
-      }
-    }
+    void getRT(std::vector<double>& rt);
 
-    void getIntensity(std::vector<double> & intens)
-    {
-      OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
-      ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-      for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); it++)
-      {
-        intens.push_back(it->getY());
-      }
-    }
+    void getIntensity(std::vector<double>& intens);
 
-    float getIntensity()
-    {
-      return feature_->getIntensity();
-    }
+    float getIntensity();
 
-    double getRT()
-    {
-      return feature_->getRT();
-    }
+    double getRT();
 
 private:
-    Feature * feature_;
+    Feature* feature_;
   };
 
   /**
@@ -113,29 +86,18 @@ private:
   {
 public:
 
-    explicit MRMFeatureOpenMS(MRMFeature & mrmfeature);
+    explicit MRMFeatureOpenMS(MRMFeature& mrmfeature);
 
-    ~MRMFeatureOpenMS()
-    {
-    }
+    ~MRMFeatureOpenMS();
 
-    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID)
-    {
-      return boost::static_pointer_cast<OpenSwath::IFeature>(features_[nativeID]);
-    }
+    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID);
 
-    float getIntensity()
-    {
-      return mrmfeature_.getIntensity();
-    }
+    float getIntensity();
 
-    double getRT()
-    {
-      return mrmfeature_.getRT();
-    }
+    double getRT();
 
 private:
-    const MRMFeature & mrmfeature_;
+    const MRMFeature& mrmfeature_;
     std::map<std::string, boost::shared_ptr<FeatureOpenMS> > features_;
   };
 
@@ -149,7 +111,7 @@ private:
   {
 public:
 
-    TransitionGroupOpenMS(MRMTransitionGroup<SpectrumT, TransitionT> & trgroup) :
+    TransitionGroupOpenMS(MRMTransitionGroup<SpectrumT, TransitionT>& trgroup) :
       trgroup_(trgroup)
     {
     }
@@ -173,13 +135,13 @@ public:
       return result;
     }
 
-    void getLibraryIntensities(std::vector<double> & intensities)
+    void getLibraryIntensities(std::vector<double>& intensities)
     {
       trgroup_.getLibraryIntensity(intensities);
     }
 
 private:
-    const MRMTransitionGroup<SpectrumT, TransitionT> & trgroup_;
+    const MRMTransitionGroup<SpectrumT, TransitionT>& trgroup_;
   };
 
   /**
@@ -192,7 +154,7 @@ private:
   {
 public:
 
-    SignalToNoiseOpenMS(OpenMS::MSSpectrum<PeakT> & chromat,
+    SignalToNoiseOpenMS(OpenMS::MSSpectrum<PeakT>& chromat,
                         double sn_win_len_, unsigned int sn_bin_count_) :
       chromatogram_(chromat), sn_()
     {
@@ -210,7 +172,7 @@ public:
     }
 
 private:
-    const OpenMS::MSSpectrum<PeakT> & chromatogram_;
+    const OpenMS::MSSpectrum<PeakT>& chromatogram_;
     OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum<PeakT> > sn_;
   };
 

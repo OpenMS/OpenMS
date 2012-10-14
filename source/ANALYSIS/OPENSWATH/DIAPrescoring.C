@@ -36,6 +36,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
+
 namespace OpenMS
 {
 
@@ -59,7 +62,8 @@ namespace OpenMS
                    boost::bind(std::divides<double>(), _1, totalInt));
   }
 
-  void getMZIntensityFromTransition(const std::vector<OpenSwath::LightTransition>& trans, std::vector<std::pair<double, double> >& res)
+  void getMZIntensityFromTransition(const std::vector<OpenSwath::LightTransition>& trans,
+                                    std::vector<std::pair<double, double> >& res)
   {
     for (std::size_t i = 0; i < trans.size(); ++i)
     {
@@ -74,7 +78,7 @@ namespace OpenMS
     //getParams();
     typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;
     Mmap transmap;
-    convert(transition_exp_used, transmap);
+    OpenSwath::TransitionHelper::convert(transition_exp_used, transmap);
     // std::cout << "nr peptides : " << transmap.size() << std::endl;
 
     Mmap::iterator beg = transmap.begin();
@@ -144,8 +148,8 @@ namespace OpenMS
     std::vector<double> intExp, mzExp;
     integrateWindows(spec, theomasses, dia_extract_window_, intExp,
                      mzExp);
-    std::transform(intExp.begin(), intExp.end(), intExp.begin(), mySqrt());
-    std::transform(theorint.begin(), theorint.end(), theorint.begin(), mySqrt());
+    std::transform(intExp.begin(), intExp.end(), intExp.begin(), OpenSwath::mySqrt());
+    std::transform(theorint.begin(), theorint.end(), theorint.begin(), OpenSwath::mySqrt());
 
     double intExptotal = std::accumulate(intExp.begin(), intExp.end(), 0.0);
     double intTheorTotal = std::accumulate(theorint.begin(), theorint.end(), 0.0);
@@ -159,7 +163,7 @@ namespace OpenMS
     DIAHelpers::addPreisotopeWeights(firstIstotope, spectrum2, 2, -0.5);
     std::vector<double>  theorint2;
     DIAHelpers::extractSecond(spectrum, theorint2);
-    std::transform(theorint2.begin(), theorint2.end(), theorint2.begin(), mySqrt());
+    std::transform(theorint2.begin(), theorint2.end(), theorint2.begin(), OpenSwath::mySqrt());
 
     intExptotal = OpenSwath::norm(intExp.begin(), intExp.end());
     intTheorTotal = OpenSwath::norm(theorint2.begin(), theorint2.end());
@@ -172,6 +176,38 @@ namespace OpenMS
     //    std::copy(theorint2.begin(), theorint2.end(), std::ostream_iterator<double>(std::cout, ", "));
     //    std::cout << std::endl;
     dotprod = OpenSwath::dotProd(intExp.begin(), intExp.end(), theorint2.begin());
+  }
+
+  void DiaPrescore::updateMembers_()
+  {
+    dia_extract_window_ = (DoubleReal) param_.getValue(
+      "dia_extraction_window");
+    nr_isotopes_ = (int) param_.getValue("nr_isotopes");
+    nr_charges_ = (int) param_.getValue("nr_charges");
+  }
+
+  void DiaPrescore::defineDefaults()
+  {
+    defaults_.setValue("dia_extraction_window", 0.1,
+                       "DIA extraction window in Th.");
+    defaults_.setMinFloat("dia_extraction_window", 0.0); //done
+    defaults_.setValue("nr_isotopes", 4, "nr of istopes");
+    defaults_.setValue("nr_charges", 4, "nr charges");
+    defaultsToParam_();
+  }
+
+  DiaPrescore::DiaPrescore(double dia_extract_window, int nr_isotopes, int nr_charges) :
+    DefaultParamHandler("DIAPrescore"),
+    dia_extract_window_(dia_extract_window),
+    nr_isotopes_(nr_isotopes),
+    nr_charges_(nr_charges)
+  {
+  }
+
+  DiaPrescore::DiaPrescore() :
+    DefaultParamHandler("DIAPrescore")
+  {
+    defineDefaults();
   }
 
 }

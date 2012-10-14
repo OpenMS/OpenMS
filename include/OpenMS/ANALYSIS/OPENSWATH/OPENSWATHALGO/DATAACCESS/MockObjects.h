@@ -37,7 +37,9 @@
 
 #include <vector>
 #include <map>
+
 #include <boost/shared_ptr.hpp>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
 
@@ -49,33 +51,17 @@ namespace OpenSwath
   {
 public:
 
-    MockFeature()
-    {
-    }
+    MockFeature();
 
-    ~MockFeature()
-    {
-    }
+    ~MockFeature();
 
-    void getRT(std::vector<double>& rt)
-    {
-      rt = m_rt_vec;
-    }
+    void getRT(std::vector<double>& rt);
 
-    void getIntensity(std::vector<double>& intens)
-    {
-      intens = m_intensity_vec;
-    }
+    void getIntensity(std::vector<double>& intens);
 
-    float getIntensity()
-    {
-      return m_intensity;
-    }
+    float getIntensity();
 
-    double getRT()
-    {
-      return m_rt;
-    }
+    double getRT();
 
     std::vector<double> m_rt_vec;
     std::vector<double> m_intensity_vec;
@@ -88,24 +74,15 @@ public:
   {
 public:
 
-    MockMRMFeature() {}
+    MockMRMFeature();
 
-    ~MockMRMFeature() {}
+    ~MockMRMFeature();
 
-    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID)
-    {
-      return boost::static_pointer_cast<OpenSwath::IFeature>(m_features[nativeID]);
-    }
+    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID);
 
-    float getIntensity()
-    {
-      return m_intensity;
-    }
+    float getIntensity();
 
-    double getRT()
-    {
-      return m_rt;
-    }
+    double getRT();
 
     std::map<std::string, boost::shared_ptr<MockFeature> > m_features;
     float m_intensity;
@@ -117,28 +94,15 @@ public:
   {
 public:
 
-    MockTransitionGroup()
-    {
-    }
+    MockTransitionGroup();
 
-    ~MockTransitionGroup()
-    {
-    }
+    ~MockTransitionGroup();
 
-    std::size_t size()
-    {
-      return m_size;
-    }
+    std::size_t size();
 
-    std::vector<std::string> getNativeIDs()
-    {
-      return m_native_ids;
-    }
+    std::vector<std::string> getNativeIDs();
 
-    void getLibraryIntensities(std::vector<double>& intensities)
-    {
-      intensities = m_library_intensities;
-    }
+    void getLibraryIntensities(std::vector<double>& intensities);
 
     std::size_t m_size;
     std::vector<std::string> m_native_ids;
@@ -150,14 +114,9 @@ public:
     public OpenSwath::ISignalToNoise
   {
 public:
-    MockSignalToNoise()
-    {
-    }
+    MockSignalToNoise();
 
-    double getValueAtRT(double /* RT */)
-    {
-      return m_sn_value;
-    }
+    double getValueAtRT(double /* RT */);
 
     double m_sn_value;
   };

@@ -10,6 +10,10 @@ set(sources_algo_list
 
 set(sources_dataaccess_list
   DATAACCESS/SpectrumHelpers.C
+	DATAACCESS/ISpectrumAccess.C
+	DATAACCESS/TransitionHelper.C
+	DATAACCESS/MockObjects.C
+	DATAACCESS/DataFrameWriter.C
 )
 
 ### add path to the filenames
@@ -43,7 +47,7 @@ set(header_dataaccess_list
   DATAACCESS/DataFrameWriter.h
   DATAACCESS/DataStructures.h
   DATAACCESS/ISpectrumAccess.h
-  DATAACCESS/ITrans2Trans.h
+  DATAACCESS/TransitionHelper.h
   DATAACCESS/ITransition.h
   DATAACCESS/MockObjects.h
   DATAACCESS/SpectrumHelpers.h

@@ -28,68 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski $
-// $Authors: Witold Wolski $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_DATAFRAMEWRITER_H
-#define OPENSWATH_DATAACCESS_DATAFRAMEWRITER_H
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <string>
-#include <vector>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
 namespace OpenSwath
 {
-  struct OPENSWATHALGO_DLLAPI IDataFrameWriter
+  ISpectrumAccess::~ISpectrumAccess()
   {
-    virtual ~IDataFrameWriter();
-    virtual void colnames(const std::vector<std::string>& colnames) = 0;
-    virtual void store(const std::string& rowname,
-                       const std::vector<double>& values) = 0;
-  };
+  }
 
-  struct OPENSWATHALGO_DLLAPI DataMatrix :
-    IDataFrameWriter
-  {
-private:
-    std::vector<std::string> colnames_;
-    std::vector<std::string> rownames_;
-    std::vector<std::vector<double> > store_;
-
-public:
-    DataMatrix();
-
-    void store(const std::string& rowname,
-               const std::vector<double>& values);
-
-    void colnames(const std::vector<std::string>& colnames);
-
-  };
-
-  struct OPENSWATHALGO_DLLAPI CSVWriter :
-    IDataFrameWriter
-  {
-private:
-    std::ofstream file_stream_;
-    std::string sep_;
-    std::string eol_;
-
-public:
-    explicit CSVWriter(std::string filename);
-
-    void store(const std::string& rowname,
-               const std::vector<double>& values);
-
-    virtual ~CSVWriter();
-
-    void colnames(const std::vector<std::string>& colnames);
-
-  };
 }
-
-#endif
