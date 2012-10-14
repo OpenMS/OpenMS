@@ -39,6 +39,8 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+
 namespace OpenSwath
 {
   struct OPENSWATHALGO_DLLAPI LightTransition
