@@ -4,7 +4,7 @@ ls ## This is an R script to produce the figures that are attached to the qcML f
 options(digits=10)
 
 file<-commandArgs(TRUE)[1]
-path<-commandArgs(TRUE)[2]
+path<-paste(commandArgs(TRUE)[2],"/",sep="")
 ##########################
 ###Mass accuracy
 ##########################

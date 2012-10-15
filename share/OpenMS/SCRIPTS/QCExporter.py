@@ -51,7 +51,10 @@ idxmlfile = sys.argv[3]
 precursortsv = sys.argv[4]
 tictsv = sys.argv[5]
 idtsv = sys.argv[6]
-print mzmlfile,idxmlfile,precursortsv,tictsv,idtsv
+precursorpng = sys.argv[7]
+ticpng = sys.argv[8]
+idpng = sys.argv[9]
+#~ print mzmlfile,idxmlfile,precursortsv,tictsv,idtsv
 outfilepath = sys.argv[1] + '/'
 #~ mzmlfile = '20100219_SvNa_SA_Ecoli_PP.mzML'
 #~ idxmlfile = '20100219_SvNa_SA_Ecoli_OMSSA_pep_ind_fdr_001.idXML'
@@ -63,13 +66,30 @@ root = mzQCML.MzQualityMLType()
 root.RunQuality = list()
 RunElement = mzQCML.RunQualityAssessmentType()
 
-if tictsv != "":
-	rscript = 'ProduceQCFigures_tic.R ' + tictsv + ' ' + outfilepath
-	Rcmd = 'Rscript --vanilla %s'
-	print Rcmd % rscript
-	p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
+			#~ <cloptions> "%1"/QCExporter.py "%2" "%3" "%4" "%5" "%6" "%7" "%8" "%9" "%10"</cloptions>
+			#~ <path>python</path>
+			#~ <mappings>
+				#~ <mapping id="1" cl="%%scriptpath" />
+				#~ <mapping id="2" cl="%TMP" />
+				#~ <mapping id="3" cl="%%inML" />
+				#~ <mapping id="4" cl="%%inID" />
+				#~ <mapping id="5" cl="%%inTSVspec" />
+				#~ <mapping id="6" cl="%%inTSVtic" />
+				#~ <mapping id="7" cl="%%inTSVacc" />
+				#~ <mapping id="8" cl="%%inFIGspec" />
+				#~ <mapping id="9" cl="%%inFIGtic" />
+				#~ <mapping id="10" cl="%%inFIGacc" />
+				#~ <file_post location="%TMP/genericwrapper.qcML" target="out" />
+			#~ </mappings>
 
-	file = open(outfilepath+"tic.png", "rb")
+if tictsv != "":
+	#~ rscript = 'ProduceQCFigures_tic.R ' + tictsv + ' ' + outfilepath
+	#~ Rcmd = 'Rscript --vanilla %s'
+	#~ print Rcmd % rscript
+	#~ p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
+	#~ file = open(outfilepath+"tic.png", "rb")
+
+	file = open(ticpng , "rb")
 	data = file.read()
 	file.close()
 	byte_arr = base64.b64encode(data)
@@ -82,11 +102,12 @@ if tictsv != "":
 	RunElement.add_Attachment(atta)
 
 if precursortsv != "" and idtsv != "":
-	rscript = 'ProduceQCFigures_spec.R ' + precursortsv + ' '+ idtsv + ' ' + outfilepath
-	Rcmd = 'Rscript --vanilla %s'
-	p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
+	#~ rscript = 'ProduceQCFigures_spec.R ' + precursortsv + ' '+ idtsv + ' ' + outfilepath
+	#~ Rcmd = 'Rscript --vanilla %s'
+	#~ p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
+	#~ file = open(outfilepath+"spec.png", "rb")
 
-	file = open(outfilepath+"spec.png", "rb")
+	file = open(precursorpng, "rb")
 	data = file.read()
 	file.close()
 	byte_arr = base64.b64encode(data)
@@ -99,11 +120,12 @@ if precursortsv != "" and idtsv != "":
 	RunElement.add_Attachment(atta)
 
 if precursortsv != "" and idtsv != "":
-	rscript = 'ProduceQCFigures_acc.R ' + idtsv + ' ' + outfilepath
-	Rcmd = 'Rscript --vanilla %s'
-	p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
+	#~ rscript = 'ProduceQCFigures_acc.R ' + idtsv + ' ' + outfilepath
+	#~ Rcmd = 'Rscript --vanilla %s'
+	#~ p = Popen( (Rcmd % rscript), shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True).wait()
+	#~ file = open(outfilepath+"accuracy.png", "rb")
 
-	file = open(outfilepath+"accuracy.png", "rb")
+	file = open(idpng, "rb")
 	data = file.read()
 	file.close()
 	byte_arr = base64.b64encode(data)
@@ -209,8 +231,8 @@ xmlHeader = """<?xml version="1.0" encoding="ISO-8859-1"?>
 xmlStyle = """
 <xsl:stylesheet id="stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:template match="/">
-  <html>
-  <body>
+	<html>
+	<body>
 		<h2>The Quality Parameters</h2>
 			<table border="1">
 				<tr bgcolor="#9acd32">
@@ -225,15 +247,15 @@ xmlStyle = """
 				</xsl:for-each>
 			</table><br/>
 		<h2>The Quality Plots</h2>
-      <xsl:for-each select="MzQualityMLType/RunQuality/Attachment">
-        <img>
-				  <xsl:attribute name="src">
-						data:image/png;base64,<xsl:value-of select="binary" />
-					</xsl:attribute>
-				</img> <br/>
-      </xsl:for-each>
-  </body>
-  </html>
+	<xsl:for-each select="MzQualityMLType/RunQuality/Attachment">
+		<img>
+			<xsl:attribute name="src">
+				data:image/png;base64,<xsl:value-of select="binary" />
+			</xsl:attribute>
+		</img> <br/>
+	</xsl:for-each>
+	</body>
+	</html>
 </xsl:template>
 </xsl:stylesheet>
 """

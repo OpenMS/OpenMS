@@ -5,7 +5,7 @@ options(digits=10)
 
 file_p<-commandArgs(TRUE)[1]
 file_id<-commandArgs(TRUE)[2]
-path<-commandArgs(TRUE)[3]
+path<-paste(commandArgs(TRUE)[3],"/",sep="")
 ##########################
 ###Spectra recordings
 ##########################
