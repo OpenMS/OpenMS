@@ -49,6 +49,9 @@
 #define OPENSWATHALGO_WINDOWSPLATFORM 1
 #endif
 
+// The directory where OpenSWATH is build
+#define OPENSWATH_SOURCE_PATH "@PROJECT_SOURCE_DIR@"
+
 // are we building a shared lib?
 #cmakedefine BUILD_SHARED_LIBS
 

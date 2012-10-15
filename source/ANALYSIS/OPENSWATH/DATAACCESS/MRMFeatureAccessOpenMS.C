@@ -113,7 +113,7 @@ namespace OpenMS
 
   // default instances
   MSSpectrum<Peak1D> chromat;
-  SignalToNoiseOpenMS<Peak1D> default_signal_to_noise_openms(chromat, 0.0, 0.0);
+  SignalToNoiseOpenMS<Peak1D> default_signal_to_noise_openms(chromat, 1.0, 3);
 
   MRMTransitionGroup<MSSpectrum<Peak1D>, ReactionMonitoringTransition> trgroup;
   TransitionGroupOpenMS<MSSpectrum<Peak1D>, ReactionMonitoringTransition> default_transition_group_openms(trgroup);
