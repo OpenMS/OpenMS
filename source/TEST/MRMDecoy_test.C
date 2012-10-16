@@ -200,7 +200,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_01;
   shuffleAASequence_target_sequence_01.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_01;
-  shuffleAASequence_expected_01.sequence = "ITEEPCPETGTDS";
+  shuffleAASequence_expected_01.sequence = "SIECPAPDEETTT";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_01;
   shuffleAASequence_result_01 = gen.shufflePeptide(shuffleAASequence_target_sequence_01, 0.2 , 42, 10000);
   TEST_EQUAL(shuffleAASequence_result_01.sequence, shuffleAASequence_expected_01.sequence)
@@ -208,9 +208,10 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_00;
   shuffleAASequence_target_sequence_00.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_00;
-  shuffleAASequence_expected_00.sequence = "EEDEPTPTGICST";
+  shuffleAASequence_expected_00.sequence = "TEEDPTPDGATECIS";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
-	TEST_EXCEPTION(Exception::IllegalArgument,gen.shufflePeptide(shuffleAASequence_target_sequence_00, 0.0 , 42))
+  shuffleAASequence_result_00 = gen.shufflePeptide(shuffleAASequence_target_sequence_00, 0.0 , 42, 20);
+  TEST_EQUAL(shuffleAASequence_result_00.sequence, shuffleAASequence_expected_00.sequence)
 }
 END_SECTION
 
@@ -250,8 +251,9 @@ START_SECTION(shuffle_peptide_with_KPR)
   MRMDecoy gen;
   OpenMS::TargetedExperiment::Peptide peptide;
   peptide.sequence = "KPRKPRPK";
-  OpenMS::String expected_sequence = "KPRKPRPKLN";
-	TEST_EXCEPTION(Exception::IllegalArgument,gen.shufflePeptide(peptide, 0.7 , 130))
+  OpenMS::String expected_sequence = "KPRKPRPKNL";
+  OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7 , 130, 17);
+  TEST_EQUAL(shuffled.sequence, expected_sequence)
 }
 END_SECTION
 
@@ -326,17 +328,19 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
 END_SECTION
 
 /// Public methods
-START_SECTION(void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec, String method, String decoy_tag, double identity_threshold, double mz_threshold, bool theoretical, double mz_shift))
+START_SECTION(void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec, String method, String decoy_tag, double identity_threshold, double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, double similarity_threshold))
 {
   String method = "pseudo-reverse";
-  DoubleReal identity_threshold = 0.7;
-	Int max_attempts = 10;
+  DoubleReal identity_threshold = 1.0;
+  Int max_attempts = 5;
   DoubleReal mz_threshold = 0.8;
   DoubleReal mz_shift = 20;
   String decoy_tag = "DECOY_";
   Int min_transitions = 2;
   Int max_transitions = 6;
   bool theoretical = 1;
+  bool exclude_similar = 1;
+  double similarity_threshold = 0.05;
   String in = "MRMDecoyGenerator_input.TraML";
   String out = "MRMDecoyGenerator_output.TraML";
   String test;
@@ -350,7 +354,7 @@ START_SECTION(void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::Targe
     
   MRMDecoy decoys = MRMDecoy();
   decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
-  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift);
+  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold);
   traml.store(OPENMS_GET_TEST_DATA_PATH(test), targeted_decoy);
   
   TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH(test), OPENMS_GET_TEST_DATA_PATH(out))

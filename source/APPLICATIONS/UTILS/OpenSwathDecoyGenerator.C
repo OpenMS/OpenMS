@@ -92,15 +92,17 @@ protected:
     setValidFormats_("out", StringList::create("TraML"));
 
     registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','pseudo-reverse','reverse','shift')", false);
-    registerDoubleOption_("identity_threshold", "<double>", 0.7, "identity threshold for the shuffle algorithm", false);
-    registerIntOption_("max_attempts", "<int>", 10, "maximum attempts to lower the sequence identity between target and decoy for the shuffle algorithm", false);
-    registerDoubleOption_("mz_threshold", "<double>", 0.8, "MZ threshold in Thomson", false);
-    registerDoubleOption_("mz_shift", "<double>", 20, "MZ shift in Thomson for shift decoy method", false);
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
     registerIntOption_("min_transitions", "<int>", 2, "minimal number of transitions", false);
     registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
-    registerFlag_("theoretical", "Set this flag if only annotated transitions should be used and be corrected to the theoretical mz.");
-    registerFlag_("append", "Set this flag if non-decoy TraML should be appended to the output.");
+    registerFlag_("theoretical", "set this flag if only annotated transitions should be used and be corrected to the theoretical mz.");
+    registerDoubleOption_("mz_threshold", "<double>", 0.8, "MZ threshold in Thomson for fragment ion annotation", false);
+    registerFlag_("exclude_similar", "set this flag if decoy transitions similar to the target transitions should be excluded.");
+    registerDoubleOption_("similarity_threshold", "<double>", 0.05, "similarity threshold for exclusion of decoy transitions", false);
+    registerFlag_("append", "set this flag if non-decoy TraML should be appended to the output.");
+    registerDoubleOption_("identity_threshold", "<double>", 0.7, "shuffle: identity threshold for the shuffle algorithm", false);
+    registerIntOption_("max_attempts", "<int>", 10, "shuffle: maximum attempts to lower the sequence identity between target and decoy for the shuffle algorithm", false);
+    registerDoubleOption_("mz_shift", "<double>", 20, "shift: MZ shift in Thomson for shift decoy method", false);
   }
 
   ExitCodes main_(int, const char **)
@@ -108,15 +110,17 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String method = getStringOption_("method");
-    DoubleReal identity_threshold = getDoubleOption_("identity_threshold");
-    Int max_attempts = getIntOption_("max_attempts");
-    DoubleReal mz_threshold = getDoubleOption_("mz_threshold");
-    DoubleReal mz_shift = getDoubleOption_("mz_shift");
     String decoy_tag = getStringOption_("decoy_tag");
     Int min_transitions = getIntOption_("min_transitions");
     Int max_transitions = getIntOption_("max_transitions");
     bool theoretical = getFlag_("theoretical");
+    DoubleReal mz_threshold = getDoubleOption_("mz_threshold");
+    bool exclude_similar = getFlag_("exclude_similar");
+    DoubleReal similarity_threshold = getDoubleOption_("similarity_threshold");
     bool append = getFlag_("append");
+    DoubleReal identity_threshold = getDoubleOption_("identity_threshold");
+    Int max_attempts = getIntOption_("max_attempts");
+    DoubleReal mz_shift = getDoubleOption_("mz_shift");
 
     if (method != "shuffle" && method != "pseudo-reverse" && method != "reverse" && method != "shift")
     {
@@ -134,7 +138,7 @@ protected:
 
     std::cout << "Restricting transitions" << std::endl;
     decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
-    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift);
+    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar,similarity_threshold);
 
     if (append)
     {

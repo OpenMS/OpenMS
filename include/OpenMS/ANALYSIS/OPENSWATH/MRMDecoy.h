@@ -91,7 +91,7 @@ public:
     */
     void generateDecoys(OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
-                        double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift);
+                        double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, double similarity_threshold);
 
     /**
       @brief Remove transitions s.t. all peptides have a defined set of transitions.

@@ -10,6 +10,17 @@
     </Protein>
   </ProteinList>
   <CompoundList>
+    <Peptide id="AAAAAK" sequence="AAAAAK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="AAAAAK"/>
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <ProteinRef ref="AQRT"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="54.97"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
     <Peptide id="ADVTPADFSEWSK" sequence="ADVTPADFSEWSK">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="ADVTPADFSEWSK"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -133,6 +144,30 @@
     </Peptide>
   </CompoundList>
   <TransitionList>
+    <Transition id="AAAAAK.exclude_similar_test1" peptideRef="AAAAAK" >
+      <cvParam cvRef="" accession="" name="annotation" value="AAAAAK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="37.48"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="100"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="251.65" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="180.13" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="AAAAAK.exclude_similar_test2" peptideRef="AAAAAK" >
+      <cvParam cvRef="" accession="" name="annotation" value="AAAAAK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="37.48"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="100"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="251.65" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="144.09" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
     <Transition id="AQRT.ADVTPADFSEWSK.2_y9_1.light" peptideRef="ADVTPADFSEWSK" >
       <cvParam cvRef="" accession="" name="annotation" value="ADVTPADFSEWSK0"/>
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="37.48"/>

@@ -279,7 +279,6 @@ namespace OpenMS
     {
       seed = time(0);
     }
-    int attempts_to_add_aa = 5;
     OpenMS::TargetedExperiment::Peptide shuffled = peptide;
 
     boost::mt19937 generator(seed);
@@ -342,19 +341,13 @@ namespace OpenMS
       // If our attempts have failed so far, we will append two random AA to
       // the sequence and see whether we can achieve sufficient shuffling with
       // these additional AA added to the sequence.
-      if (attempts == attempts_to_add_aa)
+      if (attempts%10 == 9)
       {
         int pos = (pseudoRNG() % aa_size);
         peptide.sequence.append(aa[pos]);
         pos = (pseudoRNG() % aa_size);
         peptide.sequence.append(aa[pos]);
       }
-    }
-
-    if (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold)
-    {
-      std::cout << "Sequence identity: " << MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) << " Identity threshold: " << identity_threshold << std::endl;
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AA Sequences couldn't be shuffled. Either decrease identity_threshold or increase max_attempts.");
     }
 
     return shuffled;
@@ -541,7 +534,7 @@ namespace OpenMS
   }
 
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                                String method, String decoy_tag, double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift)
+                                String method, String decoy_tag, double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, double similarity_threshold)
   {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
@@ -561,6 +554,7 @@ namespace OpenMS
     {
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
       peptide.id = decoy_tag + peptide.id;
+      OpenMS::String original_sequence = peptide.sequence;
 
       if (method == "pseudo-reverse")
       {
@@ -578,6 +572,13 @@ namespace OpenMS
       {
         peptide.protein_refs[i] = decoy_tag + peptide.protein_refs[i];
       }
+
+      if (!exclude_similar && MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) > identity_threshold)
+      { 
+        std::cout << "Target sequence: " << original_sequence << " Decoy sequence: " << peptide.sequence  << " Sequence identity: " << MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) << " Identity threshold: " << identity_threshold << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AA Sequences couldn't be shuffled. Either decrease identity_threshold and increase max_attempts or set flag exclude_similar.");
+      }
+
       peptides.push_back(peptide);
     }
     dec.setPeptides(peptides);
@@ -641,7 +642,17 @@ namespace OpenMS
 
         if (decoyion.second > 0)
         {
-          decoy_transitions.push_back(decoy_tr);
+          if (exclude_similar)
+          {
+            if(fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) > similarity_threshold)
+            {
+              decoy_transitions.push_back(decoy_tr);
+            }
+          }
+          else
+          {
+            decoy_transitions.push_back(decoy_tr);
+          }
         }
       } // end loop over transitions
     } // end loop over peptides
