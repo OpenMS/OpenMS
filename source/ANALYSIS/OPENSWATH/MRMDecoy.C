@@ -572,7 +572,7 @@ namespace OpenMS
       }
       else if (method == "shuffle")
       {
-        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, max_attempts);
+        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts);
       }
       for (Size i = 0; i < peptide.protein_refs.size(); i++)
       {
