@@ -73,4 +73,15 @@ BZ2Lib
   - URL: http://www.bzip.org/
   - License.bzip2.txt 
  
+OMSSA
+  - URL: http://pubchem.ncbi.nlm.nih.gov/omssa/
+  - License: Public Domain
+
+X!Tandem:
+  - URL and source code: http://www.thegpm.org/tandem/
+  - License available at: http://www.perlfoundation.org/attachment/legal/artistic-2_0.txt
+
+MyriMatch:
+  - URL and source code: http://fenchurch.mc.vanderbilt.edu/software.php
+  - License available at: http://www.apache.org/licenses/LICENSE-2.0.txt
 
