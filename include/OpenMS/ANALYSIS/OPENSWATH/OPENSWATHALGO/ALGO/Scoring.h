@@ -80,7 +80,7 @@ namespace OpenSwath
     */
 
     /// Find best peak in an cross-correlation (highest apex)
-    OPENSWATHALGO_DLLAPI XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType array);
+    OPENSWATHALGO_DLLAPI XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType & array);
 
     /// Standardize a vector (subtract mean, divide by standard deviation)
     OPENSWATHALGO_DLLAPI void standardize_data(std::vector<double>& data);

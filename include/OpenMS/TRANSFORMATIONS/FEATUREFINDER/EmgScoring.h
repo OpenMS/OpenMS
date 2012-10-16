@@ -105,7 +105,8 @@ namespace OpenMS
     // TODO: check whether we can leave out some of the steps here, e.g. gaussian smoothing
     double elutionModelFit(ConvexHull2D::PointArrayType current_section, bool smooth_data)
     {
-      if (current_section.size() == 0)
+      // We need at least 2 datapoints in order to create a fit
+      if (current_section.size() < 2)
       {
         return -1;
       }

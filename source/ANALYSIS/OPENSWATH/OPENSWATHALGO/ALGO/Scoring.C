@@ -75,7 +75,7 @@ namespace OpenSwath
       return delta_ratio_sum / n;
     }
 
-    XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType array)
+    XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType & array)
     {
       OPENMS_PRECONDITION(array.size() > 0, "Cannot get highest apex from empty array.");
 

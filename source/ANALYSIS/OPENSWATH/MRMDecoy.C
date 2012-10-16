@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-
 #include <map>
 #include <utility> //for pair
 #include <string>
@@ -444,21 +443,27 @@ namespace OpenMS
       if (m->second.size() >= (Size)min_transitions)
       {
         std::vector<double> LibraryIntensity;
-        for (MRMDecoy::TransitionVectorType::iterator tr_it = m->second.begin();
-             tr_it != m->second.end(); tr_it++)
+        for (MRMDecoy::TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); tr_it++)
         {
           ReactionMonitoringTransition tr = *tr_it;
           LibraryIntensity.push_back(boost::lexical_cast<double>(tr.getLibraryIntensity()));
         }
+
+        // sort by intensity, reverse and delete all elements after max_transitions 
         sort(LibraryIntensity.begin(), LibraryIntensity.end());
         reverse(LibraryIntensity.begin(), LibraryIntensity.end());
+        if ((Size)max_transitions < LibraryIntensity.size() )
+        {
+          std::vector<double>::iterator start_delete = LibraryIntensity.begin();
+          std::advance(start_delete, max_transitions);
+          LibraryIntensity.erase(start_delete, LibraryIntensity.end() );
+        }
 
-        for (MRMDecoy::TransitionVectorType::iterator tr_it = m->second.begin();
-             tr_it != m->second.end(); tr_it++)
+        for (MRMDecoy::TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); tr_it++)
         {
           ReactionMonitoringTransition tr = *tr_it;
-          if (std::find(LibraryIntensity.begin(), LibraryIntensity.begin() + max_transitions,
-                        boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.begin() + max_transitions)
+          if (std::find( LibraryIntensity.begin(), LibraryIntensity.end(),
+                boost::lexical_cast<double>(tr.getLibraryIntensity()) ) != LibraryIntensity.end())
           {
             transitions.push_back(tr);
           }
