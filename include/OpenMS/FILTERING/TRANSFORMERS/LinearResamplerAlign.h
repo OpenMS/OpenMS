@@ -143,7 +143,7 @@ public:
     PeakTypeIterator resample_start = resample_it;
 
     // need to get the raw iterator between two resampled iterators of the raw data
-    while(raw_it->getMZ() < resample_it->getMZ() && raw_it != raw_end) 
+    while(raw_it != raw_end && raw_it->getMZ() < resample_it->getMZ())
     {
       resample_it->setIntensity( resample_it->getIntensity() + raw_it->getIntensity() );
       raw_it++;
@@ -152,7 +152,7 @@ public:
     while(raw_it != raw_end)
     {
       //advance the resample iterator until our raw point is between two resampled iterators 
-      while(resample_it->getMZ() < raw_it->getMZ() && resample_it != resample_end) {resample_it++;} 
+      while(resample_it != resample_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++;} 
       if (resample_it != resample_start) {resample_it--;}
 
       // if we have the last datapoint we break
@@ -185,12 +185,12 @@ public:
     PeakTypeIterator raw_start = raw_it;
 
     // need to get the resampled iterator between two iterators of the raw data
-    while(it->getMZ() < raw_it->getMZ() && it != resampled_end) {it++;} 
+    while(it != resampled_end && it->getMZ() < raw_it->getMZ()) {it++;} 
 
     while(it != resampled_end)
     {
       //advance the raw_iterator until our current point we want to interpolate is between them
-      while(raw_it->getMZ() < it->getMZ() && raw_it != raw_end) {raw_it++;} 
+      while(raw_it != raw_end && raw_it->getMZ() < it->getMZ() ) {raw_it++;} 
       if (raw_it != raw_start) {raw_it--;}
 
       // if we have the last datapoint we break

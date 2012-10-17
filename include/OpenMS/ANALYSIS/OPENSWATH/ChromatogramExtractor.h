@@ -186,6 +186,12 @@ public:
     template <typename SpectrumT>
     void extract_value_tophat(const SpectrumT& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
     {
+      integrated_intensity = 0;
+      if (input.size() == 0)
+      {
+        return;
+      }
+
       // calculate extraction window
       double left, right;
       if (ppm)
@@ -224,12 +230,20 @@ public:
       }
 
       // walk to the right until we go outside the window, then walk to the left until we are outside the window
-      walker = peak_idx - 1;
+      walker = peak_idx;
+      if (walker > 0)
+      {
+        walker--;
+      }
       while (walker > 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
       {
         integrated_intensity += input[walker].getIntensity(); walker--;
       }
-      walker = peak_idx + 1;
+      walker = peak_idx;
+      if (walker < input.size() )
+      {
+        walker++;
+      }
       while (walker<input.size() && input[walker].getMZ()> left &&  input[walker].getMZ() < right)
       {
         integrated_intensity += input[walker].getIntensity(); walker++;
@@ -239,6 +253,12 @@ public:
     template <typename SpectrumT>
     void extract_value_bartlett(const SpectrumT& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
     {
+      integrated_intensity = 0;
+      if (input.size() == 0)
+      {
+        return;
+      }
+
       // calculate extraction window
       double left, right, half_window_size, weight;
       if (ppm)
@@ -262,7 +282,6 @@ public:
         peak_idx++;
       }
 
-      integrated_intensity = 0;
 
       // walk right and left and add to our intensity
       walker = peak_idx;
@@ -280,13 +299,21 @@ public:
       }
 
       // walk to the right until we go outside the window, then walk to the left until we are outside the window
-      walker = peak_idx - 1;
+      walker = peak_idx;
+      if (walker > 0 )
+      {
+        walker--;
+      }
       while (walker > 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
       {
         weight =  1 - fabs(input[walker].getMZ() - mz) / half_window_size;
         integrated_intensity += input[walker].getIntensity() * weight; walker--;
       }
-      walker = peak_idx + 1;
+      walker = peak_idx;
+      if (walker < input.size() )
+      {
+        walker++;
+      }
       while (walker<input.size() && input[walker].getMZ()> left &&  input[walker].getMZ() < right)
       {
         weight = 1 - fabs(input[walker].getMZ() - mz) / half_window_size;
@@ -298,6 +325,12 @@ public:
                               const std::vector<double>::const_iterator& mz_end, std::vector<double>::const_iterator& int_it,
                               const double& mz, double& integrated_intensity, double& extract_window, bool ppm)
     {
+      integrated_intensity = 0;
+      if (mz_start == mz_end)
+      {
+        return;
+      }
+
       // calculate extraction window
       double left, right;
       if (ppm)
@@ -320,8 +353,6 @@ public:
         mz_it++; int_it++;
       }
 
-      integrated_intensity = 0;
-
       // walk right and left and add to our intensity
       mz_walker  = mz_it;
       int_walker = int_it;
@@ -341,16 +372,22 @@ public:
       // walk to the right until we go outside the window, then walk to the left until we are outside the window
       mz_walker  = mz_it;
       int_walker = int_it;
-      mz_walker--;
-      int_walker--;
+      if (mz_it != mz_start)
+      {
+        mz_walker--;
+        int_walker--;
+      }
       while (mz_walker != mz_start && (*mz_walker) > left && (*mz_walker) < right)
       {
         integrated_intensity += (*int_walker); mz_walker--; int_walker--;
       }
       mz_walker  = mz_it;
       int_walker = int_it;
-      mz_walker++;
-      int_walker++;
+      if (mz_it != mz_end)
+      {
+        mz_walker++;
+        int_walker++;
+      }
       while (mz_walker != mz_end && (*mz_walker) > left && (*mz_walker) < right)
       {
         integrated_intensity += (*int_walker); mz_walker++; int_walker++;

@@ -45,7 +45,7 @@
 #ifndef MS2_FEATURE_H
 #define MS2_FEATURE_H
 
-#include "MS2Fragment.h"
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Fragment.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ClusteredMS2ConsensusSpectrum.h>
 
 namespace OpenMS

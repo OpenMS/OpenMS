@@ -53,18 +53,32 @@
 namespace OpenMS
 {
 /**
- @brief This class generates a TargetedExperiment object with decoys based on a TargetedExperiment object
+  @brief This class generates a TargetedExperiment object with decoys based on a TargetedExperiment object
+ 
+  There are multiple methods to create the decoy transitions, the simplest ones
+  are reverse and pseudo-reverse which reverse the sequence either completely or
+  leaving the last (tryptic) AA untouched respectively.
+ 
+  Another decoy generation method is "shuffle" which uses an algorithm similar
+  to the one described in Lam, Henry, et al. (2010). "Artificial decoy spectral
+  libraries for false discovery rate estimation in spectral library searching in
+  proteomics".  Journal of Proteome Research 9, 605-610. It shuffles the amino
+  acid sequence and shuffles the fragment ion intensities accordingly, however
+  for this to work the fragment ions need to be matched to annotated before.
 
- There are multiple methods to create the decoy transitions, the simplest ones
- are reverse and pseudo-reverse which reverse the sequence either completely or
- leaving the last (tryptic) AA untouched respectively.
 
- Another decoy generation method is "shuffle" which uses an algorithm similar
- to the one described in Lam, Henry, et al. (2010). "Artificial decoy spectral
- libraries for false discovery rate estimation in spectral library searching in
- proteomics".  Journal of Proteome Research 9, 605-610. It shuffles the amino
- acid sequence and shuffles the fragment ion intensities accordingly, however
- for this to work the fragment ions need to be matched to annotated before.
+  First, the algorithm goes through all peptides and applies the decoy method to
+  the target peptide sequence (pseudo-reverse, reverse or shuffle) in order to
+  produce the decoy sequence. Then, for each peptide, the fragment ions in the
+  target library are matched to their most likely origin (e.g. the ions are
+  annotated with their ion series (a,b,y) and the fragment number and optionally
+  a neutral loss (10 different neutral losses are currently implemented)). For
+  each fragment ion from the target peptide, an equivalent ion is created for the
+  decoy peptide with the same intensity (e.g. if the target peptide sequence has
+  a b5 ion with a normalized intensity of 200, an equivalent b5 ion for the
+  decoy sequence is created and assigned the intensity 200).
+  Optionally, the m/z values are corrected to reflect the theoretical value rather
+  than the experimental value in the library.
 
  */
 
@@ -87,6 +101,7 @@ public:
       that is the most likely explanation for the product.
 
       mz_threshold is used for the matching of theoretical ion series to the observed one
+
 
     */
     void generateDecoys(OpenMS::TargetedExperiment& exp,

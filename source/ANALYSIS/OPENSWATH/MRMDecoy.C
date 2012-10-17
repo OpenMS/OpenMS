@@ -257,6 +257,8 @@ namespace OpenMS
 
   float MRMDecoy::AASequenceIdentity(const String& sequence, const String& decoy)
   {
+    OPENMS_PRECONDITION(sequence.size() == decoy.size(), "Cannot compare two sequences of unequal length");
+
     std::vector<char> sequence_v(sequence.begin(), sequence.end());
     std::vector<char> decoy_v(decoy.begin(), decoy.end());
     int running = 0;
@@ -347,6 +349,9 @@ namespace OpenMS
         peptide.sequence.append(aa[pos]);
         pos = (pseudoRNG() % aa_size);
         peptide.sequence.append(aa[pos]);
+
+        // now make the shuffled peptide the same length as the new peptide
+        shuffled = peptide;
       }
     }
 
