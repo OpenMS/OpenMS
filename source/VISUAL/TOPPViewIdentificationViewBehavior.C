@@ -546,7 +546,12 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::activateBehavior()
   {
-    SpectrumCanvas * current_canvas = tv_->getActive1DWidget()->canvas();
+    Spectrum1DWidget* w = tv_->getActive1DWidget();
+    if( w == 0)
+    {
+      return;
+    }
+    SpectrumCanvas * current_canvas = w->canvas();
     LayerData & current_layer = current_canvas->getCurrentLayer();
     SpectrumType & current_spectrum = current_layer.getCurrentSpectrum();
 

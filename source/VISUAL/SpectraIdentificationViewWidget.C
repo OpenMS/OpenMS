@@ -163,8 +163,18 @@ namespace OpenMS
     connect(table_widget_, SIGNAL(cellClicked(int, int)), this, SLOT(cellClicked_(int, int)));
   }
 
+  QTableWidget* SpectraIdentificationViewWidget::getTableWidget()
+  {
+    return table_widget_;
+  }
+
   void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
   {
+    if (row >= table_widget_->rowCount() || column >= table_widget_->columnCount())
+    {
+      return;
+    }
+
     int ms2_spectrum_index = table_widget_->item(row, 1)->data(Qt::DisplayRole).toInt();
 
     if (column == 3) // precursor mz column
@@ -713,6 +723,11 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::exportEntries_()
   {
+    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    {
+      return;
+    }
+
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "csv file (*.csv)");
     QFile f(filename);
 
@@ -751,6 +766,12 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::saveIdXML_()
   {
+    // no valid peak layer attached
+    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    {
+      return;
+    }
+
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML)");
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;

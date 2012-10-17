@@ -505,7 +505,7 @@ namespace OpenMS
 
     views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
     views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
-    views_tabwidget_->setTabEnabled(0, true);
+    views_tabwidget_->setTabEnabled(0, false);
     views_tabwidget_->setTabEnabled(1, false);
 
     // switch between different view tabs
@@ -1424,6 +1424,10 @@ namespace OpenMS
     {
       showSpectrumWidgetInWindow(target_window, caption);
     }
+
+    // enable spectra view tab
+    views_tabwidget_->setTabEnabled(0, true);
+
     //updateDataBar();
     updateLayerBar();
     updateViewBar();
@@ -1920,7 +1924,30 @@ namespace OpenMS
 
     if (layer_row == -1 || cc == 0)
     {
-      // TODO: we need to clean up the SpectraViewWidget & friends
+      if (spectra_view_widget_)
+      {
+        spectra_view_widget_->getTreeWidget()->clear();
+        spectra_view_widget_->getComboBox()->clear();
+      }
+
+      if (spectra_identification_view_widget_)
+      {
+        spectra_identification_view_widget_->attachLayer(0);
+        // remove all entries
+        QTableWidget* w = spectra_identification_view_widget_->getTableWidget();
+        for (int i = w->rowCount() - 1; i >= 0; --i)
+        {
+          w->removeRow(i);
+        }
+        for (int i = w->columnCount() - 1; i>=0; --i)
+        {
+          w->removeColumn(i);
+        }        
+        w->clear();
+        views_tabwidget_->setTabEnabled(1, false);
+        views_tabwidget_->setTabEnabled(0, true);
+      }
+
       return;
     }
 

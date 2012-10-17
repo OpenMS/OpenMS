@@ -62,6 +62,9 @@ public:
     void attachLayer(LayerData * model);
     /// Helper function to block outgoing signals
     bool ignore_update;
+
+    // access the table widget
+    QTableWidget* getTableWidget();
 public slots:
     /// Rebuild table entries
     void updateEntries();
