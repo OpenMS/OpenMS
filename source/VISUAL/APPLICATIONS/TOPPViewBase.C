@@ -1058,7 +1058,7 @@ namespace OpenMS
       param_.setValue("preferences:idview:z_intensity", z_intensity->value(), "Default intensity of z-ions");
       param_.setValue("preferences:idview:relative_loss_intensity", relative_loss_intensity->value(), "Relativ loss in percent");
       param_.setValue("preferences:idview:max_isotope", max_isotopes->value(), "Maximum number of isotopes");
-      param_.setValue("preferences:idview:charge", charge->value(), "Charge state");
+      param_.setValue("preferences:idview:charge", charge->value(), "Maximum charge state");
       param_.setValue("preferences:idview:tolerance", tolerance->value(), "Alignment tolerance");
 
       String checked;

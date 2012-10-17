@@ -248,7 +248,7 @@ namespace OpenMS
   }
 
   /// Behavior for activate1DSpectrum
-  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(std::vector<int, std::allocator<int> > indices)
+  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(std::vector<int, std::allocator<int> >)
   {
   }
 
@@ -310,35 +310,45 @@ namespace OpenMS
 
       try
       {
-        Int charge = 1;
+        Int max_charge = (Int)tv_params.getValue("preferences:idview:charge");
 
-        if (tv_params.getValue("preferences:idview:show_a_ions").toBool()) // "A-ions"
+        // restrict max charge ladder to charge of precursor ion
+        if (ph.getCharge() >= 1)
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
+          max_charge = std::max(max_charge, ph.getCharge());
         }
-        if (tv_params.getValue("preferences:idview:show_b_ions").toBool()) // "B-ions"
+
+        // generate mass ladder for each charge state
+        for (Int charge = 1; charge <= max_charge; ++charge)
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_c_ions").toBool()) // "C-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_x_ions").toBool()) // "X-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_y_ions").toBool()) // "Y-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_z_ions").toBool()) // "Z-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_precursor").toBool()) // "Precursor"
-        {
-          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
+          if (tv_params.getValue("preferences:idview:show_a_ions").toBool()) // "A-ions"
+          {
+            generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
+          }
+          if (tv_params.getValue("preferences:idview:show_b_ions").toBool()) // "B-ions"
+          {
+            generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
+          }
+          if (tv_params.getValue("preferences:idview:show_c_ions").toBool()) // "C-ions"
+          {
+            generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
+          }
+          if (tv_params.getValue("preferences:idview:show_x_ions").toBool()) // "X-ions"
+          {
+            generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
+          }
+          if (tv_params.getValue("preferences:idview:show_y_ions").toBool()) // "Y-ions"
+          {
+            generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
+          }
+          if (tv_params.getValue("preferences:idview:show_z_ions").toBool()) // "Z-ions"
+          {
+            generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
+          }
+          if (tv_params.getValue("preferences:idview:show_precursor").toBool()) // "Precursor"
+          {
+            generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
+          }
         }
         if (tv_params.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
         {
