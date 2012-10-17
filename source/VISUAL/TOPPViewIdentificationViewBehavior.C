@@ -486,6 +486,12 @@ namespace OpenMS
             Annotation1DItem * item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
             // save label for later removal
             temporary_annotations_.push_back(item);
+          } else
+          {
+            s.append("\n");
+            Annotation1DItem * item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::black);
+            // save label for later removal
+            temporary_annotations_.push_back(item);
           }
         }
 
