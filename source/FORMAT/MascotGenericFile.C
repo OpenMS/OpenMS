@@ -49,7 +49,7 @@ namespace OpenMS
     defaults_.setValue("database", "MSDB", "Name of the sequence database");
     defaults_.setValue("search_type", "MIS", "Name of the search type for the query", StringList::create("advanced"));
     defaults_.setValidStrings("search_type", StringList::create("MIS,SQ,PMF"));
-    defaults_.setValue("enzyme", "Trypsin", "Name of enzyme used for the digestion");
+    defaults_.setValue("enzyme", "Trypsin", "The enzyme descriptor to the enzyme used for digestion. (Trypsin is default, None would be best for peptide input or unspecific digestion, for more please refer to your mascot server).");
     defaults_.setValue("instrument", "Default", "Instrument definition which specifies the fragmentation rules");
     defaults_.setValue("missed_cleavages", 1, "Number of missed cleavages allowed for the enzyme");
     defaults_.setMinInt("missed_cleavages", 0);
@@ -246,7 +246,7 @@ namespace OpenMS
                                     String(spec.size()));
     }
     DoubleReal mz(precursor.getMZ()), rt(spec.getRT());
-    
+
     if (mz == 0)
     {
       //retention time
@@ -261,7 +261,7 @@ namespace OpenMS
       os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
 
       bool skip_spectrum_charges(param_.getValue("skip_spectrum_charges").toBool());
-      
+
       int charge(precursor.getCharge());
 
       if (charge != 0)

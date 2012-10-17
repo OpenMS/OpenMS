@@ -245,7 +245,7 @@ protected:
     registerStringList_("charges", "[1+ 2+ ...]", StringList::create("1+,2+,3+"), "the different charge states", false);
     registerStringOption_("db", "<name>", "MSDB", "the database to search in", false);
     registerStringOption_("hits", "<num>", "AUTO", "the number of hits to report", false);
-    registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
+    registerStringOption_("cleavage", "<enz>", "Trypsin", "The enzyme descriptor to the enzyme used for digestion. (Trypsin is default, None would be best for peptide input or unspecific digestion, for more please refer to your mascot server).", false);
     setValidStrings_("cleavage", StringList::create("Trypsin,Arg-C,Asp-N,Asp-N_ambic,Chymotrypsin,CNBr,CNBr+Trypsin,Formic_acid,Lys-C,Lys-C/P,PepsinA,Tryp-CNBr,TrypChymo,Trypsin/P,V8-DE,V8-E,semiTrypsin,LysC+AspN,None"));
     registerIntOption_("missed_cleavages", "<num>", 0, "number of allowed missed cleavages", false);
     setMinInt_("missed_cleavages", 0);
