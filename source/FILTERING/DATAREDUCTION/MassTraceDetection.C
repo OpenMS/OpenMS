@@ -59,7 +59,7 @@ MassTraceDetection::MassTraceDetection() :
     defaults_.setValidStrings("reestimate_mt_sd", StringList::create(("true,false")));
 
     // advanced parameters
-    defaults_.setValue("min_sample_rate", 0.3, "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
+    defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
     defaults_.setValue("min_trace_length", 3.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
 
 
@@ -87,80 +87,6 @@ void MassTraceDetection::updateIterativeWeightedMeanMZ(const DoubleReal & added_
 
     return;
 }
-
-//void MassTraceDetection::filterByPeakWidth(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& filt_mtraces)
-//{
-//    std::multimap<Size, Size> histo_map;
-
-//    for (Size i = 0; i < mt_vec.size(); ++i)
-//    {
-//        mt_vec[i].estimateFWHM(false);
-//        Size fwhm(mt_vec[i].getFWHMScansNum());
-
-//        histo_map.insert(std::make_pair(fwhm, i));
-//    }
-
-//    // compute median peak width
-//    std::vector<DoubleReal> pw_vec;
-//    std::vector<Size> pw_idx_vec;
-
-//    for (std::multimap<Size, Size>::const_iterator c_it = histo_map.begin(); c_it != histo_map.end(); ++c_it)
-//    {
-//        pw_vec.push_back(c_it->first);
-//        pw_idx_vec.push_back(c_it->second);
-//    }
-
-//    // Size pw_vec_size = pw_vec.size();
-//    DoubleReal pw_median(Math::median(pw_vec.begin(), pw_vec.end(), true));
-
-
-//    // compute median of absolute deviances (MAD)
-//    std::vector<DoubleReal> abs_devs;
-
-//    for (Size pw_i = 0; pw_i < pw_vec.size(); ++pw_i)
-//    {
-//        abs_devs.push_back(std::fabs(pw_vec[pw_i] - pw_median));
-//    }
-
-//    // Size abs_devs_size = abs_devs.size();
-//    DoubleReal pw_mad(Math::median(abs_devs.begin(), abs_devs.end(), false));
-
-//    DoubleReal lower_pw_bound(0.0);
-
-//    if (pw_median - 2*pw_mad > 0.0)
-//    {
-//        lower_pw_bound = pw_median - 2*pw_mad;
-//    }
-
-//    // DoubleReal upper_pw_bound(std::floor(pw_median + 2*pw_mad));
-
-//    for (Size i = 0; i < mt_vec.size(); ++i)
-//    {
-//        // set to lowest peak width according to distribution
-//        if (pw_vec[i] < lower_pw_bound)
-//        {
-//            if (mt_vec[pw_idx_vec[i]].getSize() >= lower_pw_bound)
-//            {
-//                if (mt_vec[pw_idx_vec[i]].getSize() >= pw_median)
-//                {
-//                    mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)pw_median);
-//                }
-//                else
-//                {
-//                    mt_vec[pw_idx_vec[i]].setFWHMScansNum((Size)lower_pw_bound); // override "false" pw estimation
-//                }
-
-//                filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
-//            }
-//        }
-//        else
-//        {
-//            filt_mtraces.push_back(mt_vec[pw_idx_vec[i]]);
-//        }
-//    }
-
-//    return ;
-//}
 
 void MassTraceDetection::run(MSExperiment<Peak1D>::ConstAreaIterator & begin, MSExperiment<Peak1D>::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces)
 {
@@ -339,6 +265,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
     Size min_fwhm_scans(3);
     DoubleReal scan_time(std::fabs(input_exp[input_exp.size() - 1].getRT() - input_exp[0].getRT()) / input_exp.size());
 
+    std::cout << "scan_time: " << scan_time << " " << min_trace_length_ << std::endl;
+
     Size scan_nums(std::floor(min_trace_length_ / scan_time));
 
     if (scan_nums > min_fwhm_scans)
@@ -346,11 +274,10 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         min_fwhm_scans = scan_nums;
     }
 
-    Size min_flank_scans(std::floor((DoubleReal)min_fwhm_scans / 2.0));
+    // Size min_flank_scans(min_fwhm_scans/2);
+    Size min_flank_scans(10);
 
-    // std::cout << "min_fwhm_scans: " << min_fwhm_scans << " fwhm: " << " time: " << scan_time << "input size" << work_exp.size() << " " << chrom_apeces.size() << std::endl;
-
-    // this->endProgress();
+    std::cout << scan_nums << " " << min_flank_scans << " " << min_fwhm_scans << std::endl;
 
     // discard last spectrum's offset
     spec_offsets.pop_back();
@@ -359,11 +286,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
     // start extending mass traces beginning with the apex peak
 
-    // Size min_datapoints = std::floor(chrom_fwhm_/(scan_rt_diff*2));
-    Size min_data_points(3);
-
-    // Size min_trace_quality = std::floor(2*min_datapoints*min_sample_rate_);
-
     Size trace_number(1);
 
     this->startProgress(0, peak_count, "mass trace detection");
@@ -371,7 +293,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
     for (MapIdxSortedByInt::reverse_iterator m_it = chrom_apeces.rbegin(); m_it != chrom_apeces.rend(); ++m_it)
     {
-
         Size apex_scan_idx(m_it->second.first);
         Size apex_peak_idx(m_it->second.second);
 
@@ -383,7 +304,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         apex_peak.setMZ(work_exp[apex_scan_idx][apex_peak_idx].getMZ());
         apex_peak.setIntensity(work_exp[apex_scan_idx][apex_peak_idx].getIntensity());
 
-        DoubleReal half_max_int(work_exp[apex_scan_idx][apex_peak_idx].getIntensity() / 2.0);
+        // DoubleReal half_max_int(work_exp[apex_scan_idx][apex_peak_idx].getIntensity() / 2.0);
 
         Size trace_up_idx(apex_scan_idx);
         Size trace_down_idx(apex_scan_idx);
@@ -402,32 +323,32 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         std::vector<std::pair<Size, Size> > gathered_idx;
         gathered_idx.push_back(std::make_pair(apex_scan_idx, apex_peak_idx));
 
-        Size peak_count_downward(0);
-        Size peak_count_upward(0);
+        //        Size peak_count_downward(0);
+        //        Size peak_count_upward(0);
 
         Size up_hitting_peak(0), down_hitting_peak(0);
         Size up_scan_counter(0), down_scan_counter(0);
 
-        Size fwhm_counter_down(0), fwhm_counter_up(0);
+        //        Size fwhm_counter_down(0), fwhm_counter_up(0);
 
         bool toggle_up = true, toggle_down = true;
 
-        DoubleReal int_midpoint_down(apex_peak.getIntensity()), int_midpoint_up(apex_peak.getIntensity());
+        // DoubleReal int_midpoint_down(apex_peak.getIntensity()), int_midpoint_up(apex_peak.getIntensity());
 
-        Size outliers_up(0), outliers_down(0);
-        Size OUTLIER_BOUND_DOWN(10), OUTLIER_BOUND_UP(10);
+        // Size outliers_up(0), outliers_down(0);
+        // Size OUTLIER_BOUND_DOWN(10), OUTLIER_BOUND_UP(10);
 
-        Size conseq_up(0), conseq_down(0);
-        Size max_conseq_missing(10);
+        Size conseq_missed_peak_up(0), conseq_missed_peak_down(0);
+        // Size max_conseq_missing(10);
 
-        DoubleReal outlier_ratio(0.3);
+        // DoubleReal outlier_ratio(0.3);
 
         DoubleReal ftl_mean(centroid_mz), ftl_sd((centroid_mz / 1000000) * mass_error_ppm_);
-        DoubleReal lower_sd_bound((centroid_mz / 1000000) * mass_error_ppm_);
+        // DoubleReal lower_sd_bound((centroid_mz / 1000000) * mass_error_ppm_);
 
         // fixed_mean(centroid_mz), fixed_sd((centroid_mz/1000000)*mass_error_ppm_);
-        DoubleReal strategy_loss(0.0);
-        Size ftl_t(0);
+        // DoubleReal strategy_loss(0.0);
+        // Size ftl_t(0);
         DoubleReal intensity_so_far(apex_peak.getIntensity());
 
         while (((trace_down_idx > 0) && toggle_down) || ((trace_up_idx < work_exp.size() - 1) && toggle_up))
@@ -446,11 +367,11 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
                     DoubleReal right_bound, left_bound;
 
-                    right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
-                    left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
+                    //                    right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
+                    //                    left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
 
-                    //                    right_bound = centroid_mz + 3 * ftl_sd;
-                    //                    left_bound = centroid_mz - 3 * ftl_sd;
+                    right_bound = centroid_mz + 3 * ftl_sd;
+                    left_bound = centroid_mz - 3 * ftl_sd;
 
                     // std::cout << "down: " << centroid_mz << " "<<  ftl_sd << std::endl;
 
@@ -473,7 +394,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                         updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
                         gathered_idx.push_back(std::make_pair(trace_down_idx - 1, next_down_peak_idx));
 
-                        ++ftl_t;
+                        // ++ftl_t;
                         // updateMeanEstimate(next_down_peak_mz, ftl_mean, ftl_t);
                         // updateSDEstimate(next_down_peak_mz, ftl_mean, ftl_sd, ftl_t);
 
@@ -488,36 +409,34 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                             }
                         }
 
-                        DoubleReal new_midpoint((int_midpoint_down + next_down_peak_int) / 2.0);
+                        //                        DoubleReal new_midpoint((int_midpoint_down + next_down_peak_int) / 2.0);
 
-                        if (new_midpoint > half_max_int)
-                        {
-                            // fwhm_down = false;
-                            int_midpoint_down = new_midpoint;
-                            ++fwhm_counter_down;
-                        }
-
-
-                        DoubleReal sd_right = centroid_mz + 3 * ftl_sd;
-                        DoubleReal sd_left = centroid_mz - 3 * ftl_sd;
+                        //                        if (new_midpoint > half_max_int)
+                        //                        {
+                        //                            // fwhm_down = false;
+                        //                            int_midpoint_down = new_midpoint;
+                        //                            ++fwhm_counter_down;
+                        //                        }
 
 
-                        if (next_down_peak_mz < sd_left || next_down_peak_mz > sd_right)
-                        {
-                            ++outliers_down;
-                        }
+                        //                        DoubleReal sd_right = centroid_mz + 3 * ftl_sd;
+                        //                        DoubleReal sd_left = centroid_mz - 3 * ftl_sd;
 
-                        ++peak_count_downward;
+
+                        //                        if (next_down_peak_mz < sd_left || next_down_peak_mz > sd_right)
+                        //                        {
+                        //                            ++outliers_down;
+                        //                        }
+
+                        //                     ++peak_count_downward;
                         ++down_hitting_peak;
-
-
-                        conseq_down = 0;
+                        conseq_missed_peak_down = 0;
                     }
                     else
                     {
-                        ++outliers_down;
+                        // ++outliers_down;
 
-                        ++conseq_down;
+                        ++conseq_missed_peak_down;
                         // std::cout << "outlier down! " << std::endl;
                     }
 
@@ -531,21 +450,21 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                 ++down_scan_counter;
 
 
-                if (conseq_down > max_conseq_missing)
-                {
-                    toggle_down = false;
-                }
-
-                //                if (down_scan_counter > min_flank_scans)
+                //                if (conseq_missed_peak_down > max_conseq_missing)
                 //                {
-                //                    //std::cout << "down ratio: " << (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter << std::endl;
-                //                    DoubleReal trace_sampling_ratio_down((DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter);
-
-                //                    if (trace_sampling_ratio_down < min_sample_rate_)
-                //                    {
-                //                        toggle_down = false;
-                //                    }
+                //                    toggle_down = false;
                 //                }
+
+                if (down_scan_counter > min_flank_scans)
+                {
+                    //std::cout << "down ratio: " << (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter << std::endl;
+                    DoubleReal trace_sampling_ratio_down((DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter);
+
+                    if (trace_sampling_ratio_down < min_sample_rate_)
+                    {
+                        toggle_down = false;
+                    }
+                }
 
             }
 
@@ -564,12 +483,12 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
                     DoubleReal right_bound, left_bound;
 
-                    right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
-                    left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
+                    //                    right_bound = centroid_mz + (centroid_mz/1000000)*mass_error_ppm_;
+                    //                    left_bound = centroid_mz - (centroid_mz/1000000)*mass_error_ppm_;
 
 
-                    //                    right_bound = centroid_mz + 3 * ftl_sd;
-                    //                    left_bound = centroid_mz - 3 * ftl_sd;
+                    right_bound = centroid_mz + 3 * ftl_sd;
+                    left_bound = centroid_mz - 3 * ftl_sd;
 
 
 
@@ -596,7 +515,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                         updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
                         gathered_idx.push_back(std::make_pair(trace_up_idx + 1, next_up_peak_idx));
 
-                        ++ftl_t;
+                        // ++ftl_t;
                         // updateMeanEstimate(next_up_peak_mz, ftl_mean, ftl_t);
                         // updateSDEstimate(next_up_peak_mz, ftl_mean, ftl_sd, ftl_t);
 
@@ -641,34 +560,35 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                         //                        std::cout << "strategy loss: " << strategy_loss << " fixed loss: " << fixed_loss << std::endl;
 
 
-                        DoubleReal new_midpoint((int_midpoint_up + next_up_peak_int) / 2.0);
+                        //                        DoubleReal new_midpoint((int_midpoint_up + next_up_peak_int) / 2.0);
 
-                        if (new_midpoint > half_max_int)
-                        {
-                            // fwhm_up = false;
-                            int_midpoint_up = new_midpoint;
-                            ++fwhm_counter_up;
-                        }
+                        //                        if (new_midpoint > half_max_int)
+                        //                        {
+                        //                            // fwhm_up = false;
+                        //                            int_midpoint_up = new_midpoint;
+                        //                            ++fwhm_counter_up;
+                        //                        }
 
-                        ++peak_count_upward;
+                        //                        ++peak_count_upward;
+
                         ++up_hitting_peak;
 
-                        DoubleReal sd_right = centroid_mz + 3 * ftl_sd;
-                        DoubleReal sd_left = centroid_mz - 3 * ftl_sd;
+                        //                        DoubleReal sd_right = centroid_mz + 3 * ftl_sd;
+                        //                        DoubleReal sd_left = centroid_mz - 3 * ftl_sd;
 
 
-                        if (next_up_peak_mz < sd_left || next_up_peak_mz > sd_right)
-                        {
-                            ++outliers_up;
-                        }
+                        //                        if (next_up_peak_mz < sd_left || next_up_peak_mz > sd_right)
+                        //                        {
+                        //                            ++outliers_up;
+                        //                        }
 
-                        conseq_up = 0;
+                        conseq_missed_peak_up = 0;
 
                     }
                     else
                     {
-                        ++outliers_up;
-                        ++conseq_up;
+                        // ++outliers_up;
+                        ++conseq_missed_peak_up;
                         // std::cout << "outlier up" << std::endl;
                     }
 
@@ -697,33 +617,33 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                 //                }
                 //                }
 
-                if (conseq_up > max_conseq_missing)
-                {
-                    toggle_up = false;
-                }
-
-                //                if (up_scan_counter > min_flank_scans)
+                //                if (conseq_missed_peak_up > max_conseq_missing)
                 //                {
-                //                    //std::cout << "down ratio: " << (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter << std::endl;
-                //                    DoubleReal trace_sampling_ratio_up((DoubleReal)up_hitting_peak/(DoubleReal)up_scan_counter);
-
-                //                    if (trace_sampling_ratio_up < min_sample_rate_)
-                //                    {
-                //                        toggle_up = false;
-                //                    }
+                //                    toggle_up = false;
                 //                }
+
+                if (up_scan_counter > min_flank_scans)
+                {
+                    //std::cout << "down ratio: " << (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter << std::endl;
+                    DoubleReal trace_sampling_ratio_up((DoubleReal)up_hitting_peak/(DoubleReal)up_scan_counter);
+
+                    if (trace_sampling_ratio_up < min_sample_rate_)
+                    {
+                        toggle_up = false;
+                    }
+                }
 
 
             }
 
         }
 
-        DoubleReal num_scans(down_scan_counter + up_scan_counter + 1 - conseq_down - conseq_up);
+        DoubleReal num_scans(down_scan_counter + up_scan_counter + 1 - conseq_missed_peak_down - conseq_missed_peak_up);
 
         DoubleReal mt_quality((DoubleReal)current_trace.size() / (DoubleReal)num_scans);
         DoubleReal rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
 
-        // std::cout << "T" << trace_number << " down: " << down_scan_counter << " up: " << up_scan_counter << " cons down " << conseq_down << " cons_up" << conseq_up << " idx " << trace_up_idx - trace_down_idx << " minscans: " << num_scans << " peaks: " << current_trace.size() << " " << mt_quality << std::endl;
+        // std::cout << "T" << trace_number << " down: " << down_scan_counter << " up: " << up_scan_counter << " cons down " << conseq_missed_peak_down << " cons_up" << conseq_missed_peak_up << " idx " << trace_up_idx - trace_down_idx << " minscans: " << num_scans << " peaks: " << current_trace.size() << " " << mt_quality << std::endl;
 
         // if (current_trace.size() >= min_fwhm_scans)
         // if (current_trace.size() >= std::floor(num_scans*min_sample_rate_) && num_scans >= min_fwhm_scans)

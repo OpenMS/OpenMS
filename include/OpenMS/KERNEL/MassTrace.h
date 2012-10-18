@@ -274,6 +274,8 @@ public:
     /// Compute & update centroid RT as a intensity-weighted mean of RTs.
     void updateWeightedMeanRT();
 
+    void updateSmoothedWeightedMeanRT();
+
     /// Compute & update centroid RT as median position of intensities.
     void updateMedianRT();
 
