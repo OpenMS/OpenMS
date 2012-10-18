@@ -144,19 +144,6 @@
     </Peptide>
   </CompoundList>
   <TransitionList>
-    <Transition id="DECOY_AAAAAK.exclude_similar_test1" peptideRef="DECOY_AAAAAK">
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="100"/>
-      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <cvParam cvRef="" accession="" name="annotation" value="AAAAAK0"/>
-      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="37.48"/>
-      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="251.75" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="181.127283860931"/>
-      </Product>
-    </Transition>
     <Transition id="DECOY_AQRT.ADVTPADFSEWSK.2_y9_1.light" peptideRef="DECOY_ADVTPADFSEWSK">
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="100"/>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>

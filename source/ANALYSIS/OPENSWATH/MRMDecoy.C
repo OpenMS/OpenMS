@@ -83,7 +83,7 @@ namespace OpenMS
     {
       for (std::map<String, double>::iterator ordinal = target_ionseries[*iontype].begin(); ordinal != target_ionseries[*iontype].end(); ++ordinal)
       {
-        if (abs(ordinal->second - ProductMZ) <= mz_threshold)
+        if (std::fabs(ordinal->second - ProductMZ) <= mz_threshold)
         {
           ion = make_pair(ordinal->first, ordinal->second);
           break;
@@ -649,7 +649,7 @@ namespace OpenMS
         {
           if (exclude_similar)
           {
-            if(fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) > similarity_threshold)
+            if(std::fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) > similarity_threshold)
             {
               decoy_transitions.push_back(decoy_tr);
             }
