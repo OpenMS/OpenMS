@@ -131,7 +131,7 @@ public:
       return cut_off_;
     }
 
-    ///	set cutoff value
+    /// set cutoff value
     virtual void setCutOff(IntensityType cut_off)
     {
       cut_off_ = cut_off;

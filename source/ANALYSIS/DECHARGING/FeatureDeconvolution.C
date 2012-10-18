@@ -842,7 +842,7 @@ namespace OpenMS
             clique_register[f1_idx] = target_cf0;
             //std::cout << "add: F" << f1_idx << " to " <<target_cf0 << " dueto F" << f0_idx << "\n";
           }
-          else //** conflict: the two elements of the pair already have separate CF�s --> merge
+          else //** conflict: the two elements of the pair already have separate CFs --> merge
           { // take every feature from second CF and: #1 put into first CF, #2 change registration with map
             ConsensusFeature::HandleSetType hst = cons_map[target_cf1].getFeatures();
             for (ConsensusFeature::HandleSetType::const_iterator it = hst.begin(); it != hst.end(); ++it) //** update cf_index

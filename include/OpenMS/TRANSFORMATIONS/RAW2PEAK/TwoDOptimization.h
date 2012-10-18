@@ -208,7 +208,7 @@ protected:
     DoubleReal tolerance_mz_;
 
     /// Indices of peaks in the adjacent scans matching peaks in the scan with no. ref_scan
-    //		std::map<Int, std::vector<MSExperiment<>::SpectrumType::Iterator > > matching_peaks_;
+    //  std::map<Int, std::vector<MSExperiment<>::SpectrumType::Iterator > > matching_peaks_;
     std::map<Int, std::vector<PeakIndex> > matching_peaks_;
 
 
@@ -474,7 +474,7 @@ protected:
               cluster_iter->second.peaks.insert(std::pair<UInt, UInt>(curr_scan, curr_peak + 1));                                           // save peak in cluster
               iso_curr_scan.push_back((peak_it + curr_peak + 1)->getMZ());
               clusters_curr_scan.push_back(cluster_iter);
-              //	std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;
+              // std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;
               ++curr_peak;
               if (curr_peak >= nr_peaks_in_scan - 1)
                 break;
@@ -496,7 +496,7 @@ protected:
                 searchInScan_(iso_last_scan.begin(), iso_last_scan.end(), curr_mz);
 
               DoubleReal delta_mz = fabs(*it - curr_mz);
-              //												std::cout << delta_mz << " "<< tolerance_mz << std::endl;
+              // std::cout << delta_mz << " "<< tolerance_mz << std::endl;
               if (delta_mz > tolerance_mz)                                    // check if first peak of last cluster is close enough
               {
                 mz_in_hash = curr_mz;                                         // update current hash key
@@ -845,13 +845,13 @@ protected:
               << penalties.lWidth << std::endl;
 #endif
 //      MSExperiment<Peak1D >::const_iterator help = first;
-//      //		std::cout << "\n\n\n\n---------------------------------------------------------------";
+//      // std::cout << "\n\n\n\n---------------------------------------------------------------";
 //      while(help!=last)
 //          {
-//              //	std::cout<<help->getRT()<<std::endl;
+//              // std::cout<<help->getRT()<<std::endl;
 //              ++help;
 //          }
-    //		std::cout << "---------------------------------------------------------------\n\n\n\n";
+    // std::cout << "---------------------------------------------------------------\n\n\n\n";
 
     UInt max_iteration;
     dv = param_.getValue("iterations");
@@ -1060,7 +1060,7 @@ protected:
       rt = exp[iso_map_iter->second.scans[i]].getRT();
       spec.setRT(rt);
       InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
-      //				if(iter->getRT() != rt) --iter;
+      //  if(iter->getRT() != rt) --iter;
       exp_it = exp.RTBegin(rt);
 #ifdef DEBUG2D
       std::cout << exp_it->getRT() << " vs " << iter->getRT() << std::endl;
@@ -1092,7 +1092,7 @@ protected:
 
       last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
 
-      //	std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
+      //std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
       peak.setPosition(first_peak_mz);
       typename MSExperiment<InputPeakType>::SpectrumType::const_iterator raw_data_iter
         = lower_bound(iter->begin(), iter->end(), peak, typename InputPeakType::PositionLess());

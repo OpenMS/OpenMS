@@ -460,14 +460,14 @@ protected:
       writeDebug_(String("pepXML_file_name: ") + pepXML_file_name, 1);
     }
 
-//			contact_person.setName(getStringOption_("contactName", "unknown"));
-//			writeDebug_(String("Contact name: ") + contact_person.getName(), 1);
+//  contact_person.setName(getStringOption_("contactName", "unknown"));
+//  writeDebug_(String("Contact name: ") + contact_person.getName(), 1);
 //
-//			contact_person.setInstitution(getStringOption_("contactInstitution", "unknown"));
-//			writeDebug_(String("Contact institution: ") + contact_person.getInstitution(), 1);
+//  contact_person.setInstitution(getStringOption_("contactInstitution", "unknown"));
+//  writeDebug_(String("Contact institution: ") + contact_person.getInstitution(), 1);
 //
-//			contact_person.setContactInfo(getStringOption_("contactInfo"));
-//			writeDebug_(String("Contact info: ") + contact_person.getContactInfo(), 1);
+//  contact_person.setContactInfo(getStringOption_("contactInfo"));
+//  writeDebug_(String("Contact info: ") + contact_person.getContactInfo(), 1);
 
 
     //-------------------------------------------------------------

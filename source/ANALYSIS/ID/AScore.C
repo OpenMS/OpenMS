@@ -270,8 +270,8 @@ namespace OpenMS
     }
     pair<multimap<DoubleReal, Size>::iterator, multimap<DoubleReal, Size>::iterator> ret;
     ret = ranking.equal_range(ranking.rbegin()->first);
-    //	for(map<DoubleReal,Size>::iterator it = ret.first; it != ret.second;++it )
-    //	{
+    //for(map<DoubleReal,Size>::iterator it = ret.first; it != ret.second;++it )
+    //{
     vector<Size> & hps = permutations[ranking.rbegin()->second /*it->second*/];       //highest peptide score
     for (Size i = 0; i < hps.size(); ++i)
     {

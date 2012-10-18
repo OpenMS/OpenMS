@@ -366,14 +366,14 @@ namespace OpenMS
     // msInspect file (.tsv)
     for (Size i = 0; i != complete_file.size(); ++i)
     {
-      if (complete_file[i].hasSubstring("scan	time	mz	accurateMZ	mass	intensity	charge	chargeStates	kl	background	median	peaks	scanFirst	scanLast	scanCount	totalIntensity	sumSquaresDist	description"))
+      if (complete_file[i].hasSubstring("scan\ttime\tmz\taccurateMZ\tmass\tintensity\tcharge\tchargeStates\tkl\tbackground\tmedian\tpeaks\tscanFirst\tscanLast\tscanCount\ttotalIntensity\tsumSquaresDist\tdescription"))
       {
         return FileTypes::TSV;
       }
     }
 
     // specArray file (.pepList)
-    if (first_line.hasSubstring("       m/z	     rt(min)	       snr	      charge	   intensity"))
+    if (first_line.hasSubstring("       m/z\t     rt(min)\t       snr\t      charge\t   intensity"))
     {
       return FileTypes::PEPLIST;
     }
@@ -388,7 +388,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 **/
 
     // kroenik file (.kroenik)
-    if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoisotopic Mass	Base Isotope Peak	Best Intensity	Summed Intensity	First RTime	Last RTime	Best RTime	Best Correlation	Modifications"))
+    if (first_line.hasSubstring("File\tFirst Scan\tLast Scan\tNum of Scans\tCharge\tMonoisotopic Mass\tBase Isotope Peak\tBest Intensity\tSummed Intensity\tFirst RTime\tLast RTime\tBest RTime\tBest Correlation\tModifications"))
     {
       return FileTypes::KROENIK;
     }

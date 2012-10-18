@@ -1484,7 +1484,7 @@ private:
     PeptideHit peh;
 
     query.str("");
-    query << "SELECT id, SignificanceThreshold, ScoreType, HigherScoreBetter, fid_MetaInfo, fid_File	FROM ID_PeptideIdentification WHERE fid_Spectrum='"<< id << "'";
+    query << "SELECT id, SignificanceThreshold, ScoreType, HigherScoreBetter, fid_MetaInfo, fid_File FROM ID_PeptideIdentification WHERE fid_Spectrum='" << id << "'";
 
     result = db_con_.executeQuery(query.str());
     while (result.next())

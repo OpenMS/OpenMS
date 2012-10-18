@@ -703,7 +703,7 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       if (exp.getTransitions().size() > 0)
       {
-      	int progress = 0;
+        int progress = 0;
       
         os << "  <TransitionList>" << "\n";
         for (std::vector<ReactionMonitoringTransition>::const_iterator it = exp.getTransitions().begin(); it != exp.getTransitions().end(); ++it)

@@ -547,7 +547,7 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::activateBehavior()
   {
     Spectrum1DWidget* w = tv_->getActive1DWidget();
-    if( w == 0)
+    if ( w == 0)
     {
       return;
     }

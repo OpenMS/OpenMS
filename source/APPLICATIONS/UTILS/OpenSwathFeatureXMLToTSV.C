@@ -67,8 +67,7 @@ void write_out_header(std::ostream &os, FeatureMap<Feature> &feature_map, /* Str
      <<  "m/z"  << "\t"
      <<  "Intensity"  << "\t"
      <<  "ProteinName"  << "\t"
-     <<  "decoy"  << "\t"
-  ;
+     <<  "decoy"  << "\t";
 
   // get all meta values from the first feature
   feature_map[0].getKeys(meta_value_names_tmp);

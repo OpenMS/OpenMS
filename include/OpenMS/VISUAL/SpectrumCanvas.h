@@ -98,7 +98,7 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    /**	@name Type definitions */
+    /**@name Type definitions */
     //@{
 
     /// Main data type (experiment)

@@ -2163,7 +2163,7 @@ protected:
       {
         for (Size j = 0; j < traces[k].peaks.size(); ++j)
         {
-          tf.push_back(String(pseudo_rt_shift * k + traces[k].peaks[j].first) + "	"+ traces[k].peaks[j].second->getIntensity());
+          tf.push_back(String(pseudo_rt_shift * k + traces[k].peaks[j].first) + "\t"+ traces[k].peaks[j].second->getIntensity());
         }
       }
       tf.store(path + plot_nr + ".dta");
@@ -2175,7 +2175,7 @@ protected:
         {
           for (Size j = 0; j < new_traces[k].peaks.size(); ++j)
           {
-            tf.push_back(String(pseudo_rt_shift * k + new_traces[k].peaks[j].first) + "	" + new_traces[k].peaks[j].second->getIntensity());
+            tf.push_back(String(pseudo_rt_shift * k + new_traces[k].peaks[j].first) + "\t" + new_traces[k].peaks[j].second->getIntensity());
           }
         }
 

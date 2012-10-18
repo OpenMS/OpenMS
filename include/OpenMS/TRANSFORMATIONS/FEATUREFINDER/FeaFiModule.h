@@ -196,7 +196,7 @@ public:
       return (*map_)[index.first][index.second].getIntensity();
     }
 
-    /// Returns the	 m/z of a peak
+    /// Returns the m/z of a peak
     inline CoordinateType getPeakMz(const FeatureFinderDefs::IndexPair & index) const
     {
       //Corrupt index

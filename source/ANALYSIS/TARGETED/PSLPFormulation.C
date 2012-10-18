@@ -1105,7 +1105,7 @@ namespace OpenMS
 #ifdef DEBUG_OPS
     std::cout << "now normalize the objective values by " << max_int << "\n";
 #endif
-    //	normalize and invert objectives
+    // normalize and invert objectives
     for (Int i = 0; i < counter; ++i)
     {
       model_->setObjective(i, k2 * model_->getObjective(i) / max_int);
@@ -1139,7 +1139,7 @@ namespace OpenMS
     ///////////////////////////////////////////////////////////////////////
     // ensure that each precursor is acquired maximally once
     ///////////////////////////////////////////////////////////////////////
-    //	std::cout << "now the number of times a precursors is acquired"<<std::endl;
+    //std::cout << "now the number of times a precursors is acquired"<<std::endl;
     Size j = 0;
     for (Size i = 0; i < number_of_features; ++i)
     {
@@ -1570,7 +1570,7 @@ namespace OpenMS
                         << "\tit consists of:"
                         << std::endl;
 #endif
-              //	std::cout << variable_counter <<" penalty for "<<map_iter->first << std::endl;
+              //std::cout << variable_counter <<" penalty for "<<map_iter->first << std::endl;
               ++variable_counter;
 
               std::vector<Int> indices;
@@ -1642,7 +1642,7 @@ namespace OpenMS
 #endif
                   }
                 }
-              } //	if(prot_var_iter != protein_feature_map.end())
+              } //if(prot_var_iter != protein_feature_map.end())
 
               // then go through all (tryptic) peptides of this protein
 #ifdef DEBUG_OPS
@@ -1785,7 +1785,7 @@ namespace OpenMS
               }
               std::cout << "\n";
 #endif
-              //											std::cout << "added row"<<std::endl;
+              //std::cout << "added row"<<std::endl;
             } //if(prot_acc_iter == protein_accs.end())
             else
             {

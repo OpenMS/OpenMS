@@ -1451,7 +1451,7 @@ def CheckForNonStandardConstructs(filename, clean_lines, linenum,
       args.group(1) != 'void' and
       not Match(r'(const\s+)?%s\s*(?:<\w+>\s*)?&' % re.escape(base_classname),
                 args.group(1).strip())):
-    error(filename, linenum, 'runtime/explicit', 5,
+    error(filename, linenum, 'runtime/explicit', 4,
           'Single-argument constructors should be marked explicit.')
 
   # Look for methods declared virtual.

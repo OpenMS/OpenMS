@@ -649,7 +649,7 @@ namespace OpenMS
         {
           if (exclude_similar)
           {
-            if(std::fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) > similarity_threshold)
+            if (std::fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) > similarity_threshold)
             {
               decoy_transitions.push_back(decoy_tr);
             }

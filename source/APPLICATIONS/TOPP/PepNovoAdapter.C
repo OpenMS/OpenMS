@@ -69,41 +69,41 @@ using namespace std;
 
 
 /**
-	@page TOPP_PepNovoAdapter PepNovoAdapter
+  @page TOPP_PepNovoAdapter PepNovoAdapter
 
-	@brief Identifies peptides in MS/MS spectra via PepNovo.
+  @brief Identifies peptides in MS/MS spectra via PepNovo.
 
 <CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-			<td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PepNovoAdapter \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
-		</tr>
-	</table>
+  <table>
+    <tr>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PepNovoAdapter \f$ \longrightarrow \f$</td>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+    </tr>
+  </table>
 </CENTER>
 
-	This wrapper application serves for getting peptide identifications
-	for MS/MS spectra.
+  This wrapper application serves for getting peptide identifications
+  for MS/MS spectra.
 
-	The whole process of identification via PepNovo is executed.
-	Input file is one mzML file containing the MS/MS spectra
-	for which the identifications are to be found. The results are written
-	as an idXML output file.
+  The whole process of identification via PepNovo is executed.
+  Input file is one mzML file containing the MS/MS spectra
+  for which the identifications are to be found. The results are written
+  as an idXML output file.
 
-	The resulting idXML file can then be directly mapped to the spectra using the
-	IDMapper class.
+  The resulting idXML file can then be directly mapped to the spectra using the
+  IDMapper class.
 
-	Consult your PepNovo reference manual for further details about parameter meanings.
+  Consult your PepNovo reference manual for further details about parameter meanings.
 
-	<B>The command line parameters of this tool are:</B>
-	@verbinclude TOPP_PepNovoAdapter.cli
-	<B>INI file documentation of this tool:</B>
-	@htmlinclude TOPP_PepNovoAdapter.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_PepNovoAdapter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_PepNovoAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -112,24 +112,24 @@ using namespace std;
 class TOPPPepNovoAdapter :
   public TOPPBase
 {
-	public:
+  public:
   TOPPPepNovoAdapter() :
     TOPPBase("PepNovoAdapter", "Adapter to PepNovo supporting all PepNovo command line parameters. The results are converted from the PepNovo text outfile format into the idXML format.")
-		{
-		}
+    {
+    }
 
-	protected:
+  protected:
 
-		void registerOptionsAndFlags_()
-		{
-			registerInputFile_("in", "<file>", "", "input file ");
+    void registerOptionsAndFlags_()
+    {
+      registerInputFile_("in", "<file>", "", "input file ");
       setValidFormats_("in", StringList::create("mzML"));
 
-			registerOutputFile_("out", "<file>", "", "output file ");
-			setValidFormats_("out",StringList::create("idXML"));
+      registerOutputFile_("out", "<file>", "", "output file ");
+      setValidFormats_("out",StringList::create("idXML"));
 
-			registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, StringList::create("skipexists"));
-			registerStringOption_("model_directory", "<file>", "", "Name of the directory where the model files are kept.",true);
+      registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, StringList::create("skipexists"));
+      registerStringOption_("model_directory", "<file>", "", "Name of the directory where the model files are kept.",true);
       addEmptyLine_ ();
       addText_("PepNovo Parameters");
       registerFlag_("correct_pm", "Find optimal precursor mass and charge values.");
@@ -140,96 +140,96 @@ class TOPPPepNovoAdapter :
       registerDoubleOption_("pm_tolerance", "<Float>", -1.0, "The precursor mass tolerance (between 0 and 5.0 Da. Set to -1.0 to use model's default setting)", false, false);
       registerStringOption_("model", "<file>", "CID_IT_TRYP", "Name of the model that should be used", false);
 
-			registerStringOption_("digest", "", "TRYPSIN", "Enzyme used for digestion (default TRYPSIN)", false);
-			setValidStrings_("digest", StringList::create("TRYPSIN,NON_SPECIFIC"));
+      registerStringOption_("digest", "", "TRYPSIN", "Enzyme used for digestion (default TRYPSIN)", false);
+      setValidStrings_("digest", StringList::create("TRYPSIN,NON_SPECIFIC"));
 
-			registerIntOption_("tag_length", "<num>", -1, "Returns peptide sequence of the specified length (only lengths 3-6 are allowed)", false);
+      registerIntOption_("tag_length", "<num>", -1, "Returns peptide sequence of the specified length (only lengths 3-6 are allowed)", false);
 
-			registerIntOption_("num_solutions", "<num>", 20, "Number of solutions to be computed", false);
-			setMinInt_("num_solutions",1);
+      registerIntOption_("num_solutions", "<num>", 20, "Number of solutions to be computed", false);
+      setMinInt_("num_solutions",1);
       setMaxInt_("num_solutions", 2000);
 
-			std::vector<String>all_possible_modifications;
-			ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
-			registerStringList_("fixed_modifications", "<mod1,mod2,...>", StringList::create(""), "List of fixed modifications", false);
-			setValidStrings_("fixed_modifications", all_possible_modifications);
-			registerStringList_("variable_modifications", "<mod1,mod2,...>", StringList::create(""), "List of variable modifications", false);
-			setValidStrings_("variable_modifications", all_possible_modifications);
-		}
+      std::vector<String>all_possible_modifications;
+      ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
+      registerStringList_("fixed_modifications", "<mod1,mod2,...>", StringList::create(""), "List of fixed modifications", false);
+      setValidStrings_("fixed_modifications", all_possible_modifications);
+      registerStringList_("variable_modifications", "<mod1,mod2,...>", StringList::create(""), "List of variable modifications", false);
+      setValidStrings_("variable_modifications", all_possible_modifications);
+    }
 
-		ExitCodes main_(int , const char**)
-		{
+    ExitCodes main_(int , const char**)
+    {
 
-			// path to the log file
-			String logfile(getStringOption_("log"));
-			String pepnovo_executable(getStringOption_("pepnovo_executable"));
+      // path to the log file
+      String logfile(getStringOption_("log"));
+      String pepnovo_executable(getStringOption_("pepnovo_executable"));
 
-			PeakMap exp;
+      PeakMap exp;
 
-			String inputfile_name = getStringOption_("in");
-			writeDebug_(String("Input file: ") + inputfile_name, 1);
+      String inputfile_name = getStringOption_("in");
+      writeDebug_(String("Input file: ") + inputfile_name, 1);
 
-			String outputfile_name = getStringOption_("out");
-			writeDebug_(String("Output file: ") + outputfile_name, 1);
+      String outputfile_name = getStringOption_("out");
+      writeDebug_(String("Output file: ") + outputfile_name, 1);
 
-			String model_directory = getStringOption_("model_directory");
-			writeDebug_(String("model directory: ") + model_directory, 1);
+      String model_directory = getStringOption_("model_directory");
+      writeDebug_(String("model directory: ") + model_directory, 1);
 
-			String model_name = getStringOption_("model");
-			writeDebug_(String("model directory: ") + model_name, 1);
+      String model_name = getStringOption_("model");
+      writeDebug_(String("model directory: ") + model_name, 1);
 
-			DoubleReal fragment_tolerance = getDoubleOption_("fragment_tolerance");
-			if(fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
-			{
-				writeLog_("Invalid fragment tolerance");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
+      DoubleReal fragment_tolerance = getDoubleOption_("fragment_tolerance");
+      if (fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
+      {
+        writeLog_("Invalid fragment tolerance");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
 
-			DoubleReal pm_tolerance = getDoubleOption_("pm_tolerance");
-			if(pm_tolerance!=-1.0 && (pm_tolerance<0.0 || pm_tolerance>5.0))
-			{
-				writeLog_("Invalid fragment tolerance");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
+      DoubleReal pm_tolerance = getDoubleOption_("pm_tolerance");
+      if (pm_tolerance!=-1.0 && (pm_tolerance<0.0 || pm_tolerance>5.0))
+      {
+        writeLog_("Invalid fragment tolerance");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
 
-			Int tag_length = getIntOption_("tag_length");
-			if( tag_length!=-1 && (tag_length<3 || tag_length>6))
-			{
-				writeLog_("Invalid fragment tolerance");
-				printUsage_();
-				return ILLEGAL_PARAMETERS;
-			}
+      Int tag_length = getIntOption_("tag_length");
+      if ( tag_length!=-1 && (tag_length<3 || tag_length>6))
+      {
+        writeLog_("Invalid fragment tolerance");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
       String digest = getStringOption_("digest");
       Size num_solutions=getIntOption_("num_solutions");
 
-			//-------------------------------------------------------------
-			// reading input
-			//-------------------------------------------------------------
+      //-------------------------------------------------------------
+      // reading input
+      //-------------------------------------------------------------
 
-			// only load msLevel 2
+      // only load msLevel 2
       MzMLFile mzml_infile;
-			mzml_infile.getOptions().addMSLevel(2);
-			mzml_infile.setLogType(log_type_);
-			mzml_infile.load(inputfile_name, exp);
+      mzml_infile.getOptions().addMSLevel(2);
+      mzml_infile.setLogType(log_type_);
+      mzml_infile.load(inputfile_name, exp);
 
-			// we map the native id to the MZ and RT to be able to
-			// map the IDs back to the spectra (RT, and MZ Meta Information)
-			PepNovoOutfile::IndexPosMappingType index_to_precursor;
-			for (Size i = 0; i < exp.size(); ++i)
-			{
-			  index_to_precursor[i]= make_pair(exp[i].getRT(), exp[i].getPrecursors()[0].getPosition()[0]); //set entry <RT, MZ>
-			}
+      // we map the native id to the MZ and RT to be able to
+      // map the IDs back to the spectra (RT, and MZ Meta Information)
+      PepNovoOutfile::IndexPosMappingType index_to_precursor;
+      for (Size i = 0; i < exp.size(); ++i)
+      {
+        index_to_precursor[i]= make_pair(exp[i].getRT(), exp[i].getPrecursors()[0].getPosition()[0]); //set entry <RT, MZ>
+      }
 
-			logfile = getStringOption_("log");
-			
-			QDir qdir_models_source(model_directory.c_str());
-			if(!qdir_models_source.exists())
-			{
-				writeLog_("The model directory does not exist");
-				return INPUT_FILE_NOT_FOUND;
-			}
+      logfile = getStringOption_("log");
+      
+      QDir qdir_models_source(model_directory.c_str());
+      if (!qdir_models_source.exists())
+      {
+        writeLog_("The model directory does not exist");
+        return INPUT_FILE_NOT_FOUND;
+      }
       
       // create temp directory
       QDir qdir_temp(File::getTempDirectory().toQString());
@@ -243,77 +243,77 @@ class TOPPPepNovoAdapter :
 
       bool error(false);
 
-			try
-			{
-			  //temporary File to store PepNovo output
-			  String temp_pepnovo_outfile = qdir_temp.absoluteFilePath("tmp_pepnovo_out.txt");
+      try
+      {
+        //temporary File to store PepNovo output
+        String temp_pepnovo_outfile = qdir_temp.absoluteFilePath("tmp_pepnovo_out.txt");
         String tmp_models_dir = qdir_temp.absoluteFilePath("Models");
 
         std::map<String, String>mods_and_keys; //, key_to_id;
 
-				if (qdir_temp.cd("Models"))
-				{
-					writeLog_("The temporary directory already contains \"Model\" Folder. Please delete it and re-run. Aborting!");
-					return CANNOT_WRITE_OUTPUT_FILE;
-				}
-				else
-				{
-					qdir_temp.mkdir("Models");
-					qdir_temp.cd("Models");
-				}
+        if (qdir_temp.cd("Models"))
+        {
+          writeLog_("The temporary directory already contains \"Model\" Folder. Please delete it and re-run. Aborting!");
+          return CANNOT_WRITE_OUTPUT_FILE;
+        }
+        else
+        {
+          qdir_temp.mkdir("Models");
+          qdir_temp.cd("Models");
+        }
 
-				//copy the Models folder of OpenMS into the temp_data_directory
-				QStringList pepnovo_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
-				if(pepnovo_files.empty())
-				{
-					writeLog_("The \"Model\" directory does not contain model files. Aborting!");
-					return INPUT_FILE_NOT_FOUND;
-				}
+        //copy the Models folder of OpenMS into the temp_data_directory
+        QStringList pepnovo_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
+        if (pepnovo_files.empty())
+        {
+          writeLog_("The \"Model\" directory does not contain model files. Aborting!");
+          return INPUT_FILE_NOT_FOUND;
+        }
 
-				for(QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
-				{
-				  if(qdir_models_source.cd(*file_it))
-				  {
-				    qdir_temp.mkdir(*file_it);
-				    qdir_temp.cd(*file_it);
-				    QStringList subdir_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
-				    for(QStringList::ConstIterator subdir_file_it=subdir_files.begin(); subdir_file_it!=subdir_files.end(); ++subdir_file_it)
+        for (QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
+        {
+          if (qdir_models_source.cd(*file_it))
+          {
+            qdir_temp.mkdir(*file_it);
+            qdir_temp.cd(*file_it);
+            QStringList subdir_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
+            for (QStringList::ConstIterator subdir_file_it=subdir_files.begin(); subdir_file_it!=subdir_files.end(); ++subdir_file_it)
             {
-				      QFile::copy(qdir_models_source.filePath(*subdir_file_it), qdir_temp.filePath(*subdir_file_it));
+              QFile::copy(qdir_models_source.filePath(*subdir_file_it), qdir_temp.filePath(*subdir_file_it));
             }
-				    qdir_temp.cdUp();
-				    qdir_models_source.cdUp();
-				  }
+            qdir_temp.cdUp();
+            qdir_models_source.cdUp();
+          }
           else
           {
             QFile::copy(qdir_models_source.filePath(*file_it), qdir_temp.filePath(*file_it));
           }
-				}
+        }
 
-				//generate PTM File and store in temp directory
-				PepNovoInfile p_novo_infile;
-				String ptm_command;
-				if(!getStringList_("fixed_modifications").empty() || !getStringList_("variable_modifications").empty())
-				{
-					p_novo_infile.setModifications(getStringList_("fixed_modifications"), getStringList_("variable_modifications"));
-					p_novo_infile.store(qdir_temp.filePath("PepNovo_PTMs.txt"));
-					pepnovo_files.append("PepNovo_PTMs.txt");
-					p_novo_infile.getModifications(mods_and_keys);
+        //generate PTM File and store in temp directory
+        PepNovoInfile p_novo_infile;
+        String ptm_command;
+        if (!getStringList_("fixed_modifications").empty() || !getStringList_("variable_modifications").empty())
+        {
+          p_novo_infile.setModifications(getStringList_("fixed_modifications"), getStringList_("variable_modifications"));
+          p_novo_infile.store(qdir_temp.filePath("PepNovo_PTMs.txt"));
+          pepnovo_files.append("PepNovo_PTMs.txt");
+          p_novo_infile.getModifications(mods_and_keys);
 
-					for(std::map<String, String>::const_iterator key_it=mods_and_keys.begin(); key_it!=mods_and_keys.end();++key_it)
-					{
-						if (ptm_command!="")
-						{
-							ptm_command+=":";
-						}
-						ptm_command+= key_it->first;
-						//key_to_id[key_it->second]=key_it->first;
-					}
-				}
+          for (std::map<String, String>::const_iterator key_it=mods_and_keys.begin(); key_it!=mods_and_keys.end();++key_it)
+          {
+            if (ptm_command!="")
+            {
+              ptm_command+=":";
+            }
+            ptm_command+= key_it->first;
+            //key_to_id[key_it->second]=key_it->first;
+          }
+        }
 
-				//-------------------------------------------------------------
-				// (3) running program according to parameters
-				//-------------------------------------------------------------
+        //-------------------------------------------------------------
+        // (3) running program according to parameters
+        //-------------------------------------------------------------
         QStringList arguments;
 
         arguments << "-file" << mgf_file.toQString();
@@ -331,14 +331,14 @@ class TOPPPepNovoAdapter :
         arguments<<"-model_dir" << tmp_models_dir.toQString();
         //arguments<<">" << temp_pepnovo_outfile.toQString();
 
-				writeDebug_("Use this line to call PepNovo: ", 1);
+        writeDebug_("Use this line to call PepNovo: ", 1);
         writeDebug_(pepnovo_executable + " " + String(arguments.join(" ")), 1);
         QProcess process;
         process.setStandardOutputFile(temp_pepnovo_outfile.toQString());
         process.setStandardErrorFile(temp_pepnovo_outfile.toQString());
         process.start(pepnovo_executable.toQString(), arguments); // does automatic escaping etc...
         if (process.waitForFinished(-1))
-				{
+        {
           //if PepNovo finished successfully use PepNovoOutfile to parse the results and generate idXML
           std::vector< PeptideIdentification > peptide_identifications;
           ProteinIdentification protein_identification;
@@ -355,7 +355,7 @@ class TOPPPepNovoAdapter :
         if (process.exitStatus() != 0)  error = true;
        
       }
-			catch(Exception::BaseException &exc)
+      catch(Exception::BaseException &exc)
       {
         writeLog_(exc.what());
         LOG_ERROR << "Error occurred: " << exc.what() << std::endl;
@@ -380,9 +380,8 @@ class TOPPPepNovoAdapter :
 
 int main( int argc, const char** argv )
 {
-	TOPPPepNovoAdapter tool;
-
-	return tool.main(argc,argv);
+  TOPPPepNovoAdapter tool;
+  return tool.main(argc,argv);
 }
 
 /// @endcond

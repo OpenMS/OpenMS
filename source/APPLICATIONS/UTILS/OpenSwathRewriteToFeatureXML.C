@@ -116,7 +116,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       std::stringstream          lineStream(line);
       std::string                cell;
       int cnt = 0;
-      while(std::getline(lineStream,cell,'\t'))
+      while (std::getline(lineStream,cell,'\t'))
       {
         header_dict[cnt] = cell;
         header_dict_inv[cell] = cnt;
@@ -141,7 +141,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       line_nr++;
       current_row.clear();
       std::stringstream  lineStream(line);
-      while(std::getline(lineStream,cell,'\t'))
+      while (std::getline(lineStream,cell,'\t'))
       {
         current_row.push_back(cell);
       }

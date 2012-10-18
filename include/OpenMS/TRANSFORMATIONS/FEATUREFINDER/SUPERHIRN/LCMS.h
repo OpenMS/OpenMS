@@ -84,7 +84,7 @@ private:
 public:
 
     static double MINIMAL_PEP_PROPHET_THERSHOLD;
-//	static double PEP_PROPHET_THERSHOLD;
+//  static double PEP_PROPHET_THERSHOLD;
 
     // class destructor
     ~LCMS();

@@ -71,7 +71,7 @@ namespace OpenMS
 
   PILISIdentification::PILISIdentification(const PILISIdentification & rhs) :
     DefaultParamHandler(rhs),
-    /*		sequence_db_(0),*/
+    /* sequence_db_(0),*/
     hmm_model_(0),
     own_sequence_db_(false),
     own_model_(false)
@@ -84,7 +84,7 @@ namespace OpenMS
     if (this != &rhs)
     {
       DefaultParamHandler::operator=(rhs);
-      /*	sequence_db_ = 0;*/
+      /*sequence_db_ = 0;*/
       hmm_model_ = 0;
       own_sequence_db_ = false;
       own_model_ = false;
@@ -155,7 +155,7 @@ delete sequence_db_;
 
       //if (id.getHits().size() > max_candidates)
       //{
-      //	id.getHits().resize(max_candidates);
+      //id.getHits().resize(max_candidates);
       //}
 
       ids.push_back(id);

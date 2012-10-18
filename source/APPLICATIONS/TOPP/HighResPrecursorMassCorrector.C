@@ -181,7 +181,7 @@ protected:
           cout << "Error: index is referencing different precursors in original and picked spectrum." << endl;
         }
 
-        //	 cout << mz << " -> " << nearest_peak_mz << endl;
+        // cout << mz << " -> " << nearest_peak_mz << endl;
         DoubleReal deltaMZ = nearest_peak_mz - mz;
         deltaMZs.push_back(deltaMZ);
         mzs.push_back(mz);

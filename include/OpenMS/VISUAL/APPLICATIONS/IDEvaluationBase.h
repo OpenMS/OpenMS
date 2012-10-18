@@ -191,8 +191,7 @@ protected:
     //1D specific stuff
     //@}
 
-  }
-  ; //class
+  }; //class
 
 } //namespace
 

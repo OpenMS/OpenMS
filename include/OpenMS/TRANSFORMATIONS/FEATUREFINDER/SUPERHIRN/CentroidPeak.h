@@ -59,7 +59,7 @@ namespace OpenMS
   {
 public:
 
-//		static int sfCentroidWindowWidth;
+//static int sfCentroidWindowWidth;
 
     CentroidPeak();
     CentroidPeak(double, double);

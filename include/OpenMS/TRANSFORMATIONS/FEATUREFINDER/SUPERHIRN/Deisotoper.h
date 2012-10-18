@@ -61,7 +61,7 @@ namespace OpenMS
   {
 public:
 //  static int sfMinCharge;
-//  static int	sfMaxCharge;
+//  static int sfMaxCharge;
 
     Deisotoper();
     Deisotoper(CentroidData &);

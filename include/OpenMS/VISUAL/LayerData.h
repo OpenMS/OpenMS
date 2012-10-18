@@ -58,7 +58,7 @@ namespace OpenMS
   class LayerData
   {
 public:
-    /**	@name Type definitions */
+    /** @name Type definitions */
     //@{
     /// Dataset types
     enum DataType

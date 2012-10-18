@@ -110,7 +110,7 @@ namespace OpenMS
       //
       //if (count == 10)
       //{
-      //	return;
+      //return;
       //}
     }
     return;
@@ -120,8 +120,8 @@ namespace OpenMS
   {
     //if (CID_spec.getPrecursors().begin()->getMZ() > 1000.0)
     //{
-    //	cerr << "Weight of precursor has been estimated to exceed 2000.0 Da which is the current limit" << endl;
-    //	return;
+    //cerr << "Weight of precursor has been estimated to exceed 2000.0 Da which is the current limit" << endl;
+    //return;
     //}
 
     PeakSpectrum new_CID_spec(CID_spec);

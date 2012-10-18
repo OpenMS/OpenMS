@@ -279,9 +279,7 @@ protected:
     /// Add a peak
     void addPeak_(std::vector<PeakShape> & peaks_DC, PeakArea_ & area, double left_width, double right_width, OptimizePeakDeconvolution::Data & data);
     //@}
-  }
-  ;       // end PeakPickerCWT
-
+  };  // end PeakPickerCWT
 
 } // namespace OpenMS
 

@@ -68,7 +68,7 @@ private:
     std::string FULL_SQ;
     std::string PREV_AA;
     std::vector<std::string> AC;
-//		std::string ORIGINAL_INTERACT_FILE;
+//  std::string ORIGINAL_INTERACT_FILE;
     std::string MS2_TYPE_TAG;
 
     // peptide prophet analysis:
@@ -100,9 +100,9 @@ private:
 public:
     static const double mono_mass[26];
     static const char AA[20];
-//		static double MS2_TR_TOL;
-//		static bool THEO_MATCH_MODUS;
-//		static double MS2_MZ_PPM_TOLERANCE;
+// static double MS2_TR_TOL;
+// static bool THEO_MATCH_MODUS;
+// static double MS2_MZ_PPM_TOLERANCE;
 
     // class destructor
     ~MS2Info();

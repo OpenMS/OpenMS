@@ -198,7 +198,7 @@ protected:
       dp.operator()(spectrumAccess, transition_exp_used, dfw);
       delete dfw;
       //featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
-      //		transition_exp_used, trafo, swath_ptr, transition_group_map);
+      //transition_exp_used, trafo, swath_ptr, transition_group_map);
       //FeatureXMLFile().store(out, out_featureFile);
     }         //end of for loop
     return EXECUTION_OK;

@@ -57,21 +57,21 @@ namespace OpenMS
   {
 public:
 
-    //  static double	sfDetectableIsoFact;
-    //  static double	sfIntensityCV;
+    //  static doubles fDetectableIsoFact;
+    //  static doubles fIntensityCV;
 
     static void init();
     static bool getMatchingPeaks(std::list<CentroidPeak>::iterator, std::list<CentroidPeak>::iterator, int, double &,
                                  double, std::list<std::list<CentroidPeak>::iterator> &);
     static void subtractMatchingPeaks(std::list<std::list<CentroidPeak>::iterator> &, int, double, DeconvPeak &);
-    //	static void getDistribution(double,double*&,double*&);
-    //	static void getMassBounds(double,int,int,int,double,double&,double&);
+    // static void getDistribution(double,double*&,double*&);
+    // static void getMassBounds(double,int,int,int,double,double&,double&);
 
-    //	static bool getDebug() {return sfDebug;}
-    //	static std::ostream* getDebugStream() {return sfStream;}
+    // static bool getDebug() {return sfDebug;}
+    // static std::ostream* getDebugStream() {return sfStream;}
 
-    //	static void setDebug(bool pDebug) {sfDebug = pDebug;}
-    //	static void setDebugStream(std::ostream* pStream) {sfStream = pStream;}
+    // static void setDebug(bool pDebug) {sfDebug = pDebug;}
+    // static void setDebugStream(std::ostream* pStream) {sfStream = pStream;}
 
 private:
 
@@ -90,8 +90,8 @@ private:
     static double sfMaxMass;
     static double sfMassStep;
 
-    //	static bool		sfDebug;
-    //	static std::ostream* sfStream;
+    //static bool sfDebug;
+    //static std::ostream* sfStream;
   };
 
 // Returns lower and upper mass bounds for all isotopic peaks

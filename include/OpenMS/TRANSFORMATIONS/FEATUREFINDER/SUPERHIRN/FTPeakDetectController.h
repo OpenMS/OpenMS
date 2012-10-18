@@ -64,7 +64,7 @@ private:
     // LCMS runs
     //LCMS* THIS_LCMS;
     LCMS * lcms_;
-//	std::vector<SHFeature> fakeFeatureList_;
+//  std::vector<SHFeature> fakeFeatureList_;
     std::vector<LCMS> lcmsRuns_;
 
     // paths:
@@ -77,14 +77,14 @@ public:
     typedef std::pair<double, boost::shared_ptr<RawData> > Map;
     typedef std::vector<Map> Vec;
 
-//	static bool CREATE_FEATURE_ELUTION_PROFILES;
-//	static bool LCelutionPeakDebugging;
-//	static double LCelutionPeakMassMin;
-//	static double LCelutionPeakMassMax;
+//  static bool CREATE_FEATURE_ELUTION_PROFILES;
+//  static bool LCelutionPeakDebugging;
+//  static double LCelutionPeakMassMin;
+//  static double LCelutionPeakMassMax;
 
-//	static MS2Feature* SearchedM2Feature;
+//  static MS2Feature* SearchedM2Feature;
 
-//	static bool FEATURE_FAKE_INSERTION_BASED_ON_MS2_FEATURE;
+//  static bool FEATURE_FAKE_INSERTION_BASED_ON_MS2_FEATURE;
 
     // class destructor
     ~FTPeakDetectController();
@@ -159,11 +159,11 @@ public:
     void set_target_file(std::string IN);
     std::string get_target_file();
 
-    // get the vector of LC/MS runs:
-//	std::vector<LCMS> getParsedData();
-//	bool getParsedDataEmpty();
-//	std::vector<LCMS>::iterator get_parsed_DATA_START();
-//	std::vector<LCMS>::iterator get_parsed_DATA_END();
+// get the vector of LC/MS runs:
+//std::vector<LCMS> getParsedData();
+//bool getParsedDataEmpty();
+//std::vector<LCMS>::iterator get_parsed_DATA_START();
+//std::vector<LCMS>::iterator get_parsed_DATA_END();
     LCMS * getLCMS();
   };
 

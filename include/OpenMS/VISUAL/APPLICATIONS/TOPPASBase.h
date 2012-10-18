@@ -295,8 +295,7 @@ public:
     /// Refreshes the TOPP tools parameters of the pipeline
     static QString refreshPipelineParameters(TOPPASWidget * tw, QString current_path);
     //@}
-  }
-  ; //class
+  }; //class
 
 } //namespace
 

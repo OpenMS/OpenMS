@@ -218,8 +218,8 @@ namespace OpenMS
 
 //simulate spectrum from AASequence
 //void simulateSpectrumFromTransitions(AASequence & aa,
-//			std::vector<double> & firstIsotopeMasses,
-//			std::vector<std::pair<double, double> > & isotopeMasses, uint32_t charge)
+//std::vector<double> & firstIsotopeMasses,
+//std::vector<std::pair<double, double> > & isotopeMasses, uint32_t charge)
 
   }
 }

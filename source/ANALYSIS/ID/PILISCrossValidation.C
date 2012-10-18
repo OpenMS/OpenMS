@@ -440,7 +440,7 @@ namespace OpenMS
           {
             vector<RichPeak1D> sim_highest_peak;
             //cerr << "Peptide: " << exp_spectra[i][j].getPeptideIdentifications().begin()->getHits().begin()->getSequence() << " "
-            //			<< exp_spectra[i][j].getPeptideIdentifications().begin()->getHits().begin()->getCharge() << endl;
+            //<< exp_spectra[i][j].getPeptideIdentifications().begin()->getHits().begin()->getCharge() << endl;
             cerr << "Sim-highest peaks: (sim-spectrum size=" << sim_spectra[i][j][0].size() << ") ";
             /*
             for (Size p = 0; p != sim_spectra[i][j][0].size(); ++p)

@@ -337,7 +337,7 @@ namespace OpenMS
           k_ = (Int)n + 2;
       }
     }
-    //	matchmatrix.clear();
+    // matchmatrix.clear();
     /*for(Size i=0; i <=n;++i)
         {
             for(Size j=0; j<=m;++j)
@@ -560,7 +560,7 @@ namespace OpenMS
 
   inline bool  MapAlignmentAlgorithmSpectrumAlignment::insideBand_(Size i, Size j, Size n, Size m, Int k_)
   {
-    if ((Int)(m - n - k_) <= (Int)(i - j) && (Int) (i - j) <= k_) //	if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
+    if ((Int)(m - n - k_) <= (Int)(i - j) && (Int) (i - j) <= k_) //  if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
     {
       //std::cout << i << " i " << j << " j " << " innerhalb der Bande " << std::endl;
       return true;
@@ -673,13 +673,13 @@ namespace OpenMS
 
     if (size == 1)
       bucketsize_ = xcoordinate.size() - 1;
-    //	std::cout << size << " size "<< xcoordinate.size() << " xcoordinate.size() " << std::endl;
+    //std::cout << size << " size "<< xcoordinate.size() << " xcoordinate.size() " << std::endl;
     for (Size i = 0; i < size; ++i)
     {
       std::vector<std::pair<std::pair<Int, Real>, Real> > temp;
       for (Size j = 0; j < bucketsize_; ++j)
       {
-        //	std::cout<< j << " j " << std::endl;
+        //std::cout<< j << " j " << std::endl;
         Real score = scoring_(*pattern[xcoordinatepattern[(i * bucketsize_) + j]], *aligned[xcoordinate[(i * bucketsize_) + j]]);
         //modification only view as a possible data point if the score is higher than 0
         if (score >= threshold_)
@@ -860,7 +860,7 @@ namespace OpenMS
     }
     myfile<< "set title \"Heat Map of the insertmatrix\"  \n "
     "unset key \n"
-    "set tic scale 0 \n set palette rgbformula -7,2,-7 \n	set cbrange [-999.0:"<< insertmaximum<<"] \n set cblabel \"Score\" \n unset cbtics"<< std::endl;
+    "set tic scale 0 \n set palette rgbformula -7,2,-7 \n set cbrange [-999.0:"<< insertmaximum<<"] \n set cblabel \"Score\" \n unset cbtics"<< std::endl;
     myfile<< "p \'-\' using 1:2:3 with image" <<std::endl;
     for (Size i=0; i< debugbuffermatrix.size();++i)
     {

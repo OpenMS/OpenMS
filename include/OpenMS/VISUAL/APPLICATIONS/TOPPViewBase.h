@@ -567,8 +567,7 @@ public:
 
     /// Returns true if the experiment map contains peptide identifications
     static bool hasPeptideIdentifications(const ExperimentType & map);
-  }
-  ; //class
+  }; //class
 
 } //namespace
 

@@ -169,9 +169,9 @@ private:
     bool centroidDataModus_;           // if data are in centroid form or not
     int centroidWindowWidth_;
 
-    //    int	reportMonoPeaks_; // 1 if info about monoisotopic peaks should be written to mono_peaks.txt
+    //    int reportMonoPeaks_; // 1 if info about monoisotopic peaks should be written to mono_peaks.txt
     //    std::string debugDirectory_; // Directory where peak detection debug files are written
-    //    int	reportScanNumber_; // if sfReportMonoPeaks is set to 1, details about this spectrum will be written to debug files
+    //    int reportScanNumber_; // if sfReportMonoPeaks is set to 1, details about this spectrum will be written to debug files
 
     //    int ms1BaseInterScanDistance_;
     //    int ms2BaseInterScanDistance;

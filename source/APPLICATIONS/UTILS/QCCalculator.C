@@ -126,8 +126,8 @@ protected:
     String inputfile_consensus  = getStringOption_("consensus");
     String inputfile_raw        = getStringOption_("raw");
     //~ outputfile_name             = getStringOption_("out");
-		
-		String out_id = getStringOption_("out_id");
+    
+    String out_id = getStringOption_("out_id");
     String out_feature = getStringOption_("out_feature");
     String out_consensus = getStringOption_("out_consensus");
     String out_ms1 = getStringOption_("out_MS1");
@@ -245,7 +245,7 @@ protected:
       }
       out.close();
     }
-    if (inputfile_feature != "" && !remove_duplicate_features && out_feature	!= "")      //
+    if (inputfile_feature != "" && !remove_duplicate_features && out_feature != "")      //
     {
       //~ String FEATURE_NAME_NO_REMOVE = "_features.tsv";
       //~ String combined_out = outputfile_name + FEATURE_NAME_NO_REMOVE;
@@ -333,8 +333,8 @@ protected:
       }
       out.close();
     }
-		if (out_ms1 != "")
-		{
+    if (out_ms1 != "")
+    {
       cout << "Reading mzML file..." << endl;
       MzMLFile mz_data_file;
       MSExperiment<Peak1D> exp;
@@ -359,8 +359,8 @@ protected:
       }
       out.close();
     }
-		if (out_ms2 != "")
-		{
+    if (out_ms2 != "")
+    {
       cout << "Reading mzML file..." << endl;
       MzMLFile mz_data_file;
       MSExperiment<Peak1D> exp;
@@ -383,8 +383,8 @@ protected:
       }
       out.close();
     }
-		if (out_precursor != "")
-		{
+    if (out_precursor != "")
+    {
       cout << "Reading mzML file..." << endl;
       MzMLFile mz_data_file;
       MSExperiment<Peak1D> exp;
@@ -405,8 +405,8 @@ protected:
       out.close();
     }
 
-		if (out_tic != "")
-		{
+    if (out_tic != "")
+    {
       cout << "Reading mzML file..." << endl;
       MzMLFile mz_data_file;
       MSExperiment<Peak1D> exp;

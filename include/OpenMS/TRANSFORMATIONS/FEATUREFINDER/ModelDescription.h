@@ -103,7 +103,7 @@ public:
       return model;
     }
 
-    /**	Accessors	*/
+    /** Accessors */
     //@{
     /// Non-mutable access to model name
     const String & getName() const
@@ -141,7 +141,7 @@ public:
       parameters_ = param;
     }
 
-    /**	@name Predicates */
+    /** @name Predicates */
     //@{
     virtual bool operator==(const ModelDescription & rhs) const
     {

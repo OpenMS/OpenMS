@@ -357,7 +357,7 @@ namespace OpenMS
 
         //if (has_NTerm_loss)
         //{
-        //	losses1 = it1->getNTermLossFormulas();
+        //losses1 = it1->getNTermLossFormulas();
         //}
 
         for (vector<EmpiricalFormula>::const_iterator loss_it1 = losses1.begin(); loss_it1 != losses1.end(); ++loss_it1)
@@ -426,8 +426,8 @@ namespace OpenMS
 
               //if (has_NTerm_loss)
               //{
-              //	cerr << "Enabling NTermNeutralLoss: " << name << endl;
-              //	hmm_precursor_.enableTransition(name, aa1.toString() + "-NTerm-" + loss1);
+              //cerr << "Enabling NTermNeutralLoss: " << name << endl;
+              //hmm_precursor_.enableTransition(name, aa1.toString() + "-NTerm-" + loss1);
               //}
               //else
               //{

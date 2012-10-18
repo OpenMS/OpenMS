@@ -216,7 +216,7 @@ public:
       return true;
     }
 
-    ///Spatially (geometrically) less or equal operator.	 All coordinates must be "<=".
+    /// Spatially (geometrically) less or equal operator. All coordinates must be "<=".
     bool spatiallyLessEqual(const DPosition & point) const
     {
       for (Size i = 0; i < D; i++)
@@ -253,9 +253,9 @@ public:
     {
       DPosition result(*this);
       for (Size i = 0; i < D; ++i)
-			{
-				result.coordinate_[i] += point.coordinate_[i];
-			}
+      {
+        result.coordinate_[i] += point.coordinate_[i];
+      }
       return result;
     }
 
@@ -263,9 +263,9 @@ public:
     DPosition & operator+=(const DPosition & point)
     {
       for (Size i = 0; i < D; ++i)
-			{
-				coordinate_[i] += point.coordinate_[i];
-			}
+      {
+        coordinate_[i] += point.coordinate_[i];
+      }
       return *this;
     }
 
@@ -274,9 +274,9 @@ public:
     {
       DPosition result(*this);
       for (Size i = 0; i < D; ++i)
-			{
-				result.coordinate_[i] -= point.coordinate_[i];
-			}
+      {
+        result.coordinate_[i] -= point.coordinate_[i];
+      }
       return result;
     }
 
@@ -284,9 +284,9 @@ public:
     DPosition & operator-=(const DPosition & point)
     {
       for (Size i = 0; i < D; ++i) 
-			{
-				coordinate_[i] -= point.coordinate_[i];
-			}
+      {
+        coordinate_[i] -= point.coordinate_[i];
+      }
       return *this;
     }
 
@@ -295,9 +295,9 @@ public:
     {
       DPosition<D, CoordinateType> result(*this);
       for (Size i = 0; i < D; ++i)
-			{
-				result.coordinate_[i] = -result.coordinate_[i];
-			}
+      {
+        result.coordinate_[i] = -result.coordinate_[i];
+      }
       return result;
     }
 
@@ -306,9 +306,9 @@ public:
     {
       CoordinateType prod(0);
       for (Size i = 0; i < D; ++i)
-			{
-				prod += (point.coordinate_[i] * coordinate_[i]);
-			}
+      {
+        prod += (point.coordinate_[i] * coordinate_[i]);
+      }
       return prod;
     }
 
@@ -316,9 +316,9 @@ public:
     DPosition & operator*=(CoordinateType scalar)
     {
       for (Size i = 0; i < D; ++i)
-			{
-				coordinate_[i] *= scalar;
-			}
+      {
+        coordinate_[i] *= scalar;
+      }
       return *this;
     }
 
@@ -326,9 +326,9 @@ public:
     DPosition & operator/=(CoordinateType scalar)
     {
       for (Size i = 0; i < D; ++i)
-			{
-				coordinate_[i] /= scalar;
-			}
+      {
+        coordinate_[i] /= scalar;
+      }
       return *this;
     }
 
@@ -342,14 +342,14 @@ public:
     void clear()
     {
       for (Size i = 0; i < D; ++i)
-			{
-				coordinate_[i] = (CoordinateType) 0;
-			}
+      {
+        coordinate_[i] = (CoordinateType) 0;
+      }
     }
 
     //@}
 
-    /**	@name Static values */
+    /** @name Static values */
     //@{
     /// all zero
     inline static const DPosition zero()
@@ -377,7 +377,7 @@ public:
 
     //@}
 
-    /**	@name Iteration */
+    /** @name Iteration */
     //@{
     /// Non-mutable begin iterator
     ConstIterator begin() const
@@ -415,9 +415,9 @@ protected:
   DPosition<D, TCoordinateType> operator*(DPosition<D, TCoordinateType> position, typename DPosition<D, TCoordinateType>::CoordinateType scalar)
   {
     for (Size i = 0; i < D; ++i)
-		{
-			position[i] *= scalar;
-		}
+    {
+      position[i] *= scalar;
+    }
     return position;
   }
 
@@ -426,9 +426,9 @@ protected:
   DPosition<D, TCoordinateType> operator*(typename DPosition<D, TCoordinateType>::CoordinateType scalar, DPosition<D, TCoordinateType> position)
   {
     for (Size i = 0; i < D; ++i) 
-		{
-			position[i] *= scalar;
-		}
+    {
+      position[i] *= scalar;
+    }
     return position;
   }
 
@@ -437,9 +437,9 @@ protected:
   DPosition<D, TCoordinateType> operator/(DPosition<D, TCoordinateType> position, typename DPosition<D, TCoordinateType>::CoordinateType scalar)
   {
     for (Size i = 0; i < D; ++i)
-		{
-			position[i] /= scalar;
-		}
+    {
+      position[i] /= scalar;
+    }
     return position;
   }
 

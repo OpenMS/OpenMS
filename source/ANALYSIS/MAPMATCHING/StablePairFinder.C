@@ -42,7 +42,7 @@
 #ifdef Debug_StablePairFinder
 #define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
 #else
-#define V_(bla) ;
+#define V_(bla) {};
 #endif
 #define VV_(bla) V_("" # bla ": " << bla);
 

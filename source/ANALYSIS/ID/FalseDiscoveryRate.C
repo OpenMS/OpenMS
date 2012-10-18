@@ -651,7 +651,7 @@ namespace OpenMS
     }
 
 
-    // assign	q-value of decoy_score to closest target_score
+    // assign q-value of decoy_score to closest target_score
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
       Size closest_idx = 0;

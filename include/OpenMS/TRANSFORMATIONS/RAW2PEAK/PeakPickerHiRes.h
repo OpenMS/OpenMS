@@ -230,7 +230,7 @@ public:
 
           // output all raw data points selected for one peak
           // TODO: #ifdef DEBUG_ ...
-          //	 for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it) {
+          // for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it) {
           // PeakType peak;
           // peak.setMZ(map_it->first);
           // peak.setIntensity(map_it->second);

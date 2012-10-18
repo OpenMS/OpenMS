@@ -262,8 +262,7 @@ protected:
         cmdout <<
         "set ylabel \"ion count\"\n"
         "set xlabel \"concentration\"\n"
-        "set key left Left reverse\n"
-        ;
+        "set key left Left reverse\n";
 
         if (!format.empty())
         {
@@ -287,8 +286,7 @@ protected:
         << linreg.getIntercept() << " + " <<  linreg.getSlope() << " * x\" "
                                                                    ", \""  << datafilename << "\"  w points ps 2 pt 1 lt 8 notitle " // draw data a second time, on top of reg. line
                                                                                               ", \"" << errorbarfilename << "\"  using ($1):(0) w points pt 13 ps 2 lt 1 title \"x-intercept: " << linreg.getXIntercept() << "\" "
-                                                                                                                                                                                                                             ", \"" << errorbarfilename << "\"  w xerrorbars lw 3 lt 1 title \"95% interval: [ " << linreg.getLower() << ", " << linreg.getUpper() << " ]\"\n"
-        ;
+                                                                                                                                                                                                                             ", \"" << errorbarfilename << "\"  w xerrorbars lw 3 lt 1 title \"95% interval: [ " << linreg.getLower() << ", " << linreg.getUpper() << " ]\"\n";
         cmdout.close();
 
         // writing the x-axis intercept error bar

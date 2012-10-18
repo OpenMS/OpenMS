@@ -184,7 +184,7 @@ public:
       treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
     }
 
-    ///	 Check if mode is editable or not
+    /// Check if mode is editable or not
     bool isEditable();
 
     /// Defines friend classess that can use the functionality of the subclasses.
