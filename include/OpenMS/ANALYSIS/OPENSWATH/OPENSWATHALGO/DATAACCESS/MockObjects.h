@@ -46,6 +46,9 @@
 namespace OpenSwath
 {
 
+  /**
+    @brief Mock object implementing IFeature
+  */
   class OPENSWATHALGO_DLLAPI MockFeature :
     public OpenSwath::IFeature
   {
@@ -69,6 +72,9 @@ public:
     double m_rt;
   };
 
+  /**
+    @brief Mock object implementing IMRMFeature
+  */
   class OPENSWATHALGO_DLLAPI MockMRMFeature :
     public OpenSwath::IMRMFeature
   {
@@ -89,6 +95,9 @@ public:
     double m_rt;
   };
 
+  /**
+    @brief Mock object implementing ITransitionGroup
+  */
   class OPENSWATHALGO_DLLAPI MockTransitionGroup :
     public OpenSwath::ITransitionGroup
   {
@@ -110,6 +119,9 @@ public:
   };
 
 
+  /**
+    @brief Mock object implementing ISignalToNoise
+  */
   class OPENSWATHALGO_DLLAPI MockSignalToNoise :
     public OpenSwath::ISignalToNoise
   {

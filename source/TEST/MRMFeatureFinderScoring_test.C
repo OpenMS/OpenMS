@@ -67,8 +67,7 @@ START_SECTION(~MRMFeatureFinderScoring())
 }
 END_SECTION
 
-START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature> & output, OpenSwath::LightTargetedExperiment & transition_exp,
-  TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType & transition_group_map))
+START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap< Feature > &output, OpenSwath::LightTargetedExperiment &transition_exp, TransformationDescription &trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType &transition_group_map))
 {
   MRMFeatureFinderScoring ff;
   MRMFeature feature;
@@ -163,8 +162,7 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 }
 END_SECTION
     
-START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment & transition_exp,
-  TransitionGroupMapType & transition_group_map, TransformationDescription trafo, double rt_extraction_window) )
+START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment &transition_exp, TransitionGroupMapType &transition_group_map, TransformationDescription trafo, double rt_extraction_window))
 {
 
   MRMFeatureFinderScoring ff;
@@ -226,9 +224,11 @@ START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr in
 }
 END_SECTION
 
+START_SECTION(void setStrictFlag(bool f))
+  NOT_TESTABLE
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
 

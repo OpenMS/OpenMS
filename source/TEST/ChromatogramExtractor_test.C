@@ -45,7 +45,23 @@ START_TEST(ChromatogramExtractor, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((void extractChromatograms(const ExperimentType & input, ExperimentType & output, OpenMS::TargetedExperiment & transition_exp, double & extract_window, bool ppm)))
+ChromatogramExtractor* ptr = 0;
+ChromatogramExtractor* nullPointer = 0;
+
+START_SECTION(ChromatogramExtractor())
+{
+	ptr = new ChromatogramExtractor();
+	TEST_NOT_EQUAL(ptr, nullPointer)
+}
+END_SECTION
+
+START_SECTION(~ChromatogramExtractor())
+{
+  delete ptr;
+}
+END_SECTION
+
+START_SECTION( (template < typename ExperimentT > void extractChromatograms(const ExperimentT &input, ExperimentT &output, OpenMS::TargetedExperiment &transition_exp, double &extract_window, bool ppm, TransformationDescription &trafo, double rt_extraction_window, String filter)))
 {
   double extract_window = 0.05;
   PeakMap exp;
@@ -208,7 +224,7 @@ static const double int_arr[] = {
   10.0, 
 };
 
-START_SECTION((void extract_value_tophat(const SpectrumType & input, const double & mz, Size & peak_idx, double & integrated_intensity, const double & extract_window, const bool ppm)))
+START_SECTION(( template < typename SpectrumT > void extract_value_tophat(const SpectrumT &input, const double &mz, Size &peak_idx, double &integrated_intensity, const double &extract_window, const bool ppm)))
 {
   std::vector<double> mz (mz_arr, mz_arr + sizeof(mz_arr) / sizeof(mz_arr[0]) );
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
@@ -271,7 +287,7 @@ START_SECTION((void extract_value_tophat(const SpectrumType & input, const doubl
 }
 END_SECTION
 
-START_SECTION((void extract_value_bartlett(const SpectrumType & input, const double & mz, Size & peak_idx, double & integrated_intensity, const double & extract_window, const bool ppm)))
+START_SECTION( ( template < typename SpectrumT > void extract_value_bartlett(const SpectrumT &input, const double &mz, Size &peak_idx, double &integrated_intensity, const double &extract_window, const bool ppm)))
 {
   std::vector<double> mz (mz_arr, mz_arr + sizeof(mz_arr) / sizeof(mz_arr[0]) );
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
@@ -348,9 +364,7 @@ START_SECTION((void extract_value_bartlett(const SpectrumType & input, const dou
 }
 END_SECTION
 
-START_SECTION(void extract_value_tophat(const std::vector<double>::const_iterator & mz_start, std::vector<double>::const_iterator & mz_it,
-    const std::vector<double>::const_iterator & mz_end, std::vector<double>::const_iterator & int_it,
-    const double & mz, double & integrated_intensity, double & extract_window, bool ppm))
+START_SECTION((void extract_value_tophat(const std::vector< double >::const_iterator &mz_start, std::vector< double >::const_iterator &mz_it, const std::vector< double >::const_iterator &mz_end, std::vector< double >::const_iterator &int_it, const double &mz, double &integrated_intensity, double &extract_window, bool ppm)))
 { 
   std::vector<double> mz (mz_arr, mz_arr + sizeof(mz_arr) / sizeof(mz_arr[0]) );
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
@@ -422,6 +436,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
 

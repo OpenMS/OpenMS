@@ -61,7 +61,7 @@ namespace OpenMS
 
     // write defaults into Param object param_
     defaultsToParam_();
-    handle_params();
+    updateMembers_();
   }
 
   MRMTransitionGroupPicker::~MRMTransitionGroupPicker()
@@ -79,11 +79,6 @@ namespace OpenMS
   }
 
   void MRMTransitionGroupPicker::updateMembers_()
-  {
-    handle_params();
-  }
-
-  void MRMTransitionGroupPicker::handle_params()
   {
     sgolay_frame_length_ = (UInt)param_.getValue("sgolay_frame_length");
     sgolay_polynomial_order_ = (UInt)param_.getValue("sgolay_polynomial_order");
@@ -221,7 +216,7 @@ namespace OpenMS
 
   }
 
-  double MRMTransitionGroupPicker::calculate_bg_estimation(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right)
+  double MRMTransitionGroupPicker::calculateBgEstimation_(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right)
   {
     // determine (in the smoothed chrom) the intensity at the left / right border
     RichPeakChromatogram::const_iterator it = smoothed_chromat.begin();

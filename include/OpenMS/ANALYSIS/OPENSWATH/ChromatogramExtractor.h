@@ -105,7 +105,7 @@ public:
       }
 
       // Store the peptide retention times in an intermediate map
-      PeptideRTMap.clear();
+      PeptideRTMap_.clear();
       for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
       {
         const TargetedExperiment::Peptide& pep = transition_exp.getPeptides()[i];
@@ -120,7 +120,7 @@ public:
           }
           continue;
         }
-        PeptideRTMap[pep.id] = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+        PeptideRTMap_[pep.id] = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
       }
 
       // sort the transition experiment by product mass
@@ -129,7 +129,7 @@ public:
 
       // prepare all the spectra (but leave them empty)
       std::vector<typename ExperimentT::ChromatogramType> chromatograms;
-      prepare_spectra(settings, chromatograms, transition_exp);
+      prepareSpectra_(settings, chromatograms, transition_exp);
 
       //go through all spectra
       startProgress(0, input_size, "Extracting chromatograms");
@@ -153,7 +153,7 @@ public:
         {
 
           double current_rt = input[scan_idx].getRT();
-          if (outside_extraction_window(transition_exp.getTransitions()[k], current_rt, trafo, rt_extraction_window))
+          if (outsideExtractionWindow_(transition_exp.getTransitions()[k], current_rt, trafo, rt_extraction_window))
           {
             continue;
           }
@@ -398,7 +398,7 @@ private:
 
     /// This populates the chromatograms vector with empty chromatograms (but sets their meta-information)
     template <class SpectrumSettingsT, class ChromatogramT>
-    void prepare_spectra(SpectrumSettingsT& settings, std::vector<ChromatogramT>& chromatograms, OpenMS::TargetedExperiment& transition_exp)
+    void prepareSpectra_(SpectrumSettingsT& settings, std::vector<ChromatogramT>& chromatograms, OpenMS::TargetedExperiment& transition_exp)
     {
 
       // first prepare all the spectra (but leave them empty)
@@ -458,7 +458,7 @@ private:
 
     }
 
-    bool outside_extraction_window(const ReactionMonitoringTransition& transition, double current_rt,
+    bool outsideExtractionWindow_(const ReactionMonitoringTransition& transition, double current_rt,
                                    const TransformationDescription& trafo, double rt_extraction_window)
     {
       if (rt_extraction_window < 0)
@@ -471,7 +471,7 @@ private:
       // Note that we inverted the transformation in the beginning because
       // we want to transform from normalized to real RTs here and not the
       // other way round.
-      double expected_rt = PeptideRTMap[transition.getPeptideRef()];
+      double expected_rt = PeptideRTMap_[transition.getPeptideRef()];
       double de_normalized_experimental_rt = trafo.apply(expected_rt);
       if (current_rt < de_normalized_experimental_rt - rt_extraction_window || current_rt > de_normalized_experimental_rt + rt_extraction_window)
       {
@@ -480,7 +480,7 @@ private:
       return false;
     }
 
-    std::map<OpenMS::String, double> PeptideRTMap;
+    std::map<OpenMS::String, double> PeptideRTMap_;
 
   };
 

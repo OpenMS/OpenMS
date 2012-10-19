@@ -106,8 +106,8 @@ namespace OpenMS
   {
     // first compute a map of relative intensities from the feature, then compute the score
     std::map<std::string, double> intensities;
-    getFirstIsotopeRelativeIntensities(transitions, mrmfeature, intensities);
-    dia_isotope_scores_sub(transitions, spectrum, intensities, isotope_corr, isotope_overlap);
+    getFirstIsotopeRelativeIntensities_(transitions, mrmfeature, intensities);
+    diaIsotopeScoresSub_(transitions, spectrum, intensities, isotope_corr, isotope_overlap);
   }
 
   void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions, SpectrumType spectrum,
@@ -186,7 +186,7 @@ namespace OpenMS
   // Private methods
 
   /// computes a vector of relative intensities for each feature (output to intensities)
-  void DIAScoring::getFirstIsotopeRelativeIntensities(
+  void DIAScoring::getFirstIsotopeRelativeIntensities_(
     const std::vector<TransitionType>& transitions,
     OpenSwath::IMRMFeature* mrmfeature, std::map<std::string, double>& intensities)
   {
@@ -199,7 +199,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::dia_isotope_scores_sub(const std::vector<TransitionType>& transitions, SpectrumType spectrum,
+  void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, SpectrumType spectrum,
                                           std::map<std::string, double>& intensities, //relative intensities
                                           double& isotope_corr, double& isotope_overlap)
   {
@@ -231,15 +231,15 @@ namespace OpenMS
 
       // calculate the scores:
       // isotope correlation (forward) and the isotope overlap (backward) scores
-      double score = scoreIsotopePattern(transitions[k].getProductMZ(), isotopes_int, putative_fragment_charge);
+      double score = scoreIsotopePattern_(transitions[k].getProductMZ(), isotopes_int, putative_fragment_charge);
       isotope_corr += score * rel_intensity;
-      score = largePeaksBeforeFirstIsotope(transitions[k].getProductMZ(), spectrum, max_ppm_diff, isotopes_int[0]);
+      score = largePeaksBeforeFirstIsotope_(transitions[k].getProductMZ(), spectrum, max_ppm_diff, isotopes_int[0]);
       isotope_overlap += score * rel_intensity;
     }
   }
 
   /// Search for a large peak _before_ (lower m/z) the current peak
-  DoubleReal DIAScoring::largePeaksBeforeFirstIsotope(double product_mz,
+  DoubleReal DIAScoring::largePeaksBeforeFirstIsotope_(double product_mz,
                                                       SpectrumType& spectrum, double max_ppm_diff, double main_peak)
   {
     double result = 0;
@@ -278,7 +278,7 @@ namespace OpenMS
   }
 
   /// Compare an experimental isotope pattern to a theoretical one
-  DoubleReal DIAScoring::scoreIsotopePattern(double product_mz,
+  DoubleReal DIAScoring::scoreIsotopePattern_(double product_mz,
                                              const std::vector<double>& isotopes_int, int putative_fragment_charge)
   {
     OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");

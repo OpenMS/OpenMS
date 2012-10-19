@@ -78,10 +78,8 @@ START_SECTION(~DIAScoring())
 }
 END_SECTION
 
-START_SECTION((void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)))
+START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)))
 {
-
-  /// TODO move to DIAHelpers
   OpenMS::DIAScoring diascoring;
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
@@ -145,10 +143,7 @@ mock_tr2.product_mz = 600;
 mock_tr2.charge = 1;
 mock_tr2.transition_name = "group2";
 
-START_SECTION ( forward
-void dia_isotope_scores(const std::vector<TransitionType> & transitions,
-                       SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge,
-                       double & isotope_corr, double & isotope_overlap))
+START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<TransitionType> & transitions, SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge, double & isotope_corr, double & isotope_overlap))
 {
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
@@ -208,10 +203,7 @@ void dia_isotope_scores(const std::vector<TransitionType> & transitions,
 }
 END_SECTION
 
-START_SECTION ( backward
-void dia_isotope_scores(const std::vector<TransitionType> & transitions,
-                       SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge,
-                       double & isotope_corr, double & isotope_overlap))
+START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<TransitionType> & transitions, SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge, double & isotope_corr, double & isotope_overlap))
 {
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
@@ -530,3 +522,19 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
+
+/*
+------> Test errors in 'include/OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h' (Hannes Roest)
+  Tests of unknown methods:
+    - 'void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)'
+    - '( forward'
+    - '( backward'
+  Tests that contain 'TODO' or '????':
+    - 'void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)'
+------> Coding convention violation in 'include/OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h' (Hannes Roest)
+  - invalid non-public method name 'dia_isotope_scores_sub'
+  - invalid non-public method name 'getFirstIsotopeRelativeIntensities'
+  - invalid non-public method name 'largePeaksBeforeFirstIsotope'
+  - invalid non-public method name 'scoreIsotopePattern'
+------> Missing reference to parameters page in 'include/OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h' unless abstract base class (Hannes Roest)
+*/

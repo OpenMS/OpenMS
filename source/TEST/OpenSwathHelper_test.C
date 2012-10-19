@@ -49,6 +49,7 @@ START_TEST(OpenSwathHelper, "$Id$")
 
 using namespace std;
 using namespace OpenMS;
+using namespace OpenSwath;
 
 OpenSwathHelper* ptr = 0;
 OpenSwathHelper* nullPointer = 0;
@@ -66,9 +67,7 @@ START_SECTION(~OpenSwathHelper())
 }
 END_SECTION
 
-START_SECTION((static void selectSwathTransitions(const OpenMS::TargetedExperiment & targeted_exp,
-        OpenMS::TargetedExperiment & transition_exp_used, double min_upper_edge_dist, 
-        double lower, double upper) ))
+START_SECTION(static void selectSwathTransitions(const OpenMS::TargetedExperiment &targeted_exp, OpenMS::TargetedExperiment &transition_exp_used, double min_upper_edge_dist, double lower, double upper))
 {
   TargetedExperiment exp1;
   TargetedExperiment exp2;
@@ -94,8 +93,40 @@ START_SECTION((static void selectSwathTransitions(const OpenMS::TargetedExperime
 }
 END_SECTION
 
-START_SECTION(static void checkSwathMap(const OpenMS::MSExperiment<Peak1D> & swath_map,
-        double & lower, double & upper))
+START_SECTION(static void selectSwathTransitions(const OpenSwath::LightTargetedExperiment &targeted_exp, OpenSwath::LightTargetedExperiment &transition_exp_used, double min_upper_edge_dist, double lower, double upper))
+{
+  LightTargetedExperiment exp1;
+  LightTargetedExperiment exp2;
+
+  LightTransition tr1;
+  LightTransition tr2;
+  LightTransition tr3;
+
+  tr1.precursor_mz = 100.0;
+  tr2.precursor_mz = 200.0;
+  tr3.precursor_mz = 300.0;
+
+  std::vector<LightTransition> transitions;
+  transitions.push_back(tr1);
+  transitions.push_back(tr2);
+  transitions.push_back(tr3);
+
+  exp1.transitions = transitions;
+
+  // select all transitions between 200 and 500
+  OpenSwathHelper::selectSwathTransitions(exp1, exp2, 1.0, 199.9, 500);
+  TEST_EQUAL(exp2.getTransitions().size(), 2)
+}
+END_SECTION
+
+START_SECTION( (template < class TargetedExperimentT > static bool checkSwathMapAndSelectTransitions(const OpenMS::MSExperiment< Peak1D > &exp, const TargetedExperimentT &targeted_exp, TargetedExperimentT &transition_exp_used, double min_upper_edge_dist)))
+{
+  // tested above already
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(static void checkSwathMap(const OpenMS::MSExperiment< Peak1D > &swath_map, double &lower, double &upper))
 {
   OpenMS::MSExperiment<Peak1D> swath_map;
   OpenMS::MSSpectrum<Peak1D> spectrum;
@@ -118,6 +149,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

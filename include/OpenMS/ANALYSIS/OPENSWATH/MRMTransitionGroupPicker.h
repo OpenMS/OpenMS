@@ -58,6 +58,8 @@ namespace OpenMS
   /**
   @brief The MRMTransitionGroupPicker finds peaks in chromatograms that belong to the same precursors.
 
+    @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
+
   It is called through pickTransitionGroup which will accept an
   MRMTransitionGroup filled with n chromatograms and perform the following steps:
    - Step 1: find features (peaks) in individual chromatograms
@@ -97,14 +99,14 @@ protected:
     int stop_after_feature_;
     DoubleReal stop_after_intensity_ratio_;
 
-    std::vector<RichPeakChromatogram> picked_chroms;
-    std::vector<RichPeakChromatogram> smoothed_chroms;
+    std::vector<RichPeakChromatogram> picked_chroms_;
+    std::vector<RichPeakChromatogram> smoothed_chroms_;
 
     /// @name Resampling methods
     //@{
     /// create an empty master peak container that has the correct mz / RT values set
     template <typename SpectrumT, typename TransitionT>
-    void prepare_master_container_(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
+    void prepareMasterContainer_(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
       SpectrumT & master_peak_container, int chr_idx, double best_left, double best_right)
     {
       const SpectrumT & ref_chromatogram = transition_group.getChromatograms()[chr_idx];
@@ -129,7 +131,7 @@ protected:
 
     /// use the master container from above to resample a chromatogram at those points stored in the master container
     template <typename SpectrumT>
-    SpectrumT resample_chromatogram_(const SpectrumT & chromatogram,
+    SpectrumT resampleChromatogram_(const SpectrumT & chromatogram,
       SpectrumT & master_peak_container, double best_left, double best_right)
     {
       // get the start / end point of this chromatogram => go one past
@@ -175,10 +177,13 @@ protected:
     //@}
 
     /// Will use the smoothed chromatograms
-    double calculate_bg_estimation(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right);
+    double calculateBgEstimation_(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right);
 
     /// Synchronize members with param class
     void updateMembers_();
+
+    /// Assignment operator is private for algorithm
+    MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
 
 public:
 
@@ -190,11 +195,6 @@ public:
     ~MRMTransitionGroupPicker();
     //@}
 
-    /// Assignment operator
-    MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
-
-    void handle_params();
-
     /// This function will accept a MRMTransitionGroup with raw chromatograms,
     /// create features on it and add the features back to the
     /// MRMTransitionGroup.
@@ -202,7 +202,7 @@ public:
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group)
     {
       // Pick chromatograms
-      picked_chroms.clear();
+      picked_chroms_.clear();
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         RichPeakChromatogram& chromatogram = transition_group.getChromatograms()[k];
@@ -212,8 +212,8 @@ public:
         RichPeakChromatogram picked_chrom, smoothed_chrom;
         pickChromatogram(chromatogram, smoothed_chrom, picked_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
-        picked_chroms.push_back(picked_chrom);
-        smoothed_chroms.push_back(smoothed_chrom);
+        picked_chroms_.push_back(picked_chrom);
+        smoothed_chroms_.push_back(smoothed_chrom);
       }
 
       // Find features (peak groups) in this group of transitions.
@@ -224,7 +224,7 @@ public:
       while (true)
       {
         chr_idx = -1; peak_idx = -1;
-        findLargestPeak(picked_chroms, chr_idx, peak_idx);
+        findLargestPeak(picked_chroms_, chr_idx, peak_idx);
         if (chr_idx == -1 && peak_idx == -1) break;
 
         /*
@@ -234,7 +234,7 @@ public:
         */
 
         // get feature, prevent non-extended zero features to be added
-        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, chr_idx, peak_idx);
+        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, chr_idx, peak_idx);
         if (mrm_feature.getIntensity() > 0)
         {
           transition_group.addFeature(mrm_feature);
@@ -272,7 +272,7 @@ public:
       // empty master_peak_container with the same RT (m/z) values as the reference
       // chromatogram.
       SpectrumT master_peak_container;
-      prepare_master_container_(transition_group, master_peak_container, chr_idx, best_left, best_right);
+      prepareMasterContainer_(transition_group, master_peak_container, chr_idx, best_left, best_right);
 
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -284,7 +284,7 @@ public:
         }
 
         // resample the current chromatogram
-        const SpectrumT used_chromatogram = resample_chromatogram_(chromatogram, master_peak_container, best_left, best_right);
+        const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
         // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
 
         Feature f;
@@ -321,19 +321,19 @@ public:
           // we use the smoothed chromatogram here to have a more accurate estimatation of the noise at the flanks of the peak
           if (background_subtraction_ == "smoothed")
           {
-            if (smoothed_chroms.size() <= k)
+            if (smoothed_chroms_.size() <= k)
             {
               std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
               background =  0;
             }
             else
             {
-              background = calculate_bg_estimation(smoothed_chroms[k], best_left, best_right);
+              background = calculateBgEstimation_(smoothed_chroms_[k], best_left, best_right);
             }
           }
           else if (background_subtraction_ == "original")
           {
-            background = calculate_bg_estimation(used_chromatogram, best_left, best_right);
+            background = calculateBgEstimation_(used_chromatogram, best_left, best_right);
           }
           intensity_sum -= background;
           if (intensity_sum < 0)

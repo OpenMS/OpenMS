@@ -44,6 +44,7 @@
 
 namespace OpenMS
 {
+
   /**
       @brief This class can convert TraML and TSV files into each other
 
@@ -96,11 +97,11 @@ private:
       String group_label;
     };
 
-    void readTSVInput(const char* filename, std::vector<TSVTransition>& transition_list);
+    void readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
 
-    void TSVToTargetedExperiment(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
+    void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
-    void writeTSVOutput(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
+    void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
@@ -118,3 +119,4 @@ public:
 }
 
 #endif
+

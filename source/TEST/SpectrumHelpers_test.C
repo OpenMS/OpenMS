@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski $
+// $Maintainer: Hannes Roest, Witold Wolski $
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ START_TEST(DiaPrescore2, "$Id$")
 
 
 
-START_SECTION ( testscorefunction)
+START_SECTION ( [EXTRA] testscorefunction)
 {
 
 

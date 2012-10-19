@@ -36,7 +36,7 @@
 
 namespace OpenMS
 {
-  void TransitionTSVReader::readTSVInput(const char* filename, std::vector<TSVTransition>& transition_list)
+  void TransitionTSVReader::readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list)
   {
     std::ifstream data(filename);
     std::string   line;
@@ -104,7 +104,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVReader::TSVToTargetedExperiment(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp)
+  void TransitionTSVReader::TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp)
   {
     // For the CV terms, see
     // http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo
@@ -172,7 +172,7 @@ namespace OpenMS
     exp.setProteins(proteins);
   }
 
-  void TransitionTSVReader::writeTSVOutput(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionTSVReader::writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     std::vector<TSVTransition> mytransitions;
     //for (const std::vector<ReactionMonitoringTransition>::iterator it = targeted_exp.getTransitions().begin(); it != targeted_exp.getTransitions().end(); it++)
@@ -348,14 +348,14 @@ namespace OpenMS
 
   void TransitionTSVReader::convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
-    writeTSVOutput(filename, targeted_exp);
+    writeTSVOutput_(filename, targeted_exp);
   }
 
   void TransitionTSVReader::convertTSVToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     std::vector<TSVTransition> transition_list;
-    readTSVInput(filename, transition_list);
-    TSVToTargetedExperiment(transition_list, targeted_exp);
+    readTSVInput_(filename, transition_list);
+    TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
   void TransitionTSVReader::validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp)

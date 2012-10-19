@@ -55,18 +55,19 @@ START_TEST(MRMTransitionGroup, "$Id$")
 MRMTransitionGroupType* ptr = 0;
 MRMTransitionGroupType* nullPointer = 0;
 
-START_SECTION(TransitionGroup())
+START_SECTION(MRMTransitionGroup())
 {
 	ptr = new MRMTransitionGroupType();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~TransitionGroup())
+START_SECTION(~MRMTransitionGroup())
 {
   delete ptr;
 }
 END_SECTION
+
 
 RichPeakChromatogram chrom1;
 RichPeakChromatogram chrom2;
@@ -75,19 +76,40 @@ TransitionType trans2;
 MRMFeature feature1;
 MRMFeature feature2;
 
-START_SECTION ( inline int size() const)
+START_SECTION(MRMTransitionGroup(const MRMTransitionGroup &rhs))
+{
+  MRMTransitionGroupType mrmtrgroup;
+  mrmtrgroup.addChromatogram(chrom1, "dummy1");
+  mrmtrgroup.addChromatogram(chrom2, "dummy2");
+
+  MRMTransitionGroupType tmp(mrmtrgroup);
+  TEST_EQUAL(mrmtrgroup.size(), tmp.size() )
+}
+END_SECTION
+
+    
+START_SECTION( MRMTransitionGroup& operator=(const MRMTransitionGroup &rhs) )
+{
+  MRMTransitionGroupType mrmtrgroup;
+  mrmtrgroup.addChromatogram(chrom1, "dummy1");
+  mrmtrgroup.addChromatogram(chrom2, "dummy2");
+
+  MRMTransitionGroupType tmp = mrmtrgroup;
+  TEST_EQUAL(mrmtrgroup.size(), tmp.size() )
+}
+END_SECTION
+
+START_SECTION (Size size() const)
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addChromatogram(chrom1, "dummy1");
   TEST_EQUAL(mrmtrgroup.size(), 1)
-  //mrmtrgroup.addChromatogram(chrom2, "dummy1");
-  //TEST_EQUAL(mrmtrgroup.size(), 1)
   mrmtrgroup.addChromatogram(chrom2, "dummy2");
   TEST_EQUAL(mrmtrgroup.size(), 2)
 }
 END_SECTION
 
-START_SECTION ( inline const String & getTransitionGroupID() const)
+START_SECTION (  const String & getTransitionGroupID() const)
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.setTransitionGroupID("some_id");
@@ -95,23 +117,14 @@ START_SECTION ( inline const String & getTransitionGroupID() const)
 }
 END_SECTION
 
-START_SECTION ( inline void setTransitionGroupID(const String & tr_gr_id))
+START_SECTION (  void setTransitionGroupID(const String & tr_gr_id))
 {
   // tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION ( inline const std::vector<ReactionMonitoringTransition> & getTransitions() const)
-{
-  MRMTransitionGroupType mrmtrgroup;
-  mrmtrgroup.addTransition(trans1, "dummy1");
-  mrmtrgroup.addTransition(trans2, "dummy2");
-  TEST_EQUAL(mrmtrgroup.getTransitions().size(), 2)
-}
-END_SECTION
-
-START_SECTION ( inline std::vector<ReactionMonitoringTransition> & getTransitionsMuteable())
+START_SECTION ( std::vector<TransitionType>& getTransitionsMuteable())
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addTransition(trans1, "dummy1");
@@ -120,14 +133,14 @@ START_SECTION ( inline std::vector<ReactionMonitoringTransition> & getTransition
 }
 END_SECTION
 
-START_SECTION ( inline void addTransition(const ReactionMonitoringTransition & transition, String key))
+START_SECTION ( void addTransition(const TransitionType &transition, String key))
 {
   // tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION ( inline const ReactionMonitoringTransition & getTransition(String key) )
+START_SECTION ( const TransitionType& getTransition(String key))
 {
   MRMTransitionGroupType mrmtrgroup;
   trans1.setLibraryIntensity(42);
@@ -136,7 +149,19 @@ START_SECTION ( inline const ReactionMonitoringTransition & getTransition(String
 }
 END_SECTION
 
-START_SECTION ( inline bool hasTransition(String key))
+START_SECTION (  const std::vector<TransitionType>& getTransitions() const )
+{
+  MRMTransitionGroupType mrmtrgroup;
+  trans1.setLibraryIntensity(42);
+  mrmtrgroup.addTransition(trans1, "dummy1");
+  trans2.setLibraryIntensity(-2);
+  mrmtrgroup.addTransition(trans2, "dummy2");
+  TEST_EQUAL(mrmtrgroup.getTransitions()[0].getLibraryIntensity(), 42)
+  TEST_EQUAL(mrmtrgroup.getTransitions()[1].getLibraryIntensity(), -2)
+}
+END_SECTION
+
+START_SECTION (  bool hasTransition(String key))
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addTransition(trans1, "dummy1");
@@ -145,7 +170,7 @@ START_SECTION ( inline bool hasTransition(String key))
 }
 END_SECTION
 
-START_SECTION ( inline const std::vector<SpectrumPeakType> & getChromatograms() const)
+START_SECTION (  const std::vector<SpectrumType>& getChromatograms() const ) 
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addChromatogram(chrom1, "dummy1");
@@ -154,7 +179,7 @@ START_SECTION ( inline const std::vector<SpectrumPeakType> & getChromatograms() 
 }
 END_SECTION
 
-START_SECTION ( inline std::vector<SpectrumPeakType> & getChromatograms())
+START_SECTION (  std::vector<SpectrumType>& getChromatograms())
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addChromatogram(chrom1, "dummy1");
@@ -163,14 +188,14 @@ START_SECTION ( inline std::vector<SpectrumPeakType> & getChromatograms())
 }
 END_SECTION
 
-START_SECTION ( inline void addChromatogram(SpectrumPeakType & chromatogram, String key))
+START_SECTION (  void addChromatogram(SpectrumType &chromatogram, String key)) 
 {
   // tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION ( inline SpectrumPeakType & getChromatogram(String key))
+START_SECTION (  SpectrumType& getChromatogram(String key))
 {
   MRMTransitionGroupType mrmtrgroup;
   chrom1.setMetaValue("some_value", 1);
@@ -179,7 +204,7 @@ START_SECTION ( inline SpectrumPeakType & getChromatogram(String key))
 }
 END_SECTION
 
-START_SECTION ( inline bool hasChromatogram(String key))
+START_SECTION (  bool hasChromatogram(String key))
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addChromatogram(chrom1, "dummy1");
@@ -188,7 +213,7 @@ START_SECTION ( inline bool hasChromatogram(String key))
 }
 END_SECTION
 
-START_SECTION ( inline const std::vector<MRMFeature> & getFeatures() const)
+START_SECTION (  const std::vector<MRMFeature> & getFeatures() const)
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addFeature(feature1);
@@ -197,7 +222,7 @@ START_SECTION ( inline const std::vector<MRMFeature> & getFeatures() const)
 }
 END_SECTION
 
-START_SECTION ( inline std::vector<MRMFeature> & getFeaturesMuteable())
+START_SECTION (  std::vector<MRMFeature> & getFeaturesMuteable())
 {
   MRMTransitionGroupType mrmtrgroup;
   mrmtrgroup.addFeature(feature1);
@@ -206,7 +231,7 @@ START_SECTION ( inline std::vector<MRMFeature> & getFeaturesMuteable())
 }
 END_SECTION
 
-START_SECTION ( inline void addFeature(MRMFeature & feature))
+START_SECTION (  void addFeature(MRMFeature & feature))
 {
   // tested above
   NOT_TESTABLE
@@ -232,3 +257,4 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 END_TEST
+

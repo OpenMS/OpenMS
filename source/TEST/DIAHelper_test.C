@@ -66,7 +66,7 @@ START_TEST(DIAHelper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(getBYSeries_test)
+START_SECTION([EXTRA] getBYSeries_test)
 {
 	String sequence = "SYVAWDR";
 	std::vector<double> bseries, yseries;
@@ -78,7 +78,7 @@ START_SECTION(getBYSeries_test)
 }
 END_SECTION
 
-START_SECTION(getAveragineIsotopeDistribution_test)
+START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
 {
 
 	std::vector<std::pair<double, double> > tmp;
@@ -146,7 +146,7 @@ START_SECTION(getAveragineIsotopeDistribution_test)
 }
 END_SECTION
 
-START_SECTION(simulateSpectrumFromAASequence_test)
+START_SECTION([EXTRA] simulateSpectrumFromAASequence_test)
 {
 	String sequence = "SYVAWDR";
 	OpenMS::AASequence a = OpenMS::AASequence(sequence);
@@ -173,7 +173,7 @@ START_SECTION(simulateSpectrumFromAASequence_test)
 }
 END_SECTION
 
-START_SECTION(addIsotopesToSpec_test)
+START_SECTION([EXTRA] addIsotopesToSpec_test)
 {
 	std::vector<std::pair<double, double> > tmp_, out;
 	tmp_.push_back(std::make_pair(100., 100.));

@@ -70,6 +70,8 @@ namespace OpenMS
     interface. Transitions are expected to be in the light transition format
     (defined in OPENSWATHALGO/DATAACCESS/TransitionExperiment.h).
 
+  @htmlinclude OpenMS_DIAScoring.parameters
+
   */
   class OPENMS_DLLAPI DIAScoring :
     public DefaultParamHandler
@@ -138,13 +140,13 @@ private:
     void updateMembers_();
 
     /// Subfunction of dia_isotop_scores
-    void dia_isotope_scores_sub(const std::vector<TransitionType>& transitions,
+    void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
                                 SpectrumType spectrum, std::map<std::string, double>& intensities,
                                 double& isotope_corr, double& isotope_overlap);
 
     /// retrieves intensities from MRMFeature
     /// computes a vector of relative intensities for each feature (output to intensities)
-    void getFirstIsotopeRelativeIntensities(const std::vector<TransitionType>& transitions,
+    void getFirstIsotopeRelativeIntensities_(const std::vector<TransitionType>& transitions,
                                             OpenSwath::IMRMFeature* mrmfeature,
                                             std::map<std::string, double>& intensities //experimental intensities of transitions
                                             );
@@ -158,7 +160,7 @@ private:
       an isotopic pattern that does NOT have the current peak as monoisotopic
       peak.
     */
-    DoubleReal largePeaksBeforeFirstIsotope(double product_mz,
+    DoubleReal largePeaksBeforeFirstIsotope_(double product_mz,
                                             SpectrumType& spectrum, double max_ppm_diff, double main_peak);
 
     /**
@@ -167,7 +169,7 @@ private:
       This function will take an array of isotope intensities and compare them
       to the theoritcally expected ones using pearson correlation.
     */
-    DoubleReal scoreIsotopePattern(double product_mz,
+    DoubleReal scoreIsotopePattern_(double product_mz,
                                    const std::vector<double>& isotopes_int, int putative_fragment_charge);
 
     // Parameters

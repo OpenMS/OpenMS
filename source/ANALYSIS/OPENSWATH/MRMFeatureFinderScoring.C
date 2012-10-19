@@ -90,7 +90,7 @@ namespace OpenMS
     // write defaults into Param object param_
     defaultsToParam_();
 
-    strict = true;
+    strict_ = true;
   }
 
   MRMFeatureFinderScoring::~MRMFeatureFinderScoring()
@@ -99,11 +99,13 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::updateMembers_()
   {
+    /*
     handle_params();
   }
 
   void MRMFeatureFinderScoring::handle_params()
   {
+    */
     stop_report_after_feature_ = (int)param_.getValue("stop_report_after_feature");
     rt_extraction_window_ = (DoubleReal)param_.getValue("rt_extraction_window");
     rt_normalization_factor_ = (DoubleReal)param_.getValue("rt_normalization_factor");
@@ -112,8 +114,8 @@ namespace OpenMS
     add_up_spectra_ = param_.getValue("add_up_spectra");
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
 
-    diascoring.setParameters(param_.copy("DIAScoring:", true));
-    emgscoring.setFitterParam(param_.copy("EmgScoring:", true));
+    diascoring_.setParameters(param_.copy("DIAScoring:", true));
+    emgscoring_.setFitterParam(param_.copy("EmgScoring:", true));
 
     use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
     use_shape_score_         = param_.getValue("Scores:use_shape_score").toBool();
@@ -152,7 +154,7 @@ namespace OpenMS
       {
         std::cerr << "Error: Transition " + transition->getNativeID() + " from group " +
         transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
-        if (strict)
+        if (strict_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                            "Error: Transition " + transition->getNativeID() + " from group " +
@@ -172,7 +174,7 @@ namespace OpenMS
       // we want to transform from normalized to real RTs here and not the
       // other way round.
       rt_max = rt_min = 0;
-      expected_rt = PeptideRTMap[transition->getPeptideRef()];
+      expected_rt = PeptideRTMap_[transition->getPeptideRef()];
       double de_normalized_experimental_rt = trafo.apply(expected_rt);
       rt_max = de_normalized_experimental_rt + rt_extraction_window;
       rt_min = de_normalized_experimental_rt - rt_extraction_window;
@@ -191,7 +193,7 @@ namespace OpenMS
       {
         std::cerr << "Error: Could not find any points for chromatogram " + transition->getNativeID() + \
         ". Maybe your retention time transformation is off?" << std::endl;
-        if (strict)
+        if (strict_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                            "Error: Could not find any points for chromatogram " + transition->getNativeID() + \

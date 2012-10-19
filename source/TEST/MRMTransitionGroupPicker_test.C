@@ -109,7 +109,7 @@ START_SECTION(~MRMTransitionGroupPicker())
 }
 END_SECTION
 
-START_SECTION((template < template< typename > class SpectrumT, typename PeakT, typename TransitionT > void pickTransitionGroup(MRMTransitionGroup< SpectrumT, PeakT, TransitionT > &transition_group)))
+START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTransitionGroup(MRMTransitionGroup< SpectrumT, TransitionT > &transition_group)))
 { 
   MRMTransitionGroupType transition_group;
   setup_transition_group(transition_group);
@@ -185,7 +185,7 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
 }
 END_SECTION
 
-START_SECTION((template < template< typename > class SpectrumT, typename PeakT, typename ChromatogramPeakT, typename TransitionT > MRMFeature createMRMFeature(MRMTransitionGroup< SpectrumT, PeakT, TransitionT > &transition_group, std::vector< SpectrumT< ChromatogramPeakT > > &picked_chroms, int &chr_idx, int &peak_idx)))
+START_SECTION( ( template < typename SpectrumT, typename TransitionT > MRMFeature createMRMFeature(MRMTransitionGroup< SpectrumT, TransitionT > &transition_group, std::vector< SpectrumT > &picked_chroms, int &chr_idx, int &peak_idx)))
 {
   MRMTransitionGroupType transition_group;
   setup_transition_group(transition_group);
@@ -293,7 +293,7 @@ START_SECTION(( void findLargestPeak(std::vector<RichPeakChromatogram> & picked_
 }
 END_SECTION
 
-START_SECTION(void remove_overlapping_features(std::vector<SpectrumT<ChromatogramPeakT> > & picked_chroms, double best_left, double best_right))
+START_SECTION((template < typename SpectrumT > void remove_overlapping_features(std::vector< SpectrumT > &picked_chroms, double best_left, double best_right)))
 {
   MRMTransitionGroupType transition_group;
   std::vector< RichPeakChromatogram > picked_chroms;
@@ -410,5 +410,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 

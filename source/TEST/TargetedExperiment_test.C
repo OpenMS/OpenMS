@@ -91,55 +91,55 @@ START_SECTION((void addCV(const CV &cv)))
 }
 END_SECTION
 
-START_SECTION((void setContacts(const std::vector< CVTermList > &contacts)))
+START_SECTION(( void setContacts(const std::vector< CVTermList > &contacts)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((const std::vector<CVTermList>& getContacts() const ))
+START_SECTION(const std::vector<CVTermList>& getContacts() const)
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void addContact(const CVTermList &contact)))
+START_SECTION( void addContact(const CVTermList &contact))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void setPublications(const std::vector< CVTermList > &publications)))
+START_SECTION( void setPublications(const std::vector< CVTermList > &publications))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((const std::vector<CVTermList>& getPublications() const ))
+START_SECTION( const std::vector<CVTermList>& getPublications() const)
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void addPublication(const CVTermList &publication)))
+START_SECTION(void addPublication(const CVTermList &publication))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void setInstruments(const std::vector< CVTermList > &instruments)))
+START_SECTION( void setInstruments(const std::vector< CVTermList > &instruments))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((const std::vector<CVTermList>& getInstruments() const ))
+START_SECTION(const std::vector<CVTermList>& getInstruments() const)
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void addInstrument(const CVTermList &instrument)))
+START_SECTION(void addInstrument(const CVTermList &instrument))
 {
   // TODO
 }
@@ -245,6 +245,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

@@ -67,7 +67,7 @@ START_SECTION(~MRMDecoy())
 }
 END_SECTION
 
-START_SECTION(pair getDecoyIon(String ionid, map<String, map<String, DoubleReal> > & decoy_ionseries))
+START_SECTION((std::pair<String, DoubleReal> getDecoyIon(String ionid, std::map< String, std::map< String, DoubleReal > > &decoy_ionseries)))
 {
 	MRMDecoy gen;
 
@@ -91,7 +91,7 @@ START_SECTION(pair getDecoyIon(String ionid, map<String, map<String, DoubleReal>
 }
 END_SECTION
 
-START_SECTION(vector find_all_tryptic(string sequence))
+START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(std::string sequence)))
 {    
   MRMDecoy gen;
 
@@ -109,7 +109,7 @@ START_SECTION(vector find_all_tryptic(string sequence))
 }
 END_SECTION
 
-START_SECTION(OpenMS::AASequence getAASequence(OpenMS::TargetedExperiment::Peptide peptide))
+START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide &peptide))
 {
   MRMDecoy gen;
 
@@ -154,7 +154,7 @@ START_SECTION(OpenMS::AASequence getAASequence(OpenMS::TargetedExperiment::Pepti
 }
 END_SECTION
 
-START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold))
+START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed=-1, int max_attempts=10))
 {
   MRMDecoy gen;
   OpenMS::TargetedExperiment::Peptide peptide;
@@ -246,7 +246,7 @@ START_SECTION([EXTRA] shuffle_peptide_with_modifications_and2attempts)
 }
 END_SECTION
 
-START_SECTION(shuffle_peptide_with_KPR)
+START_SECTION([EXTRA] shuffle_peptide_with_KPR)
 {
   MRMDecoy gen;
   OpenMS::TargetedExperiment::Peptide peptide;
@@ -363,9 +363,23 @@ START_SECTION(void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::Targe
 }
 END_SECTION
 
+START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment &exp, int min_transitions, int max_transitions))
+{
+  // see above
+  NOT_TESTABLE
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
 
 
 
+  /*
+  Tests of unknown methods:
+    - 'vector find_all_tryptic(string sequence)'
+  Missing tests:
+    - 'std::pair<String, double> getTargetIon(double ProductMZ, double mz_threshold, std::map< String, std::map< String, double > > target_ionseries)'
+    - 'std::map<String, std::map<String, double> > getIonSeries(AASequence sequence, int precursor_charge, int max_isotopes=2)'
+    - 'std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(std::string sequence)'
+  */

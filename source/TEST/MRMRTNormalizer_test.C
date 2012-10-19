@@ -131,7 +131,7 @@ START_SECTION((static std::vector<std::pair<double, double> > rm_outliers(std::v
 }
 END_SECTION
 
-START_SECTION((static bool chauvenet_probability(std::vector<double> & residuals, int pos)))
+START_SECTION(( static double chauvenet_probability(std::vector< double > &residuals, int pos) ))
 {
 
   static const double arr1[] = { 1,2,3,4,2,10,11,75,5,8,3,5,6,9,130 };

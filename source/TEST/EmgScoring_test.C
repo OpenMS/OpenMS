@@ -85,7 +85,7 @@ START_SECTION(void setFitterParam(Param param))
 }
 END_SECTION
 
-START_SECTION((template < template< class > class SpectrumType, class PeakType, class TransitionT > double calcElutionFitScore(MRMFeature &mrmfeature, MRMTransitionGroup< SpectrumType, PeakType, TransitionT > &transition_group)))
+START_SECTION(( template < typename SpectrumType, class TransitionT > double calcElutionFitScore(MRMFeature &mrmfeature, MRMTransitionGroup< SpectrumType, TransitionT > &transition_group)))
 {
   // test a set of feature (belonging to the same peptide)
   double elution_model_fit_score;
@@ -113,6 +113,7 @@ START_SECTION( double elutionModelFit(ConvexHull2D::PointArrayType current_secti
   TEST_REAL_SIMILAR(elution_model_fit_score, 0.981013417243958) 
 }
 END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

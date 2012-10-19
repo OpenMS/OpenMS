@@ -77,6 +77,10 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
 namespace OpenMS
 {
 
+  /**
+  @brief A structure to hold the different scores computed by the FeatureFinder
+  */
+
   struct OpenSwath_Scores
   {
     double elution_model_fit_score;
@@ -188,7 +192,10 @@ namespace OpenMS
   score those MRMFeatures using different criteria described in the
   MRMScoring class.
 
+  @htmlinclude OpenMS_MRMFeatureFinderScoring.parameters
+
   */
+
   class OPENMS_DLLAPI MRMFeatureFinderScoring :
     public DefaultParamHandler,
     public ProgressLogger
@@ -221,18 +228,18 @@ public:
     void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
                         TransformationDescription& trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map)
     {
-      handle_params();
+      updateMembers_();
 
       //
       // Step 1
       //
       // Store the peptide retention times in an intermediate map
-      PeptideRTMap.clear();
+      PeptideRTMap_.clear();
       for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
       {
         PeptideType pep = transition_exp.getPeptides()[i];
-        PeptideRTMap[pep.id] = pep.rt;
-        PeptideRefMap[pep.id] = &transition_exp.getPeptides()[i];
+        PeptideRTMap_[pep.id] = pep.rt;
+        PeptideRefMap_[pep.id] = &transition_exp.getPeptides()[i];
       }
 
       // Store the proteins from the input in the output feature map
@@ -240,7 +247,7 @@ public:
       for (Size i = 0; i < transition_exp.getProteins().size(); i++)
       {
         const ProteinType& prot = transition_exp.getProteins()[i];
-        ProteinRefMap[transition_exp.getProteins()[i].id] = &transition_exp.getProteins()[i];
+        ProteinRefMap_[transition_exp.getProteins()[i].id] = &transition_exp.getProteins()[i];
         ProteinHit prot_hit = ProteinHit();
         prot_hit.setSequence(prot.sequence);
         prot_hit.setAccession(prot.id);
@@ -282,9 +289,8 @@ public:
 
         MRMTransitionGroupPicker trgroup_picker;
         trgroup_picker.setParameters(param_.copy("TransitionGroupPicker:", true));
-        trgroup_picker.handle_params();
         trgroup_picker.pickTransitionGroup(transition_group);
-        scorePeakgroups(trgroup_it->second, trafo, swath_map, output);
+        scorePeakgroups_(trgroup_it->second, trafo, swath_map, output);
 
       }
       endProgress();
@@ -301,14 +307,14 @@ public:
 
     void setStrictFlag(bool f)
     {
-      strict = f;
+      strict_ = f;
     }
 
 private:
 
     /// Score all peak groups
     template <typename SpectrumT, typename TransitionT>
-    void scorePeakgroups(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group, TransformationDescription & trafo,
+    void scorePeakgroups_(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group, TransformationDescription & trafo,
                          OpenSwath::SpectrumAccessPtr  swath_map, FeatureMap<Feature>& output)
     {
       //std::vector<SignalToNoiseEstimatorMedian<RichPeakChromatogram> > signal_noise_estimators;
@@ -326,7 +332,7 @@ private:
       }
 
       // get the expected rt value for this peptide
-      double expected_rt = PeptideRTMap[transition_group.getTransitionGroupID()];
+      double expected_rt = PeptideRTMap_[transition_group.getTransitionGroupID()];
       TransformationDescription newtr = trafo;
       newtr.invert();
       expected_rt = newtr.apply(expected_rt);
@@ -345,7 +351,7 @@ private:
 #ifdef DEBUG_MRMPEAKPICKER
         std::cout << "000000000000000000000000000000000000000000000000000000000000000000000000000 " << std::endl;
         std::cout << "scoring feature " << (*mrmfeature) << " == " << mrmfeature->getMetaValue("PeptideRef") <<
-        "[ expected RT " << PeptideRTMap[mrmfeature->getMetaValue("PeptideRef")] << " / " << expected_rt << " ]" <<
+        "[ expected RT " << PeptideRTMap_[mrmfeature->getMetaValue("PeptideRef")] << " / " << expected_rt << " ]" <<
         " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
 #endif
 
@@ -370,20 +376,20 @@ private:
         // calcxcorr -> for each lag do the correlation, normally use lag 0
         // xcorr_matrix  => correlate chromatogram i with chromatogram j
         bool normalize = true;
-        mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, normalize);
+        mrmscore_.initializeXCorrMatrix(imrmfeature, itransition_group, normalize);
 
         // XCorr score (coelution)
         double xcorr_coelution_score = 0;
         if (use_coelution_score_)
         {
-          xcorr_coelution_score = mrmscore.calcXcorrCoelutionScore();
+          xcorr_coelution_score = mrmscore_.calcXcorrCoelutionScore();
           mrmfeature->addScore("var_xcorr_coelution", xcorr_coelution_score);
         }
 
         double weighted_coelution_score = 0;
         if (use_coelution_score_)
         {
-          weighted_coelution_score = mrmscore.calcXcorrCoelutionScore_weighted(normalized_library_intensity);
+          weighted_coelution_score = mrmscore_.calcXcorrCoelutionScore_weighted(normalized_library_intensity);
           mrmfeature->addScore("var_xcorr_coelution_weighted ", weighted_coelution_score);
         }
 
@@ -394,14 +400,14 @@ private:
         double xcorr_shape_score = 0;
         if (use_shape_score_)
         {
-          xcorr_shape_score = mrmscore.calcXcorrShape_score();
+          xcorr_shape_score = mrmscore_.calcXcorrShape_score();
           mrmfeature->addScore("var_xcorr_shape", xcorr_shape_score);
         }
 
         double weighted_xcorr_shape = 0;
         if (use_shape_score_)
         {
-          weighted_xcorr_shape = mrmscore.calcXcorrShape_score_weighted(normalized_library_intensity);
+          weighted_xcorr_shape = mrmscore_.calcXcorrShape_score_weighted(normalized_library_intensity);
           mrmfeature->addScore("var_xcorr_shape_weighted", weighted_xcorr_shape);
         }
 
@@ -411,7 +417,7 @@ private:
         double library_manhattan, library_dotprod;
         if (use_library_score_)
         {
-          mrmscore.calcLibraryScore(imrmfeature, transition_group.getTransitions(), library_corr, library_rmsd, library_manhattan, library_dotprod);
+          mrmscore_.calcLibraryScore(imrmfeature, transition_group.getTransitions(), library_corr, library_rmsd, library_manhattan, library_dotprod);
           mrmfeature->addScore("var_library_corr", library_corr);
           mrmfeature->addScore("var_library_rmsd", library_rmsd);
           mrmfeature->addScore("var_library_manhattan", library_manhattan); // new score
@@ -425,11 +431,11 @@ private:
           // get the id, then get the expected and the experimental retention time
           String native_id = transition_group.getChromatograms()[0].getNativeID();
           TransitionType tr = transition_group.getTransition(native_id);
-          const PeptideType* pep = PeptideRefMap[tr.getPeptideRef()];
+          const PeptideType* pep = PeptideRefMap_[tr.getPeptideRef()];
           double experimental_rt = mrmfeature->getFeature(native_id).getRT();
           double normalized_experimental_rt = trafo.apply(experimental_rt);
           // rt score is delta iRT
-          rt_score = mrmscore.calcRTScore(*pep, normalized_experimental_rt);
+          rt_score = mrmscore_.calcRTScore(*pep, normalized_experimental_rt);
           norm_rt_score = rt_score / rt_normalization_factor_;
           mrmfeature->addScore("delta_rt", mrmfeature->getRT() - expected_rt);
           mrmfeature->addScore("assay_rt", expected_rt);
@@ -463,7 +469,7 @@ private:
         double sn_score = 0, log_sn_score = 0;
         if (use_sn_score_)
         {
-          sn_score = mrmscore.calcSNScore(imrmfeature, signal_noise_estimators);
+          sn_score = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
           if (sn_score < 1) // fix to make sure, that log(sn_score = 0) = -inf does not occur
           {
             log_sn_score = 0;
@@ -488,7 +494,7 @@ private:
         double elution_model_fit_score = 0;
         if (use_elution_model_score_)
         {
-          elution_model_fit_score = emgscoring.calcElutionFitScore((*mrmfeature), transition_group);
+          elution_model_fit_score = emgscoring_.calcElutionFitScore((*mrmfeature), transition_group);
           mrmfeature->addScore("var_elution_model_fit_score", elution_model_fit_score);
         }
 
@@ -515,7 +521,7 @@ private:
 
         if (swath_present)
         {
-          calculate_swath_scores(transition_group, *mrmfeature, swath_map, normalized_library_intensity, scores);
+          calculateSwathScores_(transition_group, *mrmfeature, swath_map, normalized_library_intensity, scores);
         }
 
 #if 0
@@ -529,8 +535,8 @@ private:
         // add the peptide hit information to the feature
         ///////////////////////////////////////////////////////////////////////////
 
-        const PeptideType* pep = PeptideRefMap[transition_group.getTransitions()[0].getPeptideRef()];
-        const ProteinType* prot = ProteinRefMap[pep->protein_ref];
+        const PeptideType* pep = PeptideRefMap_[transition_group.getTransitions()[0].getPeptideRef()];
+        const ProteinType* prot = ProteinRefMap_[pep->protein_ref];
 
         PeptideIdentification pep_id_ = PeptideIdentification();
         PeptideHit pep_hit_ = PeptideHit();
@@ -585,7 +591,7 @@ private:
     }
 
     /// Returns the addition of "nr_spectra_to_add" spectra around the given RT
-    OpenSwath::SpectrumPtr getAddedSpectra(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add)
+    OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add)
     {
       std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
       int closest_idx = indices[0];
@@ -617,7 +623,7 @@ private:
     }
 
     template <typename SpectrumT, typename TransitionT>
-    void calculate_swath_scores(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group, MRMFeature & mrmfeature_,
+    void calculateSwathScores_(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group, MRMFeature & mrmfeature_,
                                 OpenSwath::SpectrumAccessPtr swath_map, std::vector<double>& normalized_library_intensity, OpenSwath_Scores scores)
     {
       MRMFeature* mrmfeature = &mrmfeature_;
@@ -626,7 +632,7 @@ private:
       int by_charge_state = 1; // for which charge states should we check b/y series
 
       // find spectrum that is closest to the apex of the peak using binary search
-      OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra(swath_map, mrmfeature->getRT(), add_up_spectra_);
+      OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, mrmfeature->getRT(), add_up_spectra_);
       OpenSwath::SpectrumPtr* spectrum = &spectrum_;
 
       // Isotope correlation / overlap score: Is this peak part of an
@@ -634,22 +640,22 @@ private:
       // pattern?
       OpenSwath::IMRMFeature* imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
       double isotope_corr = 0, isotope_overlap = 0;
-      diascoring.dia_isotope_scores(transition_group.getTransitions(),
+      diascoring_.dia_isotope_scores(transition_group.getTransitions(),
                                     (*spectrum), imrmfeature, isotope_corr, isotope_overlap);
       // Mass deviation score
       double ppm_score = 0, ppm_score_weighted = 0;
-      diascoring.dia_massdiff_score(transition_group.getTransitions(),
+      diascoring_.dia_massdiff_score(transition_group.getTransitions(),
                                     (*spectrum), normalized_library_intensity, ppm_score, ppm_score_weighted);
 
       // Presence of b/y series score
       double bseries_score = 0, yseries_score = 0;
-      const PeptideType* pep = PeptideRefMap[transition_group.getTransitions()[0].getPeptideRef()];
+      const PeptideType* pep = PeptideRefMap_[transition_group.getTransitions()[0].getPeptideRef()];
       OpenMS::AASequence aas = (String)pep->sequence;
       for (std::vector<ModificationType>::const_iterator it = pep->modifications.begin(); it != pep->modifications.end(); ++it)
       {
         aas.setModification(it->location, "UniMod:" + it->unimod_id);
       }
-      diascoring.dia_by_ion_score((*spectrum), aas, by_charge_state, bseries_score, yseries_score);
+      diascoring_.dia_by_ion_score((*spectrum), aas, by_charge_state, bseries_score, yseries_score);
       mrmfeature->addScore("var_isotope_correlation_score", isotope_corr);
       mrmfeature->addScore("var_isotope_overlap_score", isotope_overlap);
 #ifdef DEBUG_MRMPEAKPICKER
@@ -677,7 +683,7 @@ private:
       double dotprod_score_dia;
       double manhatt_score_dia;
 
-      diascoring.score_with_isotopes((*spectrum), transition_group.getTransitions(), dotprod_score_dia, manhatt_score_dia);
+      diascoring_.score_with_isotopes((*spectrum), transition_group.getTransitions(), dotprod_score_dia, manhatt_score_dia);
 
       mrmfeature->addScore("var_dotprod_score", dotprod_score_dia);
       mrmfeature->addScore("var_manhatt_score", manhatt_score_dia);
@@ -695,7 +701,7 @@ private:
       delete imrmfeature;
     }
 
-    void handle_params();
+    // void handle_params();
 
     /// Synchronize members with param class
     void updateMembers_();
@@ -721,20 +727,17 @@ private:
 
     // bool do_local_fdr_;
     bool write_convex_hull_;
-    bool strict;
+    bool strict_;
 
     DoubleReal rt_normalization_factor_;
 
-    std::map<OpenMS::String, double> PeptideRTMap;
+    std::map<OpenMS::String, double> PeptideRTMap_;
+    std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
+    std::map<OpenMS::String, const ProteinType*> ProteinRefMap_;
 
-    std::map<OpenMS::String, const PeptideType*> PeptideRefMap;
-    std::map<OpenMS::String, const ProteinType*> ProteinRefMap;
-
-    TransitionGroupMapType lib_transition_group_map;
-
-    OpenSwath::MRMScoring mrmscore;
-    OpenMS::DIAScoring diascoring;
-    OpenMS::EmgScoring emgscoring;
+    OpenSwath::MRMScoring mrmscore_;
+    OpenMS::DIAScoring diascoring_;
+    OpenMS::EmgScoring emgscoring_;
   };
 }
 

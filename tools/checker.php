@@ -448,6 +448,7 @@ $GLOBALS["all_tests"] = array(
 			"ClassTest.h",
 			"LayerData.h",
 			"config.h",
+			"OpenSwathAlgoConfig.h",
 			"XMLSchemes.h",
 			"Serialization.h",
 			"Exception.h",
@@ -565,7 +566,11 @@ $GLOBALS["all_tests"] = array(
 				"IsotopeWaveletParallelFor.h",
 				"include/OpenMS/openms_svn_revision.h",
 				"include/OpenMS/openms_package_version.h",
-				"include/OpenMS/SIMULATION/SimTypes.h"
+				"include/OpenMS/SIMULATION/SimTypes.h",
+				"include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
+				"include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
+				"include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h",
+				"include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h"
 				);
 
 				if (endsWith($f,".h") && !endsWith($f,"_impl.h"))
@@ -577,7 +582,11 @@ $GLOBALS["all_tests"] = array(
 						{
 							$ignore = true;
 						}
+
 					}
+
+					// Exclude all OpenSwathAlgo from the tests since they are not properly recognized
+					if (preg_match("/OPENSWATHALGO/i",$f) ) {$ignore = true;}
 
 					if (!$ignore)
 					{
@@ -946,7 +955,7 @@ $GLOBALS["all_tests"] = array(
 							}
 						}
 					}
-					//check if reference to paramters docu page is present
+					//check if reference to parameters docu page is present
 					if ($is_dph)
 					{
 						$output = array();

@@ -60,8 +60,8 @@ namespace OpenMS
   class OPENMS_DLLAPI CachedmzML :
     public ProgressLogger
   {
-    int int_field;
-    double dbl_field;
+    int int_field_;
+    double dbl_field_;
 
 public:
 
@@ -96,8 +96,8 @@ public:
       if (&rhs == this)
         return *this;
 
-      spectra_index = rhs.spectra_index;
-      chrom_index = rhs.chrom_index;
+      spectra_index_ = rhs.spectra_index_;
+      chrom_index_ = rhs.chrom_index_;
 
       return *this;
     }
@@ -122,13 +122,13 @@ public:
       for (Size i = 0; i < exp.size(); i++)
       {
         setProgress(i);
-        write_spectrum(exp[i], ofs);
+        writeSpectrum_(exp[i], ofs);
       }
 
       for (Size i = 0; i < exp.getChromatograms().size(); i++)
       {
         setProgress(i);
-        write_chromatogram(exp.getChromatograms()[i], ofs);
+        writeChromatogram_(exp.getChromatograms()[i], ofs);
       }
 
       ofs.close();
@@ -158,7 +158,7 @@ public:
       {
         setProgress(i);
         SpectrumType spectrum;
-        _read_Spectrum(spectrum, ifs);
+        readSpectrum_(spectrum, ifs);
         exp_reading.push_back(spectrum);
       }
       std::vector<ChromatogramType> chromatograms;
@@ -166,7 +166,7 @@ public:
       {
         setProgress(i);
         ChromatogramType chromatogram;
-        _read_Chromatogram(chromatogram, ifs);
+        readChromatogram_(chromatogram, ifs);
         chromatograms.push_back(chromatogram);
       }
       exp_reading.setChromatograms(chromatograms);
@@ -193,7 +193,7 @@ public:
     {
       // go to the specified index
       ifs.seekg(idx);
-      _read_Spectrum(spectrum, ifs);
+      readSpectrum_(spectrum, ifs);
     }
 
     //@}
@@ -203,12 +203,12 @@ public:
     //@{
     const std::vector<Size>& getSpectraIndex() const
     {
-      return spectra_index;
+      return spectra_index_;
     }
 
     const std::vector<Size>& getChromatogramIndex() const
     {
-      return chrom_index;
+      return chrom_index_;
     }
 
     //@}
@@ -220,10 +220,10 @@ public:
       Size exp_size, chrom_size;
       Peak1D current_peak;
 
-      spectra_index.clear();
-      chrom_index.clear();
+      spectra_index_.clear();
+      chrom_index_.clear();
       int magic_number;
-      int extra_offset = sizeof(dbl_field) + sizeof(int_field);
+      int extra_offset = sizeof(dbl_field_) + sizeof(int_field_);
       int chrom_offset = 0;
 
       ifs.read((char*)&magic_number, sizeof(magic_number));
@@ -243,7 +243,7 @@ public:
         setProgress(i);
 
         Size spec_size;
-        spectra_index.push_back(ifs.tellg());
+        spectra_index_.push_back(ifs.tellg());
         ifs.read((char*)&spec_size, sizeof(spec_size));
         ifs.seekg((int)ifs.tellg() + extra_offset + (sizeof(DatumSingleton)) * 2 * (spec_size));
 
@@ -254,7 +254,7 @@ public:
         setProgress(i);
 
         Size chrom_size;
-        chrom_index.push_back(ifs.tellg());
+        chrom_index_.push_back(ifs.tellg());
         ifs.read((char*)&chrom_size, sizeof(chrom_size));
         ifs.seekg((int)ifs.tellg() + chrom_offset + (sizeof(DatumSingleton)) * 2 * (chrom_size));
 
@@ -318,7 +318,7 @@ public:
 private:
 
     // read a single spectrum directly into a datavector (assuming file is already at the correct position)
-    void _read_Spectrum(Datavector& data1, Datavector& data2, std::ifstream& ifs, int& ms_level, double& rt) const
+    void readSpectrum_(Datavector& data1, Datavector& data2, std::ifstream& ifs, int& ms_level, double& rt) const
     {
       Size spec_size = -1;
       ifs.read((char*)&spec_size, sizeof(spec_size));
@@ -332,7 +332,7 @@ private:
     }
 
     // read a single chromatogram directly into a datavector (assuming file is already at the correct position)
-    void _read_Chromatogram(Datavector& data1, Datavector& data2, std::ifstream& ifs) const
+    void readChromatogram_(Datavector& data1, Datavector& data2, std::ifstream& ifs) const
     {
       Size spec_size = -1;
       ifs.read((char*)&spec_size, sizeof(spec_size));
@@ -343,14 +343,14 @@ private:
     }
 
     // read a single spectrum directly into an OpenMS MSSpectrum (assuming file is already at the correct position)
-    void _read_Spectrum(SpectrumType& spectrum, std::ifstream& ifs) const
+    void readSpectrum_(SpectrumType& spectrum, std::ifstream& ifs) const
     {
       Datavector mz_data;
       Datavector int_data;
 
       int ms_level;
       double rt;
-      _read_Spectrum(mz_data, int_data, ifs, ms_level, rt);
+      readSpectrum_(mz_data, int_data, ifs, ms_level, rt);
       spectrum.reserve(mz_data.size());
       spectrum.setMSLevel(ms_level);
       spectrum.setRT(rt);
@@ -366,11 +366,11 @@ private:
     }
 
     // read a single chromatogram directly into an OpenMS MSChromatograms (assuming file is already at the correct position)
-    void _read_Chromatogram(ChromatogramType& chromatogram, std::ifstream& ifs) const
+    void readChromatogram_(ChromatogramType& chromatogram, std::ifstream& ifs) const
     {
       Datavector rt_data;
       Datavector int_data;
-      _read_Chromatogram(rt_data, int_data, ifs);
+      readChromatogram_(rt_data, int_data, ifs);
       chromatogram.reserve(rt_data.size());
 
       for (Size j = 0; j < rt_data.size(); j++)
@@ -384,14 +384,14 @@ private:
     }
 
     // write a single spectrum to filestream
-    void write_spectrum(SpectrumType& spectrum, std::ofstream& ofs)
+    void writeSpectrum_(SpectrumType& spectrum, std::ofstream& ofs)
     {
       Size exp_size = spectrum.size();
       ofs.write((char*)&exp_size, sizeof(exp_size));
-      int_field = spectrum.getMSLevel();
-      ofs.write((char*)&int_field, sizeof(int_field));
-      dbl_field = spectrum.getRT();
-      ofs.write((char*)&dbl_field, sizeof(dbl_field));
+      int_field_ = spectrum.getMSLevel();
+      ofs.write((char*)&int_field_, sizeof(int_field_));
+      dbl_field_ = spectrum.getRT();
+      ofs.write((char*)&dbl_field_, sizeof(dbl_field_));
 
 #if 0
       ofs.write((char*)&exp[i].front(), exp[i].size() * sizeof(exp[i].front()));
@@ -411,7 +411,7 @@ private:
     }
 
     // write a single chromatogram to filestream
-    void write_chromatogram(const ChromatogramType& chromatogram, std::ofstream& ofs)
+    void writeChromatogram_(const ChromatogramType& chromatogram, std::ofstream& ofs)
     {
       Size exp_size = chromatogram.size();
       ofs.write((char*)&exp_size, sizeof(exp_size));
@@ -426,8 +426,8 @@ private:
       ofs.write((char*)&int_data.front(), int_data.size() * sizeof(int_data.front()));
     }
 
-    std::vector<Size> spectra_index;
-    std::vector<Size> chrom_index;
+    std::vector<Size> spectra_index_;
+    std::vector<Size> chrom_index_;
 
   };
 }

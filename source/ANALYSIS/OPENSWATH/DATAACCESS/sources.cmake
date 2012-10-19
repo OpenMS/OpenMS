@@ -4,8 +4,8 @@ set(directory source/ANALYSIS/OPENSWATH/DATAACCESS)
 ### list all header files of the directory here
 set(sources_list
 MRMFeatureAccessOpenMS.C
-SpectraAccessOpenMS.C
-SpectraAccessOpenMSCached.C
+SpectrumAccessOpenMS.C
+SpectrumAccessOpenMSCached.C
 DataAccessHelper.C
 SimpleOpenMSSpectraAccessFactory.C
 )
