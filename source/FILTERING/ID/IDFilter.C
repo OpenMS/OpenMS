@@ -28,14 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
-// $Authors: Nico Pfeifer $
+// $Maintainer: Mathias Walzer $
+// $Authors: Nico Pfeifer, Mathias Walzer$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <cmath>
+#include <climits>
 
 using namespace std;
 
@@ -153,20 +154,26 @@ namespace OpenMS
   }
 
   void IDFilter::filterIdentificationsByLength(const PeptideIdentification & identification,
+                                               PeptideIdentification & filtered_identification,
                                                Size                            min_length,
-                                               PeptideIdentification & filtered_identification)
+                                               Size                            max_length)
   {
     vector<Size> new_peptide_indices;
     vector<PeptideHit> filtered_peptide_hits;
 
     filtered_identification = identification;
     filtered_identification.setHits(vector<PeptideHit>());
+    Size ml = max_length;
+    if (max_length < min_length)
+    {
+      ml = UINT_MAX;
+    }
 
     const vector<PeptideHit> & temp_peptide_hits = identification.getHits();
 
     for (Size i = 0; i < temp_peptide_hits.size(); i++)
     {
-      if (temp_peptide_hits[i].getSequence().size() >= min_length)
+      if (temp_peptide_hits[i].getSequence().size() >= min_length && temp_peptide_hits[i].getSequence().size() <= ml)
       {
         new_peptide_indices.push_back(i);
       }

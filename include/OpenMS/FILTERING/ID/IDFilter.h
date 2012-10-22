@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Maintainer: Mathias Walzer $
+// $Authors: Nico Pfeifer, Mathias Walzer$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FILTERING_ID_IDFILTER_H
@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <vector>
+#include <climits>
 
 namespace OpenMS
 {
@@ -233,8 +234,8 @@ public:
     /// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
     void filterIdentificationsByExclusionPeptides(const PeptideIdentification & identification, const std::set<String> & peptides, PeptideIdentification & filtered_identification);
 
-    /// only peptides having a length equal to or greater than 'length' will be kept
-    void filterIdentificationsByLength(const PeptideIdentification & identification, Size length, PeptideIdentification & filtered_identification);
+    /// only peptides having a length equal to or greater than 'min_length' will be kept, if 'max_length' is actually greater or equal 'min_length', also only peptides having a length less or equal to 'max_length' will be kept
+    void filterIdentificationsByLength(const PeptideIdentification & identification, PeptideIdentification & filtered_identification, Size min_length, Size max_length = UINT_MAX);
 
     /// only peptides that have a charge equal to or greater than 'charge' will be kept
     void filterIdentificationsByCharge(const PeptideIdentification & identification, Size charge, PeptideIdentification & filtered_identification);

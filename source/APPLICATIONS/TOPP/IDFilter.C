@@ -209,8 +209,10 @@ protected:
     registerFlag_("best:strict", "Keep only the highest scoring peptide hit.\n"
                                  "Similar to n_peptide_hits=1, but if there are two or more highest scoring hits, none are kept.");
     registerStringOption_("best:n_to_m_peptide_hits", "[min]:[max]", ":", "peptide hit rank range to extracts", false, true);
-    registerIntOption_("min_length", "<integer>", 0, "Keep only peptide hits with a length greater or equal this value.", false);
+    registerIntOption_("min_length", "<integer>", 0, "Keep only peptide hits with a length greater or equal this value. Value 0 will have no filter effect.", false);
     setMinInt_("min_length", 0);
+    registerIntOption_("max_length", "<integer>", 0, "Keep only peptide hits with a length less or equal this value. Value 0 will have no filter effect. Value is overridden by min_length, i.e. if max_length < min_length, max_length will be ignored.", false);
+    setMaxInt_("max_length", 0);
     registerIntOption_("min_charge", "<integer>", 1, "Keep only peptide hits for tandem spectra with charge greater or equal this value.", false);
     setMinInt_("min_charge", 1);
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (fixed modifications from SearchParameters will be ignored).", false);
@@ -277,6 +279,7 @@ protected:
 
     bool best_strict = getFlag_("best:strict");
     UInt min_length = getIntOption_("min_length");
+    UInt max_length = getIntOption_("max_length");
     UInt min_charge = getIntOption_("min_charge");
 
     bool var_mods = getFlag_("var_mods");
@@ -406,11 +409,23 @@ protected:
 
       if (min_length > 0)
       {
-        applied_filters.insert(String("Filtering peptide length ") +  min_length + "...\n");
-        PeptideIdentification temp_identification = filtered_identification;
-        filter.filterIdentificationsByLength(temp_identification,
-                                             min_length,
-                                             filtered_identification);
+        if (max_length > 0)
+        {
+          applied_filters.insert(String("Filtering peptide length [lower bound, upper bound]") +  min_length + " , " + max_length + "...\n");
+          PeptideIdentification temp_identification = filtered_identification;
+          filter.filterIdentificationsByLength(temp_identification,
+                                               filtered_identification,
+                                               min_length,
+                                               max_length);
+        }
+        else
+        {
+          applied_filters.insert(String("Filtering peptide length [lower bound]") +  min_length + "...\n");
+          PeptideIdentification temp_identification = filtered_identification;
+          filter.filterIdentificationsByLength(temp_identification,
+                                               filtered_identification,
+                                               min_length);
+        }
       }
 
       if (var_mods)
