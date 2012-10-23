@@ -46,6 +46,7 @@
 #include <QtGui/QRadioButton>
 #include <QtGui/QFileDialog>
 #include <QtGui/QCheckBox>
+#include <QProcess>
 
 using namespace std;
 
@@ -159,17 +160,13 @@ namespace OpenMS
   void TOPPASToolConfigDialog::storeINI_()
   {
     //nothing to save
-    if (param_->empty())
-      return;
+    if (param_->empty()) return;
 
     filename_ = QFileDialog::getSaveFileName(this, tr("Save ini file"), default_dir_.c_str(), tr("ini files (*.ini)"));
     //not file selected
-    if (filename_.isEmpty())
-    {
-      return;
-    }
-    if (!filename_.endsWith(".ini"))
-      filename_.append(".ini");
+    if (filename_.isEmpty()) return;
+    if (!filename_.endsWith(".ini")) filename_.append(".ini");
+
     editor_->store();
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try
@@ -183,15 +180,17 @@ namespace OpenMS
       //store current parameters
       arg_param_.store(tmp_ini_file.toStdString());
       //restore other parameters that might be missing
-      String call = String("\"") + File::getExecutablePath() + tool_name_ + "\"" + " -write_ini " + String(filename_) + " -ini " + String(tmp_ini_file);
+      QString executable =  String(File::getExecutablePath() + tool_name_).toQString();
+      QStringList args;
+      args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
       if (tool_type_ != "")
       {
-        call += " -type " + tool_type_;
+        args << "-type" << tool_type_.toQString();
       }
-
-      if (system(call.c_str()) != 0)
+      
+      if (QProcess::execute(executable, args) != 0)
       {
-        QMessageBox::critical(0, "Error", (String("Could not execute '") + call + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+        QMessageBox::critical(0, "Error", (String("Could not execute '\"")  + executable + "\" \"" + args.join("\" \"") + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
         return;
       }
     }
