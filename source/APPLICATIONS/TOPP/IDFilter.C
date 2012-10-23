@@ -407,25 +407,14 @@ protected:
         filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, true);
       }
 
-      if (min_length > 0)
+      if (min_length > 0 || max_length > 0)
       {
-        if (max_length > 0)
-        {
-          applied_filters.insert(String("Filtering peptide length [lower bound, upper bound]") +  min_length + " , " + max_length + "...\n");
-          PeptideIdentification temp_identification = filtered_identification;
-          filter.filterIdentificationsByLength(temp_identification,
-                                               filtered_identification,
-                                               min_length,
-                                               max_length);
-        }
-        else
-        {
-          applied_filters.insert(String("Filtering peptide length [lower bound]") +  min_length + "...\n");
-          PeptideIdentification temp_identification = filtered_identification;
-          filter.filterIdentificationsByLength(temp_identification,
-                                               filtered_identification,
-                                               min_length);
-        }
+        applied_filters.insert(String("Filtering peptide length [lower bound, upper bound]") +  min_length + " , " + max_length + "...\n");
+        PeptideIdentification temp_identification = filtered_identification;
+        filter.filterIdentificationsByLength(temp_identification,
+                                             filtered_identification,
+                                             min_length,
+                                             max_length);
       }
 
       if (var_mods)
