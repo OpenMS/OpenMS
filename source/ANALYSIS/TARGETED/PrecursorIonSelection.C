@@ -1063,7 +1063,7 @@ namespace OpenMS
     ilp_wrapper.updateFeatureILPVariables(new_features, variable_indices, feature_constraints_map);
     Size precursors = 0;
     UInt iteration = 0;
-    UInt pep_id_number = 0;
+    Size pep_id_number = 0;
 
     if (sequential_order && new_features.empty())
     {
