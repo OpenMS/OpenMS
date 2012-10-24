@@ -32,8 +32,8 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PEAKFILEOPTIONS_H
-#define OPENMS_FORMAT_PEAKFILEOPTIONS_H
+#ifndef OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H
+#define OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
@@ -165,4 +165,4 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_PEAKFILEOPTIONS_H
+#endif // OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H

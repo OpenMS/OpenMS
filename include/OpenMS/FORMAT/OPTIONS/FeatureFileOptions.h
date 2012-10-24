@@ -32,8 +32,8 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FEATUREFILEOPTIONS_H
-#define OPENMS_FORMAT_FEATUREFILEOPTIONS_H
+#ifndef OPENMS_FORMAT_OPTIONS_FEATUREFILEOPTIONS_H
+#define OPENMS_FORMAT_OPTIONS_FEATUREFILEOPTIONS_H
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
@@ -125,4 +125,4 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_FEATUREFILEOPTIONS_H
+#endif // OPENMS_FORMAT_OPTIONS_FEATUREFILEOPTIONS_H

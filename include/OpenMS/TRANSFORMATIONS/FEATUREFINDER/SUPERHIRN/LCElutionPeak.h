@@ -47,8 +47,8 @@
 //
 //
 
-#ifndef LC_elution_peak_H
-#define LC_elution_peak_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_LCELUTIONPEAK_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_LCELUTIONPEAK_H
 
 #include <vector>
 #include <map>
@@ -361,4 +361,4 @@ public:
 
 } // ns
 
-#endif
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_LCELUTIONPEAK_H

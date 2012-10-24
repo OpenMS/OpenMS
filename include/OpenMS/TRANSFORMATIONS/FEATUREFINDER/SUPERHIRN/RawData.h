@@ -43,8 +43,9 @@
  *
  */
 
-#ifndef _RAWDATA_h_
-#define _RAWDATA_h_
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_RAWDATA_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_RAWDATA_H
+
 #include <vector>
 #include <ostream>
 
@@ -109,4 +110,4 @@ protected:
 
 } // ns
 
-#endif
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_RAWDATA_H

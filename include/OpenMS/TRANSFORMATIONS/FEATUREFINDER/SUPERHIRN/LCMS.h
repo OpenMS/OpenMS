@@ -42,8 +42,8 @@
 //  December 2010
 //
 
-#ifndef _LCMS_H
-#define _LCMS_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_LCMS_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_LCMS_H
 
 #include <string>
 #include <vector>
@@ -332,4 +332,4 @@ public:
 
 }
 
-#endif
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_LCMS_H

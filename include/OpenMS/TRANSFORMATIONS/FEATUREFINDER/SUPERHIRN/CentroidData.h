@@ -43,8 +43,9 @@
  *
  */
 
-//#ifndef _CentroidData_h_
-//#define _CentroidData_h_
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_CENTROIDDATA_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_CENTROIDDATA_H
+
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
@@ -53,10 +54,7 @@
 #include <list>
 #include <vector>
 
-#include "boost/shared_ptr.hpp"
-
-#ifndef _USE_CENTROID_DATA_H
-#define _USE_CENTROID_DATA_H
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -124,4 +122,4 @@ protected:
 
 } // ns
 
-#endif
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_CENTROIDDATA_H

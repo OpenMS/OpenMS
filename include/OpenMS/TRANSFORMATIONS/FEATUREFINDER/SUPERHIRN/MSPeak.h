@@ -46,8 +46,8 @@
 //  Group of Prof. Ruedi Aebersold, IMSB, ETH Hoenggerberg, Zurich
 //
 
-#ifndef MS_PEAK_H
-#define MS_PEAK_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_MSPEAK_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_MSPEAK_H
 
 #include <string>
 #include <vector>
@@ -247,4 +247,4 @@ public:
 
 } // ns
 
-#endif
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_MSPEAK_H

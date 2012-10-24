@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ElutionPeakDetection_H
-#define OPENMS_ElutionPeakDetection_H
+#ifndef OPENMS_FILTERING_DATAREDUCTION_ELUTIONPEAKDETECTION_H
+#define OPENMS_FILTERING_DATAREDUCTION_ELUTIONPEAKDETECTION_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -108,4 +108,4 @@ private:
     void detectElutionPeaks_(MassTrace &, std::vector<MassTrace> &);
   };
 } // namespace OpenMS
-#endif // OPENMS_ElutionPeakDetection_H
+#endif // OPENMS_FILTERING_DATAREDUCTION_ELUTIONPEAKDETECTION_H
