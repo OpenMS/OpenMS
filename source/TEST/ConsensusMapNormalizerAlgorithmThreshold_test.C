@@ -41,7 +41,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(ConsensusMapNormalizerAlgorithmThreshold, "$Id: ConsensusMapNormalizerAlgorithmThreshold_test.C 9538 2012-02-12 13:06:58Z cbielow $")
+START_TEST(ConsensusMapNormalizerAlgorithmThreshold, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
