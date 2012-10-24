@@ -292,28 +292,46 @@ if (in_array("doxygen_errors",$tests))
 $test_log = array(); //Array from test name to warnings/errors
 if (in_array("test_output",$tests) || in_array("topp_output",$tests))
 {
-	if (!file_exists("$bin_path/Testing/Temporary/LastTest.log"))
-	{
-		print "Error: For the tests 'test_output' and 'topp_output', the test log is needed!\n";
-		print "       Please execute 'make test'.\n";
-		$abort = true;
-	}
-	else
-	{
-		$current_test_name = "";
-		$log_file = file("$bin_path/Testing/Temporary/LastTest.log");
-		foreach ($log_file as $line)
-		{
-			if (ereg("[0-9]+/[0-9]+ Testing: (.*)",$line,$parts))
-			{
-				$current_test_name = trim($parts[1]);
-			}
-			if (beginsWith($line,"warning") || beginsWith($line,"Warning") || beginsWith($line,"error") || beginsWith($line,"Error"))
-			{
-				$test_log[$current_test_name][] = trim($line);
-			}
-		}
-	}
+  # try to find a possible test log from ctest 
+  #  * "$bin_path/Testing/Temporary/LastTest.log"
+  #  * "$bin_path/Testing/TAG -> 
+  
+  $lastTestFile="$bin_path/Testing/Temporary/LastTest.log";
+  if(!file_exists($lastTestFile))
+  {
+    if(file_exists("$bin_path/Testing/TAG"))
+    {
+      $taginfo=array();
+      exec("cat $bin_path/Testing/TAG", $taginfo);
+      if(file_exists("$bin_path/Testing/Temporary/LastTest_".$taginfo[0].".log"))
+      {
+        $lastTestFile="$bin_path/Testing/Temporary/LastTest_".$taginfo[0].".log";
+      }
+      else
+      {
+    		print "Error: For the tests 'test_output' and 'topp_output', the test log is needed!\n";
+    		print "       Please execute 'make test'.\n";
+    		$abort = true;            
+      }
+    }
+  }
+
+  if(!$abort)
+  {
+  	$current_test_name = "";
+  	$log_file = file($lastTestFile);
+  	foreach ($log_file as $line)
+  	{
+  		if (ereg("[0-9]+/[0-9]+ Testing: (.*)",$line,$parts))
+  		{
+  			$current_test_name = trim($parts[1]);
+  		}
+  		if (beginsWith($line,"warning") || beginsWith($line,"Warning") || beginsWith($line,"error") || beginsWith($line,"Error"))
+  		{
+  			$test_log[$current_test_name][] = trim($line);
+  		}
+  	}  
+  }
 }
 if ($ctestReporting)
 {
@@ -1247,11 +1265,13 @@ foreach ($files_todo as $f)
       $GLOBALS["TestList"][$reportAs]["result"] = $result;
       $GLOBALS["TestList"][$reportAs]["user"] = $user;
       */
+      $testName=$testdata["user"]."-".$test;
+      
       array_push($newTestFile, "    <Test Status=\"".($testdata["result"] ? "passed" : "failed")."\">\n"); # failed, passed
-      array_push($newTestFile, "      <Name>".$test."</Name>\n");
+      array_push($newTestFile, "      <Name>".$testName."</Name>\n");
       array_push($newTestFile, "      <Path>./tools/</Path>\n");
-      array_push($newTestFile, "      <FullName>".$test."</FullName>\n");
-      array_push($newTestFile, "      <FullCommandLine>".$test."</FullCommandLine>\n");
+      array_push($newTestFile, "      <FullName>".$testName."</FullName>\n");
+      array_push($newTestFile, "      <FullCommandLine>checker ".$test."</FullCommandLine>\n");
       array_push($newTestFile, "      <Results>\n");
       array_push($newTestFile, "              <NamedMeasurement type=\"numeric/double\" name=\"Execution Time\"><Value>0.001</Value></NamedMeasurement>\n");
       array_push($newTestFile, "              <NamedMeasurement type=\"text/string\" name=\"Completion Status\"><Value>Completed</Value></NamedMeasurement>\n");
@@ -1273,8 +1293,8 @@ foreach ($files_todo as $f)
     array_push($newTestFile, "</Testing>\n");
     array_push($newTestFile, "</Site>\n");
 
-    rename("$ctestReportingPath/Test.xml", "$ctestReportingPath/RegularTest.xml")
-    file_put_contents("$ctestReportingPath/Test.xml", $newTestFile);
+    rename($ctestReportingPath."/Test.xml", $ctestReportingPath."/RegularTest.xml");
+    file_put_contents($ctestReportingPath."/Test.xml", $newTestFile);
 
       /*
       <?xml version="1.0" encoding="UTF-8"?>
