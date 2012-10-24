@@ -308,7 +308,8 @@ bool FeatureFindingMetabo::isLegalIsotopePattern_(FeatureHypothesis & feat_hypo)
 
         if (ratio > 1.0)
         {
-            return false;
+          delete[] nodes;
+          return false;
         }
 
         DoubleReal tmp_val((ratio - svm_feat_centers[i - 1]) / svm_feat_scales[i - 1]);
@@ -857,7 +858,7 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace *> & candida
             if (best_so_far > 0.0)
             {
                 fh_tmp.addMassTrace(*candidates[best_idx]);
-                fh_tmp.setScore(fh_tmp.getScore() + best_so_far /* + fh_tmp.getSize() */);
+                fh_tmp.setScore(fh_tmp.getScore() + best_so_far + fh_tmp.getSize());
                 fh_tmp.setCharge(charge);
                 //std::cout << "adding " << fh_tmp.getLabel() << std::endl;
 
