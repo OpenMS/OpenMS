@@ -198,11 +198,11 @@ namespace OpenMS
     loginbytes.append("login_prompt\r\n");
     loginbytes.append("--" + boundary + "--\r\n");
 
-#ifdef MASCOTREMOTEQUERY_DEBUG
+//~ #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << ">>>> Header to send: " << "\n";
     cerr << header.toString().toStdString() << "\n";
     cerr << "ended" << "\n";
-#endif
+//~ #endif
 
     header.setContentLength(loginbytes.length());
     http_->request(header, loginbytes);
@@ -255,7 +255,14 @@ namespace OpenMS
     header.setValue("Accept", "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*");
 
     QByteArray querybytes;
+    QString boundary(((String)param_.getValue("boundary")).c_str());
+    querybytes.append("--" + boundary + "--\n");
+    querybytes.append("Content-Disposition: ");
+    querybytes.append("form-data; name=\"QUE\"\n");
+    querybytes.append("\n");
     querybytes.append(query_spectra_.c_str());
+    querybytes.append("--" + boundary + "--\n");
+
     querybytes.replace("\n", "\r\n");
 
     header.setContentLength(querybytes.length());
@@ -264,7 +271,6 @@ namespace OpenMS
     cerr << ">>>> Header to request:" << "\n";
     cerr << header.toString().toStdString() << "\n";
     cerr << "ended: " << "\n";
-
     cerr << ">>>> Query:" << "\n";
     cerr << querybytes.constData() << "\n";
     cerr << "ended: " << "\n";
