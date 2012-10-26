@@ -197,6 +197,8 @@ protected:
     mtd_param.remove("chrom_fwhm");
     mtdet.setParameters(mtd_param);
 
+    std::cout << mtd_param << std::endl;
+
     mtdet.run(ms_peakmap, m_traces);
 
 
@@ -216,9 +218,11 @@ protected:
     epd_param.insert("", common_param);
     epdet.setParameters(epd_param);
 
+    std::cout << epd_param << std::endl;
+
     std::vector<MassTrace> splitted_mtraces;
 
-    epdet.setScanTime(scan_time);
+    // epdet.setScanTime(scan_time);
 
     epdet.detectPeaks(m_traces, splitted_mtraces);
 
@@ -233,7 +237,7 @@ protected:
       m_traces_final = splitted_mtraces;
     }
 
-
+    std::cout << "m_traces: " << m_traces_final.size() << std::endl;
 
     //-------------------------------------------------------------
     // configure and run feature finding
@@ -243,6 +247,8 @@ protected:
     ffm_param.insert("", common_param);
     ffm_param.remove("noise_threshold_int");
     ffm_param.remove("chrom_peak_snr");
+
+    std::cout << ffm_param << std::endl;
 
     ffmet.setParameters(ffm_param);
     ffmet.run(m_traces_final, ms_feat_map);

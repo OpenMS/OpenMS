@@ -178,7 +178,7 @@ FeatureFindingMetabo::FeatureFindingMetabo() :
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider");      // 1
     defaults_.setValue("charge_upper_bound", 5, "Highest charge state to consider");      // 5
     //defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");  // 20.0
-    defaults_.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds).");      // 3.0
+    defaults_.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds).");      // 5.0
     defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", StringList::create("advanced"));
     defaults_.setValidStrings("report_summed_ints", StringList::create(("false,true")));
     defaults_.setValue("disable_isotope_filtering", "false", "Disable isotope filtering.", StringList::create("advanced"));
@@ -308,8 +308,8 @@ bool FeatureFindingMetabo::isLegalIsotopePattern_(FeatureHypothesis & feat_hypo)
 
         if (ratio > 1.0)
         {
-          delete[] nodes;
-          return false;
+            delete[] nodes;
+            return false;
         }
 
         DoubleReal tmp_val((ratio - svm_feat_centers[i - 1]) / svm_feat_scales[i - 1]);
@@ -959,6 +959,7 @@ void FeatureFindingMetabo::run(std::vector<MassTrace> & input_mtraces, FeatureMa
             for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
             {
                 if (trace_excl_map.find(labels[lab_idx]) != trace_excl_map.end())
+                // if (trace_excl_map[labels[lab_idx]])
                 {
                     trace_coll = true;
                 }

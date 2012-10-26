@@ -68,10 +68,10 @@ public:
     virtual ~ElutionPeakDetection();
 
     /// Getter & setter methods
-    void setScanTime(const DoubleReal & st)
-    {
-      scan_time_ = st;
-    }
+//    void setScanTime(const DoubleReal & st)
+//    {
+//      scan_time_ = st;
+//    }
 
     DoubleReal getFWHM()
     {
@@ -97,7 +97,7 @@ protected:
 
 private:
     DoubleReal chrom_fwhm_;
-    DoubleReal scan_time_;
+    // DoubleReal scan_time_;
     DoubleReal chrom_peak_snr_;
     DoubleReal noise_threshold_int_;
     DoubleReal sample_rate_;
