@@ -197,8 +197,6 @@ protected:
     mtd_param.remove("chrom_fwhm");
     mtdet.setParameters(mtd_param);
 
-    std::cout << mtd_param << std::endl;
-
     mtdet.run(ms_peakmap, m_traces);
 
 
@@ -217,8 +215,6 @@ protected:
     // epd_param.remove("enabled"); // artificially added above
     epd_param.insert("", common_param);
     epdet.setParameters(epd_param);
-
-    std::cout << epd_param << std::endl;
 
     std::vector<MassTrace> splitted_mtraces;
 
@@ -248,8 +244,6 @@ protected:
     ffm_param.remove("noise_threshold_int");
     ffm_param.remove("chrom_peak_snr");
 
-    std::cout << ffm_param << std::endl;
-
     ffmet.setParameters(ffm_param);
     ffmet.run(m_traces_final, ms_feat_map);
 
@@ -261,6 +255,8 @@ protected:
 
     // annotate output with data processing info
     addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
+
+    ms_feat_map.sortByMZ();
 
     FeatureXMLFile().store(out, ms_feat_map);
 

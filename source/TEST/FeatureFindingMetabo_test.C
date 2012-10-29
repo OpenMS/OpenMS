@@ -54,14 +54,14 @@ FeatureFindingMetabo* ptr = 0;
 FeatureFindingMetabo* null_ptr = 0;
 START_SECTION(FeatureFindingMetabo())
 {
-	ptr = new FeatureFindingMetabo();
-	TEST_NOT_EQUAL(ptr, null_ptr)
+    ptr = new FeatureFindingMetabo();
+    TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~FeatureFindingMetabo())
 {
-	delete ptr;
+    delete ptr;
 }
 END_SECTION
 
@@ -82,22 +82,23 @@ ElutionPeakDetection test_epd;
 test_epd.detectPeaks(output_mt, splitted_mt);
 // test_epd.filterByPeakWidth(splitted_mt, filtered_mt);
 
-std::cout << "!!!!" << splitted_mt.size() << std::endl;
-
 START_SECTION((void run(std::vector< MassTrace > &, FeatureMap<> &)))
 {
     FeatureFindingMetabo test_ffm;
     test_ffm.run(splitted_mt, test_fm);
-    // test_fm.sortByMZ();
+    test_fm.sortByMZ();
 
     TEST_EQUAL(exp_fm.size(), test_fm.size());
 
-    for (Size i = 0; i < exp_fm.size(); ++i)
+    if (exp_fm.size() == test_fm.size())
     {
-        TEST_EQUAL(exp_fm[i].getMetaValue(3), test_fm[i].getMetaValue(3));
-        TEST_REAL_SIMILAR(exp_fm[i].getRT(), test_fm[i].getRT());
-        TEST_REAL_SIMILAR(exp_fm[i].getMZ(), test_fm[i].getMZ());
-        TEST_REAL_SIMILAR(exp_fm[i].getIntensity(), test_fm[i].getIntensity());
+        for (Size i = 0; i < exp_fm.size(); ++i)
+        {
+            TEST_EQUAL(exp_fm[i].getMetaValue(3), test_fm[i].getMetaValue(3));
+            TEST_REAL_SIMILAR(exp_fm[i].getRT(), test_fm[i].getRT());
+            TEST_REAL_SIMILAR(exp_fm[i].getMZ(), test_fm[i].getMZ());
+            TEST_REAL_SIMILAR(exp_fm[i].getIntensity(), test_fm[i].getIntensity());
+        }
     }
 }
 END_SECTION
