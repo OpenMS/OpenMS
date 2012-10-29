@@ -109,6 +109,7 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "input files separated by blanks", true);
     setValidFormats_("in", StringList::create("featureXML"));
     registerOutputFile_("out", "<file>", "", "output XML file containg regression line and confidence interval");
+    setValidFormats_("out", StringList::create("XML"));
     registerDoubleOption_("mz_tolerance", "<tol>", 1.0, "Tolerance in m/z dimension", false);
     registerDoubleOption_("rt_tolerance", "<tol>", 1.0, "Tolerance in RT dimension", false);
     registerDoubleList_("concentrations", "<concentrations>", DoubleList(), "Spiked concentrations");

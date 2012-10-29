@@ -97,6 +97,7 @@ protected:
     registerInputFile_("abort_reasons", "<file>", "", "Feature file containing seeds with abort reasons.", false);
     setValidFormats_("abort_reasons", StringList::create("featureXML"));
     registerOutputFile_("out_roc", "<file>", "", "If given, a ROC curve file is created (ROC points based on intensity threshold)", false);
+    setValidFormats_("out_roc", StringList::create("csv"));
   }
 
   /// Counts the number of features with meta value @p name equal to @p value

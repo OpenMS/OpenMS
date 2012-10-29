@@ -137,6 +137,7 @@ protected:
     setValidFormats_("in", StringList::create("mzML"));
 
     registerInputFile_("pair_in", "<file>", "", "Pair-file in the format: m/z-light m/z-heavy charge rt");
+    setValidFormats_("pair_in", StringList::create("txt"));
 
     registerOutputFile_("out", "<file>", "", "Output consensusXML file were the pairs of the feature are written into.");
     setValidFormats_("out", StringList::create("consensusXML"));

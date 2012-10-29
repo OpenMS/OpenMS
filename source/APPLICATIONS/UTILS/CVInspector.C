@@ -79,10 +79,13 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("cv_files", "<files>", StringList(), "List of ontology files in OBO format.");
+    setValidFormats_("mapping_file", StringList::create("obo"));
     registerStringList_("cv_names", "<names>", StringList(), "List of identifiers (one for each ontology file).");
-    registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format.", false);
+    registerInputFile_("cv_names", "<file>", "", "Mapping file in CVMapping (XML) format.", false);
+    setValidFormats_("mapping_file", StringList::create("XML"));
     registerStringList_("ignore_cv", "<list>", StringList::create("UO,PATO,BTO"), "A list of CV identifiers which should be ignored.", false);
     registerOutputFile_("html", "<file>", "", "Writes an HTML version of the mapping file with annotated CV terms", false);
+    setValidFormats_("html", StringList::create("HTML"));
   }
 
   void writeTermTree_(const String & accession, const ControlledVocabulary & cv, TextFile & file, UInt indent)

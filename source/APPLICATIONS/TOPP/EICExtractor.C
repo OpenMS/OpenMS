@@ -79,7 +79,7 @@ using namespace std;
 	If you do not require ranks, give each row a unique number, e.g. start numbering from 1 to n.
 
 	The intensity reported is the MAXIMUM intensity of all peaks each within the given tolerances for this row's position.
-	
+
 Example:<br>
     <pre>
 RT	m/z	int	charge	rank
@@ -124,9 +124,9 @@ public:
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
     registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
     registerOutputFile_("out", "<file>", "", "Output quantitation file (summed intensities by master compounds)");
-    //setValidFormats_("out", StringList::create("txt")); // 'txt' not supported yet
+    setValidFormats_("out", StringList::create("txt"));
     registerOutputFile_("out_detail", "<file>", "", "Output quantitation file");
-    //setValidFormats_("out_detail", StringList::create("txt")); // 'txt' not supported yet
+    setValidFormats_("out_detail", StringList::create("txt"));
   }
 
   ExitCodes main_(int, const char **)

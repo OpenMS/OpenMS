@@ -81,6 +81,7 @@ protected:
     registerInputFile_("in", "<file>", "", "FASTA input file");
     setValidFormats_("in", StringList::create("fasta"));
     registerOutputFile_("out", "<file>", "", "output file (peptides)\n");
+    setValidFormats_("out", StringList::create("idXML"));
     registerIntOption_("missed_cleavages", "<number>", 1, "the number of allowed missed cleavages", false);
     registerIntOption_("mass_accuracy", "<number>", 1000, "give your mass accuracy in ppb", false);
     registerIntOption_("min_length", "<number>", 6, "minimum length of peptide", false);

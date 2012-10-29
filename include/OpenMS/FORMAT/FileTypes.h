@@ -86,7 +86,9 @@ namespace OpenMS
       EDTA,                 ///< enhanced comma separated files (RT, m/z, Intensity, [meta])
       CSV,                  ///< general comma separated files format (might also be tab or space separated!!!), data should be regular, i.e. matrix form
       TXT,                  ///< any text format, which has only loose definition of what it actually contains -- thus it is usually hard to say where the file actually came from (e.g. PepNovo).
-                            ///< If you have more structured data, consider "CSV". TXT data is still parseable, but usually with more effort.
+      OBO,                  ///< Controlled Vocabulary format
+      HTML,                  ///< any HTML format
+      XML,                  ///< any XML format
       SIZE_OF_TYPE          ///< No file type. Simply stores the number of types
     };
   };
