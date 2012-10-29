@@ -414,6 +414,7 @@ protected:
       registerInputFile_("in", "<file>", "", "Input file ");
       setValidFormats_("in", StringList::create("featureXML,consensusXML,idXML,mzML"));
       registerOutputFile_("out", "<file>", "", "Output file (mandatory for featureXML and idXML)", false);
+      setValidFormats_("out", StringList::create("csv"));
       registerStringOption_("separator", "<sep>", "\t", "The used separator character(s); if not set the 'tab' character is used", false);
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
       registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
@@ -438,9 +439,12 @@ protected:
       addText_("Options for consensusXML files:");
       registerOutputFile_("consensus_centroids", "<file>", "",
                           "Output file for centroids of consensus features", false);
+      setValidFormats_("consensus_centroids", StringList::create("csv"));
       registerOutputFile_("consensus_elements", "<file>", "",
                           "Output file for elements of consensus features", false);
+      setValidFormats_("consensus_elements", StringList::create("csv"));
       registerOutputFile_("consensus_features", "<file>", "", "Output file for consensus features and contained elements from all maps (writes 'nan's if elements are missing)", false);
+      setValidFormats_("consensus_features", StringList::create("csv"));
       registerStringOption_("sorting_method", "<method>", "none",
                             "Sorting method", false);
       setValidStrings_("sorting_method", StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));

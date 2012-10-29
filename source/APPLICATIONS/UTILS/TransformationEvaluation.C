@@ -77,6 +77,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file containing the transformation description");
     setValidFormats_("in", StringList::create("trafoXML"));
     registerOutputFile_("out", "<file>", "", "Output file containing original and transformed values; if empty, output is written to the screen", false);
+    setValidFormats_("out", StringList::create("trafoXML"));
     registerDoubleOption_("min", "<value>", 0.0, "Minimum value to transform", false);
     registerDoubleOption_("max", "<value>", 0.0, "Maximum value to transform (if at or below 'min', select a suitable maximum based on the transformation description)", false);
     registerDoubleOption_("step", "<value>", 1.0, "Step size between 'min' and 'max'", false);

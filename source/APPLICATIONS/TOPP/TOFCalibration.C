@@ -108,12 +108,14 @@ protected:
     registerInputFile_("ext_calibrants", "<file>", "", "input file containing the external calibrant spectra (peak or raw data)\n");
     setValidFormats_("ext_calibrants", StringList::create("mzML"));
     registerInputFile_("ref_masses", "<file>", "", "input file containing reference masses of the external calibrant spectra (one per line)", true);
+    setValidFormats_("ref_masses", StringList::create("txt"));
     registerInputFile_("tof_const", "<file>", "", "File containing TOF conversion constants."
                                                   " These can be either two or three constants\n"
                                                   "per set, depending on the conversion type. Either one set for all calibrant spectra \n"
                                                   "(tab separated), or one for each spectrum.\n"
                                                   "For a detailed description, please have a look at the doxygen documentation."
                                                   "(one set, tab separated, per line)", true);
+    setValidFormats_("tof_const", StringList::create("csv"));
     registerFlag_("peak_data", "set this flag, if you have peak data, not raw data");
     addText_("\nIf you want to calibrate raw data, it is necessary to perform a peak picking step before the "
              "actual calibration is done. \nThe parameters for the peak picking step can be given "
