@@ -104,11 +104,13 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input mzML file containing the spectra.");
     setValidFormats_("in", StringList::create("mzML"));
+
     registerOutputFile_("out", "<file>", "", "Output mzML file.");
     setValidFormats_("out", StringList::create("mzML"));
 
     registerInputFile_("feature_in", "<file>", "", "Input featureXML file, containing features; if set, the MS/MS spectra precursor entries \n"
                                                    "will be matched to the feature m/z values if possible.", false);
+    setValidFormats_("feature_in", StringList::create("featureXML"));
 
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Maximal deviation in Th which is acceptable to be corrected;\n"
                                                                           "this value should be set to the instruments selection window.", false);

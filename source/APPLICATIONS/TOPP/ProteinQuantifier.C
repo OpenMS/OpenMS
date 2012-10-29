@@ -328,8 +328,11 @@ protected:
     registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protxml", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
+    setValidFormats_("out", StringList::create("csv"));
     registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances", false);
+    setValidFormats_("peptide_out", StringList::create("csv"));
     registerOutputFile_("mzTab_out", "<file>", "", "Export to mzTab.\nEither 'out', 'peptide_out', or 'mzTab_out' are required. They can be used together.", false);
+    setValidFormats_("mzTab_out", StringList::create("csv"));
 
     // algorithm parameters:
     addEmptyLine_();
