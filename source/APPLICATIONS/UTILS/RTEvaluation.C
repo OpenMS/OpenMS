@@ -86,6 +86,7 @@ protected:
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
+    setValidFormats_("out", StringList::create("csv"));
     registerInputFile_("sequences_file", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
                                                        "All peptides that are not a substring of a sequence in this file are considered as false", false);
     setValidFormats_("sequences_file", StringList::create("fasta"));

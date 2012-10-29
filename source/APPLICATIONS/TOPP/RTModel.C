@@ -180,6 +180,7 @@ protected:
     registerInputFile_("in_negative", "<file>", "", "input file with negative examples (peptide separation prediction)\n", false);
     setValidFormats_("in_negative", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "output file: the model in libsvm format");
+    setValidFormats_("out", StringList::create("txt"));
     registerStringOption_("svm_type", "<type>", "NU_SVR", "the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n", false);
     setValidStrings_("svm_type", StringList::create("NU_SVR,NU_SVC,EPSILON_SVR,C_SVC"));
     registerDoubleOption_("nu", "<float>", 0.5, "the nu parameter [0..1] of the svm (for nu-SVR)", false);

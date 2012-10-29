@@ -116,6 +116,7 @@ protected:
     registerInputFile_("in_id", "<file>", "", "peptides with precursor information", false);
     setValidFormats_("in_id", StringList::create("idXML"));
     registerInputFile_("in_text", "<file>", "", "peptides as text-based file", false);
+    setValidFormats_("in_text", StringList::create("txt"));
 
     //output
     registerTOPPSubsection_("out_id", "Output files in idXML format");
@@ -129,8 +130,11 @@ protected:
 
     registerTOPPSubsection_("out_text", "Output files in text format");
     registerOutputFile_("out_text:file", "<file>", "", "Output file with predicted RT values", false);
+    setValidFormats_("out_text:file", StringList::create("csv"));
 
     registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by RTModel)");
+    setValidFormats_("svm_model", StringList::create("txt"));
+
     registerDoubleOption_("total_gradient_time", "<time>", 1.0, "the time (in seconds) of the gradient (peptide RT prediction)", false);
     setMinFloat_("total_gradient_time", 0.00001);
     registerIntOption_("max_number_of_peptides", "<int>", 100000, "the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n", false, true);

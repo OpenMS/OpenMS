@@ -92,6 +92,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file\n", false);
     setValidFormats_("out", StringList::create("idXML"));
     registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by PTModel)");
+    setValidFormats_("svm_model", StringList::create("txt"));
     registerIntOption_("max_number_of_peptides", "<int>", 100000, "the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n", false);
   }
 
