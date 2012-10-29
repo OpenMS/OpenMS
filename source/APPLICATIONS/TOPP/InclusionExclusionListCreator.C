@@ -105,7 +105,8 @@ protected:
     setValidFormats_("include", StringList::create("featureXML,fasta"));
     registerInputFile_("exclude", "<file>", "", "Exclusion list input file in featureXML, idXML or FASTA format.", false);
     setValidFormats_("exclude", StringList::create("featureXML,idXML,fasta"));
-    registerOutputFile_("out", "<file>", "", "Output file (tab delimited).");
+    registerOutputFile_("out", "<file>", "", "Output file (tab delimited csv file).");
+    setValidFormats_("out", StringList::create("csv"));
     registerInputFile_("rt_model", "<file>", "", "RTModel file used for the rt prediction of peptides in FASTA files.", false);
     registerInputFile_("pt_model", "<file>", "", "PTModel file used for the pt prediction of peptides in FASTA files (only needed for inclusion_strategy PreotinBased_LP).", false);
     //in FASTA or featureXML

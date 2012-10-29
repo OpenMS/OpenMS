@@ -150,8 +150,10 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file in mzXML or mzData format.\n"
                                            "Note: In mode 'inspect_out' an Inspect results file is read.");
+    setValidFormats_("in", StringList::create("mzXML,mzData"));
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
                                              "Note: In mode 'inspect_in' an Inspect input file is written.");
+    setValidFormats_("out", StringList::create("idXML"));
     registerFlag_("inspect_in", "if this flag is set the InspectAdapter will read in mzXML,\n"
                                 "write an Inspect input file and generate a trie database");
     registerFlag_("inspect_out", "if this flag is set the InspectAdapter will read in a Inspect results file\n"
@@ -177,8 +179,8 @@ protected:
     registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
     registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
     registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
-    registerOutputFile_("inspect_output", "<file>", "", "name for the output file of Inspect (may only be used in a full run)", false);
-    registerInputFile_("inspect_input", "<file>", "", "name for the input file of Inspect (may only be used in a full run)", false);
+    registerOutputFile_("inspect_output", "<file>", "", "name for the output file of Inspect (may only be used in a full run)", false); // TODO: Which file format?
+    registerInputFile_("inspect_input", "<file>", "", "name for the input file of Inspect (may only be used in a full run)", false); // TODO: Which file format?
     registerFlag_("multicharge", "attempt to guess the precursor charge and mass,\n"
                                  "and consider multiple charge states if feasible");
     registerIntOption_("max_modifications_pp", "<num>", -1, "number of PTMs permitted in a single peptide.", false);

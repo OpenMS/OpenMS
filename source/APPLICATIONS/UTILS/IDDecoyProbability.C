@@ -97,9 +97,13 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Identification input of combined forward decoy search (reindex with PeptideIndexer first)", false);
+    setValidFormats_("in", StringList::create("idXML"));
     registerInputFile_("fwd_in", "<file>", "", "Identification input of forward run", false);
+    setValidFormats_("fwd_in", StringList::create("idXML"));
     registerInputFile_("rev_in", "<file>", "", "Identification input of decoy run", false);
+    setValidFormats_("rev_in", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output with forward scores converted to probabilities");
+    setValidFormats_("out", StringList::create("idXML"));
 
     registerSubsection_("decoy_algorithm", "Algorithm parameter subsection");
     addEmptyLine_();

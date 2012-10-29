@@ -207,7 +207,8 @@ protected:
     setValidFormats_("in", StringList::create("featureXML,consensusXML"));
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", StringList::create("featureXML,consensusXML"));
-    registerOutputFile_("out", "<file>", "", "Optional output file. If '-' or left out, the output is written to the command line.", false);
+    registerOutputFile_("out", "<file>", "", "Optional output txt file. If '-' or left out, the output is written to the command line.", false);
+    setValidFormats_("out", StringList::create("txt"));
 
     registerIntOption_("n", "<n>", 4,     // 4 slices is the default
                        "Report separate statistics for each of n RT slices of the map.",

@@ -80,7 +80,10 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file, either analysisXML or mzML.");
+    setValidFormats_("in", StringList::create("analysisXML,mzML"));
+
     registerInputFile_("mapping_file", "<file>", "", "Mapping file which is used to semantically validate the given XML file against this mapping file (see 'share/OpenMS/MAPPING' for templates).");
+    setValidFormats_("out", StringList::create("xml"));
   }
 
   ExitCodes main_(int, const char **)

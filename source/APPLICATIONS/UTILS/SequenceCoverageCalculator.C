@@ -79,6 +79,7 @@ protected:
     registerInputFile_("in_peptides", "<file>", "", "input file containing the identified peptides");
     setValidFormats_("in_peptides", StringList::create("idXML"), true);
     registerOutputFile_("out", "<file>", "", "Optional text output file. If left out, the output is written to the command line.", false);
+    setValidFormats_("out", StringList::create("txt"));
   }
 
   void getStartAndEndIndex(const String & sequence, const String & substring, pair<Size, Size> & indices)

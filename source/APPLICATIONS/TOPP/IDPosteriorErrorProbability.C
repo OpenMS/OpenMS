@@ -119,6 +119,9 @@ protected:
     setValidFormats_("in", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", StringList::create("idXML"));
+    registerOutputFile_("output_name", "<file>", "", "gnuplot file as txt");
+    setValidFormats_("output_name", StringList::create("txt"));
+
     registerDoubleOption_("smallest_e_value", "<value>", 10e-20, "This value gives a lower bound to E-Values. It should not be 0, as transformation in a real number (log of E-value) is not possible for certain values then.", false, true);
     registerFlag_("split_charge", "The search engine scores are split by charge if this flag is set. Thus, for each charge state a new model will be computed.");
     registerFlag_("top_hits_only", "If set only the top hits of every PeptideIdentification will be used");

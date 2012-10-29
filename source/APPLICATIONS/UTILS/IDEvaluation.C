@@ -110,13 +110,12 @@ protected:
   {
     registerInputFileList_("in", "<file>", StringList::create(""), "Input file(s)", false);
     setValidFormats_("in", StringList::create("idXML"));
-
-
     registerOutputFile_("out", "<file>", "", "Output file (if given, no GUI will be displayed)", false);
     setValidFormats_("out", out_formats_, false);
     registerStringOption_("out_type", "<file type>", "", "The image format. Set this if you want to force a format not reflected by the 'out' filename.", false);
     setValidStrings_("out_type", out_formats_);
     registerOutputFile_("out_csv", "<file>", "", "Optional output of points as table for manual post-processing.", false);
+    setValidFormats_("out_csv", StringList::create("csv"));
 
     registerDoubleOption_("q_min", "<float>", 0.0, "Minimal q-value in plot.", false);
     setMinFloat_("q_min", 0.0);

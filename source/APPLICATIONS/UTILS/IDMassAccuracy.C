@@ -108,6 +108,8 @@ protected:
     setValidFormats_("id_in", StringList::create("idXML"));
 
     registerOutputFile_("precursor_out", "<file>", "", "Output file which contains the deviations from the precursors", false, false);
+    setValidFormats_("precursor_out", StringList::create("csv"));
+
     registerStringList_("precursor_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file", false);
     setValidStrings_("precursor_columns", StringList::create("MassDifference"));
     registerFlag_("precursor_error_ppm", "If this flag is used, the precursor mass tolerances are estimated in ppm instead of Da.");
