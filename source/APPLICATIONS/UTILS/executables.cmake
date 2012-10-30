@@ -34,6 +34,8 @@ SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
 XMLValidator
 QCCalculator
+RNPxl
+RNPxlXICFilter
 )
 
 if(NOT DISABLE_OPENSWATH)
