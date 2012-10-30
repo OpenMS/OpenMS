@@ -492,11 +492,11 @@ protected:
 
 // search
     registerInputFile_("in_OMSSA_ini", "<file>", "", "Ini file for the OMSSA search engine\n");
-    setValidFormats_("in_OMSSA_ini", StringList::create("xml"));
+    setValidFormats_("in_OMSSA_ini", StringList::create("ini"));
 
 // indexing
     registerInputFile_("in_fasta", "<file>", "", "Fasta file for search result annotation\n");
-    setValidFormats_("in_fasta", StringList::create("txt"));
+    setValidFormats_("in_fasta", StringList::create("fasta"));
 
 // reporting
     registerDoubleOption_("marker_ions_tolerance", "<tolerance>", 0.05, "mz tolerance used to determine marker ions.", false);
