@@ -199,7 +199,7 @@ Since the ProteinResolver offers three different input parameters, there are som
 /*
 The algorithm tries to assign to each Protein its experimantally validated peptide.
 Proteins are grouped into ISD groups(in silco derived) and MSD groups(MS/MS derived)
-if they have in siilco derived or MS/MS derived peptides in common. Proteins and peptides span a bipartite graph.
+if they have in silco derived or MS/MS derived peptides in common. Proteins and peptides span a bipartite graph.
 There is an edge between a protein node and a peptide node iff the protein contains the peptide.
 ISD groups are connected graphs in the forementionend bipartite graph. MSD groups are subgraphs of ISD groups.
 At the moment pointers are used a lot which might be wise to change for reasons of safety.
@@ -226,17 +226,29 @@ protected:
   {
     registerInputFile_("fasta", "<file>", "", "Input database file", true, false);
     setValidFormats_("fasta", StringList::create("fasta"));
+
     registerInputFile_("in", "<file>", "", "Input file holding experimental data", false, false);
     setValidFormats_("in", StringList::create("idXML,consensusXML"));
+
     registerInputFileList_("in_list", "<files>", StringList(), "Input files holding the experimental data. Ignored if parameter 'in' is given", false, false);
     setValidFormats_("in_list", StringList::create("idXML,consensusXML"));
+
     registerStringOption_("in_path", "<file>", "", "Path to idXMLs or consensusXMLs files. Ignored if either 'in' or 'in_list' is given.", false, false);
+
     registerInputFile_("design", "<file>", "", "Text file containing the experimental design. See documentation for specific format requirements", false, false);
+    setValidFormats_("design", StringList::create("txt"));
 
     registerOutputFile_("protein_groups", "<file>", "", "output file. Contains all protein groups");
+    setValidFormats_("protein_groups", StringList::create("csv"));
+
     registerOutputFile_("peptide_table", "<file>", "", "output file. Contains one peptide per line and all proteins which contain that peptide");
+    setValidFormats_("peptide_table", StringList::create("csv"));
+
     registerOutputFile_("protein_table", "<file>", "", "output file. Contains one protein per line");
+    setValidFormats_("protein_table", StringList::create("csv"));
+
     registerOutputFile_("additional_info", "<file>", "", "output file for additional info", false, true);
+    setValidFormats_("additional_info", StringList::create("csv"));
 
     Param temp = ProteinResolver().getParameters();
     registerFullParam_(temp);

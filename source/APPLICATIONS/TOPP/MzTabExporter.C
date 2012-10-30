@@ -100,6 +100,7 @@ protected:
       registerInputFile_("in", "<file>", "", "Input file annotated by ProteinQuantifier");
       setValidFormats_("in", StringList::create("idXML"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
+      setValidFormats_("out", StringList::create("csv"));
     }
 
     ExitCodes main_(int, const char **)

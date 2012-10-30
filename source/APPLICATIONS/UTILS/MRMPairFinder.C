@@ -123,6 +123,7 @@ protected:
     setValidFormats_("in", StringList::create("featureXML"));
 
     registerInputFile_("pair_in", "<file>", "", "Pair-file in the format: prec-m/z-light prec-m/z-heavy frag-m/z-light frag-m/z-heavy rt");
+    setValidFormats_("pair_in", StringList::create("csv"));
 
     registerOutputFile_("out", "<file>", "", "Output consensusXML file were the pairs of the features will be written to.");
     setValidFormats_("out", StringList::create("consensusXML"));
