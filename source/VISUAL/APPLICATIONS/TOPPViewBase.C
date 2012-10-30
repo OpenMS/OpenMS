@@ -1148,7 +1148,7 @@ namespace OpenMS
     // abort if file type unsupported
     if (file_type == FileTypes::INI)
     {
-      showLogMessage_(LS_ERROR, "Open file error", String("The type '") + fh.typeToName(file_type) + "' is not supported!");
+      showLogMessage_(LS_ERROR, "Open file error", String("The type '") + FileTypes::typeToName(file_type) + "' is not supported!");
       setCursor(Qt::ArrowCursor);
       return;
     }

@@ -399,8 +399,8 @@ protected:
     //only use flag in_type, if the in_type cannot be determined by file
     if (in_type == FileTypes::UNKNOWN)
     {
-      in_type = fh.nameToType(getStringOption_("in_type"));
-      writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 2);
+      in_type = FileTypes::nameToType(getStringOption_("in_type"));
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     //output file name and type
@@ -411,14 +411,14 @@ protected:
     //only use flag out_type, if the out_type cannot be determined by file
     if (out_type == FileTypes::UNKNOWN)
     {
-      out_type = fh.nameToType(getStringOption_("out_type"));
-      writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
+      out_type = FileTypes::nameToType(getStringOption_("out_type"));
+      writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
     //use in_type as out_type, if out_type cannot be determined by file or out_type flag
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = in_type;
-      writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
+      writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
 
     bool no_chromatograms(getFlag_("no_chromatograms"));

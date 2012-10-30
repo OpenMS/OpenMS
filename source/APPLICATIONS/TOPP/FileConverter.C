@@ -147,12 +147,12 @@ protected:
 
     //input file type
     FileHandler fh;
-    FileTypes::Type in_type = fh.nameToType(getStringOption_("in_type"));
+    FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 2);
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -164,7 +164,7 @@ protected:
 
     //output file names and types
     String out = getStringOption_("out");
-    FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
     {
@@ -179,7 +179,7 @@ protected:
 
     bool TIC_DTA2D = getFlag_("TIC_DTA2D");
 
-    writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 1);
+    writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 1);
 
     //-------------------------------------------------------------
     // reading input

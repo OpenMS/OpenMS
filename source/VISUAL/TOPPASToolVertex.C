@@ -739,7 +739,7 @@ namespace OpenMS
     foreach(QString file, files)
     {
       QFileInfo fi(file);
-      String new_suffix = FileHandler::typeToName(FileHandler::getTypeByContent(file));
+      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file));
       String new_prefix = String(fi.path() + "/" + fi.baseName()) + ".";
       String new_name = new_prefix + new_suffix;
       if (unique.count(new_name)) // make a new name

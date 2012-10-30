@@ -95,8 +95,8 @@ namespace OpenMS
       FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
       if (ft_name != ft_content)
       {
-        error_message_ += String("\nProbable cause: The file suffix (") + FileHandler::typeToName(ft_name)
-                          + ") does not match the file content (" + FileHandler::typeToName(ft_content) + ")."
+        error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + ")."
                           + "Rename the file to fix this.";
       }
 

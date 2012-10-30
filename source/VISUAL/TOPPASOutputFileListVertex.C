@@ -201,7 +201,7 @@ namespace OpenMS
         FileTypes::Type ft = (dry_run ? FileTypes::UNKNOWN : FileHandler::getTypeByContent(f));       // this will access the file physically
         if (ft != FileTypes::UNKNOWN)
         {
-          QString suffix = QString(".") + FileHandler::typeToName(ft).toQString();
+          QString suffix = QString(".") + FileTypes::typeToName(ft).toQString();
           if (!new_file.endsWith(suffix))
             new_file += suffix;
         }

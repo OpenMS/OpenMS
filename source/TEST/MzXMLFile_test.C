@@ -37,7 +37,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -93,7 +93,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"));
-	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"mzXML");
+	TEST_STRING_EQUAL(FileTypes::typeToName(e.getLoadedFileType()),"mzXML");
 
   //---------------------------------------------------------------------------
 	// actual peak data

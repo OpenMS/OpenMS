@@ -228,16 +228,16 @@ namespace OpenMS
             //output for single file
             if (skipped)
             {
-              std::cout << " +  skipped file '" << file_names[i] << "' (type: " << FileHandler::typeToName(type) << ")" << std::endl;
+              std::cout << " +  skipped file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")" << std::endl;
             }
             else if (passed_single)
             {
-              std::cout << " +  valid file '" << file_names[i] << "' (type: " << FileHandler::typeToName(type) << ")" << std::endl;
+              std::cout << " +  valid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")" << std::endl;
             }
             else
             {
               passed_all = false;
-              std::cout << " -  invalid file '" << file_names[i] << "' (type: " << FileHandler::typeToName(type) << ")" << std::endl;
+              std::cout << " -  invalid file '" << file_names[i] << "' (type: " << FileTypes::typeToName(type) << ")" << std::endl;
             }
           }
         }

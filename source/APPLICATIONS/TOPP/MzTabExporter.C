@@ -111,7 +111,7 @@ protected:
 
       // input file type
       FileTypes::Type in_type = FileHandler::getType(in);
-      writeDebug_(String("Input file type: ") + FileHandler::typeToName(in_type), 2);
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
 
       if (in_type == FileTypes::UNKNOWN)
       {

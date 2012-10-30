@@ -108,7 +108,7 @@ protected:
         return PARSE_ERROR;
       }
 
-      cout << endl << "Validating " << FileHandler::typeToName(in_type) << " file";
+      cout << endl << "Validating " << FileTypes::typeToName(in_type) << " file";
       switch (in_type)
       {
       case FileTypes::MZDATA:

@@ -43,9 +43,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  const std::string FileHandler::NamesOfTypes[] = {"unknown", "dta", "dta2d", "mzData", "mzXML", "featureXML", "idXML", "consensusXML", "mgf", "ini", "toppas", "trafoXML", "mzML", "ms2", "pepXML", "protXML", "mzid", "mzq", "gelML", "traML", "msp", "omssaXML", "mascotXML", "png", "fid", "tsv", "peplist", "hardkloer", "kroenik", "fasta", "edta", "csv", "txt"};
-
   FileTypes::Type FileHandler::getType(const String & filename)
   {
     FileTypes::Type type = getTypeByFileName(filename);
@@ -87,31 +84,7 @@ namespace OpenMS
       return getTypeByFileName(filename.prefix(filename.size() - tmp.size() - 1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
     }
 
-    return nameToType(tmp);
-  }
-
-  FileTypes::Type FileHandler::nameToType(const String & name)
-  {
-    String tmp = name;
-    tmp.toUpper();
-    String tmp2;
-
-    for (int i = 0; i < FileTypes::SIZE_OF_TYPE; ++i)
-    {
-      tmp2 = NamesOfTypes[i];
-      tmp2.toUpper();
-      if (tmp == tmp2)
-      {
-        return (FileTypes::Type)i;
-      }
-    }
-
-    return FileTypes::UNKNOWN;
-  }
-
-  String FileHandler::typeToName(FileTypes::Type type)
-  {
-    return NamesOfTypes[type];
+    return FileTypes::nameToType(tmp);
   }
 
   bool FileHandler::isSupported(FileTypes::Type type)

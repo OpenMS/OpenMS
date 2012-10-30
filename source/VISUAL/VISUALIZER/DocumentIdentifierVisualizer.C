@@ -61,7 +61,7 @@ namespace OpenMS
   {
     identifier_->setText(temp_.getIdentifier().c_str());
     file_path_->setText(temp_.getLoadedFilePath().c_str());
-    file_type_->setText(FileHandler::typeToName(temp_.getLoadedFileType()).c_str());
+    file_type_->setText(FileTypes::typeToName(temp_.getLoadedFileType()).c_str());
     file_path_->setReadOnly(true);
     file_type_->setReadOnly(true);
   }

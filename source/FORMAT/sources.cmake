@@ -19,6 +19,7 @@ FastaIterator.C
 FastaIteratorIntern.C
 FeatureXMLFile.C
 FileHandler.C
+FileTypes.C
 GzipIfstream.C
 GzipInputStream.C
 IdXMLFile.C

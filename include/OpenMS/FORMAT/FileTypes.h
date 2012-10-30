@@ -36,19 +36,24 @@
 #define OPENMS_FORMAT_FILETYPES_H
 
 #include <OpenMS/config.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <string>
+#include <map>
 
 namespace OpenMS
 {
   /**
-      @brief Centralizes the file types recognized by FileHandler.
+    @brief Centralizes the file types recognized by FileHandler.
 
-      FileType separate from FileHandler to avoid circular inclusions by DocumentIdentifier, ExperimentalSettings and FileHandler and respective fileclasses (e.g. DTA2DFile). See also: FileHandler::nameToType, FileHandler::typeToName and FileHandler::NameOfTypes .
+    FileType separate from FileHandler to avoid circular inclusions by DocumentIdentifier, ExperimentalSettings 
+    and FileHandler and respective fileclasses (e.g. DTA2DFile).
 
-      @ingroup FileIO
+    @ingroup FileIO
   */
   struct FileTypes
   {
-    //NOTE: if you change/add something here, do not forget to change FileHandler::NameOfTypes[]
+    //NOTE: if you change/add something here, do not forget to change FileTyoes::initializeMap_
 
     ///Actual file types enum.
     enum Type
@@ -87,10 +92,24 @@ namespace OpenMS
       CSV,                  ///< general comma separated files format (might also be tab or space separated!!!), data should be regular, i.e. matrix form
       TXT,                  ///< any text format, which has only loose definition of what it actually contains -- thus it is usually hard to say where the file actually came from (e.g. PepNovo).
       OBO,                  ///< Controlled Vocabulary format
-      HTML,                  ///< any HTML format
+      HTML,                 ///< any HTML format
       XML,                  ///< any XML format
       SIZE_OF_TYPE          ///< No file type. Simply stores the number of types
     };
+    
+    
+    /// Returns the name/extension of the type.
+    static String typeToName(Type type);
+    
+    /// Converts a file type name into a Type
+    static Type nameToType(const String & name);
+    
+  private:
+    /// Maps the FileType::Type to the preferred extension.
+    const static std::map<Type, String> name_of_types_;
+    
+    /// Initializer for the file extension map.
+    static std::map<Type, String> initializeMap_();
   };
 
 } //namespace OpenMS

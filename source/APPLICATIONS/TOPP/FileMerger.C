@@ -141,7 +141,7 @@ protected:
     FileTypes::Type force_type;
     if (getStringOption_("in_type").size() > 0)
     {
-      force_type = fh.nameToType(getStringOption_("in_type"));
+      force_type = FileTypes::nameToType(getStringOption_("in_type"));
     }
     else
     {
@@ -248,7 +248,7 @@ protected:
       // we might want to combine different types, thus we only
       // query in_type (which applies to all files)
       // and not the suffix or content of a single file
-      force_type = fh.nameToType(getStringOption_("in_type"));
+      force_type = FileTypes::nameToType(getStringOption_("in_type"));
 
       //rt
       bool rt_auto_number = getFlag_("rt_auto");

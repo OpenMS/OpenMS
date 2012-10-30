@@ -148,6 +148,7 @@ set(format_executables_list
   FASTAFile_test
   FeatureXMLFile_test
   FileHandler_test
+  FileTypes_test  
   GzipIfstream_test
   GzipInputStream_test
   IdXMLFile_test

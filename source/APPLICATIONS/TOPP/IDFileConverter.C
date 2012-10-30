@@ -339,7 +339,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
     const String out = getStringOption_("out");
-    FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = fh.getTypeByFileName(out);

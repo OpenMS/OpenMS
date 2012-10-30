@@ -209,12 +209,12 @@ protected:
 
     // File type
     FileHandler fh;
-    FileTypes::Type in_type = fh.nameToType(getStringOption_("in_type"));
+    FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 2);
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -227,10 +227,10 @@ protected:
        << "-- General information --" << "\n"
        << "\n"
        << "File name: " << in << "\n"
-       << "File type: " << fh.typeToName(in_type) << "\n";
+       << "File type: " << FileTypes::typeToName(in_type) << "\n";
 
     os_tsv << "file name" << "\t" << in << "\n"
-           << "file type" << "\t" << fh.typeToName(in_type) << "\n";
+           << "file type" << "\t" << FileTypes::typeToName(in_type) << "\n";
 
     MSExperiment<Peak1D> exp;
     FeatureMap<> feat;
@@ -243,7 +243,7 @@ protected:
     if (getFlag_("v"))
     {
       bool valid = true;
-      os << "\n" << "Validating " << fh.typeToName(in_type) << " file";
+      os << "\n" << "Validating " << FileTypes::typeToName(in_type) << " file";
       switch (in_type)
       {
       case FileTypes::MZDATA:
@@ -306,7 +306,7 @@ protected:
         }
         else
         {
-          os << "\n" << "Semantically validating " << fh.typeToName(in_type)
+          os << "\n" << "Semantically validating " << FileTypes::typeToName(in_type)
              << " file";
           if (in_type == FileTypes::MZDATA) os << " (EXPERIMENTAL)";
           os << ":" << "\n";

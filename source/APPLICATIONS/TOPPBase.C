@@ -1264,15 +1264,14 @@ namespace OpenMS
           StringList formats = p.valid_strings;
           formats.toUpper();
           //determine file type as string
-          FileHandler fh;
-          String format = FileHandler::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
+          String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
           bool invalid = false;
           //Wrong or unknown ending
           if (!formats.contains(format))
           {
             if (format == "UNKNOWN")           //Unknown ending => check content
             {
-              format = FileHandler::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
+              format = FileTypes::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
               if (!formats.contains(format))
               {
                 if (format == "UNKNOWN")               //Unknown format => warning as this might by the wrong format
@@ -1305,8 +1304,7 @@ namespace OpenMS
           StringList formats = p.valid_strings;
           formats.toUpper();
           //determine file type as string
-          FileHandler fh;
-          String format = FileHandler::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
+          String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
           //Wrong or unknown ending
           if (!formats.contains(format) && format != "UNKNOWN")
           {
@@ -1433,15 +1431,14 @@ namespace OpenMS
             StringList formats = p.valid_strings;
             formats.toUpper();
             //determine file type as string
-            FileHandler fh;
-            String format = FileHandler::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
+            String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
             bool invalid = false;
             //Wrong or unknown ending
             if (!formats.contains(format))
             {
               if (format == "UNKNOWN")             //Unknown ending => check content
               {
-                format = FileHandler::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
+                format = FileTypes::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
                 if (!formats.contains(format))
                 {
                   if (format == "UNKNOWN")                 //Unknown format => warning as this might by the wrong format
@@ -1474,8 +1471,7 @@ namespace OpenMS
             StringList formats = p.valid_strings;
             formats.toUpper();
             //determine file type as string
-            FileHandler fh;
-            String format = FileHandler::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
+            String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
             //Wrong or unknown ending
             if (!formats.contains(format) && format != "UNKNOWN")
             {

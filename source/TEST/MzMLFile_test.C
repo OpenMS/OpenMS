@@ -37,7 +37,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 
@@ -226,7 +226,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
-	TEST_STRING_EQUAL(FileHandler::typeToName(exp.getLoadedFileType()),"mzML");
+	TEST_STRING_EQUAL(FileTypes::typeToName(exp.getLoadedFileType()),"mzML");
 
 	//-------------------------- general information --------------------------
 

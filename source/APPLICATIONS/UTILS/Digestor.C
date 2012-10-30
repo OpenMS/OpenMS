@@ -129,12 +129,12 @@ protected:
 
     //input file type
     FileHandler fh;
-    FileTypes::Type out_type = fh.nameToType(getStringOption_("out_type"));
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     if (out_type == FileTypes::UNKNOWN)
     {
       out_type = fh.getTypeByFileName(outputfile_name);
-      writeDebug_(String("Output file type: ") + fh.typeToName(out_type), 2);
+      writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
 
     if (out_type == FileTypes::UNKNOWN)

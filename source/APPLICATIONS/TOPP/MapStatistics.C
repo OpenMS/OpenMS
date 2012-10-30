@@ -232,12 +232,12 @@ protected:
 
     // File type
     FileHandler fh;
-    FileTypes::Type in_type = fh.nameToType(getStringOption_("in_type"));
+    FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
-      writeDebug_(String("Input file type: ") + fh.typeToName(in_type), 2);
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
     if (in_type == FileTypes::UNKNOWN)
@@ -270,7 +270,7 @@ protected:
          << "-- General information --" << endl
          << endl
          << "file name: " << in << endl
-         << "file type: " <<  fh.typeToName(in_type) << endl;
+         << "file type: " <<  FileTypes::typeToName(in_type) << endl;
 
       //basic info
       os << endl

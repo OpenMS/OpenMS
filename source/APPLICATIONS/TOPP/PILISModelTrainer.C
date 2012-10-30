@@ -225,7 +225,7 @@ protected:
     if (!in.empty())
     {
       FileTypes::Type in_file_type = FileHandler().getType(in[0]);
-      writeDebug_("File type of parameter 'in' estimated as '" + FileHandler::typeToName(in_file_type) + "'", 1);
+      writeDebug_("File type of parameter 'in' estimated as '" + FileTypes::typeToName(in_file_type) + "'", 1);
       // TODO check all types
       if (in_file_type == FileTypes::MSP)
       {

@@ -73,17 +73,13 @@ namespace OpenMS
   class OPENMS_DLLAPI FileHandler
   {
 public:
-
-    /// String representations of the file types
-    static const std::string NamesOfTypes[FileTypes::SIZE_OF_TYPE];
-
     /**
-        @brief Tries to determine the file type (by name or content)
+      @brief Tries to determine the file type (by name or content)
 
-        First the type is determined from the file name.
-        If this fails, the type is determined from the file content.
+      First the type is determined from the file name.
+      If this fails, the type is determined from the file content.
 
-        @exception Exception::FileNotFound is thrown if the file is not present
+      @exception Exception::FileNotFound is thrown if the file is not present
     */
     static FileTypes::Type getType(const String & filename);
 
@@ -92,17 +88,11 @@ public:
     static FileTypes::Type getTypeByFileName(const String & filename);
 
     /**
-        @brief Determines the file type of a file by parsing the first few lines
+      @brief Determines the file type of a file by parsing the first few lines
 
-        @exception Exception::FileNotFound is thrown if the file is not present
+      @exception Exception::FileNotFound is thrown if the file is not present
     */
     static FileTypes::Type getTypeByContent(const String & filename);
-
-    /// Converts a file type name into a Type
-    static FileTypes::Type nameToType(const String & name);
-
-    /// Converts a Type into a file type name
-    static String typeToName(FileTypes::Type type);
 
     /// Returns if the file type is supported in this build of the library
     static bool isSupported(FileTypes::Type type);

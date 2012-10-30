@@ -133,9 +133,10 @@ public:
     */
     std::vector<Size> getSequences(const String & database_filename, const std::map<Size, Size> & wanted_records, std::vector<String> & sequences);
 
-    /** get the experiment from a file
+    /** 
+      get the experiment from a file
 
-            @throw Exception::ParseError is thrown if the file could not be parsed or the filetype could not be determined
+      @throw Exception::ParseError is thrown if the file could not be parsed or the filetype could not be determined
     */
     template <typename PeakT>
     void getExperiment(MSExperiment<PeakT> & exp, String & type, const String & in_filename)
@@ -149,7 +150,7 @@ public:
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not determine type of the file. Aborting!", in_filename);
       }
-      type = fh.typeToName(in_type);
+      type = FileTypes::typeToName(in_type);
       fh.loadExperiment(in_filename, exp, in_type);
     }
 
