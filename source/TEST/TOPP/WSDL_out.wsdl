@@ -15,7 +15,7 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:element>
-            <xs:element name="out" type="xs:string" default="">
+            <xs:element name="out" default="">
               <xs:annotation>
                 <xs:documentation>output XML file containg regression line and confidence interval</xs:documentation>
               </xs:annotation>
