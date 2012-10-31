@@ -106,7 +106,7 @@ namespace OpenMS
     
   private:
     /// Maps the FileType::Type to the preferred extension.
-    const static std::map<Type, String> name_of_types_;
+    static const std::map<Type, String> name_of_types_;
     
     /// Initializer for the file extension map.
     static std::map<Type, String> initializeMap_();
@@ -115,3 +115,4 @@ namespace OpenMS
 } //namespace OpenMS
 
 #endif //OPENMS_FORMAT_FILETYPES_H
+

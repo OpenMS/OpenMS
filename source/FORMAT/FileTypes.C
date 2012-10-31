@@ -38,7 +38,7 @@ namespace OpenMS
 {
   String FileTypes::typeToName(FileTypes::Type type)
   {
-    if(name_of_types_.find(type) != name_of_types_.end())
+    if (name_of_types_.find(type) != name_of_types_.end())
     {
       return name_of_types_.find(type)->second;
     }
@@ -114,3 +114,4 @@ namespace OpenMS
   }
 
 }
+
