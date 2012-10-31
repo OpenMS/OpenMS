@@ -49,7 +49,7 @@ START_TEST(FileHandler, "Id")
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION((static String typeToName(FileTypes::Type type)))
+START_SECTION((static String typeToName(Type type)))
 {
   TEST_EQUAL(FileTypes::typeToName(FileTypes::UNKNOWN), "unknown");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::DTA), "dta");
@@ -69,7 +69,7 @@ START_SECTION((static String typeToName(FileTypes::Type type)))
 }
 END_SECTION
 
-START_SECTION((static FileTypes::Type nameToType(const String &name)))
+START_SECTION((static Type nameToType(const String &name)))
 {
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("unknown"));
   TEST_EQUAL(FileTypes::DTA, FileTypes::nameToType("dta"));

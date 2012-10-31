@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Stephan Aiche $
+// $Authors: Andreas Bertsch, Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_FILETYPES_H
@@ -51,7 +51,7 @@ namespace OpenMS
 
     @ingroup FileIO
   */
-  struct FileTypes
+  struct OPENMS_DLLAPI FileTypes
   {
     //NOTE: if you change/add something here, do not forget to change FileTyoes::initializeMap_
 

@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche, Marc Sturm $
+// $Authors: Stephan Aiche, Andreas Bertsch, Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileTypes.h>
