@@ -19,6 +19,11 @@
               <xs:annotation>
                 <xs:documentation>output XML file containg regression line and confidence interval</xs:documentation>
               </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="*.xml"/>
+                </xs:restriction>
+              </xs:simpleType>
             </xs:element>
             <xs:element name="mz_tolerance" type="xs:double" default="1">
               <xs:annotation>
