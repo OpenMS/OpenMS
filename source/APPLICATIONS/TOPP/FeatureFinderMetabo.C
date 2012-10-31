@@ -108,7 +108,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     Param combined;
     Param p_com;
@@ -141,7 +141,7 @@ protected:
     return combined;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -247,6 +247,7 @@ protected:
     ffmet.setParameters(ffm_param);
     ffmet.run(m_traces_final, ms_feat_map);
 
+    ms_feat_map.sortByMZ();
     ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     //-------------------------------------------------------------
@@ -256,8 +257,6 @@ protected:
     // annotate output with data processing info
     addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
-    ms_feat_map.sortByMZ();
-
     FeatureXMLFile().store(out, ms_feat_map);
 
     return EXECUTION_OK;
@@ -266,7 +265,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureFinderMetabo tool;
   return tool.main(argc, argv);
