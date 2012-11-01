@@ -97,8 +97,8 @@ protected:
     registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
     registerFlag_("theoretical", "set this flag if only annotated transitions should be used and be corrected to the theoretical mz.");
     registerDoubleOption_("mz_threshold", "<double>", 0.8, "MZ threshold in Thomson for fragment ion annotation", false);
-    registerFlag_("exclude_similar", "set this flag if decoy transitions similar to the target transitions should be excluded.");
-    registerDoubleOption_("similarity_threshold", "<double>", 0.05, "similarity threshold for exclusion of decoy transitions", false);
+    registerFlag_("exclude_similar", "set this flag if decoy assays with similarity of the peptide sequence to the target assays higher than the identity_threshold should be excluded. If similarity_threshold is over 0, decoy assays with an absolute difference of the decoy and target product mz smaller than similarity_threshold are further excluded.");
+    registerDoubleOption_("similarity_threshold", "<double>", -1, "Similarity threshold for absolute difference of the product mz of target and decoy assays for exclusion in Dalton. Suggested value: 0.05", false);
     registerFlag_("append", "set this flag if non-decoy TraML should be appended to the output.");
     registerDoubleOption_("identity_threshold", "<double>", 0.7, "shuffle: identity threshold for the shuffle algorithm", false);
     registerIntOption_("max_attempts", "<int>", 10, "shuffle: maximum attempts to lower the sequence identity between target and decoy for the shuffle algorithm", false);
@@ -138,7 +138,7 @@ protected:
 
     std::cout << "Restricting transitions" << std::endl;
     decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
-    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar,similarity_threshold);
+    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold);
 
     if (append)
     {

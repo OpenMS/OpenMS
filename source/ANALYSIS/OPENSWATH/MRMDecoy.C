@@ -552,6 +552,8 @@ namespace OpenMS
       proteins.push_back(protein);
     }
 
+
+    std::vector<String> exclusion_peptides;
     // Go through all peptides and apply the decoy method to the sequence
     // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
     // experiment.
@@ -578,10 +580,17 @@ namespace OpenMS
         peptide.protein_refs[i] = decoy_tag + peptide.protein_refs[i];
       }
 
-      if (!exclude_similar && MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) > identity_threshold)
-      { 
-        std::cout << "Target sequence: " << original_sequence << " Decoy sequence: " << peptide.sequence  << " Sequence identity: " << MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) << " Identity threshold: " << identity_threshold << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AA Sequences couldn't be shuffled. Either decrease identity_threshold and increase max_attempts or set flag exclude_similar.");
+      if (MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) > identity_threshold)
+      {
+        if (!exclude_similar)
+        { 
+          std::cout << "Target sequence: " << original_sequence << " Decoy sequence: " << peptide.sequence  << " Sequence identity: " << MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) << " Identity threshold: " << identity_threshold << std::endl;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AA Sequences are too similar. Either decrease identity_threshold and increase max_attempts for the shuffle method or set flag exclude_similar.");
+        }
+        else
+        {
+          exclusion_peptides.push_back(peptide.id);
+        }
       }
 
       peptides.push_back(peptide);
@@ -647,23 +656,38 @@ namespace OpenMS
 
         if (decoyion.second > 0)
         {
-          if (exclude_similar)
+          if (similarity_threshold >=0)
           {
-            if (std::fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) > similarity_threshold)
+            if (std::fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) < similarity_threshold)
             {
-              decoy_transitions.push_back(decoy_tr);
+              exclusion_peptides.push_back(decoy_tr.getPeptideRef());
             }
           }
-          else
-          {
-            decoy_transitions.push_back(decoy_tr);
-          }
+         decoy_transitions.push_back(decoy_tr);
         }
       } // end loop over transitions
     } // end loop over peptides
 
     endProgress();
-    dec.setTransitions(decoy_transitions);
+    if (exclude_similar)
+    {
+      MRMDecoy::TransitionVectorType filtered_decoy_transitions;
+      for ( MRMDecoy::TransitionVectorType::iterator tr_it = decoy_transitions.begin(); tr_it != decoy_transitions.end(); tr_it++)
+      {
+        if (std::find(exclusion_peptides.begin(), exclusion_peptides.end(), tr_it->getPeptideRef())==exclusion_peptides.end())
+        {
+          filtered_decoy_transitions.push_back(*tr_it);
+        }
+        else
+        {
+          std::cout << "Excluded: " << tr_it->getPeptideRef() << std::endl;
+        }
+      }
+      dec.setTransitions(filtered_decoy_transitions);
+    }
+    else {
+      dec.setTransitions(decoy_transitions);
+    }
 
     if (theoretical)
     {
