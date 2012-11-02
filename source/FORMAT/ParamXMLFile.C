@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
   ParamXMLFile::ParamXMLFile() :
-    XMLFile("/SCHEMAS/Param_1_3.xsd", "1.3")
+    XMLFile("/SCHEMAS/Param_1_4.xsd", "1.4")
   {
   }
 
@@ -85,7 +85,7 @@ namespace OpenMS
     os.precision(writtenDigits<DoubleReal>());
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-    os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
     String indentation = "  ";
     Param::ParamIterator it = param.begin();
     while (it != param.end())
