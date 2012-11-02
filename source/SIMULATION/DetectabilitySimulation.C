@@ -34,7 +34,10 @@
 
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
@@ -53,14 +56,14 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  DetectabilitySimulation::DetectabilitySimulation(const DetectabilitySimulation & source) :
+  DetectabilitySimulation::DetectabilitySimulation(const DetectabilitySimulation& source) :
     DefaultParamHandler(source)
   {
     setParameters(source.getParameters());
     updateMembers_();
   }
 
-  DetectabilitySimulation & DetectabilitySimulation::operator=(const DetectabilitySimulation & source)
+  DetectabilitySimulation& DetectabilitySimulation::operator=(const DetectabilitySimulation& source)
   {
     setParameters(source.getParameters());
     updateMembers_();
@@ -71,7 +74,7 @@ namespace OpenMS
   {
   }
 
-  void DetectabilitySimulation::filterDetectability(FeatureMapSim & features)
+  void DetectabilitySimulation::filterDetectability(FeatureMapSim& features)
   {
     LOG_INFO << "Detectability Simulation ... started" << std::endl;
     if (param_.getValue("dt_simulation_on") == "true")
@@ -84,7 +87,7 @@ namespace OpenMS
     }
   }
 
-  void DetectabilitySimulation::noFilter_(FeatureMapSim & features)
+  void DetectabilitySimulation::noFilter_(FeatureMapSim& features)
   {
     // set detectibility to 1.0 for all given peptides
     DoubleReal defaultDetectibility = 1.0;
@@ -97,15 +100,15 @@ namespace OpenMS
     }
   }
 
-  void DetectabilitySimulation::predictDetectabilities(vector<String> & peptides_vector, vector<DoubleReal> & labels,
-                                                       vector<DoubleReal> & detectabilities)
+  void DetectabilitySimulation::predictDetectabilities(vector<String>& peptides_vector, vector<DoubleReal>& labels,
+                                                       vector<DoubleReal>& detectabilities)
   {
     // The support vector machine
     SVMWrapper svm_;
 
     // initialize support vector machine
     LibSVMEncoder encoder;
-    svm_problem * training_data = NULL;
+    svm_problem* training_data = NULL;
     UInt k_mer_length = 0;
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
@@ -129,7 +132,8 @@ namespace OpenMS
       }
 
       Param additional_parameters;
-      additional_parameters.load(add_paramfile);
+      ParamXMLFile paramFile;
+      paramFile.load(add_paramfile, additional_parameters);
 
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
          && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
@@ -181,17 +185,17 @@ namespace OpenMS
     vector<DoubleReal> probs;
     probs.resize(peptides_vector.size(), 0);
 
-    svm_problem * prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides_vector, probs,
-                                                                                      k_mer_length,
-                                                                                      allowed_amino_acid_characters,
-                                                                                      svm_.getIntParameter(SVMWrapper::BORDER_LENGTH));
+    svm_problem* prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides_vector, probs,
+                                                                                     k_mer_length,
+                                                                                     allowed_amino_acid_characters,
+                                                                                     svm_.getIntParameter(SVMWrapper::BORDER_LENGTH));
 
     svm_.getSVCProbabilities(prediction_data, detectabilities, labels);
 
     delete prediction_data;
   }
 
-  void DetectabilitySimulation::svmFilter_(FeatureMapSim & features)
+  void DetectabilitySimulation::svmFilter_(FeatureMapSim& features)
   {
 
     // transform featuremap to peptides vector

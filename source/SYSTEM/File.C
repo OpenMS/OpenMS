@@ -33,12 +33,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
+
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -50,9 +54,9 @@
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #  define NOMINMAX
-#  include <Windows.h>  // for GetCurrentProcessId() && GetModuleFileName()
+#  include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #else
-#  include <unistd.h>   // for 'getpid()'
+#  include <unistd.h> // for 'getpid()'
 #endif
 
 using namespace std;
@@ -108,19 +112,19 @@ namespace OpenMS
     return spath;
   }
 
-  bool File::exists(const String & file)
+  bool File::exists(const String& file)
   {
     QFileInfo fi(file.toQString());
     return fi.exists();
   }
 
-  bool File::empty(const String & file)
+  bool File::empty(const String& file)
   {
     QFileInfo fi(file.toQString());
     return !fi.exists() || fi.size() == 0;
   }
 
-  bool File::remove(const String & file)
+  bool File::remove(const String& file)
   {
     if (!exists(file))
       return true;
@@ -131,7 +135,7 @@ namespace OpenMS
     return true;
   }
 
-  bool File::removeDirRecursively(const String & dir_name)
+  bool File::removeDirRecursively(const String& dir_name)
   {
     bool fail = false;
     QString path = dir_name.toQString();
@@ -167,31 +171,31 @@ namespace OpenMS
     return !fail;
   }
 
-  String File::absolutePath(const String & file)
+  String File::absolutePath(const String& file)
   {
     QFileInfo fi(file.toQString());
     return fi.absoluteFilePath();
   }
 
-  String File::basename(const String & file)
+  String File::basename(const String& file)
   {
     QFileInfo fi(file.toQString());
     return fi.fileName();
   }
 
-  String File::path(const String & file)
+  String File::path(const String& file)
   {
     QFileInfo fi(file.toQString());
     return fi.path();
   }
 
-  bool File::readable(const String & file)
+  bool File::readable(const String& file)
   {
     QFileInfo fi(file.toQString());
     return fi.exists() && fi.isReadable();
   }
 
-  bool File::writable(const String & file)
+  bool File::writable(const String& file)
   {
     QFileInfo fi(file.toQString());
 
@@ -212,7 +216,7 @@ namespace OpenMS
     return tmp;
   }
 
-  String File::find(const String & filename, StringList directories)
+  String File::find(const String& filename, StringList directories)
   {
     String filename_new = filename;
 
@@ -251,7 +255,7 @@ namespace OpenMS
     return "";
   }
 
-  bool File::fileList(const String & dir, const String & file_pattern, StringList & output, bool full_path)
+  bool File::fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path)
   {
     QDir d(dir.toQString(), file_pattern.toQString(), QDir::Name, QDir::Files);
     QFileInfoList list = d.entryInfoList();
@@ -327,7 +331,7 @@ namespace OpenMS
     return path;
   }
 
-  String File::removeExtension(const OpenMS::String & file)
+  String File::removeExtension(const OpenMS::String& file)
   {
     if (!file.has('.'))
       return file;
@@ -336,7 +340,7 @@ namespace OpenMS
     return file.chop(ext_length);
   }
 
-  bool File::isDirectory(const String & path)
+  bool File::isDirectory(const String& path)
   {
     QFileInfo fi(path.toQString());
     return fi.isDir();
@@ -369,7 +373,7 @@ namespace OpenMS
     return dir;
   }
 
-  String File::findDatabase(const String & db_name)
+  String File::findDatabase(const String& db_name)
   {
     Param sys_p = getSystemParameters();
     String full_db_name;
@@ -378,7 +382,7 @@ namespace OpenMS
       full_db_name = find(db_name, sys_p.getValue("id_db_dir"));
       LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'" << std::endl;
     }
-    catch (Exception::FileNotFound & e)
+    catch (Exception::FileNotFound& e)
     {
       LOG_ERROR << "Input database '" + db_name + "' not found (" << e.getMessage() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
       throw;
@@ -407,11 +411,14 @@ namespace OpenMS
       {
         qd.mkpath(String(String(QDir::homePath()) + "/.OpenMS/").toQString());
       }
-      p.store(filename);
+      ParamXMLFile paramFile;
+      paramFile.store(filename, p);
     }
     else
     {
-      p.load(filename);
+      ParamXMLFile paramFile;
+      paramFile.load(filename, p);
+
       // check version
       if (!p.exists("version") || (p.getValue("version") != VersionInfo::getVersion()))
       {
@@ -427,7 +434,8 @@ namespace OpenMS
         Param p_new = getSystemParameterDefaults_();
         p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
         p_new.update(p);
-        p_new.store(filename);
+
+        paramFile.store(filename, p_new);
       }
     }
     return p;
@@ -443,7 +451,7 @@ namespace OpenMS
                String("Default directory for FASTA and psq files used as databased for id engines. ") + \
                "This allows you to specify just the filename of the DB in the " + \
                "respective TOPP tool, and the database will be searched in the directories specified here " + \
-               "");                    // only active when user enters something in this value
+               ""); // only active when user enters something in this value
     p.setValue("threads", 1);
     // TODO: maybe we add -log, -debug.... or....
 

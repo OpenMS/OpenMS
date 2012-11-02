@@ -40,6 +40,7 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpeNMS/FORMAT/ParamXMLFile.h>
 
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QMessageBox>
@@ -77,7 +78,7 @@ namespace OpenMS
     connect(this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
   }
 
-  TOPPASToolVertex::TOPPASToolVertex(const String & name, const String & type) :
+  TOPPASToolVertex::TOPPASToolVertex(const String& name, const String& type) :
     TOPPASVertex(),
     name_(name),
     type_(type),
@@ -94,7 +95,7 @@ namespace OpenMS
     connect(this, SIGNAL(toolCrashed()), this, SLOT(toolCrashedSlot()));
   }
 
-  TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex & rhs) :
+  TOPPASToolVertex::TOPPASToolVertex(const TOPPASToolVertex& rhs) :
     TOPPASVertex(rhs),
     name_(rhs.name_),
     type_(rhs.type_),
@@ -115,7 +116,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASToolVertex & TOPPASToolVertex::operator=(const TOPPASToolVertex & rhs)
+  TOPPASToolVertex& TOPPASToolVertex::operator=(const TOPPASToolVertex& rhs)
   {
     TOPPASVertex::operator=(rhs);
 
@@ -129,7 +130,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool TOPPASToolVertex::initParam_(const QString & old_ini_file)
+  bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
   {
     Param tmp_param;
     // this is the only exception for writing directly to the tmpDir, instead of a subdir of tmpDir, as scene()->getTempDir() might not be available yet
@@ -170,7 +171,8 @@ namespace OpenMS
       return false;
     }
 
-    tmp_param.load(String(ini_file).c_str());
+    ParamXMLFile paramFile;
+    paramFile.load(String(ini_file).c_str(), tmp_param);
     param_ = tmp_param.copy(name_ + ":1:", true);
 
     writeParam_(param_, ini_file);
@@ -189,14 +191,14 @@ namespace OpenMS
     return changed;
   }
 
-  void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * /*e*/)
+  void TOPPASToolVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
   {
     editParam();
   }
 
   void TOPPASToolVertex::editParam()
   {
-    QWidget * parent_widget = qobject_cast<QWidget *>(scene()->parent());
+    QWidget* parent_widget = qobject_cast<QWidget*>(scene()->parent());
     String default_dir = "";
 
     // use a copy for editing
@@ -214,7 +216,7 @@ namespace OpenMS
         continue;
       }
 
-      const String & name = input_infos[index].param_name;
+      const String& name = input_infos[index].param_name;
       if (edit_param.exists(name))
       {
         hidden_entries.push_back(name);
@@ -231,7 +233,7 @@ namespace OpenMS
         continue;
       }
 
-      const String & name = output_infos[index].param_name;
+      const String& name = output_infos[index].param_name;
       if (edit_param.exists(name))
       {
         hidden_entries.push_back(name);
@@ -253,20 +255,20 @@ namespace OpenMS
       emit parameterChanged(status_);
     }
 
-    qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+    qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
   }
 
-  void TOPPASToolVertex::getInputParameters(QVector<IOInfo> & input_infos)
+  void TOPPASToolVertex::getInputParameters(QVector<IOInfo>& input_infos)
   {
     getParameters_(input_infos, true);
   }
 
-  void TOPPASToolVertex::getOutputParameters(QVector<IOInfo> & output_infos)
+  void TOPPASToolVertex::getOutputParameters(QVector<IOInfo>& output_infos)
   {
     getParameters_(output_infos, false);
   }
 
-  void TOPPASToolVertex::getParameters_(QVector<IOInfo> & io_infos, bool input_params)
+  void TOPPASToolVertex::getParameters_(QVector<IOInfo>& io_infos, bool input_params)
   {
     String search_tag = input_params ? "input file" : "output file";
 
@@ -309,7 +311,7 @@ namespace OpenMS
     qSort(io_infos);
   }
 
-  void TOPPASToolVertex::paint(QPainter * painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
+  void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
   {
     //painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
     QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
@@ -381,7 +383,7 @@ namespace OpenMS
       progress_color = Qt::red; break;
 
     default:
-      progress_color = Qt::magenta; break;   // signal weird status by color
+      progress_color = Qt::magenta; break; // signal weird status by color
     }
     painter->setBrush(progress_color);
     painter->drawEllipse(46, -52, 14, 14);
@@ -390,20 +392,20 @@ namespace OpenMS
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      QSvgRenderer * svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
       svg_renderer->render(painter, QRectF(-7, -52, 14, 14));
     }
 
     //breakpoint set?
     if (this->breakpoint_set_)
     {
-      QSvgRenderer * svg_renderer = new QSvgRenderer(QString(":/stop_sign.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/stop_sign.svg"), 0);
       painter->setOpacity(0.35);
       svg_renderer->render(painter, QRectF(-60, -60, 120, 120));
     }
   }
 
-  QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter * painter, const QString & str)
+  QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str)
   {
     qreal max_width = 130;
 
@@ -462,7 +464,7 @@ namespace OpenMS
     return name_;
   }
 
-  const String & TOPPASToolVertex::getType() const
+  const String& TOPPASToolVertex::getType() const
   {
     return type_;
   }
@@ -480,7 +482,7 @@ namespace OpenMS
       LOG_ERROR << "This should not happen. Calling an already finished node '" << this->name_ << "' (#" << this->getTopoNr() << ")!" << std::endl;
       throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
-    TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 
     QString ini_file = ts->getTempDir()
                        + QDir::separator()
@@ -502,7 +504,7 @@ namespace OpenMS
     }
 
     // all inputs are ready --> GO!
-    if (!updateCurrentOutputFileNames(pkg, error_msg))     // based on input, we prepare output names
+    if (!updateCurrentOutputFileNames(pkg, error_msg)) // based on input, we prepare output names
     {
       emit toolFailed(error_msg.toQString());
       return;
@@ -514,7 +516,7 @@ namespace OpenMS
 
     /// update round status
     round_total_ = (int) pkg.size(); // take number of rounds from previous tool(s) - should all be equal
-    round_counter_ = 0;        // once round_counter_ reaches round_total_, we are done
+    round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
 
     QStringList shared_args;
     shared_args << "-no_progress";
@@ -600,7 +602,7 @@ namespace OpenMS
         if (!store_to_ini)
           args << "-" + param_name.toQString();
 
-        const QStringList & output_files = output_files_[round][param_index].filenames;
+        const QStringList& output_files = output_files_[round][param_index].filenames;
 
         if (store_to_ini)
         {
@@ -631,7 +633,7 @@ namespace OpenMS
       args << "-ini" << ini_file_iteration;
 
       // create process
-      QProcess * p;
+      QProcess* p;
       if (!ts->isDryRun())
       {
         p = new QProcess();
@@ -670,7 +672,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-    TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 
     //** ERROR handling
     if (es != QProcess::NormalExit)
@@ -706,7 +708,7 @@ namespace OpenMS
           // call all children, proceed in pipeline
           for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
           {
-            TOPPASVertex * tv = (*it)->getTargetVertex();
+            TOPPASVertex* tv = (*it)->getTargetVertex();
             debugOut_(String("Starting child ") + tv->getTopoNr());
             tv->run();
           }
@@ -716,7 +718,7 @@ namespace OpenMS
     }
 
     //clean up
-    QProcess * p = qobject_cast<QProcess *>(QObject::sender());
+    QProcess* p = qobject_cast<QProcess*>(QObject::sender());
     if (p)
     {
       delete p;
@@ -787,12 +789,12 @@ namespace OpenMS
     return true;
   }
 
-  const Param & TOPPASToolVertex::getParam()
+  const Param& TOPPASToolVertex::getParam()
   {
     return param_;
   }
 
-  void TOPPASToolVertex::setParam(const Param & param)
+  void TOPPASToolVertex::setParam(const Param& param)
   {
     param_ = param;
   }
@@ -802,7 +804,7 @@ namespace OpenMS
     return status_;
   }
 
-  bool TOPPASToolVertex::updateCurrentOutputFileNames(const RoundPackages & pkg, String & error_msg)
+  bool TOPPASToolVertex::updateCurrentOutputFileNames(const RoundPackages& pkg, String& error_msg)
   {
     if (pkg.size() < 1)
     {
@@ -849,17 +851,17 @@ namespace OpenMS
     output_files_.clear();
     output_files_.resize(pkg.size()); // #rounds
 
-    TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
     for (int i = 0; i < out_params.size(); ++i)
     {
       // search for an out edge for this parameter (not required to exist)
       bool found(false);
       int param_index;
-      TOPPASEdge * param_edge;
+      TOPPASEdge* param_edge;
       for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
       {
         param_index = (*it)->getSourceOutParam();
-        if (i == param_index)         // corresponding out edge found
+        if (i == param_index) // corresponding out edge found
         {
           param_edge = *it;
           found = true;
@@ -908,7 +910,7 @@ namespace OpenMS
           foreach(const QString &input_file, per_round_basenames[r])
           {
             fn += QFileInfo(input_file).fileName(); // discard directory
-            QRegExp rx("_tmp\\d+$");           // remove "_tmp<number>" if its a suffix
+            QRegExp rx("_tmp\\d+$"); // remove "_tmp<number>" if its a suffix
             int tmp_index = rx.indexIn(fn);
             if (tmp_index != -1)
               fn = fn.left(tmp_index);
@@ -925,7 +927,7 @@ namespace OpenMS
 
   void TOPPASToolVertex::forwardTOPPOutput()
   {
-    QProcess * p = qobject_cast<QProcess *>(QObject::sender());
+    QProcess* p = qobject_cast<QProcess*>(QObject::sender());
     if (!p)
     {
       return;
@@ -990,13 +992,13 @@ namespace OpenMS
 
   String TOPPASToolVertex::getFullOutputDirectory() const
   {
-    TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
     return QDir::toNativeSeparators(ts->getTempDir() + QDir::separator() + getOutputDir().toQString());
   }
 
   String TOPPASToolVertex::getOutputDir() const
   {
-    TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
     String workflow_dir = File::removeExtension(File::basename(ts->getSaveFileName()));
     if (workflow_dir == "")
     {
@@ -1077,7 +1079,7 @@ namespace OpenMS
 
   bool TOPPASToolVertex::refreshParameters()
   {
-    TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
     QString old_ini_file = ts->getTempDir() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
     if (type_ != "")
     {
@@ -1097,14 +1099,15 @@ namespace OpenMS
     return tool_ready_;
   }
 
-  void TOPPASToolVertex::writeParam_(const Param & param, const QString & ini_file)
+  void TOPPASToolVertex::writeParam_(const Param& param, const QString& ini_file)
   {
     Param save_param;
     save_param.setValue(name_ + ":1:toppas_dummy", DataValue("blub"));
     save_param.insert(name_ + ":1:", param);
     save_param.remove(name_ + ":1:toppas_dummy");
     save_param.setSectionDescription(name_ + ":1", "Instance '1' section for '" + name_ + "'");
-    save_param.store(ini_file);
+    ParamXMLFile paramFile;
+    paramFile.store(ini_file, save_param);
   }
 
   void TOPPASToolVertex::toggleBreakpoint()

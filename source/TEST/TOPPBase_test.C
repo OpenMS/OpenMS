@@ -36,6 +36,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -420,7 +421,8 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 
 	TOPPBaseTest tmp9(3, write_ini);
 	Param p1, p2;
-	p1.load(filename);
+  ParamXMLFile paramFile;
+	paramFile.load(filename, p1);
 	//remove id pool (the path is dependent on the installation path)
 	p1.remove("TOPPBaseTest:1:id_pool");
 

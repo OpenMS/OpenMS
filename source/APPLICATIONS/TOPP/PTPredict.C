@@ -33,8 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -96,7 +99,7 @@ protected:
     registerIntOption_("max_number_of_peptides", "<int>", 100000, "the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
@@ -109,8 +112,8 @@ protected:
     vector<DoubleReal> predicted_likelihoods;
     vector<DoubleReal> predicted_labels;
     map<String, DoubleReal> predicted_data;
-    svm_problem * training_data = NULL;
-    svm_problem * prediction_data = NULL;
+    svm_problem* training_data = NULL;
+    svm_problem* prediction_data = NULL;
     UInt border_length = 0;
     UInt k_mer_length = 0;
     DoubleReal sigma = 0;
@@ -144,8 +147,8 @@ protected:
       inputFileReadable_(svmfile_name + "_additional_parameters", "svm_model (derived)");
 
       Param additional_parameters;
-
-      additional_parameters.load(svmfile_name + "_additional_parameters");
+      ParamXMLFile paramFile;
+      paramFile.load(svmfile_name + "_additional_parameters", additional_parameters);
       if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
       {
         svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
@@ -277,7 +280,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPTPredict tool;
   return tool.main(argc, argv);

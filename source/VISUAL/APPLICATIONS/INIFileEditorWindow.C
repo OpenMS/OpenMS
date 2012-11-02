@@ -34,6 +34,7 @@
 
 #include <OpenMS/VISUAL/APPLICATIONS/INIFileEditorWindow.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtGui/QToolBar>
@@ -51,7 +52,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  INIFileEditorWindow::INIFileEditorWindow(QWidget * parent) :
+  INIFileEditorWindow::INIFileEditorWindow(QWidget* parent) :
     QMainWindow(parent),
     current_path_(".")
   {
@@ -59,15 +60,15 @@ namespace OpenMS
     setWindowIcon(QIcon(":/INIFileEditor.png"));
 
     //create central widget and layout
-    QWidget * central_widget = new QWidget;
+    QWidget* central_widget = new QWidget;
     setCentralWidget(central_widget);
-    QGridLayout * layout = new QGridLayout(central_widget);
+    QGridLayout* layout = new QGridLayout(central_widget);
 
     //create advanced check box and ParamEditor and connect them
     editor_ = new ParamEditor(central_widget);
     layout->addWidget(editor_, 0, 0, 1, 2);
 
-    QMenu * file = new QMenu("&File", this);
+    QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
     file->addAction("&Open", this, SLOT(openFile()), Qt::CTRL + Qt::Key_O);
     file->addSeparator();
@@ -82,7 +83,7 @@ namespace OpenMS
     setMinimumSize(600, 600);
   }
 
-  bool INIFileEditorWindow::openFile(const String & filename)
+  bool INIFileEditorWindow::openFile(const String& filename)
   {
     if (filename == "")
     {
@@ -97,15 +98,17 @@ namespace OpenMS
     {
       if (File::readable(filename_.toStdString()))
       {
+
         param_.clear();
+        ParamXMLFile paramFile;
         try
         {
-          param_.load(filename_.toStdString());
+          paramFile.load(filename_.toStdString(), param_);
           editor_->load(param_);
           updateWindowTitle(editor_->isModified());
           return true;
         }
-        catch (Exception::BaseException & e)
+        catch (Exception::BaseException& e)
         {
           LOG_ERROR << "Error while parsing file '" << filename_.toStdString() << "'\n";
           LOG_ERROR << e << "\n";
@@ -126,7 +129,8 @@ namespace OpenMS
 
     editor_->store();
 
-    param_.store(filename_.toStdString());
+    ParamXMLFile paramFile;
+    paramFile.store(filename_.toStdString(), param_);
     updateWindowTitle(editor_->isModified());
     return true;
   }
@@ -141,14 +145,15 @@ namespace OpenMS
 
       editor_->store();
 
-      param_.store(filename_.toStdString());
+      ParamXMLFile paramFile;
+      paramFile.store(filename_.toStdString(), param_);
       updateWindowTitle(editor_->isModified());
       return true;
     }
     return false;
   }
 
-  void INIFileEditorWindow::closeEvent(QCloseEvent * event)
+  void INIFileEditorWindow::closeEvent(QCloseEvent* event)
   {
     if (editor_->isModified())
     {

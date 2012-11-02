@@ -42,6 +42,7 @@ set(datastructures_executables_list
 	Map_test
 	MassExplainer_test
 	Matrix_test
+  Param_test
 	QTCluster_test
 	RangeManager_test
 	SparseVector_test
@@ -174,7 +175,7 @@ set(format_executables_list
   OMSSACSVFile_test
   OMSSAXMLFile_test
   PTMXMLFile_test
-  Param_test
+  ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
   PepNovoInfile_test

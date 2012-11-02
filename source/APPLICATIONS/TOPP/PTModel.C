@@ -33,8 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
@@ -204,7 +207,7 @@ protected:
     registerFlag_("skip_cv", "Has to be set if the cv should be skipped and the model should just be trained with the specified parameters.");
   }
 
-  ExitCodes main_(Int, const char **)
+  ExitCodes main_(Int, const char**)
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
@@ -215,7 +218,7 @@ protected:
     PeptideHit temp_peptide_hit;
     SVMWrapper svm;
     LibSVMEncoder encoder;
-    svm_problem * encoded_training_sample = 0;
+    svm_problem* encoded_training_sample = 0;
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
     map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
@@ -421,7 +424,7 @@ protected:
     //-------------------------------------------------------------
     for (Size i = 0; i < identifications.size(); i++)
     {
-      const vector<PeptideHit> & temp_peptide_hits = identifications[i].getHits();
+      const vector<PeptideHit>& temp_peptide_hits = identifications[i].getHits();
       Size temp_size = temp_peptide_hits.size();
       if (temp_size > 0)
       {
@@ -455,7 +458,7 @@ protected:
     vector<String> temp_training_peptides;
     for (Size i = 0; i < identifications_negative.size(); i++)
     {
-      const vector<PeptideHit> & temp_peptide_hits = identifications_negative[i].getHits();
+      const vector<PeptideHit>& temp_peptide_hits = identifications_negative[i].getHits();
       Size temp_size = temp_peptide_hits.size();
       if (temp_size > 0)
       {
@@ -603,7 +606,8 @@ protected:
         additional_parameters.setValue("sigma", svm.getDoubleParameter(SVMWrapper::SIGMA));
       }
 
-      additional_parameters.store(outputfile_name + "_additional_parameters");
+      ParamXMLFile paramFile;
+      paramFile.store(outputfile_name + "_additional_parameters", additional_parameters);
     }
 
     return EXECUTION_OK;
@@ -612,7 +616,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPTModel tool;
   return tool.main(argc, argv);

@@ -34,6 +34,7 @@
 
 #include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 
 namespace OpenMS
 {
@@ -44,7 +45,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASResources::TOPPASResources(const TOPPASResources & rhs) :
+  TOPPASResources::TOPPASResources(const TOPPASResources& rhs) :
     QObject(),
     map_(rhs.map_),
     empty_list_()
@@ -55,17 +56,18 @@ namespace OpenMS
   {
   }
 
-  TOPPASResources & TOPPASResources::operator=(const TOPPASResources & rhs)
+  TOPPASResources& TOPPASResources::operator=(const TOPPASResources& rhs)
   {
     map_ = rhs.map_;
 
     return *this;
   }
 
-  void TOPPASResources::load(const QString & file_name)
+  void TOPPASResources::load(const QString& file_name)
   {
     Param load_param;
-    load_param.load(String(file_name));
+    ParamXMLFile paramFile;
+    paramFile.load(String(file_name), load_param);
 
     for (Param::ParamIterator it = load_param.begin(); it != load_param.end(); ++it)
     {
@@ -91,19 +93,19 @@ namespace OpenMS
     }
   }
 
-  void TOPPASResources::add(const QString & key, const QList<TOPPASResource> & resource_list)
+  void TOPPASResources::add(const QString& key, const QList<TOPPASResource>& resource_list)
   {
     map_[key] = resource_list;
   }
 
-  void TOPPASResources::store(const QString & file_name)
+  void TOPPASResources::store(const QString& file_name)
   {
     Param save_param;
 
     for (Map<QString, QList<TOPPASResource> >::ConstIterator it = map_.begin(); it != map_.end(); ++it)
     {
-      const String & key = String(it->first);
-      const QList<TOPPASResource> & resource_list = it->second;
+      const String& key = String(it->first);
+      const QList<TOPPASResource>& resource_list = it->second;
       StringList url_list;
       foreach(const TOPPASResource &res, resource_list)
       {
@@ -112,10 +114,11 @@ namespace OpenMS
       save_param.setValue(key + ":url_list", DataValue(url_list));
     }
 
-    save_param.store(String(file_name));
+    ParamXMLFile paramFile;
+    paramFile.store(String(file_name), save_param);
   }
 
-  const QList<TOPPASResource> & TOPPASResources::get(const QString & key) const
+  const QList<TOPPASResource>& TOPPASResources::get(const QString& key) const
   {
     if (!map_.has(key))
     {

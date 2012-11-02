@@ -34,7 +34,10 @@
 
 #include <OpenMS/SIMULATION/RTSimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
@@ -49,14 +52,14 @@ namespace OpenMS
 {
 
 
-  RTSimulation::RTSimulation(const SimRandomNumberGenerator & random_generator) :
+  RTSimulation::RTSimulation(const SimRandomNumberGenerator& random_generator) :
     DefaultParamHandler("RTSimulation"), rnd_gen_(&random_generator)
   {
     setDefaultParams_();
     updateMembers_();
   }
 
-  RTSimulation::RTSimulation(const RTSimulation & source) :
+  RTSimulation::RTSimulation(const RTSimulation& source) :
     DefaultParamHandler(source)
   {
     setParameters(source.getParameters());
@@ -64,7 +67,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  RTSimulation & RTSimulation::operator=(const RTSimulation & source)
+  RTSimulation& RTSimulation::operator=(const RTSimulation& source)
   {
     setParameters(source.getParameters());
     rnd_gen_ = source.rnd_gen_;
@@ -185,7 +188,7 @@ namespace OpenMS
 
   }
 
-  void RTSimulation::noRTColumn_(FeatureMapSim & features)
+  void RTSimulation::noRTColumn_(FeatureMapSim& features)
   {
     for (FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
          ++it_f)
@@ -197,7 +200,7 @@ namespace OpenMS
   /**
    @brief Gets a feature map containing the peptides and predicts for those the retention times
    */
-  void RTSimulation::predictRT(FeatureMapSim & features)
+  void RTSimulation::predictRT(FeatureMapSim& features)
   {
     LOG_INFO << "RT Simulation ... started" << std::endl;
 
@@ -255,9 +258,9 @@ namespace OpenMS
 
       // remove invalid peptides & (later) display removed ones
       if (
-        (predicted_retention_times[i] < 0.0) ||   // check for invalid RT
-        (predicted_retention_times[i] > gradient_max_) ||    // check if RT is not in scan window
-        (predicted_retention_times[i] < gradient_min_)       // check if RT is not in scan window
+        (predicted_retention_times[i] < 0.0) || // check for invalid RT
+        (predicted_retention_times[i] > gradient_max_) || // check if RT is not in scan window
+        (predicted_retention_times[i] < gradient_min_) // check if RT is not in scan window
         )
       {
         deleted_features.push_back(features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString() + " [" +
@@ -328,10 +331,10 @@ namespace OpenMS
   }
 
   /// PKA values as given in Rickard1991
-  void RTSimulation::getChargeContribution_(Map<String, double> & q_cterm,
-                                            Map<String, double> & q_nterm,
-                                            Map<String, double> & q_aa_basic,
-                                            Map<String, double> & q_aa_acidic)
+  void RTSimulation::getChargeContribution_(Map<String, double>& q_cterm,
+                                            Map<String, double>& q_nterm,
+                                            Map<String, double>& q_aa_basic,
+                                            Map<String, double>& q_aa_acidic)
   {
     // the actual constants from the paper:
     String aas = "ARNDCQEGHILKMFPSTWYVBZ";
@@ -378,7 +381,7 @@ namespace OpenMS
     q_aa_acidic["Z"] = q_aa_acidic["E"] * (6.0 / (6.0 + 3.9)) + 0 * (3.9 / (6.0 + 3.9)); // E~6.0; Q~3.9
   }
 
-  void RTSimulation::calculateMT_(FeatureMapSim & features, std::vector<DoubleReal> & predicted_retention_times)
+  void RTSimulation::calculateMT_(FeatureMapSim& features, std::vector<DoubleReal>& predicted_retention_times)
   {
     Map<String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
     getChargeContribution_(q_cterm, q_nterm, q_aa_basic, q_aa_acidic);
@@ -418,7 +421,7 @@ namespace OpenMS
 
       // ** mobility (mu = mu_ep + mu_eo = (q/MW^alpha) + mu_eo
       DoubleReal mu = (charge / std::pow(mass, alpha)) + (auto_scale ? 0 : (DoubleReal)param_.getValue("CE:mu_eo"));
-      predicted_retention_times[i] = c / mu;       // this is L_d*L_t / (mu * V)  as "c = L_d*L_t/V"
+      predicted_retention_times[i] = c / mu; // this is L_d*L_t / (mu * V)  as "c = L_d*L_t/V"
     }
 
     // ** only when Auto-Scaling is active ** /
@@ -429,7 +432,7 @@ namespace OpenMS
 
     if (auto_scale)
     {
-      max_rt = 1;       // highest will be scaled to 1
+      max_rt = 1; // highest will be scaled to 1
 
       //std::cerr << "minRT: " << rt_sorted[0] << "   max: " << rt_sorted.back() << "\n";
       // normalize to 5th - 95th percentile (we want to avoid that few outliers with huge/small MT can compress the others to a small MT range):
@@ -458,12 +461,12 @@ namespace OpenMS
 
   }
 
-  void RTSimulation::wrapSVM(std::vector<AASequence> & peptide_sequences, std::vector<DoubleReal> & predicted_retention_times)
+  void RTSimulation::wrapSVM(std::vector<AASequence>& peptide_sequences, std::vector<DoubleReal>& predicted_retention_times)
   {
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     SVMWrapper svm;
     LibSVMEncoder encoder;
-    svm_problem * training_data = NULL;
+    svm_problem* training_data = NULL;
     SVMData prediction_samples;
     SVMData training_samples;
     UInt k_mer_length = 0;
@@ -485,7 +488,8 @@ namespace OpenMS
       }
 
       Param additional_parameters;
-      additional_parameters.load(add_paramfile);
+      ParamXMLFile paramFile;
+      paramFile.load(add_paramfile, additional_parameters);
 
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
@@ -553,7 +557,7 @@ namespace OpenMS
     LOG_INFO << "done" << endl;
   }
 
-  void RTSimulation::predictContaminantsRT(FeatureMapSim & contaminants)
+  void RTSimulation::predictContaminantsRT(FeatureMapSim& contaminants)
   {
     // iterate of feature map
     for (Size i = 0; i < contaminants.size(); ++i)
@@ -575,7 +579,7 @@ namespace OpenMS
     return total_gradient_time_;
   }
 
-  void RTSimulation::createExperiment(MSSimExperiment & experiment)
+  void RTSimulation::createExperiment(MSSimExperiment& experiment)
   {
     // this is a closed intervall (it includes gradient_min_ and gradient_max_)
     Size number_of_scans = Size((gradient_max_ - gradient_min_) / rt_sampling_rate_) + 1;
@@ -624,7 +628,7 @@ namespace OpenMS
 
 //#define MSSIM_DEBUG_MOV_AVG_FILTER
 
-  void RTSimulation::smoothRTDistortion_(MSSimExperiment & experiment)
+  void RTSimulation::smoothRTDistortion_(MSSimExperiment& experiment)
   {
     // how often do we move over the distortions
     const UInt filter_iterations = param_.getValue("column_condition:distortion");

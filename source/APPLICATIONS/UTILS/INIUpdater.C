@@ -36,6 +36,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 
@@ -123,7 +124,7 @@ protected:
     setValidFormats_("out", StringList::create("ini,toppas"));
   }
 
-  void updateTOPPAS(const String & infile, const String & outfile)
+  void updateTOPPAS(const String& infile, const String& outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
@@ -132,8 +133,9 @@ protected:
 
     String path = File::getExecutablePath();
 
+    ParamXMLFile paramFile;
     Param p;
-    p.load(infile);
+    paramFile.load(infile, p);
 
     // get version of TOPPAS file
     String version = "Unknown";
@@ -208,7 +210,7 @@ protected:
 
       // update defaults with old values
       Param new_param;
-      new_param.load(tmp_ini_file);
+      paramFile.load(tmp_ini_file, new_param);
       new_param = new_param.copy(new_tool + ":1", true);
       Param old_param = p.copy(sec_inst + "parameters", true);
       new_param.update(old_param, true, false);
@@ -223,21 +225,21 @@ protected:
       return;
     }
 
-    p.store(tmp_ini_file);
+    paramFile.store(tmp_ini_file, p);
 
     // update internal structure (e.g. edges format changed from 1.8 to 1.9)
     int argc = 1;
-    const char * c = "IniUpdater";
-    const char ** argv = &c;
-    QApplication app(argc, const_cast<char **>(argv), false);
+    const char* c = "IniUpdater";
+    const char** argv = &c;
+    QApplication app(argc, const_cast<char**>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
     d.mkpath(tmp_dir.toQString());
     TOPPASScene ts(0, tmp_dir.toQString(), false);
-    p.store(tmp_ini_file);
+    paramFile.store(tmp_ini_file, p);
     ts.load(tmp_ini_file);
     ts.store(tmp_ini_file);
-    p.load(tmp_ini_file);
+    paramFile.load(tmp_ini_file, p);
 
     // STORE
     if (outfile.empty()) // create a backup
@@ -246,15 +248,15 @@ protected:
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
       QFile::rename(infile.toQString(), new_name.toQString());
       // write new file
-      p.store(infile);
+      paramFile.store(infile, p);
     }
     else
     {
-      p.store(outfile);
+      paramFile.store(outfile, p);
     }
   }
 
-  void updateINI(const String & infile, const String & outfile)
+  void updateINI(const String& infile, const String& outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
@@ -264,7 +266,8 @@ protected:
     String path = File::getExecutablePath();
 
     Param p;
-    p.load(infile);
+    ParamXMLFile paramFile;
+    paramFile.load(infile, p);
     // get sections (usually there is only one - or the user has merged INI files manually)
     StringList sections = updater.getToolNamesFromINI(p);
 
@@ -325,7 +328,7 @@ protected:
 
       // update defaults with old values
       Param new_param;
-      new_param.load(tmp_ini_file);
+      paramFile.load(tmp_ini_file, new_param);
       new_param = new_param.copy(new_tool, true);
       Param old_param = p.copy(sections[s], true);
       new_param.update(old_param, true, false);
@@ -348,15 +351,15 @@ protected:
       QFile::rename(infile.toQString(), new_name.toQString());
       std::cerr << "new name: " << new_name << "\n";
       // write new file
-      p.store(infile);
+      paramFile.store(infile, p);
     }
     else
     {
-      p.store(outfile);
+      paramFile.store(outfile, p);
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     StringList in  = getStringList_("in");
     StringList out = getStringList_("out");
@@ -415,7 +418,7 @@ protected:
 
 /// @endcond
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPINIUpdater tool;
   return tool.main(argc, argv);

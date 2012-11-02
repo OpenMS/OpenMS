@@ -33,9 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
@@ -239,8 +242,8 @@ protected:
   }
 
   void loadStringLabelLines_(String                     filename,
-                             std::vector<String> & sequences,
-                             std::vector<DoubleReal> & labels)
+                             std::vector<String>& sequences,
+                             std::vector<DoubleReal>& labels)
   {
     TextFile text_file(filename.c_str(), true);
     std::vector<String> parts;
@@ -285,7 +288,7 @@ protected:
     }
   }
 
-  ExitCodes main_(Int, const char **)
+  ExitCodes main_(Int, const char**)
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
@@ -298,7 +301,7 @@ protected:
     SVMWrapper svm;
     svm.setLogType(log_type_);
     LibSVMEncoder encoder;
-    svm_problem * encoded_training_sample = 0;
+    svm_problem* encoded_training_sample = 0;
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
     map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
@@ -661,7 +664,7 @@ protected:
           }
         }
       }
-    }         // end ! textfile input
+    } // end ! textfile input
 
     // Getting a non redundant training set. If there are several copies of one peptide,
     // the standard deviation is calculated. If this std is less or equal to the
@@ -978,8 +981,8 @@ protected:
         additional_parameters.setValue("k_mer_length", k_mer_length);
         additional_parameters.setValue("sigma", svm.getDoubleParameter(SVMWrapper::SIGMA));
       }
-
-      additional_parameters.store(outputfile_name + "_additional_parameters");
+      ParamXMLFile paramFile;
+      paramFile.store(outputfile_name + "_additional_parameters", additional_parameters);
     }
 
     return EXECUTION_OK;
@@ -988,7 +991,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPRTModel tool;
   return tool.main(argc, argv);

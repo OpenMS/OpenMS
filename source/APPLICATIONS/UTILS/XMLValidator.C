@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -87,13 +88,13 @@ protected:
     registerInputFile_("schema", "<file>", "", "schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     String schema = getStringOption_("schema");
     bool valid = true;
 
-    if (schema != "")   //schema explicitly given
+    if (schema != "") //schema explicitly given
     {
       XMLValidator xmlv;
       valid = xmlv.isValid(in, schema);
@@ -137,8 +138,8 @@ protected:
         break;
 
       case FileTypes::INI:
-        cout << " against schema version " << Param().getVersion() << endl;
-        valid = Param().isValid(in);
+        cout << " against schema version " << ParamXMLFile().getVersion() << endl;
+        valid = ParamXMLFile().isValid(in);
         break;
 
       case FileTypes::PEPXML:
@@ -167,7 +168,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPXMLValidator tool;
   return tool.main(argc, argv);

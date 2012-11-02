@@ -33,8 +33,12 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+
 #include <OpenMS/SYSTEM/File.h>
 
 #include <cmath>
@@ -54,22 +58,22 @@ namespace OpenMS
     clear_();
   }
 
-  const Map<String, const Element *> & ElementDB::getNames() const
+  const Map<String, const Element*>& ElementDB::getNames() const
   {
     return names_;
   }
 
-  const Map<String, const Element *> & ElementDB::getSymbols() const
+  const Map<String, const Element*>& ElementDB::getSymbols() const
   {
     return symbols_;
   }
 
-  const Map<UInt, const Element *> & ElementDB::getAtomicNumbers() const
+  const Map<UInt, const Element*>& ElementDB::getAtomicNumbers() const
   {
     return atomic_numbers_;
   }
 
-  const Element * ElementDB::getElement(const String & name) const
+  const Element* ElementDB::getElement(const String& name) const
   {
     if (names_.has(name))
     {
@@ -85,7 +89,7 @@ namespace OpenMS
     return 0;
   }
 
-  const Element * ElementDB::getElement(UInt atomic_number) const
+  const Element* ElementDB::getElement(UInt atomic_number) const
   {
     if (atomic_numbers_.has(atomic_number))
     {
@@ -94,7 +98,7 @@ namespace OpenMS
     return 0;
   }
 
-  bool ElementDB::hasElement(const String & name) const
+  bool ElementDB::hasElement(const String& name) const
   {
     return names_.has(name) || symbols_.has(name);
   }
@@ -104,7 +108,7 @@ namespace OpenMS
     return atomic_numbers_.has(atomic_number);
   }
 
-  double ElementDB::calculateAvgWeight_(const Map<UInt, double> & Z_to_abundance, const Map<UInt, double> & Z_to_mass)
+  double ElementDB::calculateAvgWeight_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass)
   {
     double avg = 0;
     // extract Zs
@@ -123,7 +127,7 @@ namespace OpenMS
     return avg;
   }
 
-  double ElementDB::calculateMonoWeight_(const Map<UInt, double> & Z_to_mass)
+  double ElementDB::calculateMonoWeight_(const Map<UInt, double>& Z_to_mass)
   {
     double smallest_weight = 1e10;
 
@@ -138,13 +142,14 @@ namespace OpenMS
     return smallest_weight;
   }
 
-  void ElementDB::readFromFile_(const String & file_name)
+  void ElementDB::readFromFile_(const String& file_name)
   {
     String file = File::find(file_name);
 
     // load elements into param object
     Param param;
-    param.load(file);
+    ParamXMLFile paramFile;
+    paramFile.load(file, param);
 
     UInt an(0);
     String name, symbol;
@@ -187,7 +192,7 @@ namespace OpenMS
              << " MonoWeight: " << mono_weight << " NIsotopes: " << isotopes.size() << endl;
 
         */
-        Element * e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
+        Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
         names_[name] = e;
         symbols_[symbol] = e;
         atomic_numbers_[an] = e;
@@ -211,7 +216,7 @@ namespace OpenMS
           cout << "Isotope Name: " << iso_name << " Symbol: " << iso_symbol << " AtomicMass: " << iso_mono_weight << endl;
           */
 
-          Element * iso_e = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
+          Element* iso_e = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
           names_[iso_name] = iso_e;
           names_[iso_symbol] = iso_e;
         }
@@ -275,13 +280,13 @@ namespace OpenMS
     // build last element
     double avg_weight(0), mono_weight(0);
     IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy);
-    Element * e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
+    Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
     names_[name] = e;
     symbols_[symbol] = e;
     atomic_numbers_[an] = e;
   }
 
-  IsotopeDistribution ElementDB::parseIsotopeDistribution_(const Map<UInt, double> & distribution)
+  IsotopeDistribution ElementDB::parseIsotopeDistribution_(const Map<UInt, double>& distribution)
   {
     IsotopeDistribution::ContainerType dist;
     for (Map<UInt, double>::ConstIterator it = distribution.begin(); it != distribution.end(); ++it)
@@ -298,7 +303,7 @@ namespace OpenMS
 
   void ElementDB::clear_()
   {
-    Map<String, const Element *>::Iterator it = names_.begin();
+    Map<String, const Element*>::Iterator it = names_.begin();
     for (; it != names_.end(); ++it)
     {
       delete it->second;
