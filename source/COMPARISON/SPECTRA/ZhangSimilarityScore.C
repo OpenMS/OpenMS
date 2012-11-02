@@ -46,7 +46,7 @@ namespace OpenMS
     PeakSpectrumCompareFunctor()
   {
     setName(ZhangSimilarityScore::getProductName());
-    defaults_.setValue("tolerance", 0.2, "defines the absolut (in Da) or relative (in ppm) tolerance");
+    defaults_.setValue("tolerance", 0.2, "defines the absolute (in Da) or relative (in ppm) tolerance");
     defaults_.setValue("is_relative_tolerance", "false", "If set to true, the tolerance is interpreted as relative");
     defaults_.setValidStrings("is_relative_tolerance", StringList::create("true,false"));
     defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference");

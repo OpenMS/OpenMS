@@ -170,7 +170,7 @@ protected:
     registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0, "the precursor mass tolerance", false);
     registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
     registerFlag_("list_modifications", "show a list of the available modifications");
-    registerStringOption_("modifications", "<mods>", "", "the colon-seperated modifications; may be\n"
+    registerStringOption_("modifications", "<mods>", "", "the colon-separated modifications; may be\n"
                                                          "<name>,<type>, e.g.: Deamidation,opt or\n"
                                                          "<composition>,<residues>,<type>,<name>, e.g.: H2C2O,KCS,opt,Acetyl or\n"
                                                          "<mass>,<residues>,<type>,<name>, e.g.: 42.0367,KCS,opt,Acetyl or\n"

@@ -882,7 +882,7 @@ namespace OpenMS
       residues.insert(ResidueDB::getInstance()->getModifiedResidue(*it));
     }
 
-    // pathways axyz and bxyz and the first two explicitely modeled ones
+    // pathways axyz and bxyz and the first two explicitly modeled ones
     HMMState * s2 = 0;
     HMMState * end_state = name_to_state_["end"];
     StringList pathways = StringList::create("axyz,axyz1,axyz1,bxyz,bxyz1,bxyz2");

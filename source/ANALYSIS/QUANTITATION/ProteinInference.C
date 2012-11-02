@@ -55,7 +55,7 @@ namespace OpenMS
 
   void ProteinInference::infer(ConsensusMap & consensus_map, const UInt reference_map)
   {
-    // we infer Proteins for every IdentificationRun seperately. If you want this combined, then
+    // we infer Proteins for every IdentificationRun separately. If you want this combined, then
     // do that before calling this function
     // Each ProteinIdentification will be augmented with the quantification (where possible)
     for (size_t i = 0;

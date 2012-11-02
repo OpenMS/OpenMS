@@ -94,7 +94,7 @@ END_SECTION
 
 START_SECTION(( void predictRT(FeatureMapSim & features) ))
 {
-  // is fully tested by the different EXTRA tests for HPLC w absolut, HPLC w relative, none HPLC (and hopefully soon CE)
+  // is fully tested by the different EXTRA tests for HPLC w absolute, HPLC w relative, none HPLC (and hopefully soon CE)
   NOT_TESTABLE
 }
 END_SECTION
@@ -265,7 +265,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
   rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
   gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
-  // absolut rt values
+  // absolute rt values
   // rt svm
   RTSimulation rt_sim(rnd_gen);
   Param abs_svm_params = rt_sim.getParameters();

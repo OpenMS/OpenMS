@@ -382,12 +382,12 @@ namespace OpenMS
       Int id_count(0);
       if (!id_tagger_.countFreeIDs(id_count))
       {
-        writeLog_("Error: Unable to query ID pool! Ending programm (no computation was performed)!");
+        writeLog_("Error: Unable to query ID pool! Ending program (no computation was performed)!");
         return INTERNAL_ERROR;
       }
       if (id_count == 0)
       {
-        writeLog_("Error: No Document IDs in the ID pool. Please restock now! Ending programm (no computation was performed)!");
+        writeLog_("Error: No Document IDs in the ID pool. Please restock now! Ending program (no computation was performed)!");
         return INTERNAL_ERROR;
       }
       else if (id_count <= 5)

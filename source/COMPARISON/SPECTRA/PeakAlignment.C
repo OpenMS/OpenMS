@@ -44,7 +44,7 @@ namespace OpenMS
   PeakAlignment::PeakAlignment() :
     PeakSpectrumCompareFunctor()
   {
-    defaults_.setValue("epsilon", 0.2, "defines the absolut error of the mass spectrometer");
+    defaults_.setValue("epsilon", 0.2, "defines the absolute error of the mass spectrometer");
     defaults_.setValue("normalized", 1, "is set 1 if the similarity-measurement is normalized to the range [0,1]");
     defaults_.setValue("heuristic_level", 0, "set 0 means no heuristic is applied otherwise the given value is interpreted as unsigned integer, the number of strongest peaks considered for heurisitcs - in those sets of peaks has to be at least one match to conduct comparison");
     defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, defines the distance of two PrecursorPeaks for which they are supposed to be from different peptides");

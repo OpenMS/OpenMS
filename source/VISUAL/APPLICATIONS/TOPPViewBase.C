@@ -356,7 +356,7 @@ namespace OpenMS
     b->setToolTip("Raw data mode");
     b->setShortcut(Qt::Key_R);
     b->setCheckable(true);
-    b->setWhatsThis("1D Draw mode: Raw data<BR><BR>Peaks are diplayed as a continous line.");
+    b->setWhatsThis("1D Draw mode: Raw data<BR><BR>Peaks are diplayed as a continuous line.");
     draw_group_1d_->addButton(b, Spectrum1DCanvas::DM_CONNECTEDLINES);
     tool_bar_1d_->addWidget(b);
 
@@ -3280,7 +3280,7 @@ namespace OpenMS
 
       Param param;
       DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
-      param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) mass tolerance");
+      param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) mass tolerance");
       String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
       param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the mass tolerance is interpreted as ppm value otherwise in Dalton");
 

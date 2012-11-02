@@ -75,7 +75,7 @@ public:
         @brief Loads data from a text file.
 
         @param  filename The input file name.
-        @param  is character which seperates the items.
+        @param  is character which separates the items.
         @param  ie Whether or not every item is enclosed.
         @param  first_n Only the given number of lines are read, starting from the beginning of the file.
 
@@ -91,7 +91,7 @@ public:
 
         @exception Exception::InvalidIterator is thrown if the row is not existing
 
-        @return  returns false if the given row could not be seperated into items
+        @return  returns false if the given row could not be separated into items
 
     */
     bool getRow(Size row, StringList & list);

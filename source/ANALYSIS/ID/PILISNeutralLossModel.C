@@ -67,7 +67,7 @@ namespace OpenMS
     defaults_.setValue("variable_modifications", StringList::create(""), "Variable modifications");
 
     defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
-    defaults_.setValue("num_explicit", 2, "Number of explicitely modeled losses from the same kind of amino acid or combinations thereof");
+    defaults_.setValue("num_explicit", 2, "Number of explicitly modeled losses from the same kind of amino acid or combinations thereof");
 
     defaults_.setValue("min_int_to_train", 0.1, "Minimal intensity a ion and its losses must have to be considered for training.");
 
