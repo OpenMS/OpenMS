@@ -225,9 +225,17 @@ namespace OpenMS
         default:
           break;
         }
+        // for files we store the restrictions as supported_formats
         if (restrictions != "")
         {
-          os << " restrictions=\"" << writeXMLEscape(restrictions) << "\"";
+          if (it->tags.find("input file") != it->tags.end() || it->tags.find("output file") != it->tags.end())
+          {
+            os << " supported_formats=\"" << writeXMLEscape(restrictions) << "\"";
+          }
+          else
+          {
+            os << " restrictions=\"" << writeXMLEscape(restrictions) << "\"";
+          }
         }
 
         //finish opening tag

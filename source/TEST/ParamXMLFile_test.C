@@ -232,8 +232,8 @@ END_SECTION
 
 START_SECTION((void writeXMLToStream(std::ostream *os_ptr) const ))
 {
-    NOT_TESTABLE;
-    // TODO: Testing needed!
+  NOT_TESTABLE;
+  // TODO: Testing needed!
 }
 END_SECTION  
   

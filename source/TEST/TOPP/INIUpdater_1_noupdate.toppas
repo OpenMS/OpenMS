@@ -26,9 +26,9 @@
       <ITEM name="x_pos" value="-140" type="float" description="" />
       <ITEM name="y_pos" value="-40" type="float" description="" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureFinderCentroided&apos;">
-        <ITEM name="in" value="" type="string" description="input file" tags="input file,required" restrictions="*.mzML" />
-        <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.featureXML" />
-        <ITEM name="seeds" value="" type="string" description="User specified seed list" tags="input file" restrictions="*.featureXML" />
+        <ITEM name="in" value="" type="string" description="input file" tags="input file,required" supported_formats="*.mzML" />
+        <ITEM name="out" value="" type="string" description="output file" tags="output file,required" supported_formats="*.featureXML" />
+        <ITEM name="seeds" value="" type="string" description="User specified seed list" tags="input file" supported_formats="*.featureXML" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
@@ -102,9 +102,9 @@
       <ITEM name="x_pos" value="60" type="float" description="" />
       <ITEM name="y_pos" value="-40" type="float" description="" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;IDMapper&apos;">
-        <ITEM name="id" value="" type="string" description="Protein/peptide identifications file" tags="input file,required" restrictions="*.idXML" />
-        <ITEM name="in" value="" type="string" description="Feature map/consensus map file" tags="input file,required" restrictions="*.featureXML,*.consensusXML,*.mzq" />
-        <ITEM name="out" value="" type="string" description="Output file (the format depends on the input file format)." tags="output file,required" restrictions="*.featureXML,*.consensusXML,*.mzq" />
+        <ITEM name="id" value="" type="string" description="Protein/peptide identifications file" tags="input file,required" supported_formats="*.idXML" />
+        <ITEM name="in" value="" type="string" description="Feature map/consensus map file" tags="input file,required" supported_formats="*.featureXML,*.consensusXML,*.mzq" />
+        <ITEM name="out" value="" type="string" description="Output file (the format depends on the input file format)." tags="output file,required" supported_formats="*.featureXML,*.consensusXML,*.mzq" />
         <ITEM name="rt_tolerance" value="5" type="float" description="RT tolerance (in seconds) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
         <ITEM name="mz_tolerance" value="20" type="float" description="m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
         <ITEM name="mz_measure" value="ppm" type="string" description="Unit of &apos;mz_tolerance&apos;." restrictions="ppm,Da" />
@@ -128,9 +128,9 @@
       <ITEM name="x_pos" value="60" type="float" description="" />
       <ITEM name="y_pos" value="260" type="float" description="" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureLinkerUnlabeled&apos;">
-        <ITEMLIST name="in" type="string" description="input files separated by blanks" tags="input file,required" restrictions="*.featureXML,*.consensusXML">
+        <ITEMLIST name="in" type="string" description="input files separated by blanks" tags="input file,required" supported_formats="*.featureXML,*.consensusXML">
         </ITEMLIST>
-        <ITEM name="out" value="" type="string" description="Output file" tags="output file,required" restrictions="*.consensusXML" />
+        <ITEM name="out" value="" type="string" description="Output file" tags="output file,required" supported_formats="*.consensusXML" />
         <ITEM name="keep_subelements" value="false" type="string" description="For consensusXML input only: If set, the sub-features of the inputs are transferred to the output." restrictions="true,false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
