@@ -40,7 +40,7 @@
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpeNMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QMessageBox>
