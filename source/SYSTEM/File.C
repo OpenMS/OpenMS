@@ -399,18 +399,26 @@ namespace OpenMS
     {
       p = getSystemParameterDefaults_();
 
+      String dirname = String(QDir::homePath()) + "/.OpenMS";
+      QDir dir(dirname.toQString());
+      if (!dir.exists())
+      {
+        if (!File::writable(dirname))
+        {
+          LOG_WARN << "Warning: Cannot create folder '.OpenMS' in user home directory. Please check your environment!" << std::endl;
+          LOG_WARN << "         Home directory determined is: " << QDir::homePath().toStdString() << "." << std::endl;
+          return p;
+        }
+        dir.mkpath(".");
+      }
+
       if (!File::writable(filename))
       {
-        LOG_WARN << "Warning: Cannot create '.OpenMS.ini' in user home directory. Please check your environment!" << std::endl;
+        LOG_WARN << "Warning: Cannot create '.OpenMS/OpenMS.ini' in user home directory. Please check your environment!" << std::endl;
         LOG_WARN << "         Home directory determined is: " << QDir::homePath().toStdString() << "." << std::endl;
         return p;
       }
 
-      QDir qd;
-      if (!qd.exists(String(String(QDir::homePath()) + "/.OpenMS/").toQString()))
-      {
-        qd.mkpath(String(String(QDir::homePath()) + "/.OpenMS/").toQString());
-      }
       ParamXMLFile paramFile;
       paramFile.store(filename, p);
     }
