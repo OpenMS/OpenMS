@@ -37,6 +37,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QProcess>
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <fstream>
 
@@ -226,7 +227,8 @@ bool generate(const ToolListType & tools, const String & prefix)
     process.start((it->first + " -write_ini " + tmp_file).toQString());
     process.waitForFinished();
     Param p;
-    p.load(tmp_file);
+    ParamXMLFile pf;
+    pf.load(tmp_file, p);
     File::remove(tmp_file);
     ofstream f_html((String("output/") + prefix + it->first + ".html").c_str());
     convertINI2HTML(p, f_html);
