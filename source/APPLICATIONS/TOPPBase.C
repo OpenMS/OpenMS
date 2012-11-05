@@ -2281,7 +2281,7 @@ namespace OpenMS
       //morph to ctd format
       QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
       lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-      lines.insert(1, "<tool status=\"internal\">");
+      lines.insert(1, "<tool>");
       lines.insert(2, QString("<name>") + tool_name_.toQString() + "</name>");
       lines.insert(3, QString("<version>") + VersionInfo::getVersion().toQString() + "</version>");
       lines.insert(4, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
@@ -2289,7 +2289,6 @@ namespace OpenMS
       lines.insert(5, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
       lines.insert(6, "<docurl>http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/OpenMS-release/html/TOPP__" + tool_name_.toQString() + ".html</docurl>");
       lines.insert(7, "<category>" + ToolHandler::getCategory(tool_name_).toQString() + "</category>");
-      lines.insert(8, "<type></type>");
       lines.insert(lines.size(), "</tool>");
       String ctd_str = String(lines.join("\n")) + "\n";
 
