@@ -83,10 +83,10 @@ protected:
     setValidFormats_("in", StringList::create("analysisXML,mzML"));
 
     registerInputFile_("mapping_file", "<file>", "", "Mapping file which is used to semantically validate the given XML file against this mapping file (see 'share/OpenMS/MAPPING' for templates).");
-    setValidFormats_("out", StringList::create("xml"));
+    setValidFormats_("mapping_file", StringList::create("xml"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in_file = getStringOption_("in");
     String mapping_file = getStringOption_("mapping_file");
@@ -130,7 +130,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSemanticValidator tool;
   return tool.main(argc, argv);

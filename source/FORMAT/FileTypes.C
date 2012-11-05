@@ -48,13 +48,12 @@ namespace OpenMS
     }
   }
 
-  
-  FileTypes::Type FileTypes::nameToType(const String & name)
+  FileTypes::Type FileTypes::nameToType(const String& name)
   {
     String tmp = name;
     tmp.toUpper();
-    String tmp2;  
-    
+    String tmp2;
+
     for (int i = 0; i < FileTypes::SIZE_OF_TYPE; ++i)
     {
       tmp2 = FileTypes::typeToName((FileTypes::Type)i);
@@ -64,12 +63,12 @@ namespace OpenMS
         return (FileTypes::Type)i;
       }
     }
-    
+
     return FileTypes::UNKNOWN;
   }
-  
+
   const std::map<FileTypes::Type, String> FileTypes::name_of_types_ = FileTypes::initializeMap_();
-  
+
   std::map<FileTypes::Type, String> FileTypes::initializeMap_()
   {
     std::map<Type, String> targetMap;
@@ -109,9 +108,9 @@ namespace OpenMS
     targetMap[FileTypes::OBO] = "obo";
     targetMap[FileTypes::HTML] = "html";
     targetMap[FileTypes::XML] = "xml";
-    
+    targetMap[FileTypes::ANALYSISXML] = "analysisXML";
+
     return targetMap;
   }
 
 }
-
