@@ -75,7 +75,7 @@ bool notInSeq(String res_seq, String query)
   }
 
 // test all k-mers with k=size of query
-  for (Int l = 0; l <= res_seq.size() - query.size(); ++l)
+  for (size_t l = 0; l <= res_seq.size() - query.size(); ++l)
   {
     String a = res_seq.substr(l, query.size());
     String b = query;
@@ -93,16 +93,19 @@ bool notInSeq(String res_seq, String query)
 
 void generateTargetSequences(const String& res_seq, Size pos, const map<char, vector<char> >& map_source2target, StringList& target_sequences)
 {
+  typedef map<char, vector<char> >::const_iterator TConstMapIterator;
+
   while (pos != res_seq.size())
   {
 // check if current character is in source 2 target map
-    if (map_source2target.find(res_seq[pos]) == map_source2target.end())
+    TConstMapIterator target_iterator = map_source2target.find(res_seq[pos]);
+    if (target_iterator == map_source2target.end())
     {
       ++pos;
     }
     else // yes?
     {
-      const vector<char>& targets = map_source2target.at(res_seq[pos]);
+      const vector<char>& targets = target_iterator->second;
       for (Size i = 0; i != targets.size(); ++i)
       {
         // modify sequence
@@ -121,13 +124,14 @@ void generateTargetSequences(const String& res_seq, Size pos, const map<char, ve
   Size count = 0;
   for (Size pos = 0; pos != res_seq.size(); ++pos)
   {
-    if (map_source2target.find(res_seq[pos]) == map_source2target.end()) // no pure source nucleotide?
+    TConstMapIterator target_iterator = map_source2target.find(res_seq[pos]);
+    if (target_iterator == map_source2target.end()) // no pure source nucleotide?
     {
       count++;
     }
     else // check if source nucleotide is also a valid target nucleotide
     {
-      const vector<char>& targets = map_source2target.at(res_seq[pos]);
+      const vector<char>& targets = target_iterator->second;
       for (Size i = 0; i != targets.size(); ++i)
       {
         if (res_seq[pos] == targets[i])
@@ -359,8 +363,8 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
         EmpiricalFormula target_nucleotide_formula = mit->second;
         for (Size c = 0; c != actual_combinations.size(); ++c)
         {
-          new_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O"));       // -H2O because of condensation reaction
-          all_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O"));       // " "
+          new_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O")); // -H2O because of condensation reaction
+          all_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O")); // " "
           result.mod_combinations[all_combinations.back().getString()] = target_nucleotide + result.mod_combinations[actual_combinations[c].getString()];
           //cout << target_nucleotide + mod_combinations[actual_combinations[c].getString()]  << endl;
         }
@@ -395,7 +399,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     for (map<char, Size>::const_iterator minit = map_target_to_mincount.begin(); minit != map_target_to_mincount.end(); ++minit)
     {
 //        cout << nucleotide_style_formula <<  " current target: " << minit->first << " ";
-      Size violation_count = 0;
+//      Size violation_count = 0;
 
       Size occurances = (Size) std::count(nucleotide_style_formula.begin(), nucleotide_style_formula.end(), minit->first);
 //        cout << occurances << endl;
@@ -428,7 +432,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     }
   }
 
-  for (int i = 0; i != violates_restriction.size(); ++i)
+  for (size_t i = 0; i != violates_restriction.size(); ++i)
   {
     result.mod_masses.erase(violates_restriction[i]);
   }
@@ -832,7 +836,7 @@ protected:
 // copy protein identifications as is - they are not really needed in the later output
       whole_experiment_filtered_protein_ids.insert(whole_experiment_filtered_protein_ids.end(), prot_ids.begin(), prot_ids.end());
 
-      for (int k = 0; k != prot_ids.size(); ++k)
+      for (size_t k = 0; k != prot_ids.size(); ++k)
       {
         vector<ProteinHit> ph_tmp = prot_ids[k].getHits();
         cout << ph_tmp.size() << endl;
@@ -987,7 +991,7 @@ protected:
 
     vector<ProteinIdentification> pr_tmp;
     pr_tmp.push_back(ProteinIdentification());
-    for (int k = 0; k != whole_experiment_filtered_protein_ids.size(); ++k)
+    for (size_t k = 0; k != whole_experiment_filtered_protein_ids.size(); ++k)
     {
       vector<ProteinHit> ph_tmp = whole_experiment_filtered_protein_ids[k].getHits();
       for (vector<ProteinHit>::iterator it = ph_tmp.begin(); it != ph_tmp.end(); ++it)
@@ -999,7 +1003,7 @@ protected:
 
 // create new peptide identifications and copy over data
     vector<PeptideIdentification> pt_tmp;
-    for (int k = 0; k != whole_experiment_filtered_peptide_ids.size(); ++k)
+    for (size_t k = 0; k != whole_experiment_filtered_peptide_ids.size(); ++k)
     {
       for (vector<PeptideHit>::const_iterator hit = whole_experiment_filtered_peptide_ids[k].getHits().begin(); hit != whole_experiment_filtered_peptide_ids[k].getHits().end(); ++hit)
       {
@@ -1013,7 +1017,7 @@ protected:
         PeptideHit ph = *hit;
         std::vector<String> keys;
         whole_experiment_filtered_peptide_ids[k].getKeys(keys);
-        for (int i = 0; i != keys.size(); ++i)
+        for (size_t i = 0; i != keys.size(); ++i)
         {
           DataValue dv = whole_experiment_filtered_peptide_ids[k].getMetaValue(keys[i]);
           if (dv.valueType() == DataValue::DOUBLE_VALUE)
@@ -1027,7 +1031,7 @@ protected:
         }
         phs.push_back(ph);
         np.setHits(phs);
-        np.assignRanks();      //sort by score and assign ranks
+        np.assignRanks(); //sort by score and assign ranks
         pt_tmp.push_back(np);
       }
     }
