@@ -46,6 +46,17 @@ using namespace std;
 
 START_TEST(ParamXMLFile, "$Id")
 
+ParamXMLFile* ptr = 0;
+ParamXMLFile* nullPtr = 0;
+
+START_SECTION((ParamXMLFile()))
+{
+  ptr = new ParamXMLFile();
+  TEST_NOT_EQUAL(ptr, nullPtr)
+}
+END_SECTION
+
+
 START_SECTION((void load(const String& filename, Param& param)))
 	Param p2;
   ParamXMLFile paramFile;
@@ -230,7 +241,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(paramFile.isValid(filename),true)
 END_SECTION
 
-START_SECTION((void writeXMLToStream(std::ostream *os_ptr) const ))
+START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) const ))
 {
   NOT_TESTABLE;
   // TODO: Testing needed!

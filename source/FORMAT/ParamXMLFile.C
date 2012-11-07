@@ -90,9 +90,6 @@ namespace OpenMS
     Param::ParamIterator it = param.begin();
     while (it != param.end())
     {
-      //init variables
-      string key = it.getName();
-
       //write opened/closed nodes
       const vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
       for (vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
