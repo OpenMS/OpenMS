@@ -68,10 +68,11 @@ START_TEST(FTPeakDetectController, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FTPeakDetectController* ptr;
+FTPeakDetectController* ptr = 0;
+FTPeakDetectController* nullPtr = 0;
 START_SECTION((FTPeakDetectController()))
 	ptr = new FTPeakDetectController();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~FTPeakDetectController()))

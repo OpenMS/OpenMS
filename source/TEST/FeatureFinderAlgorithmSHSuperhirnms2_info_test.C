@@ -50,10 +50,12 @@ START_TEST(MS2Info, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS2Info* ptr;
+MS2Info* ptr = 0;
+MS2Info* nullPtr = 0;
+
 START_SECTION((MS2Info()))
 	ptr = new MS2Info();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~MS2Info()))

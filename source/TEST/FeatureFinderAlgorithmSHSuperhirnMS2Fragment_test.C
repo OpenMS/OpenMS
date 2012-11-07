@@ -50,10 +50,12 @@ START_TEST(MS2Fragment, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS2Fragment* ptr;
+MS2Fragment* ptr = 0;
+MS2Fragment* nullPtr = 0;
+
 START_SECTION((MS2Fragment()))
   ptr = new MS2Fragment();
-  TEST_NOT_EQUAL(ptr,0)
+  TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~MS2Fragment()))

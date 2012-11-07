@@ -50,7 +50,8 @@ START_TEST(CentroidData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-CentroidData* ptr;
+CentroidData* ptr = 0;
+CentroidData* nullPtr = 0;
 
 vector<double>* centroidMasses = new vector<double>(); // Centroided masses
 vector<double>* centroidIntens = new vector<double>(); // Centroided intensities
@@ -59,7 +60,7 @@ boost::shared_ptr<RawData> raw(new RawData(*centroidMasses, *centroidIntens));
 
 START_SECTION((CentroidData()))
 	ptr = new CentroidData(1, raw, true);
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~CentroidData()))

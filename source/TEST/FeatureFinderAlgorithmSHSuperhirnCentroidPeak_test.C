@@ -49,10 +49,12 @@ START_TEST(CentroidPeak, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-CentroidPeak* ptr;
+CentroidPeak* ptr = 0;
+CentroidPeak* nullPtr = 0;
+
 START_SECTION((CentroidPeak()))
 	ptr = new CentroidPeak();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~CentroidPeak()))

@@ -172,6 +172,7 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
   egh_quality = egh_fitter.fit1d(data_to_fit, fitted_egh_model);
 
   TOLERANCE_ABSOLUTE(5.0)
+  TEST_REAL_SIMILAR(egh_quality, 0.996313)
   TEST_REAL_SIMILAR(fitted_egh_model->getParameters().getValue("egh:tau"), 72.0)
   TEST_REAL_SIMILAR(fitted_egh_model->getParameters().getValue("egh:sigma_square"), 3606.0)
 

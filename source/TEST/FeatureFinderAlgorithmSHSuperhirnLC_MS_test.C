@@ -54,10 +54,12 @@ START_TEST(LCMS, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-LCMS* ptr;
+LCMS* ptr = 0;
+LCMS* nullPtr = 0;
+
 START_SECTION((LCMS()))
 	ptr = new LCMS();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~LCMS()))

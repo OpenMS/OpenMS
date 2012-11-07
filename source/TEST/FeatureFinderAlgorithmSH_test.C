@@ -57,10 +57,12 @@ using namespace std;
 
 typedef FeatureFinderAlgorithmSH<Peak1D,Feature> FFSH;
 
-FFSH* ptr;
+FFSH* ptr = 0;
+FFSH* nullPtr = 0;
+
 START_SECTION((FeatureFinderAlgorithmSH()))
 	ptr = new FFSH;
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~FeatureFinderAlgorithmSH()))

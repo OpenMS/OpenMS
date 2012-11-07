@@ -60,10 +60,12 @@ START_TEST(ProcessData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ProcessData* ptr;
+ProcessData* ptr = 0;
+ProcessData* nullPtr = 0;
+
 START_SECTION((ProcessData()))
 	ptr = new ProcessData();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~ProcessData()))

@@ -51,10 +51,12 @@ START_TEST(BackgroundControl, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundControl* ptr;
+BackgroundControl* ptr = 0;
+BackgroundControl* nullPtr = 0;
+
 START_SECTION((BackgroundControl()))
 	ptr = new BackgroundControl();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~BackgroundControl()))

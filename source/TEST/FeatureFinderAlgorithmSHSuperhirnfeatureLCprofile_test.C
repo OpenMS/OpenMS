@@ -50,10 +50,12 @@ START_TEST(FeatureLCProfile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FeatureLCProfile* ptr;
+FeatureLCProfile* ptr = 0;
+FeatureLCProfile* nullPtr = 0;
+
 START_SECTION((FeatureLCProfile()))
 	ptr = new FeatureLCProfile();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~FeatureLCProfile()))

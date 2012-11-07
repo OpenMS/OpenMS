@@ -50,10 +50,12 @@ START_TEST(ConsensusIsotopePattern, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ConsensusIsotopePattern* ptr;
+ConsensusIsotopePattern* ptr = 0;
+ConsensusIsotopePattern* nullPtr = 0;
+
 START_SECTION((ConsensusIsotopePattern()))
 	ptr = new ConsensusIsotopePattern();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~ConsensusIsotopePattern()))

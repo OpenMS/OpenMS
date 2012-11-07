@@ -68,11 +68,13 @@ START_TEST(MS1FeatureMerger, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS1FeatureMerger* ptr;
+MS1FeatureMerger* ptr = 0;
+MS1FeatureMerger* nullPtr = 0;
+
 START_SECTION((MS1FeatureMerger()))
 	LCMS lcms;
 	ptr = new MS1FeatureMerger(&lcms);
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~MS1FeatureMerger()))

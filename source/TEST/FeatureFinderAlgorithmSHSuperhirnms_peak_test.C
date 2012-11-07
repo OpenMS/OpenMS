@@ -51,10 +51,12 @@ START_TEST(MSPeak, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MSPeak* ptr;
+MSPeak* ptr = 0;
+MSPeak* nullPtr = 0;
+
 START_SECTION((MSPeak()))
 	ptr = new MSPeak();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~MSPeak()))
