@@ -51,7 +51,7 @@ function printUsage() {
   print "file headers. If no user name is given, the tests are performed for all users.\n";
   print "\n";
   print "tests:\n";
-  foreach($GLOBALS["all_tests"] as $name => $desc)
+  foreach ($GLOBALS["all_tests"] as $name => $desc)
   {
     print "  $name -- $desc\n";
   }
@@ -67,17 +67,17 @@ function printUsage() {
 function realOutput($text, $user, $filename) {
   print "------> ";
   print $text;
-  if($user == "all" && $filename != "")
+  if ($user == "all" && $filename != "")
   {
     print " (".$GLOBALS["file_maintainers"][$filename].")";
   }
   print "\n";
   #error count
-  if($filename != "")
+  if ($filename != "")
   {
-    if(isset($GLOBALS["file_maintainers"][$filename]))
+    if (isset($GLOBALS["file_maintainers"][$filename]))
     {
-      foreach(explode(", ", $GLOBALS["file_maintainers"][$filename]) as $u)
+      foreach (explode(", ", $GLOBALS["file_maintainers"][$filename]) as $u)
       {
         $GLOBALS["maintainer_info"][trim($u)]["errors"]++;
       }
@@ -90,7 +90,7 @@ function realOutput($text, $user, $filename) {
 */
 function reportTestResult($text, $user, $testname, $file, $result) {
   # check if we have the correct user
-  if($user == "all" && $file != "")
+  if ($user == "all" && $file != "")
   {
     $user = $GLOBALS["file_maintainers"][$file];
   }
@@ -140,34 +140,34 @@ $flags = array(
 
 ######################## parameter handling ###############################
 #no parameters
-if($argc == 1 || in_array("--help", $argv))
+if ($argc == 1 || in_array("--help", $argv))
 {
   printUsage();
   exit;
 }
 
 #wrong parameter count
-for($i = 1;$i < count($argv);++$i)
+for ($i = 1;$i < count($argv);++$i)
 {
   #option
-  if(beginsWith($argv[$i], "-"))
+  if (beginsWith($argv[$i], "-"))
   {
     #no path given
-    if($i < 3)
+    if ($i < 3)
     {
       print "\nError: No paths given!\n\n";
       printUsage();
       exit;
     }
     #not registered option or flag
-    if(!in_array($argv[$i], array_merge($options, $flags)))
+    if (!in_array($argv[$i], array_merge($options, $flags)))
     {
       print "\nError: Unregistered option '".$argv[$i]."'!\n\n";
       printUsage();
       exit;
     }
     # no argument to an option
-    if(in_array($argv[$i], $options) && (!isset($argv[$i+1]) || beginsWith($argv[$i+1], "-")))
+    if (in_array($argv[$i], $options) && (!isset($argv[$i+1]) || beginsWith($argv[$i+1], "-")))
     {
       print "\nError: No argument to option '".$argv[$i]."'!\n\n";
       printUsage();
@@ -177,7 +177,7 @@ for($i = 1;$i < count($argv);++$i)
 }
 
 #remove slash from path
-if(endsWith($argv[1], "/"))
+if (endsWith($argv[1], "/"))
 {
   $src_path = substr($argv[1], 0,-1);
 }
@@ -187,7 +187,7 @@ else
 }
 
 #remove slash from path
-if(endsWith($argv[2], "/"))
+if (endsWith($argv[2], "/"))
 {
   $bin_path = substr($argv[2], 0,-1);
 }
@@ -198,14 +198,14 @@ else
 
 #debug
 $debug = 0;
-if(in_array("-d", $argv))
+if (in_array("-d", $argv))
 {
   $debug = $argv[array_search("-d", $argv)+1];
 }
 
 #user
 $user = "all";
-if(in_array("-u", $argv))
+if (in_array("-u", $argv))
 {
   $user = $argv[array_search("-u", $argv)+1];
 }
@@ -213,10 +213,10 @@ if(in_array("-u", $argv))
 #test
 $tests = array_keys($GLOBALS["all_tests"]);
 unset($tests[0]);
-if(in_array("-t", $argv))
+if (in_array("-t", $argv))
 {
   $test = $argv[array_search("-t", $argv)+1];
-  if(!in_array($test, $tests))
+  if (!in_array($test, $tests))
   {
     print "\nError: Unknown test '$test'!\n\n";
     printUsage();
@@ -228,14 +228,14 @@ if(in_array("-t", $argv))
 }
 
 #skip
-if(in_array("-s", $argv))
+if (in_array("-s", $argv))
 {
   $skip = explode(',', $argv[array_search("-s", $argv)+1]);
   //trim all
   array_map("trim", $skip);
-  foreach($skip as $test)
+  foreach ($skip as $test)
   {
-    if(!in_array($test, $tests))
+    if (!in_array($test, $tests))
     {
       print "\nError: Unknown test '$test'!\n\n";
       printUsage();
@@ -249,27 +249,27 @@ $tests = array_values($tests);
 #ctestReporting
 $ctestReporting = false;
 $ctestReportingPath = "";
-if(in_array("-r", $argv))
+if (in_array("-r", $argv))
 {
   $ctestReporting = true;
 }
 
 #doxygen XML output
 $rebuilt_xml = true;
-if(in_array("-x", $argv))
+if (in_array("-x", $argv))
 {
   $rebuilt_xml = false;
 }
 
 ######################## doxygen XML output ############################
-if($rebuilt_xml)
+if ($rebuilt_xml)
 {
-  if($debug > 0)
+  if ($debug > 0)
   {
     print "Rebuilding doxygen XML output\n";
   }
   exec("cd $bin_path && make doc_xml");
-  if($debug > 0)
+  if ($debug > 0)
   {
     print "Done\n";
   }
@@ -279,15 +279,15 @@ if($rebuilt_xml)
 $abort = false;
 $out = array();
 exec("cd $bin_path/doc/xml_output/ && ls -a *.xml | wc -l", $out);
-if(trim($out[0]) < 100)
+if (trim($out[0]) < 100)
 {
   print "Error: For this script, doxygen XML output is needed!\n";
   print "       Please execute 'make doc_xml' first!.\n";
   $abort = true;
 }
-if(in_array("doxygen_errors", $tests))
+if (in_array("doxygen_errors", $tests))
 {
-  if(!file_exists("$bin_path/doc/doxygen/doxygen-error.log"))
+  if (!file_exists("$bin_path/doc/doxygen/doxygen-error.log"))
   {
     print "Error: For the 'doxygen_errors' test, the file '$bin_path/doc/doxygen/doxygen-error.log' is needed!\n";
     print "       Please execute 'make doc_internal' first!'.\n";
@@ -296,19 +296,19 @@ if(in_array("doxygen_errors", $tests))
 }
 $test_log = array();
 //Array from test name to warnings/errors
-if(in_array("test_output", $tests) || in_array("topp_output", $tests))
+if (in_array("test_output", $tests) || in_array("topp_output", $tests))
 {
   # try to find a possible test log from ctest
   #  * "$bin_path/Testing/Temporary/LastTest.log"
   #  * "$bin_path/Testing/TAG ->
   $lastTestFile = "$bin_path/Testing/Temporary/LastTest.log";
-  if(!file_exists($lastTestFile))
+  if (!file_exists($lastTestFile))
   {
-    if(file_exists("$bin_path/Testing/TAG"))
+    if (file_exists("$bin_path/Testing/TAG"))
     {
       $taginfo = array();
       exec("cat $bin_path/Testing/TAG", $taginfo);
-      if(file_exists("$bin_path/Testing/Temporary/LastTest_".$taginfo[0].".log"))
+      if (file_exists("$bin_path/Testing/Temporary/LastTest_".$taginfo[0].".log"))
       {
         $lastTestFile = "$bin_path/Testing/Temporary/LastTest_".$taginfo[0].".log";
       }
@@ -321,17 +321,17 @@ if(in_array("test_output", $tests) || in_array("topp_output", $tests))
     }
   }
   
-  if(!$abort)
+  if (!$abort)
   {
     $current_test_name = "";
     $log_file = file($lastTestFile);
-    foreach($log_file as $line)
+    foreach ($log_file as $line)
     {
-      if(ereg("[0-9]+/[0-9]+ Testing: (.*)", $line, $parts))
+      if (ereg("[0-9]+/[0-9]+ Testing: (.*)", $line, $parts))
       {
         $current_test_name = trim($parts[1]);
       }
-      if(beginsWith($line, "warning") || beginsWith($line, "Warning") || beginsWith($line, "error") || beginsWith($line, "Error"))
+      if (beginsWith($line, "warning") || beginsWith($line, "Warning") || beginsWith($line, "error") || beginsWith($line, "Error"))
       {
         $test_log[$current_test_name][] = trim($line);
       }
@@ -339,10 +339,10 @@ if(in_array("test_output", $tests) || in_array("topp_output", $tests))
   }
 }
 ## check if all files required to report in CDash are present
-if($ctestReporting)
+if ($ctestReporting)
 {
   # check if we find the last run log
-  if(!file_exists("$bin_path/Testing/TAG"))
+  if (!file_exists("$bin_path/Testing/TAG"))
   {
     print "Error: Missing nightly test information $bin_path/Testing/TAG!\n";
     $abort = true;
@@ -353,7 +353,7 @@ if($ctestReporting)
     $taginfo = array();
     exec("cat $bin_path/Testing/TAG", $taginfo);
     $ctestReportingPath = "$bin_path/Testing/$taginfo[0]";
-    if(!file_exists("$bin_path/Testing/$taginfo[0]"))
+    if (!file_exists("$bin_path/Testing/$taginfo[0]"))
     {
       $abort = true;
     }
@@ -362,7 +362,7 @@ if($ctestReporting)
 
 # read active maintainers file
 $activemaintainers = array();
-if(!file_exists("$src_path/tools/ACTIVE_MAINTAINERS"))
+if (!file_exists("$src_path/tools/ACTIVE_MAINTAINERS"))
 {
   print "Error: Missing $src_path/tools/ACTIVE_MAINTAINERS file!\n";
   $abort = true;
@@ -372,7 +372,7 @@ else
   exec("cat $src_path/tools/ACTIVE_MAINTAINERS", $activemaintainers);
 }
 
-if($abort)
+if ($abort)
 {
   exit;
 }
@@ -388,21 +388,21 @@ $files_todo                  = array();
 $GLOBALS["file_maintainers"] = array();
 $GLOBALS["TestList"]         = array();
 
-foreach($files as $f)
+foreach ($files as $f)
 {
   $maintainerline = array();
   exec("cd $src_path && head -40 $f | grep Maintainer ", $maintainerline);
-  if(count($maintainerline) == 0)
+  if (count($maintainerline) == 0)
   {
-    if($user == "all")
+    if ($user == "all")
     {
       print "No Maintainer lines in '$f'\n";
       $GLOBALS["file_maintainers"][$f] = "";
     }
   }
-  elseif(count($maintainerline) > 1)
+  elseif (count($maintainerline) > 1)
   {
-    if($user == "all")
+    if ($user == "all")
     {
       print "Several maintainer lines in '$f'\n";
       $GLOBALS["file_maintainers"][$f] = "";
@@ -411,9 +411,9 @@ foreach($files as $f)
   else
   {
     $maintainers = parseMaintainerLine($maintainerline[0]);
-    if(count($maintainers) == 0)
+    if (count($maintainers) == 0)
     {
-      if($user == "all")
+      if ($user == "all")
       {
         print "No Maintainer for '$f'\n";
         $GLOBALS["file_maintainers"][$f] = "";
@@ -424,9 +424,9 @@ foreach($files as $f)
       $GLOBALS["file_maintainers"][$f] = implode(", ", $maintainers);
       
       #count files per maintainer
-      foreach($maintainers as $m)
+      foreach ($maintainers as $m)
       {
-        if(!isset($GLOBALS["maintainer_info"][$m]))
+        if (!isset($GLOBALS["maintainer_info"][$m]))
         {
           $GLOBALS["maintainer_info"][$m]["files"] = 0;
           $GLOBALS["maintainer_info"][$m]["errors"] = 0;
@@ -434,16 +434,16 @@ foreach($files as $f)
         $GLOBALS["maintainer_info"][$m]["files"]++;
       }
       #check for misspelled maintainers
-      if($user != "all")
+      if ($user != "all")
       {
-        foreach($maintainers as $m)
+        foreach ($maintainers as $m)
         {
           $dist = levenshtein($m, $user);
-          if($dist == 0)
+          if ($dist == 0)
           {
             $files_todo[] = $f;
           }
-          elseif($dist <= 4)
+          elseif ($dist <= 4)
           {
             print "Possibly misspelled maintainer '$user'<-$dist->'$m' in '$f'\n";
           }
@@ -453,7 +453,7 @@ foreach($files as $f)
   }
 }
 //files to parse
-if($user == "all")
+if ($user == "all")
 {
   $files_todo = $files;
 }
@@ -461,13 +461,13 @@ if($user == "all")
 ########################### auxilary files #############################
 $called_tests = array();
 $makefile = file("$src_path/source/TEST/executables.cmake");
-foreach($makefile as $line)
+foreach ($makefile as $line)
 {
   $line = trim($line);
-  if(strpos($line, "_test") !== FALSE)
+  if (strpos($line, "_test") !== FALSE)
   {
     //Appended conditional test
-    if(strpos($line, "APPEND") !== FALSE)
+    if (strpos($line, "APPEND") !== FALSE)
     {
       $line = substr($line, strrpos($line, ' ')+1,-1);
       $called_tests[] = "source/TEST/".$line.".C";
@@ -478,24 +478,24 @@ foreach($makefile as $line)
     }
   }
 }
-if(in_array("doxygen_errors", $tests))
+if (in_array("doxygen_errors", $tests))
 {
   $doxygen_errors = array();
   $errorfile = file("$bin_path/doc/doxygen/doxygen-error.log");
-  foreach($errorfile as $line)
+  foreach ($errorfile as $line)
   {
-    if(ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:", $line, $parts))
+    if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:", $line, $parts))
     {
       //skip warning where doxygen cannot resolve members
-      if(strpos($line, "no uniquely matching class member") === FALSE && strpos($line, "no matching class member") === FALSE)
+      if (strpos($line, "no uniquely matching class member") === FALSE && strpos($line, "no matching class member") === FALSE)
       {
         $pos = strpos($parts[1], "source/");
-        if($pos !== FALSE)
+        if ($pos !== FALSE)
         {
           $doxygen_errors[] = substr($parts[1], $pos);
         }
         $pos = strpos($parts[1], "include/OpenMS/");
-        if($pos !== FALSE)
+        if ($pos !== FALSE)
         {
           $doxygen_errors[] = substr($parts[1], $pos);
         }
@@ -507,9 +507,9 @@ if(in_array("doxygen_errors", $tests))
 ########################################################################
 ########################### TESTS ######################################
 ########################################################################
-foreach($files_todo as $f)
+foreach ($files_todo as $f)
 {
-  if($debug > 0)
+  if ($debug > 0)
   {
     print "File name: '$f'\n";
   }
@@ -553,7 +553,7 @@ foreach($files_todo as $f)
     "openms_package_version.h",
   );
   
-  if(!endsWith($f, "_impl.h") && endsWith($f, ".h") && !in_array($basename, $dont_load))
+  if (!endsWith($f, "_impl.h") && endsWith($f, ".h") && !in_array($basename, $dont_load))
   {
     $class_info = getClassInfo($bin_path, $f, $debug);
   }
@@ -563,29 +563,29 @@ foreach($files_todo as $f)
   }
   
   ########################### guards ######################################
-  if(in_array("guards", $tests))
+  if (in_array("guards", $tests))
   {
     $dont_report = array(
       "TypeNameIdStringMiscellanyDefs.h",
     );
     
-    if(endsWith($f, ".h"))
+    if (endsWith($f, ".h"))
     {
       $message = "";
       $result = true;
       
-      for($i = 0;$i < count($file);$i++)
+      for ($i = 0;$i < count($file);$i++)
       {
         $line = trim($file[$i]);
-        if(beginsWith($line, "#ifndef"))
+        if (beginsWith($line, "#ifndef"))
         {
           $guard = trim(substr($line, 8));
           $nextline = trim($file[$i+1]);
           //header guards
-          if(beginsWith($nextline, "#define") AND trim(substr($nextline, 8)) == $guard)
+          if (beginsWith($nextline, "#define") AND trim(substr($nextline, 8)) == $guard)
           {
             $right_guard = includeToGuard(suffix($f, strlen($guard)));
-            if($right_guard != $guard OR !beginsWith($guard, "OPENMS_"))
+            if ($right_guard != $guard OR !beginsWith($guard, "OPENMS_"))
             {
               $message = "Wrong header guard '$guard' in '$f' should be '$right_guard'";
               $result = false;
@@ -596,7 +596,7 @@ foreach($files_todo as $f)
         }
         
         $class = trim(substr($f, strrpos($f, "/")+1));
-        if($i == count($file)-1 AND !in_array($class, $dont_report))
+        if ($i == count($file)-1 AND !in_array($class, $dont_report))
         {
           $message = "Missing header guard in '$f' ";
           $result = false;
@@ -610,14 +610,14 @@ foreach($files_todo as $f)
   }
   
   ########################### maintainers #####################################
-  if(in_array("maintainers", $tests))
+  if (in_array("maintainers", $tests))
   {
-    if(endsWith($f, ".h"))
+    if (endsWith($f, ".h"))
     {
       # maintainer of test file
-      if(in_array($testname, $files))
+      if (in_array($testname, $files))
       {
-        if(isset($file_maintainers[$testname]) && $file_maintainers[$testname] != $file_maintainers[$f])
+        if (isset($file_maintainers[$testname]) && $file_maintainers[$testname] != $file_maintainers[$f])
         {
           $message = "Inconsistent maintainers in '$f' and '$testname'";
           realOutput($message, $user, $f);
@@ -633,9 +633,9 @@ foreach($files_todo as $f)
       
       # maintainer of source file
       $source_name = "source/".substr($f, 15,-2).".C";
-      if(in_array($source_name, $files))
+      if (in_array($source_name, $files))
       {
-        if($file_maintainers[$source_name] != $file_maintainers[$f])
+        if ($file_maintainers[$source_name] != $file_maintainers[$f])
         {
           $message = "Inconsistent maintainers in '$f' and '$source_name'";
           realOutput("Inconsistent maintainers in '$f' and '$source_name'", $user, $f);
@@ -650,26 +650,26 @@ foreach($files_todo as $f)
     }
   }
   ########################### (in)active maintainer #####################################
-  if(in_array("inactive-maintainers", $tests))
+  if (in_array("inactive-maintainers", $tests))
   {
-    if(endsWith($f, ".h"))
+    if (endsWith($f, ".h"))
     {
       # check if the maintainer is set
-      if(isset($file_maintainers[$f]) && $file_maintainers[$f] != '')
+      if (isset($file_maintainers[$f]) && $file_maintainers[$f] != '')
       {
         $all_active = true;
         $maintainers = explode(',', $file_maintainers[$f]);
-        foreach($maintainers as $m)
+        foreach ($maintainers as $m)
         {
           $realMaintainer = trim($m);
-          if(!in_array($realMaintainer, $activemaintainers))
+          if (!in_array($realMaintainer, $activemaintainers))
           {
             reportTestResult("Inactive maintainer ($realMaintainer) given in '$f'.", $user, "active_maintainer", $f, false);
             realOutput("Inactive maintainer ($realMaintainer) given in '$f'.", $user, $f);
             $all_active = false;
           }
         }
-        if($all_active)
+        if ($all_active)
         {
           reportTestResult("All maintainers given in '$f' are active maintainers.", $user, "active_maintainer", $f, true);
         }
@@ -680,10 +680,10 @@ foreach($files_todo as $f)
       }
     }
   }
-
   
+
   ########################### missing tests  #####################################
-  if(in_array("missing_tests", $tests))
+  if (in_array("missing_tests", $tests))
   {
     $dont_report = array(
       "/FORMAT/HANDLERS/",
@@ -720,32 +720,32 @@ foreach($files_todo as $f)
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h",
     );
     
-    if(endsWith($f, ".h") && !endsWith($f, "_impl.h"))
+    if (endsWith($f, ".h") && !endsWith($f, "_impl.h"))
     {
       $ignore = false;
-      foreach($dont_report as $i)
+      foreach ($dont_report as $i)
       {
-        if(strpos($f, $i) !== FALSE)
+        if (strpos($f, $i) !== FALSE)
         {
           $ignore = true;
         }
       }
       
       // Exclude all OpenSwathAlgo from the tests since they are not properly recognized
-      if(preg_match("/OPENSWATHALGO/i", $f))
+      if (preg_match("/OPENSWATHALGO/i", $f))
       {
         $ignore = true;
       }
       
-      if(!$ignore)
+      if (!$ignore)
       {
         # check if test exists
-        if(!in_array($testname, $files))
+        if (!in_array($testname, $files))
         {
           realOutput("Missing test for '$f'", $user, $f);
           reportTestResult("Missing test for '$f'", $user, "missing_tests", $f, false);
         }
-        elseif(!in_array($testname, $called_tests)) 
+        elseif (!in_array($testname, $called_tests)) 
           # check if test was executed
           {
             realOutput("Test not in executables.cmake for '$f'", $user, $f);
@@ -760,7 +760,7 @@ foreach($files_todo as $f)
   }
   
   ########################### guards ######################################
-  if(in_array("old_files", $tests))
+  if (in_array("old_files", $tests))
   {
     $ignore = array(
       "SampleTreatment_test.C",
@@ -770,24 +770,24 @@ foreach($files_todo as $f)
       "TestExternalCode.C",
     );
     
-    if(!in_array($basename, $ignore) && !beginsWith($f, "source/APPLICATIONS/TOPP/") && !beginsWith($f, "source/APPLICATIONS/UTILS/") && !beginsWith($f, "source/VISUAL/APPLICATIONS/GUITOOLS/"))
+    if (!in_array($basename, $ignore) && !beginsWith($f, "source/APPLICATIONS/TOPP/") && !beginsWith($f, "source/APPLICATIONS/UTILS/") && !beginsWith($f, "source/VISUAL/APPLICATIONS/GUITOOLS/"))
     {
       $message = "";
       $result = true;
-      if(endsWith($f, "_test.C"))
+      if (endsWith($f, "_test.C"))
       {
         $hits = array();
-        foreach($file as $line)
+        foreach ($file as $line)
         {
-          if(isIncludeLine($line, $include) && strpos($line, substr($basename, 0,-7)) !== FALSE)
+          if (isIncludeLine($line, $include) && strpos($line, substr($basename, 0,-7)) !== FALSE)
           {
             $hits[] = "include/".$include;
           }
         }
-        if(count($hits) == 1)
+        if (count($hits) == 1)
         {
           //print "$f -> $hits[0]\n";
-          if(!file_exists($src_path."/".$hits[0]))
+          if (!file_exists($src_path."/".$hits[0]))
           {
             $message = "Outdated test file '$f'";
             $result = false;
@@ -796,9 +796,9 @@ foreach($files_todo as $f)
         }
       }
       //source file -> look for header
-      elseif(endsWith($f, ".C"))
+      elseif (endsWith($f, ".C"))
       {
-        if(!file_exists($src_path."/include/OpenMS/".substr($f, 7,-2).".h"))
+        if (!file_exists($src_path."/include/OpenMS/".substr($f, 7,-2).".h"))
         {
           $message = "Outdated source file '$f' (no header)";
           $result = false;
@@ -810,38 +810,38 @@ foreach($files_todo as $f)
   }
   
   ########################### @brief  #####################################
-  if(in_array("brief", $tests))
+  if (in_array("brief", $tests))
   {
-    if(endsWith($f, ".h"))
+    if (endsWith($f, ".h"))
     {
-      for($i = 0;$i < count($file);++$i)
+      for ($i = 0;$i < count($file);++$i)
       {
         #match a class declaration
-        if(preg_match("/(class|struct)[\s]+[\w]+[\s]*({|:[^:]|$)/i", $file[$i]))
+        if (preg_match("/(class|struct)[\s]+[\w]+[\s]*({|:[^:]|$)/i", $file[$i]))
         {
           #take the second line too in case : or { come in the next line
-          if(isset($file[$i+1]) && preg_match("/(class|struct)[\s]+([\w]+)[\s]*({|:[^:])/i", $file[$i].$file[$i+1], $parts))
+          if (isset($file[$i+1]) && preg_match("/(class|struct)[\s]+([\w]+)[\s]*({|:[^:])/i", $file[$i].$file[$i+1], $parts))
           {
             $brief = false;
             #search for /// comment
-            if(strpos($file[$i-1], "///") !== FALSE)
+            if (strpos($file[$i-1], "///") !== FALSE)
             {
               $brief = true;
             }
             # backward search for @brief until comment closes
-            for($j = $i;$j != 0;--$j)
+            for ($j = $i;$j != 0;--$j)
             {
-              if(strpos($file[$j], "@brief") !== FALSE)
+              if (strpos($file[$j], "@brief") !== FALSE)
               {
                 $brief = true;
                 break;
               }
-              if(strpos($file[$j], "/**") !== FALSE)
+              if (strpos($file[$j], "/**") !== FALSE)
               {
                 break;
               }
             }
-            if(!$brief)
+            if (!$brief)
             {
               realOutput("No @brief description for '$parts[2]' in '$f'", $user, $f);
               reportTestResult("No @brief description for '$parts[2]' in '$f'", $user, "brief", $f, false);
@@ -857,9 +857,9 @@ foreach($files_todo as $f)
   }
   
   ########################### doxygen errors  ####################################
-  if(in_array("doxygen_errors", $tests))
+  if (in_array("doxygen_errors", $tests))
   {
-    if(in_array($f, $doxygen_errors))
+    if (in_array($f, $doxygen_errors))
     {
       realOutput("Doxygen errors in '$f'", $user, $f);
       print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
@@ -867,9 +867,9 @@ foreach($files_todo as $f)
   }
   
   ########################### test errors  #####################################
-  if(isset($class_info) && in_array("check_test", $tests))
+  if (isset($class_info) && in_array("check_test", $tests))
   {
-    if(in_array($testname, $files))
+    if (in_array($testname, $files))
     {
       #parse test
       $tmp        = parseTestFile("$src_path/$testname");
@@ -881,10 +881,10 @@ foreach($files_todo as $f)
       
       # remove methods that can be tested although they are not defined
       $new_unknown = array();
-      foreach($out["unknown"] as $m)
+      foreach ($out["unknown"] as $m)
       {
         //print ">>> '".$m."'  '$classname()'\n";
-        if($m != "$classname()" && $m != "~$classname()" && !beginsWith($m, "const $classname& operator=(") && !beginsWith($m, "$classname(const $classname&"))
+        if ($m != "$classname()" && $m != "~$classname()" && !beginsWith($m, "const $classname& operator=(") && !beginsWith($m, "$classname(const $classname&"))
         {
           $new_unknown[] = $m;
         }
@@ -892,46 +892,46 @@ foreach($files_todo as $f)
       $out["unknown"] = $new_unknown;
       
       #output
-      if(count($out["missing"]) != 0 || count($out["unknown"]) != 0 || count($out["double"]) != 0 || count($todo_tests) != 0)
+      if (count($out["missing"]) != 0 || count($out["unknown"]) != 0 || count($out["double"]) != 0 || count($todo_tests) != 0)
       {
         realOutput("Test errors in '$f'", $user, $testname);
         $message = "Test errors in '$f'\n";
-        if(count($out["unknown"]) != 0)
+        if (count($out["unknown"]) != 0)
         {
           print "  Tests of unknown methods:\n";
           $message .= "  Tests of unknown methods:\n";
-          foreach($out["unknown"] as $u)
+          foreach ($out["unknown"] as $u)
           {
             print "    - '$u'\n";
             $message .= "    - '$u'\n";
           }
         }
-        if(count($out["missing"]) != 0)
+        if (count($out["missing"]) != 0)
         {
           print "  Missing tests:\n";
           $message .= "  Missing tests:\n";
-          foreach($out["missing"] as $m)
+          foreach ($out["missing"] as $m)
           {
             print "    - '$m'\n";
             $message .= "    - '$m'\n";
           }
         }
-        if(count($out["double"]) != 0)
+        if (count($out["double"]) != 0)
         {
           $out["double"] = array_unique($out["double"]);
           print "  Methods tested several times:\n";
           $message .= "  Methods tested several times:\n";
-          foreach($out["double"] as $m)
+          foreach ($out["double"] as $m)
           {
             print "    - '$m'\n";
             $message .= "    - '$m'\n";
           }
         }
-        if(count($todo_tests) != 0)
+        if (count($todo_tests) != 0)
         {
           print "  Tests that contain 'TODO' or '????':\n";
           $message .= "  Tests that contain 'TODO' or '????':\n";
-          foreach($todo_tests as $m)
+          foreach ($todo_tests as $m)
           {
             print "    - '$m'\n";
             $message .= "    - '$m'\n";
@@ -948,48 +948,49 @@ foreach($files_todo as $f)
   }
   
   ############################## coding ##########################################
-  if(isset($class_info) && in_array("coding", $tests))
+  if (isset($class_info) && in_array("coding", $tests))
   {
     $out = array();
     #variables
-    foreach($class_info["variables"] as $tmp)
+    foreach ($class_info["variables"] as $tmp)
     {
-      if(!endswith($tmp, '_'))
+      if (!endswith($tmp, '_'))
       {
         $out[] = "  - invalid non-public variable name '$tmp'\n";
       }
     }
     # non-public member
-    foreach($class_info["non-public"] as $tmp)
+    foreach ($class_info["non-public"] as $tmp)
     {
       //print "NP: '".$tmp."'\n";
       //Allow special methods to conflict with the coding convention
-      if(endswith($tmp, 'Event') || //Qt events
+      if (endswith($tmp, 'Event') || //Qt events
       endsWith($tmp, 'load') || endsWith($tmp, 'save') || endsWith($tmp, 'serialize') || //serialize methods
       $tmp == $class_info["classname"] || $tmp == '~'.$class_info["classname"] || //constructor or destructor
       $tmp == "operator=" || //assignment
       $tmp == "startElement" || $tmp == "endElement" || $tmp == "characters" || //Xerces data handler
-      $tmp == "warning" || $tmp == "error" || $tmp == "fatalError" || $tmp == "resetErrors")//Xerces error handler
-      {
-        continue;
+      $tmp == "warning" || $tmp == "error" || $tmp == "fatalError" || $tmp == "resetErrors") 
+        //Xerces error handler
+        {
+          continue;
       }
       
-      if(!endswith($tmp, '_'))
+      if (!endswith($tmp, '_'))
       {
         $out[] = "  - invalid non-public method name '$tmp'\n";
       }
       //check if there is a underscore in the middle, that must not be there
-      elseif(strpos(substr($tmp, 0,-1), '_') !== FALSE)
+      elseif (strpos(substr($tmp, 0,-1), '_') !== FALSE)
       {
         $out[] = "  - invalid non-public method name '$tmp'\n";
       }
     }
     #output
-    if(count($out) != 0)
+    if (count($out) != 0)
     {
       $message = "Coding convention violation in '$f'\n";
       realOutput("Coding convention violation in '$f'", $user, $f);
-      foreach($out as $o)
+      foreach ($out as $o)
       {
         print $o;
         $message .= $o."\n";
@@ -1003,18 +1004,18 @@ foreach($files_todo as $f)
   }
   
   ########################### warnings test  #####################################
-  if(in_array("test_output", $tests))
+  if (in_array("test_output", $tests))
   {
-    if(endsWith($f, ".h") && in_array($testname, $files))
+    if (endsWith($f, ".h") && in_array($testname, $files))
     {
       $errors = array();
-      if(isset($test_log[$classname."_test"])) 
+      if (isset($test_log[$classname."_test"])) 
         $errors = array_unique($test_log[$classname."_test"]);
-      if(count($errors) != 0)
+      if (count($errors) != 0)
       {
         realOutput("Error/warnings in test output of '$testname'", $user, $testname);
         $message = "Error/warnings in test output of '$testname'\n";
-        foreach($errors as $e)
+        foreach ($errors as $e)
         {
           print "  '$e'\n";
           $message .= "  '$e'\n";
@@ -1028,25 +1029,25 @@ foreach($files_todo as $f)
     }
   }
   
-  ######################### 'Id' keyword in tests  ###############################
-  if(in_array("svn_keywords", $tests))
+  ######################### quote212'Id' keyword in tests  ###############################
+  if (in_array("svn_keywords", $tests))
   {
-    if(endsWith($f, ".h"))
+    if (endsWith($f, ".h"))
     {
-      if(in_array($testname, $files))
+      if (in_array($testname, $files))
       {
         $out = array();
         
         exec("svn proplist -v $src_path/$testname", $out);
         $kw = false;
         $kw_id = false;
-        foreach($out as $line)
+        foreach ($out as $line)
         {
-          if(strpos($line, "svn:keywords") !== FALSE)
+          if (strpos($line, "svn:keywords") !== FALSE)
           {
             $kw = true;
           }
-          if(strpos($line, "Id") !== FALSE)
+          if (strpos($line, "Id") !== FALSE)
           {
             $kw_id = true;
           }
@@ -1087,12 +1088,12 @@ foreach($files_todo as $f)
 				}
 				*/
         $message = "";
-        if(!$kw)
+        if (!$kw)
         {
           $message = "svn:keywords section does not exist for '$testname'\n";
           realOutput("svn:keywords section does not exist for '$testname'", $user, $testname);
         }
-        if(!$kw_id)
+        if (!$kw_id)
         {
           $message .= "svn:keyword 'Id' not set for '$testname'";
           realOutput("svn:keyword 'Id' not set for '$testname'", $user, $testname);
@@ -1103,7 +1104,7 @@ foreach($files_todo as $f)
   }
   
   ########################### DefaultParamHandler  #################################
-  if(in_array("defaults", $tests))
+  if (in_array("defaults", $tests))
   {
     // don't report e.g. abstract base classes
     $dont_report = array(
@@ -1117,21 +1118,21 @@ foreach($files_todo as $f)
     );
     
     $ignore = false;
-    foreach($dont_report as $i)
+    foreach ($dont_report as $i)
     {
-      if(strpos($f, $i) !== FALSE)
+      if (strpos($f, $i) !== FALSE)
       {
         $ignore = true;
       }
     }
     
-    if(endsWith($f, ".h") && !endsWith($f, "_impl.h") && !$ignore)
+    if (endsWith($f, ".h") && !endsWith($f, "_impl.h") && !$ignore)
     {
       //check if defaults are set in .h file
       $is_dph = false;
       $output = array();
       exec("grep -l defaults_.setValue $src_path/$f", $output);
-      if($output != array())
+      if ($output != array())
       {
         $is_dph = true;
       }
@@ -1139,21 +1140,21 @@ foreach($files_todo as $f)
       else
       {
         $c_file = "$src_path/source/".substr($f, 15,-2).".C";
-        if(file_exists($c_file))
+        if (file_exists($c_file))
         {
           exec("grep -l defaults_.setValue $c_file", $output);
-          if($output != array())
+          if ($output != array())
           {
             $is_dph = true;
           }
         }
       }
       //check if reference to parameters docu page is present
-      if($is_dph)
+      if ($is_dph)
       {
         $output = array();
         exec("grep -l OpenMS_".$classname.".parameters $src_path/$f", $output);
-        if($output == array())
+        if ($output == array())
         {
           realOutput("Missing reference to parameters page in '$f' unless abstract base class", $user, $f);
           reportTestResult("Missing reference to parameters page in '$f' unless abstract base class", $user, "defaults", $f, false);
@@ -1167,11 +1168,11 @@ foreach($files_todo as $f)
   }
   // if (in_array("defaults",$tests))
   ########################### Check license header  ################################
-  if(in_array("license", $tests))
+  if (in_array("license", $tests))
   {
     $LICENSE_FILE = file($src_path."/LICENSE");
     $LICENSE = array();
-    foreach($LICENSE_FILE as $line)
+    foreach ($LICENSE_FILE as $line)
     {
       array_push($LICENSE, rtrim($line));
     }
@@ -1188,13 +1189,13 @@ foreach($files_todo as $f)
     );
     
     # every file should contain at least as much lines as the LICENSE header
-    if(count($file) >= $LICENSE_LEN)
+    if (count($file) >= $LICENSE_LEN)
     {
-      foreach($LICENSE as $index => $line)
+      foreach ($LICENSE as $index => $line)
       {
         $licenseLine = rtrim("// ".str_replace($breaks, "", $line));
         $fileLine = str_replace($breaks, "", rtrim($file[$index]));
-        if(strcmp($licenseLine, $fileLine) != 0)
+        if (strcmp($licenseLine, $fileLine) != 0)
         {
           $isEqual       = False;
           $offendingLine = "\tshould be: ".$licenseLine."\n\tbut is:    ".$fileLine;
@@ -1210,11 +1211,11 @@ foreach($files_todo as $f)
     }
     
     # report result
-    if(!$isEqual)
+    if (!$isEqual)
     {
       realOutput($message, $user, $f);
       reportTestResult($message, $user, "license", $f, false);
-      if($debug > 0 && $offendingLine != "")
+      if ($debug > 0 && $offendingLine != "")
       {
         print "Offending line: \n".$offendingLine;
       }
@@ -1227,13 +1228,13 @@ foreach($files_todo as $f)
 }
 //End of files loop
 ################### doxygen errors in .doxygen-files  ##########################
-if($user == "all" && in_array("doxygen_errors", $tests))
+if ($user == "all" && in_array("doxygen_errors", $tests))
 {
   $file = file("$bin_path/doc/doxygen/doxygen-error.log");
-  foreach($file as $line)
+  foreach ($file as $line)
   {
     $line = trim($line);
-    if(ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:", $line, $parts))
+    if (ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:", $line, $parts))
     {
       realOutput("Doxygen errors in '".$parts[1]."'", $user, "");
       print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
@@ -1242,30 +1243,30 @@ if($user == "all" && in_array("doxygen_errors", $tests))
 }
 
 ########################### warnings TOPP test  #################################
-if(in_array("topp_output", $tests))
+if (in_array("topp_output", $tests))
 {
   $file_warnings = array();
-  foreach($test_log as $name => $warnings)
+  foreach ($test_log as $name => $warnings)
   {
-    if(beginsWith($name, "TOPP_"))
+    if (beginsWith($name, "TOPP_"))
     {
       $name      = substr($name, 5);
       $name      = substr($name, 0, strpos($name, '_'));
       $topp_file = "source/APPLICATIONS/TOPP/".$name.".C";
-      if(in_array($topp_file, $files_todo))
+      if (in_array($topp_file, $files_todo))
       {
-        if(!isset($file_warnings[$topp_file])) 
+        if (!isset($file_warnings[$topp_file])) 
           $file_warnings[$topp_file] = array();
         $file_warnings[$topp_file] = array_merge($file_warnings[$topp_file], $warnings);
       }
     }
   }
   //print errors/warnings bundled for each TOPP tool
-  foreach($file_warnings as $file => $warnings)
+  foreach ($file_warnings as $file => $warnings)
   {
     realOutput("Error/warnings in TOPP tool test of '$file'", $user, $file);
     $warnings = array_unique($warnings);
-    foreach($warnings as $e)
+    foreach ($warnings as $e)
     {
       print "  '$e'\n";
     }
@@ -1273,16 +1274,16 @@ if(in_array("topp_output", $tests))
 }
 
 ########################### maintainer summary #################################
-if($user == "all")
+if ($user == "all")
 {
   print "\nMaintainers:\n";
-  foreach($GLOBALS["maintainer_info"] as $m => $info)
+  foreach ($GLOBALS["maintainer_info"] as $m => $info)
   {
     print "  $m (Files: ".$info["files"]."  Errors: ".$info["errors"].")\n";
   }
 }
 
-if($ctestReporting)
+if ($ctestReporting)
 {
   # we assume that ctest was already executed so we can use the original file as
   # template
@@ -1291,10 +1292,10 @@ if($ctestReporting)
   # load template head
   $template = file($ctestReportingPath."/Test.xml");
   $newTestFile = array();
-  foreach($template as $line)
+  foreach ($template as $line)
   {
     array_push($newTestFile, $line);
-    if(trim($line) == "<Testing>")
+    if (trim($line) == "<Testing>")
     {
       break;
     }
@@ -1305,14 +1306,14 @@ if($ctestReporting)
   
   # define all executed tests
   array_push($newTestFile, "<TestList>\n");
-  foreach($GLOBALS["TestList"] as $test => $testdata)
+  foreach ($GLOBALS["TestList"] as $test => $testdata)
   {
     array_push($newTestFile, "    <Test>".$test."</Test>\n");
   }
   array_push($newTestFile, "</TestList>\n");
   
   # and now the actual results
-  foreach($GLOBALS["TestList"] as $test => $testdata)
+  foreach ($GLOBALS["TestList"] as $test => $testdata)
   {
     /*
     $GLOBALS["TestList"][$reportAs]["message"] = $text;
