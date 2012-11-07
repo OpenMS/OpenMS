@@ -111,14 +111,21 @@ namespace OpenMS
           {
             value.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts);                            //for downward compatibility
-            if (parts[0] != "")
+              value.split('-', parts);  //for downward compatibility
+            if (parts.size() == 2)
             {
-              param_.setMinInt(name, parts[0].toInt());
+              if (parts[0] != "")
+              {
+                param_.setMinInt(name, parts[0].toInt());
+              }
+              if (parts[1] != "")
+              {
+                param_.setMaxInt(name, parts[1].toInt());
+              }
             }
-            if (parts[1] != "")
+            else
             {
-              param_.setMaxInt(name, parts[1].toInt());
+              warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
             }
           }
           else if (type == "string")
@@ -130,14 +137,21 @@ namespace OpenMS
           {
             value.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts);                            //for downward compatibility
-            if (parts[0] != "")
+              value.split('-', parts);  //for downward compatibility
+            if (parts.size() == 2)
             {
-              param_.setMinFloat(name, parts[0].toDouble());
+              if (parts[0] != "")
+              {
+                param_.setMinFloat(name, parts[0].toDouble());
+              }
+              if (parts[1] != "")
+              {
+                param_.setMaxFloat(name, parts[1].toDouble());
+              }
             }
-            if (parts[1] != "")
+            else
             {
-              param_.setMaxFloat(name, parts[1].toDouble());
+              warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
             }
           }
         }
@@ -272,14 +286,21 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts);                            //for downward compatibility
-            if (parts[0] != "")
+              list_.restrictions.split('-', parts);  //for downward compatibility
+            if (parts.size() == 2)
             {
-              param_.setMinInt(list_.name, parts[0].toInt());
+              if (parts[0] != "")
+              {
+                param_.setMinInt(list_.name, parts[0].toInt());
+              }
+              if (parts[1] != "")
+              {
+                param_.setMaxInt(list_.name, parts[1].toInt());
+              }
             }
-            if (parts[1] != "")
+            else
             {
-              param_.setMaxInt(list_.name, parts[1].toInt());
+              warning(LOAD, "ITEMLIST " + list_.name + " has an empty restrictions attribute.");
             }
           }
         }
@@ -290,14 +311,21 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts);                            //for downward compatibility
-            if (parts[0] != "")
+              list_.restrictions.split('-', parts);  //for downward compatibility
+            if (parts.size() == 2)
             {
-              param_.setMinFloat(list_.name, parts[0].toDouble());
+              if (parts[0] != "")
+              {
+                param_.setMinFloat(list_.name, parts[0].toDouble());
+              }
+              if (parts[1] != "")
+              {
+                param_.setMaxFloat(list_.name, parts[1].toDouble());
+              }
             }
-            if (parts[1] != "")
+            else
             {
-              param_.setMaxFloat(list_.name, parts[1].toDouble());
+              warning(LOAD, "ITEMLIST " + list_.name + " has an empty restrictions attribute.");
             }
           }
         }
