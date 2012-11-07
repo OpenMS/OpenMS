@@ -31,6 +31,10 @@
 // $Maintainer: $
 // $Authors: Marc Sturm, Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
+
+#ifndef OPENMS_APPLICATIONS_MAPALIGNERBASE_H
+#define OPENMS_APPLICATIONS_MAPALIGNERBASE_H
+
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -462,3 +466,5 @@ protected:
 };
 
 /// @endcond
+
+#endif // OPENMS_APPLICATIONS_MAPALIGNERBASE_H

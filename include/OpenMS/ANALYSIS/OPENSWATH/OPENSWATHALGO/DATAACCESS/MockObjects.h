@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_MOCKOBJECTS_H
-#define OPENSWATH_DATAACCESS_MOCKOBJECTS_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H
 
 #include <vector>
 #include <map>
@@ -135,4 +135,4 @@ public:
 
 } //end namespace OpenMS
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H

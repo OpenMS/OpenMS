@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_ITRANS2TRANS_H
-#define OPENSWATH_DATAACCESS_ITRANS2TRANS_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H
 
 #include <map>
 #include <vector>
@@ -62,4 +62,4 @@ namespace OpenSwath
 
 } //end namespace
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H

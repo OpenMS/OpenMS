@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_ALGO_STATSHELPERS_H_
-#define OPENSWATH_ALGO_STATSHELPERS_H_
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_STATSHELPERS_H
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_STATSHELPERS_H
 
 #include <cmath>
 #include <vector>
@@ -238,6 +238,4 @@ public:
 
 } //end namespace OpenSwath
 
-
-
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_STATSHELPERS_H
