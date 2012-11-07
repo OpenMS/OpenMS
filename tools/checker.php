@@ -362,9 +362,9 @@ if($ctestReporting)
 
 # read active maintainers file
 $activemaintainers = array();
-if(!file_exists("$bin_path/Testing/TAG"))
+if(!file_exists("$src_path/tools/ACTIVE_MAINTAINERS"))
 {
-  print "Error: $src_path/tools/ACTIVE_MAINTAINERS file!\n";
+  print "Error: Missing $src_path/tools/ACTIVE_MAINTAINERS file!\n";
   $abort = true;
 }
 else
