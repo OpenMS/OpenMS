@@ -48,16 +48,16 @@ namespace OpenMS
 {
   namespace Internal
   {
-    MzQuantMLHandler::MzQuantMLHandler(const MSQuantifications & msq, const String & filename, const String & version, const ProgressLogger & logger) :
+    MzQuantMLHandler::MzQuantMLHandler(const MSQuantifications& msq, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
       msq_(0),
       cmsq_(&msq)
     {
-      cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));          //TODO unimod -> then automatise CVList writing
+      cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo")); //TODO unimod -> then automatise CVList writing
     }
 
-    MzQuantMLHandler::MzQuantMLHandler(MSQuantifications & msq, /* FeatureMap& feature_map, */ const String & filename, const String & version, const ProgressLogger & logger) :
+    MzQuantMLHandler::MzQuantMLHandler(MSQuantifications& msq, /* FeatureMap& feature_map, */ const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
       msq_(&msq),
@@ -70,7 +70,7 @@ namespace OpenMS
     {
     }
 
-    void MzQuantMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+    void MzQuantMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
       tag_ = sm_.convert(qname);
       open_tags_.push_back(tag_);
@@ -78,24 +78,24 @@ namespace OpenMS
       static set<String> to_ignore;
       if (to_ignore.empty())
       {
-        to_ignore.insert("CvList");         // for now static set of obos.
-        to_ignore.insert("Cv");         // for now static set of obos.
-        to_ignore.insert("ProteinGroupList");         // for now no proteins or groups
-        to_ignore.insert("ProteinList");         // .
-        to_ignore.insert("Protein");         // .
-        to_ignore.insert("StudyVariableList");         // We can't deal with these right now, but that is coming
-        to_ignore.insert("StudyVariable");         // .
-        to_ignore.insert("Assay_refs");         // .
+        to_ignore.insert("CvList"); // for now static set of obos.
+        to_ignore.insert("Cv"); // for now static set of obos.
+        to_ignore.insert("ProteinGroupList"); // for now no proteins or groups
+        to_ignore.insert("ProteinList"); // .
+        to_ignore.insert("Protein"); // .
+        to_ignore.insert("StudyVariableList"); // We can't deal with these right now, but that is coming
+        to_ignore.insert("StudyVariable"); // .
+        to_ignore.insert("Assay_refs"); // .
 
-        to_ignore.insert("FeatureList");         // we only need to see the features and datamatrices rows
-        to_ignore.insert("AssayList");         // we only need to see the assays
-        to_ignore.insert("DataProcessingList");         // we only need to see the DataProcessings
-        to_ignore.insert("SoftwareList");         // we only need to see the Softwares
-        to_ignore.insert("InputFiles");         // we only need to see the Files
-        to_ignore.insert("Label");         // we only need to see the Modifications
-        to_ignore.insert("DataType");         // we only need to see the Modifications
-        to_ignore.insert("ColumnIndex");         // we only need to see the inside characters
-        to_ignore.insert("DataMatrix");         // we only need to see the inside characters
+        to_ignore.insert("FeatureList"); // we only need to see the features and datamatrices rows
+        to_ignore.insert("AssayList"); // we only need to see the assays
+        to_ignore.insert("DataProcessingList"); // we only need to see the DataProcessings
+        to_ignore.insert("SoftwareList"); // we only need to see the Softwares
+        to_ignore.insert("InputFiles"); // we only need to see the Files
+        to_ignore.insert("Label"); // we only need to see the Modifications
+        to_ignore.insert("DataType"); // we only need to see the Modifications
+        to_ignore.insert("ColumnIndex"); // we only need to see the inside characters
+        to_ignore.insert("DataMatrix"); // we only need to see the inside characters
       }
 
       if (to_ignore.find(tag_) != to_ignore.end())
@@ -115,19 +115,19 @@ namespace OpenMS
         parent_parent_tag = *(open_tags_.end() - 3);
       }
 
-      static const XMLCh * s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh * s_type = xercesc::XMLString::transcode("type");
-      static const XMLCh * s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh * s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-      static const XMLCh * s_cv_ref = xercesc::XMLString::transcode("cvRef");
-      static const XMLCh * s_accession = xercesc::XMLString::transcode("accession");
+      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+      static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
+      static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
+      static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
 
       if (tag_ == "cvParam")
       {
         String value, unit_accession, cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
-        optionalAttributeAsString_(cv_ref, attributes, s_cv_ref);          //TODO
+        optionalAttributeAsString_(cv_ref, attributes, s_cv_ref); //TODO
         handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, attributes, cv_ref, unit_accession);
       }
       else if (tag_ == "MzQuantML")
@@ -230,7 +230,7 @@ namespace OpenMS
       }
       else if (tag_ == "PeptideConsensusList")
       {
-        current_id_ = attributeAsString_(attributes, "id");        //needed in all PeptideConsensus elements
+        current_id_ = attributeAsString_(attributes, "id"); //needed in all PeptideConsensus elements
       }
       else if (tag_ == "PeptideConsensus")
       {
@@ -268,7 +268,7 @@ namespace OpenMS
         //~ }
         //~ }
 
-        String f_ref = attributeAsString_(attributes, "feature_ref");        // models which features will be included in this consensusfeature - idependent from id(is optional)
+        String f_ref = attributeAsString_(attributes, "feature_ref"); // models which features will be included in this consensusfeature - idependent from id(is optional)
         f_cf_ids_.insert(std::make_pair(f_ref, current_cf_id_));
 
         //~ StringList a_refs = attributeAsStringList_(attributes,"assay_refs"); // what to do with these??
@@ -289,7 +289,7 @@ namespace OpenMS
         {
           fh.setCharge(c);
         }
-        f_f_obj_.insert(std::make_pair(current_id_, fh));        // map_index was lost!! TODO artificial ones produced in ConsensusMap assembly
+        f_f_obj_.insert(std::make_pair(current_id_, fh)); // map_index was lost!! TODO artificial ones produced in ConsensusMap assembly
       }
       else if (tag_ == "FeatureQuantLayer" || tag_ == "RatioQuantLayer" || tag_ == "MS2AssayQuantLayer")
       {
@@ -309,7 +309,7 @@ namespace OpenMS
         error(LOAD, "MzQuantMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
     }
 
-    void MzQuantMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
       //if there is data between the element tags - !attention if element is derived from a xsd:list type, each list entry is a charecters call :(
 
@@ -317,14 +317,14 @@ namespace OpenMS
       {
         AASequence p(sm_.convert(chars));
         PeptideHit ph = PeptideHit(0, 0, cf_cf_obj_[current_cf_id_].getCharge(), p);
-        cf_cf_obj_[current_cf_id_].getPeptideIdentifications().back().insertHit(ph);         // just moments before added
+        cf_cf_obj_[current_cf_id_].getPeptideIdentifications().back().insertHit(ph); // just moments before added
         return;
       }
       else if (tag_ == "Row")
       {
         String r = sm_.convert(chars);
         r.trim();
-        if (!r.empty())         // always two notifications for a row, only the first one contains chars - dunno why
+        if (!r.empty()) // always two notifications for a row, only the first one contains chars - dunno why
         {
           std::vector<String> splits;
           r.split(" ", splits);
@@ -340,7 +340,7 @@ namespace OpenMS
         String r = sm_.convert(chars);
         //clear must have happened earlyer in QuantLayer tag
         r.trim();
-        if (!r.empty())         // always two notifications for a row, only the first one contains chars - dunno why
+        if (!r.empty()) // always two notifications for a row, only the first one contains chars - dunno why
         {
           r.split(" ", current_col_types_);
         }
@@ -354,7 +354,7 @@ namespace OpenMS
       }
     }
 
-    void MzQuantMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void MzQuantMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       static set<String> to_ignore;
       if (to_ignore.empty())
@@ -478,7 +478,7 @@ namespace OpenMS
         msq_->addConsensusMap(cm);
       }
       //~ assemble consensusmap MS1LABEL
-      else if (tag_ == "FeatureList")       // TODO what if there are more than one FeatureQuantLayer?
+      else if (tag_ == "FeatureList") // TODO what if there are more than one FeatureQuantLayer?
       {
         //~ assemble consensusfeatures
         for (std::map<String, String>::iterator it = f_cf_ids_.begin(); it != f_cf_ids_.end(); ++it)
@@ -499,7 +499,7 @@ namespace OpenMS
           }
           cm.push_back(cf_cf_obj_[it->second]);
         }
-        if (!f_cf_ids_.empty())         //in case of MS2QuantLayer we do not need that and so after datamatrix f_cf_ids_ get cleared so we know here.
+        if (!f_cf_ids_.empty()) //in case of MS2QuantLayer we do not need that and so after datamatrix f_cf_ids_ get cleared so we know here.
         {
           msq_->addConsensusMap(cm);
         }
@@ -508,7 +508,7 @@ namespace OpenMS
         warning(LOAD, String("MzQuantMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring."));
     }
 
-    void MzQuantMLHandler::handleCVParam_(const String & parent_parent_tag, const String & parent_tag, const String & accession, const String & name, const String & value, const xercesc::Attributes & attributes, const String & cv_ref, const String & unit_accession)
+    void MzQuantMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& /* attributes */, const String& /* cv_ref */, const String& /* unit_accession */)
     {
       if (parent_tag == "DataType" && parent_parent_tag == "Column")
       {
@@ -516,7 +516,7 @@ namespace OpenMS
         {
           current_col_types_.resize(current_count_ + 1, "");
         }
-        current_col_types_[current_count_] = accession;         //TODO real cv handling here (i.e. translate name into decision string for the "row-loop")
+        current_col_types_[current_count_] = accession; //TODO real cv handling here (i.e. translate name into decision string for the "row-loop")
       }
       else if (parent_parent_tag == "Label")
       {
@@ -535,7 +535,7 @@ namespace OpenMS
         warning(LOAD, String("Unhandled cvParam '") + name + "' in tag '" + parent_tag + "'.");
     }
 
-    void MzQuantMLHandler::handleUserParam_(const String & parent_parent_tag, const String & parent_tag, const String & name, const String & type, const String & value)
+    void MzQuantMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
     {
       //create a DataValue that contains the data in the right type
       DataValue data_value;
@@ -560,7 +560,7 @@ namespace OpenMS
       {
         //~ value is softwarename - will get handled elsewhere
         int x = std::distance(DataProcessing::NamesOfProcessingAction, std::find(DataProcessing::NamesOfProcessingAction, DataProcessing::NamesOfProcessingAction + DataProcessing::SIZE_OF_PROCESSINGACTION, name));
-        DataProcessing::ProcessingAction a = static_cast<DataProcessing::ProcessingAction>(x);         // ugly and depends on NamesOfProcessingAction^=ProcessingAction-definitions - see TODO rewrite DataProcessing!
+        DataProcessing::ProcessingAction a = static_cast<DataProcessing::ProcessingAction>(x); // ugly and depends on NamesOfProcessingAction^=ProcessingAction-definitions - see TODO rewrite DataProcessing!
         current_pas_.insert(a);
       }
       else if (parent_tag == "Software")
@@ -578,9 +578,9 @@ namespace OpenMS
       {
         if (name == "QuantType")
         {
-          const std::string * match = std::find(MSQuantifications::NamesOfQuantTypes, MSQuantifications::NamesOfQuantTypes + MSQuantifications::SIZE_OF_QUANT_TYPES, value);
+          const std::string* match = std::find(MSQuantifications::NamesOfQuantTypes, MSQuantifications::NamesOfQuantTypes + MSQuantifications::SIZE_OF_QUANT_TYPES, value);
           int i = (MSQuantifications::NamesOfQuantTypes + MSQuantifications::SIZE_OF_QUANT_TYPES == match) ? -1 : std::distance(MSQuantifications::NamesOfQuantTypes, match);
-          MSQuantifications::QUANT_TYPES quant_type = static_cast<MSQuantifications::QUANT_TYPES>(i);           //this is so not nice and soooo unsafe why enum in the first place?!
+          MSQuantifications::QUANT_TYPES quant_type = static_cast<MSQuantifications::QUANT_TYPES>(i); //this is so not nice and soooo unsafe why enum in the first place?!
           msq_->setAnalysisSummaryQuantType(quant_type);
         }
         else
@@ -607,10 +607,10 @@ namespace OpenMS
         warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
     }
 
-    void MzQuantMLHandler::writeTo(std::ostream & os)
+    void MzQuantMLHandler::writeTo(std::ostream& os)
     {
       //~ TODO logger_.startProgress(0,exp.size(),"storing mzML file");
-      String line;       //everyone walk the line!!!
+      String line; //everyone walk the line!!!
       std::vector<UInt64> rid;
 
       //header
@@ -729,7 +729,7 @@ namespace OpenMS
             {
               ConsensusFeature::Ratio robj(rv[i]);
               //~ String rd = rit->numerator_ref_ + rit->denominator_ref_; // add ratiocalculation params too?
-              String rd = robj.numerator_ref_ + robj.denominator_ref_;                   // add ratiocalculation params too?
+              String rd = robj.numerator_ref_ + robj.denominator_ref_; // add ratiocalculation params too?
               String tid = String(UniqueIdGenerator::getUniqueId());
               numden_r_ids_.insert(std::make_pair(rd, tid));
 
@@ -772,7 +772,7 @@ namespace OpenMS
           if (files.find(iit->getLoadedFilePath()) == files.end())
           {
             group_exists = false;
-            glob_rfgr = rfgr;             //TODO remove that when real rawfile grouping is done
+            glob_rfgr = rfgr; //TODO remove that when real rawfile grouping is done
             UInt64 rid = UniqueIdGenerator::getUniqueId();
             files.insert(std::make_pair(iit->getLoadedFilePath(), rfgr));
             rgs += "\t\t\t<RawFile id=\"r_" + String(rid)  + "\" location=\"" + iit->getLoadedFilePath() + "\"/>\n";
@@ -800,7 +800,7 @@ namespace OpenMS
           for (std::vector<std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
           {
             String cv_acc, cv_name;
-            switch ((int)std::floor(lit->second + (DoubleReal)0.5))                  //delta >! 0
+            switch ((int)std::floor(lit->second + (DoubleReal)0.5)) //delta >! 0
             {
             case 6:
               cv_acc = "MOD:00544";
@@ -891,19 +891,19 @@ namespace OpenMS
       // Features and QuantLayers
       std::vector<UInt64> fid;
       std::vector<Real> fin, fwi /*, fqu */;
-      std::vector<std::vector<std::vector<UInt64> >  > cid;        //per consensusmap - per consensus - per feature (first entry is consensus idref)
+      std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
       std::vector<std::vector<Real> > f2i;
       String feature_xml = "";
-      feature_xml += "\t<FeatureList id=\"featurelist1\" rawFilesGroup_ref=\"rfg_" + glob_rfgr + "\">\n";       //TODO make registerExperiment also register the consensusmaps (and featuremaps) - keep the grouping with ids
+      feature_xml += "\t<FeatureList id=\"featurelist1\" rawFilesGroup_ref=\"rfg_" + glob_rfgr + "\">\n"; //TODO make registerExperiment also register the consensusmaps (and featuremaps) - keep the grouping with ids
       for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
       {
         std::vector<std::vector<UInt64> > cmid;
         for (ConsensusMap::const_iterator cit = mit->begin(); cit != mit->end(); ++cit)
         {
-          const std::set<FeatureHandle, FeatureHandle::IndexLess> & feature_handles = cit->getFeatures();
-          switch (cmsq_->getAnalysisSummary().quant_type_)           //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
+          const std::set<FeatureHandle, FeatureHandle::IndexLess>& feature_handles = cit->getFeatures();
+          switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
           {
-          case 0:               //ms1label
+          case 0: //ms1label
           {
             std::vector<UInt64> idvec;
             idvec.push_back(UniqueIdGenerator::getUniqueId());
@@ -924,7 +924,7 @@ namespace OpenMS
             cmid.push_back(idvec);
           } break;
 
-          case 1:               //ms2label
+          case 1: //ms2label
           {
             std::vector<Real> fi;
             fid.push_back(UniqueIdGenerator::getUniqueId());
@@ -943,9 +943,9 @@ namespace OpenMS
       }
       os << feature_xml;
 
-      switch (cmsq_->getAnalysisSummary().quant_type_)       //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
+      switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
       {
-      case 0:           //ms1label
+      case 0: //ms1label
       {
         os << "\t\t<FeatureQuantLayer id=\"" << "q_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n\t\t\t<ColumnDefinition>\n";
         //what featurehandle is capable of reporting
@@ -964,7 +964,7 @@ namespace OpenMS
       }
       break;
 
-      case 1:           //ms2label
+      case 1: //ms2label
       {
         os << "\t\t<MS2AssayQuantLayer id=\"ms2ql_" + String(UniqueIdGenerator::getUniqueId()) + "\">\n\t\t\t<DataType>\n\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001847\" name=\"reporter ion intensity\"/>\n\t\t\t</DataType>\n\t\t\t<ColumnIndex>";
         for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
@@ -992,11 +992,11 @@ namespace OpenMS
 
       for (Size k = 0; k < cid.size(); ++k)
       {
-        switch (cmsq_->getAnalysisSummary().quant_type_)         //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
+        switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
         {
-        case 0:                 // ms1label - iterate consensusmap?
+        case 0: // ms1label - iterate consensusmap?
         {
-          os << "\t<PeptideConsensusList  finalResult=\"true\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n";                   //URGENT TODO evidenceref
+          os << "\t<PeptideConsensusList  finalResult=\"true\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO evidenceref
           for (Size i = 0; i < cid[k].size(); ++i)
           {
             os << "\t\t<PeptideConsensus id=\"" << "c_" << String(cid[k][i].front()) << "\" charge=\"" + String((*cmsq_).getConsensusMaps()[k][i].getCharge()) + "\">\n";
@@ -1054,9 +1054,9 @@ namespace OpenMS
         }
         break;
 
-        case 1:                 // ms2label
+        case 1: // ms2label
         {
-          if (!searchdb_ref.empty() && k < 2)                  // would break if there is more than one consensusmap
+          if (!searchdb_ref.empty() && k < 2) // would break if there is more than one consensusmap
           {
             String ass_refs;
             for (Size j = 0; j < cmsq_->getAssays().size(); ++j)
@@ -1064,7 +1064,7 @@ namespace OpenMS
               ass_refs += "a_" + String(cmsq_->getAssays()[j].uid_) + " ";
             }
             ass_refs.trim();
-            os << "\t<PeptideConsensusList  finalResult=\"false\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n";                     //URGENT TODO evidenceref
+            os << "\t<PeptideConsensusList  finalResult=\"false\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO evidenceref
             for (Size i = 0; i < fid.size(); ++i)
             {
               if (!cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().empty())
@@ -1092,7 +1092,7 @@ namespace OpenMS
       os << "</MzQuantML>\n";
     }
 
-    void MzQuantMLHandler::writeCVParams_(String & s, const Map<String, std::vector<CVTerm> > & cvl, UInt indent)
+    void MzQuantMLHandler::writeCVParams_(String& s, const Map<String, std::vector<CVTerm> >& cvl, UInt indent)
     {
       String inden((size_t)indent, '\t');
       for (std::map<String, std::vector<CVTerm> >::const_iterator jt = cvl.begin(); jt != cvl.end(); ++jt)
@@ -1103,7 +1103,7 @@ namespace OpenMS
           s += "<cvParam cvRef=\"" + kt->getCVIdentifierRef() + "\" accession=\"" + (*jt).first + "\" name=\"" + kt->getName();
           if (kt->hasValue())
           {
-            s += "\" value=\"" + kt->getValue().toString() + "\"/>\n";             // value is OpenMS::DataValue
+            s += "\" value=\"" + kt->getValue().toString() + "\"/>\n"; // value is OpenMS::DataValue
           }
           else
           {
@@ -1113,14 +1113,14 @@ namespace OpenMS
       }
     }
 
-    void MzQuantMLHandler::writeUserParams_(std::ostream & os, const MetaInfoInterface & meta, UInt indent)
+    void MzQuantMLHandler::writeUserParams_(std::ostream& os, const MetaInfoInterface& meta, UInt indent)
     {
       String h;
       writeUserParams_(h, meta, indent);
       os << h;
     }
 
-    void MzQuantMLHandler::writeUserParams_(String & s, const MetaInfoInterface & meta, UInt indent)
+    void MzQuantMLHandler::writeUserParams_(String& s, const MetaInfoInterface& meta, UInt indent)
     {
       if (meta.isMetaEmpty())
       {
@@ -1151,7 +1151,7 @@ namespace OpenMS
       }
     }
 
-    void MzQuantMLHandler::writeFeature_(ostream & os, const String & identifier_prefix, UInt64 identifier, UInt indentation_level)
+    void MzQuantMLHandler::writeFeature_(ostream& os, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
     {
       //~ String indent = String(indentation_level,'\t');
 
@@ -1209,5 +1209,5 @@ namespace OpenMS
       //~ os << indent << "\t\t</feature>\n";
     }
 
-  }   //namespace Internal
+  } //namespace Internal
 } // namespace OpenMS

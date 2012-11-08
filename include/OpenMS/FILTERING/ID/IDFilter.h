@@ -70,7 +70,7 @@ public:
 
     /// filters a ProteinIdentification or PeptideIdentification by only allowing peptides/proteins which reach a score above @p threshold_fraction * SignificanceThreshold
     template <class IdentificationType>
-    void filterIdentificationsByThreshold(const IdentificationType & identification, DoubleReal threshold_fraction, IdentificationType & filtered_identification)
+    void filterIdentificationsByThreshold(const IdentificationType& identification, DoubleReal threshold_fraction, IdentificationType& filtered_identification)
     {
       typedef typename IdentificationType::HitType HitType;
       std::vector<HitType> temp_hits;
@@ -104,7 +104,7 @@ public:
       @p threshold_score are removed.
     */
     template <class IdentificationType>
-    void filterIdentificationsByScore(const IdentificationType & identification, DoubleReal threshold_score, IdentificationType & filtered_identification)
+    void filterIdentificationsByScore(const IdentificationType& identification, DoubleReal threshold_score, IdentificationType& filtered_identification)
     {
       typedef typename IdentificationType::HitType HitType;
       std::vector<HitType> temp_hits;
@@ -147,7 +147,7 @@ public:
       n highestscoring hits are kept. Otherwise the n lowest scoring hits are kept.
     */
     template <class IdentificationType>
-    void filterIdentificationsByBestNHits(const IdentificationType & identification, Size n, IdentificationType & filtered_identification)
+    void filterIdentificationsByBestNHits(const IdentificationType& identification, Size n, IdentificationType& filtered_identification)
     {
       typedef typename IdentificationType::HitType HitType;
       std::vector<HitType> temp_hits;
@@ -155,7 +155,7 @@ public:
       Size count = 0;
 
       IdentificationType temp_identification = identification;
-      temp_identification.sort();           // .. by score
+      temp_identification.sort(); // .. by score
 
       filtered_identification = identification;
       filtered_identification.setHits(std::vector<HitType>());
@@ -185,7 +185,7 @@ public:
       This method is useful if a range of higher hits are used for decoy fairness analysis.
     */
     template <class IdentificationType>
-    void filterIdentificationsByBestNToMHits(const IdentificationType & identification, Size n, Size m, IdentificationType & filtered_identification)
+    void filterIdentificationsByBestNToMHits(const IdentificationType& identification, Size n, Size m, IdentificationType& filtered_identification)
     {
       if (n > m)
       {
@@ -196,15 +196,15 @@ public:
       std::vector<HitType> filtered_hits;
 
       IdentificationType temp_identification = identification;
-      temp_identification.sort();   // .. by score
+      temp_identification.sort(); // .. by score
 
       filtered_identification = identification;
       filtered_identification.setHits(std::vector<HitType>());
 
-      const std::vector<HitType> & hits = temp_identification.getHits();
+      const std::vector<HitType>& hits = temp_identification.getHits();
       for (Size i = n - 1; n <= m - 1; ++i)
       {
-        if (i >= hits.size() || i < 0)
+        if (i >= hits.size())
         {
           break;
         }
@@ -219,38 +219,38 @@ public:
     }
 
     /// filters a PeptideIdentification keeping only the best scoring hits (if strict is set, keeping only the best hit only if it is the only hit with that score)
-    void filterIdentificationsByBestHits(const PeptideIdentification & identification, PeptideIdentification & filtered_identification, bool strict = false);
+    void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
 
     /// filters a PeptideIdentification corresponding to the given proteins
     /// PeptideHits with no matching @em proteins are removed.
     /// Matching is done either based on accessions or on sequence (if no accessions are given, or @em no_protein_identifiers is set)
-    void filterIdentificationsByProteins(const PeptideIdentification & identification, const std::vector<FASTAFile::FASTAEntry> & proteins, PeptideIdentification & filtered_identification, bool no_protein_identifiers = false);
+    void filterIdentificationsByProteins(const PeptideIdentification& identification, const std::vector<FASTAFile::FASTAEntry>& proteins, PeptideIdentification& filtered_identification, bool no_protein_identifiers = false);
 
     /// filters a ProteinIdentification corresponding to the given proteins
     /// ProteinHits with no matching @em proteins are removed.
     /// Matching is done based on accessions only
-    void filterIdentificationsByProteins(const ProteinIdentification & identification, const std::vector<FASTAFile::FASTAEntry> & proteins, ProteinIdentification & filtered_identification);
+    void filterIdentificationsByProteins(const ProteinIdentification& identification, const std::vector<FASTAFile::FASTAEntry>& proteins, ProteinIdentification& filtered_identification);
 
     /// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
-    void filterIdentificationsByExclusionPeptides(const PeptideIdentification & identification, const std::set<String> & peptides, PeptideIdentification & filtered_identification);
+    void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, const std::set<String>& peptides, PeptideIdentification& filtered_identification);
 
     /// only peptides having a length equal to or greater than 'min_length' will be kept, if 'max_length' is actually greater or equal 'min_length', also only peptides having a length less or equal to 'max_length' will be kept
-    void filterIdentificationsByLength(const PeptideIdentification & identification, PeptideIdentification & filtered_identification, Size min_length, Size max_length = UINT_MAX);
+    void filterIdentificationsByLength(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, Size min_length, Size max_length = UINT_MAX);
 
     /// only peptides that have a charge equal to or greater than 'charge' will be kept
-    void filterIdentificationsByCharge(const PeptideIdentification & identification, Size charge, PeptideIdentification & filtered_identification);
+    void filterIdentificationsByCharge(const PeptideIdentification& identification, Int charge, PeptideIdentification& filtered_identification);
 
     /// only peptides having a variable modification will be kept
-    void filterIdentificationsByVariableModifications(const PeptideIdentification & identification, const std::vector<String> & fixed_modifications, PeptideIdentification & filtered_identification);
+    void filterIdentificationsByVariableModifications(const PeptideIdentification& identification, const std::vector<String>& fixed_modifications, PeptideIdentification& filtered_identification);
 
     /// only protein hits in 'identification' which are referenced by a peptide in 'peptide_identifications' are kept
-    void removeUnreferencedProteinHits(const ProteinIdentification & identification, const std::vector<PeptideIdentification> peptide_identifications, ProteinIdentification & filtered_identification);
+    void removeUnreferencedProteinHits(const ProteinIdentification& identification, const std::vector<PeptideIdentification> peptide_identifications, ProteinIdentification& filtered_identification);
 
     /// if a peptide hit occurs more than once, only one instance is kept
-    void filterIdentificationsUnique(const PeptideIdentification & identification, PeptideIdentification & filtered_identification);
+    void filterIdentificationsUnique(const PeptideIdentification& identification, PeptideIdentification& filtered_identification);
 
     /// filter identifications by deviation to the theoretical mass
-    void filterIdentificationsByMzError(const PeptideIdentification & identification, DoubleReal mass_error, bool unit_ppm, PeptideIdentification & filtered_identification);
+    void filterIdentificationsByMzError(const PeptideIdentification& identification, DoubleReal mass_error, bool unit_ppm, PeptideIdentification& filtered_identification);
 
     /**
           @brief Filters the peptide hits according to their predicted rt p-values
@@ -259,7 +259,7 @@ public:
           probability (p-value) of a correct ProteinIdentification having a deviation between
           observed and predicted rt equal or bigger than allowed.
       */
-    void filterIdentificationsByRTPValues(const PeptideIdentification & identification, PeptideIdentification & filtered_identification, DoubleReal p_value = 0.05);
+    void filterIdentificationsByRTPValues(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, DoubleReal p_value = 0.05);
 
     /**
           @brief Filters the peptide hits according to their predicted rt p-values of the first dimension
@@ -268,13 +268,13 @@ public:
           probability (p-value) of a correct ProteinIdentification having a deviation between
           observed and predicted rt equal or bigger than allowed.
       */
-    void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification & identification,
-                                                  PeptideIdentification & filtered_identification,
+    void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& identification,
+                                                  PeptideIdentification& filtered_identification,
                                                   DoubleReal                                      p_value = 0.05);
 
     /// filters an MS/MS experiment corresponding to the threshold_fractions
     template <class PeakT>
-    void filterIdentificationsByThresholds(MSExperiment<PeakT> & experiment, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction)
+    void filterIdentificationsByThresholds(MSExperiment<PeakT>& experiment, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction)
     {
       //filter protein hits
       ProteinIdentification temp_protein_identification;
@@ -311,7 +311,7 @@ public:
 
     /// filters an MS/MS experiment corresponding to the threshold_fractions
     template <class PeakT>
-    void filterIdentificationsByScores(MSExperiment<PeakT> & experiment, DoubleReal peptide_threshold_score, DoubleReal protein_threshold_score)
+    void filterIdentificationsByScores(MSExperiment<PeakT>& experiment, DoubleReal peptide_threshold_score, DoubleReal protein_threshold_score)
     {
       //filter protein hits
       ProteinIdentification temp_protein_identification;
@@ -348,7 +348,7 @@ public:
 
     /// filters an MS/MS experiment corresponding to the best n hits for every spectrum
     template <class PeakT>
-    void filterIdentificationsByBestNHits(MSExperiment<PeakT> & experiment, Size n)
+    void filterIdentificationsByBestNHits(MSExperiment<PeakT>& experiment, Size n)
     {
       //filter protein hits
       ProteinIdentification temp_protein_identification;
@@ -385,8 +385,8 @@ public:
 
     /// filters an MS/MS experiment corresponding to the given proteins
     template <class PeakT>
-    void filterIdentificationsByProteins(MSExperiment<PeakT> & experiment,
-                                         const std::vector<FASTAFile::FASTAEntry> & proteins)
+    void filterIdentificationsByProteins(MSExperiment<PeakT>& experiment,
+                                         const std::vector<FASTAFile::FASTAEntry>& proteins)
     {
       std::vector<PeptideIdentification> temp_identifications;
       std::vector<PeptideIdentification> filtered_identifications;

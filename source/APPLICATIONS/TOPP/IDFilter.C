@@ -227,7 +227,7 @@ protected:
 
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -263,14 +263,14 @@ protected:
     Int best_n_protein_hits = getIntOption_("best:n_protein_hits");
 
     Int best_n_to_m_peptide_hits_n = 0;
-    Int best_n_to_m_peptide_hits_m = numeric_limits<Size>::max();
+    Int best_n_to_m_peptide_hits_m = numeric_limits<Int>::max();
 
     //convert bounds to numbers
     try
     {
       parseRange_(getStringOption_("best:n_to_m_peptide_hits"), best_n_to_m_peptide_hits_n, best_n_to_m_peptide_hits_m);
     }
-    catch (Exception::ConversionError &)
+    catch (Exception::ConversionError&)
     {
       writeLog_("Invalid boundary '" + getStringOption_("best:n_to_m_peptide_hits") + "' given. Aborting!");
       printUsage_();
@@ -463,7 +463,7 @@ protected:
         filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification);
       }
 
-      if (best_n_to_m_peptide_hits_m != numeric_limits<Size>::max() || best_n_to_m_peptide_hits_n != 0)
+      if (best_n_to_m_peptide_hits_m != numeric_limits<Int>::max() || best_n_to_m_peptide_hits_n != 0)
       {
         applied_filters.insert("Filtering by best n to m peptide hits ...\n");
         PeptideIdentification temp_identification = filtered_identification;
@@ -613,7 +613,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDFilter tool;
 
