@@ -381,7 +381,7 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem_ul, const 
   SVMData problem_2;
 	cv_quality = svm.performCrossValidation(problem, problem_2, false, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
 	TEST_NOT_EQUAL(parameters.size(), 0)
-  TEST_EQUAL(cv_quality, 1)
+  TEST_REAL_SIMILAR(cv_quality, 1)
 }
   // CV, method 2
     
