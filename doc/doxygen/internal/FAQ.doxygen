@@ -523,6 +523,18 @@ svn propset svn:eol-style native MyClass.C
 	<H2 style="border-top:2px solid grey;">Releases</H2>
 		<UL>
 
+			<LI><B>What has the release manager to do for a release?</B>
+			<OL>
+				<LI> Create release branch and add it to CDASH
+				<LI> Distribute tasks among developers:
+					<UL> Fix automatic tests
+					<UL> Fix release critical bugs
+					<UL> Fix compile warnings
+					<UL> Fix checker violations
+					<UL> Fix code analysis (e.g. cpplint, cppcheck) violations
+				<LI> Update the list of active maintainers in tools/ACTIVE_MAINTAINERS
+				<LI> Organise packaging
+			</OL>
 			<LI><B>What has each developer to do for a release?</B>
 				<p>
 				Each maintainer must check his/her classes and TOPP tools.
