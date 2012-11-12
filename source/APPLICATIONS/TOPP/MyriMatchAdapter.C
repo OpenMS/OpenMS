@@ -114,7 +114,7 @@ protected:
     Int myrimatch_minor;
     Int myrimatch_patch;
 
-    bool operator<(const MyriMatchVersion & v) const
+    bool operator<(const MyriMatchVersion& v) const
     {
       if (myrimatch_major > v.myrimatch_major) return false;
       else if (myrimatch_major < v.myrimatch_major) return true;
@@ -131,7 +131,7 @@ protected:
 
   };
 
-  bool getVersion_(const String & version, MyriMatchVersion & myrimatch_version_i) const
+  bool getVersion_(const String& version, MyriMatchVersion& myrimatch_version_i) const
   {
     // we expect three components
     IntList nums = IntList::create(StringList::create(version, '.'));
@@ -144,7 +144,7 @@ protected:
   }
 
   /// returns false on failure
-  void translateModifications(StringList & static_mod_list, StringList & variable_mod_list)
+  void translateModifications(StringList& static_mod_list, StringList& variable_mod_list)
   {
     // translating UNIMOD notation to MyriMatch notation of PTMs.
     ModificationDefinitionsSet mod_set(getStringList_("fixed_modifications"), getStringList_("variable_modifications"));
@@ -226,9 +226,9 @@ protected:
     registerStringOption_("fragment_mass_tolerance_unit", "<unit>", "Da", "Unit to be used for fragment mass tolerance.", false);
     setValidStrings_("fragment_mass_tolerance_unit", StringList::create("Da,ppm"));
 
-    registerInputFile_("database", "<fasta-file>", "",
-                       "NCBI formatted FASTA files. Only the .FASTA filename should be given.",
-                       true, false);
+    registerInputFile_("database", "<fasta-file>", "", "FASTA protein database.", true, false);
+    setValidFormats_("database", StringList::create("FASTA"));
+
     registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor ion charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 3, "Maximum precursor ion charge", false);
     vector<String> all_mods;
@@ -265,25 +265,25 @@ protected:
     all_rules.push_back("NoEnzyme");
     setValidStrings_("CleavageRules", all_rules);
 
-    registerIntOption_("MinTerminiCleavages", "<num>", 2, "By default, when generating peptides from the protein database, a peptide must start and end at a valid cleavage site. Setting this parameter to 0 or 1 will reduce that requirement, so that neither terminus or only one terminus of the peptide must match one of the cleavage rules specified in the CleavageRules parameter. This parameter is useful to turn a tryptic digest into a semi-tryptic digest.", false);   // TODO: Description copied from MM doc
-    registerIntOption_("MaxMissedCleavages", "<num>", -1, "By default, when generating peptides from the protein database, a peptide may contain any number of missed cleavages. A missed cleavage is a site within the peptide that matches one of the cleavage rules (refer to CleavageRules). Settings this parameter to some other number will stop generating peptides from a sequence if it contains more than the specified number of missed cleavages.", false);   // TODO: Description copied from MM doc
+    registerIntOption_("MinTerminiCleavages", "<num>", 2, "By default, when generating peptides from the protein database, a peptide must start and end at a valid cleavage site. Setting this parameter to 0 or 1 will reduce that requirement, so that neither terminus or only one terminus of the peptide must match one of the cleavage rules specified in the CleavageRules parameter. This parameter is useful to turn a tryptic digest into a semi-tryptic digest.", false); // TODO: Description copied from MM doc
+    registerIntOption_("MaxMissedCleavages", "<num>", -1, "By default, when generating peptides from the protein database, a peptide may contain any number of missed cleavages. A missed cleavage is a site within the peptide that matches one of the cleavage rules (refer to CleavageRules). Settings this parameter to some other number will stop generating peptides from a sequence if it contains more than the specified number of missed cleavages.", false); // TODO: Description copied from MM doc
 
     // advanced options
-    registerDoubleOption_("MinPeptideMass", "<mass>", 0.0, "When preprocessing the experimental spectra, any spectrum with a precursor mass that is less than the specified mass will be disqualified.", false, true);   // Description copied from MM doc
-    registerDoubleOption_("MaxPeptideMass", "<mass>", 10000.0, "When preprocessing the experimental spectra, any spectrum with a precursor mass that exceeds the specified mass will be disqualified.", false, true);   // Description copied from MM doc
-    registerIntOption_("MinPeptideLength", "<length>", 5, "When digesting proteins, any peptide which does not meet or exceed the specified length will be disqualified.", false, true);   // TODO: Description copied from MM doc
-    registerIntOption_("MaxPeptideLength", "<length>", 75, "When digesting proteins, any peptide which exceeds this specified length will be disqualified.", false, true);   // TODO: Description copied from MM doc
-    registerFlag_("UseSmartPlusThreeModel", "When this parameter is set, then for each peptide bond, an internal calculation is done to estimate the basicity of the b and y fragment sequence. The precursors protons are distributed to those ions based on that calculation, with the more basic sequence generally getting more of the protons..", true);  // Description copied from MM doc
-    registerIntOption_("ProteinSampleSize", "<size>", 100, "Before beginning sequence candidate generation and scoring, MyriMatch will do a random sampling of the protein database to get an estimate of the number of comparisons that will be done by the job.", false, true);   // Description copied from MM doc
-    registerIntOption_("NumIntensityClasses", "<num>", 3, "Before scoring any candidates, experimental spectra have their peaks stratified into the number of intensity classes specified by this parameter.", false, true);   // Description copied from MM doc
-    registerDoubleOption_("ClassSizeMultiplier", "<factor>", 2.0, "When stratifying peaks into a specified, fixed number of intensity classes, this parameter controls the size of each class relative to the class above it (where the peaks are more intense). ", false, true);   // Description copied from MM doc
+    registerDoubleOption_("MinPeptideMass", "<mass>", 0.0, "When preprocessing the experimental spectra, any spectrum with a precursor mass that is less than the specified mass will be disqualified.", false, true); // Description copied from MM doc
+    registerDoubleOption_("MaxPeptideMass", "<mass>", 10000.0, "When preprocessing the experimental spectra, any spectrum with a precursor mass that exceeds the specified mass will be disqualified.", false, true); // Description copied from MM doc
+    registerIntOption_("MinPeptideLength", "<length>", 5, "When digesting proteins, any peptide which does not meet or exceed the specified length will be disqualified.", false, true); // TODO: Description copied from MM doc
+    registerIntOption_("MaxPeptideLength", "<length>", 75, "When digesting proteins, any peptide which exceeds this specified length will be disqualified.", false, true); // TODO: Description copied from MM doc
+    registerFlag_("UseSmartPlusThreeModel", "When this parameter is set, then for each peptide bond, an internal calculation is done to estimate the basicity of the b and y fragment sequence. The precursors protons are distributed to those ions based on that calculation, with the more basic sequence generally getting more of the protons..", true); // Description copied from MM doc
+    registerIntOption_("ProteinSampleSize", "<size>", 100, "Before beginning sequence candidate generation and scoring, MyriMatch will do a random sampling of the protein database to get an estimate of the number of comparisons that will be done by the job.", false, true); // Description copied from MM doc
+    registerIntOption_("NumIntensityClasses", "<num>", 3, "Before scoring any candidates, experimental spectra have their peaks stratified into the number of intensity classes specified by this parameter.", false, true); // Description copied from MM doc
+    registerDoubleOption_("ClassSizeMultiplier", "<factor>", 2.0, "When stratifying peaks into a specified, fixed number of intensity classes, this parameter controls the size of each class relative to the class above it (where the peaks are more intense). ", false, true); // Description copied from MM doc
     registerStringOption_("MonoisotopeAdjustmentSet", "<set>", "[-1,2]", "This parameter defines a set of isotopes (0 being the instrument-called monoisotope) to try as the monoisotopic precursor m/z. To disable this technique, set the value to '0'.", false, true);
 
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
-    String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString());   // body for the tmp files
+    String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString()); // body for the tmp files
     String logfile(getStringOption_("log"));
     StringList parameters;
     String myrimatch_executable(getStringOption_("myrimatch_executable"));
@@ -298,7 +298,7 @@ protected:
 
     // we invoke myrimatch w/o arguments. that yields a return code != 0. but
     // there is no other way for version 2.1 to get the version number
-    qp.start(myrimatch_executable.toQString(), QStringList(), QIODevice::ReadOnly);   // does automatic escaping etc...
+    qp.start(myrimatch_executable.toQString(), QStringList(), QIODevice::ReadOnly); // does automatic escaping etc...
     qp.waitForFinished();
     String output(QString(qp.readAllStandardOutput()));
 
@@ -472,7 +472,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   MyriMatchAdapter tool;
   return tool.main(argc, argv);

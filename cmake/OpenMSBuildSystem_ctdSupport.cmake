@@ -15,7 +15,7 @@ set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
 # list of all tools that can generate CTDs
 set(CTD_executables ${TOPP_executables} ${UTILS_executables})
 # remove tools that do not produce CTDs
-list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo)
+list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo FuzzyDiff)
 
 set(CTD_TARGETs "")
 

@@ -115,6 +115,7 @@ protected:
     registerFlag_("precursor_error_ppm", "If this flag is used, the precursor mass tolerances are estimated in ppm instead of Da.");
 
     registerOutputFile_("fragment_out", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
+    setValidFormats_("fragment_out", StringList::create("csv"));
     registerStringList_("fragment_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file", false);
     setValidStrings_("fragment_columns", StringList::create("MassDifference"));
     registerFlag_("fragment_error_ppm", "If this flag is used, the fragment mass tolerances are estimated in ppm instead of Da.");

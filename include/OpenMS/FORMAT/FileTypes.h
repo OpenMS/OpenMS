@@ -95,6 +95,7 @@ namespace OpenMS
       HTML,               ///< any HTML format
       XML,                ///< any XML format
       ANALYSISXML,        ///< analysisXML format
+      XSD,                ///< XSD schema format
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

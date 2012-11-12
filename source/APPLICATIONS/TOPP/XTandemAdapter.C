@@ -133,6 +133,7 @@ protected:
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
     registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
+    setValidFormats_("database", StringList::create("FASTA"));
     vector<String> valid_strings;
     valid_strings.push_back("ppm");
     valid_strings.push_back("Da");
@@ -160,7 +161,7 @@ protected:
     registerFlag_("semi_cleavage", "If set, both termini must NOT follow the cutting rule. For most applications it is NOT recommended to set this flag.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     // instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
     String ini_location;
@@ -200,7 +201,7 @@ protected:
     XTandemInfile infile;
 
 
-    String unique_name = File::getUniqueName();         // body for the tmp files
+    String unique_name = File::getUniqueName(); // body for the tmp files
     String temp_directory = File::getTempDirectory();
     if (temp_directory != "")
     {
@@ -316,7 +317,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString()));         // does automatic escaping etc...
+    int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
     if (status != 0)
     {
       writeLog_("XTandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename + "\"'.\nDoes the !XTandem executable exist?");
@@ -347,7 +348,7 @@ protected:
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
     {
       UInt id = (Int)it->getMetaValue("spectrum_id");
-      id -= 1;           // native IDs were written 1-based
+      id -= 1; // native IDs were written 1-based
       if (id < exp.size())
       {
         it->setMetaValue("RT", exp[id].getRT());
@@ -393,7 +394,7 @@ protected:
     QFile(tandem_input_filename.toQString()).remove();
     if (this->debug_level_ < 2)
     {
-      QFile((temp_directory + files[0]).toQString()).remove();   // tandem_output_filename
+      QFile((temp_directory + files[0]).toQString()).remove(); // tandem_output_filename
     }
     else
     {
@@ -407,7 +408,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPXTandemAdapter tool;
 
