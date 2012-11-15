@@ -879,7 +879,7 @@ namespace OpenMS
     elution_bounds[2] = elution_bounds[0];
     elution_bounds[3] = elution_bounds[1];
 
-    for (; (exp_it->getRT() <= rt_em_end) && (exp_it != experiment.end()); ++exp_it) // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
+    for (; (exp_it != experiment.end()) && (exp_it->getRT() <= rt_em_end); ++exp_it) // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
     {
       DoubleReal intensity = (DoubleReal) exp_it->getMetaValue("distortion") * elutionmodel->getInterpolation().value(exp_it->getRT());
       // store elution profile in feature MetaValue
