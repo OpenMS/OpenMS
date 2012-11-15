@@ -52,11 +52,11 @@ namespace OpenMS
   {
     vector<DoubleReal> mz, intensity;
     DoubleReal last_mz = s.begin()->getMZ();
+    DoubleReal peak_width_cur = f.peak_width(last_mz);
 
     // Fill intensity and m/z vector for interpolation. Add zeros in the area with no data points to improve cubic spline fit
     for (MSSpectrum<>::ConstIterator mz_interpol_it = s.begin(); mz_interpol_it != s.end(); ++mz_interpol_it)
     {
-      DoubleReal peak_width_cur = f.peak_width(last_mz);
       if (mz_interpol_it->getMZ() > last_mz + peak_width_cur) // If the mz gap is rather larger, fill in zeros. These addtional Stützstellen improve interpolation where no signal (i.e. data points) is.
       {
         for (DoubleReal current_mz = last_mz + peak_width_cur; current_mz < mz_interpol_it->getMZ() - peak_width_cur; current_mz += peak_width_cur)
@@ -65,8 +65,11 @@ namespace OpenMS
           intensity.push_back(0.0);
         }
       }
-      mz.push_back(mz_interpol_it->getMZ());
-      intensity.push_back(mz_interpol_it->getIntensity());
+      if (mz_interpol_it->getMZ() > last_mz)
+			{
+ 	 	    mz.push_back(mz_interpol_it->getMZ());
+ 	 	    intensity.push_back(mz_interpol_it->getIntensity());
+			}
       last_mz = mz_interpol_it->getMZ();
     }
 
