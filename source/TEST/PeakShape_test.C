@@ -264,7 +264,6 @@ START_SECTION((void setLeftEndpoint(PeakIterator left_endpoint)))
     PeakShape::Type type = PeakShape::LORENTZ_PEAK;
 
     PeakShape::PeakIterator it1 = spec.begin()+2;
-    PeakShape::PeakIterator it2 = spec.begin()+30;
     PeakShape peakshape(height,
     mz_position,
     left_width,

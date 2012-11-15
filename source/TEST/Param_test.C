@@ -279,17 +279,17 @@ START_SECTION(([Param::ParamNode] ParamNode* findParentOf(const String &name)))
 END_SECTION
 
 START_SECTION(([Param::ParamNode] ParamEntry* findEntryRecursive(const String& name)))
-	TEST_EQUAL(pn.findEntryRecursive("A"),0)
+	TEST_EQUAL(pn.findEntryRecursive("A"),pe_nullPointer)
 	TEST_EQUAL(pn.findEntryRecursive("B"),&(pn.entries[0]))
-	TEST_EQUAL(pn.findEntryRecursive("C"),0)
+	TEST_EQUAL(pn.findEntryRecursive("C"),pe_nullPointer)
 	TEST_EQUAL(pn.findEntryRecursive("C:D"),&(pn.nodes[0].entries[0]))
 	TEST_EQUAL(pn.findEntryRecursive("C:E"),&(pn.nodes[0].entries[1]))
-	TEST_EQUAL(pn.findEntryRecursive("F"),0)
+	TEST_EQUAL(pn.findEntryRecursive("F"),pe_nullPointer)
 	TEST_EQUAL(pn.findEntryRecursive("B:G"),&(pn.nodes[1].entries[0]))
-	TEST_EQUAL(pn.findEntryRecursive("X"),0)
-	TEST_EQUAL(pn.findEntryRecursive("H:X"),0)
-	TEST_EQUAL(pn.findEntryRecursive("H:C:X"),0)
-	TEST_EQUAL(pn.findEntryRecursive("H:C:"),0)
+	TEST_EQUAL(pn.findEntryRecursive("X"),pe_nullPointer)
+	TEST_EQUAL(pn.findEntryRecursive("H:X"),pe_nullPointer)
+	TEST_EQUAL(pn.findEntryRecursive("H:C:X"),pe_nullPointer)
+	TEST_EQUAL(pn.findEntryRecursive("H:C:"),pe_nullPointer)
 END_SECTION
 
 //Dummy Tree:

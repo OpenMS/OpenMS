@@ -46,9 +46,9 @@ namespace OpenMS
   /**
     @brief WindowMower augments the highest peaks in a sliding window
 
-        @htmlinclude OpenMS_WindowMower.parameters
+    @htmlinclude OpenMS_WindowMower.parameters
 
-        @ingroup SpectraPreprocessers
+    @ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI WindowMower :
     public DefaultParamHandler
@@ -63,16 +63,15 @@ public:
     virtual ~WindowMower();
 
     /// copy constructor
-    WindowMower(const WindowMower & source);
+    WindowMower(const WindowMower& source);
     /// assignment operator
-    WindowMower & operator=(const WindowMower & source);
+    WindowMower& operator=(const WindowMower& source);
     // @}
 
     ///
     template <typename SpectrumType>
-    void filterSpectrum(SpectrumType & spectrum)
+    void filterSpectrum(SpectrumType& spectrum)
     {
-      typedef typename SpectrumType::Iterator Iterator;
       typedef typename SpectrumType::ConstIterator ConstIterator;
 
       windowsize_ = (DoubleReal)param_.getValue("windowsize");
@@ -123,9 +122,9 @@ public:
       }
     }
 
-    void filterPeakSpectrum(PeakSpectrum & spectrum);
+    void filterPeakSpectrum(PeakSpectrum& spectrum);
 
-    void filterPeakMap(PeakMap & exp);
+    void filterPeakMap(PeakMap& exp);
 
     //TODO reimplement DefaultParamHandler::updateMembers_()
 
