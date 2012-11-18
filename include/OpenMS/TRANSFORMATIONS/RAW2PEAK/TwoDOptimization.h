@@ -809,8 +809,6 @@ protected:
                                                   InputSpectrumIterator& last,
                                                   MSExperiment<OutputPeakType>& ms_exp)
   {
-    typedef typename InputSpectrumIterator::value_type InputSpectrumType;
-
     Int counter = 0;
     TwoDOptimization::Data d;
     d.picked_peaks = ms_exp;

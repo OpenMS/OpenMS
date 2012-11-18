@@ -75,15 +75,20 @@ START_TEST( LinearInterpolation, "$Id$" )
 START_SECTION([EXTRA] typedefs )
 {
 	typedef LinearInterpolation < float, double > LIFD;
-	LIFD::ValueType     * value;
-	LIFD::KeyType       * key;
-	LIFD::ContainerType * container;
-	LIFD::ContainerType::value_type * containerValue;
-	value = 0;
-	key = 0;
-	container = 0;
-	containerValue = 0;
-	NOT_TESTABLE;
+	LIFD::ValueType     * value = new LIFD::ValueType();
+	LIFD::KeyType       * key = new LIFD::KeyType();
+	LIFD::ContainerType * container = new LIFD::ContainerType();
+	LIFD::ContainerType::value_type * containerValue = new LIFD::ContainerType::value_type();
+
+	LIFD::ValueType     * nullValue = 0;
+	LIFD::KeyType       * nullKey = 0;
+	LIFD::ContainerType * nullContainer = 0;
+	LIFD::ContainerType::value_type * nullContainerValue = 0;
+
+  TEST_NOT_EQUAL(value, nullValue)
+  TEST_NOT_EQUAL(key, nullKey)
+  TEST_NOT_EQUAL(container, nullContainer)
+  TEST_NOT_EQUAL(containerValue, nullContainerValue)
 }
 END_SECTION
 

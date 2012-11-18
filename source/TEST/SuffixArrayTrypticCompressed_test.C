@@ -374,12 +374,12 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	}
 	for (Size i = 0; i < res_with_tags_exp.size();++i)
 	{
-		bool was_found = false;
+//		bool was_found = false;
 		for (Size j = 0; j < res_with_tags.size();++j)
 		{
 			if (res_with_tags_exp.at(i)==res_with_tags.at(j))
 			{
-				was_found=true;
+//				was_found=true;
 				break;
 			}
 		}
