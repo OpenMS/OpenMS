@@ -129,6 +129,12 @@ namespace OpenMS
     watcher_(0),
     watcher_msgbox_(false)
   {
+#if  defined(__APPLE__)
+    // we do not want to load plugins as this leeds to serious problems
+    // when shipping on mac os x
+    QApplication::setLibraryPaths(QStringList());
+#endif
+    
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
 
