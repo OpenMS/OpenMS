@@ -184,6 +184,7 @@ protected:
     typedef MSExperiment<Peak1D> MapType;
 
     MapType out_exp;
+    std::vector< OpenMS::MSChromatogram<> > chromatograms;
     TraMLFile traml;
     OpenMS::TargetedExperiment targeted_exp;
 
@@ -200,20 +201,7 @@ protected:
       MapType exp;
       MzMLFile f;
       // Logging and output to the console
-      IF_MASTERTHREAD f.setLogType(log_type_); 
-
-
-#ifdef _OPENMP
-#pragma omp critical (OpenSwathChromatogramExtractor)
-#endif
-      {
-        cout << "Doing file " << file_list[i]
-#ifdef _OPENMP
-            << " (" << i << " out of " << file_list.size() / omp_get_num_threads() << " -- total for all threads: " << file_list.size() << ")" << endl;
-#else
-            << " (" << i << " out of " << file_list.size() << ")" << endl;
-#endif
-      }
+      // IF_MASTERTHREAD f.setLogType(log_type_); 
 
       // Find the transitions to extract and extract them
       MapType tmp_out;
@@ -230,9 +218,10 @@ protected:
       }
 
 #ifdef _OPENMP
-#pragma omp critical (OpenSwathChromatogramExtractor)
+#pragma omp critical (OpenSwathChromatogramExtractor_metadata)
 #endif
       // after loading the first file, copy the meta data from that experiment
+      // this may happen *after* chromatograms were already added to the output.
       if (i == 0) 
       {
         out_exp = exp;
@@ -249,13 +238,11 @@ protected:
 
         // adding the chromatogram to the output needs to be atomic
 #ifdef _OPENMP
-#pragma omp critical (OpenSwathChromatogramExtractor)
+#pragma omp critical (OpenSwathChromatogramExtractor_insert)
 #endif
         {
-          for (Size k = 0; k < tmp_out.getChromatograms().size(); k++)
-          {
-            out_exp.addChromatogram(tmp_out.getChromatograms()[k]);
-          }
+          chromatograms.reserve(chromatograms.size() + distance(tmp_out.getChromatograms().begin(),tmp_out.getChromatograms().end()));
+          chromatograms.insert(chromatograms.end(), tmp_out.getChromatograms().begin(), tmp_out.getChromatograms().end());
         }
 
       } // end of do_continue
@@ -264,11 +251,11 @@ protected:
     // TODO check that no chromatogram IDs occur multiple times !
     
     // store the output
-    MzMLFile f;
-    f.setLogType(log_type_); 
+    out_exp.setChromatograms(chromatograms);
+    MzMLFile mzf;
+    mzf.setLogType(log_type_); 
     addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::SMOOTHING));
-    //addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::DATA_PROCESSING));
-    f.store(out, out_exp);
+    mzf.store(out, out_exp);
 
     return EXECUTION_OK;
   }
