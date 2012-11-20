@@ -16801,7 +16801,7 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
          </umod:delta>
          <umod:alt_name>amino_sulfate</umod:alt_name>
       </umod:mod>
-      <umod:mod title="RNPXlink1" full_name="C4H8O2S2 Cysteine Adduct" username_of_poster="Timo"
+      <umod:mod title="RNPXlink1" full_name="Cysteine Adduct" username_of_poster="Timo"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
                 date_time_modified="2008-02-15 05:20:02"
@@ -16809,11 +16809,11 @@ Biochemistry. 1999 Jul 20;38(29):9389-96.</umod:text>
 		record_id="99991">
          <umod:specificity hidden="0" site="C" position="Anywhere" classification="Post-translational"
 		 spec_group="1"/>
-         <umod:delta mono_mass="151.99657" avge_mass="152.23832" composition="H(8) C(4) O(2) S(2)">
-            <umod:element symbol="H" number="8"/>
-            <umod:element symbol="C" number="4"/>
-            <umod:element symbol="O" number="2"/>
-            <umod:element symbol="S" number="2"/>
+         <umod:delta mono_mass="151.99436" avge_mass="152.043276" composition="H(2) C(1) O(6) N(3)">
+            <umod:element symbol="H" number="2"/>
+            <umod:element symbol="C" number="1"/>
+            <umod:element symbol="O" number="6"/>
+            <umod:element symbol="N" number="3"/>
          </umod:delta>
       </umod:mod>	  
       <umod:mod title="RNPXlink2" full_name="U-H20 loss of C5H9O7P" username_of_poster="Timo"
