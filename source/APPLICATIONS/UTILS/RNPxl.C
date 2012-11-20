@@ -157,7 +157,9 @@ struct ModificationMassesResult
 
 ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Size max_length = 4)
 {
-  const EmpiricalFormula cysteine_adduct_formula("C4H8O2S2"); // 152 modification
+  // 152 modification
+  const String cysteine_adduct_string("C1H2N3O6");
+  const EmpiricalFormula cysteine_adduct_formula(cysteine_adduct_string); // 152 modification
 
   ModificationMassesResult result;
 // read nucleotides and empirical formula of monophosphat version
@@ -440,8 +442,8 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   if (cysteine_adduct)
   {
     result.mod_masses[cysteine_adduct_formula.getString()] = cysteine_adduct_formula.getMonoWeight();
-    result.mod_combinations[cysteine_adduct_formula.getString()] = "C4H8O2S2";
-  }
+    result.mod_combinations[cysteine_adduct_formula.getString()] = cysteine_adduct_string;
+ }
 
   DoubleReal pseudo_rt = 1;
   for (Map<String, DoubleReal>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
@@ -492,7 +494,7 @@ protected:
     registerDoubleOption_("peptide_mass_threshold", "<threshold>", 600, "Lower peptide mass (Da) threshold.", false);
     registerDoubleOption_("precursor_variant_mz_threshold", "<threshold>", 260, "Lower m/z (Th) threshold for precursor variant.", false);
 
-    registerFlag_("CysteineAdduct", "Use this flag if C4H8O2S2 is expected.");
+    registerFlag_("CysteineAdduct", "Use this flag if the +152 adduct is expected.");
 
 // search
     registerInputFile_("in_OMSSA_ini", "<file>", "", "Ini file for the OMSSA search engine\n");
@@ -526,8 +528,10 @@ protected:
     Normalizer normalizer;
     normalizer.filterSpectrum(spec);
 
+    // for each nucleotide with marker ions
     for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
     {
+      // for each marker ion of the current nucleotide
       for (Size i = 0; i != it->second.size(); ++i)
       {
         DoubleReal mz = it->second[i].first;
