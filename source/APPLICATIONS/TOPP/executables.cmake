@@ -51,10 +51,16 @@ MapStatistics
 MascotAdapter
 MascotAdapterOnline
 MassTraceExtractor
+MRMMapper
 MyriMatchAdapter
 NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
+OpenSwathAnalyzer
+OpenSwathChromatogramExtractor
+OpenSwathDecoyGenerator
+OpenSwathFeatureXMLToTSV
+OpenSwathRTNormalizer
 PhosphoScoring
 PILISIdentification
 PILISModelCV

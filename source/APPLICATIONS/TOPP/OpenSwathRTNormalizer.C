@@ -73,7 +73,7 @@ public:
   TOPPOpenSwathRTNormalizer() :
   TOPPBase("OpenSwathRTNormalizer",
            "This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transoform the RT space into the normalized space.  ",
-           false)
+           true)
   {
   }
 

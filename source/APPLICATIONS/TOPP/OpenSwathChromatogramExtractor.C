@@ -94,7 +94,7 @@ class TOPPOpenSwathChromatogramExtractor
 public:
 
   TOPPOpenSwathChromatogramExtractor() 
-    : TOPPBase("OpenSwathChromatogramExtractor", "Extract chromatograms (XIC) from a MS2 map file.", false)
+    : TOPPBase("OpenSwathChromatogramExtractor", "Extract chromatograms (XIC) from a MS2 map file.", true)
   {
   }
 

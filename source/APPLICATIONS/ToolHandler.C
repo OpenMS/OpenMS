@@ -99,11 +99,17 @@ namespace OpenMS
     tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", "Identification");
     tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", "Identification");
     tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", "Signal processing and preprocessing");
+    tools_map["MRMMApper"] = Internal::ToolDescription("MRMMApper", "Targeted Experiments");
     tools_map["MyriMatchAdapter"] = Internal::ToolDescription("MyriMatchAdapter", "Identification");
     tools_map["MzTabExporter"] = Internal::ToolDescription("MzTabExporter", "File Handling");
     tools_map["NoiseFilterGaussian"] = Internal::ToolDescription("NoiseFilterGaussian", "Signal processing and preprocessing");
     tools_map["NoiseFilterSGolay"] = Internal::ToolDescription("NoiseFilterSGolay", "Signal processing and preprocessing");
     tools_map["OMSSAAdapter"] = Internal::ToolDescription("OMSSAAdapter", "Identification");
+    tools_map["OpenSwathDecoyGenerator"] = Internal::ToolDescription("OpenSwathDecoyGenerator", "Targeted Experiments");
+    tools_map["OpenSwathChromatogramExtractor"] = Internal::ToolDescription("OpenSwathChromatogramExtractor", "Targeted Experiments");
+    tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", "Targeted Experiments");
+    tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", "Targeted Experiments");
+    tools_map["OpenSwathFeatureXMLToTSV"] = Internal::ToolDescription("OpenSwathFeatureXMLToTSV", "Targeted Experiments");
     tools_map["PILISIdentification"] = Internal::ToolDescription("PILISIdentification", "Identification");
     tools_map["PILISModelCV"] = Internal::ToolDescription("PILISModelCV", "ID Processing");
     tools_map["PILISModelTrainer"] = Internal::ToolDescription("PILISModelTrainer", "ID Processing");

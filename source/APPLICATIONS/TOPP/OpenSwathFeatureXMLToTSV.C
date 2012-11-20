@@ -326,7 +326,7 @@ class TOPPOpenSwathFeatureXMLToTSV
 public:
 
   TOPPOpenSwathFeatureXMLToTSV() :
-    TOPPBase("OpenSwathFeatureXMLToTSV", "Converts a featureXML to a mProphet tsv.", false)
+    TOPPBase("OpenSwathFeatureXMLToTSV", "Converts a featureXML to a mProphet tsv.", true)
   {
   }
 

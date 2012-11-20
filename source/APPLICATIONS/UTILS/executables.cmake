@@ -23,7 +23,6 @@ INIUpdater
 LabeledEval
 MassCalculator
 MRMPairFinder
-MRMMapper
 MSSimulator
 MapAlignmentEvaluation
 OpenMSInfo
@@ -43,15 +42,10 @@ if(NOT DISABLE_OPENSWATH)
     ${UTILS_executables}
     ConvertTSVToTraML
     ConvertTraMLToTSV
-    OpenSwathAnalyzer
-    OpenSwathChromatogramExtractor
     OpenSwathConfidenceScoring
-    OpenSwathDecoyGenerator
     OpenSwathDIAPreScoring
-    OpenSwathFeatureXMLToTSV
     OpenSwathmzMLFileCacher
     OpenSwathRewriteToFeatureXML
-    OpenSwathRTNormalizer
   )
 endif(NOT DISABLE_OPENSWATH)
 

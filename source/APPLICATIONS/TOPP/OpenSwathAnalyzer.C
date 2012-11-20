@@ -76,7 +76,7 @@ public:
 
   TOPPOpenSwathAnalyzer() :
   TOPPBase("OpenSwathAnalyzer",
-           "Picks peaks and finds features in an SRM experiment.", false)
+           "Picks peaks and finds features in an SRM experiment.", true)
   {
   }
 
