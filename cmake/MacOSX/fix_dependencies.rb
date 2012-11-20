@@ -313,7 +313,7 @@ end
 for content in Dir.entries(lib) 
   if not content.match(/^\./)
     if isFramework(content)
-      handleFramework(lib + content, lib)
+#      handleFramework(lib + content, lib)
     else
       handleDyLib(lib + content, lib)
     end
