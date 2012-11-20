@@ -228,6 +228,7 @@ namespace OpenMS
       ef.formula_[it->first] *= times;
     }
     ef.charge_ *= times;
+    ef.removeZeroedElements_();
     return ef;
   }
 
@@ -248,6 +249,7 @@ namespace OpenMS
       }
     }
     ef.charge_ = charge_ + formula.charge_;
+    ef.removeZeroedElements_();
     return ef;
   }
 
@@ -268,6 +270,7 @@ namespace OpenMS
       }
     }
     ef.charge_ = charge_ + charge;
+    ef.removeZeroedElements_();
     return ef;
   }
 
@@ -286,6 +289,7 @@ namespace OpenMS
       }
     }
     charge_ += formula.charge_;
+    removeZeroedElements_();
     return *this;
   }
 
@@ -306,6 +310,7 @@ namespace OpenMS
         formula_[it->first] = it->second;
       }
     }
+    removeZeroedElements_();
     return *this;
   }
 
@@ -319,14 +324,7 @@ namespace OpenMS
       SignedSize num = it->second;
       if (formula_.has(e))
       {
-        if (ef.formula_[e] - num != 0)
-        {
-          ef.formula_[e] -= num;
-        }
-        else
-        {
-          ef.formula_.erase(e);
-        }
+        ef.formula_[e] -= num;
       }
       else
       {
@@ -335,6 +333,7 @@ namespace OpenMS
     }
 
     ef.charge_ = charge_ - formula.charge_;
+    ef.removeZeroedElements_();
     return ef;
   }
 
@@ -351,14 +350,7 @@ namespace OpenMS
     {
       if (formula_.has(it->first))
       {
-        if (formula_[it->first] != it->second)
-        {
-          formula_[it->first] -= it->second;
-        }
-        else
-        {
-          formula_.erase(it->first);
-        }
+        formula_[it->first] -= it->second;
       }
       else
       {
@@ -366,6 +358,7 @@ namespace OpenMS
       }
     }
     charge_ -= formula.charge_;
+    removeZeroedElements_();
     return *this;
   }
 
@@ -379,20 +372,14 @@ namespace OpenMS
     {
       if (formula_.has(it->first))
       {
-        if (formula_[it->first] != it->second)
-        {
-          formula_[it->first] -= it->second;
-        }
-        else
-        {
-          formula_.erase(it->first);
-        }
+        formula_[it->first] -= it->second;
       }
       else
       {
         formula_[it->first] = -it->second;
       }
     }
+    removeZeroedElements_();
     return *this;
   }
 
@@ -693,7 +680,37 @@ namespace OpenMS
       }
     }
 
+    // remove elements with 0 counts
+    Map<const Element *, SignedSize>::iterator it = ef.begin();
+    while (it != ef.end())
+    {
+      if (it->second == 0)
+      {
+         ef.erase(it++);  // Note: post increment needed! Otherwise iterator is invalidated 
+      }
+      else
+      {
+         ++it;
+      }
+    }
+
     return charge;
+  }
+    
+  void EmpiricalFormula::removeZeroedElements_()
+  {
+    Map<const Element *, SignedSize>::iterator it = formula_.begin();
+    while (it != formula_.end())
+    {
+      if (it->second == 0)
+      {
+         formula_.erase(it++);  // Note: post increment needed! Otherwise iterator is invalidated 
+      }
+      else
+      {
+         ++it;
+      }
+    }
   }
 
 }

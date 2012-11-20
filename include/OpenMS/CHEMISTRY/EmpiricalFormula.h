@@ -258,6 +258,9 @@ public:
 
 protected:
 
+    /// remove elements with count 0
+    void removeZeroedElements_();
+
     Map<const Element *, SignedSize> formula_;
 
     SignedSize charge_;
