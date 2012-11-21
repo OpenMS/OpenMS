@@ -597,7 +597,17 @@ protected:
       else if (tag == "processingMethod")
       {
         DataProcessing dp;
-        dp.setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
+        // See ticket 452: Do NOT remove  this try/catch block until foreign
+        // software (e.g. ProteoWizard msconvert.exe) produces valid mzML.
+        try
+        {
+          dp.setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
+        }
+        catch (Exception::ParseError& e)
+        {
+          LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" << 
+                        "The software tool which generated this mzML should be fixed. Please notify the maintainers." << std::endl;
+        }
         processing_[current_id_].push_back(dp);
         //The order of processing methods is currently ignored
       }
