@@ -86,7 +86,7 @@ START_SECTION((RawTandemMSSignalSimulation& operator=(const RawTandemMSSignalSim
 }
 END_SECTION
 
-START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &)))
+START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &, MSSimExperiment &)))
 {
     rng.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
     gsl_rng_set(rng.biological_rng, 0);
