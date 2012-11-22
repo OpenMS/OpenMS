@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TextFile.h>
@@ -53,7 +53,7 @@ using namespace std;
 /**
     @page TOPP_FileMerger FileMerger
 
-    @brief Merges several files into an mzML file.
+    @brief Merges several files. Multiple output format supported, depending on input format.
 <CENTER>
     <table>
         <tr>
@@ -102,11 +102,12 @@ protected:
 
   void registerOptionsAndFlags_()
   {
+    StringList valid_in = StringList::create("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", StringList::create("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML"));
-    registerStringOption_("in_type", "<type>", "", "input file type (default: determined from file extension or content)\n", false);
-    setValidStrings_("in_type", StringList::create("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML"));
-    registerOutputFile_("out", "<file>", "", "output file");
+    setValidFormats_("in", valid_in);
+    registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);
+    setValidStrings_("in_type", valid_in);
+    registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", StringList::create("mzML,featureXML,consensusXML,traML"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature (MetaValue: file_origin).");
@@ -114,14 +115,12 @@ protected:
     addEmptyLine_();
     addText_("Flags for non-featureXML input/output:");
     registerFlag_("rt_auto", "Assign retention times automatically (integers starting at 1)");
-    registerDoubleList_("rt_custom", "<rt>", DoubleList(), "List of custom retention times that are assigned to the files.\n"
-                                                           "The number of given retention times must be equal to the number of given input file.", false);
+    registerDoubleList_("rt_custom", "<rt>", DoubleList(), "List of custom retention times that are assigned to the files. The number of given retention times must be equal to the number of given input file.", false);
     registerFlag_("rt_filename", "If this flag is set FileMerger tries to guess the rt of the file name.\n"
                                  "This option is useful for merging DTA file, which should contain the string\n"
                                  "'rt' directly followed by a floating point number:\n"
                                  "i.e. my_spectrum_rt2795.15.dta");
-    registerIntOption_("ms_level", "<num>", 2, "this option is useful for use with DTA files which does not \n"
-                                               "contain MS level information. The given level is assigned to the spectra.", false);
+    registerIntOption_("ms_level", "<num>", 2, "This option is useful for use with DTA files which does not contain MS level information. The given level is assigned to the spectra.", false);
     registerFlag_("user_ms_level", "If this flag is set, the MS level given above is used");
     addEmptyLine_();
     addText_("Note: Meta data about the whole experiment is taken from the first file in the list!");

@@ -153,7 +153,7 @@ namespace OpenMS
       DoubleReal file_version = attributeAsDouble_(attributes, "version");
       if (file_version > version_.toDouble())
       {
-        warning(LOAD, String("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+        warning(LOAD, String("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
       }
     }
     else if (element == "Transformation")

@@ -533,7 +533,7 @@ protected:
         }
         else if (double_version > version_.toDouble())
         {
-          warning(LOAD, "The mzML file version (" + file_version + ") is newer than the parser version (" + version_ + "). This might lead to undefinded behaviour.");
+          warning(LOAD, "The mzML file version (" + file_version + ") is newer than the parser version (" + version_ + "). This might lead to undefined behavior.");
         }
         //handle file accession
         String accession;
