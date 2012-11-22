@@ -93,7 +93,7 @@ public:
     void addScore(const String & score_name, double score);
 
     /// Adds an feature from a single chromatogram into the feature.
-    void addFeature(Feature & feature, String key);
+    void addFeature(Feature & feature, const String& key);
 
     const std::vector<Feature> & getFeatures() const;
 

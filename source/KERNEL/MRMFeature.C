@@ -99,10 +99,10 @@ namespace OpenMS
     setMetaValue(score_name, score);
   }
 
-  void MRMFeature::addFeature(Feature & feature, String key)
+  void MRMFeature::addFeature(Feature & feature, const String& key)
   {
     features_.push_back(feature);
-    feature_map_[key] = features_.size() - 1;
+    feature_map_[key] = Int(features_.size()) - 1;
   }
 
   Feature & MRMFeature::getFeature(String key) 

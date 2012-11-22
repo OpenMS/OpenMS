@@ -603,7 +603,7 @@ protected:
         {
           dp.setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
         }
-        catch (Exception::ParseError& e)
+        catch (Exception::ParseError& /*e*/)
         {
           LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" << 
                         "The software tool which generated this mzML should be fixed. Please notify the maintainers." << std::endl;
