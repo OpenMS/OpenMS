@@ -170,6 +170,11 @@
 				- zoom in and out (@a + / @a -)
 				- run the pipeline (@a F5)
 				- open this tutorial (@a F1)
+
+				@n
+				Using the mouse+keyboard, you can
+				
+				- copy a node's parameters to another node (only parameters with identical names, e.g., 'fixed_modifications', will be copied) (@a CTRL while creating an edge)
 			
 			@section TOPPAS_interface_menus Menus
 			
