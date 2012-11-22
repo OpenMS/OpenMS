@@ -1597,7 +1597,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
 END_SECTION
 
-START_SECTION((void update(const Param &old_version, const bool report_new_params=false, const bool only_update_old=false, Logger::LogStream &stream=LOG_WARN)))
+START_SECTION((void update(const Param &old_version, const bool report_new_params=false, const int keep_old_only=0, Logger::LogStream &stream=LOG_WARN)))
 	Param common;
 	common.setValue("float",1.0f,"float");	
 	common.setValue("float2",2.0f,"float2");

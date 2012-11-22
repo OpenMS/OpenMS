@@ -1218,7 +1218,7 @@ namespace OpenMS
     }
   }
 
-  void Param::update(const Param& old_version, const bool report_new_params, const bool only_update_old, Logger::LogStream& stream)
+  void Param::update(const Param& old_version, const bool report_new_params, const int keep_old_only, Logger::LogStream& stream)
   {
     // augment
     for (Param::ParamIterator it = old_version.begin(); it != old_version.end(); ++it)
@@ -1277,18 +1277,19 @@ namespace OpenMS
       }
       else
       {
-        if (!only_update_old)
+        if (keep_old_only > 0)
         {
-          stream << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! Ignoring...\n";
-        }
-        else
-        {
-          stream << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! But leaving it there..." << std::endl;
+          stream << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
           Param::ParamEntry entry = old_version.getEntry(it.getName());
           String prefix = "";
           if (it.getName().has(':'))
             prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
           this->root_.insert(entry, prefix); //->setValue(it.getName(), entry.value, entry.description, entry.tags);
+        }
+        else
+        {
+          if (keep_old_only==0) stream << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! Ignoring ...\n";
+          // be silent on '-1'
         }
       }
     }
@@ -1303,7 +1304,7 @@ namespace OpenMS
         {
           stream << "Information: New Parameter '" << it.getName() << "' not contained in old parameter file.\n";
         }
-        if (only_update_old)
+        if (keep_old_only)
         {
           this->removeAll(it.getName());
           it = this->begin(); // reset it, as it just became invalid

@@ -434,7 +434,7 @@ or a leaf, i.e. no naked nodes remain.
       @param stream The stream where all the output is send to.
 
     */
-    void update(const Param& old_version, const bool report_new_params = false, const bool only_update_old = false, Logger::LogStream& stream = LOG_WARN);
+    void update(const Param& old_version, const bool report_new_params = false, const int keep_old_only = 0, Logger::LogStream& stream = LOG_WARN);
 
     //@}
 
