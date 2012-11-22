@@ -44,6 +44,7 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASVertexNameDialog.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -241,20 +242,62 @@ namespace OpenMS
     {
       hover_edge_->setTargetVertex(target);
       TOPPASVertex* source = hover_edge_->getSourceVertex();
-      source->addOutEdge(hover_edge_);
-      target->addInEdge(hover_edge_);
-      hover_edge_->setColor(QColor(255, 165, 0));
 
-      connectEdgeSignals(hover_edge_);
-
-      TOPPASIOMappingDialog dialog(hover_edge_);
-      if (dialog.firstExec())
+      // check for parameter copy action
+      if (QApplication::keyboardModifiers() && Qt::ControlModifier)
       {
-        hover_edge_->emitChanged();
+        emit messageReady("Transferring parameters between nodes ...\n");
+        
+        TOPPASToolVertex* tv_source = qobject_cast<TOPPASToolVertex*> (source);
+        TOPPASToolVertex* tv_target = qobject_cast<TOPPASToolVertex*> (target);
+        if (!(tv_source && tv_target))
+        {
+          emit messageReady("Copying parameters is only allowed between Tool nodes! No copy was performed!\n");
+        }
+        else
+        {
+          Param from=tv_source->getParam();
+          Param to=tv_target->getParam();
+          Param to_old = to; // backup, to compare
+
+          std::stringstream ss;
+          Logger::LogStream my_log(new Logger::LogStreamBuf());
+          my_log.insert(ss);
+          to.update(from, false, -1, my_log);
+          if (to == to_old)
+          {
+            my_log << "All parameters are up to date! Nothing happened!\n";
+          }
+          else
+          { // update the target parameters
+            tv_target->setParam(to);
+            changedParameter(TOPPASToolVertex::TOOL_READY); // show *, indicating changed params
+          }
+          //ss << "test test";
+          my_log << " ---------------------------------- " << std::endl; // this will cause a flush... removing this line might cause loss(!) of log content!
+          my_log.flush(); // bug! this sometimes does not cause the content to be flushed to the stringstream; the cache seems to be inactive as well. also std::endl does not help
+          emit messageReady(String(ss.str()).toQString());
+          //std::cerr << ss.str();
+        }
+        remove_edge = true;
       }
       else
       {
-        remove_edge = true;
+        source->addOutEdge(hover_edge_);
+        target->addInEdge(hover_edge_);
+        hover_edge_->setColor(QColor(255, 165, 0));
+
+        connectEdgeSignals(hover_edge_);
+
+        TOPPASIOMappingDialog dialog(hover_edge_);
+        if (dialog.firstExec())
+        {
+          hover_edge_->emitChanged();
+        }
+        else
+        {
+          remove_edge = true;
+        }
       }
     }
     else
