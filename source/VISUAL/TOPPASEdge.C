@@ -160,6 +160,14 @@ namespace OpenMS
     {
       pen.setWidth(2);
     }
+
+    // when copying parameters (using CTRL); only for incomplete edges
+    if (QApplication::keyboardModifiers() && Qt::ControlModifier && !this->to_)
+    {
+      pen.setColor(Qt::GlobalColor::darkMagenta);
+      pen.setWidth(1);
+    }
+
     painter->setPen(pen);
 
     painter->drawLine(startPos(), endPos());
