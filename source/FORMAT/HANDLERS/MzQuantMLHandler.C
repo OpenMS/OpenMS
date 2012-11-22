@@ -616,7 +616,7 @@ namespace OpenMS
       //header
       //~ TODO CreationDate
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-      os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2 ../../schema/mzQuantML_1_0_0-rc2.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc2\"" << " version=\"1.0.0\"" << ">\n";
+      os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3\"" << " version=\"1.0.0\"" << ">\n";    //~ TODO add id
 
       //CVList
       os << "<CvList>\n";
@@ -628,29 +628,30 @@ namespace OpenMS
       //AnalysisSummary
       os << "\t<AnalysisSummary>\n";
       cmsq_->getAnalysisSummary().quant_type_;
-      os << "\t\t<userParam name=\"QuantType\" value=\"";
-      os << String(MSQuantifications::NamesOfQuantTypes[cmsq_->getAnalysisSummary().quant_type_]);
+      //~ os << "\t\t<userParam name=\"QuantType\" value=\"";
+      //~ os << String(MSQuantifications::NamesOfQuantTypes[cmsq_->getAnalysisSummary().quant_type_]);
       switch (cmsq_->getAnalysisSummary().quant_type_)
       {
       case 0:
+        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002018\" name=\"MS1 label-based analysis\"/>\n";
         os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001837\" name=\"SILAC quantitation analysis\"/>\n";
         os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002001\" name=\"MS1 label-based raw feature quantitation\" value=\"true\"/>\n";
         os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002002\" name=\"MS1 label-based peptide level quantitation\" value=\"true\"/>\n";
-        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002003\" name=\"MS1 label-based protein level quantitation\" value=\"true\"/>\n";
+        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002003\" name=\"MS1 label-based protein level quantitation\" value=\"false\"/>\n";
         os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002004\" name=\"MS1 label-based proteingroup level quantitation\" value=\"false\"/>\n";
         break;
 
       case 1:
-        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001837\" name=\"iTraq quantitation analysis\"/>\n";
-        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"\" name=\"MS2 tag-based analysis feature level quantitation\" value=\"true\"/>\n";
-        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"\" name=\"MS2 tag-based analysis group features by peptide quantitation\" value=\"false\"/>\n";
-        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"\" name=\"MS2 tag-based analysis protein level quantitation\" value=\"false\"/>\n";
-        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"\" name=\"MS2 tag-based analysis protein group level quantitation\" value=\"false\"/>\n";
+        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002023\" name=\"MS2 tag-based analysis\"/>\n";
+        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002024\" name=\"MS2 tag-based analysis feature level quantitation\" value=\"true\"/>\n";
+        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002025\" name=\"MS2 tag-based peptide level quantitation\" value=\"true\"/>\n";
+        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002026\" name=\"MS2 tag-based analysis protein level quantitation\" value=\"false\"/>\n";
+        os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002027\" name=\"MS2 tag-based analysis protein group level quantitation\" value=\"false\"/>\n";
         break;
       }
       //~ writeUserParam_(dataprocessinglist_tag, cmsq_->getAnalysisSummary().getUserParams(), UInt(2));
       //~ writeCVParams_(dataprocessinglist_tag, (cmsq_->getAnalysisSummary().getCVTerms(), UInt(2));
-      os << "\"/>\n\t</AnalysisSummary>\n";
+      os << "\n\t</AnalysisSummary>\n";
 
       //Software & DataProcessing
       String softwarelist_tag;
@@ -683,10 +684,18 @@ namespace OpenMS
         String sw_ref;
         sw_ref = "sw_" + String(UniqueIdGenerator::getUniqueId());
         softwarelist_tag += "\t\t<Software id=\"" +  sw_ref + "\" version=\"" + String(dit->getSoftware().getVersion()) + "\">\n";
-        writeCVParams_(softwarelist_tag, dit->getSoftware().getCVTerms(), UInt(3));
+        writeCVParams_(softwarelist_tag, dit->getSoftware().getCVTerms(), UInt(3)); // TODO fix up the tools with their cvparams and make them write it in the softwarelist!
         if (dit->getSoftware().getCVTerms().empty())
         {
           softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit->getSoftware().getName()) + "\"/>\n";
+        }
+        if (dit->getSoftware().getName() == "SILACAnalyzer")
+        {
+          softwarelist_tag +="\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"SILACAnalyzer\"/>\n";
+        }
+        if (dit->getSoftware().getName() == "ITRAQAnalyzer")
+        {
+          softwarelist_tag +="\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";
         }
         softwarelist_tag += "\t\t</Software>\n";
         ++order_d;
@@ -709,8 +718,6 @@ namespace OpenMS
       dataprocessinglist_tag += "\t</DataProcessingList>\n";
 
       softwarelist_tag += "\t</SoftwareList>\n";
-
-      os << softwarelist_tag << dataprocessinglist_tag;
 
       // Ratios tag
       String ratio_xml;
@@ -748,7 +755,11 @@ namespace OpenMS
           {
             ratio_xml += "\t\t\t\t<userParam name=\"" + String(*dit) + "\"/>\n";
           }
-          ratio_xml += "\t\t\t</RatioCalculation>\n\t\t</Ratio>\n";
+	  ratio_xml += "\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001848\" name=\"simple ratio of two values\"/>\n";
+          ratio_xml += "\t\t\t</RatioCalculation>\n";
+          ratio_xml += "\t\t\t<NumeratorDataType>\n\t\t\t\t<cvParam accession=\"MS:1001847\" cvRef=\"PSI-MS\" name=\"reporter ion intensity\"/>\n\t\t\t</NumeratorDataType>\n";
+          ratio_xml += "\t\t\t<DenominatorDataType>\n\t\t\t\t<cvParam accession=\"MS:1001847\" cvRef=\"PSI-MS\" name=\"reporter ion intensity\"/>\n\t\t\t</DenominatorDataType>\n";
+          ratio_xml += "\t\t</Ratio>\n";
         }
         ratio_xml += "\t</RatioList>\n";
         break;
@@ -886,14 +897,14 @@ namespace OpenMS
       inputfiles_xml += idfile_tag;
       inputfiles_xml += "\t</InputFiles>\n";
       study_xml += "\t</StudyVariableList>\n";
-      os << inputfiles_xml << assay_xml << study_xml << ratio_xml;
+      os << inputfiles_xml << softwarelist_tag << dataprocessinglist_tag << assay_xml << study_xml << ratio_xml;
 
       // Features and QuantLayers
       std::vector<UInt64> fid;
       std::vector<Real> fin, fwi /*, fqu */;
       std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
       std::vector<std::vector<Real> > f2i;
-      String feature_xml = "";
+      String /* ratio_xml,  */peptide_xml, feature_xml = "";
       feature_xml += "\t<FeatureList id=\"featurelist1\" rawFilesGroup_ref=\"rfg_" + glob_rfgr + "\">\n"; //TODO make registerExperiment also register the consensusmaps (and featuremaps) - keep the grouping with ids
       for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
       {
@@ -941,97 +952,94 @@ namespace OpenMS
         }
         cid.push_back(cmid);
       }
-      os << feature_xml;
 
       switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
       {
       case 0: //ms1label
       {
-        os << "\t\t<FeatureQuantLayer id=\"" << "q_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n\t\t\t<ColumnDefinition>\n";
+        feature_xml += String("\t\t<FeatureQuantLayer id=\"") + String("q_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n\t\t\t<ColumnDefinition>\n");
         //what featurehandle is capable of reporting
-        os << "\t\t\t\t<Column index=\"0\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001141\" name=\"intensity of precursor ion\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>";
-        os << "\t\t\t\t<Column index=\"1\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"TODO\" name=\"width\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>";
+        feature_xml += String("\t\t\t\t<Column index=\"0\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001141\" name=\"intensity of precursor ion\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>");
+        feature_xml += String("\t\t\t\t<Column index=\"1\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1000086\" name=\"full width at half-maximum\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>"); // TODO make FWHM CV also quantification datatype
         //~ os << "\t\t\t\t<Column index=\"0\">\n\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"TODO\" name=\"quality\"/>\n\t\t\t\t\t</DataType>\n\t\t\t\t</Column>"; // getQuality erst ab BaseFeature - nicht in FeatureHandle
-        os << "</ColumnDefinition>\t\t\t\t\n<DataMatrix>\n";
+        feature_xml += String("\n\t\t\t</ColumnDefinition>\n\t\t\t\t<DataMatrix>\n");
         for (Size i = 0; i < fid.size(); ++i)
         {
-          os << "\t\t\t\t\t<Row object_ref=\"f_" << String(fid[i]) << "\">";
-          os << fin[i] << " " << fwi[i] /* << " " << fiq[i] */;
-          os << "</Row>\n";
+          feature_xml += String("\t\t\t\t\t<Row object_ref=\"f_") + String(fid[i]) + String("\">");
+          feature_xml += String(fin[i]) + String(" ") + String(fwi[i]) /* + " " << fiq[i] */;
+          feature_xml += String("</Row>\n");
         }
-        os << "\t\t\t</DataMatrix>\n";
-        os << "\t\t</FeatureQuantLayer>\n";
+        feature_xml += String("\t\t\t</DataMatrix>\n");
+        feature_xml += String("\t\t</FeatureQuantLayer>\n");
       }
       break;
 
       case 1: //ms2label
       {
-        os << "\t\t<MS2AssayQuantLayer id=\"ms2ql_" + String(UniqueIdGenerator::getUniqueId()) + "\">\n\t\t\t<DataType>\n\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001847\" name=\"reporter ion intensity\"/>\n\t\t\t</DataType>\n\t\t\t<ColumnIndex>";
+        feature_xml += String("\t\t<MS2AssayQuantLayer id=\"ms2ql_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n\t\t\t<DataType>\n\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001847\" name=\"reporter ion intensity\"/>\n\t\t\t</DataType>\n\t\t\t<ColumnIndex>");
         for (std::vector<MSQuantifications::Assay>::const_iterator ait = cmsq_->getAssays().begin(); ait != cmsq_->getAssays().end(); ++ait)
         {
-          os << "a_" << String(ait->uid_) << " ";
+          feature_xml += String("a_") + String(ait->uid_) + String(" ");
         }
-        os <<  "</ColumnIndex>\n\t\t\t<DataMatrix>\n";
+        feature_xml += String("</ColumnIndex>\n\t\t\t<DataMatrix>\n");
         for (Size i = 0; i < fid.size(); ++i)
         {
-          os << "\t\t\t\t\t<Row object_ref=\"f_" + String(fid[i]) + "\">";
+          feature_xml += String("\t\t\t\t\t<Row object_ref=\"f_") + String(fid[i]) + String("\">");
           for (Size j = 0; j < f2i[i].size(); ++j)
           {
-            os << String(f2i[i][j]) << " ";
+            feature_xml += String(f2i[i][j]) + " ";
           }
-          os << "</Row>\n";
+          feature_xml += String("</Row>\n");
         }
-        os << "\t\t\t</DataMatrix>\n\t\t</MS2AssayQuantLayer>\n";
+        feature_xml += String("\t\t\t</DataMatrix>\n\t\t</MS2AssayQuantLayer>\n");
       }
       break;
       }
-
-      os << "\t</FeatureList>\n";
+      feature_xml += String("\t</FeatureList>\n");
 
       // Peptides
-
       for (Size k = 0; k < cid.size(); ++k)
       {
         switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
         {
         case 0: // ms1label - iterate consensusmap?
         {
-          os << "\t<PeptideConsensusList  finalResult=\"true\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO evidenceref
+          peptide_xml += String("\t<PeptideConsensusList  finalResult=\"true\" id=\"") + String("m_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n");                   //URGENT TODO evidenceref
           for (Size i = 0; i < cid[k].size(); ++i)
           {
-            os << "\t\t<PeptideConsensus id=\"" << "c_" << String(cid[k][i].front()) << "\" charge=\"" + String((*cmsq_).getConsensusMaps()[k][i].getCharge()) + "\">\n";
+            peptide_xml += String("\t\t<PeptideConsensus id=\"") + String("c_") + String(cid[k][i].front()) + String("\" charge=\"") + String((*cmsq_).getConsensusMaps()[k][i].getCharge()) + String("\">\n");
             for (Size j = 1; j < cid[k][i].size(); ++j)
             {
-              os << "\t\t\t<EvidenceRef feature_ref=\"f_" << String(cid[k][i][j]) << "\" assay_refs=\"a_" << String(cmsq_->getAssays()[(j - 1)].uid_) << "\"/>\n";
+              peptide_xml += String("\t\t\t<EvidenceRef feature_ref=\"f_") + String(cid[k][i][j]) + String("\" assay_refs=\"a_") + String(cmsq_->getAssays()[(j - 1)].uid_) + String("\"/>\n");
             }
             if (!(*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().empty())
             {
-              //~ os << "\t\t\t<IdentificationRef id_refs=\"";
-              //~ os << (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" feature_refs=\"";
+              //~ peptide_xml += "\t\t\t<IdentificationRef id_refs=\"";
+              //~ peptide_xml += (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() + "\" feature_refs=\"";
               //~ for (Size j=1; j < cid[k][i].size(); ++j)
               //~ {
-              //~ os << "f_" << cid[k][i][j]<< " ";
+              //~ peptide_xml += "f_" + cid[k][i][j]+ " ";
               //~ }
-              //~ os << (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" identificationFile_ref=\"";
-              //~ os << idid_to_idfilenames.begin()->first  << "\"/>\n";
+              //~ peptide_xml += (*cmsq_).getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() + "\" identificationFile_ref=\"";
+              //~ peptide_xml += idid_to_idfilenames.begin()->first  + "\"/>\n";
             }
-            os << "\t\t</PeptideConsensus>\n";
+            peptide_xml += String("\t\t</PeptideConsensus>\n");
           }
 
           // QuantLayers
-          os << "\t\t<RatioQuantLayer id=\"" << "q_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n";
-          os << "\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>\n\t\t\t\t\t</DataType>\n";
-          os << "\t\t\t\t<ColumnIndex>";
+          peptide_xml += String("\t\t<RatioQuantLayer id=\"q_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n");
+          peptide_xml += String("\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>\n\t\t\t\t\t</DataType>\n");
+          peptide_xml += String("\t\t\t\t<ColumnIndex>");
           for (std::map<String, String>::const_iterator rit = numden_r_ids_.begin(); rit != numden_r_ids_.end(); ++rit)
           {
-            os << "r_" << String(rit->second) << " ";
+            peptide_xml += String("r_") + String(rit->second) + String(" ");
           }
-          os << "</ColumnIndex>\n\t\t\t\t<DataMatrix>\n";
+          peptide_xml += String("</ColumnIndex>\n\t\t\t\t<DataMatrix>\n");
 
           //~ collect ratios
           for (Size i = 0; i < cid[k].size(); ++i)
           {
-            os << "\t\t\t\t<Row object_ref=\"c_" << String(cid[k][i].front()) << "\">";
+            peptide_xml += String("\t\t\t\t<Row object_ref=\"c_") + String(cid[k][i].front()) + String("\">");
 
             std::map<String, String> r_values;
             std::vector<ConsensusFeature::Ratio> temp_ratios = cmsq_->getConsensusMaps()[k][i].getRatios();
@@ -1046,11 +1054,11 @@ namespace OpenMS
             {
               dis.push_back(sit->second);
             }
-            os << StringList(dis).concatenate(" ").trim() << "</Row>\n";
+            peptide_xml += StringList(dis).concatenate(" ").trim() + String("</Row>\n");
           }
-          os << "\t\t\t\t</DataMatrix>\n";
-          os << "\t\t</RatioQuantLayer>\n";
-          os << "\t</PeptideConsensusList>\n";
+          peptide_xml += String("\t\t\t\t</DataMatrix>\n");
+          peptide_xml += String("\t\t</RatioQuantLayer>\n");
+          peptide_xml += String("\t</PeptideConsensusList>\n");
         }
         break;
 
@@ -1061,22 +1069,22 @@ namespace OpenMS
             String ass_refs;
             for (Size j = 0; j < cmsq_->getAssays().size(); ++j)
             {
-              ass_refs += "a_" + String(cmsq_->getAssays()[j].uid_) + " ";
+              ass_refs += String("a_") + String(cmsq_->getAssays()[j].uid_) + String(" ");
             }
             ass_refs.trim();
-            os << "\t<PeptideConsensusList  finalResult=\"false\" id=\"" << "m_" << String(UniqueIdGenerator::getUniqueId()) << "\">\n"; //URGENT TODO evidenceref
+            peptide_xml += String("\t<PeptideConsensusList  finalResult=\"false\" id=\"m_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n");                     //URGENT TODO evidenceref
             for (Size i = 0; i < fid.size(); ++i)
             {
               if (!cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().empty())
               {
-                os << "\t\t<PeptideConsensus id=\"" << "c_" << String(UniqueIdGenerator::getUniqueId()) << "\" charge=\"" << String(cmsq_->getConsensusMaps()[k][i].getCharge()) << "\" searchDatabase_ref=\"" << searchdb_ref << "\">\n";
-                os << "\t\t\t<PeptideSequence>" << cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().front().getHits().front().getSequence().toUnmodifiedString() << "</PeptideSequence>\n";
-                os << "\t\t\t<EvidenceRef feature_ref=\"f_" << String(fid[i]) << "\" assay_refs=\"" << ass_refs << "\" id_refs=\"" << cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() << "\" identificationFile_ref=\"" << idfile_ref << "\"/>\n";
-                os << "\t\t</PeptideConsensus>\n";
+                peptide_xml += String("\t\t<PeptideConsensus id=\"c_") + String(UniqueIdGenerator::getUniqueId()) + String("\" charge=\"") + String(cmsq_->getConsensusMaps()[k][i].getCharge()) + String("\" searchDatabase_ref=\"") + searchdb_ref + String("\">\n");
+                peptide_xml += String("\t\t\t<PeptideSequence>") + cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().front().getHits().front().getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
+                peptide_xml += String("\t\t\t<EvidenceRef feature_ref=\"f_") + String(fid[i]) + String("\" assay_refs=\"") + ass_refs + String("\" id_refs=\"") + cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() + String("\" identificationFile_ref=\"") + idfile_ref + String("\"/>\n");
+                peptide_xml += String("\t\t</PeptideConsensus>\n");
               }
               //~ TODO ratios, when available (not yet for the iTRAQ tuples of iTRAQAnalyzer)
             }
-            os << "\t</PeptideConsensusList>\n";
+            peptide_xml += String("\t</PeptideConsensusList>\n");
           }
         }
         break;
@@ -1088,6 +1096,10 @@ namespace OpenMS
       // Proteins and Proteingroups
       //--------------------------------------------------------------------------------------------
       // TODO - omitted as there are no ids yet
+
+      //~ os << ratio_xml;
+      os << peptide_xml;
+      os << feature_xml;
 
       os << "</MzQuantML>\n";
     }
