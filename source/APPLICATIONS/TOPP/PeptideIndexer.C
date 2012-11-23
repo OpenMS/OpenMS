@@ -92,6 +92,9 @@ using namespace std;
              This mode might yield more protein hits for some peptides (even though they have exact matches as well).
 
   The exact mode is much faster (about x10) and consumes less memory (about x2.5), but might fail to report a few proteins with ambiguous AAs for some peptides. Usually these proteins are putative, however.
+  The exact mode also supports usage of multiple threads (use @ -threads option) to speed up computation even further, at the cost of some memory. This is only for the exact search though (Aho Corasick). If tolerant searching
+  needs to be done for unassigned peptides, the latter will consume the major time portion.
+
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PeptideIndexer.cli
@@ -456,22 +459,48 @@ protected:
       bool SA_only = getFlag_("full_tolerant_search");
       if (!SA_only)
       {
-        seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasick> pattern(pep_DB);
-
-        writeDebug_("Finding peptide/protein matches...", 1);
         Size hits(0);
-        for (Size i = 0; i < length(prot_DB); ++i)
+        StopWatch sw;
+        sw.start();
+        #ifdef _OPENMP
+        #pragma omp parallel
+        #endif
         {
-          seqan::Finder<seqan::Peptide> finder(prot_DB[i]);
-          while (find(finder, pattern))
+          seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasick> pattern(pep_DB);
+          seqan::FoundProteinFunctor func_threads;
+          writeDebug_("Finding peptide/protein matches...", 1);
+
+          Size hits_threads(0);
+
+          #pragma omp for
+          for (SignedSize i = 0; i < length(prot_DB); ++i)
           {
-            //seqan::appendValue(pat_hits, seqan::Pair<Size, Size>(position(pattern), position(finder)));
-            func.pep_to_prot[position(pattern)].insert(i);
-            ++hits;
+            seqan::Finder<seqan::Peptide> finder(prot_DB[i]);
+            while (find(finder, pattern))
+            {
+              //seqan::appendValue(pat_hits, seqan::Pair<Size, Size>(position(pattern), position(finder)));
+              func_threads.pep_to_prot[position(pattern)].insert(i);
+              ++hits_threads;
+            }
+          }
+
+          // join results again
+          #ifdef _OPENMP
+          #pragma omp critical(PeptideIndexer_joinAC)
+          #endif
+          {
+            hits += hits_threads;
+            for (seqan::FoundProteinFunctor::MapType::const_iterator it=func_threads.pep_to_prot.begin(); it!=func_threads.pep_to_prot.end(); ++it)
+            {
+              func.pep_to_prot[it->first].insert(func_threads.pep_to_prot[it->first].begin(), func_threads.pep_to_prot[it->first].end());
+            }
+            
           }
         }
 
-        writeLog_(String("Aho-Corasick done. Found ") + hits + " hits in " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides");
+        sw.stop();
+
+        writeLog_(String("Aho-Corasick done. Found ") + hits + " hits in " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides (time: " + sw.getClockTime() + " (wall) " + sw.getCPUTime() + " (CPU)).");
       }
 
       /// check if every peptide was found:
