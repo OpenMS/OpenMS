@@ -39,6 +39,7 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 
+#include <Qt>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QMessageBox>
@@ -164,7 +165,7 @@ namespace OpenMS
     // when copying parameters (using CTRL); only for incomplete edges
     if (QApplication::keyboardModifiers() && Qt::ControlModifier && !this->to_)
     {
-      pen.setColor(Qt::GlobalColor::darkMagenta);
+      pen.setColor(Qt::darkMagenta);
       pen.setWidth(1);
     }
 
