@@ -191,7 +191,7 @@ protected:
     registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error in Dalton", false);
     registerInputFile_("database", "<psq-file>", "", "NCBI formatted FASTA files. Only the .psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end in '.psq' the suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
-    setValidFormats_("database",StringList::create("psq")); // 'psq' not supported yet, and not required in this case
+    setValidFormats_("database",StringList::create("psq,fasta"));
     registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor ion charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 3, "Maximum precursor ion charge", false);
     vector<String> all_mods;
@@ -209,7 +209,6 @@ protected:
     //-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
     //registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
     registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation", true, false, StringList::create("skipexists"));
-//  registerInputFile_("omssa_user_mods", "<file>", "", "additional <MSModSpec> subtrees of user modifications.\nSubtrees will be pasted into OMSSAAdapter generated user mod files.\nSee http://www.ncbi.nlm.nih.gov/data_specs/schema/OMSSA.mod.xsd for details about user mod file definition.", false, true, StringList::create("input file"));
     registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 
     //registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to idXML");
@@ -587,9 +586,8 @@ protected:
       }
     }
 
-    String additional_user_mods_filename = getStringOption_("omssa_user_mods");
     // write unknown modifications to user mods file
-    if (!user_mods.empty() || additional_user_mods_filename != "")
+    if (!user_mods.empty())
     {
       writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
       parameters << "-mux" << File::absolutePath(unique_usermod_name);
@@ -683,18 +681,6 @@ protected:
         }
       }
 
-      // Add additional MSModSPec subtrees to generated user mods
-      ifstream additional_user_mods_file(additional_user_mods_filename.c_str());
-      String line;
-      if (additional_user_mods_file.is_open())
-      {
-        while (additional_user_mods_file.good())
-        {
-          getline(additional_user_mods_file, line);
-          out << line << "\n";
-        }
-        additional_user_mods_file.close();
-      }
       out << "</MSModSpecSet>" << "\n";
       out.close();
     }
@@ -743,7 +729,7 @@ protected:
         QFile(unique_input_name.toQString()).remove();
         QFile(unique_output_name.toQString()).remove();
       }
-      if (!user_mods.empty() || additional_user_mods_filename != "")
+      if (!user_mods.empty())
       {
         QFile(unique_usermod_name.toQString()).remove();
       }
@@ -753,7 +739,7 @@ protected:
     // read OMSSA output
     writeDebug_(String("Reading output of OMSSA from ") + unique_output_name, 10);
     OMSSAXMLFile omssa_out_file;
-    omssa_out_file.setModificationDefinitionsSet(mod_set);          // TODO: add modifications from additional user mods subtree
+    omssa_out_file.setModificationDefinitionsSet(mod_set);          
     omssa_out_file.load(unique_output_name, protein_identification, peptide_ids);
 
     // OMSSA does not write fixed modifications so we need to add them to the sequences
