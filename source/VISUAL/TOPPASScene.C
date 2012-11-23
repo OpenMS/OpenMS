@@ -236,19 +236,15 @@ namespace OpenMS
     TOPPASVertex* target = getVertexAt_(hover_edge_->endPos());
     bool remove_edge = false;
 
-    if (target &&
-        target != hover_edge_->getSourceVertex() &&
-        isEdgeAllowed_(hover_edge_->getSourceVertex(), target))
+    if (target && target != hover_edge_->getSourceVertex())
     {
       hover_edge_->setTargetVertex(target);
       TOPPASVertex* source = hover_edge_->getSourceVertex();
 
-      // check for parameter copy action
-      if (QApplication::keyboardModifiers() && Qt::ControlModifier)
+      // check for parameter copy action (only if source is a tool node (--> edge is purple already, user expects this to happen))
+      TOPPASToolVertex* tv_source = qobject_cast<TOPPASToolVertex*> (source);
+      if (QApplication::keyboardModifiers() && Qt::ControlModifier && tv_source)
       {
-        emit messageReady("Transferring parameters between nodes ...\n");
-        
-        TOPPASToolVertex* tv_source = qobject_cast<TOPPASToolVertex*> (source);
         TOPPASToolVertex* tv_target = qobject_cast<TOPPASToolVertex*> (target);
         if (!(tv_source && tv_target))
         {
@@ -256,6 +252,7 @@ namespace OpenMS
         }
         else
         {
+          emit messageReady("Transferring parameters between nodes ...\n");
           Param from=tv_source->getParam();
           Param to=tv_target->getParam();
           Param to_old = to; // backup, to compare
@@ -281,7 +278,7 @@ namespace OpenMS
         }
         remove_edge = true;
       }
-      else
+      else if (isEdgeAllowed_(hover_edge_->getSourceVertex(), target))
       {
         source->addOutEdge(hover_edge_);
         target->addInEdge(hover_edge_);
@@ -298,6 +295,10 @@ namespace OpenMS
         {
           remove_edge = true;
         }
+      }
+      else
+      {
+        remove_edge = true;
       }
     }
     else
@@ -2225,6 +2226,11 @@ namespace OpenMS
   void TOPPASScene::quitWithError()
   {
     exit(1);
+  }
+
+  TOPPASEdge* TOPPASScene::getHoveringEdge()
+  {
+    return hover_edge_;
   }
 
 } //namespace OpenMS

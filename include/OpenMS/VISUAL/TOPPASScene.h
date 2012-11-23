@@ -226,6 +226,8 @@ public:
     void setDescription(const QString & desc);
     /// sets the maximum number of jobs
     void setAllowedThreads(int num_threads);
+    /// returns the hovering edge
+    TOPPASEdge* getHoveringEdge();
 
 
 public slots:

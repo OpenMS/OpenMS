@@ -34,6 +34,7 @@
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
@@ -162,8 +163,9 @@ namespace OpenMS
       pen.setWidth(2);
     }
 
-    // when copying parameters (using CTRL); only for incomplete edges
-    if (QApplication::keyboardModifiers() && Qt::ControlModifier && !this->to_)
+    TOPPASToolVertex* ttv_source = qobject_cast<TOPPASToolVertex*>(this->getSourceVertex());
+    // when copying parameters (using CTRL); only for incomplete edges drawn from tool nodes
+    if (QApplication::keyboardModifiers() && Qt::ControlModifier && !this->to_ && ttv_source)
     {
       pen.setColor(Qt::darkMagenta);
       pen.setWidth(1);
