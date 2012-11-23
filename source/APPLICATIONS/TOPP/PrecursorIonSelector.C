@@ -150,6 +150,8 @@ protected:
     registerFlag_("simulation", "Simulate the whole LC-MS/MS run.");
     registerStringOption_("sim_results", "<output file>", "", "File containing the results of the simulation run", false);
     registerInputFile_("db_path", "<db-file>", "", "db file", false);
+    setValidFormats_("db_path", StringList::create("fasta"));
+
     registerStringOption_("rt_model", "<rt-model-file>", "", "SVM Model for RTPredict", false);
     registerStringOption_("dt_model", "<dt-model-file>", "", "SVM Model for PTPredict", false);
     registerStringOption_("solver", "<solver-type>", "GLPK", "LP solver type", false, true);
