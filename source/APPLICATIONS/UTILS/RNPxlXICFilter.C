@@ -74,6 +74,7 @@ protected:
 
     // output files
     registerOutputFile_("out", "<file>", "", "output file");
+    setValidFormats_("out", StringList::create("mzML"));    
   }
 
   void filterByFoldChange(const MSExperiment<>& exp1, const MSExperiment<>& exp2,
