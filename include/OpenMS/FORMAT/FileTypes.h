@@ -96,6 +96,7 @@ namespace OpenMS
       XML,                ///< any XML format
       ANALYSISXML,        ///< analysisXML format
       XSD,                ///< XSD schema format
+      PSQ,                ///< NCBI binary blast db
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

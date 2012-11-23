@@ -110,6 +110,7 @@ namespace OpenMS
     targetMap[FileTypes::XML] = "xml";
     targetMap[FileTypes::ANALYSISXML] = "analysisXML";
     targetMap[FileTypes::XSD] = "xsd";
+    targetMap[FileTypes::PSQ] = "psq";
 
     return targetMap;
   }
