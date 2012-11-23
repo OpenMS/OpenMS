@@ -63,7 +63,11 @@ protected:
   {
     // input files
     registerInputFile_("control", "<file>", "", "input mzML file");
+    setValidFormats_("control", StringList::create("mzML"));
+
     registerInputFile_("treatment", "<file>", "", "input mzML file");
+    setValidFormats_("treatment", StringList::create("mzML"));
+
     registerDoubleOption_("fold_change", "", 2.0, "fold change between XICs", false, false);
     registerDoubleOption_("rt_tol", "", 20, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
