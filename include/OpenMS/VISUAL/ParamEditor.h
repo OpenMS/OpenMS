@@ -164,14 +164,16 @@ public:
     /// Clears all parameters
     void clear();
 
+public slots:
+    /// Notifies the widget that the content was changed.
+    /// Emits the modified(bool) signal if the state changed.
+    void setModified(bool is_modified);
+
 signals:
     /// item was edited
     void modified(bool);
 
 protected slots:
-    /// Notifies the widget that the content was changed.
-    /// Emits the modified(bool) signal if the state changed.
-    void setModified(bool is_modified);
     /// Switches between normal and advanced mode
     void toggleAdvancedMode(bool advanced);
     /// Shows the documentation of an item in doc_

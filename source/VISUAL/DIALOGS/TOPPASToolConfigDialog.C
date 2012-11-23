@@ -122,7 +122,7 @@ namespace OpenMS
   {
     QString string;
     filename_ = QFileDialog::getOpenFileName(this, tr("Open ini file"), default_dir_.c_str(), tr("ini files (*.ini);; all files (*.*)"));
-    //not file selected
+    //no file selected
     if (filename_.isEmpty())
     {
       return;
@@ -158,6 +158,7 @@ namespace OpenMS
 
     //load data into editor
     editor_->load(*param_);
+    editor_->setModified(true);
   }
 
   void TOPPASToolConfigDialog::storeINI_()
@@ -167,14 +168,17 @@ namespace OpenMS
       return;
 
     filename_ = QFileDialog::getSaveFileName(this, tr("Save ini file"), default_dir_.c_str(), tr("ini files (*.ini)"));
-    //not file selected
+    //no file selected
     if (filename_.isEmpty())
       return;
 
     if (!filename_.endsWith(".ini"))
       filename_.append(".ini");
 
+    bool was_modified = editor_->isModified();
     editor_->store();
+    if (was_modified) editor_->setModified(true);
+
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try
     {
