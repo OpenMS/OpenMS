@@ -121,7 +121,7 @@ protected:
                                                 "xml: Single Mascot xml file.\n"
                                                 "omssaXML: Single OMSSA xml file.\n"
                                                 "idXML: Single idXML file.\n", true);
-    // setValidFormats_("in", StringList::create("pepXML,protXML,xml,omssaXML,idXML")); // TODO: should be checked if these file types are OK
+    setValidFormats_("in", StringList::create("pepXML,protXML,xml,omssaXML,idXML"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
