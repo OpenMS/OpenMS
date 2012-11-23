@@ -211,9 +211,9 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(cm[0].getFeatures().size(),2)
 
   ConsensusFeature::HandleSetType::const_iterator fhIt = cm[0].getFeatures().begin();
-  TEST_EQUAL(feature_maps[0][0].getUniqueId(), fhIt->getUniqueId())
-  ++fhIt;
   TEST_EQUAL(feature_maps[0][1].getUniqueId(), fhIt->getUniqueId())
+  ++fhIt;
+  TEST_EQUAL(feature_maps[0][0].getUniqueId(), fhIt->getUniqueId())
 
   // now test the incomplete variant
   createTestFeatureMapSimVector_(feature_maps);
@@ -260,11 +260,11 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(incomplete_cm[0].getFeatures().size(),3)
 
   ConsensusFeature::HandleSetType::const_iterator incomplete_fhIt = incomplete_cm[0].getFeatures().begin();
+  TEST_EQUAL(feature_maps[0][2].getUniqueId(), incomplete_fhIt->getUniqueId())
+  ++incomplete_fhIt;
   TEST_EQUAL(feature_maps[0][1].getUniqueId(), incomplete_fhIt->getUniqueId())
   ++incomplete_fhIt;
   TEST_EQUAL(feature_maps[0][0].getUniqueId(), incomplete_fhIt->getUniqueId())
-  ++incomplete_fhIt;
-  TEST_EQUAL(feature_maps[0][2].getUniqueId(), incomplete_fhIt->getUniqueId())
 }
 END_SECTION
 
