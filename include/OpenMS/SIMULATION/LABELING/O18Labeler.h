@@ -94,11 +94,11 @@ protected:
 
 private:
     /// Map ID for the light/unlabeled channel
-    const static int LIGHT_CHANNEL_ID;
+    static const int LIGHT_CHANNEL_ID_;
     /// Map ID for the medium/mono-labeled channel
-    const static int MEDIUM_CHANNEL_ID;
+    static const int MEDIUM_CHANNEL_ID_;
     /// Map ID for the heavy/bi-labeled channel
-    const static int HEAVY_CHANNEL_ID;
+    static const int HEAVY_CHANNEL_ID_;
   };
 } // namespace OpenMS
 

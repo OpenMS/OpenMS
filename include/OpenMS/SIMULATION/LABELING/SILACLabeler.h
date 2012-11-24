@@ -111,11 +111,11 @@ protected:
 
 private:
     /// Map ID for the light/unlabeled channel
-    const static int LIGHT_FEATURE_MAPID;
+    static const int LIGHT_FEATURE_MAPID_;
     /// Map ID for the medium labeled channel
-    const static int MEDIUM_FEATURE_MAPID;
+    static const int MEDIUM_FEATURE_MAPID_;
     /// Map ID for the heavy labeled channel
-    const static int HEAVY_FEATURE_MAPID;
+    static const int HEAVY_FEATURE_MAPID_;
   };
 
 } // namespace OpenMS

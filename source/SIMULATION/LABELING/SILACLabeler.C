@@ -44,9 +44,9 @@ using std::vector;
 
 namespace OpenMS
 {
-  const int SILACLabeler::LIGHT_FEATURE_MAPID = 0;
-  const int SILACLabeler::MEDIUM_FEATURE_MAPID = 1;
-  const int SILACLabeler::HEAVY_FEATURE_MAPID = 2;
+  const int SILACLabeler::LIGHT_FEATURE_MAPID_ = 0;
+  const int SILACLabeler::MEDIUM_FEATURE_MAPID_ = 1;
+  const int SILACLabeler::HEAVY_FEATURE_MAPID_ = 2;
 
 
   SILACLabeler::SILACLabeler() :
@@ -228,8 +228,8 @@ namespace OpenMS
 
             // create consensus feature
             ConsensusFeature cf;
-            cf.insert(MEDIUM_FEATURE_MAPID, *labeled_feature_iter);
-            cf.insert(LIGHT_FEATURE_MAPID, unlabeled_feature);
+            cf.insert(MEDIUM_FEATURE_MAPID_, *labeled_feature_iter);
+            cf.insert(LIGHT_FEATURE_MAPID_, unlabeled_feature);
             cf.ensureUniqueId();
             consensus_.push_back(cf);
 
@@ -313,9 +313,9 @@ namespace OpenMS
             final_feature_map.push_back(unlabeled_features_index[heavy_feature_unmodified_sequence]);
 
             ConsensusFeature c_triplet;
-            c_triplet.insert(HEAVY_FEATURE_MAPID, heavy_feature);
-            c_triplet.insert(LIGHT_FEATURE_MAPID, unlabeled_features_index[heavy_feature_unmodified_sequence]);
-            c_triplet.insert(MEDIUM_FEATURE_MAPID, medium_features_index[heavy_feature_unmodified_sequence]);
+            c_triplet.insert(HEAVY_FEATURE_MAPID_, heavy_feature);
+            c_triplet.insert(LIGHT_FEATURE_MAPID_, unlabeled_features_index[heavy_feature_unmodified_sequence]);
+            c_triplet.insert(MEDIUM_FEATURE_MAPID_, medium_features_index[heavy_feature_unmodified_sequence]);
             c_triplet.ensureUniqueId();
 
             consensus_.push_back(c_triplet);
@@ -340,8 +340,8 @@ namespace OpenMS
             final_feature_map.push_back(unlabeled_features_index[heavy_feature_unmodified_sequence]);
 
             ConsensusFeature c_duplet;
-            c_duplet.insert(HEAVY_FEATURE_MAPID, heavy_feature);
-            c_duplet.insert(LIGHT_FEATURE_MAPID, unlabeled_features_index[heavy_feature_unmodified_sequence]);
+            c_duplet.insert(HEAVY_FEATURE_MAPID_, heavy_feature);
+            c_duplet.insert(LIGHT_FEATURE_MAPID_, unlabeled_features_index[heavy_feature_unmodified_sequence]);
             c_duplet.ensureUniqueId();
 
             consensus_.push_back(c_duplet);
@@ -365,8 +365,8 @@ namespace OpenMS
             final_feature_map.push_back(medium_features_index[heavy_feature_unmodified_sequence]);
 
             ConsensusFeature c_duplet;
-            c_duplet.insert(HEAVY_FEATURE_MAPID, heavy_feature);
-            c_duplet.insert(MEDIUM_FEATURE_MAPID, medium_features_index[heavy_feature_unmodified_sequence]);
+            c_duplet.insert(HEAVY_FEATURE_MAPID_, heavy_feature);
+            c_duplet.insert(MEDIUM_FEATURE_MAPID_, medium_features_index[heavy_feature_unmodified_sequence]);
             c_duplet.ensureUniqueId();
 
             consensus_.push_back(c_duplet);
@@ -405,8 +405,8 @@ namespace OpenMS
             final_feature_map.push_back(unlabeled_features_index[medium_channel_feature_unmodified_sequence]);
 
             ConsensusFeature c_duplet;
-            c_duplet.insert(MEDIUM_FEATURE_MAPID, medium_channel_feature);
-            c_duplet.insert(LIGHT_FEATURE_MAPID, unlabeled_features_index[medium_channel_feature_unmodified_sequence]);
+            c_duplet.insert(MEDIUM_FEATURE_MAPID_, medium_channel_feature);
+            c_duplet.insert(LIGHT_FEATURE_MAPID_, unlabeled_features_index[medium_channel_feature_unmodified_sequence]);
             c_duplet.ensureUniqueId();
             consensus_.push_back(c_duplet);
           }

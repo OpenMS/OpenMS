@@ -44,9 +44,9 @@ using std::vector;
 
 namespace OpenMS
 {
-  const int O18Labeler::LIGHT_CHANNEL_ID = 0;
-  const int O18Labeler::MEDIUM_CHANNEL_ID = 1;
-  const int O18Labeler::HEAVY_CHANNEL_ID = 2;
+  const int O18Labeler::LIGHT_CHANNEL_ID_ = 0;
+  const int O18Labeler::MEDIUM_CHANNEL_ID_ = 1;
+  const int O18Labeler::HEAVY_CHANNEL_ID_ = 2;
 
   O18Labeler::O18Labeler() :
     BaseLabeler()
@@ -157,13 +157,13 @@ namespace OpenMS
           ConsensusFeature cf;
           cf.setUniqueId();
           // add mono & di-labeled variant to ConsensusFeature
-          cf.insert(MEDIUM_CHANNEL_ID, b1);
-          cf.insert(HEAVY_CHANNEL_ID, b2);
+          cf.insert(MEDIUM_CHANNEL_ID_, b1);
+          cf.insert(HEAVY_CHANNEL_ID_, b2);
 
           // merge unlabeled with unlabeled from other channel (if it exists)
           Feature final_unlabeled_feature = mergeFeatures_(*lf_iter, unmodified_sequence, unlabeled_features_index);
           final_unlabeled_feature.ensureUniqueId();
-          cf.insert(LIGHT_CHANNEL_ID, final_unlabeled_feature);
+          cf.insert(LIGHT_CHANNEL_ID_, final_unlabeled_feature);
 
           consensus_.push_back(cf);
           final_feature_map.push_back(final_unlabeled_feature);
@@ -187,8 +187,8 @@ namespace OpenMS
             ConsensusFeature cf;
             cf.setUniqueId();
             final_feature_map.push_back(unlabeled_features_index[unmodified_sequence]);
-            cf.insert(HEAVY_CHANNEL_ID, *lf_iter);
-            cf.insert(LIGHT_CHANNEL_ID, unlabeled_features_index[unmodified_sequence]);
+            cf.insert(HEAVY_CHANNEL_ID_, *lf_iter);
+            cf.insert(LIGHT_CHANNEL_ID_, unlabeled_features_index[unmodified_sequence]);
 
             // remove unlabeled feature
             unlabeled_features_index.erase(unmodified_sequence);
