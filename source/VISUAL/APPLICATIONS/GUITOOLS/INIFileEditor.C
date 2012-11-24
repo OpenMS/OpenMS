@@ -44,6 +44,7 @@
 
 #include <QtGui/QApplication>
 #include <QtGui/QStyleFactory>
+#include <QTextCodec>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #   ifndef _WIN32_WINNT
@@ -75,6 +76,9 @@ int main(int argc, const char** argv)
   // when shipping on mac os x
   QApplication::setLibraryPaths(QStringList());
 #endif
+  
+  // ensure correct encoding of paths
+  QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
   
   Map<String, String> option_lists;
   Map<String, String> options;

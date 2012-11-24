@@ -110,6 +110,7 @@
 #include <QtGui/QTreeWidget>
 #include <QtGui/QTreeWidgetItem>
 #include <QtGui/QWhatsThis>
+#include <QTextCodec>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -138,6 +139,9 @@ namespace OpenMS
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
 
+    // ensure correct encoding of paths
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+    
     //prevents errors caused by too small width,height values
     setMinimumSize(400, 400);
 

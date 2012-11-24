@@ -90,6 +90,7 @@
 #include <QSvgGenerator>
 #include <QNetworkProxyFactory>
 #include <QNetworkProxy>
+#include <QTextCodec>
 
 using namespace std;
 
@@ -113,7 +114,10 @@ namespace OpenMS
     
     setWindowTitle("TOPPAS");
     setWindowIcon(QIcon(":/TOPPAS.png"));
-
+    
+    // ensure correct encoding of paths
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+    
     //prevents errors caused by too small width,height values
     setMinimumSize(400, 400);
 
