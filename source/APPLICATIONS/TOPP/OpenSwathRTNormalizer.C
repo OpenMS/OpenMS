@@ -87,9 +87,8 @@ protected:
     setValidFormats_("in", StringList::create("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file with the RT peptides ('TraML' or 'csv')");
-    registerStringOption_("in_type", "<type>", "", "input file type (default: determined from file extension or content)\n", false);
-    setValidStrings_("in_type", StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid"));
-
+    setValidFormats_("tr", StringList::create("csv,traML"));
+    
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", StringList::create("trafoXML"));
 

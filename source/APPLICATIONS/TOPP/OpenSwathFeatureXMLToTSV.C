@@ -338,10 +338,11 @@ protected:
     setValidFormats_("in", StringList::create("featureXML"));
 
     registerInputFile_("tr", "<file>", "", "TraML transition file");
-
+    setValidFormats_("tr", StringList::create("traML"));
     //registerStringOption_("main_var_name","<varname>","xx_lda_prelim_score","Name of the main variable", false);
 
     registerOutputFile_("out", "<file>", "", "tsv output file (mProphet compatible)");
+    setValidFormats_("out", StringList::create("csv"));
 
     registerFlag_("short_format", "Whether to write short (one peptide per line) or long format (one transition per line).");
 

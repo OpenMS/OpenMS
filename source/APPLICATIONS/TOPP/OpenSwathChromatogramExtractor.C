@@ -106,9 +106,8 @@ protected:
     setValidFormats_("in", StringList::create("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML' or 'csv')");
-    registerStringOption_("in_type", "<type>", "", "input file type (default: determined from file extension or content)\n", false);
-    setValidStrings_("in_type", StringList::create("mzData,mzXML,mzML,DTA,DTA2D,mgf,featureXML,fid"));
-
+    setValidFormats_("tr", StringList::create("csv,traML"));
+    
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library)", false);
     setValidFormats_("rt_norm", StringList::create("trafoXML"));
 

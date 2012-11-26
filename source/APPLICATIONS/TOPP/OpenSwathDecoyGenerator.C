@@ -86,10 +86,11 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "input file ('TraML')");
-
+    registerInputFile_("in", "<file>", "", "input file ('traML')");
+    setValidFormats_("in", StringList::create("traML"));
+    
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("TraML"));
+    setValidFormats_("out", StringList::create("traML"));
 
     registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','pseudo-reverse','reverse','shift')", false);
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
