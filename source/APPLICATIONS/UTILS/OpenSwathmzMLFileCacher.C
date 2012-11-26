@@ -83,6 +83,7 @@ class OpenSwathMzMLFileCacher
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in","<file>","","transition file ('csv')");
+    setValidFormats_("in", StringList::create("mzML"));
 
     registerOutputFile_("out","<file>","","output file");
 

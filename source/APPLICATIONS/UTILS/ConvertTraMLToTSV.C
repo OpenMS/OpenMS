@@ -70,6 +70,7 @@ protected:
     setValidFormats_("in", StringList::create("TraML"));
 
     registerOutputFile_("out", "<file>", "", "output file csv");
+    setValidFormats_("out", StringList::create("csv"));
   }
 
   ExitCodes main_(int, const char **)

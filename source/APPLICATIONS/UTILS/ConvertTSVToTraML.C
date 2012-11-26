@@ -94,6 +94,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "transition file ('csv')");
+    setValidFormats_("in", StringList::create("csv"));
 
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", StringList::create("TraML"));
