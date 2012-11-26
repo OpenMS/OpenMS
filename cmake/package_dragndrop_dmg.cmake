@@ -199,22 +199,59 @@ install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf
                     WORLD_READ
 )
 
+########################################################### SEARCHENGINES
+set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
+if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA)
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/OMSSA
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             SearchEngine-OMSSA
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE           
+            )
+  endif()
+  
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem)
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/XTandem
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             SearchEngine-XTandem
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE           
+            )
+  endif()
+endif()
+
 ########################################################### TOPPShell
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command 
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ 
-        RENAME TOPP-shell 
+install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command 
+        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+        RENAME      TOPP-shell 
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                     GROUP_READ GROUP_EXECUTE
                     WORLD_READ WORLD_EXECUTE  
-        COMPONENT TOPPShell)
+        COMPONENT   TOPPShell)
 
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile 
+install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile 
         DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ 
-        RENAME .TOPP_bash_profile 
+        RENAME      .TOPP_bash_profile 
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
                     WORLD_READ        
-        COMPONENT TOPPShell)
+        COMPONENT   TOPPShell)
+
+install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
+        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+        PERMISSIONS OWNER_WRITE OWNER_READ
+                    GROUP_READ
+                    WORLD_READ        
+        COMPONENT   TOPPShell)
 
 ########################################################### Background Image
 install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png 

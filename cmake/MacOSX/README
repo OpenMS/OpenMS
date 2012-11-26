@@ -1,0 +1,7 @@
+### INSTALLING TOPP into your local shell ###
+
+To use TOPP as regular apps in your shell just add the following lines to your ~/.profile file. 
+An adapt the first line to point to the folder where you put OpenMS (e.g., /Applications/OpenMS-1.10.0)
+
+export OPENMS_TOPP_PATH=<OpenMS-PATH>
+source $OPENMS_TOPP_PATH/.TOPP_bash_profile
