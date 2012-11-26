@@ -554,7 +554,7 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-    const string in_mzml(getStringOption_("in_mzml"));
+    const string in_mzml(getStringOption_("in_mzML"));
 
 // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides = getStringList_("target_nucleotides");
