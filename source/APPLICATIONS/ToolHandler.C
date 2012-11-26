@@ -65,6 +65,7 @@ namespace OpenMS
     tools_map["ExecutePipeline"] = Internal::ToolDescription("ExecutePipeline", "Misc");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
     tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", "ID Processing");
+    tools_map["FeatureFinderSuperHirn"] = Internal::ToolDescription("FeatureFinderSuperHirn", "Quantitation");
     tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", "Quantitation");
     tools_map["FeatureFinderIsotopeWavelet"] = Internal::ToolDescription("FeatureFinderIsotopeWavelet", "Quantitation");
     tools_map["FeatureFinderMetabo"] = Internal::ToolDescription("FeatureFinderMetabo", "Quantitation");
@@ -110,6 +111,10 @@ namespace OpenMS
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", "Targeted Experiments");
     tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", "Targeted Experiments");
     tools_map["OpenSwathFeatureXMLToTSV"] = Internal::ToolDescription("OpenSwathFeatureXMLToTSV", "Targeted Experiments");
+    tools_map["OpenSwathMzMLFileCacher"] = Internal::ToolDescription("OpenSwathMzMLFileCacher", "Targeted Experiments");
+    tools_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", "Targeted Experiments");
+    tools_map["OpenSwathDIAPresScoring"] = Internal::ToolDescription("OpenSwathDIAPreScoring", "Targeted Experiments");
+    tools_map["OpenSwathConfidenceScoring"] = Internal::ToolDescription("OpenSwathConfidenceScoring", "Targeted Experiments");
     tools_map["PILISIdentification"] = Internal::ToolDescription("PILISIdentification", "Identification");
     tools_map["PILISModelCV"] = Internal::ToolDescription("PILISModelCV", "ID Processing");
     tools_map["PILISModelTrainer"] = Internal::ToolDescription("PILISModelTrainer", "ID Processing");
