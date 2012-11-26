@@ -152,7 +152,15 @@ protected:
 
     addEmptyLine_();
     addText_("X!Tandem specific options");
-    registerInputFile_("xtandem_executable", "<executable>", "tandem.exe", "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, StringList::create("skipexists"));
+    registerInputFile_("xtandem_executable", "<executable>",
+// choose the default value according to the platform where it will be executed
+// xtandem compiles as tandem on osx and tandem.exe on any other platform
+#if  defined(__APPLE__)
+                       "tandem",
+#else
+                       "tandem.exe",
+#endif
+                       "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, StringList::create("skipexists"));
     registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
     registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
     registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "Cleavage site of the used enzyme as regular expression ([RK]|{P} (i.e. tryptic clevage) is default, [X]|[X] (i.e. every site) would be best for peptide input or unspecific digestion).", false);
