@@ -89,6 +89,8 @@ namespace OpenMS
     tools_map["IDRTCalibration"] = Internal::ToolDescription("IDRTCalibration", "ID Processing");
     tools_map["ITRAQAnalyzer"] = Internal::ToolDescription("ITRAQAnalyzer", "Quantitation");
     tools_map["InclusionExclusionListCreator"] = Internal::ToolDescription("InclusionExclusionListCreator", "Targeted Experiments");
+    tools_map["ConvertTraMLToTSV"] = Internal::ToolDescription("ConvertTraMLToTSV", "Targeted Experiments");
+    tools_map["ConvertTSVToTraML"] = Internal::ToolDescription("ConvertTSVToTraML", "Targeted Experiments");
     tools_map["InspectAdapter"] = Internal::ToolDescription("InspectAdapter", "Identification");
     tools_map["InternalCalibration"] = Internal::ToolDescription("InternalCalibration", "Signal processing and preprocessing");
     tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", "Map Alignment");
