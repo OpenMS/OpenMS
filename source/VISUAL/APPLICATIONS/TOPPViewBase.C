@@ -124,6 +124,8 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
+  const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
+
   TOPPViewBase::TOPPViewBase(QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
@@ -135,13 +137,13 @@ namespace OpenMS
     // when shipping on mac os x
     QApplication::setLibraryPaths(QStringList());
 #endif
-    
+
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
 
     // ensure correct encoding of paths
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-    
+
     //prevents errors caused by too small width,height values
     setMinimumSize(400, 400);
 
@@ -3376,6 +3378,11 @@ namespace OpenMS
     }
 
     String caption = layer.name;
+    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
+    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
+    {
+      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
+    }
     w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
     updateLayerBar();
@@ -3414,7 +3421,7 @@ namespace OpenMS
       }
 
       // set layer name
-      String caption = layer.name + " (3D)";
+      String caption = layer.name + CAPTION_3D_SUFFIX_;
       w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
       showSpectrumWidgetInWindow(w, caption);
 
