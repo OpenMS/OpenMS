@@ -54,6 +54,7 @@ MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
 MzMLFile.h
+MzTab.h
 MzTabFile.h
 MzXMLFile.h
 OMSSACSVFile.h

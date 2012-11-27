@@ -35,6 +35,7 @@
 #ifndef OPENMS_FORMAT_MZTABFILE_H
 #define OPENMS_FORMAT_MZTABFILE_H
 
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
@@ -63,9 +64,32 @@ public:
 
     typedef std::map<std::pair<String, String>, std::vector<PeptideHit> > MapAccPepType;
 
+    // (deprecated) TODO: use conversion to MzTab data structure and store function below
     void store(const String & filename, const std::vector<ProteinIdentification> & protein_ids, const std::vector<PeptideIdentification> & peptide_ids, String in, String document_id) const;
 
+    // store MzTab file
+    void store(const String & filename, const MzTab& mz_tab) const;
+
 protected:
+    void generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const;
+
+    void generateProteinHeader_(Int n_subsamples, const std::vector<String>& optional_protein_columns, StringList& sl) const;
+
+    String generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const String& unit_id) const;
+
+    void generateMzTabProteinSection_(const MzTabProteinSectionData& map, StringList& sl) const;
+
+    void generateMzTabPeptideSection_(const MzTabPeptideSectionData& map, StringList& sl) const;
+
+    void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionData & map, StringList& sl) const;
+
+    String generateMzTabPeptideHeader_(Int n_subsamples, const std::vector<String>& optional_protein_columns) const;
+
+    String generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row, const String& unit_id) const;
+
+    String generateMzTabSmallMoleculeHeader_(Int n_subsamples, const std::vector<String>& optional_smallmolecule_columns) const;
+
+    String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row, const String& unit_id) const;
 
     static void sortPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end);
 
