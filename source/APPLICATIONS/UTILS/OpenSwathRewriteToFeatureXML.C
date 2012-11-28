@@ -155,7 +155,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       {
         m_score = ((String)current_row[header_dict_inv["m_score"]]).toDouble();
       }
-      catch (char* str)
+      catch (char* /*str*/)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not convert String" + ((String)current_row[header_dict_inv["m_score"]]) + " on line " + String(line_nr));
       }
@@ -163,7 +163,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       {
         d_score = ((String)current_row[header_dict_inv["d_score"]]).toDouble();
       }
-      catch (char* str)
+      catch (char* /*str*/)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not convert String" + ((String)current_row[header_dict_inv["d_score"]]) + " on line " + String(line_nr));
       }
