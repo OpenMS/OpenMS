@@ -240,10 +240,10 @@ protected:
             PeptideHit hit = *pit;
             if (hit.getSequence().size() >= min_length)
             {
-              if (hit.metaValueExists("scoring"))
+              /*if (hit.metaValueExists("scoring"))
               {
                 String meta_value = (String)hit.getMetaValue("scoring");
-              }
+              }*/
               hit.setMetaValue("scoring", pep_id_it->getIdentifier());
               hits.push_back(hit);
               if (!use_all_hits || pit->getScore() > 0.98)
@@ -251,8 +251,9 @@ protected:
                 break;
               }
             }
-            cout << pep_id_it->getIdentifier() << endl;
+            //cout << pep_id_it->getIdentifier() << endl;
           }
+          if (hits.size()==0) continue; // hit did not pass the filter
           pep_copy.setHits(hits);
           tmp.ids.push_back(pep_copy);
           prec_data.push_back(tmp);
