@@ -102,7 +102,8 @@ public slots:
     bool getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */, const std::vector<DoubleReal> & q_value_thresholds, MSSpectrum<> & points);
 
     /// opens the file in a new window
-    void addSearchFile(const String & file_name);
+    /// @return false on error (no idXML file or missing information preventing FDR computation)
+    bool addSearchFile(const String & file_name);
     /// shows the dialog for opening files
     void openFileDialog();
     /// saves the plot - querying for a filename first
@@ -128,7 +129,9 @@ public slots:
     /// updates the toolbar
     //void updateToolBar();
 
-    void loadFiles(const StringList & list);
+    /// load Target/Decoy annotated files, return FALSE if any of these files did 
+    /// not contain target/decoy information or any other error which prevents FDR calculation
+    bool loadFiles(const StringList & list);
 
     void showURL();
 

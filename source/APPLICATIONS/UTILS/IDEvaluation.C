@@ -168,7 +168,11 @@ protected:
     Param alg_param = mw->getParameters();
     alg_param.insert("", getParam_().copy("algorithm:", true));
     mw->setParameters(alg_param);
-    mw->loadFiles(in_list);
+    if (!mw->loadFiles(in_list))
+    {
+      LOG_ERROR << "Tool failed. See above." << std::endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    };
     mw->setVisibleArea(q_min, q_max);
 
     if (out != "") // save as image and exit

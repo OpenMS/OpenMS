@@ -334,12 +334,14 @@ namespace OpenMS
     addSearchFile(file_name);
   }
 
-  void IDEvaluationBase::loadFiles(const StringList & list)
+  bool IDEvaluationBase::loadFiles(const StringList & list)
   {
+    bool good = true;
     for (StringList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
-      addSearchFile(*it);
+      if (!addSearchFile(*it)) good = false;
     }
+    return good;
   }
 
   void IDEvaluationBase::setVisibleArea(double low, double high)
@@ -348,12 +350,12 @@ namespace OpenMS
     spec_1d_->canvas()->setVisibleArea(range);
   }
 
-  void IDEvaluationBase::addSearchFile(const String & file_name)
+  bool IDEvaluationBase::addSearchFile(const String & file_name)
   {
     if (FileHandler::getType(file_name) != FileTypes::IDXML)
     {
       LOG_ERROR << "The file '" << file_name << "' is not an .idXML file" << std::endl;
-      return;
+      return false;
     }
 
     std::vector<ProteinIdentification> prot_ids;
@@ -361,19 +363,19 @@ namespace OpenMS
     IdXMLFile().load(file_name, prot_ids, pep_ids);
     String ln = pep_ids[0].getScoreType(); // grab name here, since FDR-calculation will overwrite it with "q-value"
     MSSpectrum<> points;
-    if (getPoints(pep_ids, q_value_thresholds_, points))
-    {
-      MSExperiment<> * exp = new MSExperiment<>;
-      exp->push_back(points);
-      spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp));
-      spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, ln);
-      // set intensity mode (after spectrum has been added!)
-      setIntensityMode((int) SpectrumCanvas::IM_SNAP);
+    if (!getPoints(pep_ids, q_value_thresholds_, points))
+    { // FDR calculation failed
+      return false;
     }
-    else
-    {
-      // maybe tell user that FDR failed?!
-    }
+
+    MSExperiment<> * exp = new MSExperiment<>;
+    exp->push_back(points);
+    spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp));
+    spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, ln);
+    // set intensity mode (after spectrum has been added!)
+    setIntensityMode((int) SpectrumCanvas::IM_SNAP);
+    
+    return true;
   }
 
   void IDEvaluationBase::saveImageAs()
