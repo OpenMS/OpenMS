@@ -96,27 +96,32 @@ namespace OpenMS
     id_tagger_(tool_name),
     instance_number_(-1),
     version_(version),
+    verboseVersion_(version),
+    official_(official),
     log_type_(ProgressLogger::NONE),
     test_mode_(false),
     debug_level_(-1)
   {
+
     // if version is empty, use the OpenMS/TOPP version and date/time
     if (version_ == "")
     {
-      version_ = VersionInfo::getVersion() + " " + VersionInfo::getTime();
-    }
-    // if the revision info is meaningful, show it as well
-    if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
-    {
-      version_ += String(", Revision: ") + VersionInfo::getRevision() + "";
+      version_ = VersionInfo::getVersion();
+      verboseVersion_ = version_ + " " + VersionInfo::getTime();
+
+      // if the revision info is meaningful, show it as well
+      if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
+      {
+        verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
+      }
     }
 
     //check if tool is in official tools list
-    if (official && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
+    if (official_ && tool_name_ != "GenericWrapper" && !ToolHandler::getTOPPToolList().count(tool_name_))
     {
       writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false.");
     }
-    
+
 #if  defined(__APPLE__)
     // we do not want to load plugins as this leeds to serious problems
     // when shipping on mac os x
@@ -340,9 +345,9 @@ namespace OpenMS
       if (param_inifile_.exists(tool_name_ + ":version"))
       {
         file_version = param_inifile_.getValue(tool_name_ + ":version");
-        if (file_version != VersionInfo::getVersion())
+        if (file_version != version_)
         {
-          writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + VersionInfo::getVersion() + ").");
+          writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + version_ + ").");
         }
       }
     }
@@ -606,7 +611,7 @@ namespace OpenMS
     //common output
     cerr << "\n"
          << tool_name_ << " -- " << tool_description_ << "\n"
-         << "Version: " << version_ << "\n" << "\n"
+         << "Version: " << verboseVersion_ << "\n" << "\n"
          << "Usage:" << "\n"
          << "  " << tool_name_ << " <options>" << "\n"
          << "\n"
@@ -2128,7 +2133,7 @@ namespace OpenMS
     }
 
     // set tool version
-    tmp.setValue(tool_name_ + ":version", VersionInfo::getVersion(), "Version of the tool that generated this parameters file.", StringList::create("advanced"));
+    tmp.setValue(tool_name_ + ":version", version_, "Version of the tool that generated this parameters file.", StringList::create("advanced"));
 
     // Descriptions
     tmp.setSectionDescription(tool_name_, tool_description_);
@@ -2227,7 +2232,7 @@ namespace OpenMS
     else
     {
       //version
-      p.getSoftware().setVersion(VersionInfo::getVersion());
+      p.getSoftware().setVersion(version_);
       //time
       p.setCompletionTime(DateTime::now());
       //parameters
@@ -2290,12 +2295,22 @@ namespace OpenMS
       lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
       lines.insert(1, "<tool>");
       lines.insert(2, QString("<name>") + tool_name_.toQString() + "</name>");
-      lines.insert(3, QString("<version>") + VersionInfo::getVersion().toQString() + "</version>");
+      lines.insert(3, QString("<version>") + version_.toQString() + "</version>");
       lines.insert(4, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
       QString html_doc = tool_description_.toQString();
       lines.insert(5, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
-      lines.insert(6, "<docurl>http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/OpenMS-release/html/TOPP__" + tool_name_.toQString() + ".html</docurl>");
-      lines.insert(7, "<category>" + ToolHandler::getCategory(tool_name_).toQString() + "</category>");
+
+      if (official_) // we can only get the docurl/category from registered/official tools
+      {
+        lines.insert(6, "<docurl>http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/TOPP__" + tool_name_.toQString() + ".html</docurl>");
+        lines.insert(7, "<category>" + ToolHandler::getCategory(tool_name_).toQString() + "</category>");
+      }
+      else
+      {
+        lines.insert(6, "<docurl></docurl>");
+        lines.insert(7, "<category></category>");
+      }
+
       lines.insert(lines.size(), "</tool>");
       String ctd_str = String(lines.join("\n")) + "\n";
 
