@@ -1143,9 +1143,9 @@ namespace OpenMS
 
   void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required, bool advanced)
   {
-    if (required && !boost::math::isnan(default_value))
+    if (required)
     {
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required Double param (" + name + ") with a non-quiet_NaN default is forbidden! Use 'std::numeric_limits<double>::quiet_NaN()' as default value to fix!", String(default_value));
+      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param (" + name + ") as 'required' is forbidden! (there is no value to indicate it is missing)!", String(default_value));
     }
     parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, default_value, description, required, advanced));
   }

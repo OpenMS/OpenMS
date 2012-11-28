@@ -115,10 +115,10 @@ protected:
     registerDoubleList_("concentrations", "<concentrations>", DoubleList(), "Spiked concentrations");
     addEmptyLine_();
     addText_("  Feature/standard position:");
-    registerDoubleOption_("feature_rt", "<rt>", std::numeric_limits<double>::quiet_NaN(), "RT position of the feature");
-    registerDoubleOption_("feature_mz", "<mz>", std::numeric_limits<double>::quiet_NaN(), "m/z position of the feature");
-    registerDoubleOption_("standard_rt", "<rt>", std::numeric_limits<double>::quiet_NaN(), "RT position of the standard");
-    registerDoubleOption_("standard_mz", "<mz>", std::numeric_limits<double>::quiet_NaN(), "m/z position of the standard");
+    registerDoubleOption_("feature_rt", "<rt>", -1, "RT position of the feature", false);
+    registerDoubleOption_("feature_mz", "<mz>", -1, "m/z position of the feature", false);
+    registerDoubleOption_("standard_rt", "<rt>", -1, "RT position of the standard", false);
+    registerDoubleOption_("standard_mz", "<mz>", -1, "m/z position of the standard", false);
 
     addEmptyLine_();
     addText_("  GNUplot options:");
@@ -340,13 +340,13 @@ protected:
     //-------------------------------------------------------------
     Param const & add_param =  getParam_();
     writeDebug_("Used parameters", add_param, 3);
-
+    
     CoordinateType tol_mz = getDoubleOption_("mz_tolerance");
     CoordinateType tol_rt = getDoubleOption_("rt_tolerance");
 
     String out_f  = getStringOption_("out");
 
-    if (add_param.getValue("feature_mz").isEmpty() || add_param.getValue("feature_rt").isEmpty())
+    if (getDoubleOption_("feature_mz") == -1|| getDoubleOption_("feature_rt") == -1)
     {
       writeLog_("Feature coordinates not given. Aborting.");
       return ILLEGAL_PARAMETERS;
@@ -355,7 +355,7 @@ protected:
     feat_pos1[Feature::MZ] = (CoordinateType) add_param.getValue("feature_mz");
     feat_pos1[Feature::RT] = (CoordinateType) add_param.getValue("feature_rt");
 
-    if (add_param.getValue("standard_mz").isEmpty() || add_param.getValue("standard_rt").isEmpty())
+    if (getDoubleOption_("standard_mz") == -1 || getDoubleOption_("standard_rt") == -1)
     {
       writeLog_("Standard coordinates not given. Aborting.");
       return ILLEGAL_PARAMETERS;

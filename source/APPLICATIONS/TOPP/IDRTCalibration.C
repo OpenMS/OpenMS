@@ -98,13 +98,13 @@ protected:
     setValidFormats_("in", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", StringList::create("idXML"));
-    registerDoubleOption_("calibrant_1_reference", "<RT>", 0.1, "The RT of the first calibrant in the reference file", false);
-    registerDoubleOption_("calibrant_2_reference", "<RT>", 0.9, "The RT of the second calibrant in the reference file", false);
-    registerDoubleOption_("calibrant_1_input", "<RT>", std::numeric_limits<double>::quiet_NaN(), "The RT of the first calibrant in the input file"); // Make compatible to CTDs
-    registerDoubleOption_("calibrant_2_input", "<RT>", std::numeric_limits<double>::quiet_NaN(), "The RT of the second calibrant in the input file"); // Make compatible to CTDs
+    registerDoubleOption_("calibrant_1_reference", "<RT>", 0.1, "The RT of the first calibrant in the reference file.", false);
+    registerDoubleOption_("calibrant_2_reference", "<RT>", 0.9, "The RT of the second calibrant in the reference file.", false);
+    registerDoubleOption_("calibrant_1_input", "<RT>", -1.0, "The RT of the first calibrant in the input file. Please note that this value needs to be set. The default value -1.0 is not allowed.", false);
+    registerDoubleOption_("calibrant_2_input", "<RT>", -1.0, "The RT of the second calibrant in the input file. Please note that this value needs to be set. The default value -1.0 is not allowed.", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -120,12 +120,17 @@ protected:
 
     if (rt_calibrant_1_input == rt_calibrant_2_input)
     {
-      cout << "rt_calibrant_1_input and rt_calibrant_2_input must not have the same value";
+      LOG_ERROR << "rt_calibrant_1_input and rt_calibrant_2_input must not have the same value";
       return ILLEGAL_PARAMETERS;
     }
     if (rt_calibrant_1_reference == rt_calibrant_2_reference)
     {
-      cout << "rt_calibrant_1_reference and rt_calibrant_2_reference must not have the same value";
+      LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must not have the same value";
+      return ILLEGAL_PARAMETERS;
+    }
+    if (rt_calibrant_1_reference == -1 || rt_calibrant_2_reference == -1)
+    {
+      LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must be set";
       return ILLEGAL_PARAMETERS;
     }
 
@@ -180,7 +185,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDRTCalibration tool;
   return tool.main(argc, argv);
