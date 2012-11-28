@@ -45,22 +45,22 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:element>
-            <xs:element name="feature_rt" type="xs:double" default="nan">
+            <xs:element name="feature_rt" type="xs:double" default="-1">
               <xs:annotation>
                 <xs:documentation>RT position of the feature</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="feature_mz" type="xs:double" default="nan">
+            <xs:element name="feature_mz" type="xs:double" default="-1">
               <xs:annotation>
                 <xs:documentation>m/z position of the feature</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="standard_rt" type="xs:double" default="nan">
+            <xs:element name="standard_rt" type="xs:double" default="-1">
               <xs:annotation>
                 <xs:documentation>RT position of the standard</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="standard_mz" type="xs:double" default="nan">
+            <xs:element name="standard_mz" type="xs:double" default="-1">
               <xs:annotation>
                 <xs:documentation>m/z position of the standard</xs:documentation>
               </xs:annotation>
