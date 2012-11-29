@@ -37,14 +37,14 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
-#include <QtGui/QApplication>
+// Qt
 #include <QtGui/QStyleFactory>
 #include <QTextCodec>
+
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #   ifndef _WIN32_WINNT
@@ -131,7 +131,7 @@ int main(int argc, const char** argv)
   }
 
   //Create window
-  QApplication app(argc, const_cast<char**>(argv));
+  GUI::QApplicationTOPP app(argc, const_cast<char**>(argv));
 
   //set plastique style unless windows / mac style is available
   if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Timo Sachsenberg, Marc Sturm $
 // --------------------------------------------------------------------------
 

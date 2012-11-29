@@ -29,6 +29,7 @@ IDEvaluationBase.h
 INIFileEditorWindow.h
 TOPPViewBase.h
 TOPPASBase.h
+MISC/QApplicationTOPP.h
 )
 
 ### add path to the filenames

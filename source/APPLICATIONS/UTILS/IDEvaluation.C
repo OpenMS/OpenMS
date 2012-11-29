@@ -34,8 +34,9 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/VISUAL/APPLICATIONS/IDEvaluationBase.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/IDEvaluationBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 #include <QtGui/QImage>
 #include <QPainter>
@@ -162,7 +163,7 @@ protected:
     }
 
 
-    QApplication a(argc, const_cast<char **>(argv));
+    GUI::QApplicationTOPP a(argc, const_cast<char **>(argv));
 
     IDEvaluationBase * mw = new IDEvaluationBase();
     Param alg_param = mw->getParameters();

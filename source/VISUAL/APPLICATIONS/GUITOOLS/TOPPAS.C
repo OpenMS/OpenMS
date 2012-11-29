@@ -64,9 +64,10 @@
 #include <QtCore/QDir>
 
 //OpenMS
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -150,7 +151,7 @@ int main(int argc, const char ** argv)
       return 1;
     }
 
-    QApplication a(argc, const_cast<char **>(argv));
+    GUI::QApplicationTOPP a(argc, const_cast<char **>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
     //set plastique style unless windows / mac style is available
     if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))
