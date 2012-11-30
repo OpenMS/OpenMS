@@ -48,27 +48,28 @@ namespace OpenMS
   namespace GUI
   {
 
-    QApplicationTOPP::QApplicationTOPP(int argc, char** argv)
-      : QApplication(argc, argv) 
-    {}
-  
+    QApplicationTOPP::QApplicationTOPP(int argc, char** argv) :
+      QApplication(argc, argv)
+    {
+    }
+
     QApplicationTOPP::~QApplicationTOPP()
-    {}
+    {
+    }
 
     /*
       @brief: Catch exceptions in Qt GUI applications, preventing ungraceful exit
 
       Re-implementing QApplication::notify() to catch exception thrown in event handlers (which is most likely OpenMS code).
-    
     */
-    bool QApplicationTOPP::notify(QObject *rec, QEvent *ev)
+    bool QApplicationTOPP::notify(QObject* rec, QEvent* ev)
     {
       // this is called quite often (whenever a signal is fired), so mind performance!
-      try 
+      try
       {
         return QApplication::notify(rec, ev);
       }
-      catch( Exception::BaseException& e )
+      catch (Exception::BaseException& e)
       {
         String msg = String("Catched Exception: '") + e.getName() + "' with message '" + e.getMessage() + "'";
         LOG_ERROR << msg << "\n";
@@ -78,6 +79,5 @@ namespace OpenMS
       }
       return false; // never reached, so return value does not matter
     }
-
   }
 }

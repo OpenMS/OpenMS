@@ -49,6 +49,7 @@ include(source/APPLICATIONS/sources.cmake)
 
 ## added to OpenMSVisual library: ${OpenMSVisual_sources}
 include(source/VISUAL/APPLICATIONS/sources.cmake)
+include(source/VISUAL/APPLICATIONS/MISC/sources.cmake)
 include(source/VISUAL/DIALOGS/sources.cmake)
 include(source/VISUAL/VISUALIZER/sources.cmake)
 include(source/VISUAL/ANNOTATION/sources.cmake)
@@ -110,6 +111,7 @@ include(include/OpenMS/APPLICATIONS/sources.cmake)
 
 ## added to OpenMSVisual library: ${OpenMSVisual_sources}
 include(include/OpenMS/VISUAL/APPLICATIONS/sources.cmake)
+include(include/OpenMS/VISUAL/APPLICATIONS/MISC/sources.cmake)
 include(include/OpenMS/VISUAL/sources.cmake)						## MOC sources are included here
 include(include/OpenMS/VISUAL/DIALOGS/sources.cmake)   ## and here ...
 include(include/OpenMS/VISUAL/VISUALIZER/sources.cmake)## and here ...

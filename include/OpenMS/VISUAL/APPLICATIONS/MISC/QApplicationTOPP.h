@@ -32,6 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_VISUAL_APPLICATIONS_MISC_QAPPLICATIONTOPP_H
+#define OPENMS_VISUAL_APPLICATIONS_MISC_QAPPLICATIONTOPP_H
+
 //Qt
 #include <QtGui/QApplication>
 
@@ -39,21 +42,30 @@ namespace OpenMS
 {
   namespace GUI
   {
-    class OPENMS_GUI_DLLAPI QApplicationTOPP
-      : public QApplication
+    /**
+      @brief Extension to the QApplication for running TOPPs GUI tools.
+
+      Basically re-implements notify of QApplication to prevent ungraceful exit.
+    */
+    class OPENMS_GUI_DLLAPI QApplicationTOPP :
+      public QApplication
     {
-    public:
+public:
+      /// Constructor
       QApplicationTOPP(int argc, char** argv);
-  
+
+      /// Destructor
       virtual ~QApplicationTOPP();
 
       /*
         @brief: Catch exceptions in Qt GUI applications, preventing ungraceful exit
 
-        Re-implementing QApplication::notify() to catch exception thrown in event handlers (which is most likely OpenMS code).
-    
+        Re-implementing QApplication::notify() to catch exception thrown in event
+        handlers (which is most likely OpenMS code).
       */
-      virtual bool notify(QObject *rec, QEvent *ev);
+      virtual bool notify(QObject* rec, QEvent* ev);
     };
   }
 }
+
+#endif
