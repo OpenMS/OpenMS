@@ -738,29 +738,30 @@ namespace OpenMS
         //labels
         if (show_label)
         {
-          if (layer.label == LayerData::L_INDEX)
+          // fallback to indices if no peptide identification
+          LayerData::LabelType actualLabelType =
+            ( layer.label == LayerData::L_ID || layer.label == LayerData::L_ID_ALL)
+            && ( i->getPeptideIdentifications().size()==0 || i->getPeptideIdentifications()[0].getHits().size()==0 )
+            ? LayerData::L_INDEX
+            : layer.label;
+
+          if (actualLabelType == LayerData::L_INDEX)
           {
+            painter.setPen( Qt::darkBlue );
             painter.drawText(pos.x() + 10, pos.y() + 10, QString::number(num));
           }
-          else if (layer.label == LayerData::L_ID)
+          else if ( actualLabelType == LayerData::L_ID || actualLabelType == LayerData::L_ID_ALL )
           {
-            if (i->getPeptideIdentifications().size() && i->getPeptideIdentifications()[0].getHits().size())
-            {
-              painter.drawText(pos.x() + 10, pos.y() + 10, i->getPeptideIdentifications()[0].getHits()[0].getSequence().toString().toQString());
-            }
-          }
-          else if (layer.label == LayerData::L_ID_ALL)
-          {
-            if (i->getPeptideIdentifications().size())
-            {
-              for (Size j = 0; j < i->getPeptideIdentifications()[0].getHits().size(); ++j)
+              painter.setPen( Qt::darkGreen );
+              Size maxHits = actualLabelType == LayerData::L_ID_ALL ? i->getPeptideIdentifications()[0].getHits().size() : 1;
+              for (Size j = 0; j < maxHits; ++j)
               {
                 painter.drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, i->getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
               }
-            }
           }
-          else if (layer.label == LayerData::L_META_LABEL)
+          else if (actualLabelType == LayerData::L_META_LABEL)
           {
+            painter.setPen( Qt::darkBlue );
             painter.drawText(pos.x() + 10, pos.y() + 10, i->getMetaValue(3).toQString());
           }
         }
@@ -824,14 +825,15 @@ namespace OpenMS
           layer.filters.passes(*i)
           )
       {
-        paintConvexHulls_(i->getConvexHulls(), painter);
+        bool hasIdentifications = i->getPeptideIdentifications().size()>0
+                               && i->getPeptideIdentifications()[0].getHits().size()>0;
+        paintConvexHulls_(i->getConvexHulls(), hasIdentifications, painter);
       }
     }
   }
 
   void Spectrum2DCanvas::paintFeatureConvexHulls_(Size layer_index, QPainter & painter)
   {
-    painter.setPen(Qt::black);
     const LayerData & layer = getLayer(layer_index);
     for (FeatureMapType::ConstIterator i = layer.getFeatureMap()->begin(); i != layer.getFeatureMap()->end(); ++i)
     {
@@ -857,6 +859,9 @@ namespace OpenMS
           points.setPoint(index, pos);
         }
         //cout << "Hull: " << hull << " Points: " << points.size()<<endl;
+        bool hasIdentifications = i->getPeptideIdentifications().size()>0
+                               && i->getPeptideIdentifications()[0].getHits().size()>0;
+        painter.setPen( hasIdentifications ? Qt::darkGreen : Qt::darkBlue );
         painter.drawPolygon(points);
       }
     }
@@ -879,7 +884,7 @@ namespace OpenMS
     else
       return;
 
-    painter.setPen(Qt::black);
+    painter.setPen(Qt::darkRed);
 
     for (; pep_begin != pep_end; ++pep_begin)
     {
@@ -913,7 +918,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D> & hulls, QPainter & painter)
+  void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D> & hulls, bool hasIdentifications, QPainter & painter)
   {
     QPolygon points;
 
@@ -932,7 +937,7 @@ namespace OpenMS
       }
       painter.setPen(QPen(Qt::white, 5, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin));
       painter.drawPolygon(points);
-      painter.setPen(QPen(Qt::red, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+      painter.setPen(QPen( hasIdentifications ? Qt::green : Qt::blue, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
       painter.drawPolygon(points);
     }
   }
@@ -1662,7 +1667,10 @@ namespace OpenMS
       if (getCurrentLayer().type == LayerData::DT_FEATURE)
       {
         painter.setPen(QPen(Qt::red, 2));
-        paintConvexHulls_(selected_peak_.getFeature(*getCurrentLayer().getFeatureMap()).getConvexHulls(), painter);
+        const Feature& f = selected_peak_.getFeature(*getCurrentLayer().getFeatureMap());
+        paintConvexHulls_(f.getConvexHulls(),
+                          f.getPeptideIdentifications().size() && f.getPeptideIdentifications()[0].getHits().size(),
+                          painter);
       }
       else if (getCurrentLayer().type == LayerData::DT_CONSENSUS && getLayerFlag(current_layer_, LayerData::C_ELEMENTS))
       {

@@ -255,7 +255,7 @@ protected:
     @param hulls Reference to convex hull vector.
     @param p The QPainter to paint on.
   */
-    void paintConvexHulls_(const std::vector<ConvexHull2D> & hulls, QPainter & p);
+    void paintConvexHulls_(const std::vector<ConvexHull2D> & hulls, bool hasIdentifications, QPainter & p);
 
     // Docu in base class
     virtual void intensityModeChange_();
