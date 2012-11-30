@@ -246,7 +246,8 @@ namespace OpenMS
       edit_param.remove(name);
     }
 
-    TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_, hidden_entries);
+    // edit_param no longer contains tool description, take it from the node tooltip
+    TOPPASToolConfigDialog dialog(parent_widget, edit_param, default_dir, name_, type_, toolTip(), hidden_entries);
     if (dialog.exec())
     {
       // take new values

@@ -122,6 +122,12 @@ namespace OpenMS
     output_combo_ = new QComboBox;
     main_grid->addWidget(output_combo_, 2, 1);
 
+    // tools description label
+    tool_desc_ = new QLabel;
+    tool_desc_->setAlignment( Qt::AlignTop | Qt::AlignLeft );
+    tool_desc_->setWordWrap( true );
+    main_grid->addWidget(tool_desc_, 0, 2, 3, 1);
+
     //Add advanced mode check box
     editor_ = new ParamEditor(this);
     main_grid->addWidget(editor_, 3, 0, 1, 5);
@@ -172,6 +178,7 @@ namespace OpenMS
       enable_();
       if (!arg_param_.empty())
       {
+        tool_desc_->clear();
         arg_param_.clear();
         vis_param_.clear();
         editor_->clear();
@@ -181,6 +188,7 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.load((ini_file_).c_str(), arg_param_);
 
+      tool_desc_->setText( arg_param_.getSectionDescription( getTool() ).toQString() );
       vis_param_ = arg_param_.copy(getTool() + ":1:", true);
       vis_param_.remove("log");
       vis_param_.remove("no_progress");

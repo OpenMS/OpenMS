@@ -36,6 +36,7 @@
 #ifndef OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H
 
+class QLabel;
 class QComboBox;
 class QPushButton;
 class QRadioButton;
@@ -91,6 +92,8 @@ public:
 private:
     /// ParamEditor for reading ini-files
     ParamEditor * editor_;
+    /// tools description label
+    QLabel * tool_desc_;
     /// ComboBox for choosing a TOPP-tool
     QComboBox * tools_combo_;
     /// for choosing an input parameter

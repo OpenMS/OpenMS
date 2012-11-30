@@ -54,7 +54,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPASToolConfigDialog::TOPPASToolConfigDialog(QWidget* parent, Param& param, String default_dir, String tool_name, String tool_type, QVector<String> hidden_entries) :
+  TOPPASToolConfigDialog::TOPPASToolConfigDialog(QWidget * parent, Param & param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries) :
     QDialog(parent),
     param_(&param),
     default_dir_(default_dir),
@@ -64,9 +64,15 @@ namespace OpenMS
   {
     QGridLayout* main_grid = new QGridLayout(this);
 
+    QLabel* description = new QLabel;
+    description->setAlignment( Qt::AlignTop | Qt::AlignLeft );
+    description->setWordWrap( true );
+    description->setText( tool_desc.toQString() );
+    main_grid->addWidget( description, 0, 0, 1, 1 );
+
     //Add advanced mode check box
     editor_ = new ParamEditor(this);
-    main_grid->addWidget(editor_, 0, 0, 1, 1);
+    main_grid->addWidget(editor_, 1, 0, 1, 1);
 
     QHBoxLayout* hbox = new QHBoxLayout;
     QPushButton* load_button = new QPushButton(tr("&Load"));
@@ -87,7 +93,7 @@ namespace OpenMS
     connect(ok_button_, SIGNAL(clicked()), this, SLOT(ok_()));
     hbox->addWidget(ok_button_);
 
-    main_grid->addLayout(hbox, 1, 0, 1, 1);
+    main_grid->addLayout(hbox, 2, 0, 1, 1);
 
     setLayout(main_grid);
 
