@@ -261,7 +261,6 @@ namespace OpenMS
     }
 
     finished_ = true;
-    emit iAmDone();
 
     __DEBUG_END_METHOD__
   }

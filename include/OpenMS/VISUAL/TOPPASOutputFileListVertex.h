@@ -88,11 +88,8 @@ public slots:
     virtual void inEdgeHasChanged();
 
 signals:
-
     /// Emitted when an output file was written
     void outputFileWritten(const String & file);
-    /// Emitted when the pipeline ending in this vertex is finished
-    void iAmDone();
 
 protected:
     static bool copy_(const QString & from, const QString & to); //< STATIC(!) function which calls QFile::copy(); needs to be static, since we need to pass a function pointer (which does not work on member functions)

@@ -85,7 +85,8 @@ namespace OpenMS
     clipboard_(0),
     dry_run_(true),
     threads_active_(0),
-    allowed_threads_(1)
+    allowed_threads_(1),
+    resume_source_(0)
   {
     /*	ATTENTION!
 
@@ -596,23 +597,23 @@ namespace OpenMS
   {
 
     error_occured_ = false;
+    resume_source_ = 0; // we are not resuming, so reset the resume node
 
-    //reset all nodes
+    // reset all nodes
     for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
     {
       (*it)->reset(true);
     }
     update(sceneRect());
 
-    //check if pipeline OK
+    // check if pipeline OK
     if (!sanityCheck_())
     {
-      if (!gui_)
-        emit pipelineExecutionFailed();          // the user cannot interact. End processing.
+      if (!gui_) emit pipelineExecutionFailed(); // the user cannot interact. End processing.
       return;
     }
 
-    //ask for output directory
+    // ask for output directory
     if (!askForOutputDir(true))
     {
       return;
@@ -638,8 +639,7 @@ namespace OpenMS
 
       //reset logfile
       QFile logfile(out_dir_ + QDir::separator() + "TOPPAS.log");
-      if (logfile.exists())
-        logfile.remove();
+      if (logfile.exists()) logfile.remove();
 
       //reset processes
       topp_processes_queue_.clear();
@@ -647,8 +647,7 @@ namespace OpenMS
       // start at input nodes
       for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
       {
-        if (error_occured_)
-          break;                                     // someone raised an error
+        if (error_occured_) break; // someone raised an error
 
         TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
         if (iflv)
@@ -1234,23 +1233,40 @@ namespace OpenMS
 
   void TOPPASScene::checkIfWeAreDone()
   {
-    for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it) // check if all output nodes are done
+    if (dry_run_) return;
+
+    if (resume_source_)
     {
-      TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(*it);
-      if (oflv && !oflv->isFinished())
+      logTOPPOutput(" WITH RESUME NODE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      switch (resume_source_->getSubtreeStatus())
       {
-        return;
+        case TOPPASVertex::TV_UNFINISHED:
+          return; // still processing
+          break; 
+        case TOPPASVertex::TV_ALLFINISHED:
+          break; // ok, go to bottom
+        case TOPPASVertex::TV_UNFINISHED_INBRANCH:
+          setPipelineRunning(false);
+          emit pipelineErrorSlot("Resume cannot continue due to missing subtree.");
+          break;
+      }
+    }
+    else
+    {
+      for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it) // check if all nodes are done
+      {
+        if (!(*it)->isFinished()) return;
       }
     }
 
-    running_ = false;
+    setPipelineRunning(false);
     emit entirePipelineFinished();
   }
 
   void TOPPASScene::pipelineErrorSlot(const QString /*msg*/)
   {
-    running_ = false;
     error_occured_ = true;
+    setPipelineRunning(false);
     abortPipeline();
     emit pipelineExecutionFailed();
   }
@@ -1571,7 +1587,7 @@ namespace OpenMS
   {
     emit terminateCurrentPipeline();
     resetProcessesQueue();
-    running_ = false;
+    setPipelineRunning(false);
   }
 
   void TOPPASScene::resetProcessesQueue()
@@ -1582,6 +1598,11 @@ namespace OpenMS
   void TOPPASScene::setPipelineRunning(bool b)
   {
     running_ = b;
+    if (!running_) // whenever we stop the pipeline and user is not looking, the icon should flash 
+    {
+      resume_source_ = 0;
+      QApplication::alert(0); // flash Taskbar || Dock
+    }
   }
 
   void TOPPASScene::processFinished()
@@ -1825,7 +1846,8 @@ namespace OpenMS
             if (askForOutputDir(false))
             {
               setPipelineRunning();
-              resetDownstream(ttv);
+              resume_source_ = ttv;
+              resetDownstream(ttv); 
               ttv->run();
             }
           }
@@ -1904,8 +1926,7 @@ namespace OpenMS
   void TOPPASScene::runNextProcess()
   {
     static bool used = false;
-    if (used)
-      return;
+    if (used) return;
 
     used = true;
 
@@ -1916,16 +1937,18 @@ namespace OpenMS
       topp_processes_queue_.pop_front();
       FakeProcess* p = qobject_cast<FakeProcess*>(tp.proc);
       if (p)
+      {
         p->start(tp.command, tp.args);
+      }
       else
       {
         tp.tv->emitToolStarted();
         tp.proc->start(tp.command, tp.args);
       }
     }
-
     used = false;
-
+    
+    checkIfWeAreDone();
   }
 
   bool TOPPASScene::sanityCheck_()
@@ -2117,7 +2140,6 @@ namespace OpenMS
 
   void TOPPASScene::connectOutputVertexSignals(TOPPASOutputFileListVertex* oflv)
   {
-    connect(oflv, SIGNAL(iAmDone()), this, SLOT(checkIfWeAreDone()));
     connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(logOutputFileWritten(const String &)));
   }
 

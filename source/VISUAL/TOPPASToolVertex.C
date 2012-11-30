@@ -475,8 +475,7 @@ namespace OpenMS
     __DEBUG_BEGIN_METHOD__
 
     //check if everything ready (there might be more than one upstream node - ALL need to be ready)
-    if (!isUpstreamReady())
-      return;
+    if (!isUpstreamFinished()) return;
 
     if (finished_)
     {
@@ -700,9 +699,11 @@ namespace OpenMS
           throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
         }
         if (!ts->isDryRun())
-          renameOutput_();                                        // rename generated files by content
+        {
+          renameOutput_(); // rename generated files by content
+          emit toolFinished();
+        }
         finished_ = true;
-        emit toolFinished();
 
         if (!breakpoint_set_)
         {

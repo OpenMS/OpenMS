@@ -177,8 +177,7 @@ namespace OpenMS
   void TOPPASMergerVertex::run()
   {
     //check if everything ready
-    if (!isUpstreamReady())
-      return;
+    if (!isUpstreamFinished())  return;
 
     RoundPackages pkg;
     String error_msg("");

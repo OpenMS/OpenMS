@@ -118,7 +118,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool TOPPASVertex::isUpstreamReady()
+  bool TOPPASVertex::isUpstreamFinished() const
   {
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
@@ -248,6 +248,20 @@ namespace OpenMS
       }
     }
     return fl;
+  }
+
+  TOPPASVertex::SUBSTREESTATUS TOPPASVertex::getSubtreeStatus() const
+  {
+    if (!this->isFinished()) return TV_UNFINISHED;
+
+    if (!this->isUpstreamFinished()) return TV_UNFINISHED_INBRANCH; // only looks for immediate predecessors!
+
+    for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+    {
+      SUBSTREESTATUS status = (*it)->getTargetVertex()->getSubtreeStatus();
+      if (status != TV_ALLFINISHED) return status;
+    }
+    return TV_ALLFINISHED;
   }
 
   const TOPPASVertex::RoundPackages & TOPPASVertex::getOutputFiles() const
@@ -448,7 +462,7 @@ namespace OpenMS
     __DEBUG_END_METHOD__
   }
 
-  bool TOPPASVertex::isFinished()
+  bool TOPPASVertex::isFinished() const
   {
     return finished_;
   }

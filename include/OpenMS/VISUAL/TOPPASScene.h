@@ -228,6 +228,8 @@ public:
     void setAllowedThreads(int num_threads);
     /// returns the hovering edge
     TOPPASEdge* getHoveringEdge();
+    /// Checks whether all output vertices are finished, and if yes, emits entirePipelineFinished() (called by finished output vertices)
+    void checkIfWeAreDone();
 
 
 public slots:
@@ -244,15 +246,14 @@ public slots:
     void addHoveringEdge(const QPointF & pos);
     /// Called when the new edge is being "released"
     void finishHoveringEdge();
-    /// Checks whether all output vertices are finished, and if yes, emits entirePipelineFinished() (called by finished output vertices)
-    void checkIfWeAreDone();
     /// Called by vertices at which an error occurred during pipeline execution
     void pipelineErrorSlot(const QString msg = "");
     /// Moves all selected items by dx, dy
     void moveSelectedItems(qreal dx, qreal dy);
     /// Makes all vertices snap to the grid
     void snapToGrid();
-    /// Sets if the running_ flag to true
+    /// Sets if the running_ flag to true, or false
+    /// If set to false, the application emits an 'alert' sign, demanding user attention (to let him know it finished)
     void setPipelineRunning(bool b = true);
     /// Invoked by TTV if a parameter was edited
     void changedParameter(const TOPPASToolVertex::TOOLSTATUS status);
@@ -342,7 +343,8 @@ protected:
     QString description_text_;
     /// maximum number of allowed threads
     int allowed_threads_;
-
+    /// last node where 'resume' was started
+    TOPPASToolVertex* resume_source_;
 
     /// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
     TOPPASVertex * getVertexAt_(const QPointF & pos);
