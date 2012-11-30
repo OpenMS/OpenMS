@@ -1716,18 +1716,20 @@ namespace OpenMS
     Int charge = 0;
     DoubleReal quality = 0.0;
     Size size = 0;
+    const Feature* f = NULL;
+    const ConsensusFeature* cf = NULL;
     ConsensusFeature::HandleSetType sub_features;
 
     switch (getCurrentLayer().type)
     {
     case LayerData::DT_FEATURE:
     {
-      const Feature & f = peak.getFeature(*getCurrentLayer().getFeatureMap());
-      mz = f.getMZ();
-      rt = f.getRT();
-      it = f.getIntensity();
-      charge  = f.getCharge();
-      quality = f.getOverallQuality();
+      f = &peak.getFeature(*getCurrentLayer().getFeatureMap());
+      mz = f->getMZ();
+      rt = f->getRT();
+      it = f->getIntensity();
+      charge  = f->getCharge();
+      quality = f->getOverallQuality();
     }
     break;
 
@@ -1743,14 +1745,14 @@ namespace OpenMS
 
     case LayerData::DT_CONSENSUS:
     {
-      const ConsensusFeature & cf = peak.getFeature(*getCurrentLayer().getConsensusMap());
+      cf = &peak.getFeature(*getCurrentLayer().getConsensusMap());
 
-      mz = cf.getMZ();
-      rt = cf.getRT();
-      it = cf.getIntensity();
-      charge  = cf.getCharge();
-      quality = cf.getQuality();
-      sub_features = cf.getFeatures();
+      mz = cf->getMZ();
+      rt = cf->getRT();
+      it = cf->getIntensity();
+      charge  = cf->getCharge();
+      quality = cf->getQuality();
+      sub_features = cf->getFeatures();
       size =  sub_features.size();
     }
     break;
@@ -1788,6 +1790,22 @@ namespace OpenMS
     {
       lines.push_back("Charge: " + QString::number(charge));
       lines.push_back("Quality: " + QString::number(quality, 'f', 4));
+      // peptide identifications
+      const PeptideIdentification* pis = NULL;
+      if ( f && f->getPeptideIdentifications().size() > 0 ) {
+        pis = &f->getPeptideIdentifications()[0];
+      }
+      else if ( cf && cf->getPeptideIdentifications().size() > 0 ) {
+        pis = &cf->getPeptideIdentifications()[0];
+      }
+      if ( pis && pis->getHits().size() ) {
+          Size nHits = pis->getHits().size();
+          for (Size j = 0; j < nHits; ++j)
+          {
+            lines.push_back( "Peptide" + ( nHits > 1 ? "[" + QString::number(j+1) + "]" : "" ) + ": "
+                             + pis->getHits()[j].getSequence().toString().toQString() );
+          }
+      }
     }
 
     if (getCurrentLayer().type == LayerData::DT_CONSENSUS)
