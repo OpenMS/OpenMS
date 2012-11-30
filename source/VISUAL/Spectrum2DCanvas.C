@@ -404,8 +404,20 @@ namespace OpenMS
       }
       else
       {
+        // calculate pixel width and height in rt/mz coordinates
+        QPoint p1, p2;
+        dataToWidget_(1, 1, p1);
+        dataToWidget_(0, 0, p2);
+        DoubleReal pixel_width = abs(p1.x() - p2.x());
+        DoubleReal pixel_height = abs(p1.y() - p2.y());
+
+        // when data is zoomed in to single peaks these are visualized as circles
+        DoubleReal pen_width = qMax( 1.0, isMzToXAxis()
+            ? min(pixel_width * min_spacing_mz, pixel_height * average_spacing_rt)
+            : min(pixel_width * average_spacing_rt, pixel_height * min_spacing_mz) );
+
         // few data points expected: more expensive drawing of all datapoints (circles or points depending on zoom level)
-        paintAllIntensities_(layer_index, min_spacing_mz, average_spacing_rt, painter);
+        paintAllIntensities_(layer_index, pen_width, painter);
       }
 
       //-----------------------------------------------------------------
@@ -435,10 +447,10 @@ namespace OpenMS
             layer.filters.passes(*i))
         {
           // determine color
-          QRgb color;
+          QColor color;
           if (i->metaValueExists(5))
           {
-            color = QColor(i->getMetaValue(5).toQString()).rgb();
+            color = QColor(i->getMetaValue(5).toQString());
           }
           else
           {
@@ -451,7 +463,7 @@ namespace OpenMS
           dataToWidget_(i->getMZ(), i->getRT(), pos);
           if (pos.x() > 0 && pos.y() > 0 && pos.x() < image_width - 1 && pos.y() < image_height - 1)
           {
-            paintIcon_(pos, color, icon, icon_size, painter);
+            paintIcon_(pos, color.rgb(), icon, icon_size, painter);
           }
         }
       }
@@ -536,11 +548,12 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintAllIntensities_(Size layer_index, DoubleReal minimum_spacing_mz, DoubleReal average_spacing_rt, QPainter & painter)
+  void Spectrum2DCanvas::paintAllIntensities_(Size layer_index, DoubleReal pen_width, QPainter & painter)
   {
     const LayerData & layer = getLayer(layer_index);
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
+    QVector<QPolygon> coloredPoints( layer.gradient.precalculatedSize() );
 
     const ExperimentType & map = *layer.getPeakData();
     const DoubleReal rt_min = visible_area_.minPosition()[1];
@@ -549,25 +562,6 @@ namespace OpenMS
     const DoubleReal mz_max = visible_area_.maxPosition()[0];
 
     DoubleReal snap_factor = snap_factors_[layer_index];
-
-    // calculate pixel width and height in rt/mz coordinates
-    QPoint p1, p2;
-    dataToWidget_(1, 1, p1);
-    dataToWidget_(0, 0, p2);
-    DoubleReal pixel_width = abs(p1.x() - p2.x());
-    DoubleReal pixel_height = abs(p1.y() - p2.y());
-
-    // when data is zoomed in to single peaks these are visualized as circles
-    Int circle_size = 0;
-
-    if (isMzToXAxis())
-    {
-      circle_size = min((Int)(pixel_width * minimum_spacing_mz), (Int)(pixel_height * average_spacing_rt)) / 2.0;
-    }
-    else
-    {
-      circle_size = min((Int)(pixel_width * average_spacing_rt), (Int)(pixel_height * minimum_spacing_mz)) / 2.0;
-    }
 
     for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(rt_min, rt_max, mz_min, mz_max);
          i != map.areaEndConst();
@@ -580,30 +574,26 @@ namespace OpenMS
         dataToWidget_(i->getMZ(), i.getRT(), pos);
         if (pos.x() > 0 && pos.y() > 0 && pos.x() < image_width - 1 && pos.y() < image_height - 1)
         {
-          QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
-
-          if (circle_size <= 1)
-          {
-            painter.setPen(QColor(color));
-            painter.drawPoint(pos.x(), pos.y());
-          }
-          else
-          {
-            painter.setPen(Qt::NoPen);
-            painter.setBrush(QBrush(color));
-
-            painter.drawChord(
-              QRect(pos.x() - (int)circle_size / 2, pos.y() - (int)circle_size / 2,
-                    circle_size, circle_size),
-              0,
-              16 * 360
-              );
-          }
+          // store point in the array of its color
+          Int colorIndex = precalculatedColorIndex_(i->getIntensity(), layer.gradient, snap_factor);
+          coloredPoints[ colorIndex ].push_back( pos );
         }
       }
     }
-    painter.setBrush(QBrush());
-    painter.setPen(Qt::black);
+    // draw point arrays from minimum to maximum intensity,
+    // avoiding low-intensity points obscuring the high-intensity ones
+    painter.save();
+    QPen newPointsPen;
+    newPointsPen.setWidthF( pen_width );
+    for ( Int colorIx = 0; colorIx < coloredPoints.size(); colorIx++ ) {
+        const QPolygon& pointsArr = coloredPoints[colorIx];
+        if ( pointsArr.size() ) {
+            newPointsPen.setColor( layer.gradient.precalculatedColorByIndex( colorIx ) );
+            painter.setPen( newPointsPen );
+            painter.drawPoints( pointsArr );
+        }
+    }
+    painter.restore();
   }
 
   void Spectrum2DCanvas::paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter & painter)
@@ -689,7 +679,7 @@ namespace OpenMS
           dataToWidget_(mz_start + 0.5 * mz_step_size, rt_start + 0.5 * rt_step_size, pos);
           if (pos.y() < image_height && pos.x() < image_width)
           {
-            buffer_.setPixel(pos.x(), pos.y(), heightColor_(max, layer.gradient, snap_factor));
+            buffer_.setPixel(pos.x(), pos.y(), heightColor_(max, layer.gradient, snap_factor).rgb());
           }
         }
       }
@@ -719,10 +709,10 @@ namespace OpenMS
           layer.filters.passes(*i))
       {
         //determine color
-        QRgb color;
+        QColor color;
         if (i->metaValueExists(5))
         {
-          color = QColor(i->getMetaValue(5).toQString()).rgb();
+          color = QColor(i->getMetaValue(5).toQString());
         }
         else
         {
@@ -733,7 +723,7 @@ namespace OpenMS
         dataToWidget_(i->getMZ(), i->getRT(), pos);
         if (pos.x() > 0 && pos.y() > 0 && pos.x() < image_width - 1 && pos.y() < image_height - 1)
         {
-          paintIcon_(pos, color, icon, icon_size, painter);
+          paintIcon_(pos, color.rgb(), icon, icon_size, painter);
         }
         //labels
         if (show_label)
