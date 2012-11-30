@@ -338,6 +338,9 @@ protected:
     /// start peak/feature of measuring mode
     PeakIndex measurement_start_;
 
+    /// translates the visible area by a given offset specified in fractions of current visible area
+    virtual void translateVisibleArea_( DoubleReal mzShiftRel, DoubleReal rtShiftRel );
+
     //docu in base class
     virtual void translateLeft_();
     //docu in base class

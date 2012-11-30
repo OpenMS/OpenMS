@@ -2766,68 +2766,53 @@ namespace OpenMS
     modificationStatus_(i, false);
   }
 
-  void Spectrum2DCanvas::translateLeft_()
+  void Spectrum2DCanvas::translateVisibleArea_( DoubleReal mzShiftRel, DoubleReal rtShiftRel )
   {
-    DoubleReal shift = 0.05 * visible_area_.width();
-    DoubleReal newLo = visible_area_.minX() - shift;
-    DoubleReal newHi = visible_area_.maxX() - shift;
-    // check if we are falling out of bounds
-    if (newLo < overall_data_range_.minX())
-    {
-      newLo = overall_data_range_.minX();
-      newHi = newLo + visible_area_.width();
+    DoubleReal rtShift = rtShiftRel * visible_area_.height();
+    DoubleReal mzShift = mzShiftRel * visible_area_.width();
+    AreaType newArea( visible_area_ );
+    // shift the visible area avoiding moving out data range bounds
+    if ( mzShift > 0 ) {
+        newArea.setMaxX( qMin( overall_data_range_.maxX(), visible_area_.maxX() + mzShift ) );
+        newArea.setMinX( qMax( overall_data_range_.minX(), newArea.maxX() - visible_area_.width() ) );
+    } else {
+        newArea.setMinX( qMax( overall_data_range_.minX(), visible_area_.minX() + mzShift ) );
+        newArea.setMaxX( qMin( overall_data_range_.maxX(), newArea.minX() + visible_area_.width() ) );
+    }
+    if ( rtShift > 0 ) {
+        newArea.setMaxY( qMin( overall_data_range_.maxY(), visible_area_.maxY() + rtShift ) );
+        newArea.setMinY( qMax( overall_data_range_.minY(), newArea.maxY() - visible_area_.height() ) );
+    } else {
+        newArea.setMinY( qMax( overall_data_range_.minY(), visible_area_.minY() + rtShift ) );
+        newArea.setMaxY( qMin( overall_data_range_.maxY(), newArea.minY() + visible_area_.height() ) );
     }
     //change visible area
-    changeVisibleArea_(AreaType(newLo, visible_area_.minY(), newHi, visible_area_.maxY()));
+    changeVisibleArea_(newArea);
     emit layerZoomChanged(this);
+  }
+
+  void Spectrum2DCanvas::translateLeft_()
+  {
+    if ( isMzToXAxis() ) translateVisibleArea_( -0.05, 0.0 );
+    else translateVisibleArea_( 0.0, -0.05 );
   }
 
   void Spectrum2DCanvas::translateRight_()
   {
-    DoubleReal shift = 0.05 * visible_area_.width();
-    DoubleReal newLo = visible_area_.minX() + shift;
-    DoubleReal newHi = visible_area_.maxX() + shift;
-    // check if we are falling out of bounds
-    if (newHi > overall_data_range_.maxX())
-    {
-      newHi = overall_data_range_.maxX();
-      newLo = newHi - visible_area_.width();
-    }
-    //change visible area
-    changeVisibleArea_(AreaType(newLo, visible_area_.minY(), newHi, visible_area_.maxY()));
-    emit layerZoomChanged(this);
+    if ( isMzToXAxis() ) translateVisibleArea_( 0.05, 0.0 );
+    else translateVisibleArea_( 0.0, 0.05 );
   }
 
   void Spectrum2DCanvas::translateForward_()
   {
-    DoubleReal shift = 0.05 * visible_area_.height();
-    DoubleReal newLo = visible_area_.minY() + shift;
-    DoubleReal newHi = visible_area_.maxY() + shift;
-    // check if we are falling out of bounds
-    if (newHi > overall_data_range_.maxY())
-    {
-      newHi = overall_data_range_.maxY();
-      newLo = newHi - visible_area_.height();
-    }
-    //change visible area
-    changeVisibleArea_(AreaType(visible_area_.minX(), newLo, visible_area_.maxX(), newHi));
-    emit layerZoomChanged(this);
+    if ( isMzToXAxis() ) translateVisibleArea_( 0.0, 0.05 );
+    else translateVisibleArea_( 0.05, 0.0 );
   }
 
   void Spectrum2DCanvas::translateBackward_()
   {
-    DoubleReal shift = 0.05 * visible_area_.height();
-    DoubleReal newLo = visible_area_.minY() - shift;
-    DoubleReal newHi = visible_area_.maxY() - shift;
-    // check if we are falling out of bounds
-    if (newLo < overall_data_range_.minY())
-    {
-      newLo = overall_data_range_.minY();
-      newHi = newLo + visible_area_.height();
-    }
-    //change visible area
-    changeVisibleArea_(AreaType(visible_area_.minX(), newLo, visible_area_.maxX(), newHi));
-    emit layerZoomChanged(this);
+    if ( isMzToXAxis() ) translateVisibleArea_( 0.0, -0.05 );
+    else translateVisibleArea_( -0.05, 0.0 );
   }
 
   void Spectrum2DCanvas::keyPressEvent(QKeyEvent * e)
