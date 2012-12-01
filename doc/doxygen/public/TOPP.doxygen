@@ -146,6 +146,12 @@
   <b>Targeted Experiments</b>
   - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
   - @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
+  - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML)
+  - @subpage TOPP_OpenSwathDecoyGenerator - Generates decoys according to different models for a specific TraML
+  - @subpage TOPP_OpenSwathChromatogramExtractor - Extract chromatograms (XIC) from a MS2 map file.
+  - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
+  - @subpage TOPP_OpenSwathRTNormalizer - This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transoform the RT space into the normalized space.   
+  - @subpage TOPP_OpenSwathFeatureXMLToTSV - Converts a featureXML to a tsv.
 
   <b>Peptide Property Prediction</b>
   - @subpage TOPP_PTModel - Trains a model for the prediction of proteotypic peptides from a training set.
