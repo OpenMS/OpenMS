@@ -48,7 +48,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenSwathmzMLFileCacher OpenSwathmzMLFileCacher
+  @page TOPP_OpenSwathMzMLFileCacher OpenSwathMzMLFileCacher
 
   @brief Serialize a specrta mzML file
 

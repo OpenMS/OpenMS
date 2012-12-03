@@ -43,7 +43,7 @@ if(NOT DISABLE_OPENSWATH)
     ConvertTSVToTraML
     ConvertTraMLToTSV
     OpenSwathDIAPreScoring
-    OpenSwathmzMLFileCacher
+    OpenSwathMzMLFileCacher
     OpenSwathRewriteToFeatureXML
   )
 endif(NOT DISABLE_OPENSWATH)
