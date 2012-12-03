@@ -42,7 +42,6 @@ if(NOT DISABLE_OPENSWATH)
     ${UTILS_executables}
     ConvertTSVToTraML
     ConvertTraMLToTSV
-    OpenSwathConfidenceScoring
     OpenSwathDIAPreScoring
     OpenSwathmzMLFileCacher
     OpenSwathRewriteToFeatureXML

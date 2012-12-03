@@ -58,6 +58,7 @@ NoiseFilterSGolay
 OMSSAAdapter
 OpenSwathAnalyzer
 OpenSwathChromatogramExtractor
+OpenSwathConfidenceScoring
 OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
