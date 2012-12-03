@@ -163,7 +163,7 @@ protected:
     }
 
 
-    GUI::QApplicationTOPP a(argc, const_cast<char **>(argv));
+    QApplicationTOPP a(argc, const_cast<char **>(argv));
 
     IDEvaluationBase * mw = new IDEvaluationBase();
     Param alg_param = mw->getParameters();

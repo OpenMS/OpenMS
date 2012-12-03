@@ -131,7 +131,7 @@ int main(int argc, const char** argv)
   }
 
   //Create window
-  GUI::QApplicationTOPP app(argc, const_cast<char**>(argv));
+  QApplicationTOPP app(argc, const_cast<char**>(argv));
 
   //set plastique style unless windows / mac style is available
   if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))
