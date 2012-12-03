@@ -90,7 +90,6 @@
 #include <QSvgGenerator>
 #include <QNetworkProxyFactory>
 #include <QNetworkProxy>
-#include <QTextCodec>
 
 using namespace std;
 
@@ -106,18 +105,9 @@ namespace OpenMS
     DefaultParamHandler("TOPPASBase"),
     clipboard_scene_(0)
   {
-#if  defined(__APPLE__)
-    // we do not want to load plugins as this leeds to serious problems
-    // when shipping on mac os x
-    QApplication::setLibraryPaths(QStringList());
-#endif
-    
     setWindowTitle("TOPPAS");
     setWindowIcon(QIcon(":/TOPPAS.png"));
-    
-    // ensure correct encoding of paths
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-    
+
     //prevents errors caused by too small width,height values
     setMinimumSize(400, 400);
 
@@ -260,9 +250,9 @@ namespace OpenMS
 
     // online browser
     webview_ = new QWebView(parent);
-    webview_->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks); // now linkClicked() is emitted
+    //webview_->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks); // now linkClicked() is emitted
 
-    connect((webview_->page()), SIGNAL(linkClicked(const QUrl &)), this, SLOT(downloadTOPPASfromHomepage_(const QUrl &)));
+    //connect((webview_->page()), SIGNAL(linkClicked(const QUrl &)), this, SLOT(downloadTOPPASfromHomepage_(const QUrl &)));
 
     network_manager_ = new QNetworkAccessManager(this);
     connect(network_manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(toppasFileDownloaded_(QNetworkReply*)));
