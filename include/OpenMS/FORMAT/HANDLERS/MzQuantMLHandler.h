@@ -129,7 +129,7 @@ private:
       std::map<String, std::vector<ExperimentalSettings> > current_files_;           // 1.rawfilesgroup_ref 2.inputfiles for each assay as experimentalsettings
       String current_id_;
       String current_cf_id_;
-      int current_count_;
+      Size current_count_;
 
       std::vector<MetaInfo> up_stack_;
       std::vector<CVTerm> cvp_stack_;

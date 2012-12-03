@@ -36,6 +36,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <set>
 #include <vector>
 #include <map>
@@ -298,7 +299,7 @@ namespace OpenMS
       }
       else if (tag_ == "Column")
       {
-        current_count_ = attributeAsInt_(attributes, "index");
+        current_count_ = Size(attributeAsInt_(attributes, "index"));
       }
       else if (tag_ == "Row")
       {
@@ -510,6 +511,114 @@ namespace OpenMS
 
     void MzQuantMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& /* attributes */, const String& /* cv_ref */, const String& /* unit_accession */)
     {
+      //Abort on unknown terms
+      if (!cv_.exists(accession))
+      {
+        //in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
+        if (parent_tag != "sample")
+        {
+          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          return;
+        }
+      }
+      else
+      {
+        const ControlledVocabulary::CVTerm & term = cv_.getTerm(accession);
+        //obsolete CV terms
+        if (term.obsolete)
+        {
+          warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+        }
+        //check if term name and parsed name match
+        String parsed_name = name;
+        parsed_name.trim();
+        String correct_name = term.name;
+        correct_name.trim();
+        if (parsed_name != correct_name)
+        {
+          warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
+        }
+        if (term.obsolete)
+        {
+          warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+        }
+        //values used in wrong places and wrong value types
+        if (value != "")
+        {
+          if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
+          {
+            //Quality CV does not state value type :(
+            if (!accession.hasPrefix("PATO:"))
+            {
+              warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+            }
+          }
+          else
+          {
+            switch (term.xref_type)
+            {
+            //string value can be anything
+            case ControlledVocabulary::CVTerm::XSD_STRING:
+              break;
+
+            //int value => try casting
+            case ControlledVocabulary::CVTerm::XSD_INTEGER:
+            case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
+            case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
+            case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
+            case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
+              try
+              {
+                value.toInt();
+              }
+              catch (Exception::ConversionError &)
+              {
+                warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
+                return;
+              }
+              break;
+
+            //double value => try casting
+            case ControlledVocabulary::CVTerm::XSD_DECIMAL:
+              try
+              {
+                value.toDouble();
+              }
+              catch (Exception::ConversionError &)
+              {
+                warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
+                return;
+              }
+              break;
+
+            //date string => try conversion
+            case ControlledVocabulary::CVTerm::XSD_DATE:
+              try
+              {
+                DateTime tmp;
+                tmp.set(value);
+              }
+              catch (Exception::ParseError &)
+              {
+                warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+                return;
+              }
+              break;
+
+            default:
+              warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
+              break;
+            }
+          }
+        }
+        //no value, although there should be a numerical value
+        else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING)
+        {
+          warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+          return;
+        }
+      }
+
       if (parent_tag == "DataType" && parent_parent_tag == "Column")
       {
         if (current_count_ >= current_col_types_.size())
@@ -555,6 +664,11 @@ namespace OpenMS
         data_value = DataValue(value);
       }
 
+      if (parent_parent_tag == "")
+      {
+	      //~ TODO: dummy
+	      warning(LOAD, String("The user param '") + name + "' used in tag '" + parent_tag + "' has no valid grand parent.'");
+      }
       //find the right MetaInfoInterface
       if (parent_tag == "ProcessingMethod")
       {
@@ -609,18 +723,17 @@ namespace OpenMS
 
     void MzQuantMLHandler::writeTo(std::ostream& os)
     {
-      //~ TODO logger_.startProgress(0,exp.size(),"storing mzML file");
+      //~ TODO logger_.startProgress(0,exp.size(),"storing mzQuantML file");
       String line; //everyone walk the line!!!
       std::vector<UInt64> rid;
 
       //header
-      //~ TODO CreationDate
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-      os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3\"" << " version=\"1.0.0\"" << ">\n";    //~ TODO add id
+      os << "<MzQuantML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd\" xmlns=\"http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3\" id=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\" version=\"1.0.0\"" << " creationDate=\"" << DateTime::now().get() << "\">\n";
 
       //CVList
       os << "<CvList>\n";
-      os << " \t<Cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"2.25.0\"/>\n";
+      os << " \t<Cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"3.41.0\"/>\n";
       os << "\t<Cv id=\"PSI-MOD\" fullName=\"Proteomics Standards Initiative Protein Modifications Vocabularies\" uri=\"http://psidev.cvs.sourceforge.net/psidev/psi/mod/data/PSI-MOD.obo\" version=\"1.2\"/>\n";
       os << "\t<Cv id=\"UO\" fullName=\"Unit Ontology\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"/>\n";
       os << "</CvList>\n";
@@ -648,6 +761,11 @@ namespace OpenMS
         os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002026\" name=\"MS2 tag-based analysis protein level quantitation\" value=\"false\"/>\n";
         os << "\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002027\" name=\"MS2 tag-based analysis protein group level quantitation\" value=\"false\"/>\n";
         break;
+
+      case 2:
+        break; //no tool yet
+      case 3:
+        break; //why SIZE_OF_QUANT_TYPES anyway?
       }
       //~ writeUserParam_(dataprocessinglist_tag, cmsq_->getAnalysisSummary().getUserParams(), UInt(2));
       //~ writeCVParams_(dataprocessinglist_tag, (cmsq_->getAnalysisSummary().getCVTerms(), UInt(2));
@@ -763,6 +881,12 @@ namespace OpenMS
         }
         ratio_xml += "\t</RatioList>\n";
         break;
+      case 1:
+        break; //TODO for SILACAnalyzer to produce some ratios
+      case 2:
+        break; //no tool yet
+      case 3:
+        break; //why SIZE_OF_QUANT_TYPES anyway?
       }
 
       String glob_rfgr;
@@ -948,6 +1072,11 @@ namespace OpenMS
             }
             f2i.push_back(fi);
           } break;
+
+          case 2:
+            break; //no tool yet
+          case 3:
+            break; //why SIZE_OF_QUANT_TYPES anyway?
           }
         }
         cid.push_back(cmid);
@@ -994,6 +1123,11 @@ namespace OpenMS
         feature_xml += String("\t\t\t</DataMatrix>\n\t\t</MS2AssayQuantLayer>\n");
       }
       break;
+
+      case 2:
+        break; //no tool yet
+      case 3:
+        break; //why SIZE_OF_QUANT_TYPES anyway?
       }
       feature_xml += String("\t</FeatureList>\n");
 
@@ -1088,8 +1222,12 @@ namespace OpenMS
           }
         }
         break;
-        }
 
+        case 2:
+          break; //no tool yet
+        case 3:
+          break; //why SIZE_OF_QUANT_TYPES anyway?
+        }
       }
 
       //--------------------------------------------------------------------------------------------
@@ -1165,6 +1303,10 @@ namespace OpenMS
 
     void MzQuantMLHandler::writeFeature_(ostream& os, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
     {
+	//TODO: remove dummy
+	os << "\n featurewriter: " << identifier_prefix << "-" << String(identifier) << "-" << String(indentation_level) << "\n";
+	//TODO: remove dummy
+
       //~ String indent = String(indentation_level,'\t');
 
       //~ os << indent << "\t\t<Feature id=\"" << identifier_prefix << identifier ;
