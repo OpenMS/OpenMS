@@ -64,6 +64,13 @@ END_SECTION
 START_SECTION(EmpiricalFormula(const String& rhs))
 	e_ptr = new EmpiricalFormula("C4");
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+        EmpiricalFormula e0("C5(13)C4H2");
+        EmpiricalFormula e1("C5(13)C4");
+        EmpiricalFormula e2("(12)C5(13)C4");
+        EmpiricalFormula e3("C9");
+	TEST_REAL_SIMILAR(e1.getMonoWeight(), e2.getMonoWeight())
+	TEST_REAL_SIMILAR(e1.getMonoWeight(), 112.013419)
+	TEST_REAL_SIMILAR(e2.getMonoWeight(), 112.013419)
 END_SECTION
 
 START_SECTION(EmpiricalFormula(const EmpiricalFormula& rhs))
