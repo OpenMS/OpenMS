@@ -152,6 +152,7 @@
   - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
   - @subpage TOPP_OpenSwathRTNormalizer - This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transoform the RT space into the normalized space.   
   - @subpage TOPP_OpenSwathFeatureXMLToTSV - Converts a featureXML to a tsv.
+  - @subpage TOPP_OpenSwathConfidenceScoring - Computes confidence scores for OpenSwath results.
 
   <b>Peptide Property Prediction</b>
   - @subpage TOPP_PTModel - Trains a model for the prediction of proteotypic peptides from a training set.
