@@ -140,7 +140,7 @@ int main(int argc, const char ** argv)
 
   try
   {
-    QApplication a(argc, const_cast<char **>(argv));
+    QApplicationTOPP a(argc, const_cast<char **>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 
     //set plastique style unless windows / mac style is available
