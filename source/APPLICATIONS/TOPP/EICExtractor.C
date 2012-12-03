@@ -38,8 +38,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <functional>
 #include <numeric>
@@ -75,10 +73,10 @@ using namespace std;
 
 	The EDTA file will specify where to search for signal.
 	Retention time is in seconds [s].
-	'int' and 'charge' are ignored but need to be present. Also optional is a 'rank' column. Rows with equal rank are
+	'int' and 'charge' are ignored but need to be present. However, you MUST specify a 'rank' column. Rows with equal rank are
 	summed up in intensity (e.g. useful if you have charge variants you want to sum up to enhance quantitation robustness).
-	Each rank represents a so called Master Compound, which consists of one or more sub compounds.
-	If you do not require ranks, each row is given a unique number, i.e., each compound is independend.
+	Each rank represents a so called Master Compound, which constists of one or more sub compounds.
+	If you do not require ranks, give each row a unique number, e.g. start numbering from 1 to n.
 
 	The intensity reported is the MAXIMUM intensity of all peaks each within the given tolerances for this row's position.
 
@@ -122,11 +120,6 @@ public:
     setValidFormats_("in", StringList::create("mzML"));
     registerInputFile_("pos", "<file>", "", "Input config file stating where to find signal");
     setValidFormats_("pos", StringList::create("edta"));
-    registerTOPPSubsection_("auto_rt", "Parameters for automatic detection of injection RT peaks (no need to specify them in 'pos' input file)");
-    registerFlag_("auto_rt:enabled", "Automatically detect injection peaks from TIC and quantify all m/z x RT combinations.");
-    registerDoubleOption_("auto_rt:FHWM", "<FWHM [s]>", 3, "Expected full width at half-maximum of each raw RT peak in [s]. Gaussian smoothing filter with this width is applied to TIC.", false, true);
-    registerDoubleOption_("auto_rt:SNThreshold", "<S/N>", 5, "S/N threshold for a smoothed raw peak to pass peak picking. Higher thesholds will result in less peaks.", false, true);
-    registerOutputFileList_("auto_rt:out_debug_TIC", "<file>", StringList::create(""), "Optional output file (one per input) containing the smoothed TIC, S/N levels and picked RT positions", false, true);
     registerDoubleOption_("rt_tol", "", 3, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
     registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
@@ -145,14 +138,6 @@ public:
     String edta = getStringOption_("pos");
     String out = getStringOption_("out");
     String out_detail = getStringOption_("out_detail");
-    StringList out_TIC_debug = getStringList_("auto_rt:out_debug_TIC");
-
-    // number of out_debug_TIC files and input files must be identical
-    if (out_TIC_debug.size() > 0 && in.size() != out_TIC_debug.size())
-    {
-        LOG_FATAL_ERROR << "Error: number of input file 'in' and auto_rt:out_debug_TIC files must be identical!" << std::endl;
-        return ILLEGAL_PARAMETERS;
-    }
 
     DoubleReal rttol = getDoubleOption_("rt_tol");
     DoubleReal mztol = getDoubleOption_("mz_tol");
@@ -175,44 +160,30 @@ public:
     tf_master.resize(1);   // for header line
     tf_single.resize(cm.size() + 2); // two header lines: #1 for filenames; #2 for dRT,ppm, intensity
     tf_single[0] = "#filenames";
+    tf_single[1] = "rank";
     for (Size i = 0; i < cm.size(); ++i)
     {
-      Size rank;
       if (!cm[i].metaValueExists("rank"))
       {
-        rank = i;
-        cm[i].setMetaValue("rank", rank);
+        LOG_FATAL_ERROR << "Required column 'rank' not found in EDTA file. Aborting ...\n";
+        return ILLEGAL_PARAMETERS;
       }
-      else
+      Size rank;
+      try
       {
-        try
-        {
-          rank = String(cm[i].getMetaValue("rank")).toInt();
-        }
-        catch (Exception::ConversionError & /*e*/)
-        {
-          LOG_FATAL_ERROR << "Entry in column 'rank' (line " << i << ") is not a valid integer! Aborting ...\n";
-          return ILLEGAL_PARAMETERS;
-        }
+        rank = String(cm[i].getMetaValue("rank")).toInt();
       }
-      // check RT (if its negative, then auto-detect-RT must be enabled)
-      if (cm[i].getRT()<0)
+      catch (Exception::ConversionError & /*e*/)
       {
-        if (!getFlag_("auto_rt:enabled"))
-        {
-          LOG_FATAL_ERROR << "Negative RT values in position file detected, but 'auto_rt:enabled' is not enabled. Either enable it or remove the corresponding position!" << std::endl;
-          return ILLEGAL_PARAMETERS;
-        }
-      {
-
+        LOG_FATAL_ERROR << "Entry in column 'rank' (line " << i << ") is not a valid integer! Aborting ...\n";
+        return ILLEGAL_PARAMETERS;
+      }
       tf_single[i + 2] += rank; // rank column before first experiment
     }
 
     for (Size fi = 0; fi < in.size(); ++fi)
     {
-      ConsensusMap cm_local = cm; // we might have different RT peaks for each map if 'auto_rt' is enabled
       mzml_file.load(in[fi], exp);
-      exp.sortSpectra(true);
 
       if (exp.empty())
       {
@@ -221,67 +192,6 @@ public:
         return INCOMPATIBLE_INPUT_DATA;
       }
 
-      // try to detect RT peaks
-      if (getFlag_("auto_rt:enabled"))
-      {
-        // compute TIC
-        MSChromatogram<> tic = exp.getTIC();
-        MSSpectrum<> tics, tics2, tics_sn;
-        for (Size ic=0; ic<tic.size();++ic)
-        { // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)
-          Peak1D peak;
-          peak.setMZ(tic[ic].getRT());
-          peak.setIntensity(tic[ic].getIntensity());
-          tics.push_back(peak);
-        }
-        // smooth
-        DoubleReal fwhm = getDoubleOption_("auto_rt:FHWM");
-        GaussFilter gf;
-        Param p = gf.getParameters();
-        p.setValue("gaussian_width", fwhm);
-        p.setValue("use_ppm_tolerance", "false");
-        gf.setParameters(p);
-        gf.filter(tics);
-        // pick peaks
-        PeakPickerHiRes pp;
-        p = pp.getParameters();
-        p.setValue("signal_to_noise", getDoubleOption_("auto_rt:SNThreshold"));
-        pp.setParameters(p);
-        pp.pick(tics, tics2);
-
-        if (fi < out_TIC_debug.size())
-        { // store intermediate steps for debug
-          MSExperiment<> out_debug;
-          out_debug.push_back(tics);
-  
-          SignalToNoiseEstimatorMedian<MSSpectrum<> > snt;
-          snt.init(tics);
-          for (Size is=0; is<tics.size(); ++is) 
-          {
-            Peak1D peak;
-            peak.setMZ(tic[is].getMZ());
-            peak.setIntensity(snt.getSignalToNoise(tics[is]));
-            tics_sn.push_back(peak);
-          }
-          out_debug.push_back(tics_sn);
-
-          out_debug.push_back(tics2);
-          mzml_file.store(out_TIC_debug[fi], out_debug);
-          LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug[fi] << std::endl;
-        }
-
-        // add target EICs: for each m/z with no RT, add all combinations of that m/z with auto-RTs
-        for (ConsensusMap::Iterator cit = cm_local.begin(); cit != cm_local.end(); ++cit)
-        {
-          if (cit->getRT() < 0)
-          {
-            ConsensusMap cm_RT_multiplex;
-            for (
-          }
-        }
-      }
-      continue;
-        
 
       Map<Size, DoubleReal> quant;
 
