@@ -57,7 +57,7 @@ namespace OpenMS
 
 public:
     /// Constructor
-    QApplicationTOPP(int argc, char** argv);
+    QApplicationTOPP(int& argc, char** argv);
 
     /// Destructor
     virtual ~QApplicationTOPP();

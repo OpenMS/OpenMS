@@ -46,7 +46,7 @@
 namespace OpenMS
 {
 
-  QApplicationTOPP::QApplicationTOPP(int argc, char** argv) :
+  QApplicationTOPP::QApplicationTOPP(int& argc, char** argv) :
     QApplication(argc, argv)
   {
   }
@@ -75,6 +75,7 @@ namespace OpenMS
       return false;
       // we could also exit() here... but no for now
     }
+
     return false; // never reached, so return value does not matter
   }
   
