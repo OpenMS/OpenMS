@@ -56,7 +56,7 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    /// Constructor
+    /// Constructor (no NOT remove the "&" from argc, since Qt will segfault on some platforms otherwise!)
     QApplicationTOPP(int& argc, char** argv);
 
     /// Destructor
