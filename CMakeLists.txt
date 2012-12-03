@@ -265,18 +265,19 @@ else()
 	set(OPENMS_HAS_SVNVERSION ON CACHE INTERNAL "SVNVersion(.exe) present?")
 endif()
 
+set(SVN_REVISION_FILE "${PROJECT_BINARY_DIR}/include/OpenMS/openms_svn_revision.h")
+
 ## update the openms_svn_revision.h file before compiling OpenMS
 set(ENABLE_SVN ON CACHE STRING "Use svnversion (if available) to implant a svn revision number into the library!")
 if (ENABLE_SVN)
         message(STATUS "SVN revision information enabled. Use 'ENABLE_SVN=OFF' to disable!")
-	set(SVN_REVISION_FILE "${PROJECT_BINARY_DIR}/include/OpenMS/openms_svn_revision.h")
         add_custom_target(svn_revision_update ALL
                                 COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE} -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
                                                                                                                                  -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake)
         set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
 else()
         message(STATUS "SVN revision information disabled. Use 'ENABLE_SVN=ON' to enable!")
-	set(SVN_REVISION_FILE "")
+	include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake) # generate the header once (for VersionInfo.C include)
 endif()
 
 
