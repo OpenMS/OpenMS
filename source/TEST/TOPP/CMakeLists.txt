@@ -641,6 +641,10 @@ add_test("TOPP_PeakPickerHiRes_1" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${
 add_test("TOPP_PeakPickerHiRes_1_out1" ${DIFF} -in1 PeakPickerHiRes_1.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_output.mzML)
 set_tests_properties("TOPP_PeakPickerHiRes_1_out1" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_1")
 
+add_test("TOPP_PeakPickerHiRes_2" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_2_input.mzML -out PeakPickerHiRes_2.tmp)
+add_test("TOPP_PeakPickerHiRes_2_out1" ${DIFF} -in1 PeakPickerHiRes_2.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_2_output.mzML)
+set_tests_properties("TOPP_PeakPickerHiRes_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_2")
+
 ### Resampler tests
 add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler.mzML -sampling_rate 0.3)
 add_test("TOPP_Resampler_1_out1" ${DIFF} -in1 Resampler.mzML -in2 ${DATA_DIR_TOPP}/Resampler_1_output.mzML )

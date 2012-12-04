@@ -35,6 +35,7 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERHIRES_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -324,11 +325,34 @@ public:
       return;
     }
 
+    template <typename PeakType>
+    void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output) const
+    {
+      // copy meta data of the input chromatogram
+      output.clear(true);
+      output.ChromatogramSettings::operator=(input);
+      output.MetaInfoInterface::operator=(input);
+      output.setName(input.getName());
+
+      MSSpectrum<PeakType> input_spectrum;
+      MSSpectrum<PeakType> output_spectrum;
+      for (typename MSChromatogram<PeakType>::const_iterator it = input.begin(); it != input.end(); ++it)
+      {
+        input_spectrum.push_back(*it);
+      }
+      pick(input_spectrum, output_spectrum);
+      for (typename MSSpectrum<PeakType>::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
+      {
+        output.push_back(*it);
+      }
+
+    }
+
     /**
             @brief Applies the peak-picking algorithm to a map (MSExperiment). This method picks peaks for each scan in the map consecutively. The resulting picked peaks are written to the output map.
 */
-    template <typename PeakType>
-    void pickExperiment(const MSExperiment<PeakType> & input, MSExperiment<PeakType> & output) const
+    template <typename PeakType, typename ChromatogramPeakT>
+    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -342,7 +366,7 @@ public:
       bool ms1_only = param_.getValue("ms1_only").toBool();
       Size progress = 0;
 
-      startProgress(0, input.size(), "picking peaks");
+      startProgress(0, input.size() + input.getChromatograms().size(), "smoothing data");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
         if (ms1_only && (input[scan_idx].getMSLevel() != 1))
@@ -355,6 +379,14 @@ public:
         }
         setProgress(++progress);
       }
+      for (Size i = 0; i < input.getChromatograms().size(); ++i)
+      {
+        MSChromatogram<ChromatogramPeakT> chromatogram;
+        pick(input.getChromatograms()[i], chromatogram);
+        output.addChromatogram(chromatogram);
+        setProgress(i);
+      }
+
       endProgress();
 
       return;
