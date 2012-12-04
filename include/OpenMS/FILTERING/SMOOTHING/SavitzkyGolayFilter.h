@@ -203,16 +203,39 @@ public:
       spectrum = output;
     }
 
+    template <typename PeakType>
+    void filter(MSChromatogram<PeakType> & chromatogram)
+    {
+
+      MSSpectrum<PeakType> filter_spectra;
+      for (typename MSChromatogram<PeakType>::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
+      {
+        filter_spectra.push_back(*it);
+      }
+      filter(filter_spectra);
+      chromatogram.clear(false);
+      for (typename MSSpectrum<PeakType>::const_iterator it = filter_spectra.begin(); it != filter_spectra.end(); ++it)
+      {
+        chromatogram.push_back(*it);
+      }
+
+    }
+
     /**
       @brief Removed the noise from an MSExperiment containing profile data.
     */
     template <typename PeakType>
     void filterExperiment(MSExperiment<PeakType> & map)
     {
-      startProgress(0, map.size(), "smoothing data");
+      startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");
       for (Size i = 0; i < map.size(); ++i)
       {
         filter(map[i]);
+        setProgress(i);
+      }
+      for (Size i = 0; i < map.getChromatograms().size(); ++i)
+      {
+        filter(map.getChromatogram(i));
         setProgress(i);
       }
       endProgress();

@@ -674,6 +674,12 @@ public:
       return chromatograms_;
     }
 
+    /// returns a single chromatogram 
+    MSChromatogram<ChromatogramPeakType> & getChromatogram(Size id) 
+    {
+      return chromatograms_[id];
+    }
+
     /// returns the total ion chromatogram (TIC)
     const MSChromatogram<ChromatogramPeakType> getTIC() const
     {

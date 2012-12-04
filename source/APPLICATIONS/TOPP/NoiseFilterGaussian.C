@@ -135,14 +135,14 @@ public:
     MSExperiment<Peak1D> exp;
     mz_data_file.load(in, exp);
 
-    if (exp.empty())
+    if (exp.empty() and exp.getChromatograms().size() == 0)
     {
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
     //check for peak type (profile data required)
-    if (PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS)
+    if (!exp.empty() && PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS)
     {
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }
@@ -153,6 +153,16 @@ public:
       if (!exp[i].isSorted())
       {
         writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
+
+    //check if chromatograms are sorted
+    for (Size i = 0; i < exp.getChromatograms().size(); ++i)
+    {
+      if (!exp.getChromatogram(i).isSorted())
+      {
+        writeLog_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }
