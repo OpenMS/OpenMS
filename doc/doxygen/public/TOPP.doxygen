@@ -150,7 +150,7 @@
   - @subpage TOPP_OpenSwathDecoyGenerator - Generates decoys according to different models for a specific TraML
   - @subpage TOPP_OpenSwathChromatogramExtractor - Extract chromatograms (XIC) from a MS2 map file.
   - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
-  - @subpage TOPP_OpenSwathRTNormalizer - This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transoform the RT space into the normalized space.   
+  - @subpage TOPP_OpenSwathRTNormalizer - This tool will align an SRM / SWATH run to a normalized retention time space.
   - @subpage TOPP_OpenSwathFeatureXMLToTSV - Converts a featureXML to a tsv.
   - @subpage TOPP_OpenSwathConfidenceScoring - Computes confidence scores for OpenSwath results.
 

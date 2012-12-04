@@ -48,9 +48,32 @@ using namespace OpenMS;
 
   @brief Converts a featureXML to a mProphet tsv
 
+  <CENTER>
+      <table>
+          <tr>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureXMLToTSV \f$ \longrightarrow \f$</td>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> Downstream data analysis </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathConfidenceScoring </td>
+          </tr>
+      </table>
+  </CENTER>
+
   Creates a tsv that is compatible as input to mProphet.
   Furthermore it creates the columns "decoy" and
   "transition_group_id" which are required by mProphet.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_OpenSwathFeatureXMLToTSV.cli
+
+  <B>The algorithm parameters for the Analyzer filter are:</B>
+  @htmlinclude TOPP_OpenSwathFeatureXMLToTSV.html
 
 */
 

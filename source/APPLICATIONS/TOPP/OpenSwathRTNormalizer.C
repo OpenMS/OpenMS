@@ -61,6 +61,12 @@ using namespace OpenMS;
  This tool will take a description of RT peptides and their normalized
  retention time to write out a transformation file on how to transoform the
  RT space into the normalized space.
+
+ <B>The command line parameters of this tool are:</B>
+ @verbinclude TOPP_OpenSwathRTNormalizer.cli
+
+ <B>The algorithm parameters for the Analyzer filter are:</B>
+ @htmlinclude TOPP_OpenSwathRTNormalizer.html
  
  */
 
@@ -72,7 +78,7 @@ public:
 
   TOPPOpenSwathRTNormalizer() :
   TOPPBase("OpenSwathRTNormalizer",
-           "This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transoform the RT space into the normalized space.  ",
+           "This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transoform the RT space into the normalized space.",
            true)
   {
   }

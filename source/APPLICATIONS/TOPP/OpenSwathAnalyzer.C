@@ -56,6 +56,24 @@ using namespace std;
 
  @brief  Executes a peak-picking and scoring algorithm on MRM/SRM data.
 
+    <CENTER>
+        <table>
+            <tr>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathAnalyzer \f$ \longrightarrow \f$</td>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            </tr>
+            <tr>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
+            </tr>
+            <tr>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathConfidenceScoring </td>
+            </tr>
+        </table>
+    </CENTER>
+
  The idea of the MRM peak-picker is to analyze a series of chromatograms
  together with the associated meta information (stored in TraML format) in
  order to determine likely places of elution of a peptide in MRM/SRM.
@@ -63,8 +81,9 @@ using namespace std;
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathAnalyzer.cli
 
- <B>The algorithm parameters for the Savitzky Golay filter are:</B>
- @htmlinclude OpenMS_OpenSwathAnalyzer.parameters
+ <B>The algorithm parameters for the Analyzer filter are:</B>
+ @htmlinclude TOPP_OpenSwathAnalyzer.html
+
  */
 
 // We do not want this class to show up in the docu:
@@ -218,6 +237,7 @@ protected:
     }
 
     // Here we deal with SWATH files (can be multiple files)
+    // Only in OpenMP 3.0 are unsigned loop variables allowed
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif

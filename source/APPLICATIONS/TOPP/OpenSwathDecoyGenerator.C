@@ -48,6 +48,20 @@ using namespace OpenMS;
 
   @brief Generates decoys according to different models for a specific TraML
 
+  <CENTER>
+      <table>
+          <tr>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenSwathDecoyGenerator \f$ \longrightarrow \f$</td>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+          </tr>
+      </table>
+  </CENTER>
+
   This module generates "decoy" transitions from a set of real or "target"
   transitions. The idea is to use the decoy transitions in a statistical scoring
   process to estimate the false hits in an SRM / SWATH experiment.
@@ -63,12 +77,15 @@ using namespace OpenMS;
   acid sequence and shuffles the fragment ion intensities accordingly, however
   for this to work the fragment ions need to be matched to annotated before.
 
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_OpenSwathDecoyGenerator.cli
 
-TODO: could theoretical also produce an annotation in the TraML of what it thinks the ion is?
-
+  <B>The algorithm parameters for the Analyzer filter are:</B>
+  @htmlinclude TOPP_OpenSwathDecoyGenerator.html
 
 
 */
+// TODO: could theoretical also produce an annotation in the TraML of what it thinks the ion is?
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
