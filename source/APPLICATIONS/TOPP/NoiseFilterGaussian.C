@@ -135,7 +135,7 @@ public:
     MSExperiment<Peak1D> exp;
     mz_data_file.load(in, exp);
 
-    if (exp.empty() and exp.getChromatograms().size() == 0)
+    if (exp.empty() && exp.getChromatograms().size() == 0)
     {
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";

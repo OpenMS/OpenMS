@@ -227,16 +227,17 @@ public:
     template <typename PeakType>
     void filterExperiment(MSExperiment<PeakType> & map)
     {
+      Size progress = 0;
       startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");
       for (Size i = 0; i < map.size(); ++i)
       {
         filter(map[i]);
-        setProgress(i);
+        setProgress(++progress);
       }
       for (Size i = 0; i < map.getChromatograms().size(); ++i)
       {
         filter(map.getChromatogram(i));
-        setProgress(i);
+        setProgress(++progress);
       }
       endProgress();
     }

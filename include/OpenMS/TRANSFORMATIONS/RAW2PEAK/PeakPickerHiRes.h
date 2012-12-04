@@ -384,7 +384,7 @@ public:
         MSChromatogram<ChromatogramPeakT> chromatogram;
         pick(input.getChromatograms()[i], chromatogram);
         output.addChromatogram(chromatogram);
-        setProgress(i);
+        setProgress(++progress);
       }
 
       endProgress();
