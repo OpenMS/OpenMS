@@ -1237,7 +1237,6 @@ namespace OpenMS
 
     if (resume_source_)
     {
-      logTOPPOutput(" WITH RESUME NODE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
       switch (resume_source_->getSubtreeStatus())
       {
         case TOPPASVertex::TV_UNFINISHED:
