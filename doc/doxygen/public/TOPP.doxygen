@@ -102,6 +102,7 @@
   - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
+  - @subpage TOPP_TMTAnalyzer - Extracts and normalizes TMT information from an MS experiment.
 
   <b>Map Alignment</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
