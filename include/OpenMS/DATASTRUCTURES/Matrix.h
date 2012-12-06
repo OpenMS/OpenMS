@@ -49,27 +49,29 @@ namespace OpenMS
 {
 
   /**
-     @brief A two-dimensional matrix.  Similar to std::vector, but uses a binary
-     operator(,) for element access.
+    @brief A two-dimensional matrix.  Similar to std::vector, but uses a binary
+    operator(,) for element access.
 
-         Think of it as a random access container.  You can also generate gray
-     scale images.  This data structure is not designed to be used for linear algebra,
-         but rather a simple two-dimensional array.
+    Think of it as a random access container.  You can also generate gray
+    scale images.  This data structure is not designed to be used for linear algebra,
+    but rather a simple two-dimensional array.
 
-         The following member functions of the base class std::vector<ValueType>
-         can also be used:
+    The following member functions of the base class std::vector<ValueType>
+    can also be used:
 
-         - begin
-         - end
-         - rbegin
-         - rend
-         - front
-         - back
-         - assign
-         - empty
-         - size
-         - capacity
-         - max_size
+    <ul>
+      <li>begin</li>
+      <li>end</li>
+      <li>rbegin</li>
+      <li>rend</li>
+      <li>front</li>
+      <li>back</li>
+      <li>assign</li>
+      <li>empty</li>
+      <li>size</li>
+      <li>capacity</li>
+      <li>max_size</li>
+    </ul>
 
          @ingroup Datastructures
   */
@@ -135,13 +137,13 @@ public:
       cols_(cols)
     {}
 
-    Matrix(const Matrix & source) :
+    Matrix(const Matrix& source) :
       Base(source),
       rows_(source.rows_),
       cols_(source.cols_)
     {}
 
-    Matrix & operator=(const Matrix & rhs)
+    Matrix& operator=(const Matrix& rhs)
     {
       Base::operator=(rhs);
       rows_ = rhs.rows_;
@@ -179,7 +181,7 @@ public:
       Base::operator[](index(i, j)) = value;
     }
 
-    // Return the i-th row of the matrix as a vector.
+    /// Return the i-th row of the matrix as a vector.
     container_type row(size_type const i) const
     {
 #ifdef OPENMS_DEBUG
@@ -193,7 +195,7 @@ public:
       return values;
     }
 
-    // Return the i-th column of the matrix as a vector.
+    /// Return the i-th column of the matrix as a vector.
     container_type col(size_type const i) const
     {
 #ifdef OPENMS_DEBUG
@@ -211,9 +213,9 @@ public:
 
 
     /**
-         @name Pure access declarations
+      @name Pure access declarations
 
-         These make begin(), end() etc. from container_type accessible.
+      These make begin(), end() etc. from container_type accessible.
     */
     //@{
 public:
@@ -249,7 +251,7 @@ public:
       Base::resize(rows_ * cols_, value);
     }
 
-    void resize(std::pair<Size, Size> const & size_pair, value_type value = value_type())
+    void resize(std::pair<Size, Size> const& size_pair, value_type value = value_type())
     {
       rows_ = size_pair.first;
       cols_ = size_pair.second;
@@ -273,9 +275,9 @@ public:
       return std::pair<Size, Size>(rows_, cols_);
     }
 
-    /**@brief Calculate the index into the underlying vector from row and
-         column.  Note that Matrix uses the (row,column) lexicographic ordering
-         for indexing.
+    /**
+      @brief Calculate the index into the underlying vector from row and column.
+      Note that Matrix uses the (row,column) lexicographic ordering for indexing.
     */
     SizeType const index(SizeType row, SizeType col) const
     {
@@ -286,9 +288,9 @@ public:
       return row * cols_ + col;
     }
 
-    /**@brief Calculate the row and column from an index into the underlying
-         vector.  Note that Matrix uses the (row,column) lexicographic ordering
-         for indexing.
+    /**
+      @brief Calculate the row and column from an index into the underlying vector.
+      Note that Matrix uses the (row,column) lexicographic ordering for indexing.
     */
     std::pair<Size, Size> const indexPair(Size index) const
     {
@@ -298,9 +300,9 @@ public:
       return std::pair<SizeType, SizeType>(index / cols_, index % cols_);
     }
 
-    /**@brief Calculate the column from an index into the underlying vector.
-         Note that Matrix uses the (row,column) lexicographic ordering for
-         indexing.
+    /**
+      @brief Calculate the column from an index into the underlying vector.
+      Note that Matrix uses the (row,column) lexicographic ordering for indexing.
     */
     SizeType colIndex(SizeType index) const
     {
@@ -310,9 +312,9 @@ public:
       return index % cols_;
     }
 
-    /**@brief Calculate the row from an index into the underlying vector.
-         Note that Matrix uses the (row,column) lexicographic ordering for
-         indexing.
+    /**
+      @brief Calculate the row from an index into the underlying vector.
+      Note that Matrix uses the (row,column) lexicographic ordering for indexing.
     */
     SizeType rowIndex(SizeType index) const
     {
@@ -323,30 +325,32 @@ public:
       return index / cols_;
     }
 
-    /**@brief Equality comparator.
+    /**
+      @brief Equality comparator.
 
-    If matrices have different row or colmn numbers, throws a precondition exception.
+      If matrices have different row or colmn numbers, throws a precondition exception.
     */
-    bool operator==(Matrix const & rhs) const
+    bool operator==(Matrix const& rhs) const
     {
       OPENMS_PRECONDITION(cols_ == rhs.cols_,
                           "Matrices have different row sizes.");
       OPENMS_PRECONDITION(rows_ == rhs.rows_,
                           "Matrices have different column sizes.");
-      return static_cast<typename Matrix<Value>::Base const &>(*this) == static_cast<typename Matrix<Value>::Base const &>(rhs);
+      return static_cast<typename Matrix<Value>::Base const&>(*this) == static_cast<typename Matrix<Value>::Base const&>(rhs);
     }
 
-    /**@brief Less-than comparator.  Comparison is done lexicographically: first by row, then by column.
+    /**
+      @brief Less-than comparator.  Comparison is done lexicographically: first by row, then by column.
 
-    If matrices have different row or column numbers, throws a precondition exception.
+      If matrices have different row or column numbers, throws a precondition exception.
     */
-    bool operator<(Matrix const & rhs) const
+    bool operator<(Matrix const& rhs) const
     {
       OPENMS_PRECONDITION(cols_ == rhs.cols_,
                           "Matrices have different row sizes.");
       OPENMS_PRECONDITION(rows_ == rhs.rows_,
                           "Matrices have different column sizes.");
-      return static_cast<typename Matrix<Value>::Base const &>(*this) < static_cast<typename Matrix<Value>::Base const &>(rhs);
+      return static_cast<typename Matrix<Value>::Base const&>(*this) < static_cast<typename Matrix<Value>::Base const&>(rhs);
     }
 
     /// set matrix to 2D arrays values
@@ -354,9 +358,9 @@ public:
     void setMatrix(const ValueType matrix[ROWS][COLS])
     {
       resize(ROWS, COLS);
-      for (SizeType i = 0; i < rows_; ++i)
+      for (SizeType i = 0; i < this->rows_; ++i)
       {
-        for (SizeType j = 0; j < cols_; ++j)
+        for (SizeType j = 0; j < this->cols_; ++j)
         {
           setValue(i, j, matrix[i][j]);
         }
@@ -364,15 +368,15 @@ public:
     }
 
     /**
-     *  @brief create gsl_matrix*
-     *
-     *	allocate and return an equivalent GSL matrix
-     *  @note Works only for Matrix<double> and Matrix<float>
-     *	@note Clean up the gsl_matrix using gsl_matrix_free (gsl_matrix * m)
-     */
-    gsl_matrix * toGslMatrix()
+      @brief create gsl_matrix*
+
+      allocate and return an equivalent GSL matrix
+      @note Works only for Matrix<double> and Matrix<float>
+      @note Clean up the gsl_matrix using gsl_matrix_free (gsl_matrix * m)
+    */
+    gsl_matrix* toGslMatrix()
     {
-      gsl_matrix * m_ptr = gsl_matrix_alloc(rows_, cols_);
+      gsl_matrix* m_ptr = gsl_matrix_alloc(rows_, cols_);
 
       for (size_type i = 0; i < this->rows_; ++i)
       {
@@ -395,17 +399,18 @@ protected:
     SizeType cols_;
     //@}
 
-  };   // class Matrix
+  }; // class Matrix
 
   // template<> OPENMS_DLLAPI gsl_matrix* Matrix<double>::toGslMatrix();
   // template<> OPENMS_DLLAPI gsl_matrix* Matrix<float>::toGslMatrix();
 
-  /**@brief Print the contents to a stream.
+  /**
+    @brief Print the contents to a stream.
 
-  @relatesalso Matrix
+    @relatesalso Matrix
   */
   template <typename Value>
-  std::ostream & operator<<(std::ostream & os, const Matrix<Value> & matrix)
+  std::ostream& operator<<(std::ostream& os, const Matrix<Value>& matrix)
   {
     typedef typename Matrix<Value>::size_type size_type;
     for (size_type i = 0; i < matrix.rows(); ++i)

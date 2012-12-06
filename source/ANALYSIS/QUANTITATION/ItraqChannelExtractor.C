@@ -238,22 +238,24 @@ namespace OpenMS
 
   void ItraqChannelExtractor::setDefaultParams_()
   {
-    defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (usually HCD for iTRAQ). Set to empty string if you want to disable filtering.\n");
+    defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (usually HCD for iTRAQ). Set to empty string if you want to disable filtering.");
     StringList activation_list(std::vector<std::string>(Precursor::NamesOfActivationMethod, &Precursor::NamesOfActivationMethod[Precursor::SIZE_OF_ACTIVATIONMETHOD - 1]));
     activation_list.push_back(""); // allow disabling this
     defaults_.setValidStrings("select_activation", activation_list);
 
-    defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected position (of e.g. 114.1, 115.1)");
+    defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected position.");
     defaults_.setMinFloat("reporter_mass_shift", 0.00000001);
     defaults_.setMaxFloat("reporter_mass_shift", 0.5);
 
     defaults_.setValue("channel_active",
-                       (itraq_type_ == TMT_SIXPLEX ? StringList::create("126:liver,131:lung") : StringList::create("114:liver,117:lung")),
+                       (itraq_type_ == TMT_SIXPLEX
+                        ? StringList::create("126:liver,131:lung")
+                        : StringList::create("114:liver,117:lung")),
                        String("Each channel that was used in the experiment and its description (")
                        + (itraq_type_ == TMT_SIXPLEX
                           ? String("126-131 for TMT-6-plex")
                           : String("114-117 for 4plex; 113-121 for 8-plex"))
-                       + String(") in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\")"));
+                       + String(") in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."));
 
     defaultsToParam_();
 
