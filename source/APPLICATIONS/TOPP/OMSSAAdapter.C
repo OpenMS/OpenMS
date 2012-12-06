@@ -440,7 +440,23 @@ protected:
 
     db_name = db_name.substr(0, db_name.size() - 4); // OMSSA requires the filename without the .psq part
 
-    parameters << "-d"  << String(db_name);
+#ifdef OPENMS_WINDOWSPLATFORM
+    bool db_name_contains_space = false;
+    // This is a workaround for a bug in the NCBI libraries on windows. 
+    // They internally don't support spaces in path or filename so these have to be escaped and a system call instead of QProcess must be used.
+    if (db_name.hasSubstring(" "))
+    {
+      db_name_contains_space = true;
+      parameters << "-d" << String("\"\\\"") + String(db_name) + String("\\\"\"");
+    }
+    else
+    {
+      parameters << "-d" << String(db_name);
+    }
+#else
+    parameters << "-d" << String(db_name);
+#endif
+   
     parameters << "-to" << String(getDoubleOption_("fragment_mass_tolerance"));         //String(getDoubleOption_("to"));
     parameters << "-hs" << String(getIntOption_("hs"));
     parameters << "-te" << String(getDoubleOption_("precursor_mass_tolerance"));         //String(getDoubleOption_("te"));
@@ -718,8 +734,26 @@ protected:
     {
       qparam << parameters[i].toQString();
     }
-    writeDebug_("\"" + omssa_executable + "\"" + parameters.concatenate(" "), 5);
-    Int status = QProcess::execute(omssa_executable.toQString(), qparam);
+    
+    Int status = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+    if (db_name_contains_space)
+    {
+      // for some reason QProcess doesn't handle escaped " in arguments properly so we use a system call
+      // see http://www.ncbi.nlm.nih.gov/books/NBK1763/ for the format the ncbi library is expecting internally if spaces are in file/path names
+      String call_string = omssa_executable + " " + parameters.concatenate(" ");
+      writeDebug_(call_string, 5);   
+      status = system(call_string.c_str());
+    } else
+    {
+      writeDebug_(omssa_executable + " " + parameters.concatenate(" "), 5);
+      status = QProcess::execute(omssa_executable.toQString(), qparam);      
+    }
+#else
+    writeDebug_(omssa_executable + " " + parameters.concatenate(" "), 5);
+    status = QProcess::execute(omssa_executable.toQString(), qparam);
+#endif
+    
     if (status != 0)
     {
       writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");
