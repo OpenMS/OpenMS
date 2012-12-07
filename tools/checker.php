@@ -1209,16 +1209,17 @@ foreach ($files_todo as $f)
       $isEqual = false;
       $message = "Missing LICENSE header in '$f'";
     }
+
+		if ($debug > 0 && $offendingLine != "")
+		{
+			$message .= "\nOffending line: \n".$offendingLine;
+		}
     
     # report result
     if (!$isEqual)
     {
       realOutput($message, $user, $f);
       reportTestResult($message, $user, "license", $f, false);
-      if ($debug > 0 && $offendingLine != "")
-      {
-        print "Offending line: \n".$offendingLine;
-      }
     }
     else
     {

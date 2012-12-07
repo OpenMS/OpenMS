@@ -32,7 +32,6 @@
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_SYSTEM_FILE_H
 #define OPENMS_SYSTEM_FILE_H
 
