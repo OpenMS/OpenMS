@@ -77,7 +77,7 @@ using namespace std;
     Quantification is based on the intensity values of the features in the input. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.
 
     The peptide-to-protein step uses the (e.g. 3) most abundant proteotypic peptides per protein to compute the protein abundances. This is a general version of the "top 3 approach" (but only for relative quantification) described in:\n
-    Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006).
+    Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006, PMID: 16219938, ).
 
     Only features/feature groups with unambiguous peptide annotation are used for peptide quantification, and generally only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. As an exception to this rule, if ProteinProphet results for the whole sample set are provided with the @p protxml option, or are already included in a featureXML input, also groups of indistinguishable proteins will be quantified. The reported quantity then refers to the total for the whole group.
 
