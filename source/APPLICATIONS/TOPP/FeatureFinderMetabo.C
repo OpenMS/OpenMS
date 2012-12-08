@@ -209,7 +209,7 @@ protected:
     std::vector<MassTrace> m_traces_final = m_traces;
 
     // DoubleReal pw_est(epd_param.getValue("chrom_fwhm"));
-    DoubleReal scan_time(std::fabs(ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT()) / ms_peakmap.size());
+    // DoubleReal scan_time(std::fabs(ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT()) / ms_peakmap.size());
 
     ElutionPeakDetection epdet;
     // epd_param.remove("enabled"); // artificially added above
