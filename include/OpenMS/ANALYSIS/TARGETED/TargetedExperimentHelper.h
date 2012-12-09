@@ -215,7 +215,7 @@ public:
         public CVTermList
       {
         DoubleReal avg_mass_delta;
-        Size location;
+        int location;
         DoubleReal mono_mass_delta;
       };
 

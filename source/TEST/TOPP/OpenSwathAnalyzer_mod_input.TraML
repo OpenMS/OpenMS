@@ -12,10 +12,10 @@
   <CompoundList>
     <Peptide id="tr_gr1" sequence="PEPTIDEA">
       <ProteinRef ref=""/>
-      <Modification location="3" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
+      <Modification location="4" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
         <cvParam cvRef="UNIMOD" accession="UNIMOD:21" name="Phospho"/>
       </Modification>
-      <Modification location="7" monoisotopicMassDelta="15.994915" averageMassDelta="15.9994">
+      <Modification location="8" monoisotopicMassDelta="15.994915" averageMassDelta="15.9994">
         <cvParam cvRef="UNIMOD" accession="UNIMOD:540" name="Ala->Ser substitution"/>
       </Modification>
       <RetentionTimeList>

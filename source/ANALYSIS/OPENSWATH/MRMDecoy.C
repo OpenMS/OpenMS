@@ -277,6 +277,10 @@ namespace OpenMS
     OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed,
     int max_attempts)
   {
+#ifdef DEBUG_MRMDECOY
+    std::cout << " shuffle peptide " << peptide.sequence << std::endl;
+    seed = 41;
+#endif
     if (seed == -1)
     {
       seed = time(0);
@@ -330,6 +334,7 @@ namespace OpenMS
       {
         for (Size k = 0; k < peptide_index.size(); k++)
         {
+          // C and N terminal mods are implicitely not shuffled because they live at positions -1 and sequence.size()
           if (peptide_index[k] == shuffled.mods[j].location)
           {
             shuffled.mods[j].location = k;
@@ -337,6 +342,13 @@ namespace OpenMS
           }
         }
       }
+
+#ifdef DEBUG_MRMDECOY
+      for (Size j = 0; j < shuffled.mods.size(); j++)
+      {
+        std::cout << " position after shuffling " << shuffled.mods[j].location << " mass diff " << shuffled.mods[j].mono_mass_delta << std::endl;
+      }
+#endif
 
       ++attempts;
 
@@ -551,7 +563,6 @@ namespace OpenMS
       protein.id = decoy_tag + protein.id;
       proteins.push_back(protein);
     }
-
 
     std::vector<String> exclusion_peptides;
     // Go through all peptides and apply the decoy method to the sequence

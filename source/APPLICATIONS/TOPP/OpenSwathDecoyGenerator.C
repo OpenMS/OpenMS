@@ -156,6 +156,7 @@ protected:
 
     std::cout << "Restricting transitions" << std::endl;
     decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
+    std::cout << "Generate decoys" << std::endl;
     decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold);
 
     if (append)

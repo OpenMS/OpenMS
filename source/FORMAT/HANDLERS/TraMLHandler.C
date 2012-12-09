@@ -179,7 +179,7 @@ namespace OpenMS
         mod.avg_mass_delta = avg_mass_delta;
         mod.mono_mass_delta = mono_mass_delta;
 
-        mod.location = attributeAsInt_(attributes, "location");
+        mod.location = attributeAsInt_(attributes, "location") - 1; // TraML stores location starting with 1
         actual_peptide_.mods.push_back(mod);
       }
       else if (tag_ == "Compound")
@@ -625,7 +625,7 @@ namespace OpenMS
             for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator mit = it->mods.begin(); mit != it->mods.end(); ++mit)
             {
               os << "      <Modification";
-              os << " location=\"" << mit->location << "\""; // location is required
+              os << " location=\"" << mit->location + 1<< "\""; // TraML stores locations starting with 1
               if (mit->mono_mass_delta != 0)
               {
                 os << " monoisotopicMassDelta=\"" << mit->mono_mass_delta << "\"";

@@ -278,6 +278,23 @@ namespace OpenMS
     os.close();
   }
 
+  void TransitionTSVReader::add_modification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
+          Size location, ResidueModification & rmod, const String & name)
+  {
+      TargetedExperiment::Peptide::Modification mod;
+      String unimod_str = rmod.getUniModAccession();
+      mod.location = location; 
+      mod.mono_mass_delta = rmod.getDiffMonoMass();
+      mod.avg_mass_delta = rmod.getDiffAverageMass();
+      // CV term with the full unimod accession number and name
+      CVTerm unimod_name;
+      unimod_name.setCVIdentifierRef("UNIMOD");
+      unimod_name.setAccession(unimod_str.toUpper());
+      unimod_name.setName(name);
+      mod.addCVTerm(unimod_name);
+      mods.push_back(mod);
+  }
+
   void TransitionTSVReader::createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
   {
 
@@ -290,31 +307,36 @@ namespace OpenMS
     peptide.setPeptideGroupLabel(tr_it->group_label);
 
     // try to parse it and get modifications out
+    // TODO: at this point we could check whether the modification is actually valid 
+    // aas.setModification(it->location, "UniMod:" + mo->getAccession().substr(7));
     std::vector<TargetedExperiment::Peptide::Modification> mods;
     AASequence aa_sequence = AASequence(tr_it->FullPeptideName);
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+
+    // in TraML, the modification the AA starts with residue 1 but the
+    // OpenMS objects start with zero -> we start counting with zero here
+    // and the TraML handler will add 1 when storing the file.
     if (aa_sequence.isValid())
     {
+      if ( !aa_sequence.getNTerminalModification().empty())
+      {
+          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
+          add_modification_(mods, -1, rmod, aa_sequence.getNTerminalModification());
+      }
+      if ( !aa_sequence.getCTerminalModification().empty())
+      {
+          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
+          add_modification_(mods, aa_sequence.size(), rmod, aa_sequence.getCTerminalModification());
+      }
       for (Size i = 0; i != aa_sequence.size(); i++)
       {
         if (aa_sequence[i].isModified())
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
           TargetedExperiment::Peptide::Modification mod;
-          ModificationsDB* mod_db = ModificationsDB::getInstance();
           ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
                                                              aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
-          String unimod_str = rmod.getUniModAccession();
-          mod.location = i;
-          mod.mono_mass_delta = rmod.getDiffMonoMass();
-          mod.avg_mass_delta = rmod.getDiffAverageMass();
-          // CV term with the full unimod accession number and name
-          CVTerm unimod_name;
-          unimod_name.setCVIdentifierRef("UNIMOD");
-          unimod_name.setAccession(unimod_str.toUpper());
-          unimod_name.setName(aa_sequence.getResidue(i).getModification());
-
-          mod.addCVTerm(unimod_name);
-          mods.push_back(mod);
+          add_modification_(mods, i, rmod, aa_sequence.getResidue(i).getModification());
         }
       }
     }
