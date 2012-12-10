@@ -133,13 +133,13 @@ protected:
   }
 
   //there is only one parameter at the moment
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     PosteriorErrorProbabilityModel pepm;
     return pepm.getParameters();
   }
 
-  double get_score_(String & engine, const PeptideHit & hit)
+  double get_score_(String& engine, const PeptideHit& hit)
   {
     if (engine == "OMSSA")
     {
@@ -170,7 +170,7 @@ protected:
     }
     else if (engine == "SpectraST")
     {
-      return 100 * hit.getScore();   // SpectraST f-val
+      return 100 * hit.getScore(); // SpectraST f-val
     }
     else
     {
@@ -178,7 +178,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -205,7 +205,6 @@ protected:
     vector<double> scores;
     vector<double> decoy;
     vector<double> target;
-    vector<double> probabilities;
     vector<Int> charges;
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);
@@ -246,7 +245,7 @@ protected:
       throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "split_charge is set and the list of charge states is empty but should not be!");
     }
     map<String, vector<vector<double> > > all_scores;
-    char splitter = ',';    //to split the engine from the charge state later on
+    char splitter = ','; //to split the engine from the charge state later on
     do
     {
       for (StringList::iterator engine = search_engines.begin(); engine < search_engines.end(); ++engine)
@@ -350,7 +349,7 @@ protected:
       //plot target_decoy
       if (target_decoy_available && it->second[0].size() > 0 && return_value)
       {
-        PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]);      //target, decoy
+        PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]); //target, decoy
       }
       if (return_value)
       {
@@ -376,8 +375,8 @@ protected:
                     DoubleReal score;
                     hit->setMetaValue(score_type, hit->getScore());
                     score = PEP_model.computeProbability(get_score_(engine, *hit));
-                    if (score > 0 && score < 1) unable_to_fit_data = false;                    //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
-                    if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;                   //same as above
+                    if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
+                    if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;  //same as above
                     hit->setScore(score);
                     if (prob_correct)
                     {
@@ -414,7 +413,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDPosteriorErrorProbability tool;
 

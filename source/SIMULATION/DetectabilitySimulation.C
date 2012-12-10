@@ -104,18 +104,17 @@ namespace OpenMS
                                                        vector<DoubleReal>& detectabilities)
   {
     // The support vector machine
-    SVMWrapper svm_;
+    SVMWrapper svm;
 
     // initialize support vector machine
     LibSVMEncoder encoder;
-    svm_problem* training_data = NULL;
     UInt k_mer_length = 0;
     DoubleReal sigma = 0.0;
     UInt border_length = 0;
 
     if (File::readable(dt_model_file_))
     {
-      svm_.loadModel(dt_model_file_);
+      svm.loadModel(dt_model_file_);
     }
     else
     {
@@ -123,7 +122,7 @@ namespace OpenMS
     }
 
     // load additional parameters
-    if (svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+    if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
       String add_paramfile = dt_model_file_ + "_additional_parameters";
       if (!File::readable(add_paramfile))
@@ -136,20 +135,20 @@ namespace OpenMS
       paramFile.load(add_paramfile, additional_parameters);
 
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-         && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No border length defined in additional parameters file.");
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
       if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-         && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No k-mer length defined in additional parameters file.");
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 
       if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-         && svm_.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No sigma defined in additional parameters file.");
       }
@@ -159,17 +158,18 @@ namespace OpenMS
 
     if (File::readable(dt_model_file_))
     {
-      svm_.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
-      svm_.setParameter(SVMWrapper::SIGMA, sigma);
+      svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
+      svm.setParameter(SVMWrapper::SIGMA, sigma);
       // to obtain probabilities
-      svm_.setParameter(SVMWrapper::PROBABILITY, 1);
+      svm.setParameter(SVMWrapper::PROBABILITY, 1);
     }
     // loading training data
     String sample_file = dt_model_file_ + "_samples";
+    svm_problem* training_data = NULL;
     if (File::readable(sample_file))
     {
       training_data = encoder.loadLibSVMProblem(sample_file);
-      svm_.setTrainingSample(training_data);
+      svm.setTrainingSample(training_data);
     }
     else
     {
@@ -188,11 +188,13 @@ namespace OpenMS
     svm_problem* prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(peptides_vector, probs,
                                                                                      k_mer_length,
                                                                                      allowed_amino_acid_characters,
-                                                                                     svm_.getIntParameter(SVMWrapper::BORDER_LENGTH));
+                                                                                     svm.getIntParameter(SVMWrapper::BORDER_LENGTH));
 
-    svm_.getSVCProbabilities(prediction_data, detectabilities, labels);
+    svm.getSVCProbabilities(prediction_data, detectabilities, labels);
 
+    // clean up when finished with prediction
     delete prediction_data;
+    delete training_data;
   }
 
   void DetectabilitySimulation::svmFilter_(FeatureMapSim& features)
