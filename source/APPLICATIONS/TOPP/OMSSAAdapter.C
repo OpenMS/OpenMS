@@ -440,23 +440,28 @@ protected:
 
     db_name = db_name.substr(0, db_name.size() - 4); // OMSSA requires the filename without the .psq part
 
-#ifdef OPENMS_WINDOWSPLATFORM
     bool db_name_contains_space = false;
-    // This is a workaround for a bug in the NCBI libraries on windows. 
-    // They internally don't support spaces in path or filename so these have to be escaped and a system call instead of QProcess must be used.
     if (db_name.hasSubstring(" "))
     {
       db_name_contains_space = true;
+    }
+    // This is a workaround for a bug in the NCBI libraries.
+    // They internally don't support spaces in path or file names.
+    if (db_name_contains_space)
+    {
+#ifdef OPENMS_WINDOWSPLATFORM
+      // Windows: use doubly escaped double quotes (and do a system call instead of QProcess later)
       parameters << "-d" << String("\"\\\"") + String(db_name) + String("\\\"\"");
+#else
+      // Linux/Mac: wrap into singly escaped double quotes
+      parameters << "-d" << String("\"") + String(db_name) + String("\"");
+#endif
     }
     else
     {
       parameters << "-d" << String(db_name);
     }
-#else
-    parameters << "-d" << String(db_name);
-#endif
-   
+
     parameters << "-to" << String(getDoubleOption_("fragment_mass_tolerance"));         //String(getDoubleOption_("to"));
     parameters << "-hs" << String(getIntOption_("hs"));
     parameters << "-te" << String(getDoubleOption_("precursor_mass_tolerance"));         //String(getDoubleOption_("te"));
