@@ -178,13 +178,16 @@ namespace OpenMS
     // parse command line parameters:
     param_cmdline_.parseCommandLine(argc, argv, parameters_);
 
+    // for now cmdline is all we have, final assembly will follow below
+    param_ = param_cmdline_;
+    
     // assign instance number
     *const_cast<int*>(&instance_number_) = getParamAsInt_("instance", 1);
     writeDebug_(String("Instance: ") + String(instance_number_), 1);
 
     // assign ini location
     *const_cast<String*>(&ini_location_) = tool_name_ + ':' + String(instance_number_) + ':';
-    writeDebug_(String("Ini_location: ") + String(ini_location_), 1);
+    writeDebug_(String("Ini_location: ") + getIniLocation_(), 1);
 
     //set debug level
     debug_level_ = getParamAsInt_("debug", 0);
@@ -298,49 +301,60 @@ namespace OpenMS
       {
         writeDebug_("INI file: " + (String)value_ini, 1);
         writeDebug_("INI location: " + getIniLocation_(), 1);
-        Param p_tmp;
         ParamXMLFile paramFile;
-        paramFile.load((String)value_ini, p_tmp);
 
-        checkIfIniParametersAreApplicable_(p_tmp);
+        paramFile.load((String)value_ini, param_inifile_);
+        checkIfIniParametersAreApplicable_(param_inifile_);
+
+        // dissect loaded INI parameters
+        param_instance_ = param_inifile_.copy(getIniLocation_(), true);
+        writeDebug_("Parameters from instance section:", param_instance_, 2);
+        param_common_tool_ = param_inifile_.copy("common:" + tool_name_ + ":", true);
+        writeDebug_("Parameters from common section with tool name:", param_common_tool_, 2);
+        param_common_ = param_inifile_.copy("common:", true);
+        writeDebug_("Parameters from common section without tool name:", param_common_, 2);
+
+        checkIfIniParametersAreApplicable_(param_inifile_);
+
         // set type on commandline if given in .ini file
-        if (p_tmp.exists(this->ini_location_ + "type") && !param_cmdline_.exists("type"))
-          param_cmdline_.setValue("type", p_tmp.getValue(this->ini_location_ + "type"));
-        // otherwise the following line cannot fetch subsectionDefaults() from tool
-        param_inifile_ = this->getDefaultParameters_();
-        Logger::LogStream null_stream;
-        param_inifile_.update(p_tmp, false, true, null_stream); // silently update (do not trust INI file), but leave unknown params
-      }
-      else // fill param with default values:
-      {
-        param_inifile_ = this->getDefaultParameters_();
+        if (param_inifile_.exists(getIniLocation_() + "type") && !param_cmdline_.exists("type"))
+          param_cmdline_.setValue("type", param_inifile_.getValue(getIniLocation_() + "type"));
       }
 
-      // dissect INI file params:
-      // (keep in mind: we currently cannot write all parts of an INI file
-      // in the same way we read it in, i.e. the "common" section
-      // cannot the written, but only be read
-      param_instance_ = param_inifile_.copy(getIniLocation_(), true);
-      writeDebug_("Parameters from instance section:", param_instance_, 2);
-      param_common_tool_ = param_inifile_.copy("common:" + tool_name_ + ':', true);
-      writeDebug_("Parameters from common section with tool name:", param_common_tool_, 2);
-      param_common_ = param_inifile_.copy("common:", true);
-      writeDebug_("Parameters from common section without tool name:", param_common_, 2);
+      // construct the set of final parameters as they will be available in the main_ method
+      Param finalParam;
 
-      param_ = param_cmdline_;
-      writeDebug_("Applying defaults to instance section:", param_common_, 2);
-      param_.setDefaults(param_instance_);
-      writeDebug_("Applying defaults to common section with tool name:", param_common_, 2);
-      param_.setDefaults(param_common_tool_);
-      writeDebug_("Applying defaults to common section without tool name:", param_common_, 2);
-      param_.setDefaults(param_common_);
+      // 1. the CMD parameters
+      finalParam = param_cmdline_;
+
+      // 2. the instance values from the ini-file
+      writeDebug_("Merging instance section into param:", param_instance_, 2);
+      finalParam.merge(param_instance_);
+
+      // 3. the tools data from the common section
+      writeDebug_("Merging common section with tool name into param:", param_common_tool_, 2);
+      finalParam.merge(param_common_tool_);
+
+      // 4. everything else from the common section
+      writeDebug_("Merging common section without tool name into param:", param_common_, 2);
+      finalParam.merge(param_common_);
+
+      // finally validate and augment everything with the default values of this tool
+      // note the copy(getIniLocation_(),..) as we want the param tree without instance
+      // information
+      param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
+      Logger::LogStream noOutput;
+      param_.update(finalParam, true, noOutput);
+
+      if (finalParam.exists("type"))
+        param_.setValue("type", finalParam.getValue("type"));
 
       // check if all parameters are registered and have the correct type
       checkParam_(param_instance_, (String)value_ini, getIniLocation_());
       checkParam_(param_common_tool_, (String)value_ini, "common:" + tool_name_ + "::");
       checkParam_(param_common_, (String)value_ini, "common:");
 
-      //check if the version of the parameters file matches the version of this tool
+      // check if the version of the parameters file matches the version of this tool
       String file_version = "";
       if (param_inifile_.exists(tool_name_ + ":version"))
       {
@@ -1736,45 +1750,16 @@ namespace OpenMS
 
   DataValue const& TOPPBase::getParam_(const String& key) const
   {
-    // look up in command line
+    if (param_.exists(key))
     {
-      if (param_cmdline_.exists(key))
-      {
-        writeDebug_(String("Parameter '") + key + String("' from COMMAND LINE: ") + String(param_cmdline_.getValue(key)), 3);
-        return param_cmdline_.getValue(key);
-      }
+      return param_.getValue(key);
     }
-
-    // look up in instance section
+    else
     {
-      if (param_instance_.exists(key))
-      {
-        writeDebug_(String("Parameter '") + key + String("' from INSTANCE SECTION: ") + String(param_instance_.getValue(key)), 3);
-        return param_instance_.getValue(key);
-      }
+      // if look up fails everywhere, return EMPTY
+      writeDebug_(String("Parameter '") + key + String("' not found."), 1);
+      return DataValue::EMPTY;
     }
-
-    // look up in common section with tool name
-    {
-      if (param_common_tool_.exists(key))
-      {
-        writeDebug_(String("Parameter '") + key + String("' from COMMON SECTION (TOOL SPECIFIC): ") + String(param_common_tool_.getValue(key)), 3);
-        return param_common_tool_.getValue(key);
-      }
-    }
-
-    // look up in common section without tool name
-    {
-      if (param_common_.exists(key))
-      {
-        writeDebug_(String("Parameter '") + key + String("' from COMMON SECTION: ") + String(param_common_.getValue(key)), 3);
-        return param_common_.getValue(key);
-      }
-    }
-
-    // if look up fails everywhere, return EMPTY
-    writeDebug_(String("Parameter '") + key + String("' not found."), 1);
-    return DataValue::EMPTY;
   }
 
   Param const& TOPPBase::getParam_() const

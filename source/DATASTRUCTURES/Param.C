@@ -1218,7 +1218,7 @@ namespace OpenMS
     }
   }
 
-  void Param::update(const Param& old_version, const bool report_new_params, const int keep_old_only, Logger::LogStream& stream)
+  void Param::update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream)
   {
     // augment
     for (Param::ParamIterator it = old_version.begin(); it != old_version.end(); ++it)
@@ -1277,9 +1277,9 @@ namespace OpenMS
       }
       else
       {
-        if (keep_old_only > 0)
+        if (add_unknown)
         {
-          stream << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
+          stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
           Param::ParamEntry entry = old_version.getEntry(it.getName());
           String prefix = "";
           if (it.getName().has(':'))
@@ -1288,32 +1288,58 @@ namespace OpenMS
         }
         else
         {
-          if (keep_old_only==0) stream << "Deprecated Parameter '" << it.getName() << "' given in old parameter file! Ignoring ...\n";
-          // be silent on '-1'
+          stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Ignoring ..." << std::endl;
         }
       }
     }
+  }
 
-    // print new parameters (unique to this Param, but not in old one)
-    // list new parameters not known to old version (just nice to know)
-    for (Param::ParamIterator it = this->begin(); it != this->end(); /* do nothing */)
+  void Param::merge(const OpenMS::Param& toMerge)
+  {
+    // keep track of the path inside the param tree
+    String pathname;
+
+    // augment
+    for (Param::ParamIterator it = toMerge.begin(); it != toMerge.end(); ++it)
     {
-      if (!old_version.exists(it.getName()))
+      // we care only about values that do not exist already
+      if (!this->exists(it.getName()))
       {
-        if (report_new_params)
+        Param::ParamEntry entry = toMerge.getEntry(it.getName());
+        String prefix = "";
+        if (it.getName().has(':'))
+          prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
+        this->root_.insert(entry, prefix);
+
+        //copy section descriptions
+        const std::vector<ParamIterator::TraceInfo>& trace = it.getTrace();
+        for (std::vector<ParamIterator::TraceInfo>::const_iterator traceIt = trace.begin(); traceIt != trace.end(); ++traceIt)
         {
-          stream << "Information: New Parameter '" << it.getName() << "' not contained in old parameter file.\n";
-        }
-        if (keep_old_only)
-        {
-          this->removeAll(it.getName());
-          it = this->begin(); // reset it, as it just became invalid
-          continue;
+          if (traceIt->opened)
+          {
+            pathname += traceIt->name + ":";
+          }
+          else
+          {
+            if (pathname.hasSuffix(traceIt->name + ":"))
+              pathname.resize(pathname.size() - traceIt->name.size() - 1);
+          }
+          String real_pathname = pathname.chop(1); //remove ':' at the end
+          if (real_pathname != "")
+          {
+            String description_old = "";
+            String description_new = "";
+
+            description_old = getSectionDescription(prefix + real_pathname);
+            description_new = toMerge.getSectionDescription(real_pathname);
+            if (description_old == "")
+            {
+              setSectionDescription(real_pathname, description_new);
+            }
+          }
         }
       }
-      ++it;
     }
-
   }
 
   void Param::setSectionDescription(const String& key, const String& description)

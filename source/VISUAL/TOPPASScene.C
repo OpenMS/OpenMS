@@ -243,10 +243,10 @@ namespace OpenMS
       TOPPASVertex* source = hover_edge_->getSourceVertex();
 
       // check for parameter copy action (only if source is a tool node (--> edge is purple already, user expects this to happen))
-      TOPPASToolVertex* tv_source = qobject_cast<TOPPASToolVertex*> (source);
+      TOPPASToolVertex* tv_source = qobject_cast<TOPPASToolVertex*>(source);
       if (QApplication::keyboardModifiers() && Qt::ControlModifier && tv_source)
       {
-        TOPPASToolVertex* tv_target = qobject_cast<TOPPASToolVertex*> (target);
+        TOPPASToolVertex* tv_target = qobject_cast<TOPPASToolVertex*>(target);
         if (!(tv_source && tv_target))
         {
           emit messageReady("Copying parameters is only allowed between Tool nodes! No copy was performed!\n");
@@ -254,20 +254,20 @@ namespace OpenMS
         else
         {
           emit messageReady("Transferring parameters between nodes ...\n");
-          Param from=tv_source->getParam();
-          Param to=tv_target->getParam();
+          Param from = tv_source->getParam();
+          Param to = tv_target->getParam();
           Param to_old = to; // backup, to compare
 
           std::stringstream ss;
           Logger::LogStream my_log(new Logger::LogStreamBuf());
           my_log.insert(ss);
-          to.update(from, false, -1, my_log);
+          to.update(from, false, my_log);
           if (to == to_old)
           {
             my_log << "All parameters are up to date! Nothing happened!\n";
           }
-          else
-          { // update the target parameters
+          else // update the target parameters
+          {
             tv_target->setParam(to);
             changedParameter(TOPPASToolVertex::TOOL_READY); // show *, indicating changed params
           }
@@ -609,7 +609,8 @@ namespace OpenMS
     // check if pipeline OK
     if (!sanityCheck_())
     {
-      if (!gui_) emit pipelineExecutionFailed(); // the user cannot interact. End processing.
+      if (!gui_)
+        emit pipelineExecutionFailed();          // the user cannot interact. End processing.
       return;
     }
 
@@ -639,7 +640,8 @@ namespace OpenMS
 
       //reset logfile
       QFile logfile(out_dir_ + QDir::separator() + "TOPPAS.log");
-      if (logfile.exists()) logfile.remove();
+      if (logfile.exists())
+        logfile.remove();
 
       //reset processes
       topp_processes_queue_.clear();
@@ -647,7 +649,8 @@ namespace OpenMS
       // start at input nodes
       for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
       {
-        if (error_occured_) break; // someone raised an error
+        if (error_occured_)
+          break;                   // someone raised an error
 
         TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
         if (iflv)
@@ -1233,28 +1236,33 @@ namespace OpenMS
 
   void TOPPASScene::checkIfWeAreDone()
   {
-    if (dry_run_) return;
+    if (dry_run_)
+      return;
 
     if (resume_source_)
     {
       switch (resume_source_->getSubtreeStatus())
       {
-        case TOPPASVertex::TV_UNFINISHED:
-          return; // still processing
-          break; 
-        case TOPPASVertex::TV_ALLFINISHED:
-          break; // ok, go to bottom
-        case TOPPASVertex::TV_UNFINISHED_INBRANCH:
-          setPipelineRunning(false);
-          emit pipelineErrorSlot("Resume cannot continue due to missing subtree.");
-          break;
+      case TOPPASVertex::TV_UNFINISHED:
+        return; // still processing
+
+        break;
+
+      case TOPPASVertex::TV_ALLFINISHED:
+        break; // ok, go to bottom
+
+      case TOPPASVertex::TV_UNFINISHED_INBRANCH:
+        setPipelineRunning(false);
+        emit pipelineErrorSlot("Resume cannot continue due to missing subtree.");
+        break;
       }
     }
     else
     {
       for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it) // check if all nodes are done
       {
-        if (!(*it)->isFinished()) return;
+        if (!(*it)->isFinished())
+          return;
       }
     }
 
@@ -1597,7 +1605,7 @@ namespace OpenMS
   void TOPPASScene::setPipelineRunning(bool b)
   {
     running_ = b;
-    if (!running_) // whenever we stop the pipeline and user is not looking, the icon should flash 
+    if (!running_) // whenever we stop the pipeline and user is not looking, the icon should flash
     {
       resume_source_ = 0;
       QApplication::alert(0); // flash Taskbar || Dock
@@ -1846,7 +1854,7 @@ namespace OpenMS
             {
               setPipelineRunning();
               resume_source_ = ttv;
-              resetDownstream(ttv); 
+              resetDownstream(ttv);
               ttv->run();
             }
           }
@@ -1925,7 +1933,8 @@ namespace OpenMS
   void TOPPASScene::runNextProcess()
   {
     static bool used = false;
-    if (used) return;
+    if (used)
+      return;
 
     used = true;
 
@@ -1946,7 +1955,7 @@ namespace OpenMS
       }
     }
     used = false;
-    
+
     checkIfWeAreDone();
   }
 

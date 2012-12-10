@@ -1597,7 +1597,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
 END_SECTION
 
-START_SECTION((void update(const Param &old_version, const bool report_new_params=false, const int keep_old_only=0, Logger::LogStream &stream=LOG_WARN)))
+START_SECTION((void update(const Param& old_version, const bool add_unknown = false, Logger::LogStream& stream = LOG_WARN)))
 	Param common;
 	common.setValue("float",1.0f,"float");	
 	common.setValue("float2",2.0f,"float2");
@@ -1635,7 +1635,33 @@ START_SECTION((void update(const Param &old_version, const bool report_new_param
   defaults.update(old);
   
   TEST_EQUAL(defaults,expected);
+END_SECTION
   
+START_SECTION((void merge(const Param& toMerge)))
+{
+  Param original;
+  original.setValue("a", 2.0f, "a value");
+  original.setMinFloat("a", 0.0f);
+  original.setValue("b", "value", "b value");  
+  
+  Param toMerge;
+  toMerge.setValue("b", "value", "a value");  
+  toMerge.setValue("section:a", "a-value", "section:a");
+  toMerge.setSectionDescription("section", "section description");
+  toMerge.setValue("section:b", "b-value", "section:b");
+  
+  Param expected;
+  expected.setValue("a", 2.0f, "a value");
+  expected.setMinFloat("a", 0.0f);
+  expected.setValue("b", "value", "b value");  
+  expected.setValue("section:a", "a-value", "section:a");
+  expected.setValue("section:b", "b-value", "section:b");
+  expected.setSectionDescription("section", "section description");
+  
+  original.merge(toMerge);
+  TEST_EQUAL(original, expected)
+  TEST_EQUAL(original.getSectionDescription("section"),expected.getSectionDescription("section"))
+}
 END_SECTION
 
 

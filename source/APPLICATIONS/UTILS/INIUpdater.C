@@ -213,7 +213,7 @@ protected:
       paramFile.load(tmp_ini_file, new_param);
       new_param = new_param.copy(new_tool + ":1", true);
       Param old_param = p.copy(sec_inst + "parameters", true);
-      new_param.update(old_param, true, false);
+      new_param.update(old_param);
       // push back changes
       p.remove(sec_inst + "parameters:");
       p.insert(sec_inst + "parameters", new_param);
@@ -331,7 +331,7 @@ protected:
       paramFile.load(tmp_ini_file, new_param);
       new_param = new_param.copy(new_tool, true);
       Param old_param = p.copy(sections[s], true);
-      new_param.update(old_param, true, false);
+      new_param.update(old_param);
       // push back changes
       p.remove(sections[s] + ":");
       p.insert(new_tool, new_param);

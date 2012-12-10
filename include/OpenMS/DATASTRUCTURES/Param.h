@@ -52,21 +52,21 @@ namespace OpenMS
   struct ParameterInformation;
 
   /**
-      @brief Management and storage of parameters / INI files.
+    @brief Management and storage of parameters / INI files.
 
-      This class provides a means to associate string names to int/double/string/StringList values.
-      It allows for parameter hierarchies and to save/load the data as XML.
-      Hierarchy levels are separated from each other by colons. @n
-      Example: 'common:file_options:default_file_open_path = /share/'
+    This class provides a means to associate string names to int/double/string/StringList values.
+    It allows for parameter hierarchies and to save/load the data as XML.
+    Hierarchy levels are separated from each other by colons. @n
+    Example: 'common:file_options:default_file_open_path = /share/'
 
-      Each parameter and section has a description. Newline characters in the description are possible.
+    Each parameter and section has a description. Newline characters in the description are possible.
 
-      Each parameter can be annotated with an arbitrary number of tags. Tags must not contain comma characters!
-      @n E.g. the <i>advanced</i> tag indicates if this parameter is shown to all users or in advanced mode only.
+    Each parameter can be annotated with an arbitrary number of tags. Tags must not contain comma characters!
+    @n E.g. the <i>advanced</i> tag indicates if this parameter is shown to all users or in advanced mode only.
 
-      @see DefaultParamHandler
+    @see DefaultParamHandler
 
-      @ingroup Datastructures
+    @ingroup Datastructures
   */
   class OPENMS_DLLAPI Param
   {
@@ -127,27 +127,27 @@ public:
       bool operator==(const ParamNode& rhs) const;
 
       /**
-          @brief Look up entry of this node (local search)
+        @brief Look up entry of this node (local search)
 
-          Returns the end iterator if no entry is found
+        Returns the end iterator if no entry is found
       */
       EntryIterator findEntry(const String& name);
       /**
-          @brief Look up subnode of this node (local search)
+        @brief Look up subnode of this node (local search)
 
-          Returns the end iterator if no entry is found
+        Returns the end iterator if no entry is found
       */
       NodeIterator findNode(const String& name);
       /**
-          @brief Look up the parent node of the entry or node corresponding to @p name (tree search)
+        @brief Look up the parent node of the entry or node corresponding to @p name (tree search)
 
-          Returns 0 if no entry is found
+        Returns 0 if no entry is found
       */
       ParamNode* findParentOf(const String& name);
       /**
-          @brief Look up the entry corresponding to @p name (tree search)
+        @brief Look up the entry corresponding to @p name (tree search)
 
-          Returns 0 if no entry is found
+        Returns 0 if no entry is found
       */
       ParamEntry* findEntryRecursive(const String& name);
 
@@ -179,6 +179,7 @@ public:
       /// Struct that captures information on entered / left nodes for ParamIterator
       struct OPENMS_DLLAPI TraceInfo
       {
+        /// Constructor with name, description, and open flag
         inline TraceInfo(const String& n, const String& d, bool o) :
           name(n),
           description(d),
@@ -194,37 +195,37 @@ public:
         bool opened;
       };
 
-      ///Default constructor used to create a past-the-end iterator
+      /// Default constructor used to create a past-the-end iterator
       ParamIterator();
-      ///Constructor for begin iterator
+      /// Constructor for begin iterator
       ParamIterator(const Param::ParamNode& root);
-      ///Destructor
+      /// Destructor
       ~ParamIterator();
-      ///Dereferencing
+      /// Dereferencing
       const Param::ParamEntry& operator*();
-      ///Dereferencing
+      /// Dereferencing
       const Param::ParamEntry* operator->();
-      ///Prefix increment operator
+      /// Prefix increment operator
       ParamIterator& operator++();
-      ///Postfix increment operator
+      /// Postfix increment operator
       ParamIterator operator++(int);
-      ///Equality operator
+      /// Equality operator
       bool operator==(const ParamIterator& rhs) const;
-      ///Equality operator
+      /// Equality operator
       bool operator!=(const ParamIterator& rhs) const;
-      ///Returns the absolute path of the current element (including all sections)
+      /// Returns the absolute path of the current element (including all sections)
       String getName() const;
-      ///Returns the traceback of the opened and closed sections
+      /// Returns the traceback of the opened and closed sections
       const std::vector<TraceInfo>& getTrace() const;
 
 protected:
-      ///Pointer to the root node
+      /// Pointer to the root node
       const Param::ParamNode* root_;
-      ///Index of the current ParamEntry (-1 means invalid)
+      /// Index of the current ParamEntry (-1 means invalid)
       Int current_;
-      ///Pointers to the ParmNodes we are in
+      /// Pointers to the ParmNodes we are in
       std::vector<const Param::ParamNode*> stack_;
-      ///Node traversal data during last ++ operation.
+      /// Node traversal data during last ++ operation.
       std::vector<TraceInfo> trace_;
 
     };
@@ -252,25 +253,28 @@ protected:
 
     ///@name Accessors for single parameters
     //@{
-    /**
-        @brief Sets a value.
 
-        @param key String key. Can contain ':' which separates section names
-        @param value The actual value
-        @param description Verbose description of the parameter
-        @param tags list of tags associated to this parameter
+    /**
+      @brief Sets a value.
+
+      @param key String key. Can contain ':' which separates section names
+      @param value The actual value
+      @param description Verbose description of the parameter
+      @param tags list of tags associated to this parameter
     */
     void setValue(const String& key, const DataValue& value, const String& description = "", const StringList& tags = StringList());
-    /**
-        @brief Returns a value of a parameter.
 
-        @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+    /**
+      @brief Returns a value of a parameter.
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
     const DataValue& getValue(const String& key) const;
-    /**
-        @brief Returns the whole parameter entry.
 
-        @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+    /**
+      @brief Returns the whole parameter entry.
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
     const ParamEntry& getEntry(const String& key) const;
 
@@ -280,39 +284,44 @@ protected:
 
     ///@name Tags handling
     //@{
-    /**
-        @brief Adds the tag @p tag to the entry @p key
 
-        @exception Exception::ElementNotFound is thrown if the parameter does not exists.
-        @exception Exception::InvalidValue is thrown if the tag contain a comma character.
+    /**
+      @brief Adds the tag @p tag to the entry @p key
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+      @exception Exception::InvalidValue is thrown if the tag contain a comma character.
     */
     void addTag(const String& key, const String& tag);
-    /**
-        @brief Adds the tags in the list @p tags to the entry @p key
 
-        @exception Exception::ElementNotFound is thrown if the parameter does not exists.
-        @exception Exception::InvalidValue is thrown if a tag contain a comma character.
+    /**
+      @brief Adds the tags in the list @p tags to the entry @p key
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+      @exception Exception::InvalidValue is thrown if a tag contain a comma character.
     */
     void addTags(const String& key, const StringList& tags);
+
     /**
       @brief Returns if the parameter @p key has a tag
 
-        Example: The tag 'advanced' is used in the GUI to determine which parmeters are always displayed
-        and which parameters are displayed only in 'advanced mode'.
+      Example: The tag 'advanced' is used in the GUI to determine which parmeters are always displayed
+      and which parameters are displayed only in 'advanced mode'.
 
-        @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
     bool hasTag(const String& key, const String& tag) const;
-    /**
-        @brief Returns the tags of entry @p key
 
-        @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+    /**
+      @brief Returns the tags of entry @p key
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
     StringList getTags(const String& key) const;
-    /**
-        @brief Removes all tags from the entry @p key
 
-        @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+    /**
+      @brief Removes all tags from the entry @p key
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
     void clearTags(const String& key);
     //@}
@@ -320,165 +329,184 @@ protected:
 
     ///@name Descriptions handling
     //@{
-    /**
-        @brief Returns the description of a parameter.
 
-        @exception Exception::ElementNotFound is thrown if the parameter does not exists.
+    /**
+      @brief Returns the description of a parameter.
+
+      @exception Exception::ElementNotFound is thrown if the parameter does not exists.
     */
     const String& getDescription(const String& key) const;
+
     /**
-        @brief Sets a description for an existing section
+      @brief Sets a description for an existing section
 
-        Descriptions for values cannot be set with this method.
-        They have to be set when inserting the value itself.
+      Descriptions for values cannot be set with this method.
+      They have to be set when inserting the value itself.
 
-        @exception Exception::ElementNotFound is thrown if the section does not exists.
+      @exception Exception::ElementNotFound is thrown if the section does not exists.
     */
     void setSectionDescription(const String& key, const String& description);
-    /**
-        @brief Returns the description corresponding to the section with name @p key.
 
-        If the section does not exist an empty string is returned.
+    /**
+      @brief Returns the description corresponding to the section with name @p key.
+
+      If the section does not exist an empty string is returned.
     */
     const String& getSectionDescription(const String& key) const;
     //@}
 
     ///@name Manipulation of the whole parameter set
     //@{
+
     ///Returns the number of entries (leafs).
     Size size() const;
+
     ///Returns if there are no entries.
     bool empty() const;
+
     /// Deletes all entries
     void clear();
+
     /// Insert all values of @p param and adds the prefix @p prefix.
     /// You should append ':' to prefix manually when you want it to be a section.
     void insert(const String& prefix, const Param& param);
+
     /**
-        @brief Remove the entry @p key or a section @p key (when suffix is ':')
+      @brief Remove the entry @p key or a section @p key (when suffix is ':')
 
-Remove deletes either an entry or a section (when @p key ends with ':'),
-by matching the exact name. No partial matches are accepted.
+      Remove deletes either an entry or a section (when @p key ends with ':'),
+      by matching the exact name. No partial matches are accepted.
 
-If an empty internal node remains, the tree is pruned until every node has either a successor node
-or a leaf, i.e. no naked nodes remain.
-
+      If an empty internal node remains, the tree is pruned until every node has either a successor node
+      or a leaf, i.e. no naked nodes remain.
     */
     void remove(const String& key);
+
     /**
-@brief Remove all entries that start with @p prefix
+      @brief Remove all entries that start with @p prefix
 
-Partial are valid as well. All entries and sections which match the prefix are deleted.
+      Partial are valid as well. All entries and sections which match the prefix are deleted.
 
-If an empty internal node remains, the tree is pruned until every node has either a successor node
-or a leaf, i.e. no naked nodes remain.
-
-*/
+      If an empty internal node remains, the tree is pruned until every node has either a successor node
+      or a leaf, i.e. no naked nodes remain.
+    */
     void removeAll(const String& prefix);
-    /**
-        @brief Returns a new Param object containing all entries that start with @p prefix.
 
-        @param prefix should contain a ':' at the end if you want to extract a subtree.
-                     Otherwise not only nodes, but as well values with that prefix are copied.
-        @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
+    /**
+      @brief Returns a new Param object containing all entries that start with @p prefix.
+
+      @param prefix should contain a ':' at the end if you want to extract a subtree.
+             Otherwise not only nodes, but as well values with that prefix are copied.
+      @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
     */
     Param copy(const String& prefix, bool remove_prefix = false) const;
-    //@}
-
-    ///@name Default value handling
-    //@{
-    /**
-        @brief Insert all values of @p defaults and adds the prefix @p prefix, if the values are not already set.
-
-        @param defaults The default values.
-        @param prefix The prefix to add to all defaults.
-        @param showMessage If <tt>true</tt> each default that is actually set is printed to stdout as well.
-
-        @see checkDefaults
-    */
-    void setDefaults(const Param& defaults, const String& prefix = "", bool showMessage = false);
-    /**
-        @brief Checks the current parameter entries against given @p defaults
-
-        Several checks are performed:
-        - If a parameter is present for which no default value is specified, a warning is issued to @p os.
-        - If the type of a parameter and its default do not match, an exception is thrown.
-        - If a string parameter contains an invalid string, an exception is thrown.
-        -	If parameter entry is a string list, an exception is thrown, if one or more list members are invalid strings
-        - If a numeric parameter is out of the valid range, an exception is thrown.
-        - If entry is a numeric list an exception is thrown, if one or more list members are out of the valid range
-
-        @param name The name that is used in error messages.
-        @param defaults The default values.
-        @param prefix The prefix where to check for the defaults.
-        @param os The output stream for the warnings.
-
-        @exception Exception::InvalidParameter is thrown if errors occur during the check
-    */
-    void checkDefaults(const String& name, const Param& defaults, const String& prefix = "", std::ostream& os = std::cout) const;
-
 
     /**
       @brief Rescue parameter <b>values</b> from @p old_version to current param
 
       All parameters present in both param objects will be transferred into this object, given that:
-      - the name is equal
-      - the type is equal
-      - the restrictions are equal
+      <ul>
+        <li>the name is equal</li>
+        <li>the type is equal</li>
+        <li>the restrictions are equal</li>
+      </ul>
 
       Not transferred are parameters with name "version" (to preserve the new version) or "type" (to preserve layout).
 
-      @param old_version Old version of param, which contains the useful settings to be rescued
-      @param report_new_params Report params contained in this param, but not in old version
-      @param only_update_old Delete all entries not contained in old, i.e. update old params when contained in this param and keep old ones
+      @param add_unknown Add unknown parameters to the param object. Default is false.
       @param stream The stream where all the output is send to.
-
     */
-    void update(const Param& old_version, const bool report_new_params = false, const int keep_old_only = 0, Logger::LogStream& stream = LOG_WARN);
+    void update(const Param& old_version, const bool add_unknown = false, Logger::LogStream& stream = LOG_WARN);
 
+    /**
+      @brief Adds missing parameters from the given Param to the param object. Existing parameters will not be modified.
+
+      @param toMerge The Param object from which parameters should be added to the Param object.
+    */
+    void merge(const Param& toMerge);
+
+    //@}
+
+
+    ///@name Default value handling
+    //@{
+    /**
+      @brief Insert all values of @p defaults and adds the prefix @p prefix, if the values are not already set.
+
+      @param defaults The default values.
+      @param prefix The prefix to add to all defaults.
+      @param showMessage If <tt>true</tt> each default that is actually set is printed to stdout as well.
+
+      @see checkDefaults
+    */
+    void setDefaults(const Param& defaults, const String& prefix = "", bool showMessage = false);
+
+    /**
+      @brief Checks the current parameter entries against given @p defaults
+
+      Several checks are performed:
+      - If a parameter is present for which no default value is specified, a warning is issued to @p os.
+      - If the type of a parameter and its default do not match, an exception is thrown.
+      - If a string parameter contains an invalid string, an exception is thrown.
+      -	If parameter entry is a string list, an exception is thrown, if one or more list members are invalid strings
+      - If a numeric parameter is out of the valid range, an exception is thrown.
+      - If entry is a numeric list an exception is thrown, if one or more list members are out of the valid range
+
+      @param name The name that is used in error messages.
+      @param defaults The default values.
+      @param prefix The prefix where to check for the defaults.
+      @param os The output stream for the warnings.
+
+      @exception Exception::InvalidParameter is thrown if errors occur during the check
+    */
+    void checkDefaults(const String& name, const Param& defaults, const String& prefix = "", std::ostream& os = std::cout) const;
     //@}
 
     ///@name Restriction handling
     //@{
     /**
-        @brief Sets the valid strings for the parameter @p key.
+      @brief Sets the valid strings for the parameter @p key.
 
-        It is only checked in checkDefaults().
+      It is only checked in checkDefaults().
 
-        @exception Exception::InvalidParameter is thrown, if one of the strings contains a comma character
-        @exception Exception::ElementNotFound exception is thrown, if the parameter is no string parameter
+      @exception Exception::InvalidParameter is thrown, if one of the strings contains a comma character
+      @exception Exception::ElementNotFound exception is thrown, if the parameter is no string parameter
     */
     void setValidStrings(const String& key, const std::vector<String>& strings);
+
     /**
-        @brief Sets the minimum value for the integer or integer list parameter @p key.
+      @brief Sets the minimum value for the integer or integer list parameter @p key.
 
-        It is only checked in checkDefaults().
+      It is only checked in checkDefaults().
 
-        @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
+      @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
     void setMinInt(const String& key, Int min);
+
     /**
-        @brief Sets the maximum value for the integer or integer list parameter @p key.
+      @brief Sets the maximum value for the integer or integer list parameter @p key.
 
-        It is only checked in checkDefaults().
+      It is only checked in checkDefaults().
 
-        @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
+      @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
     void setMaxInt(const String& key, Int max);
+
     /**
-        @brief Sets the minimum value for the floating point or floating point list parameter @p key.
+      @brief Sets the minimum value for the floating point or floating point list parameter @p key.
 
-        It is only checked in checkDefaults().
+      It is only checked in checkDefaults().
 
-        @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
+      @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
     void setMinFloat(const String& key, DoubleReal min);
+
     /**
-        @brief Sets the maximum value for the floating point or floating point list parameter @p key.
+      @brief Sets the maximum value for the floating point or floating point list parameter @p key.
 
-        It is only checked in checkDefaults().
+      It is only checked in checkDefaults().
 
-        @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
+      @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
     void setMaxFloat(const String& key, DoubleReal max);
     //@}
