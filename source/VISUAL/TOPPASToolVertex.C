@@ -142,7 +142,7 @@ namespace OpenMS
     ini_file += File::getUniqueName().toQString() + "_tmp.ini";
     ini_file = QDir::toNativeSeparators(ini_file);
 
-    String call = String("\"") + File::getExecutablePath() + name_ + "\"" + " -write_ini " + ini_file;
+    String call = String("\"") + File::getExecutablePath() + name_ + "\"" + " -write_ini \"" + ini_file + "\"";
     if (type_ != "")
     {
       call += " -type " + type_;
