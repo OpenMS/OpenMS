@@ -38,10 +38,13 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
+#include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -72,6 +75,9 @@
 
 namespace OpenMS
 {
+	class ControlledVocabulary;
+	class CVMappingFile;
+	class CVMappings;
   namespace Internal
   {
 
@@ -102,9 +108,12 @@ public:
         in_spectrum_list_(false),
         decoder_(),
         logger_(logger),
-        skip_spectrum_(false)
+        skip_spectrum_(false)/* ,
+				validator_(mapping_, cv_) */
       {
         cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
+				CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
+				//~ validator_ = Internal::MzMLValidator(mapping_, cv_);
       }
 
       /// Constructor for a write-only handler
@@ -120,9 +129,12 @@ public:
         in_spectrum_list_(false),
         decoder_(),
         logger_(logger),
-        skip_spectrum_(false)
+        skip_spectrum_(false)/* ,
+				validator_(mapping_, cv_) */
       {
         cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
+				CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
+				//~ validator_ = Internal::MzMLValidator(mapping_, cv_);
       }
 
       /// Destructor
@@ -226,6 +238,8 @@ protected:
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
+      CVMappings mapping_;
+      //~ Internal::MzMLValidator validator_;
 
       ///Count of selected ions
       UInt selected_ion_count_;
@@ -237,31 +251,31 @@ protected:
       void fillChromatogramData_();
 
       /// Handles CV terms
-      void handleCVParam_(const String & parent_parent_tag, const String & parent_tag, const String & accession, const String & name, const String & value, const String & unit_accession = "");
+      void handleCVParam_(const String & parent_parent_tag, const String & parent_tag,/*  const String & cvref, */ const String & accession, const String & name, const String & value, const String & unit_accession = "");
 
       /// Handles user terms
       void handleUserParam_(const String & parent_parent_tag, const String & parent_tag, const String & name, const String & type, const String & value);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent) const;
+      void writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent, String path, Internal::MzMLValidator& validator) const;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String & parent_accession, const String & name) const;
 
       /// Helper method that writes a software
-      void writeSoftware_(std::ostream & os, const String & id, const Software & software);
+      void writeSoftware_(std::ostream & os, const String & id, const Software & software, Internal::MzMLValidator& validator);
 
       /// Helper method that writes a source file
-      void writeSourceFile_(std::ostream & os, const String & id, const SourceFile & software);
+      void writeSourceFile_(std::ostream & os, const String & id, const SourceFile & software, Internal::MzMLValidator& validator);
 
       /// Helper method that writes a data processing list
-      void writeDataProcessing_(std::ostream & os, const String & id, const std::vector<DataProcessing> & dps);
+      void writeDataProcessing_(std::ostream & os, const String & id, const std::vector<DataProcessing> & dps, Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
-      void writePrecursor_(std::ostream & os, const Precursor & precursor);
+      void writePrecursor_(std::ostream & os, const Precursor & precursor, Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
-      void writeProduct_(std::ostream & os, const Product & product);
+      void writeProduct_(std::ostream & os, const Product & product, Internal::MzMLValidator& validator);
 
     };
 
@@ -311,6 +325,7 @@ protected:
       static const XMLCh * s_unit_accession = xercesc::XMLString::transcode("unitAccession");
       static const XMLCh * s_id = xercesc::XMLString::transcode("id");
       static const XMLCh * s_spot_id = xercesc::XMLString::transcode("spotID");
+      //~ static const XMLCh * s_cvref = xercesc::XMLString::transcode("cvRef"); TODO
       static const XMLCh * s_ref = xercesc::XMLString::transcode("ref");
       static const XMLCh * s_version = xercesc::XMLString::transcode("version");
       static const XMLCh * s_order = xercesc::XMLString::transcode("order");
@@ -452,7 +467,7 @@ protected:
         optionalAttributeAsString_(value, attributes, s_value);
         String unit_accession = "";
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
-        handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, unit_accession);
+        handleCVParam_(parent_parent_tag, parent_tag, /* attributeAsString_(attributes, s_cvref), */ attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, unit_accession);
       }
       else if (tag == "userParam")
       {
@@ -478,7 +493,7 @@ protected:
         String ref = attributeAsString_(attributes, s_ref);
         for (Size i = 0; i < ref_param_[ref].size(); ++i)
         {
-          handleCVParam_(parent_parent_tag, parent_tag, ref_param_[ref][i].accession, ref_param_[ref][i].name, ref_param_[ref][i].value, ref_param_[ref][i].unit_accession);
+          handleCVParam_(parent_parent_tag, parent_tag, /* attributeAsString_(attributes, s_cvref), */ ref_param_[ref][i].accession, ref_param_[ref][i].name, ref_param_[ref][i].value, ref_param_[ref][i].unit_accession);
         }
       }
       else if (tag == "scan")
@@ -605,7 +620,7 @@ protected:
         }
         catch (Exception::ParseError& /*e*/)
         {
-          LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" << 
+          LOG_ERROR << "Warning: Parsing error, \"processingMethod\" is missing the required attribute \"softwareRef\".\n" <<
                         "The software tool which generated this mzML should be fixed. Please notify the maintainers." << std::endl;
         }
         processing_[current_id_].push_back(dp);
@@ -1239,7 +1254,7 @@ protected:
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::handleCVParam_(const String & parent_parent_tag, const String & parent_tag, const String & accession, const String & name, const String & value, const String & unit_accession)
+    void MzMLHandler<MapType>::handleCVParam_(const String & parent_parent_tag, const String & parent_tag, /* const String & cvref,  */const String & accession, const String & name, const String & value, const String & unit_accession)
     {
       //Abort on unknown terms
       if (!cv_.exists(accession))
@@ -2917,10 +2932,12 @@ protected:
         if (cv_.isChildOf(accession, "MS:1000524"))        //data file content
         {
           //ignored
+          exp_->setMetaValue(name, value);
         }
         else if (cv_.isChildOf(accession, "MS:1000525"))        //spectrum representation
         {
           //ignored
+          exp_->setMetaValue(name, value);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -2939,7 +2956,10 @@ protected:
           }
         }
         else
+        {
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        }
+        //~ software_[current_id_].addCVTerm( 	CVTerm (accession, value, const String &cv_identifier_ref, const String &value, const Unit &unit) 	); TODO somthing like that
       }
       else if (parent_tag == "chromatogram")
       {
@@ -3140,39 +3160,57 @@ protected:
       }
       else if (parent_tag == "fileContent")
       {
-        //currently ignored
+        exp_->setMetaValue(name, data_value);
       }
       else
         warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent) const
+    void MzMLHandler<MapType>::writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent, String path, Internal::MzMLValidator& validator) const
     {
       std::vector<String> keys;
       meta.getKeys(keys);
 
       for (Size i = 0; i != keys.size(); ++i)
       {
-        os << String(indent, '\t') << "<userParam name=\"" << keys[i] << "\" type=\"";
+        try
+        {
+            ControlledVocabulary::CVTerm c = cv_.getTermByName(keys[i]); // in cv_ write cvparam else write userparam
+						SemanticValidator::CVTerm sc;
 
-        DataValue d = meta.getMetaValue(keys[i]);
-        //determine type
-        if (d.valueType() == DataValue::INT_VALUE)
-        {
-          os << "xsd:integer";
+						sc.accession = c.id;
+						sc.name = c.name;
+						sc.has_unit_accession = false;
+						sc.has_unit_name = false;
+
+						if (validator.SemanticValidator::locateTerm(path, sc))
+						{
+							os << String(indent, '\t') << c.toXMLString("MS",(String)meta.getMetaValue(keys[i])) << "\n";
+						}
         }
-        else if (d.valueType() == DataValue::DOUBLE_VALUE)
+        catch(...)
         {
-          os << "xsd:double";
+          os << String(indent, '\t') << "<userParam name=\"" << keys[i] << "\" type=\"";
+
+          DataValue d = meta.getMetaValue(keys[i]);
+          //determine type
+          if (d.valueType() == DataValue::INT_VALUE)
+          {
+            os << "xsd:integer";
+          }
+          else if (d.valueType() == DataValue::DOUBLE_VALUE)
+          {
+            os << "xsd:double";
+          }
+          else         //string or lists are converted to string
+          {
+            os << "xsd:string";
+          }
+          String s = (String)(d);
+          s.substitute("\"", "&quot;");
+          os << "\" value=\"" << s << "\"/>" << "\n";
         }
-        else         //string or lists are converted to string
-        {
-          os << "xsd:string";
-        }
-        String s = (String)(d);
-        s.substitute("\"", "&quot;");
-        os << "\" value=\"" << s << "\"/>" << "\n";
       }
     }
 
@@ -3192,7 +3230,7 @@ protected:
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writeSoftware_(std::ostream & os, const String & id, const Software & software)
+    void MzMLHandler<MapType>::writeSoftware_(std::ostream & os, const String & id, const Software & software, Internal::MzMLValidator& validator)
     {
       os << "\t\t<software id=\""<< id << "\" version=\"" << software.getVersion() << "\" >\n";
       ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531", software.getName());
@@ -3208,12 +3246,12 @@ protected:
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\""<< software.getName() << "\" />\n";
       }
-      writeUserParam_(os, software, 3);
+      writeUserParam_(os, software, 3, "/mzML/Software/cvParam/@accession", validator);
       os << "\t\t</software>\n";
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writeSourceFile_(std::ostream & os, const String & id, const SourceFile & source_file)
+    void MzMLHandler<MapType>::writeSourceFile_(std::ostream & os, const String & id, const SourceFile & source_file, Internal::MzMLValidator& validator)
     {
       os << "\t\t\t<sourceFile id=\""<< id << "\" name=\"" << source_file.getNameOfFile() << "\" location=\"" << source_file.getPathToFile() << "\">\n";
       //checksum
@@ -3249,12 +3287,12 @@ protected:
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000777\" name=\"spectrum identifier nativeID format\" />\n";
       }
-      writeUserParam_(os, source_file, 4);
+      writeUserParam_(os, source_file, 4, "/mzML/fileDescription/sourceFileList/sourceFile/cvParam/@accession", validator);
       os << "\t\t\t</sourceFile>\n";
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writeDataProcessing_(std::ostream & os, const String & id, const std::vector<DataProcessing> & dps)
+    void MzMLHandler<MapType>::writeDataProcessing_(std::ostream & os, const String & id, const std::vector<DataProcessing> & dps, Internal::MzMLValidator& validator)
     {
       os << "\t\t<dataProcessing id=\""<< id << "\">\n";
 
@@ -3369,7 +3407,7 @@ protected:
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\""<< dps[i].getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\" />\n";
         }
 
-        writeUserParam_(os, dps[i], 4);
+        writeUserParam_(os, dps[i], 4, "/mzML/dataProcessingList/dataProcessing/processingMethod/cvParam/@accession", validator);
         os << "\t\t\t</processingMethod>\n";
       }
 
@@ -3377,7 +3415,7 @@ protected:
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writePrecursor_(std::ostream & os, const Precursor & precursor)
+    void MzMLHandler<MapType>::writePrecursor_(std::ostream & os, const Precursor & precursor, Internal::MzMLValidator& validator)
     {
       os << "          <precursor>\n";
       //--------------------------------------------------------------------------------------------
@@ -3410,7 +3448,10 @@ protected:
       //activation
       //--------------------------------------------------------------------------------------------
       os << "            <activation>\n";
-      os << "              <cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
+      if (precursor.getActivationEnergy() != 0)
+      {
+        os << "              <cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
+      }
       if (precursor.getActivationMethods().count(Precursor::CID) != 0)
       {
         os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
@@ -3468,21 +3509,21 @@ protected:
         os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
       }
       //as "precursor" has no own user param its userParam is stored here
-      writeUserParam_(os, precursor, 6);
+      writeUserParam_(os, precursor, 6, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator);
       os << "          </activation>\n";
       os << "        </precursor>\n";
 
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writeProduct_(std::ostream & os, const Product & product)
+    void MzMLHandler<MapType>::writeProduct_(std::ostream & os, const Product & product, Internal::MzMLValidator& validator)
     {
       os << "          <product>\n";
       os << "            <isolationWindow>\n";
       os << "              <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << product.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
       os << "              <cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << product.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
       os << "              <cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << product.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-      writeUserParam_(os, product, 7);
+      writeUserParam_(os, product, 7, "/mzML/run/spectrumList/spectrum/productList/product/isolationWindow/cvParam/@accession", validator);
       os << "            </isolationWindow>\n";
       os << "        </product>\n";
     }
@@ -3493,6 +3534,7 @@ protected:
       const MapType & exp = *(cexp_);
       logger_.startProgress(0, exp.size() + exp.getChromatograms().size(), "storing mzML file");
       int progress = 0;
+	    Internal::MzMLValidator validator(mapping_, cv_);
 
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
          << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"" << version_ << "\">\n";
@@ -3573,6 +3615,7 @@ protected:
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
+      writeUserParam_(os, exp, 3, "/mzML/fileDescription/fileContent/cvParam/@accession", validator);
       os << "\t\t</fileContent>\n";
       //--------------------------------------------------------------------------------------------
       // source file list
@@ -3590,7 +3633,7 @@ protected:
         //write source file of run
         if (exp.getSourceFiles().size() > 0)
         {
-          writeSourceFile_(os, String("sf_ru_0"), exp.getSourceFiles()[0]);
+          writeSourceFile_(os, String("sf_ru_0"), exp.getSourceFiles()[0], validator);
         }
         if (exp.getSourceFiles().size() > 1)
         {
@@ -3601,7 +3644,7 @@ protected:
         {
           if (exp[i].getSourceFile() != SourceFile())
           {
-            writeSourceFile_(os, String("sf_sp_") + i, exp[i].getSourceFile());
+            writeSourceFile_(os, String("sf_sp_") + i, exp[i].getSourceFile(), validator);
           }
         }
         os << "\t\t</sourceFileList>\n";
@@ -3632,7 +3675,7 @@ protected:
         {
           os << "\t\t\t<userParam name=\"contact_info\" type=\"xsd:string\" value=\""<< cp.getContactInfo() << "\" />\n";
         }
-        writeUserParam_(os, cp, 3);
+        writeUserParam_(os, cp, 3, "/mzML/fileDescription/contact/cvParam/@accession", validator);
         os << "\t\t</contact>\n";
       }
       os << "\t</fileDescription>\n";
@@ -3677,7 +3720,7 @@ protected:
       {
         os << "\t\t\t<userParam name=\"comment\" type=\"xsd:string\" value=\""<< sa.getComment() << "\" />\n";
       }
-      writeUserParam_(os, sa, 3);
+      writeUserParam_(os, sa, 3, "/mzML/sampleList/sample/cvParam/@accession", validator);
       os << "\t\t</sample>\n";
       os << "\t</sampleList>\n";
 
@@ -3721,17 +3764,17 @@ protected:
 
       os << "\t<softwareList count=\""<< num_software + num_bi_software << "\">\n";
       //write instrument software
-      writeSoftware_(os, "so_in_0", exp.getInstrument().getSoftware());
+      writeSoftware_(os, "so_in_0", exp.getInstrument().getSoftware(), validator);
 
       //write fallback software
-      writeSoftware_(os, "so_default", Software());
+      writeSoftware_(os, "so_default", Software(), validator);
 
       // write the software of the dps
       for (Size s1 = 0; s1 != dps.size(); ++s1)
       {
         for (Size s2 = 0; s2 != dps[s1].size(); ++s2)
         {
-          writeSoftware_(os, String("so_dp_sp_") + s1 + "_pm_" + s2, dps[s1][s2].getSoftware());
+          writeSoftware_(os, String("so_dp_sp_") + s1 + "_pm_" + s2, dps[s1][s2].getSoftware(), validator);
         }
       }
 
@@ -3742,7 +3785,7 @@ protected:
         {
           for (Size i = 0; i < exp[s].getFloatDataArrays()[m].getDataProcessing().size(); ++i)
           {
-            writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i, exp[s].getFloatDataArrays()[m].getDataProcessing()[i].getSoftware());
+            writeSoftware_(os, String("so_dp_sp_") + s + "_bi_" + m + "_pm_" + i, exp[s].getFloatDataArrays()[m].getDataProcessing()[i].getSoftware(), validator);
           }
         }
       }
@@ -3815,7 +3858,7 @@ protected:
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000320\" name=\"static field\" />\n";
       }
 
-      writeUserParam_(os, in, 3);
+      writeUserParam_(os, in, 3, "/mzML/instrumentConfigurationList/instrumentConfiguration/cvParam/@accession", validator);
       Size component_count = in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size();
       if (component_count != 0)
       {
@@ -4086,7 +4129,7 @@ protected:
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000008\" name=\"ionization type\" />\n";
           }
 
-          writeUserParam_(os, so, 5);
+          writeUserParam_(os, so, 5, "/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source/cvParam/@accession", validator);
           os << "\t\t\t\t</source>\n";
         }
         //FORCED
@@ -4178,7 +4221,7 @@ protected:
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000443\" name=\"mass analyzer type\" />\n";
           }
 
-          writeUserParam_(os, ma, 5);
+          writeUserParam_(os, ma, 5, "/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer/cvParam/@accession", validator);
           os << "\t\t\t\t</analyzer>\n";
         }
         //FORCED
@@ -4302,7 +4345,7 @@ protected:
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000026\" name=\"detector type\" />\n";
           }
 
-          writeUserParam_(os, id, 5);
+          writeUserParam_(os, id, 5, "/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/detector/cvParam/@accession", validator);
           os << "\t\t\t\t</detector>\n";
         }
         //FORCED
@@ -4338,12 +4381,12 @@ protected:
       if (exp.empty())
       {
         std::vector<DataProcessing> dummy;
-        writeDataProcessing_(os, "dp_sp_0", dummy);
+        writeDataProcessing_(os, "dp_sp_0", dummy, validator);
       }
 
       for (Size s = 0; s < dps.size(); ++s)
       {
-        writeDataProcessing_(os, String("dp_sp_") + s, dps[s]);
+        writeDataProcessing_(os, String("dp_sp_") + s, dps[s], validator);
       }
 
       //for each binary data array
@@ -4351,7 +4394,7 @@ protected:
       {
         for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
         {
-          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, exp[s].getFloatDataArrays()[m].getDataProcessing());
+          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, exp[s].getFloatDataArrays()[m].getDataProcessing(), validator);
         }
       }
 
@@ -4380,7 +4423,7 @@ protected:
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000858\" name=\"fraction identifier\" value=\""<< exp.getFractionIdentifier() << "\" />\n";
       }
 
-      writeUserParam_(os, exp, 2);
+      writeUserParam_(os, exp, 2, "/mzML/run/cvParam/@accession", validator);
 
       //--------------------------------------------------------------------------------------------
       //spectrum
@@ -4537,7 +4580,7 @@ protected:
             os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\" />\n";
           }
 
-          writeUserParam_(os, spec, 5);
+          writeUserParam_(os, spec, 5, "/mzML/run/spectrumList/spectrum/cvParam/@accession", validator);
           //--------------------------------------------------------------------------------------------
           //scan list
           //--------------------------------------------------------------------------------------------
@@ -4551,7 +4594,7 @@ protected:
           {
             os << "\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000795\" name=\"no combination\" />\n";
           }
-          writeUserParam_(os, spec.getAcquisitionInfo(), 5);
+          writeUserParam_(os, spec.getAcquisitionInfo(), 5, "/mzML/run/spectrumList/spectrum/scanList/cvParam/@accession", validator);
 
           //--------------------------------------------------------------------------------------------
           //scan
@@ -4567,7 +4610,7 @@ protected:
             {
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\""<< spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
             }
-            writeUserParam_(os, ac, 6);
+            writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
             //scan windows
             if (j == 0 && spec.getInstrumentSettings().getScanWindows().size() != 0)
             {
@@ -4577,7 +4620,7 @@ protected:
                 os << "\t\t\t\t\t\t\t<scanWindow>\n";
                 os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\""<< spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
                 os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\""<< spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-                writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8);
+                writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8, "/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow/cvParam/@accession", validator);
                 os << "\t\t\t\t\t\t\t</scanWindow>\n";
               }
               os << "\t\t\t\t\t\t</scanWindowList>\n";
@@ -4598,7 +4641,7 @@ protected:
                 os << "\t\t\t\t\t\t\t<scanWindow>\n";
                 os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\""<< spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
                 os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\""<< spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-                writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8);
+                writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8, "/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow/cvParam/@accession", validator);
                 os << "\t\t\t\t\t\t\t</scanWindow>\n";
               }
               os << "\t\t\t\t\t\t</scanWindowList>\n";
@@ -4614,7 +4657,7 @@ protected:
             os << "      <precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
             for (Size p = 0; p != spec.getPrecursors().size(); ++p)
             {
-              writePrecursor_(os, spec.getPrecursors()[p]);
+              writePrecursor_(os, spec.getPrecursors()[p], validator);
             }
             os << "      </precursorList>\n";
           }
@@ -4729,7 +4772,7 @@ protected:
             os << "        <productList count=\"" << spec.getProducts().size() << "\">\n";
             for (Size p = 0; p < spec.getProducts().size(); ++p)
             {
-              writeProduct_(os, spec.getProducts()[p]);
+              writeProduct_(os, spec.getProducts()[p], validator);
             }
             os << "      </productList>\n";
           }
@@ -4848,7 +4891,7 @@ protected:
               {
                 os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\""<< array.getName() << "\" />\n";
               }
-              writeUserParam_(os, array, 6);
+              writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
               os << "\t\t\t\t\t\t<binary>"<< encoded_string << "</binary>\n";
               os << "\t\t\t\t\t</binaryDataArray>\n";
             }
@@ -4877,7 +4920,7 @@ protected:
               {
                 os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\""<< array.getName() << "\" />\n";
               }
-              writeUserParam_(os, array, 6);
+              writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
               os << "\t\t\t\t\t\t<binary>"<< encoded_string << "</binary>\n";
               os << "\t\t\t\t\t</binaryDataArray>\n";
             }
@@ -4899,7 +4942,7 @@ protected:
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";
               os << "\t\t\t\t\t\t"<< compression_term << "\n";
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\""<< array.getName() << "\" />\n";
-              writeUserParam_(os, array, 6);
+              writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
               os << "\t\t\t\t\t\t<binary>"<< encoded_string << "</binary>\n";
               os << "\t\t\t\t\t</binaryDataArray>\n";
             }
@@ -4965,8 +5008,8 @@ protected:
           {
             // TODO
           }
-          writePrecursor_(os, chromatogram.getPrecursor());
-          writeProduct_(os, chromatogram.getProduct());
+          writePrecursor_(os, chromatogram.getPrecursor(), validator);
+          writeProduct_(os, chromatogram.getProduct(), validator);
 
           //--------------------------------------------------------------------------------------------
           //binary data array list
@@ -5061,7 +5104,7 @@ protected:
             {
               os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
             }
-            writeUserParam_(os, array, 6);
+            writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
             os << "            <binary>" << encoded_string << "</binary>\n";
             os << "          </binaryDataArray>\n";
           }
@@ -5090,7 +5133,7 @@ protected:
             {
               os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
             }
-            writeUserParam_(os, array, 6);
+            writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
             os << "            <binary>" << encoded_string << "</binary>\n";
             os << "          </binaryDataArray>\n";
           }
@@ -5112,7 +5155,7 @@ protected:
             os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001479\" name=\"null-terminated ASCII string\" />\n";
             os << "            " << compression_term << "\n";
             os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
-            writeUserParam_(os, array, 6);
+            writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
             os << "            <binary>" << encoded_string << "</binary>\n";
             os << "          </binaryDataArray>\n";
           }

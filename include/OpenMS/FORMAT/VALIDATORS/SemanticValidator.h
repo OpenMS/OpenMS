@@ -69,6 +69,19 @@ public:
       /// Destructor
       virtual ~SemanticValidator();
 
+      ///Representation of a parsed CV term
+      struct CVTerm
+      {
+        String accession;
+        String name;
+        String value;
+        bool has_value;
+        String unit_accession;
+        bool has_unit_accession;
+        String unit_name;
+        bool has_unit_name;
+      };
+
       /**
           @brief Semantically validates an XML file.
 
@@ -81,6 +94,9 @@ public:
           @exception Exception::FileNotFound is thrown if the file could not be opened
       */
       bool validate(const String & filename, StringList & errors, StringList & warnings);
+
+      /// Checks if a CVTerm is allowed in a given path
+      bool locateTerm(const String & path, const CVTerm & parsed_term) const;
 
       /// Sets the CV parameter tag name (default: 'cvParam')
       void setTag(const String & tag);
@@ -119,19 +135,6 @@ public:
       /// Sets the name of the unit name attribute (default: 'unitName')
       void setUnitNameAttribute(const String & name);
 
-      ///Representation of a parsed CV term
-      struct CVTerm
-      {
-        String accession;
-        String name;
-        String value;
-        bool has_value;
-        String unit_accession;
-        bool has_unit_accession;
-        String unit_name;
-        bool has_unit_name;
-      };
-
 protected:
 
       // Docu in base class
@@ -148,6 +151,10 @@ protected:
 
       /// Parses the CV term accession (required), name (required) and value (optional) from the XML attributes
       virtual void getCVTerm_(const xercesc::Attributes & attributes, CVTerm & parsed_term);
+
+      //~ forward dekl. of a inner struct/class not possible in C++ - or our Library is overtemplated
+      //~ /// make a SemanticValidator::CVTerm from a ControlledVocabulary::CVTerm (without any value or unit), needed for writing only cvs at the right places in the xml (i.e. with cvmapping)
+      //~ virtual void makeCVTerm_(const ControlledVocabulary::CVTerm & lc, CVTerm & parsed_term);
 
       /// Handling of the term
       virtual void handleTerm_(const String & path, const CVTerm & parsed_term);
