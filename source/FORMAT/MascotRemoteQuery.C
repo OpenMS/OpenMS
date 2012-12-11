@@ -81,7 +81,8 @@ namespace OpenMS
     // Mascot specific options
     defaults_.setValue("query_master", "false", "If this option is set to true, query peptides will be returned with non-truncated lists, however, protein references of peptides will not be correct.", StringList::create("advanced"));
     defaults_.setValidStrings("query_master", StringList::create("true,false"));
-
+    defaults_.setValue("max_hits", 0, "Maximum number of hits to be exported from the server to XML (0 = AUTO)");
+    defaults_.setMinInt("max_hits", 0);
     defaultsToParam_();
   }
 
@@ -466,11 +467,14 @@ namespace OpenMS
       results_path_ = "";
       results_path_.append("/mascot/cgi/export_dat_2.pl?file=");
       results_path_.append(rx.cap(1));
+      Int report_max = param_.getValue("max_hits");
+      results_path_.append(QString("&report=") + QString::number(report_max));
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
       cerr << "Results path to export: " << results_path_.toStdString() << "\n";
 #endif
-      results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1");
+      //results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1"); // contains duplicate options
+      results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&search_master=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1");
 
       if (param_.getValue("query_master").toBool())
       {
