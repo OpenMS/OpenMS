@@ -200,8 +200,14 @@ protected:
       }
 
       // get defaults of new tool by calling it
-      int call = system(String("\"" + path + "/" + new_tool + "\"" + " -write_ini " + tmp_ini_file + " -instance " + String(this_instance)).c_str());
-      if (call)
+      QProcess pr;
+      QStringList arguments;
+      arguments << "-write_ini";
+      arguments << tmp_ini_file.toQString();
+      arguments << "-instance";
+      arguments << String(this_instance).toQString();
+      pr.start((path + "/" + new_tool).toQString(), arguments);
+      if (!pr.waitForFinished(-1))
       {
         writeLog_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
@@ -318,8 +324,14 @@ protected:
         break;
       }
       // get defaults of new tool by calling it
-      int call = system(String("\"" + path + "/" + new_tool + "\"" + " -write_ini " + tmp_ini_file + " -instance " + String(this_instance)).c_str());
-      if (call)
+      QProcess pr;
+      QStringList arguments;
+      arguments << "-write_ini";
+      arguments << tmp_ini_file.toQString();
+      arguments << "-instance";
+      arguments << String(this_instance).toQString();
+      pr.start((path + "/" + new_tool).toQString(), arguments);
+      if (!pr.waitForFinished(-1))
       {
         writeLog_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;

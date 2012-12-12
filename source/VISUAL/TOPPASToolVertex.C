@@ -166,7 +166,7 @@ namespace OpenMS
 
     QProcess p;
     p.start(program, arguments);
-    if ( (!p.waitForFinished(-1)))
+    if (!p.waitForFinished(-1))
     {
       QMessageBox::critical(0, "Error", (String("Could not execute '") + program + " " + String(arguments.join(" ")) + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
       tool_ready_ = false;
