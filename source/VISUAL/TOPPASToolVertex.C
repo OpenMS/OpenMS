@@ -142,10 +142,15 @@ namespace OpenMS
     ini_file += File::getUniqueName().toQString() + "_tmp.ini";
     ini_file = QDir::toNativeSeparators(ini_file);
 
-    String call = String("\"") + File::getExecutablePath() + name_ + "\"" + " -write_ini \"" + ini_file + "\"";
+    QString program = (File::getExecutablePath() + name_).toQString();
+    QStringList arguments;
+    arguments << "-write_ini";
+    arguments << ini_file;
+
     if (type_ != "")
     {
-      call += " -type " + type_;
+      arguments << "-type";
+      arguments << type_.toQString();
     }
     if (old_ini_file != "")
     {
@@ -155,12 +160,15 @@ namespace OpenMS
         tool_ready_ = false;
         return false;
       }
-      call += " -ini " + String(old_ini_file);
+      arguments << "-ini";
+      arguments << old_ini_file;
     }
 
-    if (system(call.c_str()) != 0)
+    QProcess p;
+    p.start(program, arguments);
+    if ( (!p.waitForFinished(-1)))
     {
-      QMessageBox::critical(0, "Error", (String("Could not execute '") + call + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+      QMessageBox::critical(0, "Error", (String("Could not execute '") + program + " " + String(arguments.join(" ")) + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
       tool_ready_ = false;
       return false;
     }
