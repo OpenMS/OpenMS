@@ -86,7 +86,7 @@ Some information about the supported input types:
   @ref OpenMS::PepXMLFile "pepXML"
   @ref OpenMS::ProtXMLFile "protXML"
   @ref OpenMS::IdXMLFile "idXML"
-  @ref OpenMS::MascotXML "mascotXML" / "xml"
+  @ref OpenMS::MascotXML "mascotXML"
   @ref OpenMS::OMSSAFile "omssaXML"
   @ref OpenMS::SequestOutfile ".out" directory
 
@@ -118,10 +118,10 @@ protected:
                                                 "Sequest: Directory containing the .out files\n"
                                                 "pepXML: Single pepXML file.\n"
                                                 "protXML: Single protXML file.\n"
-                                                "xml: Single Mascot xml file.\n"
+                                                "mascotXML: Single Mascot xml file.\n"
                                                 "omssaXML: Single OMSSA xml file.\n"
                                                 "idXML: Single idXML file.\n", true);
-    setValidFormats_("in", StringList::create("pepXML,protXML,xml,omssaXML,idXML"));
+    setValidFormats_("in", StringList::create("pepXML,protXML,mascotXML,omssaXML,idXML"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
