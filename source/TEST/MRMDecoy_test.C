@@ -137,7 +137,6 @@ START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment:
   OpenMS::AASequence aas2 = gen.getAASequence(peptide2);
   OpenMS::String modified_sequence2 = "TESTPEPTIDER(Label:13C(6)15N(4))";
   TEST_EQUAL(aas2.toUnmodifiedString(),peptide2.sequence)
-  //TEST_EQUAL(aas2.toString(),modified_sequence2)
 
   OpenMS::TargetedExperiment::Peptide peptide3;
   peptide3.sequence = "TESTMPEPTIDE";
@@ -150,7 +149,6 @@ START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment:
   OpenMS::AASequence aas3 = gen.getAASequence(peptide3);
   OpenMS::String modified_sequence3 = "TESTM(Oxidation)PEPTIDE";
   TEST_EQUAL(aas3.toUnmodifiedString(),peptide3.sequence)
-  //TEST_EQUAL(aas3.toString(),modified_sequence3)
 }
 END_SECTION
 
@@ -354,8 +352,8 @@ START_SECTION(void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::Targe
     
   MRMDecoy decoys = MRMDecoy();
   decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
-  TEST_EQUAL(targeted_exp.getPeptides().size(), 12)
-  TEST_EQUAL(targeted_exp.getTransitions().size(), 28)
+  TEST_EQUAL(targeted_exp.getPeptides().size(), 13)
+  TEST_EQUAL(targeted_exp.getTransitions().size(), 33)
   decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold);
   traml.store(OPENMS_GET_TEST_DATA_PATH(test), targeted_decoy);
   

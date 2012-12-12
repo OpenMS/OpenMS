@@ -513,25 +513,6 @@ namespace OpenMS
 
   OpenMS::AASequence MRMDecoy::getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide)
   {
-    // The workaround expects a TraML with UniMod CVTerms for each peptide. The problem in ModificationsDB has been described in TRAC #458.
-#if (1)
-    OpenMS::AASequence aas = peptide.sequence;
-    for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it =
-           peptide.mods.begin(); it != peptide.mods.end(); ++it)
-    {
-      Map<String, std::vector<CVTerm> > cv_terms = it->getCVTerms();
-      for (Map<String, std::vector<CVTerm> >::iterator li = cv_terms.begin();
-           li != cv_terms.end(); ++li)
-      {
-        std::vector<CVTerm> mods = (*li).second;
-        for (std::vector<CVTerm>::iterator mo = mods.begin(); mo != mods.end();
-             ++mo)
-        {
-          aas.setModification(it->location, "UniMod:" + mo->getAccession().substr(7));
-        }
-      }
-    }
-#else
     OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
     OpenMS::AASequence aas = peptide.sequence;
 
@@ -541,12 +522,10 @@ namespace OpenMS
       mod_db->getModificationsByDiffMonoMass(mods, peptide.sequence[it->location], it->mono_mass_delta, 0.0);
       for (std::vector<String>::iterator mo = mods.begin(); mo != mods.end(); ++mo)
       {
-        ResidueModification rmod = mod_db->getModification(*mo);
-        const String unimod = rmod.getUniModAccession();
-        aas.setModification(it->location, unimod);
+        aas.setModification(it->location, *mo);
       }
     }
-#endif
+
     return aas;
   }
 
