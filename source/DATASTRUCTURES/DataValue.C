@@ -45,34 +45,17 @@ namespace OpenMS
 {
 
   const DataValue DataValue::EMPTY;
-  const String DataValue::EMPTY_UNIT_ = "";
 
   // default ctor
   DataValue::DataValue() :
-    value_type_(EMPTY_VALUE)
+    value_type_(EMPTY_VALUE), unit_("")
   {
-
   }
 
   // destructor
   DataValue::~DataValue()
   {
-    if (value_type_ == STRING_VALUE)
-    {
-      delete (data_.str_);
-    }
-    else if (value_type_ == STRING_LIST)
-    {
-      delete (data_.str_list_);
-    }
-    else if (value_type_ == INT_LIST)
-    {
-      delete (data_.int_list_);
-    }
-    else if (value_type_ == DOUBLE_LIST)
-    {
-      delete (data_.dou_list_);
-    }
+    clear_();
   }
 
   //-------------------------------------------------------------------
@@ -215,16 +198,8 @@ namespace OpenMS
     }
   }
 
-  //--------------------------------------------------------------------
-  //                      assignment operator
-  //--------------------------------------------------------------------
-  DataValue& DataValue::operator=(const DataValue& p)
+  void DataValue::clear_()
   {
-    // Check for self-assignment
-    if (this == &p)
-      return *this;
-
-    // clean up
     if (value_type_ == STRING_LIST)
     {
       delete(data_.str_list_);
@@ -241,6 +216,22 @@ namespace OpenMS
     {
       delete(data_.dou_list_);
     }
+
+    value_type_ = EMPTY_VALUE;
+    unit_ = "";
+  }
+
+  //--------------------------------------------------------------------
+  //                      assignment operator
+  //--------------------------------------------------------------------
+  DataValue& DataValue::operator=(const DataValue& p)
+  {
+    // Check for self-assignment
+    if (this == &p)
+      return *this;
+
+    // clean up
+    clear_();
 
     // assign
     if (p.value_type_ == STRING_LIST)
@@ -273,6 +264,154 @@ namespace OpenMS
       unit_ = p.unit_;
     }
 
+    return *this;
+  }
+
+  //--------------------------------------------------------------------
+  //                assignment conversion operator
+  //--------------------------------------------------------------------
+
+  DataValue& DataValue::operator=(const char* arg)
+  {
+    clear_();
+    data_.str_ = new String(arg);
+    value_type_ = STRING_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const std::string& arg)
+  {
+    clear_();
+    data_.str_ = new String(arg);
+    value_type_ = STRING_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const String& arg)
+  {
+    clear_();
+    data_.str_ = new String(arg);
+    value_type_ = STRING_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const QString& arg)
+  {
+    clear_();
+    data_.str_ = new String(arg);
+    value_type_ = STRING_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const StringList& arg)
+  {
+    clear_();
+    data_.str_list_ = new StringList(arg);
+    value_type_ = STRING_LIST;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const IntList& arg)
+  {
+    clear_();
+    data_.int_list_ = new IntList(arg);
+    value_type_ = INT_LIST;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const DoubleList& arg)
+  {
+    clear_();
+    data_.dou_list_ = new DoubleList(arg);
+    value_type_ = DOUBLE_LIST;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const long double arg)
+  {
+    clear_();
+    data_.dou_ = arg;
+    value_type_ = DOUBLE_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const double arg)
+  {
+    clear_();
+    data_.dou_ = arg;
+    value_type_ = DOUBLE_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const float arg)
+  {
+    clear_();
+    data_.dou_ = arg;
+    value_type_ = DOUBLE_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const short int arg)
+  {
+    clear_();
+    data_.ssize_ = arg;
+    value_type_ = INT_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const unsigned short int arg)
+  {
+    clear_();
+    data_.ssize_ = arg;
+    value_type_ = INT_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const int arg)
+  {
+    clear_();
+    data_.ssize_ = arg;
+    value_type_ = INT_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const unsigned arg)
+  {
+    clear_();
+    data_.ssize_ = arg;
+    value_type_ = INT_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const long int arg)
+  {
+    clear_();
+    data_.ssize_ = arg;
+    value_type_ = INT_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const unsigned long arg)
+  {
+    clear_();
+    data_.ssize_ = arg;
+    value_type_ = INT_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const long long arg)
+  {
+    clear_();
+    data_.ssize_ = arg;
+    value_type_ = INT_VALUE;
+    return *this;
+  }
+
+  DataValue& DataValue::operator=(const unsigned long long arg)
+  {
+    clear_();
+    data_.ssize_ = arg;
+    value_type_ = INT_VALUE;
     return *this;
   }
 
@@ -624,10 +763,7 @@ namespace OpenMS
 
   const String& DataValue::getUnit() const
   {
-    if (hasUnit())
-      return unit_;
-    else
-      return EMPTY_UNIT_;
+    return unit_;
   }
 
   void DataValue::setUnit(const OpenMS::String& unit)

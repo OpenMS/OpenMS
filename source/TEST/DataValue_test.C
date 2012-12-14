@@ -593,6 +593,177 @@ START_SECTION((void setUnit(const String& unit)))
 }
 END_SECTION
 
+START_SECTION((DataValue& operator=(const char*)))
+{
+  const char * v = "value";
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((String)a, "value")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const std::string&)))
+{
+  std::string v = "value";
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((String)a, "value")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const String&)))
+{
+  String v = "value";
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((String)a, "value")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const QString&)))
+{
+  QString v = "value";
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((String)a, "value")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const StringList&)))
+{
+  StringList v = StringList::create("value,value2");
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL(((StringList)a).size(), 2)
+  ABORT_IF(((StringList)a).size() != 2)
+  TEST_EQUAL(((StringList)a)[0], "value")
+  TEST_EQUAL(((StringList)a)[1], "value2")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const IntList&)))
+{
+  IntList v = IntList::create("2,-3");
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL(((IntList)a).size(), 2)
+  ABORT_IF(((IntList)a).size() != 2)
+  TEST_EQUAL(((IntList)a)[0], 2)
+  TEST_EQUAL(((IntList)a)[1], -3)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const DoubleList&)))
+{
+  DoubleList v = DoubleList::create("2.14,-3.45");
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL(((DoubleList)a).size(), 2)
+  ABORT_IF(((DoubleList)a).size() != 2)
+  TEST_EQUAL(((DoubleList)a)[0], 2.14)
+  TEST_EQUAL(((DoubleList)a)[1], -3.45)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const long double)))
+{
+  const long double v = 2.44;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((long double)a, 2.44)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const double)))
+{
+  const double v = 2.44;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((double)a, 2.44)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const float)))
+{
+  const float v = 2.44f;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((float)a, 2.44f)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const short int)))
+{
+  const short int v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((short int)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const unsigned short int)))
+{
+  const unsigned short int v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((unsigned short int)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const int)))
+{
+  const int v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((int)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const unsigned)))
+{
+  const unsigned v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((unsigned)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const long int)))
+{
+  const long int v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((long int)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const unsigned long)))
+{
+  const unsigned long v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((unsigned long)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const long long)))
+{
+  const long long v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((long long)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const unsigned long long)))
+{
+  const unsigned long long v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((unsigned long long)a, 2)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

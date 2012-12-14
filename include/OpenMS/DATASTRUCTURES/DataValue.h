@@ -262,6 +262,49 @@ public:
     const char* toChar() const;
     //@}
 
+    ///@name assignment/conversion operators
+    ///These methods are used to assign supported types to DataType.
+    //@{
+
+    /// specific assignment for char* (converted to string)
+    DataValue& operator=(const char*);
+    /// specific assignment for std::string values
+    DataValue& operator=(const std::string&);
+    /// specific assignment for string values
+    DataValue& operator=(const String&);
+    /// specific assignment for QString values
+    DataValue& operator=(const QString&);
+    /// specific assignment for string lists
+    DataValue& operator=(const StringList&);
+    /// specific assignment for integer lists
+    DataValue& operator=(const IntList&);
+    /// specific assignment for double lists
+    DataValue& operator=(const DoubleList&);
+    /// specific assignment for long double values (note: the implementation uses DoubleReal)
+    DataValue& operator=(const long double);
+    /// specific assignment for double values (note: the implementation uses DoubleReal)
+    DataValue& operator=(const double);
+    /// specific assignment for float values (note: the implementation uses DoubleReal)
+    DataValue& operator=(const float);
+    /// specific assignment for short int values (note: the implementation uses SignedSize)
+    DataValue& operator=(const short int);
+    /// specific assignment for unsigned short int values (note: the implementation uses SignedSize)
+    DataValue& operator=(const unsigned short int);
+    /// specific assignment for int values (note: the implementation uses SignedSize)
+    DataValue& operator=(const int);
+    /// specific assignment for unsigned int values (note: the implementation uses SignedSize)
+    DataValue& operator=(const unsigned);
+    /// specific assignment for long int values (note: the implementation uses SignedSize)
+    DataValue& operator=(const long int);
+    /// specific assignment for unsigned long int values (note: the implementation uses SignedSize)
+    DataValue& operator=(const unsigned long);
+    /// specific assignment for long long int values (note: the implementation uses SignedSize)
+    DataValue& operator=(const long long);
+    /// specific assignment for unsigned long long int values (note: the implementation uses SignedSize)
+    DataValue& operator=(const unsigned long long);
+
+    //@}
+
     ///@name conversion operators
     ///These methods can be used independent of the DataType. If you already know the DataType, you should use a cast operator!
     /// <BR>For conversion of string DataValues to numeric types, first use toString() and then the conversion methods of String.
@@ -305,7 +348,7 @@ public:
     /// Check if the value has a unit
     inline bool hasUnit() const
     {
-      return unit_ != EMPTY_UNIT_;
+      return unit_ != "";
     }
 
     /// Return the unit associated to this DataValue.
@@ -351,8 +394,8 @@ private:
     /// The unit of the data value (if it has one), otherwise empty string.
     String unit_;
 
-    /// Empty unit to return if a unit is requested when no unit was set.
-    static const String EMPTY_UNIT_;
+    /// Clears the current state of the DataValue and release every used memory.
+    void clear_();
   };
 }
 
