@@ -45,6 +45,7 @@ namespace OpenMS
 {
 
   const DataValue DataValue::EMPTY;
+  const String DataValue::EMPTY_UNIT_ = "";
 
   // default ctor
   DataValue::DataValue() :
@@ -78,109 +79,109 @@ namespace OpenMS
   //    ctor for all supported types a DataValue object can hold
   //--------------------------------------------------------------------
   DataValue::DataValue(long double p) :
-    value_type_(DOUBLE_VALUE)
+    value_type_(DOUBLE_VALUE), unit_("")
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(double p) :
-    value_type_(DOUBLE_VALUE)
+    value_type_(DOUBLE_VALUE), unit_("")
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(float p) :
-    value_type_(DOUBLE_VALUE)
+    value_type_(DOUBLE_VALUE), unit_("")
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(short int p) :
-    value_type_(INT_VALUE)
+    value_type_(INT_VALUE), unit_("")
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned short int p) :
-    value_type_(INT_VALUE)
+    value_type_(INT_VALUE), unit_("")
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(int p) :
-    value_type_(INT_VALUE)
+    value_type_(INT_VALUE), unit_("")
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned int p) :
-    value_type_(INT_VALUE)
+    value_type_(INT_VALUE), unit_("")
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(long int p) :
-    value_type_(INT_VALUE)
+    value_type_(INT_VALUE), unit_("")
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned long int p) :
-    value_type_(INT_VALUE)
+    value_type_(INT_VALUE), unit_("")
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(long long p) :
-    value_type_(INT_VALUE)
+    value_type_(INT_VALUE), unit_("")
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned long long p) :
-    value_type_(INT_VALUE)
+    value_type_(INT_VALUE), unit_("")
   {
     data_.ssize_ = p;
   }
 
-  DataValue::DataValue(const char * p) :
-    value_type_(STRING_VALUE)
+  DataValue::DataValue(const char* p) :
+    value_type_(STRING_VALUE), unit_("")
   {
     data_.str_ = new String(p);
   }
 
-  DataValue::DataValue(const string & p) :
-    value_type_(STRING_VALUE)
+  DataValue::DataValue(const string& p) :
+    value_type_(STRING_VALUE), unit_("")
   {
     data_.str_ = new String(p);
   }
 
-  DataValue::DataValue(const QString & p) :
-    value_type_(STRING_VALUE)
+  DataValue::DataValue(const QString& p) :
+    value_type_(STRING_VALUE), unit_("")
   {
     data_.str_ = new String(p);
   }
 
-  DataValue::DataValue(const String & p) :
-    value_type_(STRING_VALUE)
+  DataValue::DataValue(const String& p) :
+    value_type_(STRING_VALUE), unit_("")
   {
     data_.str_ = new String(p);
   }
 
-  DataValue::DataValue(const StringList & p) :
-    value_type_(STRING_LIST)
+  DataValue::DataValue(const StringList& p) :
+    value_type_(STRING_LIST), unit_("")
   {
     data_.str_list_ = new StringList(p);
   }
 
-  DataValue::DataValue(const IntList & p) :
-    value_type_(INT_LIST)
+  DataValue::DataValue(const IntList& p) :
+    value_type_(INT_LIST), unit_("")
   {
     data_.int_list_ = new IntList(p);
   }
 
-  DataValue::DataValue(const DoubleList & p) :
-    value_type_(DOUBLE_LIST)
+  DataValue::DataValue(const DoubleList& p) :
+    value_type_(DOUBLE_LIST), unit_("")
   {
     data_.dou_list_ = new DoubleList(p);
   }
@@ -188,7 +189,7 @@ namespace OpenMS
   //--------------------------------------------------------------------
   //                       copy constructor
   //--------------------------------------------------------------------
-  DataValue::DataValue(const DataValue & p) :
+  DataValue::DataValue(const DataValue& p) :
     value_type_(p.value_type_), data_(p.data_)
   {
     if (value_type_ == STRING_VALUE)
@@ -207,12 +208,17 @@ namespace OpenMS
     {
       data_.dou_list_ = new DoubleList(*(p.data_.dou_list_));
     }
+
+    if (p.hasUnit())
+    {
+      unit_ = p.unit_;
+    }
   }
 
   //--------------------------------------------------------------------
   //                      assignment operator
   //--------------------------------------------------------------------
-  DataValue & DataValue::operator=(const DataValue & p)
+  DataValue& DataValue::operator=(const DataValue& p)
   {
     // Check for self-assignment
     if (this == &p)
@@ -260,6 +266,12 @@ namespace OpenMS
 
     // copy type
     value_type_     = p.value_type_;
+
+    // copy unit if necessary
+    if (p.hasUnit())
+    {
+      unit_ = p.unit_;
+    }
 
     return *this;
   }
@@ -431,11 +443,11 @@ namespace OpenMS
   }
 
   // Convert DataValues to char*
-  const char * DataValue::toChar() const
+  const char* DataValue::toChar() const
   {
     switch (value_type_)
     {
-    case DataValue::STRING_VALUE: return const_cast<const char *>(data_.str_->c_str());
+    case DataValue::STRING_VALUE: return const_cast<const char*>(data_.str_->c_str());
 
     case DataValue::EMPTY_VALUE: return NULL;
 
@@ -508,7 +520,7 @@ namespace OpenMS
 
   // ----------------- Comparator ----------------------
 
-  bool operator==(const DataValue & a, const  DataValue & b)
+  bool operator==(const DataValue& a, const  DataValue& b)
   {
     if (a.value_type_ == b.value_type_)
     {
@@ -532,7 +544,7 @@ namespace OpenMS
     return false;
   }
 
-  bool operator<(const DataValue & a, const  DataValue & b)
+  bool operator<(const DataValue& a, const  DataValue& b)
   {
     if (a.value_type_ == b.value_type_)
     {
@@ -556,7 +568,7 @@ namespace OpenMS
     return false;
   }
 
-  bool operator>(const DataValue & a, const  DataValue & b)
+  bool operator>(const DataValue& a, const  DataValue& b)
   {
     if (a.value_type_ == b.value_type_)
     {
@@ -580,14 +592,14 @@ namespace OpenMS
     return false;
   }
 
-  bool operator!=(const DataValue & a, const DataValue & b)
+  bool operator!=(const DataValue& a, const DataValue& b)
   {
     return !(a == b);
   }
 
   // ----------------- Output operator ----------------------
 
-  std::ostream & operator<<(std::ostream & os, const DataValue & p)
+  std::ostream& operator<<(std::ostream& os, const DataValue& p)
   {
     switch (p.value_type_)
     {
@@ -606,6 +618,21 @@ namespace OpenMS
     case DataValue::EMPTY_VALUE: break;
     }
     return os;
+  }
+
+  // ----------------- Unit methods ----------------------
+
+  const String& DataValue::getUnit() const
+  {
+    if (hasUnit())
+      return unit_;
+    else
+      return EMPTY_UNIT_;
+  }
+
+  void DataValue::setUnit(const OpenMS::String& unit)
+  {
+    unit_ = unit;
   }
 
 } //namespace
