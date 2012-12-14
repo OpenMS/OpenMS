@@ -288,7 +288,7 @@ protected:
       void writeProduct_(std::ostream& os, const Product& product, Internal::MzMLValidator& validator);
 
       /// Helper method to write an CV based on a meta value
-      String writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue, const UInt indent) const;
+      String writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const;
 
       /// Helper method to validate if the given CV is allowed in the current location (path)
       bool validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const;
@@ -3202,7 +3202,7 @@ protected:
     }
 
     template <typename MapType>
-    String MzMLHandler<MapType>::writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue, const UInt indent) const
+    String MzMLHandler<MapType>::writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const
     {
       String cvTerm = "<cvParam cvRef=\"" + c.id.prefix(':') + "\" accession=\"" + c.id + "\" name=\"" + c.name;
       if (!metaValue.isEmpty())
@@ -3244,7 +3244,7 @@ protected:
             ControlledVocabulary::CVTerm c = cv_.getTermByName((String) metaValue);
 
             // TODO: validate CV, we currently cannot do this as the relations in the BTO and GO are not captured by our CV impl
-            cvParams.push_back(writeCV_(c, DataValue::EMPTY, indent));
+            cvParams.push_back(writeCV_(c, DataValue::EMPTY));
           }
         }
         else
@@ -3257,7 +3257,7 @@ protected:
             if (validateCV_(c, path, validator))
             {
               // write CV
-              cvParams.push_back(writeCV_(c, meta.getMetaValue(*key), indent));
+              cvParams.push_back(writeCV_(c, meta.getMetaValue(*key)));
               writtenAsCVTerm = true;
             }
           }
