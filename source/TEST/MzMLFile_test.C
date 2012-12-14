@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // $Authors: Marc Sturm $
@@ -298,7 +298,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	//instrument software
 	TEST_EQUAL(exp.getInstrument().getSoftware().getName(),"Bioworks")
 	TEST_EQUAL(exp.getInstrument().getSoftware().getVersion(),"3.3.1 sp1")
-	
+
 	//-------------------------- spectrum 0 --------------------------
 	{
 		const MSSpectrum<>& spec = exp[0];
@@ -642,7 +642,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"), exp4);
 	TEST_EQUAL(exp4.size(), 1)
 	TEST_EQUAL(exp4[0].size(), 997530)
-	
+
 	//test 32/64 bit floats, 32/64 bit integer, null terminated strings, zlib compression
 	MSExperiment<> exp_ucomp;
 	STATUS("Reading uncompressed...")
@@ -734,7 +734,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 			}
 		}
 	}
-	
+
 	//Testing bzip2 compression of a whole file
 	MSExperiment<> exp_bz;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2"),exp_bz);
@@ -777,7 +777,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 			}
 		}
 	}
-	//Testing corrupted files	
+	//Testing corrupted files
 		MSExperiment<> exp_cor;
 	TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor))
 			MSExperiment<> exp_cor2;
@@ -864,7 +864,7 @@ END_SECTION
 
 START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
 	MzMLFile file;
-	
+
 	//test with full file
 	{
 		//load map
@@ -893,25 +893,25 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 		TEST_EQUAL(exp.getChromatograms().size(), exp_original.getChromatograms().size());
 		TEST_EQUAL(exp.getChromatograms() == exp_original.getChromatograms(), true);
 	}
-	
+
 	//test with empty map
 	{
-		
+
 		MSExperiment<> empty, exp;
-				
+
 		std::string tmp_filename;
 		NEW_TMP_FILE(tmp_filename);
 		file.store(tmp_filename,empty);
 		file.load(tmp_filename,exp);
 		TEST_EQUAL(exp==empty,true)
 	}
-	
+
 	//test with one empty spectrum
 	{
 		MSExperiment<> empty, exp;
 		empty.resize(1);
 		empty[0].setRT(17.1234);
-		
+
 		//this will be set when writing (forced by mzML)
 		empty[0].setNativeID("spectrum=0");
 		empty[0].getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
@@ -919,13 +919,13 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 		empty[0].getDataProcessing()[0].getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
 		empty[0].getAcquisitionInfo().setMethodOfCombination("no combination");
 		empty[0].getAcquisitionInfo().resize(1);
-		
+
 		std::string tmp_filename;
 		NEW_TMP_FILE(tmp_filename);
 		file.store(tmp_filename,empty);
 		file.load(tmp_filename,exp);
 		TEST_EQUAL(exp==empty,true)
-		
+
 		//NOTE: If it does not work, use this code to find out where the difference is
 //		TEST_EQUAL(exp.size()==empty.size(),true)
 //		TEST_EQUAL(exp.ExperimentalSettings::operator==(empty),true)
@@ -991,7 +991,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
 	TEST_EQUAL(errors.size(),0)
-	TEST_EQUAL(warnings.size(),10) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
+	TEST_EQUAL(warnings.size(),8) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
 
 	//valid file
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)
