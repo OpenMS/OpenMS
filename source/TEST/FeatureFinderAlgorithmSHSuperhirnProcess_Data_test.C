@@ -47,7 +47,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ProcessData.h>
 
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ProcessData.h>
 
 ///////////////////////////
@@ -73,6 +72,16 @@ START_SECTION((~ProcessData()))
 END_SECTION
 
 ptr = new ProcessData();
+
+START_SECTION((ProcessData::get_MZ(double IN_mz)))
+  ProcessData d;
+  ProcessData::main_iterator it = d.get_MZ(500.25);
+END_SECTION
+
+START_SECTION((int getNbMSTraces()))
+  ProcessData d;
+  TEST_EQUAL(d.getNbMSTraces(), 0)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

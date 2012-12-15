@@ -65,6 +65,26 @@ END_SECTION
 
 ptr = new MSPeak();
 
+START_SECTION((MSPeak(const MSPeak & tmp)))
+  MSPeak p = MSPeak();
+  MSPeak other = MSPeak(p);
+END_SECTION
+
+START_SECTION((MSPeak(const MSPeak * tmp)))
+  MSPeak p = MSPeak();
+  MSPeak other = MSPeak(&p);
+END_SECTION
+
+START_SECTION(operator=(const MSPeak & tmp))
+  MSPeak p = MSPeak();
+  MSPeak other = p;
+END_SECTION
+
+START_SECTION(show_info())
+  MSPeak p = MSPeak();
+  p.show_info();
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

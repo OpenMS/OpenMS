@@ -63,8 +63,6 @@ namespace OpenMS
     int charge;
   };
 
-
-
   class OPENMS_DLLAPI FeatureLCProfile
   {
 

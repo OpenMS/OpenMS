@@ -65,6 +65,30 @@ END_SECTION
 
 ptr = new MS2ConsensusSpectrum();
 
+START_SECTION( MS2ConsensusSpectrum(double iPrecursorMZ, double iTR, int iChrg, int iApexScan) )
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+END_SECTION
+
+START_SECTION( double getPrecursorMZ())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getPrecursorMZ(), 400.25)
+END_SECTION
+
+START_SECTION( double getTR())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getTR(), 1800.0)
+END_SECTION
+
+START_SECTION( double getStartTR())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getStartTR(), 1800.0)
+END_SECTION
+
+START_SECTION( double getEndTR())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getEndTR(), 1800.0)
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

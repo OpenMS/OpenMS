@@ -65,6 +65,12 @@ END_SECTION
 
 ptr = new Deisotoper();
 
+START_SECTION((std::ostream & operator<<(std::ostream &, Deisotoper &)))
+  Deisotoper d;
+  std::cout << d << std::endl;
+END_SECTION
+
+  
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

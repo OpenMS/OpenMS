@@ -64,6 +64,11 @@ END_SECTION
 
 ptr = new ConsensusIsotopePattern();
 
+START_SECTION((ConsensusIsotopePattern::operator=(const ConsensusIsotopePattern & tmp)))
+	ConsensusIsotopePattern i;
+	ConsensusIsotopePattern other = i;
+END_SECTION
+
 START_SECTION(TODO)
 // 			// constructs the consensus pattern:
 // 			void constructConsusPattern();

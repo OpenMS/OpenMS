@@ -64,6 +64,24 @@ END_SECTION
 
 ptr = new FeatureLCProfile();
 
+START_SECTION((FeatureLCProfile(double, double, int, double)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 2, 1000);
+END_SECTION
+
+START_SECTION((FeatureLCProfile(double, double, double, int, int, double)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
+END_SECTION
+
+START_SECTION((FeatureLCProfile(const FeatureLCProfile & tmp)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
+  FeatureLCProfile other = FeatureLCProfile(p);
+END_SECTION
+
+START_SECTION((FeatureLCProfile::operator=(const FeatureLCProfile & tmp)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
+  FeatureLCProfile other = p;
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

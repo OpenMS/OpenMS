@@ -62,7 +62,39 @@ START_SECTION((~MS2Info()))
 	delete ptr;
 END_SECTION
 
+
 ptr = new MS2Info();
+
+START_SECTION( bool check_MODIFICATION() )
+  MS2Info ms2info = MS2Info();
+  TEST_EQUAL(ms2info.check_MODIFICATION(), false);
+END_SECTION
+
+START_SECTION( MS2Info(string IN_AC, string IN_SQ, float IN_PEP) )
+  MS2Info ms2info = MS2Info("test1", "test2", 0.95);
+END_SECTION
+
+START_SECTION(MS2Info(string IN_AC, string IN_SQ, int IN_CHRG, float IN_PEP))
+  MS2Info ms2info = MS2Info("test1", "test2", 2, 0.95);
+END_SECTION
+
+START_SECTION(MS2Info(string IN_AC, string IN_SQ, float IN_PEP, int IN_CHRG, int IN_SCAN))
+  MS2Info ms2info = MS2Info("test1", "test2", 0.95, 2, 500);
+END_SECTION
+
+START_SECTION(MS2Info(int IN_ID))
+  MS2Info ms2info = MS2Info(42);
+END_SECTION
+
+START_SECTION(MS2Info(const MS2Info & tmp))
+  MS2Info ms2info = MS2Info("test1", "test2", 0.95, 2, 500);
+  MS2Info other = MS2Info(ms2info);
+END_SECTION
+
+START_SECTION(MS2Info::operator=(const MS2Info & tmp))
+  MS2Info ms2info = MS2Info("test1", "test2", 0.95, 2, 500);
+  MS2Info other = ms2info;
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
