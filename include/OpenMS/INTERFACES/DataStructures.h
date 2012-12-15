@@ -105,9 +105,11 @@ namespace Interfaces
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
 
+private:
     /// list of binary data arrays.
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
 
+public:
     Chromatogram() :
       defaultArrayLength(2),
       binaryDataArrayPtrs(defaultArrayLength)
@@ -128,15 +130,27 @@ private:
 
 public:
     /// get time array (may be null)
-    BinaryDataArrayPtr getTimeArray()
+    BinaryDataArrayPtr getTimeArray() const
     {
       return binaryDataArrayPtrs[0];
     }
 
+    /// set time array 
+    void setTimeArray(BinaryDataArrayPtr data)
+    {
+      binaryDataArrayPtrs[0] = data;
+    }
+
     /// get intensity array (may be null)
-    BinaryDataArrayPtr getIntensityArray()
+    BinaryDataArrayPtr getIntensityArray() const
     {
       return binaryDataArrayPtrs[1];
+    }
+
+    /// set intensity array 
+    void setIntensityArray(BinaryDataArrayPtr data)
+    {
+      binaryDataArrayPtrs[1] = data;
     }
 
   };
@@ -171,9 +185,10 @@ public:
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
 
-    /// list of binary data arrays.
 private:
+    /// list of binary data arrays.
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
+
 public:
     Spectrum() :
       defaultArrayLength(2),
@@ -194,13 +209,13 @@ private:
     }
 
 public:
-
     /// get m/z array (may be null)
     BinaryDataArrayPtr getMZArray() const
     {
       return binaryDataArrayPtrs[0];
     }
 
+    /// set mz array 
     void setMZArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[0] = data;
@@ -212,7 +227,7 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
-    /// get intensity array (may be null)
+    /// set intensity array 
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;

@@ -168,6 +168,96 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
 
 END_SECTION
 
+
+START_SECTION((bool filter(OpenMS::Interfaces::SpectrumPtr spectrum)))
+
+  OpenMS::Interfaces::SpectrumPtr spectrum(new OpenMS::Interfaces::Spectrum);
+
+  spectrum->getMZArray()->data.resize(9);
+  spectrum->getIntensityArray()->data.resize(9);
+
+  for (Size i=0; i<9; ++i)
+  {
+    spectrum->getIntensityArray()->data[i] = 0.0f;
+    spectrum->getMZArray()->data[i] = 500.0+0.03*i; 
+    if (i==3)
+    {
+      spectrum->getIntensityArray()->data[i] = 1.0f;
+    }
+    if (i==4)
+    {
+      spectrum->getIntensityArray()->data[i] = 0.8f;
+    }
+    if (i==5)
+    {
+      spectrum->getIntensityArray()->data[i] = 1.2f;
+    }
+  }
+
+	TOLERANCE_ABSOLUTE(0.01)
+
+  GaussFilterAlgorithm gauss;
+  TEST_EQUAL(spectrum->getIntensityArray()->data.size(), 9) 
+  gauss.initialize(0.2, 0.01, 1.0, false);
+  gauss.filter(spectrum);
+
+  TEST_EQUAL(spectrum->getIntensityArray()->data.size(), 9) 
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[0],0.000734827)  
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[1],0.0543746)
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[2],0.298025)
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[3],0.707691)
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[4],0.8963)
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[5],0.799397)
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[6],0.352416)
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[7],0.065132)
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[8],0.000881793)
+END_SECTION 
+
+
+START_SECTION((bool filter(OpenMS::Interfaces::ChromatogramPtr chromatogram)))
+
+  OpenMS::Interfaces::ChromatogramPtr chromatogram(new OpenMS::Interfaces::Chromatogram);
+
+  chromatogram->getTimeArray()->data.resize(9);
+  chromatogram->getIntensityArray()->data.resize(9);
+
+  for (Size i=0; i<9; ++i)
+  {
+    chromatogram->getIntensityArray()->data[i] = 0.0f;
+    chromatogram->getTimeArray()->data[i] = 500.0+0.03*i; 
+    if (i==3)
+    {
+      chromatogram->getIntensityArray()->data[i] = 1.0f;
+    }
+    if (i==4)
+    {
+      chromatogram->getIntensityArray()->data[i] = 0.8f;
+    }
+    if (i==5)
+    {
+      chromatogram->getIntensityArray()->data[i] = 1.2f;
+    }
+  }
+
+	TOLERANCE_ABSOLUTE(0.01)
+
+  GaussFilterAlgorithm gauss;
+  TEST_EQUAL(chromatogram->getIntensityArray()->data.size(), 9) 
+  gauss.initialize(0.2, 0.01, 1.0, false);
+  gauss.filter(chromatogram);
+
+  TEST_EQUAL(chromatogram->getIntensityArray()->data.size(), 9) 
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[0],0.000734827)  
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[1],0.0543746)
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[2],0.298025)
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[3],0.707691)
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[4],0.8963)
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[5],0.799397)
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[6],0.352416)
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[7],0.065132)
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[8],0.000881793)
+END_SECTION 
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

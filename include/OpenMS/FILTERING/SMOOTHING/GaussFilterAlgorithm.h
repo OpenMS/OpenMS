@@ -37,6 +37,8 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/INTERFACES/DataStructures.h>
+#include <OpenMS/INTERFACES/ISpectrumAccess.h>
 #include <cmath>
 #include <vector>
 
@@ -75,17 +77,65 @@ public:
     virtual ~GaussFilterAlgorithm();
 
     /**
-      @brief Smoothes an MSSpectrum containing profile data.
+      @brief Smoothes an Spectrum containing profile data.
+    */
+    bool filter(OpenMS::Interfaces::SpectrumPtr spectrum)
+    {
+      // create new arrays for mz / intensity data and set their size
+      OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
+      OpenMS::Interfaces::BinaryDataArrayPtr mz_array(new OpenMS::Interfaces::BinaryDataArray);
+      mz_array->data.resize(spectrum->getMZArray()->data.size());
+      intensity_array->data.resize(spectrum->getMZArray()->data.size());
+
+      // apply the filter
+      bool ret_val = filter(
+          spectrum->getMZArray()->data.begin(), 
+          spectrum->getMZArray()->data.end(),
+          spectrum->getIntensityArray()->data.begin(),
+          mz_array->data.begin(), intensity_array->data.begin()
+          );
+      // set the data of the spectrum to the new mz / int arrays
+      spectrum->setMZArray(mz_array);
+      spectrum->setIntensityArray(intensity_array);
+      return ret_val;
+    }
+
+    /**
+      @brief Smoothes an Chromatogram containing profile data.
+    */
+    bool filter(OpenMS::Interfaces::ChromatogramPtr chromatogram)
+    {
+      // create new arrays for rt / intensity data and set their size
+      OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
+      OpenMS::Interfaces::BinaryDataArrayPtr rt_array(new OpenMS::Interfaces::BinaryDataArray);
+      rt_array->data.resize(chromatogram->getTimeArray()->data.size());
+      intensity_array->data.resize(chromatogram->getTimeArray()->data.size());
+
+      // apply the filter
+      bool ret_val = filter(
+          chromatogram->getTimeArray()->data.begin(), 
+          chromatogram->getTimeArray()->data.end(),
+          chromatogram->getIntensityArray()->data.begin(),
+          rt_array->data.begin(), intensity_array->data.begin()
+          );
+      // set the data of the chromatogram to the new rt / int arrays
+      chromatogram->setTimeArray(rt_array);
+      chromatogram->setIntensityArray(intensity_array);
+      return ret_val;
+    }
+
+    /**
+      @brief Smoothes an two data arrays containing data.
 
       Convolutes the filter and the profile data and writes the results into the output iterators mz_out and int_out. 
     */
-    template <typename IterT>
+    template <typename ConstIterT, typename IterT>
     bool filter(
-        IterT mz_in_start,
-        IterT mz_in_end,
-        IterT int_in_start,
-        IterT& mz_out,
-        IterT& int_out)
+        ConstIterT mz_in_start,
+        ConstIterT mz_in_end,
+        ConstIterT int_in_start,
+        IterT mz_out,
+        IterT int_out)
     {
       bool found_signal = false;
 
