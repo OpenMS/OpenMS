@@ -658,8 +658,6 @@ namespace OpenMS
 
   inline void MapAlignmentAlgorithmSpectrumAlignment::bucketFilter_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<int> & xcoordinate, std::vector<Real> & ycoordinate, std::vector<int> & xcoordinatepattern)
   {
-    std::vector<int> tempxcoordinate;   //cordinate aligned
-    std::vector<double> tempycoordinate;   //rt aligigned
     std::vector<std::pair<std::pair<Int, Real>, Real> > tempxy;
     Size size = 0;
     //std::cout <<bucketsize_  << " bucketsize " <<xcoordinate.size() << " xsize()" << std::endl;
@@ -775,7 +773,7 @@ namespace OpenMS
     myfile << "e" << std::endl;
     myfile.close();
     //R heatplot score of both sequence
-    std::map<Size, std::map<Size, Real> > debugbuffermatrix;
+    // std::map<Size, std::map<Size, Real> > debugbuffermatrix;
 
     Real scoremaximum = -2;
     //precalculation for the heatmap

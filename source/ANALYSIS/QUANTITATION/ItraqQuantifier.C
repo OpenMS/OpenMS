@@ -109,9 +109,9 @@ namespace OpenMS
   {
     // check if we have an identity matrix
     bool isIdentity = true;
-    for(Size i = 0; i < channel_frequency.cols(); ++i)
+    for (Size i = 0; i < channel_frequency.cols(); ++i)
     {
-      if(channel_frequency.getValue(i,i) != 1.0)
+      if (channel_frequency.getValue(i,i) != 1.0)
       {
         isIdentity = false;
         break;
@@ -141,7 +141,7 @@ namespace OpenMS
       Matrix<double> channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_);
 
       // if it is an identity matrix, performing isotope correction makes no sense
-      if(isIdentityCorrectionMatrix_(channel_frequency))
+      if (isIdentityCorrectionMatrix_(channel_frequency))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: The given isotope correction matrix is an identity matrix leading to no correction. Please provide a valid isotope_correction matrix as it was provided with the iTRAQ/TMT kit!");
       }

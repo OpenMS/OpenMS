@@ -268,10 +268,6 @@ namespace OpenMS
       DoubleReal current_score = peptideScore_(peptide_site_scores[it]);
       ranking.insert(pair<DoubleReal, Size>(current_score, it));
     }
-    pair<multimap<DoubleReal, Size>::iterator, multimap<DoubleReal, Size>::iterator> ret;
-    ret = ranking.equal_range(ranking.rbegin()->first);
-    //for(map<DoubleReal,Size>::iterator it = ret.first; it != ret.second;++it )
-    //{
     vector<Size> & hps = permutations[ranking.rbegin()->second /*it->second*/];       //highest peptide score
     for (Size i = 0; i < hps.size(); ++i)
     {
@@ -318,7 +314,6 @@ namespace OpenMS
         }
       }
     }
-    //}
     for (Size i = 0; i < sites.size(); ++i)
     {
       DoubleReal current_peak_depth = 0.0;

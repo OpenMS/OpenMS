@@ -910,7 +910,6 @@ namespace OpenMS
           }
           else
           {
-            vector<PeptideHit> hits;
             for (vector<PeptideHit>::const_iterator pit = it2->getHits().begin(); pit != it2->getHits().end(); ++pit)
             {
               new_ids.insertHit(*pit);

@@ -422,7 +422,7 @@ namespace OpenMS
         ret += CV_label_ + ",";
         ret += accession_ + ",";
         ret += name_ + ",";
-        ret += value_ ;
+        ret += value_;
         ret += "]";
         return ret;
       }

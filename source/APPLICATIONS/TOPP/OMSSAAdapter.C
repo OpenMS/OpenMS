@@ -539,7 +539,6 @@ protected:
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parse mapping file line: '" + *it + "'", "");
         }
-        vector<ResidueModification> mods;
         for (Size i = 2; i != split.size(); ++i)
         {
           String tmp(split[i].trim());
