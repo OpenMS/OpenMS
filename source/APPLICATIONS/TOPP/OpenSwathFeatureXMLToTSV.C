@@ -254,13 +254,12 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 
   // Write out the individual transition
   char intensity_char[40];
-  char mz_char[40];
   if (short_format)
   {
     String aggr_Peak_Area = "";
     String aggr_Peak_Apex = "";
     String aggr_Fragment_Annotation = "";
-    for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); sub_it++)
+    for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
       sprintf(intensity_char, "%f", sub_it->getIntensity());
       aggr_Peak_Area += (String)intensity_char + ";";
@@ -277,7 +276,8 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
   else
   {
-    for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); sub_it++)
+    char mz_char[40];
+    for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
       String Peak_Apex = "NA";
       os.precision(writtenDigits(DoubleReal()));
@@ -315,13 +315,13 @@ void write_out_body_best_score(std::ostream &os, FeatureMap<Feature> &feature_ma
   // for each peptide reference search for the best feature
   typedef std::map<String, std::vector<Feature *> > PeptideFeatureMapType;
   PeptideFeatureMapType peptide_feature_map;
-  for (FeatureMap<Feature>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); feature_it++)
+  for (FeatureMap<Feature>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
   {
     String peptide_ref = feature_it->getMetaValue("PeptideRef");
     peptide_feature_map[peptide_ref].push_back(&(*feature_it));
   }
 
-  for (PeptideFeatureMapType::iterator peptide_it = peptide_feature_map.begin(); peptide_it != peptide_feature_map.end(); peptide_it++)
+  for (PeptideFeatureMapType::iterator peptide_it = peptide_feature_map.begin(); peptide_it != peptide_feature_map.end(); ++peptide_it)
   {
     if (peptide_it->second.size() > 1)
     {
@@ -331,7 +331,7 @@ void write_out_body_best_score(std::ostream &os, FeatureMap<Feature> &feature_ma
     }
   }
 
-  for (PeptideFeatureMapType::iterator peptide_it = peptide_feature_map.begin(); peptide_it != peptide_feature_map.end(); peptide_it++)
+  for (PeptideFeatureMapType::iterator peptide_it = peptide_feature_map.begin(); peptide_it != peptide_feature_map.end(); ++peptide_it)
   {
     Feature *bestfeature = find_best_feature(peptide_it->second, best_score);
     if (bestfeature == NULL)
@@ -379,7 +379,7 @@ protected:
 
     Size progress = 0;
     startProgress(0, feature_map.size(), "writing out features");
-    for (FeatureMap<Feature>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); feature_it++)
+    for (FeatureMap<Feature>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
     {
       setProgress(progress++);
       write_out_body_(os, &(*feature_it), transition_exp, meta_value_names, run_id, short_format, feature_map.getIdentifier(), filename);

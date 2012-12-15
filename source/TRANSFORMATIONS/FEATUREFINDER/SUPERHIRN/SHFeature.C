@@ -470,7 +470,7 @@ namespace OpenMS
     {
       cout << "\t\t-";
       (*P).second.show_info();
-      P++;
+      ++P;
     }
 
     //////////////////////////////////////////////////
@@ -566,9 +566,9 @@ namespace OpenMS
       while (M != (*P).second.end())
       {
         add_MS2_info(&(*M));
-        M++;
+        ++M;
       }
-      P++;
+      ++P;
     }
     IN = NULL;
   }
@@ -598,7 +598,7 @@ namespace OpenMS
     while (P != IN->get_match_list_end())
     {
       add_matched_feature(&((*P).second));
-      P++;
+      ++P;
     }
 
     // add ms2 information:
@@ -609,9 +609,9 @@ namespace OpenMS
       while (M != (*MS2).second.end())
       {
         add_MS2_info(&(*M));
-        M++;
+        ++M;
       }
-      MS2++;
+      ++MS2;
     }
 
     // ok, now make a new feature and
@@ -646,7 +646,7 @@ namespace OpenMS
     while (P != matched_feature_list.end())
     {
       SUM += (*P).second.get_peak_area();
-      P++;
+      ++P;
     }
     return SUM;
   }
@@ -687,7 +687,7 @@ namespace OpenMS
             OUT = TMP;
           }
         }
-        P++;
+        ++P;
       }
     }
     return OUT;
@@ -717,7 +717,7 @@ namespace OpenMS
             OUT = TMP;
           }
         }
-        P++;
+        ++P;
       }
     }
     return OUT;
@@ -757,7 +757,7 @@ namespace OpenMS
     while (P != matched_feature_list.end())
     {
       AREA += (*P).second.get_peak_area();
-      P++;
+      ++P;
     }
     return AREA;
   }
@@ -817,7 +817,7 @@ namespace OpenMS
     while (P != matched_feature_list.end())
     {
       PROFILE.insert(make_pair((*P).second.get_spectrum_ID(), (*P).second.get_peak_area() / TOT_AREA));
-      P++;
+      ++P;
     }
     return PROFILE;
   }
@@ -832,7 +832,7 @@ namespace OpenMS
     while (P != get_match_list_end())
     {
       mz += (*P).second.get_MZ();
-      P++;
+      ++P;
     }
     mz /= double(get_replicate_match_nb());
     // compute MR:
@@ -852,7 +852,7 @@ namespace OpenMS
     while (P != get_match_list_end())
     {
       all_tr += (*P).second.get_retention_time();
-      P++;
+      ++P;
     }
     all_tr /= double(get_replicate_match_nb());
     return all_tr;
@@ -953,7 +953,7 @@ namespace OpenMS
       while (P != adjustFeature->get_match_list_end())
       {
         P->second.set_charge_state(deriveFeature->get_charge_state());
-        P++;
+        ++P;
       }
     }
 

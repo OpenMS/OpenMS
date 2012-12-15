@@ -96,7 +96,8 @@ namespace OpenMS
   SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(String filename)
   {
     filename_cached_ = filename + ".cached";
-    std::ifstream ifs_((filename_cached_).c_str(), std::ios::binary);
+    // currently we re-open the filestream with each read access
+    // std::ifstream ifs_((filename_cached_).c_str(), std::ios::binary);
     MzMLFile f;
     f.load(filename, meta_ms_experiment_);
     filename_ = filename;

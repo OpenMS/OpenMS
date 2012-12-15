@@ -221,7 +221,7 @@ namespace OpenMS
     // determine (in the smoothed chrom) the intensity at the left / right border
     RichPeakChromatogram::const_iterator it = smoothed_chromat.begin();
     int nr_points = 0;
-    for (; it != smoothed_chromat.end(); it++)
+    for (; it != smoothed_chromat.end(); ++it)
     {
       if (it->getMZ() > best_left)
       {
@@ -230,7 +230,7 @@ namespace OpenMS
       }
     }
     double intensity_left = it->getIntensity();
-    for (; it != smoothed_chromat.end(); it++)
+    for (; it != smoothed_chromat.end(); ++it)
     {
       if (it->getMZ() > best_right)
       {
