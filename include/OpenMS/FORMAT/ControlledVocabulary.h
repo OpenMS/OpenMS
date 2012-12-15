@@ -57,7 +57,7 @@ namespace OpenMS
 
 public:
     /// Representation of a CV term
-    struct CVTerm
+    struct OPENMS_DLLAPI CVTerm
     {
       /// define xsd types allowed in cv term to specify their value-type
       enum XRefType
