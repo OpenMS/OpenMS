@@ -2,6 +2,7 @@ set(OpenMS_sources  CACHE INTERNAL "This variable should hold all OpenMS sources
 set(OpenMSVisual_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
 ## ATTENTION: The order of includes should be similar to the inclusion hierarchy
+include(source/INTERFACES_IMPL/sources.cmake)
 include(source/CONCEPT/sources.cmake)
 include(source/SYSTEM/sources.cmake)
 include(source/MATH/STATISTICS/sources.cmake)
@@ -61,6 +62,7 @@ set(OpenMS_sources_h  CACHE INTERNAL "This variable should hold all OpenMS sourc
 set(OpenMSVisual_sources_h  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
 ## ATTENTION: The order of includes should be similar to the inclusion hierarchy
+include(include/OpenMS/INTERFACES/sources.cmake)
 include(include/OpenMS/CONCEPT/sources.cmake)
 include(include/OpenMS/SYSTEM/sources.cmake)
 include(include/OpenMS/MATH/MISC/sources.cmake)
