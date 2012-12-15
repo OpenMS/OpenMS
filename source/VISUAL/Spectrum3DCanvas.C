@@ -188,7 +188,6 @@ namespace OpenMS
     cout << "BEGIN " << __PRETTY_FUNCTION__ << " caller: " << caller << endl;
 #endif
 
-    std::cout << caller << std::endl;
     if (update_buffer_)
     {
       update_buffer_ = false;
