@@ -325,9 +325,9 @@ namespace OpenMS
           {
             Int level_diff = (*cl.getPeakData())[i - 1].getMSLevel() - (*cl.getPeakData())[i].getMSLevel();
             Size parent_index = 0;
-            QTreeWidgetItem * parent = 0;
             if (parent_stack.size() - level_diff >= 2)
             {
+              QTreeWidgetItem * parent = 0;
               parent_index = parent_stack.size() - level_diff - 1;
               parent = parent_stack[parent_index];
 

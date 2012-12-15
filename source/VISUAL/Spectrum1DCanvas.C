@@ -1267,7 +1267,6 @@ namespace OpenMS
 
     QMenu * context_menu = new QMenu(this);
     QAction * result = 0;
-    QAction * new_action = 0;
 
     Annotations1DContainer & annots_1d = getCurrentLayer_().getCurrentAnnotations();
     Annotation1DItem * annot_item = annots_1d.getItemAt(e->pos());
@@ -1309,8 +1308,7 @@ namespace OpenMS
       }
       context_menu->addAction(layer_name.toQString())->setEnabled(false);
       context_menu->addSeparator();
-
-      new_action = context_menu->addAction("Add label");
+      QAction * new_action = context_menu->addAction("Add label");
       if (mirror_mode_ && (getCurrentLayer().flipped ^ (e->pos().y() > height() / 2)))
       {
         new_action->setEnabled(false);
