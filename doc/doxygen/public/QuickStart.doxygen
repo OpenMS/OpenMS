@@ -44,7 +44,7 @@
   @b %OpenMS: The name of our library, which contains the algorithms. You cannot use this directly, unless you are a programmer.<br>
 	@b TOPPView: View and explore LC/MS data, alignments, groups, peptide identifications and more!<br>
 	@b TOPPAS: A graphical workflow design tool, which allows to create pipelines from all TOPP tools (and UTILS).<br>
-	@b TOPP tools: A set of command line tools, each of which is a building block of an analysis pipeline. 
+	@b TOPP @b tools: A set of command line tools, each of which is a building block of an analysis pipeline. 
 	         These tools chained together in a way that fits the requirements of the user.
 					 Accessible from a command prompt/shell or via TOPPAS.
 					 See also: @subpage TOPP_tutorial and @subpage TOPP_documentation<br>
@@ -71,7 +71,7 @@
 		@b TOPPAS: Double-click the node of which you want to change the parameters. A short docu for each parameter will show up once you select it.
 		        All parameters which would be available on the command line and in the INI file are shown here as well.
 		
-		@b Command line: Very basic parameters can be set on the command line, e.g. <tt>FileFilter -rt 1000:2000 ....</tt>.<br>
+		@b Command @b line: Very basic parameters can be set on the command line, e.g. <tt>FileFilter -rt 1000:2000 ....</tt>.<br>
 									Doing this for all parameters would create a very long list, thus, we use so-called ".ini" files to provide full parameter sets to TOPP tools.
 		              If no INI file is given, default parameters are used.
 									To get a default .ini use
@@ -86,12 +86,12 @@
 									Now, you can edit the INI file (which is a XML file) using our @subpage TOPP_INIFileEditor, which is another GUI tool shipped with %OpenMS
 									and similar to the one build into TOPPAS.
 
-		@subsection parameters_where How do I feed the INI file to a tool?!
+		@subsection parameters_feed How do I feed the INI file to a tool?!
 
 		@b TOPPAS: Once you changed the parameters of a node and clicked "Ok", the parameters are in effect. Because they are part of the TOPPAS workflow, they are saved 
 		           together with the workflow.
 		
-		@b Command line: Simply supply the INI file via the <tt>-ini</tt> flag, e.g.,
+		@b Command @b line: Simply supply the INI file via the <tt>-ini</tt> flag, e.g.,
 									<p>
 									<tt>&lt;tool&gt; -ini &lt;file&gt;</tt>
 									</p>
