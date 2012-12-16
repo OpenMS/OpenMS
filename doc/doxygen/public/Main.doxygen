@@ -128,7 +128,8 @@
 				  <LI> @subpage FAQ_Internal
 				</UL>
 				@endif
-			</TD>
+			
+      <!-- </TD> // removing this /TD, since doxygen 1.8.2 would otherwise show it -- seems to be a bug
 
 		</TR>
 
