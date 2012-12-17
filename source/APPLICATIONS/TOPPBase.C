@@ -262,7 +262,7 @@ namespace OpenMS
         // check if ini parameters are applicable to this tool
         checkIfIniParametersAreApplicable_(ini_params);
         // update default params with old params given in -ini and be verbose
-        default_params.update(ini_params, true);
+        default_params.update(ini_params, false);
       }
       ParamXMLFile paramFile;
       paramFile.store(write_ini_file, default_params);
