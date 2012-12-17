@@ -188,7 +188,7 @@ protected:
     if (include != "")
     {
       FileTypes::Type in_type = fh.getType(include);
-      std::vector<IncludeExcludeTarget> incl_targets;
+
       if (in_type == FileTypes::FEATUREXML)
       {
         // load feature map

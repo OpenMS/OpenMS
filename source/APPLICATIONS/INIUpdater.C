@@ -49,7 +49,7 @@ namespace OpenMS
   StringList INIUpdater::getToolNamesFromINI(const Param & ini) const
   {
     StringList tool_names;
-    std::set<String> tool_names_set;
+
     for (Param::ParamIterator it = ini.begin(); it != ini.end(); ++it)
     {
       if (it.getName().toQString().count(':') == 1 && it.getName().hasSuffix(":version"))

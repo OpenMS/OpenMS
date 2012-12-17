@@ -486,9 +486,7 @@ namespace OpenMS
   }
 
   void SVMWrapper::predict(const SVMData & problem, vector<DoubleReal> & results)
-  {
-    struct svm_problem * prediction_problem = NULL;
-
+  {   
     results.clear();
 
     if (kernel_type_ == OLIGO)
@@ -507,7 +505,7 @@ namespace OpenMS
       }
       else if (model_ != NULL)
       {
-        prediction_problem = computeKernelMatrix(problem, training_data_);
+        struct svm_problem * prediction_problem = computeKernelMatrix(problem, training_data_);
         for (Size i = 0; i < problem.sequences.size(); i++)
         {
           DoubleReal label = svm_predict(model_, prediction_problem->x[i]);
@@ -1881,7 +1879,6 @@ namespace OpenMS
   void SVMWrapper::getDecisionValues(svm_problem * data, vector<DoubleReal> & decision_values)
   {
     DoubleReal temp_value;
-    bool first_label_positive = false;
 
     decision_values.clear();
     if (model_ != NULL)
@@ -1892,6 +1889,7 @@ namespace OpenMS
       }
       else if (svm_get_nr_class(model_) == 2)
       {
+        bool first_label_positive = false;
         std::vector<int> labels;
         labels.resize(svm_get_nr_class(model_));
         svm_get_labels(model_, &(labels[0]));

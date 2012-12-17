@@ -425,7 +425,7 @@ namespace OpenMS
         SimRandomNumberGenerator rnd_gen;
         RTSimulation rt_sim(rnd_gen);
         rt_sim.setParameters(rt_param);
-        std::vector<DoubleReal> rts;
+
         std::vector<DoubleReal> rts2;
         rt_sim.wrapSVM(peptide_aa_sequences, rts2);
         for (Size index2 = 0; index2 < rts2.size(); ++index2)
@@ -945,7 +945,7 @@ namespace OpenMS
         {
           continue;
         }
-        std::vector<DoubleReal> prot_masses;
+
         // digest sequence
         AASequence aa_seq(seq);
         std::vector<AASequence> vec;

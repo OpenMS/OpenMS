@@ -1338,7 +1338,7 @@ namespace OpenMS
     DoubleReal min_rt_weight = param_.getValue("thresholds:min_rt_weight");
     DoubleReal mz_tolerance = param_.getValue("mz_tolerance");
     DoubleReal log_weight = param_.getValue("combined_ilp:k3");
-    bool use_detectability = true; //param_.getValue("use_detectability") == "true" ? true : false;
+    const bool use_detectability = true; //param_.getValue("use_detectability") == "true" ? true : false;
 #ifdef DEBUG_OPS
     std::cout << "k3: " << log_weight << std::endl;
     std::cout << "parsed all parameters" << std::endl;
@@ -1462,7 +1462,7 @@ namespace OpenMS
     DoubleReal min_rt_weight = param_.getValue("thresholds:min_rt_weight");
     DoubleReal min_pred_pep_weight = param_.getValue("thresholds:min_pred_pep_prob");
     DoubleReal mz_tolerance = param_.getValue("mz_tolerance");
-    bool use_detectability = true; //param_.getValue("use_detectability") == "true" ? true : false;
+    const bool use_detectability = true; //param_.getValue("use_detectability") == "true" ? true : false;
     DoubleReal min_protein_probability = param_.getValue("thresholds:min_protein_probability");
     DoubleReal k1 =  param_.getValue("combined_ilp:k1");
 #ifdef DEBUG_OPS

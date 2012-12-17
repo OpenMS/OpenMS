@@ -194,9 +194,6 @@ protected:
     FeatureMapType fm;
     ConsensusMap cm;
 
-    vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_ids;
-
     writeDebug_(String("Loading input file"), 1);
 
     if (in_type == FileTypes::CONSENSUSXML)
