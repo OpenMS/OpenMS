@@ -48,7 +48,7 @@ namespace OpenMS
 
 #if 0 // useful for debugging
   template <typename ContainerType>
-  void printContainer(std::ostream & os, ContainerType rhs, const String & separator = " ", const String & suffix = "\n", const String & prefix = "\n")
+  void printContainer(std::ostream& os, ContainerType rhs, const String& separator = " ", const String& suffix = "\n", const String& prefix = "\n")
   {
     os << prefix;
     for (typename ContainerType::const_iterator cit = rhs.begin();; )
@@ -68,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  SequestOutfile::SequestOutfile(const SequestOutfile &)
+  SequestOutfile::SequestOutfile(const SequestOutfile&)
   {
   }
 
@@ -76,7 +76,7 @@ namespace OpenMS
   {
   }
 
-  SequestOutfile & SequestOutfile::operator=(const SequestOutfile & sequest_outfile)
+  SequestOutfile& SequestOutfile::operator=(const SequestOutfile& sequest_outfile)
   {
     if (this == &sequest_outfile)
       return *this;
@@ -84,17 +84,17 @@ namespace OpenMS
     return *this;
   }
 
-  bool SequestOutfile::operator==(const SequestOutfile &) const
+  bool SequestOutfile::operator==(const SequestOutfile&) const
   {
     return true;
   }
 
-  void SequestOutfile::load(const String & result_filename,
-                            vector<PeptideIdentification> & peptide_identifications,
-                            ProteinIdentification & protein_identification,
+  void SequestOutfile::load(const String& result_filename,
+                            vector<PeptideIdentification>& peptide_identifications,
+                            ProteinIdentification& protein_identification,
                             const DoubleReal p_value_threshold,
-                            vector<DoubleReal> & pvalues,
-                            const String & database,
+                            vector<DoubleReal>& pvalues,
+                            const String& database,
                             const bool ignore_proteins_per_peptide
                             )
   {
@@ -181,7 +181,7 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
     }
 
-    while (getline(result_file, line))     // skip all lines until the one with '---'
+    while (getline(result_file, line)) // skip all lines until the one with '---'
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
         line.resize(line.length() - 1);
@@ -381,8 +381,8 @@ namespace OpenMS
   // get the columns from a line
   bool
   SequestOutfile::getColumns(
-    const String & line,
-    vector<String> & substrings,
+    const String& line,
+    vector<String>& substrings,
     Size number_of_columns,
     Size reference_column)
   {
@@ -454,11 +454,11 @@ namespace OpenMS
   // retrieve the sequences
   void
   SequestOutfile::getSequences(
-    const String & database_filename,
-    const map<String, Size> & ac_position_map,
-    vector<String> & sequences,
-    vector<pair<String, Size> > & found,
-    map<String, Size> & not_found)
+    const String& database_filename,
+    const map<String, Size>& ac_position_map,
+    vector<String>& sequences,
+    vector<pair<String, Size> >& found,
+    map<String, Size>& not_found)
   {
     ifstream database_file(database_filename.c_str());
     if (!database_file)
@@ -489,7 +489,7 @@ namespace OpenMS
           found.push_back(*nf_i);
           not_found.erase(nf_i);
         }
-        nf_i = not_found.find(accession);         // for the first protein in the database, there's no predecessing protein
+        nf_i = not_found.find(accession); // for the first protein in the database, there's no predecessing protein
         sequence.clear();
       }
       else if (nf_i != not_found.end())
@@ -506,13 +506,12 @@ namespace OpenMS
     database_file.clear();
   }
 
-  void SequestOutfile::getACAndACType(String line, String & accession, String & accession_type)
+  void SequestOutfile::getACAndACType(String line, String& accession, String& accession_type)
   {
     String swissprot_prefixes = "JLOPQUX";
     /// @todo replace this by general FastA implementation? (Martin)
     accession.clear();
     accession_type.clear();
-    pair<String, String> p;
     // if it's a FASTA line
     if (line.hasPrefix(">"))
       line.erase(0, 1);
@@ -660,30 +659,30 @@ namespace OpenMS
   }
 
   void SequestOutfile::readOutHeader(
-    const String & result_filename,
-    DateTime & datetime,
-    DoubleReal & precursor_mz_value,
-    Int & charge,
-    Size & precursor_mass_type,
-    Size & ion_mass_type,
-    Size & displayed_peptides,
-    String & sequest,
-    String & sequest_version,
-    String & database_type,
-    Int & number_column,
-    Int & rank_sp_column,
-    Int & id_column,
-    Int & mh_column,
-    Int & delta_cn_column,
-    Int & xcorr_column,
-    Int & sp_column,
-    Int & sf_column,
+    const String& result_filename,
+    DateTime& datetime,
+    DoubleReal& precursor_mz_value,
+    Int& charge,
+    Size& precursor_mass_type,
+    Size& ion_mass_type,
+    Size& displayed_peptides,
+    String& sequest,
+    String& sequest_version,
+    String& database_type,
+    Int& number_column,
+    Int& rank_sp_column,
+    Int& id_column,
+    Int& mh_column,
+    Int& delta_cn_column,
+    Int& xcorr_column,
+    Int& sp_column,
+    Int& sf_column,
 // Int& P_column,
-    Int & ions_column,
-    Int & reference_column,
-    Int & peptide_column,
-    Int & score_column,
-    Size & number_of_columns)
+    Int& ions_column,
+    Int& reference_column,
+    Int& peptide_column,
+    Int& score_column,
+    Size& number_of_columns)
   {
     charge = 0;
     precursor_mz_value = 0.0;
@@ -711,7 +710,7 @@ namespace OpenMS
       line.trim();
       line.split(',', substrings);
 
-      if (line.hasSuffix(".out"))         // next line is the sequest version
+      if (line.hasSuffix(".out")) // next line is the sequest version
       {
         // \\bude\langwisc\temp\Inspect_Sequest.mzXML.13.1.d.out
         // TurboSEQUEST v.27 (rev. 12), (c) 1998-2005
@@ -755,7 +754,7 @@ namespace OpenMS
             sequest_version = line.substr(pos);
           else
             sequest_version = line.substr(pos, pos1 - pos);
-        }         // else no version was found
+        } // else no version was found
       }
       else if (line.hasPrefix("(M+H)+ mass = "))
       {
@@ -792,7 +791,7 @@ namespace OpenMS
         database_type = "bases";
       else if (line.hasPrefix("# amino acids"))
         database_type = "amino acids";
-      else if (line.hasPrefix("display top") && substrings[0].hasPrefix("display top"))         // get the number of peptides displayed
+      else if (line.hasPrefix("display top") && substrings[0].hasPrefix("display top")) // get the number of peptides displayed
       {
         displayed_peptides = strlen("display top ");
         displayed_peptides = substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides)).toInt();
@@ -832,7 +831,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No charge found!", result_filename);
     }
 
-    if (!line.hasPrefix("#"))       // check whether the header line was found
+    if (!line.hasPrefix("#")) // check whether the header line was found
     {
       result_file.close();
       result_file.clear();

@@ -99,14 +99,11 @@ protected:
     setMaxFloat_("p_value_dim_2", 1);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
-    vector<PeptideHit> temp_peptide_hits;
-    vector<String> peptides;
-    vector<String> proteins;
     vector<FASTAFile::FASTAEntry> sequences;
 
     bool latex = getFlag_("latex");
@@ -450,7 +447,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIdXMLEvaluation tool;
   return tool.main(argc, argv);

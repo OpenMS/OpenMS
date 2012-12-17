@@ -91,7 +91,7 @@ protected:
     setMinInt_("missed_cleavages", 0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
@@ -104,13 +104,12 @@ protected:
     PeptideHit temp_peptide_hit;
     ProteinHit temp_protein_hit;
     vector<String> protein_accessions;
-    vector<String> parts;
-    String inputfile_name = "";
-    String outputfile_name = "";
-    UInt min_size = 0, counter = 0;
-    UInt missed_cleavages = 0;
+    String inputfile_name;
+    String outputfile_name;
+    UInt min_size, counter = 0;
+    UInt missed_cleavages;
     DoubleReal accurate_mass, min_mass, max_mass;
-    UInt mass_acc = 1000, out_opt;
+    UInt mass_acc, out_opt;
     EmpiricalFormula EF;
     UInt zero_count;
     ProteinIdentification::SearchParameters search_parameters;
@@ -165,7 +164,7 @@ protected:
       protein_identifications[0].insertHit(temp_protein_hit);
     }
     DateTime date_time;
-    String date_time_string = "";
+    String date_time_string;
     date_time.now();
 
     date_time_string = date_time.get();
@@ -189,10 +188,9 @@ protected:
     while (mass_iter > 0)
     {
       vector<DoubleReal> MIN, MAX;
-      vector<String> peptides, protein_names, PROTEINS;
-      vector<vector<DoubleReal> > B, Y;
+      vector<String> protein_names, PROTEINS;
+      vector<vector<DoubleReal> > Y;
       vector<UInt> OVER;
-      vector<UInt> IonCounter;
       UInt total = 0;
       if (out_opt == 1 || out_opt == 3)
       {
@@ -224,7 +222,7 @@ protected:
           {
             if (temp_peptides[j].hasSubsequence(M) == TRUE)
             {
-              OVER.push_back((-1));                 //because the increment of the first will always be counted;
+              OVER.push_back((-1)); //because the increment of the first will always be counted;
               //IonCounter.push_back(0);
               MIN.push_back(min_mass);
               MAX.push_back(max_mass);
@@ -339,7 +337,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDigestorMotif tool;
   return tool.main(argc, argv);

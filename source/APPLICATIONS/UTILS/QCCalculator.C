@@ -111,22 +111,21 @@ protected:
     registerFlag_("remove_duplicate_features", "This flag should be set, if you work with a set of merged features.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
     ProteinHit temp_protein_hit;
-    String inputfile_name = "";
     String outputfile_name = "";
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    inputfile_name              = getStringOption_("in_id");
+    String inputfile_name       = getStringOption_("in_id");
     String inputfile_feature    = getStringOption_("feature");
     String inputfile_consensus  = getStringOption_("consensus");
     String inputfile_raw        = getStringOption_("raw");
     //~ outputfile_name             = getStringOption_("out");
-    
+
     String out_id = getStringOption_("out_id");
     String out_feature = getStringOption_("out_feature");
     String out_consensus = getStringOption_("out_consensus");
@@ -140,7 +139,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-    if (inputfile_name != "" && out_id != "")      // -InclusionList was given
+    if (inputfile_name != "" && out_id != "") // -InclusionList was given
     {
       //~ String ID_NAME = "_id.tsv";
       IdXMLFile().load(inputfile_name, prot_ids, pep_ids);
@@ -176,7 +175,7 @@ protected:
             {
               logo3 = tmp.getMetaValue("target_decoy");
             }
-            if (logo1.size() > 0)
+            if (!logo1.empty())
             {
               logo2 = logo1[0];
               for (UInt ii = 1; ii < logo1.size(); ++ii)
@@ -232,7 +231,7 @@ protected:
               {
                 logo3 = tmp.getMetaValue("target_decoy");
               }
-              if (logo1.size() > 0)
+              if (!logo1.empty())
               {
                 logo2 = logo1[0];
               }
@@ -245,7 +244,7 @@ protected:
       }
       out.close();
     }
-    if (inputfile_feature != "" && !remove_duplicate_features && out_feature != "")      //
+    if (inputfile_feature != "" && !remove_duplicate_features && out_feature != "") //
     {
       //~ String FEATURE_NAME_NO_REMOVE = "_features.tsv";
       //~ String combined_out = outputfile_name + FEATURE_NAME_NO_REMOVE;
@@ -307,7 +306,7 @@ protected:
       //~ String FEATURE_NAME_REMOVE = "_features.tsv";
       //~ String combined_out = outputfile_name + FEATURE_NAME_REMOVE;
       //~ ofstream out(combined_out.c_str());
-      ofstream out(out_feature.c_str());
+      //ofstream out(out_feature.c_str());
       FeatureXMLFile().store(out_feature, map_out);
     }
     if (inputfile_consensus != "" && out_consensus != "")
@@ -436,7 +435,7 @@ protected:
   }
 
 };
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPQCCalculator tool;
   return tool.main(argc, argv);

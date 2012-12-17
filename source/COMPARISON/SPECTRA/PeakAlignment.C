@@ -51,7 +51,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  PeakAlignment::PeakAlignment(const PeakAlignment & source) :
+  PeakAlignment::PeakAlignment(const PeakAlignment& source) :
     PeakSpectrumCompareFunctor(source)
   {
   }
@@ -60,7 +60,7 @@ namespace OpenMS
   {
   }
 
-  PeakAlignment & PeakAlignment::operator=(const PeakAlignment & source)
+  PeakAlignment& PeakAlignment::operator=(const PeakAlignment& source)
   {
     if (this != &source)
     {
@@ -69,12 +69,12 @@ namespace OpenMS
     return *this;
   }
 
-  double PeakAlignment::operator()(const PeakSpectrum & spec) const
+  double PeakAlignment::operator()(const PeakSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
 
-  double PeakAlignment::operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const
+  double PeakAlignment::operator()(const PeakSpectrum& spec1, const PeakSpectrum& spec2) const
   {
 
     PeakSpectrum s1(spec1), s2(spec2);
@@ -250,7 +250,7 @@ namespace OpenMS
     return best_score_normalized;
   }
 
-  vector<pair<Size, Size> > PeakAlignment::getAlignmentTraceback(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const
+  vector<pair<Size, Size> > PeakAlignment::getAlignmentTraceback(const PeakSpectrum& spec1, const PeakSpectrum& spec2) const
   {
     const double epsilon = (double)param_.getValue("epsilon");
 
@@ -366,7 +366,6 @@ namespace OpenMS
     }
     //return track from best alloverscore to 0,0
     vector<pair<Size, Size> > ret_val;
-    pair<Size, Size> max_pair;
 
     //get matrix coordinates from best alloverscore
     Size row_index(0), col_index(0);
@@ -419,7 +418,7 @@ namespace OpenMS
     return ret_val;
   }
 
-  double PeakAlignment::peakPairScore_(double & pos1, double & intens1, double & pos2, double & intens2, const double & sigma) const
+  double PeakAlignment::peakPairScore_(double& pos1, double& intens1, double& pos2, double& intens2, const double& sigma) const
   {
     //scoring formula : peakintensity score * peakposition score
     double pi(sqrt(intens1 * intens2));

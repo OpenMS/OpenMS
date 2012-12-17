@@ -405,7 +405,6 @@ namespace OpenMS
                                                           DoubleReal                     p_value)
   {
     DoubleReal border = 1 - p_value;
-    vector<Size> new_peptide_indices;
     vector<PeptideHit> filtered_peptide_hits;
     PeptideHit temp_peptide_hit;
 
@@ -441,7 +440,6 @@ namespace OpenMS
                                                   DoubleReal                     p_value)
   {
     DoubleReal border = 1 - p_value;
-    vector<Size> new_peptide_indices;
     vector<PeptideHit> filtered_peptide_hits;
     PeptideHit temp_peptide_hit;
 

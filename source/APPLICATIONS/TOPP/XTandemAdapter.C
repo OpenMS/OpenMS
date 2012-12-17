@@ -176,8 +176,6 @@ protected:
     // path to the log file
     String logfile(getStringOption_("log"));
     String xtandem_executable(getStringOption_("xtandem_executable"));
-    // log file stream (as long as the real logfile is not determined yet)
-    ofstream log;
     String inputfile_name;
     String outputfile_name;
     PeakMap exp;
@@ -320,7 +318,6 @@ protected:
 
     infile.write(input_filename);
 
-    vector<ProteinIdentification> protein_identifications;
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------

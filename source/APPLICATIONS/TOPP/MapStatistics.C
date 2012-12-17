@@ -98,7 +98,7 @@ namespace OpenMS
 
     @note: GSL statistics uses double and so we write double not DoubleReal here and where we use this.
     */
-    SomeStatistics & operator()(vector<double> & data)
+    SomeStatistics& operator()(vector<double>& data)
     {
       // Sanity check: avoid core dump if no data points present.
       if (!data.empty())
@@ -123,7 +123,7 @@ namespace OpenMS
   };
 
   /// Copy the statistics into a vector
-  static vector<double> & operator<<(vector<double> & result, const SomeStatistics & stats)
+  static vector<double>& operator<<(vector<double>& result, const SomeStatistics& stats)
   {
     result.push_back(stats.mean);
     result.push_back(sqrt(stats.variance));
@@ -136,7 +136,7 @@ namespace OpenMS
   }
 
   /// Write SomeStatistics to a stream.
-  static ostream & operator<<(ostream & os, const SomeStatistics & rhs)
+  static ostream& operator<<(ostream& os, const SomeStatistics& rhs)
   {
     return os <<
            "  mean: " << rhs.mean << endl <<
@@ -157,7 +157,7 @@ public:
   {
   }
 
-  vector<double> sliceStatistics(const FeatureMap<> & map, Size begin, Size end) const
+  vector<double> sliceStatistics(const FeatureMap<>& map, Size begin, Size end) const
   {
     // If we are asked to produce stats for an empty set, return an empty vector.
     if (end <= begin || end > map.size())
@@ -187,7 +187,7 @@ public:
 
     vector<double> results;
     SomeStatistics some_statistics;
-    results.reserve(43);     // 6 7-number stats + tic
+    results.reserve(43); // 6 7-number stats + tic
     results.push_back(tic);
     results << some_statistics(intensities);
     results << some_statistics(mz);
@@ -210,7 +210,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Optional output txt file. If '-' or left out, the output is written to the command line.", false);
     setValidFormats_("out", StringList::create("txt"));
 
-    registerIntOption_("n", "<n>", 4,     // 4 slices is the default
+    registerIntOption_("n", "<n>", 4, // 4 slices is the default
                        "Report separate statistics for each of n RT slices of the map.",
                        false, false);
     setMinInt_("n", 1);
@@ -221,7 +221,7 @@ protected:
     registerFlag_("s", "Computes a summary statistics of intensities, qualities, and widths");
   }
 
-  ExitCodes outputTo(ostream & os)
+  ExitCodes outputTo(ostream& os)
   {
     //-------------------------------------------------------------
     // Parameter handling
@@ -250,7 +250,7 @@ protected:
     FeatureMap<> feat;
     ConsensusMap cons;
 
-    if (in_type == FileTypes::FEATUREXML)     //features
+    if (in_type == FileTypes::FEATUREXML) //features
     {
       FeatureXMLFile().load(in, feat);
       feat.updateRanges();
@@ -277,7 +277,7 @@ protected:
          << "-- Meta information --" << endl
          << endl;
 
-      if (in_type == FileTypes::FEATUREXML)       //features
+      if (in_type == FileTypes::FEATUREXML) //features
       {
         os << "Document id       : " << feat.getIdentifier() << endl << endl;
       }
@@ -299,7 +299,7 @@ protected:
 
       //get data processing info
       vector<DataProcessing> dp;
-      if (in_type == FileTypes::FEATUREXML)       //features
+      if (in_type == FileTypes::FEATUREXML) //features
       {
         dp = feat.getDataProcessing();
       }
@@ -307,6 +307,18 @@ protected:
       {
         dp = cons.getDataProcessing();
       }
+      int i = 0;
+      for (vector<DataProcessing>::iterator it = dp.begin(); it != dp.end(); ++it)
+      {
+        os << "Data processing " << i << endl;
+        os << "\tcompletion_time:   " << (*it).getCompletionTime().getDate() << 'T' << (*it).getCompletionTime().getTime() << endl;
+        os << "\tsoftware name:     " << (*it).getSoftware().getName() << " version " << (*it).getSoftware().getVersion() << endl;
+        for (set<DataProcessing::ProcessingAction>::const_iterator paIt = (*it).getProcessingActions().begin(); paIt != (*it).getProcessingActions().end(); ++paIt)
+        {
+          os << "\t\tprocessing action: " << DataProcessing::NamesOfProcessingAction[*paIt] << endl;
+        }
+      }
+      ++i;
     }
 
     //-------------------------------------------------------------
@@ -318,7 +330,7 @@ protected:
       // Content statistics
       //-------------------------------------------------------------
       Map<String, int> meta_names;
-      if (in_type == FileTypes::FEATUREXML)       //features
+      if (in_type == FileTypes::FEATUREXML) //features
       {
         os << "Number of features: " << feat.size() << endl
            << endl
@@ -364,7 +376,7 @@ protected:
            << "  intensity:       " << String::number(cons.getMinInt(), 2) << " : " << String::number(cons.getMaxInt(), 2) << endl;
 
         // file descriptions
-        const ConsensusMap::FileDescriptions & descs = cons.getFileDescriptions();
+        const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
         if (!descs.empty())
         {
           os << endl <<
@@ -384,9 +396,8 @@ protected:
          << endl;
 
     }
-    OpenMS::SomeStatistics some_statistics;
 
-    if (in_type == FileTypes::FEATUREXML)     //features
+    if (in_type == FileTypes::FEATUREXML) //features
     {
       feat.sortByRT();
 
@@ -493,11 +504,13 @@ protected:
           rt_aad /= cm_iter->size();
           mz_aad /= cm_iter->size();
           it_aad /= cm_iter->size();
-        }         // otherwise rt_aad etc. are 0 anyway
+        } // otherwise rt_aad etc. are 0 anyway
         rt_aad_by_cfs.push_back(rt_aad);
         mz_aad_by_cfs.push_back(mz_aad);
         it_aad_by_cfs.push_back(it_aad);
       }
+
+      OpenMS::SomeStatistics some_statistics;
 
       os.precision(writtenDigits(ConsensusFeature::IntensityType()));
       os << "Intensities of consensus features:" << endl << some_statistics(intensities) << endl;
@@ -524,7 +537,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String out = getStringOption_("out");
 
@@ -543,7 +556,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapStatistics tool;
   return tool.main(argc, argv);

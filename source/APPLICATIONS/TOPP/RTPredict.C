@@ -180,7 +180,6 @@ protected:
     vector<PeptideIdentification> identifications;
     vector<String> peptides;
     vector<AASequence> modified_peptides;
-    vector<DoubleReal> training_retention_times;
     vector<PeptideHit> temp_peptide_hits;
     SVMWrapper svm;
     LibSVMEncoder encoder;
