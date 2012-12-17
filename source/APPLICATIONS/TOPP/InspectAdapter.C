@@ -213,8 +213,6 @@ protected:
     InspectOutfile inspect_outfile;
 
     vector<String>
-    substrings,
-      substrings2,
       trie_database_filenames,
       sequence_database_filenames,
       index_filenames;
@@ -853,7 +851,7 @@ protected:
 
           try
           {
-            vector<Size> corrupted_lines = inspect_outfile.load(inspect_output_filename, peptide_identifications, protein_identification, p_value_threshold, inspect_infile.getDb());
+            inspect_outfile.load(inspect_output_filename, peptide_identifications, protein_identification, p_value_threshold, inspect_infile.getDb());
           }
           catch (Exception::ParseError & pe)
           {
