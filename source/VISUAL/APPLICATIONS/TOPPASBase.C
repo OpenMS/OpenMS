@@ -169,11 +169,6 @@ namespace OpenMS
     file->addSeparator();
     file->addAction("&Quit", qApp, SLOT(quit()));
 
-    //Advanced menu
-    //QMenu* advanced = new QMenu("&Advanced",this);
-    //menuBar()->addMenu(advanced);
-    //advanced->addAction("&Refresh definitions",this,SLOT(refreshDefinitions()), Qt::CTRL+Qt::Key_R);
-
     //Pipeline menu
     QMenu* pipeline = new QMenu("&Pipeline", this);
     menuBar()->addMenu(pipeline);
@@ -465,11 +460,6 @@ namespace OpenMS
       QApplication::processEvents();
       addTOPPASFile(*it);
     }
-  }
-
-  void TOPPASBase::refreshDefinitions()
-  {
-
   }
 
   void TOPPASBase::openExampleDialog()
