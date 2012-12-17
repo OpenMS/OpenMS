@@ -43,7 +43,6 @@
 #include <utility>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>

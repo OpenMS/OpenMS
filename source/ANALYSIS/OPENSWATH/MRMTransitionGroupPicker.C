@@ -264,8 +264,8 @@ namespace OpenMS
         if (picked_chroms[k][i].getIntensity() > largest)
         {
           largest = picked_chroms[k][i].getIntensity();
-          chr_idx = k;
-          peak_idx = i;
+          chr_idx = (int)k;
+          peak_idx = (int)i;
         }
       }
     }
