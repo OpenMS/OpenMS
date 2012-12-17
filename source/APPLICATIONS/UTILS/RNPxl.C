@@ -467,7 +467,7 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-// input files
+    // input files
     registerInputFile_("in_mzML", "<file>", "", "Input file");
     setValidFormats_("in_mzML", StringList::create("mzML"));
 
@@ -496,15 +496,15 @@ protected:
 
     registerFlag_("CysteineAdduct", "Use this flag if the +152 adduct is expected.");
 
-// search
+    // search
     registerInputFile_("in_OMSSA_ini", "<file>", "", "Ini file for the OMSSA search engine\n");
     setValidFormats_("in_OMSSA_ini", StringList::create("ini"));
 
-// indexing
+    // indexing
     registerInputFile_("in_fasta", "<file>", "", "Fasta file for search result annotation\n");
     setValidFormats_("in_fasta", StringList::create("fasta"));
 
-// reporting
+    // reporting
     registerDoubleOption_("marker_ions_tolerance", "<tolerance>", 0.05, "mz tolerance used to determine marker ions.", false);
     registerOutputFile_("out_idXML", "<file>", "", "idXML output file\n");
     setValidFormats_("out_idXML", StringList::create("idXML"));
@@ -1047,7 +1047,7 @@ protected:
 
     QProcess* p;
 
-// index final result
+    // index final result
     QStringList args;
     args << "-fasta" << in_fasta_file.toQString() << "-in" << out_idXML.toQString() << "-out" << out_idXML.toQString() << "-no_progress";
     p = new QProcess();
@@ -1056,7 +1056,7 @@ protected:
     p->waitForFinished(999999999);
     delete(p);
 
-// cleanup
+    // cleanup
     if (debug_level < 1)
     {
       for (vector<String>::const_iterator it = file_list_variants_mzML.begin(); it != file_list_variants_mzML.end(); ++it, ++counter)
