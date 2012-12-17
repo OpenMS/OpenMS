@@ -45,6 +45,57 @@ namespace OpenMS
   /**
       @brief The Superhirn FeatureFinderAlgorithm.
 
+      The SuperHirn FeatureFinder algorithm is applied by calling "run" on this
+      class, which in turn calls the FeatureFinderAlgorithmSHCtrl to execute
+      the following algorithm:
+
+       START by feeding the datavector into startScanParsing (FTPeakDetectController.C)
+         For each scan
+           1. Centroid it (new CentroidData instance), centroiding is done in
+              CentroidData::calcCentroids
+           2. Call add_scan_raw_data of ProcessData -> this also does the
+              de-isotoping / feature finding in ProcessData::add_scan_raw_data
+         3. Apply process_MS1_level_data_structure to the whole map
+         4. Apply feature merging (MS1FeatureMerger)**, optionally
+         5. Add to all LC MS/MS runs
+      
+         Step 2 in ProcessData::add_scan_raw_data works on centroided peaks of
+          a single spectrum
+           2.1 add to the background intensity controller
+               BackgroundControl::addPeakMSScan which calculates intensity bins
+           2.2 call "go" on Deisotoper (on single spectrum level) to "de-istope" spectra *
+           2.3 Converts them to objects of MSPeak type (single spectrum features) 
+      
+         Step 3 works on an instance of ProcessData (clustering de-isotoped
+          peaks from single spectra over RT) and applies the following steps:
+           3.1 Extract elution peaks (call extract_elution_peaks of ProcessData)
+           3.2 For all features, it creates a SuperHirn Feature (SHFeature)
+           3.3 For all features, it computes the elution profile
+               (FeatureLCProfile instance) and adds individual peaks to it
+         
+         Step 3.1 calls processIntensityMaps from BackgroundController
+      
+         * Deisotoper (Step 2.2)
+           The Deisotoper works on single "peak groups" which is a set of
+           peaks that has a maximal spacing of 1 + exps Da. These peak
+           groups are produced by the CentroidData object
+           [CentroidData::getNextPeakGroup] which internally holds a pointer
+           to the current peak. It basically starts with the first peaks and
+           adds peaks until the next peak is further away than 1+eps
+           The Deisotoper then goes through the peak list, for each charge
+           checks which peaks matches the current charge using
+           IsotopicDist::getMatchingPeaks, creates an instance of DeconvPeak
+           using this mono isotopic charge and then subtracts the current
+           monoisotopic peak from the set of peaks using
+           IsotopicDist::subtractMatchingPeaks (probably to account for
+           overlapping isotopic patterns).
+        ** Feature Merging Step 4 in MS1FeatureMerger::startFeatureMerging()
+           which calls createMZFeatureClusters(). This method tries to check
+           whether a feature is inside another feature using
+           MS1FeatureMerger::compareMZFeatureBeloning which checks whether the ppm
+           tolerance is below a certain level, the charge state is equal and
+           whether both features have elution profiles. 
+
       @ingroup FeatureFinder
   */
   template <class PeakType, class FeatureType>
@@ -193,6 +244,7 @@ public:
       // for all data since its based on string comparison.
       bool orderByNativeIds = false;
 
+      // go through map, extract data and store it in a vector of RawData objects
       for (unsigned int s = 0; s < map_.size(); s++)
       {
         const SpectrumType & spectrum = map_[s];
@@ -231,6 +283,7 @@ public:
         datavec[scanIndex] = map_ptr;
       }
 
+      // apply the SuperHirn FeatureFinder algorithm
       FeatureFinderAlgorithmSHCtrl ctrl;
       ctrl.initParams(this->param_);
       std::vector<Feature> thefeatures = ctrl.extractPeaks(datavec);

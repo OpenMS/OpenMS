@@ -57,6 +57,9 @@ using namespace std;
   Proteomics. 2007 Oct;7(19):3470-80.
   SuperHirn - a novel tool for high resolution LC-MS-based peptide/protein profiling.
   Mueller LN, Rinner O, Schmidt A, Letarte S, Bodenmiller B, Brusniak MY, Vitek O, Aebersold R, Mller M.
+
+  see FeatureFinderAlgorithmSH.h for a detailed description of the algorithm.
+
 */
 
 // We do not want this class to show up in the docu:
