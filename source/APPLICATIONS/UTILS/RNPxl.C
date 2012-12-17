@@ -937,8 +937,9 @@ protected:
         Size charge = hit->getCharge();
         DoubleReal ppm_difference(0), absolute_difference(0);
         DoubleReal exp_mz = orig_mz + rna_weight / (DoubleReal)charge;
-        absolute_difference = (pep_weight + rna_weight + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge - exp_mz;
-        ppm_difference = absolute_difference / exp_mz * 1000000;
+        DoubleReal theo_mz = (pep_weight + rna_weight + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge;
+        absolute_difference = theo_mz - exp_mz;
+        ppm_difference = absolute_difference / theo_mz * 1000000;
 
         String protein_accessions;
         if (hit->getProteinAccessions().size() != 0)
