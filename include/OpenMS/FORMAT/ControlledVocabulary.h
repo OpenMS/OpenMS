@@ -46,7 +46,7 @@ namespace OpenMS
   /**
       @brief Representation of a controlled vocabulary.
 
-      This represenation only contains the information used for parsing and validation.
+      This representation only contains the information used for parsing and validation.
       All other lines are stored in the @em unparsed member of the the CVTerm struct.
 
   @ingroup Format
@@ -75,34 +75,7 @@ public:
         NONE
       };
 
-      static String getXRefTypeName(XRefType type)
-      {
-        switch (type)
-        {
-        case XSD_STRING: return "xsd:string";
-
-        case XSD_INTEGER: return "xsd:integer";
-
-        case XSD_DECIMAL: return "xsd:decimal";
-
-        case XSD_NEGATIVE_INTEGER: return "xsd:negativeInteger";
-
-        case XSD_POSITIVE_INTEGER: return "xsd:positiveInteger";
-
-        case XSD_NON_NEGATIVE_INTEGER: return "xsd:nonNegativeInteger";
-
-        case XSD_NON_POSITIVE_INTEGER: return "xsd:nonPositiveInteger";
-
-        case XSD_BOOLEAN: return "xsd:boolean";
-
-        case XSD_DATE: return "xsd:date";
-
-        case XSD_ANYURI: return "xsd:anyURI";
-
-        default: return "none";
-        }
-        return "";
-      }
+      static String getXRefTypeName(XRefType type);
 
       String name; ///< Text name
       String id; ///< Identifier
