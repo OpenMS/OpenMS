@@ -184,22 +184,22 @@ namespace OpenMS
 
       Real rightborder = chromatogram[min_i + k - 1].getMZ();
 
-      double weighted_mz = 0;
+      // double weighted_mz = 0; // not used
       Real integrated_intensity = 0;
       for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it)
       {
-        weighted_mz += map_it->first * map_it->second;
+        // weighted_mz += map_it->first * map_it->second;
         integrated_intensity += map_it->second;
       }
       // For peaks in chromatograms, it does not make much sense to recenter
       // them since we are not concerned with accuracy as with m/z peaks but
       // rather want to see coelution. For this relative peak shape is much
       // more interesting.
-      weighted_mz /= integrated_intensity;
+      // weighted_mz /= integrated_intensity;
 
 #ifdef DEBUG_MRMPEAKPICKER
       double central_peak_int = picked_chrom[i].getIntensity();
-      std::cout << "Found peak at " << central_peak_mz << " and "  << central_peak_int << " with borders " << leftborder << " " << rightborder <<  " (" << rightborder - leftborder << ") " << integrated_intensity << " weighted RT " << weighted_mz << std::endl;
+      std::cout << "Found peak at " << central_peak_mz << " and "  << central_peak_int << " with borders " << leftborder << " " << rightborder <<  " (" << rightborder - leftborder << ") " << integrated_intensity << " weighted RT " << /* weighted_mz << */ std::endl;
 #endif
 
 

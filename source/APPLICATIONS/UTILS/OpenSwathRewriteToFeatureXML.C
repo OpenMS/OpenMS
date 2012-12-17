@@ -113,7 +113,7 @@ class TOPPOpenSwathRewriteToFeatureXML
 
     // Read header
     std::getline(data, line);
-    std::map<int, String> header_dict;
+    // std::map<int, String> header_dict; // not used
     std::map<String, int> header_dict_inv;
     {
       std::stringstream          lineStream(line);
@@ -121,7 +121,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       int cnt = 0;
       while (std::getline(lineStream,cell,'\t'))
       {
-        header_dict[cnt] = cell;
+        //header_dict[cnt] = cell;
         header_dict_inv[cell] = cnt;
         cnt++;
       }

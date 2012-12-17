@@ -187,7 +187,7 @@ public:
 
     void getLibraryIntensity(std::vector<double> & result) const
     {
-      for (typename TransitionsType::const_iterator it = transitions_.begin(); it != transitions_.end(); it++)
+      for (typename TransitionsType::const_iterator it = transitions_.begin(); it != transitions_.end(); ++it)
       {
         result.push_back(it->getLibraryIntensity());
       }
