@@ -285,7 +285,7 @@ namespace OpenMS
       //~ parsed_term.accession = lc.id;
       //~ parsed_term.name = lc.name;
       //~ //no value in ControlledVocabulary::CVTerm
-			//~ //no units either yet
+      //~ //no units either yet
       //~ {
         //~ parsed_term.has_unit_accession = false;
         //~ parsed_term.has_unit_name = false;

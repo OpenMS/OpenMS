@@ -395,7 +395,7 @@ namespace OpenMS
       else if (tag_ == "DataProcessingList")
       {
         std::vector<DataProcessing> dps;
-        for (std::map<int, DataProcessing>::const_iterator it = current_orderedps_.begin(); it != current_orderedps_.end(); it++)
+        for (std::map<int, DataProcessing>::const_iterator it = current_orderedps_.begin(); it != current_orderedps_.end(); ++it)
         {
           dps.push_back(it->second);
         }
@@ -666,8 +666,8 @@ namespace OpenMS
 
       if (parent_parent_tag == "")
       {
-	      //~ TODO: dummy
-	      warning(LOAD, String("The user param '") + name + "' used in tag '" + parent_tag + "' has no valid grand parent.'");
+        //~ TODO: dummy
+        warning(LOAD, String("The user param '") + name + "' used in tag '" + parent_tag + "' has no valid grand parent.'");
       }
       //find the right MetaInfoInterface
       if (parent_tag == "ProcessingMethod")
@@ -725,7 +725,7 @@ namespace OpenMS
     {
       //~ TODO logger_.startProgress(0,exp.size(),"storing mzQuantML file");
       String line; //everyone walk the line!!!
-      std::vector<UInt64> rid;
+      //~ std::vector<UInt64> rid;
 
       //header
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
@@ -873,7 +873,7 @@ namespace OpenMS
           {
             ratio_xml += "\t\t\t\t<userParam name=\"" + String(*dit) + "\"/>\n";
           }
-	  ratio_xml += "\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001848\" name=\"simple ratio of two values\"/>\n";
+          ratio_xml += "\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001848\" name=\"simple ratio of two values\"/>\n";
           ratio_xml += "\t\t\t</RatioCalculation>\n";
           ratio_xml += "\t\t\t<NumeratorDataType>\n\t\t\t\t<cvParam accession=\"MS:1001847\" cvRef=\"PSI-MS\" name=\"reporter ion intensity\"/>\n\t\t\t</NumeratorDataType>\n";
           ratio_xml += "\t\t\t<DenominatorDataType>\n\t\t\t\t<cvParam accession=\"MS:1001847\" cvRef=\"PSI-MS\" name=\"reporter ion intensity\"/>\n\t\t\t</DenominatorDataType>\n";
@@ -1303,9 +1303,9 @@ namespace OpenMS
 
     void MzQuantMLHandler::writeFeature_(ostream& os, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
     {
-	//TODO: remove dummy
-	os << "\n featurewriter: " << identifier_prefix << "-" << String(identifier) << "-" << String(indentation_level) << "\n";
-	//TODO: remove dummy
+      //TODO: remove dummy
+      os << "\n featurewriter: " << identifier_prefix << "-" << String(identifier) << "-" << String(indentation_level) << "\n";
+      //TODO: remove dummy
 
       //~ String indent = String(indentation_level,'\t');
 
