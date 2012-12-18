@@ -74,7 +74,7 @@ add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost
 set(Boost_COMPILER "")
 
 # help boost finding it's packages
-set(Boost_ADDITIONAL_VERSIONS "1.47.0" "1.48.0" "1.49.0")
+set(Boost_ADDITIONAL_VERSIONS "1.47.0" "1.48.0" "1.49.0", "1.50.0", "1.51.0", "1.52.0")
 
 # 1st attempt does not explicitly requires boost to enable second check (see below)
 FIND_PACKAGE(Boost 1.42.0 COMPONENTS iostreams date_time math_c99)
@@ -82,7 +82,7 @@ if(NOT Boost_FOUND AND WIN32)
   # second attempt to find boost using plain "VC" as toolset, instead of vs110 or so.
   # this is required for cases where Boost was build without specifying a toolset explicitly
   set(Boost_COMPILER "-vc")
-  FIND_PACKAGE(Boost 1.42.0 REQUIRED iostreams date_time math_c99)
+  FIND_PACKAGE(Boost 1.52.0 REQUIRED iostreams date_time math_c99)
 endif()
 
 if(Boost_FOUND)

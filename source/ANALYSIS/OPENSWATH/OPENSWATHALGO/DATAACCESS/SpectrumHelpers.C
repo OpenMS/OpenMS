@@ -99,7 +99,7 @@ namespace OpenSwath
       std::vector<double>::const_iterator mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
 
       // also advance intensity iterator now
-      int iterator_pos = std::distance((std::vector<double>::const_iterator)spectrum->getMZArray()->data.begin(), mz_it);
+      std::iterator_traits< std::vector<double>::const_iterator >::difference_type iterator_pos = std::distance((std::vector<double>::const_iterator)spectrum->getMZArray()->data.begin(), mz_it);
       std::advance(int_it, iterator_pos);
 
       for (; mz_it != mz_it_end; ++mz_it, ++int_it)
