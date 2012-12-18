@@ -129,9 +129,6 @@ namespace OpenMS
       gsl_multifit_linear_free(work);
 
       // determine the errors in ppm
-
-
-      std::vector<double> errors;
       for (Size p = 0; p < n; ++p)
       {
 #ifdef DEBUG_CALIBRATION
