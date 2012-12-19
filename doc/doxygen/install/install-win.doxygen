@@ -231,7 +231,7 @@ cmake -D CMAKE_FIND_ROOT_PATH="C:\svn\contrib_win64_build" -G "Visual Studio 9 2
 		
 		@section install_win_topp Building the TOPP tools
 
-		TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
+		TOPP is a toolset for the analysis of HPLC-MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
 		<BR>
 		<BR>
 		After you have built %OpenMS, you can build the TOPP tools
