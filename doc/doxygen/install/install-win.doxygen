@@ -33,8 +33,7 @@
 <b>Pre-Requisites (Software)</b>
   <UL>
     <LI>have a Visual Studio 2005/2008/2010[SP1]/2012 installed (The C++ Express editions should work as well, we tested VSE2008 and VSE2012). VS2003 is not supported!
-    <br>64-bit tools are not available on Visual C++ Express Edition by default. To enable 64-bit tools on Visual C++ Express Edition, install the .NET Framework SDK in addition to Visual C++ Express Edition.
-        Note that VS Express does NOT support OpenMP, thus the multithreading capabilities of the TOPP tools and OpenMS-lib are not used.
+    <br>Visual C++ Express 2012 (VS11) supports Win64 and OpenMP by default. For older editions (2010 and below) you can find tutorials on how to enable them on the net.
     <br> If you work with VS 2008, installation of the Service Pack 1 (SP1) is required,
     otherwise VS might crash during the compilation of the contrib package.
     <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)<br>
@@ -64,7 +63,7 @@
 		
 		We require Qt version 4.5 or higher.<br>
 		<b>Qt 5.X IS NOT SUPPORTED YET!</b><br>
-		VS2012 requires at least 4.8.4 with some additional fix (see below).
+		VS2012 requires at least Qt 4.8.4 with some additional fix (see below).
 	
     Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website
 	Recently (beginning with Qt 4.6) there are binary development versions available for VS2010 and VS2008. We found these to contain only
