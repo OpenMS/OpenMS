@@ -6,7 +6,7 @@
 	Run the installer under the user account that later runs %OpenMS - do NOT install using your admin account!
 	You will be asked for an admin authentification, but only AFTER you start the installer as normal user.
 	
-	The windows binary version works on many versions of windows including Win2000, WinXP, VISTA and Win7.
+	The windows binary version works on many versions of windows including Win2000, WinXP, VISTA, Win7 and Win8.
 	Installation should take you a few minutes only. We also supply a 64bit version, which can deal with larger LC/MS files, due to more allocatable system memory. If your operating
 	system supports	64bit and has more than 3 Gigabytes of RAM, we strongly encourage you to use the 64bit version.
 	
