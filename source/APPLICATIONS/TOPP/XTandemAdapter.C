@@ -46,6 +46,7 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
+#include <QDir>
 
 #include <fstream>
 
@@ -206,18 +207,16 @@ protected:
     String parameters;
     XTandemInfile infile;
 
-
-    String unique_name = File::getUniqueName(); // body for the tmp files
-    String temp_directory = File::getTempDirectory();
-    if (temp_directory != "")
+    String temp_directory = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
     {
-      temp_directory.ensureLastChar('/');
+      QDir d;
+      d.mkpath(temp_directory.toQString());
     }
 
-    String input_filename(temp_directory + unique_name + "_tandem_input_file.xml");
-    String tandem_input_filename(temp_directory + unique_name + "_tandem_input_file.mzData");
-    String tandem_output_filename(temp_directory + unique_name + "_tandem_output_file.xml");
-    String tandem_taxonomy_filename(temp_directory + unique_name + "_tandem_taxonomy_file.xml");
+    String input_filename(temp_directory + "_tandem_input_file.xml");
+    String tandem_input_filename(temp_directory + "_tandem_input_file.mzData");
+    String tandem_output_filename(temp_directory + "_tandem_output_file.xml");
+    String tandem_taxonomy_filename(temp_directory + "_tandem_taxonomy_file.xml");
 
     //-------------------------------------------------------------
     // reading input
@@ -327,9 +326,15 @@ protected:
     {
       writeLog_("XTandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename + "\"'.\nDoes the !XTandem executable exist?");
       // clean temporary files
-      QFile(input_filename.toQString()).remove();
-      QFile(tandem_input_filename.toQString()).remove();
-      QFile(tandem_taxonomy_filename.toQString()).remove();
+      if (this->debug_level_ < 2)
+      {
+        File::removeDirRecursively(temp_directory);
+        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
+      }
+      else
+      {
+        LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
+      }
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -342,7 +347,7 @@ protected:
     tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
     // find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
     StringList files;
-    File::fileList(temp_directory, unique_name + "_tandem_output_file*.xml", files);
+    File::fileList(temp_directory, "_tandem_output_file*.xml", files);
     if (files.size() != 1)
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tandem_output_filename);
@@ -395,17 +400,15 @@ protected:
     id_output.store(outputfile_name, protein_ids, peptide_ids);
 
     /// Deletion of temporary files
-    QFile(input_filename.toQString()).remove();
-    QFile(tandem_input_filename.toQString()).remove();
     if (this->debug_level_ < 2)
     {
-      QFile((temp_directory + files[0]).toQString()).remove(); // tandem_output_filename
+      File::removeDirRecursively(temp_directory);
+      LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
     }
     else
     {
-      LOG_INFO << "Not removing " << temp_directory + files[0] << " for debugging." << std::endl;
+      LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
     }
-    QFile(tandem_taxonomy_filename.toQString()).remove();
 
     return EXECUTION_OK;
   }

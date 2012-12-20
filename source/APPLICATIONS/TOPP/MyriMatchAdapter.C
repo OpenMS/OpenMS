@@ -262,7 +262,6 @@ protected:
     registerIntOption_("MinPeptideLength", "<length>", 5, "When digesting proteins, any peptide which does not meet or exceed the specified length will be disqualified.", false, true); // TODO: Description copied from MM doc
     registerIntOption_("MaxPeptideLength", "<length>", 75, "When digesting proteins, any peptide which exceeds this specified length will be disqualified.", false, true); // TODO: Description copied from MM doc
     registerFlag_("UseSmartPlusThreeModel", "When this parameter is set, then for each peptide bond, an internal calculation is done to estimate the basicity of the b and y fragment sequence. The precursors protons are distributed to those ions based on that calculation, with the more basic sequence generally getting more of the protons..", true); // Description copied from MM doc
-    registerIntOption_("ProteinSampleSize", "<size>", 100, "Before beginning sequence candidate generation and scoring, MyriMatch will do a random sampling of the protein database to get an estimate of the number of comparisons that will be done by the job.", false, true); // Description copied from MM doc
     registerIntOption_("NumIntensityClasses", "<num>", 3, "Before scoring any candidates, experimental spectra have their peaks stratified into the number of intensity classes specified by this parameter.", false, true); // Description copied from MM doc
     registerDoubleOption_("ClassSizeMultiplier", "<factor>", 2.0, "When stratifying peaks into a specified, fixed number of intensity classes, this parameter controls the size of each class relative to the class above it (where the peaks are more intense). ", false, true); // Description copied from MM doc
     registerStringOption_("MonoisotopeAdjustmentSet", "<set>", "[-1,2]", "This parameter defines a set of isotopes (0 being the instrument-called monoisotope) to try as the monoisotopic precursor m/z. To disable this technique, set the value to '0'.", false, true);
@@ -271,7 +270,11 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-    String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString()); // body for the tmp files
+    String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
+    {
+      QDir d;
+      d.mkpath(tmp_dir.toQString());
+    }
     String logfile(getStringOption_("log"));
     String myrimatch_executable(getStringOption_("myrimatch_executable"));
 
@@ -385,7 +388,6 @@ protected:
     parameters << "-MaxPeptideMass"   << getDoubleOption_("MaxPeptideMass");
     parameters << "-MinPeptideLength" << getIntOption_("MinPeptideLength");
     parameters << "-MaxPeptideLength" << getIntOption_("MaxPeptideLength");
-    parameters << "-ProteinSampleSize" << getIntOption_("ProteinSampleSize");
     parameters << "-NumIntensityClasses" << getIntOption_("NumIntensityClasses");
     parameters << "-ClassSizeMultiplier" << getDoubleOption_("ClassSizeMultiplier");
     parameters << "-MonoisotopeAdjustmentSet" << getStringOption_("MonoisotopeAdjustmentSet");
