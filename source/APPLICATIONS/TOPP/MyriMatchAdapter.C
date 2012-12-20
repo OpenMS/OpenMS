@@ -251,19 +251,7 @@ protected:
     registerIntOption_("MaxDynamicMods", "<num>", 2, "This parameter sets the maximum number of modified residues that may be in any candidate sequence.", false);
     registerIntOption_("MaxResultRank", "<rank>", 5, "This parameter sets the maximum rank of peptide-spectrum-matches to report for each spectrum.", false);
     registerStringOption_("CleavageRules", "<rule>", "", "This parameter allows the user to control the way peptides are generated from the protein database.", false);
-    vector<String> all_rules;
-    all_rules.push_back("Trypsin");
-    all_rules.push_back("Trypsin/P");
-    all_rules.push_back("Chymotrypsin");
-    all_rules.push_back("TrypChymo");
-    all_rules.push_back("Lys-C");
-    all_rules.push_back("Lys-C/P");
-    all_rules.push_back("Asp-N");
-    all_rules.push_back("PepsinA");
-    all_rules.push_back("CNBr");
-    all_rules.push_back("Formic_acid");
-    all_rules.push_back("NoEnzyme");
-    setValidStrings_("CleavageRules", all_rules);
+    setValidStrings_("CleavageRules", StringList::create("Trypsin,Trypsin/P,Chymotrypsin,TrypChymo,Lys-C,Lys-C/P,Asp-N,PepsinA,CNBr,Formic_acid,NoEnzyme"));
 
     registerIntOption_("MinTerminiCleavages", "<num>", 2, "By default, when generating peptides from the protein database, a peptide must start and end at a valid cleavage site. Setting this parameter to 0 or 1 will reduce that requirement, so that neither terminus or only one terminus of the peptide must match one of the cleavage rules specified in the CleavageRules parameter. This parameter is useful to turn a tryptic digest into a semi-tryptic digest.", false); // TODO: Description copied from MM doc
     registerIntOption_("MaxMissedCleavages", "<num>", -1, "By default, when generating peptides from the protein database, a peptide may contain any number of missed cleavages. A missed cleavage is a site within the peptide that matches one of the cleavage rules (refer to CleavageRules). Settings this parameter to some other number will stop generating peptides from a sequence if it contains more than the specified number of missed cleavages.", false); // TODO: Description copied from MM doc
@@ -285,7 +273,6 @@ protected:
   {
     String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString()); // body for the tmp files
     String logfile(getStringOption_("log"));
-    StringList parameters;
     String myrimatch_executable(getStringOption_("myrimatch_executable"));
 
     //-------------------------------------------------------------
@@ -344,6 +331,7 @@ protected:
     vector<PeptideIdentification> peptide_identifications;
 
     // building parameter String
+    StringList parameters;
 
     // Common Identification engine options
     StringList static_mod_list;
@@ -421,23 +409,22 @@ protected:
     //-------------------------------------------------------------
     QStringList qparam;
     writeDebug_("MyriMatch arguments:", 1);
+    writeDebug_(String("\"") + parameters.concatenate("\" \"") + "\"", 1);
     for (Size i = 0; i < parameters.size(); ++i)
     {
       qparam << parameters[i].toQString();
-      writeDebug_(parameters[i].toQString(), 1);
     }
-
     QProcess process;
 
     // Bad style, because it breaks relative paths?
     process.setWorkingDirectory(tmp_dir.toQString());
 
     process.start(myrimatch_executable.toQString(), qparam, QIODevice::ReadOnly);
+    bool success = process.waitForFinished(-1);
     String myri_msg(QString(process.readAllStandardOutput()));
     String myri_err(QString(process.readAllStandardError()));
-    bool success = process.waitForFinished(-1);
     writeDebug_(myri_err, 0);
-    writeDebug_(myri_msg, 0);
+    writeDebug_(myri_msg, 1);
     if (!success)
     {
       writeLog_("Error: MyriMatch problem! (Details can be seen in the logfile: \"" + logfile + "\")");
