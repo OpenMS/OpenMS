@@ -256,6 +256,11 @@ protected:
 
     /// Breakpoint set?
     bool breakpoint_set_;
+
+    /// smart naming of round-based filenames
+    /// when basename is not unique we take the preceding directory name
+    void smartFileNames_(std::vector< QStringList >& filenames);
+
   };
 }
 
