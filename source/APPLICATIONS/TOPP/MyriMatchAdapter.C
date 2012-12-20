@@ -423,9 +423,9 @@ protected:
     bool success = process.waitForFinished(-1);
     String myri_msg(QString(process.readAllStandardOutput()));
     String myri_err(QString(process.readAllStandardError()));
-    writeDebug_(myri_err, 0);
     writeDebug_(myri_msg, 1);
-    if (!success)
+    writeDebug_(myri_err, 0);
+    if (!success || process.exitStatus() != 0 || process.exitCode() != 0)
     {
       writeLog_("Error: MyriMatch problem! (Details can be seen in the logfile: \"" + logfile + "\")");
       writeLog_("Note: This message can also be triggered if you run out of space in your tmp directory");
