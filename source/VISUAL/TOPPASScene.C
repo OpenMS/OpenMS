@@ -2124,6 +2124,7 @@ namespace OpenMS
     connect(tv, SIGNAL(newHoveringEdge(const QPointF &)), this, SLOT(addHoveringEdge(const QPointF &)));
     connect(tv, SIGNAL(finishHoveringEdge()), this, SLOT(finishHoveringEdge()));
     connect(tv, SIGNAL(itemDragged(qreal, qreal)), this, SLOT(moveSelectedItems(qreal, qreal)));
+    connect(tv, SIGNAL(parameterChanged(const bool)), this, SLOT(changedParameter(const bool)));
   }
 
   void TOPPASScene::connectToolVertexSignals(TOPPASToolVertex* ttv)
@@ -2136,7 +2137,6 @@ namespace OpenMS
 
     connect(ttv, SIGNAL(toolFailed(const QString &)), this, SLOT(pipelineErrorSlot(QString)));
     connect(ttv, SIGNAL(toolCrashed()), this, SLOT(pipelineErrorSlot()));
-    connect(ttv, SIGNAL(parameterChanged(const TOPPASToolVertex::TOOLSTATUS)), this, SLOT(changedParameter(const TOPPASToolVertex::TOOLSTATUS)));
     connect(ttv, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));
   }
 
@@ -2160,11 +2160,9 @@ namespace OpenMS
     connect(e, SIGNAL(somethingHasChanged()), this, SLOT(abortPipeline()));
   }
 
-  void TOPPASScene::changedParameter(const TOPPASToolVertex::TOOLSTATUS status)
+  void TOPPASScene::changedParameter(const bool invalidates_running_pipeline)
   {
-    if (status == TOPPASToolVertex::TOOL_SCHEDULED ||
-        status == TOPPASToolVertex::TOOL_RUNNING ||
-        status == TOPPASToolVertex::TOOL_SUCCESS)
+    if (invalidates_running_pipeline)
     { // abort only if TTV's new parameters invalidate the results
       abortPipeline();
     }

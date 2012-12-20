@@ -194,7 +194,7 @@ namespace OpenMS
     }
     QFile::remove(ini_file);
 
-    setToolTip(tmp_param.getSectionDescription(name_).toQString());
+    setToolTip(param_.getSectionDescription(name_).toQString());
 
     return changed;
   }
@@ -261,10 +261,24 @@ namespace OpenMS
       // take new values
       param_.update(edit_param);
       reset(true);
-      emit parameterChanged(status_);
+      emit parameterChanged(doesParamChangeInvalidate_());
     }
 
     qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
+  }
+
+  bool TOPPASToolVertex::doesParamChangeInvalidate_()
+  {
+    return (status_ == TOPPASToolVertex::TOOL_SCHEDULED || // all stati that will not tolerate a change in parameters
+            status_ == TOPPASToolVertex::TOOL_RUNNING ||
+            status_ == TOPPASToolVertex::TOOL_SUCCESS);
+  }
+
+  bool TOPPASToolVertex::invertRecylingMode()
+  {
+    allow_output_recycling_ = !allow_output_recycling_;
+    emit parameterChanged(doesParamChangeInvalidate_()); // using 'true' is very conservative but safe. One could override this in child classes.
+    return allow_output_recycling_;
   }
 
   void TOPPASToolVertex::getInputParameters(QVector<IOInfo>& input_infos)

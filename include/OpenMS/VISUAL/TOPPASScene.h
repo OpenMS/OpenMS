@@ -255,8 +255,8 @@ public slots:
     /// Sets if the running_ flag to true, or false
     /// If set to false, the application emits an 'alert' sign, demanding user attention (to let him know it finished)
     void setPipelineRunning(bool b = true);
-    /// Invoked by TTV if a parameter was edited
-    void changedParameter(const TOPPASToolVertex::TOOLSTATUS status);
+    /// Invoked by TTV or other vectices if a parameter was edited
+    void changedParameter(const bool invalidates_running_pipeline);
     /// Called by a finished QProcess to indicate that we are free to start a new one
     void processFinished();
     /// dirty solution: when using ExecutePipeline this slot is called when the pipeline crashes. This will quit the app

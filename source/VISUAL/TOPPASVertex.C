@@ -475,7 +475,7 @@ namespace OpenMS
   bool TOPPASVertex::invertRecylingMode()
   {
     allow_output_recycling_ = !allow_output_recycling_;
-    emit somethingHasChanged();
+    emit parameterChanged(true); // using 'true' is very conservative but safe. One could override this in child classes.
     return allow_output_recycling_;
   }
 
@@ -486,8 +486,9 @@ namespace OpenMS
 
   void TOPPASVertex::setRecycling(const bool is_enabled)
   {
-    allow_output_recycling_ = is_enabled;
-    emit somethingHasChanged();
+    if (allow_output_recycling_ == is_enabled) return; // nothing changed
+    
+    invertRecylingMode();
   }
 
   bool TOPPASVertex::allInputsReady()
