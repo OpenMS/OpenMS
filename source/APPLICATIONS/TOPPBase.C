@@ -176,7 +176,16 @@ namespace OpenMS
     registerFlag_("-helphelp", "Shows all options (including advanced)", false);
 
     // parse command line parameters:
-    param_cmdline_.parseCommandLine(argc, argv, parameters_);
+    try
+    {
+      param_cmdline_.parseCommandLine(argc, argv, parameters_);
+    }
+    catch (Exception::BaseException& e)
+    {
+      printUsage_();
+      writeLog_("Invalid parameter values: " + String(e.getMessage()) + ". Aborting!");
+      return ILLEGAL_PARAMETERS;
+    }
 
     // for now cmdline is all we have, final assembly will follow below
     param_ = param_cmdline_;
