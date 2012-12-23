@@ -111,13 +111,13 @@ namespace OpenMS
     // when shipping on mac os x
     QApplication::setLibraryPaths(QStringList());
 #endif
-    
+
     setWindowTitle("TOPPAS");
     setWindowIcon(QIcon(":/TOPPAS.png"));
-    
+
     // ensure correct encoding of paths
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-    
+
     //prevents errors caused by too small width,height values
     setMinimumSize(400, 400);
 
@@ -1491,7 +1491,7 @@ namespace OpenMS
     {
       QProcess* p = new QProcess();
       p->setProcessChannelMode(QProcess::ForwardedChannels);
-      QString toppview_executable = (File::getExecutablePath() + "TOPPView").toQString();
+      QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
       QStringList arg = files;
 
       if (files.size() > 1)
@@ -1507,7 +1507,7 @@ namespace OpenMS
           arg = files.join(" + ").split(" ", QString::SkipEmptyParts);
         }
       }
-#if defined(Q_WS_MAC)
+#if defined(__APPLE__)
       // check if we can find the TOPPView.app
       QString installed_app_path = (File::getExecutablePath() + "/../TOPPView.app").toQString();
       QString developer_app_path = (File::getExecutablePath() + "/TOPPView.app").toQString();

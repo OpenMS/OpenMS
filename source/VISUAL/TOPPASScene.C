@@ -833,7 +833,7 @@ namespace OpenMS
         String extra_quotes = "";
 #endif
 
-        String cmd = extra_quotes + "\"" + File::getExecutablePath() + "INIUpdater\" -in \"" + file + "\" -i " + extra_quotes;
+        String cmd = extra_quotes + "\"" + File::findExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;
         std::cerr << cmd << "\n\n";
         if (std::system(cmd.c_str()))
         {
@@ -2162,8 +2162,8 @@ namespace OpenMS
 
   void TOPPASScene::changedParameter(const bool invalidates_running_pipeline)
   {
-    if (invalidates_running_pipeline)
-    { // abort only if TTV's new parameters invalidate the results
+    if (invalidates_running_pipeline) // abort only if TTV's new parameters invalidate the results
+    {
       abortPipeline();
     }
     setChanged(true); // to allow "Store" of pipeline

@@ -466,4 +466,26 @@ namespace OpenMS
     return p;
   }
 
+  String File::findExecutable(const OpenMS::String& toolName)
+  {
+    // we first try the executablePath
+    String exec = File::getExecutablePath() + toolName;
+
+#if OPENMS_WINDOWSPLATFORM
+    if (!exec.hasSuffix(".exe")) exec += ".exe";
+#endif
+
+    if (File::exists(exec)) return exec;
+
+#if defined(__APPLE__)
+    // check if we are in one of the bundles
+    exec = File::getExecutablePath() + "../../../" + toolName;
+    if (File::exists(exec)) return exec;
+
+#endif
+    // TODO(aiche): probe in PATH
+
+    throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, toolName);
+  }
+
 } // namespace OpenMS

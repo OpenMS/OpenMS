@@ -54,7 +54,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPASToolConfigDialog::TOPPASToolConfigDialog(QWidget * parent, Param & param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries) :
+  TOPPASToolConfigDialog::TOPPASToolConfigDialog(QWidget* parent, Param& param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries) :
     QDialog(parent),
     param_(&param),
     default_dir_(default_dir),
@@ -65,10 +65,10 @@ namespace OpenMS
     QGridLayout* main_grid = new QGridLayout(this);
 
     QLabel* description = new QLabel;
-    description->setAlignment( Qt::AlignTop | Qt::AlignLeft );
-    description->setWordWrap( true );
-    description->setText( tool_desc.toQString() );
-    main_grid->addWidget( description, 0, 0, 1, 1 );
+    description->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    description->setWordWrap(true);
+    description->setText(tool_desc.toQString());
+    main_grid->addWidget(description, 0, 0, 1, 1);
 
     //Add advanced mode check box
     editor_ = new ParamEditor(this);
@@ -198,7 +198,7 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.store(tmp_ini_file.toStdString(), arg_param_);
       //restore other parameters that might be missing
-      QString executable =  String(File::getExecutablePath() + tool_name_).toQString();
+      QString executable = File::findExecutable(tool_name_).toQString();
       QStringList args;
       args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
       if (tool_type_ != "")

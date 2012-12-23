@@ -142,7 +142,7 @@ namespace OpenMS
     ini_file += File::getUniqueName().toQString() + "_tmp.ini";
     ini_file = QDir::toNativeSeparators(ini_file);
 
-    QString program = (File::getExecutablePath() + name_).toQString();
+    QString program = File::findExecutable(name_).toQString();
     QStringList arguments;
     arguments << "-write_ini";
     arguments << ini_file;
@@ -269,9 +269,9 @@ namespace OpenMS
 
   bool TOPPASToolVertex::doesParamChangeInvalidate_()
   {
-    return (status_ == TOPPASToolVertex::TOOL_SCHEDULED || // all stati that will not tolerate a change in parameters
-            status_ == TOPPASToolVertex::TOOL_RUNNING ||
-            status_ == TOPPASToolVertex::TOOL_SUCCESS);
+    return status_ == TOPPASToolVertex::TOOL_SCHEDULED || // all stati that will not tolerate a change in parameters
+           status_ == TOPPASToolVertex::TOOL_RUNNING ||
+           status_ == TOPPASToolVertex::TOOL_SUCCESS;
   }
 
   bool TOPPASToolVertex::invertRecylingMode()
@@ -675,7 +675,7 @@ namespace OpenMS
       if (round == 0)
         LOG_DEBUG << "Enqueue: \"" << File::getExecutablePath() + name_ << "\" \"" << String(args.join("\" \"")) << "\"" << std::endl;
       toolScheduledSlot();
-      ts->enqueueProcess(TOPPASScene::TOPPProcess(p, (File::getExecutablePath() + name_).toQString(), args, this));
+      ts->enqueueProcess(TOPPASScene::TOPPProcess(p, File::findExecutable(name_).toQString(), args, this));
     }
 
     // run pending processes
@@ -866,7 +866,7 @@ namespace OpenMS
     {
       per_round_basenames.push_back(pkg[i].find(max_size_index)->second.filenames);
     }
-    
+
     smartFileNames_(per_round_basenames);
 
     // now, update the output file names (each output parameter gets its name from the same input parameter, i.e. the longest one):
@@ -951,37 +951,37 @@ namespace OpenMS
     return true;
   }
 
-  void TOPPASToolVertex::smartFileNames_(std::vector< QStringList >& filenames)
+  void TOPPASToolVertex::smartFileNames_(std::vector<QStringList>& filenames)
   {
     // special case #1, only one filename in each round, with different directory but same basename
     // --> use directory as new name
-    bool passes_constraints = true && filenames.size() > 0;  // one file per round AND unique filename
-    for (Size i=1; i<filenames.size(); ++i)
+    bool passes_constraints = true && filenames.size() > 0; // one file per round AND unique filename
+    for (Size i = 1; i < filenames.size(); ++i)
     {
       if ((filenames[i].size() > 1)
-          || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
+         || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
       {
         passes_constraints = false;
         break;
       }
     }
-    if (passes_constraints)
-    { // rename
-      for (Size i=0; i<filenames.size(); ++i)
+    if (passes_constraints) // rename
+    {
+      for (Size i = 0; i < filenames.size(); ++i)
       {
         QString p = QDir::toNativeSeparators(QFileInfo(filenames[i][0]).canonicalPath());
         if (p.isEmpty()) continue;
         //std::cout << "PATH: " << p << "\n";
         String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
         //std::cout << "INTER: " << tmp << "\n";
-        if (tmp.size() <= 2 || tmp.has(':')) continue; // too small to be reliable; might even be 'c:'
+        if (tmp.size() <= 2 || tmp.has(':')) continue;  // too small to be reliable; might even be 'c:'
         filenames[i][0] = tmp.toQString();
         //std::cout << "  -->: " << filenames[i][0] << "\n";
       }
     }
 
     // possibilities for more good naming schemes...
-    
+
     // special case #2 ...
   }
 

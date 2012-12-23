@@ -124,8 +124,8 @@ namespace OpenMS
 
     // tools description label
     tool_desc_ = new QLabel;
-    tool_desc_->setAlignment( Qt::AlignTop | Qt::AlignLeft );
-    tool_desc_->setWordWrap( true );
+    tool_desc_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    tool_desc_->setWordWrap(true);
     main_grid->addWidget(tool_desc_, 0, 2, 3, 1);
 
     //Add advanced mode check box
@@ -163,7 +163,7 @@ namespace OpenMS
 
   void ToolsDialog::createINI_()
   {
-    String call = String("\"") + File::getExecutablePath() + getTool() + "\"" + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
+    String call = String("\"") + File::findExecutable(getTool()) + "\"" + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
 
     if (system(call.c_str()) != 0)
     {
@@ -188,7 +188,7 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.load((ini_file_).c_str(), arg_param_);
 
-      tool_desc_->setText( arg_param_.getSectionDescription( getTool() ).toQString() );
+      tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
       vis_param_ = arg_param_.copy(getTool() + ":1:", true);
       vis_param_.remove("log");
       vis_param_.remove("no_progress");
