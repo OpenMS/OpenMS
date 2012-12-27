@@ -131,6 +131,9 @@ public:
     /// Returns the OpenMS data path (environment variable overwrites the default installation path)
     static String getOpenMSDataPath();
 
+    /// Check if the given path is a valid OPENMS_DATA_PATH
+    static bool isOpenMSDataPath_(const String& path);
+
     /// The current OpenMS temporary data path (for temporary files)
     static String getTempDirectory();
 

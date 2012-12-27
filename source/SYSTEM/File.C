@@ -74,8 +74,8 @@ namespace OpenMS
     static String spath = "";
     static bool path_checked = false;
 
-    if (path_checked)
-      return spath;                 // short route. Only inquire the path once. The result will be the same every time.
+    // short route. Only inquire the path once. The result will be the same every time.
+    if (path_checked) return spath;
 
     char path[1024];
 
@@ -295,17 +295,45 @@ namespace OpenMS
 
   String File::getOpenMSDataPath()
   {
-    String path;
+    static String path;
+    static bool path_checked = false;
+
+    // we already checked the path, just return it
+    // we do not support moving the path while OpenMS is running
+    if (path_checked) return path;
+
     bool from_env(false);
     if (getenv("OPENMS_DATA_PATH") != 0)
     {
       path = getenv("OPENMS_DATA_PATH");
       from_env = true;
+      path_checked = isOpenMSDataPath_(path);
     }
-    else
+
+    // probe the OPENMS_DATA_PATH macro
+    if (!path_checked)
     {
       path = OPENMS_DATA_PATH;
+      path_checked = isOpenMSDataPath_(path);
     }
+
+#if defined(__APPLE__)
+    // try to find it relative to the executable
+
+    // #1 the bundle
+    if (!path_checked)
+    {
+      path = getExecutablePath() + "../../../share/";
+      path_checked = isOpenMSDataPath_(path);
+    }
+
+    // #2 the TOPP tool
+    if (!path_checked)
+    {
+      path = getExecutablePath() + "../share/";
+      path_checked = isOpenMSDataPath_(path);
+    }
+#endif
 
     // make its a proper path:
     path.substitute("\\", "/").ensureLastChar('/').chop(1);
@@ -315,8 +343,7 @@ namespace OpenMS
     String share_dir = "/usr/share/OpenMS";
 #endif
 
-
-    if (!exists(path + "/CHEMISTRY/Elements.xml")) // - now we're in big trouble as './share' is not were its supposed to be...
+    if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
     { // - do NOT use LOG_ERROR or similar for the messages below! (it might not even usable at this point)
       std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
       if (from_env)
@@ -329,6 +356,11 @@ namespace OpenMS
     }
 
     return path;
+  }
+
+  bool File::isOpenMSDataPath_(const String& path)
+  {
+    return exists(path + "/CHEMISTRY/Elements.xml");
   }
 
   String File::removeExtension(const OpenMS::String& file)
