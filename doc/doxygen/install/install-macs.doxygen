@@ -30,6 +30,9 @@
     - doxygen (We recommend version 1.7.1 since some 1.6 versions have a serious bug that makes building the %OpenMS documentation impossible)
     - pdflatex
 
+  Note: As of %OpenMS 1.10 %OpenMS will not compile with the Apple GCC 4.2 compiler due to the update of BOOST to version 1.52.
+  Please use the shipped clang compiler instead (clang/clang++).
+
 <HR>
 
  @section install_mac_contrib Installing the contrib package
