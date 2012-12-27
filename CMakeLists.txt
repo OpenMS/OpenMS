@@ -129,7 +129,7 @@ elseif (MSVC)
 
 	## disable warning: "decorated name length exceeded, name was truncated"
 	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4503")
-	
+
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
 
@@ -272,7 +272,7 @@ set(ENABLE_SVN ON CACHE STRING "Use svnversion (if available) to implant a svn r
 if (ENABLE_SVN)
 	message(STATUS "SVN revision information enabled. Use 'ENABLE_SVN=OFF' to disable!")
 	add_custom_target(svn_revision_update ALL
-										COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE} 
+										COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE}
 																						 -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
 																						 -DENABLE_SVN=ON
 																						 -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake)
@@ -356,13 +356,13 @@ ADD_LIBRARY(OpenMS_GUI ${OpenMSVisual_sources})
 if (MSVC)
 	set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
 	set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
-endif()	
+endif()
 
 ## update the openms_svn_revision.h file before compiling OpenMS
 if (ENABLE_SVN)
 	add_dependencies(OpenMS svn_revision_update)
 endif()
-	
+
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
 set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${DEP_LIBSVM_LIBRARY} ${CONTRIB_XERCESC} ${Boost_LIBRARIES} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB} ${CONTRIB_GLPK})
 if (TBB_FOUND)
@@ -440,13 +440,36 @@ foreach(i ${GUI_executables})
 		Message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${GUI_DIR}/${i}.C ${resource_file})
 	elseif(APPLE AND EXISTS ${resource_dir})
-		add_executable(${i} ${GUI_DIR}/${i}.C)
+		# the icon file
+		set(ICON_FILE_PATH "${CMAKE_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app/Contents/Resources/${i}.icns")
+		get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
+
+		# we also need the icns in the app
+		add_executable(
+			${i}
+			MACOSX_BUNDLE
+			${GUI_DIR}/${i}.C
+			${ICON_FILE_PATH})
+
+		set_target_properties(${i} PROPERTIES
+			MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2012 The OpenMS Team."
+			MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
+			MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}"
+			MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
+			MACOSX_BUNDLE_BUNDLE_NAME ${i}
+			MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
+			MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
+			MACOSX_BUNDLE_COPYRIGHT "Copyright 2012, The OpenMS Team. All Rights Reserved."
+		)
+
+		set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
 		# extra work for pseudo-mac-bundle
 		# move prepared package to RUNTIME_OUTPUT
-		file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app"
-		DESTINATION "${PROJECT_BINARY_DIR}/bin"
-		PATTERN ".svn" EXCLUDE
-		PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+		# file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app"
+		# DESTINATION "${PROJECT_BINARY_DIR}/bin"
+		# PATTERN ".svn" EXCLUDE
+		# PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 	else()
 		add_executable(${i} ${GUI_DIR}/${i}.C)
 	endif()
@@ -462,11 +485,11 @@ add_dependencies(GUI ${GUI_executables})
 
 ## some regular TOPP/UTILS need the GUI lib
 set(executables_withGUIlibDep ${TOPP_executables_with_GUIlib} ${UTILS_executables_with_GUIlib})
-foreach(i ${executables_withGUIlibDep}) 
+foreach(i ${executables_withGUIlibDep})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
 
-	
+
 ##### Doc progs ####
 set(OpenMS_doc_executables)
 include(doc/doxygen/parameters/executables.cmake)
