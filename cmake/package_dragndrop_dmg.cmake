@@ -36,101 +36,32 @@ set(CPACK_GENERATOR "DragNDrop")
 
 ## drag'n'drop installaltion configuration
 
-########################################################### Qt Stuff
-# Create qt conf
-file(WRITE "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/Resources/qt.conf" "")
-file(WRITE "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/Resources/qt.conf" "")
-file(WRITE "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/Resources/qt.conf" "")
-
-# QtMenu.nib
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/Resources/qt_menu.nib")
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib" "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/Resources/qt_menu.nib")
-
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/Resources/qt_menu.nib")
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib" "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/Resources/qt_menu.nib")
-
-file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/Resources/qt_menu.nib")
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib" "${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/Resources/qt_menu.nib")
-
+## Fix OpenMS dependencies for all executables
+########################################################### Fix Dependencies
 install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b ${PROJECT_BINARY_DIR}/bin/ -l ${PROJECT_BINARY_DIR}/lib/ -v)"
   COMPONENT Fixing-dependencies
 )
 
-########################################################### Startup Scripts
-# Replace development start script with installation startup scripts (TOPPView, TOPPAS, INIFileEditor)
-INSTALL(CODE "
-  execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/MacOS/TOPPView )
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPPView-resources/TOPPView 
-    ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/MacOS/)
+# Install the apps
+########################################################### TOPPAS, TOPPView, INIFileEditor
+set(APP_BUNDLES "TOPPAS" "TOPPView" "INIFileEditor")
 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/MacOS/INIFileEditor) 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/MacOSX/INIFileEditor-resources/INIFileEditor
-    ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/MacOS/)
+foreach(APP_BUNDLE IN LISTS APP_BUNDLES)
+  install(CODE "
+  	set(BU_CHMOD_BUNDLE_ITEMS On)
+  	include(BundleUtilities)
+  	fixup_bundle(${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${APP_BUNDLE}.app \"\" \"\")"
+  	COMPONENT AApplications)
 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/MacOS/TOPPAS) 
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPPAS-resources/TOPPAS
-    ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/MacOS/)
-"
-  COMPONENT applications
-)
-
-# Install the app and the startup script
-########################################################### TOPPAS
-install(DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app 
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ 
-  COMPONENT applications
-  PATTERN ".svn" EXCLUDE
-  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE 
-              GROUP_READ GROUP_EXECUTE 
-              WORLD_READ WORLD_EXECUTE  
-)
-
-install(PROGRAMS  ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPAS.app/Contents/MacOS/TOPPAS 
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/TOPPAS.app/Contents/MacOS/
-  COMPONENT applications
-  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE 
-              GROUP_READ GROUP_EXECUTE 
-              WORLD_READ WORLD_EXECUTE
-)
-
-########################################################### TOPPView
-install(DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app 
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ 
-  COMPONENT applications
-	PATTERN ".svn" EXCLUDE
-  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE 
-              GROUP_READ GROUP_EXECUTE 
-              WORLD_READ WORLD_EXECUTE  
-)
-install(PROGRAMS  ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/TOPPView.app/Contents/MacOS/TOPPView 
-  COMPONENT applications
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/TOPPView.app/Contents/MacOS/
-  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE 
-              GROUP_READ GROUP_EXECUTE 
-              WORLD_READ WORLD_EXECUTE
-)
-
-########################################################### INIFileEditor
-install(DIRECTORY ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app 
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ 
-  COMPONENT applications
- 	PATTERN ".svn" EXCLUDE
-  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE 
-              GROUP_READ GROUP_EXECUTE 
-              WORLD_READ WORLD_EXECUTE  
-)
-install(PROGRAMS  ${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/INIFileEditor.app/Contents/MacOS/INIFileEditor 
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/INIFileEditor.app/Contents/MacOS/
-  COMPONENT   applications
-  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE 
-              GROUP_READ GROUP_EXECUTE 
-              WORLD_READ WORLD_EXECUTE
-)
+  install(TARGETS ${APP_BUNDLE} BUNDLE
+  				DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+  				COMPONENT Applications)
+endforeach()
 
 ########################################################### Libraries
 # Libraries hack, avoid cmake interferring with our own lib fixes
-install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/ 
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/lib/ 
+install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
+  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/lib/
   COMPONENT library
 )
 
@@ -144,7 +75,7 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
                         WORLD_READ WORLD_EXECUTE
   DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                         GROUP_READ GROUP_EXECUTE
-                        WORLD_READ WORLD_EXECUTE  
+                        WORLD_READ WORLD_EXECUTE
   PATTERN "*.app" EXCLUDE
 )
 
@@ -162,18 +93,18 @@ install(DIRECTORY share/
 )
 
 ########################################################### Documentation
-install(FILES       ${PROJECT_BINARY_DIR}/doc/index.html      		
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ 
-        RENAME OpenMSAndTOPPDocumentation.html 
+install(FILES       ${PROJECT_BINARY_DIR}/doc/index.html
+        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+        RENAME OpenMSAndTOPPDocumentation.html
         COMPONENT doc
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
                     WORLD_READ
-)    
+)
 
-install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html            		
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ 
-        COMPONENT doc 
+install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
+        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+        COMPONENT doc
         FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
                               GROUP_READ
                               WORLD_READ
@@ -183,16 +114,16 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
         PATTERN ".svn" EXCLUDE
 )
 
-install(FILES 		  ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf 
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ 
+install(FILES 		  ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf
+        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
         COMPONENT doc
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
                     WORLD_READ
 )
 
-install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf   
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/ 
+install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf
+        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
         COMPONENT doc
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
@@ -211,10 +142,10 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
                                   WORLD_READ WORLD_EXECUTE
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
-                                  WORLD_READ WORLD_EXECUTE           
+                                  WORLD_READ WORLD_EXECUTE
             )
   endif()
-  
+
   if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem)
     install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/XTandem
             DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
@@ -224,38 +155,38 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
                                   WORLD_READ WORLD_EXECUTE
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
-                                  WORLD_READ WORLD_EXECUTE           
+                                  WORLD_READ WORLD_EXECUTE
             )
   endif()
 endif()
 
 ########################################################### TOPPShell
-install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command 
+install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command
         DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
-        RENAME      TOPP-shell 
+        RENAME      TOPP-shell
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                     GROUP_READ GROUP_EXECUTE
-                    WORLD_READ WORLD_EXECUTE  
+                    WORLD_READ WORLD_EXECUTE
         COMPONENT   TOPPShell)
 
-install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile 
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/ 
-        RENAME      .TOPP_bash_profile 
+install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile
+        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+        RENAME      .TOPP_bash_profile
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
-                    WORLD_READ        
+                    WORLD_READ
         COMPONENT   TOPPShell)
 
 install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
         DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
-                    WORLD_READ        
+                    WORLD_READ
         COMPONENT   TOPPShell)
 
 ########################################################### Background Image
-install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png 
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share/OpenMS/ 
+install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png
+        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share/OpenMS/
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
                     WORLD_READ
@@ -269,7 +200,7 @@ add_custom_target(final_package
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
   COMMENT "Finalizing dmg image"
   DEPENDS dmg)
-  
+
 add_custom_target(dmg
   COMMAND cpack -G DragNDrop
   COMMENT "Building intermediate dmg package"
