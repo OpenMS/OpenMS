@@ -59,6 +59,18 @@ def debug(message)
   end
 end
 
+###############################################################################
+def fixable(path)
+  if path.match(/^\./)
+    return false
+  elsif path.match(/\.app$/)
+    return false
+  else
+    return true
+  end
+end
+
+###############################################################################
 def isFramework(path)
   return path.match(/\.framework/)
 end
@@ -311,7 +323,7 @@ end
 
 # fix libraries contained in lib-path
 for content in Dir.entries(lib) 
-  if not content.match(/^\./)
+  if fixable(content)
     if isFramework(content)
 #      handleFramework(lib + content, lib)
     else
@@ -322,7 +334,7 @@ end
 
 # fix binary references
 for content in Dir.entries(bin)
-  if not content.match(/^\./)
+  if fixable(content)
     handleBinary(bin + content, lib)
   end
 end
