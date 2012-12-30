@@ -152,8 +152,8 @@ namespace OpenMS
     // copy tmp files to output dir
 
     // get incoming edge and preceding vertex
-    TOPPASEdge * e = *inEdgesBegin();
-    TOPPASVertex * tv = e->getSourceVertex();
+    TOPPASEdge* e = *inEdgesBegin();
+    TOPPASVertex* tv = e->getSourceVertex();
     RoundPackages pkg = tv->getOutputFiles();
     if (pkg.empty())
     {
@@ -198,12 +198,33 @@ namespace OpenMS
           new_file = new_file.left(tmp_index);
 
         // get file type and rename
-        FileTypes::Type ft = (dry_run ? FileTypes::UNKNOWN : FileHandler::getTypeByContent(f));       // this will access the file physically
+        FileTypes::Type ft = FileTypes::UNKNOWN;
+		    if (!dry_run)
+		    {
+          TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
+          if (ttv)
+          {
+			      QVector<TOPPASToolVertex::IOInfo> source_output_files;
+            ttv->getOutputParameters(source_output_files);
+            if (e->getSourceOutParam() < source_output_files.size())
+            {
+              StringList types = source_output_files[e->getSourceOutParam()].valid_types;
+              if (types.size()==1) // if suffix is unambiguous
+              {
+                ft = FileHandler::getTypeByFileName(String("prefix.")+types[0]);
+              }
+              else
+              {
+                ft = FileHandler::getTypeByContent(f);       // this will access the file physically
+              }
+            }
+          }
+		    }
+
         if (ft != FileTypes::UNKNOWN)
         {
-          QString suffix = QString(".") + FileTypes::typeToName(ft).toQString();
-          if (!new_file.endsWith(suffix))
-            new_file += suffix;
+          String suffix = String(".") + FileTypes::typeToName(ft);
+          if (!new_file.endsWith(suffix.toQString())) new_file = (File::removeExtension(new_file) + suffix).toQString();
         }
 
         // only scheduled for writing
