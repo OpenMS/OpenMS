@@ -323,14 +323,14 @@ namespace OpenMS
     // #1 the bundle
     if (!path_checked)
     {
-      path = getExecutablePath() + "../../../share/";
+      path = getExecutablePath() + "../../../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
     }
 
     // #2 the TOPP tool
     if (!path_checked)
     {
-      path = getExecutablePath() + "../share/";
+      path = getExecutablePath() + "../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
     }
 #endif
