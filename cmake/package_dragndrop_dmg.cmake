@@ -163,7 +163,7 @@ endif()
 ########################################################### TOPPShell
 install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command
         DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
-        RENAME      TOPP-shell
+        RENAME      "TOPP Shell"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                     GROUP_READ GROUP_EXECUTE
                     WORLD_READ WORLD_EXECUTE
