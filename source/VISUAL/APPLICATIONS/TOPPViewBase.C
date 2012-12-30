@@ -132,7 +132,7 @@ namespace OpenMS
     watcher_(0),
     watcher_msgbox_(false)
   {
-#if  defined(__APPLE__)
+#if defined(__APPLE__)
     // we do not want to load plugins as this leeds to serious problems
     // when shipping on mac os x
     QApplication::setLibraryPaths(QStringList());
@@ -269,7 +269,21 @@ namespace OpenMS
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     action = help->addAction("Tutorials and documentation", this, SLOT(showURL()), Qt::Key_F1);
-    action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/index.html").toQString());
+
+    // we need to do some extra work on osx systems
+#if defined(__APPLE__)
+    // we need to check if we are in the build or package environment
+    if (File::exists(File::getOpenMSDataPath() + "../../doc/html/index.html"))
+    {
+      action->setData(String("file://" + File::getOpenMSDataPath() + "../../doc/html/index.html").toQString());
+    }
+    else
+    {
+      action->setData(String("file://" + File::getOpenMSDataPath() + "../../Documentation/OpenMSAndTOPPDocumentation.html").toQString());
+    }
+#else
+    action->setData(String(File::getOpenMSDataPath() + "../../doc/html/index.html").toQString());
+#endif
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));

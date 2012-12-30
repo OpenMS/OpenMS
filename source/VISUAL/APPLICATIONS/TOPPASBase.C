@@ -185,7 +185,21 @@ namespace OpenMS
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, SLOT(showURL()), Qt::Key_F1);
+
+    // we need to do some extra work on osx systems
+#if defined(__APPLE__)
+    // we need to check if we are in the build or package environment
+    if (File::exists(File::getOpenMSDataPath() + "../../doc/html/index.html"))
+    {
+      action->setData(String("file://" + File::getOpenMSDataPath() + "../../doc/html/TOPPAS_tutorial.html").toQString());
+    }
+    else
+    {
+      action->setData(String("file://" + File::getOpenMSDataPath() + "../../Documentation/html/TOPPAS_tutorial.html").toQString());
+    }
+#else
     action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html").toQString());
+#endif
 
     help->addAction("&About", this, SLOT(showAboutDialog()));
 
