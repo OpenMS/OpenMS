@@ -5,33 +5,43 @@
 # ----------------------------------------------------------
 # Maintainer: Stephan Aiche
 
-# Path were the CTDs will be stored
-set(CTD_PATH ${PROJECT_BINARY_DIR}/ctds/descriptors)
-file(MAKE_DIRECTORY ${CTD_PATH})
+# create the target directory
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/ctds/)
 
-# Path were the executables can be found
+# create plugin.properties file
+configure_file(${PROJECT_SOURCE_DIR}/cmake/knime/plugin.properties.in 
+               ${PROJECT_BINARY_DIR}/ctds/plugin.properties)
+
+# copy the icons
+file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
+     DESTINATION ${PROJECT_BINARY_DIR}/ctds/)
+
+# path were the CTDs will be stored
+set(CTD_PATH ${PROJECT_BINARY_DIR}/ctds/descriptors)
+
+# path were the executables can be found
 set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
 
 # list of all tools that can generate CTDs
 set(CTD_executables ${TOPP_executables} ${UTILS_executables})
+
 # remove tools that do not produce CTDs
-list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo FuzzyDiff)
-
-set(CTD_TARGETs "")
-
-# call the tools
-FOREACH(TOOL ${CTD_executables})
-	add_custom_target(
-		${TOOL}_CTD
-		COMMAND
-		${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_PATH}
-	)
-	list(APPEND CTD_TARGETs ${TOOL}_CTD)
-ENDFOREACH()
+list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo FuzzyDiff GenericWrapper)
 
 # create final target that collects all sub-calls
 add_custom_target(
-	build_ctds
-	DEPENDS
-	${CTD_TARGETs}
+	prepare_knime_package
+  COMMAND cmake -E remove_directory ${CTD_PATH}
+  COMMAND cmake -E make_directory ${CTD_PATH}
+  COMMAND cmake -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mimetypes.xml ${CTD_PATH}
+  DEPENDS TOPP UTILS
 )
+
+# call the tools
+foreach(TOOL ${CTD_executables})
+	add_custom_command(
+		TARGET  prepare_knime_package POST_BUILD
+		COMMAND ${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_PATH}
+    COMMENT "Creating ctd for ${TOOL}"
+	)
+endforeach()
