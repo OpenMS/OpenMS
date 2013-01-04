@@ -5053,7 +5053,7 @@ protected:
       for (Size c = 0; c != exp.getChromatograms().size(); ++c)
       {
         const ChromatogramType& chromatogram = exp.getChromatograms()[c];
-        if (chromatogram.size() != 0)
+        if (!chromatogram.empty())
         {
           ++non_empty_chromatograms;
         }
@@ -5070,7 +5070,7 @@ protected:
           const ChromatogramType& chromatogram = exp.getChromatograms()[c];
 
           // skip empty chromatogram
-          if (chromatogram.size() != 0)
+          if (chromatogram.empty())
           {
             continue;
           }
