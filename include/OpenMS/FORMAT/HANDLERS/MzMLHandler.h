@@ -5048,33 +5048,14 @@ protected:
       //--------------------------------------------------------------------------------------------
       //chromatograms
       //--------------------------------------------------------------------------------------------
-      Size non_empty_chromatograms = 0;
-      // count non-empty chromatograms
-      for (Size c = 0; c != exp.getChromatograms().size(); ++c)
+      if (!exp.getChromatograms().empty())
       {
-        const ChromatogramType& chromatogram = exp.getChromatograms()[c];
-        if (!chromatogram.empty())
-        {
-          ++non_empty_chromatograms;
-        }
-      }
-
-      if (non_empty_chromatograms > 0)
-      {
-        os << "\t\t<chromatogramList count=\"" << non_empty_chromatograms << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
+        os << "\t\t<chromatogramList count=\"" << exp.getChromatograms().size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
         for (Size c = 0; c != exp.getChromatograms().size(); ++c)
         {
           logger_.setProgress(progress++);
-
           // TODO native id with chromatogram=?? prefix?
           const ChromatogramType& chromatogram = exp.getChromatograms()[c];
-
-          // skip empty chromatogram
-          if (chromatogram.empty())
-          {
-            continue;
-          }
-
           os << "      <chromatogram id=\"" << chromatogram.getNativeID() << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
 
           // write cvParams (chromatogram type)
