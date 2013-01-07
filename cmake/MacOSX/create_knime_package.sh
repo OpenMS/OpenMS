@@ -132,12 +132,10 @@ SEARCH_ARGS=1
 if [ $# -eq "$SEARCH_ARGS" ]; then
   SEARCH_ENGINES=$1
   if [ -e ${SEARCH_ENGINES}/OMSSA/omssacl -a -e ${SEARCH_ENGINES}/XTandem/tandem ]; then
-    cp ${SEARCH_ENGINES}/OMSSA/omssacl ${PAYLOAD}/bin/
+    cp ${SEARCH_ENGINES}/OMSSA/omssacl ${SEARCH_ENGINES}/OMSSA/mods.xml ${SEARCH_ENGINES}/OMSSA/usermods.xml ${PAYLOAD}/bin/
     cp ${SEARCH_ENGINES}/XTandem/tandem ${PAYLOAD}/bin/
   else
     echo "No search engines found!!"
-    echo "${SEARCH_ENGINES}/OMSSA/omssacl"
-    echo "${SEARCH_ENGINES}/XTandem/tandem"
   fi
 fi 
 
