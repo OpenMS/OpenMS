@@ -26,7 +26,7 @@ set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
 set(CTD_executables ${TOPP_executables} ${UTILS_executables})
 
 # remove tools that do not produce CTDs
-list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo FuzzyDiff GenericWrapper)
+list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo FuzzyDiff GenericWrapper InspectAdapter MascotAdapter PILISIdentification PILISModelCV PILISModelTrainer PILISSpectraGenerator SvmTheoreticalSpectrumGeneratorTrainer)
 
 # create final target that collects all sub-calls
 add_custom_target(
