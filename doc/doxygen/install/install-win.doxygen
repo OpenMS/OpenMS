@@ -75,15 +75,16 @@
     <OL>
       <LI>non-commercial:
         <OL>
-          <LI>download Qt source (Qt for Open Source C++ development on Windows - http://qt.nokia.com/downloads/windows-cpp)
+          <LI>download Qt <b>source</b> from http://qt-project.org/downloads as .zip or .tar.gz (or use the prebuild binaries exactly matching your compiler!)
           <LI>extract zip file
 					<LI>[VS2012 only] there is a bug in the latest Qt (4.8.4) preventing compilation. Look at http://stackoverflow.com/questions/12113400/compiling-qt-4-8-x-for-visual-studio-2012 for a fix.
 							Its meant for 4.8.3 though. For 4.8.4 you only need to fix HashSet.h!
           <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <LI>$ cd <path-to-qt>
 					<LI>if you have multiple versions of VS installed you might need to provide the "-platform" param for the next configure command (e.g., -platform win32-msvc2012)
-          <LI>$ configure.exe -nomake demos -nomake examples -no-script
+          <LI>$ configure.exe -opensource -nomake demos -nomake examples -no-script
           <LI>$ nmake
+					<LI> or download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
           <LI>now you should have Link-Libraries and Dll's (debug and release) in your &lt;Qt&gt;/lib directory
         </OL>
       <LI>commercial:

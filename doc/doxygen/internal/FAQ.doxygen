@@ -320,7 +320,7 @@ svn propset svn:eol-style native MyClass.C
 				<code>ldd &lt;application&gt;</code>
         <BR>
         Windows (Visual studio console):
-        Try "Dependency Walker"(http://www.dependencywalker.com/)
+        Try "Dependency Walker"(http://www.dependencywalker.com/) (use x86 for 32bit builds and the x64 version for 64bit builds. Using the wrong version of depends.exe will give wrong results!)
         or <code>dumpbin /DEPENDENTS OpenMS.dll</code>
 
 			<LI><B>How can I get a list of the symbols defined in a (shared) library or object file?</B>
