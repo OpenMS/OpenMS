@@ -399,7 +399,9 @@ namespace OpenMS
     }
     else if (tag_ == "binary")
     {
-      at_.binary = sm_.convert(chars);
+      //chars may be split to several chunks => concatenate them
+      at_.binary += sm_.convert(chars);
+      //~ at_.binary = "bla";
     }
   }
 
@@ -408,7 +410,7 @@ namespace OpenMS
     static set<String> to_ignore;
     if (to_ignore.empty())
     {
-      to_ignore.insert("binary");
+      //~ to_ignore.insert("binary");
     }
 
     tag_ = sm_.convert(qname);

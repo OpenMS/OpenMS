@@ -85,7 +85,7 @@ protected:
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<choice>", "", "Target QualityParameter. ('ticpoints': total ion current stats, 'precursorpoints': stats about the precursors from the rawfile, 'pepidpoints': identifications from the rawfile, 'featurepoints': stats about features from the rawfile, 'consensusstats': stats about consensus features from the rawfile)\n", false);
     setValidStrings_("qp", StringList::create("ticpoints,precursorpoints,pepidpoints,featurepoints,consensuspoints"));
-    registerStringOption_("msrun_filename", "<string>", "", "The name of the target raw file of the respective quality parameter.", false);
+    registerStringOption_("msrun_filename", "<string>", "", "The name of the target raw file of the respective quality parameter.");
     registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)", false);
     setValidFormats_("plot", StringList::create("PNG"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
