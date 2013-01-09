@@ -201,6 +201,7 @@ namespace OpenMS
     action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html").toQString());
 #endif
 
+    help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
 
 
@@ -875,7 +876,8 @@ namespace OpenMS
   void TOPPASBase::showURL()
   {
     QAction* action = qobject_cast<QAction*>(sender());
-    if (!QDesktopServices::openUrl(QUrl(action->data().toString())))
+    QString target = QString("file:///%1").arg( action->data().toString() );
+    if (!QDesktopServices::openUrl(QUrl(target, QUrl::TolerantMode)))
     {
       QMessageBox::warning(this, tr("Error"),
                            tr("Unable to open\n") +

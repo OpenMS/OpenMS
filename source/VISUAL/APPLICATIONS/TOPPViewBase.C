@@ -655,7 +655,8 @@ namespace OpenMS
   void TOPPViewBase::showURL()
   {
     QAction* action = qobject_cast<QAction*>(sender());
-    if (!QDesktopServices::openUrl(QUrl(action->data().toString())))
+    QString target = QString("file:///%1").arg( action->data().toString() );
+    if (!QDesktopServices::openUrl(QUrl(target, QUrl::TolerantMode)))
     {
       QMessageBox::warning(this, tr("Error"),
                            tr("Unable to open\n") +

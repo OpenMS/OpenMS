@@ -336,7 +336,7 @@ namespace OpenMS
 #endif
 
     // make its a proper path:
-    path.substitute("\\", "/").ensureLastChar('/').chop(1);
+    path = path.substitute("\\", "/").ensureLastChar('/').chop(1);
 #ifdef OPENMS_WINDOWSPLATFORM
     String share_dir = "c:\\Program Files\\OpenMS\\share\\OpenMS";
 #else
