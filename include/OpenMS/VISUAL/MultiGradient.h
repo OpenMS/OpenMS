@@ -146,7 +146,7 @@ public:
     {
       OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorByIndex(Int): Precalculation mode not activated!");
       OPENMS_PRECONDITION( index >= 0, "MultiGradient::precalculatedColorByIndex(Int): negative indexes not allowed");
-      OPENMS_PRECONDITION( index < pre_.size(), (String("MultiGradient::indexedColor(Int): index ") + index + " out of specified range (0-" + pre_.size() + ")!").c_str());
+      OPENMS_PRECONDITION( index < (Int)pre_.size(), (String("MultiGradient::indexedColor(Int): index ") + index + " out of specified range (0-" + pre_.size() + ")!").c_str());
 
       return pre_[index];
     }
