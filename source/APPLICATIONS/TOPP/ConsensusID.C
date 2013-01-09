@@ -172,7 +172,8 @@ protected:
       String document_id;
       IdXMLFile().load(in, prot_ids, pep_ids, document_id);
 
-      // merge peptide ids by precursor position Sven:Ideally one should merge all peptide hits form the the different peptide identifications and keep the the information on the identification runs as a meta value
+      // merge peptide ids by precursor position
+      // Sven: Ideally one should merge all peptide hits from the different peptide identifications and keep the the information on the identification runs as a meta value
       vector<IDData> prec_data, final;
       for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
       {
@@ -200,7 +201,7 @@ protected:
           }
           ++pos;
         }
-        //right position was found => append ids
+        // correct position was found => append ids
         if (pos != prec_data.end())
         {
           writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
@@ -284,9 +285,7 @@ protected:
       }
 
 
-      ///iterate over prec_data and write to final only one peptide identification per rt mz
-
-      //compute consensus
+      // compute consensus
       alg_param.setValue("number_of_runs", (UInt)prot_ids.size());
       consensus.setParameters(alg_param);
       for (vector<IDData>::iterator it = final.begin(); it != final.end(); ++it)
@@ -305,13 +304,13 @@ protected:
         pep_ids.back().setMetaValue("file_origin", it->sourcefile);
       }
 
-      //create new identification run
+      // create new identification run
       vector<ProteinIdentification> prot_id_out(1);
       prot_id_out[0].setDateTime(DateTime::now());
       prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
       prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
 
-      //store consensus
+      // store consensus
       IdXMLFile().store(out, prot_id_out, pep_ids);
     }
 
