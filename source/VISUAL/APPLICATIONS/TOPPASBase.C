@@ -1338,7 +1338,7 @@ namespace OpenMS
       {
         text += " (" + type + ")";
       }
-      text += " started. Processing ...";
+      text += " of node #" + tv->getTopoNr() + " started. Processing ...";
 
       showLogMessage_(LS_NOTICE, text, "");
     }

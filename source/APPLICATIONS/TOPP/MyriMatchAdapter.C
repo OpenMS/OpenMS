@@ -329,9 +329,6 @@ protected:
     String inputfile_name = File::absolutePath(getStringOption_("in"));
     String outputfile_name = getStringOption_("out");
     String db_name = File::absolutePath(String(getStringOption_("database")));
-    FileHandler fh;
-    vector<ProteinIdentification> protein_identifications;
-    vector<PeptideIdentification> peptide_identifications;
 
     // building parameter String
     StringList parameters;
@@ -440,12 +437,16 @@ protected:
     //-------------------------------------------------------------
 
     writeDebug_("Reading output of MyriMatch", 5);
-    String exp_name = File::removeExtension(File::basename(inputfile_name));
-    String pep_file = tmp_dir + exp_name + ".pepXML";
+    String exp_name = File::basename(inputfile_name);
+    String pep_file = tmp_dir + File::removeExtension(exp_name) + ".pepXML";
     bool use_precursor_data = false;
-    MSExperiment<> exp;
 
+    FileHandler fh;
+    MSExperiment<> exp;
     fh.loadExperiment(inputfile_name, exp);
+
+    vector<ProteinIdentification> protein_identifications;
+    vector<PeptideIdentification> peptide_identifications;
     if (File::exists(pep_file))
     {
       PepXMLFile().load(pep_file, protein_identifications, peptide_identifications,
