@@ -74,8 +74,8 @@ bool notInSeq(String res_seq, String query)
     return false;
   }
 
-// test all k-mers with k=size of query
-  for (size_t l = 0; l <= res_seq.size() - query.size(); ++l)
+  // test all k-mers with k=size of query
+  for (Int l = 0; l <= (Int)res_seq.size() - (Int)query.size(); ++l)
   {
     String a = res_seq.substr(l, query.size());
     String b = query;
@@ -95,7 +95,7 @@ void generateTargetSequences(const String& res_seq, Size pos, const map<char, ve
 {
   typedef map<char, vector<char> >::const_iterator TConstMapIterator;
 
-  while (pos != res_seq.size())
+  while (pos < res_seq.size())
   {
 // check if current character is in source 2 target map
     TConstMapIterator target_iterator = map_source2target.find(res_seq[pos]);
@@ -155,7 +155,7 @@ struct ModificationMassesResult
   Map<Size, String> mod_formula_idx;
 };
 
-ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Size max_length = 4)
+ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4)
 {
   // 152 modification
   const String cysteine_adduct_string("C1H2N3O6");
@@ -201,7 +201,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
       actual_combinations.push_back(String(source_nucleotides[i]));
     }
 
-    for (Size i = 1; i <= max_length - 1; ++i)
+    for (Int i = 1; i <= max_length - 1; ++i)
     {
       vector<String> new_combinations;
       for (Size n = 0; n != source_nucleotides.size(); ++n)
@@ -315,12 +315,9 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   StringList target_sequences;
   generateTargetSequences(sequence_restriction, 0, map_source_to_targets, target_sequences);
   cout << "target sequence(s):" << target_sequences.size() << endl;
-  if (target_sequences.size() != 1)
+  for (Size i = 0; i != target_sequences.size(); ++i)
   {
-    for (Size i = 0; i != target_sequences.size(); ++i)
-    {
-      cout << target_sequences[i] << endl;
-    }
+    cout << target_sequences[i] << endl;
   }
 
   {
@@ -356,7 +353,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
 
     vector<EmpiricalFormula> all_combinations = actual_combinations;
 
-    for (Size i = 0; i < max_length - 1; ++i)
+    for (Int i = 0; i < max_length - 1; ++i)
     {
       vector<EmpiricalFormula> new_combinations;
       for (map<String, EmpiricalFormula>::const_iterator mit = map_target_to_formula.begin(); mit != map_target_to_formula.end(); ++mit)
@@ -380,6 +377,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     }
   }
 
+  cout << "Filtering on restrictions... " << endl;
 // filtering on restrictions
   std::vector<String> violates_restriction;
   for (Map<String, DoubleReal>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
@@ -393,18 +391,16 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     {
       nucleotide_style_formula = nucleotide_style_formula.prefix(p);
     }
-//cout << "(" << nucleotide_style_formula << ")" << endl;
+//  cout << "(" << nucleotide_style_formula << ")" << endl;
     // perform string comparison: if nucleotide seuquence doesnt occur in any permutation in res_seq mark the corresponding empirical formula for deletion
     bool restriction_violated = false;
 
-// for each min. count restriction on a target nucleotide...
+    // for each min. count restriction on a target nucleotide...
     for (map<char, Size>::const_iterator minit = map_target_to_mincount.begin(); minit != map_target_to_mincount.end(); ++minit)
     {
-//        cout << nucleotide_style_formula <<  " current target: " << minit->first << " ";
-//      Size violation_count = 0;
-
+//    cout << nucleotide_style_formula <<  " current target: " << minit->first << " ";
       Size occurances = (Size) std::count(nucleotide_style_formula.begin(), nucleotide_style_formula.end(), minit->first);
-//        cout << occurances << endl;
+//    cout << occurances << endl;
       if (occurances < minit->second)
       {
         restriction_violated = true;
@@ -570,7 +566,7 @@ protected:
 
     String sequence_restriction = getStringOption_("sequence");
 
-    Size max_length = (Size)getIntOption_("length");
+    Int max_length = getIntOption_("length");
 
     bool cysteine_adduct = getFlag_("CysteineAdduct");
 
@@ -1054,7 +1050,9 @@ protected:
     p->setProcessChannelMode(QProcess::MergedChannels);
     p->start("PeptideIndexer", args);
     p->waitForFinished(999999999);
+    cout << QString(p->readAllStandardOutput()).toStdString() << endl;
     delete(p);
+      
 
     // cleanup
     if (debug_level < 1)
