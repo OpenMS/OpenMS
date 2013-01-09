@@ -371,8 +371,10 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
       actual_combinations = new_combinations;
     }
 
+//    cout << all_combinations.size() << endl;
     for (Size i = 0; i != all_combinations.size(); ++i)
     {
+//      cout << all_combinations[i].getString() << endl;
       result.mod_masses[all_combinations[i].getString()] = all_combinations[i].getMonoWeight();
     }
   }
@@ -836,6 +838,7 @@ protected:
 // copy protein identifications as is - they are not really needed in the later output
       whole_experiment_filtered_protein_ids.insert(whole_experiment_filtered_protein_ids.end(), prot_ids.begin(), prot_ids.end());
 
+      /*
       for (size_t k = 0; k != prot_ids.size(); ++k)
       {
         vector<ProteinHit> ph_tmp = prot_ids[k].getHits();
@@ -843,8 +846,9 @@ protected:
         for (vector<ProteinHit>::iterator it2 = ph_tmp.begin(); it2 != ph_tmp.end(); ++it2)
         {
           cout << it2->getAccession() << endl;
-        }
+        }	
       }
+      */
 
 // load map with all precursor variations (originating from one single precursor) that corresponds to this identification run
       PeakMap exp;
@@ -998,7 +1002,7 @@ protected:
       for (vector<ProteinHit>::iterator it = ph_tmp.begin(); it != ph_tmp.end(); ++it)
       {
         pr_tmp[0].insertHit(*it);
-        cout << it->getAccession() << endl;
+        //cout << it->getAccession() << endl;
       }
     }
 
@@ -1045,7 +1049,7 @@ protected:
 
     // index final result
     QStringList args;
-    args << "-fasta" << in_fasta_file.toQString() << "-in" << out_idXML.toQString() << "-out" << out_idXML.toQString() << "-no_progress";
+    args << "-missing_decoy_action" << "warn" << "-fasta" << in_fasta_file.toQString() << "-in" << out_idXML.toQString() << "-out" << out_idXML.toQString() << "-no_progress";
     p = new QProcess();
     p->setProcessChannelMode(QProcess::MergedChannels);
     p->start("PeptideIndexer", args);
@@ -1057,6 +1061,8 @@ protected:
     // cleanup
     if (debug_level < 1)
     {
+      Size mzml_removed = 0;
+      Size idxml_removed = 0;
       for (vector<String>::const_iterator it = file_list_variants_mzML.begin(); it != file_list_variants_mzML.end(); ++it, ++counter)
       {
         if (*it == "")
@@ -1066,8 +1072,6 @@ protected:
         String mzml_string = *it;
         String idxml_string = *it;
         idxml_string.substitute(".mzML", ".idXML");
-        Size mzml_removed = 0;
-        Size idxml_removed = 0;
         if (QFile(mzml_string.toQString()).remove())
         {
           mzml_removed++;
@@ -1077,9 +1081,8 @@ protected:
         {
           idxml_removed++;
         }
-
-        cout << "Cleaning up. Removed " << mzml_removed << " temporary mzML files and " << idxml_removed << " temporary idXML files." << endl;
       }
+      cout << "Cleaning up. Removed " << mzml_removed << " temporary mzML files and " << idxml_removed << " temporary idXML files." << endl;
     }
     return EXECUTION_OK;
   }
