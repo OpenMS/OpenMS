@@ -90,6 +90,7 @@ namespace OpenMS
     targetMap[FileTypes::PROTXML] = "protXML";
     targetMap[FileTypes::MZIDENTML] = "mzid";
     targetMap[FileTypes::MZQUANTML] = "mzq";
+    targetMap[FileTypes::QCML] = "qcml";
     targetMap[FileTypes::GELML] = "gelML";
     targetMap[FileTypes::TRAML] = "traML";
     targetMap[FileTypes::MSP] = "msp";

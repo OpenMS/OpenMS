@@ -62,6 +62,7 @@ XTandemInfile.C
 XTandemXMLFile.C
 MzIdentMLFile.C
 MzQuantMLFile.C
+QcMLFile.C
 TraMLFile.C
 )
 

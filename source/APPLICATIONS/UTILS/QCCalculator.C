@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Author: Sven Nahnsen $
+// $Maintainer: Mathias Walzer $
+// $Author: Mathias Walzer, Sven Nahnsen $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -44,16 +43,15 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <vector>
-#include <fstream>
+#include <OpenMS/FORMAT/QcMLFile.h>
 
+#include <QFileInfo>
+
+#include <vector>
 #include <map>
 
 using namespace OpenMS;
 using namespace std;
-
-#define SEP "\t"
-
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -85,83 +83,266 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in_id", "<file>", "", "Input idXML file containing the identifications. Your identifications will be exported in an easy-to-read format", false);
-    setValidFormats_("in_id", StringList::create("idXML"));
+    registerInputFile_("in", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)");
+    setValidFormats_("in", StringList::create("mzML"));
+    registerOutputFile_("out", "<file>", "", "Your qcML file.");
+    setValidFormats_("out", StringList::create("qcML"));
+    registerInputFile_("id", "<file>", "", "Input idXML file containing the identifications. Your identifications will be exported in an easy-to-read format", false);
+    setValidFormats_("id", StringList::create("idXML"));
     registerInputFile_("feature", "<file>", "", "feature input file (this is relevant for most QC issues)", false);
     setValidFormats_("feature", StringList::create("featureXML"));
     registerInputFile_("consensus", "<file>", "", "consensus input file (this is only used for charge state deconvoluted output. Use the consensusXML output form the DeCharger)", false);
     setValidFormats_("consensus", StringList::create("consensusXML"));
-    registerInputFile_("raw", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)", false);
-    setValidFormats_("raw", StringList::create("mzML"));
-    registerOutputFile_("out_id", "<file>", "", "Your export file for id stats.", false, true);
-    setValidFormats_("out_id", StringList::create("_id.tsv"));
-    registerOutputFile_("out_consensus", "<file>", "", "Your export file for consensus stats.", false, true);
-    setValidFormats_("out_consensus", StringList::create("_consensus.tsv"));
-    registerOutputFile_("out_feature", "<file>", "", "Your export file for feature stats.", false, true);
-    setValidFormats_("out_feature", StringList::create("tsv"));
-    registerOutputFile_("out_precursor", "<file>", "", "Your export file for precursor stats.", false, true);
-    setValidFormats_("out_precursor", StringList::create("_PRECURSOR.tsv"));
-    registerOutputFile_("out_MS2", "<file>", "", "Your export file for MS2 stats.", false, true);
-    setValidFormats_("out_MS2", StringList::create("_MS2.tsv"));
-    registerOutputFile_("out_MS1", "<file>", "", "Your export file for MS1 stats.", false, true);
-    setValidFormats_("out_MS1", StringList::create("_MS1.tsv"));
-    registerOutputFile_("out_TIC", "<file>", "", "Your export file for TIC stats,if you are exporting MS1 and MS2 data, but you want to have TIC intensities instead of the MS1 table. Note that TICs, in this case are the sums of all intensities per spectrum.", false, true);
-    setValidFormats_("out_TIC", StringList::create("_TIC.tsv"));
     registerFlag_("AllHits", "If set, the exporter takes all peptide candidates per spectrum into account.");
     registerFlag_("remove_duplicate_features", "This flag should be set, if you work with a set of merged features.");
+    registerFlag_("MS1", "This flag should be set, if you want to work with MS1 stats.");
+    registerFlag_("MS2", "This flag should be set, if you want to work with MS2 stats.");
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char **)
   {
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
     ProteinHit temp_protein_hit;
-    String outputfile_name = "";
+
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String inputfile_name       = getStringOption_("in_id");
+    String inputfile_id         = getStringOption_("id");
     String inputfile_feature    = getStringOption_("feature");
     String inputfile_consensus  = getStringOption_("consensus");
-    String inputfile_raw        = getStringOption_("raw");
-    //~ outputfile_name             = getStringOption_("out");
-
-    String out_id = getStringOption_("out_id");
-    String out_feature = getStringOption_("out_feature");
-    String out_consensus = getStringOption_("out_consensus");
-    String out_ms1 = getStringOption_("out_MS1");
-    String out_ms2 = getStringOption_("out_MS2");
-    String out_precursor = getStringOption_("out_precursor");
-    String out_tic = getStringOption_("out_TIC");
+    String inputfile_raw        = getStringOption_("in");
+    String outputfile_name      = getStringOption_("out");
 
     bool AllHits(getFlag_("AllHits"));
+    bool Ms1(getFlag_("MS1"));
+    bool Ms2(getFlag_("MS2"));
     bool remove_duplicate_features(getFlag_("remove_duplicate_features"));
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-    if (inputfile_name != "" && out_id != "") // -InclusionList was given
+
+    QcMLFile qcmlfile;
+    String base_name = QFileInfo(QString::fromStdString(inputfile_raw)).baseName();
+
+    cout << "Reading mzML file..." << endl;
+    MzMLFile mz_data_file;
+    MSExperiment<Peak1D> exp;
+    MzMLFile().load(inputfile_raw, exp);
+
+    //---file origin qp
+    QcMLFile::QualityParameter qp;
+    qp.name = "raw data file"; ///< Name
+    qp.id = base_name + "_origin_rawfile_name"; ///< Identifier
+    qp.cvRef = "PSI"; ///< cv reference
+    qp.cvAcc = "MS:1000577"; ///< cv accession
+    qp.value = base_name;
+    qcmlfile.addQualityParameter(base_name, qp);
+
+    //---mzml stats qp
+    qp = QcMLFile::QualityParameter() ;
+    qp.name = "mzmlstats"; ///< Name
+    qp.id = base_name + "_mzmlstats" ; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+    qp.colTypes.push_back("name");
+    qp.colTypes.push_back("value");
+    std::vector<String> row;
+    row.push_back("#spectra");
+    row.push_back(exp.size());
+    qp.tableRows.push_back(row);
+    row.clear();
+    map<Size, UInt> counts;
+    for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
     {
-      //~ String ID_NAME = "_id.tsv";
-      IdXMLFile().load(inputfile_name, prot_ids, pep_ids);
-      cerr << "ended. Found " << pep_ids.size() << " peptide identifications." << endl;
-      cerr << "Writing text file..." << endl;
+      counts[it->getMSLevel()]++;
+    }
+    for (map<Size, UInt>::iterator it = counts.begin(); it != counts.end(); ++it)
+    {
+      row.push_back("in_ms" + String(it->first));
+      row.push_back(String(it->second));
+      qp.tableRows.push_back(row);
+      row.clear();
+    }
+    row.push_back("#peaks");
+    row.push_back(exp.getSize());
+    qp.tableRows.push_back(row);
+    row.clear();
+    row.push_back("#chromatograms");
+    row.push_back(exp.getChromatograms().size());
+    qp.tableRows.push_back(row);
+    row.clear();
+    qcmlfile.addQualityParameter(base_name, qp);
+
+    //---tic qp
+    qp = QcMLFile::QualityParameter() ;
+    qp.name = "ticpoints"; ///< Name
+    qp.id = base_name + "_TIC" ; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+
+    //~ qp.colTypes.push_back("Native_ID");
+    qp.colTypes.push_back("RT_(sec)");
+    qp.colTypes.push_back("TIC");
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      UInt sum = 0;
+      for (Size j = 0; j < exp[i].size(); ++j)
+      {
+        sum += exp[i][j].getIntensity();
+      }
+      std::vector<String> row;
+      //~ String nid = exp[i].getNativeID();
+      //~ row.push_back(nid.removeWhitespaces());
+      row.push_back(exp[i].getRT());
+      row.push_back(sum);
+      qp.tableRows.push_back(row);
+    }
+    qcmlfile.addQualityParameter(base_name, qp);
+
+    //---precursor qp
+    qp = QcMLFile::QualityParameter() ;
+    qp.name = "precursorpoints"; ///< Name
+    qp.id = base_name + "_precursor" ; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+
+    //~ qp.colTypes.push_back("Native_ID");
+    qp.colTypes.push_back("RT_(sec)");
+    qp.colTypes.push_back("Precursor");
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      if (exp[i].getMSLevel() == 2)
+      {
+        std::vector<String> row;
+        //~ String nid = exp[i].getNativeID();
+        //~ row.push_back(nid.removeWhitespaces());
+        row.push_back(exp[i].getRT());
+        row.push_back(exp[i].getPrecursors()[0].getMZ());
+        qp.tableRows.push_back(row);
+      }
+    }
+    qcmlfile.addQualityParameter(base_name, qp);
+
+
+    if (inputfile_id != "")
+    {
+      IdXMLFile().load(inputfile_id, prot_ids, pep_ids);
+      cerr << "idXML read ended. Found " << pep_ids.size() << " peptide identifications." << endl;
+
       ProteinIdentification::SearchParameters params = prot_ids[0].getSearchParameters();
       vector<String> var_mods = params.variable_modifications;
-      //~ String combined_out = outputfile_name + ID_NAME;
-      //~ ofstream out(combined_out.c_str());
-      ofstream out(out_id.c_str());
-      out << "RT" << SEP << "MZ" << SEP << "uniqueness" << SEP << "ProteinID" << SEP << "target/decoy" << SEP << "Score" << SEP << "PeptideSequence" << SEP << "Annots" << SEP << "Similarity" << SEP << "Charge" << SEP << "TheoreticalWeight";
+
+      //---idxml stats qp
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "idxmlstats"; ///< Name
+      qp.id = base_name + "_idxmlstats" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+      qp.colTypes.push_back("name");
+      qp.colTypes.push_back("value");
+      std::vector<String> row;
+      row.push_back("database");
+      row.push_back(prot_ids.at(0).getSearchParameters().db);
+      qp.tableRows.push_back(row);
+      row.clear();
+      row.push_back("db_version");
+      row.push_back(prot_ids.at(0).getSearchParameters().db_version);
+      qp.tableRows.push_back(row);
+      row.clear();
+      row.push_back("taxonomy");
+      row.push_back(prot_ids.at(0).getSearchParameters().taxonomy);
+      qp.tableRows.push_back(row);
+      row.clear();
+
+      UInt spectrum_count = 0;
+      Size peptide_hit_count = 0;
+      UInt runs_count = 0;
+      Size protein_hit_count = 0;
+      set<String> peptides;
+      set<String> proteins;
+      for (Size i = 0; i < pep_ids.size(); ++i)
+      {
+        if (!pep_ids[i].empty())
+        {
+          ++spectrum_count;
+          peptide_hit_count += pep_ids[i].getHits().size();
+          const vector<PeptideHit> & temp_hits = pep_ids[i].getHits();
+          for (Size j = 0; j < temp_hits.size(); ++j)
+          {
+            peptides.insert(temp_hits[j].getSequence().toString());
+          }
+        }
+      }
+      for (Size i = 0; i < prot_ids.size(); ++i)
+      {
+        ++runs_count;
+        protein_hit_count += prot_ids[i].getHits().size();
+        const vector<ProteinHit> & temp_hits = prot_ids[i].getHits();
+        for (Size j = 0; j < temp_hits.size(); ++j)
+        {
+          proteins.insert(temp_hits[j].getAccession());
+        }
+      }
+
+      row.push_back("#id_runs");
+      row.push_back(runs_count);
+      qp.tableRows.push_back(row);
+      row.clear();
+      row.push_back("#protein_hits");
+      row.push_back(runs_count);
+      qp.tableRows.push_back(row);
+      row.clear();
+      row.push_back("#unique_proteins");
+      row.push_back(proteins.size());
+      qp.tableRows.push_back(row);
+      row.clear();
+      row.push_back("#sim");
+      row.push_back(spectrum_count);
+      qp.tableRows.push_back(row);
+      row.clear();
+      row.push_back("#peptide_hits");
+      row.push_back(peptide_hit_count);
+      qp.tableRows.push_back(row);
+      row.clear();
+      row.push_back("#unique_peptides");
+      row.push_back(peptides.size());
+      qp.tableRows.push_back(row);
+      row.clear();
+
+      qcmlfile.addQualityParameter(base_name, qp);
+
+      //---id accuracy stats qp
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "pepidpoints";
+      qp.id = base_name + "_peptide_identifications" ;
+      qp.cvRef = "QC";
+      qp.cvAcc = "QC:xxxxxxxx";
+
+      qp.colTypes.push_back("RT");
+      qp.colTypes.push_back("MZ");
+      qp.colTypes.push_back("uniqueness");
+      qp.colTypes.push_back("ProteinID");
+      qp.colTypes.push_back("target/decoy");
+      qp.colTypes.push_back("Score");
+      qp.colTypes.push_back("PeptideSequence");
+      qp.colTypes.push_back("Annots");
+      qp.colTypes.push_back("Similarity");
+      qp.colTypes.push_back("Charge");
+      qp.colTypes.push_back("TheoreticalWeight");
       for (UInt w = 0; w < var_mods.size(); ++w)
       {
-        out << SEP << var_mods[w];
+        qp.colTypes.push_back(String(var_mods[w]).substitute(' ','_'));
       }
-      out << endl;
+
       prot_ids[0].getSearchParameters();
       for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
       {
         if (it->getHits().size() > 0)
         {
-          out << it->getMetaValue("RT") << SEP << it->getMetaValue("MZ") << SEP;
+          std::vector<String> row;
+          row.push_back(it->getMetaValue("RT"));
+          row.push_back(it->getMetaValue("MZ"));
           PeptideHit tmp;
           if (!AllHits)
           {
@@ -175,7 +356,7 @@ protected:
             {
               logo3 = tmp.getMetaValue("target_decoy");
             }
-            if (!logo1.empty())
+            if (logo1.size() > 0)
             {
               logo2 = logo1[0];
               for (UInt ii = 1; ii < logo1.size(); ++ii)
@@ -208,19 +389,31 @@ protected:
               }
             }
 
-            out << logo  << SEP << logo2 << SEP << logo3 << SEP << tmp.getScore() << SEP << tmp.getSequence() << SEP << tmp.getMetaValue("Number of annotations") << SEP << tmp.getMetaValue("similarity") << SEP << tmp.getCharge() << SEP << precisionWrapper((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge());
+            row.push_back(logo);
+            row.push_back(logo2);
+            row.push_back(logo3);
+            row.push_back(tmp.getScore());
+            row.push_back(tmp.getSequence().toString());
+            row.push_back(tmp.getMetaValue("Number of annotations"));
+            row.push_back(tmp.getMetaValue("similarity"));
+            row.push_back(tmp.getCharge());
+            row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
+
             for (UInt w = 0; w < var_mods.size(); ++w)
             {
-              out << SEP << pep_mods[w];
+              row.push_back(pep_mods[w]);
             }
-            out << endl;
+
+            qp.tableRows.push_back(row);
             //exchange with this line, if you want to integrate consensusID parameters
             //out << logo  << SEP << logo2 << SEP << logo3 << SEP << tmp.getScore() << SEP << tmp.getSequence() << SEP << tmp.getCharge() << SEP << tmp.getMetaValue("Number of annotations") << SEP << tmp.getMetaValue("similarity") << endl;;
           }
+
           else
           {
             for (vector<PeptideHit>::const_iterator tit = it->getHits().begin(); tit != it->getHits().end(); ++tit)
             {
+              std::vector<String> row_allhits = row;
               tmp = *tit;
               String logo, logo2;
               String logo3 = "NA";
@@ -231,48 +424,130 @@ protected:
               {
                 logo3 = tmp.getMetaValue("target_decoy");
               }
-              if (!logo1.empty())
+              if (logo1.size() > 0)
               {
                 logo2 = logo1[0];
               }
-              out << logo  << SEP << logo2 << SEP << logo3 << SEP << tmp.getMetaValue("predicted_PT") << SEP << tmp.getSequence() << SEP << tmp.getCharge() << SEP << tmp.getMetaValue("Number of annotations") << SEP << tmp.getMetaValue("similarity");
-              out << endl;
+              row_allhits.push_back(logo);
+              row_allhits.push_back(logo2);
+              row_allhits.push_back(logo3);
+              row_allhits.push_back(tmp.getMetaValue("predicted_PT"));
+              row_allhits.push_back(tmp.getSequence().toString());
+              row_allhits.push_back(tmp.getCharge());
+              row_allhits.push_back(tmp.getMetaValue("Number of annotations"));
+              row_allhits.push_back(tmp.getMetaValue("similarity"));
+              qp.tableRows.push_back(row_allhits);
             }
           }
         }
-
       }
-      out.close();
+      qcmlfile.addQualityParameter(base_name, qp);
     }
-    if (inputfile_feature != "" && !remove_duplicate_features && out_feature != "") //
+
+
+    if (inputfile_feature != "")
     {
-      //~ String FEATURE_NAME_NO_REMOVE = "_features.tsv";
-      //~ String combined_out = outputfile_name + FEATURE_NAME_NO_REMOVE;
-      //~ ofstream out(combined_out.c_str());
-      ofstream out(out_feature.c_str());
+      cout << "Reading featureXML file..." << endl;
+
+      FeatureMap<> map;
+      FeatureXMLFile f;
+      f.load(inputfile_feature, map);
+      //~ UInt fiter = 0;
+      map.sortByRT();
+      map.updateRanges();
+
+      //---fxml stats qp
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "fxmlstats"; ///< Name
+      qp.id = base_name + "_fxmlstats" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+      qp.colTypes.push_back("name");
+      qp.colTypes.push_back("value");
+      std::vector<String> row;
+      row.push_back("#features");
+      row.push_back(map.size());
+      qp.tableRows.push_back(row);
+      row.clear();
+
+      // Charge distribution and TIC
+      Map<UInt, UInt> charges;
+      DoubleReal tic = 0.0;
+      for (Size i = 0; i < map.size(); ++i)
+      {
+        charges[map[i].getCharge()]++;
+        tic += map[i].getIntensity();
+      }
+      row.push_back("#feature_tic");
+      row.push_back(tic);
+      qp.tableRows.push_back(row);
+      row.clear();
+
+      for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
+      {
+        row.push_back(String("charge") + String(it->first) + String("_distribution"));
+        row.push_back(String(it->second));
+        qp.tableRows.push_back(row);
+        row.clear();
+      }
+
+      qcmlfile.addQualityParameter(base_name, qp);
+    }
+
+    if (inputfile_feature != "" && !remove_duplicate_features)
+    {
+      cout << "Reading featureXML file..." << endl;
+
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "featurepoints"; ///< Name
+      qp.id = base_name + "_features" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+
+      qp.colTypes.push_back("MZ");
+      qp.colTypes.push_back("RT");
+      qp.colTypes.push_back("Intensity");
+      qp.colTypes.push_back("Charge");
+
       FeatureMap<> map;
       FeatureXMLFile f;
       f.load(inputfile_feature, map);
       UInt fiter = 0;
       map.sortByRT();
       //ofstream out(outputfile_name.c_str());
-      out << "MZ" << SEP << "RT" << SEP << "Intensity" << SEP << "Charge" << endl;
+
       while (fiter < map.size())
       {
-        out << map[fiter].getMZ() << SEP << map[fiter].getRT() << SEP << map[fiter].getIntensity() << SEP << map[fiter].getCharge() << endl;
+        std::vector<String> row;
+        row.push_back(map[fiter].getMZ());
+        row.push_back(map[fiter].getRT());
+        row.push_back(map[fiter].getIntensity());
+        row.push_back(map[fiter].getCharge());
         fiter++;
+        qp.tableRows.push_back(row);
       }
-      out.close();
+      qcmlfile.addQualityParameter(base_name, qp);
     }
-    else if (inputfile_feature != "" && remove_duplicate_features && out_feature != "")      //
+    else if (inputfile_feature != "" && remove_duplicate_features)
     {
+      cout << "Reading featureXML file..." << endl;
+
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "featurepoints"; ///< Name
+      qp.id = base_name + "_features" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+
+      qp.colTypes.push_back("MZ");
+      qp.colTypes.push_back("RT");
+      qp.colTypes.push_back("Intensity");
+      qp.colTypes.push_back("Charge");
+
       FeatureMap<> map, map_out;
       FeatureXMLFile f;
       f.load(inputfile_feature, map);
       UInt fiter = 0;
       map.sortByRT();
-      //ofstream out(outputfile_name.c_str());
-      //map_tmp.push_back(map[0]);
       while (fiter < map.size())
       {
         FeatureMap<> map_tmp;
@@ -303,13 +578,11 @@ protected:
         }
       }
 
-      //~ String FEATURE_NAME_REMOVE = "_features.tsv";
-      //~ String combined_out = outputfile_name + FEATURE_NAME_REMOVE;
-      //~ ofstream out(combined_out.c_str());
-      //ofstream out(out_feature.c_str());
-      FeatureXMLFile().store(out_feature, map_out);
+      //~ FeatureXMLFile().store(out_feature, map_out); //TODO into vec of vecs ...
+      qcmlfile.addQualityParameter(base_name, qp);
+
     }
-    if (inputfile_consensus != "" && out_consensus != "")
+    if (inputfile_consensus != "")
     {
       cout << "Reading consensusXML file..." << endl;
       ConsensusXMLFile f;
@@ -318,124 +591,108 @@ protected:
       //~ String CONSENSUS_NAME = "_consensus.tsv";
       //~ String combined_out = outputfile_name + CONSENSUS_NAME;
       //~ ofstream out(combined_out.c_str());
-      ofstream out(out_consensus.c_str());
-      cout << "Writing text file..." << endl;
-      out << "Native spectrum ID" << SEP << "DECON RT (sec)" << SEP << "DECON MZ (Th)" << SEP << "DECON Intensity" << SEP << " Feature RT (sec)" << SEP << " Feature MZ (Th)" << SEP << "Feature Intensity" << SEP << "Feature Charge" << endl;
+
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "consensuspoints"; ///< Name
+      qp.id = base_name + "_consensuses" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+
+      qp.colTypes.push_back("Native_spectrum_ID");
+      qp.colTypes.push_back("DECON_RT_(sec)");
+      qp.colTypes.push_back("DECON_MZ_(Th)");
+      qp.colTypes.push_back("DECON_Intensity");
+      qp.colTypes.push_back("Feature_RT_(sec)");
+      qp.colTypes.push_back("Feature_MZ_(Th)");
+      qp.colTypes.push_back("Feature_Intensity");
+      qp.colTypes.push_back("Feature_Charge");
       for (ConsensusMap::const_iterator cmit = map.begin(); cmit != map.end(); ++cmit)
       {
         ConsensusFeature CF = *cmit;
         for (ConsensusFeature::const_iterator cfit = cmit->begin(); cfit != cmit->end(); ++cfit)
         {
+          std::vector<String> row;
           FeatureHandle FH = *cfit;
-          out << CF.getMetaValue("spectrum_native_id") << SEP << CF.getRT() << SEP << CF.getMZ() << SEP << CF.getIntensity() << SEP << FH.getRT() << SEP << FH.getMZ() << SEP << FH.getCharge() << endl;
+          row.push_back(CF.getMetaValue("spectrum_native_id"));
+          row.push_back(CF.getRT());row.push_back(CF.getMZ());
+          row.push_back(CF.getIntensity());
+          row.push_back(FH.getRT());
+          row.push_back(FH.getMZ());
+          row.push_back(FH.getCharge());
+          qp.tableRows.push_back(row);
         }
       }
-      out.close();
+      qcmlfile.addQualityParameter(base_name, qp);
     }
-    if (out_ms1 != "")
+    if (Ms1)
     {
-      cout << "Reading mzML file..." << endl;
-      MzMLFile mz_data_file;
-      MSExperiment<Peak1D> exp;
-      MzMLFile().load(inputfile_raw, exp);
-      cout << "Writing text file..." << endl;
-      //~ String MS1_NAME = "_MS1.tsv";
-      //~ String combined_out = outputfile_name + MS1_NAME;
-      //~ ofstream out(combined_out.c_str());
-      ofstream out(out_ms1.c_str());
-      //three different output formats can be created depending on the choice of the ouput type
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "ms1stats"; ///< Name
+      qp.id = base_name + "_ms1" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
 
-      out << "Native ID" << SEP << "RT (sec)" << SEP << "MZ (Th)" << SEP << "Intensity" << endl;
+      qp.colTypes.push_back("Native_ID");
+      qp.colTypes.push_back("RT_(sec)");
+      qp.colTypes.push_back("MZ_(Th)");
+      qp.colTypes.push_back("Intensity");
       for (Size i = 0; i < exp.size(); ++i)
       {
         if (exp[i].getMSLevel() == 1)
         {
           for (Size j = 0; j < exp[i].size(); ++j)
           {
-            out << exp[i].getNativeID() << SEP << exp[i].getRT() << SEP << exp[i][j].getMZ() << SEP << exp[i][j].getIntensity() << endl;
+            std::vector<String> row;
+            String nid = exp[i].getNativeID();
+            row.push_back(nid.removeWhitespaces());
+            row.push_back(exp[i].getRT());
+            row.push_back(exp[i][j].getMZ());
+            row.push_back(exp[i][j].getIntensity());
+            qp.tableRows.push_back(row);
           }
         }
       }
-      out.close();
+      qcmlfile.addQualityParameter(base_name, qp);
     }
-    if (out_ms2 != "")
+    if (Ms2)
     {
-      cout << "Reading mzML file..." << endl;
-      MzMLFile mz_data_file;
-      MSExperiment<Peak1D> exp;
-      MzMLFile().load(inputfile_raw, exp);
-      cout << "Writing text file..." << endl;
-      //~ String MS2_NAME = "_MS2.tsv";
-      //~ String combined_out = outputfile_name + MS2_NAME;
-      //~ ofstream out(combined_out.c_str());
-      ofstream out(out_ms2.c_str());
-      out << "Native ID" << SEP << "RT (sec)" << SEP << "MZ (Th)" << SEP << "Intensity" << SEP << "Precursor" << endl;
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "ms2stats"; ///< Name
+      qp.id = base_name + "_ms2" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+
+      qp.colTypes.push_back("Native_ID");
+      qp.colTypes.push_back("RT_(sec)");
+      qp.colTypes.push_back("MZ_(Th)");
+      qp.colTypes.push_back("Intensity");
+      qp.colTypes.push_back("Precursor");
       for (Size i = 0; i < exp.size(); ++i)
       {
         if (exp[i].getMSLevel() == 2)
         {
           for (Size j = 0; j < exp[i].size(); ++j)
           {
-            out << exp[i].getNativeID() << SEP << exp[i].getRT() << SEP << exp[i][j].getMZ() << SEP << exp[i][j].getIntensity() << SEP << exp[i].getPrecursors()[0].getMZ() << endl;
+            std::vector<String> row;
+            String nid = exp[i].getNativeID();
+            row.push_back(nid.removeWhitespaces());
+            row.push_back(exp[i].getRT());
+            row.push_back(exp[i][j].getMZ());
+            row.push_back(exp[i][j].getIntensity());
+            row.push_back(exp[i].getPrecursors()[0].getMZ());
+            qp.tableRows.push_back(row);
           }
         }
       }
-      out.close();
+      qcmlfile.addQualityParameter(base_name, qp);
     }
-    if (out_precursor != "")
-    {
-      cout << "Reading mzML file..." << endl;
-      MzMLFile mz_data_file;
-      MSExperiment<Peak1D> exp;
-      MzMLFile().load(inputfile_raw, exp);
-      cout << "Writing text file..." << endl;
-      //~ String PREC_NAME = "_PRECURSOR.tsv";
-      //~ String combined_out = outputfile_name + PREC_NAME;
-      //~ ofstream out(combined_out.c_str());
-      ofstream out(out_precursor.c_str());
-      out << "Native ID" << SEP << "RT (sec)" << SEP << "Precursor" << endl;
-      for (Size i = 0; i < exp.size(); ++i)
-      {
-        if (exp[i].getMSLevel() == 2)
-        {
-          out << exp[i].getNativeID() << SEP << exp[i].getRT() << SEP << exp[i].getPrecursors()[0].getMZ() << endl;
-        }
-      }
-      out.close();
-    }
-
-    if (out_tic != "")
-    {
-      cout << "Reading mzML file..." << endl;
-      MzMLFile mz_data_file;
-      MSExperiment<Peak1D> exp;
-      MzMLFile().load(inputfile_raw, exp);
-      cout << "Writing text file..." << endl;
-      //~ String MS1_NAME = "_TIC.tsv";
-      //~ String combined_out = outputfile_name + MS1_NAME;
-      //~ ofstream out(combined_out.c_str());
-      ofstream out(out_tic.c_str());
-      //three different output formats can be created depending on the choice of the ouput type
-
-      out << "Native ID" << SEP << "RT (sec)" << SEP << "TIC" << endl;
-      for (Size i = 0; i < exp.size(); ++i)
-      {
-        UInt sum = 0;
-        for (Size j = 0; j < exp[i].size(); ++j)
-        {
-          sum += exp[i][j].getIntensity();
-        }
-        out << exp[i].getNativeID() << SEP << exp[i].getRT() << SEP << sum << endl;
-      }
-      out.close();
-    }
-
-
+    qcmlfile.store(outputfile_name);
     return EXECUTION_OK;
   }
 
+
 };
-int main(int argc, const char** argv)
+int main(int argc, const char ** argv)
 {
   TOPPQCCalculator tool;
   return tool.main(argc, argv);

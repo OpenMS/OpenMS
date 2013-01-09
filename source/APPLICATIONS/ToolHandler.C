@@ -212,6 +212,7 @@ namespace OpenMS
     util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", "");
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", "");
     util_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", "");
+    util_map["QCExporter"] = Internal::ToolDescription("QCExporter", "");
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", "");
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", "");
 
