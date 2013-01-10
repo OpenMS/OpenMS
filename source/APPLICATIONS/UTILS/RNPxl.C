@@ -315,9 +315,16 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   StringList target_sequences;
   generateTargetSequences(sequence_restriction, 0, map_source_to_targets, target_sequences);
   cout << "target sequence(s):" << target_sequences.size() << endl;
+  
   for (Size i = 0; i != target_sequences.size(); ++i)
   {
-    cout << target_sequences[i] << endl;
+    if (target_sequences[i].size() < 60)
+    {
+      cout << target_sequences[i] << endl;
+    } else
+    {
+      cout << target_sequences[i].prefix(60) << "..."  << endl;
+    }
   }
 
   {
