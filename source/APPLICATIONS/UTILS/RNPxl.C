@@ -148,6 +148,141 @@ void generateTargetSequences(const String& res_seq, Size pos, const map<char, ve
   }
 }
 
+struct RNPxlReportRow
+{
+  bool no_id;
+  DoubleReal rt;
+  DoubleReal original_mz;
+  String accessions;
+  String RNA;
+  String peptide;
+  Int charge;
+  DoubleReal score;
+  DoubleReal peptide_weight;
+  DoubleReal RNA_weight;
+  DoubleReal xl_weight;
+  DoubleReal abs_prec_error;
+  DoubleReal rel_prec_error;
+  Map<String, vector<pair<DoubleReal, DoubleReal> > > marker_ions;
+  DoubleReal m_H;
+  DoubleReal m_2H;
+  DoubleReal m_3H;
+  DoubleReal m_4H;
+
+  String getString(String separator)
+  {    
+    StringList sl;
+
+    // rt mz
+    sl << String::number(rt, 0) << String::number(original_mz, 4);
+
+    // id if available
+    if (no_id)
+    {
+      sl << "" << "" << "" << "" << "" << "" << "" << "";
+    } else
+    {
+      sl << accessions << RNA << peptide << String(charge) << String(score)
+         << String::number(peptide_weight, 4) << String::number(RNA_weight, 4) << String::number(peptide_weight + RNA_weight, 4);
+    }
+
+    // marker ions
+    for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    {
+      for (Size i = 0; i != it->second.size(); ++i)
+      {
+        sl << String::number(it->second[i].second * 100.0, 2);
+      }
+    }
+
+    // id error and multiple charged mass
+    if (no_id)
+    {
+      sl << "" << ""
+         << "" << "" << "" << "";
+    } else
+    {
+      // error
+      sl << String::number(abs_prec_error, 4)
+         << String::number(rel_prec_error, 1);
+
+      // weight
+      sl << String::number(m_H, 4)
+         << String::number(m_2H, 4)
+         << String::number(m_3H, 4)
+         << String::number(m_4H, 4);
+    }
+
+    return sl.concatenate(separator);
+  }
+};
+
+struct MarkerIonExtractor
+{
+  static void extractMarkerIons(Map<String, vector<pair<DoubleReal, DoubleReal> > >& marker_ions, const PeakSpectrum& s, const DoubleReal marker_tolerance)
+  {
+    marker_ions.clear();
+    marker_ions["A"].push_back(make_pair(136.06231, 0.0));
+    marker_ions["A"].push_back(make_pair(330.06033, 0.0));
+    marker_ions["C"].push_back(make_pair(112.05108, 0.0));
+    marker_ions["C"].push_back(make_pair(306.04910, 0.0));
+    marker_ions["G"].push_back(make_pair(152.05723, 0.0));
+    marker_ions["G"].push_back(make_pair(346.05525, 0.0));
+    marker_ions["U"].push_back(make_pair(113.03509, 0.0));
+    marker_ions["U"].push_back(make_pair(307.03311, 0.0));
+
+    PeakSpectrum spec(s);
+    Normalizer normalizer;
+    normalizer.filterSpectrum(spec);
+
+    // for each nucleotide with marker ions
+    for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    {
+      // for each marker ion of the current nucleotide
+      for (Size i = 0; i != it->second.size(); ++i)
+      {
+        DoubleReal mz = it->second[i].first;
+        for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit)
+        {
+          if (mz < sit->getMZ() - marker_tolerance)
+          {
+            break;
+          }
+          if (fabs(mz - sit->getMZ()) < marker_tolerance)
+          {
+            it->second[i].second += sit->getIntensity();
+          }
+        }
+      }
+    }
+
+    return;
+  }
+};
+
+struct RNPxlReportRowHeader
+{
+  String getString(String separator)
+  {
+    StringList sl;
+    sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
+       << "peptide weight" << "RNA weight" << "cross-link weight";
+
+    // marker ion fields
+    Map<String, vector<pair<DoubleReal, DoubleReal> > > marker_ions;
+    MarkerIonExtractor::extractMarkerIons(marker_ions, PeakSpectrum(), 0.0); // call only to generate header entries
+    for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    {
+      for (Size i = 0; i != it->second.size(); ++i)
+      {
+        sl << String(it->first + "_" + it->second[i].first);
+      }
+    }
+    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H";
+    return sl.concatenate(separator);
+  }
+};
+
 struct ModificationMassesResult
 {
   Map<String, DoubleReal> mod_masses; // empirical formula -> mass
@@ -517,45 +652,6 @@ protected:
     setValidFormats_("out_csv", StringList::create("csv"));
   }
 
-  void extractMarkerIons(Map<String, vector<pair<DoubleReal, DoubleReal> > >& marker_ions, const PeakSpectrum& s, const DoubleReal marker_tolerance)
-  {
-    marker_ions.clear();
-    marker_ions["A"].push_back(make_pair(136.06231, 0.0));
-    marker_ions["A"].push_back(make_pair(330.06033, 0.0));
-    marker_ions["C"].push_back(make_pair(112.05108, 0.0));
-    marker_ions["C"].push_back(make_pair(306.04910, 0.0));
-    marker_ions["G"].push_back(make_pair(152.05723, 0.0));
-    marker_ions["G"].push_back(make_pair(346.05525, 0.0));
-    marker_ions["U"].push_back(make_pair(113.03509, 0.0));
-    marker_ions["U"].push_back(make_pair(307.03311, 0.0));
-
-    PeakSpectrum spec(s);
-    Normalizer normalizer;
-    normalizer.filterSpectrum(spec);
-
-    // for each nucleotide with marker ions
-    for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
-    {
-      // for each marker ion of the current nucleotide
-      for (Size i = 0; i != it->second.size(); ++i)
-      {
-        DoubleReal mz = it->second[i].first;
-        for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit)
-        {
-          if (mz < sit->getMZ() - marker_tolerance)
-          {
-            break;
-          }
-          if (fabs(mz - sit->getMZ()) < marker_tolerance)
-          {
-            it->second[i].second += sit->getIntensity();
-          }
-        }
-      }
-    }
-
-    return;
-  }
 
   ExitCodes main_(int, const char**)
   {
@@ -787,44 +883,16 @@ protected:
 // create report
     const String out_idXML = getStringOption_("out_idXML");
     const string out_csv = getStringOption_("out_csv");
+    vector<RNPxlReportRow> csv_rows;
+
     const DoubleReal marker_tolerance = getDoubleOption_("marker_ions_tolerance");
 
-    ofstream csv_file(out_csv.c_str());
 
 // protein and peptide identifications for all spectra
     vector<PeptideIdentification> whole_experiment_filtered_peptide_ids;
     vector<ProteinIdentification> whole_experiment_filtered_protein_ids;
 
     Map<String, vector<pair<DoubleReal, DoubleReal> > > marker_ions;
-
-// HEADER of table
-    csv_file << "#RT"   << SEP
-             << "original m/z" << SEP
-             << "proteins" << SEP
-             << "RNA"   << SEP
-             << "peptide" << SEP
-             << "charge" << SEP
-             << "score" << SEP
-             << "peptide weight" << SEP
-             << "RNA weight" << SEP
-             << "X-link weight" << SEP;
-
-    extractMarkerIons(marker_ions, PeakSpectrum(), marker_tolerance); // call only to generate header entries
-
-    for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
-    {
-      for (Size i = 0; i != it->second.size(); ++i)
-      {
-        csv_file << it->first << "_"  << it->second[i].first << SEP;
-      }
-    }
-    csv_file << "abs prec. error, Da" << SEP
-             << "rel. prec. error, ppm" << SEP
-             << "M+H" << SEP
-             << "M+2H" << SEP
-             << "M+3H" << SEP
-             << "M+4H" << endl;
-//////////////////////////////////////////////////////////////////
 
     Size counter(0);
     for (vector<String>::const_iterator it = file_list_variants_mzML.begin(); it != file_list_variants_mzML.end(); ++it, ++counter)
@@ -863,24 +931,17 @@ protected:
 
 // find marker ions
       marker_ions.clear();
-      extractMarkerIons(marker_ions, *exp.begin(), marker_tolerance);
+      MarkerIonExtractor::extractMarkerIons(marker_ions, *exp.begin(), marker_tolerance);
 
 // case 1: no peptide identification
+      RNPxlReportRow row;
       if (pep_ids.size() == 0)
       {
-        csv_file << String::number(exp.begin()->getRT() / (DoubleReal)RT_FACTOR, 0) << SEP
-                 << String::number(exp.begin()->getPrecursors().begin()->getMZ(), 4) << SEP
-                 << SEP << "" << SEP << "" << SEP << "" << SEP << ""
-                 << SEP << "" << SEP << "" << SEP << "" << SEP << "" << SEP;
-
-        for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
-        {
-          for (Size i = 0; i != it->second.size(); ++i)
-          {
-            csv_file << String::number(it->second[i].second * 100.0, 2) << SEP;
-          }
-        }
-        csv_file << endl;
+        row.no_id = true;
+        row.rt = exp.begin()->getRT() / (DoubleReal)RT_FACTOR;
+        row.original_mz = exp.begin()->getPrecursors().begin()->getMZ();
+        row.marker_ions = marker_ions;
+	csv_rows.push_back(row);
         continue;
       }
 // end: case 1
@@ -958,16 +1019,17 @@ protected:
           protein_accessions += "," + hit->getProteinAccessions()[acc];
         }
 
-        csv_file << String::number(rt, 0) << SEP
-                 << String::number(exp.begin()->getPrecursors().begin()->getMZ(), 4) << SEP
-                 << protein_accessions         << SEP
-                 << xlink_name                 << SEP
-                 << hit->getSequence()         << SEP
-                 << hit->getCharge()           << SEP
-                 << hit->getScore()            << SEP
-                 << String::number(pep_weight, 4) << SEP
-                 << String::number(rna_weight, 4) << SEP
-                 << String::number(pep_weight + rna_weight, 4) << SEP;
+        row.no_id = false;
+        row.rt = rt;
+        row.original_mz = exp.begin()->getPrecursors().begin()->getMZ();
+        row.accessions = protein_accessions;
+        row.RNA = xlink_name;
+        row.peptide = hit->getSequence().toString();
+        row.charge = hit->getCharge();
+        row.score = hit->getScore();
+        row.peptide_weight = pep_weight;
+        row.RNA_weight = rna_weight;
+        row.xl_weight = pep_weight + rna_weight;
 
         whole_experiment_filtered_peptide_ids.back().setMetaValue("MZ", DataValue(exp_mz));
         whole_experiment_filtered_peptide_ids.back().setMetaValue("cross link id", DataValue(xlink_idx));
@@ -979,18 +1041,20 @@ protected:
         for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
         {
           for (Size i = 0; i != it->second.size(); ++i)
-          {
-            csv_file << String::number(it->second[i].second * 100.0, 2) << SEP;
+          {            
             whole_experiment_filtered_peptide_ids.back().setMetaValue(it->first + "_" + it->second[i].first, (DoubleReal)it->second[i].second * 100.0);
           }
         }
 
-        csv_file << String::number(absolute_difference, 4) << SEP
-                 << String::number(ppm_difference, 1)      << SEP
-                 << String::number(weight_z1, 4)           << SEP
-                 << String::number(weight_z2, 4)           << SEP
-                 << String::number(weight_z3, 4)           << SEP
-                 << String::number(weight_z4, 4)           << endl;
+        row.marker_ions = marker_ions;
+        row.abs_prec_error = absolute_difference;
+        row.rel_prec_error = ppm_difference;
+        row.m_H = weight_z1;
+        row.m_2H = weight_z2;
+        row.m_3H = weight_z3;
+        row.m_4H = weight_z4;
+      
+        csv_rows.push_back(row);
 
         whole_experiment_filtered_peptide_ids.back().setMetaValue("Da difference", (DoubleReal)absolute_difference);
         whole_experiment_filtered_peptide_ids.back().setMetaValue("ppm difference", (DoubleReal)ppm_difference);
@@ -1064,6 +1128,16 @@ protected:
     cout << QString(p->readAllStandardOutput()).toStdString() << endl;
     delete(p);
       
+    // write csv
+    ofstream csv_file(out_csv.c_str());
+    
+    // header of table
+    csv_file << RNPxlReportRowHeader().getString("\t") << endl;
+
+    for (Size i = 0; i != csv_rows.size(); ++i)
+    {	  
+      csv_file << csv_rows[i].getString("\t") << endl;
+    }
 
     // cleanup
     if (debug_level < 1)
