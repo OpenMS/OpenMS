@@ -1127,7 +1127,71 @@ protected:
     p->waitForFinished(999999999);
     cout << QString(p->readAllStandardOutput()).toStdString() << endl;
     delete(p);
+   
+    // load indexed idXML 
+    pr_tmp.clear();
+    pt_tmp.clear();
+    IdXMLFile().load(out_idXML, pr_tmp, pt_tmp);
+
+    // reindex tabular data to contain protein ids
+    map<DoubleReal, String> map_rt_2_accession;
+    for (vector<PeptideIdentification>::const_iterator pit = pt_tmp.begin(); pit != pt_tmp.end(); ++pit)
+    {
+      for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
+      {
+        DoubleReal rt = (DoubleReal)pit->getMetaValue("RT");
+	vector<String> accessions = hit->getProteinAccessions();
+
+	String accession_string;
+	for (Size j = 0; j != accessions.size(); ++j)
+	{
+	  if (j < 3)
+	  {
+	    accession_string += accessions[j] + " ";
+	  } else
+	  {
+            accession_string += "...";
+	    break;
+	  }
+	}
+        map_rt_2_accession[rt] = accession_string;	
+      }
+    }
+
+    for (vector<RNPxlReportRow>::iterator rit = csv_rows.begin(); rit != csv_rows.end(); ++rit)
+    {
+      DoubleReal current_rt = rit->rt;
+      map<DoubleReal, String>::iterator before = map_rt_2_accession.lower_bound(current_rt);
+      map<DoubleReal, String>::iterator min_distance_it;
+
+      if (before == map_rt_2_accession.begin())
+      {
+	 min_distance_it = before;
+      } 
+      else if (before == map_rt_2_accession.end())
+      {
+	 min_distance_it = --before;
+      } else
+      {
+        map<DoubleReal, String>::iterator after = before;
+        --before;
+	if ( (after->first - current_rt) < (current_rt - before->first) )
+        {
+	  min_distance_it = after;
+        } else
+	{
+	  min_distance_it = before;
+	}
+      }
       
+      cout << min_distance_it->first << " " << current_rt << endl; 
+      if (fabs(min_distance_it->first - current_rt) < 0.01)
+      {
+	rit->accessions = min_distance_it->second;
+      }
+    }
+
+
     // write csv
     ofstream csv_file(out_csv.c_str());
     
