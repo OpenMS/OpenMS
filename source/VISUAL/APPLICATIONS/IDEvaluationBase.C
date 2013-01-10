@@ -454,7 +454,7 @@ namespace OpenMS
       svg_gen.setTitle(tr("Title (TBD)"));
       svg_gen.setDescription(tr("Description (TBD)"));
       QPainter painter(&svg_gen);
-      spec_1d_->render(&painter); //, QRectF(), items_bounding_rect);
+      spec_1d_->renderForImage(painter); //, QRectF(), items_bounding_rect);
     }
     else
     {
@@ -462,7 +462,7 @@ namespace OpenMS
 
       QImage img(w, h, QImage::Format_ARGB32_Premultiplied);
       QPainter painter(&img);
-      spec_1d_->render(&painter); //, QRectF(), items_bounding_rect);
+      spec_1d_->renderForImage(painter); //, QRectF(), items_bounding_rect);
       painter.end();
       bool r = img.save(file_name, format.toStdString().c_str());
       if (!r)

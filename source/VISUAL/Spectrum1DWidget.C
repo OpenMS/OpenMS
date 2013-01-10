@@ -302,6 +302,17 @@ namespace OpenMS
     grid_->addWidget(flipped_y_axis_, 2, 1);
   }
 
+  void Spectrum1DWidget::renderForImage(QPainter& painter)
+  {
+    bool x_visible = x_scrollbar_->isVisible();
+    bool y_visible = y_scrollbar_->isVisible();
+    x_scrollbar_->hide();
+    y_scrollbar_->hide();
+    this->render(&painter);
+    x_scrollbar_->setVisible(x_visible);
+    y_scrollbar_->setVisible(y_visible);
+  }
+
   void Spectrum1DWidget::saveAsImage()
   {
     QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Raster images *.bmp *.png *.jpg *.gif (*.bmp *.png *.jpg *.gif);;Vector images *.svg (*.svg)");
