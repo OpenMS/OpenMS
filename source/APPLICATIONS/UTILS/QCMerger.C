@@ -56,70 +56,65 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCExporter QCExporter
+    @page UTILS_QCMerger QCMerger
 
     @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It is intended to provide tables that can be read into R where QC metrics will be calculated.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCExporter.cli
+    @verbinclude UTILS_QCMerger.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCExporter.html
+    @htmlinclude UTILS_QCMerger.html
 
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPQCExporter :
+class TOPPQCMerger :
   public TOPPBase
 {
 public:
-  TOPPQCExporter() :
-    TOPPBase("QCExporter", "produces qcml files", false)
+  TOPPQCMerger() :
+    TOPPBase("QCMerger", "produces qcml files", false)
   {
   }
 
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input qcml file");
+    registerInputFileList_("in", "<files>", StringList(), "List of qcml files to be merged.");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringOption_("qp", "<choice>", "", "Target QualityParameter. ('ticpoints': total ion current stats, 'precursorpoints': stats about the precursors from the rawfile, 'pepidpoints': identifications from the rawfile, 'featurepoints': stats about features from the rawfile, 'consensusstats': stats about consensus features from the rawfile)\n");
-    setValidStrings_("qp", StringList::create("ticpoints,precursorpoints,pepidpoints,featurepoints,consensuspoints"));
-    registerStringOption_("msrun_filename", "<string>", "", "The name of the target raw file of the respective quality parameter.");
-    registerOutputFile_("out_csv", "<file>", "", "Output csv formated quality parameter or extended qcML file");
-    setValidFormats_("out_csv",StringList::create("csv"));
+    registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
+    setValidFormats_("out",StringList::create("qcML"));
   }
 
   ExitCodes main_(int, const char **)
   {
+    String plot_file = "";
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                   = getStringOption_("in");
-    String csv                  = getStringOption_("out_csv");
-    String target_qp            = getStringOption_("qp");
-    String target_raw           = getStringOption_("msrun_filename");
+    StringList in_files     = getStringList_("in");
+    String out              = getStringOption_("out");
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
 
     QcMLFile qcmlfile;
-    qcmlfile.load(in);
+    for (Size i = 0; i < in_files.size(); ++i)
+    {
+      QcMLFile tmpfile;
+      tmpfile.load(in_files[i]);
+      qcmlfile.merge(tmpfile);
+    }
 
-    //TODO warn when target_raw is empty or not present in qcml
-    String csv_str = qcmlfile.exportQualityParameter(target_raw,target_qp);
-    ofstream fout(csv.c_str());
-    fout << csv_str << endl;
-    fout.close();
-    //~ qcmlfile.store(out);
-
+    qcmlfile.store(out);
     return EXECUTION_OK;
   }
 
 };
 int main(int argc, const char ** argv)
 {
-  TOPPQCExporter tool;
+  TOPPQCMerger tool;
   return tool.main(argc, argv);
 }
 

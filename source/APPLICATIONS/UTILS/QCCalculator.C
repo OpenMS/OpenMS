@@ -165,7 +165,7 @@ protected:
       row.clear();
     }
     row.push_back("#peaks");
-    row.push_back(exp.getSize());
+    row.push_back(exp.getSize()); //TODO this is bug-ish
     qp.tableRows.push_back(row);
     row.clear();
     row.push_back("#chromatograms");

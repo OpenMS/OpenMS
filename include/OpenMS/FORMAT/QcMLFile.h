@@ -120,6 +120,8 @@ public:
     void addAttachment(String r, Attachment at);
     ///Just removes qualityparameter by the name qp from run/set by the name r
     void removeQualityParameter(String r, String qp);
+    ///merges the given QCFile into this one
+    void merge(const QcMLFile & addendum);
     ///Returns a String of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname
     String exportQualityParameter(const String filename, const String qpname) const;
     ///Returns the id of the parameter if found empty string else from run/set by the name filename

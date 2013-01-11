@@ -34,6 +34,9 @@ TransformationEvaluation
 XMLValidator
 QCCalculator
 QCExporter
+QCMerger
+QCShrinker
+QCEmbedder
 RNPxl
 RNPxlXICFilter
 )

@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Author: Mathias Walzer $
+// $Author: Mathias Walzer, Sven Nahnsen $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -56,25 +56,25 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCExporter QCExporter
+    @page UTILS_QCEmbedder QCEmbedder
 
     @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It is intended to provide tables that can be read into R where QC metrics will be calculated.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCExporter.cli
+    @verbinclude UTILS_QCEmbedder.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCExporter.html
+    @htmlinclude UTILS_QCEmbedder.html
 
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPQCExporter :
+class TOPPQCEmbedder :
   public TOPPBase
 {
 public:
-  TOPPQCExporter() :
-    TOPPBase("QCExporter", "produces qcml files", false)
+  TOPPQCEmbedder() :
+    TOPPBase("QCEmbedder", "produces qcml files", false)
   {
   }
 
@@ -85,20 +85,24 @@ protected:
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<choice>", "", "Target QualityParameter. ('ticpoints': total ion current stats, 'precursorpoints': stats about the precursors from the rawfile, 'pepidpoints': identifications from the rawfile, 'featurepoints': stats about features from the rawfile, 'consensusstats': stats about consensus features from the rawfile)\n");
     setValidStrings_("qp", StringList::create("ticpoints,precursorpoints,pepidpoints,featurepoints,consensuspoints"));
-    registerStringOption_("msrun_filename", "<string>", "", "The name of the target raw file of the respective quality parameter.");
-    registerOutputFile_("out_csv", "<file>", "", "Output csv formated quality parameter or extended qcML file");
-    setValidFormats_("out_csv",StringList::create("csv"));
+    registerStringOption_("run_name", "<string>", "", "The name of the target msrun file of the respective quality parameter.");
+    registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)");
+    setValidFormats_("plot", StringList::create("PNG"));
+    registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
+    setValidFormats_("out",StringList::create("qcML"));
   }
 
   ExitCodes main_(int, const char **)
   {
+    String plot_file = "";
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
     String in                   = getStringOption_("in");
-    String csv                  = getStringOption_("out_csv");
+    String out                  = getStringOption_("out");
     String target_qp            = getStringOption_("qp");
-    String target_raw           = getStringOption_("msrun_filename");
+    String target_run           = getStringOption_("msrun_filename");
+    plot_file                   = getStringOption_("plot");
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
@@ -106,12 +110,28 @@ protected:
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
-    //TODO warn when target_raw is empty or not present in qcml
-    String csv_str = qcmlfile.exportQualityParameter(target_raw,target_qp);
-    ofstream fout(csv.c_str());
-    fout << csv_str << endl;
-    fout.close();
-    //~ qcmlfile.store(out);
+
+    QFile f(plot_file.c_str());
+    String plot_b64;
+    if (f.open(QIODevice::ReadOnly))
+    {
+      QByteArray ba = f.readAll();
+      f.close();
+      plot_b64 = String(QString(ba.toBase64()));
+    }
+    if (plot_b64 != "")
+    {
+      QcMLFile::Attachment at;
+      at.name = target_qp + "_plot";
+      at.cvRef = "QC";
+      at.cvAcc = "QC:xxxxxxxx";
+      //~ at.unitRef; //TODO MIME type
+      //~ at.unitAcc;
+      at.binary = plot_b64;
+      at.qualityRef = qcmlfile.existsQualityParameter(target_run, target_qp);
+      qcmlfile.addAttachment(target_run, at);
+      qcmlfile.store(out);
+    }
 
     return EXECUTION_OK;
   }
@@ -119,7 +139,7 @@ protected:
 };
 int main(int argc, const char ** argv)
 {
-  TOPPQCExporter tool;
+  TOPPQCEmbedder tool;
   return tool.main(argc, argv);
 }
 

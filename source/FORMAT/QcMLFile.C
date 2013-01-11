@@ -244,6 +244,19 @@ namespace OpenMS
     }
   }
 
+  void QcMLFile::merge(const QcMLFile & addendum)
+  {
+    for (std::map<String, std::vector< QualityParameter > >::const_iterator it = addendum.runQualitysQPs_.begin(); it != addendum.runQualitysQPs_.end(); ++it)
+    {
+      //TODO remove duplicates - implement ==operator for QP and AT
+      runQualitysQPs_[it->first].insert(runQualitysQPs_[it->first].end(), it->second.begin(), it->second.end());
+    }
+    for (std::map<String, std::vector< Attachment > >::const_iterator it = addendum.runQualitysAts_.begin(); it != addendum.runQualitysAts_.end(); ++it)
+    {
+      runQualitysAts_[it->first].insert(runQualitysAts_[it->first].end(), it->second.begin(), it->second.end());
+    }
+  }
+
   void QcMLFile::addAttachment(String r, Attachment at)
   {
     runQualitysAts_[r].push_back(at); //TODO redundancy check
@@ -571,7 +584,7 @@ namespace OpenMS
 
     if (!keys.empty())
     {
-      os << "  <RunQuality>\n";
+      os << "\t<RunQuality>\n";
     }
 
     for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
@@ -597,7 +610,7 @@ namespace OpenMS
     //close
     if (!keys.empty())
     {
-      os << "  </RunQuality>\n";
+      os << "\t</RunQuality>\n";
     }
     //TODO SetQuality
     os << "</MzQualityMLType>\n";
