@@ -68,7 +68,7 @@ using namespace OpenMS;
 
 bool notInSeq(String res_seq, String query)
 {
-// special case: empty query is in every seq -> false
+  // special case: empty query is in every seq -> false
   if (query == "")
   {
     return false;
@@ -97,7 +97,7 @@ void generateTargetSequences(const String& res_seq, Size pos, const map<char, ve
 
   while (pos < res_seq.size())
   {
-// check if current character is in source 2 target map
+    // check if current character is in source 2 target map
     TConstMapIterator target_iterator = map_source2target.find(res_seq[pos]);
     if (target_iterator == map_source2target.end())
     {
@@ -120,7 +120,7 @@ void generateTargetSequences(const String& res_seq, Size pos, const map<char, ve
     }
   }
 
-// check and add only valid sequences (containing only target nucleotides or nucleotides that are both source and target nucleotides)
+  // check and add only valid sequences (containing only target nucleotides or nucleotides that are both source and target nucleotides)
   Size count = 0;
   for (Size pos = 0; pos != res_seq.size(); ++pos)
   {
@@ -208,9 +208,9 @@ struct RNPxlReportRow
 
       // weight
       sl << String::number(m_H, 4)
-         << String::number(m_2H, 4)
-         << String::number(m_3H, 4)
-         << String::number(m_4H, 4);
+          << String::number(m_2H, 4)
+          << String::number(m_3H, 4)
+          << String::number(m_4H, 4);
     }
 
     return sl.concatenate(separator);
@@ -234,6 +234,7 @@ struct MarkerIonExtractor
     PeakSpectrum spec(s);
     Normalizer normalizer;
     normalizer.filterSpectrum(spec);
+    spec.sortByPosition();
 
     // for each nucleotide with marker ions
     for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
@@ -242,17 +243,26 @@ struct MarkerIonExtractor
       for (Size i = 0; i != it->second.size(); ++i)
       {
         DoubleReal mz = it->second[i].first;
-        for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit)
+        DoubleReal max_intensity = 0;
+        for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit)  // TODO: replace by binary search
         {
+          if (sit->getMZ() + marker_tolerance < mz)
+          {
+            continue;
+          }
           if (mz < sit->getMZ() - marker_tolerance)
           {
             break;
           }
           if (fabs(mz - sit->getMZ()) < marker_tolerance)
           {
-            it->second[i].second += sit->getIntensity();
+            if (max_intensity < sit->getIntensity())
+            {
+              max_intensity = sit->getIntensity();
+            }
           }
         }
+        it->second[i].second = max_intensity;
       }
     }
 
@@ -266,7 +276,7 @@ struct RNPxlReportRowHeader
   {
     StringList sl;
     sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
-       << "peptide weight" << "RNA weight" << "cross-link weight";
+        << "peptide weight" << "RNA weight" << "cross-link weight";
 
     // marker ion fields
     Map<String, vector<pair<DoubleReal, DoubleReal> > > marker_ions;
@@ -297,7 +307,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   const EmpiricalFormula cysteine_adduct_formula(cysteine_adduct_string); // 152 modification
 
   ModificationMassesResult result;
-// read nucleotides and empirical formula of monophosphat version
+  // read nucleotides and empirical formula of monophosphat version
   map<String, EmpiricalFormula> map_target_to_formula;
   for (Size i = 0; i != target_nucleotides.size(); ++i)
   {
@@ -307,7 +317,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     map_target_to_formula[fields[0]] = EmpiricalFormula(fields[1]);
   }
 
-// read mapping of source to target
+  // read mapping of source to target
   map<char, vector<char> > map_source_to_targets;
   for (Size i = 0; i != mappings.size(); ++i)
   {
@@ -317,7 +327,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     map_source_to_targets[fields[0][0]].push_back(fields[1][0]);
   }
 
-// extract source nucleotides based on mapping
+  // extract source nucleotides based on mapping
   vector<char> source_nucleotides; // nucleotides as expected in the restriction sequence
   for (StringList::const_iterator sit = mappings.begin(); sit != mappings.end(); ++sit)
   {
@@ -329,7 +339,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     vector<String> all_combinations;
     vector<String> actual_combinations;
 
-// add single source nucleotides to all_combinations
+    // add single source nucleotides to all_combinations
     for (Size i = 0; i != source_nucleotides.size(); ++i)
     {
       all_combinations.push_back(String(source_nucleotides[i]));
@@ -357,7 +367,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     }
   }
 
-// read restrictions
+  // read restrictions
   cout << "Min. count restrictions:" << endl;
   map<char, Size> map_target_to_mincount;
   for (Size i = 0; i != restrictions.size(); ++i)
@@ -373,9 +383,9 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     }
   }
 
-//cout << "source sequence: " << sequence_restriction << endl;
+  //cout << "source sequence: " << sequence_restriction << endl;
 
-// erase trivial cases from mapping so only the combinatorial cases: 1 source -> n targets remain
+  // erase trivial cases from mapping so only the combinatorial cases: 1 source -> n targets remain
   for (map<char, vector<char> >::iterator sit = map_source_to_targets.begin(); sit != map_source_to_targets.end(); )
   {
     char source = sit->first;
@@ -396,7 +406,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     }
   }
 
-// cout << "source sequence: " << sequence_restriction << endl;
+  // cout << "source sequence: " << sequence_restriction << endl;
 
   if (map_source_to_targets.size() > 0 && sequence_restriction.empty())
   {
@@ -407,7 +417,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   vector<vector<EmpiricalFormula> > modification_formulas(modifications.size(), vector<EmpiricalFormula>());
   for (Size i = 0; i != modifications.size(); ++i)
   {
-// decompose string into additive and subtractive EmpiricalFormulas
+    // decompose string into additive and subtractive EmpiricalFormulas
     modifications[i].substitute("-", "#-");
     modifications[i].substitute("+", "#+");
     vector<String> ems;
@@ -446,7 +456,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     }
   }
 
-// generate all target sequences by substituting each source nucleotide by their target nucleotide(s)
+  // generate all target sequences by substituting each source nucleotide by their target nucleotide(s)
   StringList target_sequences;
   generateTargetSequences(sequence_restriction, 0, map_source_to_targets, target_sequences);
   cout << "target sequence(s):" << target_sequences.size() << endl;
@@ -513,20 +523,20 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
       actual_combinations = new_combinations;
     }
 
-//    cout << all_combinations.size() << endl;
+    //    cout << all_combinations.size() << endl;
     for (Size i = 0; i != all_combinations.size(); ++i)
     {
-//      cout << all_combinations[i].getString() << endl;
+      //      cout << all_combinations[i].getString() << endl;
       result.mod_masses[all_combinations[i].getString()] = all_combinations[i].getMonoWeight();
     }
   }
 
   cout << "Filtering on restrictions... " << endl;
-// filtering on restrictions
+  // filtering on restrictions
   std::vector<String> violates_restriction;
   for (Map<String, DoubleReal>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
-// remove additive or subtractive modifications from string as these are not used in string comparison
+    // remove additive or subtractive modifications from string as these are not used in string comparison
     String nucleotide_style_formula = result.mod_combinations[mit->first];
     Size p1 = nucleotide_style_formula.find('-');
     Size p2 = nucleotide_style_formula.find('+');
@@ -535,23 +545,23 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     {
       nucleotide_style_formula = nucleotide_style_formula.prefix(p);
     }
-//  cout << "(" << nucleotide_style_formula << ")" << endl;
+    //  cout << "(" << nucleotide_style_formula << ")" << endl;
     // perform string comparison: if nucleotide seuquence doesnt occur in any permutation in res_seq mark the corresponding empirical formula for deletion
     bool restriction_violated = false;
 
     // for each min. count restriction on a target nucleotide...
     for (map<char, Size>::const_iterator minit = map_target_to_mincount.begin(); minit != map_target_to_mincount.end(); ++minit)
     {
-//    cout << nucleotide_style_formula <<  " current target: " << minit->first << " ";
+      //    cout << nucleotide_style_formula <<  " current target: " << minit->first << " ";
       Size occurances = (Size) std::count(nucleotide_style_formula.begin(), nucleotide_style_formula.end(), minit->first);
-//    cout << occurances << endl;
+      //    cout << occurances << endl;
       if (occurances < minit->second)
       {
         restriction_violated = true;
       }
     }
 
-// check if contained in at least one of the target sequences
+    // check if contained in at least one of the target sequences
     bool containment_violated = false;
     Size violation_count = 0;
     for (StringList::const_iterator tsit = target_sequences.begin(); tsit != target_sequences.end(); ++tsit)
@@ -583,7 +593,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   {
     result.mod_masses[cysteine_adduct_formula.getString()] = cysteine_adduct_formula.getMonoWeight();
     result.mod_combinations[cysteine_adduct_formula.getString()] = cysteine_adduct_string;
- }
+  }
 
   DoubleReal pseudo_rt = 1;
   for (Map<String, DoubleReal>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
@@ -596,11 +606,11 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
 }
 
 class TOPPRNPxl :
-  public TOPPBase
+    public TOPPBase
 {
 public:
   TOPPRNPxl() :
-    TOPPBase("RNPxl", "Tool for RNP cross linking experiment analysis.", false)
+      TOPPBase("RNPxl", "Tool for RNP cross linking experiment analysis.", false)
   {
   }
 
@@ -657,14 +667,14 @@ protected:
   {
     const string in_mzml(getStringOption_("in_mzML"));
 
-// string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
+    // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides = getStringList_("target_nucleotides");
 
-// string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
+    // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
     StringList mappings = getStringList_("mapping");
 
-// string format: target,min_count: e.g "X=1" if at least one tU must be in the generated sequence.
-// All target nucleotides must be included. X=0 -> disable restriction
+    // string format: target,min_count: e.g "X=1" if at least one tU must be in the generated sequence.
+    // All target nucleotides must be included. X=0 -> disable restriction
     StringList restrictions = getStringList_("restrictions");
 
     StringList modifications = getStringList_("modifications");
@@ -693,7 +703,7 @@ protected:
     String tmp_path = File::getTempDirectory();
     tmp_path.substitute('\\', '/');
 
-//REPORT:
+    //REPORT:
     cout << "Theoretical precursor variants: " << mm.mod_masses.size() << endl;
     Size count_MS2 = 0;
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
@@ -737,14 +747,14 @@ protected:
         prec_charge = 2;
       }
 
-// add spec without any modifications
+      // add spec without any modifications
       DoubleReal orig_rt = it->getRT();
 
       Size orig_rt_mul = (Size)(orig_rt * RT_FACTOR_PRECISION + 0.5) * RT_FACTOR / RT_FACTOR_PRECISION;
 
       Size mod_count(0);
       PeakSpectrum new_spec = *it;
-//cout << "add: " << setprecision(15) << (DoubleReal)(orig_rt_mul + mod_count) << endl;
+      //cout << "add: " << setprecision(15) << (DoubleReal)(orig_rt_mul + mod_count) << endl;
       new_spec.setRT(orig_rt_mul + mod_count++);
       Precursor new_prec;
       new_prec.setMZ(prec_pos);
@@ -755,7 +765,7 @@ protected:
       new_spec.setName("no_name");
       new_spec.setComment("no_comment");
 
-// Filter: peptide mass < 1750 and first deciamal place < 0.2
+      // Filter: peptide mass < 1750 and first deciamal place < 0.2
       DoubleReal peptide_weight = prec_pos * prec_charge - prec_charge * Constants::PROTON_MASS_U;
       if (peptide_weight < 1750 && peptide_weight - floor(peptide_weight) < 0.2)
       {
@@ -768,7 +778,7 @@ protected:
         continue;
       }
 
-// Filter: peptide mass < small_peptide_mass_filter_threshold (usually 600)
+      // Filter: peptide mass < small_peptide_mass_filter_threshold (usually 600)
       if (peptide_weight < small_peptide_mass_filter_threshold)
       {
         small_peptide_weight_filtered++;
@@ -785,7 +795,7 @@ protected:
       }
       new_exp.push_back(new_spec);
 
-// add a new spec with each of the modifications
+      // add a new spec with each of the modifications
       int valid_mod_count = 0;
       for (Map<String, DoubleReal>::ConstIterator mit = mm.mod_masses.begin(); mit != mm.mod_masses.end(); ++mit)
       {
@@ -851,9 +861,9 @@ protected:
     cout << base_name << ": " << "Before filtering: " << sum_before << " theoretical precursor variants." << endl;
     cout << base_name << ": " << "After filtering:  " << sum_after << " theoretical precursor variants." << endl;
 
-// perform OMSSA search
+    // perform OMSSA search
     {
-// get names of precursor variants mzml files
+      // get names of precursor variants mzml files
       QProcess* p;
       const String in_OMSSA_ini(getStringOption_("in_OMSSA_ini"));
       for (vector<String>::const_iterator it = file_list_variants_mzML.begin(); it != file_list_variants_mzML.end(); ++it)
@@ -880,7 +890,7 @@ protected:
       }
     }
 
-// create report
+    // create report
     const String out_idXML = getStringOption_("out_idXML");
     const string out_csv = getStringOption_("out_csv");
     vector<RNPxlReportRow> csv_rows;
@@ -888,7 +898,7 @@ protected:
     const DoubleReal marker_tolerance = getDoubleOption_("marker_ions_tolerance");
 
 
-// protein and peptide identifications for all spectra
+    // protein and peptide identifications for all spectra
     vector<PeptideIdentification> whole_experiment_filtered_peptide_ids;
     vector<ProteinIdentification> whole_experiment_filtered_protein_ids;
 
@@ -910,7 +920,7 @@ protected:
       vector<PeptideIdentification> pep_ids;
       IdXMLFile().load(idxml_string, prot_ids, pep_ids);
 
-// copy protein identifications as is - they are not really needed in the later output
+      // copy protein identifications as is - they are not really needed in the later output
       whole_experiment_filtered_protein_ids.insert(whole_experiment_filtered_protein_ids.end(), prot_ids.begin(), prot_ids.end());
 
       /*
@@ -925,15 +935,15 @@ protected:
       }
       */
 
-// load map with all precursor variations (originating from one single precursor) that corresponds to this identification run
+      // load map with all precursor variations (originating from one single precursor) that corresponds to this identification run
       PeakMap exp;
       MzMLFile().load(mzml_string, exp);
 
-// find marker ions
+      // find marker ions
       marker_ions.clear();
       MarkerIonExtractor::extractMarkerIons(marker_ions, *exp.begin(), marker_tolerance);
 
-// case 1: no peptide identification
+      // case 1: no peptide identification
       RNPxlReportRow row;
       if (pep_ids.size() == 0)
       {
@@ -941,17 +951,17 @@ protected:
         row.rt = exp.begin()->getRT() / (DoubleReal)RT_FACTOR;
         row.original_mz = exp.begin()->getPrecursors().begin()->getMZ();
         row.marker_ions = marker_ions;
-	csv_rows.push_back(row);
+        csv_rows.push_back(row);
         continue;
       }
-// end: case 1
+      // end: case 1
 
-// case 2: peptide identifications
+      // case 2: peptide identifications
 
-// For every precursor variant spectrum of the map can produce a peptide identification with a single peptide hit TODO: check why there are sometimes more than 1
-// The best peptide hit of the whole variant map is retained and stored
+      // For every precursor variant spectrum of the map can produce a peptide identification with a single peptide hit TODO: check why there are sometimes more than 1
+      // The best peptide hit of the whole variant map is retained and stored
 
-// copy all peptide hits (should be only one) from all peptide identifications (there can be one for every variant)
+      // copy all peptide hits (should be only one) from all peptide identifications (there can be one for every variant)
       vector<PeptideHit> pep_hits;
       for (vector<PeptideIdentification>::const_iterator pit = pep_ids.begin(); pit != pep_ids.end(); ++pit)
       {
@@ -963,21 +973,21 @@ protected:
         }
       }
 
-// create new peptide identification and reassign all hits
+      // create new peptide identification and reassign all hits
       PeptideIdentification new_pep_id = *pep_ids.begin();
       new_pep_id.setHigherScoreBetter(false);
       new_pep_id.setHits(pep_hits);
       new_pep_id.assignRanks(); //sort by score and assign ranks
       pep_hits = new_pep_id.getHits();
 
-// only retain top hit if multiple peptide hits are present
+      // only retain top hit if multiple peptide hits are present
       if (pep_hits.size() > 1)
       {
         pep_hits.resize(1);
       }
       new_pep_id.setHits(pep_hits); // assign top hit
 
-// store best peptide identification
+      // store best peptide identification
       whole_experiment_filtered_peptide_ids.push_back(new_pep_id);
 
       for (vector<PeptideHit>::const_iterator hit = pep_hits.begin(); hit != pep_hits.end(); ++hit)
@@ -1053,7 +1063,7 @@ protected:
         row.m_2H = weight_z2;
         row.m_3H = weight_z3;
         row.m_4H = weight_z4;
-      
+
         csv_rows.push_back(row);
 
         whole_experiment_filtered_peptide_ids.back().setMetaValue("Da difference", (DoubleReal)absolute_difference);
@@ -1077,7 +1087,7 @@ protected:
       }
     }
 
-// create new peptide identifications and copy over data
+    // create new peptide identifications and copy over data
     vector<PeptideIdentification> pt_tmp;
     for (size_t k = 0; k != whole_experiment_filtered_peptide_ids.size(); ++k)
     {
@@ -1127,7 +1137,7 @@ protected:
     p->waitForFinished(999999999);
     cout << QString(p->readAllStandardOutput()).toStdString() << endl;
     delete(p);
-   
+
     // load indexed idXML 
     pr_tmp.clear();
     pt_tmp.clear();
@@ -1140,20 +1150,20 @@ protected:
       for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
       {
         DoubleReal rt = (DoubleReal)pit->getMetaValue("RT");
-	vector<String> accessions = hit->getProteinAccessions();
+        vector<String> accessions = hit->getProteinAccessions();
 
-	String accession_string;
-	for (Size j = 0; j != accessions.size(); ++j)
-	{
-	  if (j < 3)
-	  {
-	    accession_string += accessions[j] + " ";
-	  } else
-	  {
+        String accession_string;
+        for (Size j = 0; j != accessions.size(); ++j)
+        {
+          if (j < 3)
+          {
+            accession_string += accessions[j] + " ";
+          } else
+          {
             accession_string += "...";
-	    break;
-	  }
-	}
+            break;
+          }
+        }
         map_rt_2_accession[rt] = accession_string;	
       }
     }
@@ -1166,28 +1176,28 @@ protected:
 
       if (before == map_rt_2_accession.begin())
       {
-	 min_distance_it = before;
+        min_distance_it = before;
       } 
       else if (before == map_rt_2_accession.end())
       {
-	 min_distance_it = --before;
+        min_distance_it = --before;
       } else
       {
         map<DoubleReal, String>::iterator after = before;
         --before;
-	if ( (after->first - current_rt) < (current_rt - before->first) )
+        if ( (after->first - current_rt) < (current_rt - before->first) )
         {
-	  min_distance_it = after;
+          min_distance_it = after;
         } else
-	{
-	  min_distance_it = before;
-	}
+        {
+          min_distance_it = before;
+        }
       }
       
       cout << min_distance_it->first << " " << current_rt << endl; 
       if (fabs(min_distance_it->first - current_rt) < 0.01)
       {
-	rit->accessions = min_distance_it->second;
+        rit->accessions = min_distance_it->second;
       }
     }
 
