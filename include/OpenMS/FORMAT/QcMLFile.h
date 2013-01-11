@@ -82,6 +82,9 @@ public:
       QualityParameter(const QualityParameter& rhs);
 
       QualityParameter& operator=(const QualityParameter& rhs);
+      bool operator==(const QualityParameter& rhs) const;
+      bool operator<(const QualityParameter& rhs) const;
+      bool operator>(const QualityParameter& rhs) const;
 
       String toXMLString(UInt indentation_level) const;
       String toCSVString(String separator) const;
@@ -105,6 +108,9 @@ public:
       Attachment(const Attachment& rhs);
 
       Attachment& operator=(const Attachment& rhs);
+      bool operator==(const Attachment& rhs) const;
+      bool operator<(const Attachment& rhs) const;
+      bool operator>(const Attachment& rhs) const;
 
       String toXMLString(UInt indentation_level) const;
     };
@@ -143,8 +149,8 @@ protected:
     // Docu in base class
     virtual void characters(const XMLCh * const chars, const XMLSize_t length);
 
-    std::map<String, std::vector< QualityParameter > > runQualitysQPs_; //TODO run name attribute to schema of RunQuality
-    std::map<String, std::vector< Attachment > > runQualitysAts_;
+    std::map<String, std::vector< QualityParameter > > runQualityQPs_; //TODO run name attribute to schema of RunQuality
+    std::map<String, std::vector< Attachment > > runQualityAts_;
     //~ TODO setQuality
 
     String tag_;

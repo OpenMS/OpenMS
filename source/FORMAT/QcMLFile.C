@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -80,6 +81,21 @@ namespace OpenMS
       tableRows = rhs.tableRows;
     }
     return *this;
+  }
+
+  bool QcMLFile::QualityParameter::operator< (const QualityParameter & rhs) const
+  {
+    return name.toQString() < rhs.name.toQString();
+  }
+
+  bool QcMLFile::QualityParameter::operator> (const QualityParameter & rhs) const
+  {
+    return name.toQString() > rhs.name.toQString();
+  }
+
+  bool QcMLFile::QualityParameter::operator== (const QualityParameter & rhs) const
+  {
+    return name.toQString() == rhs.name.toQString();
   }
 
   String QcMLFile::QualityParameter::toXMLString(UInt indentation_level) const
@@ -177,6 +193,21 @@ namespace OpenMS
     return *this;
   }
 
+  bool QcMLFile::Attachment::operator< (const Attachment& rhs) const
+  {
+    return name.toQString() < rhs.name.toQString();
+  }
+
+  bool QcMLFile::Attachment::operator> (const Attachment& rhs) const
+  {
+    return name.toQString() > rhs.name.toQString();
+  }
+
+  bool QcMLFile::Attachment::operator== (const Attachment& rhs) const
+  {
+    return name.toQString() == rhs.name.toQString();
+  }
+
   String QcMLFile::Attachment::toXMLString(UInt indentation_level) const
   {
     String indent = String(indentation_level, '\t');
@@ -225,17 +256,17 @@ namespace OpenMS
 
   void QcMLFile::addQualityParameter(String r, QualityParameter qp)
   {
-    runQualitysQPs_[r].push_back(qp); //TODO redundancy check
+    runQualityQPs_[r].push_back(qp); //TODO redundancy check
   }
 
   void QcMLFile::removeQualityParameter(String r, String qp)
   {
-    std::vector<QcMLFile::QualityParameter>::iterator qit = runQualitysQPs_[r].begin();
-    while (qit != runQualitysQPs_[r].end())
+    std::vector<QcMLFile::QualityParameter>::iterator qit = runQualityQPs_[r].begin();
+    while (qit != runQualityQPs_[r].end())
     {
       if (qit->name == qp)
       {
-        qit = runQualitysQPs_[r].erase(qit);
+        qit = runQualityQPs_[r].erase(qit);
       }
       else
       {
@@ -246,27 +277,31 @@ namespace OpenMS
 
   void QcMLFile::merge(const QcMLFile & addendum)
   {
-    for (std::map<String, std::vector< QualityParameter > >::const_iterator it = addendum.runQualitysQPs_.begin(); it != addendum.runQualitysQPs_.end(); ++it)
+    for (std::map<String, std::vector< QualityParameter > >::const_iterator it = addendum.runQualityQPs_.begin(); it != addendum.runQualityQPs_.end(); ++it)
     {
-      //TODO remove duplicates - implement ==operator for QP and AT
-      runQualitysQPs_[it->first].insert(runQualitysQPs_[it->first].end(), it->second.begin(), it->second.end());
+      runQualityQPs_[it->first].insert(runQualityQPs_[it->first].end(), it->second.begin(), it->second.end());
+      std::sort(runQualityQPs_[it->first].begin(), runQualityQPs_[it->first].end() );
+      runQualityQPs_[it->first].erase(std::unique(runQualityQPs_[it->first].begin(), runQualityQPs_[it->first].end()), runQualityQPs_[it->first].end() );
     }
-    for (std::map<String, std::vector< Attachment > >::const_iterator it = addendum.runQualitysAts_.begin(); it != addendum.runQualitysAts_.end(); ++it)
+    for (std::map<String, std::vector< Attachment > >::const_iterator it = addendum.runQualityAts_.begin(); it != addendum.runQualityAts_.end(); ++it)
     {
-      runQualitysAts_[it->first].insert(runQualitysAts_[it->first].end(), it->second.begin(), it->second.end());
+      runQualityAts_[it->first].insert(runQualityAts_[it->first].end(), it->second.begin(), it->second.end());
+      std::sort(runQualityAts_[it->first].begin(), runQualityAts_[it->first].end() );
+      runQualityAts_[it->first].erase(std::unique(runQualityAts_[it->first].begin(), runQualityAts_[it->first].end()), runQualityAts_[it->first].end() );
+
     }
   }
 
   void QcMLFile::addAttachment(String r, Attachment at)
   {
-    runQualitysAts_[r].push_back(at); //TODO redundancy check
+    runQualityAts_[r].push_back(at); //TODO redundancy check
   }
 
   String QcMLFile::exportQualityParameter(const String filename, const String qpname) const
   {
-    std::map<String, std::vector< QcMLFile::QualityParameter > >::const_iterator qpsit = runQualitysQPs_.find(filename);
+    std::map<String, std::vector< QcMLFile::QualityParameter > >::const_iterator qpsit = runQualityQPs_.find(filename);
 
-    if (qpsit != runQualitysQPs_.end())
+    if (qpsit != runQualityQPs_.end())
     {
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
@@ -283,9 +318,9 @@ namespace OpenMS
   String QcMLFile::existsQualityParameter(const String filename, const String qpname) const
   {
     String found = "";
-    std::map<String, std::vector< QcMLFile::QualityParameter > >::const_iterator qpsit = runQualitysQPs_.find(filename);
+    std::map<String, std::vector< QcMLFile::QualityParameter > >::const_iterator qpsit = runQualityQPs_.find(filename);
 
-    if (qpsit != runQualitysQPs_.end())
+    if (qpsit != runQualityQPs_.end())
     {
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
@@ -304,8 +339,8 @@ namespace OpenMS
     //Filename for error messages in XMLHandler
     file_ = filename;
 
-    runQualitysQPs_.clear(); // clear
-    runQualitysAts_.clear(); // clear
+    runQualityQPs_.clear(); // clear
+    runQualityAts_.clear(); // clear
 
     parse_(filename, this);
 
@@ -573,44 +608,38 @@ namespace OpenMS
 
     //content
     std::set<String> keys;
-    for (std::map<String, std::vector< QualityParameter > >::const_iterator it = runQualitysQPs_.begin(); it != runQualitysQPs_.end(); ++it)
+    for (std::map<String, std::vector< QualityParameter > >::const_iterator it = runQualityQPs_.begin(); it != runQualityQPs_.end(); ++it)
     {
       keys.insert(it->first);
     }
-    for (std::map<String, std::vector< Attachment > >::const_iterator it = runQualitysAts_.begin(); it != runQualitysAts_.end(); ++it)
+    for (std::map<String, std::vector< Attachment > >::const_iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
     {
       keys.insert(it->first);
     }
 
     if (!keys.empty())
     {
-      os << "\t<RunQuality>\n";
-    }
-
-    for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
-    {
-      std::map<String, std::vector< QualityParameter > >::const_iterator qpsit = runQualitysQPs_.find(*it);
-      if (qpsit != runQualitysQPs_.end())
+      for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+        os << "\t<RunQuality>\n";
+        std::map<String, std::vector< QualityParameter > >::const_iterator qpsit = runQualityQPs_.find(*it);
+        if (qpsit != runQualityQPs_.end())
         {
-          os << qit->toXMLString(4);
+          for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+          {
+            os << qit->toXMLString(4);
+          }
         }
-      }
-      std::map<String, std::vector< Attachment > >::const_iterator attit = runQualitysAts_.find(*it);
-      if (attit != runQualitysAts_.end())
-      {
-        for (std::vector<QcMLFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
+        std::map<String, std::vector< Attachment > >::const_iterator attit = runQualityAts_.find(*it);
+        if (attit != runQualityAts_.end())
         {
-          os << ait->toXMLString(4);
+          for (std::vector<QcMLFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
+          {
+            os << ait->toXMLString(4);
+          }
         }
+        os << "\t</RunQuality>\n";
       }
-    }
-
-    //close
-    if (!keys.empty())
-    {
-      os << "\t</RunQuality>\n";
     }
     //TODO SetQuality
     os << "</MzQualityMLType>\n";
