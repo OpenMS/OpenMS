@@ -474,14 +474,17 @@ public:
     MzMLFile file;
     MSExperiment<Peak1D> exp;
 
+    //prevent loading of fragment spectra
+    PeakFileOptions options;
+    options.setMSLevels(vector<Int>(1, 1));
+
+    //reading input data
+    file.getOptions() = options;
     file.setLogType(log_type_);
     file.load(in, exp);
 
     // set size of input map
     exp.updateRanges();
-
-    // extract level 1 spectra
-    exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(IntList::create("1"), true)), exp.end());
 
 
     //--------------------------------------------------
