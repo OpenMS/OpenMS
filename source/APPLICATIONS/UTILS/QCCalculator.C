@@ -276,7 +276,7 @@ protected:
     qp.name = "ion current stability"; ///< Name
     qp.id = base_name + "_ics" ; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:0000014";
+    qp.cvAcc = "QC:0000017";
     qp.colTypes.push_back("name");
     qp.colTypes.push_back("value");
     row.clear();
@@ -358,7 +358,6 @@ protected:
       qp.cvAcc = "MS:1001405"; ///< cv accession "basic identification results"
       qp.colTypes.push_back("name");
       qp.colTypes.push_back("value");
-      std::vector<String> row;
       row.push_back("#protein_hits");
       row.push_back(runs_count);
       qp.tableRows.push_back(row);
@@ -384,20 +383,15 @@ protected:
 
       //---id accuracy stats qp
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "pepid table";
-      qp.id = base_name + "_peptide_identifications" ;
+      qp.name = "delta ppm distribution";
+      qp.id = base_name + "_delta_ppm" ;
       qp.cvRef = "QC";
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "mass accuracy"
+      qp.cvAcc = "QC:0000008";
 
       qp.colTypes.push_back("RT");
       qp.colTypes.push_back("MZ");
-      qp.colTypes.push_back("uniqueness");
-      qp.colTypes.push_back("ProteinID");
-      qp.colTypes.push_back("target/decoy");
       qp.colTypes.push_back("Score");
       qp.colTypes.push_back("PeptideSequence");
-      qp.colTypes.push_back("Annots");
-      qp.colTypes.push_back("Similarity");
       qp.colTypes.push_back("Charge");
       qp.colTypes.push_back("TheoreticalWeight");
       qp.colTypes.push_back("delta_ppm");
@@ -416,103 +410,41 @@ protected:
           row.push_back(it->getMetaValue("RT"));
           row.push_back(it->getMetaValue("MZ"));
           PeptideHit tmp;
-          if (!AllHits)
+          vector<UInt> pep_mods;
+          for (UInt w = 0; w < var_mods.size(); ++w)
           {
-            tmp = *it->getHits().begin();
-            String logo, logo2;
-            String logo3 = "NA";
-            vector<String> logo1;
-            logo = tmp.getMetaValue("protein_references");
-            logo1 = tmp.getProteinAccessions();
-            if (tmp.metaValueExists("target_decoy"))
+            pep_mods.push_back(0);
+          }
+          for (AASequence::ConstIterator z =  tmp.getSequence().begin(); z != tmp.getSequence().end(); ++z)
+          {
+            Residue res = *z;
+            String temp;
+            if (res.getModification().size() > 0 && res.getModification() != "Carbamidomethyl")
             {
-              logo3 = tmp.getMetaValue("target_decoy");
-            }
-            if (logo1.size() > 0)
-            {
-              logo2 = logo1[0];
-              for (UInt ii = 1; ii < logo1.size(); ++ii)
+              temp = res.getModification() + " (" + res.getOneLetterCode()  + ")";
+              //cout<<res.getModification()<<endl;
+              for (UInt w = 0; w < var_mods.size(); ++w)
               {
-                logo2 += logo1[ii];
-              }
-            }
-            vector<UInt> pep_mods;
-            for (UInt w = 0; w < var_mods.size(); ++w)
-            {
-              pep_mods.push_back(0);
-            }
-            //cout<<var_mods[0]<<SEP<<var_mods[1];
-            for (AASequence::ConstIterator z =  tmp.getSequence().begin(); z != tmp.getSequence().end(); ++z)
-            {
-              Residue res = *z;
-              String temp;
-              if (res.getModification().size() > 0 && res.getModification() != "Carbamidomethyl")
-              {
-                temp = res.getModification() + " (" + res.getOneLetterCode()  + ")";
-                //cout<<res.getModification()<<endl;
-                for (UInt w = 0; w < var_mods.size(); ++w)
+                if (temp == var_mods[w])
                 {
-                  if (temp == var_mods[w])
-                  {
-                    //cout<<temp;
-                    pep_mods[w] += 1;
-                  }
+                  //cout<<temp;
+                  pep_mods[w] += 1;
                 }
               }
             }
-
-            row.push_back(logo);
-            row.push_back(logo2);
-            row.push_back(logo3);
-            row.push_back(tmp.getScore());
-            row.push_back(tmp.getSequence().toString());
-            row.push_back(tmp.getMetaValue("Number of annotations"));
-            row.push_back(tmp.getMetaValue("similarity"));
-            row.push_back(tmp.getCharge());
-            row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
-            DoubleReal dppm = std::abs(getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), double(it->getMetaValue("MZ")), true));
-            row.push_back(String(dppm));
-            deltas.push_back(dppm);
-            for (UInt w = 0; w < var_mods.size(); ++w)
-            {
-              row.push_back(pep_mods[w]);
-            }
-
-            qp.tableRows.push_back(row);
-            //exchange with this line, if you want to integrate consensusID parameters
-            //out << logo  << SEP << logo2 << SEP << logo3 << SEP << tmp.getScore() << SEP << tmp.getSequence() << SEP << tmp.getCharge() << SEP << tmp.getMetaValue("Number of annotations") << SEP << tmp.getMetaValue("similarity") << endl;;
           }
-
-          else
+          row.push_back(tmp.getScore());
+          row.push_back(tmp.getSequence().toString().removeWhitespaces());
+          row.push_back(tmp.getCharge());
+          row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
+          DoubleReal dppm = std::abs(getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), double(it->getMetaValue("MZ")), true));
+          row.push_back(String(dppm));
+          deltas.push_back(dppm);
+          for (UInt w = 0; w < var_mods.size(); ++w)
           {
-            for (vector<PeptideHit>::const_iterator tit = it->getHits().begin(); tit != it->getHits().end(); ++tit)
-            {
-              std::vector<String> row_allhits = row;
-              tmp = *tit;
-              String logo, logo2;
-              String logo3 = "NA";
-              vector<String> logo1;
-              logo = tmp.getMetaValue("protein_references");
-              logo1 = tmp.getProteinAccessions();
-              if (tmp.metaValueExists("target_decoy"))
-              {
-                logo3 = tmp.getMetaValue("target_decoy");
-              }
-              if (logo1.size() > 0)
-              {
-                logo2 = logo1[0];
-              }
-              row_allhits.push_back(logo);
-              row_allhits.push_back(logo2);
-              row_allhits.push_back(logo3);
-              row_allhits.push_back(tmp.getMetaValue("predicted_PT"));
-              row_allhits.push_back(tmp.getSequence().toString());
-              row_allhits.push_back(tmp.getCharge());
-              row_allhits.push_back(tmp.getMetaValue("Number of annotations"));
-              row_allhits.push_back(tmp.getMetaValue("similarity"));
-              qp.tableRows.push_back(row_allhits);
-            }
+            row.push_back(pep_mods[w]);
           }
+          qp.tableRows.push_back(row);
         }
       }
       qcmlfile.addQualityParameter(base_name, qp);
@@ -522,7 +454,7 @@ protected:
       qp.name = "mass accuracy"; ///< Name
       qp.id = base_name + "_mass_accuracy" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "mass accuracy"
+      qp.cvAcc = "QC:0000018";
       qp.colTypes.push_back("name");
       qp.colTypes.push_back("value");
       row.clear();
@@ -540,10 +472,10 @@ protected:
 
       //---mass accuracy stats qp
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "Distribution id/recorded ms2"; ///< Name
-      qp.id = base_name + "_mass_accuracy" ; ///< Identifier
+      qp.name = "id ratio"; ///< Name
+      qp.id = base_name + "_ratio_id" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "ms2 distribution"
+      qp.cvAcc = "QC:0000019";
       qp.colTypes.push_back("name");
       qp.colTypes.push_back("value");
       row.clear();
@@ -569,10 +501,10 @@ protected:
 
       //---fxml stats qp
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "fxmlstats"; ///< Name
-      qp.id = base_name + "_fxmlstats" ; ///< Identifier
+      qp.name = "featurefinding result details"; ///< Name
+      qp.id = base_name + "_featurefinding" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featurefinder results"
+      qp.cvAcc = "QC:0000020";
       qp.colTypes.push_back("name");
       qp.colTypes.push_back("value");
       std::vector<String> row;
@@ -610,10 +542,10 @@ protected:
       cout << "Reading featureXML file..." << endl;
 
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "featurepoints"; ///< Name
+      qp.name = "feature distribution"; ///< Name
       qp.id = base_name + "_features" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featurefinder results"
+      qp.cvAcc = "QC:0000009";
 
       qp.colTypes.push_back("MZ");
       qp.colTypes.push_back("RT");
@@ -644,10 +576,10 @@ protected:
       cout << "Reading featureXML file..." << endl;
 
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "featurepoints"; ///< Name
+      qp.name = "feature distribution"; ///< Name
       qp.id = base_name + "_features" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featurefinder results"
+      qp.cvAcc = "QC:0000009";
 
       qp.colTypes.push_back("MZ");
       qp.colTypes.push_back("RT");
