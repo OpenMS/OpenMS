@@ -44,6 +44,8 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <QFileInfo>
 #include <boost/accumulators/statistics/mean.hpp>
@@ -104,6 +106,17 @@ protected:
     registerFlag_("MS2", "This flag should be set, if you want to work with MS2 stats.");
   }
 
+  DoubleReal getMassDifference(DoubleReal theo_mz, DoubleReal exp_mz, bool use_ppm)
+  {
+    DoubleReal error(exp_mz - theo_mz);
+    if (use_ppm)
+    {
+      error = error / theo_mz * (DoubleReal)1e6;
+      //~ error = (1-exp_mz/theo_mz) * (DoubleReal)1e6;
+    }
+    return error;
+  }
+
   ExitCodes main_(int, const char **)
   {
     vector<ProteinIdentification> prot_ids;
@@ -137,10 +150,10 @@ protected:
 
     //---file origin qp
     QcMLFile::QualityParameter qp;
-    qp.name = "raw data file"; ///< Name
+    qp.name = "rmzML file"; ///< Name
     qp.id = base_name + "_origin_rawfile_name"; ///< Identifier
     qp.cvRef = "PSI"; ///< cv reference
-    qp.cvAcc = "MS:1000577"; ///< cv accession
+    qp.cvAcc = "MS:1000584";
     qp.value = base_name;
     qcmlfile.addQualityParameter(base_name, qp);
 
@@ -149,13 +162,12 @@ protected:
     UInt min_mz = std::numeric_limits<UInt>::max();
     UInt max_mz = 0;
     std::map<Size, UInt> mslevelcounts;
-    Size ms2_count = 0;
 
     qp = QcMLFile::QualityParameter() ;
-    qp.name = "precursor table"; ///< Name
+    qp.name = "precursor distribution"; ///< Name
     qp.id = base_name + "_precursors" ; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession for "MS2 distribution"
+    qp.cvAcc = "QC:0000005";
 
     qp.colTypes.push_back("RT_(sec)");
     qp.colTypes.push_back("Precursor");
@@ -176,17 +188,16 @@ protected:
         row.push_back(exp[i].getRT());
         row.push_back(exp[i].getPrecursors().front().getMZ());
         qp.tableRows.push_back(row);
-        ++ms2_count;
       }
     }
     qcmlfile.addQualityParameter(base_name, qp);
 
     //---aquisition results qp
     qp = QcMLFile::QualityParameter() ;
-    qp.name = "aquisition results"; ///< Name
-    qp.id = base_name + "_aquisition_results" ; ///< Identifier
+    qp.name = "aquisition ranges"; ///< Name
+    qp.id = base_name + "_aquisition" ; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession for "aquisition results"
+    qp.cvAcc = "QC:0000003"; ///< cv accession for "aquisition results"
     qp.colTypes.push_back("name");
     qp.colTypes.push_back("value");
     std::vector<String> row;
@@ -229,11 +240,10 @@ protected:
 
     //---ion current stability ( & tic ) qp
     qp = QcMLFile::QualityParameter() ;
-    qp.name = "tic table"; ///< Name
+    qp.name = "total ion current distribution"; ///< Name
     qp.id = base_name + "_tic" ; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession for "ion current stability"
-
+    qp.cvAcc = "QC:0000007";
     //~ qp.colTypes.push_back("Native_ID");
     qp.colTypes.push_back("RT_(sec)");
     qp.colTypes.push_back("TIC");
@@ -266,7 +276,7 @@ protected:
     qp.name = "ion current stability"; ///< Name
     qp.id = base_name + "_ics" ; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession for "ion current stability"
+    qp.cvAcc = "QC:0000014";
     qp.colTypes.push_back("name");
     qp.colTypes.push_back("value");
     row.clear();
@@ -285,10 +295,10 @@ protected:
 
       //---idxml stats qp
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "basic identification results"; ///< Name
-      qp.id = base_name + "_basic_identification_results" ; ///< Identifier
-      qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "basic identification results"
+      qp.name = "search input details"; ///< Name
+      qp.id = base_name + "_search_input" ; ///< Identifier
+      qp.cvRef = "MS"; ///< cv reference
+      qp.cvAcc = "MS:1001249"; ///< cv accession "basic identification results"
       qp.colTypes.push_back("name");
       qp.colTypes.push_back("value");
       std::vector<String> row;
@@ -339,6 +349,16 @@ protected:
       row.push_back(runs_count);
       qp.tableRows.push_back(row);
       row.clear();
+      qcmlfile.addQualityParameter(base_name, qp);
+
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "Spectrum identification result details"; ///< Name
+      qp.id = base_name + "_search_result" ; ///< Identifier
+      qp.cvRef = "MS"; ///< cv reference
+      qp.cvAcc = "MS:1001405"; ///< cv accession "basic identification results"
+      qp.colTypes.push_back("name");
+      qp.colTypes.push_back("value");
+      std::vector<String> row;
       row.push_back("#protein_hits");
       row.push_back(runs_count);
       qp.tableRows.push_back(row);
@@ -380,12 +400,13 @@ protected:
       qp.colTypes.push_back("Similarity");
       qp.colTypes.push_back("Charge");
       qp.colTypes.push_back("TheoreticalWeight");
+      qp.colTypes.push_back("delta_ppm");
       for (UInt w = 0; w < var_mods.size(); ++w)
       {
         qp.colTypes.push_back(String(var_mods[w]).substitute(' ','_'));
       }
 
-      accumulator_set<DoubleReal, stats<tag::mean,tag::median(with_p_square_quantile)> > acc;
+      std::vector<DoubleReal> deltas;
       //~ prot_ids[0].getSearchParameters();
       for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
       {
@@ -449,8 +470,9 @@ protected:
             row.push_back(tmp.getMetaValue("similarity"));
             row.push_back(tmp.getCharge());
             row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
-
-            acc(std::abs( double(it->getMetaValue("MZ")) - ((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()) ));
+            DoubleReal dppm = std::abs(getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), double(it->getMetaValue("MZ")), true));
+            row.push_back(String(dppm));
+            deltas.push_back(dppm);
             for (UInt w = 0; w < var_mods.size(); ++w)
             {
               row.push_back(pep_mods[w]);
@@ -505,11 +527,13 @@ protected:
       qp.colTypes.push_back("value");
       row.clear();
       row.push_back("mean");
-      row.push_back(mean(acc));  //TODO convert to ppm
+      //~ row.push_back(mean(acc));
+      row.push_back(OpenMS::Math::mean(deltas.begin(),deltas.end()));
       qp.tableRows.push_back(row);
       row.clear();
       row.push_back("median");
-      row.push_back(median(acc)); //TODO convert to ppm
+      //~ row.push_back(median(acc));
+      row.push_back(OpenMS::Math::median(deltas.begin(),deltas.end()));
       qp.tableRows.push_back(row);
       row.clear();
       qcmlfile.addQualityParameter(base_name, qp);
@@ -524,7 +548,7 @@ protected:
       qp.colTypes.push_back("value");
       row.clear();
       row.push_back("ratio");
-      row.push_back(String(pep_ids.size()/ms2_count));
+      row.push_back(String(DoubleReal(pep_ids.size())/DoubleReal(mslevelcounts[2])));
       qp.tableRows.push_back(row);
       row.clear();
       qcmlfile.addQualityParameter(base_name, qp);
@@ -548,7 +572,7 @@ protected:
       qp.name = "fxmlstats"; ///< Name
       qp.id = base_name + "_fxmlstats" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featurefinder results"
       qp.colTypes.push_back("name");
       qp.colTypes.push_back("value");
       std::vector<String> row;
@@ -589,7 +613,7 @@ protected:
       qp.name = "featurepoints"; ///< Name
       qp.id = base_name + "_features" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featurefinder results"
 
       qp.colTypes.push_back("MZ");
       qp.colTypes.push_back("RT");
@@ -623,7 +647,7 @@ protected:
       qp.name = "featurepoints"; ///< Name
       qp.id = base_name + "_features" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featurefinder results"
 
       qp.colTypes.push_back("MZ");
       qp.colTypes.push_back("RT");
@@ -683,7 +707,7 @@ protected:
       qp.name = "consensuspoints"; ///< Name
       qp.id = base_name + "_consensuses" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featuremapper results"
 
       qp.colTypes.push_back("Native_spectrum_ID");
       qp.colTypes.push_back("DECON_RT_(sec)");
@@ -717,7 +741,7 @@ protected:
       qp.name = "ms1stats"; ///< Name
       qp.id = base_name + "_ms1" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession for "aquisition results"
 
       qp.colTypes.push_back("Native_ID");
       qp.colTypes.push_back("RT_(sec)");
@@ -747,7 +771,7 @@ protected:
       qp.name = "ms2stats"; ///< Name
       qp.id = base_name + "_ms2" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession
+      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession for "aquisition results"
 
       qp.colTypes.push_back("Native_ID");
       qp.colTypes.push_back("RT_(sec)");
