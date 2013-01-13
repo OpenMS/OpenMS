@@ -17,8 +17,8 @@
 			<mappings>
 				<mapping id="1" cl="%%scriptpath" />
 				<mapping id="2" cl="%%inTSVtic" />
-				<mapping id="3" cl="%TMP" />
-				<file_post location="%TMP/tic.png" target="out" />
+				<mapping id="3" cl="%TMP/%BASENAME[%%inTSVtic]_tic.png" />
+				<file_post location="%TMP/%BASENAME[%%inTSVtic]_tic.png" target="out" />
 			</mappings>
 			<ini_param>
 				<ITEM name="scriptpath" value="." type="string" description="input script path, this should point

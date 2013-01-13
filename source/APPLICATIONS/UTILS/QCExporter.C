@@ -83,8 +83,8 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringOption_("qp", "<choice>", "", "Target QualityParameter. ('ticpoints': total ion current stats, 'precursorpoints': stats about the precursors from the rawfile, 'pepidpoints': identifications from the rawfile, 'featurepoints': stats about features from the rawfile, 'consensusstats': stats about consensus features from the rawfile)\n");
-    setValidStrings_("qp", StringList::create("ticpoints,precursorpoints,pepidpoints,featurepoints,consensuspoints"));
+    registerStringOption_("qp", "<choice>", "", "Target QualityParameter.");
+    setValidStrings_("qp", StringList::create("precursor distribution,charge distribution,total ion current distribution,delta ppm distribution,feature distribution"));
     registerStringOption_("msrun_filename", "<string>", "", "The name of the target raw file of the respective quality parameter.");
     registerOutputFile_("out_csv", "<file>", "", "Output csv formated quality parameter or extended qcML file");
     setValidFormats_("out_csv",StringList::create("csv"));
