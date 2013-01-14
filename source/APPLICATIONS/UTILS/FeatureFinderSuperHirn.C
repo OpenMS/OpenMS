@@ -148,6 +148,7 @@ protected:
     //-------------------------------------------------------------
     //annotate output with data processing info
     addDataProcessing_(output, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+    addDataProcessing_(output, getProcessingInfo_(DataProcessing::QUANTITATION));
     output.ensureUniqueId();
     for (Size i = 0; i < output.size(); i++)
     {

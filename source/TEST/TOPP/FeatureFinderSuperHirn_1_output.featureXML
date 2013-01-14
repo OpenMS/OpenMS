@@ -5,6 +5,11 @@
 		<processingAction name="Peak picking" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FeatureFinderSuperHirn" version="version_string" />
+		<processingAction name="Quantitation" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
 	<featureList count="384">
 		<feature id="f_13229490167902618598">
 			<position dim="0">35.1000317866759</position>
