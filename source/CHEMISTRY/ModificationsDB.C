@@ -151,12 +151,12 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      cerr << "ModificationsDB::getTerminalModification: more than one modification (" << mod_name << ", term_spec=" << term_spec << ") found, picking first one (";
+      LOG_WARN << "ModificationsDB::getTerminalModification: more than one modification (" << mod_name << ", term_spec=" << term_spec << ") found, picking first one (";
       for (set<const ResidueModification *>::const_iterator it = mods.begin(); it != mods.end(); ++it)
       {
-        cerr << (*it)->getFullId() << ",";
+        LOG_WARN << (*it)->getFullId() << ",";
       }
-      cerr << ")" << endl;
+      LOG_WARN << ")\n";
     }
     return **mods.begin();
   }
@@ -170,8 +170,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Retrieving residue failed.", residue_name);
     }
 
-    String res = residue_name;
-    res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
+    String res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
 
     //cerr << "getModification(" << res << " " << mod_name << endl;
 
@@ -183,12 +182,12 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      cerr << "ModificationsDB::getModification: more than one modification (residue='" << residue_name << "', modification='" << mod_name << "', term_spec=" << term_spec << ") found, picking first one (";
+      LOG_WARN << "ModificationsDB::getModification: more than one modification (residue='" << residue_name << "', modification='" << mod_name << "', term_spec=" << term_spec << ") found, picking first one (";
       for (set<const ResidueModification *>::const_iterator it = mods.begin(); it != mods.end(); ++it)
       {
-        cerr << (*it)->getFullId() << ",";
+        LOG_WARN << (*it)->getFullId() << ",";
       }
-      cerr << ")" << endl;
+      LOG_WARN << ")\n";
     }
     return **mods.begin();
   }
@@ -206,12 +205,12 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      cerr << "ModificationsDB::getModification: more than one modification (" << modification << ") found, picking first one (";
+      LOG_WARN << "ModificationsDB::getModification: more than one modification (" << modification << ") found, picking first one (";
       for (set<const ResidueModification *>::const_iterator it = mods.begin(); it != mods.end(); ++it)
       {
-        cerr << (*it)->getFullId() << ",";
+        LOG_WARN << (*it)->getFullId() << ",";
       }
-      cerr << ")" << endl;
+      LOG_WARN << ")\n";
     }
     return **mods.begin();
   }
