@@ -4521,6 +4521,10 @@ protected:
       //--------------------------------------------------------------------------------------------
       if (exp.size() != 0)
       {
+        // INFO : do not try to be smart and skip empty spectra or
+        // chromatograms. There can be very good reasons for this (e.g. if the
+        // meta information needs to be stored here but the actual data is
+        // stored somewhere else).
         os << "\t\t<spectrumList count=\"" << exp.size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
 
         //check native ids
@@ -5050,6 +5054,10 @@ protected:
       //--------------------------------------------------------------------------------------------
       if (!exp.getChromatograms().empty())
       {
+        // INFO : do not try to be smart and skip empty spectra or
+        // chromatograms. There can be very good reasons for this (e.g. if the
+        // meta information needs to be stored here but the actual data is
+        // stored somewhere else).
         os << "\t\t<chromatogramList count=\"" << exp.getChromatograms().size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
         for (Size c = 0; c != exp.getChromatograms().size(); ++c)
         {
