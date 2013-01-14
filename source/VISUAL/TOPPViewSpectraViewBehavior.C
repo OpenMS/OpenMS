@@ -66,14 +66,11 @@ namespace OpenMS
 
     if (layer.type == LayerData::DT_CHROMATOGRAM)
     {
-      // create managed pointer to experiment data
-      ExperimentType * chrom_exp = new ExperimentType();
-      ExperimentSharedPtrType chrom_exp_sptr(chrom_exp);
-      chrom_exp->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
-
-      const ExperimentType exp = *exp_sptr;
+      // create a managed pointer fill it with a spectrum containing the chromatographic data
+      ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
+      chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
       SpectrumType spectrum;
-      const MSChromatogram<ChromatogramPeak> & current_chrom = exp.getChromatograms()[index];
+      const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[index];
       for (Size i = 0; i != current_chrom.size(); ++i)
       {
         const ChromatogramPeak & cpeak = current_chrom[i];
@@ -164,17 +161,15 @@ namespace OpenMS
 
     for (Size index = 0; index != indices.size(); ++index)
     {
-      // create managed pointer to experiment data
-      ExperimentType * chrom_exp = new ExperimentType();
-      ExperimentSharedPtrType chrom_exp_sptr(chrom_exp);
-      chrom_exp->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
+      // create a managed pointer fill it with a spectrum containing the chromatographic data
+      ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
+      chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
 
-      const ExperimentType exp = *exp_sptr;
       SpectrumType spectrum;
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
 
-        const MSChromatogram<ChromatogramPeak> & current_chrom = exp.getChromatograms()[indices[index]];
+        const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[indices[index]];
         for (Size i = 0; i != current_chrom.size(); ++i)
         {
           const ChromatogramPeak & cpeak = current_chrom[i];
@@ -247,12 +242,10 @@ namespace OpenMS
         widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
       }
 
-      ExperimentType * chrom_exp = new ExperimentType();
-      ExperimentSharedPtrType chrom_exp_sptr(chrom_exp);
-
-      const ExperimentType exp = *exp_sptr;
+      // create a managed pointer fill it with a spectrum containing the chromatographic data
+      ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
       SpectrumType spectrum;
-      const MSChromatogram<ChromatogramPeak> & current_chrom = exp.getChromatograms()[index];
+      const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[index];
       for (Size i = 0; i != current_chrom.size(); ++i)
       {
         const ChromatogramPeak & cpeak = current_chrom[i];
@@ -309,12 +302,10 @@ namespace OpenMS
 
       for (Size index = 0; index != indices.size(); ++index)
       {
-
-        ExperimentType * chrom_exp = new ExperimentType();
-        ExperimentSharedPtrType chrom_exp_sptr(chrom_exp);
+        // create a managed pointer fill it with a spectrum containing the chromatographic data
+        ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
         SpectrumType spectrum;
         const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[indices[index]];
-
         for (Size i = 0; i != current_chrom.size(); ++i)
         {
           const ChromatogramPeak & cpeak = current_chrom[i];
