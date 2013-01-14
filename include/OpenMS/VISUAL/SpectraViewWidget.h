@@ -65,6 +65,7 @@ signals:
     void spectrumSelected(int);
     void spectrumSelected(std::vector<int, std::allocator<int> > indices);
     void spectrumDoubleClicked(int);
+    void spectrumDoubleClicked(std::vector<int, std::allocator<int> > indices);
     void showSpectrumAs1D(int);
     void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
     void showSpectrumMetaData(int);

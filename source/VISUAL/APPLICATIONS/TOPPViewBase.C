@@ -516,7 +516,7 @@ namespace OpenMS
     connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
     connect(spectra_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), this, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
     connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(int)));
-    //connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
+    connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
 
     spectraview_behavior_ = new TOPPViewSpectraViewBehavior(this);
     view_behavior_ = spectraview_behavior_;

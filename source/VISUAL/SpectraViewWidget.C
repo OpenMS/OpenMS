@@ -167,7 +167,6 @@ namespace OpenMS
 
     int spectrum_index = current->text(1).toInt();
 
-    std::vector<int> chrom_indices;
     const QList<QVariant> & res = current->data(0, 0).toList();
     if (res.size() == 0)
     {
@@ -176,6 +175,7 @@ namespace OpenMS
     else
     {
       // open several chromatograms at once
+      std::vector<int> chrom_indices;
       for (Int i = 0; i != res.size(); ++i)
       {
         chrom_indices.push_back(res[i].toInt());
@@ -192,7 +192,22 @@ namespace OpenMS
       return;
     }
     int spectrum_index = current->text(1).toInt();
-    emit spectrumDoubleClicked(spectrum_index);
+    const QList<QVariant> & res = current->data(0, 0).toList();
+    if (res.size() == 0)
+    {
+      emit spectrumDoubleClicked(spectrum_index);
+    }
+    else
+    {
+      // open several chromatograms at once
+      std::vector<int> chrom_indices;
+      for (Int i = 0; i != res.size(); ++i)
+      {
+        chrom_indices.push_back(res[i].toInt());
+      }
+      emit spectrumDoubleClicked(chrom_indices);
+    }
+
   }
 
   void SpectraViewWidget::spectrumContextMenu_(const QPoint & pos)
