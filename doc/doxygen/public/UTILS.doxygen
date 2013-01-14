@@ -73,7 +73,7 @@
   <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_MRMPairFinder - Evaluate labeled pair ratios on MRM features.
-
+  - @subpage UTILS_FeatureFinderSuperHirn - Find Features using the SuperHirn Algorithm (it can handle centroided or profile data, see .ini file)
 
 	<b>Misc</b>
   - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).

@@ -50,7 +50,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FeatureFinderSH FeatureFinderSH
+  @page UTILS_FeatureFinderSuperHirn FeatureFinderSuperHirn
 
   A feature finder based on the original SuperHirn codebase.
 
