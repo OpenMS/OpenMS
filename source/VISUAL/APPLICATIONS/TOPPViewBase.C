@@ -133,7 +133,7 @@ namespace OpenMS
     watcher_msgbox_(false)
   {
 #if defined(__APPLE__)
-    // we do not want to load plugins as this leeds to serious problems
+    // we do not want to load plugins as this leads to serious problems
     // when shipping on mac os x
     QApplication::setLibraryPaths(QStringList());
 #endif
@@ -144,7 +144,7 @@ namespace OpenMS
     // ensure correct encoding of paths
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
 
-    //prevents errors caused by too small width,height values
+    //prevents errors caused by too small width, height values
     setMinimumSize(400, 400);
 
     //enable drag-and-drop

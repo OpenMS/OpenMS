@@ -72,7 +72,7 @@ using namespace std;
 int main(int argc, const char** argv)
 {
 #if  defined(__APPLE__)
-  // we do not want to load plugins as this leeds to serious problems
+  // we do not want to load plugins as this leads to serious problems
   // when shipping on mac os x
   QApplication::setLibraryPaths(QStringList());
 #endif

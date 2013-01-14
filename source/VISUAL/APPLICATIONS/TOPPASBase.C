@@ -107,7 +107,7 @@ namespace OpenMS
     clipboard_scene_(0)
   {
 #if  defined(__APPLE__)
-    // we do not want to load plugins as this leeds to serious problems
+    // we do not want to load plugins as this leads to serious problems
     // when shipping on mac os x
     QApplication::setLibraryPaths(QStringList());
 #endif
