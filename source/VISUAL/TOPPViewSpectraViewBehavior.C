@@ -62,10 +62,12 @@ namespace OpenMS
 
     // open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
-    w->xAxis()->setLegend("Time [sec]");
 
     if (layer.type == LayerData::DT_CHROMATOGRAM)
     {
+      // fix legend if its a chromatogram
+      w->xAxis()->setLegend("Time [sec]");
+
       // create a managed pointer fill it with a spectrum containing the chromatographic data
       ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
       chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
@@ -145,8 +147,10 @@ namespace OpenMS
 
   void TOPPViewSpectraViewBehavior::showSpectrumAs1D(std::vector<int, std::allocator<int> > indices)
   {
-
     // basic behavior 1
+
+    // show multiple spectra together is only used for chromatograms directly
+    // where multiple (SRM) traces are shown together
     const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
@@ -157,6 +161,7 @@ namespace OpenMS
 
     //open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    // fix legend if its a chromatogram
     w->xAxis()->setLegend("Time [sec]");
 
     for (Size index = 0; index != indices.size(); ++index)
@@ -205,7 +210,6 @@ namespace OpenMS
         w->canvas()->setVisibleArea(visible_area);
       }
     }
-
 
     // set relative (%) view of visible area
     w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
