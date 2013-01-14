@@ -36,6 +36,7 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
 
 #include <QtGui/QMessageBox>
 #include <QtCore/QString>
@@ -61,6 +62,7 @@ namespace OpenMS
 
     // open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    w->xAxis()->setLegend("Time [sec]");
 
     if (layer.type == LayerData::DT_CHROMATOGRAM)
     {
@@ -158,6 +160,7 @@ namespace OpenMS
 
     //open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    w->xAxis()->setLegend("Time [sec]");
 
     for (Size index = 0; index != indices.size(); ++index)
     {
