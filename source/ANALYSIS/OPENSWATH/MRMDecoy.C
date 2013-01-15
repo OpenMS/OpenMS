@@ -427,6 +427,18 @@ namespace OpenMS
     return peptide;
   }
 
+  bool MRMDecoy::has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide & peptide)
+  {
+    for (Size j = 0; j < peptide.mods.size(); j++)
+    {
+      if (peptide.mods[j].location == -1 || peptide.mods[j].location == peptide.sequence.size())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void MRMDecoy::restrictTransitions(OpenMS::TargetedExperiment& exp, int min_transitions,
                                      int max_transitions)
   {
@@ -511,31 +523,14 @@ namespace OpenMS
     exp = restricted_exp;
   }
 
-  OpenMS::AASequence MRMDecoy::getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide)
-  {
-    OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
-    OpenMS::AASequence aas = peptide.sequence;
-
-    for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it = peptide.mods.begin(); it != peptide.mods.end(); ++it)
-    {
-      std::vector<String> mods;
-      mod_db->getModificationsByDiffMonoMass(mods, peptide.sequence[it->location], it->mono_mass_delta, 0.0);
-      for (std::vector<String>::iterator mo = mods.begin(); mo != mods.end(); ++mo)
-      {
-        aas.setModification(it->location, *mo);
-      }
-    }
-
-    return aas;
-  }
-
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                                String method, String decoy_tag, double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, double similarity_threshold)
+                                String method, String decoy_tag, double identity_threshold, int max_attempts, 
+                                double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, 
+                                double similarity_threshold, bool remove_CNterminal_mods)
   {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
     MRMDecoy::TransitionVectorType decoy_transitions;
-    MRMDecoy::TransitionVectorType target_transitions;
     for (Size i = 0; i < exp.getProteins().size(); i++)
     {
       OpenMS::TargetedExperiment::Protein protein = exp.getProteins()[i];
@@ -550,6 +545,8 @@ namespace OpenMS
     for (Size i = 0; i < exp.getPeptides().size(); i++)
     {
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
+      // continue if the peptide has C/N terminal modifications and we should exclude them
+      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) {continue;}
       peptide.id = decoy_tag + peptide.id;
       OpenMS::String original_sequence = peptide.sequence;
 
@@ -603,6 +600,9 @@ namespace OpenMS
       String peptide_ref = pep_it->first;
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
+      // continue if the peptide has C/N terminal modifications and we should exclude them
+      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) {continue;}
+
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
@@ -633,17 +633,6 @@ namespace OpenMS
         }
         decoy_tr.setPeptideRef(decoy_tag + tr.getPeptideRef());
 
-        // correct the masses of the input experiment if requested
-        if (theoretical)
-        {
-          ReactionMonitoringTransition transition = *(pep_it->second[i]); // copy the transition
-          if (targetion.second > 0)
-          {
-            transition.setProductMZ(targetion.second);
-            target_transitions.push_back(transition);
-          }
-        }
-
         if (decoyion.second > 0)
         {
           if (similarity_threshold >=0)
@@ -657,8 +646,8 @@ namespace OpenMS
         }
       } // end loop over transitions
     } // end loop over peptides
-
     endProgress();
+
     if (exclude_similar)
     {
       MRMDecoy::TransitionVectorType filtered_decoy_transitions;
@@ -675,12 +664,56 @@ namespace OpenMS
       }
       dec.setTransitions(filtered_decoy_transitions);
     }
-    else {
+    else 
+    {
       dec.setTransitions(decoy_transitions);
     }
 
     if (theoretical)
     {
+      correctMasses(exp, mz_threshold);
+    }
+  }
+
+  void MRMDecoy::correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold) 
+  {
+    MRMDecoy::TransitionVectorType target_transitions;
+    // hash of the peptide reference containing all transitions
+    MRMDecoy::PeptideTransitionMapType peptide_trans_map;
+    for (Size i = 0; i < exp.getTransitions().size(); i++)
+    {
+      peptide_trans_map[exp.getTransitions()[i].getPeptideRef()].push_back(&exp.getTransitions()[i]);
+    }
+
+    {
+      Size progress = 0;
+      startProgress(0, exp.getTransitions().size(), "Correcting masses (theoretical)");
+      for (MRMDecoy::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
+           pep_it != peptide_trans_map.end(); pep_it++)
+      {
+        const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(pep_it->first);
+        OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
+        MRMDecoy::IonSeries target_ionseries = getIonSeries(target_peptide_sequence, target_peptide.getChargeState());
+
+        for (Size i = 0; i < pep_it->second.size(); i++)
+        {
+          setProgress(++progress);
+          const ReactionMonitoringTransition tr = *(pep_it->second[i]);
+
+          // determine the current annotation for the target ion 
+          std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries);
+          // correct the masses of the input experiment 
+          {
+            ReactionMonitoringTransition transition = *(pep_it->second[i]); // copy the transition
+            if (targetion.second > 0)
+            {
+              transition.setProductMZ(targetion.second);
+              target_transitions.push_back(transition);
+            }
+          }
+        } // end loop over transitions
+      } // end loop over peptides
+      endProgress();
       exp.setTransitions(target_transitions);
     }
   }
