@@ -62,15 +62,18 @@ protected:
   void registerOptionsAndFlags_()
   {
     // input files
-    registerInputFileList_("in", "<files>", StringList(), "Two input files (control and treatment) separated by a blank");
-    setValidFormats_("in", StringList::create("mzML"));
+
+    registerInputFile_("control", "<file>", "", "input mzML file");
+    setValidFormats_("control", StringList::create("mzML"));
+    registerInputFile_("treatment", "<file>", "", "input mzML file");
+    setValidFormats_("treatment", StringList::create("mzML"));
 
     registerDoubleOption_("fold_change", "", 2.0, "fold change between XICs", false, false);
     registerDoubleOption_("rt_tol", "", 20, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
 
     // output files
-    registerOutputFile_("out", "<file>", "", "output of the treatment (2nd) file after XIC filtering.");
+    registerOutputFile_("out", "<file>", "", "output of the treatment file after XIC filtering.");
     setValidFormats_("out", StringList::create("mzML"));    
   }
 
@@ -185,15 +188,9 @@ protected:
   ExitCodes main_(int, const char**)
   {
     // Parameter parsing
-    StringList file_names = getStringList_("in");
+    const string control_mzml(getStringOption_("control"));
+    const string treatment_mzml(getStringOption_("treatment"));
 
-    if (file_names.size() != 2)
-    {
-
-    }
-
-    const string control_mzml(file_names[0]);
-    const string treatment_mzml(file_names[1]);
     const string out_mzml(getStringOption_("out"));
     const DoubleReal mz_tolerance_ppm = getDoubleOption_("mz_tol");
     const DoubleReal fold_change = getDoubleOption_("fold_change");
@@ -257,11 +254,6 @@ protected:
         {
           if (fabs(rt - treatment_XIC_larger_rts[j]) <= 0.001)
           {
-            /*
-            DoubleReal pc_mz = exp_treatment[i].getPrecursors()[0].getMZ();
-            DoubleReal pc_charge = exp_treatment[i].getPrecursors()[0].getCharge();
-            DoubleReal pc_mass = pc_mz * pc_charge - pc_charge * Constants::PROTON_MASS_U;
-            */
             exp_out.push_back(exp_treatment[i]);
             break;
           }
