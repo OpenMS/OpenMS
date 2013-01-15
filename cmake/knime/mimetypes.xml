@@ -22,13 +22,15 @@
  <mimetype name="MASCOTXML" binary="false" description="Mascot XML file format for peptide identifications" ext="xml"/>
  <mimetype name="PNG" binary="false" description="Portable Network Graphics" ext="png"/>
  <mimetype name="XMASS" binary="false" description="XMass Analysis file (fid)" ext="fid"/>
- <mimetype name="TSV" binary="false" description="msInspect file" ext="tsv"/>
+ <mimetype name="TSV" binary="false" description="tab-separated file" ext="tsv"/>
+ <mimetype name="CSV" binary="false" description="comma-separated file" ext="csv"/>
  <mimetype name="PEPLIST" binary="false" description="specArray file" ext="pepList"/>
  <mimetype name="HARDKLOER" binary="false" description="hardkloer file" ext="hardkloer"/>
  <mimetype name="KROENIK" binary="false" description="kroenik file" ext="kroenik"/>
  <mimetype name="FASTA" binary="false" description="FASTA file" ext="fasta"/>
  <mimetype name="EDTA" binary="false" description="enhanced comma separated files (RT, m/z, Intensity, [meta])" ext="EDTA"/>
- <mimetype name="PSQ" binary="false" description="PSQ file" ext="psq"/> 
- <mimetype name="EXE" binary="true" description="Executable files" ext="exe"/> 
- <mimetype name="MZQUANTML" binary="false" description="mzQuantML" ext="mzq"/>  
+ <mimetype name="PSQ" binary="false" description="PSQ file" ext="psq"/>
+ <mimetype name="EXE" binary="true" description="Executable files" ext="exe"/>
+ <mimetype name="MZQUANTML" binary="false" description="mzQuantML" ext="mzq"/>
+ <mimetype name="QCML" binary="false" description="mzQualityML (will undergo standardisation maybe) (.qcml)" ext="qcml"/>
 </mimetypes>

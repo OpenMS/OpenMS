@@ -84,15 +84,12 @@ rm -r ${PAYLOAD}/bin/MascotAdapter
 
 # Myrimatch is not supported on mac osx
 rm -r ${PAYLOAD}/bin/MyriMatchAdapter
-rm -r ${DESCRIPTORS}MyriMatchAdapter.ctd
 
 # Also invald
-rm -r ${DESCRIPTORS}OpenSwathMzMLFileCacher.ctd
 rm -r ${PAYLOAD}/bin/OpenSwathMzMLFileCacher
 
 # we do not ship the binary so it will most likely not => remove for now
 rm -r ${PAYLOAD}/bin/PepNovoAdapter
-rm -r ${DESCRIPTORS}PepNovoAdapter.ctd
 echo "done"
 
 echo -n "Copy libraries .. "
@@ -124,7 +121,7 @@ svn export ${SOURCE_PATH}/share ${PAYLOAD}/share
 echo "done"
 
 echo -n "Copy binaries_mac_64.ini .. "
-cp ${SOURCE_PATH}/cmake/knime/binaries_mac.ini ${PAYLOAD}/binaries_mac_64.ini
+cp ${SOURCE_PATH}/cmake/knime/binaries_mac.ini ${PAYLOAD}/binaries.ini
 echo "done"
 
 # get the search engines and add to bin/SEARCHENGINES
@@ -144,7 +141,8 @@ zip -r binaries_mac_64.zip ./*
 cd ${KNIME_PACKAGE}
 
 echo -n "Cleaning payload .. "
-rm -rf ${PAYLOAD}/binaries_mac_64.ini
+rm -rf ${PAYLOAD}/binaries.ini
 rm -rf ${PAYLOAD}/bin/
 rm -rf ${PAYLOAD}/lib/
 rm -rf ${PAYLOAD}/share/
+echo "done"
