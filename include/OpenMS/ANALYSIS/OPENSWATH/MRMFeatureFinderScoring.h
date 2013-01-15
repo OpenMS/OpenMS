@@ -649,12 +649,8 @@ private:
 
       // Presence of b/y series score
       double bseries_score = 0, yseries_score = 0;
-      const PeptideType* pep = PeptideRefMap_[transition_group.getTransitions()[0].getPeptideRef()];
-      OpenMS::AASequence aas = (String)pep->sequence;
-      for (std::vector<ModificationType>::const_iterator it = pep->modifications.begin(); it != pep->modifications.end(); ++it)
-      {
-        aas.setModification(it->location, "UniMod:" + it->unimod_id);
-      }
+      OpenMS::AASequence aas;
+      OpenSwathDataAccessHelper::convertPeptideToAASequence(*PeptideRefMap_[transition_group.getTransitions()[0].getPeptideRef()], aas);
       diascoring_.dia_by_ion_score((*spectrum), aas, by_charge_state, bseries_score, yseries_score);
       mrmfeature->addScore("var_isotope_correlation_score", isotope_corr);
       mrmfeature->addScore("var_isotope_overlap_score", isotope_overlap);

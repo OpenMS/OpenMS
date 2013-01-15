@@ -514,6 +514,13 @@ private:
       std::vector<CVTermList> interpretation_list_;
 
     };
+
+    /// helper function that converts a Peptide object to a AASequence object
+    OpenMS::AASequence getAASequence(const Peptide& peptide);
+
+    /// helper function that sets a modifiction on a AASequence object 
+    void setModification(int location, int max_size, String modification, OpenMS::AASequence & aas);
+
   }
 } // namespace OpenMS
 
