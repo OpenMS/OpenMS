@@ -356,7 +356,9 @@ namespace OpenMS
     QVector<TOPPASToolVertex::IOInfo> target_input_files;
     source_tool->getOutputParameters(source_output_files);
     if (source_param_index >= source_output_files.size())
+    {
       return ES_TOOL_API_CHANGED;
+    }
 
     const TOPPASToolVertex::IOInfo & source_param = source_output_files[source_param_index];
     StringList source_param_types = source_param.valid_types;

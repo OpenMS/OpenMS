@@ -117,6 +117,16 @@ public:
       AM_MOVE
     };
 
+
+    /// Pipeline status after refreshParameters() was called
+    enum RefreshStatus
+    {
+      ST_REFRESH_NOCHANGE,
+      ST_REFRESH_CHANGED,
+      ST_REFRESH_CHANGEINVALID
+    };
+
+
     /// The container for edges
     typedef QList<TOPPASEdge *> EdgeContainer;
     /// A mutable iterator for edges
@@ -166,8 +176,8 @@ public:
     void resetDownstream(TOPPASVertex * vertex);
     /// Runs the pipeline
     void runPipeline();
-    /// Stores the pipeline to @p file
-    void store(const String & file);
+    /// Stores the pipeline to @p file, returns true on success
+    bool store(const String & file);
     /// Loads the pipeline from @p file
     void load(const String & file);
     /// Includes the pipeline @p scene
@@ -217,7 +227,7 @@ public:
     ///Returns whether the workflow has been changed since the latest "save"
     bool wasChanged();
     /// Refreshes the parameters of the TOPP tools in this workflow
-    bool refreshParameters();
+    RefreshStatus refreshParameters();
     /// determine dry run status (are tools actually called?)
     bool isDryRun() const;
     /// workflow description (to be displayed in TOPPAS window)
@@ -353,7 +363,8 @@ protected:
     /// DFS helper method. Returns true, if a back edge has been discovered
     bool dfsVisit_(TOPPASVertex * vertex);
     /// Performs a sanity check of the pipeline and notifies user when it finds something strange. Returns if pipeline OK.
-    bool sanityCheck_();
+    /// if 'allowUserOverride' is true, some dialogs are shown which allow the user to ignore some warnings (e.g. disconnected nodes)
+    bool sanityCheck_(bool allowUserOverride);
 
     ///@name reimplemented Qt events
     //@{

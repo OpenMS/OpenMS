@@ -607,7 +607,7 @@ namespace OpenMS
     update(sceneRect());
 
     // check if pipeline OK
-    if (!sanityCheck_())
+    if (!sanityCheck_(gui_))
     {
       if (!gui_)
         emit pipelineExecutionFailed();          // the user cannot interact. End processing.
@@ -661,7 +661,7 @@ namespace OpenMS
     } // foreach
   }
 
-  void TOPPASScene::store(const String& file)
+  bool TOPPASScene::store(const String& file)
   {
     Param save_param;
 
@@ -733,6 +733,10 @@ namespace OpenMS
     int counter = 0;
     foreach(TOPPASEdge * te, edges_)
     {
+      if (te->getEdgeStatus() != TOPPASEdge::ES_VALID)
+      {
+        return false;
+      }
       if (!(te->getSourceVertex() && te->getTargetVertex()))
       {
         continue;
@@ -776,6 +780,8 @@ namespace OpenMS
     paramFile.store(file, save_param);
     setChanged(false);
     file_name_ = file;
+
+    return true; // success
   }
 
   QString TOPPASScene::getDescription() const
@@ -1959,7 +1965,7 @@ namespace OpenMS
     checkIfWeAreDone();
   }
 
-  bool TOPPASScene::sanityCheck_()
+  bool TOPPASScene::sanityCheck_(bool allowUserOverride)
   {
     QStringList strange_vertices;
 
@@ -1977,7 +1983,7 @@ namespace OpenMS
     }
     if (input_nodes.empty())
     {
-      if (gui_)
+      if (allowUserOverride)
       {
         QMessageBox::warning(0, "No input files", "The pipeline does not contain any input file nodes!");
       }
@@ -1998,7 +2004,7 @@ namespace OpenMS
     }
     if (!strange_vertices.empty())
     {
-      if (gui_)
+      if (allowUserOverride)
       {
         QMessageBox::warning(views().first(), "Empty input file nodes",
                              QString("Node")
@@ -2025,7 +2031,7 @@ namespace OpenMS
     }
     if (!strange_vertices.empty())
     {
-      if (gui_)
+      if (allowUserOverride)
       {
         QMessageBox::warning(views().first(), "Input file names wrong",
                              QString("Node")
@@ -2057,7 +2063,7 @@ namespace OpenMS
     }
     if (!strange_vertices.empty())
     {
-      if (gui_)
+      if (allowUserOverride)
       {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(views().first(), "Nodes without incoming edges",
@@ -2092,7 +2098,7 @@ namespace OpenMS
     }
     if (!strange_vertices.empty())
     {
-      if (gui_)
+      if (allowUserOverride)
       {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(views().first(), "Nodes without outgoing edges",
@@ -2111,6 +2117,33 @@ namespace OpenMS
       //{
       // assume the pipeline was tested in the gui, continue
       //}
+    }
+
+    // check edges
+    bool edges_ok = true;
+    foreach(TOPPASEdge * edge, edges_)
+    {
+      if (edge->getEdgeStatus() != TOPPASEdge::ES_VALID)
+      {
+        edges_ok = false;
+        break;
+      }
+    }
+    if (!edges_ok)
+    {
+      if (allowUserOverride) 
+      {
+          QMessageBox::StandardButton ret;
+          ret = QMessageBox::warning(views().first(), "Invalid edges detected", "Invalid edges detected. Do you still want to run the pipeline?",
+                                      QMessageBox::Yes | QMessageBox::No);
+          if (ret == QMessageBox::No)
+          {
+            return false;
+          }
+      } else 
+      { // do not allow silent execution with invalid edges
+        return false;
+      }
     }
 
     return true;
@@ -2223,7 +2256,7 @@ namespace OpenMS
     }
   }
 
-  bool TOPPASScene::refreshParameters()
+  TOPPASScene::RefreshStatus TOPPASScene::refreshParameters()
   {
     bool change = false;
     for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
@@ -2235,7 +2268,12 @@ namespace OpenMS
       }
     }
 
-    return change;
+    TOPPASScene::RefreshStatus result;
+    if (!sanityCheck_(false)) result = ST_REFRESH_CHANGEINVALID;
+    else if (change) result = ST_REFRESH_CHANGED;
+    else result = ST_REFRESH_NOCHANGE;
+    
+    return result;
   }
 
   void TOPPASScene::setAllowedThreads(int num_jobs)

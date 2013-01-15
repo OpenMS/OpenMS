@@ -611,7 +611,12 @@ namespace OpenMS
       {
         file_name += ".toppas";
       }
-      w->getScene()->store(file_name);
+      if (!w->getScene()->store(file_name)) 
+      {
+        QMessageBox::warning(this, tr("Error"),
+                           tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
+      }
+
     }
     else
     {
@@ -634,6 +639,32 @@ namespace OpenMS
       QString caption = File::basename(file_name).toQString();
       tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
     }
+  }
+
+  // static
+  QString TOPPASBase::savePipelineAs(TOPPASWidget* w, QString current_path)
+  {
+    if (!w)
+    {
+      return "";
+    }
+
+    QString file_name = QFileDialog::getSaveFileName(w, tr("Save workflow"), current_path, tr("TOPPAS pipelines (*.toppas)"));
+    if (file_name != "")
+    {
+      if (!file_name.endsWith(".toppas", Qt::CaseInsensitive))
+      {
+        file_name += ".toppas";
+      }
+      if (!w->getScene()->store(file_name)) 
+      {
+        QMessageBox::warning(NULL, tr("Error"),
+                           tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
+      }
+      QString caption = File::basename(file_name).toQString();
+      w->setWindowTitle(caption);
+    }
+    return file_name;
   }
 
   void TOPPASBase::exportAsImage()
@@ -698,27 +729,6 @@ namespace OpenMS
     }
   }
 
-  // static
-  QString TOPPASBase::savePipelineAs(TOPPASWidget* w, QString current_path)
-  {
-    if (!w)
-    {
-      return "";
-    }
-
-    QString file_name = QFileDialog::getSaveFileName(w, tr("Save workflow"), current_path, tr("TOPPAS pipelines (*.toppas)"));
-    if (file_name != "")
-    {
-      if (!file_name.endsWith(".toppas", Qt::CaseInsensitive))
-      {
-        file_name += ".toppas";
-      }
-      w->getScene()->store(file_name);
-      QString caption = File::basename(file_name).toQString();
-      w->setWindowTitle(caption);
-    }
-    return file_name;
-  }
 
   void TOPPASBase::loadPipelineResourceFile()
   {
@@ -1481,7 +1491,8 @@ namespace OpenMS
       return "";
     }
 
-    if (!ts->refreshParameters())
+    TOPPASScene::RefreshStatus st = ts->refreshParameters();
+    if (st == TOPPASScene::ST_REFRESH_NOCHANGE)
     {
       QMessageBox::information(tw, tr("Nothing to be done"),
                                tr("The parameters of the tools used in this workflow have not changed."));
@@ -1489,6 +1500,14 @@ namespace OpenMS
     }
 
     ts->setChanged(true);
+    ts->updateEdgeColors();
+    if (st == TOPPASScene::ST_REFRESH_CHANGEINVALID)
+    {
+      QMessageBox::information(tw, "Parameters updated!",
+                                   "The resulting pipeline is invalid. Probably some input or output parameters were removed or added. Please repair!",
+                                       QMessageBox::Ok);
+      return "";
+    }
     int ret = QMessageBox::information(tw, "Parameters updated!",
                                        "The parameters of some tools in this workflow have changed. Do you want to save these changes now?",
                                        QMessageBox::Save | QMessageBox::Cancel);
