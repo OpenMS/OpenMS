@@ -131,7 +131,6 @@ install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf
 )
 
 ########################################################### SEARCHENGINES
-set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA)
     install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/OMSSA

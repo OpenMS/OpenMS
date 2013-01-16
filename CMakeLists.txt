@@ -503,6 +503,9 @@ add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS GUI)
 
 ##### CTDs ####
+# We will use this path for the knime packages and the osx installer
+set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
+
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
 if (ENABLE_PREPARE_KNIME_PACKAGE)
 	include(cmake/OpenMSBuildSystem_ctdSupport.cmake)

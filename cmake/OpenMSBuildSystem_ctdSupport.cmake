@@ -118,12 +118,36 @@ endforeach()
 # remove those parts of the CTDs we cannot model in KNIME
 add_custom_target(
   final_ctds
+	DEPENDS create_ctds
+)
+
+## Postprocessing of the ctd-files
+# OMSSAAdapter
+add_custom_command(
+	TARGET final_ctds POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=OMSSAAdapter -DPARAM=omssa_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+)
+
+# XTandemAdapter
+add_custom_command(
+	TARGET final_ctds POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
 	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=default_input_file -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=IDPosteriorErrorProbability -DPARAM=output_name -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  DEPENDS create_ctds
 )
+
+# IDPosteriorErrorProbability
+add_custom_command(
+	TARGET final_ctds POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=IDPosteriorErrorProbability -DPARAM=output_name -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+)
+
+# MyriMatchAdapter
+if(NOT APPLE)
+	add_custom_command(
+		TARGET final_ctds POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MyriMatchAdapter -DPARAM=myrimatch_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+	)
+endif()
 
 # create final target that collects all sub-calls
 add_custom_target(
@@ -215,20 +239,32 @@ else()
   # assemble required libraries for lnx
 endif()
 
-# TODO: handle the search engines
-
 # handle the binaries.ini
 add_custom_target(
   prepare_knime_payload_ini
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D TARGET_DIR=${PAYLOAD_PATH} -D TEMPLATE_FOLDER=${SCRIPT_DIRECTORY} -P ${SCRIPT_DIRECTORY}copy_binaries_ini.cmake
 )
 
+# check if we have valid search engines
+if(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY})
+	message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. Call cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE> .")
+elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA)
+	message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. Please check use the one from the SVN.")
+elseif(NOT APPLE AND NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MyriMatch)
+	message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. Please check use the one from the SVN.")
+endif()
+
 add_custom_target(
 	prepare_knime_payload_searchengines
-	)
+	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SE_PATH=${SEARCH_ENGINES_DIRECTORY} -D TARGET_DIRECTORY=${PAYLOAD_BIN_PATH} -P ${SCRIPT_DIRECTORY}copy_searchengines.cmake
+	# We need the folder layout from the bin target
+	DEPENDS prepare_knime_payload_binaries
+)
+	
 # the complete payload target
 add_custom_target(
 	prepare_knime_payload
+	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${PAYLOAD_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
 	DEPENDS prepare_knime_payload_binaries prepare_knime_payload_libs create_payload_share prepare_knime_payload_ini prepare_knime_payload_searchengines
 	)
 
