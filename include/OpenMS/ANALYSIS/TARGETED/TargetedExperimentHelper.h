@@ -39,6 +39,8 @@
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 
+#include <boost/numeric/conversion/cast.hpp>
+
 namespace OpenMS
 {
   /**

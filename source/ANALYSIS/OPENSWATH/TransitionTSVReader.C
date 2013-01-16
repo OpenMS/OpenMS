@@ -283,7 +283,7 @@ namespace OpenMS
   {
       TargetedExperiment::Peptide::Modification mod;
       String unimod_str = rmod.getUniModAccession();
-      mod.location = location; 
+      mod.location = boost::numeric_cast<int>(location); 
       mod.mono_mass_delta = rmod.getDiffMonoMass();
       mod.avg_mass_delta = rmod.getDiffAverageMass();
       // CV term with the full unimod accession number and name

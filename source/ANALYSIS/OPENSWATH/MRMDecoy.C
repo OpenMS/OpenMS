@@ -335,9 +335,9 @@ namespace OpenMS
         for (Size k = 0; k < peptide_index.size(); k++)
         {
           // C and N terminal mods are implicitely not shuffled because they live at positions -1 and sequence.size()
-          if (peptide_index[k] == shuffled.mods[j].location)
+          if (boost::numeric_cast<int>(peptide_index[k]) == shuffled.mods[j].location)
           {
-            shuffled.mods[j].location = k;
+            shuffled.mods[j].location = boost::numeric_cast<int>(k);
             break;
           }
         }
@@ -388,9 +388,9 @@ namespace OpenMS
     {
       for (Size k = 0; k < peptide_index.size(); k++)
       {
-        if (peptide_index[k] == peptide.mods[j].location)
+        if (boost::numeric_cast<int>(peptide_index[k])  == peptide.mods[j].location)
         {
-          peptide.mods[j].location = k;
+          peptide.mods[j].location = boost::numeric_cast<int>(k);
           break;
         }
       }
@@ -416,9 +416,9 @@ namespace OpenMS
     {
       for (Size k = 0; k < peptide_index.size(); k++)
       {
-        if (peptide_index[k] == peptide.mods[j].location)
+        if (boost::numeric_cast<int>(peptide_index[k]) == peptide.mods[j].location)
         {
-          peptide.mods[j].location = k;
+          peptide.mods[j].location = boost::numeric_cast<int>(k);
           break;
         }
       }
@@ -431,7 +431,7 @@ namespace OpenMS
   {
     for (Size j = 0; j < peptide.mods.size(); j++)
     {
-      if (peptide.mods[j].location == -1 || peptide.mods[j].location == peptide.sequence.size())
+      if (peptide.mods[j].location == -1 || peptide.mods[j].location == boost::numeric_cast<int>(peptide.sequence.size()) )
       {
         return true;
       }

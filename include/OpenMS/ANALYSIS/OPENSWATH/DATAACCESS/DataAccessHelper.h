@@ -37,6 +37,8 @@
 
 #include <fstream>
 
+#include <boost/numeric/conversion/cast.hpp>
+
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>

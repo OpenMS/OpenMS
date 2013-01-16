@@ -77,7 +77,7 @@ namespace OpenMS
             if (mo->getAccession().size() > 7 && mo->getAccession().prefix(7).toLower() == String("unimod:") )
             {
               nr_modifications_added++;
-              setModification(it->location, peptide.sequence.size(), "UniMod:" + mo->getAccession().substr(7), aas);
+              setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), "UniMod:" + mo->getAccession().substr(7), aas);
             }
           }
         }
@@ -91,7 +91,7 @@ namespace OpenMS
           for (std::vector<String>::iterator mo = mods.begin(); mo != mods.end(); ++mo)
           {
             nr_modifications_added++;
-            setModification(it->location, peptide.sequence.size(), *mo, aas);
+            setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), *mo, aas);
           }
         }
 
