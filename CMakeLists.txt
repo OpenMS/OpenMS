@@ -503,8 +503,8 @@ add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS GUI)
 
 ##### CTDs ####
-set(ENABLE_CDTSUPPORT OFF CACHE BOOL "If enabled, targets for creating CTD's are generated. Main target will be 'build_ctds'.")
-if (ENABLE_CDTSUPPORT)
+set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
+if (ENABLE_PREPARE_KNIME_PACKAGE)
 	include(cmake/OpenMSBuildSystem_ctdSupport.cmake)
 endif()
 
