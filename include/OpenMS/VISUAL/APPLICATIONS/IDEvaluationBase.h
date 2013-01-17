@@ -90,6 +90,8 @@ public:
 
     void setVisibleArea(double low, double high);
 
+    const MSExperiment<>& getPoints() const;
+
     static StringList getSupportedImageFormats();
 
 public slots:
@@ -99,8 +101,11 @@ public slots:
     void setIntensityMode(int index);
 
     /// compute q-values from ids and store as vector of points for plotting
+    /// returns false on error, the return vector 'points' will also be empty in this case
     bool getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */, const std::vector<DoubleReal> & q_value_thresholds, MSSpectrum<> & points);
-
+    
+    /// calls 'getPoints()' after loading the idXML file and returns the result
+    bool loadCurve(const String& file_name, MSSpectrum<>& points);
     /// opens the file in a new window
     /// @return false on error (no idXML file or missing information preventing FDR computation)
     bool addSearchFile(const String & file_name);
@@ -184,6 +189,10 @@ protected:
     void showLogMessage_(LogState state, const String & heading, const String & body);
 
     std::vector<DoubleReal> q_value_thresholds_;
+
+    // holds the computed curves for easy export to outside
+    MSExperiment<> data_;
+
     /** @name Toolbar
     */
     //@{

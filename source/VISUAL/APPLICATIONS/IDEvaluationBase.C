@@ -171,8 +171,6 @@ namespace OpenMS
 
     this->setCentralWidget(spec_1d_);
 
-    //this->setMenuWidget(spec_1d_);
-
     //log window
     QDockWidget* log_bar = new QDockWidget("Log", this);
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
@@ -350,7 +348,8 @@ namespace OpenMS
     spec_1d_->canvas()->setVisibleArea(range);
   }
 
-  bool IDEvaluationBase::addSearchFile(const String& file_name)
+
+  bool IDEvaluationBase::loadCurve(const String& file_name, MSSpectrum<>& points)
   {
     if (FileHandler::getType(file_name) != FileTypes::IDXML)
     {
@@ -362,20 +361,32 @@ namespace OpenMS
     std::vector<PeptideIdentification> pep_ids;
     IdXMLFile().load(file_name, prot_ids, pep_ids);
     String ln = pep_ids[0].getScoreType(); // grab name here, since FDR-calculation will overwrite it with "q-value"
+    bool ret = getPoints(pep_ids, q_value_thresholds_, points); // FDR calculation failed?
+    points.setMetaValue("search_engine", ln);
+
+    return ret; 
+  }
+
+  bool IDEvaluationBase::addSearchFile(const String& file_name)
+  {
     MSSpectrum<> points;
-    if (!getPoints(pep_ids, q_value_thresholds_, points)) // FDR calculation failed
-    {
-      return false;
-    }
+    if (!loadCurve(file_name, points)) return false;
+
+    data_.push_back(points);
 
     MSExperiment<>* exp = new MSExperiment<>();
     exp->push_back(points);
     spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp));
-    spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, ln);
+    spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, points.getMetaValue("search_engine"));
     // set intensity mode (after spectrum has been added!)
     setIntensityMode((int) SpectrumCanvas::IM_SNAP);
 
     return true;
+  }
+  
+  const MSExperiment<>& IDEvaluationBase::getPoints() const
+  {
+     return data_;
   }
 
   void IDEvaluationBase::saveImageAs()

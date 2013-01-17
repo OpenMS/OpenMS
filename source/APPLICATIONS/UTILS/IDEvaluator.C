@@ -35,6 +35,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/VISUAL/APPLICATIONS/IDEvaluationBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
@@ -59,9 +60,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_IDEvaluation IDEvaluation
+  @page UTILS_IDEvaluator IDEvaluator
 
-    @brief Computes a 'q-value vs. #PSM' plot to visualize the number identifications for a certain q-value.
+  @brief Computes a 'q-value vs. #PSM' plot which is saved as an image to visualize the number identifications for a certain q-value.
 
 
   An arbitrary number of idXML files resulting from a target+decoy search can be provided as input.
@@ -71,22 +72,22 @@ using namespace std;
   (or ConsensusID) and use this as input to this tool.
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_IDEvaluation.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_IDEvaluation.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_IDEvaluator.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_IDEvaluator.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPIDEvaluation :
+class TOPPIDEvaluator :
   public TOPPBase
 {
 public:
-  TOPPIDEvaluation() :
-    TOPPBase("IDEvaluation",
-             "Computes a 'q-value vs. #PSM' plot to visualize the number identifications for a certain q-value.", false)
+  TOPPIDEvaluator() :
+    TOPPBase("IDEvaluator",
+             "Computes a 'q-value vs. #PSM' plot which is saved as an image to visualize the number identifications for a certain q-value.", false)
   {
     char * dummy = "dummy"; int argc = 1;  QApplication a(argc, &dummy);
     out_formats_ = IDEvaluationBase().getSupportedImageFormats(); // can only be called if a QApplication is present...
@@ -134,9 +135,17 @@ protected:
     // load data
     //----------------------------------------------------------------
     StringList in_list = getStringList_("in");
-    String out = getStringOption_("out").trim();
-    String format = getStringOption_("out_type").trim();
-    if (out != "" && format == "") // get from filename
+    String out = getStringOption_("out");
+    String out_csv = getStringOption_("out_csv");
+    String format = getStringOption_("out_type");
+
+    if (out.empty() && out_csv.empty())
+    {
+      LOG_ERROR << "Neither 'out' nor 'out_csv' were provided. Please assign at least one of them." << std::endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (!out.empty() && format == "") // get from filename
     {
       try
       {
@@ -165,10 +174,11 @@ protected:
 
     QApplicationTOPP a(argc, const_cast<char **>(argv));
 
-    IDEvaluationBase * mw = new IDEvaluationBase();
+    IDEvaluationBase* mw = new IDEvaluationBase();
     Param alg_param = mw->getParameters();
     alg_param.insert("", getParam_().copy("algorithm:", true));
     mw->setParameters(alg_param);
+
     if (!mw->loadFiles(in_list))
     {
       LOG_ERROR << "Tool failed. See above." << std::endl;
@@ -176,7 +186,7 @@ protected:
     };
     mw->setVisibleArea(q_min, q_max);
 
-    if (out != "") // save as image and exit
+    if (!out.empty()) // save as image and exit
     {
       String error;
       bool r = mw->exportAsImage(out.toQString(), error, format.toQString());
@@ -188,17 +198,28 @@ protected:
       }
     }
 
-    mw->show();
-
-#ifdef OPENMS_WINDOWSPLATFORM
-    FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
-    AttachConsole(-1); // if the parent is a console, reattach to it - so we can see debug output - a normal user will usually not use cmd.exe to start a GUI)
-#endif
-
-    int result = a.exec();
+    if (!out_csv.empty())
+    {
+      TextFile tf;
+      for (Size i=0; i<mw->getPoints().size(); ++i)
+      {
+        MSSpectrum<> s = mw->getPoints()[i];
+        StringList sl1;
+        StringList sl2;
+        for (Size j=0;j<s.size();++j)
+        {
+          sl1 << s[j].getMZ();
+          sl2 << s[j].getIntensity();
+        }
+        tf.push_back(String("# ") + String(s.getMetaValue("search_engine")));
+        tf.push_back(sl1.concatenate(","));
+        tf.push_back(sl2.concatenate(","));
+      }
+      tf.store(out_csv);
+    }
+    
     delete(mw);
-    if (result) return UNKNOWN_ERROR;
-    else return EXECUTION_OK;
+    return EXECUTION_OK;
   }
 
 };
@@ -206,7 +227,7 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  TOPPIDEvaluation tool;
+  TOPPIDEvaluator tool;
   return tool.main(argc, argv);
 }
 

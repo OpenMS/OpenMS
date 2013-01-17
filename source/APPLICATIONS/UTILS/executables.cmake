@@ -12,7 +12,7 @@ ERPairFinder
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
-IDEvaluation
+IDEvaluator
 IDExtractor
 IDMassAccuracy
 IDSplitter
@@ -55,7 +55,7 @@ endif(NOT DISABLE_OPENSWATH)
 
 ## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
 set(UTILS_executables_with_GUIlib
-IDEvaluation
+IDEvaluator
 ImageCreator
 INIUpdater
 )
