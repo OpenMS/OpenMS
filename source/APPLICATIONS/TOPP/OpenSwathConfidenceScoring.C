@@ -312,7 +312,7 @@ protected:
     OpenSwath::Scoring::normalize_sum(&assay_intensities[0],
                                       boost::numeric_cast<int>(assay_intensities.size()));
     DoubleReal dist_int = manhattanDist_(feature_intensities, 
-                                         boost::numeric_cast<int>(assay_intensities));
+                                         assay_intensities);
 
     DoubleReal score = glm_(diff_rt, dist_int);
 
