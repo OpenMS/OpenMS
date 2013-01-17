@@ -308,11 +308,11 @@ protected:
 
     // compute intensity distance:
     OpenSwath::Scoring::normalize_sum(&feature_intensities[0],
-                                      feature_intensities.size());
+                                      boost::numeric_cast<int>(feature_intensities.size()));
     OpenSwath::Scoring::normalize_sum(&assay_intensities[0],
-                                      assay_intensities.size());
+                                      boost::numeric_cast<int>(assay_intensities.size()));
     DoubleReal dist_int = manhattanDist_(feature_intensities, 
-                                         assay_intensities);
+                                         boost::numeric_cast<int>(assay_intensities));
 
     DoubleReal score = glm_(diff_rt, dist_int);
 
@@ -474,14 +474,14 @@ protected:
     if (n_assays - 1 <= n_decoys_) n_decoys_ = 0; // use all available assays
 
     decoy_index_.resize(n_assays);
-    for (Size i = 0; i < n_assays; ++i) decoy_index_[i] = i;
+    for (Size i = 0; i < n_assays; ++i) decoy_index_[i] = boost::numeric_cast<Int>(i);
 
     // build mapping between assays and transitions:
     LOG_DEBUG << "Building transition map..." << endl;
     for (Size i = 0; i < library_.getTransitions().size(); ++i)
     {
       const String& ref = library_.getTransitions()[i].getPeptideRef();
-      transition_map_[ref].push_back(i);
+      transition_map_[ref].push_back(boost::numeric_cast<Int>(i));
     }
     // find min./max. RT in the library:
     LOG_DEBUG << "Determining retention time range..." << endl;

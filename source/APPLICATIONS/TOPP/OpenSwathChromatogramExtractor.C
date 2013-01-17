@@ -215,7 +215,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (SignedSize i = 0; i < file_list.size(); ++i)
+    for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
       MapType exp;
       MzMLFile f;

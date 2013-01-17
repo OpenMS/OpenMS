@@ -488,11 +488,11 @@ protected:
 
       if (best_scoring.empty())
       {
-        write_out_body(os, feature_map, transition_exp, meta_value_names, i, short_format, filename);
+        write_out_body(os, feature_map, transition_exp, meta_value_names, boost::numeric_cast<int>(i), short_format, filename);
       }
       else
       {
-        write_out_body_best_score(os, feature_map, transition_exp, meta_value_names, i, short_format, best_scoring, filename);
+        write_out_body_best_score(os, feature_map, transition_exp, meta_value_names, boost::numeric_cast<int>(i), short_format, best_scoring, filename);
       }
     }
 

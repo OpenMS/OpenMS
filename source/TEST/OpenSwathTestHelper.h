@@ -69,7 +69,7 @@ namespace OpenSWATH_Test
 
     MRMFeature feature;
     feature.setRT(3120);
-    feature.setIntensity(973.122);
+    feature.setIntensity(static_cast<float>(973.122));
 
     {
       Feature f;
@@ -113,7 +113,7 @@ namespace OpenSWATH_Test
       ConvexHull2D hull;
       hull.setHullPoints(hull_points);
       f.getConvexHulls().push_back(hull);
-      f.setIntensity(58.38450);
+      f.setIntensity(static_cast<float>(58.38450));
       feature.addFeature(f, "tr3");
     }
 
@@ -204,7 +204,7 @@ namespace OpenSWATH_Test
       }
       ConvexHull2D hull;
       hull.setHullPoints(hull_points);
-      f.setIntensity(58.38450);
+      f.setIntensity(static_cast<float>(58.38450));
       f.getConvexHulls().push_back(hull);
       feature.addFeature(f, "tr5");
     }

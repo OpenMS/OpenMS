@@ -166,7 +166,7 @@ namespace OpenSwath
       double mean1 = std::accumulate(data1.begin(), data1.end(), 0.) / (double)data1.size();
       double mean2 = std::accumulate(data2.begin(), data2.end(), 0.) / (double)data2.size();
       double denominator = 1.0;
-      int datasize = data1.size();
+      int datasize = boost::numeric_cast<int>(data1.size());
       int i, j, delay;
 
       // Normalized cross-correlation = subtract the mean and divide by the standard deviation

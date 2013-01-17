@@ -219,7 +219,7 @@ START_SECTION(float AASequenceIdentity(const String & sequence, const String & d
   String AASequenceIdentity_target_sequence = "TESTPEPTIDE";
   String AASequenceIdentity_decoy_sequence = "EDITPEPTSET";
   float AASequenceIdentity_result = gen.AASequenceIdentity(AASequenceIdentity_target_sequence,AASequenceIdentity_decoy_sequence);
-  float AASequenceIdentity_expected = 0.454545;
+  float AASequenceIdentity_expected = static_cast<float>(0.454545);
   TEST_REAL_SIMILAR(AASequenceIdentity_result, AASequenceIdentity_expected)
 }
 END_SECTION

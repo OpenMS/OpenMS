@@ -45,7 +45,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ProcessData.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ProcessData.h>
 
@@ -76,6 +75,9 @@ ptr = new ProcessData();
 START_SECTION((ProcessData::get_MZ(double IN_mz)))
   ProcessData d;
   ProcessData::main_iterator it = d.get_MZ(500.25);
+  // TEST_EQUAL(it, d.get_MZ_LIST_end()) // doesnt work directly
+  if( it == d.get_MZ_LIST_end()) { TEST_EQUAL(true, true) }
+  else {TEST_EQUAL(true, false)}
 END_SECTION
 
 START_SECTION((int getNbMSTraces()))
