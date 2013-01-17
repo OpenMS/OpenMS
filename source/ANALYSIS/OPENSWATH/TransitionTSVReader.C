@@ -279,11 +279,11 @@ namespace OpenMS
   }
 
   void TransitionTSVReader::add_modification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
-          Size location, ResidueModification & rmod, const String & name)
+          int location, ResidueModification & rmod, const String & name)
   {
       TargetedExperiment::Peptide::Modification mod;
       String unimod_str = rmod.getUniModAccession();
-      mod.location = boost::numeric_cast<int>(location); 
+      mod.location = location;
       mod.mono_mass_delta = rmod.getDiffMonoMass();
       mod.avg_mass_delta = rmod.getDiffAverageMass();
       // CV term with the full unimod accession number and name

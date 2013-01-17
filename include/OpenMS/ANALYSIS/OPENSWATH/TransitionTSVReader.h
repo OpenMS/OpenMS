@@ -106,7 +106,7 @@ private:
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
     void add_modification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
-          Size location, ResidueModification & rmod, const String & name);
+          int location, ResidueModification & rmod, const String & name);
 
 public:
     /// Write out a targeted experiment (TraML structure) into a tsv file
