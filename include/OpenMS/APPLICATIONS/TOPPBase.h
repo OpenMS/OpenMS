@@ -271,8 +271,9 @@ public:
               @param id_tag_support Does the TOPP tool support unique DocumentIdentifier assignment?! The default is false.
                            In the default case you cannot use the -id_pool argument when calling the TOPP tool (it will terminate during init)
       @param version Optional version of the tools (if empty, the version of OpenMS/TOPP is used).
+      @param require_args Require arguments on the command line (GUI tools should disable this)
     */
-    TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, const String& version = "");
+    TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true , const String& version = "");
 
     /// Destructor
     virtual ~TOPPBase();
@@ -299,6 +300,9 @@ private:
 
     /// Tool indicates it supports assignment of unique DocumentID from IDPool
     bool id_tag_support_;
+
+    /// Require at least one command line argument, exit immediately otherwise. GUI tools should disable this to be callable by double clicking.
+    bool require_args_;
 
     /// Instance of DocumentIDTagger, which can be accessed using getDocumentIDTagger_()
     DocumentIDTagger id_tagger_;

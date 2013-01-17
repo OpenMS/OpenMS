@@ -89,10 +89,11 @@ namespace OpenMS
 #endif
   }
 
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool id_tag_support, const String& version) :
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool id_tag_support, bool require_args, const String& version) :
     tool_name_(tool_name),
     tool_description_(tool_description),
     id_tag_support_(id_tag_support),
+    require_args_(require_args),
     id_tagger_(tool_name),
     instance_number_(-1),
     version_(version),
@@ -198,12 +199,12 @@ namespace OpenMS
     *const_cast<String*>(&ini_location_) = tool_name_ + ':' + String(instance_number_) + ':';
     writeDebug_(String("Ini_location: ") + getIniLocation_(), 1);
 
-    //set debug level
+    // set debug level
     debug_level_ = getParamAsInt_("debug", 0);
     writeDebug_(String("Debug level: ") + String(debug_level_), 1);
 
     // test if no options were given
-    if (argc == 1)
+    if (require_args_ && argc == 1)
     {
       writeLog_("No options given. Aborting!");
       printUsage_();
