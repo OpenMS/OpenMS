@@ -441,7 +441,7 @@ foreach(i ${GUI_executables})
 		add_executable(${i} ${GUI_DIR}/${i}.C ${resource_file})
 	elseif(APPLE AND EXISTS ${resource_dir})
 		# the icon file
-		set(ICON_FILE_PATH "${CMAKE_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app/Contents/Resources/${i}.icns")
+		set(ICON_FILE_PATH "${CMAKE_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.app/Contents/Resources/${i}.icns")
 		get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
 
 		# we also need the icns in the app
@@ -452,14 +452,14 @@ foreach(i ${GUI_executables})
 			${ICON_FILE_PATH})
 
 		set_target_properties(${i} PROPERTIES
-			MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2012 The OpenMS Team."
+			MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2013 The OpenMS Team."
 			MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
 			MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}"
 			MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
 			MACOSX_BUNDLE_BUNDLE_NAME ${i}
 			MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
 			MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
-			MACOSX_BUNDLE_COPYRIGHT "Copyright 2012, The OpenMS Team. All Rights Reserved."
+			MACOSX_BUNDLE_COPYRIGHT "Copyright 2013, The OpenMS Team. All Rights Reserved."
 		)
 
 		set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -471,6 +471,7 @@ foreach(i ${GUI_executables})
 		# PATTERN ".svn" EXCLUDE
 		# PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 	else()
+		Message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
 		add_executable(${i} ${GUI_DIR}/${i}.C)
 	endif()
 
