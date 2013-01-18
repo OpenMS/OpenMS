@@ -66,6 +66,7 @@ namespace OpenMS
     //File name for error message in XMLHandler
     file_ = filename;
 
+    enforceEncoding_("ISO-8859-1");
     parse_(filename, this);
 
     DateTime now = DateTime::now();

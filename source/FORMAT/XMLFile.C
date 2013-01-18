@@ -86,6 +86,11 @@ private:
     {
     }
 
+    void XMLFile::enforceEncoding_(const String& encoding)
+    {
+      enforced_encoding_ = encoding;
+    }
+
     void XMLFile::parse_(const String & filename, XMLHandler * handler)
     {
       // ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FatureXMLFile, is used again)
@@ -119,6 +124,7 @@ private:
       char bz[2];
       file.read(bz, 2);
       xercesc::InputSource * source;
+
       char g1 = 0x1f;
       char g2 = 0;
       g2 |= 1 << 7;
@@ -133,6 +139,12 @@ private:
       else
       {
         source = new xercesc::LocalFileInputSource(StringManager().convert(filename.c_str()));
+      }
+      // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
+      if (!enforced_encoding_.empty())
+      {
+        static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
+        source->setEncoding(s_enc);
       }
       // try to parse file
       try
