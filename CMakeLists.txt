@@ -441,7 +441,7 @@ foreach(i ${GUI_executables})
 		add_executable(${i} ${GUI_DIR}/${i}.C ${resource_file})
 	elseif(APPLE AND EXISTS ${resource_dir})
 		# the icon file
-		set(ICON_FILE_PATH "${CMAKE_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.app/Contents/Resources/${i}.icns")
+		set(ICON_FILE_PATH "${CMAKE_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.icns")
 		get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
 
 		# we also need the icns in the app
@@ -463,15 +463,12 @@ foreach(i ${GUI_executables})
 		)
 
 		set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-
-		# extra work for pseudo-mac-bundle
-		# move prepared package to RUNTIME_OUTPUT
-		# file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app"
-		# DESTINATION "${PROJECT_BINARY_DIR}/bin"
-		# PATTERN ".svn" EXCLUDE
-		# PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 	else()
-		Message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
+    if(APPLE)
+      message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
+    else()
+  		message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
+    endif()
 		add_executable(${i} ${GUI_DIR}/${i}.C)
 	endif()
 
