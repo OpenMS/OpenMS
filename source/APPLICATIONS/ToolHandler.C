@@ -193,7 +193,7 @@ namespace OpenMS
     util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", "");
     util_map["FFEval"] = Internal::ToolDescription("FFEval", "");
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", "");
-    util_map["IDEvaluation"] = Internal::ToolDescription("IDEvaluation", "");
+    util_map["IDEvaluator"] = Internal::ToolDescription("IDEvaluator", "");
     util_map["IDExtractor"] = Internal::ToolDescription("IDExtractor", "");
     util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", "");
     util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", "");
