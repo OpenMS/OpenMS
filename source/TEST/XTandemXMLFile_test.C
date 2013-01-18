@@ -85,6 +85,7 @@ START_SECTION(void load(const String& filename, ProteinIdentification& protein_i
 	ptr->load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test.xml"), protein_identification, peptide_identifications);
 	TEST_EQUAL(peptide_identifications.size(), 303)
 	TEST_EQUAL(protein_identification.getHits().size(), 497)
+	ptr->load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test_2.xml"), protein_identification, peptide_identifications);
 END_SECTION
 
 /////////////////////////////////////////////////////////////
