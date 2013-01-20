@@ -102,6 +102,8 @@ endif(APPLE)
 # pseudo-ctd target
 add_custom_target(
   create_ctds
+  # we first create the directory to make sure that the remove command does not fail
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CTD_PATH}  
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${CTD_PATH}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CTD_PATH}
   DEPENDS TOPP UTILS
@@ -157,20 +159,25 @@ add_custom_target(
 )
 
 add_custom_target(
+  prepare_knime_payload_binaries
+  # 1st create the directory to make sure that the remove_directory does not fail
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_PATH}  
+  COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_PATH}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_PATH}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_BIN_PATH}
+	DEPENDS TOPP UTILS
+)
+
+add_custom_target(
   create_payload_share
+  # 1st create the directory to make sure that the remove_directory does not fail
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_SHARE_PATH}
   # remove old directory 
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_SHARE_PATH}
   # create new one and fill with the appropriate content
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_SHARE_PATH}
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_DIRECTORY=${PAYLOAD_SHARE_PATH} -P ${SCRIPT_DIRECTORY}copy_share.cmake
-)
-
-add_custom_target(
-  prepare_knime_payload_binaries
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_PATH}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_PATH}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_BIN_PATH}
-	DEPENDS TOPP UTILS
+  DEPENDS prepare_knime_payload_binaries
 )
 
 # copy the binaries
@@ -187,6 +194,8 @@ endforeach()
 
 add_custom_target(
   prepare_knime_payload_libs
+  # 1st create the directory to make sure that the remove_directory does not fail  
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}  
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_LIB_PATH}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}
   # we need the binaries to determine what libraries we need
@@ -269,6 +278,13 @@ add_custom_target(
 	)
 
 add_custom_target(
+  prepare_meta_information
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/LICENSE ${TARGET_PATH}/
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/COPYRIGHT ${TARGET_PATH}/
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/DESCRIPTION ${TARGET_PATH}/  
+)
+
+add_custom_target(
 	prepare_knime_package
-	DEPENDS prepare_knime_descriptors prepare_knime_payload
+	DEPENDS prepare_meta_information prepare_knime_descriptors prepare_knime_payload
 	)
