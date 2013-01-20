@@ -80,9 +80,10 @@ endfunction()
 # create the target directory
 file(MAKE_DIRECTORY ${TARGET_PATH})
 
-# create plugin.properties file
-configure_file(${PROJECT_SOURCE_DIR}/cmake/knime/plugin.properties.in 
-               ${TARGET_PATH}/plugin.properties)
+add_custom_target(
+  configure_plugin_properties
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${TARGET_PATH} -D SVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE} -D OPENMS_VERSION=${CF_OPENMS_PACKAGE_VERSION} -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
+)
 
 # copy the icons
 file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
@@ -286,5 +287,5 @@ add_custom_target(
 
 add_custom_target(
 	prepare_knime_package
-	DEPENDS prepare_meta_information prepare_knime_descriptors prepare_knime_payload
+	DEPENDS prepare_meta_information configure_plugin_properties prepare_knime_descriptors prepare_knime_payload
 	)

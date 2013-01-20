@@ -5,7 +5,7 @@ pluginPackage=de.openms
 pluginName=OpenMS
 
 # the version of the plugin
-pluginVersion=@CF_OPENMS_PACKAGE_VERSION@
+pluginVersion=@CF_OPENMS_VERSION@
 
 # the path (starting from KNIMEs Community Nodes node)
 nodeRepositoyRoot=community
