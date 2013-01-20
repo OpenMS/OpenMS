@@ -33,8 +33,8 @@
 # --------------------------------------------------------------------------
 
 # path were the CTDs will be stored
-set(TARGET_PATH ${PROJECT_BINARY_DIR}/ctds)
-set(CTD_PATH ${TARGET_PATH}/descriptors)
+set(KNIME_PLUGIN_DIRECTORY ${PROJECT_BINARY_DIR}/ctds CACHE PATH "Directory containing the generated plugin-sources for the OpenMS KNIME package")
+set(CTD_PATH ${KNIME_PLUGIN_DIRECTORY}/descriptors)
 
 # path were the executables can be found
 set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
@@ -43,7 +43,7 @@ if(WIN32)
 endif()
 
 # payload paths
-set(PAYLOAD_PATH ${TARGET_PATH}/payload)
+set(PAYLOAD_PATH ${KNIME_PLUGIN_DIRECTORY}/payload)
 set(PAYLOAD_BIN_PATH ${PAYLOAD_PATH}/bin)
 set(PAYLOAD_LIB_PATH ${PAYLOAD_PATH}/lib)
 set(PAYLOAD_SHARE_PATH ${PAYLOAD_PATH}/share)
@@ -78,16 +78,16 @@ endfunction()
 
 
 # create the target directory
-file(MAKE_DIRECTORY ${TARGET_PATH})
+file(MAKE_DIRECTORY ${KNIME_PLUGIN_DIRECTORY})
 
 add_custom_target(
   configure_plugin_properties
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${TARGET_PATH} -D SVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE} -D OPENMS_VERSION=${CF_OPENMS_PACKAGE_VERSION} -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${KNIME_PLUGIN_DIRECTORY} -D SVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE} -D OPENMS_VERSION=${CF_OPENMS_PACKAGE_VERSION} -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
 )
 
 # copy the icons
 file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
-     DESTINATION ${TARGET_PATH}
+     DESTINATION ${KNIME_PLUGIN_DIRECTORY}
      PATTERN ".svn" EXCLUDE)
      
 # list of all tools that can generate CTDs
@@ -280,9 +280,9 @@ add_custom_target(
 
 add_custom_target(
   prepare_meta_information
-  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/LICENSE ${TARGET_PATH}/
-  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/COPYRIGHT ${TARGET_PATH}/
-  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/DESCRIPTION ${TARGET_PATH}/  
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/LICENSE ${KNIME_PLUGIN_DIRECTORY}/
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/COPYRIGHT ${KNIME_PLUGIN_DIRECTORY}/
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/DESCRIPTION ${KNIME_PLUGIN_DIRECTORY}/  
 )
 
 add_custom_target(
