@@ -39,7 +39,7 @@ set(CTD_PATH ${KNIME_PLUGIN_DIRECTORY}/descriptors)
 # path were the executables can be found
 set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
 if(WIN32)
-	set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR}/$(ConfigurationName))
+  set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR}/$(ConfigurationName))
 endif()
 
 # payload paths
@@ -96,10 +96,6 @@ set(CTD_executables ${TOPP_executables} ${UTILS_executables})
 # remove tools that do not produce CTDs
 list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo FuzzyDiff GenericWrapper InspectAdapter MascotAdapter PILISIdentification PILISModelCV PILISModelTrainer PILISSpectraGenerator SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
 
-if(APPLE)
-  list(REMOVE_ITEM CTD_executables MyriMatchAdapter)
-endif(APPLE)
-
 # pseudo-ctd target
 add_custom_target(
   create_ctds
@@ -112,49 +108,30 @@ add_custom_target(
 
 # call the tools
 foreach(TOOL ${CTD_executables})
-	add_custom_command(
-		TARGET  create_ctds POST_BUILD
-		COMMAND ${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_PATH}
-	)
+  add_custom_command(
+    TARGET  create_ctds POST_BUILD
+    COMMAND ${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_PATH}
+  )
 endforeach()
 
 # remove those parts of the CTDs we cannot model in KNIME
 add_custom_target(
   final_ctds
-	DEPENDS create_ctds
+  # OMSSAAdapter
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=OMSSAAdapter -DPARAM=omssa_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  # XTandemAdapter 
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=default_input_file -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  # IDPosteriorErrorProbability
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=IDPosteriorErrorProbability -DPARAM=output_name -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  # MyriMatchAdapter
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MyriMatchAdapter -DPARAM=myrimatch_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  DEPENDS create_ctds
 )
-
-## Postprocessing of the ctd-files
-# OMSSAAdapter
-add_custom_command(
-	TARGET final_ctds POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=OMSSAAdapter -DPARAM=omssa_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-)
-
-# XTandemAdapter
-add_custom_command(
-	TARGET final_ctds POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=default_input_file -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-)
-
-# IDPosteriorErrorProbability
-add_custom_command(
-	TARGET final_ctds POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=IDPosteriorErrorProbability -DPARAM=output_name -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-)
-
-# MyriMatchAdapter
-if(NOT APPLE)
-	add_custom_command(
-		TARGET final_ctds POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MyriMatchAdapter -DPARAM=myrimatch_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-	)
-endif()
 
 # create final target that collects all sub-calls
 add_custom_target(
-	prepare_knime_descriptors
+  prepare_knime_descriptors
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mimetypes.xml ${CTD_PATH}
   DEPENDS final_ctds
 )
@@ -166,7 +143,7 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_PATH}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_PATH}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_BIN_PATH}
-	DEPENDS TOPP UTILS
+  DEPENDS TOPP UTILS
 )
 
 add_custom_target(
@@ -183,14 +160,14 @@ add_custom_target(
 
 # copy the binaries
 foreach(TOOL ${CTD_executables})
-	set(tool_path ${TOPP_BIN_PATH}/${TOOL})
-	if(WIN32)
-		set(tool_path "${tool_path}.exe")
-	endif()
-	add_custom_command(
-		TARGET  prepare_knime_payload_binaries POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${tool_path} "${PAYLOAD_BIN_PATH}/"
-	)
+  set(tool_path ${TOPP_BIN_PATH}/${TOOL})
+  if(WIN32)
+    set(tool_path "${tool_path}.exe")
+  endif()
+  add_custom_command(
+    TARGET  prepare_knime_payload_binaries POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${tool_path} "${PAYLOAD_BIN_PATH}/"
+  )
 endforeach()
 
 add_custom_target(
@@ -211,40 +188,40 @@ if (APPLE)
   )
 elseif(WIN32)
   # assemble required libraries for win32
-	# OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces
-	get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
-	get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
-	
-	add_custom_command(
-		TARGET prepare_knime_payload_libs POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS.dll ${PAYLOAD_LIB_PATH}
-		COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS_GUI.dll ${PAYLOAD_LIB_PATH}
-		COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenSwathAlgo.dll ${PAYLOAD_LIB_PATH}	
-	)
+  # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces
+  get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
+  get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
+  
+  add_custom_command(
+    TARGET prepare_knime_payload_libs POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS.dll ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS_GUI.dll ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenSwathAlgo.dll ${PAYLOAD_LIB_PATH}  
+  )
 
-	function(copy_library lib target_path)
-		string(REGEX REPLACE "lib$" "dll" target_dll "${lib}")
-		file(TO_NATIVE_PATH "${target_dll}" target_native)
-		add_custom_command(
-			TARGET prepare_knime_payload_libs POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy "${target_native}" "${target_path}"
-		)
-	endfunction()
-	
-	set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
-	foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
-		set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
-		copy_library(${target_lib}  ${PAYLOAD_LIB_PATH})
-	endforeach()
+  function(copy_library lib target_path)
+    string(REGEX REPLACE "lib$" "dll" target_dll "${lib}")
+    file(TO_NATIVE_PATH "${target_dll}" target_native)
+    add_custom_command(
+      TARGET prepare_knime_payload_libs POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy "${target_native}" "${target_path}"
+    )
+  endfunction()
+  
+  set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
+  foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
+    set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
+    copy_library(${target_lib}  ${PAYLOAD_LIB_PATH})
+  endforeach()
 
-	# xerces
-	set(target_lib)
-	get_filename_component(xerces_path ${CONTRIB_XERCESC_OPT} PATH)
-	file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_0.dll" target_native)
-			add_custom_command(
-			TARGET prepare_knime_payload_libs POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy "${target_native}" "${PAYLOAD_LIB_PATH}"
-		)
+  # xerces
+  set(target_lib)
+  get_filename_component(xerces_path ${CONTRIB_XERCESC_OPT} PATH)
+  file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_0.dll" target_native)
+      add_custom_command(
+      TARGET prepare_knime_payload_libs POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy "${target_native}" "${PAYLOAD_LIB_PATH}"
+    )
 else()
   # assemble required libraries for lnx
 endif()
@@ -257,26 +234,26 @@ add_custom_target(
 
 # check if we have valid search engines
 if(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY})
-	message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. Call cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE> .")
+  message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. Call cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE> .")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA)
-	message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. Please check use the one from the SVN.")
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. Please check use the one from the SVN.")
 elseif(NOT APPLE AND NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MyriMatch)
-	message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. Please check use the one from the SVN.")
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. Please check use the one from the SVN.")
 endif()
 
 add_custom_target(
-	prepare_knime_payload_searchengines
-	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SE_PATH=${SEARCH_ENGINES_DIRECTORY} -D TARGET_DIRECTORY=${PAYLOAD_BIN_PATH} -P ${SCRIPT_DIRECTORY}copy_searchengines.cmake
-	# We need the folder layout from the bin target
-	DEPENDS prepare_knime_payload_binaries
+  prepare_knime_payload_searchengines
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SE_PATH=${SEARCH_ENGINES_DIRECTORY} -D TARGET_DIRECTORY=${PAYLOAD_BIN_PATH} -P ${SCRIPT_DIRECTORY}copy_searchengines.cmake
+  # We need the folder layout from the bin target
+  DEPENDS prepare_knime_payload_binaries
 )
-	
+  
 # the complete payload target
 add_custom_target(
-	prepare_knime_payload
-	COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${PAYLOAD_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
-	DEPENDS prepare_knime_payload_binaries prepare_knime_payload_libs create_payload_share prepare_knime_payload_ini prepare_knime_payload_searchengines
-	)
+  prepare_knime_payload
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${PAYLOAD_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
+  DEPENDS prepare_knime_payload_binaries prepare_knime_payload_libs create_payload_share prepare_knime_payload_ini prepare_knime_payload_searchengines
+  )
 
 add_custom_target(
   prepare_meta_information
@@ -286,6 +263,6 @@ add_custom_target(
 )
 
 add_custom_target(
-	prepare_knime_package
-	DEPENDS prepare_meta_information configure_plugin_properties prepare_knime_descriptors prepare_knime_payload
-	)
+  prepare_knime_package
+  DEPENDS prepare_meta_information configure_plugin_properties prepare_knime_descriptors prepare_knime_payload
+  )
