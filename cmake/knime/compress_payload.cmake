@@ -40,7 +40,7 @@ include ( ${SCRIPT_DIR}common.cmake )
 set(required_variables "ARCH;PLATFORM;PAYLOAD_FOLDER")
 check_variables(required_variables)
 
-find_package(Java)
+find_package(Java REQUIRED)
 
 set(zip_file "${PAYLOAD_FOLDER}/binaries_${PLATFORM}_${ARCH}.zip")
 file(TO_NATIVE_PATH ${zip_file} native_zip)
