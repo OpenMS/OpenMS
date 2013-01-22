@@ -76,6 +76,9 @@ using namespace std;
 
     @see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
+		Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version.
+		For some applications this behaviour is desired, while for others its not, but you can always remove all modifications from the input files if you want to ignore modifications.
+		
     Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "b_spline" model. The different available models are:
     - @ref OpenMS::TransformationModelLinear "linear": Linear model.
     - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
