@@ -302,6 +302,8 @@ struct ModificationMassesResult
 
 ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4)
 {
+   String original_sequence_restriction = sequence_restriction;
+
   // 152 modification
   const String cysteine_adduct_string("C1H2N3O6");
   const EmpiricalFormula cysteine_adduct_formula(cysteine_adduct_string); // 152 modification
@@ -461,14 +463,17 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   generateTargetSequences(sequence_restriction, 0, map_source_to_targets, target_sequences);
   cout << "target sequence(s):" << target_sequences.size() << endl;
   
-  for (Size i = 0; i != target_sequences.size(); ++i)
+  if (!original_sequence_restriction.empty())
   {
-    if (target_sequences[i].size() < 60)
+    for (Size i = 0; i != target_sequences.size(); ++i)
     {
-      cout << target_sequences[i] << endl;
-    } else
-    {
-      cout << target_sequences[i].prefix(60) << "..."  << endl;
+      if (target_sequences[i].size() < 60)
+      {
+        cout << target_sequences[i] << endl;
+      } else
+      {
+        cout << target_sequences[i].prefix(60) << "..."  << endl;
+      }
     }
   }
 
@@ -1212,6 +1217,8 @@ protected:
     {	  
       csv_file << csv_rows[i].getString("\t") << endl;
     }
+
+    csv_file.close();
 
     // cleanup
     if (debug_level < 1)
