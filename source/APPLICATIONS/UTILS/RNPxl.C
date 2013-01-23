@@ -296,7 +296,7 @@ struct RNPxlReportRowHeader
 struct ModificationMassesResult
 {
   Map<String, DoubleReal> mod_masses; // empirical formula -> mass
-  Map<String, String> mod_combinations; // empirical formula -> nucleotide formula
+  Map<String, set<String> > mod_combinations; // empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
   Map<Size, String> mod_formula_idx;
 };
 
@@ -502,7 +502,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
           }
         }
         actual_combinations.push_back(e);
-        result.mod_combinations[actual_combinations.back().getString()] = s;
+        result.mod_combinations[actual_combinations.back().getString()].insert(s);
 
         cout << "\t" << "modifications: " << s << "\t\t" << e.getString() << endl;
       }
@@ -521,7 +521,11 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
         {
           new_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O")); // -H2O because of condensation reaction
           all_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O")); // " "
-          result.mod_combinations[all_combinations.back().getString()] = target_nucleotide + result.mod_combinations[actual_combinations[c].getString()];
+          const set<String>& ambiguities = result.mod_combinations[actual_combinations[c].getString()];
+          for (set<String>::const_iterator sit = ambiguities.begin(); sit != ambiguities.end(); ++sit)
+          {
+            result.mod_combinations[all_combinations.back().getString()].insert(target_nucleotide + *sit);
+          }
           //cout << target_nucleotide + mod_combinations[actual_combinations[c].getString()]  << endl;
         }
       }
@@ -531,80 +535,135 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     //    cout << all_combinations.size() << endl;
     for (Size i = 0; i != all_combinations.size(); ++i)
     {
-      //      cout << all_combinations[i].getString() << endl;
+      //      cout << all_combinations[i].getString() << endl;      
       result.mod_masses[all_combinations[i].getString()] = all_combinations[i].getMonoWeight();
     }
   }
 
   cout << "Filtering on restrictions... " << endl;
   // filtering on restrictions
-  std::vector<String> violates_restriction;
+  std::vector<pair<String, String> > violates_restriction;  // elemental composition, nucleotide style formula 
   for (Map<String, DoubleReal>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
     // remove additive or subtractive modifications from string as these are not used in string comparison
-    String nucleotide_style_formula = result.mod_combinations[mit->first];
-    Size p1 = nucleotide_style_formula.find('-');
-    Size p2 = nucleotide_style_formula.find('+');
-    Size p = min(p1, p2);
-    if (p != String::npos)
+    const set<String>& ambiguities = result.mod_combinations[mit->first];
+    for (set<String>::const_iterator sit = ambiguities.begin(); sit != ambiguities.end(); ++sit)
     {
-      nucleotide_style_formula = nucleotide_style_formula.prefix(p);
-    }
-    //  cout << "(" << nucleotide_style_formula << ")" << endl;
-    // perform string comparison: if nucleotide seuquence doesnt occur in any permutation in res_seq mark the corresponding empirical formula for deletion
-    bool restriction_violated = false;
-
-    // for each min. count restriction on a target nucleotide...
-    for (map<char, Size>::const_iterator minit = map_target_to_mincount.begin(); minit != map_target_to_mincount.end(); ++minit)
-    {
-      //    cout << nucleotide_style_formula <<  " current target: " << minit->first << " ";
-      Size occurances = (Size) std::count(nucleotide_style_formula.begin(), nucleotide_style_formula.end(), minit->first);
-      //    cout << occurances << endl;
-      if (occurances < minit->second)
+      String nucleotide_style_formula = *sit;
+      Size p1 = nucleotide_style_formula.find('-');
+      Size p2 = nucleotide_style_formula.find('+');
+      Size p = min(p1, p2);
+      if (p != String::npos)
       {
-        restriction_violated = true;
+        nucleotide_style_formula = nucleotide_style_formula.prefix(p);
       }
-    }
+      //  cout << "(" << nucleotide_style_formula << ")" << endl;
+      // perform string comparison: if nucleotide seuquence doesnt occur in any permutation in res_seq mark the corresponding empirical formula for deletion
+      bool restriction_violated = false;
 
-    // check if contained in at least one of the target sequences
-    bool containment_violated = false;
-    Size violation_count = 0;
-    for (StringList::const_iterator tsit = target_sequences.begin(); tsit != target_sequences.end(); ++tsit)
-    {
-      String current_target_seq = *tsit;
-      if (notInSeq(current_target_seq, nucleotide_style_formula))
+      // for each min. count restriction on a target nucleotide...
+      for (map<char, Size>::const_iterator minit = map_target_to_mincount.begin(); minit != map_target_to_mincount.end(); ++minit)
       {
-        ++violation_count;
+        //    cout << nucleotide_style_formula <<  " current target: " << minit->first << " ";
+        Size occurances = (Size) std::count(nucleotide_style_formula.begin(), nucleotide_style_formula.end(), minit->first);
+        //    cout << occurances << endl;
+        if (occurances < minit->second)
+        {
+          restriction_violated = true;
+        }
       }
-    }
 
-    if (violation_count == target_sequences.size())
-    {
-      containment_violated = true;
-    }
+      // check if contained in at least one of the target sequences
+      bool containment_violated = false;
+      Size violation_count = 0;
+      for (StringList::const_iterator tsit = target_sequences.begin(); tsit != target_sequences.end(); ++tsit)
+      {
+        String current_target_seq = *tsit;
+        if (notInSeq(current_target_seq, nucleotide_style_formula))
+        {
+          ++violation_count;
+        }
+      }
 
-    if (containment_violated || restriction_violated)
-    {
-      violates_restriction.push_back(mit->first);
+      if (violation_count == target_sequences.size())
+      {
+        containment_violated = true;
+      }
+
+      if (containment_violated || restriction_violated)
+      {
+        violates_restriction.push_back(make_pair(mit->first, *sit));  // chemical formula, nucleotide style formula pair violates restrictions        
+      }
     }
   }
 
   for (size_t i = 0; i != violates_restriction.size(); ++i)
   {
-    result.mod_masses.erase(violates_restriction[i]);
+    const String& chemical_formula = violates_restriction[i].first;
+    result.mod_combinations[chemical_formula].erase(violates_restriction[i].second);
+    //cout << "filtered sequence: " << chemical_formula << "\t" << violates_restriction[i].first << endl;
+  }
+
+  // standard associative-container erase idiom
+  for (map<String, set<String> >::iterator mcit = result.mod_combinations.begin(); mcit != result.mod_combinations.end();)
+  {
+    if (mcit->second.empty())
+    {
+      //cout << "filtered sequence: " << mcit->first << endl;
+      result.mod_masses.erase(mcit->first);  // remove from mod masses
+      result.mod_combinations.erase(mcit++); // don't change precedence !
+    } else
+    {
+       ++mcit;  // don't change precedence !
+    }
   }
 
   if (cysteine_adduct)
   {
     result.mod_masses[cysteine_adduct_formula.getString()] = cysteine_adduct_formula.getMonoWeight();
-    result.mod_combinations[cysteine_adduct_formula.getString()] = cysteine_adduct_string;
+    result.mod_combinations[cysteine_adduct_formula.getString()].insert(cysteine_adduct_string);
   }
 
+  // output index  -> empirical formula -> (ambigous) nucleotide formulas
+  // nucleotide formulas which only differ in nucleotide ordering are only printed once
   DoubleReal pseudo_rt = 1;
   for (Map<String, DoubleReal>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
     result.mod_formula_idx[pseudo_rt] = mit->first;
-    cout << pseudo_rt++ << " " << mit->first << " " << mit->second << " (" << result.mod_combinations[mit->first] << ")" << endl;
+
+    if (cysteine_adduct && mit->first == cysteine_adduct_formula.getString())
+    {
+      cout << pseudo_rt++ << " " << mit->first << " " << mit->second << " ( cysteine adduct )" << endl;
+      continue;
+    }
+
+    cout << pseudo_rt++ << " " << mit->first << " " << mit->second << " ( ";
+
+    const set<String>& ambiguities = result.mod_combinations[mit->first];
+    String old_nsf = "";
+    for (set<String>::const_iterator sit = ambiguities.begin(); sit != ambiguities.end(); ++sit)
+    {
+      String nucleotide_style_formula = *sit;
+      Size p1 = nucleotide_style_formula.find('-');
+      Size p2 = nucleotide_style_formula.find('+');
+      Size p = min(p1, p2);
+      if (p != String::npos)
+      {
+        std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.begin() + p);       
+      } else
+      {
+        std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());       
+      }
+
+      if (nucleotide_style_formula != old_nsf)
+      {
+        cout << nucleotide_style_formula;
+        cout << " ";
+        old_nsf = nucleotide_style_formula;
+      }
+    }
+  
+    cout << ")" << endl;
   }
   cout << "Finished generation of modification masses." << endl;
   return result;
@@ -1004,7 +1063,7 @@ protected:
 
         if (xlink_idx != 0) // non-modified
         {
-          xlink_name = mm.mod_combinations[mm.mod_formula_idx[xlink_idx]];
+          xlink_name = *(mm.mod_combinations[mm.mod_formula_idx[xlink_idx]].begin());  // take first one (if ambiguous)
         }
 
         DoubleReal rt = (DoubleReal)orig_rt / (DoubleReal)RT_FACTOR;
