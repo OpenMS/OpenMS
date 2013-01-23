@@ -61,6 +61,37 @@ namespace OpenMS
     max_mz_->setText(QString::number(max_mz));
   }
 
+  void Spectrum2DGoToDialog::fixRange()
+  {
+    // load from GUI
+    Real min_rt=min_rt_->text().toFloat();
+    Real max_rt=max_rt_->text().toFloat();
+    Real min_mz=min_mz_->text().toFloat();
+    Real max_mz=max_mz_->text().toFloat();
+
+    // ensure correct order of min and max
+    if (min_rt > max_rt) swap(min_rt, max_rt);
+    if (min_mz > max_mz) swap(min_mz, max_mz);
+
+    // do not allow range of 0 --> extend to 1 sec
+    if (min_rt == max_rt)
+    {
+      min_rt -= 0.5;
+      max_rt += 0.5;
+    }
+    if (min_mz == max_mz)
+    {
+      min_mz -= 0.5;
+      max_mz += 0.5;
+    }
+
+    // store in GUI
+    min_rt_->setText(QString::number(min_rt));
+    max_rt_->setText(QString::number(max_rt));
+    min_mz_->setText(QString::number(min_mz));
+    max_mz_->setText(QString::number(max_mz));
+  }
+
   Real Spectrum2DGoToDialog::getMinRT() const
   {
     return min_rt_->text().toFloat();

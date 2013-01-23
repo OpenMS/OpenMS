@@ -50,13 +50,33 @@ namespace OpenMS
 
   Spectrum1DGoToDialog::~Spectrum1DGoToDialog()
   {
-
   }
 
   void Spectrum1DGoToDialog::setRange(Real min, Real max)
   {
     min_->setText(QString::number(min));
     max_->setText(QString::number(max));
+  }
+
+  void Spectrum1DGoToDialog::fixRange()
+  {
+    // load from GUI
+    Real min_mz=min_->text().toFloat();
+    Real max_mz=max_->text().toFloat();
+
+    // ensure correct order of min and max
+    if (min_mz > max_mz) swap(min_mz, max_mz);
+
+    // do not allow range of 0 --> extend to 1
+    if (min_mz == max_mz)
+    {
+      min_mz -= 0.5;
+      max_mz += 0.5;
+    }
+
+    // store in GUI
+    min_->setText(QString::number(min_mz));
+    max_->setText(QString::number(max_mz));
   }
 
   Real Spectrum1DGoToDialog::getMin() const

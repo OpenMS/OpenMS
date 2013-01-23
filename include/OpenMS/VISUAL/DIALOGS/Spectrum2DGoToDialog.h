@@ -64,6 +64,9 @@ public:
     /// Returns if a range should be display (true) or if a feature should be displayed (false)
     bool showRange() const;
 
+    /// Fixes the currently stored range (i.e. ensure correct order of min-max; enforce minimum of 1 Da (or 1 sec for RT) window IFF min==max
+    void fixRange();
+
     ///@name Methods for ranges
     //@{
     ///Sets the data range to display initially

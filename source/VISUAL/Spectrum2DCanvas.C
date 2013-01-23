@@ -332,7 +332,7 @@ namespace OpenMS
       //-----------------------------------------------------------------------------------------------
       // Determine number of shown scans (MS1)
       Size n_ms1_scans = 0;
-      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != peak_map.RTEnd(rt_max); ++it)
+      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != peak_map.end() && it != peak_map.RTEnd(rt_max); ++it)
       {
         if (it->getMSLevel() == 1)
         {
@@ -344,7 +344,7 @@ namespace OpenMS
       ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min) + n_ms1_scans / 2;
 
       Size n_peaks_in_middle_scan = 0;
-      for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min); it2 != it->MZEnd(mz_max); ++it2)
+      for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min); it2 != it->end() && it2 != it->MZEnd(mz_max); ++it2)
       {
         ++n_peaks_in_middle_scan;
       }
