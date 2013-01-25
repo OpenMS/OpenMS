@@ -363,6 +363,55 @@ protected:
     bool reverse_;
   };
 
+  /**
+    @brief Predicate that determines if a spectrum's precursor is within a certain m/z range.
+
+    SpectrumType must have a getPrecursors() method
+
+    If multiple precursors are present, all must fulfill the range criterium.
+
+    @ingroup RangeUtils
+  */
+  template <class SpectrumType>
+  class InPrecursorMZRange :
+    std::unary_function<SpectrumType, bool>
+  {
+public:
+    /**
+      @brief Constructor
+
+      @param mz_left left m/z boundary (closed interval)
+      @param mz_right right m/z boundary (closed interval)
+      @param reverse if @p reverse is true, operator() returns true if the precursor's m/z is outside of the given interval.
+    */
+    InPrecursorMZRange(const DoubleReal& mz_left, const DoubleReal& mz_right, bool reverse = false) :
+      mz_left_(mz_left),
+      mz_right_(mz_right),
+      reverse_(reverse)
+    {}
+
+    inline bool operator()(const SpectrumType & s) const
+    {
+      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      {
+        //std::cerr << mz_left_ << " " << mz_right_ << " " << it->getMZ() << "\n";
+        if (!(mz_left_ <= it->getMZ() && it->getMZ() <= mz_right_))
+        { // found PC outside of allowed window
+          if (reverse_) return true;
+          else return false;
+        }
+      }
+
+      if (reverse_) return false;
+      else return true;
+    }
+
+protected:
+    DoubleReal mz_left_;
+    DoubleReal mz_right_;
+    bool reverse_;
+  };
+
 
   /**
     @brief Predicate that determines if a spectrum has a certain precursor charge as given in the

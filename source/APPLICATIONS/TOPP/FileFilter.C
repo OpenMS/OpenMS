@@ -101,7 +101,11 @@ using namespace std;
         - filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
         - remove features with id clashes (different sequences mapped to one feature)
 
-    The Priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
+    The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
+
+    MS2 and higher spectra can be filtered according to precursor m/z (see 'pc_mz'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
+    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level and use 'mz' option for MS1 and 'pc_mz' for MS2 data.
+    Then merge them again. RT can be filtered at any step.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FileFilter.cli
@@ -112,9 +116,6 @@ using namespace std;
         @ref OpenMS::SignalToNoiseEstimatorMedian "sn"@n
 
     @todo add tests for selecting modes (port remove modes) (Andreas)
-    @improvement MS2 and higher spectra should be filtered according to precursor m/z and RT. The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
-               Currently when specifying mz or RT filters, they will also be applied to MS levels >=2 (not really what you usually want). To work around this,
-               you need to extract the MS2 levels beforehand, do the filtering on MS1 and merge them back together.
 */
 
 // We do not want this class to show up in the docu:
@@ -254,8 +255,9 @@ protected:
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_type", StringList::create(formats));
 
-    registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract", false);
     registerStringOption_("rt", "[min]:[max]", ":", "retention time range to extract", false);
+    registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
+    registerStringOption_("pc_mz", "[min]:[max]", ":", "MSn (n>=2) precursor filtering according to their m/z value. Do not use this flag in conjunction with 'mz', unless you want to actually remove peaks in spectra (see 'mz'). RT filtering is covered by 'rt' and compatible with this flag.", false);
     registerStringOption_("int", "[min]:[max]", ":", "intensity range to extract", false);
 
     registerFlag_("sort", "sorts the output according to RT and m/z.");
@@ -424,21 +426,21 @@ protected:
     bool no_chromatograms(getFlag_("no_chromatograms"));
 
     //ranges
-    String mz, rt, it, charge, size, q;
-    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, sn, charge_l, charge_u, size_l, size_u, q_l, q_u;
+    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, size_l, size_u, q_l, q_u, pc_left, pc_right;
     //initialize ranges
-    mz_l = rt_l = it_l = charge_l = size_l = q_l = -1 * numeric_limits<double>::max();
-    mz_u = rt_u = it_u = charge_u = size_u = q_u = numeric_limits<double>::max();
+    mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = -1 * numeric_limits<double>::max();
+    mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = numeric_limits<double>::max();
 
-    rt = getStringOption_("rt");
-    mz = getStringOption_("mz");
-    it = getStringOption_("int");
+    String rt = getStringOption_("rt");
+    String mz = getStringOption_("mz");
+    String pc_mz = getStringOption_("pc_mz");
+    String it = getStringOption_("int");
     IntList levels = getIntList_("level");
     IntList maps = getIntList_("map");
-    sn = getDoubleOption_("sn");
-    charge = getStringOption_("charge");
-    size = getStringOption_("size");
-    q = getStringOption_("q");
+    double sn = getDoubleOption_("sn");
+    String charge = getStringOption_("charge");
+    String size = getStringOption_("size");
+    String q = getStringOption_("q");
 
     int mz32 = getStringOption_("mz_precision").toInt();
     int int32 = getStringOption_("int_precision").toInt();
@@ -459,6 +461,8 @@ protected:
       parseRange_(rt, rt_l, rt_u);
       //mz
       parseRange_(mz, mz_l, mz_u);
+      //mz precursor
+      parseRange_(pc_mz, pc_left, pc_right);
       //int
       parseRange_(it, it_l, it_u);
       //charge (features only)
@@ -552,11 +556,18 @@ protected:
       // calculations
       //-------------------------------------------------------------
 
-      //remove forbidden precursor charges
+      // remove forbidden precursor charges
       IntList rm_pc_charge = getIntList_("rm_pc_charge");
       if (rm_pc_charge.size() > 0) exp.erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
 
-      //remove by scan mode (might be a lot of spectra)
+      
+      // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
+      if (!pc_mz.empty())
+      {
+        exp.erase(remove_if(exp.begin(), exp.end(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true)), exp.end());
+      }
+
+      // remove by scan mode (might be a lot of spectra)
       String remove_mode = getStringOption_("remove_mode");
       if (!remove_mode.empty())
       {
