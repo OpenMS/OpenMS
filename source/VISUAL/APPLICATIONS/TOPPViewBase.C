@@ -3134,6 +3134,14 @@ namespace OpenMS
       IDMapper mapper;
       if (layer.type == LayerData::DT_PEAK)
       {
+        // clear identifications
+        MSExperiment<>& exp = *layer.getPeakData();
+        for (MSExperiment<>::iterator it = exp.begin(); it != exp.end(); ++it)
+        {
+          vector<PeptideIdentification> empty_ids;
+          it->setPeptideIdentifications(empty_ids);
+        }
+
         Param p = mapper.getDefaults();
         p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
         p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
