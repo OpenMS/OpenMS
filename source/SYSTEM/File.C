@@ -514,6 +514,9 @@ namespace OpenMS
     exec = File::getExecutablePath() + "../../../" + toolName;
     if (File::exists(exec)) return exec;
 
+    // check if we are in one of the bundles in an installed bundle
+    exec = File::getExecutablePath() + "../../../TOPP/" + toolName;
+    if (File::exists(exec)) return exec;
 #endif
     // TODO(aiche): probe in PATH
 
