@@ -264,8 +264,10 @@ namespace OpenMS
     current_path_ = param_.getValue("preferences:default_path");
 
     //set & create temporary path -- make sure its a new subdirectory, as TOPPASScene will delete it when its done
+    QString new_tmp_dir = File::getUniqueName().toQString();
     QDir qd(File::getTempDirectory().toQString());
-    qd.mkdir(File::getUniqueName().toQString());
+    qd.mkdir(new_tmp_dir);
+    qd.cd(new_tmp_dir);
     tmp_path_ = qd.absolutePath();
 
     // online browser
