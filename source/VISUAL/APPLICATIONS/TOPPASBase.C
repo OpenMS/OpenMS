@@ -234,7 +234,7 @@ namespace OpenMS
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
     tools_tree_view_ = createTOPPToolsTreeWidget(topp_tools_bar);
     topp_tools_bar->setWidget(tools_tree_view_);
-    connect(tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
+    connect(tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
     windows->addAction(topp_tools_bar->toggleViewAction());
 
     //log window
@@ -613,10 +613,10 @@ namespace OpenMS
       {
         file_name += ".toppas";
       }
-      if (!w->getScene()->store(file_name)) 
+      if (!w->getScene()->store(file_name))
       {
         QMessageBox::warning(this, tr("Error"),
-                           tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
+                             tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
       }
 
     }
@@ -658,10 +658,10 @@ namespace OpenMS
       {
         file_name += ".toppas";
       }
-      if (!w->getScene()->store(file_name)) 
+      if (!w->getScene()->store(file_name))
       {
         QMessageBox::warning(NULL, tr("Error"),
-                           tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
+                             tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
       }
       QString caption = File::basename(file_name).toQString();
       w->setWindowTitle(caption);
@@ -730,7 +730,6 @@ namespace OpenMS
       img.save(file_name);
     }
   }
-
 
   void TOPPASBase::loadPipelineResourceFile()
   {
@@ -888,7 +887,7 @@ namespace OpenMS
   void TOPPASBase::showURL()
   {
     QAction* action = qobject_cast<QAction*>(sender());
-    QString target = QString("file:///%1").arg( action->data().toString() );
+    QString target = QString("file:///%1").arg(action->data().toString());
     if (!QDesktopServices::openUrl(QUrl(target, QUrl::TolerantMode)))
     {
       QMessageBox::warning(this, tr("Error"),
@@ -1272,7 +1271,7 @@ namespace OpenMS
       tv = new TOPPASMergerVertex(false);
       connect(tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString &)));
     }
-    else     // node is a TOPP tool
+    else // node is a TOPP tool
     {
       if (current_tool->childCount() > 0)
       {
@@ -1506,8 +1505,8 @@ namespace OpenMS
     if (st == TOPPASScene::ST_REFRESH_CHANGEINVALID)
     {
       QMessageBox::information(tw, "Parameters updated!",
-                                   "The resulting pipeline is invalid. Probably some input or output parameters were removed or added. Please repair!",
-                                       QMessageBox::Ok);
+                               "The resulting pipeline is invalid. Probably some input or output parameters were removed or added. Please repair!",
+                               QMessageBox::Ok);
       return "";
     }
     int ret = QMessageBox::information(tw, "Parameters updated!",
@@ -1528,7 +1527,6 @@ namespace OpenMS
     {
       QProcess* p = new QProcess();
       p->setProcessChannelMode(QProcess::ForwardedChannels);
-      QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
       QStringList arg = files;
 
       if (files.size() > 1)
@@ -1546,13 +1544,11 @@ namespace OpenMS
       }
 #if defined(__APPLE__)
       // check if we can find the TOPPView.app
-      QString installed_app_path = (File::getExecutablePath() + "/../TOPPView.app").toQString();
-      QString developer_app_path = (File::getExecutablePath() + "/TOPPView.app").toQString();
+      QString app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
 
-      if (File::exists(installed_app_path) || File::exists(developer_app_path))
+      if (File::exists(app_path))
       {
         // we found the app
-        QString app_path = (File::exists(installed_app_path) ? installed_app_path : developer_app_path);
         QStringList app_args;
         app_args.append(app_path);
         app_args.append("--args");
@@ -1562,10 +1558,12 @@ namespace OpenMS
       else
       {
         // we could not find the app, try it the linux way
+        QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
         p->start(toppview_executable, arg);
       }
 #else
       // LINUX+WIN
+      QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
       p->start(toppview_executable, arg);
 #endif
 
