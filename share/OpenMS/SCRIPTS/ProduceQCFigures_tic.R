@@ -1,10 +1,10 @@
-ls ## This is an R script to produce the figures that are attached to the qcML format
+## This is an R script to produce the figures that are attached to the qcML format
 
 #options
 options(digits=10)
 
 file<-commandArgs(TRUE)[1]
-post<-paste(commandArgs(TRUE)[2])
+post<-commandArgs(TRUE)[2]
 ######
 ###TIC
 ######

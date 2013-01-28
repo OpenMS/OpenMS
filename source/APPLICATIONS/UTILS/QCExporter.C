@@ -83,9 +83,9 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringOption_("qp", "<choice>", "", "Target QualityParameter.");
-    setValidStrings_("qp", StringList::create("precursor distribution,charge distribution,total ion current distribution,delta ppm distribution,feature distribution"));
-    registerStringOption_("msrun_filename", "<string>", "", "The name of the target raw file of the respective quality parameter.");
+    registerStringOption_("qp", "<choice>", "", "Target attachment table.");
+    setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables,set id"));
+    registerInputFile_("name", "<file>", "", "The name of the target run or set that contains the requested quality parameter.");
     registerOutputFile_("out_csv", "<file>", "", "Output csv formated quality parameter or extended qcML file");
     setValidFormats_("out_csv",StringList::create("csv"));
   }
@@ -98,16 +98,38 @@ protected:
     String in                   = getStringOption_("in");
     String csv                  = getStringOption_("out_csv");
     String target_qp            = getStringOption_("qp");
-    String target_raw           = getStringOption_("msrun_filename");
+    String target_raw           = getStringOption_("name");
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
 
+    if (target_raw.hasSuffix(".mzML"))
+    {
+      target_raw = QFileInfo(QString::fromStdString(target_raw)).baseName();
+    }
+
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
-    //TODO warn when target_raw is empty or not present in qcml
-    String csv_str = qcmlfile.exportQualityParameter(target_raw,target_qp);
+    String csv_str = "";
+    if (target_qp == "set id")
+    {
+      if (qcmlfile.existsSet(target_raw))
+      {
+        csv_str = qcmlfile.exportIDstats(target_raw);
+      }
+      else
+      {
+        cerr << "Error: You have to specify a existing set for this qp. "<< target_raw << " seems not to exist. Aborting!" << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+    else
+    {
+      //TODO warn when target_raw is empty or not present in qcml
+      csv_str = qcmlfile.exportAttachment(target_raw,target_qp);
+    }
+
     ofstream fout(csv.c_str());
     fout << csv_str << endl;
     fout.close();

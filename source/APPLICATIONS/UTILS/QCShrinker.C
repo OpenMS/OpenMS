@@ -83,9 +83,10 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringOption_("qp", "<choice>", "", "Target QualityParameter. ('ticpoints': total ion current stats, 'precursorpoints': stats about the precursors from the rawfile, 'pepidpoints': identifications from the rawfile, 'featurepoints': stats about features from the rawfile, 'consensusstats': stats about consensus features from the rawfile)\n");
-    setValidStrings_("qp", StringList::create("ticpoints,precursorpoints,pepidpoints,featurepoints,consensuspoints"));
-    registerStringOption_("run_name", "<string>", "", "The name of the target msrun file of the respective quality parameter.");
+    registerStringOption_("qp", "<choice>", "", "Target attachment table.");
+    setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables"));
+    registerInputFile_("name", "<file>", "", "The name of the target run or set that contains the requested quality parameter.");
+    registerStringOption_("at", "<string>", "", "If given, only those attachments are being removed.",false);
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
     setValidFormats_("out",StringList::create("qcML"));
   }
@@ -99,20 +100,29 @@ protected:
     String in                   = getStringOption_("in");
     String out                  = getStringOption_("out");
     String target_qp            = getStringOption_("qp");
-    String target_run           = getStringOption_("msrun_filename");
+    String target_run           = getStringOption_("name");
+    String target_at            = getStringOption_("at");
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
 
+    if (target_run.hasSuffix(".mzML"))
+    {
+      target_run = QFileInfo(QString::fromStdString(target_run)).baseName();
+    }
+
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
-    String target = qcmlfile.existsQualityParameter(target_run, target_qp);
-    if ( target != "" )
+    std::vector<String> ids;
+    qcmlfile.existsRunQualityParameter(target_run, target_qp, ids); //TODO this only works if the attachments are referencing the qp - okay for now
+    qcmlfile.removeAttachment(target_run, ids, target_at);
+    if ( target_at != "" )
     {
-      qcmlfile.removeQualityParameter(target_run, target_qp);
+      qcmlfile.removeQualityParameter(target_run, ids);
     }
 
+    qcmlfile.store(out);
     return EXECUTION_OK;
   }
 

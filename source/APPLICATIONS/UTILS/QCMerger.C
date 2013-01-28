@@ -42,8 +42,11 @@
 #include <QFile>
 #include <QString>
 #include <QFileInfo>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 //~ #include <QIODevice>
+#include <algorithm>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -85,6 +88,21 @@ protected:
     setValidFormats_("in", StringList::create("qcML"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
     setValidFormats_("out",StringList::create("qcML"));
+    registerStringOption_("setname", "<string>", "", "Use only when all given qcml files belong to one set, which will be held under the given name.", false);
+  }
+
+  void addBoxPlotQPs(std::map<String,String> nums, std::map<String,String> nams, String set, QcMLFile& qcmlfile)
+  {
+    for (std::map<String, String >::const_iterator it = nums.begin(); it != nums.end(); ++it)
+    {
+      QcMLFile::QualityParameter qp;
+      qp.name = nams[it->first]; ///< Name
+      qp.id = set + it->first; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = it->first;
+      qp.value = it->second;
+      qcmlfile.addSetQualityParameter(set, qp);
+    }
   }
 
   ExitCodes main_(int, const char **)
@@ -95,6 +113,7 @@ protected:
     //-------------------------------------------------------------
     StringList in_files     = getStringList_("in");
     String out              = getStringOption_("out");
+    String setname          = getStringOption_("setname");
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
@@ -104,7 +123,68 @@ protected:
     {
       QcMLFile tmpfile;
       tmpfile.load(in_files[i]);
-      qcmlfile.merge(tmpfile);
+      qcmlfile.merge(tmpfile,setname);
+    }
+
+    // make #ms2 set stats
+    std::vector<String> ms2nums_strings;
+    qcmlfile.collectSetParameter(setname,"QC:0000015", ms2nums_strings);
+    std::vector<Int> ms2nums;
+    for (std::vector<String>::iterator it = ms2nums_strings.begin(); it != ms2nums_strings.end(); ++it) //transform is too ugly and errorprone
+    {
+      ms2nums.push_back(it->toInt());
+    }
+
+    std::sort(ms2nums.begin(), ms2nums.end());
+
+    if (ms2nums.size()>0)
+    {
+      std::map<String,String> nums;
+      std::map<String,String> nams;
+      //~ min,q1,q2,q3,max
+      nums["QC:0000043"] = String(ms2nums.front());
+      nams["QC:0000043"] = "min ms2 number";
+      nums["QC:0000044"] = String(OpenMS::Math::quantile(ms2nums.begin(), ms2nums.end(),25));
+      nams["QC:0000044"] = "Q1 ms2 number";
+      nums["QC:0000045"] = String(OpenMS::Math::quantile(ms2nums.begin(), ms2nums.end(),50));
+      nams["QC:0000045"] = "Q2 ms2 number";
+      nums["QC:0000046"] = String(OpenMS::Math::quantile(ms2nums.begin(), ms2nums.end(),75));
+      nams["QC:0000046"] = "Q3 ms2 number";
+      nums["QC:0000047"] = String(ms2nums.back());
+      nams["QC:0000047"] = "max ms2 number";
+
+      addBoxPlotQPs(nums, nams, setname, qcmlfile);
+    }
+
+    // make #id set stats
+    std::vector<String> idnums_strings;
+    qcmlfile.collectSetParameter(setname,"QC:0000020", idnums_strings);
+    std::vector<Int> idnums;
+    for (std::vector<String>::iterator it = idnums_strings.begin(); it != idnums_strings.end(); ++it) //transform is too ugly and errorprone
+    {
+      idnums.push_back(it->toInt());
+    }
+
+    std::sort(idnums.begin(), idnums.end());
+
+    if (idnums.size()>0)
+    {
+      std::map<String,String> nums;
+      std::map<String,String> nams;
+      //~ min,q1,q2,q3,max
+
+      nums["QC:0000053"] = String(idnums.front());
+      nams["QC:0000053"] = "min id numbers";
+      nums["QC:0000054"] = String(OpenMS::Math::quantile(idnums.begin(), idnums.end(),25));
+      nams["QC:0000054"] = "Q1 id numbers";
+      nums["QC:0000055"] = String(OpenMS::Math::quantile(idnums.begin(), idnums.end(),50));
+      nams["QC:0000055"] = "Q2 id numbers";
+      nums["QC:0000056"] = String(OpenMS::Math::quantile(idnums.begin(), idnums.end(),75));
+      nams["QC:0000056"] = "Q3 id numbers";
+      nums["QC:0000057"] = String(idnums.back());
+      nams["QC:0000057"] = "max id number";
+
+      addBoxPlotQPs(nums, nams, setname, qcmlfile);
     }
 
     qcmlfile.store(out);

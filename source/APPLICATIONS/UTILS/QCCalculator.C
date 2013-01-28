@@ -48,17 +48,13 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <QFileInfo>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/median.hpp>
+//~ #include <boost/regex.hpp>
 
 #include <vector>
 #include <map>
 
 using namespace OpenMS;
 using namespace std;
-using namespace boost::accumulators;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -100,7 +96,6 @@ protected:
     setValidFormats_("feature", StringList::create("featureXML"));
     registerInputFile_("consensus", "<file>", "", "consensus input file (this is only used for charge state deconvoluted output. Use the consensusXML output form the DeCharger)", false);
     setValidFormats_("consensus", StringList::create("consensusXML"));
-    registerFlag_("AllHits", "If set, the exporter takes all peptide candidates per spectrum into account.");
     registerFlag_("remove_duplicate_features", "This flag should be set, if you work with a set of merged features.");
     registerFlag_("MS1", "This flag should be set, if you want to work with MS1 stats.");
     registerFlag_("MS2", "This flag should be set, if you want to work with MS2 stats.");
@@ -132,7 +127,6 @@ protected:
     String inputfile_raw        = getStringOption_("in");
     String outputfile_name      = getStringOption_("out");
 
-    bool AllHits(getFlag_("AllHits"));
     bool Ms1(getFlag_("MS1"));
     bool Ms2(getFlag_("MS2"));
     bool remove_duplicate_features(getFlag_("remove_duplicate_features"));
@@ -150,27 +144,27 @@ protected:
 
     //---file origin qp
     QcMLFile::QualityParameter qp;
-    qp.name = "rmzML file"; ///< Name
-    qp.id = base_name + "_origin_rawfile_name"; ///< Identifier
-    qp.cvRef = "PSI"; ///< cv reference
+    qp.name = "mzML file"; ///< Name
+    qp.id = base_name + "_run_name"; ///< Identifier
+    qp.cvRef = "MS"; ///< cv reference
     qp.cvAcc = "MS:1000584";
     qp.value = base_name;
-    qcmlfile.addQualityParameter(base_name, qp);
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
-    //---MS2 distribution qp
+    //---MS distribution qp
     exp.sortSpectra();
     UInt min_mz = std::numeric_limits<UInt>::max();
     UInt max_mz = 0;
     std::map<Size, UInt> mslevelcounts;
 
-    qp = QcMLFile::QualityParameter() ;
-    qp.name = "precursor distribution"; ///< Name
-    qp.id = base_name + "_precursors" ; ///< Identifier
-    qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:0000005";
+    QcMLFile::Attachment at;
+    at.name = "precursor tables"; ///< Name
+    //~ at.id = base_name + "_precursors" ; ///< Identifier
+    at.cvRef = "QC"; ///< cv reference
+    at.cvAcc = "QC:0000005";
 
-    qp.colTypes.push_back("RT_(sec)");
-    qp.colTypes.push_back("Precursor");
+    at.colTypes.push_back("RT_(sec)");
+    at.colTypes.push_back("Precursor");
     for (Size i = 0; i < exp.size(); ++i)
     {
       mslevelcounts[exp[i].getMSLevel()]++;
@@ -187,66 +181,85 @@ protected:
         std::vector<String> row;
         row.push_back(exp[i].getRT());
         row.push_back(exp[i].getPrecursors().front().getMZ());
-        qp.tableRows.push_back(row);
+        at.tableRows.push_back(row);
       }
     }
-    qcmlfile.addQualityParameter(base_name, qp);
+    qcmlfile.addRunAttachment(base_name, at);
 
     //---aquisition results qp
     qp = QcMLFile::QualityParameter() ;
-    qp.name = "aquisition ranges"; ///< Name
+    qp.name = "number of ms1 spectra"; ///< Name
     qp.id = base_name + "_aquisition" ; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:0000003"; ///< cv accession for "aquisition results"
-    qp.colTypes.push_back("name");
-    qp.colTypes.push_back("value");
-    std::vector<String> row;
-    row.push_back("#spectra");
-    row.push_back(exp.size());
-    qp.tableRows.push_back(row);
-    row.clear();
-    for (map<Size, UInt>::iterator it = mslevelcounts.begin(); it != mslevelcounts.end(); ++it)
-    {
-      row.push_back("in_ms" + String(it->first));
-      row.push_back(String(it->second));
-      qp.tableRows.push_back(row);
-      row.clear();
-    }
-    row.push_back("#peaks");
-    row.push_back(exp.getSize()); //TODO this is bug-ish
-    qp.tableRows.push_back(row);
-    row.clear();
-    row.push_back("#chromatograms");
-    row.push_back(exp.getChromatograms().size());
-    qp.tableRows.push_back(row);
-    row.clear();
-    row.push_back("RT_min");
-    row.push_back(exp.begin()->getRT());
-    qp.tableRows.push_back(row);
-    row.clear();
-    row.push_back("RT_max");
-    row.push_back(exp.back().getRT());
-    qp.tableRows.push_back(row);
-    row.clear();
-    row.push_back("mz_min");
-    row.push_back(min_mz);
-    qp.tableRows.push_back(row);
-    row.clear();
-    row.push_back("mz_max");
-    row.push_back(max_mz);
-    qp.tableRows.push_back(row);
-    row.clear();
-    qcmlfile.addQualityParameter(base_name, qp);
+    qp.cvAcc = "QC:0000014"; ///< cv accession for "aquisition results"
+    qp.value = String(mslevelcounts[1]);
+    qcmlfile.addRunQualityParameter(base_name, qp);
+
+    qp = QcMLFile::QualityParameter() ;
+    qp.name = "number of ms2 spectra"; ///< Name
+    qp.id = base_name + "_aquisition" ; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000015"; ///< cv accession for "aquisition results"
+    qp.value = String(mslevelcounts[2]);
+    qcmlfile.addRunQualityParameter(base_name, qp);
+
+    //~ qp = QcMLFile::QualityParameter() ;
+    //~ qp.name = "aquisition ranges"; ///< Name
+    //~ qp.id = base_name + "_aquisition" ; ///< Identifier
+    //~ qp.cvRef = "QC"; ///< cv reference
+    //~ qp.cvAcc = "QC:0000003"; ///< cv accession for "aquisition results"
+    //~ qp.value = String(exp.getSize()); //TODO this is bug-ish
+    //~ qcmlfile.addRunQualityParameter(base_name, qp);
+
+    qp = QcMLFile::QualityParameter() ;
+    qp.name = "number of chromatograms"; ///< Name
+    qp.id = base_name + "_aquisition" ; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000013"; ///< cv accession for "aquisition results"
+    qp.value = String(exp.getChromatograms().size());
+    qcmlfile.addRunQualityParameter(base_name, qp);
+
+    qp = QcMLFile::QualityParameter() ;
+    qp.name = "min RT"; ///< Name
+    qp.id = base_name + "_aquisition" ; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000004"; ///< cv accession for "aquisition results"
+    qp.value = String(exp.begin()->getRT());
+    qcmlfile.addRunQualityParameter(base_name, qp);
+
+    qp = QcMLFile::QualityParameter() ;
+    qp.name = "max RT"; ///< Name
+    qp.id = base_name + "_aquisition" ; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000005"; ///< cv accession for "aquisition results"
+    qp.value = String(exp.back().getRT());
+    qcmlfile.addRunQualityParameter(base_name, qp);
+
+    qp = QcMLFile::QualityParameter() ;
+    qp.name = "min MZ"; ///< Name
+    qp.id = base_name + "_aquisition" ; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000006"; ///< cv accession for "aquisition results"
+    qp.value = String(min_mz);
+    qcmlfile.addRunQualityParameter(base_name, qp);
+
+    qp = QcMLFile::QualityParameter() ;
+    qp.name = "max MZ"; ///< Name
+    qp.id = base_name + "_aquisition" ; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000007"; ///< cv accession for "aquisition results"
+    qp.value = String(max_mz);
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
     //---ion current stability ( & tic ) qp
-    qp = QcMLFile::QualityParameter() ;
-    qp.name = "total ion current distribution"; ///< Name
-    qp.id = base_name + "_tic" ; ///< Identifier
-    qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:0000007";
-    //~ qp.colTypes.push_back("Native_ID");
-    qp.colTypes.push_back("RT_(sec)");
-    qp.colTypes.push_back("TIC");
+    at = QcMLFile::Attachment();
+    at.name = "total ion current tables"; ///< Name
+    //~ at.id = base_name + "_tic" ; ///< Identifier
+    at.cvRef = "QC"; ///< cv reference
+    at.cvAcc = "QC:0000007";
+    //~ at.colTypes.push_back("Native_ID");
+    at.colTypes.push_back("RT_(sec)");
+    at.colTypes.push_back("TIC");
     UInt max = 0;
     Size below_10k = 0;
     for (Size i = 0; i < exp.size(); ++i)
@@ -267,23 +280,17 @@ protected:
       std::vector<String> row;
       row.push_back(exp[i].getRT());
       row.push_back(sum);
-      qp.tableRows.push_back(row);
+      at.tableRows.push_back(row);
     }
-    qcmlfile.addQualityParameter(base_name, qp);
-
+    qcmlfile.addRunAttachment(base_name, at);
 
     qp = QcMLFile::QualityParameter() ;
-    qp.name = "ion current stability"; ///< Name
+    qp.name = "percentage of tic slumps"; ///< Name
     qp.id = base_name + "_ics" ; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:0000017";
-    qp.colTypes.push_back("name");
-    qp.colTypes.push_back("value");
-    row.clear();
-    row.push_back("max_ic");
-    row.push_back(max);
-    row.push_back("%ions<10k");
-    row.push_back((100/exp.size())*below_10k);
+    qp.cvAcc = "QC:0000030";
+    qp.value = String((100/exp.size())*below_10k);
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
     if (inputfile_id != "")
     {
@@ -292,28 +299,32 @@ protected:
 
       ProteinIdentification::SearchParameters params = prot_ids[0].getSearchParameters();
       vector<String> var_mods = params.variable_modifications;
+      //~ boost::regex re("(?<=[KR])(?=[^P])");
 
       //---idxml stats qp
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "search input details"; ///< Name
+      qp.name = "database name"; ///< Name
       qp.id = base_name + "_search_input" ; ///< Identifier
       qp.cvRef = "MS"; ///< cv reference
-      qp.cvAcc = "MS:1001249"; ///< cv accession "basic identification results"
-      qp.colTypes.push_back("name");
-      qp.colTypes.push_back("value");
-      std::vector<String> row;
-      row.push_back("database");
-      row.push_back(prot_ids.at(0).getSearchParameters().db);
-      qp.tableRows.push_back(row);
-      row.clear();
-      row.push_back("db_version");
-      row.push_back(prot_ids.at(0).getSearchParameters().db_version);
-      qp.tableRows.push_back(row);
-      row.clear();
-      row.push_back("taxonomy");
-      row.push_back(prot_ids.at(0).getSearchParameters().taxonomy);
-      qp.tableRows.push_back(row);
-      row.clear();
+      qp.cvAcc = "MS:1001013"; ///< cv accession "basic identification results"
+      qp.value = String(prot_ids.front().getSearchParameters().db);
+      qcmlfile.addRunQualityParameter(base_name, qp);
+
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "database version"; ///< Name
+      qp.id = base_name + "_search_input" ; ///< Identifier
+      qp.cvRef = "MS"; ///< cv reference
+      qp.cvAcc = "MS:1001016"; ///< cv accession "basic identification results"
+      qp.value = String(prot_ids.front().getSearchParameters().db_version);
+      qcmlfile.addRunQualityParameter(base_name, qp);
+
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "DB filter taxonomy"; ///< Name
+      qp.id = base_name + "_search_input" ; ///< Identifier
+      qp.cvRef = "MS"; ///< cv reference
+      qp.cvAcc = "MS:1001020"; ///< cv accession "basic identification results"
+      qp.value = String(prot_ids.front().getSearchParameters().taxonomy);
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
       UInt spectrum_count = 0;
       Size peptide_hit_count = 0;
@@ -321,6 +332,7 @@ protected:
       Size protein_hit_count = 0;
       set<String> peptides;
       set<String> proteins;
+      Size missedcleavages = 0;
       for (Size i = 0; i < pep_ids.size(); ++i)
       {
         if (!pep_ids[i].empty())
@@ -334,6 +346,17 @@ protected:
           }
         }
       }
+      for (set<String>::iterator it = peptides.begin(); it != peptides.end(); ++it)
+      {
+        for (String::const_iterator st = it->begin(); st != it->end()-1; ++st)
+        {
+          if (*st == 'K' || *st == 'R')
+          {
+            ++missedcleavages;
+          }
+        }
+      }
+
       for (Size i = 0; i < prot_ids.size(); ++i)
       {
         ++runs_count;
@@ -344,60 +367,71 @@ protected:
           proteins.insert(temp_hits[j].getAccession());
         }
       }
-
-      row.push_back("#id_runs");
-      row.push_back(runs_count);
-      qp.tableRows.push_back(row);
-      row.clear();
-      qcmlfile.addQualityParameter(base_name, qp);
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "total number of missed cleavages"; ///< Name
+      qp.id = base_name + "_search_prot" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:0000024"; ///< cv accession "basic identification results"
+      qp.value = missedcleavages;
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "Spectrum identification result details"; ///< Name
-      qp.id = base_name + "_search_result" ; ///< Identifier
-      qp.cvRef = "MS"; ///< cv reference
-      qp.cvAcc = "MS:1001405"; ///< cv accession "basic identification results"
-      qp.colTypes.push_back("name");
-      qp.colTypes.push_back("value");
-      row.push_back("#protein_hits");
-      row.push_back(runs_count);
-      qp.tableRows.push_back(row);
-      row.clear();
-      row.push_back("#unique_proteins");
-      row.push_back(proteins.size());
-      qp.tableRows.push_back(row);
-      row.clear();
-      row.push_back("#specta_identified");
-      row.push_back(spectrum_count);
-      qp.tableRows.push_back(row);
-      row.clear();
-      row.push_back("#PSM");
-      row.push_back(peptide_hit_count);
-      qp.tableRows.push_back(row);
-      row.clear();
-      row.push_back("#unique_peptides");
-      row.push_back(peptides.size());
-      qp.tableRows.push_back(row);
-      row.clear();
+      qp.name = "total number of identified proteins"; ///< Name
+      qp.id = base_name + "_search_prot" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:0000022"; ///< cv accession "basic identification results"
+      qp.value = protein_hit_count;
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
-      qcmlfile.addQualityParameter(base_name, qp);
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "total number of uniquely identified proteins"; ///< Name
+      qp.id = base_name + "_search_prot" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:0000023"; ///< cv accession "basic identification results"
+      qp.value = String(proteins.size());
+      qcmlfile.addRunQualityParameter(base_name, qp);
+
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "total number of PSM"; ///< Name
+      qp.id = base_name + "_search_prot" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:0000019"; ///< cv accession "basic identification results"
+      qp.value = String(spectrum_count);
+      qcmlfile.addRunQualityParameter(base_name, qp);
+
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "total number of identified peptides"; ///< Name
+      qp.id = base_name + "_search_prot" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:0000020"; ///< cv accession "basic identification results"
+      qp.value = String(peptide_hit_count);
+      qcmlfile.addRunQualityParameter(base_name, qp);
+
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "total number of uniquely identified peptides"; ///< Name
+      qp.id = base_name + "_search_prot" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:0000021"; ///< cv accession "basic identification results"
+      qp.value = String(peptides.size());
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
       //---id accuracy stats qp
-      qp = QcMLFile::QualityParameter() ;
-      qp.name = "delta ppm distribution";
-      qp.id = base_name + "_delta_ppm" ;
-      qp.cvRef = "QC";
-      qp.cvAcc = "QC:0000008";
+      QcMLFile::Attachment at;
+      at.name = "delta ppm tables";
+      //~ at.id = base_name + "_delta_ppm" ;
+      at.cvRef = "QC";
+      at.cvAcc = "QC:0000040";
 
-      qp.colTypes.push_back("RT");
-      qp.colTypes.push_back("MZ");
-      qp.colTypes.push_back("Score");
-      qp.colTypes.push_back("PeptideSequence");
-      qp.colTypes.push_back("Charge");
-      qp.colTypes.push_back("TheoreticalWeight");
-      qp.colTypes.push_back("delta_ppm");
+      at.colTypes.push_back("RT");
+      at.colTypes.push_back("MZ");
+      at.colTypes.push_back("Score");
+      at.colTypes.push_back("PeptideSequence");
+      at.colTypes.push_back("Charge");
+      at.colTypes.push_back("TheoreticalWeight");
+      at.colTypes.push_back("delta_ppm");
       for (UInt w = 0; w < var_mods.size(); ++w)
       {
-        qp.colTypes.push_back(String(var_mods[w]).substitute(' ','_'));
+        at.colTypes.push_back(String(var_mods[w]).substitute(' ','_'));
       }
 
       std::vector<DoubleReal> deltas;
@@ -409,7 +443,7 @@ protected:
           std::vector<String> row;
           row.push_back(it->getMetaValue("RT"));
           row.push_back(it->getMetaValue("MZ"));
-          PeptideHit tmp;
+          PeptideHit tmp = it->getHits().front(); //TODO depends on score & sort
           vector<UInt> pep_mods;
           for (UInt w = 0; w < var_mods.size(); ++w)
           {
@@ -444,55 +478,45 @@ protected:
           {
             row.push_back(pep_mods[w]);
           }
-          qp.tableRows.push_back(row);
+          at.tableRows.push_back(row);
         }
       }
-      qcmlfile.addQualityParameter(base_name, qp);
+      qcmlfile.addRunAttachment(base_name, at);
 
       //---mass accuracy stats qp
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "mass accuracy"; ///< Name
-      qp.id = base_name + "_mass_accuracy" ; ///< Identifier
+      qp.name = "mean delta ppm"; ///< Name
+      qp.id = base_name + "_mean_delta" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:0000018";
-      qp.colTypes.push_back("name");
-      qp.colTypes.push_back("value");
-      row.clear();
-      row.push_back("mean");
-      //~ row.push_back(mean(acc));
-      row.push_back(OpenMS::Math::mean(deltas.begin(),deltas.end()));
-      qp.tableRows.push_back(row);
-      row.clear();
-      row.push_back("median");
-      //~ row.push_back(median(acc));
-      row.push_back(OpenMS::Math::median(deltas.begin(),deltas.end()));
-      qp.tableRows.push_back(row);
-      row.clear();
-      qcmlfile.addQualityParameter(base_name, qp);
+      qp.cvAcc = "QC:0000029";
+      qp.value = String(OpenMS::Math::mean(deltas.begin(),deltas.end()));
+      qcmlfile.addRunQualityParameter(base_name, qp);
+
+      //---mass accuracy stats qp
+      qp = QcMLFile::QualityParameter() ;
+      qp.name = "median delta ppm"; ///< Name
+      qp.id = base_name + "_median_delta" ; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:0000030";
+      qp.value = String(OpenMS::Math::median(deltas.begin(),deltas.end(),false));
+      qcmlfile.addRunQualityParameter(base_name, qp);
 
       //---mass accuracy stats qp
       qp = QcMLFile::QualityParameter() ;
       qp.name = "id ratio"; ///< Name
       qp.id = base_name + "_ratio_id" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:0000019";
-      qp.colTypes.push_back("name");
-      qp.colTypes.push_back("value");
-      row.clear();
-      row.push_back("ratio");
-      row.push_back(String(DoubleReal(pep_ids.size())/DoubleReal(mslevelcounts[2])));
-      qp.tableRows.push_back(row);
-      row.clear();
-      qcmlfile.addQualityParameter(base_name, qp);
-
+      qp.cvAcc = "QC:0000026";
+      qp.value = String(DoubleReal(pep_ids.size())/DoubleReal(mslevelcounts[2]));
+      qcmlfile.addRunQualityParameter(base_name, qp);
     }
 
-
+    FeatureMap<> map;
     if (inputfile_feature != "")
     {
       cout << "Reading featureXML file..." << endl;
 
-      FeatureMap<> map;
+
       FeatureXMLFile f;
       f.load(inputfile_feature, map);
       //~ UInt fiter = 0;
@@ -501,64 +525,32 @@ protected:
 
       //---fxml stats qp
       qp = QcMLFile::QualityParameter() ;
-      qp.name = "featurefinding result details"; ///< Name
-      qp.id = base_name + "_featurefinding" ; ///< Identifier
+      qp.name = "number of features"; ///< Name
+      qp.id = base_name + "_featurenumber" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:0000020";
-      qp.colTypes.push_back("name");
-      qp.colTypes.push_back("value");
-      std::vector<String> row;
-      row.push_back("#features");
-      row.push_back(map.size());
-      qp.tableRows.push_back(row);
-      row.clear();
-
-      // Charge distribution and TIC
-      Map<UInt, UInt> charges;
-      DoubleReal tic = 0.0;
-      for (Size i = 0; i < map.size(); ++i)
-      {
-        charges[map[i].getCharge()]++;
-        tic += map[i].getIntensity();
-      }
-      row.push_back("#feature_tic");
-      row.push_back(tic);
-      qp.tableRows.push_back(row);
-      row.clear();
-
-      for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
-      {
-        row.push_back(String("charge") + String(it->first) + String("_distribution"));
-        row.push_back(String(it->second));
-        qp.tableRows.push_back(row);
-        row.clear();
-      }
-
-      qcmlfile.addQualityParameter(base_name, qp);
+      qp.cvAcc = "QC:0000035";
+      qp.value = String(map.size());
+      qcmlfile.addRunQualityParameter(base_name, qp);
     }
 
     if (inputfile_feature != "" && !remove_duplicate_features)
     {
-      cout << "Reading featureXML file..." << endl;
+      QcMLFile::Attachment at;
+      at.name = "feature tables"; ///< Name
+      //~ at.id = base_name + "_features" ; ///< Identifier
+      at.cvRef = "QC"; ///< cv reference
+      at.cvAcc = "QC:0000041";
 
-      qp = QcMLFile::QualityParameter() ;
-      qp.name = "feature distribution"; ///< Name
-      qp.id = base_name + "_features" ; ///< Identifier
-      qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:0000009";
-
-      qp.colTypes.push_back("MZ");
-      qp.colTypes.push_back("RT");
-      qp.colTypes.push_back("Intensity");
-      qp.colTypes.push_back("Charge");
-
-      FeatureMap<> map;
-      FeatureXMLFile f;
-      f.load(inputfile_feature, map);
+      at.colTypes.push_back("MZ");
+      at.colTypes.push_back("RT");
+      at.colTypes.push_back("Intensity");
+      at.colTypes.push_back("Charge");
+      //~ FeatureMap<> map;
+      //~ FeatureXMLFile f;
+      //~ f.load(inputfile_feature, map);
       UInt fiter = 0;
       map.sortByRT();
       //ofstream out(outputfile_name.c_str());
-
       while (fiter < map.size())
       {
         std::vector<String> row;
@@ -567,24 +559,23 @@ protected:
         row.push_back(map[fiter].getIntensity());
         row.push_back(map[fiter].getCharge());
         fiter++;
-        qp.tableRows.push_back(row);
+        at.tableRows.push_back(row);
       }
-      qcmlfile.addQualityParameter(base_name, qp);
+
+      qcmlfile.addRunAttachment(base_name, at);
     }
     else if (inputfile_feature != "" && remove_duplicate_features)
     {
-      cout << "Reading featureXML file..." << endl;
+      QcMLFile::Attachment at;
+      at.name = "feature tables"; ///< Name
+      //~ at.id = base_name + "_features" ; ///< Identifier
+      at.cvRef = "QC"; ///< cv reference
+      at.cvAcc = "QC:0000041";
 
-      qp = QcMLFile::QualityParameter() ;
-      qp.name = "feature distribution"; ///< Name
-      qp.id = base_name + "_features" ; ///< Identifier
-      qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:0000009";
-
-      qp.colTypes.push_back("MZ");
-      qp.colTypes.push_back("RT");
-      qp.colTypes.push_back("Intensity");
-      qp.colTypes.push_back("Charge");
+      at.colTypes.push_back("MZ");
+      at.colTypes.push_back("RT");
+      at.colTypes.push_back("Intensity");
+      at.colTypes.push_back("Charge");
 
       FeatureMap<> map, map_out;
       FeatureXMLFile f;
@@ -598,7 +589,7 @@ protected:
         {
           if (abs(map[fiter].getRT() - map[k].getRT()) < 0.1)
           {
-            cout << fiter << endl;
+            //~ cout << fiter << endl;
             map_tmp.push_back(map[k]);
           }
           else
@@ -621,8 +612,7 @@ protected:
         }
       }
 
-      //~ FeatureXMLFile().store(out_feature, map_out); //TODO into vec of vecs ...
-      qcmlfile.addQualityParameter(base_name, qp);
+      qcmlfile.addRunAttachment(base_name, at);
 
     }
     if (inputfile_consensus != "")
@@ -635,20 +625,20 @@ protected:
       //~ String combined_out = outputfile_name + CONSENSUS_NAME;
       //~ ofstream out(combined_out.c_str());
 
-      qp = QcMLFile::QualityParameter() ;
+      at = QcMLFile::Attachment() ;
       qp.name = "consensuspoints"; ///< Name
-      qp.id = base_name + "_consensuses" ; ///< Identifier
+      //~ qp.id = base_name + "_consensuses" ; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featuremapper results"
 
-      qp.colTypes.push_back("Native_spectrum_ID");
-      qp.colTypes.push_back("DECON_RT_(sec)");
-      qp.colTypes.push_back("DECON_MZ_(Th)");
-      qp.colTypes.push_back("DECON_Intensity");
-      qp.colTypes.push_back("Feature_RT_(sec)");
-      qp.colTypes.push_back("Feature_MZ_(Th)");
-      qp.colTypes.push_back("Feature_Intensity");
-      qp.colTypes.push_back("Feature_Charge");
+      at.colTypes.push_back("Native_spectrum_ID");
+      at.colTypes.push_back("DECON_RT_(sec)");
+      at.colTypes.push_back("DECON_MZ_(Th)");
+      at.colTypes.push_back("DECON_Intensity");
+      at.colTypes.push_back("Feature_RT_(sec)");
+      at.colTypes.push_back("Feature_MZ_(Th)");
+      at.colTypes.push_back("Feature_Intensity");
+      at.colTypes.push_back("Feature_Charge");
       for (ConsensusMap::const_iterator cmit = map.begin(); cmit != map.end(); ++cmit)
       {
         ConsensusFeature CF = *cmit;
@@ -662,23 +652,23 @@ protected:
           row.push_back(FH.getRT());
           row.push_back(FH.getMZ());
           row.push_back(FH.getCharge());
-          qp.tableRows.push_back(row);
+          at.tableRows.push_back(row);
         }
       }
-      qcmlfile.addQualityParameter(base_name, qp);
+      qcmlfile.addRunAttachment(base_name, at);
     }
     if (Ms1)
     {
-      qp = QcMLFile::QualityParameter() ;
-      qp.name = "ms1stats"; ///< Name
-      qp.id = base_name + "_ms1" ; ///< Identifier
-      qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession for "aquisition results"
+      QcMLFile::Attachment at;
+      at.name = "ms1stats tables"; ///< Name
+      //~ at.id = base_name + "_ms1" ; ///< Identifier
+      at.cvRef = "QC"; ///< cv reference
+      at.cvAcc = "QC:xxxxxxx";
 
-      qp.colTypes.push_back("Native_ID");
-      qp.colTypes.push_back("RT_(sec)");
-      qp.colTypes.push_back("MZ_(Th)");
-      qp.colTypes.push_back("Intensity");
+      at.colTypes.push_back("Native_ID");
+      at.colTypes.push_back("RT_(sec)");
+      at.colTypes.push_back("MZ_(Th)");
+      at.colTypes.push_back("Intensity");
       for (Size i = 0; i < exp.size(); ++i)
       {
         if (exp[i].getMSLevel() == 1)
@@ -691,25 +681,25 @@ protected:
             row.push_back(exp[i].getRT());
             row.push_back(exp[i][j].getMZ());
             row.push_back(exp[i][j].getIntensity());
-            qp.tableRows.push_back(row);
+            at.tableRows.push_back(row);
           }
         }
       }
-      qcmlfile.addQualityParameter(base_name, qp);
+      qcmlfile.addRunAttachment(base_name, at);
     }
     if (Ms2)
     {
-      qp = QcMLFile::QualityParameter() ;
-      qp.name = "ms2stats"; ///< Name
-      qp.id = base_name + "_ms2" ; ///< Identifier
-      qp.cvRef = "QC"; ///< cv reference
-      qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession for "aquisition results"
+      QcMLFile::Attachment at;
+      at.name = "ms2stats tables"; ///< Name
+      //~ at.id = base_name + "_ms1" ; ///< Identifier
+      at.cvRef = "QC"; ///< cv reference
+      at.cvAcc = "QC:xxxxxxx";
 
-      qp.colTypes.push_back("Native_ID");
-      qp.colTypes.push_back("RT_(sec)");
-      qp.colTypes.push_back("MZ_(Th)");
-      qp.colTypes.push_back("Intensity");
-      qp.colTypes.push_back("Precursor");
+      at.colTypes.push_back("Native_ID");
+      at.colTypes.push_back("RT_(sec)");
+      at.colTypes.push_back("MZ_(Th)");
+      at.colTypes.push_back("Intensity");
+      at.colTypes.push_back("Precursor");
       for (Size i = 0; i < exp.size(); ++i)
       {
         if (exp[i].getMSLevel() == 2)
@@ -723,11 +713,11 @@ protected:
             row.push_back(exp[i][j].getMZ());
             row.push_back(exp[i][j].getIntensity());
             row.push_back(exp[i].getPrecursors()[0].getMZ());
-            qp.tableRows.push_back(row);
+            at.tableRows.push_back(row);
           }
         }
       }
-      qcmlfile.addQualityParameter(base_name, qp);
+      qcmlfile.addRunAttachment(base_name, at);
     }
     qcmlfile.store(outputfile_name);
     return EXECUTION_OK;

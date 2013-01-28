@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Clemens Groepl, Johannes Junker$
+// $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer$
 // --------------------------------------------------------------------------
 
 #include <numeric>
@@ -103,6 +103,53 @@ namespace OpenMS
       }
 
       if (size % 2 == 0)        // even size => average two middle values
+      {
+        IteratorType it1 = begin;
+        std::advance(it1, size / 2 - 1);
+        IteratorType it2 = it1;
+        std::advance(it2, 1);
+        return (*it1 + *it2) / 2.0;
+      }
+      else
+      {
+        IteratorType it = begin;
+        std::advance(it, (size - 1) / 2);
+        return *it;
+      }
+    }
+
+    /**
+      @brief Calculates the quantile of a range of values
+
+      @param begin Start of range
+      @param end End of range (past-the-end iterator)
+      @param sorted Is the range already sorted? If not, it will be sorted.
+
+      @exception Exception::InvalidRange is thrown if the range is empty or a quantile over 100 is given
+
+      @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static DoubleReal quantile(IteratorType begin, IteratorType end, UInt quantile, bool sorted = FALSE)
+    {
+      Size size = std::distance(begin, end);
+
+      if (size == 0)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      }
+      if (quantile > 100)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      }
+      int l = int(quantile) * (int(size) / 100);
+
+      if (!sorted)
+      {
+        std::sort(begin, end);
+      }
+
+      if (l % 2 == 0)        // even size => average two middle values
       {
         IteratorType it1 = begin;
         std::advance(it1, size / 2 - 1);

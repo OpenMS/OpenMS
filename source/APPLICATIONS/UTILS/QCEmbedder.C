@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Author: Mathias Walzer, Sven Nahnsen $
+// $Author: Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -83,9 +83,9 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringOption_("qp", "<choice>", "", "Target QualityParameter. ('ticpoints': total ion current stats, 'precursorpoints': stats about the precursors from the rawfile, 'pepidpoints': identifications from the rawfile, 'featurepoints': stats about features from the rawfile, 'consensusstats': stats about consensus features from the rawfile)\n");
-    setValidStrings_("qp", StringList::create("ticpoints,precursorpoints,pepidpoints,featurepoints,consensuspoints"));
-    registerStringOption_("run_name", "<string>", "", "The name of the target msrun file of the respective quality parameter.");
+    registerStringOption_("qp", "<string>", "", "Target attachment table.");
+    registerStringOption_("qp_acc", "<string>", "", "The accession number of the given qp, only needed if qp is not yet contained in the run/set.",false);
+    registerInputFile_("name", "<file>", "", "The name of the target run or set that contains the requested quality parameter.");
     registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)");
     setValidFormats_("plot", StringList::create("PNG"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
@@ -101,11 +101,17 @@ protected:
     String in                   = getStringOption_("in");
     String out                  = getStringOption_("out");
     String target_qp            = getStringOption_("qp");
-    String target_run           = getStringOption_("msrun_filename");
+    String target_run           = getStringOption_("name");
     plot_file                   = getStringOption_("plot");
+    String target_acc           = getStringOption_("qp_acc");
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
+
+    if (target_run.hasSuffix(".mzML"))
+    {
+      target_run = QFileInfo(QString::fromStdString(target_run)).baseName();
+    }
 
     QcMLFile qcmlfile;
     qcmlfile.load(in);
@@ -122,14 +128,53 @@ protected:
     if (plot_b64 != "")
     {
       QcMLFile::Attachment at;
-      at.name = target_qp + "_plot";
-      at.cvRef = "QC";
-      at.cvAcc = "QC:xxxxxxxx";
+      at.name = target_qp;
       //~ at.unitRef; //TODO MIME type
       //~ at.unitAcc;
       at.binary = plot_b64;
-      at.qualityRef = qcmlfile.existsQualityParameter(target_run, target_qp);
-      qcmlfile.addAttachment(target_run, at);
+      at.cvRef = "QC";
+      at.cvAcc = "QC:xxxxxxxx"; //TODO determine cv! btw create cv for plots?!
+
+      std::vector<String> ids;
+      qcmlfile.existsRunQualityParameter(target_run, target_qp, ids);
+
+      if (!ids.empty())
+      {
+        at.qualityRef = ids.front();
+        qcmlfile.addRunAttachment(target_run, at);
+      }
+      else
+      {
+        qcmlfile.existsSetQualityParameter(target_run, target_qp, ids);
+        if (!ids.empty())
+        {
+          at.qualityRef = ids.front();
+          qcmlfile.addSetAttachment(target_run, at);
+        }
+        else
+        {
+          QcMLFile::QualityParameter qp;
+          if (target_acc != "" && target_qp != "")
+          {
+            qp.name = target_qp; ///< Name
+            qp.id = target_run + "_" + target_acc; ///< Identifier
+            qp.cvRef = "QC"; ///< cv reference
+            qp.cvAcc = target_acc ;
+            qp.value = target_run;
+            qcmlfile.addRunQualityParameter(target_run, qp);
+            //TODO check if the qp are in the obo as soon as there is one
+
+            at.qualityRef = qp.id;
+            qcmlfile.addRunAttachment(target_run, at);
+          }
+          else
+          {
+            cerr << "Error: You have to specify a correct cv with accession and name. Aborting!" << endl;
+            return ILLEGAL_PARAMETERS;
+
+          }
+        }
+      }
       qcmlfile.store(out);
     }
 
