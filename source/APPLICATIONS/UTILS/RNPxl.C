@@ -640,13 +640,14 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     cout << pseudo_rt++ << " " << mit->first << " " << mit->second << " ( ";
 
     const set<String>& ambiguities = result.mod_combinations[mit->first];
-    String old_nsf = "";
+    set<String> printed;
     for (set<String>::const_iterator sit = ambiguities.begin(); sit != ambiguities.end(); ++sit)
     {
       String nucleotide_style_formula = *sit;
       Size p1 = nucleotide_style_formula.find('-');
       Size p2 = nucleotide_style_formula.find('+');
       Size p = min(p1, p2);
+      // sort nucleotides up to beginning of modification (first '+' or '-')
       if (p != String::npos)
       {
         std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.begin() + p);       
@@ -655,11 +656,12 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
         std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());       
       }
 
-      if (nucleotide_style_formula != old_nsf)
+      // only print ambigous sequences once
+      if (printed.find(nucleotide_style_formula) == printed.end())
       {
         cout << nucleotide_style_formula;
         cout << " ";
-        old_nsf = nucleotide_style_formula;
+        printed.insert(nucleotide_style_formula);
       }
     }
   
