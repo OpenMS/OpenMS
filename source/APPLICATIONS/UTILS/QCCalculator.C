@@ -471,7 +471,7 @@ protected:
           row.push_back(tmp.getSequence().toString().removeWhitespaces());
           row.push_back(tmp.getCharge());
           row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
-          DoubleReal dppm = std::abs(getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), double(it->getMetaValue("MZ")), true));
+          DoubleReal dppm = /* std::abs */(getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), double(it->getMetaValue("MZ")), true));
           row.push_back(String(dppm));
           deltas.push_back(dppm);
           for (UInt w = 0; w < var_mods.size(); ++w)
