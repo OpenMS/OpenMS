@@ -230,6 +230,7 @@ endif()
 add_custom_target(
   prepare_knime_payload_ini
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D TARGET_DIR=${PAYLOAD_PATH} -D TEMPLATE_FOLDER=${SCRIPT_DIRECTORY} -P ${SCRIPT_DIRECTORY}copy_binaries_ini.cmake
+  DEPENDS prepare_knime_payload_binaries
 )
 
 # check if we have valid search engines
