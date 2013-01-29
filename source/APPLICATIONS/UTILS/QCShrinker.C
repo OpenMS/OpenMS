@@ -85,15 +85,15 @@ protected:
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<choice>", "", "Target attachment table.");
     setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables"));
-    registerInputFile_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.",false);
-    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!",false);
+    registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
+    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));
-    registerStringOption_("at", "<string>", "", "If given, only those attachments are being removed.",false);
+    registerStringOption_("at", "<string>", "", "If given, only those attachments are being removed.", false);
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
-    setValidFormats_("out",StringList::create("qcML"));
+    setValidFormats_("out", StringList::create("qcML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String plot_file = "";
     //-------------------------------------------------------------
@@ -126,7 +126,7 @@ protected:
     std::vector<String> ids;
     qcmlfile.existsRunQualityParameter(target_run, target_qp, ids); //TODO this only works if the attachments are referencing the qp - okay for now
     qcmlfile.removeAttachment(target_run, ids, target_at);
-    if ( target_at != "" )
+    if (target_at != "")
     {
       qcmlfile.removeQualityParameter(target_run, ids);
     }
@@ -136,7 +136,7 @@ protected:
   }
 
 };
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPQCShrinker tool;
   return tool.main(argc, argv);

@@ -85,14 +85,14 @@ protected:
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<choice>", "", "Target attachment table.");
     setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables,set id"));
-    registerInputFile_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.",false);
-    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!",false);
+    registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
+    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));
     registerOutputFile_("out_csv", "<file>", "", "Output csv formated quality parameter or extended qcML file");
-    setValidFormats_("out_csv",StringList::create("csv"));
+    setValidFormats_("out_csv", StringList::create("csv"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -129,14 +129,14 @@ protected:
       }
       else
       {
-        cerr << "Error: You have to specify a existing set for this qp. "<< target_run << " seems not to exist. Aborting!" << endl;
+        cerr << "Error: You have to specify a existing set for this qp. " << target_run << " seems not to exist. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
     }
     else
     {
       //TODO warn when target_run is empty or not present in qcml
-      csv_str = qcmlfile.exportAttachment(target_run,target_qp);
+      csv_str = qcmlfile.exportAttachment(target_run, target_qp);
     }
 
     ofstream fout(csv.c_str());
@@ -148,7 +148,7 @@ protected:
   }
 
 };
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPQCExporter tool;
   return tool.main(argc, argv);

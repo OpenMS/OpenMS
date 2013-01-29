@@ -84,17 +84,17 @@ protected:
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<string>", "", "Target attachment table.");
-    registerStringOption_("qp_acc", "<string>", "", "The accession number of the given qp, only needed if qp is not yet contained in the run/set.",false);
-    registerInputFile_("name", "<String>", "", "The name of the target run or set that contains the requested quality parameter.",false);
-    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!",false);
+    registerStringOption_("qp_acc", "<string>", "", "The accession number of the given qp, only needed if qp is not yet contained in the run/set.", false);
+    registerStringOption_("name", "<String>", "", "The name of the target run or set that contains the requested quality parameter.", false);
+    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));
     registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)");
     setValidFormats_("plot", StringList::create("PNG"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
-    setValidFormats_("out",StringList::create("qcML"));
+    setValidFormats_("out", StringList::create("qcML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String plot_file = "";
     //-------------------------------------------------------------
@@ -168,7 +168,7 @@ protected:
             qp.name = target_qp; ///< Name
             qp.id = target_run + "_" + target_acc; ///< Identifier
             qp.cvRef = "QC"; ///< cv reference
-            qp.cvAcc = target_acc ;
+            qp.cvAcc = target_acc;
             qp.value = target_run;
             qcmlfile.addRunQualityParameter(target_run, qp);
             //TODO check if the qp are in the obo as soon as there is one
@@ -190,7 +190,7 @@ protected:
   }
 
 };
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPQCEmbedder tool;
   return tool.main(argc, argv);
