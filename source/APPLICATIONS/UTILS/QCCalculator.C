@@ -161,7 +161,7 @@ protected:
     at.name = "precursor tables"; ///< Name
     //~ at.id = base_name + "_precursors" ; ///< Identifier
     at.cvRef = "QC"; ///< cv reference
-    at.cvAcc = "QC:0000005";
+    at.cvAcc = "QC:0000037";
 
     at.colTypes.push_back("RT_(sec)");
     at.colTypes.push_back("Precursor");
@@ -256,7 +256,7 @@ protected:
     at.name = "total ion current tables"; ///< Name
     //~ at.id = base_name + "_tic" ; ///< Identifier
     at.cvRef = "QC"; ///< cv reference
-    at.cvAcc = "QC:0000007";
+    at.cvAcc = "QC:0000039";
     //~ at.colTypes.push_back("Native_ID");
     at.colTypes.push_back("RT_(sec)");
     at.colTypes.push_back("TIC");

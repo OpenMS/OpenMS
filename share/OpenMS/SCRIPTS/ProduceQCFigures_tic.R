@@ -11,7 +11,7 @@ post<-commandArgs(TRUE)[2]
 a<-read.csv(file=file,head=TRUE,sep="\t")
 ######################################
 png(post)
-res = barplot(t(a$TIC),main=paste(""), xlab="RT (min)",ylab="Intensity")
+res = barplot(t(a$TIC), xlab="RT (min)",ylab="Intensity")
 time_seq = seq(min(a$RT),max(a$RT),1200)
 time_seq = round(time_seq)/60
 t<-which(time_seq %% 1==0 & duplicated(time_seq)==F)

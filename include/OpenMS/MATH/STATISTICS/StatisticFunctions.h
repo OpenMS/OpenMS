@@ -138,32 +138,22 @@ namespace OpenMS
       {
         throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
-      if (quantile > 100)
+      if (quantile > 100 || quantile < 1) //TODO is 0 quantile a valid request?
       {
         throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
 
-      int l = floor( (double(quantile) * (double(size) / 100)) + 0.5); // will not be negative
+      int l = floor( (double(quantile) * (double(size) / 100)) + 0.5); // will not be negative, so this is round nearest
 
       if (!sorted)
       {
         std::sort(begin, end);
       }
 
-      if (size % l == 0)        // even size => average two middle values
-      {
-        IteratorType it1 = begin;
-        std::advance(it1, size / l - 1);
-        IteratorType it2 = it1;
-        std::advance(it2, 1);
-        return (*it1 + *it2) / 2.0;
-      }
-      else
-      {
-        IteratorType it = begin;
-        std::advance(it, (size - 1) / l);
-        return *it;
-      }
+      IteratorType it = begin;
+      std::advance(it, l - 1);
+      return *it;
+
     }
 
     /**

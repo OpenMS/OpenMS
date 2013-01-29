@@ -408,6 +408,50 @@ namespace OpenMS
     }
   }
 
+  void QcMLFile::removeAllAttachments(String at)
+  {
+    for (std::map<String, std::vector< Attachment > >::iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
+    {
+      removeAttachment(it->first, at);
+    }
+  }
+
+  void QcMLFile::removeAttachment(String r, String at)
+  {
+    if (existsRun(r))
+    {
+      std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_[r].begin();
+      cout << "remove from " << r << endl;
+      while (qit != runQualityAts_[r].end())
+      {
+        if (qit->cvAcc == at)
+        {
+          qit = runQualityAts_[r].erase(qit);
+          cout << "remove  " << at << endl;
+        }
+        else
+        {
+          ++qit;
+        }
+      }
+    }
+    if (existsSet(r))
+    {
+      std::vector<QcMLFile::Attachment>::iterator qit = setQualityAts_[r].begin();
+      while (qit != setQualityAts_[r].end())
+      {
+        if (qit->cvAcc == at)
+        {
+          qit = setQualityAts_[r].erase(qit);
+        }
+        else
+        {
+          ++qit;
+        }
+      }
+    }
+  }
+
   void QcMLFile::merge(const QcMLFile & addendum, String setname)
   {
     //~ runs

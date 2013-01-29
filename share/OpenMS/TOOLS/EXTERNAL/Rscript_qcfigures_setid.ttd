@@ -7,7 +7,7 @@
 		// multiple of these allowed (same # as 'types') - for external only
 		<external>
 				<text>
-					<onstartup>Calling Rscript tic ...</onstartup>
+					<onstartup>Calling Rscript set id ...</onstartup>
 					<onfail>Something went wrong. Is 'R' in your PATH?</onfail>
 					<onfinish>Tool finished successfully.</onfinish>
 				</text>

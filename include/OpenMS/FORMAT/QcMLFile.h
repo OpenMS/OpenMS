@@ -132,6 +132,10 @@ public:
     void addSetAttachment(String r, Attachment at);
     ///Removes attachments referencing a id given in ids, from run/set r. All attachments if no attachment name is given with at.
     void removeAttachment(String r, std::vector<String>& ids, String at = "");
+    ///Removes attachment with cv accession at from run/set r.
+    void removeAttachment(String r, String at);
+    ///Removes attachment with cv accession at from  all runs/sets.
+    void removeAllAttachments(String at);
     ///Just removes qualityparameter going by one of the ID attributes given in ids.
     void removeQualityParameter(String r, std::vector<String>& ids);
     ///merges the given QCFile into this one

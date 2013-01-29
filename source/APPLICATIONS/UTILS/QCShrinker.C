@@ -58,7 +58,7 @@ using namespace std;
 /**
     @page UTILS_QCShrinker QCShrinker
 
-    @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It is intended to provide tables that can be read into R where QC metrics will be calculated.
+    @brief This application is used to remove the verbose table attachments from a qcml file.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCShrinker.cli
@@ -83,12 +83,10 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringOption_("qp", "<choice>", "", "Target attachment table.");
-    setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables"));
+    //~ registerFlag_("tables", "Remove all tables. (Of all runs and sets if these are not given with parameter name or run.)");
     registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
     registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));
-    registerStringOption_("at", "<string>", "", "If given, only those attachments are being removed.", false);
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
     setValidFormats_("out", StringList::create("qcML"));
   }
@@ -101,10 +99,8 @@ protected:
     //-------------------------------------------------------------
     String in                   = getStringOption_("in");
     String out                  = getStringOption_("out");
-    String target_qp            = getStringOption_("qp");
     String target_run           = getStringOption_("name");
     String target_file          = getStringOption_("run");
-    String target_at            = getStringOption_("at");
 
     //-------------------------------------------------------------
     // reading input
@@ -114,21 +110,29 @@ protected:
       target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
     }
 
-    if (target_run == "")
-    {
-      cerr << "Error: You have to give at least one of the following parameter (in ascending precedence): name, run. Aborting!" << endl;
-      return ILLEGAL_PARAMETERS;
-    }
+    //~ !getFlag_("tables")
 
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
-    std::vector<String> ids;
-    qcmlfile.existsRunQualityParameter(target_run, target_qp, ids); //TODO this only works if the attachments are referencing the qp - okay for now
-    qcmlfile.removeAttachment(target_run, ids, target_at);
-    if (target_at != "")
+
+    if (target_run == "")
     {
-      qcmlfile.removeQualityParameter(target_run, ids);
+      qcmlfile.removeAllAttachments("QC:0000037");
+      qcmlfile.removeAllAttachments("QC:0000038");
+      qcmlfile.removeAllAttachments("QC:0000039");
+      qcmlfile.removeAllAttachments("QC:0000040");
+      qcmlfile.removeAllAttachments("QC:0000041");
+      qcmlfile.removeAllAttachments("QC:0000042");
+    }
+    else
+    {
+      qcmlfile.removeAttachment(target_run,"QC:0000037");
+      qcmlfile.removeAttachment(target_run,"QC:0000038");
+      qcmlfile.removeAttachment(target_run,"QC:0000039");
+      qcmlfile.removeAttachment(target_run,"QC:0000040");
+      qcmlfile.removeAttachment(target_run,"QC:0000041");
+      qcmlfile.removeAttachment(target_run,"QC:0000042");
     }
 
     qcmlfile.store(out);
