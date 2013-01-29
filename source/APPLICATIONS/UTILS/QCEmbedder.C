@@ -85,7 +85,9 @@ protected:
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<string>", "", "Target attachment table.");
     registerStringOption_("qp_acc", "<string>", "", "The accession number of the given qp, only needed if qp is not yet contained in the run/set.",false);
-    registerInputFile_("name", "<file>", "", "The name of the target run or set that contains the requested quality parameter.");
+    registerInputFile_("name", "<String>", "", "The name of the target run or set that contains the requested quality parameter.",false);
+    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!",false);
+    setValidFormats_("run", StringList::create("mzML"));
     registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)");
     setValidFormats_("plot", StringList::create("PNG"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
@@ -102,15 +104,22 @@ protected:
     String out                  = getStringOption_("out");
     String target_qp            = getStringOption_("qp");
     String target_run           = getStringOption_("name");
+    String target_file          = getStringOption_("run");
     plot_file                   = getStringOption_("plot");
     String target_acc           = getStringOption_("qp_acc");
+
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-
-    if (target_run.hasSuffix(".mzML"))
+    if (target_file != "")
     {
-      target_run = QFileInfo(QString::fromStdString(target_run)).baseName();
+      target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
+    }
+
+    if (target_run == "")
+    {
+      cerr << "Error: You have to give at least one of the following parameter (in ascending precedence): name, run. Aborting!" << endl;
+      return ILLEGAL_PARAMETERS;
     }
 
     QcMLFile qcmlfile;
@@ -171,7 +180,6 @@ protected:
           {
             cerr << "Error: You have to specify a correct cv with accession and name. Aborting!" << endl;
             return ILLEGAL_PARAMETERS;
-
           }
         }
       }

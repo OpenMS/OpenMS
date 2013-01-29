@@ -114,10 +114,10 @@ protected:
     StringList in_files     = getStringList_("in");
     String out              = getStringOption_("out");
     String setname          = getStringOption_("setname");
+
     //-------------------------------------------------------------
     // reading input
-    //------------------------------------------------------------
-
+    //-------------------------------------------------------------
     QcMLFile qcmlfile;
     for (Size i = 0; i < in_files.size(); ++i)
     {

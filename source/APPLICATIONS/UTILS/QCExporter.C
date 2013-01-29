@@ -85,7 +85,9 @@ protected:
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<choice>", "", "Target attachment table.");
     setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables,set id"));
-    registerInputFile_("name", "<file>", "", "The name of the target run or set that contains the requested quality parameter.");
+    registerInputFile_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.",false);
+    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!",false);
+    setValidFormats_("run", StringList::create("mzML"));
     registerOutputFile_("out_csv", "<file>", "", "Output csv formated quality parameter or extended qcML file");
     setValidFormats_("out_csv",StringList::create("csv"));
   }
@@ -98,14 +100,21 @@ protected:
     String in                   = getStringOption_("in");
     String csv                  = getStringOption_("out_csv");
     String target_qp            = getStringOption_("qp");
-    String target_raw           = getStringOption_("name");
+    String target_run           = getStringOption_("name");
+    String target_file          = getStringOption_("run");
+
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-
-    if (target_raw.hasSuffix(".mzML"))
+    if (target_file != "")
     {
-      target_raw = QFileInfo(QString::fromStdString(target_raw)).baseName();
+      target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
+    }
+
+    if (target_run == "")
+    {
+      cerr << "Error: You have to give at least one of the following parameter (in ascending precedence): name, run. Aborting!" << endl;
+      return ILLEGAL_PARAMETERS;
     }
 
     QcMLFile qcmlfile;
@@ -114,20 +123,20 @@ protected:
     String csv_str = "";
     if (target_qp == "set id")
     {
-      if (qcmlfile.existsSet(target_raw))
+      if (qcmlfile.existsSet(target_run))
       {
-        csv_str = qcmlfile.exportIDstats(target_raw);
+        csv_str = qcmlfile.exportIDstats(target_run);
       }
       else
       {
-        cerr << "Error: You have to specify a existing set for this qp. "<< target_raw << " seems not to exist. Aborting!" << endl;
+        cerr << "Error: You have to specify a existing set for this qp. "<< target_run << " seems not to exist. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
     }
     else
     {
-      //TODO warn when target_raw is empty or not present in qcml
-      csv_str = qcmlfile.exportAttachment(target_raw,target_qp);
+      //TODO warn when target_run is empty or not present in qcml
+      csv_str = qcmlfile.exportAttachment(target_run,target_qp);
     }
 
     ofstream fout(csv.c_str());

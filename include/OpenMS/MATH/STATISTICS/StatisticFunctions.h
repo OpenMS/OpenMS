@@ -142,17 +142,18 @@ namespace OpenMS
       {
         throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
-      int l = int(quantile) * (int(size) / 100);
+
+      int l = floor( (double(quantile) * (double(size) / 100)) + 0.5); // will not be negative
 
       if (!sorted)
       {
         std::sort(begin, end);
       }
 
-      if (l % 2 == 0)        // even size => average two middle values
+      if (size % l == 0)        // even size => average two middle values
       {
         IteratorType it1 = begin;
-        std::advance(it1, size / 2 - 1);
+        std::advance(it1, size / l - 1);
         IteratorType it2 = it1;
         std::advance(it2, 1);
         return (*it1 + *it2) / 2.0;
@@ -160,7 +161,7 @@ namespace OpenMS
       else
       {
         IteratorType it = begin;
-        std::advance(it, (size - 1) / 2);
+        std::advance(it, (size - 1) / l);
         return *it;
       }
     }
