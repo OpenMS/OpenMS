@@ -176,6 +176,9 @@ protected:
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
     }
+
+    // avoid compiler warning (every code path must return a value, even if there is a throw() somewhere)
+    return std::numeric_limits<double>::max();
   }
 
   ExitCodes main_(int, const char**)
