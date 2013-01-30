@@ -1606,7 +1606,6 @@ namespace OpenMS
     {
       statusBar()->showMessage(msg.c_str(), time);
     }
-    QApplication::processEvents();
   }
 
   void TOPPViewBase::showCursorStatusInvert(double mz, double rt)
@@ -3106,7 +3105,8 @@ namespace OpenMS
     //warn if hidden layer => wrong layer selected...
     if (!layer.visible)
     {
-      showLogMessage_(LS_NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
+      showLogMessage_(LS_NOTICE, "The current layer is not visible", "Have you selected the right layer for this action? Aborting.");
+      return;
     }
 
     //load id data
@@ -3159,6 +3159,7 @@ namespace OpenMS
         mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
       }
     }
+    showLogMessage_(LS_NOTICE, "Done", "Annotation of spectra finished. Open identification view to see results!");
     updateViewBar();
   }
 
