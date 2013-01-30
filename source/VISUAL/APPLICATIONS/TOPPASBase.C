@@ -1539,7 +1539,7 @@ namespace OpenMS
               tr("&Single window"), tr("&Separate windows"),
               QString::null, 0, 1))
         {
-          arg = files.join(" + ").split(" ", QString::SkipEmptyParts);
+          arg = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
         }
       }
 #if defined(__APPLE__)
