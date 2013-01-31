@@ -37,16 +37,15 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 # include helper functions 
 include ( ${SCRIPT_DIR}common.cmake )
 
-set(required_variables "SOURCE_PATH;TARGET_PATH;SVNVERSION_EXECUTABLE;OPENMS_VERSION")
+set(required_variables "SOURCE_PATH;TARGET_PATH;OPENMS_VERSION")
 check_variables(required_variables)
 
-execute_process(COMMAND ${SVNVERSION_EXECUTABLE} -n ${SOURCE_PATH} OUTPUT_VARIABLE SVN_REVISION)
-
-if(SVN_REVISION)
-  # we remove the trailing M, since it is not a proper OSGI version part
-  string(REGEX REPLACE "M$" "" CORRECTED_SVN_REVISION ${SVN_REVISION})
-
-  set(CF_OPENMS_VERSION "${OPENMS_VERSION}.${CORRECTED_SVN_REVISION}")
+find_package(Subversion)
+if(SUBVERSION_FOUND)
+  Subversion_WC_INFO(${SOURCE_PATH} OpenMS)
+  string(REGEX REPLACE "^([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+).*"
+    "\\1\\2\\3\\4\\5" KNIME_DATE "${OpenMS_WC_LAST_CHANGED_DATE}")
+  set(CF_OPENMS_VERSION "${OPENMS_VERSION}.${KNIME_DATE}")
 else()
   set(CF_OPENMS_VERSION "${OPENMS_VERSION}")
 endif()
