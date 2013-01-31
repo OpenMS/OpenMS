@@ -177,6 +177,12 @@ protected:
     // path to the log file
     String logfile(getStringOption_("log"));
     String xtandem_executable(getStringOption_("xtandem_executable"));
+#if defined(__APPLE__)
+    if (xtandem_executable == "tandem")
+    {
+      xtandem_executable = File::findExecutable("tandem");
+    }
+#endif
     String inputfile_name;
     String outputfile_name;
     PeakMap exp;
