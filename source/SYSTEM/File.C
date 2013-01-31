@@ -517,12 +517,6 @@ namespace OpenMS
     // check if we are in one of the bundles in an installed bundle
     exec = File::getExecutablePath() + "../../../TOPP/" + toolName;
     if (File::exists(exec)) return exec;
-
-    // check if we are in the TOPP directory of the bundle and look for search engines (for adapters)
-    exec = File::getExecutablePath() + "SEARCHENGINES/OMSSA/" + toolName;
-    if (File::exists(exec)) return exec;
-    exec = File::getExecutablePath() + "SEARCHENGINES/XTandem/" + toolName;
-    if (File::exists(exec)) return exec;
 #endif
     // TODO(aiche): probe in PATH
 

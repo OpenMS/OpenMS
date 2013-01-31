@@ -376,12 +376,6 @@ protected:
     // path to the log file
     String logfile(getStringOption_("log"));
     String omssa_executable(getStringOption_("omssa_executable"));
-#if defined(__APPLE__)
-    if (omssa_executable == "omssacl")
-    {
-      omssa_executable = File::findExecutable("omssacl");
-    }
-#endif
     String unique_name = QDir::toNativeSeparators(String(File::getTempDirectory() + "/" + File::getUniqueName()).toQString());   // body for the tmp files
     String unique_input_name = unique_name + "_OMSSA.mgf";
     String unique_output_name = unique_name + "_OMSSA.xml";
