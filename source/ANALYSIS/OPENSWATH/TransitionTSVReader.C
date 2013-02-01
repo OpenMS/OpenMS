@@ -176,6 +176,9 @@ namespace OpenMS
   {
     std::vector<TSVTransition> mytransitions;
     //for (const std::vector<ReactionMonitoringTransition>::iterator it = targeted_exp.getTransitions().begin(); it != targeted_exp.getTransitions().end(); it++)
+
+    Size progress = 0;
+    startProgress(0, targeted_exp.getTransitions().size(), "converting to OpenSWATH transition TSV format");
     for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
       // get the current transition and try to find the corresponding chromatogram
@@ -189,8 +192,12 @@ namespace OpenMS
       mytransition.precursor = it->getPrecursorMZ();
       mytransition.product = it->getProductMZ();
       mytransition.rt_calibrated = -1;
+
+#ifdef TRANSITIONTSVREADER_TESTING
       std::cout << "Peptide rts empty " <<
-      pep.rts.empty()  << " or no csv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
+      pep.rts.empty()  << " or no cv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
+#endif
+
       if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))
       {
         mytransition.rt_calibrated = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
@@ -246,7 +253,9 @@ namespace OpenMS
 
       mytransitions.push_back(mytransition);
 
+      setProgress(progress++);
     }
+    endProgress();
 
     std::ofstream os(filename);
     os << "PrecursorMz\tProductMz\tTr_recalibrated\ttransition_name\tCE\tLibraryIntensity\ttransition_group_id\tdecoy\tPeptideSequence\tProteinName\tAnnotation\tFullPeptideName\tMissedCleavages\tReplicates\tNrModifications\tCharge\tGroupLabel" << std::endl;
@@ -316,7 +325,7 @@ namespace OpenMS
     // in TraML, the modification the AA starts with residue 1 but the
     // OpenMS objects start with zero -> we start counting with zero here
     // and the TraML handler will add 1 when storing the file.
-    if (aa_sequence.isValid())
+    if (aa_sequence.isValid() && std::string::npos == tr_it->FullPeptideName.find("["))
     {
       if ( !aa_sequence.getNTerminalModification().empty())
       {
@@ -342,8 +351,7 @@ namespace OpenMS
     }
     else
     {
-      std::cout << "Warning, could not parse modifications on "  << tr_it->FullPeptideName <<
-      ". Please use unimod / freetext identifiers like PEPT(Phosphorylation)IDE(UniMod:27)A." << std::endl;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Warning, could not parse modifications on " + tr_it->FullPeptideName + ". Please use unimod / freetext identifiers like PEPT(Phosphorylation)IDE(UniMod:27)A.");
     }
 
     peptide.mods = mods;

@@ -48,9 +48,9 @@ using namespace OpenMS;
 /**
   @page TOPP_ConvertTSVToTraML ConvertTSVToTraML
 
-  @brief Converts special TSV files to TraML files
+  @brief Converts OpenSWATH transition TSV files to TraML files
 
-  The TSV files needs to have the following headers, all fields need to be separated by tabs:
+  The OpenSWATH transition TSV files need to have the following headers, all fields need to be separated by tabs:
 
   PrecursorMz (float)
   ProductMz (float)
@@ -72,8 +72,8 @@ using namespace OpenMS;
 
 * modifications should be supplied inside the sequence using UniMod
   identifiers or freetext identifiers that are understood by OpenMS. Please do
-  not use the ambigous bracket notation (e.g. PEPT[+80]IDE or PEPT[181]IDE)
-  since this is ambigous and will NOT be interpreted correctly!
+  not use the ambiguous bracket notation (e.g. PEPT[+80]IDE or PEPT[181]IDE)
+  since this is ambiguous and will NOT be interpreted correctly!
   example: PEPT(Phosphorylation)IDE(UniMod:27)A )
 
 */
@@ -85,7 +85,7 @@ class TOPPConvertTSVToTraML : public TOPPBase
 public:
 
   TOPPConvertTSVToTraML() :
-  TOPPBase("ConvertTSVToTraML", "Converts a csv into a TraML file", false)
+  TOPPBase("ConvertTSVToTraML", "Converts an OpenSWATH transition TSV file to a TraML file", false)
   {
   }
 
@@ -93,10 +93,10 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "transition file ('csv')");
-    setValidFormats_("in", StringList::create("csv"));
+    registerInputFile_("in", "<file>", "", "Input OpenSWATH transition TSV file");
+    setValidFormats_("in", StringList::create("tsv"));
 
-    registerOutputFile_("out", "<file>", "", "output file");
+    registerOutputFile_("out", "<file>", "", "Output TraML file");
     setValidFormats_("out", StringList::create("TraML"));
 
   }
