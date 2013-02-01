@@ -23,6 +23,13 @@ if (DOXYGEN_FOUND)
 
   #######################################################################
   ##doc_param_internal target
+  if(NOT MSVC)
+    set(_BINARY_PATH "${PROJECT_BINARY_DIR}/bin")
+  else()
+    set(_BINARY_PATH "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)")
+  endif()
+  file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
+  
   add_custom_target(doc_param_internal
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -39,7 +46,7 @@ if (DOXYGEN_FOUND)
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP/UTILS docu:"
                     COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
-                    COMMAND ${CMAKE_COMMAND} -E chdir doc/doxygen/parameters/ ./TOPPDocumenter
+                    COMMAND ${CMAKE_COMMAND} -E chdir doc/doxygen/parameters/ ./TOPPDocumenter ${BINARY_PATH}
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMENT "Build the parameters documentation"
                     VERBATIM)
