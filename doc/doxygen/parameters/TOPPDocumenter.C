@@ -253,7 +253,7 @@ int main(int argc, char ** argv)
   if (argc != 2)
   {
     cerr << "Please specify the path where the TOPP/UTIL binaries are located." << endl;
-    EXIT_FAILURE;
+    return EXIT_FAILURE;
   }
   
   String binary_directory = String(argv[1]).ensureLastChar('/');
