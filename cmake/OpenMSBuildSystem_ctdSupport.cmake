@@ -224,6 +224,23 @@ elseif(WIN32)
     )
 else()
   # assemble required libraries for lnx
+	set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
+	foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
+		if(NOT "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}" STREQUAL "QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE-NOTFOUND")
+			set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
+			add_custom_command(
+				TARGET prepare_knime_payload_libs POST_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy "${target_lib}" "${PAYLOAD_LIB_PATH}"
+			)
+		endif()
+	endforeach()
+
+	add_custom_command(
+		TARGET prepare_knime_payload_libs POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS.so ${PAYLOAD_LIB_PATH}
+		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS_GUI.so ${PAYLOAD_LIB_PATH}
+		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenSwathAlgo.so ${PAYLOAD_LIB_PATH}  
+	)
 endif()
 
 # handle the binaries.ini
