@@ -278,8 +278,19 @@ protected:
     */
     const ParamEntry& getEntry(const String& key) const;
 
-    /// Tests if a parameter is set
+    /// Tests if a parameter is set (expecting its fully qualified name, e.g., TextExporter:1:proteins_only)
     bool exists(const String& key) const;
+
+    /// find leaf node by name (if it exists)
+    /// @return Returns end() if leaf does not exist
+    ParamIterator findFirst(const String& leaf) const;
+
+    /// find next leaf node by name (if it exists), not considering the @p start_leaf
+    /// @return Returns end() if leaf does not exist
+    ParamIterator findNext(const String& leaf, const ParamIterator& start_leaf) const;
+
+
+
     //@}
 
     ///@name Tags handling

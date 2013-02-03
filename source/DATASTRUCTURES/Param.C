@@ -1218,11 +1218,43 @@ namespace OpenMS
     }
   }
 
+  Param::ParamIterator Param::findFirst(const String& leaf) const
+  {
+    for (Param::ParamIterator it = this->begin(); it != this->end(); ++it)
+    {
+      if (it.getName().hasSuffix(String(":") + leaf))
+      {
+        return it;
+      }
+    }
+    return this->end();
+  }
+
+  Param::ParamIterator Param::findNext(const String& leaf, const ParamIterator& start_leaf) const
+  {
+    // start at NEXT entry
+    Param::ParamIterator it = start_leaf;
+    if (it != this->end()) ++it;
+
+    for (; it != this->end(); ++it)
+    {
+      if (it.getName().hasSuffix(String(":") + leaf))
+      {
+        return it;
+      }
+    }
+    return this->end();
+  }
+
   void Param::update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream)
   {
     // augment
     for (Param::ParamIterator it = old_version.begin(); it != old_version.end(); ++it)
     {
+
+      Param::ParamEntry new_entry; // entry of new location (used to retain new description)
+      String target_name;      // fully qualified name in new param 
+
       if (this->exists(it.getName()))
       {
         // param 'version': do not override!
@@ -1246,52 +1278,79 @@ namespace OpenMS
         }
 
         // all other parameters:
-        Param::ParamEntry entry = this->getEntry(it.getName());
-        if (entry.value.valueType() == it->value.valueType())
+        new_entry = this->getEntry(it.getName());
+        target_name = it.getName();
+
+      }
+      else // old param non-existant in new param
+      {
+        // search by suffix in new param. Only match complete names, e.g. myname will match newsection:myname, but not newsection:othermyname
+        Param::ParamEntry entry = old_version.getEntry(it.getName());
+        // since the old param with full path does not exist within new param, we will never find the new entry by using exists() as above, thus its safe to
+        // modify it here
+        ParamIterator it_match = this->findFirst(entry.name);
+        if (it_match != this->end())
         {
-          if (entry.value != it->value)
+          // make sure the same leaf name does not exist at any other position
+          if (this->findNext(entry.name, it_match) == this->end())
           {
-            // check entry for consistency (in case restrictions have changed)
-            entry.value = it->value;
-            String s;
-            if (entry.isValid(s))
+            stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << std::endl;
+            new_entry = this->getEntry(it_match.getName());
+            target_name = it_match.getName();
+          }
+        }
+
+        if (target_name.empty()) // no mapping was found
+        {
+          if (add_unknown)
+          {
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
+            Param::ParamEntry entry = old_version.getEntry(it.getName());
+            String prefix = "";
+            if (it.getName().has(':'))
             {
-              // overwrite default value
-              stream << "Overriding Default-Parameter '" << it.getName() << "' with new value " << it->value << "\n";
-              this->setValue(it.getName(), it->value, entry.description, this->getTags(it.getName()));
+              prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
             }
-            else
-            {
-              stream << "Parameter '" << it.getName() << "' does not fit into new restriction settings! Ignoring...";
-            }
+            this->root_.insert(entry, prefix); //->setValue(it.getName(), entry.value, entry.description, entry.tags);
           }
           else
           {
-            // value stayed the same .. nothing to be done
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Ignoring ..." << std::endl;
+          }
+          continue;
+        }
+      }
+
+      // do the actual updating (we found a matching pair)
+      if (new_entry.value.valueType() == it->value.valueType())
+      {
+        if (new_entry.value != it->value)
+        {
+          // check entry for consistency (in case restrictions have changed)
+          new_entry.value = it->value;
+          String s;
+          if (new_entry.isValid(s))
+          {
+            // overwrite default value
+            stream << "Overriding Default-Parameter '" << target_name << "' with new value '" << it->value << "'!" << std::endl;
+            this->setValue(target_name, it->value, new_entry.description, this->getTags(target_name));
+          }
+          else
+          {
+            stream << "Parameter '" << target_name << "' does not fit into new restriction settings! Ignoring...";
           }
         }
         else
         {
-          stream << "Parameter '" << it.getName() << "' has changed value type! Ignoring...\n";
+          // value stayed the same .. nothing to be done
         }
       }
       else
       {
-        if (add_unknown)
-        {
-          stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
-          Param::ParamEntry entry = old_version.getEntry(it.getName());
-          String prefix = "";
-          if (it.getName().has(':'))
-            prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
-          this->root_.insert(entry, prefix); //->setValue(it.getName(), entry.value, entry.description, entry.tags);
-        }
-        else
-        {
-          stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Ignoring ..." << std::endl;
-        }
+        stream << "Parameter '" << it.getName() << "' has changed value type! Ignoring...\n";
       }
-    }
+
+    } // next param in old tree
   }
 
   void Param::merge(const OpenMS::Param& toMerge)
