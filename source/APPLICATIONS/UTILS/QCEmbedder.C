@@ -90,13 +90,14 @@ protected:
     setValidFormats_("run", StringList::create("mzML"));
     registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)");
     setValidFormats_("plot", StringList::create("PNG"));
+    registerInputFile_("table", "<file>", "", "Table file that will be added as attachment to the given qc.", false);
+    setValidFormats_("table", StringList::create("csv"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
     setValidFormats_("out", StringList::create("qcML"));
   }
 
   ExitCodes main_(int, const char**)
   {
-    String plot_file = "";
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
@@ -105,8 +106,9 @@ protected:
     String target_qp            = getStringOption_("qp");
     String target_run           = getStringOption_("name");
     String target_file          = getStringOption_("run");
-    plot_file                   = getStringOption_("plot");
+    String plot_file            = getStringOption_("plot");
     String target_acc           = getStringOption_("qp_acc");
+    String tab                  = getStringOption_("table");
 
     //-------------------------------------------------------------
     // reading input
@@ -134,52 +136,88 @@ protected:
       f.close();
       plot_b64 = String(QString(ba.toBase64()));
     }
-    if (plot_b64 != "")
+
+    if (plot_b64 != "" || tab != "")
     {
-      QcMLFile::Attachment at;
-      at.name = target_qp;
-      //~ at.unitRef; //TODO MIME type
-      //~ at.unitAcc;
-      at.binary = plot_b64;
-      at.cvRef = "QC";
-      at.cvAcc = "QC:xxxxxxxx"; //TODO determine cv! btw create cv for plots?!
-
-      std::vector<String> ids;
-      qcmlfile.existsRunQualityParameter(target_run, target_qp, ids);
-
-      if (!ids.empty())
+      if (plot_b64 != "")
       {
-        at.qualityRef = ids.front();
-        qcmlfile.addRunAttachment(target_run, at);
-      }
-      else
-      {
-        qcmlfile.existsSetQualityParameter(target_run, target_qp, ids);
+        QcMLFile::Attachment at;
+        at.name = target_qp;
+        //~ at.unitRef; //TODO MIME type
+        //~ at.unitAcc;
+        at.binary = plot_b64;
+        at.cvRef = "QC";
+        at.cvAcc = "QC:xxxxxxxx"; //TODO determine cv! btw create cv for plots?!
+
+        std::vector<String> ids;
+        qcmlfile.existsRunQualityParameter(target_run, target_qp, ids);
+
         if (!ids.empty())
         {
           at.qualityRef = ids.front();
-          qcmlfile.addSetAttachment(target_run, at);
+          qcmlfile.addRunAttachment(target_run, at);
         }
         else
         {
-          QcMLFile::QualityParameter qp;
-          if (target_acc != "" && target_qp != "")
+          qcmlfile.existsSetQualityParameter(target_run, target_qp, ids);
+          if (!ids.empty())
           {
-            qp.name = target_qp; ///< Name
-            qp.id = target_run + "_" + target_acc; ///< Identifier
-            qp.cvRef = "QC"; ///< cv reference
-            qp.cvAcc = target_acc;
-            qp.value = target_run;
-            qcmlfile.addRunQualityParameter(target_run, qp);
-            //TODO check if the qp are in the obo as soon as there is one
-
-            at.qualityRef = qp.id;
-            qcmlfile.addRunAttachment(target_run, at);
+            at.qualityRef = ids.front();
+            qcmlfile.addSetAttachment(target_run, at);
           }
           else
           {
-            cerr << "Error: You have to specify a correct cv with accession and name. Aborting!" << endl;
-            return ILLEGAL_PARAMETERS;
+            QcMLFile::QualityParameter qp;
+            if (target_acc != "" && target_qp != "")
+            {
+              qp.name = target_qp; ///< Name
+              qp.id = target_run + "_" + target_acc; ///< Identifier
+              qp.cvRef = "QC"; ///< cv reference
+              qp.cvAcc = target_acc;
+              qp.value = target_run;
+              qcmlfile.addRunQualityParameter(target_run, qp);
+              //TODO check if the qp are in the obo as soon as there is one
+
+              at.qualityRef = qp.id;
+              qcmlfile.addRunAttachment(target_run, at);
+            }
+            else
+            {
+              cerr << "Error: You have to specify a correct cv with accession and name. Aborting!" << endl;
+              return ILLEGAL_PARAMETERS;
+            }
+          }
+        }
+      }
+      if (tab != "")
+      {
+        CsvFile csv_file(tab);
+        if (csv_file.size()>1)
+        {
+          QcMLFile::Attachment at;
+          at.name = target_qp;
+          //~ at.unitRef; //TODO MIME type
+          //~ at.unitAcc;
+          at.cvRef = "QC";
+          at.cvAcc = "QC:xxxxxxxx"; //TODO determine cv! btw create cv for plots?!
+
+          StringList li;
+          csv_file.getRow(0, li);
+          for (Size i = 0; i < li.size(); ++i)
+          {
+            at.colTypes.push_back(li[i]);
+          }
+          for (UInt i = 1; i < csv_file.size(); ++i)
+          {
+            StringList li;
+            std::vector<String> v;
+            csv_file.getRow(i, li);
+            //TODO throw error if li.size() != at.colTypes.size()
+            for (Size i = 0; i < li.size(); ++i)
+            {
+              v.push_back(li[i]);
+            }
+            at.tableRows.push_back(v);
           }
         }
       }

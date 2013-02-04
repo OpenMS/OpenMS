@@ -84,6 +84,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
     //~ registerFlag_("tables", "Remove all tables. (Of all runs and sets if these are not given with parameter name or run.)");
+    registerStringList_("qp_accessions", "<names>", StringList(), "A list of cv accessions that should be removed. if empty, all tables will be removed!", false);
     registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
     registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));
@@ -93,7 +94,6 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-    String plot_file = "";
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
@@ -101,6 +101,7 @@ protected:
     String out                  = getStringOption_("out");
     String target_run           = getStringOption_("name");
     String target_file          = getStringOption_("run");
+    StringList qp_accs          = getStringList_("qp_accessions");
 
     //-------------------------------------------------------------
     // reading input
@@ -115,24 +116,30 @@ protected:
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
+    if (qp_accs.empty())
+    {
+      qp_accs << "QC:0000037";
+      qp_accs << "QC:0000038";
+      qp_accs << "QC:0000039";
+      qp_accs << "QC:0000040";
+      qp_accs << "QC:0000041";
+      qp_accs << "QC:0000042";
+    }
 
+    //TODO care for QualityParameter s
     if (target_run == "")
     {
-      qcmlfile.removeAllAttachments("QC:0000037");
-      qcmlfile.removeAllAttachments("QC:0000038");
-      qcmlfile.removeAllAttachments("QC:0000039");
-      qcmlfile.removeAllAttachments("QC:0000040");
-      qcmlfile.removeAllAttachments("QC:0000041");
-      qcmlfile.removeAllAttachments("QC:0000042");
+      for (Size i = 0; i < qp_accs.size(); ++i)
+      {
+        qcmlfile.removeAllAttachments(qp_accs[i]);
+      }
     }
     else
     {
-      qcmlfile.removeAttachment(target_run,"QC:0000037");
-      qcmlfile.removeAttachment(target_run,"QC:0000038");
-      qcmlfile.removeAttachment(target_run,"QC:0000039");
-      qcmlfile.removeAttachment(target_run,"QC:0000040");
-      qcmlfile.removeAttachment(target_run,"QC:0000041");
-      qcmlfile.removeAttachment(target_run,"QC:0000042");
+      for (Size i = 0; i < qp_accs.size(); ++i)
+      {
+        qcmlfile.removeAttachment(target_run,qp_accs[i]);
+      }
     }
 
     qcmlfile.store(out);
