@@ -154,21 +154,21 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in_positive", "<file>", "", "input file with positive examples\n");
+    registerInputFile_("in_positive", "<file>", "", "input file with positive examples");
     setValidFormats_("in_positive", StringList::create("idXML"));
-    registerInputFile_("in_negative", "<file>", "", "input file with negative examples\n");
+    registerInputFile_("in_negative", "<file>", "", "input file with negative examples");
     setValidFormats_("in_negative", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "output file: the model in libsvm format");
     setValidFormats_("out", StringList::create("txt"));
     registerDoubleOption_("c", "<float>", 1, "the penalty parameter of the svm", false);
-    registerStringOption_("svm_type", "<type>", "C_SVC", "the type of the svm (NU_SVC or C_SVC)\n", false);
+    registerStringOption_("svm_type", "<type>", "C_SVC", "the type of the svm (NU_SVC or C_SVC)", false);
     setValidStrings_("svm_type", StringList::create("NU_SVC,C_SVC"));
     registerDoubleOption_("nu", "<float>", 0.5, "the nu parameter [0..1] of the svm (for nu-SVR)", false);
     setMinFloat_("nu", 0);
     setMaxFloat_("nu", 1);
     registerStringOption_("kernel_type", "<type>", "OLIGO", "the kernel type of the svm", false);
     setValidStrings_("kernel_type", StringList::create("LINEAR,RBF,POLY,OLIGO"));
-    registerIntOption_("degree", "<int>", 1, "the degree parameter of the kernel function of the svm (POLY kernel)\n", false);
+    registerIntOption_("degree", "<int>", 1, "the degree parameter of the kernel function of the svm (POLY kernel)", false);
     setMinInt_("degree", 1);
     registerIntOption_("border_length", "<int>", 22, "length of the POBK", false);
     setMinInt_("border_length", 1);
@@ -180,31 +180,32 @@ protected:
     registerIntOption_("max_negative_count", "<int>", 1000, "quantity of positive samples for training (randomly chosen if smaller than available quantity)", false);
     setMinInt_("max_negative_count", 1);
     registerFlag_("redundant", "if the input sets are redundant and the redundant peptides should occur more than once in the training set, this flag has to be set");
-    registerFlag_("additive_cv", "if the step sizes should be interpreted additively (otherwise the actual value is multiplied\nwith the step size to get the new value");
+    registerFlag_("additive_cv", "if the step sizes should be interpreted additively (otherwise the actual value is multiplied with the step size to get the new value");
+
     addEmptyLine_();
-    addText_("Parameters for the grid search / cross validation:");
-    registerIntOption_("number_of_runs", "<int>", 10, "number of runs for the CV", false);
-    setMinInt_("number_of_runs", 1);
-    registerIntOption_("number_of_partitions", "<int>", 10, "number of CV partitions", false);
-    setMinInt_("number_of_partitions", 2);
-    registerIntOption_("degree_start", "<int>", 1, "starting point of degree", false);
-    setMinInt_("degree_start", 1);
-    registerIntOption_("degree_step_size", "<int>", 2, "step size point of degree", false);
-    registerIntOption_("degree_stop", "<int>", 4, "stopping point of degree", false);
-    registerDoubleOption_("c_start", "<float>", 1, "starting point of c", false);
-    registerDoubleOption_("c_step_size", "<float>", 100, "step size of c", false);
-    registerDoubleOption_("c_stop", "<float>", 1000, "stopping point of c", false);
-    registerDoubleOption_("nu_start", "<float>", 0.1, "starting point of nu", false);
-    setMinFloat_("nu_start", 0);
-    setMaxFloat_("nu_start", 1);
-    registerDoubleOption_("nu_step_size", "<float>", 1.3, "step size of nu", false);
-    registerDoubleOption_("nu_stop", "<float>", 0.9, "stopping point of nu", false);
-    setMinFloat_("nu_stop", 0);
-    setMaxFloat_("nu_stop", 1);
-    registerDoubleOption_("sigma_start", "<float>", 1, "starting point of sigma", false);
-    registerDoubleOption_("sigma_step_size", "<float>", 1.3, "step size of sigma", false);
-    registerDoubleOption_("sigma_stop", "<float>", 15, "stopping point of sigma", false);
-    registerFlag_("skip_cv", "Has to be set if the cv should be skipped and the model should just be trained with the specified parameters.");
+    registerTOPPSubsection_("cv", "Parameters for the grid search / cross validation:");
+    registerFlag_("cv:skip_cv", "Has to be set if the cv should be skipped and the model should just be trained with the specified parameters.");
+    registerIntOption_("cv:number_of_runs", "<int>", 10, "number of runs for the CV", false);
+    setMinInt_("cv:number_of_runs", 1);
+    registerIntOption_("cv:number_of_partitions", "<int>", 10, "number of CV partitions", false);
+    setMinInt_("cv:number_of_partitions", 2);
+    registerIntOption_("cv:degree_start", "<int>", 1, "starting point of degree", false);
+    setMinInt_("cv:degree_start", 1);
+    registerIntOption_("cv:degree_step_size", "<int>", 2, "step size point of degree", false);
+    registerIntOption_("cv:degree_stop", "<int>", 4, "stopping point of degree", false);
+    registerDoubleOption_("cv:c_start", "<float>", 1, "starting point of c", false);
+    registerDoubleOption_("cv:c_step_size", "<float>", 100, "step size of c", false);
+    registerDoubleOption_("cv:c_stop", "<float>", 1000, "stopping point of c", false);
+    registerDoubleOption_("cv:nu_start", "<float>", 0.1, "starting point of nu", false);
+    setMinFloat_("cv:nu_start", 0);
+    setMaxFloat_("cv:nu_start", 1);
+    registerDoubleOption_("cv:nu_step_size", "<float>", 1.3, "step size of nu", false);
+    registerDoubleOption_("cv:nu_stop", "<float>", 0.9, "stopping point of nu", false);
+    setMinFloat_("cv:nu_stop", 0);
+    setMaxFloat_("cv:nu_stop", 1);
+    registerDoubleOption_("cv:sigma_start", "<float>", 1, "starting point of sigma", false);
+    registerDoubleOption_("cv:sigma_step_size", "<float>", 1.3, "step size of sigma", false);
+    registerDoubleOption_("cv:sigma_stop", "<float>", 15, "stopping point of sigma", false);
   }
 
   ExitCodes main_(Int, const char**)
@@ -238,7 +239,7 @@ protected:
     UInt k_mer_length = 1;
     Int border_length = 0;
     bool non_redundant = false;
-    bool skip_cv = getFlag_("skip_cv");
+    bool skip_cv = getFlag_("cv:skip_cv");
 
     svm.setParameter(SVMWrapper::PROBABILITY, 1);
     //-------------------------------------------------------------
@@ -318,14 +319,14 @@ protected:
       svm.setParameter(SVMWrapper::DEGREE, getIntOption_("degree"));
       if (!skip_cv)
       {
-        DoubleReal degree_start = getIntOption_("degree_start");
-        DoubleReal degree_step_size = getIntOption_("degree_step_size");
+        DoubleReal degree_start = getIntOption_("cv:degree_start");
+        DoubleReal degree_step_size = getIntOption_("cv:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
         {
           writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
           return ILLEGAL_PARAMETERS;
         }
-        DoubleReal degree_stop = getIntOption_("degree_stop");
+        DoubleReal degree_stop = getIntOption_("cv:degree_stop");
 
         start_values.insert(make_pair(SVMWrapper::DEGREE, degree_start));
         step_sizes.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
@@ -335,14 +336,14 @@ protected:
 
     if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC && !skip_cv)
     {
-      DoubleReal c_start = getDoubleOption_("c_start");
-      DoubleReal c_step_size = getDoubleOption_("c_step_size");
+      DoubleReal c_start = getDoubleOption_("cv:c_start");
+      DoubleReal c_step_size = getDoubleOption_("cv:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
         writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      DoubleReal c_stop = getDoubleOption_("c_stop");
+      DoubleReal c_stop = getDoubleOption_("cv:c_stop");
 
       start_values.insert(make_pair(SVMWrapper::C, c_start));
       step_sizes.insert(make_pair(SVMWrapper::C, c_step_size));
@@ -351,14 +352,14 @@ protected:
 
     if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC && !skip_cv)
     {
-      DoubleReal nu_start = getDoubleOption_("nu_start");
-      DoubleReal nu_step_size = getDoubleOption_("nu_step_size");
+      DoubleReal nu_start = getDoubleOption_("cv:nu_start");
+      DoubleReal nu_step_size = getDoubleOption_("cv:nu_step_size");
       if (!additive_cv && nu_step_size <= 1)
       {
         writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      DoubleReal nu_stop = getDoubleOption_("nu_stop");
+      DoubleReal nu_stop = getDoubleOption_("cv:nu_stop");
 
       start_values.insert(make_pair(SVMWrapper::NU, nu_start));
       step_sizes.insert(make_pair(SVMWrapper::NU, nu_step_size));
@@ -379,14 +380,14 @@ protected:
     if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO
        && !skip_cv)
     {
-      sigma_start = getDoubleOption_("sigma_start");
-      sigma_step_size = getDoubleOption_("sigma_step_size");
+      sigma_start = getDoubleOption_("cv:sigma_start");
+      sigma_step_size = getDoubleOption_("cv:sigma_step_size");
       if (!additive_cv && sigma_step_size <= 1)
       {
         writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      sigma_stop = getDoubleOption_("sigma_stop");
+      sigma_stop = getDoubleOption_("cv:sigma_stop");
 
       start_values.insert(make_pair(SVMWrapper::SIGMA, sigma_start));
       step_sizes.insert(make_pair(SVMWrapper::SIGMA, sigma_step_size));
@@ -400,10 +401,10 @@ protected:
 
     if (!skip_cv && !start_values.empty())
     {
-      number_of_runs = getIntOption_("number_of_runs");
+      number_of_runs = getIntOption_("cv:number_of_runs");
       writeDebug_(String("Number of CV runs: ") + String(number_of_runs), 1);
 
-      number_of_partitions = getIntOption_("number_of_partitions");
+      number_of_partitions = getIntOption_("cv:number_of_partitions");
       writeDebug_(String("Number of CV partitions: ") + String(number_of_partitions), 1);
 
       additive_cv = getFlag_("additive_cv");

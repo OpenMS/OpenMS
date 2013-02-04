@@ -490,7 +490,7 @@ protected:
               The values of certain options can be restricted using: setMinInt_, setMaxInt_, setMinFloat_,
               setMaxFloat_, setValidStrings_ and setValidFormats_.
 
-      In order to format the help output, the methods addEmptyLine_ and addText_ can be used.
+      In order to format the help output, the method addEmptyLine_ can be used.
     */
     //@{
     /**
@@ -724,8 +724,6 @@ protected:
     /// Adds an empty line between registered variables in the documentation.
     void addEmptyLine_();
 
-    /// Adds a left aligned text between registered variables in the documentation e.g. for subdividing the documentation.
-    void addText_(const String& text);
 
     /**
       @brief Returns the value of a previously registered string option
@@ -970,6 +968,15 @@ protected:
 
     /// Debug level set by -debug
     Int debug_level_;
+
+private:
+
+    /// Adds a left aligned text between registered variables in the documentation e.g. for subdividing the documentation.
+    /// This should not be usable for derived classes, since this formatting is not carried over to INI files
+    /// and thus INI files might lack important information.
+    /// Instead, subdivision of parameters should be achieved using TOPPSubsections with appropriate description
+    /// Currently only used for "Common TOPP options" within TOPPBase.C
+    void addText_(const String& text);
 
   };
 

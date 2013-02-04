@@ -110,10 +110,7 @@ public:
     setValidFormats_("in", StringList::create("mzML"));
     registerOutputFile_("out", "<file>", "", "output raw data file ");
     setValidFormats_("out", StringList::create("mzML"));
-    addEmptyLine_();
-    addText_("Parameters for the algorithms can be given in the INI file only.");
-    addEmptyLine_();
-    addText_("Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the Resampler tool).");
+
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 

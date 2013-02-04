@@ -209,7 +209,6 @@ protected:
   void registerOptionsAndFlags_()
   {
     addEmptyLine_();
-    addText_("Common Identification engine options");
 
     registerInputFile_("in", "<file>", "", "Input file ");
     setValidFormats_("in", StringList::create("mzML"));
@@ -241,8 +240,6 @@ protected:
     setValidStrings_("variable_modifications", all_mods);
 
     addEmptyLine_();
-    addText_("MyriMatch specific input options");
-
     registerInputFile_("myrimatch_executable", "<executable>", "myrimatch",
                        "The 'myrimatch' executable of the MyriMatch installation", true, false, StringList::create("skipexists"));
     registerIntOption_("NumChargeStates", "<num>", 3, "The number of charge states that MyriMatch will handle during all stages of the program.", false);

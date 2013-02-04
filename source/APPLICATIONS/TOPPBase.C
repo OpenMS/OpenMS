@@ -639,6 +639,8 @@ namespace OpenMS
          << "Usage:" << "\n"
          << "  " << tool_name_ << " <options>" << "\n"
          << "\n"
+         << (subsections_.empty() ? "" : "This tool has algoritm parameters which can only be used "
+                                         "via an INI file and are not accessible from the command line!\n\n")
          << "Options (mandatory options marked with '*'):" << "\n";
 
     // show advanced options?

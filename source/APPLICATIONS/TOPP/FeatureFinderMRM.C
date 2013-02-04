@@ -107,9 +107,8 @@ protected:
     setValidFormats_("in", StringList::create("mzML"));
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", StringList::create("featureXML"));
-    addEmptyLine_();
-    addText_("All other options of the FeatureFinder are set in the 'algorithm' section of the INI file.\n");
 
+    addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm section");
   }
 

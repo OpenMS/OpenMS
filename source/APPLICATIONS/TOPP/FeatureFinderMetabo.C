@@ -104,7 +104,6 @@ protected:
     setValidFormats_("out", StringList::create("featureXML"));
 
     addEmptyLine_();
-    addText_("Parameters for the mass trace detection algorithm can be given in the 'algorithm' part of INI file.");
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 

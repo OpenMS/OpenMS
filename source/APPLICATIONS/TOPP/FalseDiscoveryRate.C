@@ -101,13 +101,16 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    addText_("Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input:");
-    registerInputFile_("in", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
+    registerInputFile_("in", "<file>", "", "Identification input file which contains a search against "
+                       "a concatenated sequence database. "
+                       "Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input.", false);
     setValidFormats_("in", StringList::create("idXML"));
-    registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward", false);
+
+    registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward run.", false);
     setValidFormats_("fwd_in", StringList::create("idXML"));
-    registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run", false);
+    registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run.", false);
     setValidFormats_("rev_in", StringList::create("idXML"));
+
     registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
     setValidFormats_("out", StringList::create("idXML"));
     registerFlag_("proteins_only", "If set, the FDR of the proteins only is calculated");

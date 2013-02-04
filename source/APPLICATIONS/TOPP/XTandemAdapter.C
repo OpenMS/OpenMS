@@ -115,14 +115,6 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    addEmptyLine_();
-    addText_("This adapter to X!Tandem provides a small interface with only "
-             "a small number of parameters. Other parameters need to be set "
-             "via the default file. This file is read and the parameters, are "
-             "used to generate the input file for X!Tandem itself. The results "
-             "are converted from the X!Tandem format into the idXML format.");
-    addEmptyLine_();
-    addText_("Common Identification engine options");
 
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", StringList::create("mzML"));
@@ -131,6 +123,7 @@ protected:
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance", false);
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
 
+    addEmptyLine_();
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
     registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
@@ -152,7 +145,6 @@ protected:
     registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
 
     addEmptyLine_();
-    addText_("X!Tandem specific options");
     registerInputFile_("xtandem_executable", "<executable>",
 // choose the default value according to the platform where it will be executed
 // xtandem compiles as tandem on osx and tandem.exe on any other platform
@@ -204,9 +196,6 @@ protected:
     }
 
     // write input xml file
-    String parameters;
-    XTandemInfile infile;
-
     String temp_directory = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
     {
       QDir d;
@@ -259,6 +248,7 @@ protected:
     MzDataFile mzdata_outfile;
     mzdata_outfile.store(tandem_input_filename, exp);
 
+    XTandemInfile infile;
     infile.setInputFilename(tandem_input_filename);
     infile.setOutputFilename(tandem_output_filename);
 

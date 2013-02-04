@@ -114,9 +114,9 @@ protected:
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same file type)", true);
     setValidFormats_("in", StringList::create(file_formats));
-    registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks", false);
+    registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks. Either 'out' or 'trafo_out' has to be provided. They can be used together.", false);
     setValidFormats_("out", StringList::create(file_formats));
-    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks", false);
+    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks. Either 'out' or 'trafo_out' has to be provided. They can be used together.", false);
     setValidFormats_("trafo_out", StringList::create("trafoXML"));
     addEmptyLine_();
     if (add_reference)
@@ -127,9 +127,6 @@ protected:
       registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will select a reference.", false);
       setMinInt_("reference:index", 0);
     }
-    addEmptyLine_();
-    addText_("This tool takes a number of input files, aligns them and writes the results to the output files.");
-    addText_("Either 'out' or 'trafo_out' has to be provided. They can be used together.");
   }
 
   /// deprecated? (not used in PoseClustering... and moved to initialize_() )

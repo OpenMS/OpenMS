@@ -144,24 +144,21 @@ protected:
                   "run in non-strict mode and allow some chromatograms to not be mapped.");
 
     addEmptyLine_();
-    addText_(
-      "SWATH specific parameters (do only apply if you have full MS2 spectra maps)");
-
     registerInputFileList_("swath_files", "<files>", StringList(),
-                           "Swath files that were used to extract the transitions. If present, SWATH specific scoring will be applied.",
+                           "[applies only if you have full MS2 spectra maps] "
+                           "Swath files that were used to extract the transitions. "
+                           "If present, SWATH specific scoring will be used.",
                            false);
     setValidFormats_("swath_files", StringList::create("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
+                          "[applies only if you have full MS2 spectra maps] "
                           "Minimal distance to the edge to still consider a precursor, in Thomson (only in SWATH)",
                           false);
 
-    addEmptyLine_();
-    addText_(
-      "Parameters for the OpenSwathAnalyzer algorithm can be given in the 'algorithm' part of INI file.");
-    registerSubsection_("algorithm", "Algorithm parameters section");
-
     registerModelOptions_("linear");
+
+    registerSubsection_("algorithm", "Algorithm parameters section");
 
   }
 

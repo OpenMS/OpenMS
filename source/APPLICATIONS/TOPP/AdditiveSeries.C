@@ -112,20 +112,18 @@ protected:
     setValidFormats_("out", StringList::create("XML"));
     registerDoubleOption_("mz_tolerance", "<tol>", 1.0, "Tolerance in m/z dimension", false);
     registerDoubleOption_("rt_tolerance", "<tol>", 1.0, "Tolerance in RT dimension", false);
-    registerDoubleList_("concentrations", "<concentrations>", DoubleList(), "Spiked concentrations");
+    registerDoubleList_("concentrations", "<concentrations>", DoubleList(), "List of spiked concentrations");
+
     addEmptyLine_();
-    addText_("  Feature/standard position:");
     registerDoubleOption_("feature_rt", "<rt>", -1, "RT position of the feature", false);
     registerDoubleOption_("feature_mz", "<mz>", -1, "m/z position of the feature", false);
     registerDoubleOption_("standard_rt", "<rt>", -1, "RT position of the standard", false);
     registerDoubleOption_("standard_mz", "<mz>", -1, "m/z position of the standard", false);
 
     addEmptyLine_();
-    addText_("  GNUplot options:");
-    registerFlag_("write_gnuplot_output", "Flag that activates the GNUplot output");
-    registerStringOption_("out_gp", "<name>", "", "base file name (3 files with different extensions are created)", false);
-    registerStringOption_("mz_unit", "<unit>", "Thomson", "the m/z unit of the plot", false);
-    registerStringOption_("rt_unit", "<unit>", "seconds", "the RT unit of the plot", false);
+    registerTOPPSubsection_("plot", "GNUplot options");
+    registerFlag_("plot:write_gnuplot_output", "Flag that activates the GNUplot output");
+    registerStringOption_("plot:out_gp", "<name>", "", "base file name (3 files with different extensions are created)", false);
   }
 
   // searches for a features with coordinates within the tolerance in this map
@@ -411,8 +409,8 @@ protected:
     }
 
     // set prefix of gnuplot output
-    String filename_prefix = getStringOption_("out_gp");
-    if (getFlag_("write_gnuplot_output"))
+    String filename_prefix = getStringOption_("plot:out_gp");
+    if (getFlag_("plot:write_gnuplot_output"))
     {
       writeDebug_(String("Writing gnuplot output"), 1);
       computeRegressionAndWriteGnuplotFiles_(sp_concentrations2.begin(), sp_concentrations2.end(),

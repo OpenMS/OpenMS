@@ -559,6 +559,6 @@ namespace OpenMS
   OPENMS_DLLAPI Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
   OPENMS_DLLAPI Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
   OPENMS_DLLAPI Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
-  OPENMS_DLLAPI Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), true);
+  OPENMS_DLLAPI Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), false); // last param should be 'true', but segfaults...
 
 } // namespace OpenMS

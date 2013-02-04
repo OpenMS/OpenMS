@@ -130,8 +130,8 @@ class TOPPPepNovoAdapter :
 
       registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, StringList::create("skipexists"));
       registerStringOption_("model_directory", "<file>", "", "Name of the directory where the model files are kept.",true);
+
       addEmptyLine_ ();
-      addText_("PepNovo Parameters");
       registerFlag_("correct_pm", "Find optimal precursor mass and charge values.");
       registerFlag_("use_spectrum_charge", "Do not correct charge");
       registerFlag_("use_spectrum_mz", "Do not correct the precursor m/z value that appears in the file.");

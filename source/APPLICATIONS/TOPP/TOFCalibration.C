@@ -105,6 +105,7 @@ protected:
     setValidFormats_("in", StringList::create("mzML"));
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", StringList::create("mzML"));
+    addEmptyLine_();
     registerInputFile_("ext_calibrants", "<file>", "", "input file containing the external calibrant spectra (peak or raw data)\n");
     setValidFormats_("ext_calibrants", StringList::create("mzML"));
     registerInputFile_("ref_masses", "<file>", "", "input file containing reference masses of the external calibrant spectra (one per line)", true);
@@ -116,11 +117,8 @@ protected:
                                                   "For a detailed description, please have a look at the doxygen documentation."
                                                   "(one set, tab separated, per line)", true);
     setValidFormats_("tof_const", StringList::create("csv"));
-    registerFlag_("peak_data", "set this flag, if you have peak data, not raw data");
-    addText_("\nIf you want to calibrate raw data, it is necessary to perform a peak picking step before the "
-             "actual calibration is done. \nThe parameters for the peak picking step can be given "
-             "given in the 'algorithm' part of INI file in the subsection PeakPicker");
-    addEmptyLine_();
+    registerFlag_("peak_data", "set this flag, if you have peak data, not raw data (the picking parameters are accessible only from the INI file).");
+
     registerSubsection_("algorithm", "Algorithm section for peak picking");
   }
 

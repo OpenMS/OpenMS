@@ -113,17 +113,15 @@ protected:
     registerFlag_("annotate_file_origin", "Store the original filename in each feature (MetaValue: file_origin).");
 
     addEmptyLine_();
-    addText_("Flags for non-featureXML input/output:");
-    registerFlag_("rt_auto", "Assign retention times automatically (integers starting at 1)");
-    registerDoubleList_("rt_custom", "<rt>", DoubleList(), "List of custom retention times that are assigned to the files. The number of given retention times must be equal to the number of given input file.", false);
-    registerFlag_("rt_filename", "If this flag is set FileMerger tries to guess the rt of the file name.\n"
+    registerTOPPSubsection_("raw", "Flags for non-featureXML input/output");
+    registerFlag_("raw:rt_auto", "Assign retention times automatically (integers starting at 1)");
+    registerDoubleList_("raw:rt_custom", "<rt>", DoubleList(), "List of custom retention times that are assigned to the files. The number of given retention times must be equal to the number of given input file.", false);
+    registerFlag_("raw:rt_filename", "If this flag is set FileMerger tries to guess the rt of the file name.\n"
                                  "This option is useful for merging DTA file, which should contain the string\n"
                                  "'rt' directly followed by a floating point number:\n"
                                  "i.e. my_spectrum_rt2795.15.dta");
-    registerIntOption_("ms_level", "<num>", 2, "This option is useful for use with DTA files which does not contain MS level information. The given level is assigned to the spectra.", false);
-    registerFlag_("user_ms_level", "If this flag is set, the MS level given above is used");
-    addEmptyLine_();
-    addText_("Note: Meta data about the whole experiment is taken from the first file in the list!");
+    registerIntOption_("raw:ms_level", "<num>", 2, "This option is useful for use with DTA files which does not contain MS level information. The given level is assigned to the spectra.", false);
+    registerFlag_("raw:user_ms_level", "If this flag is set, the MS level given above is used");
   }
 
   ExitCodes main_(int, const char **)
@@ -250,10 +248,10 @@ protected:
       force_type = FileTypes::nameToType(getStringOption_("in_type"));
 
       //rt
-      bool rt_auto_number = getFlag_("rt_auto");
-      bool rt_filename = getFlag_("rt_filename");
+      bool rt_auto_number = getFlag_("raw:rt_auto");
+      bool rt_filename = getFlag_("raw:rt_filename");
       bool rt_custom = false;
-      DoubleList custom_rts = getDoubleList_("rt_custom");
+      DoubleList custom_rts = getDoubleList_("raw:rt_custom");
       if (custom_rts.size() != 0)
       {
         rt_custom = true;
@@ -266,7 +264,7 @@ protected:
       }
 
       //ms level
-      bool user_ms_level = getFlag_("user_ms_level");
+      bool user_ms_level = getFlag_("raw:user_ms_level");
 
       MSExperiment<> out;
       out.reserve(file_list.size());
@@ -354,7 +352,7 @@ protected:
           out.back().setNativeID(native_id);
           if (user_ms_level)
           {
-            out.back().setMSLevel((int)getIntOption_("ms_level"));
+            out.back().setMSLevel((int)getIntOption_("raw:ms_level"));
           }
           ++native_id;
         }

@@ -108,16 +108,20 @@
         <ITEM name="rt_tolerance" value="5" type="float" description="RT tolerance (in seconds) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
         <ITEM name="mz_tolerance" value="20" type="float" description="m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
         <ITEM name="mz_measure" value="ppm" type="string" description="Unit of &apos;mz_tolerance&apos;." restrictions="ppm,Da" />
-        <ITEM name="mz_reference" value="precursor" type="string" description="Source of m/z values for peptide identifications. If &apos;precursor&apos;, the precursor-m/z from the idXML is used. If &apos;peptide&apos;,#br#masses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.#br#(&apos;peptide&apos; should be used together with &apos;use_centroid_mz&apos; to avoid false-positive matches.)" restrictions="precursor,peptide" />
+        <ITEM name="mz_reference" value="precursor" type="string" description="Source of m/z values for peptide identifications. If &apos;precursor&apos;, the precursor-m/z from the idXML is used. If &apos;peptide&apos;,#br#masses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.#br#(&apos;peptide&apos; should be used together with &apos;feature:use_centroid_mz&apos; to avoid false-positive matches.)" restrictions="precursor,peptide" />
         <ITEM name="ignore_charge" value="false" type="string" description="For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature." restrictions="true,false" />
-        <ITEM name="use_centroid_rt" value="false" type="string" description="Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces." restrictions="true,false" />
-        <ITEM name="use_centroid_mz" value="false" type="string" description="Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.#br#(If you choose &apos;peptide&apos; as &apos;mz_reference&apos;, you should usually set this flag to avoid false-positive matches.)" restrictions="true,false" />
-        <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." restrictions="true,false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
+        <NODE name="feature" description="Additional options for featureXML input">
+          <ITEM name="use_centroid_rt" value="false" type="string" description="Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces." restrictions="true,false" />
+          <ITEM name="use_centroid_mz" value="false" type="string" description="Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.#br#(If you choose &apos;peptide&apos; as &apos;mz_reference&apos;, you should usually set this flag to avoid false-positive matches.)" restrictions="true,false" />
+        </NODE>
+        <NODE name="consensusfeature" description="Additional options for consensusXML input">
+          <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." restrictions="true,false" />
+        </NODE>
       </NODE>
     </NODE>
     <NODE name="5" description="">

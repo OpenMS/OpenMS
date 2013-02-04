@@ -81,7 +81,6 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    addText_("Input options");
     registerInputFile_("in", "<file>", "", "Feature input file, which contains the data to be tested against the truth file.");
     setValidFormats_("in", StringList::create("featureXML"));
     registerInputFile_("truth", "<file>", "", "Truth feature file that defines what features should be found.");

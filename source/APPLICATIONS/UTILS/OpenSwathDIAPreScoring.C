@@ -54,10 +54,15 @@
 //using namespace OpenMS;
 //using namespace std;
 
-//---------------------vv----------------------------------------
-//Doxygen docu
-//-------------------------------------------------------------
 
+/**
+  @page UTILS_OpenSwathDIAPreScoring OpenSwathDIAPreScoring
+
+  @brief ...
+
+  SWATH specific parameters only apply if you have full MS2 spectra maps.
+
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -85,10 +90,6 @@ protected:
 
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", StringList::create("tsv"));
-
-    addEmptyLine_();
-    addText_(
-      "SWATH specific parameters (do only apply if you have full MS2 spectra maps)");
 
     registerInputFileList_("swath_files", "<files>", StringList(),
                            "Swath files that were used to extract the transitions. If present, SWATH specific scoring will be applied.",

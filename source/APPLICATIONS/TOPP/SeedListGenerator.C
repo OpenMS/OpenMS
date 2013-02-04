@@ -78,6 +78,17 @@ using namespace std;
 
     The SeedListGenerator can automatically create seed lists from a variety of sources. The lists are exported in featureXML format - suitable as input to FeatureFinder -, but can be converted to or from text formats using the @ref TOPP_TextExporter (with "-minimal" option to convert to CSV) and @ref TOPP_FileConverter (to convert from CSV) tools.
 
+
+    Seed lists can be generated from the file types below. The seeds are created at the indicated positions (RT/MZ):
+    <ul>
+    <li>mzML: locations of MS2 precursors
+    <li>idXML: locations of peptide identifications
+    <li>featureXML: locations of unassigned peptide identifications
+    <li>consensusXML: locations of consensus features that do not contain sub-features from the respective map
+    </ul>
+
+    If input is consensusXML, one output file per constituent map is required (same order as in the consensusXML). Otherwise, exactly one output file.
+
     What are possible use cases for custom seed lists?
     - In analyses that can take into account only features with peptide annotations, it may be useful to focus directly on certain locations in the LC-MS map - on all MS2 precursors (mzML input), or on precursors whose fragment spectra could be matched to a peptide sequence (idXML input).
     - When additional information becomes available during an analysis, one might want to perform a second, targeted round of feature detection on the experimental data. For example, once a feature map is annotated with peptide identifications, it is possible to go back to the LC-MS map and look for features near unassigned peptides, potentially with a lower score threshold (featureXML input).
@@ -116,16 +127,7 @@ protected:
       registerOutputFileList_("out", "<file(s)>", StringList(), "Output file(s)");
       setValidFormats_("out", StringList::create("featureXML"));
       addEmptyLine_();
-      addText_("Options for idXML input:");
-      registerFlag_("use_peptide_mass", "Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
-      addEmptyLine_();
-      addText_("If input is consensusXML, one output file per constituent map is required (same order as in the consensusXML);\notherwise, exactly one output file.");
-      addEmptyLine_();
-      addText_("Seed lists can be generated from the file types below. The seeds are created at the indicated positions (RT/MZ):");
-      addText_("- mzML: locations of MS2 precursors");
-      addText_("- idXML: locations of peptide identifications");
-      addText_("- featureXML: locations of unassigned peptide identifications");
-      addText_("- consensusXML: locations of consensus features that do not contain sub-features from the respective map");
+      registerFlag_("use_peptide_mass", "[idXML input only] Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
     }
 
     ExitCodes main_(int, const char **)

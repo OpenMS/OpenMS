@@ -72,7 +72,6 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    addText_("Input options");
     registerInputFile_("in", "<file>", "", "Feature result file");
     setValidFormats_("in", StringList::create("featureXML"));
     registerInputFile_("truth", "<file>", "", "Expected result file.");

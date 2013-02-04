@@ -123,28 +123,28 @@ protected:
     registerStringOption_("fixed_modifications", "<mods>", "", "monoisotopic_mass@residues e.g.: 57.021464@C", false);
 
     addEmptyLine_();
-    addText_("Parameters of PILISModel");
-    registerDoubleOption_("charge_directed_threshold", "<double>", 0.3, "bla", false);
-    registerDoubleOption_("charge_remote_threshold", "<double>", 0.2, "bla", false);
-    registerDoubleOption_("charge_loss_factor", "<double>", 0.5, "bla", false);
-    //registerDoubleOption_("min_main_ion_intensity", "<double>", 0.02, "bla", false);
-    //registerDoubleOption_("min_loss_ion_intensity", "<double>", 0.005, "bla", false);
-    registerDoubleOption_("min_y_ion_intensity", "<double>", 0.20, "", false);
-    registerDoubleOption_("min_b_ion_intensity", "<double>", 0.15, "", false);
-    registerDoubleOption_("min_a_ion_intensity", "<double>", 0.05, "", false);
-    registerDoubleOption_("min_y_loss_intensity", "<double>", 0.05, "", false);
-    registerDoubleOption_("min_b_loss_intensity", "<double>", 0.02, "", false);
+    registerTOPPSubsection_("model", "Parameters of PILISModel");
+    registerDoubleOption_("model:charge_directed_threshold", "<double>", 0.3, "bla", false);
+    registerDoubleOption_("model:charge_remote_threshold", "<double>", 0.2, "bla", false);
+    registerDoubleOption_("model:charge_loss_factor", "<double>", 0.5, "bla", false);
+    //registerDoubleOption_("model:min_main_ion_intensity", "<double>", 0.02, "bla", false);
+    //registerDoubleOption_("model:min_loss_ion_intensity", "<double>", 0.005, "bla", false);
+    registerDoubleOption_("model:min_y_ion_intensity", "<double>", 0.20, "", false);
+    registerDoubleOption_("model:min_b_ion_intensity", "<double>", 0.15, "", false);
+    registerDoubleOption_("model:min_a_ion_intensity", "<double>", 0.05, "", false);
+    registerDoubleOption_("model:min_y_loss_intensity", "<double>", 0.05, "", false);
+    registerDoubleOption_("model:min_b_loss_intensity", "<double>", 0.02, "", false);
 
-    registerIntOption_("visible_model_depth", "<int>", 30, "bla", false);
-    registerIntOption_("model_depth", "<int>", 4, "bla", false);
+    registerIntOption_("model:visible_model_depth", "<int>", 30, "bla", false);
+    registerIntOption_("model:model_depth", "<int>", 4, "bla", false);
 
     addEmptyLine_();
-    addText_("Parameters of PILISScoring");
-    registerFlag_("use_local_scoring", "...");
-    registerFlag_("do_not_use_evalue_scoring", "...");
-    registerIntOption_("survival_function_bin_size", "<int>", 20, "bla", false);
-    registerDoubleOption_("global_linear_fitting_threshold", "<double>", 0.1, "bla", false);
-    registerDoubleOption_("local_linear_fitting_threshold", "<double>", 0.5, "bla", false);
+    registerTOPPSubsection_("scoring", "Parameters of PILISScoring");
+    registerFlag_("scoring:use_local_scoring", "...");
+    registerFlag_("scoring:do_not_use_evalue_scoring", "...");
+    registerIntOption_("scoring:survival_function_bin_size", "<int>", 20, "...", false);
+    registerDoubleOption_("scoring:global_linear_fitting_threshold", "<double>", 0.1, "...", false);
+    registerDoubleOption_("scoring:local_linear_fitting_threshold", "<double>", 0.5, "...", false);
 
     addEmptyLine_();
   }
@@ -180,20 +180,20 @@ protected:
     PILISModel * model = new PILISModel();
     model->readFromFile(getStringOption_("model_file"));
     Param model_param(model->getParameters());
-    model_param.setValue("upper_mz", getDoubleOption_("upper_mz"));
-    model_param.setValue("lower_mz", getDoubleOption_("lower_mz"));
-    model_param.setValue("charge_directed_threshold", getDoubleOption_("charge_directed_threshold"));
-    model_param.setValue("charge_remote_threshold", getDoubleOption_("charge_remote_threshold"));
-    //model_param.setValue("min_main_ion_intensity", getDoubleOption_("min_main_ion_intensity"));
-    //model_param.setValue("min_loss_ion_intensity", getDoubleOption_("min_loss_ion_intensity"));
-    model_param.setValue("min_y_ion_intensity", getDoubleOption_("min_y_ion_intensity"));
-    model_param.setValue("min_b_ion_intensity", getDoubleOption_("min_b_ion_intensity"));
-    model_param.setValue("min_a_ion_intensity", getDoubleOption_("min_a_ion_intensity"));
-    model_param.setValue("min_y_loss_intensity", getDoubleOption_("min_y_loss_intensity"));
-    model_param.setValue("min_b_loss_intensity", getDoubleOption_("min_b_loss_intensity"));
-    model_param.setValue("charge_loss_factor", getDoubleOption_("charge_loss_factor"));
-    model_param.setValue("visible_model_depth", getIntOption_("visible_model_depth"));
-    model_param.setValue("model_depth", getIntOption_("model_depth"));
+    model_param.setValue("upper_mz", getDoubleOption_("model:upper_mz"));
+    model_param.setValue("lower_mz", getDoubleOption_("model:lower_mz"));
+    model_param.setValue("charge_directed_threshold", getDoubleOption_("model:charge_directed_threshold"));
+    model_param.setValue("charge_remote_threshold", getDoubleOption_("model:charge_remote_threshold"));
+    //model_param.setValue("min_main_ion_intensity", getDoubleOption_("model:min_main_ion_intensity"));
+    //model_param.setValue("min_loss_ion_intensity", getDoubleOption_("model:min_loss_ion_intensity"));
+    model_param.setValue("min_y_ion_intensity", getDoubleOption_("model:min_y_ion_intensity"));
+    model_param.setValue("min_b_ion_intensity", getDoubleOption_("model:min_b_ion_intensity"));
+    model_param.setValue("min_a_ion_intensity", getDoubleOption_("model:min_a_ion_intensity"));
+    model_param.setValue("min_y_loss_intensity", getDoubleOption_("model:min_y_loss_intensity"));
+    model_param.setValue("min_b_loss_intensity", getDoubleOption_("model:min_b_loss_intensity"));
+    model_param.setValue("charge_loss_factor", getDoubleOption_("model:charge_loss_factor"));
+    model_param.setValue("visible_model_depth", getIntOption_("model:visible_model_depth"));
+    model_param.setValue("model_depth", getIntOption_("model:model_depth"));
     model_param.setValue("fixed_modifications", getStringOption_("fixed_modifications"));
     model->setParameters(model_param);
 
@@ -315,14 +315,14 @@ protected:
     }
 
     // perform the PILIS scoring to the spectra
-    if (!getFlag_("do_not_use_evalue_scoring"))
+    if (!getFlag_("scoring:do_not_use_evalue_scoring"))
     {
       PILISScoring scoring;
       Param scoring_param(scoring.getParameters());
-      scoring_param.setValue("use_local_scoring", (int)getFlag_("use_local_scoring"));
-      scoring_param.setValue("survival_function_bin_size", getIntOption_("survival_function_bin_size"));
-      scoring_param.setValue("global_linear_fitting_threshold", getDoubleOption_("global_linear_fitting_threshold"));
-      scoring_param.setValue("local_linear_fitting_threshold", getDoubleOption_("local_linear_fitting_threshold"));
+      scoring_param.setValue("use_local_scoring", (int)getFlag_("scoring:use_local_scoring"));
+      scoring_param.setValue("survival_function_bin_size", getIntOption_("scoring:survival_function_bin_size"));
+      scoring_param.setValue("global_linear_fitting_threshold", getDoubleOption_("scoring:global_linear_fitting_threshold"));
+      scoring_param.setValue("local_linear_fitting_threshold", getDoubleOption_("scoring:local_linear_fitting_threshold"));
       scoring.setParameters(scoring_param);
 
       scoring.getScores(ids);

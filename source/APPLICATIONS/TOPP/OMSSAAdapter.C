@@ -178,10 +178,6 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-
-    addEmptyLine_();
-    addText_("Common Identification engine options");
-
     registerInputFile_("in", "<file>", "", "Input file ");
     setValidFormats_("in", StringList::create("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
@@ -200,9 +196,6 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", StringList::create(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
-
-    addEmptyLine_();
-    addText_("OMSSA specific input options");
 
     //Sequence library
     //-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.

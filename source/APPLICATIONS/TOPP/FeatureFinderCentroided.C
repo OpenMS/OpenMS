@@ -146,7 +146,6 @@ protected:
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
     setValidFormats_("seeds", StringList::create("featureXML"));
     addEmptyLine_();
-    addText_("All other options of the FeatureFinder are set in the 'algorithm' section of the INI file.\n");
 
     registerSubsection_("algorithm", "Algorithm section");
   }

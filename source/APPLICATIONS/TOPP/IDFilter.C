@@ -82,6 +82,9 @@ using namespace std;
  This tool is used to filter the identifications found by
  a peptide/protein identification tool like Mascot. Different filters can be applied:
 
+ To enable any of the filters, just change their default value.
+ All active filters will be applied in order.
+
  <ul>
 
   <li>
@@ -166,11 +169,8 @@ protected:
     setValidFormats_("in", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", StringList::create("idXML"));
-    addText_("\n");
-    addText_("To enable any of the filters below, just change their default value.\n");
-    addText_("All active filters will be applied in order.\n");
 
-    registerTOPPSubsection_("score", "Filtering by peptide/protein score");
+    registerTOPPSubsection_("score", "Filtering by peptide/protein score. To enable any of the filters below, just change their default value. All active filters will be applied in order.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept. The score is dependent on the most recent(!) preprocessing - it could be Mascot scores (if a MascotAdapter was applied before), or an FDR (if FalseDiscoveryRate was applied before), etc.", false);
     registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept.", false);
     registerTOPPSubsection_("thresh", "Filtering by significance threshold");
