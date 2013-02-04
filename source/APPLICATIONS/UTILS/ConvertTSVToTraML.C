@@ -94,7 +94,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input OpenSWATH transition TSV file");
-    setValidFormats_("in", StringList::create("tsv"));
+    setValidFormats_("in", StringList::create("csv"));
 
     registerOutputFile_("out", "<file>", "", "Output TraML file");
     setValidFormats_("out", StringList::create("TraML"));

@@ -93,7 +93,7 @@ protected:
     setValidFormats_("in", StringList::create("TraML"));
 
     registerOutputFile_("out", "<file>", "", "Output OpenSWATH transition TSV file");
-    setValidFormats_("out", StringList::create("tsv"));
+    setValidFormats_("out", StringList::create("csv"));
   }
 
   ExitCodes main_(int, const char **)
