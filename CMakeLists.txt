@@ -442,6 +442,7 @@ foreach(i ${GUI_executables})
 	elseif(APPLE AND EXISTS ${resource_dir})
 		# the icon file
 		set(ICON_FILE_PATH "${CMAKE_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.icns")
+    set(INFO_PLIST_TEMPLATE "${CMAKE_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.plist.in")
 		get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
 
 		# we also need the icns in the app
@@ -453,7 +454,7 @@ foreach(i ${GUI_executables})
 
 		set_target_properties(${i} PROPERTIES
       # we want our own info.plist template 
-      MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/MacOSX/MacOSXBundleInfo.plist.in"
+      MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
 			MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2013 The OpenMS Team."
 			MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
 			MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}"
