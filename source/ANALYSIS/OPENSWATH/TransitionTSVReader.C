@@ -96,51 +96,6 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVReader::cleanUpTransition(TSVTransition & mytransition)
-  {
-    mytransition.transition_name  = mytransition.transition_name.remove('"');
-    mytransition.transition_name  = mytransition.transition_name.remove('\'');
-
-    mytransition.PeptideSequence  = mytransition.PeptideSequence.remove('"');
-    mytransition.PeptideSequence  = mytransition.PeptideSequence.remove('\'');
-
-    mytransition.ProteinName  = mytransition.ProteinName.remove('"');
-    mytransition.ProteinName  = mytransition.ProteinName.remove('\'');
-
-    mytransition.Annotation = mytransition.Annotation.remove('"');
-    mytransition.Annotation = mytransition.Annotation.remove('\'');
-
-    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('"');
-    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('\'');
-
-    mytransition.group_id  = mytransition.group_id.remove('"');
-    mytransition.group_id  = mytransition.group_id.remove('\'');
-
-    mytransition.group_label  = mytransition.group_label.remove('"');
-    mytransition.group_label  = mytransition.group_label.remove('\'');
-
-    mytransition.fragment_type  = mytransition.fragment_type.remove('"');
-    mytransition.fragment_type  = mytransition.fragment_type.remove('\'');
-
-    mytransition.uniprot_id  = mytransition.uniprot_id.remove('"');
-    mytransition.uniprot_id  = mytransition.uniprot_id.remove('\'');
-
-    // deal with FullPeptideNames like PEPTIDE/2
-    std::vector<String> substrings;
-    mytransition.FullPeptideName.split("/", substrings);
-    if (substrings.size() == 2)
-    {
-      mytransition.FullPeptideName = substrings[0];
-      mytransition.precursor_charge = substrings[1].toInt();
-    }
-
-    if (mytransition.group_label.empty())
-    {
-      mytransition.group_label = "light";
-    }
-
-  }
-
   void TransitionTSVReader::getTSVHeader(std::string & line, char & delimiter, 
       std::vector<std::string> header, std::map<std::string, int> & header_dict)
   {
@@ -291,6 +246,52 @@ namespace OpenMS
     }
   }
 
+  void TransitionTSVReader::cleanUpTransition(TSVTransition & mytransition)
+  {
+    mytransition.transition_name  = mytransition.transition_name.remove('"');
+    mytransition.transition_name  = mytransition.transition_name.remove('\'');
+
+    mytransition.PeptideSequence  = mytransition.PeptideSequence.remove('"');
+    mytransition.PeptideSequence  = mytransition.PeptideSequence.remove('\'');
+
+    mytransition.ProteinName  = mytransition.ProteinName.remove('"');
+    mytransition.ProteinName  = mytransition.ProteinName.remove('\'');
+
+    mytransition.Annotation = mytransition.Annotation.remove('"');
+    mytransition.Annotation = mytransition.Annotation.remove('\'');
+
+    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('"');
+    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('\'');
+
+    mytransition.group_id  = mytransition.group_id.remove('"');
+    mytransition.group_id  = mytransition.group_id.remove('\'');
+
+    mytransition.group_label  = mytransition.group_label.remove('"');
+    mytransition.group_label  = mytransition.group_label.remove('\'');
+
+    mytransition.fragment_type  = mytransition.fragment_type.remove('"');
+    mytransition.fragment_type  = mytransition.fragment_type.remove('\'');
+
+    mytransition.uniprot_id  = mytransition.uniprot_id.remove('"');
+    mytransition.uniprot_id  = mytransition.uniprot_id.remove('\'');
+
+    // deal with FullPeptideNames like PEPTIDE/2
+    std::vector<String> substrings;
+    mytransition.FullPeptideName.split("/", substrings);
+    if (substrings.size() == 2)
+    {
+      mytransition.FullPeptideName = substrings[0];
+      mytransition.precursor_charge = substrings[1].toInt();
+    }
+
+    if (mytransition.group_label.empty())
+    {
+      mytransition.group_label = "light";
+    }
+
+  }
+
+
   void TransitionTSVReader::TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp)
   {
     // For the CV terms, see
@@ -335,150 +336,6 @@ namespace OpenMS
 
     exp.setPeptides(peptides);
     exp.setProteins(proteins);
-  }
-
-  void TransitionTSVReader::writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
-  {
-    std::vector<TSVTransition> mytransitions;
-    //for (const std::vector<ReactionMonitoringTransition>::iterator it = targeted_exp.getTransitions().begin(); it != targeted_exp.getTransitions().end(); it++)
-
-    Size progress = 0;
-    startProgress(0, targeted_exp.getTransitions().size(), "converting to OpenSWATH transition TSV format");
-    for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
-    {
-      // get the current transition and try to find the corresponding chromatogram
-      const ReactionMonitoringTransition* it = &targeted_exp.getTransitions()[i];
-
-      TSVTransition mytransition;
-
-      const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getPeptideRef());
-
-      mytransition.precursor = it->getPrecursorMZ();
-      mytransition.product = it->getProductMZ();
-      mytransition.rt_calibrated = -1;
-
-#ifdef TRANSITIONTSVREADER_TESTING
-      std::cout << "Peptide rts empty " <<
-      pep.rts.empty()  << " or no cv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
-#endif
-
-      if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))
-      {
-        mytransition.rt_calibrated = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-      }
-      mytransition.transition_name = it->getNativeID();
-      mytransition.CE = -1;
-      if (it->hasCVTerm("MS:1000045"))
-      {
-        mytransition.CE = it->getCVTerms()["MS:1000045"][0].getValue().toString().toDouble();
-      }
-      mytransition.library_intensity = -1;
-      if (it->getLibraryIntensity() > -100)
-      {
-        mytransition.library_intensity = it->getLibraryIntensity();
-      }
-      mytransition.group_id = it->getPeptideRef();
-      mytransition.decoy = 0;
-      if (it->getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
-      {
-        mytransition.decoy = 0;
-      }
-      else if (it->getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
-      {
-        mytransition.decoy = 1;
-      }
-      mytransition.PeptideSequence = pep.sequence;
-      mytransition.ProteinName = "NA";
-      if (!pep.protein_refs.empty())
-      {
-        const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(pep.protein_refs[0]);
-        mytransition.ProteinName = prot.id;
-        if (prot.hasCVTerm("MS:1000885"))
-        {
-          mytransition.uniprot_id = prot.getCVTerms()["MS:1000885"][0].getValue().toString();
-        }
-      }
-      mytransition.Annotation = "NA";
-      if (it->metaValueExists("annotation"))
-      {
-        mytransition.Annotation = it->getMetaValue("annotation").toString();
-      }
-      mytransition.FullPeptideName = "NA";
-      if (pep.metaValueExists("full_peptide_name"))
-      {
-        mytransition.FullPeptideName = pep.getMetaValue("full_peptide_name").toString();
-      }
-      mytransition.precursor_charge = -1;
-      if (pep.getChargeState() > 0)
-      {
-        mytransition.precursor_charge = pep.getChargeState();
-      }
-      mytransition.group_label = "NA";
-      if (pep.getPeptideGroupLabel() != "")
-      {
-        mytransition.group_label = pep.getPeptideGroupLabel();
-      }
-
-      mytransitions.push_back(mytransition);
-
-      setProgress(progress++);
-    }
-    endProgress();
-
-    // start writing 
-    std::ofstream os(filename);
-    for (Size i = 0; i < header_names.size(); i++)
-    {
-      os << header_names[i];
-      if (i != header_names.size() -1)
-      {
-        os << "\t";
-      }
-    }
-    os << std::endl;
-
-    for (std::vector<TSVTransition>::iterator it = mytransitions.begin(); it != mytransitions.end(); it++)
-    {
-
-      os << it->precursor                << "\t";
-      os << it->product                  << "\t";
-      os << it->rt_calibrated            << "\t";
-      os << it->transition_name          << "\t";
-      os << it->CE                       << "\t";
-      os << it->library_intensity        << "\t";
-      os << it->group_id                 << "\t";
-      os << it->decoy                    << "\t";
-      os << it->PeptideSequence          << "\t";
-      os << it->ProteinName              << "\t";
-      os << it->Annotation               << "\t";
-      os << it->FullPeptideName          << "\t";
-      os << 0                            << "\t";
-      os << 0                            << "\t";
-      os << 0                            << "\t";
-      os << it->precursor_charge         << "\t";
-      os << it->group_label              << "\t";
-      os << it->uniprot_id;
-      os << std::endl;
-
-    }
-    os.close();
-  }
-
-  void TransitionTSVReader::add_modification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
-          int location, ResidueModification & rmod, const String & name)
-  {
-      TargetedExperiment::Peptide::Modification mod;
-      String unimod_str = rmod.getUniModAccession();
-      mod.location = location;
-      mod.mono_mass_delta = rmod.getDiffMonoMass();
-      mod.avg_mass_delta = rmod.getDiffAverageMass();
-      // CV term with the full unimod accession number and name
-      CVTerm unimod_name;
-      unimod_name.setCVIdentifierRef("UNIMOD");
-      unimod_name.setAccession(unimod_str.toUpper());
-      unimod_name.setName(name);
-      mod.addCVTerm(unimod_name);
-      mods.push_back(mod);
   }
 
   void TransitionTSVReader::createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans)
@@ -684,6 +541,153 @@ namespace OpenMS
     peptide.protein_refs = tmp_proteins;
   }
 
+  void TransitionTSVReader::add_modification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
+          int location, ResidueModification & rmod, const String & name)
+  {
+      TargetedExperiment::Peptide::Modification mod;
+      String unimod_str = rmod.getUniModAccession();
+      mod.location = location;
+      mod.mono_mass_delta = rmod.getDiffMonoMass();
+      mod.avg_mass_delta = rmod.getDiffAverageMass();
+      // CV term with the full unimod accession number and name
+      CVTerm unimod_name;
+      unimod_name.setCVIdentifierRef("UNIMOD");
+      unimod_name.setAccession(unimod_str.toUpper());
+      unimod_name.setName(name);
+      mod.addCVTerm(unimod_name);
+      mods.push_back(mod);
+  }
+
+
+  void TransitionTSVReader::writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
+  {
+    std::vector<TSVTransition> mytransitions;
+    //for (const std::vector<ReactionMonitoringTransition>::iterator it = targeted_exp.getTransitions().begin(); it != targeted_exp.getTransitions().end(); it++)
+
+    Size progress = 0;
+    startProgress(0, targeted_exp.getTransitions().size(), "converting to OpenSWATH transition TSV format");
+    for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
+    {
+      // get the current transition and try to find the corresponding chromatogram
+      const ReactionMonitoringTransition* it = &targeted_exp.getTransitions()[i];
+
+      TSVTransition mytransition;
+
+      const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getPeptideRef());
+
+      mytransition.precursor = it->getPrecursorMZ();
+      mytransition.product = it->getProductMZ();
+      mytransition.rt_calibrated = -1;
+
+#ifdef TRANSITIONTSVREADER_TESTING
+      std::cout << "Peptide rts empty " <<
+      pep.rts.empty()  << " or no cv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
+#endif
+
+      if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))
+      {
+        mytransition.rt_calibrated = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+      }
+      mytransition.transition_name = it->getNativeID();
+      mytransition.CE = -1;
+      if (it->hasCVTerm("MS:1000045"))
+      {
+        mytransition.CE = it->getCVTerms()["MS:1000045"][0].getValue().toString().toDouble();
+      }
+      mytransition.library_intensity = -1;
+      if (it->getLibraryIntensity() > -100)
+      {
+        mytransition.library_intensity = it->getLibraryIntensity();
+      }
+      mytransition.group_id = it->getPeptideRef();
+      mytransition.decoy = 0;
+      if (it->getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
+      {
+        mytransition.decoy = 0;
+      }
+      else if (it->getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+      {
+        mytransition.decoy = 1;
+      }
+      mytransition.PeptideSequence = pep.sequence;
+      mytransition.ProteinName = "NA";
+      if (!pep.protein_refs.empty())
+      {
+        const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(pep.protein_refs[0]);
+        mytransition.ProteinName = prot.id;
+        if (prot.hasCVTerm("MS:1000885"))
+        {
+          mytransition.uniprot_id = prot.getCVTerms()["MS:1000885"][0].getValue().toString();
+        }
+      }
+      mytransition.Annotation = "NA";
+      if (it->metaValueExists("annotation"))
+      {
+        mytransition.Annotation = it->getMetaValue("annotation").toString();
+      }
+      mytransition.FullPeptideName = "NA";
+      if (pep.metaValueExists("full_peptide_name"))
+      {
+        mytransition.FullPeptideName = pep.getMetaValue("full_peptide_name").toString();
+      }
+      mytransition.precursor_charge = -1;
+      if (pep.getChargeState() > 0)
+      {
+        mytransition.precursor_charge = pep.getChargeState();
+      }
+      mytransition.group_label = "NA";
+      if (pep.getPeptideGroupLabel() != "")
+      {
+        mytransition.group_label = pep.getPeptideGroupLabel();
+      }
+
+      mytransitions.push_back(mytransition);
+
+      setProgress(progress++);
+    }
+    endProgress();
+
+    // start writing 
+    std::ofstream os(filename);
+    for (Size i = 0; i < header_names.size(); i++)
+    {
+      os << header_names[i];
+      if (i != header_names.size() -1)
+      {
+        os << "\t";
+      }
+    }
+    os << std::endl;
+
+    for (std::vector<TSVTransition>::iterator it = mytransitions.begin(); it != mytransitions.end(); it++)
+    {
+
+      os << it->precursor                << "\t";
+      os << it->product                  << "\t";
+      os << it->rt_calibrated            << "\t";
+      os << it->transition_name          << "\t";
+      os << it->CE                       << "\t";
+      os << it->library_intensity        << "\t";
+      os << it->group_id                 << "\t";
+      os << it->decoy                    << "\t";
+      os << it->PeptideSequence          << "\t";
+      os << it->ProteinName              << "\t";
+      os << it->Annotation               << "\t";
+      os << it->FullPeptideName          << "\t";
+      os << 0                            << "\t";
+      os << 0                            << "\t";
+      os << 0                            << "\t";
+      os << it->precursor_charge         << "\t";
+      os << it->group_label              << "\t";
+      os << it->uniprot_id;
+      os << std::endl;
+
+    }
+    os.close();
+  }
+
+
+  // public methods
   void TransitionTSVReader::convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     writeTSVOutput_(filename, targeted_exp);
