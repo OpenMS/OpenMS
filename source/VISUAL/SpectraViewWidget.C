@@ -294,7 +294,7 @@ namespace OpenMS
 
   void SpectraViewWidget::updateEntries(const LayerData & cl)
   {
-    if (!spectra_treewidget_->isVisible())
+    if (!spectra_treewidget_->isVisible() || spectra_treewidget_->signalsBlocked())
     {
       return;
     }
@@ -316,6 +316,7 @@ namespace OpenMS
       for (Size i = 0; i < cl.getPeakData()->size(); ++i)
       {
         const MSSpectrum<>& current_spec = (*cl.getPeakData())[i];
+
         if (i > 0)
         {
           const MSSpectrum<>& prev_spec = (*cl.getPeakData())[i-1];
@@ -377,19 +378,23 @@ namespace OpenMS
         item->setText(0, QString("MS") + QString::number(current_spec.getMSLevel()));
         item->setText(1, QString::number(i));
         item->setText(2, QString::number(current_spec.getRT()));
-        if (!current_spec.getPrecursors().empty())
+
+        const std::vector<Precursor>& current_precursors = current_spec.getPrecursors();
+
+        if (!current_precursors.empty())
         {
-          item->setText(3, QString::number(current_spec.getPrecursors()[0].getMZ()));
-          if (!current_spec.getPrecursors().front().getActivationMethods().empty())
+          const Precursor& current_pc = current_precursors[0];
+          item->setText(3, QString::number(current_pc.getMZ()));
+          if (!current_pc.getActivationMethods().empty())
           {
             QString t;
-            for (std::set<Precursor::ActivationMethod>::const_iterator it = current_spec.getPrecursors().front().getActivationMethods().begin(); it != current_spec.getPrecursors().front().getActivationMethods().end(); ++it)
+            for (std::set<Precursor::ActivationMethod>::const_iterator it = current_pc.getActivationMethods().begin(); it != current_pc.getActivationMethods().end(); ++it)
             {
               if (!t.isEmpty())
               {
                 t.append(",");
               }
-              t.append(QString::fromStdString(current_spec.getPrecursors().front().NamesOfActivationMethod[*(current_spec.getPrecursors().front().getActivationMethods().begin())]));
+              t.append(QString::fromStdString(current_pc.NamesOfActivationMethod[*(current_pc.getActivationMethods().begin())]));
             }
             item->setText(4, t);
           }
@@ -419,12 +424,12 @@ namespace OpenMS
         {
           item->setText(6, "no");
         }
-        /* 
+        /*
         std::cout << "adding: ";
-	for (Size k = 0; k != item->columnCount(); ++k)
-	{
+	      for (Size k = 0; k != item->columnCount(); ++k)
+	      {
           std::cout << item->text(k).toStdString() << " ";
-	}
+	      }
         std::cout << std::endl;
         */
         if (i == cl.getCurrentSpectrumIndex())
