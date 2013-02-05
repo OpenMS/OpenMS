@@ -69,6 +69,12 @@ public:
       handlers (which is most likely OpenMS code).
     */
     virtual bool notify(QObject* rec, QEvent* ev);
+
+signals:
+    void fileOpen(QString file);
+
+protected:
+    bool event(QEvent*);
   };
 
 }

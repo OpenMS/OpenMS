@@ -179,8 +179,8 @@ namespace OpenMS
     connect(tab_bar_, SIGNAL(aboutToCloseId(int)), this, SLOT(closeByTab(int)));
 
     //connect signals ans slots for drag-and-drop
-    connect(tab_bar_, SIGNAL(dropOnWidget(const QMimeData *, QWidget*)), this, SLOT(copyLayer(const QMimeData *, QWidget*)));
-    connect(tab_bar_, SIGNAL(dropOnTab(const QMimeData *, QWidget *, int)), this, SLOT(copyLayer(const QMimeData *, QWidget *, int)));
+    connect(tab_bar_, SIGNAL(dropOnWidget(const QMimeData*, QWidget*)), this, SLOT(copyLayer(const QMimeData*, QWidget*)));
+    connect(tab_bar_, SIGNAL(dropOnTab(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
     box_layout->addWidget(tab_bar_);
 
     ws_ = new EnhancedWorkspace(dummy);
@@ -191,7 +191,7 @@ namespace OpenMS
     connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateFilterBar()));
     connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateMenu()));
     connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateCurrentPath()));
-    connect(ws_, SIGNAL(dropReceived(const QMimeData *, QWidget *, int)), this, SLOT(copyLayer(const QMimeData *, QWidget *, int)));
+    connect(ws_, SIGNAL(dropReceived(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
 
     box_layout->addWidget(ws_);
 
@@ -655,7 +655,7 @@ namespace OpenMS
   void TOPPViewBase::showURL()
   {
     QAction* action = qobject_cast<QAction*>(sender());
-    QString target = QString("file:///%1").arg( action->data().toString() );
+    QString target = QString("file:///%1").arg(action->data().toString());
     if (!QDesktopServices::openUrl(QUrl(target, QUrl::TolerantMode)))
     {
       QMessageBox::warning(this, tr("Error"),
@@ -1375,7 +1375,7 @@ namespace OpenMS
           return;
         }
       }
-      else if (data_type == LayerData::DT_CONSENSUS)       //consensus features
+      else if (data_type == LayerData::DT_CONSENSUS) //consensus features
       {
         if (!target_window->canvas()->addLayer(consensus_map, filename))
           return;
@@ -1385,7 +1385,7 @@ namespace OpenMS
         if (!target_window->canvas()->addLayer(peptides, filename))
           return;
       }
-      else   //peaks
+      else //peaks
       {
         if (!target_window->canvas()->addLayer(peak_map, filename))
           return;
@@ -1404,7 +1404,7 @@ namespace OpenMS
           filters.add(filter);
           target_window->canvas()->setFilters(filters);
         }
-        else    // no mower, hide zeros if wanted
+        else // no mower, hide zeros if wanted
         {
           Int n_zeros = TOPPViewBase::countMS1Zeros(*(target_window->canvas()->getCurrentLayer().getPeakData()));
           if (n_zeros > 0)
@@ -1432,7 +1432,7 @@ namespace OpenMS
       //set caption
       target_window->canvas()->setLayerName(target_window->canvas()->activeLayerIndex(), caption);
     }
-    else     //merge feature/ID data into feature layer
+    else //merge feature/ID data into feature layer
     {
       Spectrum2DCanvas* canvas = qobject_cast<Spectrum2DCanvas*>(target_window->canvas());
       if (data_type == LayerData::DT_CONSENSUS)
@@ -1755,7 +1755,7 @@ namespace OpenMS
       {
         dm_unassigned_2d_->menu()->actions()[0]->setChecked(true);
       }
-      else       // now: show by precursor
+      else // now: show by precursor
       {
         dm_unassigned_2d_->menu()->actions()[1]->setChecked(true);
       }
@@ -2512,7 +2512,7 @@ namespace OpenMS
     connect(sw->canvas(), SIGNAL(layerZoomChanged(QWidget*)), this, SLOT(layerZoomChanged()));
     connect(sw, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SLOT(showStatusMessage(std::string, OpenMS::UInt)));
     connect(sw, SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
-    connect(sw, SIGNAL(dropReceived(const QMimeData *, QWidget *, int)), this, SLOT(copyLayer(const QMimeData *, QWidget *, int)));
+    connect(sw, SIGNAL(dropReceived(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
 
     // 1D spectrum specific signals
     Spectrum1DWidget* sw1 = qobject_cast<Spectrum1DWidget*>(sw);
@@ -3099,6 +3099,11 @@ namespace OpenMS
     }
   }
 
+  void TOPPViewBase::loadFile(QString filename)
+  {
+    addDataFile(String(filename), true, false);
+  }
+
   void TOPPViewBase::annotateWithID()
   {
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
@@ -3440,7 +3445,7 @@ namespace OpenMS
         //- rt range either overall MS1 data range or some convenient window
 
       }
-      else if (getActive2DWidget())   // switch from 2D to 3D
+      else if (getActive2DWidget()) // switch from 2D to 3D
       {
         w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
       }
@@ -3958,7 +3963,7 @@ namespace OpenMS
       watcher_->removeFile(filename); // remove watcher
       return;
     }
-    else if (!needs_update.empty())      // at least one layer references data of filename
+    else if (!needs_update.empty()) // at least one layer references data of filename
     {
       //std::cout << "Number of Layers that need update: " << needs_update.size() << std::endl;
       pair<const SpectrumWidget*, Size>& slp = needs_update[0];

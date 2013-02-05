@@ -1579,4 +1579,9 @@ namespace OpenMS
     }
   }
 
+  void TOPPASBase::openToppasFile(QString filename)
+  {
+    addTOPPASFile(String(filename));
+  }
+
 } //namespace OpenMS

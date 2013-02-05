@@ -333,6 +333,9 @@ public slots:
     void toggleProjections();
     //@}
 
+    /// Loads a file given by the passed string
+    void loadFile(QString);
+
 protected slots:
     /** @name Layer manager and filter manager slots
     */
@@ -384,7 +387,6 @@ protected slots:
 
     /// Called if a data file has been externally changed
     void fileChanged_(const String&);
-
 protected:
     /// Initializes the default parameters on TOPPView construction.
     void initializeDefaultParameters_();

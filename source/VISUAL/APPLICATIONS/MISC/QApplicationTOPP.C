@@ -42,6 +42,7 @@
 //Qt
 #include <QtGui/QApplication>
 #include <QMessageBox>
+#include <QFileOpenEvent>
 
 namespace OpenMS
 {
@@ -78,5 +79,18 @@ namespace OpenMS
 
     return false; // never reached, so return value does not matter
   }
-  
+
+  bool QApplicationTOPP::event(QEvent* event)
+  {
+    switch (event->type())
+    {
+    case QEvent::FileOpen:
+      emit fileOpen(static_cast<QFileOpenEvent*>(event)->file());
+      return true;
+
+    default:
+      return QApplication::event(event);
+    }
+  }
+
 }
