@@ -315,16 +315,18 @@ namespace OpenMS
 
       for (Size i = 0; i < cl.getPeakData()->size(); ++i)
       {
+        const MSSpectrum<>& current_spec = (*cl.getPeakData())[i];
         if (i > 0)
         {
+          const MSSpectrum<>& prev_spec = (*cl.getPeakData())[i-1];
           // current MS level = previous MS level + 1 (e.g. current: MS2, previous: MS1)
-          if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i - 1].getMSLevel() + 1)
+          if (current_spec.getMSLevel() == prev_spec.getMSLevel() + 1)
           {
             item = new QTreeWidgetItem(parent_stack.back());
             parent_stack.resize(parent_stack.size() + 1);
           }
           // current MS level = previous MS level (e.g. MS2,MS2 or MS1,MS1)
-          else if ((*cl.getPeakData())[i].getMSLevel() == (*cl.getPeakData())[i - 1].getMSLevel())
+          else if (current_spec.getMSLevel() == prev_spec.getMSLevel())
           {
             if (parent_stack.size() == 1)
             {
@@ -336,9 +338,9 @@ namespace OpenMS
             }
           }
           // current MS level < previous MS level (e.g. MS1,MS2)
-          else if ((*cl.getPeakData())[i].getMSLevel() < (*cl.getPeakData())[i - 1].getMSLevel())
+          else if (current_spec.getMSLevel() < prev_spec.getMSLevel())
           {
-            Int level_diff = (*cl.getPeakData())[i - 1].getMSLevel() - (*cl.getPeakData())[i].getMSLevel();
+            Int level_diff = prev_spec.getMSLevel() - current_spec.getMSLevel();
             Size parent_index = 0;
             if (parent_stack.size() - level_diff >= 2)
             {
@@ -372,22 +374,22 @@ namespace OpenMS
           toplevel_items.push_back(item);
         }
 
-        item->setText(0, QString("MS") + QString::number((*cl.getPeakData())[i].getMSLevel()));
+        item->setText(0, QString("MS") + QString::number(current_spec.getMSLevel()));
         item->setText(1, QString::number(i));
-        item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
-        if (!(*cl.getPeakData())[i].getPrecursors().empty())
+        item->setText(2, QString::number(current_spec.getRT()));
+        if (!current_spec.getPrecursors().empty())
         {
-          item->setText(3, QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
-          if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+          item->setText(3, QString::number(current_spec.getPrecursors()[0].getMZ()));
+          if (!current_spec.getPrecursors().front().getActivationMethods().empty())
           {
             QString t;
-            for (std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+            for (std::set<Precursor::ActivationMethod>::const_iterator it = current_spec.getPrecursors().front().getActivationMethods().begin(); it != current_spec.getPrecursors().front().getActivationMethods().end(); ++it)
             {
               if (!t.isEmpty())
               {
                 t.append(",");
               }
-              t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+              t.append(QString::fromStdString(current_spec.getPrecursors().front().NamesOfActivationMethod[*(current_spec.getPrecursors().front().getActivationMethods().begin())]));
             }
             item->setText(4, t);
           }
@@ -401,15 +403,15 @@ namespace OpenMS
           item->setText(3, "-");
           item->setText(4, "-");
         }
-        if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode() > 0)
+        if (current_spec.getInstrumentSettings().getScanMode() > 0)
         {
-          item->setText(5, QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
+          item->setText(5, QString::fromStdString(current_spec.getInstrumentSettings().NamesOfScanMode[current_spec.getInstrumentSettings().getScanMode()]));
         }
         else
         {
           item->setText(5, "-");
         }
-        if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
+        if (current_spec.getInstrumentSettings().getZoomScan())
         {
           item->setText(6, "yes");
         }
@@ -417,7 +419,14 @@ namespace OpenMS
         {
           item->setText(6, "no");
         }
-
+        /* 
+        std::cout << "adding: ";
+	for (Size k = 0; k != item->columnCount(); ++k)
+	{
+          std::cout << item->text(k).toStdString() << " ";
+	}
+        std::cout << std::endl;
+        */
         if (i == cl.getCurrentSpectrumIndex())
         {
           // just remember it, select later
@@ -437,23 +446,24 @@ namespace OpenMS
         selected_item = 0;
         for (Size i = 0; i < cl.getPeakData()->size(); ++i)
         {
+          const MSSpectrum<>& current_spec = (*cl.getPeakData())[i];
           item = new QTreeWidgetItem((QTreeWidget *)0);
-          item->setText(0, QString("MS") + QString::number((*cl.getPeakData())[i].getMSLevel()));
+          item->setText(0, QString("MS") + QString::number(current_spec.getMSLevel()));
           item->setText(1, QString::number(i));
-          item->setText(2, QString::number((*cl.getPeakData())[i].getRT()));
-          if (!(*cl.getPeakData())[i].getPrecursors().empty())
+          item->setText(2, QString::number(current_spec.getRT()));
+          if (!current_spec.getPrecursors().empty())
           {
-            item->setText(3, QString::number((*cl.getPeakData())[i].getPrecursors()[0].getMZ()));
-            if (!(*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+            item->setText(3, QString::number(current_spec.getPrecursors()[0].getMZ()));
+            if (!current_spec.getPrecursors().front().getActivationMethods().empty())
             {
               QString t;
-              for (std::set<Precursor::ActivationMethod>::const_iterator it = (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+              for (std::set<Precursor::ActivationMethod>::const_iterator it = current_spec.getPrecursors().front().getActivationMethods().begin(); it != current_spec.getPrecursors().front().getActivationMethods().end(); ++it)
               {
                 if (!t.isEmpty())
                 {
                   t.append(",");
                 }
-                t.append(QString::fromStdString((*cl.getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*cl.getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+                t.append(QString::fromStdString(current_spec.getPrecursors().front().NamesOfActivationMethod[*(current_spec.getPrecursors().front().getActivationMethods().begin())]));
               }
               item->setText(4, t);
             }
@@ -467,15 +477,15 @@ namespace OpenMS
             item->setText(3, "-");
             item->setText(4, "-");
           }
-          if ((*cl.getPeakData())[i].getInstrumentSettings().getScanMode() > 0)
+          if (current_spec.getInstrumentSettings().getScanMode() > 0)
           {
-            item->setText(5, QString::fromStdString((*cl.getPeakData())[i].getInstrumentSettings().NamesOfScanMode[(*cl.getPeakData())[i].getInstrumentSettings().getScanMode()]));
+            item->setText(5, QString::fromStdString(current_spec.getInstrumentSettings().NamesOfScanMode[current_spec.getInstrumentSettings().getScanMode()]));
           }
           else
           {
             item->setText(5, "-");
           }
-          if ((*cl.getPeakData())[i].getInstrumentSettings().getZoomScan())
+          if (current_spec.getInstrumentSettings().getZoomScan())
           {
             item->setText(6, "yes");
           }
