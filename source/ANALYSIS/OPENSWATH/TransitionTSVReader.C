@@ -36,6 +36,30 @@
 
 namespace OpenMS
 {
+
+  const char* TransitionTSVReader::strarray[] = 
+  {
+    "PrecursorMz",
+    "ProductMz",
+    "Tr_recalibrated",
+    "transition_name",
+    "CE",
+    "LibraryIntensity",
+    "transition_group_id",
+    "decoy",
+    "PeptideSequence",
+    "ProteinName",
+    "Annotation",
+    "FullPeptideName",
+    "MissedCleavages",
+    "Replicates",
+    "NrModifications",
+    "Charge",
+    "GroupLabel"
+  };
+
+  const std::vector<std::string> TransitionTSVReader::header_names(strarray, strarray + 17);
+
   void TransitionTSVReader::readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list)
   {
     std::ifstream data(filename);
@@ -65,42 +89,169 @@ namespace OpenMS
       lineStream >> mytransition.charge;
       lineStream >> mytransition.group_label;
 
-      mytransition.transition_name  = mytransition.transition_name.remove('"');
-      mytransition.transition_name  = mytransition.transition_name.remove('\'');
-
-      mytransition.PeptideSequence  = mytransition.PeptideSequence.remove('"');
-      mytransition.PeptideSequence  = mytransition.PeptideSequence.remove('\'');
-
-      mytransition.ProteinName  = mytransition.ProteinName.remove('"');
-      mytransition.ProteinName  = mytransition.ProteinName.remove('\'');
-
-      mytransition.Annotation = mytransition.Annotation.remove('"');
-      mytransition.Annotation = mytransition.Annotation.remove('\'');
-
-      mytransition.FullPeptideName = mytransition.FullPeptideName.remove('"');
-      mytransition.FullPeptideName = mytransition.FullPeptideName.remove('\'');
-
-      mytransition.group_id  = mytransition.group_id.remove('"');
-      mytransition.group_id  = mytransition.group_id.remove('\'');
-
-      mytransition.group_label  = mytransition.group_label.remove('"');
-      mytransition.group_label  = mytransition.group_label.remove('\'');
-
-      // deal with FullPeptideNames like PEPTIDE/2
-      std::vector<String> substrings;
-      mytransition.FullPeptideName.split("/", substrings);
-      if (substrings.size() == 2)
-      {
-        mytransition.FullPeptideName = substrings[0];
-        mytransition.charge = substrings[1].toInt();
-      }
-
-      if (mytransition.group_label.empty())
-      {
-        mytransition.group_label = "light";
-      }
+      cleanUpTransition(mytransition);
 
       transition_list.push_back(mytransition);
+    }
+  }
+
+  void TransitionTSVReader::cleanUpTransition(TSVTransition & mytransition)
+  {
+    mytransition.transition_name  = mytransition.transition_name.remove('"');
+    mytransition.transition_name  = mytransition.transition_name.remove('\'');
+
+    mytransition.PeptideSequence  = mytransition.PeptideSequence.remove('"');
+    mytransition.PeptideSequence  = mytransition.PeptideSequence.remove('\'');
+
+    mytransition.ProteinName  = mytransition.ProteinName.remove('"');
+    mytransition.ProteinName  = mytransition.ProteinName.remove('\'');
+
+    mytransition.Annotation = mytransition.Annotation.remove('"');
+    mytransition.Annotation = mytransition.Annotation.remove('\'');
+
+    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('"');
+    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('\'');
+
+    mytransition.group_id  = mytransition.group_id.remove('"');
+    mytransition.group_id  = mytransition.group_id.remove('\'');
+
+    mytransition.group_label  = mytransition.group_label.remove('"');
+    mytransition.group_label  = mytransition.group_label.remove('\'');
+
+    // deal with FullPeptideNames like PEPTIDE/2
+    std::vector<String> substrings;
+    mytransition.FullPeptideName.split("/", substrings);
+    if (substrings.size() == 2)
+    {
+      mytransition.FullPeptideName = substrings[0];
+      mytransition.charge = substrings[1].toInt();
+    }
+
+    if (mytransition.group_label.empty())
+    {
+      mytransition.group_label = "light";
+    }
+
+  }
+
+  void TransitionTSVReader::getTSVHeader(std::string & line, char & delimiter, 
+      std::vector<std::string> header, std::map<std::string, int> & header_dict)
+  {
+    std::vector<std::string> tmp_line;
+    std::string tmp;
+
+    int nr_delimiters = 3;
+    Size min_header_size = 8;
+    const char possibleDelimiters[3] = {',', ';', '\t'};
+
+    for (int i = 0; i < nr_delimiters; i++)
+    {
+      std::stringstream lineStream(line);
+      delimiter = possibleDelimiters[i];
+      while(std::getline(lineStream,tmp,delimiter))
+      {
+        header.push_back(tmp);
+      }
+      if (header.size() >= min_header_size) 
+      {
+        break;// found the delimiter, got the correct header
+      }
+      header.clear();
+    }
+
+    for (Size i = 0; i < header.size(); i++)
+    {
+      header_dict[header[i]] = i;
+    }
+    char txt_delimiter = delimiter;
+    if (txt_delimiter == '\t') 
+    {
+      txt_delimiter = 't';
+    }
+
+    // could not determine the delimiter correctly
+    if (header.size() < min_header_size)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Determined your csv/tsv file to have delimiter " + (String)txt_delimiter + ", but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + (String)min_header_size + ". Please check your input file.");
+    }
+
+    // TODO check for each header name
+    if (header_dict.find("PrecursorMz") == header_dict.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Determined your csv/tsv file to have delimiter " + (String)txt_delimiter + ", but the parsed header does not have the field \"PrecursorMz\". Please check your input file.");
+    }
+
+  }
+
+  void TransitionTSVReader::readUnstructuredTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list)
+  {
+    std::ifstream data(filename);
+    std::string   line;
+    std::string   tmp;
+
+    // read header
+    std::vector<std::string>   tmp_line;
+    std::vector<std::string>   header;
+    std::getline(data, line);
+    char delimiter = ',';
+    std::map<std::string, int> header_dict;
+
+    getTSVHeader(line, delimiter, header, header_dict);
+
+    while (std::getline(data, line))
+    {
+      std::stringstream lineStream(line);
+
+      while(std::getline(lineStream,tmp,delimiter))
+      {
+        tmp_line.push_back(tmp);
+      }
+
+      TSVTransition mytransition;
+
+      mytransition.precursor                    =                      String(tmp_line[ header_dict["PrecursorMz"]]).toDouble();
+      mytransition.product                      =                      String(tmp_line[ header_dict["ProductMz"]]).toDouble();
+      mytransition.transition_name              =                             tmp_line[ header_dict["transition_name"]];
+      mytransition.library_intensity            =                      String(tmp_line[ header_dict["LibraryIntensity"]]).toDouble();
+      mytransition.group_id                     =                             tmp_line[ header_dict["transition_group_id"]];
+      mytransition.PeptideSequence              =                             tmp_line[ header_dict["PeptideSequence"]];
+      mytransition.ProteinName                  =                             tmp_line[ header_dict["ProteinName"]];
+
+      // optional columns
+      if (header_dict.find("Annotation") != header_dict.end())
+      {
+        mytransition.Annotation                   =                             tmp_line[ header_dict["Annotation"]]; 
+      }
+      if (header_dict.find("Tr_recalibrated") != header_dict.end())
+      {
+        mytransition.rt_calibrated                =                      String(tmp_line[ header_dict["Tr_recalibrated"]]).toDouble(); 
+      }
+      if (header_dict.find("CE") != header_dict.end())
+      {
+        mytransition.CE                           =                      String(tmp_line[ header_dict["CE"]]).toDouble();
+      }
+      if (header_dict.find("decoy") != header_dict.end())
+      {
+        mytransition.decoy                        =                      String(tmp_line[ header_dict["decoy"]]).toInt();
+      }
+      if (header_dict.find("FullPeptideName") != header_dict.end())
+      {
+        mytransition.FullPeptideName              =                             tmp_line[ header_dict["FullPeptideName"]];
+      }
+      if (header_dict.find("Charge") != header_dict.end())
+      {
+        mytransition.charge                       =                      String(tmp_line[ header_dict["Charge"]]).toInt();
+      }
+      if (header_dict.find("GroupLabel") != header_dict.end())
+      {
+        mytransition.group_label                  =                             tmp_line[ header_dict["GroupLabel"]];
+      }
+
+      cleanUpTransition(mytransition);
+
+      transition_list.push_back(mytransition);
+
+      tmp_line.clear();
     }
   }
 
@@ -188,7 +339,6 @@ namespace OpenMS
 
       const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getPeptideRef());
 
-
       mytransition.precursor = it->getPrecursorMZ();
       mytransition.product = it->getProductMZ();
       mytransition.rt_calibrated = -1;
@@ -257,9 +407,17 @@ namespace OpenMS
     }
     endProgress();
 
+    // start writing 
     std::ofstream os(filename);
-    os << "PrecursorMz\tProductMz\tTr_recalibrated\ttransition_name\tCE\tLibraryIntensity\ttransition_group_id\tdecoy\tPeptideSequence\tProteinName\tAnnotation\tFullPeptideName\tMissedCleavages\tReplicates\tNrModifications\tCharge\tGroupLabel" << std::endl;
-
+    for (Size i = 0; i < header_names.size(); i++)
+    {
+      os << header_names[i];
+      if (i != header_names.size() -1)
+      {
+        os << "\t";
+      }
+    }
+    os << std::endl;
 
     for (std::vector<TSVTransition>::iterator it = mytransitions.begin(); it != mytransitions.end(); it++)
     {
@@ -384,7 +542,8 @@ namespace OpenMS
   void TransitionTSVReader::convertTSVToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     std::vector<TSVTransition> transition_list;
-    readTSVInput_(filename, transition_list);
+    // readTSVInput_(filename, transition_list);
+    readUnstructuredTSVInput_(filename, transition_list);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
@@ -428,3 +587,4 @@ namespace OpenMS
   }
 
 }
+

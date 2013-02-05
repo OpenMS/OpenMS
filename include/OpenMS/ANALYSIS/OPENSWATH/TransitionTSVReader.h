@@ -97,7 +97,17 @@ private:
       String group_label;
     };
 
+    static const char* strarray[];
+
+    static const std::vector<std::string> header_names;
+
     void readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
+
+    void cleanUpTransition(TSVTransition & mytransition);
+
+    void getTSVHeader(std::string & line, char & delimiter, std::vector<std::string> header, std::map<std::string, int> & header_dict);
+
+    void readUnstructuredTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
 
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
@@ -107,6 +117,7 @@ private:
 
     void add_modification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
           int location, ResidueModification & rmod, const String & name);
+
 
 public:
     /// Write out a targeted experiment (TraML structure) into a tsv file
