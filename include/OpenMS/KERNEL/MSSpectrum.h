@@ -471,17 +471,17 @@ public:
     */
     Size findNearest(CoordinateType mz) const
     {
-      //no peak => no search
+      // no peak => no search
       if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one peak to determine the nearest peak!");
 
-      //searh for position for inserting
+      // search for position for inserting
       ConstIterator it = MZBegin(mz);
-      //border cases
+      // border cases
       if (it == ContainerType::begin()) return 0;
 
       if (it == ContainerType::end()) return ContainerType::size() - 1;
 
-      //the peak before or the current peak are closest
+      // the peak before or the current peak are closest
       ConstIterator it2 = it;
       --it2;
       if (std::fabs(it->getMZ() - mz) < std::fabs(it2->getMZ() - mz))

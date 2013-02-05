@@ -72,7 +72,7 @@ public:
       ES_FILE_EXT_MISMATCH,
       ES_MERGER_EXT_MISMATCH,
       ES_MERGER_WITHOUT_TOOL,
-      ES_NOT_READY_YET,
+      ES_NOT_READY_YET,       // no input files given. We cannot know if the types will match.
       ES_TOOL_API_CHANGED,
       ES_UNKNOWN
     };

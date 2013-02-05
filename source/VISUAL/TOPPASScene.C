@@ -733,8 +733,9 @@ namespace OpenMS
     int counter = 0;
     foreach(TOPPASEdge * te, edges_)
     {
-      if (te->getEdgeStatus() != TOPPASEdge::ES_VALID)
-      {
+      if (!((te->getEdgeStatus() == TOPPASEdge::ES_VALID) || (te->getEdgeStatus() == TOPPASEdge::ES_NOT_READY_YET)))
+      { // do not allow to store an invalid pipeline, e.g., after a "param refresh()", since this might lead to inconsistencies when storing the edge mapping parameters (segfaults even).
+        // alternatively, we could discard invalid edges during loading, but then the user looses the information where edges were present (currently they become red)
         return false;
       }
       if (!(te->getSourceVertex() && te->getTargetVertex()))
