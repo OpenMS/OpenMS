@@ -61,11 +61,11 @@ namespace OpenMS
       PeptideSequence  (free text, sequence only (no modifications) )
       ProteinName  (free text)
       Annotation  (free text, e.g. y7)
-      FullPeptideName  (free text, should contain modifications*)
+      FullUniModPeptideName  (free text, should contain modifications*)
       MissedCleavages
       Replicates
       NrModifications
-      Charge (integer)
+      PrecursorCharge (integer)
       Labelgroup (free text, e.g. heavy or light)
 
   */
@@ -93,8 +93,12 @@ private:
       String ProteinName;
       String Annotation;
       String FullPeptideName;
-      int charge;
+      int precursor_charge;
       String group_label;
+      int fragment_charge;
+      int fragment_nr;
+      String fragment_type;
+      String uniprot_id;
     };
 
     static const char* strarray[];
@@ -112,6 +116,10 @@ private:
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
+
+    void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
+
+    void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
 
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
