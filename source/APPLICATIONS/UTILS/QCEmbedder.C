@@ -118,15 +118,24 @@ protected:
       target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
     }
 
-    if (target_run == "")
-    {
-      cerr << "Error: You have to give at least one of the following parameter (in ascending precedence): name, run. Aborting!" << endl;
-      return ILLEGAL_PARAMETERS;
-    }
-
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
+    if (target_run == "")
+    {
+      //~ check if only one run in file
+      std::vector<String> nas;
+      qcmlfile.getRunNames(nas);
+      if (nas.size() == 1)
+      {
+        target_run = nas.front();
+      }
+      else
+      {
+        cerr << "Error: You have to give at least one of the following parameter (in ascending precedence): name, run. Aborting!" << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+    }
 
     QFile f(plot_file.c_str());
     String plot_b64;

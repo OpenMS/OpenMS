@@ -144,6 +144,8 @@ public:
     void/* std::vector<String>& */ collectSetParameter(const String setname, const String qp, std::vector<String>& ret);
     ///Returns a String of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname
     String exportAttachment(const String filename, const String qpname) const;
+    ///Gives the names of the registered runs in the vector ids.
+    void getRunNames (std::vector<String>& ids) const;
     ///Returns true if the given run name is present in this file
     bool existsRun(const String filename) const;
     ///Returns true if the given set name is present in this file
