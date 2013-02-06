@@ -41,8 +41,9 @@ set(required_variables "SOURCE_PATH;TARGET_PATH;OPENMS_VERSION")
 check_variables(required_variables)
 
 find_package(Subversion)
-if(SUBVERSION_FOUND)
-  Subversion_WC_INFO(${SOURCE_PATH} OpenMS)
+if(Subversion_FOUND)
+  file(TO_CMAKE_PATH "${SOURCE_PATH}" _OpenMS_CMAKE_PATH)
+  Subversion_WC_INFO(${_OpenMS_CMAKE_PATH} OpenMS)
   string(REGEX REPLACE "^([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+).*"
     "\\1\\2\\3\\4\\5" KNIME_DATE "${OpenMS_WC_LAST_CHANGED_DATE}")
   set(CF_OPENMS_VERSION "${OPENMS_VERSION}.${KNIME_DATE}")
