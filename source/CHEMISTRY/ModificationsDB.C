@@ -78,6 +78,8 @@ namespace OpenMS
 
   void ModificationsDB::searchTerminalModifications(set<const ResidueModification *> & mods, const String & name, ResidueModification::Term_Specificity term_spec) const
   {
+    mods.clear();
+
     //cerr << "searchTerminalModification(" << name << " " << term_spec << endl;
     if (!modification_names_.has(name))
     {
@@ -98,6 +100,8 @@ namespace OpenMS
 
   void ModificationsDB::searchModifications(set<const ResidueModification *> & mods, const String & origin, const String & name, ResidueModification::Term_Specificity term_spec) const
   {
+    mods.clear();
+
     //cerr << "searchModification(" << origin << " " << name << " " << term_spec << endl;
     if (!modification_names_.has(name))
     {
@@ -121,7 +125,8 @@ namespace OpenMS
 
   void ModificationsDB::searchModifications(std::set<const ResidueModification *> & mods, const String & name, ResidueModification::Term_Specificity term_spec) const
   {
-    //cerr << "searchModification(" << origin << " " << name << " " << term_spec << endl;
+     mods.clear();
+
     if (!modification_names_.has(name))
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
@@ -242,8 +247,9 @@ namespace OpenMS
     return idx;
   }
 
-  void ModificationsDB::getTerminalModificationsByDiffMonoMass(vector<String> & mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec)
+  void ModificationsDB::getTerminalModificationsByDiffMonoMass(vector<String>& mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec)
   {
+    mods.clear();
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
       if (fabs((*it)->getDiffMonoMass() - mass) <= error && (*it)->getTermSpecificity() == term_spec)
@@ -253,8 +259,9 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::getModificationsByDiffMonoMass(vector<String> & mods, DoubleReal mass, DoubleReal error)
+  void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, DoubleReal mass, DoubleReal error)
   {
+    mods.clear();
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
       if (fabs((*it)->getDiffMonoMass() - mass) <= error)
@@ -266,6 +273,7 @@ namespace OpenMS
 
   void ModificationsDB::getModificationsByDiffMonoMass(vector<String> & mods, const String & residue, DoubleReal mass, DoubleReal error)
   {
+    mods.clear();
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
       if (fabs((*it)->getDiffMonoMass() - mass) <= error)
@@ -526,6 +534,8 @@ namespace OpenMS
 
   void ModificationsDB::getAllSearchModifications(vector<String> & modifications)
   {
+    modifications.clear();
+
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
       if ((*it)->getUniModAccession() != "")
