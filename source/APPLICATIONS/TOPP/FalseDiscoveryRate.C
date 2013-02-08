@@ -75,7 +75,7 @@ using namespace std;
 
     @Note When no decoy hits were found you will get a warning saying something like:<br>
           "FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0!"<br>
-          This should be a serious concern, since the target/decoy annotation in a previous step has probably a misconfigured database (see @TOPP_PeptideIndexer).
+          This should be a serious concern, since the target/decoy annotation in a previous step has probably a misconfigured database (see @ref TOPP_PeptideIndexer).
 
 
     <B>The command line parameters of this tool are:</B>

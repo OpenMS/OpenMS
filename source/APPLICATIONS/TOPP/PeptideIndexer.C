@@ -73,12 +73,12 @@ using namespace std;
   indicating if the peptide sequence is found in a 'target', a 'decoy' or in both 'target+decoy' protein. This information is
   crucial for the @ref TOPP_FalseDiscoveryRate @ref TOPP_IDPosteriorErrorProbability tools.
 
-  @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @UTIL_DecoyDabase. \
-        If the decoy identifier is not recognized successfully all proteins will be assumed to stem from the target-part of the query.
-        E.g., "sw|P33354_REV|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid!</b>, since the tool has no knowledge of how SwissProt entries are build up.
+  @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref UTILS_DecoyDatabase.
+        If the decoy identifier is not recognized successfully all proteins will be assumed to stem from the target-part of the query.<br>
+        E.g., "sw|P33354_REV|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
         A correct identifier could be "rev_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_rev Uncharacterized li", depending on if you are
         using prefix annotation or not.<br>
-        This tool will also give you some stats when its done. Look carefully!
+        This tool will also give you some target/decoy statistics when its done. Look carefully!
 
 
   This tool supports relative database filenames, which (when not found in the current working directory) is looked up in
@@ -104,10 +104,10 @@ using namespace std;
   needs to be done for unassigned peptides, the latter will consume the major time portion.
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_PeptideIndexer.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_PeptideIndexer.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_PeptideIndexer.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_PeptideIndexer.html
 */
 
 
