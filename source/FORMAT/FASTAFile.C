@@ -83,7 +83,10 @@ namespace OpenMS
     {
       if (readRecord(id, seq, reader, seqan::Fasta()) != 0)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Error while parsing FASTA file!");
+        String msg;
+        if (data.empty()) msg = "The first entry could not be read!";
+        else msg = "The last successfull FASTA record was: '>" + data.back().identifier + "'. The record after failed.";
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Error while parsing FASTA file '" + filename + "'! " + msg +  " Please check the file!");
       }
 
       FASTAEntry newEntry;
