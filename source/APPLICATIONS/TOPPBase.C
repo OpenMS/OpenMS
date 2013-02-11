@@ -544,12 +544,26 @@ namespace OpenMS
         advance_size = 0;
         while (line.hasPrefix("\n"))
         {
-          line = line.substr(1); advance_size++;
+          line = line.substr(1);
+          ++advance_size;
         } // advance by # of \n's
-        if (line.hasSubstring("\n"))
-          line = line.prefix('\n');
+        if (line.hasSubstring("\n")) line = line.prefix('\n');
         advance_size += line.size(); // + actual chars
       }
+
+      // check if we are using the full length and split a word at the same time
+      // cut a little earlier in that case for nicer looks
+      //std::cerr << line.size() << " "<< (result.size() == 0 ? line_len : short_line_len) << " " << short_line_len << "\n";
+      if (line.size() ==  (result.size() == 0 ? line_len : short_line_len) && short_line_len > 8)
+      {
+        String last_word = line.suffix(' ');
+        if (last_word.length() < 4)
+        { // shorten by last word (will move to the next line)
+          line = line.prefix(line.size() - last_word.length());
+          advance_size -= last_word.size(); // + actual chars
+        }
+      }
+
       i += advance_size;
       String s_intend = (result.size() == 0 ? "" : String(indentation, ' ')); // first line no intendation
       String r = s_intend + (result.size() == 0 ? line : line.trim()); // intended lines get trimmed
