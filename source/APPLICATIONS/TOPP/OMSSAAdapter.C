@@ -325,7 +325,8 @@ protected:
     //-hl <Integer> maximum number of hits retained for one spectrum
     //-he <Double> the maximum e-value allowed in the hit list
     registerIntOption_("hl", "<Integer>", 30, "maximum number of hits retained for one spectrum. Note: even when set to 1 OMSSA may report multiple hits with different charge states", false);
-    registerDoubleOption_("he", "<Real>", 1, "the maximum e-value allowed in the hit list", false);
+    registerDoubleOption_("he", "<Real>", 1000, "the maximum e-value allowed in the hit list. If you set this parameter too small (e.g., he=1), this will effectively introduce FDR filtering."
+                                                " Thus, allowing a less stringent FDR during post-processing will nevertheless return the (better) FDR introduced here, since mediocre hits are not even reported.", false);
 
     //Post translational modifications
     //To specify modifications, first type in "omssacl -ml" to see a list of modifications available and their corresponding id number.  Then when running the search, specify the id numbers of the modification you wish to apply, e.g. "omssacl -mf 5 -mv 1,8 ...". Multiple PTMs can be specified by placing commas between the numbers without any spaces.  At the present time, the list of allowed post translational modifications will be expanded over time.
