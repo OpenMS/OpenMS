@@ -263,7 +263,7 @@ namespace OpenMS
     //set current path
     current_path_ = param_.getValue("preferences:default_path");
 
-    //set & create temporary path -- make sure its a new subdirectory, as TOPPASScene will delete it when its done
+    //set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
     QString new_tmp_dir = File::getUniqueName().toQString();
     QDir qd(File::getTempDirectory().toQString());
     qd.mkdir(new_tmp_dir);
@@ -287,6 +287,12 @@ namespace OpenMS
   TOPPASBase::~TOPPASBase()
   {
     savePreferences();
+    // delete temporary files (TODO: make this a user dialog and ask - for later resume)
+    // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
+    if (String(tmp_path_).substitute("\\", "/").hasPrefix(File::getTempDirectory().substitute("\\", "/") + "/"))
+    {
+      File::removeDirRecursively(tmp_path_);
+    }
   }
 
   void TOPPASBase::descriptionUpdated_()

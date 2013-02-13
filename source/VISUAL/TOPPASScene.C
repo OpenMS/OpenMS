@@ -113,13 +113,6 @@ namespace OpenMS
       edge->setSelected(true);
     }
     removeSelected();
-
-    // delete temporary files (TODO: make this a user dialog and ask - for later resume)
-    // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
-    if (String(tmp_path_).substitute("\\", "/").hasPrefix(File::getTempDirectory().substitute("\\", "/") + "/"))
-    {
-      File::removeDirRecursively(tmp_path_);
-    }
   }
 
   void TOPPASScene::setActionMode(ActionMode mode)
