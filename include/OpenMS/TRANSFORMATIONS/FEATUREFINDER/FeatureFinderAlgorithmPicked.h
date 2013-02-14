@@ -137,6 +137,8 @@ public:
       defaults_.setMinInt("isotopic_pattern:charge_low", 1);
       defaults_.setValue("isotopic_pattern:charge_high", 4, "Highest charge to search for.");
       defaults_.setMinInt("isotopic_pattern:charge_high", 1);
+      defaults_.setValue("isotopic_pattern:max_isotopes", 20, "Maximum number of isotopes generated in averagine model. This should be larger e.g. for metabolic labeling experiments");
+      defaults_.setMinInt("isotopic_pattern:max_isotopes", 1);
       defaults_.setValue("isotopic_pattern:mz_tolerance", 0.03, "Tolerated m/z deviation from the theoretical isotopic pattern.\nIt should be larger than the m/z resolution of the instument.\nThis value must be smaller than that 1/charge_high!");
       defaults_.setMinFloat("isotopic_pattern:mz_tolerance", 0.0);
       defaults_.setValue("isotopic_pattern:intensity_percentage", 10.0, "Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", StringList::create("advanced"));
@@ -225,6 +227,8 @@ public:
       UInt max_iterations = param_.getValue("fit:max_iterations");
       DoubleReal epsilon_abs = param_.getValue("fit:epsilon_abs");
       DoubleReal epsilon_rel = param_.getValue("fit:epsilon_rel");
+
+      Size max_isotopes = (Size)param_.getValue("isotopic_pattern:max_isotopes");
 
       // initialize trace fitter parameters here to avoid
       // bug https://sourceforge.net/apps/trac/open-ms/ticket/147
@@ -428,7 +432,7 @@ public:
         {
           //if(debug_) log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
           IsotopeDistribution d;
-          d.setMaxIsotope(20);
+          d.setMaxIsotope(max_isotopes);
           d.estimateFromPeptideWeight(0.5 * mass_window_width_ + index * mass_window_width_);
           //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
           Size size_before = d.size();
