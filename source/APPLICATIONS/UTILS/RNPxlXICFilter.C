@@ -117,7 +117,7 @@ protected:
 
       Size length = std::max(rts1.size(), rts2.size()) / 2.0;
 
-      cout << length << endl;
+      //cout << length << endl;
       if (length == 0)
       {
         cerr << "WARNING: no MS1 scans in retention time window found in both maps (mz: " << pc_mzs[i] << " / rt: " << pc_ms2_rts[i] << ")" << endl;
@@ -173,11 +173,12 @@ protected:
         indifferent_XICs.push_back(pc_ms2_rt);
         continue;
       }
-
+      /*
       for (Size k = 0; k != length; ++k)
       {
         cout << k << ": " << rt_start + rttol / length * k  << ": " << XIC1[k] << " " << XIC2[k] << endl;
       }
+      */
     }
 
     cout << "control larger: " << control_XIC_larger.size() << " treatment larger: " << treatment_XIC_larger.size() << " indifferent: " << indifferent_XICs.size() << endl;

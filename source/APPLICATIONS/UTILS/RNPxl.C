@@ -951,7 +951,11 @@ protected:
         p->setProcessChannelMode(QProcess::MergedChannels);
         p->start("OMSSAAdapter", args);
         p->waitForFinished(999999999);
-        cout << QString(p->readAllStandardOutput()).toStdString() << endl;
+        QString std_output = QString(p->readAllStandardOutput());
+        if (getIntOption_("debug") != 0)
+        {
+          cout << std_output.toStdString() << endl;
+        }
         delete(p);
       }
     }
@@ -1201,7 +1205,11 @@ protected:
     p->setProcessChannelMode(QProcess::MergedChannels);
     p->start("PeptideIndexer", args);
     p->waitForFinished(999999999);
-    cout << QString(p->readAllStandardOutput()).toStdString() << endl;
+    QString peptide_indexer_stdout = QString(p->readAllStandardOutput());
+    if (getIntOption_("debug") > 0)
+    {
+      cout << peptide_indexer_stdout.toStdString() << endl;
+    }
     delete(p);
 
     // load indexed idXML 
@@ -1266,7 +1274,6 @@ protected:
         rit->accessions = min_distance_it->second;
       }
     }
-
 
     // write csv
     ofstream csv_file(out_csv.c_str());
