@@ -49,7 +49,7 @@ namespace OpenMS
     params_rt_(), params_mz_(), params_intensity_(),
     max_intensity_(max_intensity), force_constraints_(force_constraints)
   {
-    defaults_.setValue("distance_RT:max_difference", 100.0, "Maximum allowed difference in RT");
+    defaults_.setValue("distance_RT:max_difference", 100.0, "Maximum allowed difference in RT in seconds");
     defaults_.setMinFloat("distance_RT:max_difference", 0.0);
     defaults_.setValue("distance_RT:exponent", 1.0, "Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", StringList::create("advanced"));
     defaults_.setMinFloat("distance_RT:exponent", 0.0);
@@ -57,7 +57,7 @@ namespace OpenMS
     defaults_.setMinFloat("distance_RT:weight", 0.0);
     defaults_.setSectionDescription("distance_RT", "Distance component based on RT differences");
 
-    defaults_.setValue("distance_MZ:max_difference", 0.3, "Maximum allowed difference in m/z (unit defined by 'mz_unit')");
+    defaults_.setValue("distance_MZ:max_difference", 0.3, "Maximum allowed difference in m/z (unit defined by 'unit')");
     defaults_.setMinFloat("distance_MZ:max_difference", 0.0);
     defaults_.setValue("distance_MZ:unit", "Da", "Unit of the 'max_difference' parameter");
     defaults_.setValidStrings("distance_MZ:unit", StringList::create("Da,ppm"));
