@@ -41,7 +41,7 @@ namespace OpenMS
   namespace TargetedExperimentHelper
   {
 
-    void setModification(int location, int max_size, String modification, OpenMS::AASequence & aas)
+    void setModification(int location, int max_size, String modification, OpenMS::AASequence& aas)
     {
       if (location == -1)
       {
@@ -51,7 +51,7 @@ namespace OpenMS
       {
         aas.setCTerminalModification(modification);
       }
-      else 
+      else
       {
         aas.setModification(location, modification);
       }
@@ -74,7 +74,7 @@ namespace OpenMS
           for (std::vector<CVTerm>::iterator mo = mods.begin(); mo != mods.end(); ++mo)
           {
             // if we find a CV term that starts with UniMod, chances are we can use the UniMod accession number
-            if (mo->getAccession().size() > 7 && mo->getAccession().prefix(7).toLower() == String("unimod:") )
+            if (mo->getAccession().size() > 7 && mo->getAccession().prefix(7).toLower() == String("unimod:"))
             {
               nr_modifications_added++;
               setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), "UniMod:" + mo->getAccession().substr(7), aas);
@@ -84,7 +84,7 @@ namespace OpenMS
 
         // Step 2: If the above step fails, try to find the correct
         // modification some other way, i.e. by using the mass difference
-        if(nr_modifications_added == 0)
+        if (nr_modifications_added == 0)
         {
           std::vector<String> mods;
           mod_db->getModificationsByDiffMonoMass(mods, peptide.sequence[it->location], it->mono_mass_delta, 0.0);
@@ -96,11 +96,11 @@ namespace OpenMS
         }
 
         // In theory, each modification in the TraML should map to one modification added to the AASequence
-        if(nr_modifications_added > 1)
+        if (nr_modifications_added > 1)
         {
           std::cout << "Warning: More than one modification was found for peptide " << peptide.sequence << " at position " << it->location << std::endl;
         }
-        else if(nr_modifications_added == 0)
+        else if (nr_modifications_added == 0)
         {
           std::cout << "Warning: Could not determine modification with delta mass " <<  it->mono_mass_delta << " for peptide " << peptide.sequence << " at position " << it->location << std::endl;
         }

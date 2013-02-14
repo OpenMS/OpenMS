@@ -60,7 +60,7 @@ namespace OpenMS
     brush_color_ = Qt::lightGray;
   }
 
-  TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex & rhs) :
+  TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs) :
     TOPPASVertex(rhs)
   {
     pen_color_ = Qt::black;
@@ -72,14 +72,14 @@ namespace OpenMS
 
   }
 
-  TOPPASOutputFileListVertex & TOPPASOutputFileListVertex::operator=(const TOPPASOutputFileListVertex & rhs)
+  TOPPASOutputFileListVertex& TOPPASOutputFileListVertex::operator=(const TOPPASOutputFileListVertex& rhs)
   {
     TOPPASVertex::operator=(rhs);
 
     return *this;
   }
 
-  void TOPPASOutputFileListVertex::paint(QPainter * painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
+  void TOPPASOutputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
   {
     QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
     if (isSelected())
@@ -162,10 +162,10 @@ namespace OpenMS
       return;
     }
 
-    String full_dir = createOutputDir();     // create output dir
+    String full_dir = createOutputDir(); // create output dir
 
     round_total_ = (int) pkg.size(); // take number of rounds from previous tool(s) - should all be equal
-    round_counter_ = 0;        // once round_counter_ reaches round_total_, we are done
+    round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
 
     // clear output file list
     output_files_.clear();
@@ -174,7 +174,7 @@ namespace OpenMS
     files_total_ = 0;
     files_written_ = 0;
 
-    bool dry_run = qobject_cast<TOPPASScene *>(scene())->isDryRun();
+    bool dry_run = qobject_cast<TOPPASScene*>(scene())->isDryRun();
 
     int param_index_src = e->getSourceOutParam();
     int param_index_me = e->getTargetInParam();
@@ -199,27 +199,27 @@ namespace OpenMS
 
         // get file type and rename
         FileTypes::Type ft = FileTypes::UNKNOWN;
-		    if (!dry_run)
-		    {
+        if (!dry_run)
+        {
           TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
           if (ttv)
           {
-			      QVector<TOPPASToolVertex::IOInfo> source_output_files;
+            QVector<TOPPASToolVertex::IOInfo> source_output_files;
             ttv->getOutputParameters(source_output_files);
             if (e->getSourceOutParam() < source_output_files.size())
             {
               StringList types = source_output_files[e->getSourceOutParam()].valid_types;
-              if (types.size()==1) // if suffix is unambiguous
+              if (types.size() == 1) // if suffix is unambiguous
               {
-                ft = FileHandler::getTypeByFileName(String("prefix.")+types[0]);
+                ft = FileHandler::getTypeByFileName(String("prefix.") + types[0]);
               }
               else
               {
-                ft = FileHandler::getTypeByContent(f);       // this will access the file physically
+                ft = FileHandler::getTypeByContent(f); // this will access the file physically
               }
             }
           }
-		    }
+        }
 
         if (ft != FileTypes::UNKNOWN)
         {
@@ -286,7 +286,7 @@ namespace OpenMS
     __DEBUG_END_METHOD__
   }
 
-  bool TOPPASOutputFileListVertex::copy_(const QString & from, const QString & to)
+  bool TOPPASOutputFileListVertex::copy_(const QString& from, const QString& to)
   {
     return QFile::copy(from, to);
   }
@@ -294,7 +294,7 @@ namespace OpenMS
   void TOPPASOutputFileListVertex::inEdgeHasChanged()
   {
     reset(true);
-    qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+    qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
     TOPPASVertex::inEdgeHasChanged();
   }
 
@@ -309,7 +309,7 @@ namespace OpenMS
 
   String TOPPASOutputFileListVertex::getFullOutputDirectory() const
   {
-    TOPPASScene * ts = qobject_cast<TOPPASScene *>(scene());
+    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
     String dir = String(ts->getOutDir()).substitute("\\", "/");
     return QDir::cleanPath((dir.ensureLastChar('/') + getOutputDir()).toQString());
   }
@@ -321,8 +321,8 @@ namespace OpenMS
 
   String TOPPASOutputFileListVertex::getOutputDir() const
   {
-    TOPPASEdge * e = *inEdgesBegin();
-    TOPPASVertex * tv = e->getSourceVertex();
+    TOPPASEdge* e = *inEdgesBegin();
+    TOPPASVertex* tv = e->getSourceVertex();
 
     String dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-" + tv->getName();
     return dir;

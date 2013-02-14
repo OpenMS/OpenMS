@@ -170,7 +170,7 @@ struct RNPxlReportRow
   DoubleReal m_4H;
 
   String getString(String separator)
-  {    
+  {
     StringList sl;
 
     // rt mz
@@ -180,7 +180,8 @@ struct RNPxlReportRow
     if (no_id)
     {
       sl << "" << "" << "" << "" << "" << "" << "" << "";
-    } else
+    }
+    else
     {
       sl << accessions << RNA << peptide << String(charge) << String(score)
          << String::number(peptide_weight, 4) << String::number(RNA_weight, 4) << String::number(peptide_weight + RNA_weight, 4);
@@ -200,7 +201,8 @@ struct RNPxlReportRow
     {
       sl << "" << ""
          << "" << "" << "" << "";
-    } else
+    }
+    else
     {
       // error
       sl << String::number(abs_prec_error, 4)
@@ -208,13 +210,14 @@ struct RNPxlReportRow
 
       // weight
       sl << String::number(m_H, 4)
-          << String::number(m_2H, 4)
-          << String::number(m_3H, 4)
-          << String::number(m_4H, 4);
+         << String::number(m_2H, 4)
+         << String::number(m_3H, 4)
+         << String::number(m_4H, 4);
     }
 
     return sl.concatenate(separator);
   }
+
 };
 
 struct MarkerIonExtractor
@@ -244,7 +247,7 @@ struct MarkerIonExtractor
       {
         DoubleReal mz = it->second[i].first;
         DoubleReal max_intensity = 0;
-        for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit)  // TODO: replace by binary search
+        for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit) // TODO: replace by binary search
         {
           if (sit->getMZ() + marker_tolerance < mz)
           {
@@ -268,6 +271,7 @@ struct MarkerIonExtractor
 
     return;
   }
+
 };
 
 struct RNPxlReportRowHeader
@@ -276,7 +280,7 @@ struct RNPxlReportRowHeader
   {
     StringList sl;
     sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
-        << "peptide weight" << "RNA weight" << "cross-link weight";
+       << "peptide weight" << "RNA weight" << "cross-link weight";
 
     // marker ion fields
     Map<String, vector<pair<DoubleReal, DoubleReal> > > marker_ions;
@@ -291,6 +295,7 @@ struct RNPxlReportRowHeader
     sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H";
     return sl.concatenate(separator);
   }
+
 };
 
 struct ModificationMassesResult
@@ -302,7 +307,7 @@ struct ModificationMassesResult
 
 ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4)
 {
-   String original_sequence_restriction = sequence_restriction;
+  String original_sequence_restriction = sequence_restriction;
 
   // 152 modification
   const String cysteine_adduct_string("C1H2N3O6");
@@ -462,7 +467,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   StringList target_sequences;
   generateTargetSequences(sequence_restriction, 0, map_source_to_targets, target_sequences);
   cout << "target sequence(s):" << target_sequences.size() << endl;
-  
+
   if (!original_sequence_restriction.empty())
   {
     for (Size i = 0; i != target_sequences.size(); ++i)
@@ -470,7 +475,8 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
       if (target_sequences[i].size() < 60)
       {
         cout << target_sequences[i] << endl;
-      } else
+      }
+      else
       {
         cout << target_sequences[i].prefix(60) << "..."  << endl;
       }
@@ -535,14 +541,14 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
     //    cout << all_combinations.size() << endl;
     for (Size i = 0; i != all_combinations.size(); ++i)
     {
-      //      cout << all_combinations[i].getString() << endl;      
+      //      cout << all_combinations[i].getString() << endl;
       result.mod_masses[all_combinations[i].getString()] = all_combinations[i].getMonoWeight();
     }
   }
 
   cout << "Filtering on restrictions... " << endl;
   // filtering on restrictions
-  std::vector<pair<String, String> > violates_restriction;  // elemental composition, nucleotide style formula 
+  std::vector<pair<String, String> > violates_restriction; // elemental composition, nucleotide style formula
   for (Map<String, DoubleReal>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
     // remove additive or subtractive modifications from string as these are not used in string comparison
@@ -592,7 +598,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
 
       if (containment_violated || restriction_violated)
       {
-        violates_restriction.push_back(make_pair(mit->first, *sit));  // chemical formula, nucleotide style formula pair violates restrictions        
+        violates_restriction.push_back(make_pair(mit->first, *sit)); // chemical formula, nucleotide style formula pair violates restrictions
       }
     }
   }
@@ -605,16 +611,17 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   }
 
   // standard associative-container erase idiom
-  for (map<String, set<String> >::iterator mcit = result.mod_combinations.begin(); mcit != result.mod_combinations.end();)
+  for (map<String, set<String> >::iterator mcit = result.mod_combinations.begin(); mcit != result.mod_combinations.end(); )
   {
     if (mcit->second.empty())
     {
       //cout << "filtered sequence: " << mcit->first << endl;
-      result.mod_masses.erase(mcit->first);  // remove from mod masses
+      result.mod_masses.erase(mcit->first); // remove from mod masses
       result.mod_combinations.erase(mcit++); // don't change precedence !
-    } else
+    }
+    else
     {
-       ++mcit;  // don't change precedence !
+      ++mcit;   // don't change precedence !
     }
   }
 
@@ -650,10 +657,11 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
       // sort nucleotides up to beginning of modification (first '+' or '-')
       if (p != String::npos)
       {
-        std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.begin() + p);       
-      } else
+        std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.begin() + p);
+      }
+      else
       {
-        std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());       
+        std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
       }
 
       // only print ambigous sequences once
@@ -664,7 +672,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
         printed.insert(nucleotide_style_formula);
       }
     }
-  
+
     cout << ")" << endl;
   }
   cout << "Finished generation of modification masses." << endl;
@@ -672,11 +680,11 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
 }
 
 class TOPPRNPxl :
-    public TOPPBase
+  public TOPPBase
 {
 public:
   TOPPRNPxl() :
-      TOPPBase("RNPxl", "Tool for RNP cross linking experiment analysis.", false)
+    TOPPBase("RNPxl", "Tool for RNP cross linking experiment analysis.", false)
   {
   }
 
@@ -727,7 +735,6 @@ protected:
     registerOutputFile_("out_csv", "<file>", "", "csv output file\n");
     setValidFormats_("out_csv", StringList::create("csv"));
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -1001,7 +1008,7 @@ protected:
         for (vector<ProteinHit>::iterator it2 = ph_tmp.begin(); it2 != ph_tmp.end(); ++it2)
         {
           cout << it2->getAccession() << endl;
-        }	
+        }
       }
       */
 
@@ -1069,7 +1076,7 @@ protected:
 
         if (xlink_idx != 0) // non-modified
         {
-          xlink_name = *(mm.mod_combinations[mm.mod_formula_idx[xlink_idx]].begin());  // take first one (if ambiguous)
+          xlink_name = *(mm.mod_combinations[mm.mod_formula_idx[xlink_idx]].begin()); // take first one (if ambiguous)
         }
 
         DoubleReal rt = (DoubleReal)orig_rt / (DoubleReal)RT_FACTOR;
@@ -1121,7 +1128,7 @@ protected:
         for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
         {
           for (Size i = 0; i != it->second.size(); ++i)
-          {            
+          {
             whole_experiment_filtered_peptide_ids.back().setMetaValue(it->first + "_" + it->second[i].first, (DoubleReal)it->second[i].second * 100.0);
           }
         }
@@ -1212,7 +1219,7 @@ protected:
     }
     delete(p);
 
-    // load indexed idXML 
+    // load indexed idXML
     pr_tmp.clear();
     pt_tmp.clear();
     IdXMLFile().load(out_idXML, pr_tmp, pt_tmp);
@@ -1232,13 +1239,14 @@ protected:
           if (j < 3)
           {
             accession_string += accessions[j] + " ";
-          } else
+          }
+          else
           {
             accession_string += "...";
             break;
           }
         }
-        map_rt_2_accession[rt] = accession_string;	
+        map_rt_2_accession[rt] = accession_string;
       }
     }
 
@@ -1251,24 +1259,26 @@ protected:
       if (before == map_rt_2_accession.begin())
       {
         min_distance_it = before;
-      } 
+      }
       else if (before == map_rt_2_accession.end())
       {
         min_distance_it = --before;
-      } else
+      }
+      else
       {
         map<DoubleReal, String>::iterator after = before;
         --before;
-        if ( (after->first - current_rt) < (current_rt - before->first) )
+        if ((after->first - current_rt) < (current_rt - before->first))
         {
           min_distance_it = after;
-        } else
+        }
+        else
         {
           min_distance_it = before;
         }
       }
-      
-      cout << min_distance_it->first << " " << current_rt << endl; 
+
+      cout << min_distance_it->first << " " << current_rt << endl;
       if (fabs(min_distance_it->first - current_rt) < 0.01)
       {
         rit->accessions = min_distance_it->second;
@@ -1277,12 +1287,12 @@ protected:
 
     // write csv
     ofstream csv_file(out_csv.c_str());
-    
+
     // header of table
     csv_file << RNPxlReportRowHeader().getString("\t") << endl;
 
     for (Size i = 0; i != csv_rows.size(); ++i)
-    {	  
+    {
       csv_file << csv_rows[i].getString("\t") << endl;
     }
 
