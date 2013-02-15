@@ -48,6 +48,7 @@
           <NODE name="isotopic_pattern" description="Settings for the calculation of a score indicating if a peak is part of a isotopic pattern (between 0 and 1).">
             <ITEM name="charge_low" value="2" type="int" description="Lowest charge to search for." restrictions="1:" />
             <ITEM name="charge_high" value="3" type="int" description="Highest charge to search for." restrictions="1:" />
+            <ITEM name="max_isotopes" value="20" type="int" description="Maximum number of isotopes generated in averagine model. This should be larger e.g. for metabolic labeling experiments" restrictions="1:" />
             <ITEM name="mz_tolerance" value="0.005" type="float" description="Tolerated m/z deviation from the theoretical isotopic pattern.#br#It should be larger than the m/z resolution of the instument.#br#This value must be smaller than that 1/charge_high!" restrictions="0:" />
             <ITEM name="intensity_percentage" value="10" type="float" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present." tags="advanced" restrictions="0:100" />
             <ITEM name="intensity_percentage_optional" value="0.1" type="float" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing." tags="advanced" restrictions="0:100" />
@@ -146,12 +147,12 @@
           <ITEM name="use_identifications" value="false" type="string" description="Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account)" restrictions="true,false" />
           <ITEM name="ignore_charge" value="false" type="string" description="Compare features normally even if their charge states are different" restrictions="true,false" />
           <NODE name="distance_RT" description="Distance component based on RT differences">
-            <ITEM name="max_difference" value="100" type="float" description="Maximum allowed difference in RT" restrictions="0:" />
+            <ITEM name="max_difference" value="100" type="float" description="Maximum allowed difference in RT in seconds" restrictions="0:" />
             <ITEM name="exponent" value="1" type="float" description="Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="1" type="float" description="RT distances are weighted by this factor" tags="advanced" restrictions="0:" />
           </NODE>
           <NODE name="distance_MZ" description="Distance component based on m/z differences">
-            <ITEM name="max_difference" value="0.3" type="float" description="Maximum allowed difference in m/z (unit defined by &apos;mz_unit&apos;)" restrictions="0:" />
+            <ITEM name="max_difference" value="0.3" type="float" description="Maximum allowed difference in m/z (unit defined by &apos;unit&apos;)" restrictions="0:" />
             <ITEM name="unit" value="Da" type="string" description="Unit of the &apos;max_difference&apos; parameter" restrictions="Da,ppm" />
             <ITEM name="exponent" value="2" type="float" description="Normalized m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="1" type="float" description="m/z distances are weighted by this factor" tags="advanced" restrictions="0:" />
