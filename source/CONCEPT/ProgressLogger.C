@@ -160,7 +160,10 @@ namespace OpenMS
   void ProgressLogger::endProgress() const
   {
     if (recursion_depth_)
+    {
       --recursion_depth_;
+    }
+
     switch (type_)
     {
     case CMD:
@@ -168,12 +171,14 @@ namespace OpenMS
       if (begin_ == end_)
       {
         if (recursion_depth_)
+        {
           cout << '\n';
-        cout << endl << string(2 * recursion_depth_, ' ') << "-- done [took " << String::number(stop_watch_.getCPUTime(), 3) << " s(CPU), " << String::number(stop_watch_.getClockTime(), 3) << " s(Wall)] -- " << endl;
+        }
+        cout << endl << string(2 * recursion_depth_, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
       }
       else
       {
-        cout << '\r' << string(2 * recursion_depth_, ' ') << "-- done [took " << String::number(stop_watch_.getCPUTime(), 3) << " s(CPU), " << String::number(stop_watch_.getClockTime(), 3) << " s(Wall)] -- " << endl;
+        cout << '\r' << string(2 * recursion_depth_, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " <<StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
       }
       break;
 

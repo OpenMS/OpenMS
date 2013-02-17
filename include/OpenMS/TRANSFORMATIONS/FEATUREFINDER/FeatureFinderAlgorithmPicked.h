@@ -290,10 +290,6 @@ public:
         log_.open("debug/log.txt");
       }
 
-      //time
-      StopWatch stop_watch;
-      stop_watch.start();
-
       //---------------------------------------------------------------------------
       //Step 1:
       //Precalculate intensity scores for peaks
@@ -1067,10 +1063,6 @@ public:
         MzMLFile().store("debug/input.mzML", map_);
       }
 
-      //Execution time
-      stop_watch.stop();
-      std::cout << std::endl;
-      std::cout << "Execution time: " << stop_watch.getCPUTime() << " s" << std::endl;
     }
 
     static FeatureFinderAlgorithm<PeakType, FeatureType>* create()
