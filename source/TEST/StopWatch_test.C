@@ -45,7 +45,7 @@ using namespace OpenMS;
 
 void wait (int seconds)
 {
-   clock_t endwait = endwait = clock () + seconds * CLOCKS_PER_SEC;
+   clock_t endwait = clock () + seconds * CLOCKS_PER_SEC;
    while (clock () < endwait) {}
 }
 
@@ -54,15 +54,31 @@ START_TEST(StopWatch, "$Id$")
 /////////////////////////////////////////////////////////////
 
 START_SECTION((StopWatch& operator = (const StopWatch& stop_watch)))
-  // ???
+  StopWatch s1;
+  s1.start();
+  wait(1);
+  s1.stop();
+
+  StopWatch s2;
+  TEST_EQUAL(s1!=s2, true)
+  s2 = s1;
+  TEST_EQUAL(s1==s2, true)
+
 END_SECTION
 
 START_SECTION((StopWatch()))
-  // ???
+  NOT_TESTABLE; // tested above
 END_SECTION
 
 START_SECTION((StopWatch(const StopWatch& stop_watch)))
-  // ???
+  StopWatch s1;
+  s1.start();
+  wait(1);
+  s1.stop();
+
+  StopWatch s2(s1);
+  TEST_EQUAL(s1==s2, true)
+  
 END_SECTION
 
 START_SECTION((bool isRunning() const))
@@ -97,8 +113,12 @@ START_SECTION((bool operator != (const StopWatch& stop_watch) const))
 
   TEST_EQUAL(s2!=s3, true)
   s3 = s2;
-  TEST_EQUAL(s2==s3, true);
+  TEST_EQUAL(s2==s3, true)
 
+  s2.start();
+  wait(1);
+  TEST_EQUAL(s2==s3, false)
+  s2.stop();
 
 END_SECTION
 
@@ -155,10 +175,12 @@ START_SECTION((DoubleReal getCPUTime() const ))
   wait(3);
   s.stop();
 
-  TEST_EQUAL(s.getCPUTime() > 2, true) // waiting costs CPU time... just not sure how much...
-  TEST_EQUAL(s.getClockTime() > 2, true) // and should consume wall time
+  //std::cerr << "CPU TIME: " << s.getCPUTime() << " "<< s.getUserTime() << "  "<< s.getSystemTime() << "\n\n";
+
+  TEST_EQUAL(s.getCPUTime() > 0.1, true) // waiting costs CPU time... just not sure how much...
+  TEST_EQUAL(s.getClockTime() > 2, true) // and must consume wall time
   TEST_EQUAL(s.getClockTime() < 4, true)
-  TEST_EQUAL(s.getUserTime() > 2, true) //  and 3 user time
+  TEST_EQUAL(s.getUserTime() > 0.1, true) //  and some user time
   TEST_EQUAL(s.getUserTime() < 4, true)
   TEST_EQUAL(s.getSystemTime() < 0.5, true) // but no system time
 END_SECTION
