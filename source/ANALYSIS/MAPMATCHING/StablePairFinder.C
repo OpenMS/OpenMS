@@ -60,7 +60,7 @@ namespace OpenMS
     defaults_.setValue("second_nearest_gap", 2.0, "The distance to the second nearest neighbors must be larger by this factor than the distance to the matching element itself");
     defaults_.setMinFloat("second_nearest_gap", 1.0);
 
-    defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account)");
+    defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account). Warning: runtime might increase significantly!");
     defaults_.setValidStrings("use_identifications", StringList::create("true,false"));
 
     defaults_.insert("", FeatureDistance().getDefaults());
@@ -121,6 +121,9 @@ namespace OpenMS
     vector<DoublePair> nn_distance_1(input_maps[1].size(), init);
 
     // iterate over all feature pairs, find nearest neighbors:
+    // TODO: iterate over SENSIBLE RT (and m/z) window -- sort the maps beforehand
+    //       to save a lot of processing time...
+    //       Once done, remove the warning in the description of the 'use_idenfications' parameter 
     for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
     {
       const ConsensusFeature & feat0 = input_maps[0][fi0];
