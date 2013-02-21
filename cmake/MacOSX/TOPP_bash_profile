@@ -38,8 +38,10 @@
 if [ -n "$IS_TOPP_SHELL" ]; then
   ## we need the systems profile for the bash
   source /etc/profile 
-  ## also add user profile 
-  source ~/.profile
+  ## also add user profile; if it exists
+  if [ -e ~/.profile ]; then
+    source ~/.profile
+  fi
 fi
 
 if [ -z  "${OPENMS_TOPP_PATH}" ]; then
