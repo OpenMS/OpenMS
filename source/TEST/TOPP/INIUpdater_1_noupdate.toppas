@@ -48,12 +48,13 @@
           <NODE name="isotopic_pattern" description="Settings for the calculation of a score indicating if a peak is part of a isotopic pattern (between 0 and 1).">
             <ITEM name="charge_low" value="2" type="int" description="Lowest charge to search for." restrictions="1:" />
             <ITEM name="charge_high" value="3" type="int" description="Highest charge to search for." restrictions="1:" />
-            <ITEM name="max_isotopes" value="20" type="int" description="Maximum number of isotopes generated in averagine model. This should be larger e.g. for metabolic labeling experiments" restrictions="1:" />
             <ITEM name="mz_tolerance" value="0.005" type="float" description="Tolerated m/z deviation from the theoretical isotopic pattern.#br#It should be larger than the m/z resolution of the instument.#br#This value must be smaller than that 1/charge_high!" restrictions="0:" />
             <ITEM name="intensity_percentage" value="10" type="float" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present." tags="advanced" restrictions="0:100" />
             <ITEM name="intensity_percentage_optional" value="0.1" type="float" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing." tags="advanced" restrictions="0:100" />
             <ITEM name="optional_fit_improvement" value="2" type="float" description="Minimal percental improvement of isotope fit to allow leaving out an optional peak." tags="advanced" restrictions="0:100" />
             <ITEM name="mass_window_width" value="25" type="float" description="Window width in Dalton for precalculation of estimated isotope distributions." tags="advanced" restrictions="1:200" />
+            <ITEM name="abundance_12C" value="98.93" type="float" description="Rel. abundance of the light carbon. Modify if labeled." tags="advanced" restrictions="0:100" />
+            <ITEM name="abundance_14N" value="99.632" type="float" description="Rel. abundance of the light nitrogen. Modify if labeled." tags="advanced" restrictions="0:100" />
           </NODE>
           <NODE name="seed" description="Settings that determine which peaks are considered a seed">
             <ITEM name="min_score" value="0.8" type="float" description="Minimum seed score a peak has to reach to be used as seed.#br#The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.#br#If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score." restrictions="0:1" />
