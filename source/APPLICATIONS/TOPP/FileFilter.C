@@ -639,8 +639,12 @@ protected:
       if (sort)
       {
         exp.sortSpectra(true);
+        if (getFlag_("peak_options:sort_peaks"))
+        {
+          LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
+        }
       }
-      if (getFlag_("peak_options:sort_peaks"))
+      else if (getFlag_("peak_options:sort_peaks"))
       {
         for (Size i = 0; i < exp.size(); ++i)
         {
