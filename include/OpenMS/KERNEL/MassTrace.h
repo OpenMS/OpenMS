@@ -190,6 +190,40 @@ public:
       centroid_sd_ = tmp_sd;
     }
 
+    DoubleReal getFWHM()
+    {
+        return fwhm_;
+    }
+
+    DoubleReal getFWHM() const
+    {
+        return fwhm_;
+    }
+
+    DoubleReal getTraceLength()
+    {
+        DoubleReal length(0.0);
+
+        if (trace_peaks_.size() > 1)
+        {
+            length = std::fabs(trace_peaks_.rbegin()->getRT() - trace_peaks_.begin()->getRT());
+        }
+
+        return length;
+    }
+
+    DoubleReal getTraceLength() const
+    {
+        DoubleReal length(0.0);
+
+        if (trace_peaks_.size() > 1)
+        {
+            length = std::fabs(trace_peaks_.rbegin()->getRT() - trace_peaks_.begin()->getRT());
+        }
+
+        return length;
+    }
+
     std::pair<Size, Size> getFWHMborders()
     {
       return std::make_pair(fwhm_start_idx_, fwhm_end_idx_);
@@ -247,7 +281,11 @@ public:
         */
     /// Sum up mass trace peak intensities for chromatographic peak area estimation.
     DoubleReal computePeakArea();
+    DoubleReal computePeakArea() const;
+
     DoubleReal computePeakArea(bool);
+    DoubleReal computePeakArea(bool) const;
+
 
     /// Return the index of the mass trace's highest peak within the MassTrace container (based either on raw or smoothed intensities).
     Size findMaxByIntPeak(bool) const;
@@ -261,6 +299,10 @@ public:
     void findLocalExtrema(const Size &, std::vector<Size> &, std::vector<Size> &);
 
     DoubleReal getIntensity(bool);
+    DoubleReal getMaxIntensity(bool);
+    DoubleReal getMaxIntensity(bool) const;
+
+
 
     /// Return the mass trace's convex hull.
     ConvexHull2D getConvexhull() const;
@@ -308,6 +350,8 @@ private:
 
     /// Container for smoothed intensities. Smoothing must be done externally.
     std::vector<DoubleReal> smoothed_intensities_;
+
+    DoubleReal fwhm_;
 
     /// Scan time (time difference between two consecutive scans)
     DoubleReal scan_time_;

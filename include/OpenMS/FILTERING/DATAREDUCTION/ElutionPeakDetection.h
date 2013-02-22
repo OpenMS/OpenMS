@@ -90,7 +90,10 @@ public:
     void estimatePeakWidth(std::vector<MassTrace> &);
 
     void filterByPeakWidth(std::vector<MassTrace> &, std::vector<MassTrace> &);
-
+    DoubleReal computeMassTraceNoise(const MassTrace&);
+    DoubleReal computeMassTraceSNR(const MassTrace&);
+    DoubleReal computeApexSNR(const MassTrace&);
+    void findLocalExtrema(const MassTrace&, const Size&, std::vector<Size>&, std::vector<Size>&);
 
 protected:
     virtual void updateMembers_();
@@ -102,7 +105,12 @@ private:
     DoubleReal noise_threshold_int_;
     DoubleReal sample_rate_;
 
-    bool pw_filtering_;
+    DoubleReal min_fwhm_;
+    DoubleReal max_fwhm_;
+    DoubleReal min_trace_length_;
+    DoubleReal max_trace_length_;
+
+    String pw_filtering_;
     bool mt_snr_filtering_;
 
     void detectElutionPeaks_(MassTrace &, std::vector<MassTrace> &);

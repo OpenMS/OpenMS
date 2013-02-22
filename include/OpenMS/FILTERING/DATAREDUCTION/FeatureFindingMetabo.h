@@ -166,7 +166,7 @@ public:
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
       }
 
-      iso_pattern_[0]->updateWeightedMeanRT();
+      // iso_pattern_[0]->updateWeightedMeanRT();
 
       return iso_pattern_[0]->getCentroidRT();
     }
@@ -238,12 +238,16 @@ private:
     DoubleReal computeOLSCoeff(const std::vector<DoubleReal> &, const std::vector<DoubleReal> &);
     DoubleReal computeCosineSim(const std::vector<DoubleReal> &, const std::vector<DoubleReal> &);
 
-    svm_model * isotope_filt_svm;
-    std::vector<DoubleReal> svm_feat_centers;
-    std::vector<DoubleReal> svm_feat_scales;
+    svm_model * isotope_filt_svm_;
+    std::vector<DoubleReal> svm_feat_centers_;
+    std::vector<DoubleReal> svm_feat_scales_;
     bool isLegalIsotopePattern_(FeatureHypothesis &);
+    bool isLegalIsotopePattern2_(FeatureHypothesis &);
+
     //bool isLegalAveraginePattern(FeatureHypothesis&);
-    void loadIsotopeModel_();
+    void loadIsotopeModel_(const String&);
+
+    DoubleReal total_intensity_;
 
     DoubleReal scoreMZ_(const MassTrace &, const MassTrace &, Size, Size);
     DoubleReal scoreRT_(const MassTrace &, const MassTrace &);

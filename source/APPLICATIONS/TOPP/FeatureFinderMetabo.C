@@ -222,7 +222,7 @@ protected:
     epdet.detectPeaks(m_traces, splitted_mtraces);
 
 
-    if (epdet.getParameters().getValue("width_filtering").toBool())
+    if (epdet.getParameters().getValue("width_filtering") == "auto")
     {
       m_traces_final.clear();
       epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
@@ -232,7 +232,7 @@ protected:
       m_traces_final = splitted_mtraces;
     }
 
-    std::cout << "m_traces: " << m_traces_final.size() << std::endl;
+//    std::cout << "m_traces: " << m_traces_final.size() << std::endl;
 
     //-------------------------------------------------------------
     // configure and run feature finding
