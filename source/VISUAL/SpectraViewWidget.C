@@ -726,13 +726,11 @@ namespace OpenMS
       item->setText(3, QString::number(0));
       item->setFlags(0);
       spectra_treewidget_->addTopLevelItem(item);
-      return; // leave signals blocked
     }
 
     if (more_than_one_spectrum)
     {
       item->setFlags(0);
-      return; // leave signals blocked
     }
 
     spectra_treewidget_->blockSignals(false);

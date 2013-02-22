@@ -1975,7 +1975,6 @@ namespace OpenMS
         views_tabwidget_->setTabEnabled(1, false);
         views_tabwidget_->setTabEnabled(0, true);
       }
-
       return;
     }
 
@@ -2044,11 +2043,11 @@ namespace OpenMS
 */
   void TOPPViewBase::layerSelectionChange(int i)
   {
+    // after adding a layer i is -1. TODO: check if this is the correct behaviour
     if (i != -1)
     {
-      getActiveCanvas()->activateLayer(i);
+      getActiveCanvas()->activateLayer(i);  // also triggers update of viewBar
       updateFilterBar();
-      updateViewBar();
     }
   }
 
