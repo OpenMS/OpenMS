@@ -862,7 +862,7 @@ protected:
     UInt e(getIntOption_("e"));
     if (e != 0)
     {
-      writeLog_("Warning: cannot handle enzyme: " + getIntOption_("e"));
+      writeLog_("Warning: cannot handle enzyme: " + String(getIntOption_("e")));
     }
 
     search_parameters.enzyme = enzyme;
