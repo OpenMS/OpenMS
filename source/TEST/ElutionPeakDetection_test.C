@@ -35,6 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 
 ///////////////////////////
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
@@ -89,44 +90,128 @@ START_SECTION((void detectPeaks(std::vector< MassTrace > &, std::vector< MassTra
 {
     TEST_EQUAL(output_mt.size(), 1);
 
-    for (Size i = 0; i < output_mt.size(); ++i)
+    if (output_mt.size() > 0)
     {
-        TEST_EQUAL(output_mt[i].getLabel(), "T1");
+        TEST_EQUAL(output_mt[0].getLabel(), "T1");
+
+        test_epd.detectPeaks(output_mt, splitted_mt);
+
+        // mass traces splitted to local peaks
+        TEST_EQUAL(splitted_mt.size(), 2);
+
+        // correct labeling if subtraces?
+        TEST_EQUAL(splitted_mt[0].getLabel(), "T1.1");
+        TEST_EQUAL(splitted_mt[1].getLabel(), "T1.2");
     }
-
-
-    test_epd.detectPeaks(output_mt, splitted_mt);
-
-    // mass traces splitted to local peaks
-    TEST_EQUAL(splitted_mt.size(), 2);
-
-    // correct labeling if subtraces?
-    TEST_EQUAL(splitted_mt[0].getLabel(), "T1.1");
-    TEST_EQUAL(splitted_mt[1].getLabel(), "T1.2");
 }
 END_SECTION
 
 START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
 {
-  NOT_TESTABLE; // see above
+    NOT_TESTABLE; // see above
 }
 END_SECTION
 
 START_SECTION((void filterByPeakWidth(std::vector< MassTrace > &, std::vector< MassTrace > &)))
 {
     NOT_TESTABLE;
-//    test_epd.filterByPeakWidth(splitted_mt, filtered_mt);
+    //    test_epd.filterByPeakWidth(splitted_mt, filtered_mt);
 
-//    TEST_EQUAL(filtered_mt.size(), 32);
+    //    TEST_EQUAL(filtered_mt.size(), 32);
 
-//    for (Size i = 0; i < filtered_mt.size(); ++i)
-//    {
-//        TEST_EQUAL(filtered_mt[i].getLabel(), filt_labels[i]);
-//    }
+    //    for (Size i = 0; i < filtered_mt.size(); ++i)
+    //    {
+    //        TEST_EQUAL(filtered_mt[i].getLabel(), filt_labels[i]);
+    //    }
 }
 END_SECTION
 
+START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vector< Size > &, std::vector< Size > &)))
+{
+    std::vector<Size> maxes, mins;
 
+    if (output_mt.size() > 0)
+    {
+        MassTrace mt(output_mt[0]);
+
+        std::vector<DoubleReal> rts, ints;
+
+        for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
+        {
+            rts.push_back(c_it->getRT());
+            ints.push_back(c_it->getIntensity());
+        }
+
+        std::vector<DoubleReal> smoothed_data;
+
+        LowessSmoothing lowess_smooth;
+        Param lowess_params;
+
+        Size win_size = 20;
+
+        lowess_params.setValue("window_size", win_size);
+        lowess_smooth.setParameters(lowess_params);
+
+        lowess_smooth.smoothData(rts, ints, smoothed_data);
+
+        mt.setSmoothedIntensities(smoothed_data);
+
+        test_epd.findLocalExtrema(mt, win_size/2, maxes, mins);
+
+        TEST_EQUAL(maxes.size(), 5);
+        TEST_EQUAL(mins.size(), 1);
+    }
+    // std::cerr << maxes.size() << " " << mins.size() << std::endl;
+}
+END_SECTION
+
+splitted_mt.clear();
+test_epd.detectPeaks(output_mt, splitted_mt);
+
+START_SECTION((DoubleReal computeMassTraceNoise(const MassTrace &)))
+{
+    TEST_EQUAL(output_mt.size(), 1);
+
+    if (output_mt.size() > 0)
+    {
+        DoubleReal est_noise(test_epd.computeMassTraceNoise(output_mt[0]));
+
+        TEST_REAL_SIMILAR(est_noise, 515.297);
+    }
+}
+END_SECTION
+
+START_SECTION((DoubleReal computeMassTraceSNR(const MassTrace &)))
+{
+    TEST_EQUAL(splitted_mt.size(), 2);
+
+    if (splitted_mt.size() == 2)
+    {
+        DoubleReal snr1(test_epd.computeMassTraceSNR(splitted_mt[0]));
+        DoubleReal snr2(test_epd.computeMassTraceSNR(splitted_mt[1]));
+
+        TEST_REAL_SIMILAR(snr1, 8.6058);
+        TEST_REAL_SIMILAR(snr2, 8.946);
+    }
+}
+END_SECTION
+
+START_SECTION((DoubleReal computeApexSNR(const MassTrace &)))
+{
+    TEST_EQUAL(splitted_mt.size(), 2);
+
+    if (splitted_mt.size() == 2)
+    {
+        DoubleReal snr1(test_epd.computeApexSNR(splitted_mt[0]));
+        DoubleReal snr2(test_epd.computeApexSNR(splitted_mt[1]));
+
+        std::cout << "snr: " << snr1 << " " << snr2 << std::endl;
+
+        TEST_REAL_SIMILAR(snr1, 40.0159);
+        TEST_REAL_SIMILAR(snr2, 58.5950);
+    }
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

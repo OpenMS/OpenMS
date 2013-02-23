@@ -68,15 +68,6 @@ public:
     virtual ~ElutionPeakDetection();
 
     /// Getter & setter methods
-//    void setScanTime(const DoubleReal & st)
-//    {
-//      scan_time_ = st;
-//    }
-
-    DoubleReal getFWHM()
-    {
-      return chrom_fwhm_;
-    }
 
     /** @name Main computation methods
         */
@@ -85,9 +76,6 @@ public:
 
     /// Applies the aforementioned detection method on a series of mass traces as input.
     void detectPeaks(std::vector<MassTrace> &, std::vector<MassTrace> &);
-
-    /// Computes an estimate of the average peak width of the experiment based on smoothed intensities (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviances).
-    void estimatePeakWidth(std::vector<MassTrace> &);
 
     void filterByPeakWidth(std::vector<MassTrace> &, std::vector<MassTrace> &);
     DoubleReal computeMassTraceNoise(const MassTrace&);

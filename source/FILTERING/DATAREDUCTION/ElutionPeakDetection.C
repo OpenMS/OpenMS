@@ -77,19 +77,6 @@ ElutionPeakDetection::~ElutionPeakDetection()
 {
 }
 
-//DoubleReal ElutionPeakDetection::computeMassTraceSNR(const MassTrace& tr)
-//{
-//    DoubleReal fwhm(tr.getFWHM());
-//    DoubleReal rt_start, rt_end, length;
-//    rt_start = tr.begin()->getRT();
-//    rt_end = tr.rbegin()->getRT();
-//    length = std::fabs(rt_end - rt_start);
-
-
-//    // std::cout << "mt snr: " << tr.getLabel() << " " << length/fwhm << std::endl;
-
-//    return length/fwhm;
-//}
 
 DoubleReal ElutionPeakDetection::computeMassTraceNoise(const MassTrace& tr)
 {
@@ -124,7 +111,7 @@ DoubleReal ElutionPeakDetection::computeMassTraceSNR(const MassTrace& tr)
         snr = signal_area/noise_area;
     }
 
-    std::cout << "snr " << snr << " ";
+    // std::cout << "snr " << snr << " ";
 
     return snr;
 }
@@ -140,7 +127,7 @@ DoubleReal ElutionPeakDetection::computeApexSNR(const MassTrace& tr)
         snr = smoothed_apex_int/noise_level;
     }
 
-    std::cout << "snr " << snr << " ";
+    // std::cout << "snr " << snr << " ";
 
     return snr;
 }
@@ -354,49 +341,6 @@ void ElutionPeakDetection::detectPeaks(std::vector<MassTrace> & mt_vec, std::vec
     }
 
     this->endProgress();
-
-    return;
-}
-
-void ElutionPeakDetection::estimatePeakWidth(std::vector<MassTrace> & mt_vec)
-{
-    std::multimap<DoubleReal, Size> histo_map;
-
-    for (Size i = 0; i < mt_vec.size(); ++i)
-    {
-        DoubleReal fwhm(mt_vec[i].estimateFWHM(false));
-
-        if (fwhm > 0.0)
-        {
-            histo_map.insert(std::make_pair(fwhm, i));
-        }
-    }
-
-    // compute median peak width
-    std::vector<DoubleReal> pw_vec;
-    std::vector<Size> pw_idx_vec;
-
-    for (std::multimap<DoubleReal, Size>::const_iterator c_it = histo_map.begin(); c_it != histo_map.end(); ++c_it)
-    {
-        pw_vec.push_back(c_it->first);
-        pw_idx_vec.push_back(c_it->second);
-    }
-
-    DoubleReal pw_median(Math::median(pw_vec.begin(), pw_vec.end(), true));
-
-    //    // compute median of absolute deviances (MAD)
-    //    std::vector<DoubleReal> abs_devs;
-
-    //    for (Size pw_i = 0; pw_i < pw_vec.size(); ++pw_i)
-    //    {
-    //        abs_devs.push_back(std::fabs(pw_vec[pw_i] - pw_median));
-    //    }
-
-    //    // Size abs_devs_size = abs_devs.size();
-    //    DoubleReal pw_mad(Math::median(abs_devs.begin(), abs_devs.end(), false));
-    // std::cout << "pw_median: " << pw_median << std::endl;
-    chrom_fwhm_ = pw_median;
-
 
     return;
 }
