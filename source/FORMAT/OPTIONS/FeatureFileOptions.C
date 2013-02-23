@@ -46,7 +46,8 @@ namespace OpenMS
     metadata_only_(false),
     has_rt_range_(false),
     has_mz_range_(false),
-    has_intensity_range_(false)
+    has_intensity_range_(false),
+    size_only_(false)
   {
   }
 
@@ -110,7 +111,17 @@ namespace OpenMS
   {
     return has_mz_range_;
   }
+  
+  bool FeatureFileOptions::getSizeOnly() const
+  {
+    return size_only_;
+  }
 
+  void FeatureFileOptions::setSizeOnly(bool size_only)
+  {
+    size_only_ = size_only;
+  }
+  
   const DRange<1> & FeatureFileOptions::getMZRange() const
   {
     return mz_range_;
