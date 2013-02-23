@@ -153,7 +153,7 @@ protected:
     Int vertices = p.getValue("info:num_vertices");
 
     // update sections
-    writeDebug_("#Vertices: " + vertices, 1);
+    writeDebug_("#Vertices: " + String(vertices), 1);
     bool update_success = true;
     for (Int v = 0; v < vertices; ++v)
     {

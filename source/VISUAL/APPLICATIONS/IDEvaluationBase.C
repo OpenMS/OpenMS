@@ -433,8 +433,6 @@ namespace OpenMS
     QSize items_bounding_rect = spec_1d_->size();
     qreal wh_proportion = (qreal)(items_bounding_rect.width()) / (qreal)(items_bounding_rect.height());
     bool w_larger_than_h = wh_proportion > 1;
-    qreal x1 = 0;
-    qreal y1 = 0;
     qreal x2, y2;
 
     qreal small_edge_length = svg ? 500 : 4000;
@@ -449,9 +447,7 @@ namespace OpenMS
       x2 = small_edge_length;
       y2 = (1.0 / wh_proportion) * small_edge_length;
     }
-    qreal width = x2 - x1;
-    qreal height = y2 - y1;
-
+    
     DoubleReal h = param_.getValue("image:height");
     DoubleReal w = param_.getValue("image:width");
     setGeometry(QRect(0, 0, w, h)); // does the layout -- otherwise we'd need show() to get it right

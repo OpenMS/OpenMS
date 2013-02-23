@@ -131,12 +131,7 @@ namespace OpenMS
       ProteinIdentification & proteins = features.getProteinIdentifications()[0];
 
       quantifier.quantifyPeptides(features);
-      const PeptideAndProteinQuant::PeptideQuant & pep_result = quantifier.getPeptideResults();
-
       quantifier.quantifyProteins(proteins);
-      const PeptideAndProteinQuant::ProteinQuant & prot_result = quantifier.getProteinResults();
-
-      // result.push_back(make_pair(pep_result,prot_result));
     }
     else
     {
@@ -151,11 +146,7 @@ namespace OpenMS
       ProteinIdentification & proteins = consensus.getProteinIdentifications()[0];
 
       quantifier.quantifyPeptides(consensus);
-      const PeptideAndProteinQuant::PeptideQuant & pep_result = quantifier.getPeptideResults();
-
       quantifier.quantifyProteins(proteins);
-      const PeptideAndProteinQuant::ProteinQuant & prot_result = quantifier.getProteinResults();
-
     }
   }
 
