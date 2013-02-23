@@ -88,7 +88,10 @@ public:
     TOPPBase("IDEvaluatorGUI",
              "Computes a 'q-value vs. #PSM' plot to visualize the number identifications for a certain q-value.", false, false, false)
   {
-    char * dummy = "dummy"; int argc = 1;  QApplication a(argc, &dummy);
+    int argc = 1;
+    const char* c = "IDEvaluatorGUI";
+    const char** argv = &c;
+    QApplication a(argc, const_cast<char**>(argv));
     out_formats_ = IDEvaluationBase().getSupportedImageFormats(); // can only be called if a QApplication is present...
   }
 
@@ -102,7 +105,10 @@ protected:
     Param p = FalseDiscoveryRate().getDefaults();
     p_my.insert("fdr:", p.copy("use_all_hits"));
 
-    char * dummy = "dummy"; int argc = 1;  QApplication a(argc, &dummy);
+    int argc = 1;
+    const char* c = "IDEvaluatorGUI";
+    const char** argv = &c;
+    QApplication a(argc, const_cast<char**>(argv));
     p_my.insert("image:", IDEvaluationBase().getParameters().copy("image:", true)); // can only be called if a QApplication is present...
     return p_my;
   }
