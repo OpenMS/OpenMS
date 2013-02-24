@@ -173,7 +173,7 @@ START_SECTION((virtual void preCheck(Param &param) const =0))
 }
 END_SECTION
 
-START_SECTION((const ConsensusMap& getConsensus() ))
+START_SECTION((ConsensusMap& getConsensus() ))
 {
   ConsensusMap cm;
   TEST_EQUAL(labeler.getConsensus(), cm) // Consensus should be empty
@@ -190,6 +190,12 @@ END_SECTION
 START_SECTION((void registerChildren()))
 {
   NOT_TESTABLE
+}
+END_SECTION
+  
+START_SECTION((const String & getDescription() const))
+{
+  TEST_STRING_EQUAL(labeler.getDescription(), "")
 }
 END_SECTION
 

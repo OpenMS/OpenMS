@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ITEMLIST name="stringlist" type="string" description="StringList Description">
+    <LISTITEM value="a"/>
+    <LISTITEM value="bb"/>
+    <LISTITEM value="ccc"/>
+  </ITEMLIST>
+  <ITEMLIST name="intlist" type="int" description="">
+    <LISTITEM value="1"/>
+    <LISTITEM value="22"/>
+    <LISTITEM value="333"/>
+  </ITEMLIST>
+  <ITEM name="item" value="bla" type="string" description="" />
+  <ITEMLIST name="stringlist2" type="string" description="">
+  </ITEMLIST>
+  <ITEMLIST name="intlist2" type="int" description="">
+  </ITEMLIST>
+  <ITEM name="item1" value="7" type="int" description="" />
+  <ITEMLIST name="intlist3" type="int" description="">
+    <LISTITEM value="1"/>
+  </ITEMLIST>
+  <ITEMLIST name="stringlist3" type="string" description="">
+    <LISTITEM value="1"/>
+  </ITEMLIST>
+  <ITEM name="item3" value="7.6" type="float" description="" />
+  <ITEMLIST name="doublelist" type="float" description="">
+    <LISTITEM value="1.22"/>
+    <LISTITEM value="2.33"/>
+    <LISTITEM value="4.55"/>
+  </ITEMLIST>
+  <ITEMLIST name="doublelist3" type="float" description="">
+    <LISTITEM value="1.4"/>
+  </ITEMLIST>
+  <ITEM name="file_parameter" value="" type="string" description="This is a file parameter." restrictions="*.mzML,*.mzXML" />
+  <ITEM name="advanced_parameter" value="" type="string" description="This is an advanced parameter." tags="advanced" />
+</PARAMETERS>

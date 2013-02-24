@@ -242,9 +242,29 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 END_SECTION
 
 START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) const ))
-{
-  NOT_TESTABLE;
-  // TODO: Testing needed!
+{  
+	Param p;
+	p.setValue("stringlist", StringList::create("a,bb,ccc"), "StringList Description");
+	p.setValue("intlist", IntList::create("1,22,333"));
+	p.setValue("item", String("bla"));
+	p.setValue("stringlist2", StringList::create(""));
+	p.setValue("intlist2", IntList::create(""));
+	p.setValue("item1", 7);
+	p.setValue("intlist3", IntList::create("1"));	
+	p.setValue("stringlist3", StringList::create("1"));
+	p.setValue("item3", 7.6);
+	p.setValue("doublelist",DoubleList::create("1.22,2.33,4.55"));
+	p.setValue("doublelist3",DoubleList::create("1.4"));
+  p.setValue("file_parameter", "", "This is a file parameter.");
+  p.setValidStrings("file_parameter", StringList::create("*.mzML,*.mzXML"));
+  p.setValue("advanced_parameter", "", "This is an advanced parameter.", StringList::create("advanced"));
+  
+  String filename;
+  NEW_TMP_FILE(filename)
+  std::ofstream s(filename.c_str(), std::ios::out);
+  ParamXMLFile paramFile;
+  paramFile.writeXMLToStream(&s,p);
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("ParamXMLFile_test_writeXMLToStream.xml"))
 }
 END_SECTION  
   

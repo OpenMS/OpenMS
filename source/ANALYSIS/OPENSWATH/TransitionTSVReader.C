@@ -99,7 +99,6 @@ namespace OpenMS
   void TransitionTSVReader::getTSVHeader(std::string& line, char& delimiter,
                                          std::vector<std::string> header, std::map<std::string, int>& header_dict)
   {
-    std::vector<std::string> tmp_line;
     std::string tmp;
 
     int nr_delimiters = 3;
@@ -304,7 +303,7 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, transition_list.size(), "converting to TraML format");
-    for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); tr_it++)
+    for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
     {
 
       ReactionMonitoringTransition rm_trans;
@@ -657,7 +656,7 @@ namespace OpenMS
     }
     os << std::endl;
 
-    for (std::vector<TSVTransition>::iterator it = mytransitions.begin(); it != mytransitions.end(); it++)
+    for (std::vector<TSVTransition>::iterator it = mytransitions.begin(); it != mytransitions.end(); ++it)
     {
 
       os << it->precursor                << "\t";
@@ -702,7 +701,7 @@ namespace OpenMS
   {
     // check that all proteins ids are unique
     std::map<String, int> unique_protein_map;
-    for (ProteinVectorType::const_iterator prot_it = targeted_exp.getProteins().begin(); prot_it != targeted_exp.getProteins().end(); prot_it++)
+    for (ProteinVectorType::const_iterator prot_it = targeted_exp.getProteins().begin(); prot_it != targeted_exp.getProteins().end(); ++prot_it)
     {
       // Create new transition group if it does not yet exist
       if (unique_protein_map.find(prot_it->id) != unique_protein_map.end())
@@ -714,7 +713,7 @@ namespace OpenMS
 
     // check that all peptide ids are unique
     std::map<String, int> unique_peptide_map;
-    for (PeptideVectorType::const_iterator pep_it = targeted_exp.getPeptides().begin(); pep_it != targeted_exp.getPeptides().end(); pep_it++)
+    for (PeptideVectorType::const_iterator pep_it = targeted_exp.getPeptides().begin(); pep_it != targeted_exp.getPeptides().end(); ++pep_it)
     {
       // Create new transition group if it does not yet exist
       if (unique_peptide_map.find(pep_it->id) != unique_peptide_map.end())
@@ -726,7 +725,7 @@ namespace OpenMS
 
     // check that all transition ids are unique
     std::map<String, int> unique_transition_map;
-    for (TransitionVectorType::const_iterator tr_it = targeted_exp.getTransitions().begin(); tr_it != targeted_exp.getTransitions().end(); tr_it++)
+    for (TransitionVectorType::const_iterator tr_it = targeted_exp.getTransitions().begin(); tr_it != targeted_exp.getTransitions().end(); ++tr_it)
     {
       // Create new transition group if it does not yet exist
       if (unique_transition_map.find(tr_it->getNativeID()) != unique_transition_map.end())
