@@ -53,7 +53,15 @@ MassTrace::MassTrace() :
 {
 }
 
-MassTrace::MassTrace(const std::list<PeakType> & tmp_lst, const DoubleReal & scan_time)
+MassTrace::MassTrace(const std::list<PeakType> & tmp_lst, const DoubleReal & scan_time) :
+    centroid_mz_(),
+    centroid_rt_(),
+    centroid_sd_(),
+    label_(),
+    smoothed_intensities_(),
+    fwhm_(0.0),
+    fwhm_start_idx_(0),
+    fwhm_end_idx_(0)
 {
     trace_peaks_.clear();
 
@@ -65,7 +73,15 @@ MassTrace::MassTrace(const std::list<PeakType> & tmp_lst, const DoubleReal & sca
     scan_time_ = scan_time;
 }
 
-MassTrace::MassTrace(const std::vector<PeakType> & tmp_vec, const DoubleReal & scan_time)
+MassTrace::MassTrace(const std::vector<PeakType> & tmp_vec, const DoubleReal & scan_time) :
+    centroid_mz_(),
+    centroid_rt_(),
+    centroid_sd_(),
+    label_(),
+    smoothed_intensities_(),
+    fwhm_(0.0),
+    fwhm_start_idx_(0),
+    fwhm_end_idx_(0)
 {
     trace_peaks_ = tmp_vec;
     scan_time_ = scan_time;
@@ -120,17 +136,6 @@ const PeakType & MassTrace::operator[](const Size & mt_idx) const
     return trace_peaks_[mt_idx];
 }
 
-DoubleReal MassTrace::computePeakArea()
-{
-    return this->computePeakArea(false);
-}
-
-DoubleReal MassTrace::computePeakArea() const
-{
-    return this->computePeakArea(false);
-}
-
-
 DoubleReal MassTrace::computeSmoothedPeakArea()
 {
     // sum all non-negative (smoothed!) intensities in MassTrace
@@ -149,86 +154,7 @@ DoubleReal MassTrace::computeSmoothedPeakArea()
     return peak_area;
 }
 
-DoubleReal MassTrace::computeSNR(bool smoothed = false, DoubleReal noise_level = 10.0)
-{
-    if (smoothed && smoothed_intensities_.empty())
-    {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
-    }
-
-    if (trace_peaks_.empty())
-    {
-        return 0.0;
-    }
-
-    DoubleReal snr(1.0);
-
-    std::vector<DoubleReal> ints_copy;
-
-    DoubleReal rt_start(trace_peaks_[0].getRT()), rt_end(trace_peaks_[trace_peaks_.size() - 1].getRT());
-
-
-
-    if (smoothed)
-    {
-        // bool rt_begin_found = false, rt_end_found = false;
-
-
-        for (Size i = 0; i < smoothed_intensities_.size(); ++i)
-        {
-            if (smoothed_intensities_[i] > 0.0)
-            {
-                //                if (!rt_begin_found)
-                //                {
-                //                    rt_begin_found = true;
-                //                    rt_start = trace_peaks_[i].getRT();
-                //                }
-
-
-                ints_copy.push_back(smoothed_intensities_[i]);
-            }
-            //            else
-            //            {
-            //                if (rt_begin_found && !rt_end_found)
-            //                {
-            //                    rt_begin_found = true;
-            //                    rt_end = trace_peaks_[i].getRT();
-            //                }
-            //            }
-        }
-    }
-    else
-    {
-        for (Size i = 0; i < trace_peaks_.size(); ++i)
-        {
-            ints_copy.push_back(trace_peaks_[i].getIntensity());
-        }
-    }
-
-    DoubleReal rt_range(std::fabs(rt_end - rt_start));
-
-    // std::cout << "rts: " << rt_start << " " << rt_end << " " << rt_range << std::endl;
-    DoubleReal noise_area = rt_range * noise_level;
-    DoubleReal peak_area = computePeakArea();
-
-    snr = peak_area / noise_area;
-    // std::cout << "rts: " << rt_start << " " << rt_end << " " << rt_range << " snr: " << snr << std::endl;
-
-    //    std::sort(ints_copy.begin(), ints_copy.end());
-
-    //    DoubleReal vec_sz(ints_copy.size());
-    //    Size low_idx(std::floor(vec_sz*0.1));
-    //    Size high_idx(std::floor(vec_sz*0.9));
-
-    //    snr = ints_copy[high_idx]/ints_copy[low_idx];
-
-    //    // std::cout << "length: " << ints_copy.size() << "ints: " << ints_copy[high_idx] << " " << ints_copy[low_idx] << " snr: " << snr << std::endl;
-
-
-    return snr;
-}
-
-DoubleReal MassTrace::computePeakArea(bool neglect_scantime = false)
+DoubleReal MassTrace::computePeakArea()
 {
     DoubleReal peak_area(0.0);
 
@@ -240,15 +166,12 @@ DoubleReal MassTrace::computePeakArea(bool neglect_scantime = false)
         peak_area += (*l_it).getIntensity();
     }
 
-    if (!neglect_scantime)
-    {
-        peak_area *= scan_time_;
-    }
+    peak_area *= scan_time_;
 
     return peak_area;
 }
 
-DoubleReal MassTrace::computePeakArea(bool neglect_scantime = false) const
+DoubleReal MassTrace::computePeakArea() const
 {
     DoubleReal peak_area(0.0);
 
@@ -260,10 +183,7 @@ DoubleReal MassTrace::computePeakArea(bool neglect_scantime = false) const
         peak_area += (*l_it).getIntensity();
     }
 
-    if (!neglect_scantime)
-    {
-        peak_area *= scan_time_;
-    }
+    peak_area *= scan_time_;
 
     return peak_area;
 }
@@ -339,11 +259,6 @@ DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints = false)
         ++right_border;
     }
 
-    // side effect: record number of peaks/scans that span the fwhm of the mass trace; useful for smoothing techniques (window size)
-
-    // fwhm_num_scans_ = right_border - left_border + 1;
-
-
 
     fwhm_start_idx_ = left_border;
     fwhm_end_idx_ = right_border;
@@ -352,8 +267,13 @@ DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints = false)
     return fwhm_;
 }
 
-DoubleReal MassTrace::computeFWHMarea()
+DoubleReal MassTrace::computeFwhmAreaSmooth()
 {
+    if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
+    }
+
     DoubleReal t_area(0.0);
 
     for (Size i = fwhm_start_idx_; i <= fwhm_end_idx_; ++i)
@@ -361,258 +281,29 @@ DoubleReal MassTrace::computeFWHMarea()
         t_area += smoothed_intensities_[i];
     }
 
-    return t_area;
+    return t_area * scan_time_;
 }
 
-void MassTrace::findLocalExtrema(const Size & num_neighboring_peaks, std::vector<Size> & chrom_maxes, std::vector<Size> & chrom_mins)
+DoubleReal MassTrace::computeFwhmArea()
 {
-    Size mt_length(smoothed_intensities_.size());
+    DoubleReal t_area(0.0);
 
-    if (mt_length != trace_peaks_.size())
+    for (Size i = fwhm_start_idx_; i <= fwhm_end_idx_; ++i)
     {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
+        t_area += trace_peaks_[i].getIntensity();
     }
 
-    // Extract RTs from the chromatogram and store them into into vectors for index access
-
-    // std::cout << "neighboring peaks: " << num_neighboring_peaks << std::endl;
-
-    //  Store indices along with smoothed_ints to keep track of the peak order
-    std::multimap<DoubleReal, Size> intensity_indices;
-    boost::dynamic_bitset<> used_idx(mt_length);
-
-    for (Size i = 0; i < mt_length; ++i)
-    {
-        intensity_indices.insert(std::make_pair(smoothed_intensities_[i], i));
-    }
-
-
-    for (std::multimap<DoubleReal, Size>::const_iterator c_it = intensity_indices.begin(); c_it != intensity_indices.end(); ++c_it)
-    {
-        DoubleReal ref_int = c_it->first;
-        Size ref_idx = c_it->second;
-
-        if (!(used_idx[ref_idx]) && ref_int > 0.0)
-        {
-            bool real_max = true;
-
-            // iterate up the RT
-
-
-
-            Size start_idx(0);
-
-            if (ref_idx > num_neighboring_peaks)
-            {
-                start_idx = ref_idx - num_neighboring_peaks;
-            }
-
-            Size end_idx = ref_idx + num_neighboring_peaks;
-
-            if (end_idx > mt_length)
-            {
-                end_idx = mt_length;
-            }
-
-            for (Size j = start_idx; j < end_idx; ++j)
-            {
-                if (used_idx[j])
-                {
-                    real_max = false;
-                    break;
-                }
-
-                if (j == ref_idx)
-                {
-                    continue;
-                }
-
-                if (smoothed_intensities_[j] > ref_int)
-                {
-                    real_max = false;
-                }
-            }
-
-            if (real_max)
-            {
-                chrom_maxes.push_back(ref_idx);
-
-                for (Size j = start_idx; j < end_idx; ++j)
-                {
-                    used_idx[j] = true;
-                }
-            }
-
-        }
-    }
-
-
-    std::sort(chrom_maxes.begin(), chrom_maxes.end());
-
-
-    if (chrom_maxes.size() > 1)
-    {
-
-        //        std::vector<Size> tmp_max, tmp_min;
-
-
-
-        for (Size i = 0; i < chrom_maxes.size() - 1; ++i)
-        {
-            //#if 0
-            //            // linear search for minimum
-            //            DoubleReal max_int((smoothed_intensities_[chrom_maxes[i]] > smoothed_intensities_[chrom_maxes[i + 1]]) ? smoothed_intensities_[chrom_maxes[i]] : smoothed_intensities_[chrom_maxes[i + 1]]);
-            //            Size min_idx(chrom_maxes[i] + 1);
-
-            //            Size linear_steps(0);
-
-            //            for (Size j = chrom_maxes[i] + 1; j < chrom_maxes[i + 1]; ++j)
-            //            {
-            //                if (smoothed_intensities_[j] < max_int)
-            //                {
-            //                    max_int = smoothed_intensities_[j];
-            //                    min_idx = j;
-            //                }
-            //                ++linear_steps;
-            //            }
-            //#endif
-
-            //            // bisection
-            Size left_bound(chrom_maxes[i] + 1);
-            Size right_bound(chrom_maxes[i + 1] - 1);
-
-
-
-
-
-            while ((left_bound + 1) < right_bound)
-            {
-                DoubleReal mid_dist((right_bound - left_bound) / 2.0);
-
-                Size mid_element_idx(left_bound + std::floor(mid_dist));
-
-                DoubleReal mid_element_int = smoothed_intensities_[mid_element_idx];
-
-                if (mid_element_int <= smoothed_intensities_[mid_element_idx + 1])
-                {
-                    right_bound = mid_element_idx;
-                }
-                else       // or to the right...
-                {
-                    left_bound = mid_element_idx;
-                }
-
-            }
-
-            Size min_rt((smoothed_intensities_[left_bound] < smoothed_intensities_[right_bound]) ? left_bound : right_bound);
-
-            // check for valley depth between chromatographic peaks
-            DoubleReal min_int(1.0);
-            if (smoothed_intensities_[min_rt] > 0.0)
-            {
-                min_int = smoothed_intensities_[min_rt];
-            }
-
-            DoubleReal left_max(smoothed_intensities_[chrom_maxes[i]]);
-            DoubleReal right_max(smoothed_intensities_[chrom_maxes[i + 1]]);
-
-
-
-            if (left_max / min_int >= 2.0 && right_max / min_int >= 2.0)
-            {
-                chrom_mins.push_back(min_rt);
-            }
-
-            // chrom_mins.push_back(min_rt);
-        }
-    }
-
-
-
-
-    //    boost::dynamic_bitset<> mark_maxes(chrom_maxes.size(), false);
-    //    boost::dynamic_bitset<> mark_mins(chrom_mins.size(), false);
-
-    //    std::vector<Size> tmp_min, tmp_max;
-
-
-    //    for (Size i = 0; i < chrom_mins.size(); ++i)
-    //    {
-    //        DoubleReal min_int(smoothed_intensities_[chrom_mins[i]]);
-
-
-
-
-    //        DoubleReal left_flank(smoothed_intensities_[chrom_maxes[i]]);
-    //        DoubleReal right_flank(smoothed_intensities_[chrom_maxes[i+1]]);
-
-    //        if (min_int > 0.0)
-    //        {
-    //            left_flank /= min_int;
-    //            right_flank /= min_int;
-    //        }
-
-    //        std::cout << "flanks: " << left_flank << " " << right_flank << std::endl;
-
-    //        if (left_flank > 2.0 && right_flank < 2.0)
-    //        {
-    //            mark_mins[i] = true;
-    //            mark_maxes[i+1] = true;
-    //        }
-    //        else if (left_flank < 2.0 && right_flank > 2.0)
-    //        {
-    //            mark_mins[i] = true;
-    //            mark_maxes[i] = true;
-    //        }
-    //        else if (left_flank < 2.0 && right_flank < 2.0)
-    //        {
-    //            mark_mins[i] = true;
-
-    //            if (left_flank < right_flank)
-    //            {
-    //                mark_maxes[i] = true;
-    //            }
-    //            else
-    //            {
-    //                mark_maxes[i+1] = true;
-    //            }
-    //        }
-    //    }
-
-    //    }
-
-    //    for (Size i = 0; i < mark_maxes.size(); ++i)
-    //    {
-    //        if (!mark_maxes[i])
-    //        {
-    //            tmp_max.push_back(chrom_maxes[i]);
-    //        }
-    //    }
-
-    //    for (Size i = 0; i < mark_mins.size(); ++i)
-    //    {
-    //        if (!mark_mins[i])
-    //        {
-    //            tmp_min.push_back(chrom_mins[i]);
-    //        }
-    //    }
-
-    //    std::cout << "finalized sizes: " << tmp_max.size() << " " << tmp_min.size() << std::endl;
-
-
-    return;
+    return t_area * scan_time_;
 }
 
 DoubleReal MassTrace::getIntensity(bool smoothed)
 {
-    //    if (smoothed)
-    //    {
-    //        return computeSmoothedPeakArea();
-    //    }
+    if (smoothed)
+    {
+        return computeFwhmAreaSmooth();
+    }
 
-    //    return computePeakArea();
-
-    return computeFWHMarea();
+    return computeFwhmArea();
 }
 
 DoubleReal MassTrace::getMaxIntensity(bool smoothed)
@@ -696,7 +387,7 @@ void MassTrace::updateWeightedMeanRT()
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid RT undefined!", String(trace_peaks_.size()));
     }
 
-    DoubleReal trace_area(this->computePeakArea(true));
+    DoubleReal trace_area(this->computePeakArea());
 
     if (trace_area < std::numeric_limits<DoubleReal>::epsilon())
     {
@@ -707,7 +398,7 @@ void MassTrace::updateWeightedMeanRT()
 
     for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
     {
-        wmean_rt += ((*l_it).getIntensity() * (*l_it).getRT());
+        wmean_rt += ((*l_it).getIntensity() * (*l_it).getRT()) * scan_time_;
     }
 
     centroid_rt_ = wmean_rt / trace_area;

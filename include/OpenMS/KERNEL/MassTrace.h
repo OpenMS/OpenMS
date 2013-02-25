@@ -256,21 +256,6 @@ public:
       smoothed_intensities_ = db_vec;
     }
 
-    DoubleReal computeSmoothedPeakArea();
-    DoubleReal computeSNR(bool, DoubleReal);
-
-    /// Return estimated number of peaks spanning the full-width-at-half-maximum (previous estimation needed!).
-//    Size getFWHMScansNum()
-//    {
-//        return fwhm_num_scans_;
-//    }
-
-//    /// Set estimated number of peaks spanning the full-width-at-half-maximum.
-//    void setFWHMScansNum(Size r_fwhm)
-//    {
-//        fwhm_num_scans_ = r_fwhm;
-//    }
-
     /// Get scan time of mass trace
     DoubleReal getScanTime()
     {
@@ -280,11 +265,10 @@ public:
     /** @name Computational methods
         */
     /// Sum up mass trace peak intensities for chromatographic peak area estimation.
+    DoubleReal computeSmoothedPeakArea();
+
     DoubleReal computePeakArea();
     DoubleReal computePeakArea() const;
-
-    DoubleReal computePeakArea(bool);
-    DoubleReal computePeakArea(bool) const;
 
 
     /// Return the index of the mass trace's highest peak within the MassTrace container (based either on raw or smoothed intensities).
@@ -293,16 +277,13 @@ public:
     /// Estimate FWHM of chromatographic peak in seconds (based on either raw or smoothed intensities). As a side-effect, the rough estimation of the number of scans within the FWHM range will be updated (see setFWHMScansNum).
     DoubleReal estimateFWHM(bool);
 
-    DoubleReal computeFWHMarea();
-
-    /// Find local extrema within mass trace and return their indices.
-    void findLocalExtrema(const Size &, std::vector<Size> &, std::vector<Size> &);
+    /// Compute chromatographic peak area within the FWHM range.
+    DoubleReal computeFwhmAreaSmooth();
+    DoubleReal computeFwhmArea();
 
     DoubleReal getIntensity(bool);
     DoubleReal getMaxIntensity(bool);
     DoubleReal getMaxIntensity(bool) const;
-
-
 
     /// Return the mass trace's convex hull.
     ConvexHull2D getConvexhull() const;

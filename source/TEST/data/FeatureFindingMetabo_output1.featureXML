@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_7767293945947779484" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<dataProcessing completion_time="2013-02-22T16:38:16">
+<featureMap version="1.6" id="fm_3984196610301626024" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2013-02-25T16:19:28">
 		<software name="FeatureFinderMetabo" version="1.10.0" />
 		<processingAction name="Quantitation" />
 		<userParam type="string" name="parameter: in" value="FeatureFindingMetabo_input1.mzML"/>
@@ -30,13 +30,13 @@
 		<userParam type="string" name="parameter: algorithm:ffm:report_summed_ints" value="false"/>
 		<userParam type="string" name="parameter: algorithm:ffm:disable_isotope_filtering" value="false"/>
 		<userParam type="string" name="parameter: algorithm:ffm:isotope_model" value="metabolites"/>
-		<userParam type="string" name="parameter: algorithm:ffm:use_smoothed_intensities" value="false"/>
+		<userParam type="string" name="parameter: algorithm:ffm:use_smoothed_intensities" value="true"/>
 	</dataProcessing>
 	<featureList count="101">
-		<feature id="f_7212805829405921354">
+		<feature id="f_4230137354546377320">
 			<position dim="0">283.75</position>
 			<position dim="1">150.059438008007</position>
-			<intensity>49737.5</intensity>
+			<intensity>41404.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.35135e-05</overallquality>
@@ -90,12 +90,12 @@
 			<userParam type="string" name="label" value="T122"/>
 			<userParam type="float" name="FWHM" value="3.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="166078.534734422"/>
+			<userParam type="float" name="masstrace_intensity_0" value="41404.3013678177"/>
 		</feature>
-		<feature id="f_10898976574246453394">
+		<feature id="f_16240091099328069508">
 			<position dim="0">261.75</position>
 			<position dim="1">151.042465205975</position>
-			<intensity>33941</intensity>
+			<intensity>32820.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1.86387e-05</overallquality>
@@ -165,12 +165,12 @@
 			<userParam type="string" name="label" value="T150"/>
 			<userParam type="float" name="FWHM" value="7"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="131647.046421024"/>
+			<userParam type="float" name="masstrace_intensity_0" value="32820.3400452415"/>
 		</feature>
-		<feature id="f_16447327906449840547">
+		<feature id="f_17285085198557900950">
 			<position dim="0">291.25</position>
 			<position dim="1">151.042468871585</position>
-			<intensity>198212</intensity>
+			<intensity>169072</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>9.60161e-05</overallquality>
@@ -288,12 +288,12 @@
 			<userParam type="string" name="label" value="T105"/>
 			<userParam type="float" name="FWHM" value="7.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="678172.289366217"/>
+			<userParam type="float" name="masstrace_intensity_0" value="169072.119362828"/>
 		</feature>
-		<feature id="f_13537936794612549289">
+		<feature id="f_1372448119852484347">
 			<position dim="0">291</position>
 			<position dim="1">152.057301994844</position>
-			<intensity>658288</intensity>
+			<intensity>535451</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000304083</overallquality>
@@ -461,12 +461,12 @@
 			<userParam type="string" name="label" value="T77"/>
 			<userParam type="float" name="FWHM" value="10.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2147771.26778454"/>
+			<userParam type="float" name="masstrace_intensity_0" value="535451.309121284"/>
 		</feature>
-		<feature id="f_12805635907113311191">
+		<feature id="f_6127696695931728348">
 			<position dim="0">234</position>
 			<position dim="1">152.05742008023</position>
-			<intensity>1.39478e+06</intensity>
+			<intensity>1.21732e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000700245</overallquality>
@@ -722,14 +722,14 @@
 			<userParam type="string" name="label" value="T53_T127_T177"/>
 			<userParam type="float" name="FWHM" value="9"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="4882841.19180946"/>
-			<userParam type="float" name="masstrace_intensity_1" value="358752.724170914"/>
-			<userParam type="float" name="masstrace_intensity_2" value="19707.5649203962"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1217319.43601361"/>
+			<userParam type="float" name="masstrace_intensity_1" value="89439.0472064988"/>
+			<userParam type="float" name="masstrace_intensity_2" value="4913.20542112655"/>
 		</feature>
-		<feature id="f_12506160792339492732">
+		<feature id="f_3467225970113729914">
 			<position dim="0">230</position>
 			<position dim="1">155.034273021477</position>
-			<intensity>102115</intensity>
+			<intensity>71950.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>4.08606e-05</overallquality>
@@ -791,12 +791,12 @@
 			<userParam type="string" name="label" value="T78.1"/>
 			<userParam type="float" name="FWHM" value="1.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="288602.578453243"/>
+			<userParam type="float" name="masstrace_intensity_0" value="71950.2261560515"/>
 		</feature>
-		<feature id="f_6526221497327862459">
+		<feature id="f_4939798078675306924">
 			<position dim="0">247</position>
 			<position dim="1">155.034292167412</position>
-			<intensity>339478</intensity>
+			<intensity>269418</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000154598</overallquality>
@@ -1004,13 +1004,13 @@
 			<userParam type="string" name="label" value="T78.2_T165"/>
 			<userParam type="float" name="FWHM" value="8.5"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="1080674.5498192"/>
-			<userParam type="float" name="masstrace_intensity_1" value="66963.5894766552"/>
+			<userParam type="float" name="masstrace_intensity_0" value="269418.169017424"/>
+			<userParam type="float" name="masstrace_intensity_1" value="16694.3948764717"/>
 		</feature>
-		<feature id="f_14340023215355943270">
+		<feature id="f_1476014360413675913">
 			<position dim="0">272.25</position>
 			<position dim="1">155.03429323353</position>
-			<intensity>1.51609e+06</intensity>
+			<intensity>1.20655e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000693881</overallquality>
@@ -1234,13 +1234,13 @@
 			<userParam type="string" name="label" value="T52_T123"/>
 			<userParam type="float" name="FWHM" value="9.25"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="4839644.09687541"/>
-			<userParam type="float" name="masstrace_intensity_1" value="358414.521983594"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1206550.16026269"/>
+			<userParam type="float" name="masstrace_intensity_1" value="89354.7315222987"/>
 		</feature>
-		<feature id="f_17193586598333863975">
+		<feature id="f_4891274233404041321">
 			<position dim="0">319.75</position>
 			<position dim="1">155.072512139983</position>
-			<intensity>48549.7</intensity>
+			<intensity>35576.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.04111e-05</overallquality>
@@ -1312,13 +1312,13 @@
 			<userParam type="string" name="label" value="T29.2_T81.2"/>
 			<userParam type="float" name="FWHM" value="2"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="142701.484550104"/>
-			<userParam type="float" name="masstrace_intensity_1" value="12686.5092894305"/>
+			<userParam type="float" name="masstrace_intensity_0" value="35576.2728843661"/>
+			<userParam type="float" name="masstrace_intensity_1" value="3162.81724646218"/>
 		</feature>
-		<feature id="f_4992684052961534144">
+		<feature id="f_5174001991272834229">
 			<position dim="0">232.5</position>
 			<position dim="1">155.072512401134</position>
-			<intensity>836436</intensity>
+			<intensity>722490</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00041784</overallquality>
@@ -1542,14 +1542,14 @@
 			<userParam type="string" name="label" value="T58_T126_T175"/>
 			<userParam type="float" name="FWHM" value="6.25"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2898008.59082446"/>
-			<userParam type="float" name="masstrace_intensity_1" value="257291.26711664"/>
-			<userParam type="float" name="masstrace_intensity_2" value="28593.8459612265"/>
+			<userParam type="float" name="masstrace_intensity_0" value="722489.641740264"/>
+			<userParam type="float" name="masstrace_intensity_1" value="64144.1422881068"/>
+			<userParam type="float" name="masstrace_intensity_2" value="7128.60465283355"/>
 		</feature>
-		<feature id="f_6576305955805031289">
+		<feature id="f_14789388710235050642">
 			<position dim="0">302.75</position>
 			<position dim="1">155.072512501047</position>
-			<intensity>6.14356e+06</intensity>
+			<intensity>4.8277e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0027733</overallquality>
@@ -1893,14 +1893,14 @@
 			<userParam type="string" name="label" value="T29.1_T81.1_T147"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="19364601.0159703"/>
-			<userParam type="float" name="masstrace_intensity_1" value="1718947.20196636"/>
-			<userParam type="float" name="masstrace_intensity_2" value="173135.65934974"/>
+			<userParam type="float" name="masstrace_intensity_0" value="4827702.61439814"/>
+			<userParam type="float" name="masstrace_intensity_1" value="428543.087156892"/>
+			<userParam type="float" name="masstrace_intensity_2" value="43163.6817406642"/>
 		</feature>
-		<feature id="f_16767103893359197223">
+		<feature id="f_7752361323145507094">
 			<position dim="0">248.25</position>
 			<position dim="1">158.083358357044</position>
-			<intensity>5.80291e+06</intensity>
+			<intensity>4.49825e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00259017</overallquality>
@@ -2386,14 +2386,14 @@
 			<userParam type="string" name="label" value="T35_T90_T156"/>
 			<userParam type="float" name="FWHM" value="11.5"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="18043131.0620532"/>
-			<userParam type="float" name="masstrace_intensity_1" value="1475346.24016559"/>
-			<userParam type="float" name="masstrace_intensity_2" value="157311.965893311"/>
+			<userParam type="float" name="masstrace_intensity_0" value="4498252.81338687"/>
+			<userParam type="float" name="masstrace_intensity_1" value="367812.014041282"/>
+			<userParam type="float" name="masstrace_intensity_2" value="39218.7470525685"/>
 		</feature>
-		<feature id="f_13955558565849115723">
+		<feature id="f_15801845819389164670">
 			<position dim="0">281.25</position>
 			<position dim="1">160.07500553926</position>
-			<intensity>37937.6</intensity>
+			<intensity>37936.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.15441e-05</overallquality>
@@ -2453,12 +2453,12 @@
 			<userParam type="string" name="label" value="T141"/>
 			<userParam type="float" name="FWHM" value="6.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="152168.239083319"/>
+			<userParam type="float" name="masstrace_intensity_0" value="37936.3873825773"/>
 		</feature>
-		<feature id="f_1322412874025306100">
+		<feature id="f_3882733564510741263">
 			<position dim="0">308.25</position>
 			<position dim="1">160.075018056482</position>
-			<intensity>3.88481e+07</intensity>
+			<intensity>3.06922e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0177847</overallquality>
@@ -2742,14 +2742,14 @@
 			<userParam type="string" name="label" value="T10_T33_T94"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="123110906.848139"/>
-			<userParam type="float" name="masstrace_intensity_1" value="13938065.8978765"/>
-			<userParam type="float" name="masstrace_intensity_2" value="968815.854624708"/>
+			<userParam type="float" name="masstrace_intensity_0" value="30692233.0267236"/>
+			<userParam type="float" name="masstrace_intensity_1" value="3474837.26204005"/>
+			<userParam type="float" name="masstrace_intensity_2" value="241531.174868243"/>
 		</feature>
-		<feature id="f_8129391338878562917">
+		<feature id="f_15818972415464526328">
 			<position dim="0">316.5</position>
 			<position dim="1">160.134470512512</position>
-			<intensity>2.57208e+06</intensity>
+			<intensity>2.20223e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0012715</overallquality>
@@ -3019,14 +3019,14 @@
 			<userParam type="string" name="label" value="T43_T106_T170"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="8833446.75061796"/>
-			<userParam type="float" name="masstrace_intensity_1" value="820500.090749795"/>
-			<userParam type="float" name="masstrace_intensity_2" value="57334.8677085298"/>
+			<userParam type="float" name="masstrace_intensity_0" value="2202227.34963323"/>
+			<userParam type="float" name="masstrace_intensity_1" value="204555.230957761"/>
+			<userParam type="float" name="masstrace_intensity_2" value="14293.9010467793"/>
 		</feature>
-		<feature id="f_14505090265172336127">
+		<feature id="f_14159267504311440698">
 			<position dim="0">284.75</position>
 			<position dim="1">161.060231720537</position>
-			<intensity>2.29784e+08</intensity>
+			<intensity>1.78435e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.103597</overallquality>
@@ -3410,14 +3410,14 @@
 			<userParam type="string" name="label" value="T4_T13_T49"/>
 			<userParam type="float" name="FWHM" value="10"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="715726983.261797"/>
-			<userParam type="float" name="masstrace_intensity_1" value="78566588.907075"/>
-			<userParam type="float" name="masstrace_intensity_2" value="6755111.97539968"/>
+			<userParam type="float" name="masstrace_intensity_0" value="178434713.188184"/>
+			<userParam type="float" name="masstrace_intensity_1" value="19587087.0955833"/>
+			<userParam type="float" name="masstrace_intensity_2" value="1684086.943867"/>
 		</feature>
-		<feature id="f_6539066423859405326">
+		<feature id="f_4129771268673667784">
 			<position dim="0">261.25</position>
 			<position dim="1">161.132412915305</position>
-			<intensity>19832.4</intensity>
+			<intensity>19834.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1.12643e-05</overallquality>
@@ -3473,12 +3473,12 @@
 			<userParam type="string" name="label" value="T160"/>
 			<userParam type="float" name="FWHM" value="5.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="79560.7564640064"/>
+			<userParam type="float" name="masstrace_intensity_0" value="19834.9385906794"/>
 		</feature>
-		<feature id="f_349820778917920384">
+		<feature id="f_6459647211341448907">
 			<position dim="0">238.75</position>
 			<position dim="1">162.058215356937</position>
-			<intensity>3.93943e+06</intensity>
+			<intensity>3.165e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00183411</overallquality>
@@ -3836,14 +3836,14 @@
 			<userParam type="string" name="label" value="T31_T80_T151"/>
 			<userParam type="float" name="FWHM" value="7"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="12695255.2656099"/>
-			<userParam type="float" name="masstrace_intensity_1" value="1301347.45122476"/>
-			<userParam type="float" name="masstrace_intensity_2" value="112544.691932623"/>
+			<userParam type="float" name="masstrace_intensity_0" value="3164997.66691247"/>
+			<userParam type="float" name="masstrace_intensity_1" value="324433.149298394"/>
+			<userParam type="float" name="masstrace_intensity_2" value="28058.0169470915"/>
 		</feature>
-		<feature id="f_16918254329345690257">
+		<feature id="f_5622354612141857382">
 			<position dim="0">284.5</position>
 			<position dim="1">163.039965127824</position>
-			<intensity>2.35399e+06</intensity>
+			<intensity>1.97611e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00112954</overallquality>
@@ -4029,13 +4029,13 @@
 			<userParam type="string" name="label" value="T41_T102"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="7926472.16601406"/>
-			<userParam type="float" name="masstrace_intensity_1" value="630628.158271027"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1976113.54694378"/>
+			<userParam type="float" name="masstrace_intensity_1" value="157219.103346735"/>
 		</feature>
-		<feature id="f_870930804981113733">
+		<feature id="f_13350288968176700792">
 			<position dim="0">318.75</position>
 			<position dim="1">163.077366639892</position>
-			<intensity>516875</intensity>
+			<intensity>434056</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000252103</overallquality>
@@ -4185,13 +4185,13 @@
 			<userParam type="string" name="label" value="T69_T134"/>
 			<userParam type="float" name="FWHM" value="5.5"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="1741061.05463646"/>
-			<userParam type="float" name="masstrace_intensity_1" value="191525.873532235"/>
+			<userParam type="float" name="masstrace_intensity_0" value="434056.193482285"/>
+			<userParam type="float" name="masstrace_intensity_1" value="47748.4643042169"/>
 		</feature>
-		<feature id="f_12018580489822439151">
+		<feature id="f_7694536816065976880">
 			<position dim="0">267.25</position>
 			<position dim="1">163.077368733932</position>
-			<intensity>2.34518e+08</intensity>
+			<intensity>1.84155e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.106663</overallquality>
@@ -4631,14 +4631,14 @@
 			<userParam type="string" name="label" value="T3_T12_T48"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="738673026.01712"/>
-			<userParam type="float" name="masstrace_intensity_1" value="81255412.319426"/>
-			<userParam type="float" name="masstrace_intensity_2" value="7094853.53687446"/>
+			<userParam type="float" name="masstrace_intensity_0" value="184155289.125101"/>
+			<userParam type="float" name="masstrace_intensity_1" value="20257425.7101902"/>
+			<userParam type="float" name="masstrace_intensity_2" value="1768786.40259578"/>
 		</feature>
-		<feature id="f_5280970183165201532">
+		<feature id="f_6099879011577622990">
 			<position dim="0">252.75</position>
 			<position dim="1">163.097932600673</position>
-			<intensity>53696.7</intensity>
+			<intensity>39584.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.24799e-05</overallquality>
@@ -4688,12 +4688,12 @@
 			<userParam type="string" name="label" value="T110"/>
 			<userParam type="float" name="FWHM" value="2.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="158778.211197525"/>
+			<userParam type="float" name="masstrace_intensity_0" value="39584.2901527164"/>
 		</feature>
-		<feature id="f_8700672588281528617">
+		<feature id="f_18095917042926050683">
 			<position dim="0">289.25</position>
 			<position dim="1">165.056236591302</position>
-			<intensity>1.26999e+06</intensity>
+			<intensity>999498</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000567615</overallquality>
@@ -4887,12 +4887,12 @@
 			<userParam type="string" name="label" value="T59"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="4009126.44636361"/>
+			<userParam type="float" name="masstrace_intensity_0" value="999497.496003151"/>
 		</feature>
-		<feature id="f_2377329503580565778">
+		<feature id="f_18418544362674651457">
 			<position dim="0">231.75</position>
 			<position dim="1">165.05629076752</position>
-			<intensity>204061</intensity>
+			<intensity>173673</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000100632</overallquality>
@@ -5048,13 +5048,13 @@
 			<userParam type="string" name="label" value="T98_T163"/>
 			<userParam type="float" name="FWHM" value="5.75"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="696628.523030701"/>
-			<userParam type="float" name="masstrace_intensity_1" value="69248.2940313291"/>
+			<userParam type="float" name="masstrace_intensity_0" value="173673.360950015"/>
+			<userParam type="float" name="masstrace_intensity_1" value="17263.984414755"/>
 		</feature>
-		<feature id="f_8787666438980746791">
+		<feature id="f_12133008280424611792">
 			<position dim="0">319.75</position>
 			<position dim="1">165.056352904925</position>
-			<intensity>51718.9</intensity>
+			<intensity>35234</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.00094e-05</overallquality>
@@ -5108,12 +5108,12 @@
 			<userParam type="string" name="label" value="T104"/>
 			<userParam type="float" name="FWHM" value="1.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="141328.425207436"/>
+			<userParam type="float" name="masstrace_intensity_0" value="35233.9615621316"/>
 		</feature>
-		<feature id="f_6893847382697981739">
+		<feature id="f_9259640885491919200">
 			<position dim="0">258.75</position>
 			<position dim="1">165.057161287125</position>
-			<intensity>50013.9</intensity>
+			<intensity>39204</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.2264e-05</overallquality>
@@ -5171,12 +5171,12 @@
 			<userParam type="string" name="label" value="T121"/>
 			<userParam type="float" name="FWHM" value="3.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="157252.742361045"/>
+			<userParam type="float" name="masstrace_intensity_0" value="39203.982296955"/>
 		</feature>
-		<feature id="f_7791616929977139055">
+		<feature id="f_10614402523809497346">
 			<position dim="0">266.5</position>
 			<position dim="1">166.071215052504</position>
-			<intensity>1.32826e+06</intensity>
+			<intensity>1.04477e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000593325</overallquality>
@@ -5372,12 +5372,12 @@
 			<userParam type="string" name="label" value="T61"/>
 			<userParam type="float" name="FWHM" value="10.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="4190720.42629483"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1044769.88405545"/>
 		</feature>
-		<feature id="f_14900100305570000945">
+		<feature id="f_10667279717146906919">
 			<position dim="0">265</position>
 			<position dim="1">167.07265694585</position>
-			<intensity>291939</intensity>
+			<intensity>234059</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000132922</overallquality>
@@ -5525,12 +5525,12 @@
 			<userParam type="string" name="label" value="T101"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="938843.154014966"/>
+			<userParam type="float" name="masstrace_intensity_0" value="234058.814091231"/>
 		</feature>
-		<feature id="f_14741251640105724834">
+		<feature id="f_1131996817278526667">
 			<position dim="0">255.5</position>
 			<position dim="1">168.067425218033</position>
-			<intensity>127268</intensity>
+			<intensity>114819</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>6.52055e-05</overallquality>
@@ -5664,12 +5664,12 @@
 			<userParam type="string" name="label" value="T128"/>
 			<userParam type="float" name="FWHM" value="12.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="460553.392554784"/>
+			<userParam type="float" name="masstrace_intensity_0" value="114818.519393866"/>
 		</feature>
-		<feature id="f_2450828549742136192">
+		<feature id="f_6056465637573394277">
 			<position dim="0">291.5</position>
 			<position dim="1">169.05235014966</position>
-			<intensity>894291</intensity>
+			<intensity>719404</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00040855</overallquality>
@@ -5825,12 +5825,12 @@
 			<userParam type="string" name="label" value="T67"/>
 			<userParam type="float" name="FWHM" value="9.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2885629.86148306"/>
+			<userParam type="float" name="masstrace_intensity_0" value="719403.555744735"/>
 		</feature>
-		<feature id="f_3366775698973641481">
+		<feature id="f_13309773924328867446">
 			<position dim="0">256.5</position>
 			<position dim="1">171.06948653446</position>
-			<intensity>116170</intensity>
+			<intensity>102000</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>5.7926e-05</overallquality>
@@ -5958,12 +5958,12 @@
 			<userParam type="string" name="label" value="T129"/>
 			<userParam type="float" name="FWHM" value="11"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="409137.667197355"/>
+			<userParam type="float" name="masstrace_intensity_0" value="102000.293419341"/>
 		</feature>
-		<feature id="f_4105019440312194389">
+		<feature id="f_8779923111251182985">
 			<position dim="0">234.25</position>
 			<position dim="1">171.069488733802</position>
-			<intensity>192095</intensity>
+			<intensity>171085</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>9.87462e-05</overallquality>
@@ -6163,13 +6163,13 @@
 			<userParam type="string" name="label" value="T112_T171"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="686247.072138041"/>
-			<userParam type="float" name="masstrace_intensity_1" value="61282.4349551137"/>
+			<userParam type="float" name="masstrace_intensity_0" value="171085.207567748"/>
+			<userParam type="float" name="masstrace_intensity_1" value="15278.0514922818"/>
 		</feature>
-		<feature id="f_15092722652556177737">
+		<feature id="f_2741847857230861388">
 			<position dim="0">231</position>
 			<position dim="1">173.082368401455</position>
-			<intensity>700202</intensity>
+			<intensity>583248</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000338002</overallquality>
@@ -6327,13 +6327,13 @@
 			<userParam type="string" name="label" value="T57_T125"/>
 			<userParam type="float" name="FWHM" value="4.75"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2339492.55892723"/>
-			<userParam type="float" name="masstrace_intensity_1" value="208985.425422534"/>
+			<userParam type="float" name="masstrace_intensity_0" value="583248.49212144"/>
+			<userParam type="float" name="masstrace_intensity_1" value="52101.227587979"/>
 		</feature>
-		<feature id="f_9097380798528051892">
+		<feature id="f_16342065516390360139">
 			<position dim="0">299.25</position>
 			<position dim="1">174.059099726944</position>
-			<intensity>173066</intensity>
+			<intensity>156526</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>8.8891e-05</overallquality>
@@ -6435,12 +6435,12 @@
 			<userParam type="string" name="label" value="T113"/>
 			<userParam type="float" name="FWHM" value="9"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="627846.732756558"/>
+			<userParam type="float" name="masstrace_intensity_0" value="156525.678513614"/>
 		</feature>
-		<feature id="f_1776767348989978085">
+		<feature id="f_4722194267151168605">
 			<position dim="0">283.5</position>
 			<position dim="1">175.040063661983</position>
-			<intensity>400757</intensity>
+			<intensity>355965</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000202153</overallquality>
@@ -6558,12 +6558,12 @@
 			<userParam type="string" name="label" value="T85"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="1427826.01436322"/>
+			<userParam type="float" name="masstrace_intensity_0" value="355964.957747497"/>
 		</feature>
-		<feature id="f_18183134592525594123">
+		<feature id="f_15849344483239483218">
 			<position dim="0">318</position>
 			<position dim="1">175.040066023653</position>
-			<intensity>12473.2</intensity>
+			<intensity>12477.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>7.08615e-06</overallquality>
@@ -6625,12 +6625,12 @@
 			<userParam type="string" name="label" value="T169"/>
 			<userParam type="float" name="FWHM" value="6.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="50050.2748668985"/>
+			<userParam type="float" name="masstrace_intensity_0" value="12477.8115814004"/>
 		</feature>
-		<feature id="f_8053033470597767413">
+		<feature id="f_4231399841860639067">
 			<position dim="0">299.25</position>
 			<position dim="1">175.059141384176</position>
-			<intensity>12701.8</intensity>
+			<intensity>12708.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>7.21704e-06</overallquality>
@@ -6686,12 +6686,12 @@
 			<userParam type="string" name="label" value="T168"/>
 			<userParam type="float" name="FWHM" value="5.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="50974.7364634955"/>
+			<userParam type="float" name="masstrace_intensity_0" value="12708.2849933298"/>
 		</feature>
-		<feature id="f_10191484649314523621">
+		<feature id="f_12902192389789330115">
 			<position dim="0">240.5</position>
 			<position dim="1">175.079192914405</position>
-			<intensity>44043.1</intensity>
+			<intensity>38409.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.1813e-05</overallquality>
@@ -6821,12 +6821,12 @@
 			<userParam type="string" name="label" value="T157"/>
 			<userParam type="float" name="FWHM" value="12"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="154067.381601106"/>
+			<userParam type="float" name="masstrace_intensity_0" value="38409.8541630536"/>
 		</feature>
-		<feature id="f_1476420339511962586">
+		<feature id="f_7893965563046834437">
 			<position dim="0">234.5</position>
 			<position dim="1">175.120754056372</position>
-			<intensity>6.69592e+06</intensity>
+			<intensity>5.70101e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00329459</overallquality>
@@ -7050,14 +7050,14 @@
 			<userParam type="string" name="label" value="T22_T73_T142"/>
 			<userParam type="float" name="FWHM" value="7.25"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="22867578.462149"/>
-			<userParam type="float" name="masstrace_intensity_1" value="1874982.11181265"/>
-			<userParam type="float" name="masstrace_intensity_2" value="162199.610998115"/>
+			<userParam type="float" name="masstrace_intensity_0" value="5701014.3527163"/>
+			<userParam type="float" name="masstrace_intensity_1" value="467443.45704218"/>
+			<userParam type="float" name="masstrace_intensity_2" value="40437.2641307799"/>
 		</feature>
-		<feature id="f_5399076794986883845">
+		<feature id="f_13454971449186687237">
 			<position dim="0">314</position>
 			<position dim="1">176.092992494682</position>
-			<intensity>135457</intensity>
+			<intensity>126139</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>7.16342e-05</overallquality>
@@ -7161,12 +7161,12 @@
 			<userParam type="string" name="label" value="T119"/>
 			<userParam type="float" name="FWHM" value="10"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="505959.973938049"/>
+			<userParam type="float" name="masstrace_intensity_0" value="126138.6323915"/>
 		</feature>
-		<feature id="f_15983972293479650008">
+		<feature id="f_4160928829132597838">
 			<position dim="0">285</position>
 			<position dim="1">177.057180710638</position>
-			<intensity>447246</intensity>
+			<intensity>404774</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000229871</overallquality>
@@ -7274,12 +7274,12 @@
 			<userParam type="string" name="label" value="T20.2"/>
 			<userParam type="float" name="FWHM" value="10"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="1623607.11505086"/>
+			<userParam type="float" name="masstrace_intensity_0" value="404774.273821708"/>
 		</feature>
-		<feature id="f_14133427781021871718">
+		<feature id="f_17708459372948583463">
 			<position dim="0">315.25</position>
 			<position dim="1">177.057302569982</position>
-			<intensity>192310</intensity>
+			<intensity>172860</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000100038</overallquality>
@@ -7439,13 +7439,13 @@
 			<userParam type="string" name="label" value="T107_T167"/>
 			<userParam type="float" name="FWHM" value="8.5"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="693366.339885356"/>
-			<userParam type="float" name="masstrace_intensity_1" value="70521.2593812624"/>
+			<userParam type="float" name="masstrace_intensity_0" value="172860.080568641"/>
+			<userParam type="float" name="masstrace_intensity_1" value="17581.341748523"/>
 		</feature>
-		<feature id="f_7918936435010771229">
+		<feature id="f_15946552354515684950">
 			<position dim="0">264</position>
 			<position dim="1">177.057489529635</position>
-			<intensity>1.0336e+07</intensity>
+			<intensity>9.21023e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00523049</overallquality>
@@ -7587,12 +7587,12 @@
 			<userParam type="string" name="label" value="T20.1"/>
 			<userParam type="float" name="FWHM" value="10.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="36943539.1249354"/>
+			<userParam type="float" name="masstrace_intensity_0" value="9210229.54573042"/>
 		</feature>
-		<feature id="f_11367987012474484022">
+		<feature id="f_15922793154303746866">
 			<position dim="0">258.25</position>
 			<position dim="1">177.063423146538</position>
-			<intensity>2.33716e+06</intensity>
+			<intensity>1.7468e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000992011</overallquality>
@@ -7702,12 +7702,12 @@
 			<userParam type="string" name="label" value="T34"/>
 			<userParam type="float" name="FWHM" value="4.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="7006679.90998189"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1746804.22755798"/>
 		</feature>
-		<feature id="f_9431547406769038297">
+		<feature id="f_6532057592321537307">
 			<position dim="0">279.5</position>
 			<position dim="1">178.050993097963</position>
-			<intensity>8.31381e+06</intensity>
+			<intensity>6.65584e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00377986</overallquality>
@@ -7881,12 +7881,12 @@
 			<userParam type="string" name="label" value="T26"/>
 			<userParam type="float" name="FWHM" value="11"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="26697532.6946351"/>
+			<userParam type="float" name="masstrace_intensity_0" value="6655843.22039862"/>
 		</feature>
-		<feature id="f_6794838010110942166">
+		<feature id="f_17205596305593798191">
 			<position dim="0">259.5</position>
 			<position dim="1">178.053827827786</position>
-			<intensity>2.67453e+06</intensity>
+			<intensity>2.14177e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00121631</overallquality>
@@ -8048,12 +8048,12 @@
 			<userParam type="string" name="label" value="T47.1"/>
 			<userParam type="float" name="FWHM" value="11.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="8590934.0812445"/>
+			<userParam type="float" name="masstrace_intensity_0" value="2141767.59386582"/>
 		</feature>
-		<feature id="f_171337689807470643">
+		<feature id="f_11429582433961936143">
 			<position dim="0">254.75</position>
 			<position dim="1">179.03674370292</position>
-			<intensity>639493</intensity>
+			<intensity>565354</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000329426</overallquality>
@@ -8261,13 +8261,13 @@
 			<userParam type="string" name="label" value="T75_T138"/>
 			<userParam type="float" name="FWHM" value="8.75"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2267715.91375139"/>
-			<userParam type="float" name="masstrace_intensity_1" value="228122.456466554"/>
+			<userParam type="float" name="masstrace_intensity_0" value="565354.175719965"/>
+			<userParam type="float" name="masstrace_intensity_1" value="56872.1957440923"/>
 		</feature>
-		<feature id="f_10264905360012483991">
+		<feature id="f_8838267219413965721">
 			<position dim="0">279.25</position>
 			<position dim="1">179.051694057324</position>
-			<intensity>575795</intensity>
+			<intensity>519485</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000295016</overallquality>
@@ -8353,12 +8353,12 @@
 			<userParam type="string" name="label" value="T74"/>
 			<userParam type="float" name="FWHM" value="7.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2083728.09261323"/>
+			<userParam type="float" name="masstrace_intensity_0" value="519484.989755658"/>
 		</feature>
-		<feature id="f_4631104295732364905">
+		<feature id="f_1998923198467630951">
 			<position dim="0">259.5</position>
 			<position dim="1">179.053459468364</position>
-			<intensity>141541</intensity>
+			<intensity>142084</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>8.06896e-05</overallquality>
@@ -8418,12 +8418,12 @@
 			<userParam type="string" name="label" value="T97.1"/>
 			<userParam type="float" name="FWHM" value="6.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="569919.540735479"/>
+			<userParam type="float" name="masstrace_intensity_0" value="142084.107725026"/>
 		</feature>
-		<feature id="f_6792938403731479312">
+		<feature id="f_10617228381665683000">
 			<position dim="0">274.5</position>
 			<position dim="1">179.074067440553</position>
-			<intensity>1.90441e+06</intensity>
+			<intensity>1.53698e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000892652</overallquality>
@@ -8669,13 +8669,13 @@
 			<userParam type="string" name="label" value="T51_T114"/>
 			<userParam type="float" name="FWHM" value="9.75"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="6165039.73166695"/>
-			<userParam type="float" name="masstrace_intensity_1" value="701398.723387416"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1536978.6553253"/>
+			<userParam type="float" name="masstrace_intensity_1" value="174862.598400057"/>
 		</feature>
-		<feature id="f_5510434972752532613">
+		<feature id="f_7747789979507003150">
 			<position dim="0">302.25</position>
 			<position dim="1">181.053264027021</position>
-			<intensity>46185.8</intensity>
+			<intensity>44940.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.55219e-05</overallquality>
@@ -8755,12 +8755,12 @@
 			<userParam type="string" name="label" value="T143"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="180264.11656852"/>
+			<userParam type="float" name="masstrace_intensity_0" value="44940.8457278462"/>
 		</feature>
-		<feature id="f_16290168341061925229">
+		<feature id="f_10020526757175178984">
 			<position dim="0">273.5</position>
 			<position dim="1">181.053288866409</position>
-			<intensity>757247</intensity>
+			<intensity>613514</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000354558</overallquality>
@@ -8958,13 +8958,13 @@
 			<userParam type="string" name="label" value="T71_T136"/>
 			<userParam type="float" name="FWHM" value="8.5"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2460890.83839331"/>
-			<userParam type="float" name="masstrace_intensity_1" value="221515.188273385"/>
+			<userParam type="float" name="masstrace_intensity_0" value="613513.757627222"/>
+			<userParam type="float" name="masstrace_intensity_1" value="55224.9670764898"/>
 		</feature>
-		<feature id="f_7757105745470565061">
+		<feature id="f_9935681421532975664">
 			<position dim="0">302.75</position>
 			<position dim="1">182.085193533739</position>
-			<intensity>297512</intensity>
+			<intensity>243538</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000140777</overallquality>
@@ -9150,13 +9150,13 @@
 			<userParam type="string" name="label" value="T96_T162"/>
 			<userParam type="float" name="FWHM" value="8.5"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="976863.6313506"/>
-			<userParam type="float" name="masstrace_intensity_1" value="85230.8105954872"/>
+			<userParam type="float" name="masstrace_intensity_0" value="243537.530315879"/>
+			<userParam type="float" name="masstrace_intensity_1" value="21248.5145859583"/>
 		</feature>
-		<feature id="f_5459898023281638111">
+		<feature id="f_11272846779695872737">
 			<position dim="0">256</position>
 			<position dim="1">182.085196626734</position>
-			<intensity>73206</intensity>
+			<intensity>66590.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>3.78168e-05</overallquality>
@@ -9268,12 +9268,12 @@
 			<userParam type="string" name="label" value="T139"/>
 			<userParam type="float" name="FWHM" value="10.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="267104.144485838"/>
+			<userParam type="float" name="masstrace_intensity_0" value="66590.5471322333"/>
 		</feature>
-		<feature id="f_4782553510082211802">
+		<feature id="f_9057512659619582187">
 			<position dim="0">318</position>
 			<position dim="1">183.066167361631</position>
-			<intensity>10868.9</intensity>
+			<intensity>10871.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>6.17411e-06</overallquality>
@@ -9335,12 +9335,12 @@
 			<userParam type="string" name="label" value="T173"/>
 			<userParam type="float" name="FWHM" value="6.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="43608.3999092677"/>
+			<userParam type="float" name="masstrace_intensity_0" value="10871.8163662688"/>
 		</feature>
-		<feature id="f_8826566276358287882">
+		<feature id="f_12573100203872573611">
 			<position dim="0">286.5</position>
 			<position dim="1">187.079242952423</position>
-			<intensity>570601</intensity>
+			<intensity>457227</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00025966</overallquality>
@@ -9520,12 +9520,12 @@
 			<userParam type="string" name="label" value="T84"/>
 			<userParam type="float" name="FWHM" value="11.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="1834003.46180232"/>
+			<userParam type="float" name="masstrace_intensity_0" value="457227.251935439"/>
 		</feature>
-		<feature id="f_6096578338288440924">
+		<feature id="f_17095030081066928653">
 			<position dim="0">309</position>
 			<position dim="1">187.087662071873</position>
-			<intensity>454193</intensity>
+			<intensity>364046</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000206742</overallquality>
@@ -9693,12 +9693,12 @@
 			<userParam type="string" name="label" value="T87"/>
 			<userParam type="float" name="FWHM" value="10.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="1460240.15319595"/>
+			<userParam type="float" name="masstrace_intensity_0" value="364045.982637046"/>
 		</feature>
-		<feature id="f_13114909681842211940">
+		<feature id="f_11970839812145390425">
 			<position dim="0">245.75</position>
 			<position dim="1">188.072911692933</position>
-			<intensity>5.65051e+07</intensity>
+			<intensity>4.44036e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0258038</overallquality>
@@ -10120,14 +10120,14 @@
 			<userParam type="string" name="label" value="T9_T30_T82"/>
 			<userParam type="float" name="FWHM" value="11.25"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="178109091.046894"/>
-			<userParam type="float" name="masstrace_intensity_1" value="22154654.3963619"/>
-			<userParam type="float" name="masstrace_intensity_2" value="1993657.05397539"/>
+			<userParam type="float" name="masstrace_intensity_0" value="44403585.8929408"/>
+			<userParam type="float" name="masstrace_intensity_1" value="5523278.42242633"/>
+			<userParam type="float" name="masstrace_intensity_2" value="497029.779428587"/>
 		</feature>
-		<feature id="f_4538362798842662735">
+		<feature id="f_3264887362325886079">
 			<position dim="0">305.5</position>
 			<position dim="1">188.073445431087</position>
-			<intensity>379672</intensity>
+			<intensity>307862</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000174835</overallquality>
@@ -10273,12 +10273,12 @@
 			<userParam type="string" name="label" value="T92"/>
 			<userParam type="float" name="FWHM" value="10"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="1234879.54416622"/>
+			<userParam type="float" name="masstrace_intensity_0" value="307862.330802551"/>
 		</feature>
-		<feature id="f_15195566846839409546">
+		<feature id="f_4137418627802658420">
 			<position dim="0">313.5</position>
 			<position dim="1">188.078958350392</position>
-			<intensity>13076.8</intensity>
+			<intensity>8559.32</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>4.86084e-06</overallquality>
@@ -10334,12 +10334,12 @@
 			<userParam type="string" name="label" value="T146"/>
 			<userParam type="float" name="FWHM" value="1.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="34332.6480149738"/>
+			<userParam type="float" name="masstrace_intensity_0" value="8559.3198870664"/>
 		</feature>
-		<feature id="f_6737089804437050132">
+		<feature id="f_5709992978116340436">
 			<position dim="0">230</position>
 			<position dim="1">188.111125739265</position>
-			<intensity>1.16583e+06</intensity>
+			<intensity>801824</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000493721</overallquality>
@@ -10589,15 +10589,15 @@
 			<userParam type="string" name="label" value="T37_T86_T91_T161"/>
 			<userParam type="float" name="FWHM" value="2.5"/>
 			<userParam type="int" name="num_of_masstraces" value="4"/>
-			<userParam type="float" name="masstrace_intensity_0" value="3216230.82954609"/>
-			<userParam type="float" name="masstrace_intensity_1" value="358016.675075673"/>
-			<userParam type="float" name="masstrace_intensity_2" value="309312.2517213"/>
-			<userParam type="float" name="masstrace_intensity_3" value="30014.9173487863"/>
+			<userParam type="float" name="masstrace_intensity_0" value="801824.213754894"/>
+			<userParam type="float" name="masstrace_intensity_1" value="89255.5460778934"/>
+			<userParam type="float" name="masstrace_intensity_2" value="77113.2627555186"/>
+			<userParam type="float" name="masstrace_intensity_3" value="7482.88564459324"/>
 		</feature>
-		<feature id="f_5552621865501121476">
+		<feature id="f_12634566402995625052">
 			<position dim="0">258</position>
 			<position dim="1">189.041219314868</position>
-			<intensity>84772.3</intensity>
+			<intensity>77518.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>4.40229e-05</overallquality>
@@ -10673,12 +10673,12 @@
 			<userParam type="string" name="label" value="T120"/>
 			<userParam type="float" name="FWHM" value="6.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="310938.754350172"/>
+			<userParam type="float" name="masstrace_intensity_0" value="77518.7588970221"/>
 		</feature>
-		<feature id="f_4066542962941153804">
+		<feature id="f_9448056945432564347">
 			<position dim="0">305.25</position>
 			<position dim="1">189.073152174932</position>
-			<intensity>30835.2</intensity>
+			<intensity>28065.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1.59385e-05</overallquality>
@@ -10758,12 +10758,12 @@
 			<userParam type="string" name="label" value="T154"/>
 			<userParam type="float" name="FWHM" value="7"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="112575.099921297"/>
+			<userParam type="float" name="masstrace_intensity_0" value="28065.5978276011"/>
 		</feature>
-		<feature id="f_15123156392853273102">
+		<feature id="f_14529516204711541451">
 			<position dim="0">230</position>
 			<position dim="1">190.052094010111</position>
-			<intensity>27329.4</intensity>
+			<intensity>21862.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1.24157e-05</overallquality>
@@ -10813,12 +10813,12 @@
 			<userParam type="string" name="label" value="T137"/>
 			<userParam type="float" name="FWHM" value="3.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="87693.1135979188"/>
+			<userParam type="float" name="masstrace_intensity_0" value="21862.3804039256"/>
 		</feature>
-		<feature id="f_17099257980477476720">
+		<feature id="f_5010656922131366901">
 			<position dim="0">289.5</position>
 			<position dim="1">191.037043219287</position>
-			<intensity>1.29748e+06</intensity>
+			<intensity>1.01332e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000575463</overallquality>
@@ -11006,12 +11006,12 @@
 			<userParam type="string" name="label" value="T63"/>
 			<userParam type="float" name="FWHM" value="10.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="4064559.13243404"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1013317.17259988"/>
 		</feature>
-		<feature id="f_9671576765904624157">
+		<feature id="f_8475026756828209804">
 			<position dim="0">295.75</position>
 			<position dim="1">192.037200769827</position>
-			<intensity>11495</intensity>
+			<intensity>7782.57</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>4.41973e-06</overallquality>
@@ -11063,12 +11063,12 @@
 			<userParam type="string" name="label" value="T153"/>
 			<userParam type="float" name="FWHM" value="2"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="31217.0127700157"/>
+			<userParam type="float" name="masstrace_intensity_0" value="7782.57471141365"/>
 		</feature>
-		<feature id="f_14485729066468450730">
+		<feature id="f_16501549931543173791">
 			<position dim="0">269.25</position>
 			<position dim="1">192.107192843466</position>
-			<intensity>818580</intensity>
+			<intensity>654809</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000380298</overallquality>
@@ -11228,13 +11228,13 @@
 			<userParam type="string" name="label" value="T60_T124"/>
 			<userParam type="float" name="FWHM" value="6.5"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2626530.14995936"/>
-			<userParam type="float" name="masstrace_intensity_1" value="259747.395355672"/>
+			<userParam type="float" name="masstrace_intensity_0" value="654808.558219035"/>
+			<userParam type="float" name="masstrace_intensity_1" value="64756.4687032542"/>
 		</feature>
-		<feature id="f_9586651685887877164">
+		<feature id="f_12748675798714313306">
 			<position dim="0">260</position>
 			<position dim="1">193.054185085241</position>
-			<intensity>3.2481e+06</intensity>
+			<intensity>2.54181e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00147488</overallquality>
@@ -11494,13 +11494,13 @@
 			<userParam type="string" name="label" value="T38_T88"/>
 			<userParam type="float" name="FWHM" value="8.5"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="10195579.9274871"/>
-			<userParam type="float" name="masstrace_intensity_1" value="1127029.40199076"/>
+			<userParam type="float" name="masstrace_intensity_0" value="2541814.71803323"/>
+			<userParam type="float" name="masstrace_intensity_1" value="280974.691190751"/>
 		</feature>
-		<feature id="f_13720393863370732744">
+		<feature id="f_17113433038490267584">
 			<position dim="0">289.25</position>
 			<position dim="1">193.054187018967</position>
-			<intensity>7.23425e+08</intensity>
+			<intensity>5.75852e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.334737</overallquality>
@@ -12002,14 +12002,14 @@
 			<userParam type="string" name="label" value="T1_T7_T21"/>
 			<userParam type="float" name="FWHM" value="9"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2309823469.66266"/>
-			<userParam type="float" name="masstrace_intensity_1" value="255324726.752333"/>
-			<userParam type="float" name="masstrace_intensity_2" value="31726376.0556301"/>
+			<userParam type="float" name="masstrace_intensity_0" value="575851823.339511"/>
+			<userParam type="float" name="masstrace_intensity_1" value="63653872.8500608"/>
+			<userParam type="float" name="masstrace_intensity_2" value="7909561.80831334"/>
 		</feature>
-		<feature id="f_13956502174090625774">
+		<feature id="f_6748330289570469895">
 			<position dim="0">257</position>
 			<position dim="1">193.087947435366</position>
-			<intensity>195538</intensity>
+			<intensity>161024</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>9.14457e-05</overallquality>
@@ -12129,12 +12129,12 @@
 			<userParam type="string" name="label" value="T108"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="645890.743053448"/>
+			<userParam type="float" name="masstrace_intensity_0" value="161024.150525131"/>
 		</feature>
-		<feature id="f_706013173137988818">
+		<feature id="f_6597551565270481160">
 			<position dim="0">284.75</position>
 			<position dim="1">193.088121135083</position>
-			<intensity>2.00424e+08</intensity>
+			<intensity>1.63566e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0957727</overallquality>
@@ -12470,14 +12470,14 @@
 			<userParam type="string" name="label" value="T2_T11_T36"/>
 			<userParam type="float" name="FWHM" value="6"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="656085640.438741"/>
-			<userParam type="float" name="masstrace_intensity_1" value="79642865.8976956"/>
-			<userParam type="float" name="masstrace_intensity_2" value="8454546.60962959"/>
+			<userParam type="float" name="masstrace_intensity_0" value="163565795.081603"/>
+			<userParam type="float" name="masstrace_intensity_1" value="19855408.9286616"/>
+			<userParam type="float" name="masstrace_intensity_2" value="2107765.43948404"/>
 		</feature>
-		<feature id="f_18319323203505788237">
+		<feature id="f_7413690356940339599">
 			<position dim="0">257</position>
 			<position dim="1">194.088052927986</position>
-			<intensity>14242.3</intensity>
+			<intensity>14250.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>8.0927e-06</overallquality>
@@ -12529,12 +12529,12 @@
 			<userParam type="string" name="label" value="T166"/>
 			<userParam type="float" name="FWHM" value="5.25"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="57159.5973204235"/>
+			<userParam type="float" name="masstrace_intensity_0" value="14250.2051653"/>
 		</feature>
-		<feature id="f_4084343122449211887">
+		<feature id="f_15729104394707333806">
 			<position dim="0">264.25</position>
 			<position dim="1">195.067059921809</position>
-			<intensity>1.19267e+07</intensity>
+			<intensity>9.42903e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00548827</overallquality>
@@ -12938,14 +12938,14 @@
 			<userParam type="string" name="label" value="T17_T55_T117"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="37821189.0123056"/>
-			<userParam type="float" name="masstrace_intensity_1" value="4185498.83248117"/>
-			<userParam type="float" name="masstrace_intensity_2" value="520944.894650973"/>
+			<userParam type="float" name="masstrace_intensity_0" value="9429032.53848451"/>
+			<userParam type="float" name="masstrace_intensity_1" value="1043468.11170885"/>
+			<userParam type="float" name="masstrace_intensity_2" value="129874.456374791"/>
 		</feature>
-		<feature id="f_7502089177350208691">
+		<feature id="f_4364908810322609447">
 			<position dim="0">232.5</position>
 			<position dim="1">197.084216141952</position>
-			<intensity>191398</intensity>
+			<intensity>167383</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>9.74411e-05</overallquality>
@@ -13113,13 +13113,13 @@
 			<userParam type="string" name="label" value="T103_T164"/>
 			<userParam type="float" name="FWHM" value="6.75"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="671395.53558212"/>
-			<userParam type="float" name="masstrace_intensity_1" value="74570.4300111277"/>
+			<userParam type="float" name="masstrace_intensity_0" value="167382.63699582"/>
+			<userParam type="float" name="masstrace_intensity_1" value="18590.8224819409"/>
 		</feature>
-		<feature id="f_17794658687640075194">
+		<feature id="f_13335755036771461005">
 			<position dim="0">278.5</position>
 			<position dim="1">199.101345618327</position>
-			<intensity>38857.1</intensity>
+			<intensity>38865</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.20714e-05</overallquality>
@@ -13183,12 +13183,12 @@
 			<userParam type="string" name="label" value="T145"/>
 			<userParam type="float" name="FWHM" value="6.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="155892.985554922"/>
+			<userParam type="float" name="masstrace_intensity_0" value="38864.9873709841"/>
 		</feature>
-		<feature id="f_15761796102537755776">
+		<feature id="f_2150079094072249084">
 			<position dim="0">242.75</position>
 			<position dim="1">201.0420616492</position>
-			<intensity>43944.7</intensity>
+			<intensity>38335.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.17705e-05</overallquality>
@@ -13314,12 +13314,12 @@
 			<userParam type="string" name="label" value="T152"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="153767.466700491"/>
+			<userParam type="float" name="masstrace_intensity_0" value="38335.0837121364"/>
 		</feature>
-		<feature id="f_12592347916787492574">
+		<feature id="f_2659232306950179506">
 			<position dim="0">257</position>
 			<position dim="1">204.142080509223</position>
-			<intensity>1.76809e+07</intensity>
+			<intensity>1.38344e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00812776</overallquality>
@@ -13873,15 +13873,15 @@
 			<userParam type="string" name="label" value="T16_T50_T70_T135"/>
 			<userParam type="float" name="FWHM" value="10.25"/>
 			<userParam type="int" name="num_of_masstraces" value="4"/>
-			<userParam type="float" name="masstrace_intensity_0" value="55491905.5218051"/>
-			<userParam type="float" name="masstrace_intensity_1" value="6802200.38010555"/>
-			<userParam type="float" name="masstrace_intensity_2" value="3001195.18344162"/>
-			<userParam type="float" name="masstrace_intensity_3" value="326212.066279322"/>
+			<userParam type="float" name="masstrace_intensity_0" value="13834440.33495"/>
+			<userParam type="float" name="masstrace_intensity_1" value="1695826.34476243"/>
+			<userParam type="float" name="masstrace_intensity_2" value="748214.632538572"/>
+			<userParam type="float" name="masstrace_intensity_3" value="81326.4804126922"/>
 		</feature>
-		<feature id="f_17854393486681970073">
+		<feature id="f_16506990407045836477">
 			<position dim="0">245.75</position>
 			<position dim="1">205.09756756394</position>
-			<intensity>5.06545e+07</intensity>
+			<intensity>3.97064e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0231605</overallquality>
@@ -14291,14 +14291,14 @@
 			<userParam type="string" name="label" value="T8_T28_T79"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="159268017.745096"/>
-			<userParam type="float" name="masstrace_intensity_1" value="20453857.9913702"/>
-			<userParam type="float" name="masstrace_intensity_2" value="1862885.98180094"/>
+			<userParam type="float" name="masstrace_intensity_0" value="39706401.6461734"/>
+			<userParam type="float" name="masstrace_intensity_1" value="5099260.42979298"/>
+			<userParam type="float" name="masstrace_intensity_2" value="464427.82462954"/>
 		</feature>
-		<feature id="f_18426908248095078416">
+		<feature id="f_10147924578710386401">
 			<position dim="0">318</position>
 			<position dim="1">207.063747496684</position>
-			<intensity>1.65616e+06</intensity>
+			<intensity>1.45026e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000852528</overallquality>
@@ -14464,14 +14464,14 @@
 			<userParam type="string" name="label" value="T40_T93_T155"/>
 			<userParam type="float" name="FWHM" value="5.5"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="5817179.42552063"/>
-			<userParam type="float" name="masstrace_intensity_1" value="707243.717933895"/>
-			<userParam type="float" name="masstrace_intensity_2" value="87281.0372535326"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1450255.14844577"/>
+			<userParam type="float" name="masstrace_intensity_1" value="176319.788012686"/>
+			<userParam type="float" name="masstrace_intensity_2" value="21759.6474819571"/>
 		</feature>
-		<feature id="f_9336052716366154948">
+		<feature id="f_7536048862600259774">
 			<position dim="0">284</position>
 			<position dim="1">207.063747597368</position>
-			<intensity>7.91024e+06</intensity>
+			<intensity>6.17065e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00358849</overallquality>
@@ -14739,13 +14739,13 @@
 			<userParam type="string" name="label" value="T25_T68"/>
 			<userParam type="float" name="FWHM" value="9.75"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="24751371.006519"/>
-			<userParam type="float" name="masstrace_intensity_1" value="3009322.22565747"/>
+			<userParam type="float" name="masstrace_intensity_0" value="6170654.29954188"/>
+			<userParam type="float" name="masstrace_intensity_1" value="750240.749313217"/>
 		</feature>
-		<feature id="f_7944107747192860679">
+		<feature id="f_11406718282269538932">
 			<position dim="0">282.75</position>
 			<position dim="1">209.064743231252</position>
-			<intensity>40308.7</intensity>
+			<intensity>36015.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>2.04534e-05</overallquality>
@@ -14795,12 +14795,12 @@
 			<userParam type="string" name="label" value="T130"/>
 			<userParam type="float" name="FWHM" value="4"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="144464.368129767"/>
+			<userParam type="float" name="masstrace_intensity_0" value="36015.769554574"/>
 		</feature>
-		<feature id="f_15711509072479287244">
+		<feature id="f_8649521722773954992">
 			<position dim="0">276</position>
 			<position dim="1">211.059730296663</position>
-			<intensity>157769</intensity>
+			<intensity>145283</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>8.25064e-05</overallquality>
@@ -14902,12 +14902,12 @@
 			<userParam type="string" name="label" value="T118"/>
 			<userParam type="float" name="FWHM" value="9.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="582751.363009057"/>
+			<userParam type="float" name="masstrace_intensity_0" value="145283.15230573"/>
 		</feature>
-		<feature id="f_9370253979101937341">
+		<feature id="f_4869003301577275810">
 			<position dim="0">303</position>
 			<position dim="1">211.059804837141</position>
-			<intensity>1.22801e+06</intensity>
+			<intensity>970813</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00056098</overallquality>
@@ -15275,13 +15275,13 @@
 			<userParam type="string" name="label" value="T65.1_T131"/>
 			<userParam type="float" name="FWHM" value="12"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="3894068.49118809"/>
-			<userParam type="float" name="masstrace_intensity_1" value="433108.640605051"/>
+			<userParam type="float" name="masstrace_intensity_0" value="970812.90856703"/>
+			<userParam type="float" name="masstrace_intensity_1" value="107976.390261954"/>
 		</feature>
-		<feature id="f_18054193908969848132">
+		<feature id="f_11185567518227773594">
 			<position dim="0">284.75</position>
 			<position dim="1">211.09802620505</position>
-			<intensity>2.31576e+07</intensity>
+			<intensity>1.82713e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0106565</overallquality>
@@ -15623,14 +15623,14 @@
 			<userParam type="string" name="label" value="T14_T42_T95"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="73288663.245666"/>
-			<userParam type="float" name="masstrace_intensity_1" value="8943632.42323019"/>
-			<userParam type="float" name="masstrace_intensity_2" value="977354.553231663"/>
+			<userParam type="float" name="masstrace_intensity_0" value="18271270.9063848"/>
+			<userParam type="float" name="masstrace_intensity_1" value="2229697.24995808"/>
+			<userParam type="float" name="masstrace_intensity_2" value="243659.919868172"/>
 		</feature>
-		<feature id="f_4431301873180398680">
+		<feature id="f_4551695374053584238">
 			<position dim="0">230</position>
 			<position dim="1">211.098028015667</position>
-			<intensity>33956.1</intensity>
+			<intensity>23134.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1.3138e-05</overallquality>
@@ -15704,12 +15704,12 @@
 			<userParam type="string" name="label" value="T132"/>
 			<userParam type="float" name="FWHM" value="2.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="92795.2767695365"/>
+			<userParam type="float" name="masstrace_intensity_0" value="23134.3780279608"/>
 		</feature>
-		<feature id="f_4127734423718065973">
+		<feature id="f_5633827712864865257">
 			<position dim="0">303.25</position>
 			<position dim="1">213.060836190099</position>
-			<intensity>7369.32</intensity>
+			<intensity>7369.89</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>4.18537e-06</overallquality>
@@ -15759,12 +15759,12 @@
 			<userParam type="string" name="label" value="T174"/>
 			<userParam type="float" name="FWHM" value="5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="29561.685135748"/>
+			<userParam type="float" name="masstrace_intensity_0" value="7369.89233592607"/>
 		</feature>
-		<feature id="f_11462418146607784095">
+		<feature id="f_9408712506038035853">
 			<position dim="0">296.5</position>
 			<position dim="1">213.153362771415</position>
-			<intensity>17463.7</intensity>
+			<intensity>15551.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>8.83185e-06</overallquality>
@@ -15824,12 +15824,12 @@
 			<userParam type="string" name="label" value="T159"/>
 			<userParam type="float" name="FWHM" value="4.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="62380.3083880748"/>
+			<userParam type="float" name="masstrace_intensity_0" value="15551.7574384159"/>
 		</feature>
-		<feature id="f_15360459470082125043">
+		<feature id="f_11093001485048210322">
 			<position dim="0">300.25</position>
 			<position dim="1">217.098484699323</position>
-			<intensity>5.07967e+06</intensity>
+			<intensity>3.98293e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0023337</overallquality>
@@ -16133,14 +16133,14 @@
 			<userParam type="string" name="label" value="T32_T76_T140"/>
 			<userParam type="float" name="FWHM" value="9.25"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="15976116.4436201"/>
-			<userParam type="float" name="masstrace_intensity_1" value="2224495.10081885"/>
-			<userParam type="float" name="masstrace_intensity_2" value="178256.38725091"/>
+			<userParam type="float" name="masstrace_intensity_0" value="3982934.58559696"/>
+			<userParam type="float" name="masstrace_intensity_1" value="554578.986940255"/>
+			<userParam type="float" name="masstrace_intensity_2" value="44440.3076549144"/>
 		</feature>
-		<feature id="f_3706123666618360843">
+		<feature id="f_17787792169014838545">
 			<position dim="0">308.5</position>
 			<position dim="1">219.060419740494</position>
-			<intensity>2.32889e+06</intensity>
+			<intensity>1.83961e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00107427</overallquality>
@@ -16468,13 +16468,13 @@
 			<userParam type="string" name="label" value="T44_T99"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="7378918.07743114"/>
-			<userParam type="float" name="masstrace_intensity_1" value="1002136.50317552"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1839605.2706929"/>
+			<userParam type="float" name="masstrace_intensity_1" value="249838.197666675"/>
 		</feature>
-		<feature id="f_9373710789706894413">
+		<feature id="f_6948475378569956911">
 			<position dim="0">316</position>
 			<position dim="1">219.102876730444</position>
-			<intensity>5.95513e+06</intensity>
+			<intensity>5.17385e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0030344</overallquality>
@@ -16646,13 +16646,13 @@
 			<userParam type="string" name="label" value="T27_T64"/>
 			<userParam type="float" name="FWHM" value="8.25"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="20753030.9777506"/>
-			<userParam type="float" name="masstrace_intensity_1" value="2973271.65127906"/>
+			<userParam type="float" name="masstrace_intensity_0" value="5173845.91736977"/>
+			<userParam type="float" name="masstrace_intensity_1" value="741253.14083971"/>
 		</feature>
-		<feature id="f_18015983380322492658">
+		<feature id="f_7837771796774692831">
 			<position dim="0">308.5</position>
 			<position dim="1">221.077530127951</position>
-			<intensity>9.60664e+06</intensity>
+			<intensity>7.59195e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00448549</overallquality>
@@ -17344,15 +17344,15 @@
 			<userParam type="string" name="label" value="T23_T62_T83_T149"/>
 			<userParam type="float" name="FWHM" value="10.5"/>
 			<userParam type="int" name="num_of_masstraces" value="4"/>
-			<userParam type="float" name="masstrace_intensity_0" value="30452390.9940035"/>
-			<userParam type="float" name="masstrace_intensity_1" value="4141506.47992766"/>
-			<userParam type="float" name="masstrace_intensity_2" value="1693997.06421672"/>
-			<userParam type="float" name="masstrace_intensity_3" value="200815.753227707"/>
+			<userParam type="float" name="masstrace_intensity_0" value="7591950.25475504"/>
+			<userParam type="float" name="masstrace_intensity_1" value="1032500.5738153"/>
+			<userParam type="float" name="masstrace_intensity_2" value="422322.879204029"/>
+			<userParam type="float" name="masstrace_intensity_3" value="50064.4829227407"/>
 		</feature>
-		<feature id="f_10570557656978204688">
+		<feature id="f_12054080297935271436">
 			<position dim="0">318</position>
 			<position dim="1">225.077863276215</position>
-			<intensity>9.66635e+06</intensity>
+			<intensity>8.0701e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00469886</overallquality>
@@ -17654,15 +17654,15 @@
 			<userParam type="string" name="label" value="T19.2_T54_T111_T172"/>
 			<userParam type="float" name="FWHM" value="7.25"/>
 			<userParam type="int" name="num_of_masstraces" value="4"/>
-			<userParam type="float" name="masstrace_intensity_0" value="32370305.7394838"/>
-			<userParam type="float" name="masstrace_intensity_1" value="3955156.02173346"/>
-			<userParam type="float" name="masstrace_intensity_2" value="553089.744891796"/>
-			<userParam type="float" name="masstrace_intensity_3" value="45065.4444871256"/>
+			<userParam type="float" name="masstrace_intensity_0" value="8070097.0558852"/>
+			<userParam type="float" name="masstrace_intensity_1" value="986042.369307162"/>
+			<userParam type="float" name="masstrace_intensity_2" value="137888.34612233"/>
+			<userParam type="float" name="masstrace_intensity_3" value="11235.0656742209"/>
 		</feature>
-		<feature id="f_16441829603882264857">
+		<feature id="f_15682019692484374134">
 			<position dim="0">284</position>
 			<position dim="1">225.077863349404</position>
-			<intensity>1.288e+07</intensity>
+			<intensity>1.00085e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00579525</overallquality>
@@ -17958,13 +17958,13 @@
 			<userParam type="string" name="label" value="T19.1_T56"/>
 			<userParam type="float" name="FWHM" value="10.75"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="40145442.2058252"/>
-			<userParam type="float" name="masstrace_intensity_1" value="4905053.89833786"/>
+			<userParam type="float" name="masstrace_intensity_0" value="10008481.7721467"/>
+			<userParam type="float" name="masstrace_intensity_1" value="1222857.18715506"/>
 		</feature>
-		<feature id="f_7765744053472106292">
+		<feature id="f_14502486422244364319">
 			<position dim="0">301</position>
 			<position dim="1">225.150042134232</position>
-			<intensity>25456.3</intensity>
+			<intensity>25480.7</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1.44705e-05</overallquality>
@@ -18034,12 +18034,12 @@
 			<userParam type="string" name="label" value="T158"/>
 			<userParam type="float" name="FWHM" value="7.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="102206.716067635"/>
+			<userParam type="float" name="masstrace_intensity_0" value="25480.7021307506"/>
 		</feature>
-		<feature id="f_2040057375709867617">
+		<feature id="f_4704609392880351907">
 			<position dim="0">284</position>
 			<position dim="1">227.078875433763</position>
-			<intensity>130234</intensity>
+			<intensity>114079</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>6.47856e-05</overallquality>
@@ -18121,12 +18121,12 @@
 			<userParam type="string" name="label" value="T116"/>
 			<userParam type="float" name="FWHM" value="6.75"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="457587.33661893"/>
+			<userParam type="float" name="masstrace_intensity_0" value="114079.065170969"/>
 		</feature>
-		<feature id="f_12832404539322380627">
+		<feature id="f_8703067851072878454">
 			<position dim="0">270</position>
 			<position dim="1">233.082587022595</position>
-			<intensity>29184.3</intensity>
+			<intensity>29191.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1.65776e-05</overallquality>
@@ -18180,12 +18180,12 @@
 			<userParam type="string" name="label" value="T148"/>
 			<userParam type="float" name="FWHM" value="5.5"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="117089.717588467"/>
+			<userParam type="float" name="masstrace_intensity_0" value="29191.1170932359"/>
 		</feature>
-		<feature id="f_15717736372462687923">
+		<feature id="f_6689009741699436268">
 			<position dim="0">235</position>
 			<position dim="1">233.150667053605</position>
-			<intensity>769507</intensity>
+			<intensity>669909</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000391971</overallquality>
@@ -18483,14 +18483,14 @@
 			<userParam type="string" name="label" value="T72_T133_T176"/>
 			<userParam type="float" name="FWHM" value="9.5"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2687098.41709818"/>
-			<userParam type="float" name="masstrace_intensity_1" value="320620.068660885"/>
-			<userParam type="float" name="masstrace_intensity_2" value="37653.4137246091"/>
+			<userParam type="float" name="masstrace_intensity_0" value="669908.563707115"/>
+			<userParam type="float" name="masstrace_intensity_1" value="79932.3643397624"/>
+			<userParam type="float" name="masstrace_intensity_2" value="9387.20522717684"/>
 		</feature>
-		<feature id="f_17630661751091740726">
+		<feature id="f_5856592341455069114">
 			<position dim="0">275</position>
 			<position dim="1">234.097646308602</position>
-			<intensity>2.22364e+06</intensity>
+			<intensity>1.77858e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00105993</overallquality>
@@ -18836,14 +18836,14 @@
 			<userParam type="string" name="label" value="T46_T100_T109"/>
 			<userParam type="float" name="FWHM" value="9.25"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="7134132.98404125"/>
-			<userParam type="float" name="masstrace_intensity_1" value="930341.692324349"/>
-			<userParam type="float" name="masstrace_intensity_2" value="714910.778452899"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1778578.98699362"/>
+			<userParam type="float" name="masstrace_intensity_1" value="231939.352461418"/>
+			<userParam type="float" name="masstrace_intensity_2" value="178231.228794855"/>
 		</feature>
-		<feature id="f_15492058593027136830">
+		<feature id="f_13758024787744755945">
 			<position dim="0">308</position>
 			<position dim="1">237.07028733581</position>
-			<intensity>1.03574e+08</intensity>
+			<intensity>8.30302e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0496024</overallquality>
@@ -19219,15 +19219,15 @@
 			<userParam type="string" name="label" value="T5_T15_T24_T66"/>
 			<userParam type="float" name="FWHM" value="7.25"/>
 			<userParam type="int" name="num_of_masstraces" value="4"/>
-			<userParam type="float" name="masstrace_intensity_0" value="333046081.759809"/>
-			<userParam type="float" name="masstrace_intensity_1" value="45435796.3181918"/>
-			<userParam type="float" name="masstrace_intensity_2" value="19270847.4847289"/>
-			<userParam type="float" name="masstrace_intensity_3" value="2299995.79422212"/>
+			<userParam type="float" name="masstrace_intensity_0" value="83030238.4387302"/>
+			<userParam type="float" name="masstrace_intensity_1" value="11327396.4432159"/>
+			<userParam type="float" name="masstrace_intensity_2" value="4804329.33820671"/>
+			<userParam type="float" name="masstrace_intensity_3" value="573401.729253988"/>
 		</feature>
-		<feature id="f_6783162779989150293">
+		<feature id="f_17851953461115341962">
 			<position dim="0">302.75</position>
 			<position dim="1">243.087732299184</position>
-			<intensity>2.3931e+06</intensity>
+			<intensity>1.91048e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00112504</overallquality>
@@ -19483,14 +19483,14 @@
 			<userParam type="string" name="label" value="T39_T89_T144"/>
 			<userParam type="float" name="FWHM" value="7.25"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="7663196.04370425"/>
-			<userParam type="float" name="masstrace_intensity_1" value="941048.269839488"/>
-			<userParam type="float" name="masstrace_intensity_2" value="141416.701672018"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1910477.34700682"/>
+			<userParam type="float" name="masstrace_intensity_1" value="234608.561716928"/>
+			<userParam type="float" name="masstrace_intensity_2" value="35255.9693751766"/>
 		</feature>
-		<feature id="f_12356342689060306227">
+		<feature id="f_9501425789418703337">
 			<position dim="0">274.75</position>
 			<position dim="1">252.107530103247</position>
-			<intensity>1.37658e+08</intensity>
+			<intensity>1.0732e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0626401</overallquality>
@@ -19972,10 +19972,10 @@
 			<userParam type="string" name="label" value="T6_T18_T45_T115"/>
 			<userParam type="float" name="FWHM" value="10.75"/>
 			<userParam type="int" name="num_of_masstraces" value="4"/>
-			<userParam type="float" name="masstrace_intensity_0" value="430477170.551697"/>
-			<userParam type="float" name="masstrace_intensity_1" value="45455161.6700916"/>
-			<userParam type="float" name="masstrace_intensity_2" value="8355846.04469201"/>
-			<userParam type="float" name="masstrace_intensity_3" value="713765.782466102"/>
+			<userParam type="float" name="masstrace_intensity_0" value="107320350.158374"/>
+			<userParam type="float" name="masstrace_intensity_1" value="11332224.3330298"/>
+			<userParam type="float" name="masstrace_intensity_2" value="2083158.84030863"/>
+			<userParam type="float" name="masstrace_intensity_3" value="177945.774934257"/>
 		</feature>
 	</featureList>
 </featureMap>
