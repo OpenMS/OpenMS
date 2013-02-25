@@ -953,36 +953,41 @@ namespace OpenMS
 
   void TOPPASToolVertex::smartFileNames_(std::vector<QStringList>& filenames)
   {
-    // special case #1, only one filename in each round, with different directory but same basename
-    // --> use directory as new name
-    bool passes_constraints = true && filenames.size() > 0; // one file per round AND unique filename
-    for (Size i = 1; i < filenames.size(); ++i)
-    {
-      if ((filenames[i].size() > 1)
-         || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
-      {
-        passes_constraints = false;
-        break;
-      }
-    }
-    if (passes_constraints) // rename
-    {
-      for (Size i = 0; i < filenames.size(); ++i)
-      {
-        QString p = QDir::toNativeSeparators(QFileInfo(filenames[i][0]).canonicalPath());
-        if (p.isEmpty()) continue;
-        //std::cout << "PATH: " << p << "\n";
-        String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
-        //std::cout << "INTER: " << tmp << "\n";
-        if (tmp.size() <= 2 || tmp.has(':')) continue;  // too small to be reliable; might even be 'c:'
-        filenames[i][0] = tmp.toQString();
-        //std::cout << "  -->: " << filenames[i][0] << "\n";
-      }
-    }
+    /* TODO:
+     * implement this carefully; also take care of what happens after the call
+     * of this method in updateCurrentOutputFileNames()
+     */
 
-    // possibilities for more good naming schemes...
+//    // special case #1, only one filename in each round, with different directory but same basename
+//    // --> use directory as new name
+//    bool passes_constraints = true && filenames.size() > 0; // one file per round AND unique filename
+//    for (Size i = 1; i < filenames.size(); ++i)
+//    {
+//      if ((filenames[i].size() > 1)
+//         || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
+//      {
+//        passes_constraints = false;
+//        break;
+//      }
+//    }
+//    if (passes_constraints) // rename
+//    {
+//      for (Size i = 0; i < filenames.size(); ++i)
+//      {
+//        QString p = QDir::toNativeSeparators(QFileInfo(filenames[i][0]).canonicalPath());
+//        if (p.isEmpty()) continue;
+//        //std::cout << "PATH: " << p << "\n";
+//        String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
+//        //std::cout << "INTER: " << tmp << "\n";
+//        if (tmp.size() <= 2 || tmp.has(':')) continue;  // too small to be reliable; might even be 'c:'
+//        filenames[i][0] = tmp.toQString();
+//        //std::cout << "  -->: " << filenames[i][0] << "\n";
+//      }
+//    }
 
-    // special case #2 ...
+//    // possibilities for more good naming schemes...
+
+//    // special case #2 ...
   }
 
   void TOPPASToolVertex::forwardTOPPOutput()
