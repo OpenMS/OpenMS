@@ -609,7 +609,7 @@ END_SECTION
 
 /////
 
-START_SECTION((computeSmoothedPeakArea()))
+START_SECTION((DoubleReal computeSmoothedPeakArea()))
 {
     DoubleReal peak_area = test_mt.computeSmoothedPeakArea();
 
