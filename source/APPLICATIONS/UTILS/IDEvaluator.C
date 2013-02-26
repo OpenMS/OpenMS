@@ -92,7 +92,7 @@ public:
     int argc = 1;
     const char* c = "IDEvaluator";
     const char** argv = &c;
-    QApplication app(argc, const_cast<char**>(argv), false);
+    QApplication app(argc, const_cast<char**>(argv));
     out_formats_ = IDEvaluationBase().getSupportedImageFormats(); // can only be called if a QApplication is present...
   }
 
@@ -109,7 +109,7 @@ protected:
     int argc = 1;
     const char* c = "IDEvaluator";
     const char** argv = &c;
-    QApplication app(argc, const_cast<char**>(argv), false);
+    QApplication app(argc, const_cast<char**>(argv));
     p_my.insert("image:", IDEvaluationBase().getParameters().copy("image:", true)); // can only be called if a QApplication is present...
     return p_my;
   }
