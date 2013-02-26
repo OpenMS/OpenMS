@@ -280,6 +280,8 @@ public:
     /// Compute chromatographic peak area within the FWHM range.
     DoubleReal computeFwhmAreaSmooth();
     DoubleReal computeFwhmArea();
+    DoubleReal computeFwhmAreaSmoothRobust();
+    DoubleReal computeFwhmAreaRobust();
 
     DoubleReal getIntensity(bool);
     DoubleReal getMaxIntensity(bool);

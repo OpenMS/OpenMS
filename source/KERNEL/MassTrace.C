@@ -276,7 +276,7 @@ DoubleReal MassTrace::computeFwhmAreaSmooth()
 
     DoubleReal t_area(0.0);
 
-    for (Size i = fwhm_start_idx_; i <= fwhm_end_idx_; ++i)
+    for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
     {
         t_area += smoothed_intensities_[i];
     }
@@ -288,7 +288,7 @@ DoubleReal MassTrace::computeFwhmArea()
 {
     DoubleReal t_area(0.0);
 
-    for (Size i = fwhm_start_idx_; i <= fwhm_end_idx_; ++i)
+    for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
     {
         t_area += trace_peaks_[i].getIntensity();
     }
@@ -296,14 +296,78 @@ DoubleReal MassTrace::computeFwhmArea()
     return t_area * scan_time_;
 }
 
-DoubleReal MassTrace::getIntensity(bool smoothed)
+DoubleReal MassTrace::computeFwhmAreaSmoothRobust()
 {
-    if (smoothed)
+    if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
     {
-        return computeFwhmAreaSmooth();
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
     }
 
-    return computeFwhmArea();
+    DoubleReal t_area(0.0);
+
+    for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
+    {
+        DoubleReal rt_diff(std::fabs(trace_peaks_[i + 1].getRT() - trace_peaks_[i].getRT()));
+
+        if (rt_diff < 1.5*scan_time_)
+        {
+            t_area += smoothed_intensities_[i] * rt_diff;
+        }
+        else
+        {
+            DoubleReal averaged_int((smoothed_intensities_[i] + smoothed_intensities_[i + 1]) / 2.0);
+            DoubleReal averaged_rt_diff(rt_diff / 2.0);
+
+            t_area += smoothed_intensities_[i] * averaged_rt_diff;
+            t_area += averaged_int * averaged_rt_diff;
+        }
+
+    }
+
+    return t_area;
+}
+
+DoubleReal MassTrace::computeFwhmAreaRobust()
+{
+    if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
+    }
+
+    DoubleReal t_area(0.0);
+
+    for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
+    {
+        DoubleReal rt_diff(std::fabs(trace_peaks_[i + 1].getRT() - trace_peaks_[i].getRT()));
+
+        if (rt_diff < 1.5*scan_time_)
+        {
+            t_area += trace_peaks_[i].getIntensity() * rt_diff;
+        }
+        else
+        {
+            DoubleReal averaged_int((trace_peaks_[i].getIntensity() + trace_peaks_[i + 1].getIntensity()) / 2.0);
+            DoubleReal averaged_rt_diff(rt_diff / 2.0);
+
+            t_area += trace_peaks_[i].getIntensity() * averaged_rt_diff;
+            t_area += averaged_int * averaged_rt_diff;
+        }
+
+    }
+
+    return t_area;
+}
+
+DoubleReal MassTrace::getIntensity(bool smoothed)
+{
+    // std::cout << "area old:\t" << computeFwhmAreaSmooth() << "\tarea new:\t" << computeFwhmAreaSmoothRobust() << "area old:\t" << computeFwhmArea() << "\tarea new:\t" << computeFwhmAreaRobust() << std::endl;
+
+    if (smoothed)
+    {
+        return computeFwhmAreaSmoothRobust();
+    }
+
+    return computeFwhmAreaRobust();
 }
 
 DoubleReal MassTrace::getMaxIntensity(bool smoothed)

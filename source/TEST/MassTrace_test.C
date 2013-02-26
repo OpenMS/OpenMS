@@ -537,10 +537,10 @@ START_SECTION((DoubleReal getIntensity(bool)))
     test_mt.estimateFWHM(true);
 
     DoubleReal smoothed_area = test_mt.getIntensity(true);
-    TEST_REAL_SIMILAR(smoothed_area, 69580000);
+    TEST_REAL_SIMILAR(smoothed_area, 69460700);
 
     DoubleReal raw_area = test_mt.getIntensity(false);
-    TEST_REAL_SIMILAR(raw_area, 69830444);
+    TEST_REAL_SIMILAR(raw_area, 69922872.7);
 }
 END_SECTION
 
@@ -645,7 +645,7 @@ START_SECTION((DoubleReal computeFwhmAreaSmooth()))
 {
     DoubleReal peak_area = test_mt.computeFwhmAreaSmooth();
 
-    TEST_REAL_SIMILAR(peak_area, 69580000.0)
+    TEST_REAL_SIMILAR(peak_area, 69040000.0)
 }
 END_SECTION
 
@@ -655,7 +655,27 @@ START_SECTION((DoubleReal computeFwhmArea()))
 {
     DoubleReal peak_area = test_mt.computeFwhmArea();
 
-    TEST_REAL_SIMILAR(peak_area, 69830444.0)
+    TEST_REAL_SIMILAR(peak_area, 69497153.0)
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal computeFwhmAreaSmoothRobust()))
+{
+    DoubleReal peak_area = test_mt.computeFwhmAreaSmoothRobust();
+
+    TEST_REAL_SIMILAR(peak_area, 69460700.0)
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal computeFwhmAreaRobust()))
+{
+    DoubleReal peak_area = test_mt.computeFwhmAreaRobust();
+
+    TEST_REAL_SIMILAR(peak_area, 69922872.67)
 }
 END_SECTION
 
