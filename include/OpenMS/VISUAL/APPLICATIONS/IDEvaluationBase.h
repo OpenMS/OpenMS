@@ -71,6 +71,8 @@ namespace OpenMS
   /**
     @brief Main window of the IDEvaluation tool
 
+    @htmlinclude OpenMS_IDEvaluationBase.parameters
+
     @ingroup TOPPAS_elements
   */
   class OPENMS_GUI_DLLAPI IDEvaluationBase :

@@ -70,11 +70,14 @@ public:
     */
     virtual bool notify(QObject* rec, QEvent* ev);
 
+    /* 
+      Reimplemented from QApplication, to handle QEvent::FileOpen to enable handling of odoc event on MacOSX
+    */
+    bool event(QEvent*);
+
 signals:
     void fileOpen(QString file);
 
-protected:
-    bool event(QEvent*);
   };
 
 }
