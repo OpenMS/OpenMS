@@ -73,7 +73,14 @@ using namespace std;
     </table>
     </CENTER>
 
-    The input file can contain several searches, e.g. from several identification engines. In order
+    This implementation (for PEPMatrix and PEPIons) is described in
+    <p>
+    Nahnsen S, Bertsch A, Rahnenfuehrer J, Nordheim A, Kohlbacher O<br>
+    Probabilistic Consensus Scoring Improves Tandem Mass Spectrometry Peptide Identification<br>
+    Journal of Proteome Research (2011), DOI: 10.1021/pr2002879<br>
+    </p>
+
+    The input file can contain several searches, e.g., from several identification engines. In order
     to use the PEPMatrix or the PEPIons algorithm, posterior
     error probabilities (PEPs) need to be calculated using the @ref TOPP_IDPosteriorErrorProbability tool
     for all individual search engines. After PEP calculation, the different search engine results
@@ -81,7 +88,8 @@ using namespace std;
     to featureXML and consensusXML with the @ref TOPP_IDMapper tool. The merged file can now be fed into
     into the @ref TOPP_ConsensusID tool. For the statistical assessment of the results it is recommended
     to use target-decoy databases for peptide identifications. The false discovery rates (FDRs) can be
-    calcultated using the @ref TOPP_FalseDiscoveryRate tool.
+    calculated using the @ref TOPP_FalseDiscoveryRate tool.
+
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ConsensusID.cli
@@ -89,7 +97,7 @@ using namespace std;
     @htmlinclude TOPP_ConsensusID.html
 
     For the parameters of the algorithm section see the algorithms documentation: @n
-        @ref OpenMS::ConsensusID "Consensus algorithm" @n
+    @ref OpenMS::ConsensusID "Consensus algorithm" @n
 */
 
 // We do not want this class to show up in the docu:

@@ -64,9 +64,9 @@ using namespace std;
 
   This implementation is described in
   <p>
-  Chris Bielow, Stephan Aiche, Sandro Andreotti, Knut Reinert<br>
+  Bielow C, Aiche S, Andreotti S, Reinert K<br>
   MSSimulator: Simulation of Mass Spectrometry Data<br>
-  Journal of Proteome Research, DOI: 10.1021/pr200155f<br>
+  Journal of Proteome Research (2011), DOI: 10.1021/pr200155f<br>
   </p>
 
   The most important features are:
