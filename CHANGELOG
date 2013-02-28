@@ -9,7 +9,10 @@ INIFileEditor - graphical parameter editor for INI files
 ------------------------------------------------------------------------------------------ 
 ----                                  OpenMS 1.10                                      ---- 
 ------------------------------------------------------------------------------------------ 
-Release date: January 2013
+Release date: March 2013
+
+OpenMS 1.10 is the first release integrated into KNIME (www.knime.org).
+To use OpenMS in KNIME please refer to the www.OpenMS.de for additional information.
 
 File formats:
 - TraML 1.0.0 support
@@ -48,6 +51,9 @@ Changes to the Build System / Package System:
 
 Development:
 - Style corrections of the OpenMS source base using uncrustify
+
+Deprecated:
+- Conversion of Sequest files in IDFileConverter 
 
 Resolved issues:
 	#513	Commented out the functionality of smartFileNames_() (not mature enough for the 1.10 release)
