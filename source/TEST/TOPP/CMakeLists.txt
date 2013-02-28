@@ -50,22 +50,30 @@ add_test("TOPP_WSDL_1_out1" ${DIFF} -in1 WSDL_out.tmp -in2 ${DATA_DIR_TOPP}/WSDL
 set_tests_properties("TOPP_WSDL_1_out1" PROPERTIES DEPENDS "TOPP_WSDL_1")
 
 #####
-## one test for each TOPP tool, checking -write_ini functionality:
+## one test for each TOPP/UTILS tool, checking -write_ini functionality
 #####
 
+## TOPP
 set(TOPP_executables_INI ${TOPP_executables})
-## GenericWrapper (has a -type; special treatment below)
-list(REMOVE_ITEM TOPP_executables_INI GenericWrapper)
-
+list(REMOVE_ITEM TOPP_executables_INI GenericWrapper) ## GenericWrapper (has a -type flag which is required; special treatment below)
+add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -type RAWFileConvert -write_ini "GenericWrapper.ini.tmp")
 foreach (i ${TOPP_executables_INI})
   add_test("TOPPWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -write_ini "${i}.ini.tmp")
 	add_test("TOPPWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
   set_tests_properties("TOPPWRITEINI_${i}_SectionName" PROPERTIES DEPENDS "TOPPWRITEINI_${i}")
 endforeach(i)
-add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -type RAWFileConvert -write_ini "GenericWrapper.ini.tmp")
 
+## UTILS
+set(UTILS_executables_INI ${UTILS_executables})
+foreach (i ${UTILS_executables_INI})
+  add_test("UTILSWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -write_ini "${i}.ini.tmp")
+	if (NOT(${i} STREQUAL "OpenMSInfo"))  ## OpenMSInfo is not derived from TOPPBase and cannot produce an INI file (even though you can pass -write_ini with no effect)
+		add_test("UTILSWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
+		set_tests_properties("UTILSWRITEINI_${i}_SectionName" PROPERTIES DEPENDS "UTILSWRITEINI_${i}")
+	endif()
+endforeach(i)
 
-### testing of write_ini does the correct updates when given an old INI file (using one arbitrary TOPP tool)
+### test if write_ini does the correct updates when given an old INI file (using one arbitrary TOPP tool)
 add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerWavelet -write_ini "WRITE_INI.ini.tmp" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
 add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 WRITE_INI.ini.tmp -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini")
 set_tests_properties("TOPPWRITEINI_OVERWRITE_out" PROPERTIES DEPENDS "TOPPWRITEINI_OVERWRITE")
