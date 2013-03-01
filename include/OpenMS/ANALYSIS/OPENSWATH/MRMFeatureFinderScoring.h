@@ -226,7 +226,7 @@ public:
 
     // pick features in one experiment containing chromatograms
     void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
-                        TransformationDescription& trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map)
+                        TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map)
     {
       updateMembers_();
 

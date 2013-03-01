@@ -76,8 +76,8 @@ public:
 
     /// Extract chromatograms defined by the TargetedExperiment from the input map and write them to the output map
     template <typename ExperimentT>
-    void extractChromatograms(const ExperimentT& input, ExperimentT& output, OpenMS::TargetedExperiment& transition_exp, double& extract_window, bool ppm,
-                              TransformationDescription& trafo, double rt_extraction_window, String filter)
+    void extractChromatograms(const ExperimentT& input, ExperimentT& output, OpenMS::TargetedExperiment& transition_exp, double extract_window, bool ppm,
+                              TransformationDescription trafo, double rt_extraction_window, String filter)
     {
 
       // invert the trafo because we want to transform nRT values to "real" RT values
