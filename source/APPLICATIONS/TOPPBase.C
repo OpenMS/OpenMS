@@ -190,7 +190,7 @@ namespace OpenMS
 
     // for now cmdline is all we have, final assembly will follow below
     param_ = param_cmdline_;
-    
+
     // assign instance number
     *const_cast<int*>(&instance_number_) = getParamAsInt_("instance", 1);
     writeDebug_(String("Instance: ") + String(instance_number_), 1);
@@ -445,11 +445,11 @@ namespace OpenMS
     sw.start();
     result = main_(argc, argv);
     sw.stop();
-    LOG_INFO << this->tool_name_ << " took " 
-                                 << StopWatch::toString(sw.getClockTime()) << " (wall), " 
-                                 << StopWatch::toString(sw.getCPUTime()) << " (CPU), "
-                                 << StopWatch::toString(sw.getSystemTime()) << " (system), "
-                                 << StopWatch::toString(sw.getUserTime()) << " (user)." << std::endl;
+    LOG_INFO << this->tool_name_ << " took "
+             << StopWatch::toString(sw.getClockTime()) << " (wall), "
+             << StopWatch::toString(sw.getCPUTime()) << " (CPU), "
+             << StopWatch::toString(sw.getSystemTime()) << " (system), "
+             << StopWatch::toString(sw.getUserTime()) << " (user)." << std::endl;
 
 #ifndef DEBUG_TOPP
   }
@@ -658,7 +658,7 @@ namespace OpenMS
          << "  " << tool_name_ << " <options>" << "\n"
          << "\n"
          << (subsections_.empty() ? "" : "This tool has algoritm parameters which can only be used "
-                                         "via an INI file and are not accessible from the command line!\n\n")
+                                    "via an INI file and are not accessible from the command line!\n\n")
          << "Options (mandatory options marked with '*'):" << "\n";
 
     // show advanced options?
@@ -804,7 +804,7 @@ namespace OpenMS
       }
 
       if (it->type == ParameterInformation::TEXT)
-        cerr << breakString_(tmp + desc_tmp, console_width_, 0, 10);                                           // no intendation for text
+        cerr << breakString_(tmp + desc_tmp, console_width_, 0, 10); // no intendation for text
       else
         cerr << breakString_(tmp + desc_tmp, console_width_, offset, 10);
       cerr << "\n";
@@ -928,7 +928,7 @@ namespace OpenMS
       {
       case DataValue::STRING_VALUE:
         if (it->valid_strings.empty())
-          argument = "<text>";                                      // name?
+          argument = "<text>"; // name?
         else
           argument = "<choice>";
         break;
@@ -1343,13 +1343,13 @@ namespace OpenMS
                 {
                   writeLog_("Warning: Could not determine format of input file '" + tmp + "'!");
                 }
-                else                 //Wrong ending => invalid
+                else //Wrong ending => invalid
                 {
                   invalid = true;
                 }
               }
             }
-            else             //Wrong ending => invalid
+            else //Wrong ending => invalid
             {
               invalid = true;
             }
@@ -1510,13 +1510,13 @@ namespace OpenMS
                   {
                     writeLog_("Warning: Could not determine format of input file '" + tmp + "'!");
                   }
-                  else                   //Wrong ending => invalid
+                  else //Wrong ending => invalid
                   {
                     invalid = true;
                   }
                 }
               }
-              else               //Wrong ending => invalid
+              else //Wrong ending => invalid
               {
                 invalid = true;
               }
@@ -1801,7 +1801,7 @@ namespace OpenMS
   {
     size_t pos = name.find_last_of(':');
     if (pos == string::npos)
-      return "";                            // delimiter not found
+      return ""; // delimiter not found
 
     return name.substr(0, pos);
   }
@@ -2285,7 +2285,7 @@ namespace OpenMS
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
     if (type_list.size() == 0)
-      type_list.push_back("");                        // no type for most tools (except GenericWrapper)
+      type_list.push_back(""); // no type for most tools (except GenericWrapper)
 
     for (Size i = 0; i < type_list.size(); ++i)
     {
@@ -2318,6 +2318,11 @@ namespace OpenMS
       if (official_) // we can only get the docurl/category from registered/official tools
       {
         lines.insert(6, "<docurl>http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/TOPP__" + tool_name_.toQString() + ".html</docurl>");
+        lines.insert(7, "<category>" + ToolHandler::getCategory(tool_name_).toQString() + "</category>");
+      }
+      else if (ToolHandler::getUtilList().count(tool_name_))
+      {
+        lines.insert(6, "<docurl>http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/UTILS__" + tool_name_.toQString() + ".html</docurl>");
         lines.insert(7, "<category>" + ToolHandler::getCategory(tool_name_).toQString() + "</category>");
       }
       else
