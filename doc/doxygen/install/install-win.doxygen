@@ -2,7 +2,7 @@
 
 	@page install_win Building %OpenMS on Windows
 
-  @section install_win_read Read this section first!
+  @section install_win_read Introduction
 
 
   This document addresses %OpenMS users and explains the
@@ -122,10 +122,10 @@
 		After you got the source code for the contrib package open a VisualStudio Command line (see Start-Menu).
 	
     <OL>
-      <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-      <LI>create a build directory for the %OpenMS contrib <br>
+      <LI>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
+      <LI>Create a build directory for the %OpenMS contrib <br>
           -e.g. $ mkdir contrib_win64_build
-      <LI>call CMake to build the contrib<br>
+      <LI>Call CMake to build the contrib<br>
 				Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
 				able to run 64bit apps in this case.
 				
@@ -143,7 +143,7 @@ cd c:\svn\contrib_win64_build
 cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 @endcode
 
-				<LI>add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
+				<LI>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
       </OL>
     
   @section create_doc Building the documentation (optional)
@@ -155,26 +155,26 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
   <OL>
     <LI> Doxygen (version 1.5.8 and 1.8.2 are tested, others might work as well)
       <UL>
-        <LI> download the installer for Windows (http://www.doxygen.org)
-        <LI> execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
+        <LI> Download the installer for Windows (http://www.doxygen.org)
+        <LI> Execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
       </UL>
     <LI> MikTeX (version 2.7 and 2.9 are tested, others might work as well) - basic version (for DVIPS, LATEX etc).
       <UL>
-         <LI> download binaries for Windows (http://miktex.org/)
+         <LI> Download binaries for Windows (http://miktex.org/)
          <LI> During installtion tick "install missing packages on the fly = yes"?!
          <LI> The installer SHOULD add the bin directory of MikTeX automatically to the Windows PATH Environment (please recheck)
       </UL>
     <LI> GPL Ghostscript (8.60) for Windows
       <UL>
          <LI> Download binaries for Windows (http://www.ghostscript.com/) and install
-         <LI> add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
+         <LI> Add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
       </UL>
 		<LI>
 			Optional:<br>
 				You can create dependency graphs using a doxygen plug-in called <tt>dot</tt>.
 				<UL>
-					<LI> download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
-					<LI> the installer should have added dot.exe to the Windows PATH Environment (please recheck)
+					<LI> Download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
+					<LI> The installer should have added dot.exe to the Windows PATH Environment (please recheck)
 				</UL>
   </OL>
 	
@@ -198,10 +198,10 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 		After you got the source code open a VisualStudio Command line (see Start-Menu).
     To create Visual Studio Project Files using CMake:
     <OL>
-      <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-      <LI>create a build directory for %OpenMS<br>
+      <LI>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
+      <LI>Create a build directory for %OpenMS<br>
           -e.g. $ mkdir OpenMS_Win64
-      <LI>call CMake to create the BuildSystem there
+      <LI>Call CMake to create the BuildSystem there
 @code
 cd <path_to_OpenMS_build>
 cmake -D CMAKE_FIND_ROOT_PATH="<path_to_contrib_build>" -G "<generator>" "<path_to_OpenMS>"
