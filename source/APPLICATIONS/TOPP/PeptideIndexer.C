@@ -349,7 +349,7 @@ class TOPPPeptideIndexer :
 {
 public:
   TOPPPeptideIndexer() :
-    TOPPBase("PeptideIndexer", "Refreshes the protein references for all peptide hits.", false)
+    TOPPBase("PeptideIndexer", "Refreshes the protein references for all peptide hits.")
   {
   }
 

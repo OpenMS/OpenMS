@@ -74,8 +74,7 @@ class DIAPreScoring :
 public:
 
   DIAPreScoring() :
-    TOPPBase("OpenSwathDIAPreScoring", "Scoring spectra using the DIA scores.",
-             false)
+    TOPPBase("OpenSwathDIAPreScoring", "Scoring spectra using the DIA scores.")
   {
   }
 

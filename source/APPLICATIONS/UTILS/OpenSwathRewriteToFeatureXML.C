@@ -61,7 +61,7 @@ class TOPPOpenSwathRewriteToFeatureXML
  public:
 
   TOPPOpenSwathRewriteToFeatureXML()
-    : TOPPBase("OpenSwathRewriteToFeatureXML","Combines featureXML and mProphet tsv to FDR filtered featureXML.", false)
+    : TOPPBase("OpenSwathRewriteToFeatureXML","Combines featureXML and mProphet tsv to FDR filtered featureXML.")
   {
   }
 

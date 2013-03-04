@@ -93,7 +93,7 @@ class TOPPConvertTSVToTraML : public TOPPBase
 public:
 
   TOPPConvertTSVToTraML() :
-  TOPPBase("ConvertTSVToTraML", "Converts an OpenSWATH transition TSV file to a TraML file", false)
+  TOPPBase("ConvertTSVToTraML", "Converts an OpenSWATH transition TSV file to a TraML file")
   {
   }
 

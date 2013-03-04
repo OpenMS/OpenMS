@@ -212,7 +212,7 @@ class TOPPProteinResolver :
 
 public:
   TOPPProteinResolver() :
-    TOPPBase("ProteinResolver", "protein inference", false),
+    TOPPBase("ProteinResolver", "protein inference"),
     resolver_params_(), design_params_()
   {
   }

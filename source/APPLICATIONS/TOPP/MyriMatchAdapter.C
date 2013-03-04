@@ -94,7 +94,7 @@ class MyriMatchAdapter :
 {
 public:
   MyriMatchAdapter() :
-    TOPPBase("MyriMatchAdapter", "Annotates MS/MS spectra using MyriMatch.", false)
+    TOPPBase("MyriMatchAdapter", "Annotates MS/MS spectra using MyriMatch.")
   {
   }
 
