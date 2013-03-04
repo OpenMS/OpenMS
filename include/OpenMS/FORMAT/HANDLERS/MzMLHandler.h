@@ -3207,7 +3207,9 @@ protected:
       String cvTerm = "<cvParam cvRef=\"" + c.id.prefix(':') + "\" accession=\"" + c.id + "\" name=\"" + c.name;
       if (!metaValue.isEmpty())
       {
-        cvTerm += "\" value=\"" + (String)metaValue;
+        String stringMetaValue = (String)metaValue;
+        stringMetaValue.substitute("\"", "&quot;");
+        cvTerm += "\" value=\"" + stringMetaValue;
 
         if (metaValue.hasUnit())
         {
