@@ -68,6 +68,9 @@ using namespace std;
     </table>
 </CENTER>
 
+    Reference:\n
+		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+
     This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them. Retention time adjustment may be necessary to correct for chromatography differences e.g. before data from multiple LC-MS runs can be combined (feature grouping), or when one run should be annotated with peptide identifications obtained in a different run.
 
     All map alignment tools (MapAligner...) collect retention time data from the input files and - by fitting a model to this data - compute transformations that map all runs to a common retention time scale. They can apply the transformations right away and return output files with aligned time scales (parameter @p out), and/or return descriptions of the transformations in trafoXML format (parameter @p trafo_out). Transformations stored as trafoXML can be applied to arbitrary files with the @ref TOPP_MapRTTransformer tool.
@@ -125,7 +128,7 @@ private:
     progresslogger.endProgress();
   }
 
-  /// helper function to avoid code duplication between consensus and feautreXML storage operations
+  /// helper function to avoid code duplication between consensus and featureXML storage operations
   template <typename TMapType, typename TFileType>
   void storeTransformedMaps(std::vector<TMapType> & maps, StringList & outs, TFileType & outPutFile)
   {

@@ -74,6 +74,9 @@ using namespace std;
     </table>
 </CENTER>
 
+    Reference:\n
+		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+
     In feature detection algorithms, an early step is generally to identify points of interest in the LC-MS map (so-called seeds) that may later be extended to features. If supported by the feature detection algorithm (currently only the "centroided" algorithm), user-supplied seed lists allow greater control over this process.
 
     The SeedListGenerator can automatically create seed lists from a variety of sources. The lists are exported in featureXML format - suitable as input to FeatureFinder -, but can be converted to or from text formats using the @ref TOPP_TextExporter (with "-minimal" option to convert to CSV) and @ref TOPP_FileConverter (to convert from CSV) tools.
