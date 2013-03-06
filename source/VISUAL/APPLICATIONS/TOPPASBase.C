@@ -1556,10 +1556,11 @@ namespace OpenMS
       {
         // we found the app
         QStringList app_args;
+        app_args.append("-a");
         app_args.append(app_path);
         app_args.append("--args");
         app_args.append(arg);
-        p->start("open", app_args);
+        p->start("/usr/bin/open", app_args);
       }
       else
       {
