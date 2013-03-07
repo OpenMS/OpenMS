@@ -129,7 +129,7 @@ elseif (MSVC)
 
 	## disable warning: "decorated name length exceeded, name was truncated"
 	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4503")
-	
+
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
 
@@ -267,6 +267,20 @@ endif()
 
 set(SVN_REVISION_FILE "${PROJECT_BINARY_DIR}/include/OpenMS/openms_svn_revision.h")
 
+## update the openms_svn_revision.h file before compiling OpenMS
+set(ENABLE_SVN ON CACHE STRING "Use svnversion (if available) to implant a svn revision number into the library!")
+if (ENABLE_SVN)
+	message(STATUS "SVN revision information enabled. Use 'ENABLE_SVN=OFF' to disable!")
+	add_custom_target(svn_revision_update ALL
+										COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE}
+																						 -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
+																						 -DENABLE_SVN=ON
+																						 -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake)
+	set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
+else()
+  message(STATUS "SVN revision information disabled. Use 'ENABLE_SVN=ON' to enable!")
+	include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake) # generate the header once (for VersionInfo.C include)
+endif()
 
 
 ########################################################
@@ -342,21 +356,13 @@ ADD_LIBRARY(OpenMS_GUI ${OpenMSVisual_sources})
 if (MSVC)
 	set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
 	set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
-endif()	
+endif()
 
 ## update the openms_svn_revision.h file before compiling OpenMS
-set(ENABLE_SVN ON CACHE STRING "Use svnversion (if available) to implant a svn revision number into the library!")
 if (ENABLE_SVN)
-	message(STATUS "SVN revision information enabled. Use 'ENABLE_SVN=OFF' to disable!")
-	add_custom_target(svn_revision_update ALL
-				COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE} -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
-																 -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake)
 	add_dependencies(OpenMS svn_revision_update)
-	set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
-else()
-	message(STATUS "SVN revision information disabled. Use 'ENABLE_SVN=ON' to enable!")
 endif()
-	
+
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
 set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${DEP_LIBSVM_LIBRARY} ${CONTRIB_XERCESC} ${Boost_LIBRARIES} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB} ${CONTRIB_GLPK})
 if (TBB_FOUND)
@@ -434,14 +440,38 @@ foreach(i ${GUI_executables})
 		Message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${GUI_DIR}/${i}.C ${resource_file})
 	elseif(APPLE AND EXISTS ${resource_dir})
-		add_executable(${i} ${GUI_DIR}/${i}.C)
-		# extra work for pseudo-mac-bundle
-		# move prepared package to RUNTIME_OUTPUT
-		file(COPY "${PROJECT_SOURCE_DIR}/cmake/MacOSX/${i}-resources/${i}.app"
-		DESTINATION "${PROJECT_BINARY_DIR}/bin"
-		PATTERN ".svn" EXCLUDE
-		PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+		# the icon file
+		set(ICON_FILE_PATH "${CMAKE_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.icns")
+    set(INFO_PLIST_TEMPLATE "${CMAKE_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.plist.in")
+		get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
+
+		# we also need the icns in the app
+		add_executable(
+			${i}
+			MACOSX_BUNDLE
+			${GUI_DIR}/${i}.C
+			${ICON_FILE_PATH})
+
+		set_target_properties(${i} PROPERTIES
+      # we want our own info.plist template 
+      MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
+			MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2013 The OpenMS Team."
+			MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
+			MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}"
+			MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
+			MACOSX_BUNDLE_BUNDLE_NAME ${i}
+			MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
+			MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
+			MACOSX_BUNDLE_COPYRIGHT "Copyright 2013, The OpenMS Team. All Rights Reserved."
+		)
+
+		set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 	else()
+    if(APPLE)
+      message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
+    else()
+  		message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
+    endif()
 		add_executable(${i} ${GUI_DIR}/${i}.C)
 	endif()
 
@@ -456,11 +486,11 @@ add_dependencies(GUI ${GUI_executables})
 
 ## some regular TOPP/UTILS need the GUI lib
 set(executables_withGUIlibDep ${TOPP_executables_with_GUIlib} ${UTILS_executables_with_GUIlib})
-foreach(i ${executables_withGUIlibDep}) 
+foreach(i ${executables_withGUIlibDep})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
 
-	
+
 ##### Doc progs ####
 set(OpenMS_doc_executables)
 include(doc/doxygen/parameters/executables.cmake)
@@ -474,8 +504,11 @@ add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS GUI)
 
 ##### CTDs ####
-set(ENABLE_CDTSUPPORT OFF CACHE BOOL "If enabled, targets for creating CTD's are generated. Main target will be 'build_ctds'.")
-if (ENABLE_CDTSUPPORT)
+# We will use this path for the knime packages and the osx installer
+set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
+
+set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
+if (ENABLE_PREPARE_KNIME_PACKAGE)
 	include(cmake/OpenMSBuildSystem_ctdSupport.cmake)
 endif()
 

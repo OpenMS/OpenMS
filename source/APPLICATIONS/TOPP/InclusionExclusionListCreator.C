@@ -108,7 +108,11 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file (tab delimited csv file).");
     setValidFormats_("out", StringList::create("csv"));
     registerInputFile_("rt_model", "<file>", "", "RTModel file used for the rt prediction of peptides in FASTA files.", false);
+    setValidFormats_("rt_model", StringList::create("txt"));
+
     registerInputFile_("pt_model", "<file>", "", "PTModel file used for the pt prediction of peptides in FASTA files (only needed for inclusion_strategy PreotinBased_LP).", false);
+    setValidFormats_("pt_model", StringList::create("txt"));
+
     //in FASTA or featureXML
     registerIntList_("inclusion_charges", "<charge>", IntList(), "List containing the charge states to be considered for the inclusion list compounds, space separated.", false);
     setMinInt_("inclusion_charges", 1);
@@ -117,6 +121,7 @@ protected:
     registerIntList_("exclusion_charges", "<charge>", IntList(), "List containing the charge states to be considered for the exclusion list compounds (for idXML and FASTA input), space separated.", false);
     setMinInt_("exclusion_charges", 1);
     registerInputFile_("raw_data", "<mzMLFile>", "", "File containing the raw data (only needed for FeatureBased_LP).", false);
+    setValidFormats_("raw_data", StringList::create("mzML"));
 
     //    setValidFormats_("out", StringList::create("traML"));
 
@@ -183,7 +188,7 @@ protected:
     if (include != "")
     {
       FileTypes::Type in_type = fh.getType(include);
-      std::vector<IncludeExcludeTarget> incl_targets;
+
       if (in_type == FileTypes::FEATUREXML)
       {
         // load feature map

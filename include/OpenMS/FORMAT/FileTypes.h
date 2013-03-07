@@ -46,7 +46,7 @@ namespace OpenMS
   /**
     @brief Centralizes the file types recognized by FileHandler.
 
-    FileType separate from FileHandler to avoid circular inclusions by DocumentIdentifier, ExperimentalSettings 
+    FileType separate from FileHandler to avoid circular inclusions by DocumentIdentifier, ExperimentalSettings
     and FileHandler and respective fileclasses (e.g. DTA2DFile).
 
     @ingroup FileIO
@@ -58,56 +58,59 @@ namespace OpenMS
     ///Actual file types enum.
     enum Type
     {
-      UNKNOWN,              ///< Unknown file extension
-      DTA,                  ///< DTA file (.dta)
-      DTA2D,                ///< DTA2D file (.dta2d)
-      MZDATA,               ///< MzData file (.mzData)
-      MZXML,                ///< MzXML file (.mzXML)
-      FEATUREXML,           ///< %OpenMS feature file (.featureXML)
-      IDXML,                ///< %OpenMS identification format (.idXML)
-      CONSENSUSXML,         ///< %OpenMS consensus map format (.consensusXML)
-      MGF,                  ///< Mascot Generic Format (.mgf)
-      INI,                  ///< %OpenMS parameters file (.ini)
-      TOPPAS,               ///< %OpenMS parameters file with workflow information (.toppas)
-      TRANSFORMATIONXML,    ///< Tranformation description file (.trafoXML)
-      MZML,                 ///< MzML file (.mzML)
-      MS2,                  ///< MS2 file (.ms2)
-      PEPXML,               ///< TPP pepXML file (.pepXML)
-      PROTXML,              ///< TPP protXML file (.protXML)
-      MZIDENTML,            ///< mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
-      MZQUANTML,            ///< mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
-      GELML,                ///< GelML (HUPO PSI format) (.gelML)
-      TRAML,                ///< TraML (HUPO PSI format) for transitions (.traML)
-      MSP,                  ///< NIST spectra library file format (.msp)
-      OMSSAXML,             ///< OMSSA XML file format for peptide identifications (.xml)
-      MASCOTXML,            ///< Mascot XML file format for peptide identifications (.xml)
-      PNG,                  ///< Portable Network Graphics (.png)
-      XMASS,                ///< XMass Analysis file (fid)
-      TSV,                  ///< msInspect file (.tsv)
-      PEPLIST,              ///< specArray file (.peplist)
-      HARDKLOER,            ///< hardkloer file (.hardkloer)
-      KROENIK,              ///< kroenik file (.kroenik)
-      FASTA,                ///< FASTA file (.fasta)
-      EDTA,                 ///< enhanced comma separated files (RT, m/z, Intensity, [meta])
-      CSV,                  ///< general comma separated files format (might also be tab or space separated!!!), data should be regular, i.e. matrix form
-      TXT,                  ///< any text format, which has only loose definition of what it actually contains -- thus it is usually hard to say where the file actually came from (e.g. PepNovo).
-      OBO,                  ///< Controlled Vocabulary format
-      HTML,                 ///< any HTML format
-      XML,                  ///< any XML format
-      SIZE_OF_TYPE          ///< No file type. Simply stores the number of types
+      UNKNOWN,            ///< Unknown file extension
+      DTA,                ///< DTA file (.dta)
+      DTA2D,              ///< DTA2D file (.dta2d)
+      MZDATA,             ///< MzData file (.mzData)
+      MZXML,              ///< MzXML file (.mzXML)
+      FEATUREXML,         ///< %OpenMS feature file (.featureXML)
+      IDXML,              ///< %OpenMS identification format (.idXML)
+      CONSENSUSXML,       ///< %OpenMS consensus map format (.consensusXML)
+      MGF,                ///< Mascot Generic Format (.mgf)
+      INI,                ///< %OpenMS parameters file (.ini)
+      TOPPAS,             ///< %OpenMS parameters file with workflow information (.toppas)
+      TRANSFORMATIONXML,  ///< Tranformation description file (.trafoXML)
+      MZML,               ///< MzML file (.mzML)
+      MS2,                ///< MS2 file (.ms2)
+      PEPXML,             ///< TPP pepXML file (.pepXML)
+      PROTXML,            ///< TPP protXML file (.protXML)
+      MZIDENTML,          ///< mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
+      MZQUANTML,          ///< mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
+      QCML,               ///< mzQualityML (will undergo standardisation maybe) (.qcml)
+      GELML,              ///< GelML (HUPO PSI format) (.gelML)
+      TRAML,              ///< TraML (HUPO PSI format) for transitions (.traML)
+      MSP,                ///< NIST spectra library file format (.msp)
+      OMSSAXML,           ///< OMSSA XML file format for peptide identifications (.xml)
+      MASCOTXML,          ///< Mascot XML file format for peptide identifications (.xml)
+      PNG,                ///< Portable Network Graphics (.png)
+      XMASS,              ///< XMass Analysis file (fid)
+      TSV,                ///< msInspect file (.tsv)
+      PEPLIST,            ///< specArray file (.peplist)
+      HARDKLOER,          ///< hardkloer file (.hardkloer)
+      KROENIK,            ///< kroenik file (.kroenik)
+      FASTA,              ///< FASTA file (.fasta)
+      EDTA,               ///< enhanced comma separated files (RT, m/z, Intensity, [meta])
+      CSV,                ///< general comma separated files format (might also be tab or space separated!!!), data should be regular, i.e. matrix form
+      TXT,                ///< any text format, which has only loose definition of what it actually contains -- thus it is usually hard to say where the file actually came from (e.g. PepNovo).
+      OBO,                ///< Controlled Vocabulary format
+      HTML,               ///< any HTML format
+      XML,                ///< any XML format
+      ANALYSISXML,        ///< analysisXML format
+      XSD,                ///< XSD schema format
+      PSQ,                ///< NCBI binary blast db
+      SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
-    
-    
+
     /// Returns the name/extension of the type.
     static String typeToName(Type type);
-    
+
     /// Converts a file type name into a Type
-    static Type nameToType(const String & name);
-    
-  private:
+    static Type nameToType(const String& name);
+
+private:
     /// Maps the FileType::Type to the preferred extension.
     static const std::map<Type, String> name_of_types_;
-    
+
     /// Initializer for the file extension map.
     static std::map<Type, String> initializeMap_();
   };
@@ -115,4 +118,3 @@ namespace OpenMS
 } //namespace OpenMS
 
 #endif //OPENMS_FORMAT_FILETYPES_H
-

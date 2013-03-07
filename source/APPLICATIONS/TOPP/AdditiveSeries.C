@@ -112,20 +112,18 @@ protected:
     setValidFormats_("out", StringList::create("XML"));
     registerDoubleOption_("mz_tolerance", "<tol>", 1.0, "Tolerance in m/z dimension", false);
     registerDoubleOption_("rt_tolerance", "<tol>", 1.0, "Tolerance in RT dimension", false);
-    registerDoubleList_("concentrations", "<concentrations>", DoubleList(), "Spiked concentrations");
-    addEmptyLine_();
-    addText_("  Feature/standard position:");
-    registerDoubleOption_("feature_rt", "<rt>", std::numeric_limits<double>::quiet_NaN(), "RT position of the feature");
-    registerDoubleOption_("feature_mz", "<mz>", std::numeric_limits<double>::quiet_NaN(), "m/z position of the feature");
-    registerDoubleOption_("standard_rt", "<rt>", std::numeric_limits<double>::quiet_NaN(), "RT position of the standard");
-    registerDoubleOption_("standard_mz", "<mz>", std::numeric_limits<double>::quiet_NaN(), "m/z position of the standard");
+    registerDoubleList_("concentrations", "<concentrations>", DoubleList(), "List of spiked concentrations");
 
     addEmptyLine_();
-    addText_("  GNUplot options:");
-    registerFlag_("write_gnuplot_output", "Flag that activates the GNUplot output");
-    registerStringOption_("out_gp", "<name>", "", "base file name (3 files with different extensions are created)", false);
-    registerStringOption_("mz_unit", "<unit>", "Thomson", "the m/z unit of the plot", false);
-    registerStringOption_("rt_unit", "<unit>", "seconds", "the RT unit of the plot", false);
+    registerDoubleOption_("feature_rt", "<rt>", -1, "RT position of the feature", false);
+    registerDoubleOption_("feature_mz", "<mz>", -1, "m/z position of the feature", false);
+    registerDoubleOption_("standard_rt", "<rt>", -1, "RT position of the standard", false);
+    registerDoubleOption_("standard_mz", "<mz>", -1, "m/z position of the standard", false);
+
+    addEmptyLine_();
+    registerTOPPSubsection_("plot", "GNUplot options");
+    registerFlag_("plot:write_gnuplot_output", "Flag that activates the GNUplot output");
+    registerStringOption_("plot:out_gp", "<name>", "", "base file name (3 files with different extensions are created)", false);
   }
 
   // searches for a features with coordinates within the tolerance in this map
@@ -340,13 +338,13 @@ protected:
     //-------------------------------------------------------------
     Param const & add_param =  getParam_();
     writeDebug_("Used parameters", add_param, 3);
-
+    
     CoordinateType tol_mz = getDoubleOption_("mz_tolerance");
     CoordinateType tol_rt = getDoubleOption_("rt_tolerance");
 
     String out_f  = getStringOption_("out");
 
-    if (add_param.getValue("feature_mz").isEmpty() || add_param.getValue("feature_rt").isEmpty())
+    if (getDoubleOption_("feature_mz") == -1|| getDoubleOption_("feature_rt") == -1)
     {
       writeLog_("Feature coordinates not given. Aborting.");
       return ILLEGAL_PARAMETERS;
@@ -355,7 +353,7 @@ protected:
     feat_pos1[Feature::MZ] = (CoordinateType) add_param.getValue("feature_mz");
     feat_pos1[Feature::RT] = (CoordinateType) add_param.getValue("feature_rt");
 
-    if (add_param.getValue("standard_mz").isEmpty() || add_param.getValue("standard_rt").isEmpty())
+    if (getDoubleOption_("standard_mz") == -1 || getDoubleOption_("standard_rt") == -1)
     {
       writeLog_("Standard coordinates not given. Aborting.");
       return ILLEGAL_PARAMETERS;
@@ -411,8 +409,8 @@ protected:
     }
 
     // set prefix of gnuplot output
-    String filename_prefix = getStringOption_("out_gp");
-    if (getFlag_("write_gnuplot_output"))
+    String filename_prefix = getStringOption_("plot:out_gp");
+    if (getFlag_("plot:write_gnuplot_output"))
     {
       writeDebug_(String("Writing gnuplot output"), 1);
       computeRegressionAndWriteGnuplotFiles_(sp_concentrations2.begin(), sp_concentrations2.end(),

@@ -73,7 +73,14 @@ using namespace std;
     </table>
     </CENTER>
 
-    The input file can contain several searches, e.g. from several identification engines. In order
+    This implementation (for PEPMatrix and PEPIons) is described in
+    <p>
+    Nahnsen S, Bertsch A, Rahnenfuehrer J, Nordheim A, Kohlbacher O<br>
+    Probabilistic Consensus Scoring Improves Tandem Mass Spectrometry Peptide Identification<br>
+    Journal of Proteome Research (2011), DOI: 10.1021/pr2002879<br>
+    </p>
+
+    The input file can contain several searches, e.g., from several identification engines. In order
     to use the PEPMatrix or the PEPIons algorithm, posterior
     error probabilities (PEPs) need to be calculated using the @ref TOPP_IDPosteriorErrorProbability tool
     for all individual search engines. After PEP calculation, the different search engine results
@@ -81,7 +88,8 @@ using namespace std;
     to featureXML and consensusXML with the @ref TOPP_IDMapper tool. The merged file can now be fed into
     into the @ref TOPP_ConsensusID tool. For the statistical assessment of the results it is recommended
     to use target-decoy databases for peptide identifications. The false discovery rates (FDRs) can be
-    calcultated using the @ref TOPP_FalseDiscoveryRate tool.
+    calculated using the @ref TOPP_FalseDiscoveryRate tool.
+
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ConsensusID.cli
@@ -89,7 +97,7 @@ using namespace std;
     @htmlinclude TOPP_ConsensusID.html
 
     For the parameters of the algorithm section see the algorithms documentation: @n
-        @ref OpenMS::ConsensusID "Consensus algorithm" @n
+    @ref OpenMS::ConsensusID "Consensus algorithm" @n
 */
 
 // We do not want this class to show up in the docu:
@@ -172,7 +180,8 @@ protected:
       String document_id;
       IdXMLFile().load(in, prot_ids, pep_ids, document_id);
 
-      // merge peptide ids by precursor position Sven:Ideally one should merge all peptide hits form the the different peptide identifications and keep the the information on the identification runs as a meta value
+      // merge peptide ids by precursor position
+      // Sven: Ideally one should merge all peptide hits from the different peptide identifications and keep the the information on the identification runs as a meta value
       vector<IDData> prec_data, final;
       for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
       {
@@ -200,7 +209,7 @@ protected:
           }
           ++pos;
         }
-        //right position was found => append ids
+        // correct position was found => append ids
         if (pos != prec_data.end())
         {
           writeDebug_(String("    Appending IDs to precursor: ") + pos->rt + " / " + pos->mz, 4);
@@ -240,10 +249,10 @@ protected:
             PeptideHit hit = *pit;
             if (hit.getSequence().size() >= min_length)
             {
-              if (hit.metaValueExists("scoring"))
+              /*if (hit.metaValueExists("scoring"))
               {
                 String meta_value = (String)hit.getMetaValue("scoring");
-              }
+              }*/
               hit.setMetaValue("scoring", pep_id_it->getIdentifier());
               hits.push_back(hit);
               if (!use_all_hits || pit->getScore() > 0.98)
@@ -251,8 +260,9 @@ protected:
                 break;
               }
             }
-            cout << pep_id_it->getIdentifier() << endl;
+            //cout << pep_id_it->getIdentifier() << endl;
           }
+          if (hits.size()==0) continue; // hit did not pass the filter
           pep_copy.setHits(hits);
           tmp.ids.push_back(pep_copy);
           prec_data.push_back(tmp);
@@ -283,9 +293,7 @@ protected:
       }
 
 
-      ///iterate over prec_data and write to final only one peptide identification per rt mz
-
-      //compute consensus
+      // compute consensus
       alg_param.setValue("number_of_runs", (UInt)prot_ids.size());
       consensus.setParameters(alg_param);
       for (vector<IDData>::iterator it = final.begin(); it != final.end(); ++it)
@@ -304,13 +312,13 @@ protected:
         pep_ids.back().setMetaValue("file_origin", it->sourcefile);
       }
 
-      //create new identification run
+      // create new identification run
       vector<ProteinIdentification> prot_id_out(1);
       prot_id_out[0].setDateTime(DateTime::now());
       prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
       prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
 
-      //store consensus
+      // store consensus
       IdXMLFile().store(out, prot_id_out, pep_ids);
     }
 

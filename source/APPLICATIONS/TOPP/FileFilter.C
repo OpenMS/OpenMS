@@ -101,7 +101,11 @@ using namespace std;
         - filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
         - remove features with id clashes (different sequences mapped to one feature)
 
-    The Priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
+    The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
+
+    MS2 and higher spectra can be filtered according to precursor m/z (see 'pc_mz'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
+    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level and use 'mz' option for MS1 and 'pc_mz' for MS2 data.
+    Then merge them again. RT can be filtered at any step.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FileFilter.cli
@@ -109,12 +113,9 @@ using namespace std;
     @htmlinclude TOPP_FileFilter.html
 
     For the parameters of the S/N algorithm section see the class documentation there: @n
-        @ref OpenMS::SignalToNoiseEstimatorMedian "sn"@n
+        @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
 
     @todo add tests for selecting modes (port remove modes) (Andreas)
-    @improvement MS2 and higher spectra should be filtered according to precursor m/z and RT. The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
-               Currently when specifying mz or RT filters, they will also be applied to MS levels >=2 (not really what you usually want). To work around this,
-               you need to extract the MS2 levels beforehand, do the filtering on MS1 and merge them back together.
 */
 
 // We do not want this class to show up in the docu:
@@ -254,70 +255,68 @@ protected:
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_type", StringList::create(formats));
 
-    registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract", false);
     registerStringOption_("rt", "[min]:[max]", ":", "retention time range to extract", false);
+    registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
+    registerStringOption_("pc_mz", "[min]:[max]", ":", "MSn (n>=2) precursor filtering according to their m/z value. Do not use this flag in conjunction with 'mz', unless you want to actually remove peaks in spectra (see 'mz'). RT filtering is covered by 'rt' and compatible with this flag.", false);
     registerStringOption_("int", "[min]:[max]", ":", "intensity range to extract", false);
 
     registerFlag_("sort", "sorts the output according to RT and m/z.");
 
-    addEmptyLine_();
-    addText_("Peak data options:");
-    registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
-    registerIntList_("rm_pc_charge", "i j ...", IntList(), "Remove MS(2) spectra with these precursor charges. All spectra without precursor are kept!", false);
-    registerIntList_("level", "i j ...", IntList::create("1,2,3"), "MS levels to extract", false);
-    registerFlag_("sort_peaks", "sorts the peaks according to m/z.");
-    registerFlag_("no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
-    registerFlag_("remove_chromatograms", "Removes chromatograms stored in a file.");
-    registerStringOption_("mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision.", false);
-    setValidStrings_("mz_precision", StringList::create("32,64"));
-    registerStringOption_("int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision.", false);
-    setValidStrings_("int_precision", StringList::create("32,64"));
+    registerTOPPSubsection_("peak_options", "Peak data options");
+    registerDoubleOption_("peak_options:sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
+    registerIntList_("peak_options:rm_pc_charge", "i j ...", IntList(), "Remove MS(2) spectra with these precursor charges. All spectra without precursor are kept!", false);
+    registerIntList_("peak_options:level", "i j ...", IntList::create("1,2,3"), "MS levels to extract", false);
+    registerFlag_("peak_options:sort_peaks", "sorts the peaks according to m/z.");
+    registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
+    registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file.");
+    registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision.", false);
+    setValidStrings_("peak_options:mz_precision", StringList::create("32,64"));
+    registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision.", false);
+    setValidStrings_("peak_options:int_precision", StringList::create("32,64"));
 
-    addEmptyLine_();
-    addText_("Remove spectra: ");
-    registerFlag_("remove_zoom", "Remove zoom (enhanced resolution) scans");
+    registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties.");
+    registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
 
-    registerStringOption_("remove_mode", "<mode>", "", "Remove scans by scan mode\n", false);
+    registerStringOption_("spectra:remove_mode", "<mode>", "", "Remove scans by scan mode\n", false);
     StringList mode_list;
     for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
     {
       mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
     }
-    setValidStrings_("remove_mode", mode_list);
+    setValidStrings_("spectra:remove_mode", mode_list);
     addEmptyLine_();
-    registerStringOption_("remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method\n", false);
+    registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method\n", false);
     StringList activation_list;
     for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
     {
       activation_list.push_back(Precursor::NamesOfActivationMethod[i]);
     }
-    setValidStrings_("remove_activation", activation_list);
-    addEmptyLine_();
-
-    addText_("Select spectra (remove all others):");
-    registerFlag_("select_zoom", "Select zoom (enhanced resolution) scans");
-    registerStringOption_("select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
-    setValidStrings_("select_mode", mode_list);
-    registerStringOption_("select_activation", "<activation>", "", "Select MSn scans where any of its precursors features a certain activation method\n", false);
-    setValidStrings_("select_activation", activation_list);
-    addEmptyLine_();
-
-    addText_("Feature&Consensus data options:");
-    registerStringOption_("charge", "[min]:[max]", ":", "charge range to extract", false);
-    registerStringOption_("size", "[min]:[max]", ":", "size range to extract", false);
-    registerStringList_("remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
-
-
-    addText_("Feature data options:");
-    registerStringOption_("q", "[min]:[max]", ":", "Overall quality range to extract [0:1]", false);
-
-    addText_("Consensus feature data options:");
-    registerIntList_("map", "i j ...", IntList::create(""), "maps to be extracted from a consensus", false);
-    registerFlag_("map_and", "AND connective of map selection instead of OR.");
+    setValidStrings_("spectra:remove_activation", activation_list);
 
     addEmptyLine_();
-    registerTOPPSubsection_("id", "ID options");
-    addText_("The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist");
+    registerFlag_("spectra:select_zoom", "Select zoom (enhanced resolution) scans");
+    registerStringOption_("spectra:select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
+    setValidStrings_("spectra:select_mode", mode_list);
+    registerStringOption_("spectra:select_activation", "<activation>", "", "Select MSn scans where any of its precursors features a certain activation method\n", false);
+    setValidStrings_("spectra:select_activation", activation_list);
+
+    addEmptyLine_();
+    registerTOPPSubsection_("feature", "Feature data options");
+    registerStringOption_("feature:q", "[min]:[max]", ":", "Overall quality range to extract [0:1]", false);
+
+    addEmptyLine_();
+    registerTOPPSubsection_("consensusfeature", "Consensus feature data options");
+    registerIntList_("consensusfeature:map", "i j ...", IntList::create(""), "maps to be extracted from a consensus", false);
+    registerFlag_("consensusfeature:map_and", "AND connective of map selection instead of OR.");
+
+    addEmptyLine_();
+    registerTOPPSubsection_("f_and_cf", "Feature & Consensus data options");
+    registerStringOption_("f_and_cf:charge", "[min]:[max]", ":", "charge range to extract", false);
+    registerStringOption_("f_and_cf:size", "[min]:[max]", ":", "size range to extract", false);
+    registerStringList_("f_and_cf:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+
+    addEmptyLine_();
+    registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist.");
     registerFlag_("id:remove_clashes", "remove features with id clashes (different sequences mapped to one feature)", true);
     registerFlag_("id:keep_best_score_id", "in case of multiple peptide identifications, keep only the id with best score");
     registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "keep only features with white listed sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
@@ -337,9 +336,6 @@ protected:
 
 
     addEmptyLine_();
-    addText_("Other options of the FileFilter only apply if S/N estimation is done.\n"
-             "They can be given only in the 'algorithm' section  of the INI file.");
-
     registerSubsection_("algorithm", "S/N algorithm section");
 
   }
@@ -421,27 +417,27 @@ protected:
       writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 2);
     }
 
-    bool no_chromatograms(getFlag_("no_chromatograms"));
+    bool no_chromatograms(getFlag_("peak_options:no_chromatograms"));
 
     //ranges
-    String mz, rt, it, charge, size, q;
-    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, sn, charge_l, charge_u, size_l, size_u, q_l, q_u;
+    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, size_l, size_u, q_l, q_u, pc_left, pc_right;
     //initialize ranges
-    mz_l = rt_l = it_l = charge_l = size_l = q_l = -1 * numeric_limits<double>::max();
-    mz_u = rt_u = it_u = charge_u = size_u = q_u = numeric_limits<double>::max();
+    mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = -1 * numeric_limits<double>::max();
+    mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = numeric_limits<double>::max();
 
-    rt = getStringOption_("rt");
-    mz = getStringOption_("mz");
-    it = getStringOption_("int");
-    IntList levels = getIntList_("level");
-    IntList maps = getIntList_("map");
-    sn = getDoubleOption_("sn");
-    charge = getStringOption_("charge");
-    size = getStringOption_("size");
-    q = getStringOption_("q");
+    String rt = getStringOption_("rt");
+    String mz = getStringOption_("mz");
+    String pc_mz = getStringOption_("pc_mz");
+    String it = getStringOption_("int");
+    IntList levels = getIntList_("peak_options:level");
+    IntList maps = getIntList_("consensusfeature:map");
+    double sn = getDoubleOption_("peak_options:sn");
+    String charge = getStringOption_("f_and_cf:charge");
+    String size = getStringOption_("f_and_cf:size");
+    String q = getStringOption_("feature:q");
 
-    int mz32 = getStringOption_("mz_precision").toInt();
-    int int32 = getStringOption_("int_precision").toInt();
+    int mz32 = getStringOption_("peak_options:mz_precision").toInt();
+    int int32 = getStringOption_("peak_options:int_precision").toInt();
 
     //id-filtering parameters
     bool remove_annotated_features = getFlag_("id:remove_annotated_features");
@@ -459,6 +455,8 @@ protected:
       parseRange_(rt, rt_l, rt_u);
       //mz
       parseRange_(mz, mz_l, mz_u);
+      //mz precursor
+      parseRange_(pc_mz, pc_left, pc_right);
       //int
       parseRange_(it, it_l, it_u);
       //charge (features only)
@@ -487,17 +485,17 @@ protected:
 
     // handle remove_meta
     bool meta_ok = true; // assume true by default (as meta might not be checked below)
-    StringList meta_info = getStringList_("remove_meta");
+    StringList meta_info = getStringList_("f_and_cf:remove_meta");
     bool remove_meta_enabled = (meta_info.size() > 0);
     if (remove_meta_enabled && meta_info.size() != 3)
     {
-      writeLog_("Param 'remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      writeLog_("Param 'f_and_cf:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
     if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt"))
     {
-      writeLog_("Param 'remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+      writeLog_("Param 'f_and_cf:remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -542,7 +540,7 @@ protected:
         chrom_tools.convertSpectraToChromatograms(exp, true);
       }
 
-      bool remove_chromatograms(getFlag_("remove_chromatograms"));
+      bool remove_chromatograms(getFlag_("peak_options:remove_chromatograms"));
       if (remove_chromatograms)
       {
         exp.setChromatograms(vector<MSChromatogram<> >());
@@ -552,12 +550,19 @@ protected:
       // calculations
       //-------------------------------------------------------------
 
-      //remove forbidden precursor charges
-      IntList rm_pc_charge = getIntList_("rm_pc_charge");
+      // remove forbidden precursor charges
+      IntList rm_pc_charge = getIntList_("peak_options:rm_pc_charge");
       if (rm_pc_charge.size() > 0) exp.erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
 
-      //remove by scan mode (might be a lot of spectra)
-      String remove_mode = getStringOption_("remove_mode");
+      
+      // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
+      if (!pc_mz.empty())
+      {
+        exp.erase(remove_if(exp.begin(), exp.end(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true)), exp.end());
+      }
+
+      // remove by scan mode (might be a lot of spectra)
+      String remove_mode = getStringOption_("spectra:remove_mode");
       if (!remove_mode.empty())
       {
         writeDebug_("Removing mode: " + remove_mode, 3);
@@ -571,7 +576,7 @@ protected:
       }
 
       //select by scan mode (might be a lot of spectra)
-      String select_mode = getStringOption_("select_mode");
+      String select_mode = getStringOption_("spectra:select_mode");
       if (!select_mode.empty())
       {
         writeDebug_("Selecting mode: " + select_mode, 3);
@@ -587,7 +592,7 @@ protected:
 
 
       //remove by activation mode (might be a lot of spectra)
-      String remove_activation = getStringOption_("remove_activation");
+      String remove_activation = getStringOption_("spectra:remove_activation");
       if (!remove_activation.empty())
       {
         writeDebug_("Removing scans with activation mode: " + remove_activation, 3);
@@ -601,7 +606,7 @@ protected:
       }
 
       //select by activation mode
-      String select_activation = getStringOption_("select_activation");
+      String select_activation = getStringOption_("spectra:select_activation");
       if (!select_activation.empty())
       {
         writeDebug_("Selecting scans with activation mode: " + select_activation, 3);
@@ -615,13 +620,13 @@ protected:
       }
 
       //remove zoom scans (might be a lot of spectra)
-      if (getFlag_("remove_zoom"))
+      if (getFlag_("spectra:remove_zoom"))
       {
         writeDebug_("Removing zoom scans", 3);
         exp.erase(remove_if(exp.begin(), exp.end(), IsZoomSpectrum<MapType::SpectrumType>()), exp.end());
       }
 
-      if (getFlag_("select_zoom"))
+      if (getFlag_("spectra:select_zoom"))
       {
         writeDebug_("Selecting zoom scans", 3);
         exp.erase(remove_if(exp.begin(), exp.end(), IsZoomSpectrum<MapType::SpectrumType>(true)), exp.end());
@@ -634,8 +639,12 @@ protected:
       if (sort)
       {
         exp.sortSpectra(true);
+        if (getFlag_("peak_options:sort_peaks"))
+        {
+          LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
+        }
       }
-      if (getFlag_("sort_peaks"))
+      else if (getFlag_("peak_options:sort_peaks"))
       {
         for (Size i = 0; i < exp.size(); ++i)
         {
@@ -872,7 +881,7 @@ protected:
             }
 
             consensus_feature_new.computeConsensus();           // evaluate position of the consensus
-            bool and_connective = getFlag_("map_and");
+            bool and_connective = getFlag_("consensusfeature:map_and");
 
             if ((!consensus_feature_new.empty() && !and_connective) || (consensus_feature_new.size() == maps.size() && and_connective)) // add the consensus to the consensus map only if it is non-empty
             {

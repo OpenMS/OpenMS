@@ -36,6 +36,7 @@
 #define OPENMS_KERNEL_MRMTRANSITIONGROUP_H
 
 #include <OpenMS/KERNEL/MRMFeature.h>
+#include <boost/numeric/conversion/cast.hpp>
 
 namespace OpenMS
 {
@@ -131,7 +132,7 @@ public:
     inline void addTransition(const TransitionType & transition, String key)
     {
       transitions_.push_back(transition);
-      transition_map_[key] = transitions_.size() - 1;
+      transition_map_[key] = boost::numeric_cast<int>(transitions_.size()) - 1;
     }
 
     inline const TransitionType & getTransition(String key) 
@@ -157,7 +158,7 @@ public:
     inline void addChromatogram(SpectrumType & chromatogram, String key)
     {
       chromatograms_.push_back(chromatogram);
-      chromatogram_map_[key] = chromatograms_.size() - 1;
+      chromatogram_map_[key] = boost::numeric_cast<int>(chromatograms_.size()) - 1;
     }
 
     inline SpectrumType & getChromatogram(String key)
@@ -187,7 +188,7 @@ public:
 
     void getLibraryIntensity(std::vector<double> & result) const
     {
-      for (typename TransitionsType::const_iterator it = transitions_.begin(); it != transitions_.end(); it++)
+      for (typename TransitionsType::const_iterator it = transitions_.begin(); it != transitions_.end(); ++it)
       {
         result.push_back(it->getLibraryIntensity());
       }

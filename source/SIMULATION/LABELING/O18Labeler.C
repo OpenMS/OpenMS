@@ -44,6 +44,10 @@ using std::vector;
 
 namespace OpenMS
 {
+  const int O18Labeler::LIGHT_CHANNEL_ID_ = 0;
+  const int O18Labeler::MEDIUM_CHANNEL_ID_ = 1;
+  const int O18Labeler::HEAVY_CHANNEL_ID_ = 2;
+
   O18Labeler::O18Labeler() :
     BaseLabeler()
   {
@@ -60,7 +64,7 @@ namespace OpenMS
   {
   }
 
-  void O18Labeler::preCheck(Param & param) const
+  void O18Labeler::preCheck(Param& param) const
   {
     // check for trypsin
     // TODO: add other enzymes
@@ -70,7 +74,7 @@ namespace OpenMS
     }
   }
 
-  void O18Labeler::setUpHook(FeatureMapSimVector & features)
+  void O18Labeler::setUpHook(FeatureMapSimVector& features)
   {
     // no action here .. just check for 2 channels
     if (features.size() != 2)
@@ -80,14 +84,14 @@ namespace OpenMS
   }
 
   /// Labeling between digestion and rt simulation
-  void O18Labeler::postDigestHook(FeatureMapSimVector & features_to_simulate)
+  void O18Labeler::postDigestHook(FeatureMapSimVector& features_to_simulate)
   {
     SimIntensityType labeling_efficiency = param_.getValue("labeling_efficiency");
 
     // index unlabeled map
     // merge channel one and two into a single feature map
     FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
-    FeatureMapSim & unlabeled_features = features_to_simulate[0];
+    FeatureMapSim& unlabeled_features = features_to_simulate[0];
 
     std::map<AASequence, Feature> unlabeled_features_index;
 
@@ -105,7 +109,7 @@ namespace OpenMS
     }
 
     // iterate over second map
-    FeatureMapSim & labeled_features = features_to_simulate[1];
+    FeatureMapSim& labeled_features = features_to_simulate[1];
 
     for (FeatureMapSim::iterator lf_iter = labeled_features.begin(); lf_iter != labeled_features.end(); ++lf_iter)
     {
@@ -153,13 +157,13 @@ namespace OpenMS
           ConsensusFeature cf;
           cf.setUniqueId();
           // add mono & di-labeled variant to ConsensusFeature
-          cf.insert(0, b1);
-          cf.insert(0, b2);
+          cf.insert(MEDIUM_CHANNEL_ID_, b1);
+          cf.insert(HEAVY_CHANNEL_ID_, b2);
 
           // merge unlabeled with unlabeled from other channel (if it exists)
           Feature final_unlabeled_feature = mergeFeatures_(*lf_iter, unmodified_sequence, unlabeled_features_index);
           final_unlabeled_feature.ensureUniqueId();
-          cf.insert(0, final_unlabeled_feature);
+          cf.insert(LIGHT_CHANNEL_ID_, final_unlabeled_feature);
 
           consensus_.push_back(cf);
           final_feature_map.push_back(final_unlabeled_feature);
@@ -183,8 +187,8 @@ namespace OpenMS
             ConsensusFeature cf;
             cf.setUniqueId();
             final_feature_map.push_back(unlabeled_features_index[unmodified_sequence]);
-            cf.insert(0, *lf_iter);
-            cf.insert(0, unlabeled_features_index[unmodified_sequence]);
+            cf.insert(HEAVY_CHANNEL_ID_, *lf_iter);
+            cf.insert(LIGHT_CHANNEL_ID_, unlabeled_features_index[unmodified_sequence]);
 
             // remove unlabeled feature
             unlabeled_features_index.erase(unmodified_sequence);
@@ -216,7 +220,7 @@ namespace OpenMS
     consensus_.getFileDescriptions()[0] = map_description;
   }
 
-  Feature O18Labeler::mergeFeatures_(Feature & labeled_channel_feature, const AASequence & unmodified_sequence, std::map<AASequence, Feature> & unlabeled_features_index) const
+  Feature O18Labeler::mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const
   {
     // merge with feature from first map (if it exists)
     if (unlabeled_features_index.count(unmodified_sequence) != 0)
@@ -244,7 +248,7 @@ namespace OpenMS
     }
   }
 
-  void O18Labeler::addModificationToPeptideHit_(Feature & feature, const String & modification) const
+  void O18Labeler::addModificationToPeptideHit_(Feature& feature, const String& modification) const
   {
     vector<PeptideHit> pep_hits(feature.getPeptideIdentifications()[0].getHits());
     AASequence modified_sequence(pep_hits[0].getSequence());
@@ -254,27 +258,27 @@ namespace OpenMS
   }
 
   /// Labeling between RT and Detectability
-  void O18Labeler::postRTHook(FeatureMapSimVector & /* features_to_simulate */)
+  void O18Labeler::postRTHook(FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Detectability and Ionization
-  void O18Labeler::postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */)
+  void O18Labeler::postDetectabilityHook(FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Ionization and RawMS
-  void O18Labeler::postIonizationHook(FeatureMapSimVector & /* features_to_simulate */)
+  void O18Labeler::postIonizationHook(FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling after RawMS
-  void O18Labeler::postRawMSHook(FeatureMapSimVector & features_to_simulate)
+  void O18Labeler::postRawMSHook(FeatureMapSimVector& features_to_simulate)
   {
     recomputeConsensus_(features_to_simulate[0]);
   }
 
-  void O18Labeler::postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)
+  void O18Labeler::postRawTandemMSHook(FeatureMapSimVector&, MSSimExperiment&)
   {
   }
 

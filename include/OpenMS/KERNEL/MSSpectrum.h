@@ -407,6 +407,7 @@ public:
 
         //apply sorting to ContainerType and to metadataarrays
         ContainerType tmp;
+        tmp.reserve(sorted_indices.size());
         for (Size i = 0; i < sorted_indices.size(); ++i)
         {
           tmp.push_back(*(ContainerType::begin() + (sorted_indices[i].second)));
@@ -416,6 +417,7 @@ public:
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
           std::vector<Real> mda_tmp;
+          mda_tmp.reserve(float_data_arrays_[i].size());
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -426,6 +428,7 @@ public:
         for (Size i = 0; i < string_data_arrays_.size(); ++i)
         {
           std::vector<String> mda_tmp;
+          mda_tmp.reserve(string_data_arrays_[i].size());
           for (Size j = 0; j < string_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -436,6 +439,7 @@ public:
         for (Size i = 0; i < integer_data_arrays_.size(); ++i)
         {
           std::vector<Int> mda_tmp;
+          mda_tmp.reserve(integer_data_arrays_[i].size());
           for (Size j = 0; j < integer_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -471,17 +475,17 @@ public:
     */
     Size findNearest(CoordinateType mz) const
     {
-      //no peak => no search
+      // no peak => no search
       if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one peak to determine the nearest peak!");
 
-      //searh for position for inserting
+      // search for position for inserting
       ConstIterator it = MZBegin(mz);
-      //border cases
+      // border cases
       if (it == ContainerType::begin()) return 0;
 
       if (it == ContainerType::end()) return ContainerType::size() - 1;
 
-      //the peak before or the current peak are closest
+      // the peak before or the current peak are closest
       ConstIterator it2 = it;
       --it2;
       if (std::fabs(it->getMZ() - mz) < std::fabs(it2->getMZ() - mz))

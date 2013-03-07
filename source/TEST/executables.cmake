@@ -42,6 +42,7 @@ set(datastructures_executables_list
 	Map_test
 	MassExplainer_test
 	Matrix_test
+  Param_test
 	QTCluster_test
 	RangeManager_test
 	SparseVector_test
@@ -174,7 +175,7 @@ set(format_executables_list
   OMSSACSVFile_test
   OMSSAXMLFile_test
   PTMXMLFile_test
-  Param_test
+  ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
   PepNovoInfile_test
@@ -447,12 +448,12 @@ set(transformations_executables_list
   FeatureFinderAlgorithmSHSuperhirnMS2ConsensusSpectrum_test
   FeatureFinderAlgorithmSHSuperhirnMS2Fragment_test
   FeatureFinderAlgorithmSHSuperhirnMS2_feature_test
+  FeatureFinderAlgorithmSHSuperhirnMS2Info_test
   FeatureFinderAlgorithmSHSuperhirnProcess_Data_test
   FeatureFinderAlgorithmSHSuperhirnRawData_test
   FeatureFinderAlgorithmSHSuperhirnconsensIsotopePattern_test
   FeatureFinderAlgorithmSHSuperhirnfeatureLCprofile_test
   FeatureFinderAlgorithmSHSuperhirnfeature_test
-  FeatureFinderAlgorithmSHSuperhirnms2_info_test
   FeatureFinderAlgorithmSHSuperhirnms_peak_test
   # deprecated: FeatureFinderAlgorithmSimple_test
   # deprecated: FeatureFinderAlgorithmSimplest_test

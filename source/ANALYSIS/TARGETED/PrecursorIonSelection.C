@@ -771,7 +771,7 @@ namespace OpenMS
         // get their peptide ids
         std::vector<PeptideIdentification> & pep_ids = new_features[c].getPeptideIdentifications();
 #ifdef PIS_DEBUG
-        if (pep_ids.size() > 0)
+        if (!pep_ids.empty())
         {
           std::cout << " ids "    << std::endl;
           std::cout << pep_ids[0].getHits()[0].getSequence().toString() << std::endl;
@@ -780,8 +780,11 @@ namespace OpenMS
                     << pep_ids[0].getHits()[0].getMetaValue("Rank") << std::endl;
         }
         else
+        {
           std::cout << std::endl;
-        if ((DoubleReal)new_features[c].getMetaValue("init_msms_score") == 0 && pep_ids.size() > 0)
+        }
+
+        if ((DoubleReal)new_features[c].getMetaValue("init_msms_score") == 0 && !pep_ids.empty())
         {
           std::cout << "Attention: score was 0, but spectrum led to an id!!! "
                     << std::endl;
@@ -1077,14 +1080,12 @@ namespace OpenMS
       }
     }
 
-    std::vector<std::vector<std::pair<String, Int> > > feature_prot_pep_index_vec;
-
     std::ofstream * precs;
     if (precursor_path != "")
       precs = new std::ofstream(precursor_path.c_str());
 
     std::vector<PeptideIdentification> curr_pep_ids, all_pep_ids;
-    std::vector<ProteinIdentification> curr_prot_ids, all_prot_ids;
+    std::vector<ProteinIdentification> curr_prot_ids;
 #ifdef PIS_DEBUG
     std::cout << max_iteration_ << std::endl;
 #endif
@@ -1112,7 +1113,7 @@ namespace OpenMS
 #endif
       curr_pep_ids.clear();
       curr_prot_ids.clear();
-      std::vector<String> current_prot_accs;
+
       // go through the new compounds
       for (UInt c = 0; c < new_features.size(); ++c)
       {
@@ -1156,7 +1157,7 @@ namespace OpenMS
           std::cout << "score: " << pep_ids[0].getHits()[0].getScore() << " "
                     << pep_ids[0].getSignificanceThreshold() << " "
                     << pep_ids[0].getHits()[0].getMetaValue("Rank");
-          if (pep_ids[0].getHits()[0].getProteinAccessions().size() > 0)
+          if (!pep_ids[0].getHits()[0].getProteinAccessions().empty())
           {
             String acc = pep_ids[0].getHits()[0].getProteinAccessions()[0];
 

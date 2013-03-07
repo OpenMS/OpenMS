@@ -35,8 +35,12 @@
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QProcess>
+
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+
+#include <QtCore/QProcess>
+#include <QDir>
 
 #include <fstream>
 
@@ -182,7 +186,7 @@ void convertINI2HTML(const Param & p, ostream & os)
   os << "</div>\n";  // end global div
 }
 
-bool generate(const ToolListType & tools, const String & prefix)
+bool generate(const ToolListType & tools, const String & prefix, const String & binary_directory)
 {
   bool errors_occured = false;
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
@@ -193,7 +197,15 @@ bool generate(const ToolListType & tools, const String & prefix)
     QStringList env = QProcess::systemEnvironment();
     env << String("COLUMNS=110").toQString(); // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
     process.setEnvironment(env);
-    process.start((it->first + " --help").toQString());
+
+    String command = binary_directory + it->first;
+#if defined(__APPLE__)
+    if (it->first == "TOPPView" || it->first == "TOPPAS")
+    {
+      command = binary_directory + it->first + ".app/Contents/MacOS/" + it->first;
+    }
+#endif
+    process.start(String(command + " --help").toQString());
     process.waitForFinished();
 
     ofstream f((String("output/") + prefix + it->first + ".cli").c_str());
@@ -202,8 +214,8 @@ bool generate(const ToolListType & tools, const String & prefix)
     {
       // error while generation cli docu
       f << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
-      f << "Please check your PATH variable if it contains the path to the " << it->first << " executable." << endl;
       f << "Output was: \n" << lines << endl;
+      f << "Command line was: \n " << command << endl;
       errors_occured = true;
     }
     else
@@ -223,10 +235,11 @@ bool generate(const ToolListType & tools, const String & prefix)
     if (it->first == "TOPPAS")
       continue;                          // does not support -write_ini
     String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-    process.start((it->first + " -write_ini " + tmp_file).toQString());
+    process.start((command + " -write_ini " + tmp_file).toQString());
     process.waitForFinished();
     Param p;
-    p.load(tmp_file);
+    ParamXMLFile pf;
+    pf.load(tmp_file, p);
     File::remove(tmp_file);
     ofstream f_html((String("output/") + prefix + it->first + ".html").c_str());
     convertINI2HTML(p, f_html);
@@ -235,8 +248,22 @@ bool generate(const ToolListType & tools, const String & prefix)
   return errors_occured;
 }
 
-int main(int, char **)
+int main(int argc, char ** argv)
 {
+  if (argc != 2)
+  {
+    cerr << "Please specify the path where the TOPP/UTIL binaries are located." << endl;
+    return EXIT_FAILURE;
+  }
+  
+  String binary_directory = String(argv[1]).ensureLastChar('/');
+
+  if(!File::exists(binary_directory))
+  {
+    cerr << "The given binary directory does not exist. Aborting." << endl;
+    return EXIT_FAILURE;
+  }
+  
   //TOPP tools
   ToolListType topp_tools = ToolHandler::getTOPPToolList(true);   // include GenericWrapper (can be called with --help without error, even though it has a type)
   topp_tools["TOPPView"] = Internal::ToolDescription();   // these two need to be excluded from writing an INI file later!
@@ -244,13 +271,12 @@ int main(int, char **)
   //UTILS
   ToolListType util_tools = ToolHandler::getUtilList();
 
-  bool errors_occured = generate(topp_tools, "TOPP_") || generate(util_tools, "UTILS_");
+  bool errors_occured = generate(topp_tools, "TOPP_", binary_directory) || generate(util_tools, "UTILS_", binary_directory);
 
   if (errors_occured)
   {
     // errors occurred while generating the TOPP CLI docu .. tell the user
-    cerr << "Errors occurred while generating the command line documentation for some of the " << endl;
-    cerr << "TOPP tools/UTILS. Please check your PATH variable if it contains the TOPP tool directory." << endl;
+    cerr << "Errors occurred while generating the command line documentation for some of the TOPP tools/UTILS." << endl;
     return EXIT_FAILURE;
   }
   else

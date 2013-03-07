@@ -95,6 +95,9 @@ public:
     // Docu in base class
     virtual void saveAsImage();
 
+    // Docu in base class
+    virtual void renderForImage(QPainter& painter);
+
 signals:
     /// Is emitted whenever the visible area changes.
     void visibleAreaChanged(double, double);

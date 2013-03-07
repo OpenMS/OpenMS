@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 namespace OpenMS
 {
@@ -81,7 +82,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedExp(OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp)
+  void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp)
   {
     //copy proteins
     for (Size i = 0; i < transition_exp_.getProteins().size(); i++)
@@ -92,35 +93,50 @@ namespace OpenMS
     }
 
     //copy peptides
+    OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
     for (Size i = 0; i < transition_exp_.getPeptides().size(); i++)
     {
       OpenSwath::LightPeptide p;
+      OpenSwath::LightModification m;
+
       p.id = transition_exp_.getPeptides()[i].id;
       p.rt = transition_exp_.getPeptides()[i].rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
       p.charge = transition_exp_.getPeptides()[i].getChargeState();
       p.sequence = transition_exp_.getPeptides()[i].sequence;
       p.protein_ref = transition_exp_.getPeptides()[i].protein_refs[0];
 
-      // TODO (hroest/georger) merge with code in MRMDecoyGenerator
-      // The workaround expects a TraML with UniMod CVTerms for each peptide. The problem in ModificationsDB has been described in TRAC #458.
       // Mapping of peptide modifications
-      const OpenMS::TargetedExperiment::Peptide * pep = &transition_exp_.getPeptides()[i];
-      for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it =
-             pep->mods.begin(); it != pep->mods.end(); ++it)
       {
-        const Map<OpenMS::String, std::vector<CVTerm> > cv_terms = it->getCVTerms();
-        for (Map<OpenMS::String, std::vector<CVTerm> >::const_iterator li = cv_terms.begin();
-             li != cv_terms.end(); ++li)
+        OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(transition_exp_.getPeptides()[i]);
+        if ( !aa_sequence.getNTerminalModification().empty())
         {
-          std::vector<CVTerm> mods = (*li).second;
-          for (std::vector<CVTerm>::iterator mo = mods.begin(); mo != mods.end(); ++mo)
-          {
-            OpenSwath::LightModification m;
-            m.location = it->location;
-            m.unimod_id = mo->getAccession().substr(7);
+            ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
+            m.location = -1;
+            m.unimod_id = rmod.getUniModAccession();
             p.modifications.push_back(m);
+        }
+        if ( !aa_sequence.getCTerminalModification().empty())
+        {
+            ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
+            m.location = boost::numeric_cast<int>(aa_sequence.size());
+            m.unimod_id = rmod.getUniModAccession();
+            p.modifications.push_back(m);
+        }
+        for (Size i = 0; i != aa_sequence.size(); i++)
+        {
+          if (aa_sequence[i].isModified())
+          {
+            // search the residue in the modification database (if the sequence is valid, we should find it)
+            ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
+                                                               aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
+            m.location = boost::numeric_cast<int>(i);
+            m.unimod_id = rmod.getUniModAccession();
+            std::cout << " unimod accession " << m.unimod_id << std::endl;
+            p.modifications.push_back(m);
+
           }
         }
+          
       }
       transition_exp.peptides.push_back(p);
     }
@@ -137,6 +153,15 @@ namespace OpenMS
       t.charge = transition_exp_.getTransitions()[i].getProduct().getChargeState();
       transition_exp.transitions.push_back(t);
     }
+  }
+
+  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence)
+  {
+      aa_sequence = (String)peptide.sequence;
+      for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
+      {
+        TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
+      }
   }
 
 

@@ -81,7 +81,7 @@ class TOPPHiResPrecursorMassCorrector :
 {
 public:
   TOPPHiResPrecursorMassCorrector() :
-    TOPPBase("HighResPrecursorMassCorrector", "Corrects the precursor mz determined by the instrument software.", false)
+    TOPPBase("HighResPrecursorMassCorrector", "Corrects the precursor mz determined by the instrument software.")
   {
   }
 

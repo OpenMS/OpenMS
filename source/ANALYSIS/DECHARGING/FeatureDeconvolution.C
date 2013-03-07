@@ -707,7 +707,6 @@ namespace OpenMS
     typedef std::map<Size, Size> CliqueMap;
     typedef CliqueMap::const_iterator MapCI;
     CliqueMap clique_register;
-    MapCI clique_it;
 
     StringList scores;
     StringList scores_e_inactive_idx, scores_e_active_idx;

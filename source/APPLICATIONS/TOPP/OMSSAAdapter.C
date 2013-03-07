@@ -178,10 +178,6 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-
-    addEmptyLine_();
-    addText_("Common Identification engine options");
-
     registerInputFile_("in", "<file>", "", "Input file ");
     setValidFormats_("in", StringList::create("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
@@ -191,7 +187,7 @@ protected:
     registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error in Dalton", false);
     registerInputFile_("database", "<psq-file>", "", "NCBI formatted FASTA files. Only the .psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end in '.psq' the suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
-    //setValidFormats_("database",StringList::create("psq")); // 'psq' not supported yet, and not required in this case
+    setValidFormats_("database",StringList::create("psq,fasta"));
     registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor ion charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 3, "Maximum precursor ion charge", false);
     vector<String> all_mods;
@@ -201,15 +197,11 @@ protected:
     registerStringList_("variable_modifications", "<mods>", StringList::create(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
-    addEmptyLine_();
-    addText_("OMSSA specific input options");
-
     //Sequence library
     //-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
     //-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
     //registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
     registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation", true, false, StringList::create("skipexists"));
-    registerInputFile_("omssa_user_mods", "<file>", "", "additional <MSModSpec> subtrees of user modifications.\nSubtrees will be pasted into OMSSAAdapter generated user mod files.\nSee http://www.ncbi.nlm.nih.gov/data_specs/schema/OMSSA.mod.xsd for details about user mod file definition.", false, true, StringList::create("input file"));
     registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 
     //registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to idXML");
@@ -333,7 +325,8 @@ protected:
     //-hl <Integer> maximum number of hits retained for one spectrum
     //-he <Double> the maximum e-value allowed in the hit list
     registerIntOption_("hl", "<Integer>", 30, "maximum number of hits retained for one spectrum. Note: even when set to 1 OMSSA may report multiple hits with different charge states", false);
-    registerDoubleOption_("he", "<Real>", 1, "the maximum e-value allowed in the hit list", false);
+    registerDoubleOption_("he", "<Real>", 1000, "the maximum e-value allowed in the hit list. If you set this parameter too small (e.g., he=1), this will effectively introduce FDR filtering."
+                                                " Thus, allowing a less stringent FDR during post-processing will nevertheless return the (better) FDR introduced here, since mediocre hits are not even reported.", false);
 
     //Post translational modifications
     //To specify modifications, first type in "omssacl -ml" to see a list of modifications available and their corresponding id number.  Then when running the search, specify the id numbers of the modification you wish to apply, e.g. "omssacl -mf 5 -mv 1,8 ...". Multiple PTMs can be specified by placing commas between the numbers without any spaces.  At the present time, the list of allowed post translational modifications will be expanded over time.
@@ -441,7 +434,28 @@ protected:
 
     db_name = db_name.substr(0, db_name.size() - 4); // OMSSA requires the filename without the .psq part
 
-    parameters << "-d"  << String(db_name);
+    bool db_name_contains_space = false;
+    if (db_name.hasSubstring(" "))
+    {
+      db_name_contains_space = true;
+    }
+    // This is a workaround for a bug in the NCBI libraries.
+    // They internally don't support spaces in path or file names.
+    if (db_name_contains_space)
+    {
+#ifdef OPENMS_WINDOWSPLATFORM
+      // Windows: use doubly escaped double quotes (and do a system call instead of QProcess later)
+      parameters << "-d" << String("\"\\\"") + String(db_name) + String("\\\"\"");
+#else
+      // Linux/Mac: wrap into singly escaped double quotes
+      parameters << "-d" << String("\"") + String(db_name) + String("\"");
+#endif
+    }
+    else
+    {
+      parameters << "-d" << String(db_name);
+    }
+
     parameters << "-to" << String(getDoubleOption_("fragment_mass_tolerance"));         //String(getDoubleOption_("to"));
     parameters << "-hs" << String(getIntOption_("hs"));
     parameters << "-te" << String(getDoubleOption_("precursor_mass_tolerance"));         //String(getDoubleOption_("te"));
@@ -519,7 +533,6 @@ protected:
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parse mapping file line: '" + *it + "'", "");
         }
-        vector<ResidueModification> mods;
         for (Size i = 2; i != split.size(); ++i)
         {
           String tmp(split[i].trim());
@@ -587,9 +600,8 @@ protected:
       }
     }
 
-    String additional_user_mods_filename = getStringOption_("omssa_user_mods");
     // write unknown modifications to user mods file
-    if (!user_mods.empty() || additional_user_mods_filename != "")
+    if (!user_mods.empty())
     {
       writeDebug_("Writing usermod file to " + unique_usermod_name, 1);
       parameters << "-mux" << File::absolutePath(unique_usermod_name);
@@ -683,18 +695,6 @@ protected:
         }
       }
 
-      // Add additional MSModSPec subtrees to generated user mods
-      ifstream additional_user_mods_file(additional_user_mods_filename.c_str());
-      String line;
-      if (additional_user_mods_file.is_open())
-      {
-        while (additional_user_mods_file.good())
-        {
-          getline(additional_user_mods_file, line);
-          out << line << "\n";
-        }
-        additional_user_mods_file.close();
-      }
       out << "</MSModSpecSet>" << "\n";
       out.close();
     }
@@ -732,8 +732,26 @@ protected:
     {
       qparam << parameters[i].toQString();
     }
-    writeDebug_("\"" + omssa_executable + "\"" + parameters.concatenate(" "), 5);
-    Int status = QProcess::execute(omssa_executable.toQString(), qparam);
+    
+    Int status = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+    if (db_name_contains_space)
+    {
+      // for some reason QProcess doesn't handle escaped " in arguments properly so we use a system call
+      // see http://www.ncbi.nlm.nih.gov/books/NBK1763/ for the format the ncbi library is expecting internally if spaces are in file/path names
+      String call_string = omssa_executable + " " + parameters.concatenate(" ");
+      writeDebug_(call_string, 5);   
+      status = system(call_string.c_str());
+    } else
+    {
+      writeDebug_(omssa_executable + " " + parameters.concatenate(" "), 5);
+      status = QProcess::execute(omssa_executable.toQString(), qparam);      
+    }
+#else
+    writeDebug_(omssa_executable + " " + parameters.concatenate(" "), 5);
+    status = QProcess::execute(omssa_executable.toQString(), qparam);
+#endif
+    
     if (status != 0)
     {
       writeLog_("Error: OMSSA problem! (Details can be seen in the logfile: \"" + logfile + "\")");
@@ -743,7 +761,7 @@ protected:
         QFile(unique_input_name.toQString()).remove();
         QFile(unique_output_name.toQString()).remove();
       }
-      if (!user_mods.empty() || additional_user_mods_filename != "")
+      if (!user_mods.empty())
       {
         QFile(unique_usermod_name.toQString()).remove();
       }
@@ -753,7 +771,7 @@ protected:
     // read OMSSA output
     writeDebug_(String("Reading output of OMSSA from ") + unique_output_name, 10);
     OMSSAXMLFile omssa_out_file;
-    omssa_out_file.setModificationDefinitionsSet(mod_set);          // TODO: add modifications from additional user mods subtree
+    omssa_out_file.setModificationDefinitionsSet(mod_set);          
     omssa_out_file.load(unique_output_name, protein_identification, peptide_ids);
 
     // OMSSA does not write fixed modifications so we need to add them to the sequences
@@ -844,7 +862,7 @@ protected:
     UInt e(getIntOption_("e"));
     if (e != 0)
     {
-      writeLog_("Warning: cannot handle enzyme: " + getIntOption_("e"));
+      writeLog_("Warning: cannot handle enzyme: " + String(getIntOption_("e")));
     }
 
     search_parameters.enzyme = enzyme;

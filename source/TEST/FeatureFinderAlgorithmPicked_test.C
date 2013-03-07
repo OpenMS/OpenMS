@@ -38,6 +38,7 @@
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
 
@@ -93,7 +94,8 @@ START_SECTION((virtual void run()))
 	
 	//parameters
 	Param param;
-	param.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"));
+  ParamXMLFile paramFile;
+	paramFile.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"), param);
 	param = param.copy("FeatureFinder:1:algorithm:",true);
 	//Dummy featurefinder
 	FeatureFinder ff;

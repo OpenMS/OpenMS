@@ -97,7 +97,7 @@ class TOPPNoiseFilterGaussian :
 {
 public:
   TOPPNoiseFilterGaussian() :
-    TOPPBase("NoiseFilterGaussian", "Removes noise from profile spectra by using Gaussian filter.")
+    TOPPBase("NoiseFilterGaussian", "Removes noise from profile spectra by using Gaussian filter (on uniform as well as non-uniform data).")
   {
   }
 
@@ -107,10 +107,7 @@ public:
     setValidFormats_("in", StringList::create("mzML"));
     registerOutputFile_("out", "<file>", "", "output raw data file ");
     setValidFormats_("out", StringList::create("mzML"));
-    addEmptyLine_();
-    addText_("Parameters for the algorithms can be given in the INI file only.");
-    addEmptyLine_();
-    addText_("Note: The Gaussian filter works for uniform as well as for non-uniform data.");
+
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 

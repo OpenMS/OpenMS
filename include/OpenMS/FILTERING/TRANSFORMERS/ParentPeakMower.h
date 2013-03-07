@@ -46,9 +46,9 @@ namespace OpenMS
   /**
     @brief ParentPeakMower gets rid of high peaks that could stem from unfragmented precursor ions
 
-        @htmlinclude OpenMS_ParentPeakMower.parameters
+    @htmlinclude OpenMS_ParentPeakMower.parameters
 
-        @ingroup SpectraPreprocessers
+    @ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI ParentPeakMower :
     public DefaultParamHandler
@@ -61,7 +61,7 @@ public:
     ParentPeakMower();
 
     /// copy constructor
-    ParentPeakMower(const ParentPeakMower & source);
+    ParentPeakMower(const ParentPeakMower& source);
 
     /// destructor
     virtual ~ParentPeakMower();
@@ -70,7 +70,7 @@ public:
     // @name Operators
     // @{
     /// assignment operator
-    ParentPeakMower & operator=(const ParentPeakMower & source);
+    ParentPeakMower& operator=(const ParentPeakMower& source);
     // @}
 
     // @name Accessors
@@ -79,9 +79,8 @@ public:
 
     ///
     template <typename SpectrumType>
-    void filterSpectrum(SpectrumType & spectrum)
+    void filterSpectrum(SpectrumType& spectrum)
     {
-      typedef typename SpectrumType::ConstIterator ConstIterator;
       typedef typename SpectrumType::Iterator Iterator;
 
       clean_all_charge_states_ = (Int)param_.getValue("clean_all_charge_states");
@@ -178,9 +177,9 @@ public:
       return;
     }
 
-    void filterPeakSpectrum(PeakSpectrum & spectrum);
+    void filterPeakSpectrum(PeakSpectrum& spectrum);
 
-    void filterPeakMap(PeakMap & exp);
+    void filterPeakMap(PeakMap& exp);
 
     //TODO reimplement DefaultParamHandler::updateMembers_()
 

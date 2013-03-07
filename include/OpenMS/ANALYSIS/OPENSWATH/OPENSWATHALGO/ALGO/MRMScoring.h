@@ -32,11 +32,12 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATHALGO_ALGO_MRMSCORING_H
-#define OPENSWATHALGO_ALGO_MRMSCORING_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H
 
 #include <string>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
+#include <boost/numeric/conversion/cast.hpp>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
@@ -141,4 +142,4 @@ private:
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H

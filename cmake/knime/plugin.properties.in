@@ -1,0 +1,14 @@
+# the name of the plugin
+pluginPackage=de.openms
+
+# the name of the plugin
+pluginName=OpenMS
+
+# the version of the plugin
+pluginVersion=@CF_OPENMS_VERSION@
+
+# the path (starting from KNIMEs Community Nodes node)
+nodeRepositoyRoot=community
+
+executor=com.genericworkflownodes.knime.execution.impl.LocalToolExecutor
+commandGenerator=com.genericworkflownodes.knime.execution.impl.OpenMSCommandGenerator

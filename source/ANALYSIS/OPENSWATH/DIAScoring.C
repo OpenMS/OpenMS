@@ -148,7 +148,6 @@ namespace OpenMS
 
     double mz, intensity, left, right;
     std::vector<double> yseries, bseries;
-    std::vector<double> extr_yseries, extr_bseries;
     OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, charge);
     double ppmdiff;
     for (Size it = 0; it < bseries.size(); it++)

@@ -35,7 +35,7 @@
 /**
   @page TOPP_documentation TOPP documentation
 
-  'TOPP - The %OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC/MS data. It consists of several small applications that
+  'TOPP - The %OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC-MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
 
   <BR>
@@ -61,7 +61,7 @@
   - @subpage TOPP_IDRipper - Splits protein/peptide identifications according their file-origin.
   - @subpage TOPP_IDFileConverter - Converts identification engine file formats.
   - @subpage TOPP_MapStatistics - Extract extended statistics on the features of a map for quality control.
-  - @subpage TOPP_SpectraMerger - Merges spectra from an LC/MS map, either by precursor or by RT blocks
+  - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks
   - @subpage TOPP_TextExporter - Exports various XML formats to a text file.
   - @subpage TOPP_MzTabExporter - Exports various XML formats to an mzTab file
 
@@ -69,14 +69,14 @@
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
   - @subpage TOPP_InternalCalibration - Applies an internal calibration.
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
-  - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC/MS maps.
+  - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra by using different smoothing techniques.
   - @subpage TOPP_NoiseFilterSGolay - Removes noise from profile spectra by using different smoothing techniques.
   - @subpage TOPP_PeakPickerHiRes - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PeakPickerWavelet - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
   - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
-  - @subpage TOPP_Resampler - Transforms an LC/MS map into an equally-spaced (in RT and m/z) map.
+  - @subpage TOPP_Resampler - Transforms an LC-MS map into an equally-spaced (in RT and m/z) map.
   - @subpage TOPP_SpectraFilterBernNorm - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterMarkerMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterNLargest - Applies a filter to peak spectra.
@@ -91,7 +91,7 @@
   <b>Quantitation</b>
   - @subpage TOPP_AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples.
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
-  - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC/MS maps.
+  - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
   - @subpage TOPP_FeatureFinderRaw - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
   - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
@@ -102,6 +102,7 @@
   - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
+  - @subpage TOPP_TMTAnalyzer - Extracts and normalizes TMT information from an MS experiment.
 
   <b>Map Alignment</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
@@ -146,6 +147,13 @@
   <b>Targeted Experiments</b>
   - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.
   - @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
+  - @subpage TOPP_MRMMapper - MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML)
+  - @subpage TOPP_OpenSwathDecoyGenerator - Generates decoys according to different models for a specific TraML
+  - @subpage TOPP_OpenSwathChromatogramExtractor - Extract chromatograms (XIC) from a MS2 map file.
+  - @subpage TOPP_OpenSwathAnalyzer - Picks peaks and finds features in an SRM experiment.
+  - @subpage TOPP_OpenSwathRTNormalizer - This tool will align an SRM / SWATH run to a normalized retention time space.
+  - @subpage TOPP_OpenSwathFeatureXMLToTSV - Converts a featureXML to a tsv.
+  - @subpage TOPP_OpenSwathConfidenceScoring - Computes confidence scores for OpenSwath results.
 
   <b>Peptide Property Prediction</b>
   - @subpage TOPP_PTModel - Trains a model for the prediction of proteotypic peptides from a training set.

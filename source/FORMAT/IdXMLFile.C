@@ -259,85 +259,85 @@ namespace OpenMS
         if (peptide_ids[l].getIdentifier() != protein_ids[i].getIdentifier())
         {
           ++count_wrong_id;
+          continue;
         }
         else if (peptide_ids[l].getHits().size() == 0)
         {
           ++count_empty;
+          continue;
+        }
+
+        os << "\t\t<PeptideIdentification ";
+        os << "score_type=\"" << writeXMLEscape(peptide_ids[l].getScoreType()) << "\" ";
+        if (peptide_ids[l].isHigherScoreBetter())
+        {
+          os << "higher_score_better=\"true\" ";
         }
         else
         {
-          os << "\t\t<PeptideIdentification ";
-          os << "score_type=\"" << writeXMLEscape(peptide_ids[l].getScoreType()) << "\" ";
-          if (peptide_ids[l].isHigherScoreBetter())
+          os << "higher_score_better=\"false\" ";
+        }
+        os << "significance_threshold=\"" << peptide_ids[l].getSignificanceThreshold() << "\" ";
+        //mz
+        DataValue dv = peptide_ids[l].getMetaValue("MZ");
+        if (dv != DataValue::EMPTY)
+        {
+          os << "MZ=\"" << dv << "\" ";
+        }
+        //rt
+        dv = peptide_ids[l].getMetaValue("RT");
+        if (dv != DataValue::EMPTY)
+        {
+          os << "RT=\"" << dv << "\" ";
+        }
+        //spectrum_reference
+        dv = peptide_ids[l].getMetaValue("spectrum_reference");
+        if (dv != DataValue::EMPTY)
+        {
+          os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
+        }
+        os << ">\n";
+
+        //write peptide hits
+        for (Size j = 0; j < peptide_ids[l].getHits().size(); ++j)
+        {
+          os << "\t\t\t<PeptideHit ";
+          os << "score=\"" << precisionWrapper(peptide_ids[l].getHits()[j].getScore()) << "\" ";
+          os << "sequence=\"" << peptide_ids[l].getHits()[j].getSequence() << "\" ";
+          os << "charge=\"" << peptide_ids[l].getHits()[j].getCharge() << "\" ";
+          if (peptide_ids[l].getHits()[j].getAABefore() != ' ')
           {
-            os << "higher_score_better=\"true\" ";
+            os << "aa_before=\"" << writeXMLEscape(peptide_ids[l].getHits()[j].getAABefore()) << "\" ";
           }
-          else
+          if (peptide_ids[l].getHits()[j].getAAAfter() != ' ')
           {
-            os << "higher_score_better=\"false\" ";
+            os << "aa_after=\"" << writeXMLEscape(peptide_ids[l].getHits()[j].getAAAfter()) << "\" ";
           }
-          os << "significance_threshold=\"" << peptide_ids[l].getSignificanceThreshold() << "\" ";
-          //mz
-          DataValue dv = peptide_ids[l].getMetaValue("MZ");
-          if (dv != DataValue::EMPTY)
+          if (peptide_ids[l].getHits()[j].getProteinAccessions().size() != 0)
           {
-            os << "MZ=\"" << dv << "\" ";
-          }
-          //rt
-          dv = peptide_ids[l].getMetaValue("RT");
-          if (dv != DataValue::EMPTY)
-          {
-            os << "RT=\"" << dv << "\" ";
-          }
-          //spectrum_reference
-          dv = peptide_ids[l].getMetaValue("spectrum_reference");
-          if (dv != DataValue::EMPTY)
-          {
-            os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
+            String accs = "";
+            for (Size m = 0; m < peptide_ids[l].getHits()[j].getProteinAccessions().size(); ++m)
+            {
+              if (accs != "")
+              {
+                accs = accs + " ";
+              }
+              accs = accs + "PH_" + accession_to_id[peptide_ids[l].getHits()[j].getProteinAccessions()[m]];
+            }
+            os << "protein_refs=\"" << accs << "\" ";
           }
           os << ">\n";
-
-          //write peptide hits
-          for (Size j = 0; j < peptide_ids[l].getHits().size(); ++j)
-          {
-            os << "\t\t\t<PeptideHit ";
-            os << "score=\"" << precisionWrapper(peptide_ids[l].getHits()[j].getScore()) << "\" ";
-            os << "sequence=\"" << peptide_ids[l].getHits()[j].getSequence() << "\" ";
-            os << "charge=\"" << peptide_ids[l].getHits()[j].getCharge() << "\" ";
-            if (peptide_ids[l].getHits()[j].getAABefore() != ' ')
-            {
-              os << "aa_before=\"" << writeXMLEscape(peptide_ids[l].getHits()[j].getAABefore()) << "\" ";
-            }
-            if (peptide_ids[l].getHits()[j].getAAAfter() != ' ')
-            {
-              os << "aa_after=\"" << writeXMLEscape(peptide_ids[l].getHits()[j].getAAAfter()) << "\" ";
-            }
-            if (peptide_ids[l].getHits()[j].getProteinAccessions().size() != 0)
-            {
-              String accs = "";
-              for (Size m = 0; m < peptide_ids[l].getHits()[j].getProteinAccessions().size(); ++m)
-              {
-                if (accs != "")
-                {
-                  accs = accs + " ";
-                }
-                accs = accs + "PH_" + accession_to_id[peptide_ids[l].getHits()[j].getProteinAccessions()[m]];
-              }
-              os << "protein_refs=\"" << accs << "\" ";
-            }
-            os << ">\n";
-            writeUserParam_("UserParam", os, peptide_ids[l].getHits()[j], 4);
-            os << "\t\t\t</PeptideHit>\n";
-          }
-
-          //do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
-          MetaInfoInterface tmp = peptide_ids[l];
-          tmp.removeMetaValue("RT");
-          tmp.removeMetaValue("MZ");
-          tmp.removeMetaValue("spectrum_reference");
-          writeUserParam_("UserParam", os, tmp, 3);
-          os << "\t\t</PeptideIdentification>\n";
+          writeUserParam_("UserParam", os, peptide_ids[l].getHits()[j], 4);
+          os << "\t\t\t</PeptideHit>\n";
         }
+
+        //do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
+        MetaInfoInterface tmp = peptide_ids[l];
+        tmp.removeMetaValue("RT");
+        tmp.removeMetaValue("MZ");
+        tmp.removeMetaValue("spectrum_reference");
+        writeUserParam_("UserParam", os, tmp, 3);
+        os << "\t\t</PeptideIdentification>\n";
       }
 
       os << "\t</IdentificationRun>\n";
@@ -397,7 +397,7 @@ namespace OpenMS
         file_version = "1.0";                         //default version is 1.0
       if (file_version.toDouble() > version_.toDouble())
       {
-        warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+        warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
       }
 
       //document id

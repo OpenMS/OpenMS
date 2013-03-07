@@ -51,10 +51,12 @@ START_TEST(MSPeak, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MSPeak* ptr;
+MSPeak* ptr = 0;
+MSPeak* nullPtr = 0;
+
 START_SECTION((MSPeak()))
 	ptr = new MSPeak();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~MSPeak()))
@@ -62,6 +64,26 @@ START_SECTION((~MSPeak()))
 END_SECTION
 
 ptr = new MSPeak();
+
+START_SECTION((MSPeak(const MSPeak & tmp)))
+  MSPeak p = MSPeak();
+  MSPeak other = MSPeak(p);
+END_SECTION
+
+START_SECTION((MSPeak(const MSPeak * tmp)))
+  MSPeak p = MSPeak();
+  MSPeak other = MSPeak(&p);
+END_SECTION
+
+START_SECTION(operator=(const MSPeak & tmp))
+  MSPeak p = MSPeak();
+  MSPeak other = p;
+END_SECTION
+
+START_SECTION(show_info())
+  MSPeak p = MSPeak();
+  p.show_info();
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

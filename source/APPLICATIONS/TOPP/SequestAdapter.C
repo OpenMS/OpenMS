@@ -131,8 +131,6 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    addText_("The definitions for the parameters are taken from the site:\n"
-             "http://www.grosse-coosmann.de/~florian/Parameters.html#file.");
     // do not change this to registerInputFile_() as it might also be a directory, which fails the property check of a file on Windows
     registerStringOption_("in", "<file>", "", "input file(s) in mzXML or mzData format (comma-separated).\n"
                                               "Note: In mode 'sequest_out' a directory with Sequest results files\n"
@@ -164,7 +162,6 @@ protected:
     registerStringOption_("db", "<file>", "", "name of FASTA-database to search in", false);
     registerInputFile_("sequest_input", "<file>", "", "name for the input file of Sequest (may only be used in a full run)", false);
     addEmptyLine_();
-    addText_("For each directory, one corresponding network drive has to be given");
     registerStringOption_("temp_data_directory_network", "<path>", "", "network path of the temporary data directory,\n"
                                                                        "e.g. \\\\computername\\username\\temp_data_dir", false);
     registerStringOption_("db_directory_network", "<path>", "", "network path of the database directory", false);
@@ -173,7 +170,7 @@ protected:
     registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0, "the precursor mass tolerance", false);
     registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
     registerDoubleOption_("p_value", "<prob>", 1.0, "annotations with inferior p-value are ignored", false);
-    registerStringOption_("charges", "[1>3,5]", "", "comma-seperated list of charge states (or ranges)", false);
+    registerStringOption_("charges", "[1>3,5]", "", "comma-separated list of charge states (or ranges)", false);
     registerIntOption_("num_results", "<num>", 1, "the maximal number of results (peptides) to show (per scan/dta)", false);
     registerStringOption_("cleavage", "<enz>", "Trypsin", "the number of the enzyme used for digestion", false);
     registerStringOption_("enzyme_info", "<>", "", "information about the enzyme used\n"
@@ -181,7 +178,7 @@ protected:
                                                    "cuts after, doesn't cut before: amino acids in 1-letter code\n"
                                                    "or '-' for unspecific cleavage", false);
     registerFlag_("list_modifications", "show a list of the available modifications");
-    registerStringOption_("modifications", "<mods>", "", "the colon-seperated modifications; may be\n"
+    registerStringOption_("modifications", "<mods>", "", "the colon-separated modifications; may be\n"
                                                          "<name>,<type>, e.g.: Deamidation,opt or\n"
                                                          "<composition>,<residues>,<type>,<name>, e.g.: H2C2O,KCS,opt,Acetyl or\n"
                                                          "<mass>,<residues>,<type>,<name>, e.g.: 42.0367,KCS,opt,Acetyl or\n"

@@ -55,7 +55,7 @@
 
   <b>Algorithm evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
-	- @subpage UTILS_IDEvaluation - Evaluation tool, comparing peptide recovery at different q-value thresholds for multiple search engines (e.g., after ConsensusID)
+	- @subpage UTILS_IDEvaluator - Evaluation tool, comparing peptide recovery at different q-value thresholds for multiple search engines (e.g., after ConsensusID). For interactive version use the @subpage UTILS_IDEvaluatorGUI tool.
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
 	- @subpage UTILS_MapAlignmentEvaluation - Evaluates alignment results against a ground truth.
 	- @subpage UTILS_RTEvaluation - Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
@@ -73,7 +73,7 @@
   <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_MRMPairFinder - Evaluate labeled pair ratios on MRM features.
-
+  - @subpage UTILS_FeatureFinderSuperHirn - Find Features using the SuperHirn Algorithm (it can handle centroided or profile data, see .ini file)
 
 	<b>Misc</b>
   - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
@@ -81,5 +81,6 @@
 	- @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
 	- @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for svm models as input for SvmTheoreticalSpectrumGenerator.
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
+  - @subpage UTILS_OpenSwathMzMLFileCacher - Caching of large mzML files 
 
 */

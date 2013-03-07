@@ -92,18 +92,18 @@ public:
     /** @brief Internally used data structure. */
     struct BoxElement
     {
-      DoubleReal mz;           //<The monoisotopic position
-      UInt c;           //<Note, this is not the charge (it is charge-1!!!)
-      DoubleReal score;           //<The associated score
-      DoubleReal intens;           //<The transformed intensity at the monoisotopic mass
+      DoubleReal mz; //<The monoisotopic position
+      UInt c; //<Note, this is not the charge (it is charge-1!!!)
+      DoubleReal score; //<The associated score
+      DoubleReal intens; //<The transformed intensity at the monoisotopic mass
       DoubleReal ref_intens;
-      DoubleReal RT;           //<The elution time (not the scan index)
-      UInt RT_index;           //<The elution time (map) index
-      UInt MZ_begin;           //<Index
-      UInt MZ_end;           //<Index
+      DoubleReal RT; //<The elution time (not the scan index)
+      UInt RT_index; //<The elution time (map) index
+      UInt MZ_begin; //<Index
+      UInt MZ_end; //<Index
     };
 
-    typedef std::multimap<UInt, BoxElement> Box;         ///<Key: RT index, value: BoxElement
+    typedef std::multimap<UInt, BoxElement> Box; ///<Key: RT index, value: BoxElement
 
 
     /** @brief Internally (only by GPUs) used data structure .
@@ -122,7 +122,7 @@ public:
       }
 
       /** Copy constructor */
-      TransSpectrum(const MSSpectrum<PeakType> * reference) :
+      TransSpectrum(const MSSpectrum<PeakType>* reference) :
         reference_(reference)
       {
         trans_intens_ = new std::vector<float>(reference_->size(), 0.0);
@@ -179,13 +179,13 @@ public:
       }
 
       /** Returns a pointer to the reference spectrum. */
-      inline const MSSpectrum<PeakType> * getRefSpectrum()
+      inline const MSSpectrum<PeakType>* getRefSpectrum()
       {
         return reference_;
       }
 
       /** Returns a pointer to the reference spectrum. */
-      inline const MSSpectrum<PeakType> * getRefSpectrum() const
+      inline const MSSpectrum<PeakType>* getRefSpectrum() const
       {
         return reference_;
       }
@@ -220,8 +220,8 @@ public:
 
 protected:
 
-      const MSSpectrum<PeakType> * reference_;              //<The reference spectrum
-      std::vector<float> * trans_intens_;              //<The intensities of the transform
+      const MSSpectrum<PeakType>* reference_; //<The reference spectrum
+      std::vector<float>* trans_intens_; //<The intensities of the transform
 
     };
 
@@ -241,14 +241,14 @@ protected:
     /** @brief Computes the isotope wavelet transform of charge state @p c.
         * @param c_trans The transform.
         * @param c_ref The reference spectrum.
-        * @oaram c The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform. */
-    virtual void getTransform(MSSpectrum<PeakType> & c_trans, const MSSpectrum<PeakType> & c_ref, const UInt c);
+        * @param c The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform. */
+    virtual void getTransform(MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c);
 
     /** @brief Computes the isotope wavelet transform of charge state @p c.
         * @param c_trans The transform.
         * @param c_ref The reference spectrum.
-        * @oaram c The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform. */
-    virtual void getTransformHighRes(MSSpectrum<PeakType> & c_trans, const MSSpectrum<PeakType> & c_ref, const UInt c);
+        * @param c The charge state minus 1 (e.g. c=2 means charge state 3) at which you want to compute the transform. */
+    virtual void getTransformHighRes(MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c);
 
     /** @brief Given an isotope wavelet transformed spectrum @p candidates, this function assigns to every significant
         * pattern its corresponding charge state and a score indicating the reliability of the prediction. The result of this
@@ -269,15 +269,15 @@ protected:
         * average intensity in the wavelet transform.
         * @param check_PPMs If enabled, the algorithm will check each monoisotopic mass candidate for its plausibility
         * by computing the ppm difference between this mass and the averagine model. */
-    virtual void identifyCharge(const MSSpectrum<PeakType> & candidates, const MSSpectrum<PeakType> & ref, const UInt scan_index, const UInt c,
+    virtual void identifyCharge(const MSSpectrum<PeakType>& candidates, const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c,
                                 const DoubleReal ampl_cutoff, const bool check_PPMs);
 
-    virtual void initializeScan(const MSSpectrum<PeakType> & c_ref, const UInt c = 0);
+    virtual void initializeScan(const MSSpectrum<PeakType>& c_ref, const UInt c = 0);
 
 #ifdef OPENMS_HAS_CUDA
     /** @brief Sets up all necessary arrays with correct boundaries and 'worst-case' sizes.
         * @param scan The scan under consideration. */
-    virtual int initializeScanCuda(const MSSpectrum<PeakType> & scan, const UInt c = 0);
+    virtual int initializeScanCuda(const MSSpectrum<PeakType>& scan, const UInt c = 0);
 
     /** @brief Clean up. */
     virtual void finalizeScanCuda();
@@ -285,7 +285,7 @@ protected:
     /** @brief Computes The isotope wavelet transform of charge state (@p c+1) on a CUDA compatible GPU.
         * @param c_trans Contains the reference spectrum (already by call) as well as the transformed intensities.
         * @param c The charge state minus 1 (e.g. c=2 means charge state 3)*/
-    virtual void getTransformCuda(TransSpectrum & c_trans, const UInt c);
+    virtual void getTransformCuda(TransSpectrum& c_trans, const UInt c);
 
     /** @brief Essentially the same as its namesake CPU-version, but on a CUDA compatible GPU device.
 * @param candidates A isotope wavelet transformed spectrum. Entry "number i" in this vector must correspond to the
@@ -302,12 +302,12 @@ protected:
     * average intensity in the wavelet transform.
     * * @param check_PPMs If enabled, the algorithm will check each monoisotopic mass candidate for its plausibility
     * by computing the ppm difference between this mass and the averagine model. */
-    virtual void identifyChargeCuda(const TransSpectrum & candidates, const UInt scan_index, const UInt c,
+    virtual void identifyChargeCuda(const TransSpectrum& candidates, const UInt scan_index, const UInt c,
                                     const DoubleReal ampl_cutoff, const bool check_PPMs);
 
     /** Sorts the associated spectrum @p by increasing intensities.
         * @param sorted The spectrum to be sorted. */
-    virtual int sortCuda(MSSpectrum<PeakType> & sorted);
+    virtual int sortCuda(MSSpectrum<PeakType>& sorted);
 #endif
 
 
@@ -317,18 +317,18 @@ protected:
         * @param scan_index The index of the scan currently under consideration w.r.t. its MS map.
         * This information is necessary to sweep across the map after each scan has been evaluated.
         * @param RT_votes_cutoff See the IsotopeWaveletFF class. */
-    void updateBoxStates(const MSExperiment<PeakType> & map, const Size scan_index, const UInt RT_interleave,
+    void updateBoxStates(const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
                          const UInt RT_votes_cutoff, const Int front_bound = -1, const Int end_bound = -1);
 
 
-    void mergeFeatures(IsotopeWaveletTransform<PeakType> * later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff);
+    void mergeFeatures(IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff);
 
 
     /** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
         * @param map The original map containing the data set to be analyzed.
         * @param max_charge The maximal charge state under consideration.
         * @param RT_votes_cutoff See the IsotopeWaveletFF class.*/
-    FeatureMap<Feature> mapSeeds2Features(const MSExperiment<PeakType> & map, const UInt RT_votes_cutoff);
+    FeatureMap<Feature> mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff);
 
     /** @brief Returns the closed boxes. */
     virtual std::multimap<DoubleReal, Box> getClosedBoxes()
@@ -339,7 +339,7 @@ protected:
         * @param left_iter The point left to the query.
         * @param mz_pos The query point.
         * @param right_iter The point right to the query. */
-    inline DoubleReal getLinearInterpolation(const typename MSSpectrum<PeakType>::const_iterator & left_iter, const DoubleReal mz_pos, const typename MSSpectrum<PeakType>::const_iterator & right_iter)
+    inline DoubleReal getLinearInterpolation(const typename MSSpectrum<PeakType>::const_iterator& left_iter, const DoubleReal mz_pos, const typename MSSpectrum<PeakType>::const_iterator& right_iter)
     {
       return left_iter->getIntensity() + (right_iter->getIntensity() - left_iter->getIntensity()) / (right_iter->getMZ() - left_iter->getMZ()) * (mz_pos - left_iter->getMZ());
     }
@@ -365,7 +365,7 @@ protected:
       sigma_ = sigma;
     }
 
-    virtual void computeMinSpacing(const MSSpectrum<PeakType> & c_ref);
+    virtual void computeMinSpacing(const MSSpectrum<PeakType>& c_ref);
 
     inline DoubleReal getMinSpacing() const
     {
@@ -385,7 +385,7 @@ protected:
     IsotopeWaveletTransform();
 
 
-    inline void sampleTheCMarrWavelet_(const MSSpectrum<PeakType> & scan, const Int wavelet_length, const Int mz_index, const UInt charge);
+    inline void sampleTheCMarrWavelet_(const MSSpectrum<PeakType>& scan, const Int wavelet_length, const Int mz_index, const UInt charge);
 
 
     /** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score
@@ -394,7 +394,7 @@ protected:
         * @param seed_mz The predicted position of the monoisotopic peak.
         * @param c The charge state minus 1 (e.g. c=2 means charge state 3) for which the score should be determined.
         * @param ampl_cutoff The threshold. */
-    virtual DoubleReal scoreThis_(const TransSpectrum & candidate, const UInt peak_cutoff,
+    virtual DoubleReal scoreThis_(const TransSpectrum& candidate, const UInt peak_cutoff,
                                   const DoubleReal seed_mz, const UInt c, const DoubleReal ampl_cutoff);
 
     /** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score
@@ -403,7 +403,7 @@ protected:
         * @param seed_mz The predicted position of the monoisotopic peak.
         * @param c The charge state minus 1 (e.g. c=2 means charge state 3) for which the score should be determined.
         * @param ampl_cutoff The threshold. */
-    virtual DoubleReal scoreThis_(const MSSpectrum<PeakType> & candidate, const UInt peak_cutoff,
+    virtual DoubleReal scoreThis_(const MSSpectrum<PeakType>& candidate, const UInt peak_cutoff,
                                   const DoubleReal seed_mz, const UInt c, const DoubleReal ampl_cutoff);
 
 
@@ -414,7 +414,7 @@ protected:
         * @param seed_mz The m/z position of the candidate pattern.
         * @param c The predicted charge state minus 1 (e.g. c=2 means charge state 3) of the candidate.
         * @param scan_index The index of the scan under consideration (w.r.t. the original map). */
-    virtual bool checkPositionForPlausibility_(const TransSpectrum & candidate, const MSSpectrum<PeakType> & ref, const DoubleReal seed_mz,
+    virtual bool checkPositionForPlausibility_(const TransSpectrum& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz,
                                                const UInt c, const UInt scan_index, const bool check_PPMs, const DoubleReal transintens, const DoubleReal prev_score);
 
     /** @brief A ugly but necessary function to handle "off-by-1-Dalton predictions" due to idiosyncrasies of the data set
@@ -424,21 +424,21 @@ protected:
         * @param seed_mz The m/z position of the candidate pattern.
         * @param c The predicted charge state minus 1 (e.g. c=2 means charge state 3) of the candidate.
         * @param scan_index The index of the scan under consideration (w.r.t. the original map). */
-    virtual bool checkPositionForPlausibility_(const MSSpectrum<PeakType> & candidate, const MSSpectrum<PeakType> & ref, const DoubleReal seed_mz,
+    virtual bool checkPositionForPlausibility_(const MSSpectrum<PeakType>& candidate, const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz,
                                                const UInt c, const UInt scan_index, const bool check_PPMs, const DoubleReal transintens, const DoubleReal prev_score);
 
-    virtual std::pair<DoubleReal, DoubleReal> checkPPMTheoModel_(const MSSpectrum<PeakType> & ref, const DoubleReal c_mz, const UInt c);
+    virtual std::pair<DoubleReal, DoubleReal> checkPPMTheoModel_(const MSSpectrum<PeakType>& ref, const DoubleReal c_mz, const UInt c);
 
 
     /** @brief Computes the average (transformed) intensity (neglecting negative values) of @p scan. */
-    inline DoubleReal getAvIntens_(const TransSpectrum & scan);
+    inline DoubleReal getAvIntens_(const TransSpectrum& scan);
     /** @brief Computes the average intensity (neglecting negative values) of @p scan. */
-    inline DoubleReal getAvIntens_(const MSSpectrum<PeakType> & scan);
+    inline DoubleReal getAvIntens_(const MSSpectrum<PeakType>& scan);
 
     /** @brief Computes the standard deviation (neglecting negative values) of the (transformed) intensities of @p scan. */
-    inline DoubleReal getSdIntens_(const TransSpectrum & scan, const DoubleReal mean);
+    inline DoubleReal getSdIntens_(const TransSpectrum& scan, const DoubleReal mean);
     /** @brief Computes the standard deviation (neglecting negative values) of the intensities of @p scan. */
-    inline DoubleReal getSdIntens_(const MSSpectrum<PeakType> & scan, const DoubleReal mean);
+    inline DoubleReal getSdIntens_(const MSSpectrum<PeakType>& scan, const DoubleReal mean);
 
     /** @brief Inserts a potential isotopic pattern into an open box or - if no such box exists - creates a new one.
         * @param mz The position of the pattern.
@@ -471,26 +471,26 @@ protected:
     virtual void push2TmpBox_(const DoubleReal mz, const UInt scan, UInt charge, const DoubleReal score,
                               const DoubleReal intens, const DoubleReal rt, const UInt MZ_begin, const UInt MZ_end);
 
-    /** @brief Computes the average MZ spacing of @p scan in the range @p start_index to @p end_index.
-        *
-        * @param scan	The scan we are interested in.
-        * @param start_index An optional starting position (index) w.r.t. @p scan.
-        * @param end_index An optional final position (index) w.r.t. @p scan.*/
-    inline DoubleReal getAvMZSpacing_(const MSSpectrum<PeakType> & scan);        //, Int start_index=0, Int end_index=-1) ;
+    /**
+      @brief Computes the average MZ spacing of @p scan.
+
+      @param scan The scan we are interested in.
+    */
+    inline DoubleReal getAvMZSpacing_(const MSSpectrum<PeakType>& scan);
 
 
     /** @brief Clusters the seeds stored by push2TmpBox_.
         * @param candidates A isotope wavelet transformed spectrum.
         * @param ref The corresponding original spectrum (w.r.t. @p candidates).
         * @param scan_index The index of the scan under consideration (w.r.t. the original map). */
-    void clusterSeeds_(const TransSpectrum & candidates, const MSSpectrum<PeakType> & ref,
+    void clusterSeeds_(const TransSpectrum& candidates, const MSSpectrum<PeakType>& ref,
                        const UInt scan_index, const UInt c, const bool check_PPMs);
 
     /** @brief Clusters the seeds stored by push2TmpBox_.
         * @param candidates A isotope wavelet transformed spectrum.
         * @param ref The corresponding original spectrum (w.r.t. @p candidates).
         * @param scan_index The index of the scan under consideration (w.r.t. the original map). */
-    virtual void clusterSeeds_(const MSSpectrum<PeakType> & candidates, const MSSpectrum<PeakType> & ref,
+    virtual void clusterSeeds_(const MSSpectrum<PeakType>& candidates, const MSSpectrum<PeakType>& ref,
                                const UInt scan_index, const UInt c, const bool check_PPMs);
 
 
@@ -498,7 +498,7 @@ protected:
         * signals whose isotopic pattern is nearly diminishing
         * @param map The experimental map.
         * @param box The box to be extended. */
-    void extendBox_(const MSExperiment<PeakType> & map, const Box box);
+    void extendBox_(const MSExperiment<PeakType>& map, const Box box);
 
     /** @brief Returns the monoisotopic mass (with corresponding decimal values) we would expect at @p c_mass.
         * @param c_mass The mass for which we would like to know the averagine decimal places. */
@@ -531,8 +531,8 @@ protected:
     }
 
     //internally used data structures for the sweep line algorithm
-    std::multimap<DoubleReal, Box> open_boxes_, closed_boxes_, end_boxes_, front_boxes_;            //DoubleReal = average m/z position
-    std::vector<std::multimap<DoubleReal, Box> > * tmp_boxes_;        //for each charge we need a separate container
+    std::multimap<DoubleReal, Box> open_boxes_, closed_boxes_, end_boxes_, front_boxes_; //DoubleReal = average m/z position
+    std::vector<std::multimap<DoubleReal, Box> >* tmp_boxes_; //for each charge we need a separate container
 
     DoubleReal av_MZ_spacing_, sigma_;
     std::vector<DoubleReal> c_mzs_, c_spacings_, psi_, prod_, xs_;
@@ -550,45 +550,45 @@ protected:
     std::vector<float> scores_, zeros_;
 
 #ifdef OPENMS_HAS_CUDA
-    float * h_data_;
-    int * h_pos_;
+    float* h_data_;
+    int* h_pos_;
     UInt largest_array_size_, overall_size_, block_size_, to_load_, to_compute_;
     Int num_elements_;
-    void * cuda_device_intens_;
-    void * cuda_device_pos_;
-    void * cuda_device_trans_intens_;
-    void * cuda_device_fwd2_;
-    void * cuda_device_posindices_sorted_;
-    void * cuda_device_trans_intens_sorted_;
-    void * cuda_device_scores_;
+    void* cuda_device_intens_;
+    void* cuda_device_pos_;
+    void* cuda_device_trans_intens_;
+    void* cuda_device_fwd2_;
+    void* cuda_device_posindices_sorted_;
+    void* cuda_device_trans_intens_sorted_;
+    void* cuda_device_scores_;
     std::vector<float> cuda_positions_, cuda_intensities_;
     dim3 dimGrid_, dimBlock_;
 #endif
   };
 
 
-  bool myCudaComparator(const cudaHelp & a, const cudaHelp & b);
+  bool myCudaComparator(const cudaHelp& a, const cudaHelp& b);
 
   template <typename PeakType>
-  bool intensityComparator(const PeakType & a, const PeakType & b)
+  bool intensityComparator(const PeakType& a, const PeakType& b)
   {
     return a.getIntensity() > b.getIntensity();
   }
 
   template <typename PeakType>
-  bool intensityAscendingComparator(const PeakType & a, const PeakType & b)
+  bool intensityAscendingComparator(const PeakType& a, const PeakType& b)
   {
     return a.getIntensity() < b.getIntensity();
   }
 
   template <typename PeakType>
-  bool intensityPointerComparator(PeakType * a, PeakType * b)
+  bool intensityPointerComparator(PeakType* a, PeakType* b)
   {
     return a->getIntensity() > b->getIntensity();
   }
 
   template <typename PeakType>
-  bool positionComparator(const PeakType & a, const PeakType & b)
+  bool positionComparator(const PeakType& a, const PeakType& b)
   {
     return a.getMZ() < b.getMZ();
   }
@@ -619,7 +619,7 @@ protected:
     hr_data_ = hr_data;
     intenstype_ = intenstype;
     tmp_boxes_ = new std::vector<std::multimap<DoubleReal, Box> >(max_charge);
-    if (max_scan_size <= 0)     //only important for the CPU
+    if (max_scan_size <= 0) //only important for the CPU
     {
       IsotopeWavelet::init(max_mz, max_charge);
     }
@@ -629,7 +629,7 @@ protected:
     max_num_peaks_per_pattern_ =  IsotopeWavelet::getNumPeakCutOff(max_mz, max_charge);
 
 #ifdef OPENMS_HAS_CUDA
-    if (use_cuda)         //only important for the GPU
+    if (use_cuda) //only important for the GPU
     {
       if (hr_data_)
       {
@@ -645,8 +645,8 @@ protected:
         indices_[q] = q;
       }
 
-      h_data_ = (float *) malloc(largest_array_size_ * sizeof(float));
-      h_pos_ = (int *) malloc(largest_array_size_ * sizeof(int));
+      h_data_ = (float*) malloc(largest_array_size_ * sizeof(float));
+      h_pos_ = (int*) malloc(largest_array_size_ * sizeof(int));
     }
     else
     {
@@ -654,7 +654,7 @@ protected:
       h_pos_ = NULL;
       Int size_estimate((Int)ceil(max_scan_size_ / (max_mz - min_mz)));
       Int to_reserve((Int)ceil(size_estimate * max_num_peaks_per_pattern_ * Constants::IW_NEUTRON_MASS));
-      psi_.reserve(to_reserve);            //The wavelet
+      psi_.reserve(to_reserve); //The wavelet
       prod_.reserve(to_reserve);
       xs_.reserve(to_reserve);
       interpol_xs_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
@@ -665,7 +665,7 @@ protected:
     {
       Int size_estimate((Int)ceil(max_scan_size_ / (max_mz - min_mz)));
       Int to_reserve((Int)ceil(size_estimate * max_num_peaks_per_pattern_ * Constants::IW_NEUTRON_MASS));
-      psi_.reserve(to_reserve);            //The wavelet
+      psi_.reserve(to_reserve); //The wavelet
       prod_.reserve(to_reserve);
       xs_.reserve(to_reserve);
       interpol_xs_.resize(Constants::DEFAULT_NUM_OF_INTERPOLATION_POINTS);
@@ -690,7 +690,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::getTransform(MSSpectrum<PeakType> & c_trans, const MSSpectrum<PeakType> & c_ref, const UInt c)
+  void IsotopeWaveletTransform<PeakType>::getTransform(MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c)
   {
     Int spec_size((Int)c_ref.size());
     //in the very unlikely case that size_t will not fit to int anymore this will be a problem of course
@@ -733,7 +733,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::getTransformHighRes(MSSpectrum<PeakType> & c_trans, const MSSpectrum<PeakType> & c_ref, const UInt c)
+  void IsotopeWaveletTransform<PeakType>::getTransformHighRes(MSSpectrum<PeakType>& c_trans, const MSSpectrum<PeakType>& c_ref, const UInt c)
   {
     Int spec_size((Int)c_ref.size());
     //in the very unlikely case that size_t will not fit to int anymore this will be a problem of course
@@ -771,13 +771,13 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::initializeScan(const MSSpectrum<PeakType> & c_ref, const UInt c)
+  void IsotopeWaveletTransform<PeakType>::initializeScan(const MSSpectrum<PeakType>& c_ref, const UInt c)
   {
     data_length_ = (UInt) c_ref.size();
     computeMinSpacing(c_ref);
     Int wavelet_length = 0, quarter_length = 0;
 
-    if (hr_data_)    //We have to check this separately, because the simply estimation for LowRes data is destroyed by large gaps
+    if (hr_data_) //We have to check this separately, because the simply estimation for LowRes data is destroyed by large gaps
     {
       UInt c_mz_cutoff;
       typename MSSpectrum<PeakType>::const_iterator start_iter, end_iter;
@@ -813,7 +813,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::computeMinSpacing(const MSSpectrum<PeakType> & c_ref)
+  void IsotopeWaveletTransform<PeakType>::computeMinSpacing(const MSSpectrum<PeakType>& c_ref)
   {
     min_spacing_ = INT_MAX;
     for (UInt c_conv_pos = 1; c_conv_pos < c_ref.size(); ++c_conv_pos)
@@ -836,7 +836,7 @@ protected:
   }
 
   template <typename PeakType>
-  int IsotopeWaveletTransform<PeakType>::initializeScanCuda(const MSSpectrum<PeakType> & scan, const UInt c)
+  int IsotopeWaveletTransform<PeakType>::initializeScanCuda(const MSSpectrum<PeakType>& scan, const UInt c)
   {
     data_length_ = scan.size();
 
@@ -856,7 +856,7 @@ protected:
       }
       pre_intensities[i] = scan[i].getIntensity();
     }
-    if (min_spacing_ == INT_MAX)         //spectrum consists of a single data point
+    if (min_spacing_ == INT_MAX) //spectrum consists of a single data point
     {
       std::cout << "Scan consits of a single point. Unable to compute transform." << std::endl;
       return Constants::CUDA_INIT_FAIL;
@@ -864,7 +864,7 @@ protected:
 
     //Estimating the wave_length ...
     UInt wavelet_length = 0, quarter_length = 0;
-    if (hr_data_)        //We have to check this separately, because the simply estimation for LowRes data is destroyed by large gaps
+    if (hr_data_) //We have to check this separately, because the simply estimation for LowRes data is destroyed by large gaps
     {
       UInt c_mz_cutoff;
       typename MSSpectrum<PeakType>::const_iterator start_iter, end_iter;
@@ -886,7 +886,7 @@ protected:
     }
     //... done
 
-    if (wavelet_length > data_length_ || wavelet_length == 1)         //==1, because of 'ceil'
+    if (wavelet_length > data_length_ || wavelet_length == 1) //==1, because of 'ceil'
     {
       std::cout << "Warning: the extremal length of the wavelet is larger (" << wavelet_length << ") than the number of data points (" << data_length_ << "). This might (!) severely affect the transform." << std::endl;
       std::cout << "Minimal spacing: " << min_spacing_ << std::endl;
@@ -986,7 +986,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::getTransformCuda(TransSpectrum & c_trans, const UInt c)
+  void IsotopeWaveletTransform<PeakType>::getTransformCuda(TransSpectrum& c_trans, const UInt c)
   {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
     std::cout << "res in vector" << std::endl;
@@ -995,14 +995,14 @@ protected:
     (cudaMemcpy(cuda_device_trans_intens_, &zeros_[0], overall_size_ * sizeof(float), cudaMemcpyHostToDevice));
 
     (cudaMemcpy(cuda_device_fwd2_, &zeros_[0], overall_size_ * sizeof(float), cudaMemcpyHostToDevice));
-    getExternalCudaTransforms(dimGrid_, dimBlock_, (float *)cuda_device_pos_, (float *)cuda_device_intens_, from_max_to_left_, from_max_to_right_, (float *)cuda_device_trans_intens_,
-                              c + 1, to_load_, to_compute_, data_length_, (float *)cuda_device_fwd2_, hr_data_);
+    getExternalCudaTransforms(dimGrid_, dimBlock_, (float*)cuda_device_pos_, (float*)cuda_device_intens_, from_max_to_left_, from_max_to_right_, (float*)cuda_device_trans_intens_,
+                              c + 1, to_load_, to_compute_, data_length_, (float*)cuda_device_fwd2_, hr_data_);
 
     (cudaMemcpy(cuda_device_trans_intens_sorted_, cuda_device_fwd2_, overall_size_ * sizeof(float), cudaMemcpyDeviceToDevice));
 
-    (cudaMemcpy(&((*c_trans.trans_intens_)[0]), (float *)cuda_device_trans_intens_ + from_max_to_left_, data_length_ * sizeof(float), cudaMemcpyDeviceToHost));
+    (cudaMemcpy(&((*c_trans.trans_intens_)[0]), (float*)cuda_device_trans_intens_ + from_max_to_left_, data_length_ * sizeof(float), cudaMemcpyDeviceToHost));
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-    (cudaMemcpy(&(res[0]), (float *)cuda_device_trans_intens_ + from_max_to_left_, data_length_ * sizeof(float), cudaMemcpyDeviceToHost));
+    (cudaMemcpy(&(res[0]), (float*)cuda_device_trans_intens_ + from_max_to_left_, data_length_ * sizeof(float), cudaMemcpyDeviceToHost));
     for (UInt i = 0; i < data_length_; ++i)
     {
       c_trans.setTransIntensity(i, res[i]);
@@ -1011,18 +1011,18 @@ protected:
   }
 
   template <typename PeakType>
-  int IsotopeWaveletTransform<PeakType>::sortCuda(MSSpectrum<PeakType> & sorted)
+  int IsotopeWaveletTransform<PeakType>::sortCuda(MSSpectrum<PeakType>& sorted)
   {
     (cudaMemcpy(cuda_device_posindices_sorted_, &indices_[0], overall_size_ * sizeof(int), cudaMemcpyHostToDevice));
-    Int gpu_index = sortOnDevice((float *)cuda_device_trans_intens_sorted_, (int *) cuda_device_posindices_sorted_, overall_size_, 0);
+    Int gpu_index = sortOnDevice((float*)cuda_device_trans_intens_sorted_, (int*) cuda_device_posindices_sorted_, overall_size_, 0);
 
-    if (gpu_index < 0)         //i.e., there is no positive intensity value at all
+    if (gpu_index < 0) //i.e., there is no positive intensity value at all
     {
       return gpu_index;
     }
 
-    (cudaMemcpy(h_data_, (float *)cuda_device_trans_intens_sorted_ + gpu_index, sizeof(float) * (overall_size_ - gpu_index), cudaMemcpyDeviceToHost));
-    (cudaMemcpy(h_pos_, (int *)cuda_device_posindices_sorted_ + gpu_index, sizeof(int) * (overall_size_ - gpu_index), cudaMemcpyDeviceToHost));
+    (cudaMemcpy(h_data_, (float*)cuda_device_trans_intens_sorted_ + gpu_index, sizeof(float) * (overall_size_ - gpu_index), cudaMemcpyDeviceToHost));
+    (cudaMemcpy(h_pos_, (int*)cuda_device_posindices_sorted_ + gpu_index, sizeof(int) * (overall_size_ - gpu_index), cudaMemcpyDeviceToHost));
 
     for (UInt i = 0; i < (overall_size_ - gpu_index); ++i)
     {
@@ -1034,17 +1034,17 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::identifyChargeCuda(const TransSpectrum & candidates,
+  void IsotopeWaveletTransform<PeakType>::identifyChargeCuda(const TransSpectrum& candidates,
                                                              const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs)
   {
-    const MSSpectrum<PeakType> & ref(*candidates.getRefSpectrum());
+    const MSSpectrum<PeakType>& ref(*candidates.getRefSpectrum());
     UInt index, MZ_start, MZ_end;
     typename MSSpectrum<PeakType>::iterator iter, bound_iter;
     typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, iter2, seed_iter;
     DoubleReal mz_cutoff, seed_mz, c_av_intens = 0, c_score = 0, c_sd_intens = 0, threshold = 0, help_mz;
 
     Int gpu_index = sortCuda(c_sorted_candidate_), c_index;
-    if (gpu_index < 0)         //the transform produced non-exploitable data
+    if (gpu_index < 0) //the transform produced non-exploitable data
     {
       return;
     }
@@ -1065,7 +1065,7 @@ protected:
 
     (cudaMemcpy(cuda_device_scores_, &zeros_[0], num_of_scores * sizeof(float), cudaMemcpyHostToDevice));
 
-    scoreOnDevice((int *)cuda_device_posindices_sorted_, (float *)cuda_device_trans_intens_, (float *)cuda_device_pos_, (float *)cuda_device_scores_,
+    scoreOnDevice((int*)cuda_device_posindices_sorted_, (float*)cuda_device_trans_intens_, (float*)cuda_device_pos_, (float*)cuda_device_scores_,
                   c, num_of_scores, overall_size_, max_num_peaks_per_pattern_, threshold);
 
     (cudaMemcpy(&scores_[0], cuda_device_scores_, num_of_scores * sizeof(float), cudaMemcpyDeviceToHost));
@@ -1177,8 +1177,8 @@ protected:
 
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::identifyCharge(const MSSpectrum<PeakType> & candidates,
-                                                         const MSSpectrum<PeakType> & ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs)
+  void IsotopeWaveletTransform<PeakType>::identifyCharge(const MSSpectrum<PeakType>& candidates,
+                                                         const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const DoubleReal ampl_cutoff, const bool check_PPMs)
   {
     Size scan_size(candidates.size());
     typename ConstRefVector<MSSpectrum<PeakType> >::iterator iter;
@@ -1195,7 +1195,7 @@ protected:
     std::ofstream ofile(stream.str().c_str());
 #endif
 
-    if (!hr_data_)    //LowRes data
+    if (!hr_data_) //LowRes data
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
@@ -1213,7 +1213,7 @@ protected:
 #endif
       }
     }
-    else    //HighRes data
+    else //HighRes data
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
@@ -1350,7 +1350,7 @@ protected:
 
 #if defined(OPENMS_HAS_TBB) && defined(OPENMS_HAS_CUDA)
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::mergeFeatures(IsotopeWaveletTransform<PeakType> * later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff)
+  void IsotopeWaveletTransform<PeakType>::mergeFeatures(IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff)
   {
     typename std::multimap<DoubleReal, Box>::iterator front_iter, end_iter, best_match, help_iter;
 
@@ -1360,8 +1360,8 @@ protected:
       closed_boxes_.insert(*end_iter);
     }
 
-    typename std::multimap<DoubleReal, Box> & end_container(this->end_boxes_);
-    typename std::multimap<DoubleReal, Box> & front_container(later_iwt->front_boxes_);
+    typename std::multimap<DoubleReal, Box>& end_container(this->end_boxes_);
+    typename std::multimap<DoubleReal, Box>& front_container(later_iwt->front_boxes_);
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
     std::cout << "FontBox: " << front_container.size() << std::endl;
@@ -1407,7 +1407,7 @@ protected:
           }
         }
       }
-      if (best_match == end_container.end())           //No matching pair found
+      if (best_match == end_container.end()) //No matching pair found
       {
         if (front_iter->second.size() >= RT_votes_cutoff)
         {
@@ -1416,7 +1416,7 @@ protected:
         }
         ++front_iter;
       }
-      else           //That's the funny part
+      else //That's the funny part
       {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
         std::cout << "Merging the boxes: " << front_iter->first  << "\t" << best_match->first << std::endl;
@@ -1455,7 +1455,7 @@ protected:
 
 
   template <typename PeakType>
-  DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_(const MSSpectrum<PeakType> & candidate,
+  DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_(const MSSpectrum<PeakType>& candidate,
                                                            const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal ampl_cutoff)
   {
     DoubleReal c_score = 0, c_val;
@@ -1486,7 +1486,7 @@ protected:
       }
       while (candidate[start_index].getMZ() < positions[v - 1]);
 
-      if (start_index <= 0 || start_index >= signal_size - 1)   //unable to interpolate
+      if (start_index <= 0 || start_index >= signal_size - 1) //unable to interpolate
       {
         continue;
       }
@@ -1502,7 +1502,7 @@ protected:
         mid_val = c_val;
       }
 
-      if (p_h_ind % 2 == 1)     //I.e. a whole
+      if (p_h_ind % 2 == 1) //I.e. a whole
       {
         c_score -= c_val;
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -1554,7 +1554,7 @@ protected:
   }
 
   template <typename PeakType>
-  DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_(const TransSpectrum & candidate,
+  DoubleReal IsotopeWaveletTransform<PeakType>::scoreThis_(const TransSpectrum& candidate,
                                                            const UInt peak_cutoff, const DoubleReal seed_mz, const UInt c, const DoubleReal ampl_cutoff)
   {
     DoubleReal c_score = 0, c_val;
@@ -1583,7 +1583,7 @@ protected:
       }
       while (candidate.getMZ(start_index) < positions[v - 1]);
 
-      if (start_index <= 0 || start_index >= signal_size - 1)   //unable to interpolate
+      if (start_index <= 0 || start_index >= signal_size - 1) //unable to interpolate
       {
         continue;
       }
@@ -1598,7 +1598,7 @@ protected:
         mid_val = c_val;
       }
 
-      if (p_h_ind % 2 == 1)     //I.e. a whole
+      if (p_h_ind % 2 == 1) //I.e. a whole
       {
         c_score -= c_val;
       }
@@ -1627,8 +1627,8 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::clusterSeeds_(const MSSpectrum<PeakType> & candidate,
-                                                        const MSSpectrum<PeakType> & ref, const UInt scan_index, const UInt c, const bool check_PPMs)
+  void IsotopeWaveletTransform<PeakType>::clusterSeeds_(const MSSpectrum<PeakType>& candidate,
+                                                        const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const bool check_PPMs)
   {
     typename std::multimap<DoubleReal, Box>::iterator iter;
     typename Box::iterator box_iter;
@@ -1640,17 +1640,17 @@ protected:
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
 
-      Box & c_box = iter->second;
+      Box& c_box = iter->second;
       av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
       virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
 
       //Now, let's get the RT boundaries for the box
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
       {
-        if (box_iter->second.score == 0)         //virtual helping point
+        if (box_iter->second.score == 0) //virtual helping point
         {
           if (count != 0)
-            continue;                         //it is in any way not pure virtual
+            continue; //it is in any way not pure virtual
 
           c_mz = box_iter->second.mz;
           virtual_av_intens += box_iter->second.intens;
@@ -1669,7 +1669,7 @@ protected:
         }
       }
 
-      if (count == 0)       //pure virtual helping box
+      if (count == 0) //pure virtual helping box
       {
         av_intens = virtual_av_intens / virtual_count;
         av_score = 0;
@@ -1722,7 +1722,7 @@ protected:
     {
       while (i < num_o_feature - 2)
       {
-        if (final_box[i].score > 0 || final_box[i].score == -1000)      //this has been an helping point
+        if (final_box[i].score > 0 || final_box[i].score == -1000) //this has been an helping point
           break;
         ++i;
       }
@@ -1738,7 +1738,7 @@ protected:
   }
 
   template <typename PeakType>
-  DoubleReal IsotopeWaveletTransform<PeakType>::getAvIntens_(const MSSpectrum<PeakType> & scan)
+  DoubleReal IsotopeWaveletTransform<PeakType>::getAvIntens_(const MSSpectrum<PeakType>& scan)
   {
     DoubleReal av_intens = 0;
     for (UInt i = 0; i < scan.size(); ++i)
@@ -1752,7 +1752,7 @@ protected:
   }
 
   template <typename PeakType>
-  DoubleReal IsotopeWaveletTransform<PeakType>::getSdIntens_(const MSSpectrum<PeakType> & scan, const DoubleReal mean)
+  DoubleReal IsotopeWaveletTransform<PeakType>::getSdIntens_(const MSSpectrum<PeakType>& scan, const DoubleReal mean)
   {
     DoubleReal res = 0, intens;
     for (UInt i = 0; i < scan.size(); ++i)
@@ -1767,7 +1767,7 @@ protected:
   }
 
   template <typename PeakType>
-  DoubleReal IsotopeWaveletTransform<PeakType>::getAvMZSpacing_(const MSSpectrum<PeakType> & scan)  //, Int start_index, Int end_index)
+  DoubleReal IsotopeWaveletTransform<PeakType>::getAvMZSpacing_(const MSSpectrum<PeakType>& scan) //, Int start_index, Int end_index)
   {
     std::vector<DoubleReal> diffs(scan.size() - 1, 0);
     for (UInt i = 0; i < scan.size() - 1; ++i)
@@ -1786,7 +1786,7 @@ protected:
   }
 
   template <typename PeakType>
-  DoubleReal IsotopeWaveletTransform<PeakType>::getAvIntens_(const TransSpectrum & scan)
+  DoubleReal IsotopeWaveletTransform<PeakType>::getAvIntens_(const TransSpectrum& scan)
   {
     DoubleReal av_intens = 0;
     for (UInt i = 0; i < scan.size(); ++i)
@@ -1800,7 +1800,7 @@ protected:
   }
 
   template <typename PeakType>
-  DoubleReal IsotopeWaveletTransform<PeakType>::getSdIntens_(const TransSpectrum & scan, const DoubleReal mean)
+  DoubleReal IsotopeWaveletTransform<PeakType>::getSdIntens_(const TransSpectrum& scan, const DoubleReal mean)
   {
     DoubleReal res = 0, intens;
     for (UInt i = 0; i < scan.size(); ++i)
@@ -1834,14 +1834,14 @@ protected:
 
     typename std::multimap<DoubleReal, Box>::iterator insert_iter;
     bool create_new_box = true;
-    if (lower_iter == open_boxes_.end())     //I.e. there is no open Box for that mz position
+    if (lower_iter == open_boxes_.end()) //I.e. there is no open Box for that mz position
     {
       //There is another special case to be considered here:
       //Assume that the current box contains only a single element that is (slightly) smaller than the new mz value,
       //then the lower bound for the new mz value is box.end and this would usually force a new entry
       if (!open_boxes_.empty())
       {
-        if (fabs((--lower_iter)->first - mz) < dist_constraint)         //matching box
+        if (fabs((--lower_iter)->first - mz) < dist_constraint) //matching box
         {
           create_new_box = false;
           insert_iter = lower_iter;
@@ -1854,7 +1854,7 @@ protected:
     }
     else
     {
-      if (upper_iter == open_boxes_.end() && fabs(lower_iter->first - mz) < dist_constraint)       //Found matching Box
+      if (upper_iter == open_boxes_.end() && fabs(lower_iter->first - mz) < dist_constraint) //Found matching Box
       {
         insert_iter = lower_iter;
         create_new_box = false;
@@ -1876,7 +1876,7 @@ protected:
       dist_lower = (dist_lower < dist_constraint) ? dist_lower : INT_MAX;
       dist_upper = (dist_upper < dist_constraint) ? dist_upper : INT_MAX;
 
-      if (dist_lower >= dist_constraint && dist_upper >= dist_constraint)   // they are both too far away
+      if (dist_lower >= dist_constraint && dist_upper >= dist_constraint) // they are both too far away
       {
         create_new_box = true;
       }
@@ -1926,7 +1926,7 @@ protected:
   {
     const DoubleReal dist_constraint(Constants::IW_HALF_NEUTRON_MASS / (DoubleReal)max_charge_);
 
-    std::multimap<DoubleReal, Box> & tmp_box(tmp_boxes_->at(c));
+    std::multimap<DoubleReal, Box>& tmp_box(tmp_boxes_->at(c));
     typename std::multimap<DoubleReal, Box>::iterator upper_iter(tmp_box.upper_bound(mz));
     typename std::multimap<DoubleReal, Box>::iterator lower_iter(tmp_box.lower_bound(mz));
 
@@ -1941,14 +1941,14 @@ protected:
 
     typename std::multimap<DoubleReal, Box>::iterator insert_iter;
     bool create_new_box = true;
-    if (lower_iter == tmp_box.end())     //I.e. there is no tmp Box for that mz position
+    if (lower_iter == tmp_box.end()) //I.e. there is no tmp Box for that mz position
     {
       //There is another special case to be considered here:
       //Assume that the current box contains only a single element that is (slightly) smaller than the new mz value,
       //then the lower bound for the new mz value is box.end and this would usually force a new entry
       if (!tmp_box.empty())
       {
-        if (fabs((--lower_iter)->first - mz) < dist_constraint)         //matching box
+        if (fabs((--lower_iter)->first - mz) < dist_constraint) //matching box
         {
           create_new_box = false;
           insert_iter = lower_iter;
@@ -1961,7 +1961,7 @@ protected:
     }
     else
     {
-      if (upper_iter == tmp_box.end() && fabs(lower_iter->first - mz) < dist_constraint)       //Found matching Box
+      if (upper_iter == tmp_box.end() && fabs(lower_iter->first - mz) < dist_constraint) //Found matching Box
       {
         insert_iter = lower_iter;
         create_new_box = false;
@@ -1981,7 +1981,7 @@ protected:
       dist_lower = (dist_lower < dist_constraint) ? dist_lower : INT_MAX;
       dist_upper = (dist_upper < dist_constraint) ? dist_upper : INT_MAX;
 
-      if (dist_lower >= dist_constraint && dist_upper >= dist_constraint)   // they are both too far away
+      if (dist_lower >= dist_constraint && dist_upper >= dist_constraint) // they are both too far away
       {
         create_new_box = true;
       }
@@ -2026,7 +2026,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::updateBoxStates(const MSExperiment<PeakType> & map, const Size scan_index, const UInt RT_interleave,
+  void IsotopeWaveletTransform<PeakType>::updateBoxStates(const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
                                                           const UInt RT_votes_cutoff, const Int front_bound, const Int end_bound)
   {
     typename std::multimap<DoubleReal, Box>::iterator iter, iter2;
@@ -2058,7 +2058,7 @@ protected:
 
       //For each Box we need to figure out, if and when the last RT value has been inserted
       UInt lastScan = (--(iter->second.end()))->first;
-      if (scan_index - lastScan > RT_interleave + 1 || scan_index == map.size() - 1)   //I.e. close the box!
+      if (scan_index - lastScan > RT_interleave + 1 || scan_index == map.size() - 1) //I.e. close the box!
       {
         if (iter->second.begin()->first - front_bound <= RT_interleave + 1 && front_bound > 0)
         {
@@ -2095,7 +2095,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::extendBox_(const MSExperiment<PeakType> & map, const Box box)
+  void IsotopeWaveletTransform<PeakType>::extendBox_(const MSExperiment<PeakType>& map, const Box box)
   {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
     std::cout << "**** CHECKING FOR BOX EXTENSIONS ****" << std::endl;
@@ -2201,8 +2201,8 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::clusterSeeds_(const TransSpectrum & candidates,
-                                                        const MSSpectrum<PeakType> & ref, const UInt scan_index, const UInt c, const bool check_PPMs)
+  void IsotopeWaveletTransform<PeakType>::clusterSeeds_(const TransSpectrum& candidates,
+                                                        const MSSpectrum<PeakType>& ref, const UInt scan_index, const UInt c, const bool check_PPMs)
   {
     typename std::multimap<DoubleReal, Box>::iterator iter;
     typename Box::iterator box_iter;
@@ -2213,16 +2213,16 @@ protected:
     typename std::pair<DoubleReal, DoubleReal> c_extend;
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
-      Box & c_box = iter->second;
+      Box& c_box = iter->second;
       av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
       virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
 
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
       {
-        if (box_iter->second.score == 0)         //virtual helping point
+        if (box_iter->second.score == 0) //virtual helping point
         {
           if (count != 0)
-            continue;                         //it is in any way not pure virtual
+            continue; //it is in any way not pure virtual
 
           c_mz = box_iter->second.mz;
           virtual_av_intens += box_iter->second.intens;
@@ -2241,7 +2241,7 @@ protected:
         }
       }
 
-      if (count == 0)       //pure virtual helping box
+      if (count == 0) //pure virtual helping box
       {
         av_intens = virtual_av_intens / virtual_count;
         av_score = 0;
@@ -2294,7 +2294,7 @@ protected:
     {
       while (i < num_o_feature - 2)
       {
-        if (final_box[i].score > 0 || final_box[i].score == -1000)      //this has been an helping point
+        if (final_box[i].score > 0 || final_box[i].score == -1000) //this has been an helping point
           break;
         ++i;
       }
@@ -2310,7 +2310,7 @@ protected:
   }
 
   template <typename PeakType>
-  FeatureMap<Feature> IsotopeWaveletTransform<PeakType>::mapSeeds2Features(const MSExperiment<PeakType> & map, const UInt RT_votes_cutoff)
+  FeatureMap<Feature> IsotopeWaveletTransform<PeakType>::mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff)
   {
     FeatureMap<Feature> feature_map;
     typename std::multimap<DoubleReal, Box>::iterator iter;
@@ -2323,7 +2323,7 @@ protected:
     for (iter = closed_boxes_.begin(); iter != closed_boxes_.end(); ++iter)
     {
       sum_of_ref_intenses_g = 0;
-      Box & c_box = iter->second;
+      Box& c_box = iter->second;
       std::vector<DoubleReal> charge_votes(max_charge_, 0), charge_binary_votes(max_charge_, 0);
       restart = false;
 
@@ -2342,7 +2342,7 @@ protected:
           break;
         }
 
-        charge_votes[box_iter->second.c] += box_iter->second.intens;        //score; Do not use score, can get problematic for charge state 2 vs 4
+        charge_votes[box_iter->second.c] += box_iter->second.intens; //score; Do not use score, can get problematic for charge state 2 vs 4
         ++charge_binary_votes[box_iter->second.c];
       }
 
@@ -2368,7 +2368,7 @@ protected:
         continue;
       }
 
-      c_charge = best_charge_index + 1;       //that's the finally predicted charge state for the pattern
+      c_charge = best_charge_index + 1; //that's the finally predicted charge state for the pattern
 
       av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0;
       //Now, let's get the RT boundaries for the box
@@ -2392,7 +2392,7 @@ protected:
         if (intenstype_ == "ref")
         {
           //Find monoisotopic max
-          const MSSpectrum<PeakType> & c_spec(map[box_iter->second.RT_index]);
+          const MSSpectrum<PeakType>& c_spec(map[box_iter->second.RT_index]);
           //'Correct' possible shift
           for (unsigned int i = 0; i < mz_cutoff; ++i)
           {
@@ -2493,8 +2493,8 @@ protected:
   }
 
   template <typename PeakType>
-  bool IsotopeWaveletTransform<PeakType>::checkPositionForPlausibility_(const MSSpectrum<PeakType> & candidate,
-                                                                        const MSSpectrum<PeakType> & ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs, const DoubleReal transintens, const DoubleReal prev_score)
+  bool IsotopeWaveletTransform<PeakType>::checkPositionForPlausibility_(const MSSpectrum<PeakType>& candidate,
+                                                                        const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs, const DoubleReal transintens, const DoubleReal prev_score)
   {
     typename MSSpectrum<PeakType>::const_iterator iter, ref_iter;
     UInt peak_cutoff;
@@ -2611,8 +2611,8 @@ protected:
   }
 
   template <typename PeakType>
-  bool IsotopeWaveletTransform<PeakType>::checkPositionForPlausibility_(const TransSpectrum & candidate,
-                                                                        const MSSpectrum<PeakType> & ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs, const DoubleReal transintens, const DoubleReal prev_score)
+  bool IsotopeWaveletTransform<PeakType>::checkPositionForPlausibility_(const TransSpectrum& candidate,
+                                                                        const MSSpectrum<PeakType>& ref, const DoubleReal seed_mz, const UInt c, const UInt scan_index, const bool check_PPMs, const DoubleReal transintens, const DoubleReal prev_score)
   {
     typename MSSpectrum<PeakType>::const_iterator iter, ref_iter;
     UInt peak_cutoff;
@@ -2736,7 +2736,7 @@ protected:
   }
 
   template <typename PeakType>
-  std::pair<DoubleReal, DoubleReal> IsotopeWaveletTransform<PeakType>::checkPPMTheoModel_(const MSSpectrum<PeakType> & ref, const DoubleReal c_mz, const UInt c)
+  std::pair<DoubleReal, DoubleReal> IsotopeWaveletTransform<PeakType>::checkPPMTheoModel_(const MSSpectrum<PeakType>& ref, const DoubleReal c_mz, const UInt c)
   {
     DoubleReal mass = c_mz * (c + 1) - Constants::IW_PROTON_MASS * (c);
     DoubleReal ppms = getPPMs_(peptideMassRule_(mass), mass);

@@ -172,6 +172,20 @@ START_SECTION((LPWrapper::SOLVER getLPSolver()))
   NOT_TESTABLE
 }
 END_SECTION
+
+START_SECTION((void createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file, FeatureMap<> & precursors)))
+{
+  String include = OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_db.fasta");
+  String rt_model = OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_rt.model");
+  String pt_model	= OPENMS_GET_TEST_DATA_PATH("DetectabilitySimulation.svm");
+  FeatureMap<> precursors;
+  ptr->createProteinSequenceBasedLPInclusionList(include,rt_model,pt_model,precursors);
+  TEST_EQUAL(precursors.size(),5)
+  TEST_EQUAL(precursors[0].getMetaValue("protein"),"P01008")
+  TEST_EQUAL(precursors[1].getMetaValue("protein"),"P02787")
+  TEST_EQUAL(precursors[4].getMetaValue("protein"),"P10599")
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -260,10 +260,27 @@ START_SECTION((ItraqQuantifierStats getStats() const))
   TEST_EQUAL(stats.empty_channels[116], 1)
   TEST_EQUAL(stats.empty_channels[117], 1)
 
+  // grab some warning, such that it does not show in output
+  // Macro#1 (use local scope to hide 'ss_grab' to avoid double declaration)
+  // params: log steam, default (to be temporarily disabled), message (to grab))
+  // WATCH_LOG(Log_warn, cout, "msg...")
+  {
+  ostringstream ss_grab;
+  Log_warn.flush();
+  Log_warn.insert(ss_grab);
+  Log_warn.remove(cout);
+
   p.setValue("isotope_correction", "false");
   iq.setParameters(p);
-
   iq.run(cm_in, cm_out);
+
+  // test result of warning
+  // Macro#2 (check msg and close local scope)
+  Log_warn.flush();
+  TEST_EQUAL(ss_grab.str(), "Warning: Due to deactivated isotope-correction labeling statistics will be based on raw intensities, which might give too optimistic results.\n")
+  Log_warn.remove(ss_grab);
+  Log_warn.insert(cout);
+  }
 
   stats = iq.getStats();
   TEST_EQUAL(stats.channel_count, 4)

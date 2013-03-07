@@ -88,7 +88,7 @@ END_SECTION
 PepNovoOutfile file;
 
 
-START_SECTION((void load(const std::string &result_filename, std::vector< PeptideIdentification > &peptide_identifications, ProteinIdentification &protein_identification, const DoubleReal &score_threshold, const std::map< String, std::pair< DoubleReal, DoubleReal > > &id_rt_mz, const std::map< String, String > &mod_id_map)))	
+START_SECTION((void load(const std::string &result_filename, std::vector< PeptideIdentification > &peptide_identifications, ProteinIdentification &protein_identification, const DoubleReal &score_threshold, const IndexPosMappingType &id_rt_mz, const std::map< String, String > &mod_id_map)))	
 	std::vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	map< String, DoubleReal > filenames_and_precursor_retention_times;

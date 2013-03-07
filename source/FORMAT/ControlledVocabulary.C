@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <fstream>
 #include <iostream>
@@ -43,6 +44,111 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  ControlledVocabulary::CVTerm::CVTerm() :
+    name(),
+    id(),
+    parents(),
+    children(),
+    obsolete(false),
+    description(),
+    synonyms(),
+    unparsed(),
+    xref_type(NONE),
+    xref_binary()
+  {
+  }
+
+  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) :
+    name(rhs.name),
+    id(rhs.id),
+    parents(rhs.parents),
+    children(rhs.children),
+    obsolete(rhs.obsolete),
+    description(rhs.description),
+    synonyms(rhs.synonyms),
+    unparsed(rhs.unparsed),
+    xref_type(rhs.xref_type),
+    xref_binary(rhs.xref_binary),
+    units(rhs.units)
+  {
+  }
+
+  ControlledVocabulary::CVTerm& ControlledVocabulary::CVTerm::operator=(const CVTerm& rhs)
+  {
+    if (this != &rhs)
+    {
+      name = rhs.name;
+      id = rhs.id;
+      parents = rhs.parents;
+      children = rhs.children;
+      obsolete = rhs.obsolete;
+      description = rhs.description;
+      synonyms = rhs.synonyms;
+      unparsed = rhs.unparsed;
+      xref_type = rhs.xref_type;
+      xref_binary = rhs.xref_binary;
+      units = rhs.units;
+    }
+    return *this;
+  }
+
+  String ControlledVocabulary::CVTerm::getXRefTypeName(XRefType type)
+  {
+    switch (type)
+    {
+    case XSD_STRING: return "xsd:string";
+
+    case XSD_INTEGER: return "xsd:integer";
+
+    case XSD_DECIMAL: return "xsd:decimal";
+
+    case XSD_NEGATIVE_INTEGER: return "xsd:negativeInteger";
+
+    case XSD_POSITIVE_INTEGER: return "xsd:positiveInteger";
+
+    case XSD_NON_NEGATIVE_INTEGER: return "xsd:nonNegativeInteger";
+
+    case XSD_NON_POSITIVE_INTEGER: return "xsd:nonPositiveInteger";
+
+    case XSD_BOOLEAN: return "xsd:boolean";
+
+    case XSD_DATE: return "xsd:date";
+
+    case XSD_ANYURI: return "xsd:anyURI";
+
+    default: return "none";
+    }
+    return "";
+  }
+
+  String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const
+  {
+    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + name;
+    if (!value.empty())
+    {
+      s += "\" value=\"" + value;
+    }
+    s +=  "\"/>";
+    return s;
+    //~ TODO: handle unknown cvparams in ControlledVocabulary to get same formatting but more userdefined interface
+  }
+
+  String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const OpenMS::DataValue& value) const
+  {
+    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + name;
+    if (!value.isEmpty())
+    {
+      s += "\" value=\"" + (String)value;
+    }
+    if (value.hasUnit())
+    {
+      //  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"
+      s += "\" unitAccession=\"" + value.getUnit() + "\" unitName=\"" + "\" unitCvRef=\"" + value.getUnit().prefix(2);
+    }
+    s +=  "\"/>";
+    return s;
+  }
 
   ControlledVocabulary::ControlledVocabulary() :
     terms_(),
@@ -56,7 +162,7 @@ namespace OpenMS
 
   }
 
-  void ControlledVocabulary::loadFromOBO(const String & name, const String & filename)
+  void ControlledVocabulary::loadFromOBO(const String& name, const String& filename)
   {
     bool in_term = false;
     name_ = name;
@@ -86,10 +192,10 @@ namespace OpenMS
       if (line_wo_spaces[0] == '[')
       {
         //[term] stanza
-        if (line_wo_spaces.toLower() == "[term]")       //new term
+        if (line_wo_spaces.toLower() == "[term]") //new term
         {
           in_term = true;
-          if (term.id != "")         //store last term
+          if (term.id != "") //store last term
           {
             terms_[term.id] = term;
           }
@@ -285,7 +391,7 @@ namespace OpenMS
       }
     }
 
-    if (term.id != "")   //store last term
+    if (term.id != "") //store last term
     {
       terms_[term.id] = term;
     }
@@ -314,7 +420,7 @@ namespace OpenMS
     }
   }
 
-  const ControlledVocabulary::CVTerm & ControlledVocabulary::getTerm(const String & id) const
+  const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
   {
     Map<String, CVTerm>::const_iterator it = terms_.find(id);
     if (it == terms_.end())
@@ -324,15 +430,15 @@ namespace OpenMS
     return it->second;
   }
 
-  const Map<String, ControlledVocabulary::CVTerm> & ControlledVocabulary::getTerms() const
+  const Map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
   {
     return terms_;
   }
 
-  void ControlledVocabulary::getAllChildTerms(set<String> & terms, const String & parent) const
+  void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
   {
     //cerr << "Parent: " << parent << "\n";
-    const set<String> & children = getTerm(parent).children;
+    const set<String>& children = getTerm(parent).children;
     for (set<String>::const_iterator it = children.begin(); it != children.end(); ++it)
     {
       terms.insert(*it);
@@ -341,7 +447,7 @@ namespace OpenMS
     }
   }
 
-  const ControlledVocabulary::CVTerm & ControlledVocabulary::getTermByName(const String & name, const String & desc) const
+  const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
   {
     //slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV
     Map<String, String>::const_iterator it = namesToIds_.find(name);
@@ -364,15 +470,21 @@ namespace OpenMS
     return terms_[it->second];
   }
 
-  bool ControlledVocabulary::exists(const String & id) const
+  bool ControlledVocabulary::exists(const String& id) const
   {
     return terms_.has(id);
   }
 
-  bool ControlledVocabulary::isChildOf(const String & child, const String & parent) const
+  bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
+  {
+    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    return it != namesToIds_.end();
+  }
+
+  bool ControlledVocabulary::isChildOf(const String& child, const String& parent) const
   {
     //cout << "CHECK child:" << child << " parent: " << parent << "\n";
-    const CVTerm & ch = getTerm(child);
+    const CVTerm& ch = getTerm(child);
 
     for (set<String>::const_iterator it = ch.parents.begin(); it != ch.parents.end(); ++it)
     {
@@ -393,7 +505,7 @@ namespace OpenMS
     return false;
   }
 
-  std::ostream & operator<<(std::ostream & os, const ControlledVocabulary & cv)
+  std::ostream& operator<<(std::ostream& os, const ControlledVocabulary& cv)
   {
     for (Map<String, ControlledVocabulary::CVTerm>::const_iterator it = cv.terms_.begin(); it != cv.terms_.end(); ++it)
     {
@@ -408,12 +520,12 @@ namespace OpenMS
     return os;
   }
 
-  const String & ControlledVocabulary::name() const
+  const String& ControlledVocabulary::name() const
   {
     return name_;
   }
 
-  bool ControlledVocabulary::checkName_(const String & id, const String & name, bool ignore_case)
+  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
   {
     if (!exists(id))
       return true;

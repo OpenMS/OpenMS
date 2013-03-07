@@ -121,14 +121,15 @@
 					<LI> @subpage Contributing
 				</UL>
 
-				@if INTERNAL_INFO
+				@if(INTERNAL_INFO)
 				Internal:
 				<UL>
 				  <LI> @subpage CPP
 				  <LI> @subpage FAQ_Internal
 				</UL>
 				@endif
-			</TD>
+			
+      </TD>
 
 		</TR>
 

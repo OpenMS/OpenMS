@@ -171,7 +171,7 @@ namespace OpenMS
         for (TOPPASVertex::ConstEdgeIterator it = target->inEdgesBegin(); it != target->inEdgesEnd(); ++it)
         {
           int param_index = (*it)->getTargetInParam();
-          if (*it != edge_ && param_index >= 0)
+          if (*it != edge_ && param_index >= 0 && param_index < target_input_files.size())
           {
             if (info.param_name == target_input_files[param_index].param_name)
             {

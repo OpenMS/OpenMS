@@ -1,0 +1,36 @@
+<mimetypes xmlns="http://www.ball-project.org/mimetypes">
+ <mimetype name="DTA" binary="false" ext="dta" description="DTA file"/>
+ <mimetype name="DTA2D" binary="false" description="DTA2D file" ext="dta2d"/>
+ <mimetype name="MZDATA" binary="false" description="MzData file" ext="MzData"/>
+ <mimetype name="MZXML" binary="false" description="MzXML file" ext="MzXML"/>
+ <mimetype name="FEATUREXML" binary="false" description="%OpenMS feature file" ext="featureXML"/>
+ <mimetype name="IDXML" binary="false" description="%OpenMS identification format " ext="idXML"/>
+ <mimetype name="CONSENSUSXML" binary="false" description="%OpenMS consensus map format" ext="consensusXML"/>
+ <mimetype name="MGF" binary="false" description="Mascot Generic Format" ext="mgf"/>
+ <mimetype name="INI" binary="false" description="%OpenMS parameters file" ext="ini"/>
+ <mimetype name="TOPPAS" binary="false" description="%OpenMS parameters file with workflow information" ext="toppas"/>
+ <mimetype name="TRANSFORMATIONXML" binary="false" description="Tranformation description file" ext="trafoXML"/>
+ <mimetype name="MZML" binary="false" description="MzML file" ext="mzML"/>
+ <mimetype name="MS2" binary="false" description="MS2 file" ext="ms2"/>
+ <mimetype name="PEPXML" binary="false" description="TPP pepXML file" ext="pepXML"/>
+ <mimetype name="PROTXML" binary="false" description="TPP protXML file" ext="protXML"/>
+ <mimetype name="MZIDENTML" binary="false" description="mzIdentML (HUPO PSI AnalysisXML followup format)" ext="mzid"/>
+ <mimetype name="GELML" binary="false" description="GelML (HUPO PSI format)" ext="GelML"/>
+ <mimetype name="TRAML" binary="false" description="TraML (HUPO PSI format) for transitions" ext="TraML"/>
+ <mimetype name="MSP" binary="false" description="NIST spectra library file format" ext="msp"/>
+ <mimetype name="OMSSAXML" binary="false" description="OMSSA XML file format for peptide identifications" ext="xml"/>
+ <mimetype name="MASCOTXML" binary="false" description="Mascot XML file format for peptide identifications" ext="xml"/>
+ <mimetype name="PNG" binary="false" description="Portable Network Graphics" ext="png"/>
+ <mimetype name="XMASS" binary="false" description="XMass Analysis file (fid)" ext="fid"/>
+ <mimetype name="TSV" binary="false" description="tab-separated file" ext="tsv"/>
+ <mimetype name="CSV" binary="false" description="comma-separated file" ext="csv"/>
+ <mimetype name="PEPLIST" binary="false" description="specArray file" ext="pepList"/>
+ <mimetype name="HARDKLOER" binary="false" description="hardkloer file" ext="hardkloer"/>
+ <mimetype name="KROENIK" binary="false" description="kroenik file" ext="kroenik"/>
+ <mimetype name="FASTA" binary="false" description="FASTA file" ext="fasta"/>
+ <mimetype name="EDTA" binary="false" description="enhanced comma separated files (RT, m/z, Intensity, [meta])" ext="EDTA"/>
+ <mimetype name="PSQ" binary="false" description="PSQ file" ext="psq"/>
+ <mimetype name="EXE" binary="true" description="Executable files" ext="exe"/>
+ <mimetype name="MZQUANTML" binary="false" description="mzQuantML" ext="mzq"/>
+ <mimetype name="QCML" binary="false" description="mzQualityML (will undergo standardisation maybe) (.qcml)" ext="qcml"/>
+</mimetypes>

@@ -212,15 +212,15 @@ class TOPPProteinResolver :
 
 public:
   TOPPProteinResolver() :
-    TOPPBase("ProteinResolver", "protein inference", false),
+    TOPPBase("ProteinResolver", "protein inference"),
     resolver_params_(), design_params_()
   {
   }
 
 protected:
 
-  Param resolver_params_;   // parameters for ProteinResolver
-  Param design_params_;   // parameters for QuantitativeExperimentalDesign
+  Param resolver_params_; // parameters for ProteinResolver
+  Param design_params_; // parameters for QuantitativeExperimentalDesign
 
   void registerOptionsAndFlags_()
   {
@@ -257,39 +257,39 @@ protected:
     registerFullParam_(temp_);
   }
 
-  void writeProteinGroups_(SVOutStream & out, const vector<ProteinResolver::ResolverResult> & result)
+  void writeProteinGroups_(SVOutStream& out, const vector<ProteinResolver::ResolverResult>& result)
   {
     //ISD group descriptor";
     out << "MSD_group" << "ISD_group" << "Protein_indices" << "Peptide_indices" << "#Peptides_MSD" << "#Proteins_ISD" << "ProteinIDs_ISD" << endl;
 
     for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter)
     {
-      const ProteinResolver::ResolverResult & res = *iter;
-      const vector<ProteinResolver::ISDGroup> * isd_groups = res.isds;
-      const vector<ProteinResolver::MSDGroup> * msd_groups = res.msds;
+      const ProteinResolver::ResolverResult& res = *iter;
+      const vector<ProteinResolver::ISDGroup>* isd_groups = res.isds;
+      const vector<ProteinResolver::MSDGroup>* msd_groups = res.msds;
 
       for (vector<ProteinResolver::ISDGroup>::const_iterator isd = isd_groups->begin(); isd != isd_groups->end(); ++isd)
       {
         for (list<Size>::const_iterator msd_group = isd->msd_groups.begin(); msd_group != isd->msd_groups.end(); ++msd_group)
         {
-          const ProteinResolver::MSDGroup * msd = &msd_groups->at(*msd_group); //[*msd_group];
+          const ProteinResolver::MSDGroup* msd = &msd_groups->at(*msd_group); //[*msd_group];
           //Protein group
           out << msd->index;
           out << isd->index;
           //Protein index
           String protein_indices = "";
-          for (list<ProteinResolver::ProteinEntry *>::const_iterator prot = msd->proteins.begin(); prot != msd->proteins.end(); ++prot)
+          for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = msd->proteins.begin(); prot != msd->proteins.end(); ++prot)
           {
-            protein_indices += (*prot)->index;  //fasta_entry->identifier;
+            protein_indices += (*prot)->index; //fasta_entry->identifier;
             if (prot != --(msd->proteins.end())) protein_indices += ";";
           }
           out << protein_indices;
           //pep index
           String peptide_indices = "";
-          for (list<ProteinResolver::PeptideEntry *>::const_iterator peps = msd->peptides.begin(); peps != msd->peptides.end(); ++peps)
+          for (list<ProteinResolver::PeptideEntry*>::const_iterator peps = msd->peptides.begin(); peps != msd->peptides.end(); ++peps)
           {
             if (!(*peps)->experimental) continue;
-            peptide_indices +=  (*peps)->index;  //identifications[(*peps)->peptide_identification].getHits()[(*pep)->peptide_hit].getSequence().toString();
+            peptide_indices +=  (*peps)->index; //identifications[(*peps)->peptide_identification].getHits()[(*pep)->peptide_hit].getSequence().toString();
             if (peps != --(msd->peptides.end())) peptide_indices += ";";
           }
           out << peptide_indices;
@@ -299,7 +299,7 @@ protected:
           out << isd->proteins.size();
           //prots in ISD;
           String prots_ISD = "";
-          for (list<ProteinResolver::ProteinEntry *>::const_iterator prot = isd->proteins.begin(); prot != isd->proteins.end(); ++prot)
+          for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = isd->proteins.begin(); prot != isd->proteins.end(); ++prot)
           {
             prots_ISD += (*prot)->fasta_entry->identifier;
             if (prot != --(isd->proteins.end())) prots_ISD += ";";
@@ -311,26 +311,26 @@ protected:
     }
   }
 
-  void writePeptideTable_(SVOutStream & out, const vector<ProteinResolver::ResolverResult> & result)
+  void writePeptideTable_(SVOutStream& out, const vector<ProteinResolver::ResolverResult>& result)
   {
     out << "MSD_group" << "ISD_group" << "Protein_indices" << "Protein_ID" << "Peptide_sequence" << "Var_mods" << "Peptide_MW" << "Score" << "Charge" << "RT" << "MZ" << endl;
 
     UInt counter = result.size();
     for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter, --counter)
     {
-      const ProteinResolver::ResolverResult & res = *iter;
-      const vector<Size> * reindexed_peptides = res.reindexed_peptides;
-      const vector<ProteinResolver::PeptideEntry> * peptides = res.peptide_entries;
+      const ProteinResolver::ResolverResult& res = *iter;
+      const vector<Size>* reindexed_peptides = res.reindexed_peptides;
+      const vector<ProteinResolver::PeptideEntry>* peptides = res.peptide_entries;
 
       for (vector<Size>::const_iterator pep = reindexed_peptides->begin(); pep != reindexed_peptides->end(); ++pep)
       {
         //MSD and ISD group
-        const ProteinResolver::PeptideEntry * peptide_entry = &peptides->at(*pep);
+        const ProteinResolver::PeptideEntry* peptide_entry = &peptides->at(*pep);
         out << peptide_entry->msd_group;
         out << peptide_entry->isd_group;
         //Protein index
         String protein_indices = "";
-        for (list<ProteinResolver::ProteinEntry *>::const_iterator prot = peptide_entry->proteins.begin(); prot != peptide_entry->proteins.end(); ++prot)
+        for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = peptide_entry->proteins.begin(); prot != peptide_entry->proteins.end(); ++prot)
         {
           protein_indices += (*prot)->index;
           if (prot != --(peptide_entry->proteins.end())) protein_indices += ";";
@@ -338,7 +338,7 @@ protected:
         out << protein_indices;
         //Protein ID
         String protein_ID = "";
-        for (list<ProteinResolver::ProteinEntry *>::const_iterator prot = peptide_entry->proteins.begin(); prot != peptide_entry->proteins.end(); ++prot)
+        for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = peptide_entry->proteins.begin(); prot != peptide_entry->proteins.end(); ++prot)
         {
           protein_ID += (*prot)->fasta_entry->identifier;
           if (prot != --(peptide_entry->proteins.end())) protein_ID += ";";
@@ -347,10 +347,10 @@ protected:
         //peptide sequence
         if (res.input_type == ProteinResolver::ResolverResult::PeptideIdent)
         {
-          const vector<PeptideIdentification> & identifications =  *res.peptide_identification;
-          const PeptideIdentification & pi = ProteinResolver().getPeptideIdentification(identifications, peptide_entry);
-          const PeptideHit & ph = ProteinResolver().getPeptideHit(identifications, peptide_entry);
-          const AASequence & seq = ph.getSequence();
+          const vector<PeptideIdentification>& identifications =  *res.peptide_identification;
+          const PeptideIdentification& pi = ProteinResolver().getPeptideIdentification(identifications, peptide_entry);
+          const PeptideHit& ph = ProteinResolver().getPeptideHit(identifications, peptide_entry);
+          const AASequence& seq = ph.getSequence();
           out << seq.toUnmodifiedString();
           //var mods TODO
           out << seq.toString();
@@ -368,10 +368,10 @@ protected:
         }
         else
         {
-          const ConsensusMap & consensus = *res.consensus_map;
-          const PeptideIdentification & pi = ProteinResolver().getPeptideIdentification(consensus, peptide_entry);
-          const PeptideHit & ph = ProteinResolver().getPeptideHit(consensus, peptide_entry);
-          const AASequence & seq = ph.getSequence();
+          const ConsensusMap& consensus = *res.consensus_map;
+          const PeptideIdentification& pi = ProteinResolver().getPeptideIdentification(consensus, peptide_entry);
+          const PeptideHit& ph = ProteinResolver().getPeptideHit(consensus, peptide_entry);
+          const AASequence& seq = ph.getSequence();
           out << seq.toUnmodifiedString();
           //var mods TODO
           out << seq.toString();
@@ -391,27 +391,27 @@ protected:
     }
   }
 
-  void writeProteinTable_(SVOutStream & out, const vector<ProteinResolver::ResolverResult> & result)
+  void writeProteinTable_(SVOutStream& out, const vector<ProteinResolver::ResolverResult>& result)
   {
     out << "MSD_group" << "ISD_group" << "Peptide_indices" << "Protein_index" << "Protein_ID" << "#Peptides_per_Protein" << "Prot_MW" << "Coverage" << endl;
 
     UInt counter = 0;
     for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter, ++counter)
     {
-      const ProteinResolver::ResolverResult & res = *iter;
-      const vector<Size> * reindexed_proteins = res.reindexed_proteins;
-      const vector<ProteinResolver::ProteinEntry> * proteins = res.protein_entries;
+      const ProteinResolver::ResolverResult& res = *iter;
+      const vector<Size>* reindexed_proteins = res.reindexed_proteins;
+      const vector<ProteinResolver::ProteinEntry>* proteins = res.protein_entries;
 
       for (vector<Size>::const_iterator prot = reindexed_proteins->begin(); prot != reindexed_proteins->end(); ++prot)
       {
         //MSD and ISD group
-        const ProteinResolver::ProteinEntry & protein_entry = proteins->at(*prot);
+        const ProteinResolver::ProteinEntry& protein_entry = proteins->at(*prot);
         out << protein_entry.msd_group;
         out << protein_entry.isd_group;
         //peptide indices
         Size pep_counter = 0;
         String peptide_indices = "";
-        for (list<ProteinResolver::PeptideEntry *>::const_iterator pep = protein_entry.peptides.begin(); pep != protein_entry.peptides.end(); ++pep)
+        for (list<ProteinResolver::PeptideEntry*>::const_iterator pep = protein_entry.peptides.begin(); pep != protein_entry.peptides.end(); ++pep)
         {
           if ((*pep)->experimental)
           {
@@ -444,13 +444,13 @@ protected:
     }
   }
 
-  void writeStatistics_(SVOutStream & out, const vector<ProteinResolver::ResolverResult> & result)
+  void writeStatistics_(SVOutStream& out, const vector<ProteinResolver::ResolverResult>& result)
   {
     for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter)
     {
-      const ProteinResolver::ResolverResult & res = *iter;
-      const vector<ProteinResolver::ISDGroup> * isd_groups = res.isds;
-      const vector<ProteinResolver::MSDGroup> * msd_groups = res.msds;
+      const ProteinResolver::ResolverResult& res = *iter;
+      const vector<ProteinResolver::ISDGroup>* isd_groups = res.isds;
+      const vector<ProteinResolver::MSDGroup>* msd_groups = res.msds;
 
       out << "Number of ISD groups:" << isd_groups->size() << endl;
       out << "Number of MSD groups:" << msd_groups->size() << endl;
@@ -476,13 +476,13 @@ protected:
     }
   }
 
-  const String getBaseName_(String & file_path)
+  const String getBaseName_(String& file_path)
   {
     const String basename = QFileInfo(file_path.toQString()).baseName().toStdString();
     return basename;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -528,8 +528,8 @@ protected:
     //-------------------------------------------------------------
     ProteinResolver resolver;
     resolver_params_ = resolver.getParameters();
-    Logger::LogStream nirvana;   // avoid parameter update messages
-    resolver_params_.update(getParam_(), false, false, nirvana);
+    Logger::LogStream nirvana; // avoid parameter update messages
+    resolver_params_.update(getParam_(), false, nirvana);
     resolver.setParameters(resolver_params_);
     resolver.setProteinData(protein_data);
 
@@ -591,7 +591,7 @@ protected:
       design_file.load(design, false, -1);
 
       design_params_ = designer.getParameters();
-      design_params_.update(getParam_(), false, false, nirvana);
+      design_params_.update(getParam_(), false, nirvana);
       designer.setParameters(design_params_);
     }
 
@@ -726,7 +726,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPProteinResolver tool;
   return tool.main(argc, argv);

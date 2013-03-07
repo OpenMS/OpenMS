@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow, Stephan Aiche, Andreas Bertsch $
-// $Authors: $
+// $Maintainer: Chris Bielow, Stephan Aiche $
+// $Authors: Chris Bielow, Stephan Aiche, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 
@@ -555,10 +555,10 @@ namespace OpenMS
   OPENMS_DLLAPI StreamHandler STREAM_HANDLER;
 
   // global default logstream
-  OPENMS_DLLAPI Logger::LogStream Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), false, &cerr);
-  OPENMS_DLLAPI Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), false, &cerr);
-  OPENMS_DLLAPI Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), false, &cout);
-  OPENMS_DLLAPI Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), false, &cout);
-  OPENMS_DLLAPI Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), false);
+  OPENMS_DLLAPI Logger::LogStream Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
+  OPENMS_DLLAPI Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
+  OPENMS_DLLAPI Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
+  OPENMS_DLLAPI Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
+  OPENMS_DLLAPI Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), false); // last param should be 'true', but segfaults...
 
 } // namespace OpenMS

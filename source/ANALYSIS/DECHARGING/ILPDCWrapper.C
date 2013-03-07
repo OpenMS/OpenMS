@@ -43,7 +43,6 @@
 #include <utility>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
@@ -63,7 +62,7 @@ namespace OpenMS
   {
   }
 
-  DoubleReal ILPDCWrapper::compute(const FeatureMap<> fm, PairsType & pairs, Size verbose_level) const
+  DoubleReal ILPDCWrapper::compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level) const
   {
     DoubleReal score = 0;
 
@@ -85,7 +84,7 @@ namespace OpenMS
       Size group_count(0);
       Map<Size, Size> f2g; // feature id to connected group
       Map<Size, std::set<Size> > g2pairs; // group id to all pairs involved
-      Map<Size, std::set<Size> > g2f;     // group id to all features involved
+      Map<Size, std::set<Size> > g2f; // group id to all features involved
 
       for (Size i = 0; i < pairs.size(); ++i)
       {
@@ -238,16 +237,16 @@ namespace OpenMS
     return score;
   }
 
-  void ILPDCWrapper::updateFeatureVariant_(FeatureType_ & f_set, const String & rota_l, const Size & v) const
+  void ILPDCWrapper::updateFeatureVariant_(FeatureType_& f_set, const String& rota_l, const Size& v) const
   {
     f_set[rota_l].insert(v);
   }
 
   double ILPDCWrapper::computeSlice_(const FeatureMap<> fm,
-                                     PairsType & pairs,
+                                     PairsType& pairs,
                                      const PairsIndex margin_left,
                                      const PairsIndex margin_right,
-                                     const Size verbose_level) const
+                                     const Size /* verbose_level */) const
   {
     // feature --> variants set  (with scores)
     typedef std::map<Size, FeatureType_> r_type;
@@ -346,7 +345,7 @@ namespace OpenMS
   // old version, slower, as ILP has different layout (i.e, the same as described in paper)
 
   DoubleReal ILPDCWrapper::computeSliceOld_(const FeatureMap<> fm,
-                                            PairsType & pairs,
+                                            PairsType& pairs,
                                             const PairsIndex margin_left,
                                             const PairsIndex margin_right,
                                             const Size verbose_level) const
@@ -369,13 +368,13 @@ namespace OpenMS
       // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
       // ... so we just add normal probabilities...
       score = exp(getLogScore_(pairs[i], fm));
-      pairs[i].setEdgeScore(score * pairs[i].getEdgeScore());       // multiply with preset score
+      pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
       namebuf.str("");
       namebuf << "x#" << i;
       // create the new variable object
       Int index = build.addColumn();
       build.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
-      build.setColumnType(index, LPWrapper::INTEGER);       // integer variable
+      build.setColumnType(index, LPWrapper::INTEGER); // integer variable
       build.setObjective(index, pairs[i].getEdgeScore());
       if (score_min > score)
         score_min = score;
@@ -395,12 +394,12 @@ namespace OpenMS
 
     for (PairsIndex i = margin_left; i < margin_right; ++i)
     {
-      const Compomer & ci = pairs[i].getCompomer();
+      const Compomer& ci = pairs[i].getCompomer();
 
       // TODO: only go until next clique...
       for (PairsIndex j = i + 1; j < margin_right; ++j)
       {
-        const Compomer & cj = pairs[j].getCompomer();
+        const Compomer& cj = pairs[j].getCompomer();
 
         is_conflicting = false;
         // add pairwise constraints (one for each two conflicting ChargePairs)
@@ -531,9 +530,9 @@ namespace OpenMS
 
     //objective function value of optimal(?) solution
     return opt_value;
-  }   // !compute_slice
+  } // !compute_slice
 
-  DoubleReal ILPDCWrapper::getLogScore_(const PairsType::value_type & pair, const FeatureMap<> & fm) const
+  DoubleReal ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm) const
   {
     DoubleReal score;
     String e;

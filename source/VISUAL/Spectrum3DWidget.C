@@ -193,6 +193,7 @@ namespace OpenMS
     goto_dialog.enableFeatureNumber(false);
     if (goto_dialog.exec())
     {
+      goto_dialog.fixRange(); // in case user did something invalid
       canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));
     }
   }

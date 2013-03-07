@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/StopWatch.h>
@@ -67,10 +67,10 @@ namespace OpenMS
 
   StopWatch::StopWatch() :
     is_running_(false),
-    last_secs_(0),
-    last_usecs_(0),
-    last_user_time_(0),
-    last_system_time_(0),
+    start_secs_(0),
+    start_usecs_(0),
+    start_user_time_(0),
+    start_system_time_(0),
     current_secs_(0),
     current_usecs_(0),
     current_user_time_(0),
@@ -102,10 +102,10 @@ namespace OpenMS
 
   StopWatch::StopWatch(const StopWatch & stop_watch) :
     is_running_(stop_watch.is_running_),
-    last_secs_(stop_watch.last_secs_),
-    last_usecs_(stop_watch.last_usecs_),
-    last_user_time_(stop_watch.last_user_time_),
-    last_system_time_(stop_watch.last_system_time_),
+    start_secs_(stop_watch.start_secs_),
+    start_usecs_(stop_watch.start_usecs_),
+    start_user_time_(stop_watch.start_user_time_),
+    start_system_time_(stop_watch.start_system_time_),
     current_secs_(stop_watch.current_secs_),
     current_usecs_(stop_watch.current_usecs_),
     current_user_time_(stop_watch.current_user_time_),
@@ -123,7 +123,7 @@ namespace OpenMS
     current_secs_ = 0L;
     current_usecs_ = 0L;
     current_user_time_ = 0L;
-    current_system_time_ = (clock_t)0;
+    current_system_time_ = (TimeType)0;
   }
 
   bool StopWatch::start()
@@ -148,11 +148,11 @@ namespace OpenMS
     user_time.HighPart = ut.dwHighDateTime;
     user_time.LowPart = ut.dwLowDateTime;
 
-    last_secs_  = tms.QuadPart / cpu_speed_;
-    last_usecs_ = (PointerSizeInt)((DoubleReal)(tms.QuadPart - (last_secs_ * cpu_speed_)) / (DoubleReal)(cpu_speed_) * 1000000.0);
+    start_secs_  = tms.QuadPart / cpu_speed_;
+    start_usecs_ = (PointerSizeInt)((DoubleReal)(tms.QuadPart - (start_secs_ * cpu_speed_)) / (DoubleReal)(cpu_speed_) * 1000000.0);
 
-    last_user_time_ = (clock_t) (user_time.QuadPart / 10);
-    last_system_time_ = (clock_t) (kernel_time.QuadPart / 10);
+    start_user_time_ = (TimeType) (user_time.QuadPart / 10);
+    start_system_time_ = (TimeType) (kernel_time.QuadPart / 10);
 
 #else
 
@@ -163,10 +163,10 @@ namespace OpenMS
     gettimeofday(&timeval_buffer, &timezone_buffer);
     times(&tms_buffer);
 
-    last_secs_ = timeval_buffer.tv_sec;
-    last_usecs_ = timeval_buffer.tv_usec;
-    last_user_time_ = tms_buffer.tms_utime;
-    last_system_time_ = tms_buffer.tms_stime;
+    start_secs_ = timeval_buffer.tv_sec;
+    start_usecs_ = timeval_buffer.tv_usec;
+    start_user_time_ = tms_buffer.tms_utime;
+    start_system_time_ = tms_buffer.tms_stime;
 #endif
 
     is_running_ = true;
@@ -197,12 +197,12 @@ namespace OpenMS
     user_time.LowPart = ut.dwLowDateTime;
 
     PointerSizeInt secs_to_add = tms.QuadPart / cpu_speed_;
-    current_secs_ += secs_to_add - last_secs_;
+    current_secs_ += secs_to_add - start_secs_;
     PointerSizeInt usecs_to_add = (PointerSizeInt)((DoubleReal)(tms.QuadPart - secs_to_add * cpu_speed_) / (DoubleReal)(cpu_speed_) * 1000000.0);
-    current_usecs_ += usecs_to_add - last_usecs_;
+    current_usecs_ += usecs_to_add - start_usecs_;
 
-    current_user_time_ += (clock_t) (user_time.QuadPart / 10 - last_user_time_);
-    current_system_time_ += (clock_t) (kernel_time.QuadPart / 10 - last_system_time_);
+    current_user_time_ += (TimeType) (user_time.QuadPart / 10 - start_user_time_);
+    current_system_time_ += (TimeType) (kernel_time.QuadPart / 10 - start_system_time_);
 #else
     struct tms tms_buffer;
     struct timeval timeval_buffer;
@@ -211,11 +211,11 @@ namespace OpenMS
     gettimeofday(&timeval_buffer, &timezone_buffer);
     times(&tms_buffer);
 
-    current_secs_ += timeval_buffer.tv_sec - last_secs_;
-    current_usecs_ += timeval_buffer.tv_usec - last_usecs_;
+    current_secs_ += timeval_buffer.tv_sec - start_secs_;
+    current_usecs_ += timeval_buffer.tv_usec - start_usecs_;
 
-    current_user_time_ += tms_buffer.tms_utime - last_user_time_;
-    current_system_time_ += tms_buffer.tms_stime - last_system_time_;
+    current_user_time_ += tms_buffer.tms_utime - start_user_time_;
+    current_system_time_ += tms_buffer.tms_stime - start_system_time_;
 #endif
 
     is_running_ = false;
@@ -261,9 +261,9 @@ namespace OpenMS
       if (QueryPerformanceCounter(&tms))
       {
         PointerSizeInt secs_to_add = tms.QuadPart / cpu_speed_;
-        elapsed_seconds = current_secs_ + secs_to_add - last_secs_;
+        elapsed_seconds = current_secs_ + secs_to_add - start_secs_;
         PointerSizeInt usecs_to_add = (PointerSizeInt)((DoubleReal)(tms.QuadPart - secs_to_add * cpu_speed_) / (DoubleReal)(cpu_speed_) * 1000000.0);
-        elapsed_useconds  = current_usecs_ + usecs_to_add - last_usecs_;
+        elapsed_useconds  = current_usecs_ + usecs_to_add - start_usecs_;
       }
 #else
       struct timeval timeval_buffer;
@@ -271,10 +271,11 @@ namespace OpenMS
 
       gettimeofday(&timeval_buffer, &timezone_buffer);
 
-      elapsed_seconds = current_secs_ + timeval_buffer.tv_sec - last_secs_;
-      elapsed_useconds = current_usecs_ + timeval_buffer.tv_usec - last_usecs_;
+      elapsed_seconds = current_secs_ + timeval_buffer.tv_sec - start_secs_;
+      elapsed_useconds = current_usecs_ + timeval_buffer.tv_usec - start_usecs_;
 #endif
     }
+
 
     /* Adjust for the fact that the useconds may be negative. */
     /* If they are, take away 1 second and add 1 million      */
@@ -321,10 +322,10 @@ namespace OpenMS
       user_time.HighPart = ut.dwHighDateTime;
       user_time.LowPart = ut.dwLowDateTime;
 
-      temp_value = (DoubleReal)(current_user_time_ + user_time.QuadPart / 10.0 - last_user_time_);
+      temp_value = (DoubleReal)(current_user_time_ - start_user_time_ + user_time.QuadPart / 10.0);
 #else
       times(&tms_buffer);
-      temp_value = (DoubleReal)(current_user_time_ + tms_buffer.tms_utime - last_user_time_);
+      temp_value = (DoubleReal)(current_user_time_ - start_user_time_ + tms_buffer.tms_utime);
 #endif
     }
 
@@ -342,15 +343,10 @@ namespace OpenMS
   // system_time reports the current amount of system cpu time
   // accumulated by this StopWatch.  If the stop_watch is currently off,
   // this is just the accumulated time.  If the StopWatch is running, this
-  // is the accumulated time plus  the time since the stop_watch was last started
+  // is the accumulated time plus the time since the stop_watch was last started
   DoubleReal StopWatch::getSystemTime() const
   {
-    DoubleReal temp_value = 0.0;
-
-#ifdef OPENMS_WINDOWSPLATFORM
-    //struct tms tms_buffer;
-    FILETIME kt, ut, ct, et;
-#endif
+    DoubleReal temp_value(0.0);
 
     if (is_running_ == false)
     {
@@ -361,6 +357,8 @@ namespace OpenMS
     {
       /* stop_watch is on, return accumulated plus current */
 #ifdef OPENMS_WINDOWSPLATFORM
+      //struct tms tms_buffer;
+      FILETIME kt, ut, ct, et;
       //times(&tms_buffer);
       HANDLE my_id = GetCurrentProcess();
       GetProcessTimes(my_id, &ct, &et, &kt, &ut);
@@ -371,19 +369,13 @@ namespace OpenMS
       ULARGE_INTEGER user_time;
       user_time.HighPart = ut.dwHighDateTime;
       user_time.LowPart = ut.dwLowDateTime;
-      temp_value = (DoubleReal)((DoubleReal)current_system_time_ + kernel_time.QuadPart / 10.0 - (DoubleReal)last_system_time_);
+      temp_value = (DoubleReal)((DoubleReal)(current_system_time_ - start_system_time_) + kernel_time.QuadPart / 10.0);
 #endif
     }
 
     /* convert from clock ticks to seconds using the */
     /* cpu-speed value obtained by the constructor   */
-#ifndef OPENMS_WINDOWSPLATFORM
     return (DoubleReal)(temp_value / 1000000.0);
-
-#else
-    return 0.0;
-
-#endif
   }
 
   StopWatch & StopWatch::operator=(const StopWatch & stop_watch)
@@ -394,10 +386,10 @@ namespace OpenMS
     }
 
     is_running_ = stop_watch.is_running_;
-    last_secs_ = stop_watch.last_secs_;
-    last_usecs_ = stop_watch.last_usecs_;
-    last_user_time_ = stop_watch.last_user_time_;
-    last_system_time_ = stop_watch.last_system_time_;
+    start_secs_ = stop_watch.start_secs_;
+    start_usecs_ = stop_watch.start_usecs_;
+    start_user_time_ = stop_watch.start_user_time_;
+    start_system_time_ = stop_watch.start_system_time_;
     current_secs_ = stop_watch.current_secs_;
     current_usecs_ = stop_watch.current_usecs_;
     current_user_time_ = stop_watch.current_user_time_;
@@ -408,14 +400,55 @@ namespace OpenMS
 
   bool StopWatch::operator==(const StopWatch & stop_watch) const
   {
-    return last_secs_ == stop_watch.last_secs_
-           && last_usecs_ == stop_watch.last_usecs_
-           && last_user_time_ == stop_watch.last_user_time_
-           && last_system_time_ == stop_watch.last_system_time_
+    return start_secs_ == stop_watch.start_secs_
+           && start_usecs_ == stop_watch.start_usecs_
+           && start_user_time_ == stop_watch.start_user_time_
+           && start_system_time_ == stop_watch.start_system_time_
            && current_secs_ == stop_watch.current_secs_
            && current_usecs_ == stop_watch.current_usecs_
            && current_user_time_ == stop_watch.current_user_time_
            && current_system_time_ == stop_watch.current_system_time_;
+  }
+
+
+  String StopWatch::toString(DoubleReal time)
+  {
+    int d(0), h(0), m(0);
+    double s(0), s_single(0);
+
+    TimeType time_i = (TimeType) time; // trunc to integer
+
+    // compute days
+    d = int(time_i / (3600*24));
+    time_i -= d*(3600*24);
+    time -= d*(3600*24);
+
+    // hours
+    h = int(time_i / 3600);
+    time_i -= h*3600;
+    time -= h*3600;
+
+    // minutes
+    m = int(time_i / 60);
+    time_i -= m*60;
+    time -= m*60;
+
+    s_single = time;
+    s = (double) time_i;
+
+
+    String s_d = String(d);
+    String s_h = String(h).fillLeft('0', 2) + ":";
+    String s_m = String(m).fillLeft('0', 2) + ":";
+    String s_s = String(s).fillLeft('0', 2); // if we show seconds in combination with minutes, we round to nominal 
+
+    String s_s_single = String::number(s_single, 2); // second (shown by itself with no minutes) has two digits after decimal
+
+    return ( (d>0 ? s_d + "d " + s_h + s_m + s_s + " h" :
+             (h>0 ?              s_h + s_m + s_s + " h" :
+             (m>0 ?                    s_m + s_s + " m" :
+             (                        s_s_single + " s")))));
+
   }
 
 } // namespace OpenMS

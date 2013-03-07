@@ -211,7 +211,6 @@ namespace OpenMS
       cerr << "Param #" << pait - all_parameters.begin() + 1 << "/" << all_parameters.size() << endl;
       PILISModel model = base_model;
       model.setParameters(*pait);
-      vector<DoubleReal> top_scores, non_top_scores;
       vector<vector<RichPeakSpectrum> > exp_spectra;
       vector<vector<vector<RichPeakSpectrum> > > sim_spectra;
 
@@ -254,7 +253,6 @@ namespace OpenMS
           exp_spectra_part.push_back(exp_spec);
 
           //cerr << "Evalulating...(#peptides=" << it->hits.size() << ") ";
-          vector<DoubleReal> new_scores;
           // for all hits
           vector<RichPeakSpectrum> sim_spectra_hits;
           for (vector<PeptideHit>::const_iterator pit = it->hits.begin(); pit != it->hits.end(); ++pit)

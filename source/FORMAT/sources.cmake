@@ -40,6 +40,7 @@ MzTabFile.C
 MzXMLFile.C
 OMSSACSVFile.C
 OMSSAXMLFile.C
+ParamXMLFile.C
 PTMXMLFile.C
 PeakTypeEstimator.C
 PepNovoInfile.C
@@ -61,6 +62,7 @@ XTandemInfile.C
 XTandemXMLFile.C
 MzIdentMLFile.C
 MzQuantMLFile.C
+QcMLFile.C
 TraMLFile.C
 )
 

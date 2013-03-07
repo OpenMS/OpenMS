@@ -104,7 +104,6 @@ protected:
     setValidFormats_("out", StringList::create("featureXML"));
 
     addEmptyLine_();
-    addText_("Parameters for the mass trace detection algorithm can be given in the 'algorithm' part of INI file.");
     registerSubsection_("algorithm", "Algorithm parameters section");
 
   }
@@ -208,7 +207,7 @@ protected:
 
       ep_det.detectPeaks(m_traces, splitted_mtraces);
 
-      if (ep_det.getParameters().getValue("width_filtering").toBool())
+      if (ep_det.getParameters().getValue("width_filtering") == "auto")
       {
         m_traces_final.clear();
         ep_det.filterByPeakWidth(splitted_mtraces, m_traces_final);

@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_DATAACCESS_ITRANSITION_H
-#define OPENSWATH_DATAACCESS_ITRANSITION_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ITRANSITION_H
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ITRANSITION_H
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
@@ -80,4 +80,4 @@ public:
 
 } //end Namespace OpenSwath
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ITRANSITION_H

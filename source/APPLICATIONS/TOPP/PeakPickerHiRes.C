@@ -68,12 +68,15 @@ using namespace std;
     </table>
 </CENTER>
 
-    The conversion of the ''raw'' ion count data acquired
+    Reference:\n
+		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+
+    The conversion of the "raw" ion count data acquired
     by the machine into peak lists for further processing
-    is usually called peak picking. The choice of the algorithm
+    is usually called peak picking or centroiding. The choice of the algorithm
     should mainly depend on the resolution of the data.
     As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
-  algorithm is fit for high resolution data.
+    algorithm is fit for high resolution (orbitrap or FTICR) data.
 
     @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
@@ -124,8 +127,6 @@ protected:
     registerOutputFile_("out", "<file>", "", "output peak file ");
     setValidFormats_("out", StringList::create("mzML"));
 
-    addEmptyLine_();
-    addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 

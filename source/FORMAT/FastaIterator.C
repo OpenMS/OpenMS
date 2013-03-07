@@ -44,10 +44,10 @@ namespace OpenMS
 
   FastaIterator::FastaIterator() :
     PepIterator(),
-    actual_seq_(),
     is_at_end_(false),
+    input_file_(),
     fasta_file_(),
-    input_file_()
+    actual_seq_()
   {
   }
 
@@ -65,7 +65,7 @@ namespace OpenMS
 //FastaIterator& operator=(const FastaIterator &);
 
 
-  PepIterator * FastaIterator::operator++(int) // this operator requires copying, which we cannot support!
+  PepIterator* FastaIterator::operator++(int) // this operator requires copying, which we cannot support!
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
@@ -79,7 +79,7 @@ namespace OpenMS
     return FASTAEntry(last_header_, actual_seq_);
   }
 
-  PepIterator & FastaIterator::operator++()
+  PepIterator& FastaIterator::operator++()
   {
     if (last_header_ == "")
     {
@@ -89,7 +89,7 @@ namespace OpenMS
     return *this;
   }
 
-  void FastaIterator::setFastaFile(const String & f)
+  void FastaIterator::setFastaFile(const String& f)
   {
     std::fstream fs;
     fs.open(f.c_str(), std::fstream::in);

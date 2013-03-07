@@ -37,6 +37,8 @@
 
 #include <fstream>
 
+#include <boost/numeric/conversion/cast.hpp>
+
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -62,7 +64,10 @@ public:
     static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr);
 
     /// convert from the OpenMS Targeted experiment to the light Targeted Experiment
-    static void convertTargetedExp(OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
+    static void convertTargetedExp(const OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
+
+    /// convert from the LightPeptide to an OpenMS AASequence (with correct modifications)
+    static void convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence);
 
   };
 

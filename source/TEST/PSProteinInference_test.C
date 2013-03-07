@@ -108,7 +108,15 @@ END_SECTION
 
 START_SECTION((Int getNumberOfProtIdsPeptideRule(Int min_peptides, std::map< String, std::set< String > > &prot_id_counter)))
 {
-  // TODO
+  std::map< String, std::set< String > > prot_id_counter;
+  set< String > peps;
+  peps.insert("PEPTIDEONE");
+  prot_id_counter.insert(make_pair("A2RUR9",peps));
+  peps.insert("PEPTIDETWO");
+  prot_id_counter.insert(make_pair("O00762",peps));
+  peps.insert("PEPTIDETHREE");
+  prot_id_counter.insert(make_pair("O15085",peps));
+  TEST_EQUAL(ptr->getNumberOfProtIdsPeptideRule(3,prot_id_counter),1)
 }
 END_SECTION
 

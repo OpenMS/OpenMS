@@ -108,11 +108,7 @@ protected:
     setValidFormats_("out_fm", StringList::create("featureXML"));
     setValidFormats_("out_cm", StringList::create("consensusXML"));
     setValidFormats_("outpairs", StringList::create("consensusXML"));
-
     addEmptyLine_();
-    addText_("All other options of the Decharger depend on the FeatureDeconvolution class.\n"
-             "They can be given only in the 'algorithm' section  of the INI file.");
-
     registerSubsection_("algorithm", "Feature decharging algorithm section");
   }
 

@@ -50,10 +50,12 @@ START_TEST(LCElutionPeak, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-LCElutionPeak* ptr;
+LCElutionPeak* ptr = 0;
+LCElutionPeak* nullPtr = 0;
+
 START_SECTION((LCElutionPeak()))
 	ptr = new LCElutionPeak();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~LCElutionPeak()))

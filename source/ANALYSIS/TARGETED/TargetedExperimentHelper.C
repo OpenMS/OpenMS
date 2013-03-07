@@ -33,7 +33,80 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 namespace OpenMS
 {
+  namespace TargetedExperimentHelper
+  {
+
+    void setModification(int location, int max_size, String modification, OpenMS::AASequence& aas)
+    {
+      if (location == -1)
+      {
+        aas.setNTerminalModification(modification);
+      }
+      else if (location == max_size)
+      {
+        aas.setCTerminalModification(modification);
+      }
+      else
+      {
+        aas.setModification(location, modification);
+      }
+    }
+
+    OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide)
+    {
+      OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
+      OpenMS::AASequence aas = peptide.sequence;
+
+      for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it = peptide.mods.begin(); it != peptide.mods.end(); ++it)
+      {
+        // Step 1: First look for a cv term that says which unimod nr it is...
+        // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.C
+        int nr_modifications_added = 0;
+        Map<String, std::vector<CVTerm> > cv_terms = it->getCVTerms();
+        for (Map<String, std::vector<CVTerm> >::iterator li = cv_terms.begin(); li != cv_terms.end(); ++li)
+        {
+          std::vector<CVTerm> mods = (*li).second;
+          for (std::vector<CVTerm>::iterator mo = mods.begin(); mo != mods.end(); ++mo)
+          {
+            // if we find a CV term that starts with UniMod, chances are we can use the UniMod accession number
+            if (mo->getAccession().size() > 7 && mo->getAccession().prefix(7).toLower() == String("unimod:"))
+            {
+              nr_modifications_added++;
+              setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), "UniMod:" + mo->getAccession().substr(7), aas);
+            }
+          }
+        }
+
+        // Step 2: If the above step fails, try to find the correct
+        // modification some other way, i.e. by using the mass difference
+        if (nr_modifications_added == 0)
+        {
+          std::vector<String> mods;
+          mod_db->getModificationsByDiffMonoMass(mods, peptide.sequence[it->location], it->mono_mass_delta, 0.0);
+          for (std::vector<String>::iterator mo = mods.begin(); mo != mods.end(); ++mo)
+          {
+            nr_modifications_added++;
+            setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), *mo, aas);
+          }
+        }
+
+        // In theory, each modification in the TraML should map to one modification added to the AASequence
+        if (nr_modifications_added > 1)
+        {
+          std::cout << "Warning: More than one modification was found for peptide " << peptide.sequence << " at position " << it->location << std::endl;
+        }
+        else if (nr_modifications_added == 0)
+        {
+          std::cout << "Warning: Could not determine modification with delta mass " <<  it->mono_mass_delta << " for peptide " << peptide.sequence << " at position " << it->location << std::endl;
+        }
+      }
+      return aas;
+    }
+
+  }
 }

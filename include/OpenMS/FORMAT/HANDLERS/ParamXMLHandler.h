@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Stephan Aiche $
+// $Authors: Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_PARAMXMLHANDLER_H
@@ -54,21 +54,21 @@ namespace OpenMS
     {
 public:
       /// Default constructor
-      ParamXMLHandler(Param & param, const String & filename, const String & version);
+      ParamXMLHandler(Param& param, const String& filename, const String& version);
       /// Destructor
       virtual ~ParamXMLHandler();
 
       // Docu in base class
-      virtual void endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname);
+      virtual void endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname);
 
       // Docu in base class
-      virtual void startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
 protected:
       /// The current absolute path (concatenation of nodes_ with <i>:</i> in between)
       String path_;
       /// Reference to the Param object to fill
-      Param & param_;
+      Param& param_;
       /// Map of node descriptions (they are set at the end of parsing)
       std::map<String, String> descriptions_;
 
@@ -91,7 +91,7 @@ private:
       ParamXMLHandler();
     };
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS
 
 #endif // OPENMS_FORMAT_HANDLERS_PARAMXMLHANDLER_H

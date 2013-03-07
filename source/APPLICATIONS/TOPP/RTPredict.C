@@ -33,9 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -140,7 +143,7 @@ protected:
     registerIntOption_("max_number_of_peptides", "<int>", 100000, "the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n", false, true);
   }
 
-  void loadStrings_(String filename, std::vector<String> & sequences)
+  void loadStrings_(String filename, std::vector<String>& sequences)
   {
     TextFile text_file(filename.c_str(), true);
     TextFile::iterator it;
@@ -170,14 +173,13 @@ protected:
     os.close();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
     vector<String> peptides;
     vector<AASequence> modified_peptides;
-    vector<DoubleReal> training_retention_times;
     vector<PeptideHit> temp_peptide_hits;
     SVMWrapper svm;
     LibSVMEncoder encoder;
@@ -186,7 +188,7 @@ protected:
     vector<DoubleReal> all_predicted_retention_times;
     map<String, DoubleReal> predicted_data;
     map<AASequence, DoubleReal> predicted_modified_data;
-    svm_problem * prediction_data = NULL;
+    svm_problem* prediction_data = NULL;
     SVMData training_samples;
     SVMData prediction_samples;
     UInt border_length = 0;
@@ -280,8 +282,8 @@ protected:
       inputFileReadable_(svmfile_name + "_additional_parameters", "svm_model (derived)");
 
       Param additional_parameters;
-
-      additional_parameters.load(svmfile_name + "_additional_parameters");
+      ParamXMLFile paramFile;
+      paramFile.load(svmfile_name + "_additional_parameters", additional_parameters);
       if (additional_parameters.exists("first_dim_rt")
          && additional_parameters.getValue("first_dim_rt") != DataValue::EMPTY)
       {
@@ -634,11 +636,11 @@ protected:
     }
     else
     {
-      if (output_text != "")           // text
+      if (output_text != "") // text
       {
         writeStringLabelLines_(output_text, predicted_data);
       }
-      if (output_id != "")           // idXML
+      if (output_id != "") // idXML
       {
         idXML_file.store(output_id,
                          protein_identifications,
@@ -662,7 +664,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPRTPredict tool;
   return tool.main(argc, argv);

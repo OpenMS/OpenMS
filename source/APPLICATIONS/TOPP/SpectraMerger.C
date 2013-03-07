@@ -88,7 +88,7 @@ class TOPPSpectraMerger :
 {
 public:
   TOPPSpectraMerger() :
-    TOPPBase("SpectraMerger", "Merges spectra (each MS level separately), increasing S/N ratios.", false)
+    TOPPBase("SpectraMerger", "Merges spectra (each MS level separately), increasing S/N ratios.")
   {
 
   }

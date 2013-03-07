@@ -41,9 +41,6 @@
 using namespace OpenMS;
 using namespace std;
 
-
-
-
 void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps, bool add3rd)
 {
   feature_maps.clear();
@@ -174,10 +171,11 @@ START_TEST(SILACLabeler, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SILACLabeler* ptr = 0;
+SILACLabeler* nullPtr = 0;
 START_SECTION(SILACLabeler())
 {
 	ptr = new SILACLabeler();
-	TEST_NOT_EQUAL(ptr, 0)
+	TEST_NOT_EQUAL(ptr, nullPtr)
 }
 END_SECTION
 
@@ -373,7 +371,8 @@ END_SECTION
 START_SECTION((static BaseLabeler* create()))
 {
   BaseLabeler* labeler = SILACLabeler::create();
-  TEST_NOT_EQUAL(labeler, 0)
+  BaseLabeler* nullPointer = 0;
+  TEST_NOT_EQUAL(labeler, nullPointer)
   delete labeler;
 }
 END_SECTION

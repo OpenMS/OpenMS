@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATHALGO_ALGO_SCORING_H
-#define OPENSWATHALGO_ALGO_SCORING_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_SCORING_H
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_SCORING_H
 
 #include <numeric>
 #include <map>
@@ -92,4 +92,4 @@ namespace OpenSwath
   }
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_SCORING_H

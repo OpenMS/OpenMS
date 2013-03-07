@@ -397,6 +397,7 @@ namespace OpenMS
     {
       if (goto_dialog.showRange())
       {
+        goto_dialog.fixRange();
         canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));
       }
       else

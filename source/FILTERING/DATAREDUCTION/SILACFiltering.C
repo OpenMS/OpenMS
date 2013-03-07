@@ -31,6 +31,7 @@
 // $Maintainer: Lars Nilse $
 // $Authors: Steffen Sass, Holger Plattfaut $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
@@ -48,15 +49,15 @@ using namespace std;
 
 namespace OpenMS
 {
-  SILACFiltering::SpectrumInterpolation::SpectrumInterpolation(const MSSpectrum<> & s, const SILACFiltering & f)
+  SILACFiltering::SpectrumInterpolation::SpectrumInterpolation(const MSSpectrum<>& s, const SILACFiltering& f)
   {
     vector<DoubleReal> mz, intensity;
     DoubleReal last_mz = s.begin()->getMZ();
+    DoubleReal peak_width_cur = f.peak_width(last_mz);
 
     // Fill intensity and m/z vector for interpolation. Add zeros in the area with no data points to improve cubic spline fit
     for (MSSpectrum<>::ConstIterator mz_interpol_it = s.begin(); mz_interpol_it != s.end(); ++mz_interpol_it)
     {
-      DoubleReal peak_width_cur = f.peak_width(last_mz);
       if (mz_interpol_it->getMZ() > last_mz + peak_width_cur) // If the mz gap is rather larger, fill in zeros. These addtional Stützstellen improve interpolation where no signal (i.e. data points) is.
       {
         for (DoubleReal current_mz = last_mz + peak_width_cur; current_mz < mz_interpol_it->getMZ() - peak_width_cur; current_mz += peak_width_cur)
@@ -65,8 +66,11 @@ namespace OpenMS
           intensity.push_back(0.0);
         }
       }
-      mz.push_back(mz_interpol_it->getMZ());
-      intensity.push_back(mz_interpol_it->getIntensity());
+      if (mz_interpol_it->getMZ() > last_mz)
+      {
+        mz.push_back(mz_interpol_it->getMZ());
+        intensity.push_back(mz_interpol_it->getIntensity());
+      }
       last_mz = mz_interpol_it->getMZ();
     }
 
@@ -82,7 +86,7 @@ namespace OpenMS
     gsl_spline_free(spline_);
   }
 
-  SILACFiltering::SILACFiltering(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width, const DoubleReal intensity_cutoff, const String debug_filebase) :
+  SILACFiltering::SILACFiltering(MSExperiment<Peak1D>& exp, const PeakWidthEstimator::Result& peak_width, const DoubleReal intensity_cutoff, const String debug_filebase) :
     intensity_cutoff_(intensity_cutoff),
     exp_(exp),
     debug_filebase_(debug_filebase),
@@ -90,7 +94,7 @@ namespace OpenMS
   {
   }
 
-  void SILACFiltering::addFilter(SILACFilter & filter)
+  void SILACFiltering::addFilter(SILACFilter& filter)
   {
     filters_.push_back(filter);
   }
@@ -145,7 +149,7 @@ namespace OpenMS
         debug.setNativeID(String("debug-seed=") + picked_rt_id);
 
         // Iterate over the picked spectrum
-        for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_rt_it->begin(); picked_mz_it != picked_rt_it->end(); ++picked_mz_it)  // iteration correct
+        for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_rt_it->begin(); picked_mz_it != picked_rt_it->end(); ++picked_mz_it) // iteration correct
         {
           DoubleReal picked_mz = picked_mz_it->getMZ();
 
@@ -206,7 +210,7 @@ namespace OpenMS
            picked_seed_rt_it != picked_exp_seeds_.end();
            ++picked_seed_rt_it, ++rt_id)
       {
-        DoubleReal rt = picked_seed_rt_it->getRT();    // retention time of this spectrum
+        DoubleReal rt = picked_seed_rt_it->getRT(); // retention time of this spectrum
 
         MSExperiment<Peak1D>::Iterator picked_rt_it = picked_exp_.RTBegin(rt);
         MSExperiment<Peak1D>::Iterator rt_it = exp_.RTBegin(rt);
@@ -229,7 +233,7 @@ namespace OpenMS
           std::set<DoubleReal> seen_mz;
 
           // Iterate over the picked spectrum
-          for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_seed_rt_it->begin(); picked_mz_it != picked_seed_rt_it->end(); ++picked_mz_it)  // iteration correct
+          for (MSSpectrum<Peak1D>::Iterator picked_mz_it = picked_seed_rt_it->begin(); picked_mz_it != picked_seed_rt_it->end(); ++picked_mz_it) // iteration correct
           {
             DoubleReal picked_mz = picked_mz_it->getMZ();
             DoubleReal intensity = picked_mz_it->getIntensity();
@@ -263,7 +267,7 @@ namespace OpenMS
               multimap<DoubleReal, BlacklistEntry>::iterator blacklistStartCheck;
               multimap<DoubleReal, BlacklistEntry>::iterator blacklistEndCheck;
 
-              if (blacklist.size() > 40)    // Blacklist should be of certain size before we ckeck only parts of it.
+              if (blacklist.size() > 40) // Blacklist should be of certain size before we ckeck only parts of it.
               {
                 blacklistStartCheck = blacklist.lower_bound(rt - 100);
                 blacklistEndCheck = blacklist.lower_bound(rt);
@@ -279,10 +283,10 @@ namespace OpenMS
               for (multimap<DoubleReal, BlacklistEntry>::iterator blacklist_check_it = blacklistStartCheck; blacklist_check_it != blacklistEndCheck; ++blacklist_check_it)
               {
                 Int charge = filter_it->getCharge();
-                const vector<DoubleReal> & mass_separations = filter_it->getMassSeparations();
+                const vector<DoubleReal>& mass_separations = filter_it->getMassSeparations();
 
                 // loop over the individual isotopic peaks of the SILAC pattern (and check if they are blacklisted)
-                const vector<DoubleReal> & expectedMZshifts = filter_it->getExpectedMzShifts();
+                const vector<DoubleReal>& expectedMZshifts = filter_it->getExpectedMzShifts();
 
                 for (vector<DoubleReal>::const_iterator expectedMZshifts_it = expectedMZshifts.begin(); expectedMZshifts_it != expectedMZshifts.end(); ++expectedMZshifts_it)
                 {
@@ -307,7 +311,7 @@ namespace OpenMS
               // Check the other filters only if current m/z and rt position is not blacklisted
               if (isBlacklisted == false)
               {
-                if (filter_it->isSILACPattern_(*picked_rt_it, spec_inter, mz, picked_mz, *this, debug, pattern))      // Check if the mz at the given position is a SILAC pair
+                if (filter_it->isSILACPattern_(*picked_rt_it, spec_inter, mz, picked_mz, *this, debug, pattern)) // Check if the mz at the given position is a SILAC pair
                 {
                   //--------------------------------------------------
                   // FILLING THE BLACKLIST
@@ -316,19 +320,19 @@ namespace OpenMS
                   DoubleReal peak_width_cur = peak_width(mz);
 
                   // loop over the individual isotopic peaks of the SILAC pattern (and blacklist the area around them)
-                  const vector<DoubleReal> & peak_positions = filter_it->getPeakPositions();
+                  const vector<DoubleReal>& peak_positions = filter_it->getPeakPositions();
 
                   // Remember the charge and mass separations (since the blacklisting should not apply to filters of the same charge and mass separations).
                   Int charge = filter_it->getCharge();
-                  const std::vector<DoubleReal> & mass_separations = filter_it->getMassSeparations();
+                  const std::vector<DoubleReal>& mass_separations = filter_it->getMassSeparations();
 
                   for (vector<DoubleReal>::const_iterator peak_positions_it = peak_positions.begin(); peak_positions_it != peak_positions.end(); ++peak_positions_it)
                   {
-                    DRange<2> blackArea;    // area in the m/z-RT plane to be blacklisted
-                    blackArea.setMinX(*peak_positions_it - 0.8 * peak_width_cur);     // set min m/z position of area to be blacklisted
-                    blackArea.setMaxX(*peak_positions_it + 0.8 * peak_width_cur);     // set max m/z position of area to be blacklisted
-                    blackArea.setMinY(rt - 10);     // set min rt position of area to be blacklisted
-                    blackArea.setMaxY(rt + 10);     // set max rt position of area to be blacklisted
+                    DRange<2> blackArea; // area in the m/z-RT plane to be blacklisted
+                    blackArea.setMinX(*peak_positions_it - 0.8 * peak_width_cur); // set min m/z position of area to be blacklisted
+                    blackArea.setMaxX(*peak_positions_it + 0.8 * peak_width_cur); // set max m/z position of area to be blacklisted
+                    blackArea.setMinY(rt - 10); // set min rt position of area to be blacklisted
+                    blackArea.setMaxY(rt + 10); // set max rt position of area to be blacklisted
 
                     // Remember relative m/z shift (since the blacklisting should not apply to filters of the same points of the same relative m/z shift).
                     DoubleReal relative_peak_position = *peak_positions_it - mz;
@@ -340,7 +344,7 @@ namespace OpenMS
 
                     multimap<DoubleReal, BlacklistEntry>::iterator blacklistStartFill;
                     multimap<DoubleReal, BlacklistEntry>::iterator blacklistEndFill;
-                    if (blacklist.size() > 40)    // Blacklist should be of certain size before we ckeck only parts of it.
+                    if (blacklist.size() > 40) // Blacklist should be of certain size before we ckeck only parts of it.
                     {
                       blacklistStartFill = blacklist.lower_bound(rt - 100);
                       blacklistEndFill = blacklist.lower_bound(rt);

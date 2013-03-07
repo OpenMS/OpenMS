@@ -37,6 +37,7 @@
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 
 ///////////////////////////
 
@@ -125,7 +126,8 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Data& data)))
    }
   String file = OPENMS_GET_TEST_DATA_PATH("OptimizePeakDeconvolution.ini");
   Param param;
-  param.load(file);
+  ParamXMLFile paramFile;
+  paramFile.load(file, param);
 
 
  	OptimizePeakDeconvolution opt_deconv;

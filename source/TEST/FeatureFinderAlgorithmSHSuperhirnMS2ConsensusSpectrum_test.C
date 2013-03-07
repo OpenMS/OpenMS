@@ -51,10 +51,12 @@ START_TEST(MS2ConsensusSpectrum, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS2ConsensusSpectrum* ptr;
+MS2ConsensusSpectrum* ptr = 0;
+MS2ConsensusSpectrum* nullPtr = 0;
+
 START_SECTION((MS2ConsensusSpectrum()))
 	ptr = new MS2ConsensusSpectrum();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~MS2ConsensusSpectrum()))
@@ -62,6 +64,30 @@ START_SECTION((~MS2ConsensusSpectrum()))
 END_SECTION
 
 ptr = new MS2ConsensusSpectrum();
+
+START_SECTION( MS2ConsensusSpectrum(double iPrecursorMZ, double iTR, int iChrg, int iApexScan) )
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+END_SECTION
+
+START_SECTION( double getPrecursorMZ())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getPrecursorMZ(), 400.25)
+END_SECTION
+
+START_SECTION( double getTR())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getTR(), 1800.0)
+END_SECTION
+
+START_SECTION( double getStartTR())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getStartTR(), 1800.0)
+END_SECTION
+
+START_SECTION( double getEndTR())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getEndTR(), 1800.0)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

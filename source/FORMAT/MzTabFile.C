@@ -32,7 +32,9 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <fstream>
 
 using namespace OpenMS;
@@ -49,6 +51,446 @@ namespace OpenMS
   MzTabFile::~MzTabFile()
   {
 
+  }
+
+  void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const
+  {
+    for (MzTabMetaData::const_iterator it = map.begin(); it != map.end(); ++it)
+    {
+      const String& unit_id = it->first;
+      const MzTabUnitIdMetaData& md = it->second;
+
+      if (!md.title.empty())
+      {
+        String s;
+        s += String("MTD\t") + unit_id + "-title\t" + md.title;
+        sl << s;
+      }
+
+      if (!md.description.empty())
+      {
+        String s;
+        s += String("MTD\t") + unit_id + "-description\t" + md.description;
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.sample_processing.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-sample_processing[" + String(i + 1) + "]\t" + md.sample_processing[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.instrument_source.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-source\t" + md.instrument_source[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.instrument_analyzer.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-analyzer\t" + md.instrument_analyzer[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.instrument_detector.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-detector\t" + md.instrument_detector[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.software.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-software[" + String(i + 1) + "]\t" + md.software[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.false_discovery_rate.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-false_discovery_rate\t" + md.false_discovery_rate[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.publication.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-publication\t" + md.publication[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.contact_name.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-contact[" + String(i + 1) + "]-name\t" + md.contact_name[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.contact_affiliation.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-contact[" + String(i + 1) + "]-affiliation\t" + md.contact_name[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.contact_email.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-contact[" + String(i + 1) + "]-email\t" + md.contact_name[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.uri.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-uri\t" + md.uri[i];
+        sl << s;
+      }
+
+      if (!md.mod.isNA())
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-mod\t" + md.mod.toCellString();
+        sl << s;
+      }
+
+      if (!md.mod_probability_method.isNA())
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-mod_probability_method\t" + md.mod_probability_method.toCellString();
+        sl << s;
+      }
+
+      if (!md.quantification_method.isNA())
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-quantification_method\t" + md.quantification_method.toCellString();
+        sl << s;
+      }
+
+      if (!md.protein_quantification_unit.isNA())
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-protein_quantification_unit\t" + md.protein_quantification_unit.toCellString();
+        sl << s;
+      }
+
+      if (!md.peptide_quantification_unit.isNA())
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-peptide_quantification_unit\t" + md.peptide_quantification_unit.toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.ms_file_format.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-ms_file[" + String(i + 1) + "]-format\t" + md.ms_file_format[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.ms_file_location.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-ms_file[" + String(i + 1) + "]-location\t" + md.ms_file_location[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.ms_file_id_format.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-ms_file[" + String(i + 1) + "]-id_format\t" + md.ms_file_id_format[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.custom.size(); ++i)
+      {
+        String s;
+        s += "MTD\t" + unit_id + "-custom\t" + md.custom[i].toCellString();
+        sl << s;
+      }
+
+      for (Size i = 0; i != md.sub_id_data.size(); ++i)
+      {
+        const MzTabSubIdMetaData& submd = md.sub_id_data[i];
+
+        String sub_id = submd.sub_id;
+
+        // format is UNIT_ID-SUB_ID... if SUB_ID is given
+        if (!sub_id.empty())
+        {
+          sub_id = String("-") + sub_id;
+        }
+
+        for (Size j = 0; j != submd.species.size(); ++j)
+        {
+          String s;
+          s += "MTD\t" + unit_id + sub_id + "-species[" + String(j + 1) + "]\t" + submd.species[j].toCellString();
+          sl << s;
+        }
+
+        for (Size j = 0; j != submd.tissue.size(); ++j)
+        {
+          String s;
+          s += "MTD\t" + unit_id + sub_id + "-tissue[" + String(j + 1) + "]\t" + submd.tissue[j].toCellString();
+          sl << s;
+        }
+
+        for (Size j = 0; j != submd.cell_type.size(); ++j)
+        {
+          String s;
+          s += "MTD\t" + unit_id + sub_id + "-cell_type[" + String(j + 1) + "]\t" + submd.cell_type[j].toCellString();
+          sl << s;
+        }
+
+        for (Size j = 0; j != submd.disease.size(); ++j)
+        {
+          String s;
+          s += "MTD\t" + unit_id + sub_id + "-disease[" + String(j + 1) + "]\t" + submd.disease[j].toCellString();
+          sl << s;
+        }
+
+        for (Size j = 0; j != submd.description.size(); ++j)
+        {
+          String s;
+          s += String("MTD\t") + unit_id + sub_id + "-description\t" + submd.description[j];
+          sl << s;
+        }
+
+        for (Size j = 0; j != submd.quantification_reagent.size(); ++j)
+        {
+          String s;
+          s += String("MTD\t") + unit_id + sub_id + "-quantification_reagent\t" + submd.quantification_reagent[j].toCellString();
+          sl << s;
+        }
+
+        for (Size j = 0; j != submd.custom.size(); ++j)
+        {
+          String s;
+          s += String("MTD\t") + unit_id + sub_id + "-custom" + submd.custom[j].toCellString();
+          sl << s;
+        }
+      }
+    }
+  }
+
+  void MzTabFile::generateProteinHeader_(Int n_subsamples, const vector<String>& optional_protein_columns, StringList& sl) const
+  {
+    StringList header;
+    header << "PRH"
+        <<  "accession" << "unit_id" << "description" << "taxid" << "species"
+        << "database" << "database_version" << "search_engine"
+        << "search_engine_score" << "reliability" << "num_peptides"
+        << "num_peptides_distinct" << "num_peptides_unambiguous"
+        << "ambiguity_members" << "modifications" << "uri" << "go_terms" <<"protein_coverage";
+
+    for (Int i = 1; i <= n_subsamples; ++i)
+    {
+      header << String("protein_abundance_sub[") + String(i) + String("]")
+             << String("protein_abundance_stdev_sub[") + String(i) + String("]")
+             << String("protein_abundance_std_error_sub[") + String(i) + String("]");
+    }
+
+    std::copy(optional_protein_columns.begin(), optional_protein_columns.end(), std::back_inserter(header));
+
+    sl << (header.concatenate("\t"));
+  }
+
+  String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const String& unit_id) const
+  {
+    StringList s;
+    s << "PRT"
+      << row.accession.toCellString() << unit_id << row.description.toCellString()
+      << row.taxid.toCellString() << row.species.toCellString() << row.database.toCellString() << row.database_version.toCellString()
+      << row.search_engine.toCellString() << row.search_engine_score.toCellString() << row.reliability.toCellString()
+      << row.num_peptides.toCellString() << row.num_peptides_distinct.toCellString() << row.num_peptides_unambiguous.toCellString()
+      << row.modifications.toCellString() << row.uri.toCellString() << row.go_terms.toCellString() << row.protein_coverage.toCellString();
+
+    // quantification columns
+    Size nsub = row.protein_abundance_sub.size();
+    if (nsub != row.protein_abundance_stdev_sub.size() || nsub != row.protein_abundance_std_error_sub.size())
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Different number of columns for sub quantification.'"));
+    }
+
+    for (Size i = 0; i != nsub; ++i)
+    {
+      s << row.protein_abundance_sub[i]
+        << row.protein_abundance_stdev_sub[i]
+        << row.protein_abundance_std_error_sub[i];
+    }
+
+    // print optional columns
+    for (Size i = 0; i <= row.opt_.size(); ++i)
+    {
+      s << row.opt_[i].second.toCellString();
+    }
+
+    return s.concatenate("\t");
+  }
+
+  void MzTabFile::generateMzTabProteinSection_(const MzTabProteinSectionData& map, StringList& sl) const
+  {
+    for (MzTabProteinSectionData::const_iterator it = map.begin(); it != map.end(); ++it)
+    {
+      String unit_id = it->first;
+      for (MzTabProteinSectionRows::const_iterator jt = it->second.begin(); jt != it->second.end(); ++jt)
+      {
+        sl << generateMzTabProteinSectionRow_(*jt, unit_id);
+      }
+    }
+  }
+
+  void MzTabFile::generateMzTabPeptideSection_(const MzTabPeptideSectionData& map, StringList& sl) const
+  {
+    for (MzTabPeptideSectionData::const_iterator it = map.begin(); it != map.end(); ++it)
+    {
+      String unit_id = it->first;
+      for (MzTabPeptideSectionRows::const_iterator jt = it->second.begin(); jt != it->second.end(); ++jt)
+      {
+        sl << generateMzTabPeptideSectionRow_(*jt, unit_id);
+      }
+    }
+  }
+
+  void MzTabFile::generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionData & map, StringList& sl) const
+  {
+    for (MzTabSmallMoleculeSectionData::const_iterator it = map.begin(); it != map.end(); ++it)
+    {
+      String unit_id = it->first;
+      for (MzTabSmallMoleculeSectionRows::const_iterator jt = it->second.begin(); jt != it->second.end(); ++jt)
+      {
+        sl << generateMzTabSmallMoleculeSectionRow_(*jt, unit_id);
+      }
+    }
+  }
+
+  String MzTabFile::generateMzTabPeptideHeader_(Int n_subsamples, const vector<String>& optional_protein_columns) const
+  {
+    StringList header;
+    header << "PEH"
+        << "sequence" <<  "accession" << "unit_id" << "unique"
+        << "database" << "database_version" << "search_engine"
+        << "search_engine_score" << "reliability" << "modifications"
+        << "retention_time" << "charge"
+        << "mass_to_charge" << "uri" << "spectra_ref";
+
+    for (Int i = 1; i <= n_subsamples; ++i)
+    {
+      header << String("peptide_abundance_sub[") + String(i) + String("]")
+          << String("peptide_abundance_stdev_sub[") + String(i) + String("]")
+          << String("peptide_abundance_std_error_sub[") + String(i) + String("]");
+    }
+
+    std::copy(optional_protein_columns.begin(), optional_protein_columns.end(), std::back_inserter(header));
+
+    return header.concatenate("\t");
+  }
+
+  String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row, const String& unit_id) const
+  {
+    StringList s;
+    s << "PEP"
+      << row.sequence.toCellString() << row.accession.toCellString() << unit_id
+      << row.unique.toCellString() << row.database.toCellString() << row.database_version.toCellString()
+      << row.search_engine.toCellString() << row.search_engine_score.toCellString() << row.reliability.toCellString()
+      << row.modifications.toCellString() << row.retention_time.toCellString() << row.charge.toCellString() << row.mass_to_charge.toCellString()
+      << row.uri.toCellString() << row.spectra_ref.toCellString();
+
+    // quantification columns
+    Size nsub = row.peptide_abundance_sub.size();
+    if (nsub != row.peptide_abundance_stdev_sub.size() || nsub != row.peptide_abundance_std_error_sub.size())
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Different number of columns for sub quantification.'"));
+    }
+
+    for (Size i = 0; i != nsub; ++i)
+    {
+      s << row.peptide_abundance_sub[i]
+        << row.peptide_abundance_stdev_sub[i]
+        << row.peptide_abundance_std_error_sub[i];
+    }
+
+    // print optional columns
+    for (Size i = 0; i <= row.opt_.size(); ++i)
+    {
+      s << row.opt_[i].second.toCellString();
+    }
+
+    return s.concatenate("\t");
+  }
+
+  String MzTabFile::generateMzTabSmallMoleculeHeader_(Int n_subsamples, const vector<String>& optional_smallmolecule_columns) const
+  {
+    StringList header;
+    header << "SMH"
+        << "identifier" << "unit_id" << "chemical_formula"
+        << "smiles" << "inchi_key" << "description"
+        << "mass_to_charge" << "charge" << "retention_time"
+        << "taxid" << "species" << "database" << "database_version"
+        << "reliability" << "uri" << "spectra_ref"
+        << "search_engine" << "search_engine_score" << "modifications";
+
+    for (Int i = 1; i <= n_subsamples; ++i)
+    {
+      header << String("smallmolecule_abundance_sub[") + String(i) + String("]")
+          << String("smallmolecule_abundance_stdev_sub[") + String(i) + String("]")
+          << String("smallmolecule_std_error_sub[") + String(i) + String("]");
+    }
+
+    // copy optional column names to header
+    std::copy(optional_smallmolecule_columns.begin(), optional_smallmolecule_columns.end(), std::back_inserter(header));
+
+    return header.concatenate("\t");
+  }
+
+  String MzTabFile::generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row, const String& unit_id) const
+  {
+    StringList s;
+    s << "SML"
+      << row.identifier.toCellString() << unit_id << row.chemical_formula.toCellString()
+      << row.smiles.toCellString() << row.inchi_key.toCellString() << row.description.toCellString()
+      << row.mass_to_charge.toCellString() << row.charge.toCellString() << row.retention_time.toCellString()
+      << row.taxid.toCellString() << row.species.toCellString() << row.database.toCellString()
+      << row.database_version.toCellString() << row.reliability.toCellString() << row.uri.toCellString()
+      << row.spectra_ref.toCellString() << row.search_engine.toCellString() << row.search_engine_score.toCellString()
+      << row.modifications.toCellString();
+
+    // quantification columns
+    Size nsub = row.smallmolecule_abundance_sub.size();
+    if (nsub != row.smallmolecule_abundance_stdev_sub.size() || nsub != row.smallmolecule_abundance_std_error_sub.size())
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Different number of columns for sub quantification.'"));
+    }
+
+    for (Size i = 0; i != nsub; ++i)
+    {
+      s << row.smallmolecule_abundance_sub[i].toCellString()
+        << row.smallmolecule_abundance_stdev_sub[i].toCellString()
+        << row.smallmolecule_abundance_std_error_sub[i].toCellString();
+    }
+
+    // print optional columns
+    for (Size i = 0; i <= row.opt_.size(); ++i)
+    {
+      s << row.opt_[i].second.toCellString();
+    }
+
+    return s.concatenate("\t");
+  }
+
+  void MzTabFile::store(const String & filename, const MzTab& mz_tab) const
+  {
+    TextFile out;
+    generateMzTabMetaDataSection_(mz_tab.getMetaData(), out);
+    generateMzTabProteinSection_(mz_tab.getProteinSectionData(), out);
+    generateMzTabPeptideSection_(mz_tab.getPeptideSectionData(), out);
+    generateMzTabSmallMoleculeSection_(mz_tab.getSmallMoleculeSectionData(), out);
+    out.store(filename);
   }
 
   void MzTabFile::store(const String & filename, const std::vector<ProteinIdentification> & protein_ids, const std::vector<PeptideIdentification> & peptide_ids, String in, String document_id) const
@@ -298,7 +740,7 @@ namespace OpenMS
     txt_out.close();
   }
 
-/// Extract protein and peptide identifications for each run. maps are assumed empty.
+  /// Extract protein and peptide identifications for each run. maps are assumed empty.
   void MzTabFile::partitionIntoRuns(const vector<PeptideIdentification> & pep_ids,
                                     const vector<ProteinIdentification> & pro_ids,
                                     map<String, vector<PeptideIdentification> > & map_run_to_pepids,

@@ -61,7 +61,7 @@ class TOPPOpenSwathRewriteToFeatureXML
  public:
 
   TOPPOpenSwathRewriteToFeatureXML()
-    : TOPPBase("OpenSwathRewriteToFeatureXML","Combines featureXML and mProphet tsv to FDR filtered featureXML.", false)
+    : TOPPBase("OpenSwathRewriteToFeatureXML","Combines featureXML and mProphet tsv to FDR filtered featureXML.")
   {
   }
 
@@ -70,10 +70,13 @@ class TOPPOpenSwathRewriteToFeatureXML
   void registerOptionsAndFlags_()
   {
     registerInputFile_("csv","<file>","","mProphet tsv output file: \"all_peakgroups.xls\"", false);
+    setValidFormats_("csv", StringList::create("csv"));
+    
+    registerInputFile_("featureXML","<file>","","input featureXML file");
+    setValidFormats_("featureXML", StringList::create("featureXML"));
 
-    registerInputFile_("featureXML","<file>","","TraML transition file");
-
-    registerOutputFile_("out","<file>","","output TraML transition file");
+    registerOutputFile_("out","<file>","","output featureXML file");
+    setValidFormats_("out", StringList::create("featureXML"));
 
     registerDoubleOption_("FDR_cutoff", "<double>", -1, "FDR cutoff (e.g. to remove all features with a an m_score above 0.05 use 0.05 here)", false);
   }
@@ -110,7 +113,7 @@ class TOPPOpenSwathRewriteToFeatureXML
 
     // Read header
     std::getline(data, line);
-    std::map<int, String> header_dict;
+    // std::map<int, String> header_dict; // not used
     std::map<String, int> header_dict_inv;
     {
       std::stringstream          lineStream(line);
@@ -118,7 +121,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       int cnt = 0;
       while (std::getline(lineStream,cell,'\t'))
       {
-        header_dict[cnt] = cell;
+        //header_dict[cnt] = cell;
         header_dict_inv[cell] = cnt;
         cnt++;
       }
@@ -152,7 +155,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       {
         m_score = ((String)current_row[header_dict_inv["m_score"]]).toDouble();
       }
-      catch (char* str)
+      catch (char* /*str*/)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not convert String" + ((String)current_row[header_dict_inv["m_score"]]) + " on line " + String(line_nr));
       }
@@ -160,7 +163,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       {
         d_score = ((String)current_row[header_dict_inv["d_score"]]).toDouble();
       }
-      catch (char* str)
+      catch (char* /*str*/)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not convert String" + ((String)current_row[header_dict_inv["d_score"]]) + " on line " + String(line_nr));
       }

@@ -95,7 +95,7 @@ using namespace std;
 
      With the @p no_ids flag, only @p FEATURE lines (without the @p FEATURE indicator) are written.
 
-     With the @p minimal flag, only the @p rt, @p mz, and @p intensity columns of @p FEATURE lines are written.
+     With the @p feature:minimal flag, only the @p rt, @p mz, and @p intensity columns of @p FEATURE lines are written.
 
      <B>consensusXML input:</B>
 
@@ -132,11 +132,11 @@ using namespace std;
      - see above for the formats of @p RUN, @p PROTEIN, @p PEPTIDE lines
      - additional column for @p PEPTIDE lines: @p predicted_rt
 
-     With the @p proteins_only flag, only @p RUN and @p PROTEIN lines are written.
+     With the @p id:proteins_only flag, only @p RUN and @p PROTEIN lines are written.
 
-     With the @p peptides_only flag, only @p PEPTIDE lines (without the @p PEPTIDE indicator) are written.
+     With the @p id:peptides_only flag, only @p PEPTIDE lines (without the @p PEPTIDE indicator) are written.
 
-     With the @p first_dim_rt flag, the additional columns @p rt_first_dim and @p predicted_rt_first_dim are included for @p PEPTIDE lines.
+     With the @p id:first_dim_rt flag, the additional columns @p rt_first_dim and @p predicted_rt_first_dim are included for @p PEPTIDE lines.
 
 
     <B>The command line parameters of this tool are:</B>
@@ -419,39 +419,38 @@ protected:
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
       registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
       setValidStrings_("quoting", StringList::create("none,double,escape"));
-      registerFlag_("no_ids", "Suppresses output of identification data.");
+      registerFlag_("no_ids", "Supresses output of identification data.");
       addEmptyLine_();
 
-      addText_("Options for featureXML files:");
-      registerFlag_("minimal", "Set this flag to write only three attributes: RT, m/z, and intensity.");
+      registerTOPPSubsection_("feature", "Options for featureXML input files");
+      registerFlag_("feature:minimal", "Set this flag to write only three attributes: RT, m/z, and intensity.");
       addEmptyLine_();
 
-      addText_("Options for idXML files:");
-      registerFlag_("proteins_only",
+      registerTOPPSubsection_("id", "Options for idXML files");
+      registerFlag_("id:proteins_only",
                     "Set this flag if you want only protein information from an idXML file");
-      registerFlag_("peptides_only",
+      registerFlag_("id:peptides_only",
                     "Set this flag if you want only peptide information from an idXML file");
       registerFlag_(
-        "first_dim_rt",
+        "id:first_dim_rt",
         "If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
       addEmptyLine_();
 
-      addText_("Options for consensusXML files:");
-      registerOutputFile_("consensus_centroids", "<file>", "",
+      registerTOPPSubsection_("consensusfeature", "Options for consensusXML files");
+      registerOutputFile_("consensusfeature:consensus_centroids", "<file>", "",
                           "Output file for centroids of consensus features", false);
-      setValidFormats_("consensus_centroids", StringList::create("csv"));
-      registerOutputFile_("consensus_elements", "<file>", "",
+      setValidFormats_("consensusfeature:consensus_centroids", StringList::create("csv"));
+      registerOutputFile_("consensusfeature:consensus_elements", "<file>", "",
                           "Output file for elements of consensus features", false);
-      setValidFormats_("consensus_elements", StringList::create("csv"));
-      registerOutputFile_("consensus_features", "<file>", "", "Output file for consensus features and contained elements from all maps (writes 'nan's if elements are missing)", false);
-      setValidFormats_("consensus_features", StringList::create("csv"));
-      registerStringOption_("sorting_method", "<method>", "none",
-                            "Sorting method", false);
-      setValidStrings_("sorting_method", StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
-      registerFlag_("sort_by_maps",
+      setValidFormats_("consensusfeature:consensus_elements", StringList::create("csv"));
+      registerOutputFile_("consensusfeature:consensus_features", "<file>", "", "Output file for consensus features and contained elements from all maps (writes 'nan's if elements are missing)", false);
+      setValidFormats_("consensusfeature:consensus_features", StringList::create("csv"));
+      registerStringOption_("consensusfeature:sorting_method", "<method>", "none",
+                            "Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method", false);
+      setValidStrings_("consensusfeature:sorting_method", StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
+      registerFlag_("consensusfeature:sort_by_maps",
                     "Apply a stable sort by the covered maps, lexicographically", false);
-      registerFlag_("sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
-      addText_("Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method");
+      registerFlag_("consensusfeature:sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
     }
 
     ExitCodes main_(int, const char **)
@@ -462,7 +461,7 @@ protected:
       String in = getStringOption_("in");
       String out = getStringOption_("out");
       bool no_ids = getFlag_("no_ids");
-      bool first_dim_rt = getFlag_("first_dim_rt");
+      bool first_dim_rt = getFlag_("id:first_dim_rt");
 
       // separator etc.
       String sep = getStringOption_("separator");
@@ -523,7 +522,7 @@ protected:
         ofstream outstr(out.c_str());
         SVOutStream output(outstr, sep, replacement, quoting_method);
 
-        bool minimal = getFlag_("minimal");
+        bool minimal = getFlag_("feature:minimal");
         no_ids |= minimal;             // "minimal" implies "no_ids"
 
         // write header:
@@ -609,12 +608,12 @@ protected:
       }
       else if (in_type == FileTypes::CONSENSUSXML)
       {
-        String consensus_centroids = getStringOption_("consensus_centroids");
-        String consensus_elements = getStringOption_("consensus_elements");
-        String consensus_features = getStringOption_("consensus_features");
-        String sorting_method = getStringOption_("sorting_method");
-        bool sort_by_maps = getFlag_("sort_by_maps");
-        bool sort_by_size = getFlag_("sort_by_size");
+        String consensus_centroids = getStringOption_("consensusfeature:consensus_centroids");
+        String consensus_elements = getStringOption_("consensusfeature:consensus_elements");
+        String consensus_features = getStringOption_("consensusfeature:consensus_features");
+        String sorting_method = getStringOption_("consensusfeature:sorting_method");
+        bool sort_by_maps = getFlag_("consensusfeature:sort_by_maps");
+        bool sort_by_size = getFlag_("consensusfeature:sort_by_size");
 
         ConsensusMap consensus_map;
         ConsensusXMLFile consensus_xml_file;
@@ -1051,11 +1050,11 @@ protected:
         ofstream txt_out(out.c_str());
         SVOutStream output(txt_out, sep, replacement, quoting_method);
 
-        bool proteins_only = getFlag_("proteins_only");
-        bool peptides_only = getFlag_("peptides_only");
+        bool proteins_only = getFlag_("id:proteins_only");
+        bool peptides_only = getFlag_("id:peptides_only");
         if (proteins_only && peptides_only)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'proteins_only' and 'peptides_only' cannot be used together");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'id:proteins_only' and 'id:peptides_only' cannot be used together");
         }
 
         String what = peptides_only ? "" : "PEPTIDE";

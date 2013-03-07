@@ -50,10 +50,12 @@ START_TEST(MS2Feature, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS2Feature* ptr;
+MS2Feature* ptr = 0;
+MS2Feature* nullPtr = 0;
+
 START_SECTION((MS2Feature()))
 	ptr = new MS2Feature();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~MS2Feature()))

@@ -36,7 +36,9 @@
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+
 #include <QtCore/QStringList>
 #include <QtGui/QPushButton>
 #include <QtGui/QComboBox>
@@ -47,6 +49,7 @@
 #include <QtGui/QRadioButton>
 #include <QtGui/QFileDialog>
 #include <QtGui/QCheckBox>
+
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
@@ -55,13 +58,13 @@ using namespace std;
 namespace OpenMS
 {
 
-  ToolsDialog::ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType type) :
+  ToolsDialog::ToolsDialog(QWidget* parent, String ini_file, String default_dir, LayerData::DataType type) :
     QDialog(parent),
     ini_file_(ini_file),
     default_dir_(default_dir)
   {
-    QGridLayout * main_grid = new QGridLayout(this);
-    QLabel * label = NULL;
+    QGridLayout* main_grid = new QGridLayout(this);
+    QLabel* label = NULL;
 
     label = new QLabel("TOPP tool:");
     main_grid->addWidget(label, 0, 0);
@@ -119,15 +122,21 @@ namespace OpenMS
     output_combo_ = new QComboBox;
     main_grid->addWidget(output_combo_, 2, 1);
 
+    // tools description label
+    tool_desc_ = new QLabel;
+    tool_desc_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    tool_desc_->setWordWrap(true);
+    main_grid->addWidget(tool_desc_, 0, 2, 3, 1);
+
     //Add advanced mode check box
     editor_ = new ParamEditor(this);
     main_grid->addWidget(editor_, 3, 0, 1, 5);
 
-    QHBoxLayout * hbox = new QHBoxLayout;
-    QPushButton * load_button = new QPushButton(tr("&Load"));
+    QHBoxLayout* hbox = new QHBoxLayout;
+    QPushButton* load_button = new QPushButton(tr("&Load"));
     connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
     hbox->addWidget(load_button);
-    QPushButton * store_button = new QPushButton(tr("&Store"));
+    QPushButton* store_button = new QPushButton(tr("&Store"));
     connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
     hbox->addWidget(store_button);
     hbox->addStretch();
@@ -136,7 +145,7 @@ namespace OpenMS
     connect(ok_button_, SIGNAL(clicked()), this, SLOT(ok_()));
     hbox->addWidget(ok_button_);
 
-    QPushButton * cancel_button = new QPushButton(tr("&Cancel"));
+    QPushButton* cancel_button = new QPushButton(tr("&Cancel"));
     connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
     hbox->addWidget(cancel_button);
     main_grid->addLayout(hbox, 5, 0, 1, 5);
@@ -154,7 +163,7 @@ namespace OpenMS
 
   void ToolsDialog::createINI_()
   {
-    String call = String("\"") + File::getExecutablePath() + getTool() + "\"" + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
+    String call = String("\"") + File::findExecutable(getTool()) + "\"" + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
 
     if (system(call.c_str()) != 0)
     {
@@ -169,14 +178,17 @@ namespace OpenMS
       enable_();
       if (!arg_param_.empty())
       {
+        tool_desc_->clear();
         arg_param_.clear();
         vis_param_.clear();
         editor_->clear();
         arg_map_.clear();
       }
 
-      arg_param_.load((ini_file_).c_str());
+      ParamXMLFile paramFile;
+      paramFile.load((ini_file_).c_str(), arg_param_);
 
+      tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
       vis_param_ = arg_param_.copy(getTool() + ":1:", true);
       vis_param_.remove("log");
       vis_param_.remove("no_progress");
@@ -259,7 +271,8 @@ namespace OpenMS
       {
         QMessageBox::critical(this, "Error", (String("Could not write to '") + ini_file_ + "'!").c_str());
       }
-      arg_param_.store(ini_file_);
+      ParamXMLFile paramFile;
+      paramFile.store(ini_file_, arg_param_);
       accept();
     }
   }
@@ -283,9 +296,10 @@ namespace OpenMS
     }
     try
     {
-      arg_param_.load(filename_.toStdString());
+      ParamXMLFile paramFile;
+      paramFile.load(filename_.toStdString(), arg_param_);
     }
-    catch (Exception::BaseException & e)
+    catch (Exception::BaseException& e)
     {
       QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.getMessage()).c_str());
       arg_param_.clear();
@@ -356,9 +370,10 @@ namespace OpenMS
     arg_param_.insert(getTool() + ":1:", vis_param_);
     try
     {
-      arg_param_.store(filename_.toStdString());
+      ParamXMLFile paramFile;
+      paramFile.store(filename_.toStdString(), arg_param_);
     }
-    catch (Exception::BaseException & e)
+    catch (Exception::BaseException& e)
     {
       QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.getMessage()).c_str());
       return;

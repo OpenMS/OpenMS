@@ -34,11 +34,13 @@
 
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 
+#include <Qt>
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QMessageBox>
@@ -160,6 +162,15 @@ namespace OpenMS
     {
       pen.setWidth(2);
     }
+
+    TOPPASToolVertex* ttv_source = qobject_cast<TOPPASToolVertex*>(this->getSourceVertex());
+    // when copying parameters (using CTRL); only for incomplete edges drawn from tool nodes
+    if (QApplication::keyboardModifiers() && Qt::ControlModifier && !this->to_ && ttv_source)
+    {
+      pen.setColor(Qt::darkMagenta);
+      pen.setWidth(1);
+    }
+
     painter->setPen(pen);
 
     painter->drawLine(startPos(), endPos());
@@ -345,7 +356,9 @@ namespace OpenMS
     QVector<TOPPASToolVertex::IOInfo> target_input_files;
     source_tool->getOutputParameters(source_output_files);
     if (source_param_index >= source_output_files.size())
+    {
       return ES_TOOL_API_CHANGED;
+    }
 
     const TOPPASToolVertex::IOInfo & source_param = source_output_files[source_param_index];
     StringList source_param_types = source_param.valid_types;

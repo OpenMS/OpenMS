@@ -8,6 +8,8 @@ echo "   ------------------------------------------------"
 echo ""
 echo ""
 
-export OPENMS_TOPP_PATH=`dirname $0`
+export OPENMS_TOPP_PATH=`dirname "$0"`
+# declare as TOPP_SHELL
+export IS_TOPP_SHELL="TOPP-SHELL"
 bash --rcfile ${OPENMS_TOPP_PATH}/.TOPP_bash_profile
 

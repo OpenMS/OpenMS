@@ -104,7 +104,6 @@ protected:
     setValidFormats_("out", StringList::create("featureXML"));
 
     addEmptyLine_();
-    addText_("Parameters for the mass trace detection algorithm can be given in the 'algorithm' part of INI file.");
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
@@ -209,7 +208,7 @@ protected:
     std::vector<MassTrace> m_traces_final = m_traces;
 
     // DoubleReal pw_est(epd_param.getValue("chrom_fwhm"));
-    DoubleReal scan_time(std::fabs(ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT()) / ms_peakmap.size());
+    // DoubleReal scan_time(std::fabs(ms_peakmap[ms_peakmap.size() - 1].getRT() - ms_peakmap[0].getRT()) / ms_peakmap.size());
 
     ElutionPeakDetection epdet;
     // epd_param.remove("enabled"); // artificially added above
@@ -223,7 +222,7 @@ protected:
     epdet.detectPeaks(m_traces, splitted_mtraces);
 
 
-    if (epdet.getParameters().getValue("width_filtering").toBool())
+    if (epdet.getParameters().getValue("width_filtering") == "auto")
     {
       m_traces_final.clear();
       epdet.filterByPeakWidth(splitted_mtraces, m_traces_final);
@@ -233,7 +232,7 @@ protected:
       m_traces_final = splitted_mtraces;
     }
 
-    std::cout << "m_traces: " << m_traces_final.size() << std::endl;
+//    std::cout << "m_traces: " << m_traces_final.size() << std::endl;
 
     //-------------------------------------------------------------
     // configure and run feature finding

@@ -36,6 +36,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 
@@ -123,7 +124,7 @@ protected:
     setValidFormats_("out", StringList::create("ini,toppas"));
   }
 
-  void updateTOPPAS(const String & infile, const String & outfile)
+  void updateTOPPAS(const String& infile, const String& outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
@@ -132,8 +133,9 @@ protected:
 
     String path = File::getExecutablePath();
 
+    ParamXMLFile paramFile;
     Param p;
-    p.load(infile);
+    paramFile.load(infile, p);
 
     // get version of TOPPAS file
     String version = "Unknown";
@@ -151,7 +153,7 @@ protected:
     Int vertices = p.getValue("info:num_vertices");
 
     // update sections
-    writeDebug_("#Vertices: " + vertices, 1);
+    writeDebug_("#Vertices: " + String(vertices), 1);
     bool update_success = true;
     for (Int v = 0; v < vertices; ++v)
     {
@@ -198,8 +200,14 @@ protected:
       }
 
       // get defaults of new tool by calling it
-      int call = system(String("\"" + path + "/" + new_tool + "\"" + " -write_ini " + tmp_ini_file + " -instance " + String(this_instance)).c_str());
-      if (call)
+      QProcess pr;
+      QStringList arguments;
+      arguments << "-write_ini";
+      arguments << tmp_ini_file.toQString();
+      arguments << "-instance";
+      arguments << String(this_instance).toQString();
+      pr.start((path + "/" + new_tool).toQString(), arguments);
+      if (!pr.waitForFinished(-1))
       {
         writeLog_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
@@ -208,10 +216,10 @@ protected:
 
       // update defaults with old values
       Param new_param;
-      new_param.load(tmp_ini_file);
+      paramFile.load(tmp_ini_file, new_param);
       new_param = new_param.copy(new_tool + ":1", true);
       Param old_param = p.copy(sec_inst + "parameters", true);
-      new_param.update(old_param, true, false);
+      new_param.update(old_param);
       // push back changes
       p.remove(sec_inst + "parameters:");
       p.insert(sec_inst + "parameters", new_param);
@@ -223,21 +231,21 @@ protected:
       return;
     }
 
-    p.store(tmp_ini_file);
+    paramFile.store(tmp_ini_file, p);
 
     // update internal structure (e.g. edges format changed from 1.8 to 1.9)
     int argc = 1;
-    const char * c = "IniUpdater";
-    const char ** argv = &c;
-    QApplication app(argc, const_cast<char **>(argv), false);
+    const char* c = "IniUpdater";
+    const char** argv = &c;
+    QApplication app(argc, const_cast<char**>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
     d.mkpath(tmp_dir.toQString());
     TOPPASScene ts(0, tmp_dir.toQString(), false);
-    p.store(tmp_ini_file);
+    paramFile.store(tmp_ini_file, p);
     ts.load(tmp_ini_file);
     ts.store(tmp_ini_file);
-    p.load(tmp_ini_file);
+    paramFile.load(tmp_ini_file, p);
 
     // STORE
     if (outfile.empty()) // create a backup
@@ -246,15 +254,15 @@ protected:
       String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".toppas";
       QFile::rename(infile.toQString(), new_name.toQString());
       // write new file
-      p.store(infile);
+      paramFile.store(infile, p);
     }
     else
     {
-      p.store(outfile);
+      paramFile.store(outfile, p);
     }
   }
 
-  void updateINI(const String & infile, const String & outfile)
+  void updateINI(const String& infile, const String& outfile)
   {
     Int this_instance = getIntOption_("instance");
     INIUpdater updater;
@@ -264,7 +272,8 @@ protected:
     String path = File::getExecutablePath();
 
     Param p;
-    p.load(infile);
+    ParamXMLFile paramFile;
+    paramFile.load(infile, p);
     // get sections (usually there is only one - or the user has merged INI files manually)
     StringList sections = updater.getToolNamesFromINI(p);
 
@@ -315,8 +324,14 @@ protected:
         break;
       }
       // get defaults of new tool by calling it
-      int call = system(String("\"" + path + "/" + new_tool + "\"" + " -write_ini " + tmp_ini_file + " -instance " + String(this_instance)).c_str());
-      if (call)
+      QProcess pr;
+      QStringList arguments;
+      arguments << "-write_ini";
+      arguments << tmp_ini_file.toQString();
+      arguments << "-instance";
+      arguments << String(this_instance).toQString();
+      pr.start((path + "/" + new_tool).toQString(), arguments);
+      if (!pr.waitForFinished(-1))
       {
         writeLog_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
@@ -325,10 +340,10 @@ protected:
 
       // update defaults with old values
       Param new_param;
-      new_param.load(tmp_ini_file);
+      paramFile.load(tmp_ini_file, new_param);
       new_param = new_param.copy(new_tool, true);
       Param old_param = p.copy(sections[s], true);
-      new_param.update(old_param, true, false);
+      new_param.update(old_param);
       // push back changes
       p.remove(sections[s] + ":");
       p.insert(new_tool, new_param);
@@ -348,15 +363,15 @@ protected:
       QFile::rename(infile.toQString(), new_name.toQString());
       std::cerr << "new name: " << new_name << "\n";
       // write new file
-      p.store(infile);
+      paramFile.store(infile, p);
     }
     else
     {
-      p.store(outfile);
+      paramFile.store(outfile, p);
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     StringList in  = getStringList_("in");
     StringList out = getStringList_("out");
@@ -415,7 +430,7 @@ protected:
 
 /// @endcond
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPINIUpdater tool;
   return tool.main(argc, argv);

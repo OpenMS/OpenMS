@@ -44,7 +44,7 @@ namespace OpenMS
     PeakSpectrumCompareFunctor()
   {
     setName(CompareFouriertransform::getProductName());
-    defaults_.setValue("epsilon", 0.2, "defines the absolut error of the mass spectrometer");
+    defaults_.setValue("epsilon", 0.2, "defines the absolute error of the mass spectrometer");
     defaultsToParam_();
   }
 

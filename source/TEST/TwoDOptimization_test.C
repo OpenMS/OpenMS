@@ -37,6 +37,7 @@
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -243,7 +244,8 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   (raw_exp.begin()+1)->setRT(101);
   String file = OPENMS_GET_TEST_DATA_PATH("TwoDOptimization.xml");	
   Param param;
-	param.load(file);
+  ParamXMLFile paramFile;
+	paramFile.load(file, param);
   MSExperiment<Peak1D >::const_iterator first,last;
   first = raw_exp.begin();
   last = raw_exp.end();

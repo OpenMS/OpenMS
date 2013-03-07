@@ -209,20 +209,27 @@ namespace OpenMS
        // where "scan=818" is the nativeSpectrumID directly taken from the mzML (if mzML or similar was used for submission)
        //  (when manual submission was used and mascotXML was retrieved manually)
         String title = ((String) sm_.convert(chars)).trim();
-        if (rt_mapping_.size() > 0)
+        if (rt_mapping_.has(title))
         {
-          if (rt_mapping_.has(title))
-          {
-            id_data_[peptide_identification_index_].setMetaValue("RT", rt_mapping_[title]);
-          }
+          id_data_[peptide_identification_index_].setMetaValue("RT", rt_mapping_[title]);
         }
         else if (title.hasSubstring("_"))
         {
           DoubleReal rt(0), mz(0);
           try
           {
-            rt = title.suffix('_').toDouble();
-            mz = title.prefix('_').toDouble();
+            // e.g. <pep_scan_title>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</pep_scan_title>
+            StringList tmp_parts;
+            title.split("_", tmp_parts);
+            if (tmp_parts.size() > 1)
+            {
+              mz = tmp_parts[0].toDouble();
+              rt = tmp_parts[1].toDouble();
+            }
+            else
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "<pep_scan_title> has unexpected format", "check mascot tmp file");
+            }
           }
           catch (Exception::BaseException & /*e*/)
           {

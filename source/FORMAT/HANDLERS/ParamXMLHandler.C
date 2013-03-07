@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Stephan Aiche $
+// $Authors: Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
@@ -46,7 +46,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    ParamXMLHandler::ParamXMLHandler(Param & param, const String & filename, const String & version) :
+    ParamXMLHandler::ParamXMLHandler(Param& param, const String& filename, const String& version) :
       XMLHandler(filename, version),
       param_(param)
     {
@@ -56,8 +56,11 @@ namespace OpenMS
     {
     }
 
-    void ParamXMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+    void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
+      static const XMLCh* s_restrictions = xercesc::XMLString::transcode("restrictions");
+      static const XMLCh* s_supported_formats = xercesc::XMLString::transcode("supported_formats");
+
       String element = sm_.convert(qname);
       if (element == "ITEM")
       {
@@ -99,7 +102,7 @@ namespace OpenMS
         }
 
         //restrictions
-        Int restrictions_index = attributes.getIndex(sm_.convert("restrictions"));
+        Int restrictions_index = attributes.getIndex(s_restrictions);
         if (restrictions_index != -1)
         {
           String value = sm_.convert(attributes.getValue(restrictions_index));
@@ -108,14 +111,21 @@ namespace OpenMS
           {
             value.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts);                            //for downward compatibility
-            if (parts[0] != "")
+              value.split('-', parts);  //for downward compatibility
+            if (parts.size() == 2)
             {
-              param_.setMinInt(name, parts[0].toInt());
+              if (parts[0] != "")
+              {
+                param_.setMinInt(name, parts[0].toInt());
+              }
+              if (parts[1] != "")
+              {
+                param_.setMaxInt(name, parts[1].toInt());
+              }
             }
-            if (parts[1] != "")
+            else
             {
-              param_.setMaxInt(name, parts[1].toInt());
+              warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
             }
           }
           else if (type == "string")
@@ -127,17 +137,39 @@ namespace OpenMS
           {
             value.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts);                            //for downward compatibility
-            if (parts[0] != "")
+              value.split('-', parts);  //for downward compatibility
+            if (parts.size() == 2)
             {
-              param_.setMinFloat(name, parts[0].toDouble());
+              if (parts[0] != "")
+              {
+                param_.setMinFloat(name, parts[0].toDouble());
+              }
+              if (parts[1] != "")
+              {
+                param_.setMaxFloat(name, parts[1].toDouble());
+              }
             }
-            if (parts[1] != "")
+            else
             {
-              param_.setMaxFloat(name, parts[1].toDouble());
+              warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
             }
           }
         }
+
+        // check for supported_formats -> supported_formats overwrites restrictions in case of files
+        if ((tags.contains("input file") || tags.contains("output file")) && type == "string")
+        {
+          Int supported_formats_index = attributes.getIndex(s_supported_formats);
+          if (supported_formats_index != -1)
+          {
+            String value = sm_.convert(attributes.getValue(supported_formats_index));
+            std::vector<String> parts;
+
+            value.split(',', parts);
+            param_.setValidStrings(name, parts);
+          }
+        }
+
       }
       else if (element == "NODE")
       {
@@ -174,10 +206,21 @@ namespace OpenMS
         {
           list_.tags.push_back("advanced");
         }
-        list_.restrictions_index = attributes.getIndex(sm_.convert("restrictions"));
+        list_.restrictions_index = attributes.getIndex(s_restrictions);
         if (list_.restrictions_index != -1)
         {
           list_.restrictions = sm_.convert(attributes.getValue(list_.restrictions_index));
+        }
+
+        // check for supported_formats -> supported_formats overwrites restrictions in case of files
+        if ((list_.tags.contains("input file") || list_.tags.contains("output file")) && list_.type == "string")
+        {
+          Int supported_formats_index = attributes.getIndex(s_supported_formats);
+          if (supported_formats_index != -1)
+          {
+            list_.restrictions_index = supported_formats_index;
+            list_.restrictions = sm_.convert(attributes.getValue(list_.restrictions_index));
+          }
         }
       }
       else if (element == "LISTITEM")
@@ -205,12 +248,12 @@ namespace OpenMS
           file_version = "1.0";                       //default version is 1.0
         if (file_version.toDouble() > version_.toDouble())
         {
-          warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+          warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
         }
       }
     }
 
-    void ParamXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void ParamXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       String element = sm_.convert(qname);
       if (element == "NODE")
@@ -243,14 +286,21 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts);                            //for downward compatibility
-            if (parts[0] != "")
+              list_.restrictions.split('-', parts);  //for downward compatibility
+            if (parts.size() == 2)
             {
-              param_.setMinInt(list_.name, parts[0].toInt());
+              if (parts[0] != "")
+              {
+                param_.setMinInt(list_.name, parts[0].toInt());
+              }
+              if (parts[1] != "")
+              {
+                param_.setMaxInt(list_.name, parts[1].toInt());
+              }
             }
-            if (parts[1] != "")
+            else
             {
-              param_.setMaxInt(list_.name, parts[1].toInt());
+              warning(LOAD, "ITEMLIST " + list_.name + " has an empty restrictions attribute.");
             }
           }
         }
@@ -261,14 +311,21 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts);                            //for downward compatibility
-            if (parts[0] != "")
+              list_.restrictions.split('-', parts);  //for downward compatibility
+            if (parts.size() == 2)
             {
-              param_.setMinFloat(list_.name, parts[0].toDouble());
+              if (parts[0] != "")
+              {
+                param_.setMinFloat(list_.name, parts[0].toDouble());
+              }
+              if (parts[1] != "")
+              {
+                param_.setMaxFloat(list_.name, parts[1].toDouble());
+              }
             }
-            if (parts[1] != "")
+            else
             {
-              param_.setMaxFloat(list_.name, parts[1].toDouble());
+              warning(LOAD, "ITEMLIST " + list_.name + " has an empty restrictions attribute.");
             }
           }
         }
@@ -291,5 +348,5 @@ namespace OpenMS
       }
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

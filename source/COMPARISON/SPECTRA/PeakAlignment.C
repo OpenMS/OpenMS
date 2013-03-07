@@ -44,14 +44,14 @@ namespace OpenMS
   PeakAlignment::PeakAlignment() :
     PeakSpectrumCompareFunctor()
   {
-    defaults_.setValue("epsilon", 0.2, "defines the absolut error of the mass spectrometer");
+    defaults_.setValue("epsilon", 0.2, "defines the absolute error of the mass spectrometer");
     defaults_.setValue("normalized", 1, "is set 1 if the similarity-measurement is normalized to the range [0,1]");
     defaults_.setValue("heuristic_level", 0, "set 0 means no heuristic is applied otherwise the given value is interpreted as unsigned integer, the number of strongest peaks considered for heurisitcs - in those sets of peaks has to be at least one match to conduct comparison");
     defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, defines the distance of two PrecursorPeaks for which they are supposed to be from different peptides");
     defaultsToParam_();
   }
 
-  PeakAlignment::PeakAlignment(const PeakAlignment & source) :
+  PeakAlignment::PeakAlignment(const PeakAlignment& source) :
     PeakSpectrumCompareFunctor(source)
   {
   }
@@ -60,7 +60,7 @@ namespace OpenMS
   {
   }
 
-  PeakAlignment & PeakAlignment::operator=(const PeakAlignment & source)
+  PeakAlignment& PeakAlignment::operator=(const PeakAlignment& source)
   {
     if (this != &source)
     {
@@ -69,12 +69,12 @@ namespace OpenMS
     return *this;
   }
 
-  double PeakAlignment::operator()(const PeakSpectrum & spec) const
+  double PeakAlignment::operator()(const PeakSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
 
-  double PeakAlignment::operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const
+  double PeakAlignment::operator()(const PeakSpectrum& spec1, const PeakSpectrum& spec2) const
   {
 
     PeakSpectrum s1(spec1), s2(spec2);
@@ -250,7 +250,7 @@ namespace OpenMS
     return best_score_normalized;
   }
 
-  vector<pair<Size, Size> > PeakAlignment::getAlignmentTraceback(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const
+  vector<pair<Size, Size> > PeakAlignment::getAlignmentTraceback(const PeakSpectrum& spec1, const PeakSpectrum& spec2) const
   {
     const double epsilon = (double)param_.getValue("epsilon");
 
@@ -366,7 +366,6 @@ namespace OpenMS
     }
     //return track from best alloverscore to 0,0
     vector<pair<Size, Size> > ret_val;
-    pair<Size, Size> max_pair;
 
     //get matrix coordinates from best alloverscore
     Size row_index(0), col_index(0);
@@ -419,7 +418,7 @@ namespace OpenMS
     return ret_val;
   }
 
-  double PeakAlignment::peakPairScore_(double & pos1, double & intens1, double & pos2, double & intens2, const double & sigma) const
+  double PeakAlignment::peakPairScore_(double& pos1, double& intens1, double& pos2, double& intens2, const double& sigma) const
   {
     //scoring formula : peakintensity score * peakposition score
     double pi(sqrt(intens1 * intens2));

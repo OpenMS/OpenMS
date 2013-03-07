@@ -241,6 +241,46 @@ START_SECTION((TargetedExperiment& operator=(const TargetedExperiment &rhs)))
 }
 END_SECTION
 
+START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide &peptide))
+{
+  OpenMS::TargetedExperiment::Peptide peptide;
+  peptide.sequence = "TESTPEPTIDE";
+  OpenMS::TargetedExperiment::Peptide::Modification modification;
+  modification.avg_mass_delta = 79.9799;
+  modification.location = 2;
+  modification.mono_mass_delta = 79.966331;
+  peptide.mods.push_back(modification);
+
+  OpenMS::AASequence aas = TargetedExperimentHelper::getAASequence(peptide);
+  OpenMS::String modified_sequence = "TES(Phospho)TPEPTIDE";
+  TEST_EQUAL(aas.toUnmodifiedString(),peptide.sequence)
+  //TEST_EQUAL(aas.toString(),modified_sequence)
+
+  OpenMS::TargetedExperiment::Peptide peptide2;
+  peptide2.sequence = "TESTPEPTIDER";
+  OpenMS::TargetedExperiment::Peptide::Modification modification2;
+  modification2.avg_mass_delta = 9.9296;
+  modification2.location = 11;
+  modification2.mono_mass_delta = 10.008269;
+  peptide2.mods.push_back(modification2);
+
+  OpenMS::AASequence aas2 = TargetedExperimentHelper::getAASequence(peptide2);
+  OpenMS::String modified_sequence2 = "TESTPEPTIDER(Label:13C(6)15N(4))";
+  TEST_EQUAL(aas2.toUnmodifiedString(),peptide2.sequence)
+
+  OpenMS::TargetedExperiment::Peptide peptide3;
+  peptide3.sequence = "TESTMPEPTIDE";
+  OpenMS::TargetedExperiment::Peptide::Modification modification3;
+  modification3.avg_mass_delta = 15.9994;
+  modification3.location = 4;
+  modification3.mono_mass_delta = 15.994915;
+  peptide3.mods.push_back(modification3);
+
+  OpenMS::AASequence aas3 = TargetedExperimentHelper::getAASequence(peptide3);
+  OpenMS::String modified_sequence3 = "TESTM(Oxidation)PEPTIDE";
+  TEST_EQUAL(aas3.toUnmodifiedString(),peptide3.sequence)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -64,9 +64,9 @@ using namespace std;
 
   This implementation is described in
   <p>
-  Chris Bielow, Stephan Aiche, Sandro Andreotti, Knut Reinert<br>
+  Bielow C, Aiche S, Andreotti S, Reinert K<br>
   MSSimulator: Simulation of Mass Spectrometry Data<br>
-  Journal of Proteome Research, DOI: 10.1021/pr200155f<br>
+  Journal of Proteome Research (2011), DOI: 10.1021/pr200155f<br>
   </p>
 
   The most important features are:
@@ -92,11 +92,25 @@ using namespace std;
   For the label-free setting, all FASTA input files will be merged into one, before simulation.
 
   <p>
-   For MS/MS simulation only a test model is shipped with OpenMS.<br>
+   For MS/MS simulation only a test model is shipped with %OpenMS.<br>
    Please find trained models at: http://sourceforge.net/projects/open-ms/files/Supplementary/Simulation/.
   </p>
 
-    @note This tool is experimental!
+  To specify intensity values for certain proteins, add an abundance tag for the corresponding protein in the FASTA input file:<br>
+    - add '[# <key>=<value> #]' at the end of the > line to specify intensity
+  For RT control (disable digestion, to make this work!)
+  <ul>
+    <li> rt (subjected to small local error by randomization)
+    <li> RT (used as is without local error)
+  </ul>
+
+e.g.
+@code
+>seq1 optional comment [# intensity=567.4 #]
+ASQYLATARHGFLPRHRDTGILP
+>seq2 optional comment [# intensity=117.4, RT=405.3 #]
+QKRPSQRHGLATARHGTGGGDRA
+@endcode
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_MSSimulator.cli
@@ -135,21 +149,6 @@ protected:
     setValidFormats_("out_lcm", StringList::create("consensusXML"));
     registerOutputFile_("out_cntm", "<file>", "", "output (simulated MS map) in featureXML format (contaminants)", false);
     setValidFormats_("out_cntm", StringList::create("featureXML"));
-
-    addEmptyLine_();
-    addText_("To specify intensity values for certain proteins,\nadd an abundance tag for the corresponding protein\nin the FASTA input file:");
-    addEmptyLine_();
-    addText_("- add '[# <key>=<value> #]' at the end of the > line to specify");
-    addText_("  - intensity");
-    addText_("  For RT control (disable digestion, to make this work!)");
-    addText_("  - rt (subjected to small local error by randomization)");
-    addText_("  - RT (used as is without local error)");
-    addEmptyLine_();
-    addText_("e.g. >seq1 optional comment [# intensity=567.4 #]");
-    addText_("     ASQYLATARHGFLPRHRDTGILP");
-    addText_("e.g. >seq2 optional comment [# intensity=117.4, RT=405.3 #]");
-    addText_("     QKRPSQRHGLATARHGTGGGDRA");
-
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }

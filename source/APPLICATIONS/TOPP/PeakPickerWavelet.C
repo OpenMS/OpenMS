@@ -134,8 +134,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "output peak file ");
     setValidFormats_("out", StringList::create("mzML"));
     registerFlag_("write_peak_meta_data", "Write additional information about the picked peaks (maximal intensity, left and right area...) into the mzML-file.Attention: this can blow up files,as 7 arrays are stored per spectrum!", true);
-    addEmptyLine_();
-    addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
+
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 

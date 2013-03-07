@@ -51,10 +51,12 @@ START_TEST(Deisotoper, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-Deisotoper* ptr;
+Deisotoper* ptr = 0;
+Deisotoper* nullPtr = 0;
+
 START_SECTION((Deisotoper()))
 	ptr = new Deisotoper();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~Deisotoper()))
@@ -63,6 +65,12 @@ END_SECTION
 
 ptr = new Deisotoper();
 
+START_SECTION((std::ostream & operator<<(std::ostream &, Deisotoper &)))
+  Deisotoper d;
+  std::cout << d << std::endl;
+END_SECTION
+
+  
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

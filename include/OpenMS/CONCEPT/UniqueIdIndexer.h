@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Chris Bielow $
+// $Maintainer: Chris Bielow $
 // $Authors: Clemens Groepl $
 // --------------------------------------------------------------------------
 

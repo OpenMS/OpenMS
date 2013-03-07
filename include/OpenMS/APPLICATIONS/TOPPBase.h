@@ -71,7 +71,7 @@ namespace OpenMS
       public Exception::BaseException
     {
 public:
-      UnregisteredParameter(const char * file, int line, const char * function, const String & parameter) :
+      UnregisteredParameter(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "UnregisteredParameter", parameter)
       {
         GlobalExceptionHandler::getInstance().setMessage(what_);
@@ -83,7 +83,7 @@ public:
       public Exception::BaseException
     {
 public:
-      WrongParameterType(const char * file, int line, const char * function, const String & parameter) :
+      WrongParameterType(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "WrongParameterType", parameter)
       {
         GlobalExceptionHandler::getInstance().setMessage(what_);
@@ -95,7 +95,7 @@ public:
       public Exception::BaseException
     {
 public:
-      RequiredParameterNotGiven(const char * file, int line, const char * function, const String & parameter) :
+      RequiredParameterNotGiven(const char* file, int line, const char* function, const String& parameter) :
         BaseException(file, line, function, "RequiredParameterNotGiven", parameter)
       {
         GlobalExceptionHandler::getInstance().setMessage(what_);
@@ -115,20 +115,20 @@ public:
     /// Parameter types
     enum ParameterTypes
     {
-      NONE = 0,             ///< Undefined type
-      STRING,               ///< String parameter
-      INPUT_FILE,               ///< String parameter that denotes an input file
-      OUTPUT_FILE,          ///< String parameter that denotes an output file
-      DOUBLE,               ///< Floating point number parameter
-      INT,                  ///< Integer parameter
-      STRINGLIST,           ///< More than one String Parameter
-      INTLIST,              ///< More than one Integer Parameter
-      DOUBLELIST,           ///< More than one String Parameter
-      INPUT_FILE_LIST,      ///< More than one String Parameter that denotes input files
-      OUTPUT_FILE_LIST,      ///< More than one String Parameter that denotes output files
-      FLAG,                 ///< Parameter without argument
-      TEXT,                 ///< Left aligned text, see addText_
-      NEWLINE                       ///< An empty line, see addEmptyLine_
+      NONE = 0, ///< Undefined type
+      STRING, ///< String parameter
+      INPUT_FILE, ///< String parameter that denotes an input file
+      OUTPUT_FILE, ///< String parameter that denotes an output file
+      DOUBLE, ///< Floating point number parameter
+      INT, ///< Integer parameter
+      STRINGLIST, ///< More than one String Parameter
+      INTLIST, ///< More than one Integer Parameter
+      DOUBLELIST, ///< More than one String Parameter
+      INPUT_FILE_LIST, ///< More than one String Parameter that denotes input files
+      OUTPUT_FILE_LIST, ///< More than one String Parameter that denotes output files
+      FLAG, ///< Parameter without argument
+      TEXT, ///< Left aligned text, see addText_
+      NEWLINE ///< An empty line, see addEmptyLine_
     };
 
     /// name of the parameter (internal and external)
@@ -158,7 +158,7 @@ public:
     //@}
 
     /// Constructor that takes all members in declaration order
-    ParameterInformation(const String & n, ParameterTypes t, const String & arg, const DataValue & def, const String & desc, bool req, bool adv, const StringList & tag_values = StringList()) :
+    ParameterInformation(const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv, const StringList& tag_values = StringList()) :
       name(n),
       type(t),
       default_value(def),
@@ -192,7 +192,7 @@ public:
     {
     }
 
-    ParameterInformation & operator=(const ParameterInformation & rhs)
+    ParameterInformation& operator=(const ParameterInformation& rhs)
     {
       if (&rhs == this) return *this;
 
@@ -271,14 +271,15 @@ public:
               @param id_tag_support Does the TOPP tool support unique DocumentIdentifier assignment?! The default is false.
                            In the default case you cannot use the -id_pool argument when calling the TOPP tool (it will terminate during init)
       @param version Optional version of the tools (if empty, the version of OpenMS/TOPP is used).
+      @param require_args Require arguments on the command line (GUI tools should disable this)
     */
-    TOPPBase(const String & name, const String & description, bool official = true, bool id_tag_support = false, const String & version = "");
+    TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true , const String& version = "");
 
     /// Destructor
     virtual ~TOPPBase();
 
     /// Main routine of all TOPP applications
-    ExitCodes main(int argc, const char ** argv);
+    ExitCodes main(int argc, const char** argv);
 
     /**
       @brief Sets the maximal number of usable threads
@@ -300,6 +301,9 @@ private:
     /// Tool indicates it supports assignment of unique DocumentID from IDPool
     bool id_tag_support_;
 
+    /// Require at least one command line argument, exit immediately otherwise. GUI tools should disable this to be callable by double clicking.
+    bool require_args_;
+
     /// Instance of DocumentIDTagger, which can be accessed using getDocumentIDTagger_()
     DocumentIDTagger id_tagger_;
 
@@ -313,7 +317,7 @@ private:
     TOPPBase();
 
     /// No default copy constructor.  It is "declared away".
-    TOPPBase(const TOPPBase &);
+    TOPPBase(const TOPPBase&);
 
     /// All parameters relevant to this invocation of the program.
     Param param_;
@@ -357,7 +361,7 @@ private:
 
       @note Make sure to set the 'advanced' flag of the parameters right in order to hide certain parameters from unexperienced users.
     */
-    virtual Param getSubsectionDefaults_(const String & section) const;
+    virtual Param getSubsectionDefaults_(const String& section) const;
 
     /// Storage location and description for allowed subsections
     std::map<String, String> subsections_;
@@ -374,42 +378,42 @@ private:
 
        @note See getParam_(const String&) const for the order in which parameters are searched.
     */
-    String getParamAsString_(const String & key, const String & default_value = "") const;
+    String getParamAsString_(const String& key, const String& default_value = "") const;
 
     /**
        @brief Return the value of parameter @p key as an integer or @p default_value if this value is not set.
 
        @note See getParam_(const String&) const for the order in which parameters are searched.
     */
-    Int getParamAsInt_(const String & key, Int default_value = 0) const;
+    Int getParamAsInt_(const String& key, Int default_value = 0) const;
 
     /**
        @brief Return the value of parameter @p key as a double or @p default_value if this value is not set.
 
        @note See getParam_(const String&) const for the order in which parameters are searched.
     */
-    DoubleReal getParamAsDouble_(const String & key, DoubleReal default_value = 0) const;
+    DoubleReal getParamAsDouble_(const String& key, DoubleReal default_value = 0) const;
 
     /**
        @brief Return the value of parameter @p key as a StringList or @p default_value if this value is not set
 
        @note See getParam_(const String&) const for the order in which parameters are searched.
     */
-    StringList getParamAsStringList_(const String & key, const StringList & default_value) const;
+    StringList getParamAsStringList_(const String& key, const StringList& default_value) const;
 
     /**
        @brief Return the value of parameter @p key as a IntList or @p default_value if this value is not set
 
        @note See getParam_(const String&) const for the order in which parameters are searched.
     */
-    IntList getParamAsIntList_(const String & key, const IntList & default_value) const;
+    IntList getParamAsIntList_(const String& key, const IntList& default_value) const;
 
     /**
        @brief Return the value of parameter @p key as a DoubleList or @p default_value if this value is not set
 
        @note See getParam_(const String&) const for the order in which parameters are searched.
     */
-    DoubleList getParamAsDoubleList_(const String & key, const DoubleList & default_value) const;
+    DoubleList getParamAsDoubleList_(const String& key, const DoubleList& default_value) const;
 
     /**
        @brief Return the value of flag parameter @p key as bool.
@@ -420,7 +424,7 @@ private:
 
        @note See getParam_(const String&) const for the order in which parameters are searched.
     */
-    bool getParamAsBool_(const String & key) const;
+    bool getParamAsBool_(const String& key) const;
 
     /**
        @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
@@ -433,25 +437,31 @@ private:
 
        where "some_key" == key in the examples.
     */
-    const DataValue & getParam_(const String & key) const;
+    const DataValue& getParam_(const String& key) const;
 
     /**
          @brief Get the part of a parameter name that makes up the subsection
 
          The subsection extends until the last colon (":"). If there is no subsection, the empty string is returned.
     */
-    String getSubsection_(const String & name) const;
+    String getSubsection_(const String& name) const;
 
     /// Returns the default parameters
     Param getDefaultParameters_() const;
 
     /// Returns the user defaults for the given tool, if any default parameters are stored in the users home
-    Param getToolUserDefaults_(const String & tool_name) const;
+    Param getToolUserDefaults_(const String& tool_name) const;
     //@}
 
 protected:
-    ///Version string (if empty, the OpenMS/TOPP version is printed)
+    /// Version string (if empty, the OpenMS/TOPP version is printed)
     String version_;
+
+    /// Version string including additional revision/date time information. Note: This differs from version_ only if not provided by the user.
+    String verboseVersion_;
+
+    /// Flag indicating if this an official TOPP tool
+    bool official_;
 
     /**
       @brief Returns the location of the ini file where parameters are taken
@@ -460,13 +470,13 @@ protected:
 
       This is assigned during tool startup, depending on the command line but (of course) not depending on ini files.
     */
-    const String & getIniLocation_() const
+    const String& getIniLocation_() const
     {
       return ini_location_;
     }
 
     ///Returns the tool name
-    const String & toolName_() const;
+    const String& toolName_() const;
 
     /**
       @name Parameter handling
@@ -480,7 +490,7 @@ protected:
               The values of certain options can be restricted using: setMinInt_, setMaxInt_, setMinFloat_,
               setMaxFloat_, setValidStrings_ and setValidFormats_.
 
-      In order to format the help output, the methods addEmptyLine_ and addText_ can be used.
+      In order to format the help output, the method addEmptyLine_ can be used.
     */
     //@{
     /**
@@ -499,10 +509,10 @@ protected:
          @param argument Argument description text for the help output.
          @param full_name Full name of the parameter, if different from the name in the ParamEntry (ParamEntry names cannot contain sections)
      */
-    void registerParamEntry_(const Param::ParamEntry & entry, const String & argument = "", const String & full_name = "");
+    void registerParamEntry_(const Param::ParamEntry& entry, const String& argument = "", const String& full_name = "");
 
     /// Register command line parameters for all entries in a Param object
-    void registerFullParam_(const Param & param);
+    void registerFullParam_(const Param& param);
 
     /**
       @brief Registers a string option.
@@ -514,7 +524,7 @@ protected:
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
     */
-    void registerStringOption_(const String & name, const String & argument, const String & default_value, const String & description, bool required = true, bool advanced = false);
+    void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
         @brief Sets the valid strings for a string option or a whole string list
@@ -522,7 +532,7 @@ protected:
         @exception Exception::ElementNotFound is thrown if the parameter is unset or not a string parameter
         @exception Exception::InvalidParameter is thrown if the valid strings contain comma characters
     */
-    void setValidStrings_(const String & name, const std::vector<String> & strings);
+    void setValidStrings_(const String& name, const std::vector<String>& strings);
 
     /**
       @brief Registers an input file option.
@@ -539,7 +549,7 @@ protected:
       @param tags A list of tags, e.g. 'skipexists', specifying the handling of the input file (e.g. when its an executable)
                       Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for an executable in global PATH)
     */
-    void registerInputFile_(const String & name, const String & argument, const String & default_value, const String & description, bool required = true, bool advanced = false, const StringList & tags = StringList());
+    void registerInputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
     /**
       @brief Registers an output file option.
@@ -554,7 +564,7 @@ protected:
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
     */
-    void registerOutputFile_(const String & name, const String & argument, const String & default_value, const String & description, bool required = true, bool advanced = false);
+    void registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
         @brief Sets the formats for a input/output file option or for all members of an input/output file lists
@@ -566,7 +576,7 @@ protected:
         @exception Exception::ElementNotFound is thrown if the parameter is unset or not a file parameter
         @exception Exception::InvalidParameter is thrown if an unknown format name is used (@see FileHandler::Type)
     */
-    void setValidFormats_(const String & name, const std::vector<String> & formats, const bool force_OpenMS_format = true);
+    void setValidFormats_(const String& name, const std::vector<String>& formats, const bool force_OpenMS_format = true);
 
 
     /**
@@ -579,32 +589,32 @@ protected:
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
     */
-    void registerDoubleOption_(const String & name, const String & argument, double default_value, const String & description, bool required = true, bool advanced = false);
+    void registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
         @brief Sets the minimum value for the integer parameter(can be a list of integers,too) @p name.
 
         @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
-    void setMinInt_(const String & name, Int min);
+    void setMinInt_(const String& name, Int min);
     /**
         @brief Sets the maximum value for the integer parameter(can be a list of integers,too) @p name.
 
             @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
 */
-    void setMaxInt_(const String & name, Int max);
+    void setMaxInt_(const String& name, Int max);
     /**
         @brief Sets the minimum value for the floating point parameter(can be a list of floating points,too) @p name.
 
         @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
-    void setMinFloat_(const String & name, DoubleReal min);
+    void setMinFloat_(const String& name, DoubleReal min);
     /**
         @brief Sets the maximum value for the floating point parameter(can be a list of floating points,too) @p name.
 
         @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
-    void setMaxFloat_(const String & name, DoubleReal max);
+    void setMaxFloat_(const String& name, DoubleReal max);
 
     /**
       @brief Registers an integer option.
@@ -616,8 +626,8 @@ protected:
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
     */
-    void registerIntOption_(const String & name, const String & argument,
-                            Int default_value, const String & description,
+    void registerIntOption_(const String& name, const String& argument,
+                            Int default_value, const String& description,
                             bool required = true, bool advanced = false);
 
     /**
@@ -631,7 +641,7 @@ protected:
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
 
     */
-    void registerIntList_(const String & name, const String & argument, IntList default_value, const String & description, bool required = true, bool advanced = false);
+    void registerIntList_(const String& name, const String& argument, IntList default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of doubles option.
@@ -643,7 +653,7 @@ protected:
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
      */
-    void registerDoubleList_(const String & name, const String & argument, DoubleList default_value, const String & description, bool required = true, bool advanced = false);
+    void registerDoubleList_(const String& name, const String& argument, DoubleList default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of strings option.
@@ -655,7 +665,7 @@ protected:
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
      */
-    void registerStringList_(const String & name, const String & argument, StringList default_value, const String & description, bool required = true, bool advanced = false);
+    void registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of input files option.
@@ -670,7 +680,7 @@ protected:
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
      */
-    void registerInputFileList_(const String & name, const String & argument, StringList default_value, const String & description, bool required = true, bool advanced = false);
+    void registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of output files option.
@@ -685,10 +695,10 @@ protected:
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
      */
-    void registerOutputFileList_(const String & name, const String & argument, StringList default_value, const String & description, bool required = true, bool advanced = false);
+    void registerOutputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false);
 
     /// Registers a flag
-    void registerFlag_(const String & name, const String & description, bool advanced = false);
+    void registerFlag_(const String& name, const String& description, bool advanced = false);
 
     /**
       @brief Registers an allowed subsection in the INI file (usually from OpenMS algorithms).
@@ -697,7 +707,7 @@ protected:
 
       @see checkParam_
     */
-    void registerSubsection_(const String & name, const String & description);
+    void registerSubsection_(const String& name, const String& description);
 
     /**
       @brief Registers an allowed subsection in the INI file originating from the TOPP tool itself.
@@ -708,14 +718,12 @@ protected:
 
       @see checkParam_
     */
-    void registerTOPPSubsection_(const String & name, const String & description);
+    void registerTOPPSubsection_(const String& name, const String& description);
 
 
     /// Adds an empty line between registered variables in the documentation.
     void addEmptyLine_();
 
-    /// Adds a left aligned text between registered variables in the documentation e.g. for subdividing the documentation.
-    void addText_(const String & text);
 
     /**
       @brief Returns the value of a previously registered string option
@@ -725,7 +733,7 @@ protected:
       @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
       @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
     */
-    String getStringOption_(const String & name) const;
+    String getStringOption_(const String& name) const;
 
     /**
       @brief Returns the value of a previously registered double option
@@ -735,7 +743,7 @@ protected:
               @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
               @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
           */
-    DoubleReal getDoubleOption_(const String & name) const;
+    DoubleReal getDoubleOption_(const String& name) const;
 
     /**
       @brief Returns the value of a previously registered integer option
@@ -745,7 +753,7 @@ protected:
       @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
       @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
     */
-    Int getIntOption_(const String & name) const;
+    Int getIntOption_(const String& name) const;
 
     /**
       @brief Returns the value of a previously registered StringList
@@ -755,7 +763,7 @@ protected:
       @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
       @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
     */
-    StringList getStringList_(const String & name) const;
+    StringList getStringList_(const String& name) const;
 
     /**
       @brief Returns the value of a previously registered IntList
@@ -765,7 +773,7 @@ protected:
       @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
       @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
     */
-    IntList getIntList_(const String & name) const;
+    IntList getIntList_(const String& name) const;
 
     /**
       @brief Returns the value of a previously registered DoubleList
@@ -775,24 +783,24 @@ protected:
       @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
       @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
     */
-    DoubleList getDoubleList_(const String & name) const;
+    DoubleList getDoubleList_(const String& name) const;
 
     ///Returns the value of a previously registered flag
-    bool getFlag_(const String & name) const;
+    bool getFlag_(const String& name) const;
 
     /**
       @brief Finds the entry in the parameters_ array that has the name @p name
 
       @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
     */
-    const ParameterInformation & findEntry_(const String & name) const;
+    const ParameterInformation& findEntry_(const String& name) const;
 
     /**
       @brief Return <em>all</em> parameters relevant to this TOPP tool.
 
       Returns a Param that contains everything you can get by the getParamAs...() methods.
     */
-    Param const & getParam_() const;
+    Param const& getParam_() const;
 
     /**
       @brief Checks top-level entries of @p param according to the information during registration
@@ -807,7 +815,7 @@ protected:
       @param filename The source file name
       @param location Exact location inside the source file
     */
-    void checkParam_(const Param & param, const String & filename, const String & location) const;
+    void checkParam_(const Param& param, const String& filename, const String& location) const;
 
 
     /**
@@ -817,11 +825,11 @@ protected:
       It is called automatically whenever a ini file is loaded.
 
      */
-    void checkIfIniParametersAreApplicable_(const Param & ini_params);
+    void checkIfIniParametersAreApplicable_(const Param& ini_params);
     //@}
 
     /// make a string console friendly
-    String breakString_(const String & input, const Size line_len, const Size indentation, const Size max_lines) const;
+    String breakString_(const String& input, const Size line_len, const Size indentation, const Size max_lines) const;
 
     /// read console settings for output shaping
     void readConsoleSize_();
@@ -830,18 +838,18 @@ protected:
     void printUsage_();
 
     /// The actual "main" method.  main_() is invoked by main().
-    virtual ExitCodes main_(int argc, const char ** argv) = 0;
+    virtual ExitCodes main_(int argc, const char** argv) = 0;
 
     ///@name Debug and Log output
     //@{
     /// Writes a string to the log file and to std::cout
-    void writeLog_(const String & text) const;
+    void writeLog_(const String& text) const;
 
     /// Writes a @p text to the log file and to std::cout if the debug level is at least @p min_level
-    void writeDebug_(const String & text, UInt min_level) const;
+    void writeDebug_(const String& text, UInt min_level) const;
 
     /// Writes a String followed by a Param to the log file and to std::cout if the debug level is at least @p min_level
-    void writeDebug_(const String & text, const Param & param, UInt min_level) const;
+    void writeDebug_(const String& text, const Param& param, UInt min_level) const;
     //@}
 
 
@@ -869,7 +877,7 @@ protected:
       @exception Exception::FileNotReadable is thrown if the file is not readable
       @exception Exception::FileEmpty is thrown if the file is empty
     */
-    void inputFileReadable_(const String & filename, const String & param_name) const;
+    void inputFileReadable_(const String& filename, const String& param_name) const;
 
     /**
       @brief Checks if an output file is writeable
@@ -881,14 +889,14 @@ protected:
 
       @exception Exception::UnableToCreateFile is thrown if the file cannot be created
     */
-    void outputFileWritable_(const String & filename, const String & param_name) const;
+    void outputFileWritable_(const String& filename, const String& param_name) const;
     //@}
 
     /// Helper function that parses a range string ([a]:[b]) into two variables
-    void parseRange_(const String & text, double & low, double & high) const;
+    void parseRange_(const String& text, double& low, double& high) const;
 
     /// Helper function that parses a range string ([a]:[b]) into two variables
-    void parseRange_(const String & text, Int & low, Int & high) const;
+    void parseRange_(const String& text, Int& low, Int& high) const;
 
     ///Type of progress logging
     ProgressLogger::LogType log_type_;
@@ -897,25 +905,25 @@ protected:
     //@{
 
     ///Data processing setter for consensus maps
-    void addDataProcessing_(ConsensusMap & map, const DataProcessing & dp) const;
+    void addDataProcessing_(ConsensusMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for feature maps
     template <typename FeatureType>
-    void addDataProcessing_(FeatureMap<FeatureType> & map, const DataProcessing & dp) const
+    void addDataProcessing_(FeatureMap<FeatureType>& map, const DataProcessing& dp) const
     {
       map.getDataProcessing().push_back(dp);
     }
 
     ///Data processing setter for peak maps
-    template < typename PeakType, typename CT> 
-    void addDataProcessing_(MSExperiment<PeakType, CT> & map, const DataProcessing & dp) const
+    template <typename PeakType, typename CT>
+    void addDataProcessing_(MSExperiment<PeakType, CT>& map, const DataProcessing& dp) const
     {
       for (Size i = 0; i < map.size(); ++i)
       {
         map[i].getDataProcessing().push_back(dp);
       }
       std::vector<MSChromatogram<CT> > chromatograms = map.getChromatograms();
-      for (Size i=0; i<chromatograms.size(); ++i)
+      for (Size i = 0; i < chromatograms.size(); ++i)
       {
         chromatograms[i].getDataProcessing().push_back(dp);
       }
@@ -926,18 +934,18 @@ protected:
     DataProcessing getProcessingInfo_(DataProcessing::ProcessingAction action) const;
 
     ///Returns the the data processing information
-    DataProcessing getProcessingInfo_(const std::set<DataProcessing::ProcessingAction> & actions) const;
+    DataProcessing getProcessingInfo_(const std::set<DataProcessing::ProcessingAction>& actions) const;
 
     //@}
 
     /// get DocumentIDTagger to assign DocumentIDs to maps
-    const DocumentIDTagger & getDocumentIDTagger_() const;
+    const DocumentIDTagger& getDocumentIDTagger_() const;
 
     /// Write common tool description (CTD) file
     bool writeCTD_();
 
     /// Write WSDL file and validate it. Returns EXECUTION_OK or INTERNAL_ERROR (if validation failed)
-    ExitCodes writeWSDL_(const String & filename);
+    ExitCodes writeWSDL_(const String& filename);
 
     /**
         @brief Test mode
@@ -960,6 +968,15 @@ protected:
 
     /// Debug level set by -debug
     Int debug_level_;
+
+private:
+
+    /// Adds a left aligned text between registered variables in the documentation e.g. for subdividing the documentation.
+    /// This should not be usable for derived classes, since this formatting is not carried over to INI files
+    /// and thus INI files might lack important information.
+    /// Instead, subdivision of parameters should be achieved using TOPPSubsections with appropriate description
+    /// Currently only used for "Common TOPP options" within TOPPBase.C
+    void addText_(const String& text);
 
   };
 

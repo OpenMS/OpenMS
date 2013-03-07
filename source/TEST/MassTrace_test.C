@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
 // $Authors: $
@@ -67,35 +67,47 @@ END_SECTION
 std::vector<PeakType> peak_vec;
 std::list<PeakType> peak_lst;
 
-PeakType tmp_peak1, tmp_peak2, tmp_peak3, tmp_peak4, tmp_peak5;
+PeakType tmp_peak0, tmp_peak1, tmp_peak2, tmp_peak3, tmp_peak4, tmp_peak5, tmp_peak6;
+
+tmp_peak0.setRT(152.22);
+tmp_peak0.setMZ(230.10223);
+tmp_peak0.setIntensity(542.0);
+peak_vec.push_back(tmp_peak0);
+peak_lst.push_back(tmp_peak0);
 
 tmp_peak1.setRT(153.23);
 tmp_peak1.setMZ(230.10235);
-tmp_peak1.setIntensity(54392293.0);
+tmp_peak1.setIntensity(542293.0);
 peak_vec.push_back(tmp_peak1);
 peak_lst.push_back(tmp_peak1);
 
 tmp_peak2.setRT(154.21);
 tmp_peak2.setMZ(230.10181);
-tmp_peak2.setIntensity(1828482393.0);
+tmp_peak2.setIntensity(18282393.0);
 peak_vec.push_back(tmp_peak2);
 peak_lst.push_back(tmp_peak2);
 
 tmp_peak3.setRT(155.24);
 tmp_peak3.setMZ(230.10229);
-tmp_peak3.setIntensity(3339229535.0);
+tmp_peak3.setIntensity(33329535.0);
 peak_vec.push_back(tmp_peak3);
 peak_lst.push_back(tmp_peak3);
 
 tmp_peak4.setRT(156.233);
 tmp_peak4.setMZ(230.10116);
-tmp_peak4.setIntensity(1734222933.0);
+tmp_peak4.setIntensity(17342933.0);
 peak_vec.push_back(tmp_peak4);
 peak_lst.push_back(tmp_peak4);
 
 tmp_peak5.setRT(157.24);
 tmp_peak5.setMZ(230.10198);
-tmp_peak5.setIntensity(33392291.0);
+tmp_peak5.setIntensity(333291.0);
+peak_vec.push_back(tmp_peak5);
+peak_lst.push_back(tmp_peak5);
+
+tmp_peak6.setRT(158.238);
+tmp_peak6.setMZ(230.10254);
+tmp_peak6.setIntensity(339.0);
 peak_vec.push_back(tmp_peak5);
 peak_lst.push_back(tmp_peak5);
 
@@ -104,7 +116,7 @@ peak_lst.push_back(tmp_peak5);
 // detailed constructors test
 /////////////////////////////////////////////////////////////
 
-START_SECTION((MassTrace(const std::list< PeakType > &)))
+START_SECTION((MassTrace(const std::list< PeakType > &, const DoubleReal &scan_time=1.0)))
 {
     MassTrace tmp_mt(peak_lst);
 
@@ -115,12 +127,19 @@ START_SECTION((MassTrace(const std::list< PeakType > &)))
         TEST_EQUAL(*l_it, *m_it);
         ++l_it;
     }
+
+    TEST_REAL_SIMILAR(tmp_mt.getScanTime(), 1.0);
+
+    MassTrace tmp_mt2(peak_lst, 0.25);
+    TEST_REAL_SIMILAR(tmp_mt2.getScanTime(), 0.25);
+
+
 }
 END_SECTION
 
 /////
 
-START_SECTION((MassTrace(const std::vector< PeakType > &)))
+START_SECTION((MassTrace(const std::vector< PeakType > &, const DoubleReal &scan_time=1.0)))
 {
     MassTrace tmp_mt(peak_vec);
 
@@ -131,6 +150,11 @@ START_SECTION((MassTrace(const std::vector< PeakType > &)))
         TEST_EQUAL(*v_it, *m_it);
         ++v_it;
     }
+
+    TEST_REAL_SIMILAR(tmp_mt.getScanTime(), 1.0);
+
+    MassTrace tmp_mt2(peak_lst, 0.25);
+    TEST_REAL_SIMILAR(tmp_mt2.getScanTime(), 0.25);
 }
 END_SECTION
 
@@ -142,6 +166,45 @@ MassTrace test_mt(peak_lst);
 test_mt.updateWeightedMeanRT();
 test_mt.updateWeightedMeanMZ();
 
+
+/////////////////////////////////////////////////////////////
+// operator tests
+/////////////////////////////////////////////////////////////
+
+START_SECTION((PeakType& operator[](const Size &mt_idx)))
+{
+    TEST_REAL_SIMILAR(test_mt[1].getRT(), 153.23);
+    TEST_REAL_SIMILAR(test_mt[1].getMZ(), 230.10235);
+    TEST_REAL_SIMILAR(test_mt[1].getIntensity(), 542293.0);
+
+    TEST_REAL_SIMILAR(test_mt[4].getRT(), 156.233);
+    TEST_REAL_SIMILAR(test_mt[4].getMZ(), 230.10116);
+    TEST_REAL_SIMILAR(test_mt[4].getIntensity(), 17342933.0);
+}
+END_SECTION
+
+/////
+
+START_SECTION((const PeakType& operator[](const Size &mt_idx) const ))
+{
+    const MassTrace test_mt_const(test_mt);
+
+    DoubleReal rt1 = test_mt_const[1].getRT();
+    DoubleReal mz1 = test_mt_const[1].getMZ();
+    DoubleReal int1 = test_mt_const[1].getIntensity();
+    DoubleReal rt2 = test_mt_const[4].getRT();
+    DoubleReal mz2 = test_mt_const[4].getMZ();
+    DoubleReal int2 = test_mt_const[4].getIntensity();
+
+    TEST_REAL_SIMILAR(rt1, 153.23);
+    TEST_REAL_SIMILAR(mz1, 230.10235);
+    TEST_REAL_SIMILAR(int1, 542293.0);
+
+    TEST_REAL_SIMILAR(rt2, 156.233);
+    TEST_REAL_SIMILAR(mz2, 230.10116);
+    TEST_REAL_SIMILAR(int2, 17342933.0);
+}
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////
@@ -263,15 +326,15 @@ START_SECTION((Size getSize() const))
 {
     Size test_mt_size = test_mt.getSize();
 
-    TEST_EQUAL(test_mt_size, 5);
+    TEST_EQUAL(test_mt_size, 7);
 }
 END_SECTION
 
 /////
 
-START_SECTION((String getLabel()))
+START_SECTION((String getLabel() const ))
 {
-    String test_mt_label = test_mt.getLabel();
+    const String test_mt_label = test_mt.getLabel();
 
     TEST_EQUAL(test_mt_label, "");
 }
@@ -290,37 +353,156 @@ END_SECTION
 
 /////
 
-// std::cerr << setprecision(10) << test_mt_cent_mz << std::endl;
+
 
 START_SECTION((DoubleReal getCentroidMZ()))
 {
     DoubleReal test_mt_cent_mz = test_mt.getCentroidMZ();
 
-    TEST_REAL_SIMILAR(test_mt_cent_mz, 230.1022624);
+    TEST_REAL_SIMILAR(test_mt_cent_mz, 230.10188);
 }
 END_SECTION
 
 /////
 
+START_SECTION((DoubleReal getCentroidMZ() const ))
+{
+    MassTrace test_mt_const(test_mt);
+
+    DoubleReal test_mt_cent_mz = test_mt_const.getCentroidMZ();
+
+    TEST_REAL_SIMILAR(test_mt_cent_mz, 230.10188);
+}
+END_SECTION
+
+/////
 START_SECTION((DoubleReal getCentroidRT()))
 {
     DoubleReal test_mt_cent_rt = test_mt.getCentroidRT();
 
-    std::cerr << setprecision(10) << test_mt_cent_rt << std::endl;
+    TEST_REAL_SIMILAR(test_mt_cent_rt, 155.2205);
+}
+END_SECTION
 
-    TEST_REAL_SIMILAR(test_mt_cent_rt, 155.2108433);
+/////
+START_SECTION((DoubleReal getCentroidRT() const ))
+{
+    MassTrace test_mt_const(test_mt);
+
+    DoubleReal test_mt_cent_rt = test_mt_const.getCentroidRT();
+
+    TEST_REAL_SIMILAR(test_mt_cent_rt, 155.2205);
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal getScanTime()))
+{
+    MassTrace tmp_mt(peak_lst, 0.25);
+
+    DoubleReal test_scantime = tmp_mt.getScanTime();
+
+    TEST_REAL_SIMILAR(test_scantime, 0.25);
+}
+END_SECTION
+
+/////
+
+
+
+PeakType p1, p2;
+p1.setMZ(123.123);
+p1.setIntensity(0.0);
+p2.setMZ(123.321);
+p2.setIntensity(0.0);
+
+std::vector<PeakType> peaks;
+peaks.push_back(p1);
+peaks.push_back(p2);
+
+MassTrace zero_int_mt(peaks);
+
+START_SECTION((void updateWeightedMZsd()))
+{
+    MassTrace empty_trace;
+    TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMZsd());
+
+    test_mt.updateWeightedMZsd();
+    DoubleReal test_mt_sd = test_mt.getCentroidSD();
+
+    TEST_REAL_SIMILAR(test_mt_sd, 0.0004594);
+
+    TEST_EXCEPTION(Exception::InvalidValue, zero_int_mt.updateWeightedMZsd());
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal getCentroidSD()))
+{
+    DoubleReal test_mt_sd = test_mt.getCentroidSD();
+
+    TEST_REAL_SIMILAR(test_mt_sd, 0.0004594);
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal getCentroidSD() const ))
+{
+    MassTrace test_mt_const(test_mt);
+
+    DoubleReal test_mt_sd = test_mt_const.getCentroidSD();
+
+    TEST_REAL_SIMILAR(test_mt_sd, 0.0004594);
+}
+END_SECTION
+
+/////
+START_SECTION((void setCentroidSD(const DoubleReal &tmp_sd)))
+{
+    test_mt.setCentroidSD(0.00048);
+    DoubleReal test_mt_sd = test_mt.getCentroidSD();
+
+    TEST_REAL_SIMILAR(test_mt_sd, 0.00048);
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal getTraceLength()))
+{
+    DoubleReal mt_length = test_mt.getTraceLength();
+
+    TEST_REAL_SIMILAR(mt_length, 5.02)
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal getTraceLength() const ))
+{
+    MassTrace test_mt_const(test_mt);
+
+    DoubleReal mt_length = test_mt_const.getTraceLength();
+
+    TEST_REAL_SIMILAR(mt_length, 5.02)
 }
 END_SECTION
 
 /////
 
 std::vector<DoubleReal> smoothed_ints;
-smoothed_ints.push_back(54000000.0);
-smoothed_ints.push_back(1800000000.0);
-smoothed_ints.push_back(3300000000.0);
-smoothed_ints.push_back(1750000000.0);
-smoothed_ints.push_back(54000000.0);
-smoothed_ints.push_back(54922953.0);
+smoothed_ints.push_back(500.0);
+smoothed_ints.push_back(540000.0);
+smoothed_ints.push_back(18000000.0);
+smoothed_ints.push_back(33000000.0);
+smoothed_ints.push_back(17500000.0);
+smoothed_ints.push_back(540000.0);
+smoothed_ints.push_back(549223.0);
+smoothed_ints.push_back(300.0);
+
 
 START_SECTION((void setSmoothedIntensities(const std::vector<DoubleReal>& db_vec)))
 {
@@ -328,6 +510,8 @@ START_SECTION((void setSmoothedIntensities(const std::vector<DoubleReal>& db_vec
     smoothed_ints.pop_back();
 
     test_mt.setSmoothedIntensities(smoothed_ints);
+
+    TEST_EQUAL(test_mt.getSmoothedIntensities().size(), smoothed_ints.size())
 }
 END_SECTION
 
@@ -339,6 +523,49 @@ START_SECTION((std::vector<DoubleReal> getSmoothedIntensities()))
 
     TEST_EQUAL(smoothed_vec.empty(), false);
     TEST_EQUAL(smoothed_vec.size(), smoothed_ints.size());
+}
+END_SECTION
+
+/////
+
+test_mt.setSmoothedIntensities(smoothed_ints);
+
+START_SECTION((DoubleReal getIntensity(bool)))
+{
+    TEST_EXCEPTION(Exception::InvalidValue, test_mt.getIntensity(true));
+
+    test_mt.estimateFWHM(true);
+
+    DoubleReal smoothed_area = test_mt.getIntensity(true);
+    TEST_REAL_SIMILAR(smoothed_area, 69460700);
+
+    DoubleReal raw_area = test_mt.getIntensity(false);
+    TEST_REAL_SIMILAR(raw_area, 69922872.7);
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal getMaxIntensity(bool)))
+{
+    DoubleReal smoothed_maxint = test_mt.getMaxIntensity(true);
+    TEST_REAL_SIMILAR(smoothed_maxint, 33000000.0);
+
+    DoubleReal raw_maxint= test_mt.getMaxIntensity(false);
+    TEST_REAL_SIMILAR(raw_maxint, 33329536.0);
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal getMaxIntensity(bool) const ))
+{
+    const MassTrace test_mt_const(test_mt);
+    DoubleReal smoothed_maxint = test_mt_const.getMaxIntensity(true);
+    TEST_REAL_SIMILAR(smoothed_maxint, 33000000.0);
+
+    DoubleReal raw_maxint= test_mt_const.getMaxIntensity(false);
+    TEST_REAL_SIMILAR(raw_maxint, 33329536.0);
 }
 END_SECTION
 
@@ -360,34 +587,101 @@ test_mt2.updateWeightedMeanRT();
 test_mt2.updateWeightedMeanMZ();
 
 
-//START_SECTION((void setFWHMScansNum(Size r_fwhm)))
-//{
-//    test_mt.setFWHMScansNum(2);
-//    TEST_EQUAL(test_mt.getFWHMScansNum(), 2);
-//}
-//END_SECTION
-
-/////
-
-//START_SECTION((Size getFWHMScansNum()))
-//{
-//    NOT_TESTABLE; // see setFWHMScansNum
-//}
-//END_SECTION
-
-/////
-
-START_SECTION((DoubleReal computePeakArea()))
+START_SECTION((DoubleReal getFWHM()))
 {
-    DoubleReal peak_area = test_mt.computePeakArea();
+    DoubleReal test_mt_fwhm = test_mt.getFWHM();
 
-    TEST_REAL_SIMILAR(peak_area, 6989719445.0)
+    TEST_REAL_SIMILAR(test_mt_fwhm, 4.01);
 }
 END_SECTION
 
 /////
 
-START_SECTION((Size findMaxByIntPeak(bool)))
+START_SECTION((DoubleReal getFWHM() const ))
+{
+    MassTrace test_mt_const(test_mt);
+
+    DoubleReal test_mt_fwhm = test_mt_const.getFWHM();
+
+    TEST_REAL_SIMILAR(test_mt_fwhm, 4.01);
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal computeSmoothedPeakArea()))
+{
+    DoubleReal peak_area = test_mt.computeSmoothedPeakArea();
+
+    TEST_REAL_SIMILAR(peak_area, 70129723.0)
+}
+END_SECTION
+
+/////
+
+
+START_SECTION((DoubleReal computePeakArea()))
+{
+    DoubleReal peak_area = test_mt.computePeakArea();
+
+    TEST_REAL_SIMILAR(peak_area, 70164277.0)
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal computePeakArea() const ))
+{
+    MassTrace test_mt_const(test_mt);
+    DoubleReal peak_area = test_mt_const.computePeakArea();
+
+    TEST_REAL_SIMILAR(peak_area, 70164277.0)
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal computeFwhmAreaSmooth()))
+{
+    DoubleReal peak_area = test_mt.computeFwhmAreaSmooth();
+
+    TEST_REAL_SIMILAR(peak_area, 69040000.0)
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal computeFwhmArea()))
+{
+    DoubleReal peak_area = test_mt.computeFwhmArea();
+
+    TEST_REAL_SIMILAR(peak_area, 69497153.0)
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal computeFwhmAreaSmoothRobust()))
+{
+    DoubleReal peak_area = test_mt.computeFwhmAreaSmoothRobust();
+
+    TEST_REAL_SIMILAR(peak_area, 69460700.0)
+}
+END_SECTION
+
+/////
+
+START_SECTION((DoubleReal computeFwhmAreaRobust()))
+{
+    DoubleReal peak_area = test_mt.computeFwhmAreaRobust();
+
+    TEST_REAL_SIMILAR(peak_area, 69922872.67)
+}
+END_SECTION
+
+/////
+
+START_SECTION((Size findMaxByIntPeak(bool) const ))
 {
     TEST_EXCEPTION(Exception::InvalidValue, test_mt2.findMaxByIntPeak(true));
     TEST_EXCEPTION(Exception::InvalidValue, test_mt3.findMaxByIntPeak(false));
@@ -396,8 +690,8 @@ START_SECTION((Size findMaxByIntPeak(bool)))
     Size max_peak_idx1 = test_mt.findMaxByIntPeak(true);
     Size max_peak_idx2 = test_mt.findMaxByIntPeak(false);
 
-    TEST_EQUAL(max_peak_idx1, 2);
-    TEST_EQUAL(max_peak_idx2, 2);
+    TEST_EQUAL(max_peak_idx1, 3);
+    TEST_EQUAL(max_peak_idx2, 3);
 }
 END_SECTION
 
@@ -420,6 +714,41 @@ END_SECTION
 
 /////
 
+START_SECTION((std::pair<Size, Size> getFWHMborders()))
+{
+    MassTrace raw_mt(peak_vec);
+    std::pair<Size, Size> interval = raw_mt.getFWHMborders();
+
+    TEST_EQUAL(interval.first, 0);
+    TEST_EQUAL(interval.second, 0);
+
+    interval = test_mt.getFWHMborders();
+
+    TEST_EQUAL(interval.first, 1);
+    TEST_EQUAL(interval.second, 5);
+}
+END_SECTION
+
+/////
+
+START_SECTION((std::pair<Size, Size> getFWHMborders() const ))
+{
+    MassTrace raw_mt(peak_vec);
+    std::pair<Size, Size> interval = raw_mt.getFWHMborders();
+
+    TEST_EQUAL(interval.first, 0);
+    TEST_EQUAL(interval.second, 0);
+
+    interval = test_mt.getFWHMborders();
+
+    TEST_EQUAL(interval.first, 1);
+    TEST_EQUAL(interval.second, 5);
+}
+END_SECTION
+
+/////
+
+
 std::vector<PeakType> double_peak(peak_vec);
 double_peak.insert(double_peak.end(), peak_vec.begin(), peak_vec.end());
 
@@ -428,28 +757,6 @@ double_smooth_ints.insert(double_smooth_ints.end(), smoothed_ints.begin(), smoot
 
 MassTrace double_mt(double_peak);
 double_mt.setSmoothedIntensities(double_smooth_ints);
-
-
-START_SECTION((void findLocalExtrema(const Size &, std::vector< Size > &, std::vector< Size > &)))
-{
-    std::vector<Size> maxes, mins;
-
-    double_mt.findLocalExtrema(2, maxes, mins);
-
-    TEST_EQUAL(maxes.size(), 2);
-    TEST_EQUAL(mins.size(), 1);
-
-    maxes.clear();
-    mins.clear();
-
-    double_mt.findLocalExtrema(3, maxes, mins);
-
-    TEST_EQUAL(maxes.size(), 1);
-    TEST_EQUAL(mins.size(), 0);
-
-    // std::cerr << maxes.size() << " " << mins.size() << std::endl;
-}
-END_SECTION
 
 
 START_SECTION((MassTrace(const MassTrace &)))
@@ -544,7 +851,7 @@ START_SECTION((void updateWeightedMeanRT()))
 
     test_mt.updateWeightedMeanRT();
 
-    TEST_REAL_SIMILAR(test_mt.getCentroidRT(),155.210843262781);
+    TEST_REAL_SIMILAR(test_mt.getCentroidRT(),155.22051);
 }
 END_SECTION
 
@@ -596,6 +903,39 @@ START_SECTION((void updateWeightedMeanMZ()))
 }
 END_SECTION
 
+/////
+
+START_SECTION((void updateSmoothedMaxRT()))
+{
+    MassTrace raw_mt(peak_vec);
+
+    TEST_EXCEPTION(Exception::InvalidValue, raw_mt.updateSmoothedMaxRT());
+
+    test_mt.updateSmoothedMaxRT();
+
+    DoubleReal smooth_max_rt = test_mt.getCentroidRT();
+
+    TEST_REAL_SIMILAR(smooth_max_rt, 155.24);
+}
+END_SECTION
+
+/////
+
+START_SECTION((void updateSmoothedWeightedMeanRT()))
+{
+    MassTrace raw_mt(peak_vec);
+
+    TEST_EXCEPTION(Exception::InvalidValue, raw_mt.updateSmoothedWeightedMeanRT());
+
+    test_mt.updateSmoothedWeightedMeanRT();
+
+    DoubleReal smooth_max_rt = test_mt.getCentroidRT();
+
+    TEST_REAL_SIMILAR(smooth_max_rt, 155.2389);
+}
+END_SECTION
+
+/////
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

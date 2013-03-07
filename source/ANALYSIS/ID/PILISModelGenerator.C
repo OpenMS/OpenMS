@@ -55,12 +55,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  PILISModelGenerator::PILISModelGenerator(const PILISModelGenerator & rhs) :
+  PILISModelGenerator::PILISModelGenerator(const PILISModelGenerator& rhs) :
     DefaultParamHandler(rhs)
   {
   }
 
-  PILISModelGenerator & PILISModelGenerator::operator=(const PILISModelGenerator & rhs)
+  PILISModelGenerator& PILISModelGenerator::operator=(const PILISModelGenerator& rhs)
   {
     if (this != &rhs)
     {
@@ -73,7 +73,7 @@ namespace OpenMS
   {
   }
 
-  void PILISModelGenerator::getModel(HiddenMarkovModel & model)
+  void PILISModelGenerator::getModel(HiddenMarkovModel& model)
   {
     UInt visible_model_depth = (UInt)param_.getValue("visible_model_depth");
     UInt model_depth = (UInt)param_.getValue("model_depth");
@@ -130,7 +130,7 @@ namespace OpenMS
     model.addNewState("R");
 
     //
-    set<const Residue *> residues(ResidueDB::getInstance()->getResidues("Natural20"));
+    set<const Residue*> residues(ResidueDB::getInstance()->getResidues("Natural20"));
     StringList variable_modifications = param_.getValue("variable_modifications");
     for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
     {
@@ -142,7 +142,7 @@ namespace OpenMS
     //const String residues("ACDEFGHIKLMNPQRSTVWY");
 
     // create the residue states states
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
       AASequence first_aa;
       first_aa += *it;
@@ -155,7 +155,7 @@ namespace OpenMS
       model.addNewState(first + "_H");
       model.addNewState(first + "_R");
 
-      for (set<const Residue *>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
+      for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
       {
         AASequence second_aa;
         second_aa += *jt;
@@ -261,7 +261,7 @@ namespace OpenMS
       model.addNewState("Rk-" + num);
 
       // map the residue states
-      for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+      for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
       {
         AASequence first_aa;
         first_aa += *it;
@@ -282,7 +282,7 @@ namespace OpenMS
         model.addNewState(first + "_R" + num);
         model.addNewState(first + "_Rk-" + num);
 
-        for (set<const Residue *>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
+        for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
         {
           AASequence second_aa;
           second_aa += *jt;
@@ -300,7 +300,7 @@ namespace OpenMS
     model.setTransitionProbability("AABase1", "AABase2", 1);
 
     // CR bk-1, bk-2
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
       AASequence first_aa;
       first_aa += *it;
@@ -449,7 +449,7 @@ namespace OpenMS
 
       }
 
-      for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+      for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
       {
         AASequence first_aa;
         first_aa += *it;
@@ -517,7 +517,7 @@ namespace OpenMS
 
 
 
-        for (set<const Residue *>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
+        for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
         {
           AASequence second_aa;
           second_aa += *jt;
@@ -531,27 +531,13 @@ namespace OpenMS
 
           if (i <= 2)
           {
-            if (second == "P")
-            {
-              model.setTransitionProbability(first + second + "_bxyz" + num, "bxyz" + num, 0.5);
-              model.addSynonymTransition(first + second + "_bxyz" + num, "end", first + second + "_bxyz" + num, "end" + num);
-              model.setTransitionProbability(first + second + "_bxyz" + num, "end", 0.5);
+            model.setTransitionProbability(first + second + "_bxyz" + num, "bxyz" + num, 0.5);
+            model.addSynonymTransition(first + second + "_bxyz" + num, "end", first + second + "_bxyz" + num, "end" + num);
+            model.setTransitionProbability(first + second + "_bxyz" + num, "end", 0.5);
 
-              model.setTransitionProbability(first + second + "_axyz" + num, "axyz" + num, 0.5);
-              model.addSynonymTransition(first + second + "_axyz" + num, "end", first + second + "_axyz" + num, "end" + num);
-              model.setTransitionProbability(first + second + "_axyz" + num, "end", 0.5);
-
-            }
-            else
-            {
-              model.setTransitionProbability(first + second + "_bxyz" + num, "bxyz" + num, 0.5);
-              model.addSynonymTransition(first + second + "_bxyz" + num, "end", first + second + "_bxyz" + num, "end" + num);
-              model.setTransitionProbability(first + second + "_bxyz" + num, "end", 0.5);
-
-              model.setTransitionProbability(first + second + "_axyz" + num, "axyz" + num, 0.5);
-              model.addSynonymTransition(first + second + "_axyz" + num, "end", first + second + "_axyz" + num, "end" + num);
-              model.setTransitionProbability(first + second + "_axyz" + num, "end", 0.5);
-            }
+            model.setTransitionProbability(first + second + "_axyz" + num, "axyz" + num, 0.5);
+            model.addSynonymTransition(first + second + "_axyz" + num, "end", first + second + "_axyz" + num, "end" + num);
+            model.setTransitionProbability(first + second + "_axyz" + num, "end", 0.5);
           }
           else
           {

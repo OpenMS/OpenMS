@@ -175,12 +175,17 @@ namespace OpenMS
     if (all_simple.hasSubstring("<mzML"))
       return FileTypes::MZML;
 
-    //analysisXML (all lines)
+    //"analysisXML" aka. mzid (all lines)
     if (all_simple.hasSubstring("<mzIdentML"))
       return FileTypes::MZIDENTML;
 
+    //mzq (all lines)
     if (all_simple.hasSubstring("<mzQuantML"))
       return FileTypes::MZQUANTML;
+
+    //subject to change!
+    if (all_simple.hasSubstring("<MzQualityMLType"))
+      return FileTypes::QCML;
 
     //pepXML (all lines)
     if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))

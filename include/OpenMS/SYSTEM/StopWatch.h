@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_SYSTEM_STOPWATCH_H
@@ -38,6 +38,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #ifdef OPENMS_HAS_SYS_TIME_H
 #include <sys/time.h>
@@ -236,6 +237,10 @@ public:
 
     //@}
 
+    /**
+      custom string formatting of time, using only the minimal number of units required (e.g., does not report hours when seconds suffice).
+    */
+    static String toString(DoubleReal time);
 
 private:
 
@@ -243,22 +248,25 @@ private:
 
 #ifdef OPENMS_WINDOWSPLATFORM
     static PointerSizeInt clock_speed_;
+    typedef OPENMS_UINT64_TYPE TimeType; // do not use clock_t on Windows, since its not big enough for larger time intervalls
+#else
+    typedef clock_t TimeType;
 #endif
 
     // state of stop watch, either true(on) or false(off)
     bool is_running_;
 
     // clock seconds value when the stop watch was last started
-    PointerSizeInt last_secs_;
+    PointerSizeInt start_secs_;
 
     // clock useconds value when the stop watch was last started
-    PointerSizeInt last_usecs_;
+    PointerSizeInt start_usecs_;
 
     // user time when the stop watch was last started
-    clock_t last_user_time_;
+    TimeType start_user_time_;
 
     // system time when the stop watch was last started
-    clock_t last_system_time_;
+    TimeType start_system_time_;
 
     // current accumulated clock seconds
     PointerSizeInt current_secs_;
@@ -267,10 +275,10 @@ private:
     PointerSizeInt current_usecs_;
 
     // current accumulated user time
-    clock_t current_user_time_;
+    TimeType current_user_time_;
 
     // current accumulated user time
-    clock_t current_system_time_;
+    TimeType current_system_time_;
   };
 
 }

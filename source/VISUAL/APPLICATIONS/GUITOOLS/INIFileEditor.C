@@ -34,12 +34,17 @@
 
 
 #include <OpenMS/VISUAL/APPLICATIONS/INIFileEditorWindow.h>
+
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
-#include <QtGui/QApplication>
+// Qt
 #include <QtGui/QStyleFactory>
+#include <QTextCodec>
+
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #   ifndef _WIN32_WINNT
@@ -64,9 +69,17 @@ using namespace std;
     @image html INIFileEditor.png
 */
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
-
+#if  defined(__APPLE__)
+  // we do not want to load plugins as this leads to serious problems
+  // when shipping on mac os x
+  QApplication::setLibraryPaths(QStringList());
+#endif
+  
+  // ensure correct encoding of paths
+  QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+  
   Map<String, String> option_lists;
   Map<String, String> options;
   options["-print"] = "print";
@@ -76,10 +89,10 @@ int main(int argc, const char ** argv)
   param.parseCommandLine(argc, argv, options, flags, option_lists);
 
   //catch command line errors
-  if (param.exists("help")   //help requested
-     || argc > 3    //too many arguments
-     || (argc == 3 && !param.exists("print"))     //three argument but no -print
-     || (param.exists("print") && param.getValue("print") == "")    //-print but no file given
+  if (param.exists("help") //help requested
+     || argc > 3 //too many arguments
+     || (argc == 3 && !param.exists("print")) //three argument but no -print
+     || (param.exists("print") && param.getValue("print") == "") //-print but no file given
       )
   {
     cerr << endl
@@ -99,15 +112,16 @@ int main(int argc, const char ** argv)
   if (param.exists("print"))
   {
     Param data;
+    ParamXMLFile paramFile;
     try
     {
-      data.load(param.getValue("print"));
+      paramFile.load(param.getValue("print"), data);
       for (Param::ParamIterator it = data.begin(); it != data.end(); ++it)
       {
         cout << it.getName() << " = " << it->value << endl;
       }
     }
-    catch (Exception::BaseException & e)
+    catch (Exception::BaseException& e)
     {
       LOG_ERROR << "Error while parsing file '" << param.getValue("print") << "'\n";
       LOG_ERROR << e << "\n";
@@ -117,7 +131,7 @@ int main(int argc, const char ** argv)
   }
 
   //Create window
-  QApplication app(argc, const_cast<char **>(argv));
+  QApplicationTOPP app(argc, const_cast<char**>(argv));
 
   //set plastique style unless windows / mac style is available
   if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))

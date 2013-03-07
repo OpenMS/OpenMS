@@ -117,6 +117,16 @@ public:
       AM_MOVE
     };
 
+
+    /// Pipeline status after refreshParameters() was called
+    enum RefreshStatus
+    {
+      ST_REFRESH_NOCHANGE,
+      ST_REFRESH_CHANGED,
+      ST_REFRESH_CHANGEINVALID
+    };
+
+
     /// The container for edges
     typedef QList<TOPPASEdge *> EdgeContainer;
     /// A mutable iterator for edges
@@ -166,8 +176,8 @@ public:
     void resetDownstream(TOPPASVertex * vertex);
     /// Runs the pipeline
     void runPipeline();
-    /// Stores the pipeline to @p file
-    void store(const String & file);
+    /// Stores the pipeline to @p file, returns true on success
+    bool store(const String & file);
     /// Loads the pipeline from @p file
     void load(const String & file);
     /// Includes the pipeline @p scene
@@ -217,7 +227,7 @@ public:
     ///Returns whether the workflow has been changed since the latest "save"
     bool wasChanged();
     /// Refreshes the parameters of the TOPP tools in this workflow
-    bool refreshParameters();
+    RefreshStatus refreshParameters();
     /// determine dry run status (are tools actually called?)
     bool isDryRun() const;
     /// workflow description (to be displayed in TOPPAS window)
@@ -226,6 +236,10 @@ public:
     void setDescription(const QString & desc);
     /// sets the maximum number of jobs
     void setAllowedThreads(int num_threads);
+    /// returns the hovering edge
+    TOPPASEdge* getHoveringEdge();
+    /// Checks whether all output vertices are finished, and if yes, emits entirePipelineFinished() (called by finished output vertices)
+    void checkIfWeAreDone();
 
 
 public slots:
@@ -242,18 +256,17 @@ public slots:
     void addHoveringEdge(const QPointF & pos);
     /// Called when the new edge is being "released"
     void finishHoveringEdge();
-    /// Checks whether all output vertices are finished, and if yes, emits entirePipelineFinished() (called by finished output vertices)
-    void checkIfWeAreDone();
     /// Called by vertices at which an error occurred during pipeline execution
     void pipelineErrorSlot(const QString msg = "");
     /// Moves all selected items by dx, dy
     void moveSelectedItems(qreal dx, qreal dy);
     /// Makes all vertices snap to the grid
     void snapToGrid();
-    /// Sets if the running_ flag to true
+    /// Sets if the running_ flag to true, or false
+    /// If set to false, the application emits an 'alert' sign, demanding user attention (to let him know it finished)
     void setPipelineRunning(bool b = true);
-    /// Invoked by TTV if a parameter was edited
-    void changedParameter(const TOPPASToolVertex::TOOLSTATUS status);
+    /// Invoked by TTV or other vectices if a parameter was edited
+    void changedParameter(const bool invalidates_running_pipeline);
     /// Called by a finished QProcess to indicate that we are free to start a new one
     void processFinished();
     /// dirty solution: when using ExecutePipeline this slot is called when the pipeline crashes. This will quit the app
@@ -340,7 +353,8 @@ protected:
     QString description_text_;
     /// maximum number of allowed threads
     int allowed_threads_;
-
+    /// last node where 'resume' was started
+    TOPPASToolVertex* resume_source_;
 
     /// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
     TOPPASVertex * getVertexAt_(const QPointF & pos);
@@ -349,7 +363,8 @@ protected:
     /// DFS helper method. Returns true, if a back edge has been discovered
     bool dfsVisit_(TOPPASVertex * vertex);
     /// Performs a sanity check of the pipeline and notifies user when it finds something strange. Returns if pipeline OK.
-    bool sanityCheck_();
+    /// if 'allowUserOverride' is true, some dialogs are shown which allow the user to ignore some warnings (e.g. disconnected nodes)
+    bool sanityCheck_(bool allowUserOverride);
 
     ///@name reimplemented Qt events
     //@{

@@ -388,7 +388,7 @@ namespace OpenMS
       std::set<String> sdb_set, sen_set, sof_set, sip_set, spd_set;
       std::map<String, UInt64> sdb_ids, sen_ids, sof_ids, sip_ids, spd_ids, pep_ids;
       std::map<String, String> pie_ids;
-      std::vector<String> peps, pepevis, sidlist;
+      std::vector<String> /* peps, pepevis, */ sidlist;
       //TODO MS:1001035 (date / time search performed) for sidlist
 
       //TODO if constructed with a msexperiment - not yet implemented

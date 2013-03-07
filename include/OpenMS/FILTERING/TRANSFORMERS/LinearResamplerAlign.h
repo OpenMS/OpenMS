@@ -113,8 +113,8 @@ public:
     typename SpecT<PeakType>::iterator last = spectrum.end();
 
     // get the iterators just before / after the two points start_pos / end_pos
-    while (first != spectrum.end() && (first)->getMZ() < start_pos) {first++;}
-    while (last != first && (last-1)->getMZ() > end_pos) {last--;}
+    while (first != spectrum.end() && (first)->getMZ() < start_pos) {++first;}
+    while (last != first && (last-1)->getMZ() > end_pos) {--last;}
 
     int number_resampled_points = (int)(ceil((end_pos -start_pos) / spacing_ + 1));
 

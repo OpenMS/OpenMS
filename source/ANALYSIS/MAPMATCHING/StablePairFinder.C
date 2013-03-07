@@ -57,10 +57,10 @@ namespace OpenMS
     //set the name for DefaultParamHandler error messages
     Base::setName(getProductName());
 
-    defaults_.setValue("second_nearest_gap", 2.0, "The distance to the second nearest neighbors must be larger by this factor than the distance to the matching element itself");
+    defaults_.setValue("second_nearest_gap", 2.0, "The distance to the second nearest neighbors must be larger by this factor than the distance to the matching element itself.");
     defaults_.setMinFloat("second_nearest_gap", 1.0);
 
-    defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account)");
+    defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
     defaults_.setValidStrings("use_identifications", StringList::create("true,false"));
 
     defaults_.insert("", FeatureDistance().getDefaults());
@@ -76,8 +76,8 @@ namespace OpenMS
     use_IDs_ = String(param_.getValue("use_identifications")) == "true";
   }
 
-  void StablePairFinder::run(const std::vector<ConsensusMap> & input_maps,
-                             ConsensusMap & result_map)
+  void StablePairFinder::run(const std::vector<ConsensusMap>& input_maps,
+                             ConsensusMap& result_map)
   {
     // empty output destination:
     result_map.clear(false);
@@ -121,17 +121,20 @@ namespace OpenMS
     vector<DoublePair> nn_distance_1(input_maps[1].size(), init);
 
     // iterate over all feature pairs, find nearest neighbors:
+    // TODO: iterate over SENSIBLE RT (and m/z) window -- sort the maps beforehand
+    //       to save a lot of processing time...
+    //       Once done, remove the warning in the description of the 'use_idenfications' parameter 
     for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
     {
-      const ConsensusFeature & feat0 = input_maps[0][fi0];
+      const ConsensusFeature& feat0 = input_maps[0][fi0];
 
       for (UInt fi1 = 0; fi1 < input_maps[1].size(); ++fi1)
       {
-        const ConsensusFeature & feat1 = input_maps[1][fi1];
+        const ConsensusFeature& feat1 = input_maps[1][fi1];
 
-        if (use_IDs_ && !compatibleIDs_(feat0, feat1))         // check peptide IDs
+        if (use_IDs_ && !compatibleIDs_(feat0, feat1)) // check peptide IDs
         {
-          continue;           // mismatch
+          continue; // mismatch
         }
 
         pair<bool, DoubleReal> result = feature_distance(feat0, feat1);
@@ -172,7 +175,7 @@ namespace OpenMS
     // can become a pair:
     for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
     {
-      UInt fi1 = nn_index_0[fi0];       // nearest neighbor of "fi0" in map 1
+      UInt fi1 = nn_index_0[fi0]; // nearest neighbor of "fi0" in map 1
       // cout << "index: " << fi0 << ", RT: " << input_maps[0][fi0].getRT()
       //         << ", MZ: " << input_maps[0][fi0].getMZ() << endl
       //         << "neighbor: " << fi1 << ", RT: " << input_maps[1][fi1].getRT()
@@ -192,19 +195,23 @@ namespace OpenMS
           // ...nearest neighbor of "fi0" also satisfies constraints (yay!)
           // cout << "match!" << endl;
           result_map.push_back(ConsensusFeature());
-          ConsensusFeature & f = result_map.back();
+          ConsensusFeature& f = result_map.back();
 
           f.insert(input_maps[0][fi0]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(), input_maps[0][fi0].getPeptideIdentifications().begin(), input_maps[0][fi0].getPeptideIdentifications().end());
+          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
+                                               input_maps[0][fi0].getPeptideIdentifications().begin(),
+                                               input_maps[0][fi0].getPeptideIdentifications().end());
 
           f.insert(input_maps[1][fi1]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(), input_maps[1][fi1].getPeptideIdentifications().begin(), input_maps[1][fi1].getPeptideIdentifications().end());
+          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
+                                               input_maps[1][fi1].getPeptideIdentifications().begin(),
+                                               input_maps[1][fi1].getPeptideIdentifications().end());
 
           f.computeConsensus();
           DoubleReal quality = 1.0 - nn_distance_0[fi0].first;
           DoubleReal quality0 = 1.0 - nn_distance_0[fi0].first * second_nearest_gap_ / nn_distance_0[fi0].second;
           DoubleReal quality1 = 1.0 - nn_distance_1[fi1].first * second_nearest_gap_ / nn_distance_1[fi1].second;
-          quality = quality * quality0 * quality1;           // TODO other formula?
+          quality = quality * quality0 * quality1; // TODO other formula?
 
           // incorporate existing quality values:
           Size size0 = max(input_maps[0][fi0].size(), size_t(1));
@@ -229,7 +236,7 @@ namespace OpenMS
         if (is_singleton[input][index])
         {
           result_map.push_back(input_maps[input][index]);
-          if (result_map.back().size() < 2)           // singleton consensus feature
+          if (result_map.back().size() < 2) // singleton consensus feature
           {
             result_map.back().setQuality(0.0);
           }
@@ -244,29 +251,50 @@ namespace OpenMS
     // FeatureGroupingAlgorithm!
   }
 
-  bool StablePairFinder::compatibleIDs_(const ConsensusFeature & feat1, const ConsensusFeature & feat2) const
+  bool StablePairFinder::compatibleIDs_(const ConsensusFeature& feat1, const ConsensusFeature& feat2) const
   {
-    vector<PeptideIdentification> pep1 = feat1.getPeptideIdentifications(), pep2 = feat2.getPeptideIdentifications();
     // a feature without identifications always matches:
-    if (pep1.empty() || pep2.empty())
+    if (feat1.getPeptideIdentifications().empty() || feat2.getPeptideIdentifications().empty())
       return true;
 
-    set<AASequence> best1, best2;
-    for (vector<PeptideIdentification>::iterator pep_it = pep1.begin(); pep_it != pep1.end(); ++pep_it)
+    const vector<PeptideIdentification>& pep1 = feat1.getPeptideIdentifications();
+    const vector<PeptideIdentification>& pep2 = feat2.getPeptideIdentifications();
+
+    set<String> best1, best2;
+    for (vector<PeptideIdentification>::const_iterator pep_it = pep1.begin(); pep_it != pep1.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
-        continue;                                    // shouldn't be the case
-      pep_it->sort();
-      best1.insert(pep_it->getHits()[0].getSequence());
+        continue; // shouldn't be the case
+
+      best1.insert(getBestHitSequence_(*pep_it).toString());
     }
-    for (vector<PeptideIdentification>::iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
+    for (vector<PeptideIdentification>::const_iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
-        continue;                                    // shouldn't be the case
-      pep_it->sort();
-      best2.insert(pep_it->getHits()[0].getSequence());
+        continue; // shouldn't be the case
+
+      best2.insert(getBestHitSequence_(*pep_it).toString());
     }
     return best1 == best2;
+  }
+
+  const AASequence& StablePairFinder::getBestHitSequence_(const PeptideIdentification& peptideIdentification) const
+  {
+
+    if (peptideIdentification.isHigherScoreBetter())
+    {
+      return std::min_element(peptideIdentification.getHits().begin(),
+                              peptideIdentification.getHits().end(),
+                              PeptideHit::ScoreMore()
+                              )->getSequence();
+    }
+    else
+    {
+      return std::min_element(peptideIdentification.getHits().begin(),
+                              peptideIdentification.getHits().end(),
+                              PeptideHit::ScoreLess()
+                              )->getSequence();
+    }
   }
 
 }

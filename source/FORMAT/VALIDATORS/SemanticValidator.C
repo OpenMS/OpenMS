@@ -280,6 +280,18 @@ namespace OpenMS
       }
     }
 
+    //~ void SemanticValidator::makeCVTerm_(const ControlledVocabulary::CVTerm lc, CVTerm & parsed_term)
+    //~ {
+      //~ parsed_term.accession = lc.id;
+      //~ parsed_term.name = lc.name;
+      //~ //no value in ControlledVocabulary::CVTerm
+      //~ //no units either yet
+      //~ {
+        //~ parsed_term.has_unit_accession = false;
+        //~ parsed_term.has_unit_name = false;
+      //~ }
+    //~ }
+
     //reimplemented to
     // - ignore values (not known)
     // - allow more names (upper-lower-case + spaces)
@@ -540,6 +552,42 @@ namespace OpenMS
           errors_.push_back(String("Value-type required, but not given (" + ControlledVocabulary::CVTerm::getXRefTypeName(cv_.getTerm(parsed_term.accession).xref_type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + parsed_term.value + "' at element '" + getPath_(1) + "'");
         }
       }
+    }
+
+    bool SemanticValidator::locateTerm(const String & path, const CVTerm & parsed_term) const
+    {
+      //check if the term is allowed in this element
+      //and if there is a mapping rule for this element
+      //Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
+      bool allowed = false;
+      const vector<CVMappingRule> & rules = rules_[path];
+      for (Size r = 0; r < rules.size(); ++r)  //go thru all rules
+      {
+        //~ rule_found = true;
+        for (Size t = 0; t < rules[r].getCVTerms().size(); ++t)     //go thru all terms
+        {
+          const CVMappingTerm & term = rules[r].getCVTerms()[t];
+          if (term.getUseTerm() && term.getAccession() == parsed_term.accession)         //check if the term itself is allowed
+          {
+            allowed = true;
+            break;
+          }
+          if (term.getAllowChildren())           //check if the term's children are allowed
+          {
+            set<String> child_terms;
+            cv_.getAllChildTerms(child_terms, term.getAccession());
+            for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
+            {
+              if (*it == parsed_term.accession)
+              {
+                allowed = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+      return allowed;
     }
 
   }   // namespace Internal

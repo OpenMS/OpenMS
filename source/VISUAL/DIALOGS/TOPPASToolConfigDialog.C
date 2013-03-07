@@ -37,6 +37,8 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+
 #include <QtCore/QStringList>
 #include <QtGui/QPushButton>
 #include <QtGui/QHBoxLayout>
@@ -52,7 +54,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPASToolConfigDialog::TOPPASToolConfigDialog(QWidget * parent, Param & param, String default_dir, String tool_name, String tool_type, QVector<String> hidden_entries) :
+  TOPPASToolConfigDialog::TOPPASToolConfigDialog(QWidget* parent, Param& param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries) :
     QDialog(parent),
     param_(&param),
     default_dir_(default_dir),
@@ -60,32 +62,38 @@ namespace OpenMS
     tool_type_(tool_type),
     hidden_entries_(hidden_entries)
   {
-    QGridLayout * main_grid = new QGridLayout(this);
+    QGridLayout* main_grid = new QGridLayout(this);
+
+    QLabel* description = new QLabel;
+    description->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    description->setWordWrap(true);
+    description->setText(tool_desc.toQString());
+    main_grid->addWidget(description, 0, 0, 1, 1);
 
     //Add advanced mode check box
     editor_ = new ParamEditor(this);
-    main_grid->addWidget(editor_, 0, 0, 1, 1);
+    main_grid->addWidget(editor_, 1, 0, 1, 1);
 
-    QHBoxLayout * hbox = new QHBoxLayout;
-    QPushButton * load_button = new QPushButton(tr("&Load"));
+    QHBoxLayout* hbox = new QHBoxLayout;
+    QPushButton* load_button = new QPushButton(tr("&Load"));
     connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
     hbox->addWidget(load_button);
-    QPushButton * store_button = new QPushButton(tr("&Store"));
+    QPushButton* store_button = new QPushButton(tr("&Store"));
     connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
     hbox->addWidget(store_button);
     hbox->addStretch();
 
     // cancel button
-    QPushButton * cancel_button = new QPushButton(tr("&Cancel"));
+    QPushButton* cancel_button = new QPushButton(tr("&Cancel"));
     connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
     hbox->addWidget(cancel_button);
 
     // ok button
-    QPushButton * ok_button_ = new QPushButton(tr("&Ok"));
+    QPushButton* ok_button_ = new QPushButton(tr("&Ok"));
     connect(ok_button_, SIGNAL(clicked()), this, SLOT(ok_()));
     hbox->addWidget(ok_button_);
 
-    main_grid->addLayout(hbox, 1, 0, 1, 1);
+    main_grid->addLayout(hbox, 2, 0, 1, 1);
 
     setLayout(main_grid);
 
@@ -120,7 +128,7 @@ namespace OpenMS
   {
     QString string;
     filename_ = QFileDialog::getOpenFileName(this, tr("Open ini file"), default_dir_.c_str(), tr("ini files (*.ini);; all files (*.*)"));
-    //not file selected
+    //no file selected
     if (filename_.isEmpty())
     {
       return;
@@ -133,9 +141,10 @@ namespace OpenMS
     }
     try
     {
-      arg_param_.load(filename_.toStdString());
+      ParamXMLFile paramFile;
+      paramFile.load(filename_.toStdString(), arg_param_);
     }
-    catch (Exception::BaseException & e)
+    catch (Exception::BaseException& e)
     {
       QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.getMessage()).c_str());
       arg_param_.clear();
@@ -155,19 +164,27 @@ namespace OpenMS
 
     //load data into editor
     editor_->load(*param_);
+    editor_->setModified(true);
   }
 
   void TOPPASToolConfigDialog::storeINI_()
   {
     //nothing to save
-    if (param_->empty()) return;
+    if (param_->empty())
+      return;
 
     filename_ = QFileDialog::getSaveFileName(this, tr("Save ini file"), default_dir_.c_str(), tr("ini files (*.ini)"));
-    //not file selected
-    if (filename_.isEmpty()) return;
-    if (!filename_.endsWith(".ini")) filename_.append(".ini");
+    //no file selected
+    if (filename_.isEmpty())
+      return;
 
+    if (!filename_.endsWith(".ini"))
+      filename_.append(".ini");
+
+    bool was_modified = editor_->isModified();
     editor_->store();
+    if (was_modified) editor_->setModified(true);
+
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try
     {
@@ -178,23 +195,24 @@ namespace OpenMS
       }
       tmp_ini_file += File::getUniqueName().toQString() + "_tmp.ini";
       //store current parameters
-      arg_param_.store(tmp_ini_file.toStdString());
+      ParamXMLFile paramFile;
+      paramFile.store(tmp_ini_file.toStdString(), arg_param_);
       //restore other parameters that might be missing
-      QString executable =  String(File::getExecutablePath() + tool_name_).toQString();
+      QString executable = File::findExecutable(tool_name_).toQString();
       QStringList args;
       args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
       if (tool_type_ != "")
       {
         args << "-type" << tool_type_.toQString();
       }
-      
+
       if (QProcess::execute(executable, args) != 0)
       {
         QMessageBox::critical(0, "Error", (String("Could not execute '\"")  + executable + "\" \"" + args.join("\" \"") + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
         return;
       }
     }
-    catch (Exception::BaseException & e)
+    catch (Exception::BaseException& e)
     {
       QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.getMessage()).c_str());
       return;

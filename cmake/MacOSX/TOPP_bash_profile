@@ -28,23 +28,39 @@
 ## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##
 ## --------------------------------------------------------------------------
-## $Maintainer: Andreas Bertsch $
-## $Authors: Andreas Bertsch $
+## $Maintainer: Stephan Aiche $
+## $Authors: Stephan Aiche, Andreas Bertsch $
 ## --------------------------------------------------------------------------
 
 ## bashrc for the OpenMS/TOPP command shell ##
 
-## we need the systems profile for the bash
-source /etc/profile 
+# check if this is a TOPP-shell or if the user included this file
+if [ -n "$IS_TOPP_SHELL" ]; then
+  ## we need the systems profile for the bash
+  source /etc/profile 
+  ## also add user profile; if it exists
+  if [ -e ~/.profile ]; then
+    source ~/.profile
+  fi
+fi
 
-## we need to set the DYLIB_LIBRARY_PATH for the TOPP-tools to execute properly
-export DYLD_LIBRARY_PATH=${OPENMS_TOPP_PATH}/lib/:${OPENMS_TOPP_PATH}/lib/QtCore.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtGui.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtNetwork.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtOpenGL.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtSql.framework/Versions/4/:${OPENMS_TOPP_PATH}/lib/QtXml.framework/Versions/4/:$DYLIB_LIBRARY_PATH
+if [ -z  "${OPENMS_TOPP_PATH}" ]; then
+  echo "ERROR: You need to set \${OPENMS_TOPP_PATH} to the folder where OpenMS was installed. E.g."
+  echo "export OPENMS_TOPP_PATH=/Applications/OpenMS-1.10.0/"
+  echo "source \${OPENMS_TOPP_PATH}/.TOPP_bash_profile"
+else
+  ## setting of the OpenMS data path to the share directory
+  export OPENMS_DATA_PATH=${OPENMS_TOPP_PATH}/share/OpenMS
 
-## setting of the OpenMS data path to the share directory
-export OPENMS_DATA_PATH=${OPENMS_TOPP_PATH}/share/OpenMS
+  ## add TOPPView, TOPPAS, and INIFileEditor to PATH
+  export PATH=${OPENMS_TOPP_PATH}/TOPPView.app/Contents/MacOS/:${PATH}
+  export PATH=${OPENMS_TOPP_PATH}/INIFileEditor.app/Contents/MacOS/:${PATH}
+  export PATH=${OPENMS_TOPP_PATH}/TOPPAS.app/Contents/MacOS/:${PATH}
+  ## also the search engines
+  export PATH=${OPENMS_TOPP_PATH}/TOPP/SEARCHENGINES/XTandem:$PATH
+  export PATH=${OPENMS_TOPP_PATH}/TOPP/SEARCHENGINES/OMSSA:$PATH
+  ## and finally topp
+  export PATH=${OPENMS_TOPP_PATH}/TOPP:${PATH}
+fi
 
-## we need to set the path variable accordingly, also add TOPPView and INIFileEditor
-export PATH=${OPENMS_TOPP_PATH}/TOPP:${OPENMS_TOPP_PATH}/TOPPView.app/Contents/MacOS/:${OPENMS_TOPP_PATH}/INIFileEditor.app/Contents/MacOS/:${OPENMS_TOPP_PATH}/TOPPAS.app/Contents/MacOS/:$PATH
-
-## eof
-
+## EOF

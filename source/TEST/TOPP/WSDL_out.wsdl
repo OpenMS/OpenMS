@@ -37,7 +37,7 @@
             </xs:element>
             <xs:element name="concentrations" default="[]">
               <xs:annotation>
-                <xs:documentation>Spiked concentrations</xs:documentation>
+                <xs:documentation>List of spiked concentrations</xs:documentation>
               </xs:annotation>
               <xs:simpleType>
                 <xs:restriction base="xs:doublelist">
@@ -45,50 +45,24 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:element>
-            <xs:element name="feature_rt" type="xs:double" default="nan">
+            <xs:element name="feature_rt" type="xs:double" default="-1">
               <xs:annotation>
                 <xs:documentation>RT position of the feature</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="feature_mz" type="xs:double" default="nan">
+            <xs:element name="feature_mz" type="xs:double" default="-1">
               <xs:annotation>
                 <xs:documentation>m/z position of the feature</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="standard_rt" type="xs:double" default="nan">
+            <xs:element name="standard_rt" type="xs:double" default="-1">
               <xs:annotation>
                 <xs:documentation>RT position of the standard</xs:documentation>
               </xs:annotation>
             </xs:element>
-            <xs:element name="standard_mz" type="xs:double" default="nan">
+            <xs:element name="standard_mz" type="xs:double" default="-1">
               <xs:annotation>
                 <xs:documentation>m/z position of the standard</xs:documentation>
-              </xs:annotation>
-            </xs:element>
-            <xs:element name="write_gnuplot_output" default="false">
-              <xs:annotation>
-                <xs:documentation>Flag that activates the GNUplot output</xs:documentation>
-              </xs:annotation>
-              <xs:simpleType>
-                <xs:restriction base="xs:string">
-                  <xs:enumeration value="true"/>
-                  <xs:enumeration value="false"/>
-                </xs:restriction>
-              </xs:simpleType>
-            </xs:element>
-            <xs:element name="out_gp" type="xs:string" default="">
-              <xs:annotation>
-                <xs:documentation>base file name (3 files with different extensions are created)</xs:documentation>
-              </xs:annotation>
-            </xs:element>
-            <xs:element name="mz_unit" type="xs:string" default="Thomson">
-              <xs:annotation>
-                <xs:documentation>the m/z unit of the plot</xs:documentation>
-              </xs:annotation>
-            </xs:element>
-            <xs:element name="rt_unit" type="xs:string" default="seconds">
-              <xs:annotation>
-                <xs:documentation>the RT unit of the plot</xs:documentation>
               </xs:annotation>
             </xs:element>
             <xs:element name="log" type="xs:string" default="">
@@ -127,6 +101,22 @@
                   <xs:enumeration value="false"/>
                 </xs:restriction>
               </xs:simpleType>
+            </xs:element>
+            <xs:element name="plot:write_gnuplot_output" default="false">
+              <xs:annotation>
+                <xs:documentation>Flag that activates the GNUplot output</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="true"/>
+                  <xs:enumeration value="false"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+            <xs:element name="plot:out_gp" type="xs:string" default="">
+              <xs:annotation>
+                <xs:documentation>base file name (3 files with different extensions are created)</xs:documentation>
+              </xs:annotation>
             </xs:element>
           </xs:sequence>
         </xs:complexType>

@@ -49,17 +49,18 @@ START_TEST(BackgroundIntensityBin, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundIntensityBin* ptr;
+BackgroundIntensityBin* ptr = 0;
+BackgroundIntensityBin* nullPtr = 0;
 START_SECTION((BackgroundIntensityBin(double, double)))
 	ptr = new BackgroundIntensityBin(300, 12);
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~BackgroundIntensityBin()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((checkBelonging(MSPeak*)))
+START_SECTION((bool checkBelonging(MSPeak *  )))
   ptr = new BackgroundIntensityBin(300, 12);
   MSPeak *p = new MSPeak();
   TEST_EQUAL(ptr->checkBelonging(p), false);
@@ -71,14 +72,14 @@ START_SECTION((checkBelonging(MSPeak*)))
   delete p2;
 END_SECTION
 
-START_SECTION((addIntensity( double )))
+START_SECTION((void addIntensity( double )))
   ptr = new BackgroundIntensityBin(300, 12);
   TEST_EQUAL(ptr->getIntensityMap()->size(), 0);
   ptr->addIntensity(100);
   TEST_EQUAL(ptr->getIntensityMap()->size(), 1);
 END_SECTION
 
-START_SECTION((addMSPeak( MSPeak* )))
+START_SECTION((void addMSPeak( MSPeak* )))
   ptr = new BackgroundIntensityBin(300, 12);
   MSPeak* p = new MSPeak(1, 300, 100);  // (int IN_scan, double IN_mass, float IN_intens)
   TEST_EQUAL(ptr->getIntensityMap()->size(), 0);
@@ -87,18 +88,19 @@ START_SECTION((addMSPeak( MSPeak* )))
   delete p;
 END_SECTION
 
-START_SECTION((processIntensities()))
+START_SECTION((void processIntensities()))
   ptr = new BackgroundIntensityBin(300, 12);
   ptr->processIntensities();
   TEST_REAL_SIMILAR(ptr->getMean(), 0);
 END_SECTION
 
-START_SECTION((getIntensityHist()))
+START_SECTION((std::map<double, double> * getIntensityHist()))
   ptr = new BackgroundIntensityBin(300, 12);
-  TEST_NOT_EQUAL(ptr->getIntensityHist(), 0);
+  std::map<double, double>* intensityHistNullPtr = 0;
+  TEST_NOT_EQUAL(ptr->getIntensityHist(), intensityHistNullPtr);
 END_SECTION
 
-START_SECTION((getMean()))
+START_SECTION((double getMean()))
   ptr = new BackgroundIntensityBin(300, 12);
   ptr->processIntensities();
   //TEST_EQUAL(ptr->getMean(), 0)

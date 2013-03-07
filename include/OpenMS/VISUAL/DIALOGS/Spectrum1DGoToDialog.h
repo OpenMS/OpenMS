@@ -62,6 +62,10 @@ public:
 
     ///Sets the m/z range displayed initially
     void setRange(Real min, Real max);
+
+    /// Fixes the currently stored range (i.e. ensure correct order of min-max; enforce minimum of 1 Da window IFF min==max
+    void fixRange();
+
     ///Returns the lower m/z bound
     Real getMin() const;
     ///Returns the upper m/z bound

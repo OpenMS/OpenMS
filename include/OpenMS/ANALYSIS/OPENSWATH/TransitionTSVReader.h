@@ -61,11 +61,11 @@ namespace OpenMS
       PeptideSequence  (free text, sequence only (no modifications) )
       ProteinName  (free text)
       Annotation  (free text, e.g. y7)
-      FullPeptideName  (free text, should contain modifications*)
+      FullUniModPeptideName  (free text, should contain modifications*)
       MissedCleavages
       Replicates
       NrModifications
-      Charge (integer)
+      PrecursorCharge (integer)
       Labelgroup (free text, e.g. heavy or light)
 
   */
@@ -93,17 +93,45 @@ private:
       String ProteinName;
       String Annotation;
       String FullPeptideName;
-      int charge;
+      int precursor_charge;
       String group_label;
+      int fragment_charge;
+      int fragment_nr;
+      String fragment_type;
+      String uniprot_id;
     };
 
+    static const char* strarray[];
+
+    static const std::vector<std::string> header_names;
+
+    /// read TSV input with columns in defined order
     void readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
 
+    /// determine separater in a CSV file and check for correct headers
+    void getTSVHeader(std::string & line, char & delimiter, std::vector<std::string> header, std::map<std::string, int> & header_dict);
+
+    /// read tab or comma separated input with columns defined by their column headers only
+    void readUnstructuredTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
+
+    /// do post-processing on read input data (removing quotes etc)
+    void cleanUpTransition(TSVTransition & mytransition);
+
+    /// store a list of TSVTransition objects properly in a TargetedExperiment
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
-    void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
+    void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
+
+    void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
 
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
+
+    void add_modification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
+          int location, ResidueModification & rmod, const String & name);
+
+
+    /// write a TargetedExperiment to a file
+    void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
 public:
     /// Write out a targeted experiment (TraML structure) into a tsv file

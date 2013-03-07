@@ -80,13 +80,16 @@ represented in the simpler idXML format.
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant
 information for the use of ProteinProphet.
 
+Details on using 'mz_file':
+Some search engine output file (like Sequest .out files) do not contain retention times, only scan numbers, thus the raw file is used to reconstruct actual RT values.
+For pepXML and mascotXML this file can additionally be used to define what parts to extract (some pepXMLs contain results from multiple experiments).
 
 Some information about the supported input types:
   @ref OpenMS::MzIdentMLFile "mzIdentML"
   @ref OpenMS::PepXMLFile "pepXML"
   @ref OpenMS::ProtXMLFile "protXML"
   @ref OpenMS::IdXMLFile "idXML"
-  @ref OpenMS::MascotXML "mascotXML" / "xml"
+  @ref OpenMS::MascotXML "mascotXML"
   @ref OpenMS::OMSSAFile "omssaXML"
   @ref OpenMS::SequestOutfile ".out" directory
 
@@ -118,10 +121,10 @@ protected:
                                                 "Sequest: Directory containing the .out files\n"
                                                 "pepXML: Single pepXML file.\n"
                                                 "protXML: Single protXML file.\n"
-                                                "xml: Single Mascot xml file.\n"
+                                                "mascotXML: Single Mascot xml file.\n"
                                                 "omssaXML: Single OMSSA xml file.\n"
                                                 "idXML: Single idXML file.\n", true);
-    // setValidFormats_("in", StringList::create("pepXML,protXML,xml,omssaXML,idXML")); // TODO: should be checked if these file types are OK
+    setValidFormats_("in", StringList::create("pepXML,protXML,mascotXML,omssaXML,idXML"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
@@ -130,18 +133,14 @@ protected:
     setValidStrings_("out_type", StringList::create(formats));
 
     addEmptyLine_();
-    addText_("Sequest options:");
-    registerStringOption_("mz_file", "<file>", "", "Retention times will be looked up in this file, if supplied.\n"
-                                                   "Note: Sequest .out files do not contain retention times, only scan numbers.", false);
-    // Please contact the maintainers if you know more about Sequest .out files and might help to resolve this issue
-    registerFlag_("ignore_proteins_per_peptide", "Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
+    registerStringOption_("mz_file", "<file>", "", "[Sequest, pepXML, mascotXML only] Retention times will be looked up in this file", false);
+    addEmptyLine_();
+    registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
 
     addEmptyLine_();
-    addText_("pepXML/mascotXML options:");
-    registerStringOption_("mz_file", "<file>", "", "MS data file from which the pepXML/mascotXML was generated. Used to look up retention times (some contain only scan numbers) and/or to define what parts to extract (some pepXMLs contain results from multiple experiments).", false);
-    registerStringOption_("mz_name", "<file>", "", "Experiment filename/path to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
-    registerFlag_("use_precursor_data", "Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
+    registerStringOption_("mz_name", "<file>", "", "[pepXML, mascotXML only] Experiment filename/path to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
+    registerFlag_("use_precursor_data", "[pepXML, mascotXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
   }
 
   ExitCodes

@@ -65,6 +65,7 @@ signals:
     void spectrumSelected(int);
     void spectrumSelected(std::vector<int, std::allocator<int> > indices);
     void spectrumDoubleClicked(int);
+    void spectrumDoubleClicked(std::vector<int, std::allocator<int> > indices);
     void showSpectrumAs1D(int);
     void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
     void showSpectrumMetaData(int);
@@ -73,7 +74,7 @@ private:
     QComboBox * spectra_combo_box_;
     QTreeWidget * spectra_treewidget_;
     // cache to store mapping of chromatogram precursors to chromatogram indices
-    std::map<int, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache;
+    std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache;
 private slots:
     void spectrumSelected_(const QString & text);
     void spectrumBrowserHeaderContextMenu_(const QPoint &);

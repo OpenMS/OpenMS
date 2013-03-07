@@ -137,6 +137,13 @@ private:
 
     void reconstructChannelInfo_(const ConsensusMap & consensus_map);
 
+    /** 
+      @brief Check if the given channel_frequency matrix is an identity matrix
+     
+      @param The matrix to check.
+    */
+    bool isIdentityCorrectionMatrix_(const Matrix<double>& channel_frequency) const;
+    
     /// either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
     Int itraq_type_;
 

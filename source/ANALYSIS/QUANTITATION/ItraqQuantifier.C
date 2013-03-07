@@ -71,7 +71,7 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  ItraqQuantifier::ItraqQuantifier(Int itraq_type, const Param & param) :
+  ItraqQuantifier::ItraqQuantifier(Int itraq_type, const Param& param) :
     DefaultParamHandler("ItraqQuantifier"),
     itraq_type_(itraq_type),
     isotope_corrections_()
@@ -82,7 +82,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  ItraqQuantifier::ItraqQuantifier(const ItraqQuantifier & cp) :
+  ItraqQuantifier::ItraqQuantifier(const ItraqQuantifier& cp) :
     DefaultParamHandler(cp),
     ItraqConstants(cp),
     itraq_type_(cp.itraq_type_),
@@ -91,7 +91,7 @@ namespace OpenMS
   {
   }
 
-  ItraqQuantifier & ItraqQuantifier::operator=(const ItraqQuantifier & rhs)
+  ItraqQuantifier& ItraqQuantifier::operator=(const ItraqQuantifier& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -104,8 +104,23 @@ namespace OpenMS
 
     return *this;
   }
+  
+  bool ItraqQuantifier::isIdentityCorrectionMatrix_(const Matrix<double>& channel_frequency) const
+  {
+    // check if we have an identity matrix
+    bool isIdentity = true;
+    for (Size i = 0; i < channel_frequency.cols(); ++i)
+    {
+      if (channel_frequency.getValue(i,i) != 1.0)
+      {
+        isIdentity = false;
+        break;
+      }
+    }
+    return isIdentity;
+  }
 
-  void ItraqQuantifier::run(const ConsensusMap & consensus_map_in, ConsensusMap & consensus_map_out)
+  void ItraqQuantifier::run(const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out)
   {
     // new stats
     stats_ = ItraqQuantifierStats();
@@ -125,16 +140,22 @@ namespace OpenMS
       // translate isotope_corrections_ to a channel_frequency matrix
       Matrix<double> channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_);
 
+      // if it is an identity matrix, performing isotope correction makes no sense
+      if (isIdentityCorrectionMatrix_(channel_frequency))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: The given isotope correction matrix is an identity matrix leading to no correction. Please provide a valid isotope_correction matrix as it was provided with the iTRAQ/TMT kit!");
+      }
+      
 #ifdef ITRAQ_DEBUG
       std::cout << "channel_frequency matrix: \n" << channel_frequency << "\n" << std::endl;
 #endif
 
       // ISOTOPE CORRECTION: this solves the system naively via matrix inversion
-      gsl_matrix * gsl_m = channel_frequency.toGslMatrix();
-      gsl_permutation * gsl_p = gsl_permutation_alloc(channel_frequency.rows());
-      int * gsl_sign = new int(0);
-      gsl_vector * gsl_b = gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
-      gsl_vector * gsl_x = gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
+      gsl_matrix* gsl_m = channel_frequency.toGslMatrix();
+      gsl_permutation* gsl_p = gsl_permutation_alloc(channel_frequency.rows());
+      int* gsl_sign = new int(0);
+      gsl_vector* gsl_b = gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
+      gsl_vector* gsl_x = gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
       // lets see if the matrix is invertible
       int  gsl_status = gsl_linalg_LU_decomp(gsl_m, gsl_p, gsl_sign);
       if (gsl_status != 0)
@@ -142,7 +163,7 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
       }
 
-      std::cout << "SOLVING isotope correction via NNLS\n";
+      LOG_INFO << "SOLVING isotope correction via NNLS\n";
 
       Matrix<double> m_b(CHANNEL_COUNT[itraq_type_], 1);
       Matrix<double> m_x(CHANNEL_COUNT[itraq_type_], 1);
@@ -154,7 +175,7 @@ namespace OpenMS
         std::cout << "\nMAP element  #### " << i << " #### \n" << std::endl;
 #endif
 
-        consensus_map_out[i].clear();         // delete only the consensus handles
+        consensus_map_out[i].clear(); // delete only the consensus handles
         // fill b vector
         for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[i].getFeatures().begin();
              it_elements != consensus_map_in[i].getFeatures().end();
@@ -248,7 +269,7 @@ namespace OpenMS
       gsl_vector_free(gsl_b);
       gsl_vector_free(gsl_x);
 
-    }     // ! isotope_correction
+    } // ! isotope_correction
     else
     {
       LOG_WARN << "Warning: Due to deactivated isotope-correction labeling statistics will be based on raw intensities, which might give too optimistic results." << std::endl;
@@ -278,13 +299,13 @@ namespace OpenMS
         }
       }
     }
-    LOG_INFO <<   "iTRAQ: skipped " << stats_.number_ms2_empty << " of " << consensus_map_out.size() << " selected scans due to lack of iTRAQ information:\n";
+    LOG_INFO << "iTRAQ: skipped " << stats_.number_ms2_empty << " of " << consensus_map_out.size() << " selected scans due to lack of iTRAQ information:\n";
     consensus_map_out.setMetaValue("itraq:scans_noquant", stats_.number_ms2_empty);
     consensus_map_out.setMetaValue("itraq:scans_total", consensus_map_out.size());
 
     stats_.empty_channels = empty_channel;
 
-    LOG_INFO <<   "iTRAQ: channels with signal\n";
+    LOG_INFO << "iTRAQ: channels with signal\n";
     for (std::map<Size, Size>::const_iterator it_m = empty_channel.begin(); it_m != empty_channel.end(); ++it_m)
     {
       LOG_INFO << "      channel " << it_m->first << ": " << (consensus_map_out.size() - it_m->second) << " / " <<  consensus_map_out.size() << " (" << ((consensus_map_out.size() - it_m->second) * 100 / consensus_map_out.size()) << "%)\n";
@@ -368,7 +389,7 @@ namespace OpenMS
           // reference channel not found in this ConsensusFeature
           if (ref_it == consensus_map_out[i].end())
           {
-            std::cerr << "ItraqQuantifier::run() WARNING: ConsensusFeature " << i << " does not have a reference channel! Skipping" << std::endl;
+            LOG_ERROR << "ItraqQuantifier::run() WARNING: ConsensusFeature " << i << " does not have a reference channel! Skipping" << std::endl;
             continue;
           }
 
@@ -379,9 +400,9 @@ namespace OpenMS
                it_elements != consensus_map_out[i].end();
                ++it_elements)
           {
-            if (ref_intensity == 0)           //avoid nan's and inf's
+            if (ref_intensity == 0) //avoid nan's and inf's
             {
-              if (it_elements->getIntensity() == 0)             // 0/0 will give 'nan'
+              if (it_elements->getIntensity() == 0) // 0/0 will give 'nan'
               {
                 //so leave it out completely (there is no information to be gained)
               }
@@ -398,7 +419,7 @@ namespace OpenMS
             // control
             peptide_intensities[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity());
           }
-        }         // ! collect ratios
+        } // ! collect ratios
 
         double max_deviation_from_control = 0;
         // find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
@@ -415,7 +436,7 @@ namespace OpenMS
           peptide_intensities[it_map->second][0] = peptide_intensities[it_map->second][peptide_intensities[it_map->second].size() / 2] /
                                                    peptide_intensities[ref_mapid][peptide_intensities[ref_mapid].size() / 2];
           //#ifdef ITRAQ_DEBUG
-          std::cout << "iTRAQ-normalize:  map-id " << (it_map->first) << " has factor " << (peptide_ratios[it_map->second][0]) << " (control: " << (peptide_intensities[it_map->second][0]) << ")" << std::endl;
+          LOG_INFO << "iTRAQ-normalize:  map-id " << (it_map->first) << " has factor " << (peptide_ratios[it_map->second][0]) << " (control: " << (peptide_intensities[it_map->second][0]) << ")" << std::endl;
           //#endif
           double dev = (peptide_ratios[it_map->second][0] - peptide_intensities[it_map->second][0]) / peptide_ratios[it_map->second][0];
           if (fabs(max_deviation_from_control) < fabs(dev))
@@ -424,7 +445,7 @@ namespace OpenMS
           }
         }
 
-        std::cout << "iTRAQ-normalization: max ratio deviation of alternative method is " << (max_deviation_from_control * 100) << "%\n";
+        LOG_INFO << "iTRAQ-normalization: max ratio deviation of alternative method is " << (max_deviation_from_control * 100) << "%\n";
 
 #ifdef ITRAQ_DEBUG
         std::cout << "debug OUTPUT\n";
@@ -478,7 +499,7 @@ namespace OpenMS
 
           // now adjust the ratios
           ConsensusFeature cf = consensus_map_out[i];
-          cf.clear();           // delete its handles
+          cf.clear(); // delete its handles
           for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_out[i].begin();
                it_elements != consensus_map_out[i].end();
                ++it_elements)
@@ -496,14 +517,14 @@ namespace OpenMS
           }
           // replace consensusFeature with updated intensity
           consensus_map_out[i] = cf;
-        }         // ! adjust ratios
+        } // ! adjust ratios
 
-      }       // ! ref_channel valid
+      } // ! ref_channel valid
       else
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier::run() Parameter 'channel_reference' does not name a valid channel!");
       }
-    }     // !do_normalization
+    } // !do_normalization
 
 
     // ** PEPTIDE PROTEIN MAPPING ** //
@@ -520,23 +541,68 @@ namespace OpenMS
 
   void ItraqQuantifier::setDefaultParams_()
   {
-    defaults_.setValue("isotope_correction", "true", "enable isotope correction (highly recommended)", StringList::create("advanced"));
+    // choose default and documentation depending on itraq/tmt, since we can provide no stable default for TMT
+    defaults_.setValue("isotope_correction",
+                       (itraq_type_ == TMT_SIXPLEX
+                        ? "false"
+                        : "true"),
+                       (itraq_type_ == TMT_SIXPLEX
+                        ? "Enable isotope correction (highly recommended). Note that you need to provide a correction matrix (see isotope_correction:tmt-6plex otherwise the tool will fail."
+                        : "Enable isotope correction (highly recommended)."),
+                       StringList::create("advanced"));
     defaults_.setValidStrings("isotope_correction", StringList::create("true,false"));
 
     defaults_.setValue("do_normalization", "false", "Normalize channels? Done by using the Median of Ratios (every channel / Reference). Also the ratio of medians (from any channel and reference) is provided as control measure!", StringList::create("advanced"));
     defaults_.setValidStrings("do_normalization", StringList::create("true,false"));
 
-    defaults_.setValue("isotope_correction:4plex", ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, isotope_corrections_), "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
-    defaults_.setValue("isotope_correction:8plex", ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, isotope_corrections_), "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2' ", StringList::create("advanced"));
-    defaults_.setValue("isotope_correction:tmt-6plex", ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::TMT_SIXPLEX, isotope_corrections_), "override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '126:0/0.3/4/0' , '128:0.1/0.3/3/0.2' ", StringList::create("advanced"));
-    defaults_.setSectionDescription("isotope_correction", "Isotope correction matrices for 4plex and 8plex. Only one of them will be used (depending on iTRAQ mode)");
+    if (itraq_type_ == TMT_SIXPLEX)
+    {
+      defaults_.setValue("isotope_correction:tmt-6plex",
+                         ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::TMT_SIXPLEX, isotope_corrections_),
+                         "Override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '126:0/0.3/4/0' , '128:0.1/0.3/3/0.2'.",
+                         StringList::create("advanced"));
+    }
+    else
+    {
+      defaults_.setValue("isotope_correction:4plex",
+                         ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, isotope_corrections_),
+                         "Override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2'.",
+                         StringList::create("advanced"));
+      defaults_.setValue("isotope_correction:8plex",
+                         ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, isotope_corrections_),
+                         "Override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2'.",
+                         StringList::create("advanced"));
+    }
+
+    defaults_.setSectionDescription("isotope_correction",
+                                    (itraq_type_ == TMT_SIXPLEX
+                                     ? "Isotope correction matrices for tmt-6plex."
+                                     : "Isotope correction matrices for 4plex and 8plex. Only one of them will be used (depending on iTRAQ mode)."));
+
 
     // for 4 & 8 plex. Max value is again checked during runtime
     defaults_.setValue("channel_reference",
-                       (itraq_type_ != TMT_SIXPLEX ? 114 : 126),
-                       "number of the reference channel (114-117 for 4plex)");
-    defaults_.setMinInt("channel_reference", 113);
-    defaults_.setMaxInt("channel_reference", 131);
+                       (itraq_type_ != TMT_SIXPLEX
+                        ? 114
+                        : 126),
+                       (itraq_type_ != TMT_SIXPLEX
+                        ? "Number of the reference channel (114-117 for 4plex)."
+                        : "Number of the reference channel (126-131)."));
+    if (itraq_type_ == TMT_SIXPLEX)
+    {
+      defaults_.setMinInt("channel_reference", 126);
+      defaults_.setMaxInt("channel_reference", 131);
+    }
+    else if (itraq_type_ == FOURPLEX)
+    {
+      defaults_.setMinInt("channel_reference", 114);
+      defaults_.setMaxInt("channel_reference", 117);
+    }
+    else // EIGHTPLEX
+    {
+      defaults_.setMinInt("channel_reference", 113);
+      defaults_.setMaxInt("channel_reference", 121);
+    }
 
     defaultsToParam_();
   }
@@ -574,7 +640,7 @@ namespace OpenMS
   }
 
   /// extract channel information (active channels, names, etc) from ConsensusMap
-  void ItraqQuantifier::reconstructChannelInfo_(const ConsensusMap & consensus_map)
+  void ItraqQuantifier::reconstructChannelInfo_(const ConsensusMap& consensus_map)
   {
     channel_map_.clear();
 
@@ -603,7 +669,7 @@ namespace OpenMS
     }
   }
 
-  std::ostream & operator<<(std::ostream & os, const ItraqQuantifier::ItraqQuantifierStats & stats)
+  std::ostream& operator<<(std::ostream& os, const ItraqQuantifier::ItraqQuantifierStats& stats)
   {
     os << "name\tvalue\t(value in %)\n";
     os << "# channels\t" << stats.channel_count << "\tNA\n";

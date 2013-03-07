@@ -292,7 +292,8 @@ END_SECTION
 START_SECTION((static BaseLabeler* create()))
 {
   BaseLabeler* labeler = ITRAQLabeler::create();
-  TEST_NOT_EQUAL(labeler, 0)
+  BaseLabeler* nullPointer = 0;
+  TEST_NOT_EQUAL(labeler, nullPointer)
   delete labeler;
 }
 END_SECTION

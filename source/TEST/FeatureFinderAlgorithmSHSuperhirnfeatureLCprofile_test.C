@@ -50,10 +50,12 @@ START_TEST(FeatureLCProfile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FeatureLCProfile* ptr;
+FeatureLCProfile* ptr = 0;
+FeatureLCProfile* nullPtr = 0;
+
 START_SECTION((FeatureLCProfile()))
 	ptr = new FeatureLCProfile();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~FeatureLCProfile()))
@@ -61,6 +63,24 @@ START_SECTION((~FeatureLCProfile()))
 END_SECTION
 
 ptr = new FeatureLCProfile();
+
+START_SECTION((FeatureLCProfile(double, double, int, double)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 2, 1000);
+END_SECTION
+
+START_SECTION((FeatureLCProfile(double, double, double, int, int, double)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
+END_SECTION
+
+START_SECTION((FeatureLCProfile(const FeatureLCProfile & tmp)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
+  FeatureLCProfile other = FeatureLCProfile(p);
+END_SECTION
+
+START_SECTION((FeatureLCProfile::operator=(const FeatureLCProfile & tmp)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
+  FeatureLCProfile other = p;
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

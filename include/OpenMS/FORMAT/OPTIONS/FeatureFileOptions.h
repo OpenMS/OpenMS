@@ -117,6 +117,7 @@ private:
     bool has_rt_range_;
     bool has_mz_range_;
     bool has_intensity_range_;
+    bool size_only_;
     DRange<1> rt_range_;
     DRange<1> mz_range_;
     DRange<1> intensity_range_;

@@ -78,6 +78,8 @@ namespace OpenMS
 
   void ModificationsDB::searchTerminalModifications(set<const ResidueModification *> & mods, const String & name, ResidueModification::Term_Specificity term_spec) const
   {
+    mods.clear();
+
     //cerr << "searchTerminalModification(" << name << " " << term_spec << endl;
     if (!modification_names_.has(name))
     {
@@ -98,6 +100,8 @@ namespace OpenMS
 
   void ModificationsDB::searchModifications(set<const ResidueModification *> & mods, const String & origin, const String & name, ResidueModification::Term_Specificity term_spec) const
   {
+    mods.clear();
+
     //cerr << "searchModification(" << origin << " " << name << " " << term_spec << endl;
     if (!modification_names_.has(name))
     {
@@ -121,7 +125,8 @@ namespace OpenMS
 
   void ModificationsDB::searchModifications(std::set<const ResidueModification *> & mods, const String & name, ResidueModification::Term_Specificity term_spec) const
   {
-    //cerr << "searchModification(" << origin << " " << name << " " << term_spec << endl;
+     mods.clear();
+
     if (!modification_names_.has(name))
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
@@ -151,12 +156,12 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      cerr << "ModificationsDB::getTerminalModification: more than one modification (" << mod_name << ", term_spec=" << term_spec << ") found, picking first one (";
+      LOG_WARN << "ModificationsDB::getTerminalModification: more than one modification (" << mod_name << ", term_spec=" << term_spec << ") found, picking first one (";
       for (set<const ResidueModification *>::const_iterator it = mods.begin(); it != mods.end(); ++it)
       {
-        cerr << (*it)->getFullId() << ",";
+        LOG_WARN << (*it)->getFullId() << ",";
       }
-      cerr << ")" << endl;
+      LOG_WARN << ")\n";
     }
     return **mods.begin();
   }
@@ -170,8 +175,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Retrieving residue failed.", residue_name);
     }
 
-    String res = residue_name;
-    res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
+    String res = ResidueDB::getInstance()->getResidue(residue_name)->getOneLetterCode();
 
     //cerr << "getModification(" << res << " " << mod_name << endl;
 
@@ -183,12 +187,12 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      cerr << "ModificationsDB::getModification: more than one modification (residue='" << residue_name << "', modification='" << mod_name << "', term_spec=" << term_spec << ") found, picking first one (";
+      LOG_WARN << "ModificationsDB::getModification: more than one modification (residue='" << residue_name << "', modification='" << mod_name << "', term_spec=" << term_spec << ") found, picking first one (";
       for (set<const ResidueModification *>::const_iterator it = mods.begin(); it != mods.end(); ++it)
       {
-        cerr << (*it)->getFullId() << ",";
+        LOG_WARN << (*it)->getFullId() << ",";
       }
-      cerr << ")" << endl;
+      LOG_WARN << ")\n";
     }
     return **mods.begin();
   }
@@ -206,12 +210,12 @@ namespace OpenMS
     }
     if (mods.size() > 1)
     {
-      cerr << "ModificationsDB::getModification: more than one modification (" << modification << ") found, picking first one (";
+      LOG_WARN << "ModificationsDB::getModification: more than one modification (" << modification << ") found, picking first one (";
       for (set<const ResidueModification *>::const_iterator it = mods.begin(); it != mods.end(); ++it)
       {
-        cerr << (*it)->getFullId() << ",";
+        LOG_WARN << (*it)->getFullId() << ",";
       }
-      cerr << ")" << endl;
+      LOG_WARN << ")\n";
     }
     return **mods.begin();
   }
@@ -243,8 +247,9 @@ namespace OpenMS
     return idx;
   }
 
-  void ModificationsDB::getTerminalModificationsByDiffMonoMass(vector<String> & mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec)
+  void ModificationsDB::getTerminalModificationsByDiffMonoMass(vector<String>& mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec)
   {
+    mods.clear();
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
       if (fabs((*it)->getDiffMonoMass() - mass) <= error && (*it)->getTermSpecificity() == term_spec)
@@ -254,8 +259,9 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::getModificationsByDiffMonoMass(vector<String> & mods, DoubleReal mass, DoubleReal error)
+  void ModificationsDB::getModificationsByDiffMonoMass(vector<String>& mods, DoubleReal mass, DoubleReal error)
   {
+    mods.clear();
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
       if (fabs((*it)->getDiffMonoMass() - mass) <= error)
@@ -267,6 +273,7 @@ namespace OpenMS
 
   void ModificationsDB::getModificationsByDiffMonoMass(vector<String> & mods, const String & residue, DoubleReal mass, DoubleReal error)
   {
+    mods.clear();
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
       if (fabs((*it)->getDiffMonoMass() - mass) <= error)
@@ -527,6 +534,8 @@ namespace OpenMS
 
   void ModificationsDB::getAllSearchModifications(vector<String> & modifications)
   {
+    modifications.clear();
+
     for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
       if ((*it)->getUniModAccession() != "")

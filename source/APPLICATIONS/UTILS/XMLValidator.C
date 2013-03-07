@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -84,16 +85,18 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "file to validate");
+    setValidFormats_("in", StringList::create("mzData,featureXML,idXML,consensusXML,mzXML,ini,pepXML"));
     registerInputFile_("schema", "<file>", "", "schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
+    setValidFormats_("schema", StringList::create("xsd"));    
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     String schema = getStringOption_("schema");
     bool valid = true;
 
-    if (schema != "")   //schema explicitly given
+    if (schema != "") //schema explicitly given
     {
       XMLValidator xmlv;
       valid = xmlv.isValid(in, schema);
@@ -137,13 +140,18 @@ protected:
         break;
 
       case FileTypes::INI:
-        cout << " against schema version " << Param().getVersion() << endl;
-        valid = Param().isValid(in);
+        cout << " against schema version " << ParamXMLFile().getVersion() << endl;
+        valid = ParamXMLFile().isValid(in);
         break;
 
       case FileTypes::PEPXML:
         cout << " against schema version " << PepXMLFile().getVersion() << endl;
         valid = PepXMLFile().isValid(in);
+        break;
+
+      case FileTypes::MZML:
+        cout << " against schema version " << MzMLFile().getVersion() << endl;
+        valid = MzMLFile().isValid(in);
         break;
 
       default:
@@ -167,7 +175,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPXMLValidator tool;
   return tool.main(argc, argv);

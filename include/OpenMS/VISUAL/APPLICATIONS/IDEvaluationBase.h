@@ -71,6 +71,8 @@ namespace OpenMS
   /**
     @brief Main window of the IDEvaluation tool
 
+    @htmlinclude OpenMS_IDEvaluationBase.parameters
+
     @ingroup TOPPAS_elements
   */
   class OPENMS_GUI_DLLAPI IDEvaluationBase :
@@ -90,6 +92,8 @@ public:
 
     void setVisibleArea(double low, double high);
 
+    const MSExperiment<>& getPoints() const;
+
     static StringList getSupportedImageFormats();
 
 public slots:
@@ -99,10 +103,14 @@ public slots:
     void setIntensityMode(int index);
 
     /// compute q-values from ids and store as vector of points for plotting
+    /// returns false on error, the return vector 'points' will also be empty in this case
     bool getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */, const std::vector<DoubleReal> & q_value_thresholds, MSSpectrum<> & points);
-
+    
+    /// calls 'getPoints()' after loading the idXML file and returns the result
+    bool loadCurve(const String& file_name, MSSpectrum<>& points);
     /// opens the file in a new window
-    void addSearchFile(const String & file_name);
+    /// @return false on error (no idXML file or missing information preventing FDR computation)
+    bool addSearchFile(const String & file_name);
     /// shows the dialog for opening files
     void openFileDialog();
     /// saves the plot - querying for a filename first
@@ -128,7 +136,9 @@ public slots:
     /// updates the toolbar
     //void updateToolBar();
 
-    void loadFiles(const StringList & list);
+    /// load Target/Decoy annotated files, return FALSE if any of these files did 
+    /// not contain target/decoy information or any other error which prevents FDR calculation
+    bool loadFiles(const StringList & list);
 
     void showURL();
 
@@ -181,6 +191,10 @@ protected:
     void showLogMessage_(LogState state, const String & heading, const String & body);
 
     std::vector<DoubleReal> q_value_thresholds_;
+
+    // holds the computed curves for easy export to outside
+    MSExperiment<> data_;
+
     /** @name Toolbar
     */
     //@{

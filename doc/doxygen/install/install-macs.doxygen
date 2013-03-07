@@ -1,111 +1,120 @@
 /**
- 	
-  @page install_mac Building %OpenMS on Mac OS X
 
-  @section install_mac_read Read this section first!
-  
-  This document addresses %OpenMS users and explains the
-  installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
-	encouraged to <b>download the binary installer</b>
-	(see <a href="http://www.OpenMS.de" target="_blank">here</a>),
-	instead of building %OpenMS from sources. 
-  Be aware though that we do not provide binary installers for every MacOS version.
+  @page install_mac Building OpenMS on Mac OS X
+
+  @section install_mac_read Introduction
+
+  This document addresses %OpenMS users and explains the installation procedure for building %OpenMS from its sources. 
+  If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
+	encouraged to <b>download the binary installer</b> (see <a href="http://www.OpenMS.de" target="_blank">here</a>),
+	instead of building %OpenMS from sources. Be aware though that we do not provide binary installers for every MacOS version.
   For more information read the install instructions for the TOPP binaries.
 
-	This document especially considers the installation
-  of several libraries which are required by %OpenMS. Most of these libraries are made available in our "contrib-package" (see below).
+	This document especially considers the installation of several libraries which are required by %OpenMS. 
+  Most of these libraries are made available in our "contrib-package" (see below).
   <br>
-  If you encounter errors during configuring/compiling our software, have a look at our "Known Issues" section (documentation), maybe the error is already known. If not, please write to the mailing list.
-  
-  <b>Required applications</b>
-  
-  In order to compile %OpenMS, several applications need to be installed:
-   - XCode (version 3.0 or higher) is required to build %OpenMS (the current version can be obtained from <a href="http://developer.apple.com/technology/xcode.html" target="_new">http://developer.apple.com/technology/xcode.html</a>)
-   - CMake (version 2.8.1 or higher) is required to configure and build the package 
-	 - Qt4 (version 4.5. or higher)  containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://www.qtsoftware.com/" target="_new">http://www.qtsoftware.com/</a>)
-  
-  If your %OpenMS version is a development version from SVN, the following 
-  applications are needed in order to create the %OpenMS documentation:
-    - doxygen (We recommend version 1.7.1 since some 1.6 versions have a serious bug that makes building the %OpenMS documentation impossible)
-    - pdflatex
+  If you encounter errors during configuring/compiling our software, have a look at our "Known Issues" section (documentation),
+  maybe the error is already known. If not, please write to the mailing list or report the error on our <a href="https://sourceforge.net/apps/trac/open-ms/" target="_new">issue tracker</a>.
 
-<HR> 
-	
+  @subsection hint_package_manager Package Mangers
+  
+  We suggest to use either <a href="http://mxcl.github.com/homebrew/" target="_new">Homebrew</a> or <a href="http://www.macports.org" target="_new">MacPorts</a> as they contain most of the following requirements for %OpenMS and ease the process of upgrading those dependencies.
+
+  @subsection required_apps Required applications
+
+  In order to compile %OpenMS, several applications need to be installed:
+  <ul>
+   <li>Xcode (version 4.0 or higher) is required to build %OpenMS (the current version can be obtained from the Mac App Store). More details can be found on the <a href="https://developer.apple.com/xcode/" target="_new" title="Xcode 4 Downloads and Resources.">Apple Developer Site</a>.</li>
+   @note Since Xcode 4.3 you also need to install the "Command Line Tools" to access the compilers shipped with Xcode from the command line. An explanation on how to install the Command Line Tools can be found <a href="http://developer.apple.com/library/ios/#documentation/DeveloperTools/Conceptual/WhatsNewXcode/Articles/xcode_4_3.html#//apple_ref/doc/uid/1006-SW1" target="_new" title="Install Command Line Tools for Xcode">here</a>.
+   <li>CMake (version 2.8.1 or higher) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
+	 <li>Qt4 (version 4.5. or higher) containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://qt-project.org" target="_new" title="Get Qt">http://qt-project.org/</a>) 
+   @note Qt 5 is not yet supported by %OpenMS.</li>
+  </ul>
+  
+  If your %OpenMS version is a development version from SVN, the following
+  applications are needed in order to create the %OpenMS documentation:
+  
+  <ul>  
+   <li><a href="http://www.doxygen.org/index.html">Doxygen</a> is used to generate the %OpenMS documentation.</li>
+   @note
+   We recommend using at least doxygen 1.7.1 (or above) since some 1.6.X versions have a serious bug that makes building the %OpenMS documentation impossible.
+   <li>pdflatex is required to generate the tutorial pdfs. The latest MacTeX release can be downloaded <a href="http://tug.org/mactex/">here</a></li>
+  </ul>
+  
+<HR>
+
  @section install_mac_contrib Installing the contrib package
 
   In order to facilitate the installation of the libraries required for %OpenMS, we composed a
-  "contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, glpk, zlib, bzip2 and Xerces-C. 
-    
-  The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
-  
-  If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
+  "contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, glpk, zlib, bzip2 and Xerces-C.
+
+  The contrib package is contained in the %OpenMS release package and is available inside the <tt>contrib</tt> directory in the %OpenMS directory.
+
+  If you are using the developer version of %OpenMS, you have to check out the contrib from Sourceforge SVN repository
 
 @code
 svn co "https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib"
 @endcode
-  
-  CMake is used to check the system and create the contrib libraries.
-  
+
+  CMake is used to check your system and build the contrib libraries.
+
+  @note
+  As of %OpenMS 1.10 compiling %OpenMS with the Apple GCC 4.2 compiler can lead to errors due to the update of BOOST to version 1.52. Please use the shipped clang compiler instead (clang/clang++) to avoid this problem.
+
   <OL>
-    <LI>open a Terminal (/Applications/Terminal.app)</LI>
-    <LI>create a build directory for the %OpenMS contrib <br>
-          -e.g. $ mkdir ~/openms-development/contrib_build</LI>
-    <LI>enter the created directory and call cmake to build the contrib
+    <LI>Open a Terminal (/Applications/Utilities/Terminal.app)</LI>
+    <LI>Create a build directory for the %OpenMS contrib e.g.,
+
+@code    
+$ mkdir ~/openms-development/contrib_build
+@endcode
+    </LI>
+    <LI>Enter the created directory and call cmake to build the contrib
 
 @code
-cd <path_to_contrib_build>
-cmake <path_to_contrib>
+$ cd <path_to_contrib_build>
+$ cmake -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang <path_to_contrib>
 @endcode
 
 Example:
 
 @code
 cd ~/openms-development/contrib_build
-cmake ~/openms-development/contrib
+cmake -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang ~/openms-development/contrib
 @endcode
-
     </LI>
   </OL>
 
   If everything worked, the following sub-directories were created under in the contrib build directory:
 
   <ul>
-    <li>'lib/'
-    <br>
-    It contains the libraries needed by %OpenMS.
-    </li>
-    <li>'include/'
-    <br>
-    It contains the header files needed for %OpenMS.</li>
+    <li><tt>lib/</tt> containing the libraries needed by %OpenMS.</li>
+    <li><tt>include/</tt> containing the header files needed for %OpenMS.</li>
   </ul>
 
-  @note To avoid problems while building the libraries contained in the contrib package, the path
-  to your contrib directory should not have any spaces in it.
-
-  @note All shipped libraries are build as Mach-O universal binaries containing both 32-bit and 64-bit x86 code.
+  @note To avoid problems while building the libraries contained in the contrib package, the path to your contrib directory should not contain any spaces.
 
 <HR>
 
- @section install_mac_openms Installing %OpenMS/TOPP
- 
-		If you have not installed the libraries which %OpenMS requires,
-		please refer to the section @ref install_win_contrib above.
-		<br>
-		Assuming you have successfully installed the dependent libraries, you need to
-		get the %OpenMS source code. The latest stable version of %OpenMS
-		can be found in the <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
-		For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
-		<br>
-		<br>
+  @section install_mac_openms Installing OpenMS
 
-   <OL>
-      <LI>open a Terminal (/Applications/Terminal.app)</LI>
-      <LI>create a build directory for %OpenMS<br>
-          -e.g. $ mkdir ~/openms-development/openms_build
-      <LI>call cmake to create the build system there
+  Assuming you have successfully installed the dependent libraries, you need to get the %OpenMS source code. 
+  The latest stable version of %OpenMS can be found in the <a href="http://www.openms.de/downloads/" target="_blank">download</a> page. 
+  For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+
+    <OL>
+      <LI>Open a Terminal (/Applications/Utilities/Terminal.app)</LI>
+      <LI>Create a build directory for %OpenMS, e.g.,
+
+@code
+$ mkdir ~/openms-development/openms_build
+@endcode
+      </li>
+      <LI>Call cmake to create the build system there
+      
 @code
 cd <path_to_OpenMS_build>
-cmake -D CMAKE_FIND_ROOT_PATH="<path_to_contrib_build>" <path_to_OpenMS>
+cmake -D CMAKE_FIND_ROOT_PATH=<path_to_contrib_build> <path_to_OpenMS>
 @endcode
 
   You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
@@ -115,54 +124,47 @@ cmake -D CMAKE_FIND_ROOT_PATH="<path_to_contrib_build>" <path_to_OpenMS>
 ccmake ~/openms-development/openms_build
 @endcode
 
-  @note You need to execute <code>cmake</code> before using <code>ccmake</code>.
+  @note You need to execute <code>cmake</code> at least once before <tt>ccmake</tt> can be used.
+</OL>
 
-      Example:
-@code
-cd ~/openms-development/openms_build
-cmake -D CMAKE_FIND_ROOT_PATH="~/openms-development/contrib_build" "~/openms-development/openms"
-@endcode
-
-  </OL>  
-  
   The most important CMake variables are:
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
     <tr>
-      <td valign="top">INSTALL_PREFIX</td>
-      <td>the path where the library is installed.
-          <BR>
-          <b>Note:</b> Moving the library after installing it is not possible! 
-          Please use this option to point CMake to the location %OpenMS should
-          be installed to.
-					
-					Install prefixes are not supported for developing with %OpenMS. %OpenMS must
-          be built in place!
-					</td>
-    </tr>
-    <tr>
-      <td valign="top">CMAKE_FIND_ROOT_PATH</td>
+      <td valign="top"><tt>CMAKE_FIND_ROOT_PATH</tt></td>
       <td>Additional search path for the contrib libraries.
           If not set the the location is assumed to be <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.</td>
     </tr>
     <tr>
-      <td valign="top">QT_QMAKE_EXECUTABLE</td>
-      <td>Defines the Qt 'qmake' application. The corresponding Qt installation is used.</td>
+      <td valign="top"><tt>QT_QMAKE_EXECUTABLE</tt></td>
+      <td>Defines the Qt 'qmake' application to identify the corresponding Qt installation.
+      This variable only needs to be set if <tt>qmake</tt> is not in the PATH.</td>
     </tr>
     <tr>
-      <td valign="top">CMAKE_BUILD_TYPE</td>
-      <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and 
+      <td valign="top"><tt>CMAKE_BUILD_TYPE</tt></td>
+      <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and
           precondition/postcondiction checks enabled).
-          @n The default is 'Release'.</td>
+          @n The default is <tt>Release</tt>.</td>
     </tr>
     <tr>
-      <td valign="top">QT_DB_PLUGIN</td>
+      <td valign="top"><tt>QT_DB_PLUGIN</tt></td>
       <td>Defines the Qt database type. By default MySQL is used.</td>
     </tr>
     <tr>
-      <td valign="top">CMAKE_CXX_COMPILER</td>
+      <td valign="top"><tt>CMAKE_CXX_COMPILER</tt></td>
       <td>Defines the C++ compiler to use.</td>
     </tr>
+    <tr>
+      <td valign="top"><tt>CMAKE_C_COMPILER</tt></td>
+      <td>Defines the C compiler to use. This should match the C++ compiler. Mixing compilers (e.g., <tt>clang++</tt> for C++ and <tt>gcc</tt> for C)
+       can lead to undefined behavior as some internal settings (e.g., %OpenMP support) are determined using the C compiler and are assumed to be the 
+       same for the C++ compiler.</td>
+    </tr>    
+    <tr>
+      <td valign="top"><tt>SEARCH_ENGINES_DIRECTORY</tt> (optional)</td>
+      <td>The location where the ID search engines are located. This directory should have the same structure as the one in the %OpenMS svn repository. 
+      This directory is needed to build the installer for %OpenMS.</td>
+    </tr>        
   </table>
 
   After CMake was executed, you can list the make targets by calling:
@@ -170,58 +172,33 @@ cmake -D CMAKE_FIND_ROOT_PATH="~/openms-development/contrib_build" "~/openms-dev
 @code
 make targets
 @endcode
-  
+
   In order to build the %OpenMS library and TOPP tools execute the following command:
 @code
 make
 @endcode
 
-  If you have chosen to use a install prefix via the INSTALL_PREFIX variable you should install the components using:
-
-@code
-make install
-@endcode
-
-  @note Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/openms-development/openms_build/lib/</i>) to the environment variable <b>DYLD_LIBRARY_PATH</b>.
-  
-  @note The TOPP tools are ready to use in the <code>bin/</code> folder of the installation directory. Add this folder to your <b>PATH</b> variable.
+The TOPP tools should now be ready to use. The executables are located in the <tt>bin/</tt> folder of the build directory. 
+Add this folder to your <b><tt>PATH</tt></b> variable for easy access.
 
 <HR>
 
- @section install_mac_testing_openms Testing your %OpenMS / TOPP installation  
-  
+ @section install_mac_testing_openms Testing your OpenMS / TOPP installation
+
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
 
 @code
 make test_build
 make test
 @endcode
-  
+
   @note To enable DB connectivity tests, use the following CMake parameters:
-  - DB_TEST
-  - DB_TEST_HOST
-  - DB_TEST_PORT
-  - DB_TEST_DB
-  - DB_TEST_USER
-  - DB_TEST_PW
-  
-<HR>
- 
- @section install_mac_64bit Building %OpenMS / TOPP with 64bit support
-
- Building %OpenMS with 64bit support requires Qt 4.5 (or higher) build with 64bit support. You need to specify the architecture, by adding the option
- 
-@code
--D CMAKE_OSX_ARCHITECTURES="x86_64"
-@endcode
- 
- to the CMake call.
-
- On Mac OS X 10.6 (Snow Leopard) 64bit is the default architecture. Use 
-
-@code
- -D CMAKE_OSX_ARCHITECTURE="i386"
-@endcode  
-
-  to create a 32bit binary.
+  <ul>
+    <li>DB_TEST</li>
+    <li>DB_TEST_HOST</li>
+    <li>DB_TEST_PORT</li>
+    <li>DB_TEST_DB</li>
+    <li>DB_TEST_USER</li>
+    <li>DB_TEST_PW</li>
+  </ul>
 */

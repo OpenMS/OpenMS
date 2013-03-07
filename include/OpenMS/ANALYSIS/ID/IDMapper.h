@@ -50,13 +50,13 @@ namespace OpenMS
 
       ProteinIdentifications are assigned to the whole map.
 
-        The retention time and mass-to-charge ratio of the PeptideIdentification have to be given in the MetaInfoInterface as the values "MZ" and "RT".
+      The retention time and mass-to-charge ratio of the PeptideIdentification have to be given in the MetaInfoInterface as the values "MZ" and "RT".
 
-        m/z-matching on peptide side can be done either with the precursor m/z value of the peptide identification or with the theoretical masses of the peptide hits (see "mz_reference" parameter).
+      m/z-matching on peptide side can be done either with the precursor m/z value of the peptide identification or with the theoretical masses of the peptide hits (see "mz_reference" parameter).
 
-        See the documentation of the individual @p annotate methods for more in-depth information.
+      See the documentation of the individual @p annotate methods for more in-depth information.
 
-        @htmlinclude OpenMS_IDMapper.parameters
+      @htmlinclude OpenMS_IDMapper.parameters
 
   */
   class OPENMS_DLLAPI IDMapper :
@@ -75,16 +75,16 @@ public:
     IDMapper & operator=(const IDMapper & rhs);
 
     /**
-        @brief Mapping method for peak maps
+      @brief Mapping method for peak maps
 
-        The identifications stored in a PeptideIdentification instance can be added to the
-    corresponding spectrum.
+      The identifications stored in a PeptideIdentification instance can be added to the
+      corresponding spectrum.
 
       @param map MSExperiment to receive the identifications
       @param ids PeptideIdentification for the ConsensusFeatures
       @param protein_ids ProteinIdentification for the ConsensusMap
 
-        @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'.
+      @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'.
 */
     template <typename PeakType>
     void annotate(MSExperiment<PeakType> & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids)
@@ -111,6 +111,7 @@ public:
       //calculate the actual mapping
       std::multimap<DoubleReal, Size>::iterator experiment_iterator = experiment_precursors.begin();
       std::multimap<DoubleReal, Size>::iterator identifications_iterator = identifications_precursors.begin();
+      Size matches(0);
       while (experiment_iterator != experiment_precursors.end() && identifications_iterator != identifications_precursors.end())
       {
         while (identifications_iterator != identifications_precursors.end())
@@ -126,6 +127,7 @@ public:
                 if (!(ids[identifications_iterator->second].empty()))
                 {
                   map[experiment_iterator->second].getPeptideIdentifications().push_back(ids[identifications_iterator->second]);
+                  ++matches;
                 }
               }
             }
@@ -135,6 +137,11 @@ public:
         identifications_iterator = identifications_precursors.begin();
         ++experiment_iterator;
       }
+
+      // some statistics output
+      LOG_INFO << "Unassigned peptides: " << ids.size() - matches << "\n"
+               << "Peptides assigned to a precursor: " << matches << std::endl;
+
     }
 
     /**
@@ -343,7 +350,7 @@ public:
         else ++matches_multi;
       }
 
-      //some statistics output
+      // some statistics output
       LOG_INFO << "Unassigned peptides: " << matches_none << "\n"
                << "Peptides assigned to exactly one feature: "
                << matches_single << "\n"

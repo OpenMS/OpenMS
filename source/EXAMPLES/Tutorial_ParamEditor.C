@@ -31,25 +31,28 @@
 #include <QtGui/QApplication>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
 
-Int main(int argc, const char ** argv)
+Int main(int argc, const char** argv)
 {
-  QApplication app(argc, const_cast<char **>(argv));
+  QApplication app(argc, const_cast<char**>(argv));
 
   Param param;
-  param.load("data/Tutorial_ParamEditor.ini");
+  ParamXMLFile paramFile;
 
-  ParamEditor * editor = new ParamEditor(0);
+  paramFile.load("data/Tutorial_ParamEditor.ini", param);
+
+  ParamEditor* editor = new ParamEditor(0);
   editor->load(param);
   editor->show();
 
   app.exec();
 
   editor->store();
-  param.store("output/Tutorial_ParamEditor_out.ini");
+  paramFile.store("output/Tutorial_ParamEditor_out.ini", param);
 
   return 0;
 } //end of main

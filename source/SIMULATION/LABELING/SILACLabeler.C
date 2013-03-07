@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h> //new
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -44,6 +44,10 @@ using std::vector;
 
 namespace OpenMS
 {
+  const int SILACLabeler::LIGHT_FEATURE_MAPID_ = 0;
+  const int SILACLabeler::MEDIUM_FEATURE_MAPID_ = 1;
+  const int SILACLabeler::HEAVY_FEATURE_MAPID_ = 2;
+
 
   SILACLabeler::SILACLabeler() :
     BaseLabeler()
@@ -73,14 +77,14 @@ namespace OpenMS
     heavy_channel_arginine_label_ = param_.getValue("heavy_channel:modification_arginine");
   }
 
-  bool SILACLabeler::canModificationBeApplied_(const String & modification_id, const String & aa) const
+  bool SILACLabeler::canModificationBeApplied_(const String& modification_id, const String& aa) const
   {
-    std::set<const ResidueModification *> modifications;
+    std::set<const ResidueModification*> modifications;
     try
     {
       ModificationsDB::getInstance()->searchModifications(modifications, aa, modification_id, ResidueModification::ANYWHERE);
     }
-    catch (Exception::ElementNotFound & ex)
+    catch (Exception::ElementNotFound& ex)
     {
       ex.setMessage("The modification \"" + modification_id + "\" could not be found in the local UniMod DB! Please check if you used the correct format (e.g. UniMod:Accession#)");
       throw;
@@ -94,7 +98,7 @@ namespace OpenMS
 
   }
 
-  void SILACLabeler::preCheck(Param &) const
+  void SILACLabeler::preCheck(Param&) const
   {
     // check if the given modifications can be applied to the target
     // amino acids
@@ -104,7 +108,7 @@ namespace OpenMS
     canModificationBeApplied_(heavy_channel_arginine_label_, String("R"));
   }
 
-  void SILACLabeler::applyLabelToProteinHit_(FeatureMapSim & channel, const String & arginine_label, const String & lysine_label) const
+  void SILACLabeler::applyLabelToProteinHit_(FeatureMapSim& channel, const String& arginine_label, const String& lysine_label) const
   {
     for (std::vector<ProteinHit>::iterator protein_hit = channel.getProteinIdentifications()[0].getHits().begin();
          protein_hit != channel.getProteinIdentifications()[0].getHits().end();
@@ -127,7 +131,7 @@ namespace OpenMS
     }
   }
 
-  void SILACLabeler::setUpHook(FeatureMapSimVector & features_to_simulate)
+  void SILACLabeler::setUpHook(FeatureMapSimVector& features_to_simulate)
   {
     // check if we have the correct number of channels
     if (features_to_simulate.size() < 2 || features_to_simulate.size() > 3)
@@ -135,7 +139,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(features_to_simulate.size()) + " channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!");
     }
 
-    FeatureMapSim & medium_channel = features_to_simulate[1];
+    FeatureMapSim& medium_channel = features_to_simulate[1];
     if (medium_channel.getProteinIdentifications().size() > 0)
     {
       applyLabelToProteinHit_(medium_channel, medium_channel_arginine_label_, medium_channel_lysine_label_);
@@ -144,7 +148,7 @@ namespace OpenMS
     //check for third channel and label
     if (features_to_simulate.size() == 3)
     {
-      FeatureMapSim & heavy_channel = features_to_simulate[2];
+      FeatureMapSim& heavy_channel = features_to_simulate[2];
       if (heavy_channel.getProteinIdentifications().size() > 0)
       {
         applyLabelToProteinHit_(heavy_channel, heavy_channel_arginine_label_, heavy_channel_lysine_label_);
@@ -152,7 +156,7 @@ namespace OpenMS
     }
   }
 
-  String SILACLabeler::getUnmodifiedSequence_(const Feature & feature, const String & arginine_label, const String & lysine_label) const
+  String SILACLabeler::getUnmodifiedSequence_(const Feature& feature, const String& arginine_label, const String& lysine_label) const
   {
     String unmodified_sequence = "";
     for (AASequence::ConstIterator residue = feature.getPeptideIdentifications()[0].getHits()[0].getSequence().begin();
@@ -175,11 +179,11 @@ namespace OpenMS
     return unmodified_sequence;
   }
 
-  void SILACLabeler::postDigestHook(FeatureMapSimVector & features_to_simulate)
+  void SILACLabeler::postDigestHook(FeatureMapSimVector& features_to_simulate)
   {
 
-    FeatureMapSim & light_channel_features = features_to_simulate[0];
-    FeatureMapSim & medium_channel_features = features_to_simulate[1];
+    FeatureMapSim& light_channel_features = features_to_simulate[0];
+    FeatureMapSim& medium_channel_features = features_to_simulate[1];
 
     // merge the generated feature maps and create consensus
     FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
@@ -211,7 +215,7 @@ namespace OpenMS
         if (unlabeled_features_index.has(unmodified_sequence))
         {
           // own scope as we don't know what happens to 'f_modified' once we call erase() below
-          Feature & unlabeled_feature = unlabeled_features_index[unmodified_sequence];
+          Feature& unlabeled_feature = unlabeled_features_index[unmodified_sequence];
           // guarantee uniquenes
           unlabeled_feature.ensureUniqueId();
 
@@ -224,8 +228,8 @@ namespace OpenMS
 
             // create consensus feature
             ConsensusFeature cf;
-            cf.insert(0, *labeled_feature_iter);
-            cf.insert(0, unlabeled_feature);
+            cf.insert(MEDIUM_FEATURE_MAPID_, *labeled_feature_iter);
+            cf.insert(LIGHT_FEATURE_MAPID_, unlabeled_feature);
             cf.ensureUniqueId();
             consensus_.push_back(cf);
 
@@ -286,13 +290,13 @@ namespace OpenMS
                                        ));
       }
 
-      FeatureMapSim & heavy_labeled_features = features_to_simulate[2];
+      FeatureMapSim& heavy_labeled_features = features_to_simulate[2];
       for (FeatureMapSim::iterator heavy_labeled_feature_iter = heavy_labeled_features.begin();
            heavy_labeled_feature_iter != heavy_labeled_features.end();
            ++heavy_labeled_feature_iter)
       {
 
-        Feature & heavy_feature = *heavy_labeled_feature_iter;
+        Feature& heavy_feature = *heavy_labeled_feature_iter;
         heavy_feature.ensureUniqueId();
 
         String heavy_feature_unmodified_sequence = getUnmodifiedSequence_(heavy_feature, heavy_channel_arginine_label_, heavy_channel_lysine_label_);
@@ -309,9 +313,9 @@ namespace OpenMS
             final_feature_map.push_back(unlabeled_features_index[heavy_feature_unmodified_sequence]);
 
             ConsensusFeature c_triplet;
-            c_triplet.insert(0, heavy_feature);
-            c_triplet.insert(0, unlabeled_features_index[heavy_feature_unmodified_sequence]);
-            c_triplet.insert(0, medium_features_index[heavy_feature_unmodified_sequence]);
+            c_triplet.insert(HEAVY_FEATURE_MAPID_, heavy_feature);
+            c_triplet.insert(LIGHT_FEATURE_MAPID_, unlabeled_features_index[heavy_feature_unmodified_sequence]);
+            c_triplet.insert(MEDIUM_FEATURE_MAPID_, medium_features_index[heavy_feature_unmodified_sequence]);
             c_triplet.ensureUniqueId();
 
             consensus_.push_back(c_triplet);
@@ -336,8 +340,8 @@ namespace OpenMS
             final_feature_map.push_back(unlabeled_features_index[heavy_feature_unmodified_sequence]);
 
             ConsensusFeature c_duplet;
-            c_duplet.insert(0, heavy_feature);
-            c_duplet.insert(0, unlabeled_features_index[heavy_feature_unmodified_sequence]);
+            c_duplet.insert(HEAVY_FEATURE_MAPID_, heavy_feature);
+            c_duplet.insert(LIGHT_FEATURE_MAPID_, unlabeled_features_index[heavy_feature_unmodified_sequence]);
             c_duplet.ensureUniqueId();
 
             consensus_.push_back(c_duplet);
@@ -361,8 +365,8 @@ namespace OpenMS
             final_feature_map.push_back(medium_features_index[heavy_feature_unmodified_sequence]);
 
             ConsensusFeature c_duplet;
-            c_duplet.insert(0, heavy_feature);
-            c_duplet.insert(0, medium_features_index[heavy_feature_unmodified_sequence]);
+            c_duplet.insert(HEAVY_FEATURE_MAPID_, heavy_feature);
+            c_duplet.insert(MEDIUM_FEATURE_MAPID_, medium_features_index[heavy_feature_unmodified_sequence]);
             c_duplet.ensureUniqueId();
 
             consensus_.push_back(c_duplet);
@@ -386,7 +390,7 @@ namespace OpenMS
       // clean up labeled_index
       for (Map<String, Feature>::iterator medium_channle_index_iterator = medium_features_index.begin(); medium_channle_index_iterator != medium_features_index.end(); ++medium_channle_index_iterator)
       {
-        Feature & medium_channel_feature = medium_channle_index_iterator->second;
+        Feature& medium_channel_feature = medium_channle_index_iterator->second;
         medium_channel_feature.ensureUniqueId();
 
         String medium_channel_feature_unmodified_sequence = getUnmodifiedSequence_(medium_channel_feature, medium_channel_arginine_label_, medium_channel_lysine_label_);
@@ -401,8 +405,8 @@ namespace OpenMS
             final_feature_map.push_back(unlabeled_features_index[medium_channel_feature_unmodified_sequence]);
 
             ConsensusFeature c_duplet;
-            c_duplet.insert(0, medium_channel_feature);
-            c_duplet.insert(0, unlabeled_features_index[medium_channel_feature_unmodified_sequence]);
+            c_duplet.insert(MEDIUM_FEATURE_MAPID_, medium_channel_feature);
+            c_duplet.insert(LIGHT_FEATURE_MAPID_, unlabeled_features_index[medium_channel_feature_unmodified_sequence]);
             c_duplet.ensureUniqueId();
             consensus_.push_back(c_duplet);
           }
@@ -441,7 +445,7 @@ namespace OpenMS
     consensus_.getFileDescriptions()[0] = map_description;
   }
 
-  Feature SILACLabeler::mergeFeatures_(Feature & labeled_feature, const String & unmodified_feature_sequence, Map<String, Feature> & feature_index, Int index_channel_id, Int labeled_channel_id) const
+  Feature SILACLabeler::mergeFeatures_(Feature& labeled_feature, const String& unmodified_feature_sequence, Map<String, Feature>& feature_index, Int index_channel_id, Int labeled_channel_id) const
   {
     // merge with feature from first map
     Feature merged_feature = feature_index[unmodified_feature_sequence];
@@ -458,7 +462,7 @@ namespace OpenMS
     return merged_feature;
   }
 
-  Feature SILACLabeler::mergeAllChannelFeatures_(Feature & heavy_channel_feature, const String & unmodified_feature_sequence, Map<String, Feature> & light_channel_feature_index, Map<String, Feature> & medium_channel_feature_index) const
+  Feature SILACLabeler::mergeAllChannelFeatures_(Feature& heavy_channel_feature, const String& unmodified_feature_sequence, Map<String, Feature>& light_channel_feature_index, Map<String, Feature>& medium_channel_feature_index) const
   {
     // merge with feature from first map
     Feature merged_feature = light_channel_feature_index[unmodified_feature_sequence];
@@ -478,14 +482,14 @@ namespace OpenMS
     return merged_feature;
   }
 
-  bool weight_compare_less(Feature * f1, Feature * f2)
+  bool weight_compare_less(Feature* f1, Feature* f2)
   {
     return (f1->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula().getMonoWeight()
            < (f2->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula().getMonoWeight();
   }
 
 // TODO: rewrite
-  void SILACLabeler::postRTHook(FeatureMapSimVector & features_to_simulate)
+  void SILACLabeler::postRTHook(FeatureMapSimVector& features_to_simulate)
   {
     DoubleReal rt_shift = param_.getValue("fixed_rtshift");
 
@@ -493,20 +497,20 @@ namespace OpenMS
     if (rt_shift != 0.0)
     {
       // create map of all available features
-      Map<UInt64, Feature *> id_map;
-      FeatureMapSim & feature_map = features_to_simulate[0];
+      Map<UInt64, Feature*> id_map;
+      FeatureMapSim& feature_map = features_to_simulate[0];
       for (FeatureMapSim::Iterator it = feature_map.begin(); it != feature_map.end(); ++it)
       {
-        id_map.insert(std::make_pair<UInt64, Feature *>(it->getUniqueId(), &(*it)));
+        id_map.insert(std::make_pair<UInt64, Feature*>(it->getUniqueId(), &(*it)));
       }
 
       // recompute RT and set shape parameters for each consensus element
       for (ConsensusMap::Iterator consensus_it = consensus_.begin(); consensus_it != consensus_.end(); ++consensus_it)
       {
-        vector<Feature *> original_features;
+        vector<Feature*> original_features;
 
         // find all features that belong to this consensus element and adjust their rt
-        ConsensusFeature & cf = *consensus_it;
+        ConsensusFeature& cf = *consensus_it;
         for (ConsensusFeature::iterator cfit = cf.begin(); cfit != cf.end(); ++cfit)
         {
           if (id_map.has(cfit->getUniqueId()))
@@ -538,22 +542,22 @@ namespace OpenMS
     }
   }
 
-  void SILACLabeler::postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */)
+  void SILACLabeler::postDetectabilityHook(FeatureMapSimVector& /* features_to_simulate */)
   {
     // no changes to the features .. nothing todo here
   }
 
-  void SILACLabeler::postIonizationHook(FeatureMapSimVector & /* features_to_simulate */)
+  void SILACLabeler::postIonizationHook(FeatureMapSimVector& /* features_to_simulate */)
   {
     // no changes to the features .. nothing todo here
   }
 
-  void SILACLabeler::postRawMSHook(FeatureMapSimVector & features_to_simulate)
+  void SILACLabeler::postRawMSHook(FeatureMapSimVector& features_to_simulate)
   {
     recomputeConsensus_(features_to_simulate[0]);
   }
 
-  void SILACLabeler::postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */)
+  void SILACLabeler::postRawTandemMSHook(FeatureMapSimVector& /* features_to_simulate */, MSSimExperiment& /* simulated map */)
   {
     // no changes to the features .. nothing todo here
   }

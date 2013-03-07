@@ -46,6 +46,7 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
+#include <QDir>
 
 #include <fstream>
 
@@ -114,14 +115,6 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    addEmptyLine_();
-    addText_("This adapter to X!Tandem provides a small interface with only "
-             "a small number of parameters. Other parameters need to be set "
-             "via the default file. This file is read and the parameters, are "
-             "used to generate the input file for X!Tandem itself. The results "
-             "are converted from the X!Tandem format into the idXML format.");
-    addEmptyLine_();
-    addText_("Common Identification engine options");
 
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", StringList::create("mzML"));
@@ -130,9 +123,11 @@ protected:
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance", false);
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
 
+    addEmptyLine_();
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
     registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
+    setValidFormats_("database", StringList::create("FASTA"));
     vector<String> valid_strings;
     valid_strings.push_back("ppm");
     valid_strings.push_back("Da");
@@ -150,8 +145,15 @@ protected:
     registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
 
     addEmptyLine_();
-    addText_("X!Tandem specific options");
-    registerInputFile_("xtandem_executable", "<executable>", "tandem.exe", "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, StringList::create("skipexists"));
+    registerInputFile_("xtandem_executable", "<executable>",
+// choose the default value according to the platform where it will be executed
+// xtandem compiles as tandem on osx and tandem.exe on any other platform
+#if  defined(__APPLE__)
+                       "tandem",
+#else
+                       "tandem.exe",
+#endif
+                       "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, StringList::create("skipexists"));
     registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
     registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
     registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "Cleavage site of the used enzyme as regular expression ([RK]|{P} (i.e. tryptic clevage) is default, [X]|[X] (i.e. every site) would be best for peptide input or unspecific digestion).", false);
@@ -160,15 +162,13 @@ protected:
     registerFlag_("semi_cleavage", "If set, both termini must NOT follow the cutting rule. For most applications it is NOT recommended to set this flag.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     // instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
     String ini_location;
     // path to the log file
     String logfile(getStringOption_("log"));
     String xtandem_executable(getStringOption_("xtandem_executable"));
-    // log file stream (as long as the real logfile is not determined yet)
-    ofstream log;
     String inputfile_name;
     String outputfile_name;
     PeakMap exp;
@@ -196,21 +196,16 @@ protected:
     }
 
     // write input xml file
-    String parameters;
-    XTandemInfile infile;
-
-
-    String unique_name = File::getUniqueName();         // body for the tmp files
-    String temp_directory = File::getTempDirectory();
-    if (temp_directory != "")
+    String temp_directory = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
     {
-      temp_directory.ensureLastChar('/');
+      QDir d;
+      d.mkpath(temp_directory.toQString());
     }
 
-    String input_filename(temp_directory + unique_name + "_tandem_input_file.xml");
-    String tandem_input_filename(temp_directory + unique_name + "_tandem_input_file.mzData");
-    String tandem_output_filename(temp_directory + unique_name + "_tandem_output_file.xml");
-    String tandem_taxonomy_filename(temp_directory + unique_name + "_tandem_taxonomy_file.xml");
+    String input_filename(temp_directory + "_tandem_input_file.xml");
+    String tandem_input_filename(temp_directory + "_tandem_input_file.mzData");
+    String tandem_output_filename(temp_directory + "_tandem_output_file.xml");
+    String tandem_taxonomy_filename(temp_directory + "_tandem_taxonomy_file.xml");
 
     //-------------------------------------------------------------
     // reading input
@@ -253,6 +248,7 @@ protected:
     MzDataFile mzdata_outfile;
     mzdata_outfile.store(tandem_input_filename, exp);
 
+    XTandemInfile infile;
     infile.setInputFilename(tandem_input_filename);
     infile.setOutputFilename(tandem_output_filename);
 
@@ -311,19 +307,24 @@ protected:
 
     infile.write(input_filename);
 
-    vector<ProteinIdentification> protein_identifications;
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
 
-    int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString()));         // does automatic escaping etc...
+    int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
     if (status != 0)
     {
       writeLog_("XTandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename + "\"'.\nDoes the !XTandem executable exist?");
       // clean temporary files
-      QFile(input_filename.toQString()).remove();
-      QFile(tandem_input_filename.toQString()).remove();
-      QFile(tandem_taxonomy_filename.toQString()).remove();
+      if (this->debug_level_ < 2)
+      {
+        File::removeDirRecursively(temp_directory);
+        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
+      }
+      else
+      {
+        LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
+      }
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -336,7 +337,7 @@ protected:
     tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
     // find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
     StringList files;
-    File::fileList(temp_directory, unique_name + "_tandem_output_file*.xml", files);
+    File::fileList(temp_directory, "_tandem_output_file*.xml", files);
     if (files.size() != 1)
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tandem_output_filename);
@@ -347,7 +348,7 @@ protected:
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
     {
       UInt id = (Int)it->getMetaValue("spectrum_id");
-      id -= 1;           // native IDs were written 1-based
+      id -= 1; // native IDs were written 1-based
       if (id < exp.size())
       {
         it->setMetaValue("RT", exp[id].getRT());
@@ -389,17 +390,15 @@ protected:
     id_output.store(outputfile_name, protein_ids, peptide_ids);
 
     /// Deletion of temporary files
-    QFile(input_filename.toQString()).remove();
-    QFile(tandem_input_filename.toQString()).remove();
     if (this->debug_level_ < 2)
     {
-      QFile((temp_directory + files[0]).toQString()).remove();   // tandem_output_filename
+      File::removeDirRecursively(temp_directory);
+      LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
     }
     else
     {
-      LOG_INFO << "Not removing " << temp_directory + files[0] << " for debugging." << std::endl;
+      LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
     }
-    QFile(tandem_taxonomy_filename.toQString()).remove();
 
     return EXECUTION_OK;
   }
@@ -407,7 +406,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPXTandemAdapter tool;
 

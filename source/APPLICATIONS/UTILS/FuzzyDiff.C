@@ -48,6 +48,10 @@ using namespace std;
 
     @brief Compares two files, tolerating numeric differences.
 
+    In the diff output, \"position\" refers to the characters in the string, whereas \"column\" is meant for the text editor.
+
+    Only one of 'ratio' or 'absdiff' has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_FuzzyDiff.cli
     <B>INI file documentation of this tool:</B>
@@ -71,20 +75,18 @@ protected:
   void registerOptionsAndFlags_()
   {
     addEmptyLine_();
-    addText_("Input files:");
     registerInputFile_("in1", "<file>", "", "first input file", true, false);
     registerInputFile_("in2", "<file>", "", "second input file", true, false);
     addEmptyLine_();
-    addText_("Allowed numeric differences:");
-    registerDoubleOption_("ratio", "<double>", 1, "acceptable relative error", false, false);
+
+    registerDoubleOption_("ratio", "<double>", 1, "acceptable relative error. Only one of 'ratio' or 'absdiff' has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".", false, false);
     setMinFloat_("ratio", 1);
-    registerDoubleOption_("absdiff", "<double>", 0, "acceptable absolute difference", false, false);
+    registerDoubleOption_("absdiff", "<double>", 0, "acceptable absolute difference. Only one of 'ratio' or 'absdiff' has to be satisfied. ", false, false);
     setMinFloat_("absdiff", 0);
-    addText_("Only one of the criteria has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".");
     addEmptyLine_();
+
     registerStringList_("whitelist", "<string list>", StringList::create("<?xml-stylesheet"), "Lines containing one of these strings are skipped", false, true);
-    addEmptyLine_();
-    addText_("Output style:");
+
     registerIntOption_("verbose", "<int>", 2, "set verbose level:\n"
                                               "0 = very quiet mode (absolutely no output)\n"
                                               "1 = quiet mode (no output unless differences detected)\n"
@@ -98,7 +100,6 @@ protected:
     setMinInt_("tab_width", 1);
     registerIntOption_("first_column", "<int>", 1, "number of first column, used for calculation of column numbers", false, false);
     setMinInt_("first_column", 0);
-    addText_("In the diff output, \"position\" refers to the characters in the string, whereas \"column\" is meant for the text editor.");
   }
 
   ExitCodes main_(int, const char **)

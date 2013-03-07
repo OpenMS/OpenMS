@@ -64,9 +64,10 @@
 #include <QtCore/QDir>
 
 //OpenMS
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -87,13 +88,13 @@ using namespace std;
 //-------------------------------------------------------------
 // command line name of this tool
 //-------------------------------------------------------------
-const char * tool_name = "TOPPAS";
+const char* tool_name = "TOPPAS";
 
 //-------------------------------------------------------------
 // description of the usage of this TOPP tool
 //-------------------------------------------------------------
 
-void print_usage(Logger::LogStream & stream = Log_info)
+void print_usage(Logger::LogStream& stream = Log_info)
 {
   stream << "\n"
          << tool_name << " -- An assistant for GUI-driven TOPP workflow design." << "\n"
@@ -107,7 +108,7 @@ void print_usage(Logger::LogStream & stream = Log_info)
          << endl;
 }
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   //list of all the valid options
   Map<String, String> valid_options, valid_flags, option_lists;
@@ -150,7 +151,7 @@ int main(int argc, const char ** argv)
       return 1;
     }
 
-    QApplication a(argc, const_cast<char **>(argv));
+    QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
     //set plastique style unless windows / mac style is available
     if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))
@@ -166,11 +167,13 @@ int main(int argc, const char ** argv)
       a.setStyle("plastique");
     }
 
-    TOPPASBase * mw = new TOPPASBase();
+    TOPPASBase* mw = new TOPPASBase();
     mw->show();
 
+    a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(openToppasFile(QString)));
+
     // Create the splashscreen that is displayed while the application loads
-    QSplashScreen * splash_screen = new QSplashScreen(QPixmap(":/TOPPAS_Splashscreen.png"));
+    QSplashScreen* splash_screen = new QSplashScreen(QPixmap(":/TOPPAS_Splashscreen.png"));
     splash_screen->show();
     splash_screen->showMessage("Loading parameters");
     QApplication::processEvents();
@@ -186,14 +189,14 @@ int main(int argc, const char ** argv)
     {
       mw->loadFiles((StringList)(param.getValue("misc")), splash_screen);
     }
-    else  // remember this new window as obsolete once a real workflow is loaded without this window being touched
+    else // remember this new window as obsolete once a real workflow is loaded without this window being touched
     { // if this is not desired, simply call newPipeline() without arguments
       mw->newPipeline(mw->IDINITIALUNTITLED);
     }
 
     // We are about to show the application.
     // Proper time to  remove the splash screen, if at least 1.5 seconds have passed...
-    while (stop_watch.getClockTime() < 1.5)   /*wait*/
+    while (stop_watch.getClockTime() < 1.5) /*wait*/
     {
     }
     stop_watch.stop();
@@ -210,31 +213,31 @@ int main(int argc, const char ** argv)
     return result;
   }
   //######################## ERROR HANDLING #################################
-  catch (Exception::UnableToCreateFile & e)
+  catch (Exception::UnableToCreateFile& e)
   {
     cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::FileNotFound & e)
+  catch (Exception::FileNotFound& e)
   {
     cout << String("Error: File not found (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::FileNotReadable & e)
+  catch (Exception::FileNotReadable& e)
   {
     cout << String("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::FileEmpty & e)
+  catch (Exception::FileEmpty& e)
   {
     cout << String("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::ParseError & e)
+  catch (Exception::ParseError& e)
   {
     cout << String("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::InvalidValue & e)
+  catch (Exception::InvalidValue& e)
   {
     cout << String("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::BaseException & e)
+  catch (Exception::BaseException& e)
   {
     cout << String("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }

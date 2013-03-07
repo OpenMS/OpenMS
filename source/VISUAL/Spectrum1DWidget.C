@@ -235,6 +235,7 @@ namespace OpenMS
     goto_dialog.setRange(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
     if (goto_dialog.exec())
     {
+      goto_dialog.fixRange();
       canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0));
     }
   }
@@ -300,6 +301,17 @@ namespace OpenMS
     grid_->removeWidget(flipped_y_axis_);
     grid_->addWidget(y_axis_, 0, 1);
     grid_->addWidget(flipped_y_axis_, 2, 1);
+  }
+
+  void Spectrum1DWidget::renderForImage(QPainter& painter)
+  {
+    bool x_visible = x_scrollbar_->isVisible();
+    bool y_visible = y_scrollbar_->isVisible();
+    x_scrollbar_->hide();
+    y_scrollbar_->hide();
+    this->render(&painter);
+    x_scrollbar_->setVisible(x_visible);
+    y_scrollbar_->setVisible(y_visible);
   }
 
   void Spectrum1DWidget::saveAsImage()

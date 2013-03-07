@@ -181,7 +181,8 @@ public:
     void toggleBreakpoint();
     /// Called when the QProcess in the queue is called: emits 'toolStarted()'
     virtual void emitToolStarted();
-
+    /// invert status of recycling (overriding base class)
+    virtual bool invertRecylingMode();
 
 public slots:
 
@@ -216,8 +217,6 @@ signals:
     void toolFailed(const QString & message = "");
     /// Emitted from forwardTOPPOutput() to forward the signal outside
     void toppOutputReady(const QString & out);
-    /// Emitted if an INI parameter was edited by the user - depending on the current state of the tool an action is taken
-    void parameterChanged(const TOPPASToolVertex::TOOLSTATUS status);
 
 protected:
 
@@ -226,7 +225,8 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);
     //@}
 
-
+    /// determines if according to current status_, a parameter change would invalidate the pipeline status (e.g., because this node was already processed)
+    bool doesParamChangeInvalidate_();
     /// renames SUFFICES of the output files created by the TOPP tool by inspecting file content
     bool renameOutput_();
     /// Initializes the parameters with standard values (from -write_ini), uses the parameters from the old_ini_file if given, returns if parameters have changed (if old_ini_file was given)
@@ -256,6 +256,11 @@ protected:
 
     /// Breakpoint set?
     bool breakpoint_set_;
+
+    /// smart naming of round-based filenames
+    /// when basename is not unique we take the preceding directory name
+    void smartFileNames_(std::vector< QStringList >& filenames);
+
   };
 }
 

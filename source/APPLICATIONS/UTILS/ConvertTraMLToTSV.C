@@ -48,7 +48,30 @@ using namespace OpenMS;
 /**
   @page TOPP_ConvertTraMLToTSV ConvertTraMLToTSV
 
-  @brief Converts a TraML file to a csv file
+  @brief Converts TraML files to OpenSWATH transition TSV files
+
+  The OpenSWATH transition TSV files will have the following headers, all fields are separated by tabs:
+
+  PrecursorMz (float)
+  ProductMz (float)
+  Tr_calibrated (float)
+  transition_name (free text, needs to be unique for each transition [in this file])
+  CE (float)
+  LibraryIntensity (float)
+  transition_group_id (free text, designates the transition group [e.g. peptide] to which this transition belongs)
+  decoy (1==decoy, 0== no decoy; determines whether the transition is a decoy transition or not)
+  PeptideSequence  (free text, sequence only (no modifications) )
+  ProteinName  (free text)
+  Annotation  (free text, e.g. y7)
+  FullPeptideName  (free text, should contain modifications*)  
+  MissedCleavages
+  Replicates
+  NrModifications
+  Charge (integer)
+  Labelgroup (free text, e.g. heavy or light)
+
+* modifications are returned in UniMod annotation.
+
 */
 
 // We do not want this class to show up in the docu:
@@ -58,7 +81,7 @@ class TOPPConvertTraMLToTSV : public TOPPBase
 public:
 
   TOPPConvertTraMLToTSV() :
-  TOPPBase("ConvertTraMLToTSV", "Converts a TraML file into TSV", false)
+  TOPPBase("ConvertTraMLToTSV", "Converts a TraML file to an OpenSWATH transition TSV file")
   {
   }
 
@@ -66,10 +89,11 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "transition file");
+    registerInputFile_("in", "<file>", "", "Input TraML file");
     setValidFormats_("in", StringList::create("TraML"));
 
-    registerOutputFile_("out", "<file>", "", "output file csv");
+    registerOutputFile_("out", "<file>", "", "Output OpenSWATH transition TSV file");
+    setValidFormats_("out", StringList::create("csv"));
   }
 
   ExitCodes main_(int, const char **)
@@ -81,10 +105,12 @@ protected:
     TraMLFile traml;
     TargetedExperiment targeted_exp;
 
+    std::cout << "Reading " << in << std::endl;
+    traml.load(in, targeted_exp);
     TransitionTSVReader tsv_reader = TransitionTSVReader();
     tsv_reader.setLogType(log_type_);
-    traml.load(in, targeted_exp);
     tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_exp);
+    std::cout << "Writing " << out << std::endl;
 
     return EXECUTION_OK;
   }

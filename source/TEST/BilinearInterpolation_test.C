@@ -90,6 +90,11 @@ START_SECTION([EXTRA] typedefs )
 	key = 0;
 	container = 0;
 	containerValue = 0;
+  // shut off warnings
+  (void)value;
+  (void)key;
+  (void)container;
+  (void)containerValue;
 	NOT_TESTABLE;
 }
 END_SECTION

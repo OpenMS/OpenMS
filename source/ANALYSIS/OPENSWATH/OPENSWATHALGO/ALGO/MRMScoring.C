@@ -78,7 +78,7 @@ namespace OpenSwath
         //std::cout << " = Computing crosscorrelation " << i << " / "  << j << " or " << native_id << " vs " << native_id2 << std::endl;
         if (normalize)
         {
-          xcorr_matrix_[i][j] = Scoring::normalizedCalcxcorr(intensityi, intensityj, intensityi.size(), 1);
+          xcorr_matrix_[i][j] = Scoring::normalizedCalcxcorr(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
         }
         else
         {
@@ -265,10 +265,10 @@ namespace OpenSwath
     dotprod = OpenSwath::dotprodScoring(experimental_intensity, library_intensity);
 
 
-    Scoring::normalize_sum(&experimental_intensity[0], transitions.size());
-    Scoring::normalize_sum(&library_intensity[0], transitions.size());
+    Scoring::normalize_sum(&experimental_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
+    Scoring::normalize_sum(&library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
 
-    rmsd = Scoring::RMSD(&experimental_intensity[0], &library_intensity[0], transitions.size());
+    rmsd = Scoring::RMSD(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
     correlation = OpenSwath::cor_pearson(experimental_intensity.begin(), experimental_intensity.end(), library_intensity.begin());
 
 

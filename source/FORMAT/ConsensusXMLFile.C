@@ -253,7 +253,7 @@ namespace OpenMS
         file_version = "1.0";  //default version is 1.0
       if (file_version.toDouble() > version_.toDouble())
       {
-        warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+        warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
       }
       // handle document id
       String document_id;

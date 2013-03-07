@@ -88,19 +88,19 @@ WARN_IF_UNDOCUMENTED   = NO
 WARN_IF_DOC_ERROR      = YES
 WARN_NO_PARAMDOC       = NO
 WARN_FORMAT            = "$file:$line: $text"
-WARN_LOGFILE           = @CF_OPENMS_BIN_PATH@/doc/TOPP_tutorial/doxygen-error.log
+WARN_LOGFILE           = "@CF_OPENMS_BIN_PATH@/doc/TOPP_tutorial/doxygen-error.log"
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = @CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/
+INPUT                  = "@CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/"
 FILE_PATTERNS          = *.doxygen
 RECURSIVE              = YES
-EXCLUDE                = @CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/.svn/
+EXCLUDE                = "@CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/.svn/"
 EXCLUDE_SYMLINKS       = NO
-EXAMPLE_PATH           = @CF_OPENMS_SRC_PATH@/source/EXAMPLES/
+EXAMPLE_PATH           = "@CF_OPENMS_SRC_PATH@/source/EXAMPLES/"
 EXAMPLE_PATTERNS       = 
 EXAMPLE_RECURSIVE      = NO
-IMAGE_PATH             = @CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/images/ @CF_OPENMS_SRC_PATH@/doc/doxygen/images/
+IMAGE_PATH             = "@CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/images/" "@CF_OPENMS_SRC_PATH@/doc/doxygen/images/"
 INPUT_FILTER           = 
 FILTER_PATTERNS        = 
 FILTER_SOURCE_FILES    = NO
@@ -144,7 +144,7 @@ TREEVIEW_WIDTH         = 250
 # configuration options related to the LaTeX output
 #---------------------------------------------------------------------------
 GENERATE_LATEX         = YES
-LATEX_OUTPUT           = @CF_OPENMS_BIN_PATH@/doc/TOPP_tutorial/latex_output/
+LATEX_OUTPUT           = "@CF_OPENMS_BIN_PATH@/doc/TOPP_tutorial/latex_output/"
 LATEX_CMD_NAME         = 
 MAKEINDEX_CMD_NAME     = 
 COMPACT_LATEX          = YES

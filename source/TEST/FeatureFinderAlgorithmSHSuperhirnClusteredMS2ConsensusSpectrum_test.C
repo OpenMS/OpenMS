@@ -51,10 +51,12 @@ START_TEST(ClusteredMS2ConsensusSpectrum, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ClusteredMS2ConsensusSpectrum* ptr;
+ClusteredMS2ConsensusSpectrum* ptr = 0;
+ClusteredMS2ConsensusSpectrum* nullPtr = 0;
+
 START_SECTION((ClusteredMS2ConsensusSpectrum()))
 	ptr = new ClusteredMS2ConsensusSpectrum(0, 0, 0, 0);
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~ClusteredMS2ConsensusSpectrum()))

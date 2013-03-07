@@ -54,10 +54,12 @@ MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
 MzMLFile.h
+MzTab.h
 MzTabFile.h
 MzXMLFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
+ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
 PepNovoInfile.h

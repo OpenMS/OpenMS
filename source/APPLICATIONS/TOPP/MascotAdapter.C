@@ -270,7 +270,6 @@ protected:
     // path to the log file
     String logfile = "mascot.log";
     // log filestream (as long as the real logfile is not determined yet)
-    ofstream log;
     String inputfile_name;
     String outputfile_name;
     String mascot_infile_name = "tmp.mascot_in";

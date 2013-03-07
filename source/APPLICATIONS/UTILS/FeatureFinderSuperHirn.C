@@ -50,13 +50,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FeatureFinderSH FeatureFinderSH
+  @page UTILS_FeatureFinderSuperHirn FeatureFinderSuperHirn
 
   A feature finder based on the original SuperHirn codebase.
 
   Proteomics. 2007 Oct;7(19):3470-80.
   SuperHirn - a novel tool for high resolution LC-MS-based peptide/protein profiling.
   Mueller LN, Rinner O, Schmidt A, Letarte S, Bodenmiller B, Brusniak MY, Vitek O, Aebersold R, Mller M.
+
+  see FeatureFinderAlgorithmSH.h for a detailed description of the algorithm.
+
 */
 
 // We do not want this class to show up in the docu:
@@ -69,7 +72,7 @@ class TOPPFeatureFinderSH :
 {
 public:
   TOPPFeatureFinderSH() :
-    TOPPBase("FeatureFinderSH", "Finds mass spectrometric features in mass spectra.", false)
+    TOPPBase("FeatureFinderSuperHirn", "Finds mass spectrometric features in mass spectra.")
   {
   }
 
@@ -82,8 +85,6 @@ protected:
     registerOutputFile_("out", "<file>", "", "output peak file ");
     setValidFormats_("out", StringList::create("featureXML"));
 
-    addEmptyLine_();
-    addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
@@ -145,6 +146,7 @@ protected:
     //-------------------------------------------------------------
     //annotate output with data processing info
     addDataProcessing_(output, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+    addDataProcessing_(output, getProcessingInfo_(DataProcessing::QUANTITATION));
     output.ensureUniqueId();
     for (Size i = 0; i < output.size(); i++)
     {

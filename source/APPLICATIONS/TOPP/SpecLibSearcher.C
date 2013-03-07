@@ -101,6 +101,7 @@ protected:
     registerInputFileList_("in", "<files>", StringList::create(""), "Input files");
     setValidFormats_("in", StringList::create("mzML"));
     registerInputFile_("lib", "<file>", "", "searchable spectral library (MSP format)");
+    setValidFormats_("lib", StringList::create("msp"));
     registerOutputFileList_("out", "<files>", StringList::create(""), "Output files. Have to be as many as input files");
     setValidFormats_("out", StringList::create("idXML"));
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 3, "Precursor mass tolerance, (Th)", false);
@@ -119,12 +120,13 @@ protected:
     PeakSpectrumCompareFunctor::registerChildren();
     setValidStrings_("compare_function", Factory<PeakSpectrumCompareFunctor>::registeredProducts());
     registerIntOption_("top_hits", "<number>", 10, "save the first <number> top hits. For all type -1", false);
+
     addEmptyLine_();
-    addText_("Filtering options. Most are especially useful when the query spectra are raw.");
-    registerIntOption_("min_peaks", "<number>", 5, "required mininum number of peaks for a query spectrum", false);
-    registerDoubleOption_("remove_peaks_below_threshold", "<threshold>", 2.01, "All peaks of a query spectrum with intensities below <threshold> will be zeroed.", false);
-    registerIntOption_("max_peaks", "<number>", 150, "Use only the top <number> of peaks.", false);
-    registerIntOption_("cut_peaks_below", "<number>", 1000, "Remove all peaks which are lower than 1/<number> of the highest peaks. Default equals all peaks which are lower than 0.001 of the maximum intensity peak", false);
+    registerTOPPSubsection_("filter", "Filtering options. Most are especially useful when the query spectra are raw.");
+    registerDoubleOption_("filter:remove_peaks_below_threshold", "<threshold>", 2.01, "All peaks of a query spectrum with intensities below <threshold> will be zeroed.", false);
+    registerIntOption_("filter:min_peaks", "<number>", 5, "required mininum number of peaks for a query spectrum", false);
+    registerIntOption_("filter:max_peaks", "<number>", 150, "Use only the top <number> of peaks.", false);
+    registerIntOption_("filter:cut_peaks_below", "<number>", 1000, "Remove all peaks which are lower than 1/<number> of the highest peaks. Default equals all peaks which are lower than 0.001 of the maximum intensity peak", false);
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
@@ -134,7 +136,6 @@ protected:
     registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
     addEmptyLine_();
-    addText_("");
   }
 
   ExitCodes main_(int, const char **)
@@ -151,10 +152,10 @@ protected:
     Real precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
     //Int min_precursor_charge = getIntOption_("min_precursor_charge");
     //Int max_precursor_charge = getIntOption_("max_precursor_charge");
-    Real remove_peaks_below_threshold = getDoubleOption_("remove_peaks_below_threshold");
-    UInt min_peaks = getIntOption_("min_peaks");
-    UInt max_peaks = getIntOption_("max_peaks");
-    Int cut_peaks_below = getIntOption_("cut_peaks_below");
+    Real remove_peaks_below_threshold = getDoubleOption_("filter:remove_peaks_below_threshold");
+    UInt min_peaks = getIntOption_("filter:min_peaks");
+    UInt max_peaks = getIntOption_("filter:max_peaks");
+    Int cut_peaks_below = getIntOption_("filter:cut_peaks_below");
     StringList fixed_modifications = getStringList_("fixed_modifications");
     StringList variable_modifications = getStringList_("variable_modifications");
     Int top_hits  = getIntOption_("top_hits");

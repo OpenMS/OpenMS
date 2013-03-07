@@ -320,7 +320,7 @@ svn propset svn:eol-style native MyClass.C
 				<code>ldd &lt;application&gt;</code>
         <BR>
         Windows (Visual studio console):
-        Try "Dependency Walker"(http://www.dependencywalker.com/)
+        Try "Dependency Walker"(http://www.dependencywalker.com/) (use x86 for 32bit builds and the x64 version for 64bit builds. Using the wrong version of depends.exe will give wrong results!)
         or <code>dumpbin /DEPENDENTS OpenMS.dll</code>
 
 			<LI><B>How can I get a list of the symbols defined in a (shared) library or object file?</B>
@@ -523,6 +523,18 @@ svn propset svn:eol-style native MyClass.C
 	<H2 style="border-top:2px solid grey;">Releases</H2>
 		<UL>
 
+			<LI><B>What has the release manager to do for a release?</B>
+			<OL>
+				<LI> Create release branch and add it to CDASH
+				<LI> Distribute tasks among developers:
+					<UL> Fix automatic tests
+					<UL> Fix release critical bugs
+					<UL> Fix compile warnings
+					<UL> Fix checker violations
+					<UL> Fix code analysis (e.g. cpplint, cppcheck) violations
+				<LI> Update the list of active maintainers in tools/ACTIVE_MAINTAINERS
+				<LI> Organise packaging
+			</OL>
 			<LI><B>What has each developer to do for a release?</B>
 				<p>
 				Each maintainer must check his/her classes and TOPP tools.
@@ -691,6 +703,7 @@ svn propset svn:eol-style native MyClass.C
 					       <a href="http://msdn2.microsoft.com/en-us/library/ms997636.aspx" target="_blank">http://msdn2.microsoft.com/en-us/library/ms997636.aspx</a>
 					       gives some useful hints.
 						<LI> create at least a 16x16, 32x32, 48x48 and 64x64 pixel version and save each of them in a separate layer of the respective size.
+								 Do not add any larger sized layers, since Win XP will not display any icon then.
 						<LI> when saving your image as type <i>.ico</i> the GIMP will ask you for the color depth of each layer. As it is recommended to have
 						     multiple color depths of each icon-size, go back to the layers and duplicate each layer twice. That should give you 12 layers.
 						<LI> now save the image as <i>&lt;binaryname&gt;.ico</i> (e.g. TOPPView.ico) file, giving each group of equal sized layers a 32bit (8bit transparency), 8bit (1bit transparency), 4bit (1bit transparency) color depth.

@@ -32,7 +32,6 @@
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_SYSTEM_FILE_H
 #define OPENMS_SYSTEM_FILE_H
 
@@ -47,9 +46,9 @@ namespace OpenMS
   class TOPPBase;
 
   /**
-      @brief Basic file handling operations.
+    @brief Basic file handling operations.
 
-      @ingroup System
+    @ingroup System
   */
   class OPENMS_DLLAPI File
   {
@@ -64,66 +63,67 @@ public:
     static String getExecutablePath();
 
     /// Method used to test if a @p file exists.
-    static bool exists(const String & file);
+    static bool exists(const String& file);
 
     /// Return true if the file does not exist or the file is empty
-    static bool empty(const String & file);
+    static bool empty(const String& file);
 
     /**
-        @brief Removes a file (if it exists).
+      @brief Removes a file (if it exists).
 
-        @return Returns true if the file was successfully deleted (or if it did not exist).
+      @return Returns true if the file was successfully deleted (or if it did not exist).
     */
-    static bool remove(const String & file);
+    static bool remove(const String& file);
 
     /// Removes the specified directory (absolute path). Returns true if successful.
-    static bool removeDirRecursively(const String & dir_name);
+    static bool removeDirRecursively(const String& dir_name);
 
     /// Replaces the relative path in the argument with the absolute path.
-    static String absolutePath(const String & file);
+    static String absolutePath(const String& file);
 
     /// Returns the basename of the file (without the path).
-    static String basename(const String & file);
+    static String basename(const String& file);
 
     /// Returns the path of the file (without the file name).
-    static String path(const String & file);
+    static String path(const String& file);
 
     /**
-        Returns the file name without the extension
+      Returns the file name without the extension
 
-        The extension is the suffix of the string upto and including the last dot.
+      The extension is the suffix of the string upto and including the last dot.
 
-        If no extension is found, the whole file name is returned
+      If no extension is found, the whole file name is returned
     */
-    static String removeExtension(const String & file);
+    static String removeExtension(const String& file);
 
     /// Return true if the file exists and is readable
-    static bool readable(const String & file);
+    static bool readable(const String& file);
 
     /// Return true if the file is writable
-    static bool writable(const String & file);
+    static bool writable(const String& file);
 
     /// Return true if the given path specifies a directory
-    static bool isDirectory(const String & path);
+    static bool isDirectory(const String& path);
 
     /**
-        @brief Looks up the location of the file @p filename
+      @brief Looks up the location of the file @p filename
 
-        The following locations are checked in this order:
-        - the directories in @p directories
-        - the directory contained in the environment variable $OPENMS_DATA_PATH
-        - the 'share/OpenMS/' directory of the OpenMS install directory
+      The following locations are checked in this order:
+      - the directories in @p directories
+      - the directory contained in the environment variable $OPENMS_DATA_PATH
+      - the 'share/OpenMS/' directory of the OpenMS install directory
 
-        @exception FileNotFound is thrown, if the file is not found
+      @exception FileNotFound is thrown, if the file is not found
     */
-    static String find(const String & filename, StringList directories = StringList());
+    static String find(const String& filename, StringList directories = StringList());
 
     /**
-        @brief Retrieves a list of files matching @p file_pattern in directory @p dir (returns filenames without paths unless @p full_path is true)
+      @brief Retrieves a list of files matching @p file_pattern in directory
+             @p dir (returns filenames without paths unless @p full_path is true)
 
-        @return true => there are matching files
+      @return true => there are matching files
     */
-    static bool fileList(const String & dir, const String & file_pattern, StringList & output, bool full_path = false);
+    static bool fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path = false);
 
     /// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
     static String getUniqueName();
@@ -144,12 +144,23 @@ public:
     /// uses File::find() to search for a file names @p db_name
     /// in the 'id_db_dir' param of the OpenMS system parameters
     /// @exception FileNotFound is thrown, if the file is not found
-    static String findDatabase(const String & db_name);
+    static String findDatabase(const String& db_name);
+
+    /**
+      @brief Searchs for an executable with the given name.
+
+      @param toolName The executable to search for.
+      @exception FileNotFound is thrown, if the tool executable was not found.
+    */
+    static String findExecutable(const String& toolName);
 
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc
     static Param getSystemParameterDefaults_();
+
+    /// Check if the given path is a valid OPENMS_DATA_PATH
+    static bool isOpenMSDataPath_(const String& path);
   };
 
 }

@@ -142,6 +142,14 @@ public:
       DFS_BLACK
     };
 
+    /// The color of a vertex during depth-first search
+    enum SUBSTREESTATUS
+    {
+      TV_ALLFINISHED,  // all downstream nodes are done (including the ones which are feed by a parallel subtree)
+      TV_UNFINISHED,   // some direct downstream node is not done
+      TV_UNFINISHED_INBRANCH // a parallel subtree which merged with some downstream node A was not done (which prevented processing of the node A)
+    };
+
     /// Default Constructor
     TOPPASVertex();
     /// Copy constructor
@@ -157,7 +165,7 @@ public:
     bool buildRoundPackages(RoundPackages & pkg, String & error_msg);
 
     /// check if all upstream nodes are ready to go ( 'finished_' is true)
-    bool isUpstreamReady();
+    bool isUpstreamFinished() const;
 
     /// Returns the bounding rectangle of this item
     virtual QRectF boundingRect() const = 0;
@@ -193,8 +201,8 @@ public:
     TOPPASVertex * getDFSParent();
     /// Sets the DFS parent of this node
     void setDFSParent(TOPPASVertex * parent);
-    /// Sets whether all tools in the subtree below this node are finished
-    void setSubtreeFinished(bool b);
+    /// Checks if all tools in the subtree below this node are finished
+    TOPPASVertex::SUBSTREESTATUS getSubtreeStatus() const;
     /// Returns whether the vertex has been marked already (during topological sort)
     bool isTopoSortMarked();
     /// (Un)marks the vertex (during topological sort)
@@ -210,12 +218,12 @@ public:
     /// Returns whether this node is reachable
     bool isReachable();
     /// Returns whether this node has already been processed during the current pipeline execution
-    bool isFinished();
+    bool isFinished() const;
     /// run the tool (either ToolVertex, Merger, or OutputNode)
     /// @exception NotImplemented
     virtual void run();
     /// invert status of recycling
-    bool invertRecylingMode();
+    virtual bool invertRecylingMode();
     /// get status of recycling
     bool isRecyclingEnabled() const;
     /// set status of recycling
@@ -265,6 +273,9 @@ signals:
     void somethingHasChanged();
     /// Emitted when the item is dragged
     void itemDragged(qreal dx, qreal dy);
+    /// Emitted if an INI parameter or recyling mode or whatever was edited by the user - depending on the current state of the tool an action is taken
+    /// each node type decides itself if this will invalide the pipeline, depending on its internal status
+    void parameterChanged(const bool invalidates_running_pipeline);
 
 protected:
 
@@ -324,7 +335,7 @@ protected:
 #ifdef TOPPAS_DEBUG
                    message
 #endif
-                   )
+                   ) const
     {
 #ifdef TOPPAS_DEBUG
       for (int i = 0; i < global_debug_indent_; ++i)

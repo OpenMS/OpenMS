@@ -2,6 +2,14 @@
  	
 	@page install_mac_bin Installation on MacOS
   
-	Simply download and install the MacOS drag-and-drop installer from http://www.OpenMS.de .
+	Simply download and install the MacOS drag-and-drop installer for your system from http://www.OpenMS.de .
+  
+  To use TOPP as regular apps in your shell just add the following lines to your <tt>~/.profile</tt> file. 
+  An adapt the first line to point to the folder where you installed %OpenMS (e.g., <tt>/Applications/OpenMS-1.10.0</tt>)
+
+@code
+export OPENMS_TOPP_PATH=&lt;OpenMS-PATH&gt;
+source ${OPENMS_TOPP_PATH}/.TOPP_bash_profile
+@endcode
 
 */

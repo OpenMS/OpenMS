@@ -48,6 +48,9 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -151,6 +154,13 @@ public:
       defaults_.setValue("isotopic_pattern:mass_window_width", 25.0, "Window width in Dalton for precalculation of estimated isotope distributions.", StringList::create("advanced"));
       defaults_.setMinFloat("isotopic_pattern:mass_window_width", 1.0);
       defaults_.setMaxFloat("isotopic_pattern:mass_window_width", 200.0);
+      defaults_.setValue("isotopic_pattern:abundance_12C", 98.93, "Rel. abundance of the light carbon. Modify if labeled.", StringList::create("advanced"));
+      defaults_.setMinFloat("isotopic_pattern:abundance_12C", 0.0);
+      defaults_.setMaxFloat("isotopic_pattern:abundance_12C", 100.0);
+      defaults_.setValue("isotopic_pattern:abundance_14N", 99.632, "Rel. abundance of the light nitrogen. Modify if labeled.", StringList::create("advanced"));
+      defaults_.setMinFloat("isotopic_pattern:abundance_14N", 0.0);
+      defaults_.setMaxFloat("isotopic_pattern:abundance_14N", 100.0);
+
       defaults_.setSectionDescription("isotopic_pattern", "Settings for the calculation of a score indicating if a peak is part of a isotopic pattern (between 0 and 1).");
       //Seed settings
       defaults_.setValue("seed:min_score", 0.8, "Minimum seed score a peak has to reach to be used as seed.\nThe seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.\nIf your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score.");
@@ -226,6 +236,40 @@ public:
       DoubleReal epsilon_abs = param_.getValue("fit:epsilon_abs");
       DoubleReal epsilon_rel = param_.getValue("fit:epsilon_rel");
 
+      Size max_isotopes = 20;
+
+      // check if non-natural isotopic abundances are set. If so modify
+      DoubleReal abundance_12C = param_.getValue("isotopic_pattern:abundance_12C");
+      DoubleReal abundance_14N = param_.getValue("isotopic_pattern:abundance_14N");
+
+      const Element * carbon_const = ElementDB::getInstance()->getElement("Carbon");
+      Element * carbon = const_cast<Element *>(carbon_const);
+
+      if (param_.getValue("isotopic_pattern:abundance_12C") != defaults_.getValue("isotopic_pattern:abundance_12C"))
+      {
+        max_isotopes += 1000;
+        IsotopeDistribution isotopes;
+        std::vector<std::pair<Size, double> > container;
+        container.push_back(std::make_pair(12, abundance_12C / 100.0));
+        container.push_back(std::make_pair(13, 1.0 - (abundance_12C / 100.0)));
+        isotopes.set(container);
+        carbon->setIsotopeDistribution(isotopes);        
+      }
+
+      const Element * nitrogen_const = ElementDB::getInstance()->getElement("Nitrogen");
+      Element * nitrogen = const_cast<Element *>(nitrogen_const);
+
+      if (param_.getValue("isotopic_pattern:abundance_14N") != defaults_.getValue("isotopic_pattern:abundance_14N"))
+      {
+        max_isotopes += 1000;
+        IsotopeDistribution isotopes;
+        std::vector<std::pair<Size, double> > container;
+        container.push_back(std::make_pair(14, abundance_14N / 100.0));
+        container.push_back(std::make_pair(15, 1.0 - (abundance_14N / 100.0)));
+        isotopes.set(container);
+        nitrogen->setIsotopeDistribution(isotopes);    
+      }
+
       // initialize trace fitter parameters here to avoid
       // bug https://sourceforge.net/apps/trac/open-ms/ticket/147
       Param trace_fitter_params;
@@ -285,10 +329,6 @@ public:
         dir.mkpath("debug/features");
         log_.open("debug/log.txt");
       }
-
-      //time
-      StopWatch stop_watch;
-      stop_watch.start();
 
       //---------------------------------------------------------------------------
       //Step 1:
@@ -428,7 +468,7 @@ public:
         {
           //if(debug_) log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
           IsotopeDistribution d;
-          d.setMaxIsotope(20);
+          d.setMaxIsotope(max_isotopes);
           d.estimateFromPeptideWeight(0.5 * mass_window_width_ + index * mass_window_width_);
           //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
           Size size_before = d.size();
@@ -1063,10 +1103,6 @@ public:
         MzMLFile().store("debug/input.mzML", map_);
       }
 
-      //Execution time
-      stop_watch.stop();
-      std::cout << std::endl;
-      std::cout << "Execution time: " << stop_watch.getCPUTime() << " s" << std::endl;
     }
 
     static FeatureFinderAlgorithm<PeakType, FeatureType>* create()

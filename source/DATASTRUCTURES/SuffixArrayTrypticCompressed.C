@@ -62,12 +62,12 @@ holds a reference of the string and compairs two substrings. It will be used for
     @brief constructor
     @param str const reference to the string
     */
-    explicit SubstringLess(const String & str) :
+    explicit SubstringLess(const String& str) :
       str_(str) {}
     /**
     @brief copy constructor
     */
-    SubstringLess(const SubstringLess & rhs) :
+    SubstringLess(const SubstringLess& rhs) :
       str_(rhs.str_) {}
 
     /**
@@ -82,7 +82,7 @@ holds a reference of the string and compairs two substrings. It will be used for
     }
 
 protected:
-    String const & str_; ///< string
+    String const& str_; ///< string
   };
 
 /**
@@ -95,12 +95,12 @@ protected:
     @brief constructor
     @param t const reference to the tolerance
     */
-    explicit FloatsWithTolLess(const DoubleReal & t) :
+    explicit FloatsWithTolLess(const DoubleReal& t) :
       tol_(t) {}
     /**
     @brief copy constructor
     */
-    FloatsWithTolLess(const FloatsWithTolLess & rhs) :
+    FloatsWithTolLess(const FloatsWithTolLess& rhs) :
       tol_(rhs.tol_) {}
 
     /**
@@ -116,7 +116,7 @@ protected:
     }
 
 protected:
-    DoubleReal const & tol_; ///< tolerance value
+    DoubleReal const& tol_; ///< tolerance value
   };
 
 
@@ -134,7 +134,7 @@ protected:
   }
 
 // getting lowest common prefix of two entrys of suffix array
-  SignedSize SuffixArrayTrypticCompressed::getLCP_(const pair<SignedSize, SignedSize> & last_point, const pair<SignedSize, SignedSize> & current_point)
+  SignedSize SuffixArrayTrypticCompressed::getLCP_(const pair<SignedSize, SignedSize>& last_point, const pair<SignedSize, SignedSize>& current_point)
   {
     SignedSize lastBegin = last_point.first;
     SignedSize currentBegin = current_point.first;
@@ -153,7 +153,7 @@ protected:
   }
 
 // constructor
-  SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, const String & sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
+  SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String& st, const String& sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
     WeightWrapper(weight_mode),
     s_(st),
     tol_(0.5),
@@ -169,7 +169,7 @@ protected:
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to end with separator ($)", "");
     }
     //creating array with aminoacid masses
-    ResidueDB * rdb = ResidueDB::getInstance();
+    ResidueDB* rdb = ResidueDB::getInstance();
 
     char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
@@ -180,7 +180,7 @@ protected:
 
     for (Size i = 0; i < strlen(aa); ++i)
     {
-      const Residue * r = rdb->getResidue(aa[i]);
+      const Residue* r = rdb->getResidue(aa[i]);
       masse_[(int)aa[i]] = getWeight(*r, Residue::Internal);
     }
 
@@ -257,7 +257,7 @@ protected:
   }
 
 //Copy constructor
-  SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed & sa) :
+  SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed& sa) :
     SuffixArray(sa),
     WeightWrapper(sa),
     s_(sa.s_),
@@ -275,7 +275,7 @@ protected:
     return (aa1 == 'K' || aa1 == 'R') && aa2 != 'P';
   }
 
-  bool SuffixArrayTrypticCompressed::save(const String & file_name)
+  bool SuffixArrayTrypticCompressed::save(const String& file_name)
   {
     ofstream file_INDICES;
     ofstream file_LCP;
@@ -314,7 +314,7 @@ protected:
     return true;
   }
 
-  bool SuffixArrayTrypticCompressed::open(const String & file_name)
+  bool SuffixArrayTrypticCompressed::open(const String& file_name)
   {
     indices_.clear();
     lcp_.clear();
@@ -386,7 +386,7 @@ protected:
     return ss.str();
   }
 
-  SignedSize SuffixArrayTrypticCompressed::findFirst_(const vector<DoubleReal> & spec, DoubleReal & m, SignedSize start, SignedSize  end)
+  SignedSize SuffixArrayTrypticCompressed::findFirst_(const vector<DoubleReal>& spec, DoubleReal& m, SignedSize start, SignedSize  end)
   {
 
     if (end - start <= 1)
@@ -409,13 +409,13 @@ protected:
     return middle + 1;
   }
 
-  SignedSize SuffixArrayTrypticCompressed::findFirst_(const vector<DoubleReal> & spec, DoubleReal & m)
+  SignedSize SuffixArrayTrypticCompressed::findFirst_(const vector<DoubleReal>& spec, DoubleReal& m)
   {
     return findFirst_(spec, m, 0, spec.size() - 1);
   }
 
 // finds all occurences of a given spectrum
-  void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, DoubleReal> > > & candidates, const vector<DoubleReal> & spec)
+  void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, DoubleReal> > >& candidates, const vector<DoubleReal>& spec)
   {
     //time_t t0 (time(NULL));
     if (spec.empty())
@@ -455,7 +455,6 @@ protected:
 
     SignedSize steps = 0;
     SignedSize nres = 0;
-    map<DoubleReal, SignedSize> mod_map_start;
     for (SignedSize i = 0; i < (SignedSize)indices_.size(); ++i)
     {
       SignedSize str_len = indices_[i].second;
@@ -651,7 +650,7 @@ protected:
     return tol_;
   }
 
-  void SuffixArrayTrypticCompressed::setTags(const vector<String> & tags)
+  void SuffixArrayTrypticCompressed::setTags(const vector<String>& tags)
   {
     tags_ = tags;
     for (Size i = 0; i < tags.size(); ++i)
@@ -665,7 +664,7 @@ protected:
     use_tags_ = true;
   }
 
-  const vector<String> & SuffixArrayTrypticCompressed::getTags()
+  const vector<String>& SuffixArrayTrypticCompressed::getTags()
   {
     return tags_;
   }
@@ -717,7 +716,7 @@ protected:
     cout << endl;
   }
 
-  void SuffixArrayTrypticCompressed::parseTree_(SignedSize start_index, SignedSize stop_index, SignedSize depth, SignedSize walked_in, SignedSize edge_len, vector<pair<SignedSize, SignedSize> > & out_number, vector<pair<SignedSize, SignedSize> > & edge_length, vector<SignedSize> & leafe_depth)
+  void SuffixArrayTrypticCompressed::parseTree_(SignedSize start_index, SignedSize stop_index, SignedSize depth, SignedSize walked_in, SignedSize edge_len, vector<pair<SignedSize, SignedSize> >& out_number, vector<pair<SignedSize, SignedSize> >& edge_length, vector<SignedSize>& leafe_depth)
   {
     //to start walked_in set to 0, depth=1, edge_len = 1
 

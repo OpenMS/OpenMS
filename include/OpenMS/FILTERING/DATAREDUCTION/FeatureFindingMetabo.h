@@ -45,20 +45,37 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI CmpMassTraceByMZ
-  {
+/**
+  @brief Method for the assembly of mass traces belonging to the same isotope pattern, i.e., that are compatible in retention times, mass-to-charge ratios, and isotope abundances.
+
+  In @ref FeatureFindingMetabo, mass traces detected by the @ref MassTraceDetection method and afterwards split into individual chromatographic peaks by the
+  @ref ElutionPeakDetection method are assembled to composite features if they are compatible with respect to RTs, m/z ratios, and isotopic intensities. To this end,
+  feature hypotheses are formulated exhaustively based on the set of mass traces detected within a local RT and m/z region. These feature hypotheses are scored by their similarity to
+  real metabolite isotope patterns. The score is derived from independent models for retention time shifts and m/z differences between isotopic mass traces.
+  Hypotheses with correct or false isotopic abundances are distinguished by a SVM model. Mass traces that could not be assembled or low-intensity metabolites with only a
+monoisotopic mass trace to observe are left in the resulting @ref FeatureMap as singletons with the undefined charge state of 0.
+
+  @htmlinclude OpenMS_FeatureFindingMetabo.parameters
+
+  @ingroup Quantitation
+*/
+
+
+
+class OPENMS_DLLAPI CmpMassTraceByMZ
+{
 public:
 
     bool operator()(MassTrace x, MassTrace y) const
     {
-      return x.getCentroidMZ() < y.getCentroidMZ();
+        return x.getCentroidMZ() < y.getCentroidMZ();
     }
 
-  };
+};
 
 
-  class OPENMS_DLLAPI FeatureHypothesis
-  {
+class OPENMS_DLLAPI FeatureHypothesis
+{
 public:
     /// default constructor
     FeatureHypothesis();
@@ -76,109 +93,101 @@ public:
     // getter & setter
     Size getSize() const
     {
-      return iso_pattern_.size();
+        return iso_pattern_.size();
     }
 
     String getLabel()
     {
-      String label;
+        String label;
 
-      if (iso_pattern_.size() > 0)
-      {
-        label = iso_pattern_[0]->getLabel();
-      }
+        if (iso_pattern_.size() > 0)
+        {
+            label = iso_pattern_[0]->getLabel();
+        }
 
-      for (Size i = 1; i < iso_pattern_.size(); ++i)
-      {
-        String tmp_str = "_" + iso_pattern_[i]->getLabel();
-        label += tmp_str;
-      }
+        for (Size i = 1; i < iso_pattern_.size(); ++i)
+        {
+            String tmp_str = "_" + iso_pattern_[i]->getLabel();
+            label += tmp_str;
+        }
 
-      return label;
+        return label;
     }
 
     std::vector<String> getLabels()
     {
-      std::vector<String> tmp_labels;
+        std::vector<String> tmp_labels;
 
-      for (Size i = 0; i < iso_pattern_.size(); ++i)
-      {
-        tmp_labels.push_back(iso_pattern_[i]->getLabel());
-      }
+        for (Size i = 0; i < iso_pattern_.size(); ++i)
+        {
+            tmp_labels.push_back(iso_pattern_[i]->getLabel());
+        }
 
-      return tmp_labels;
+        return tmp_labels;
     }
 
     DoubleReal getScore()
     {
-      return feat_score_;
+        return feat_score_;
     }
 
     void setScore(const DoubleReal & score)
     {
-      feat_score_ = score;
+        feat_score_ = score;
     }
 
     SignedSize getCharge()
     {
-      return charge_;
+        return charge_;
     }
 
     void setCharge(const SignedSize & ch)
     {
-      charge_ = ch;
+        charge_ = ch;
     }
 
     std::vector<DoubleReal> getAllIntensities(bool smoothed = false)
     {
-      std::vector<DoubleReal> tmp;
+        std::vector<DoubleReal> tmp;
 
-      for (Size i = 0; i < iso_pattern_.size(); ++i)
-      {
-        if (!smoothed)
+        for (Size i = 0; i < iso_pattern_.size(); ++i)
         {
-          tmp.push_back(iso_pattern_[i]->getIntensity(false));
-        }
-        else
-        {
-          tmp.push_back(iso_pattern_[i]->getIntensity(true));
+              tmp.push_back(iso_pattern_[i]->getIntensity(smoothed));
         }
 
-      }
-
-      return tmp;
+        return tmp;
     }
 
     DoubleReal getCentroidMZ()
     {
-      if (iso_pattern_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
-      }
+        if (iso_pattern_.empty())
+        {
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
+        }
 
-      return iso_pattern_[0]->getCentroidMZ();
+        return iso_pattern_[0]->getCentroidMZ();
     }
 
     DoubleReal getCentroidRT()
     {
-      if (iso_pattern_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
-      }
+        if (iso_pattern_.empty())
+        {
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
+        }
 
-      iso_pattern_[0]->updateWeightedMeanRT();
+        // iso_pattern_[0]->updateWeightedMeanRT();
 
-      return iso_pattern_[0]->getCentroidRT();
+        return iso_pattern_[0]->getCentroidRT();
     }
 
     DoubleReal getFWHM(bool use_smoothed_ints = false)
     {
-      if (iso_pattern_.empty())
-      {
-        return 0.0;
-      }
+        if (iso_pattern_.empty())
+        {
+            return 0.0;
+        }
 
-      return iso_pattern_[0]->estimateFWHM(use_smoothed_ints);
+        return iso_pattern_[0]->estimateFWHM(use_smoothed_ints);
     }
 
     /// addMassTrace
@@ -197,26 +206,26 @@ private:
 
     SignedSize charge_;
 
-  };
+};
 
 
-  class OPENMS_DLLAPI CmpHypothesesByScore
-  {
+class OPENMS_DLLAPI CmpHypothesesByScore
+{
 public:
 
     bool operator()(FeatureHypothesis x, FeatureHypothesis y) const
     {
-      return x.getScore() > y.getScore();
+        return x.getScore() > y.getScore();
     }
 
-  };
+};
 
 
 
-  class OPENMS_DLLAPI FeatureFindingMetabo :
-    public DefaultParamHandler,
-    public ProgressLogger
-  {
+class OPENMS_DLLAPI FeatureFindingMetabo :
+        public DefaultParamHandler,
+        public ProgressLogger
+{
 public:
     /// Default constructor
     FeatureFindingMetabo();
@@ -235,20 +244,24 @@ protected:
 
 private:
     /// private member functions
-    DoubleReal computeOLSCoeff(const std::vector<DoubleReal> &, const std::vector<DoubleReal> &);
-    DoubleReal computeCosineSim(const std::vector<DoubleReal> &, const std::vector<DoubleReal> &);
+    DoubleReal computeOLSCoeff_(const std::vector<DoubleReal> &, const std::vector<DoubleReal> &);
+    DoubleReal computeCosineSim_(const std::vector<DoubleReal> &, const std::vector<DoubleReal> &);
 
-    svm_model * isotope_filt_svm;
-    std::vector<DoubleReal> svm_feat_centers;
-    std::vector<DoubleReal> svm_feat_scales;
+    svm_model * isotope_filt_svm_;
+    std::vector<DoubleReal> svm_feat_centers_;
+    std::vector<DoubleReal> svm_feat_scales_;
     bool isLegalIsotopePattern_(FeatureHypothesis &);
+    bool isLegalIsotopePattern2_(FeatureHypothesis &);
+
     //bool isLegalAveraginePattern(FeatureHypothesis&);
-    void loadIsotopeModel_();
+    void loadIsotopeModel_(const String&);
+
+    DoubleReal total_intensity_;
 
     DoubleReal scoreMZ_(const MassTrace &, const MassTrace &, Size, Size);
     DoubleReal scoreRT_(const MassTrace &, const MassTrace &);
 
-    DoubleReal computeAveragineSimScore(const std::vector<DoubleReal> &, const DoubleReal &);
+    DoubleReal computeAveragineSimScore_(const std::vector<DoubleReal> &, const DoubleReal &);
 
     // DoubleReal scoreTraceSim_(MassTrace, MassTrace);
     // DoubleReal scoreIntRatio_(DoubleReal, DoubleReal, Size);
@@ -268,7 +281,7 @@ private:
     String isotope_model_;
     bool use_smoothed_intensities_;
 
-  };
+};
 
 
 }

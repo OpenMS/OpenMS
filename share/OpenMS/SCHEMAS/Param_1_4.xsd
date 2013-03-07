@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="PARAMETERS" type="PARAMETERSType">
+		<xs:annotation>
+			<xs:documentation>Main parameters node.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="NODE" type="NODEType">
+	</xs:element>
+	<xs:element name="ITEM" type="ITEMType">
+	</xs:element>
+	<xs:element name="ITEMLIST" type="ITEMLISTType">
+	</xs:element>
+	<xs:group name="ITEMS">
+		<xs:choice>
+			<xs:element ref="ITEM">
+				<xs:annotation>
+					<xs:documentation>A single-value item</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element ref="ITEMLIST">
+				<xs:annotation>
+					<xs:documentation>A list of values of a certain type
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:group>
+	<xs:complexType name="PARAMETERSType">
+		<xs:sequence>
+			<xs:group minOccurs="0" maxOccurs="unbounded" ref="ITEMS">
+				<xs:annotation></xs:annotation>
+			</xs:group>
+			<xs:element minOccurs="0" maxOccurs="unbounded" ref="NODE">
+				<xs:annotation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="version" type="xs:float">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:simpleType name="PossibleITEMType">
+		<xs:annotation>
+			<xs:documentation>Defines the possible types available in the type attribute of ITEM and ITEMLIST.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="int"></xs:enumeration>
+			<xs:enumeration value="float"></xs:enumeration>
+			<xs:enumeration value="double"></xs:enumeration>
+			<xs:enumeration value="string"></xs:enumeration>
+			<xs:enumeration value="int-pair"></xs:enumeration>
+			<xs:enumeration value="double-pair"></xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="NODEType">
+        <xs:annotation>
+        	<xs:documentation></xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+			<xs:group minOccurs="0" maxOccurs="unbounded" ref="ITEMS">
+				<xs:annotation></xs:annotation>
+			</xs:group>
+			<xs:element minOccurs="0" maxOccurs="unbounded" ref="NODE">
+				<xs:annotation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute use="required" name="name">
+			<xs:annotation></xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"></xs:minLength>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute default="" name="description" type="xs:string"></xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ITEMLISTType">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded"
+				name="LISTITEM" type="LISTITEMType">
+				<xs:annotation></xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute use="required" name="name">
+			<xs:annotation></xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"></xs:minLength>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute use="required" name="type"
+			type="PossibleITEMType">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+		<xs:attribute default="" name="description" type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+		<xs:attribute default="false" name="tags" type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+		<xs:attribute default="" name="restrictions" type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="supported_formats" type="xs:string"></xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="LISTITEMType">
+		<xs:attribute use="required" name="value" type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ITEMType">
+		<xs:attribute use="required" name="name">
+			<xs:annotation></xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"></xs:minLength>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute use="required" name="type" type="PossibleITEMType">
+			<xs:annotation>
+				<xs:documentation>The type of the specified ITEM.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute use="required" name="value" type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+		<xs:attribute default="" name="description" type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+		<xs:attribute default="false" name="tags" type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+		<xs:attribute default="" name="restrictions" type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+		<xs:attribute default="false" name="supported_formats"
+			type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+		<xs:attribute default="false" name="output_format_source"
+			type="xs:string">
+			<xs:annotation></xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+</xs:schema>
+

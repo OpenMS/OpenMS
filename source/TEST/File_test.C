@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
@@ -62,14 +62,14 @@ END_SECTION
 
 START_SECTION((static bool empty(const String &file)))
 	TEST_EQUAL(File::empty("does_not_exists.txt"), true)
-	TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)	
+	TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
 	TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), false)
 END_SECTION
 
 START_SECTION((static bool remove(const String &file)))
 	//deleting non-existing file
 	TEST_EQUAL(File::remove("does_not_exists.txt"), true)
-	
+
 	//deleting existing file
 	String filename;
 	NEW_TMP_FILE(filename);
@@ -77,12 +77,12 @@ START_SECTION((static bool remove(const String &file)))
 	os.open (filename.c_str(), ofstream::out);
 	os << "File_test dummy file to delete" << endl;
 	os.close();
-	TEST_EQUAL(File::remove(filename), true)	
+	TEST_EQUAL(File::remove(filename), true)
 END_SECTION
 
 START_SECTION((static bool readable(const String &file)))
 	TEST_EQUAL(File::readable("does_not_exists.txt"), false)
-	TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)	
+	TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
 	TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
 END_SECTION
 
@@ -90,7 +90,7 @@ START_SECTION((static bool writable(const String &file)))
 	TEST_EQUAL(File::writable("/this/file/cannot/be/written.txt"), false)
 	TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
 	TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_imaginary.txt")), true)
-		
+
 	String filename;
 	NEW_TMP_FILE(filename);
 	TEST_EQUAL(File::writable(filename), true)
@@ -127,7 +127,7 @@ END_SECTION
 
 START_SECTION((static String getUniqueName()))
 	String unique_name = File::getUniqueName();
-	
+
 	// test if the string consists of three parts
 	StringList split;
 	unique_name.split('_', split);
@@ -179,12 +179,20 @@ START_SECTION(static Param getSystemParameters())
 END_SECTION
 
 START_SECTION(static String findDatabase(const String &db_name))
-  
+
   TEST_EXCEPTION(Exception::FileNotFound, File::findDatabase("filedoesnotexists"))
   String db = File::findDatabase("./CV/unimod.obo");
   //TEST_EQUAL(db,"wtf")
   TEST_EQUAL(db.hasSubstring("share/OpenMS"), true)
 
+END_SECTION
+
+
+START_SECTION(static String findExecutable(const OpenMS::String& toolName))
+{
+	TEST_EXCEPTION(Exception::FileNotFound, File::findExecutable("executable_does_not_exist"))
+	TEST_EQUAL(File::path(File::findExecutable("File_test")) + "/", File::getExecutablePath())
+}
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

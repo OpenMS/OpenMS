@@ -59,7 +59,7 @@ public:
     virtual ~O18Labeler();
 
     /// create new object (needed by Factory)
-    static BaseLabeler * create()
+    static BaseLabeler* create()
     {
       return new O18Labeler();
     }
@@ -71,26 +71,34 @@ public:
     }
 
     // redeclaration of virtual methods
-    void preCheck(Param & param) const;
+    void preCheck(Param& param) const;
 
-    void setUpHook(FeatureMapSimVector & /* channels */);
+    void setUpHook(FeatureMapSimVector& /* channels */);
 
-    void postDigestHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postDigestHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRTHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postRTHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postDetectabilityHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postIonizationHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postRawMSHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */);
+    void postRawTandemMSHook(FeatureMapSimVector& /* features_to_simulate */, MSSimExperiment& /* simulated map */);
 
 protected:
-    void addModificationToPeptideHit_(Feature & feature, const String & modification) const;
+    void addModificationToPeptideHit_(Feature& feature, const String& modification) const;
 
-    Feature mergeFeatures_(Feature & labeled_channel_feature, const AASequence & unmodified_sequence, std::map<AASequence, Feature> & unlabeled_features_index) const;
+    Feature mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const;
+
+private:
+    /// Map ID for the light/unlabeled channel
+    static const int LIGHT_CHANNEL_ID_;
+    /// Map ID for the medium/mono-labeled channel
+    static const int MEDIUM_CHANNEL_ID_;
+    /// Map ID for the heavy/bi-labeled channel
+    static const int HEAVY_CHANNEL_ID_;
   };
 } // namespace OpenMS
 

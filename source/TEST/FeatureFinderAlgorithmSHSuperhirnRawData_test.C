@@ -50,10 +50,12 @@ START_TEST(RawData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-RawData* ptr;
+RawData* ptr = 0;
+RawData* nullPtr = 0;
+
 START_SECTION((RawData()))
 	ptr = new RawData();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~RawData()))

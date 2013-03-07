@@ -104,15 +104,6 @@ protected:
     registerDoubleOption_("mz_dev", "<double>", 0.1, "Maximum allowed deviation of m/z", false);
     registerDoubleOption_("int_dev", "<double>", 100, "Maximum allowed deviation of Intensity", false);
     registerFlag_("use_charge", "Use charge criterion when assesing if two features are identical.", false);
-
-    addEmptyLine_();
-    addText_("This tool implements the evaluation measures published in:\n"
-             "\"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements\"\n"
-             "Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl\n"
-             "BMC Bioinformatics 2008, 9:375.\n"
-             "doi:10.1186/1471-2105-9-375\n"
-             );
-
   }
 
   ExitCodes main_(int, const char **)

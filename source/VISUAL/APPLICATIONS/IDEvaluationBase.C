@@ -97,7 +97,7 @@ namespace OpenMS
 {
   using namespace Internal;
 
-  IDEvaluationBase::IDEvaluationBase(QWidget * parent) :
+  IDEvaluationBase::IDEvaluationBase(QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("IDEvaluationBase"),
     spec_1d_(0)
@@ -122,9 +122,9 @@ namespace OpenMS
       );
 
     // create dummy widget (to be able to have a layout), Tab bar and workspace
-    QWidget * dummy = new QWidget(this);
+    QWidget* dummy = new QWidget(this);
     setCentralWidget(dummy);
-    QVBoxLayout * box_layout = new QVBoxLayout(dummy);
+    QVBoxLayout* box_layout = new QVBoxLayout(dummy);
 
     ws_ = new QWorkspace(dummy);
     //connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
@@ -133,7 +133,7 @@ namespace OpenMS
 
     //################## MENUS #################
     // File menu
-    QMenu * file = new QMenu("&File", this);
+    QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
     file->addAction("Add search result", this, SLOT(openFileDialog()), Qt::CTRL + Qt::Key_O);
     file->addAction("Save Image &As", this, SLOT(saveImageAs()), Qt::CTRL + Qt::Key_S);
@@ -146,9 +146,9 @@ namespace OpenMS
     //advanced->addAction("&Refresh definitions",this,SLOT(refreshDefinitions()), Qt::CTRL+Qt::Key_R);
 
     //Help menu
-    QMenu * help = new QMenu("&Help", this);
+    QMenu* help = new QMenu("&Help", this);
     menuBar()->addMenu(help);
-    QAction * action = help->addAction("OpenMS website", this, SLOT(showURL()));
+    QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     help->addAction("&About", this, SLOT(showAboutDialog()));
 
@@ -171,10 +171,8 @@ namespace OpenMS
 
     this->setCentralWidget(spec_1d_);
 
-    //this->setMenuWidget(spec_1d_);
-
     //log window
-    QDockWidget * log_bar = new QDockWidget("Log", this);
+    QDockWidget* log_bar = new QDockWidget("Log", this);
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
     log_ = new QTextEdit(log_bar);
     log_->setReadOnly(true);
@@ -190,7 +188,7 @@ namespace OpenMS
     intensity_button_group_ = new QButtonGroup(tool_bar_);
     intensity_button_group_->setExclusive(true);
 
-    QToolButton * b = new QToolButton(tool_bar_);
+    QToolButton* b = new QToolButton(tool_bar_);
     b->setIcon(QIcon(":/lin.png"));
     b->setToolTip("PSM-Count: Normal");
     b->setShortcut(Qt::Key_N);
@@ -233,7 +231,7 @@ namespace OpenMS
     tool_bar_->addSeparator();
 
     //common buttons
-    QAction * reset_zoom_button = tool_bar_->addAction(QIcon(":/reset_zoom.png"), "Reset Zoom", this, SLOT(resetZoom()));
+    QAction* reset_zoom_button = tool_bar_->addAction(QIcon(":/reset_zoom.png"), "Reset Zoom", this, SLOT(resetZoom()));
     reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible and resets the zoom history.<BR>(Hotkey: Backspace)");
 
     tool_bar_->show();
@@ -285,8 +283,8 @@ namespace OpenMS
     spec_1d_->setIntensityMode(mode);
   }
 
-  bool IDEvaluationBase::getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */,
-                                   const std::vector<DoubleReal> & q_value_thresholds, MSSpectrum<> & points)
+  bool IDEvaluationBase::getPoints(std::vector<PeptideIdentification>& peptides /* cannot be const, to avoid copy */,
+                                   const std::vector<DoubleReal>& q_value_thresholds, MSSpectrum<>& points)
   {
     points.clear(true);
 
@@ -334,12 +332,14 @@ namespace OpenMS
     addSearchFile(file_name);
   }
 
-  void IDEvaluationBase::loadFiles(const StringList & list)
+  bool IDEvaluationBase::loadFiles(const StringList& list)
   {
+    bool good = true;
     for (StringList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
-      addSearchFile(*it);
+      if (!addSearchFile(*it)) good = false;
     }
+    return good;
   }
 
   void IDEvaluationBase::setVisibleArea(double low, double high)
@@ -348,32 +348,45 @@ namespace OpenMS
     spec_1d_->canvas()->setVisibleArea(range);
   }
 
-  void IDEvaluationBase::addSearchFile(const String & file_name)
+
+  bool IDEvaluationBase::loadCurve(const String& file_name, MSSpectrum<>& points)
   {
     if (FileHandler::getType(file_name) != FileTypes::IDXML)
     {
       LOG_ERROR << "The file '" << file_name << "' is not an .idXML file" << std::endl;
-      return;
+      return false;
     }
 
     std::vector<ProteinIdentification> prot_ids;
     std::vector<PeptideIdentification> pep_ids;
     IdXMLFile().load(file_name, prot_ids, pep_ids);
     String ln = pep_ids[0].getScoreType(); // grab name here, since FDR-calculation will overwrite it with "q-value"
+    bool ret = getPoints(pep_ids, q_value_thresholds_, points); // FDR calculation failed?
+    points.setMetaValue("search_engine", ln);
+
+    return ret; 
+  }
+
+  bool IDEvaluationBase::addSearchFile(const String& file_name)
+  {
     MSSpectrum<> points;
-    if (getPoints(pep_ids, q_value_thresholds_, points))
-    {
-      MSExperiment<> * exp = new MSExperiment<>;
-      exp->push_back(points);
-      spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp));
-      spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, ln);
-      // set intensity mode (after spectrum has been added!)
-      setIntensityMode((int) SpectrumCanvas::IM_SNAP);
-    }
-    else
-    {
-      // maybe tell user that FDR failed?!
-    }
+    if (!loadCurve(file_name, points)) return false;
+
+    data_.push_back(points);
+
+    MSExperiment<>* exp = new MSExperiment<>();
+    exp->push_back(points);
+    spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp));
+    spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, points.getMetaValue("search_engine"));
+    // set intensity mode (after spectrum has been added!)
+    setIntensityMode((int) SpectrumCanvas::IM_SNAP);
+
+    return true;
+  }
+  
+  const MSExperiment<>& IDEvaluationBase::getPoints() const
+  {
+     return data_;
   }
 
   void IDEvaluationBase::saveImageAs()
@@ -394,7 +407,7 @@ namespace OpenMS
     return StringList::create("png,jpg,svg"); // make sure this is lower-case
   }
 
-  bool IDEvaluationBase::exportAsImage(const QString & file_name, String & error_message, const QString & format)
+  bool IDEvaluationBase::exportAsImage(const QString& file_name, String& error_message, const QString& format)
   {
     if (file_name == "")
     {
@@ -420,8 +433,6 @@ namespace OpenMS
     QSize items_bounding_rect = spec_1d_->size();
     qreal wh_proportion = (qreal)(items_bounding_rect.width()) / (qreal)(items_bounding_rect.height());
     bool w_larger_than_h = wh_proportion > 1;
-    qreal x1 = 0;
-    qreal y1 = 0;
     qreal x2, y2;
 
     qreal small_edge_length = svg ? 500 : 4000;
@@ -436,12 +447,10 @@ namespace OpenMS
       x2 = small_edge_length;
       y2 = (1.0 / wh_proportion) * small_edge_length;
     }
-    qreal width = x2 - x1;
-    qreal height = y2 - y1;
-
+    
     DoubleReal h = param_.getValue("image:height");
     DoubleReal w = param_.getValue("image:width");
-    setGeometry(QRect(0,0,w,h)); // does the layout -- otherwise we'd need show() to get it right
+    setGeometry(QRect(0, 0, w, h)); // does the layout -- otherwise we'd need show() to get it right
 
     if (svg)
     {
@@ -452,7 +461,7 @@ namespace OpenMS
       svg_gen.setTitle(tr("Title (TBD)"));
       svg_gen.setDescription(tr("Description (TBD)"));
       QPainter painter(&svg_gen);
-      spec_1d_->render(&painter); //, QRectF(), items_bounding_rect);
+      spec_1d_->renderForImage(painter); //, QRectF(), items_bounding_rect);
     }
     else
     {
@@ -460,7 +469,7 @@ namespace OpenMS
 
       QImage img(w, h, QImage::Format_ARGB32_Premultiplied);
       QPainter painter(&img);
-      spec_1d_->render(&painter); //, QRectF(), items_bounding_rect);
+      spec_1d_->renderForImage(painter); //, QRectF(), items_bounding_rect);
       painter.end();
       bool r = img.save(file_name, format.toStdString().c_str());
       if (!r)
@@ -474,7 +483,7 @@ namespace OpenMS
 
   void IDEvaluationBase::showURL()
   {
-    QAction * action = qobject_cast<QAction *>(sender());
+    QAction* action = qobject_cast<QAction*>(sender());
     if (!QDesktopServices::openUrl(QUrl(action->data().toString())))
     {
       QMessageBox::warning(this, tr("Error"),
@@ -501,11 +510,11 @@ namespace OpenMS
   void IDEvaluationBase::showAboutDialog()
   {
     //dialog and grid layout
-    QDialog * dlg = new QDialog(this);
-    QGridLayout * grid = new QGridLayout(dlg);
+    QDialog* dlg = new QDialog(this);
+    QGridLayout* grid = new QGridLayout(dlg);
     dlg->setWindowTitle("About IDEvaluation");
 
-    QLabel * label = new QLabel(dlg);
+    QLabel* label = new QLabel(dlg);
     label->setPixmap(QPixmap(":/TOPP_about.png"));
     grid->addWidget(label, 0, 0);
 
@@ -526,14 +535,14 @@ namespace OpenMS
                            "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
                            ).arg(VersionInfo::getVersion().toQString());
-    QLabel * text_label = new QLabel(text, dlg);
+    QLabel* text_label = new QLabel(text, dlg);
     grid->addWidget(text_label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
 
     //execute
     dlg->exec();
   }
 
-  void IDEvaluationBase::showLogMessage_(IDEvaluationBase::LogState state, const String & heading, const String & body)
+  void IDEvaluationBase::showLogMessage_(IDEvaluationBase::LogState state, const String& heading, const String& body)
   {
     //Compose current time string
     DateTime d = DateTime::now();
@@ -554,11 +563,11 @@ namespace OpenMS
     log_->append(body.toQString());
 
     //show log tool window
-    qobject_cast<QWidget *>(log_->parent())->show();
+    qobject_cast<QWidget*>(log_->parent())->show();
     log_->moveCursor(QTextCursor::End);
   }
 
-  void IDEvaluationBase::keyPressEvent(QKeyEvent * e)
+  void IDEvaluationBase::keyPressEvent(QKeyEvent* e)
   {
     if (e->key() == Qt::Key_F5)
     {
@@ -576,7 +585,7 @@ namespace OpenMS
     e->ignore();
   }
 
-  void IDEvaluationBase::closeEvent(QCloseEvent * event)
+  void IDEvaluationBase::closeEvent(QCloseEvent* event)
   {
     //ws_->closeAllWindows();
     //event->accept();

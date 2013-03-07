@@ -68,15 +68,6 @@ public:
     virtual ~ElutionPeakDetection();
 
     /// Getter & setter methods
-//    void setScanTime(const DoubleReal & st)
-//    {
-//      scan_time_ = st;
-//    }
-
-    DoubleReal getFWHM()
-    {
-      return chrom_fwhm_;
-    }
 
     /** @name Main computation methods
         */
@@ -86,11 +77,11 @@ public:
     /// Applies the aforementioned detection method on a series of mass traces as input.
     void detectPeaks(std::vector<MassTrace> &, std::vector<MassTrace> &);
 
-    /// Computes an estimate of the average peak width of the experiment based on smoothed intensities (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviances).
-    void estimatePeakWidth(std::vector<MassTrace> &);
-
     void filterByPeakWidth(std::vector<MassTrace> &, std::vector<MassTrace> &);
-
+    DoubleReal computeMassTraceNoise(const MassTrace&);
+    DoubleReal computeMassTraceSNR(const MassTrace&);
+    DoubleReal computeApexSNR(const MassTrace&);
+    void findLocalExtrema(const MassTrace&, const Size&, std::vector<Size>&, std::vector<Size>&);
 
 protected:
     virtual void updateMembers_();
@@ -102,7 +93,12 @@ private:
     DoubleReal noise_threshold_int_;
     DoubleReal sample_rate_;
 
-    bool pw_filtering_;
+    DoubleReal min_fwhm_;
+    DoubleReal max_fwhm_;
+    DoubleReal min_trace_length_;
+    DoubleReal max_trace_length_;
+
+    String pw_filtering_;
     bool mt_snr_filtering_;
 
     void detectElutionPeaks_(MassTrace &, std::vector<MassTrace> &);

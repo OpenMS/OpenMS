@@ -45,8 +45,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ProcessData.h>
-
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ProcessData.h>
 
@@ -60,10 +58,12 @@ START_TEST(ProcessData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ProcessData* ptr;
+ProcessData* ptr = 0;
+ProcessData* nullPtr = 0;
+
 START_SECTION((ProcessData()))
 	ptr = new ProcessData();
-	TEST_NOT_EQUAL(ptr,0)
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~ProcessData()))
@@ -71,6 +71,19 @@ START_SECTION((~ProcessData()))
 END_SECTION
 
 ptr = new ProcessData();
+
+START_SECTION((ProcessData::get_MZ(double IN_mz)))
+  ProcessData d;
+  ProcessData::main_iterator it = d.get_MZ(500.25);
+  // TEST_EQUAL(it, d.get_MZ_LIST_end()) // doesnt work directly
+  if( it == d.get_MZ_LIST_end()) { TEST_EQUAL(true, true) }
+  else {TEST_EQUAL(true, false)}
+END_SECTION
+
+START_SECTION((int getNbMSTraces()))
+  ProcessData d;
+  TEST_EQUAL(d.getNbMSTraces(), 0)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

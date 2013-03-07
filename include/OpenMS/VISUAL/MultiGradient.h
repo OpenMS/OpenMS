@@ -129,6 +129,28 @@ public:
     void activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps);
     /// deactivates the precalculation of values ( and deletes the precalculated values)
     void deactivatePrecalculationMode();
+
+    /// index of color in precalculated table by position in gradient
+    inline Int precalculatedColorIndex( DoubleReal position ) const
+    {
+      OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorIndex(DoubleReal): Precalculation mode not activated!");
+      OPENMS_PRECONDITION(position >= pre_min_, (String("MultiGradient::precalculatedColorIndex(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_ + pre_size_) + ")!").c_str());
+
+      Int index = (Int)((position - pre_min_) / pre_size_ * pre_steps_);
+
+      return qBound( 0, index, (Int)pre_.size() - 1 );
+    }
+
+    /// precalculated color by its index in the table
+    inline QColor precalculatedColorByIndex( Int index ) const
+    {
+      OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorByIndex(Int): Precalculation mode not activated!");
+      OPENMS_PRECONDITION( index >= 0, "MultiGradient::precalculatedColorByIndex(Int): negative indexes not allowed");
+      OPENMS_PRECONDITION( index < (Int)pre_.size(), (String("MultiGradient::indexedColor(Int): index ") + index + " out of specified range (0-" + pre_.size() + ")!").c_str());
+
+      return pre_[index];
+    }
+
     /**
         @brief Returns a precalculated color.
 
@@ -138,15 +160,17 @@ public:
     */
     inline QColor precalculatedColorAt(DoubleReal position) const
     {
-      OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorAt(DoubleReal): Precalculation mode not activated!");
-      OPENMS_PRECONDITION(position >= pre_min_, (String("MultiGradient::precalculatedColorAt(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_ + pre_size_) + ")!").c_str());
-      OPENMS_PRECONDITION(position <= pre_min_ + pre_size_ + std::numeric_limits<DoubleReal>::epsilon() * (pre_min_ + pre_size_), (String("MultiGradient::precalculatedColorAt(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_ + pre_size_) + ")!").c_str());
-
-      return pre_[(UInt)((position - pre_min_) / pre_size_ * pre_steps_)];
+      return precalculatedColorByIndex( precalculatedColorIndex( position ) );
     }
 
     ///return the number of color points
     Size size() const;
+
+    /// size of precalculated colors table
+    Size precalculatedSize() const
+    {
+        return pre_.size();
+    }
 
     /// sets the interploation mode (default or stairs). Default is linear
     void setInterpolationMode(InterpolationMode mode);

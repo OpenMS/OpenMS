@@ -464,7 +464,7 @@ namespace OpenMS
         fCharge = (*C).first;
         maxCount = (*C).second;
       }
-      C++;
+      ++C;
     }
 
     if (view)
@@ -522,16 +522,16 @@ namespace OpenMS
     {
 
       MSPeak * peak = &(*R).second;
-      map<double, double> isotopeCluster;
+      // map<double, double> isotopeCluster; // unused variable
 
       vector<CentroidPeak>::iterator p = peak->get_isotopic_peaks_start();
       while (p != peak->get_isotopic_peaks_end())
       {
         isotopePattern->addIsotopeTrace((*p).getMass(), (*p).getFittedIntensity());
-        p++;
+        ++p;
       }
 
-      R++;
+      ++R;
     }
 
     // create the pattern:

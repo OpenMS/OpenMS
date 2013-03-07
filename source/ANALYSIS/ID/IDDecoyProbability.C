@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch, Sven Nahnsen $
+// $Maintainer: Sven Nahnsen $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 

@@ -7,6 +7,7 @@ IDEvaluationBase.C
 INIFileEditorWindow.C
 TOPPViewBase.C
 TOPPASBase.C
+MISC/QApplicationTOPP.C
 )
 
 ### add path to the filenames

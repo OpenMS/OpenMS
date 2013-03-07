@@ -61,7 +61,7 @@ namespace OpenMS
   }
 
   /// Constructor with iTRAQ type (from enum ItraqConstants::ITRAQ_TYPES) and param
-  ItraqChannelExtractor::ItraqChannelExtractor(Int itraq_type, const Param & param) :
+  ItraqChannelExtractor::ItraqChannelExtractor(Int itraq_type, const Param& param) :
     DefaultParamHandler("ItraqChannelExtractor"),
     itraq_type_(itraq_type),
     channel_map_()
@@ -73,7 +73,7 @@ namespace OpenMS
   }
 
   /// copy constructor
-  ItraqChannelExtractor::ItraqChannelExtractor(const ItraqChannelExtractor & cp) :
+  ItraqChannelExtractor::ItraqChannelExtractor(const ItraqChannelExtractor& cp) :
     DefaultParamHandler(cp),
     ItraqConstants(cp),
     itraq_type_(cp.itraq_type_),
@@ -83,7 +83,7 @@ namespace OpenMS
   }
 
   /// assignment operator
-  ItraqChannelExtractor & ItraqChannelExtractor::operator=(const ItraqChannelExtractor & rhs)
+  ItraqChannelExtractor& ItraqChannelExtractor::operator=(const ItraqChannelExtractor& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -101,7 +101,7 @@ namespace OpenMS
   /// @param ms_exp_data Raw data to read
   /// @param consensus_map Output each MS² scan as a consensus feature
   /// @throws Exception::MissingInformation if no scans present or MS² scan has no precursor
-  void ItraqChannelExtractor::run(const MSExperiment<Peak1D> & ms_exp_data, ConsensusMap & consensus_map)
+  void ItraqChannelExtractor::run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
   {
     if (ms_exp_data.empty())
     {
@@ -211,7 +211,7 @@ namespace OpenMS
         // add channel to ConsensusFeature
         cf.insert(index++, channel_value, element_index);
 
-      }       // ! channel_iterator
+      } // ! channel_iterator
 
 
       // check featureHandles are not empty
@@ -224,7 +224,7 @@ namespace OpenMS
 
       // the tandem-scan in the order they appear in the experiment
       ++element_index;
-    }     // ! Experiment iterator
+    } // ! Experiment iterator
 
 
 #ifdef ITRAQ_DEBUG
@@ -238,18 +238,24 @@ namespace OpenMS
 
   void ItraqChannelExtractor::setDefaultParams_()
   {
-    defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (usually HCD for iTRAQ). Set to empty string if you want to disable filtering.\n");
+    defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (usually HCD for iTRAQ). Set to empty string if you want to disable filtering.");
     StringList activation_list(std::vector<std::string>(Precursor::NamesOfActivationMethod, &Precursor::NamesOfActivationMethod[Precursor::SIZE_OF_ACTIVATIONMETHOD - 1]));
-    activation_list.push_back("");     // allow disabling this
+    activation_list.push_back(""); // allow disabling this
     defaults_.setValidStrings("select_activation", activation_list);
 
-    defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected position (of e.g. 114.1, 115.1)");
+    defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected position.");
     defaults_.setMinFloat("reporter_mass_shift", 0.00000001);
     defaults_.setMaxFloat("reporter_mass_shift", 0.5);
 
     defaults_.setValue("channel_active",
-                       (itraq_type_ == TMT_SIXPLEX ? StringList::create("126:liver,131:lung") : StringList::create("114:liver,117:lung")),
-                       "Each channel that was used in the experiment and its description (114-117 for 4plex; 113-121 for 8-plex;126-131 for TMT-6-plex) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\".");
+                       (itraq_type_ == TMT_SIXPLEX
+                        ? StringList::create("126:liver,131:lung")
+                        : StringList::create("114:liver,117:lung")),
+                       String("Each channel that was used in the experiment and its description (")
+                       + (itraq_type_ == TMT_SIXPLEX
+                          ? String("126-131 for TMT-6-plex")
+                          : String("114-117 for 4plex; 113-121 for 8-plex"))
+                       + String(") in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."));
 
     defaultsToParam_();
 

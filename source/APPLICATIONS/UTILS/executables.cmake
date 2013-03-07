@@ -12,7 +12,7 @@ ERPairFinder
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
-IDEvaluation
+IDEvaluator
 IDExtractor
 IDMassAccuracy
 IDSplitter
@@ -23,7 +23,6 @@ INIUpdater
 LabeledEval
 MassCalculator
 MRMPairFinder
-MRMMapper
 MSSimulator
 MapAlignmentEvaluation
 OpenMSInfo
@@ -34,6 +33,10 @@ SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
 XMLValidator
 QCCalculator
+QCExporter
+QCMerger
+QCShrinker
+QCEmbedder
 RNPxl
 RNPxlXICFilter
 )
@@ -43,22 +46,16 @@ if(NOT DISABLE_OPENSWATH)
     ${UTILS_executables}
     ConvertTSVToTraML
     ConvertTraMLToTSV
-    OpenSwathAnalyzer
-    OpenSwathChromatogramExtractor
-    OpenSwathConfidenceScoring
-    OpenSwathDecoyGenerator
     OpenSwathDIAPreScoring
-    OpenSwathFeatureXMLToTSV
-    OpenSwathmzMLFileCacher
+    OpenSwathMzMLFileCacher
     OpenSwathRewriteToFeatureXML
-    OpenSwathRTNormalizer
   )
 endif(NOT DISABLE_OPENSWATH)
 
 
 ## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
 set(UTILS_executables_with_GUIlib
-IDEvaluation
+IDEvaluator
 ImageCreator
 INIUpdater
 )

@@ -62,14 +62,19 @@ protected:
   void registerOptionsAndFlags_()
   {
     // input files
+
     registerInputFile_("control", "<file>", "", "input mzML file");
+    setValidFormats_("control", StringList::create("mzML"));
     registerInputFile_("treatment", "<file>", "", "input mzML file");
+    setValidFormats_("treatment", StringList::create("mzML"));
+
     registerDoubleOption_("fold_change", "", 2.0, "fold change between XICs", false, false);
     registerDoubleOption_("rt_tol", "", 20, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
 
     // output files
-    registerOutputFile_("out", "<file>", "", "output file");
+    registerOutputFile_("out", "<file>", "", "output of the treatment file after XIC filtering.");
+    setValidFormats_("out", StringList::create("mzML"));    
   }
 
   void filterByFoldChange(const MSExperiment<>& exp1, const MSExperiment<>& exp2,
@@ -112,7 +117,7 @@ protected:
 
       Size length = std::max(rts1.size(), rts2.size()) / 2.0;
 
-      cout << length << endl;
+      //cout << length << endl;
       if (length == 0)
       {
         cerr << "WARNING: no MS1 scans in retention time window found in both maps (mz: " << pc_mzs[i] << " / rt: " << pc_ms2_rts[i] << ")" << endl;
@@ -168,11 +173,12 @@ protected:
         indifferent_XICs.push_back(pc_ms2_rt);
         continue;
       }
-
+      /*
       for (Size k = 0; k != length; ++k)
       {
         cout << k << ": " << rt_start + rttol / length * k  << ": " << XIC1[k] << " " << XIC2[k] << endl;
       }
+      */
     }
 
     cout << "control larger: " << control_XIC_larger.size() << " treatment larger: " << treatment_XIC_larger.size() << " indifferent: " << indifferent_XICs.size() << endl;
@@ -185,6 +191,7 @@ protected:
     // Parameter parsing
     const string control_mzml(getStringOption_("control"));
     const string treatment_mzml(getStringOption_("treatment"));
+
     const string out_mzml(getStringOption_("out"));
     const DoubleReal mz_tolerance_ppm = getDoubleOption_("mz_tol");
     const DoubleReal fold_change = getDoubleOption_("fold_change");
@@ -248,10 +255,6 @@ protected:
         {
           if (fabs(rt - treatment_XIC_larger_rts[j]) <= 0.001)
           {
-            DoubleReal pc_mz = exp_treatment[i].getPrecursors()[0].getMZ();
-            DoubleReal pc_charge = exp_treatment[i].getPrecursors()[0].getCharge();
-            DoubleReal pc_mass = pc_mz * pc_charge - pc_charge * Constants::PROTON_MASS_U;
-
             exp_out.push_back(exp_treatment[i]);
             break;
           }

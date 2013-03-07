@@ -67,7 +67,7 @@ namespace OpenMS
     defaults_.setValue("variable_modifications", StringList::create(""), "Variable modifications");
 
     defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
-    defaults_.setValue("num_explicit", 2, "Number of explicitely modeled losses from the same kind of amino acid or combinations thereof");
+    defaults_.setValue("num_explicit", 2, "Number of explicitly modeled losses from the same kind of amino acid or combinations thereof");
 
     defaults_.setValue("min_int_to_train", 0.1, "Minimal intensity a ion and its losses must have to be considered for training.");
 
@@ -87,14 +87,14 @@ namespace OpenMS
   {
   }
 
-  PILISNeutralLossModel::PILISNeutralLossModel(const PILISNeutralLossModel & model) :
+  PILISNeutralLossModel::PILISNeutralLossModel(const PILISNeutralLossModel& model) :
     DefaultParamHandler(model),
     hmm_precursor_(model.hmm_precursor_),
     num_explicit_(model.num_explicit_)
   {
   }
 
-  PILISNeutralLossModel & PILISNeutralLossModel::operator=(const PILISNeutralLossModel & model)
+  PILISNeutralLossModel& PILISNeutralLossModel::operator=(const PILISNeutralLossModel& model)
   {
     if (this != &model)
     {
@@ -105,17 +105,17 @@ namespace OpenMS
     return *this;
   }
 
-  void PILISNeutralLossModel::setHMM(const HiddenMarkovModel & model)
+  void PILISNeutralLossModel::setHMM(const HiddenMarkovModel& model)
   {
     hmm_precursor_ = model;
   }
 
-  const HiddenMarkovModel & PILISNeutralLossModel::getHMM() const
+  const HiddenMarkovModel& PILISNeutralLossModel::getHMM() const
   {
     return hmm_precursor_;
   }
 
-  DoubleReal PILISNeutralLossModel::train(const RichPeakSpectrum & spec, const AASequence & peptide, DoubleReal ion_weight, UInt charge, DoubleReal peptide_weight)
+  DoubleReal PILISNeutralLossModel::train(const RichPeakSpectrum& spec, const AASequence& peptide, DoubleReal ion_weight, UInt charge, DoubleReal peptide_weight)
   {
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
     cerr << "PILISNeutralLossModel::train(#spec.size()=" << spec.size() << ", peptide=" << peptide << ", ion_weight=" << ion_weight << ", charge=" << charge << ", peptide_weight=" << peptide_weight << ")" << endl;
@@ -156,7 +156,7 @@ namespace OpenMS
     return intensity_sum;
   }
 
-  void PILISNeutralLossModel::getIons(vector<RichPeak1D> & peaks, const AASequence & peptide, DoubleReal initial_prob)
+  void PILISNeutralLossModel::getIons(vector<RichPeak1D>& peaks, const AASequence& peptide, DoubleReal initial_prob)
   {
     Map<String, DoubleReal> pre_ints;
     getIons_(pre_ints, initial_prob, peptide);
@@ -190,7 +190,7 @@ namespace OpenMS
     }
   }
 
-  DoubleReal PILISNeutralLossModel::getIntensitiesFromSpectrum_(const RichPeakSpectrum & train_spec, Map<String, DoubleReal> & peak_ints, DoubleReal ion_weight, const AASequence & peptide, UInt charge)
+  DoubleReal PILISNeutralLossModel::getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, DoubleReal>& peak_ints, DoubleReal ion_weight, const AASequence& peptide, UInt charge)
   {
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
     cerr << "PILISNeutralLossModel::getIntensitiesFromSpectrum_(#peaks=" << train_spec.size() << ", weight=" << ion_weight << ", peptide=" << peptide  <<  ", charge=" << charge << ")" << endl;
@@ -287,7 +287,7 @@ namespace OpenMS
     return intensity_sum;
   }
 
-  void PILISNeutralLossModel::trainIons_(DoubleReal initial_probability, const Map<String, DoubleReal> & ints, const AASequence & peptide)
+  void PILISNeutralLossModel::trainIons_(DoubleReal initial_probability, const Map<String, DoubleReal>& ints, const AASequence& peptide)
   {
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
     cerr << "PILISNeutralLossModel::trainIons_(" << initial_probability << ", " << ints.size() << ", " << peptide << ")" << endl;
@@ -325,7 +325,7 @@ namespace OpenMS
     return;
   }
 
-  void PILISNeutralLossModel::enableIonStates_(const AASequence & peptide)
+  void PILISNeutralLossModel::enableIonStates_(const AASequence& peptide)
   {
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
     cerr << "void PILISNeutralLossModel::enableIonStates_(" << peptide << ")" << endl;
@@ -537,7 +537,6 @@ namespace OpenMS
             continue;
           }
           String new_name = name + "-NTerm-" + loss;
-          new_name = name + "-NTerm-" + loss;
           //cerr << "Enabling NTermNeutralLoss: " << new_name << " at peptide: " << peptide << endl;
           hmm_precursor_.enableTransition(name + "-NTerm-" + loss, ion_name + "-" + loss);
           single_nexts.push_back(new_name);
@@ -628,18 +627,18 @@ namespace OpenMS
     hmm_precursor_.evaluate();
   }
 
-  void PILISNeutralLossModel::getIons_(Map<String, DoubleReal> & intensities, DoubleReal initial_probability, const AASequence & precursor)
+  void PILISNeutralLossModel::getIons_(Map<String, DoubleReal>& intensities, DoubleReal initial_probability, const AASequence& precursor)
   {
     //cerr << "getIons_: " << initial_probability << " " << precursor << endl;
     hmm_precursor_.setInitialTransitionProbability("start", 1.0);
 
     enableIonStates_(precursor);
 
-    Map<HMMState *, DoubleReal> tmp;
+    Map<HMMState*, DoubleReal> tmp;
     hmm_precursor_.calculateEmissionProbabilities(tmp);
 
     DoubleReal max_prob(0);
-    for (Map<HMMState *, DoubleReal>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
+    for (Map<HMMState*, DoubleReal>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
     {
       intensities[it->first->getName()] = it->second;
       if (it->second > max_prob)
@@ -654,7 +653,7 @@ namespace OpenMS
     }
 
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
-    for (Map<HMMState *, DoubleReal>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
+    for (Map<HMMState*, DoubleReal>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
     {
       cerr << it->first->getName() << " -> " << it->second << endl;
     }
@@ -675,7 +674,7 @@ namespace OpenMS
 
   void PILISNeutralLossModel::generateModel()
   {
-    set<const Residue *> residues(ResidueDB::getInstance()->getResidues("Natural20"));
+    set<const Residue*> residues(ResidueDB::getInstance()->getResidues("Natural20"));
     StringList variable_modifications = param_.getValue("variable_modifications");
 
     // add variable modified residues
@@ -692,7 +691,7 @@ namespace OpenMS
     // TODO add also NTerm loss formulas
     // collect the different possible neutral loss molecules from the residues
     set<String> losses;
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
       vector<EmpiricalFormula> res_losses = (*it)->getLossFormulas();
       for (vector<EmpiricalFormula>::const_iterator loss_it = res_losses.begin(); loss_it != res_losses.end(); ++loss_it)
@@ -767,7 +766,7 @@ namespace OpenMS
       }
     }
 
-    for (set<const Residue *>::const_iterator it1 = residues.begin(); it1 != residues.end(); ++it1)
+    for (set<const Residue*>::const_iterator it1 = residues.begin(); it1 != residues.end(); ++it1)
     {
       AASequence aa1;
       aa1 += *it1;
@@ -835,7 +834,7 @@ namespace OpenMS
 
     if (enable_double_losses)
     {
-      for (set<const Residue *>::const_iterator it1 = residues.begin(); it1 != residues.end(); ++it1)
+      for (set<const Residue*>::const_iterator it1 = residues.begin(); it1 != residues.end(); ++it1)
       {
         AASequence aa1;
         aa1 += *it1;
@@ -851,7 +850,7 @@ namespace OpenMS
             continue;
           }
 
-          for (set<const Residue *>::const_iterator it2 = it1; it2 != residues.end(); ++it2)
+          for (set<const Residue*>::const_iterator it2 = it1; it2 != residues.end(); ++it2)
           {
             AASequence aa2;
             aa2 += *it2;
@@ -938,7 +937,7 @@ namespace OpenMS
       hmm_precursor_.addSynonymTransition(cooh_name, ion_name + "-" + h2o, cooh_name + "_1", ion_name + "-" + h2o);
     }
 
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
       AASequence aa;
       aa += *it;
@@ -952,18 +951,9 @@ namespace OpenMS
         {
           continue;
         }
-        if (!enable_double_losses)
-        {
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name + "-" + loss, 0.25);
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name, 0.25);
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, aa.toString() + "-NTerm-" + loss + "-next", 0.5);
-        }
-        else
-        {
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name + "-" + loss, 0.25);
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name, 0.25);
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, aa.toString() + "-NTerm-" + loss + "-next", 0.5);
-        }
+        hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name + "-" + loss, 0.25);
+        hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name, 0.25);
+        hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, aa.toString() + "-NTerm-" + loss + "-next", 0.5);
       }
 
 

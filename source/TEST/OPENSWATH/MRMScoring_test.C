@@ -261,9 +261,9 @@ BOOST_AUTO_TEST_CASE(test_Library_score)
   boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
   boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
   boost::shared_ptr<MockFeature> f3_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  f1_ptr->m_intensity = 782.38073;
-  f2_ptr->m_intensity = 58.384506;
-  f3_ptr->m_intensity = 58.384506;
+  f1_ptr->m_intensity = (float)782.38073;
+  f2_ptr->m_intensity = (float)58.384506;
+  f3_ptr->m_intensity = (float)58.384506;
   std::map<std::string, boost::shared_ptr<MockFeature> > features;
   features["group1"] = f1_ptr;
   features["group2"] = f2_ptr;

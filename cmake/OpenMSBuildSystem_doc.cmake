@@ -23,6 +23,20 @@ if (DOXYGEN_FOUND)
 
   #######################################################################
   ##doc_param_internal target
+	if(NOT MSVC)
+		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doc/doxygen/parameters/TOPPDocumenter")
+		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doc/doxygen/parameters/DefaultParamHandlerDocumenter")
+		set(_BINARY_PATH "${PROJECT_BINARY_DIR}/bin")
+	else()
+		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(ConfigurationName)/TOPPDocumenter")
+		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(ConfigurationName)/DefaultParamHandlerDocumenter")		
+		set(_BINARY_PATH "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)")
+	endif()
+	
+	file(TO_NATIVE_PATH "${_TOPPDOCUMENTER_EXECUTABLE}" TOPPDOCUMENTER_EXECUTABLE)
+	file(TO_NATIVE_PATH "${_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}" DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE)
+	file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
+	
   add_custom_target(doc_param_internal
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -35,25 +49,15 @@ if (DOXYGEN_FOUND)
                     COMMAND ${CMAKE_COMMAND} -E echo "Building OpenMS parameter docu:"
                     COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                     COMMAND ${CMAKE_COMMAND} -E make_directory doc/doxygen/parameters/output/
-                    COMMAND ${CMAKE_COMMAND} -E chdir doc/doxygen/parameters/ ./DefaultParamHandlerDocumenter
+                    COMMAND ${CMAKE_COMMAND} -E chdir doc/doxygen/parameters/ ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP/UTILS docu:"
                     COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
-                    COMMAND ${CMAKE_COMMAND} -E chdir doc/doxygen/parameters/ ./TOPPDocumenter
+                    COMMAND ${CMAKE_COMMAND} -E chdir doc/doxygen/parameters/ ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMENT "Build the parameters documentation"
                     VERBATIM)
-  if (MSVC_IDE)
-    ##copy required executables:
-    add_custom_target(doc_prepare
-                      COMMAND ${CMAKE_COMMAND} -E copy  ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(ConfigurationName)/DefaultParamHandlerDocumenter.exe ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/DefaultParamHandlerDocumenter.exe
-                      COMMAND ${CMAKE_COMMAND} -E copy  ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/$(ConfigurationName)/TOPPDocumenter.exe ${PROJECT_BINARY_DIR}/doc/doxygen/parameters/TOPPDocumenter.exe
-                      VERBATIM)
-    add_dependencies(doc_prepare doc_progs)
-    add_dependencies(doc_param_internal doc_prepare)
-  else()
-    add_dependencies(doc_param_internal doc_progs)
-  endif()
+	add_dependencies(doc_param_internal doc_progs)
 
   #######################################################################
   ## doc target

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<PARAMETERS version="1.3" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<PARAMETERS version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="info" description="">
     <ITEM name="num_vertices" value="7" type="int" description="" />
     <ITEM name="num_edges" value="6" type="int" description="" />
@@ -26,9 +26,9 @@
       <ITEM name="x_pos" value="-140" type="float" description="" />
       <ITEM name="y_pos" value="-40" type="float" description="" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureFinderCentroided&apos;">
-        <ITEM name="in" value="" type="string" description="input file" tags="input file,required" restrictions="*.mzML" />
-        <ITEM name="out" value="" type="string" description="output file" tags="output file,required" restrictions="*.featureXML" />
-        <ITEM name="seeds" value="" type="string" description="User specified seed list" tags="input file" restrictions="*.featureXML" />
+        <ITEM name="in" value="" type="string" description="input file" tags="input file,required" supported_formats="*.mzML" />
+        <ITEM name="out" value="" type="string" description="output file" tags="output file,required" supported_formats="*.featureXML" />
+        <ITEM name="seeds" value="" type="string" description="User specified seed list" tags="input file" supported_formats="*.featureXML" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
@@ -53,6 +53,8 @@
             <ITEM name="intensity_percentage_optional" value="0.1" type="float" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing." tags="advanced" restrictions="0:100" />
             <ITEM name="optional_fit_improvement" value="2" type="float" description="Minimal percental improvement of isotope fit to allow leaving out an optional peak." tags="advanced" restrictions="0:100" />
             <ITEM name="mass_window_width" value="25" type="float" description="Window width in Dalton for precalculation of estimated isotope distributions." tags="advanced" restrictions="1:200" />
+            <ITEM name="abundance_12C" value="98.93" type="float" description="Rel. abundance of the light carbon. Modify if labeled." tags="advanced" restrictions="0:100" />
+            <ITEM name="abundance_14N" value="99.632" type="float" description="Rel. abundance of the light nitrogen. Modify if labeled." tags="advanced" restrictions="0:100" />
           </NODE>
           <NODE name="seed" description="Settings that determine which peaks are considered a seed">
             <ITEM name="min_score" value="0.8" type="float" description="Minimum seed score a peak has to reach to be used as seed.#br#The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.#br#If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score." restrictions="0:1" />
@@ -102,22 +104,26 @@
       <ITEM name="x_pos" value="60" type="float" description="" />
       <ITEM name="y_pos" value="-40" type="float" description="" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;IDMapper&apos;">
-        <ITEM name="id" value="" type="string" description="Protein/peptide identifications file" tags="input file,required" restrictions="*.idXML" />
-        <ITEM name="in" value="" type="string" description="Feature map/consensus map file" tags="input file,required" restrictions="*.featureXML,*.consensusXML,*.mzq" />
-        <ITEM name="out" value="" type="string" description="Output file (the format depends on the input file format)." tags="output file,required" restrictions="*.featureXML,*.consensusXML,*.mzq" />
+        <ITEM name="id" value="" type="string" description="Protein/peptide identifications file" tags="input file,required" supported_formats="*.idXML" />
+        <ITEM name="in" value="" type="string" description="Feature map/consensus map file" tags="input file,required" supported_formats="*.featureXML,*.consensusXML,*.mzq" />
+        <ITEM name="out" value="" type="string" description="Output file (the format depends on the input file format)." tags="output file,required" supported_formats="*.featureXML,*.consensusXML,*.mzq" />
         <ITEM name="rt_tolerance" value="5" type="float" description="RT tolerance (in seconds) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
         <ITEM name="mz_tolerance" value="20" type="float" description="m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." restrictions="0:" />
         <ITEM name="mz_measure" value="ppm" type="string" description="Unit of &apos;mz_tolerance&apos;." restrictions="ppm,Da" />
-        <ITEM name="mz_reference" value="precursor" type="string" description="Source of m/z values for peptide identifications. If &apos;precursor&apos;, the precursor-m/z from the idXML is used. If &apos;peptide&apos;,#br#masses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.#br#(&apos;peptide&apos; should be used together with &apos;use_centroid_mz&apos; to avoid false-positive matches.)" restrictions="precursor,peptide" />
+        <ITEM name="mz_reference" value="precursor" type="string" description="Source of m/z values for peptide identifications. If &apos;precursor&apos;, the precursor-m/z from the idXML is used. If &apos;peptide&apos;,#br#masses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.#br#(&apos;peptide&apos; should be used together with &apos;feature:use_centroid_mz&apos; to avoid false-positive matches.)" restrictions="precursor,peptide" />
         <ITEM name="ignore_charge" value="false" type="string" description="For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature." restrictions="true,false" />
-        <ITEM name="use_centroid_rt" value="false" type="string" description="Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces." restrictions="true,false" />
-        <ITEM name="use_centroid_mz" value="false" type="string" description="Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.#br#(If you choose &apos;peptide&apos; as &apos;mz_reference&apos;, you should usually set this flag to avoid false-positive matches.)" restrictions="true,false" />
-        <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." restrictions="true,false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" />
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
+        <NODE name="feature" description="Additional options for featureXML input">
+          <ITEM name="use_centroid_rt" value="false" type="string" description="Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces." restrictions="true,false" />
+          <ITEM name="use_centroid_mz" value="false" type="string" description="Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.#br#(If you choose &apos;peptide&apos; as &apos;mz_reference&apos;, you should usually set this flag to avoid false-positive matches.)" restrictions="true,false" />
+        </NODE>
+        <NODE name="consensusfeature" description="Additional options for consensusXML input">
+          <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." restrictions="true,false" />
+        </NODE>
       </NODE>
     </NODE>
     <NODE name="5" description="">
@@ -128,9 +134,9 @@
       <ITEM name="x_pos" value="60" type="float" description="" />
       <ITEM name="y_pos" value="260" type="float" description="" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;FeatureLinkerUnlabeled&apos;">
-        <ITEMLIST name="in" type="string" description="input files separated by blanks" tags="input file,required" restrictions="*.featureXML,*.consensusXML">
+        <ITEMLIST name="in" type="string" description="input files separated by blanks" tags="input file,required" supported_formats="*.featureXML,*.consensusXML">
         </ITEMLIST>
-        <ITEM name="out" value="" type="string" description="Output file" tags="output file,required" restrictions="*.consensusXML" />
+        <ITEM name="out" value="" type="string" description="Output file" tags="output file,required" supported_formats="*.consensusXML" />
         <ITEM name="keep_subelements" value="false" type="string" description="For consensusXML input only: If set, the sub-features of the inputs are transferred to the output." restrictions="true,false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" tags="advanced" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" tags="advanced" />
@@ -138,16 +144,16 @@
         <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" tags="advanced" restrictions="true,false" />
         <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" tags="advanced" restrictions="true,false" />
         <NODE name="algorithm" description="Algorithm parameters section">
-          <ITEM name="second_nearest_gap" value="2" type="float" description="The distance to the second nearest neighbors must be larger by this factor than the distance to the matching element itself" restrictions="1:" />
-          <ITEM name="use_identifications" value="false" type="string" description="Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account)" restrictions="true,false" />
+          <ITEM name="second_nearest_gap" value="2" type="float" description="The distance to the second nearest neighbors must be larger by this factor than the distance to the matching element itself." restrictions="1:" />
+          <ITEM name="use_identifications" value="false" type="string" description="Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account)." restrictions="true,false" />
           <ITEM name="ignore_charge" value="false" type="string" description="Compare features normally even if their charge states are different" restrictions="true,false" />
           <NODE name="distance_RT" description="Distance component based on RT differences">
-            <ITEM name="max_difference" value="100" type="float" description="Maximum allowed difference in RT" restrictions="0:" />
+            <ITEM name="max_difference" value="100" type="float" description="Maximum allowed difference in RT in seconds" restrictions="0:" />
             <ITEM name="exponent" value="1" type="float" description="Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="1" type="float" description="RT distances are weighted by this factor" tags="advanced" restrictions="0:" />
           </NODE>
           <NODE name="distance_MZ" description="Distance component based on m/z differences">
-            <ITEM name="max_difference" value="0.3" type="float" description="Maximum allowed difference in m/z (unit defined by &apos;mz_unit&apos;)" restrictions="0:" />
+            <ITEM name="max_difference" value="0.3" type="float" description="Maximum allowed difference in m/z (unit defined by &apos;unit&apos;)" restrictions="0:" />
             <ITEM name="unit" value="Da" type="string" description="Unit of the &apos;max_difference&apos; parameter" restrictions="Da,ppm" />
             <ITEM name="exponent" value="2" type="float" description="Normalized m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" tags="advanced" restrictions="0:" />
             <ITEM name="weight" value="1" type="float" description="m/z distances are weighted by this factor" tags="advanced" restrictions="0:" />

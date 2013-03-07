@@ -54,7 +54,10 @@ using namespace std;
 /**
   @page UTILS_SpecLibCreator SpecLibCreator
 
-    @brief creates with given data a msp format spectral library.
+    @brief creates with given data a .MSP format spectral library.
+
+    Information file should have the following information: peptide, retention time, measured weight, charge state.
+    Extra information is allowed.
 
     @experimental This Utility is not well tested and some features might not work as expected.
 
@@ -72,7 +75,7 @@ class TOPPSpecLibCreator :
 {
 public:
   TOPPSpecLibCreator() :
-    TOPPBase("SpecLibCreator", "Creates an MSP formated spectral library.", false)
+    TOPPBase("SpecLibCreator", "Creates an MSP formatted spectral library.", false)
   {
   }
 
@@ -80,18 +83,17 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("info", "<file>", "", "Holds id, peptide, retention time etc.");
-    // setValidFormats_("info",StringList::create("csv"));
+    setValidFormats_("info", StringList::create("csv"));
+    
     registerStringOption_("itemseperator", "<char>", ",", " Seperator between items. e.g. ,", false);
     registerStringOption_("itemenclosed", "<bool>", "false", "'true' or 'false' if true every item is enclosed e.g. '$peptide$,$run$...", false);
-    // setValidFormats_("itemenclosed",StringList::create("true,false"));
+    setValidStrings_("itemenclosed", StringList::create("true,false"));
+    
     registerInputFile_("spec", "<file>", "", "spectra");
     setValidFormats_("spec", StringList::create("mzData,mzXML"));
-    registerOutputFile_("out", "<file>", "", "output MSP formated spectra library");
-    // setValidFormats_("out",StringList::create("msp"));
 
-    addEmptyLine_();
-    addText_("Note: information file should have the following information: peptide, retention time, measured weight, charge state");
-    addText_("Extra information is allowed");
+    registerOutputFile_("out", "<file>", "", "output MSP formated spectra library");
+    setValidFormats_("out",StringList::create("msp"));
   }
 
   ExitCodes main_(int, const char **)

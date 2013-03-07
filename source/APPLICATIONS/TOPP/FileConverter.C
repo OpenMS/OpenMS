@@ -120,8 +120,6 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    addText_("All conversions are possible, but you might lose information!");
-    addText_("");
     registerInputFile_("in", "<file>", "", "input file ");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     String formats("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
@@ -193,9 +191,6 @@ protected:
 
     FeatureMapType fm;
     ConsensusMap cm;
-
-    vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_ids;
 
     writeDebug_(String("Loading input file"), 1);
 

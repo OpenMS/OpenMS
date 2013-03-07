@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Stephan Aiche $
+// $Maintainer: Stephan Aiche $
 // $Authors: Clemens Groepl, Stephan Aiche $
 // --------------------------------------------------------------------------
 

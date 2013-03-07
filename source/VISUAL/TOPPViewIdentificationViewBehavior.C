@@ -435,7 +435,7 @@ namespace OpenMS
         DoubleReal tolerance = tv_params.getValue("preferences:idview:tolerance");
         bool unit_is_ppm = tv_params.getValue("preferences:idview:is_relative_tolerance").toBool();
 
-        param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance in the alignment");
+        param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
         String sunit_is_ppm = unit_is_ppm ? "true" : "false";
         param.setValue("is_relative_tolerance", sunit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value otherwise in Dalton");
         tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);

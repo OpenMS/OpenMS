@@ -329,6 +329,55 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 END_SECTION
 
+
+  
+//InPrecursorMZRange
+
+InPrecursorMZRange<MSSpectrum<> >* ptr50 = 0;
+InPrecursorMZRange<MSSpectrum<> >* nullPointer50 = 0;
+START_SECTION((InPrecursorMZRange(const DoubleReal& mz_left, const DoubleReal& mz_right, bool reverse = false)))
+	ptr50 = new InPrecursorMZRange<MSSpectrum<> >(100.0, 200.0);
+  TEST_NOT_EQUAL(ptr50, nullPointer50)
+END_SECTION
+
+START_SECTION(([EXTRA]~InPrecursorMZRange()))
+	delete ptr50;
+END_SECTION
+
+START_SECTION((bool operator()(const SpectrumType& s) const))
+	InPrecursorMZRange<MSSpectrum<> > s(100.0, 200.0);
+	InPrecursorMZRange<MSSpectrum<> > s2(100.0, 200.0,true);
+	MSSpectrum<> spec;
+	std::vector<Precursor> pc;
+	Precursor p;
+  p.setMZ(150.0);
+  pc.push_back(p);
+	spec.setPrecursors(pc);
+
+	TEST_EQUAL(s(spec), true);
+	TEST_EQUAL(s2(spec), false);
+	
+	// outside of allowed window
+	p.setMZ(444.0);
+	pc[0] = p;
+	spec.setPrecursors(pc);
+
+	TEST_EQUAL(s(spec), false);
+	TEST_EQUAL(s2(spec), true);	
+
+	// multiple precursors:
+	// adding second which is within limits... but we require all of them to be...
+	p.setMZ(150.0);
+	pc.push_back(p);
+	spec.setPrecursors(pc);
+	
+	TEST_EQUAL(s(spec), false);
+	TEST_EQUAL(s2(spec), true);	
+	
+
+
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

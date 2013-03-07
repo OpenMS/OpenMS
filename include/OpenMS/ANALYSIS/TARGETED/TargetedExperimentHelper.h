@@ -39,6 +39,8 @@
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 
+#include <boost/numeric/conversion/cast.hpp>
+
 namespace OpenMS
 {
   /**
@@ -215,7 +217,7 @@ public:
         public CVTermList
       {
         DoubleReal avg_mass_delta;
-        Size location;
+        int location;
         DoubleReal mono_mass_delta;
       };
 
@@ -514,6 +516,13 @@ private:
       std::vector<CVTermList> interpretation_list_;
 
     };
+
+    /// helper function that converts a Peptide object to a AASequence object
+    OPENMS_DLLAPI OpenMS::AASequence getAASequence(const Peptide& peptide);
+
+    /// helper function that sets a modifiction on a AASequence object 
+    OPENMS_DLLAPI void setModification(int location, int max_size, String modification, OpenMS::AASequence & aas);
+
   }
 } // namespace OpenMS
 

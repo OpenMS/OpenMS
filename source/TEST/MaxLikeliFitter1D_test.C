@@ -78,25 +78,25 @@ class TestModel : public MaxLikeliFitter1D
      MaxLikeliFitter1D::updateMembers_();
   }
 
-  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*& model)
+  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/)
   {
-    DoubleReal center = 0.0;
-    center = model->getCenter();
+//    DoubleReal center = 0.0;
+//    center = model->getCenter();
 
     return 1.0;
   }
 
-  QualityType fitOffset_(InterpolationModel* model, const RawDataArrayType& /*set*/ , const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step)
+  QualityType fitOffset_(InterpolationModel* /* model */, const RawDataArrayType& /*set*/ , const CoordinateType /* stdev1 */, const CoordinateType /* stdev2 */, const CoordinateType /* offset_step */)
   {
-    DoubleReal center = 0.0;
-    center = model->getCenter();
+//    DoubleReal center = 0.0;
+//    center = model->getCenter();
 
-    DoubleReal st_dev_1 = 0.0;
-    st_dev_1 = stdev1;
-    DoubleReal st_dev_2 = 0.0;
-    st_dev_2 = stdev2;
-    DoubleReal offset = 0.0;
-    offset = offset_step;
+//    DoubleReal st_dev_1 = 0.0;
+//    st_dev_1 = stdev1;
+//    DoubleReal st_dev_2 = 0.0;
+//    st_dev_2 = stdev2;
+//    DoubleReal offset = 0.0;
+//    offset = offset_step;
 
     return 1.0;
   }

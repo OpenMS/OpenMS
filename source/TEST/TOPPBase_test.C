@@ -36,6 +36,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -189,7 +190,7 @@ class TOPPBaseTestNOP
     {
       registerStringOption_("stringoption","<string>","","string description");
       registerIntOption_("intoption","<int>",0,"int description",false);
-      registerDoubleOption_("doubleoption","<double>",std::numeric_limits<double>::quiet_NaN(),"double description");
+      registerDoubleOption_("doubleoption","<double>", -1.0,"double description", false);
       registerFlag_("flag","flag description");
       registerStringList_("stringlist","<stringlist>",StringList::create(""),"stringlist description");
       registerIntList_("intlist","<intlist>",IntList::create(""),"intlist description");
@@ -420,7 +421,8 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 
 	TOPPBaseTest tmp9(3, write_ini);
 	Param p1, p2;
-	p1.load(filename);
+  ParamXMLFile paramFile;
+	paramFile.load(filename, p1);
 	//remove id pool (the path is dependent on the installation path)
 	p1.remove("TOPPBaseTest:1:id_pool");
 
@@ -484,11 +486,6 @@ START_SECTION(([EXTRA]String getDoubleOption_(const String& name) const))
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getDoubleOption("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getDoubleOption("imleeewenit"));
-
-	//missing required parameters
-	const char* string_cl2[2] = {a1, a11};
-	TOPPBaseTestNOP tmp3(2,string_cl2);
-	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getDoubleOption("doubleoption"));
 END_SECTION
 
 START_SECTION(([EXTRA] String getIntList_(const String& name) const))

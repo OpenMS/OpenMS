@@ -28,13 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -44,6 +43,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -61,7 +61,7 @@ namespace OpenMS
       bool test = true;
       bool this_test;
       char line_buffer[65536];
-      const char * version_string = 0;
+      const char* version_string = 0;
       double absdiff = 0.;
       double absdiff_max = 0.;
       double absdiff_max_allowed = 1E-5;
@@ -91,8 +91,8 @@ namespace OpenMS
     {
 
       void
-      setWhitelist(const char * const /* file */, const int line,
-                   const std::string & whitelist)
+      setWhitelist(const char* const /* file */, const int line,
+                   const std::string& whitelist)
       {
         TEST::whitelist = StringList::create(whitelist);
 
@@ -117,7 +117,7 @@ namespace OpenMS
       }
 
       void
-      printWithPrefix(const std::string & text, const int marked)
+      printWithPrefix(const std::string& text, const int marked)
       {
         std::istringstream is(text);
         std::string line;
@@ -131,7 +131,7 @@ namespace OpenMS
       }
 
       bool
-      validate(const std::vector<std::string> & file_names)
+      validate(const std::vector<std::string>& file_names)
       {
         std::cout << "checking (created temporary files)..." << std::endl;
         bool passed_all = true;
@@ -206,7 +206,7 @@ namespace OpenMS
               break;
 
             case FileTypes::INI:
-              if (!Param().isValid(file_names[i]))
+              if (!ParamXMLFile().isValid(file_names[i]))
               {
                 std::cout << " - Error: Invalid Param file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -254,15 +254,15 @@ namespace OpenMS
       }
 
       std::string
-      tmpFileName(const std::string & file, int line)
+      tmpFileName(const std::string& file, int line)
       {
         QFileInfo fi(file.c_str());
         return String(fi.baseName()) + '_' + String(line) + ".tmp";
       }
 
-      void testRealSimilar(const char * /*file*/, int line,
-                           long double number_1, const char * number_1_stringified, bool number_1_is_realtype, Int number_1_written_digits,
-                           long double number_2, const char * number_2_stringified, bool /* number_2_is_realtype */, Int number_2_written_digits
+      void testRealSimilar(const char* /*file*/, int line,
+                           long double number_1, const char* number_1_stringified, bool number_1_is_realtype, Int number_1_written_digits,
+                           long double number_2, const char* number_2_stringified, bool /* number_2_is_realtype */, Int number_2_written_digits
                            )
       {
         TEST::initialNewline();
@@ -446,11 +446,11 @@ namespace OpenMS
       }
 
       void
-      testStringEqual(const char * /*file*/, int line,
-                      const std::string & string_1,
-                      const char * string_1_stringified,
-                      const std::string & string_2,
-                      const char * string_2_stringified)
+      testStringEqual(const char* /*file*/, int line,
+                      const std::string& string_1,
+                      const char* string_1_stringified,
+                      const std::string& string_2,
+                      const char* string_2_stringified)
       {
         ++test_count;
         test_line = line;
@@ -476,11 +476,11 @@ namespace OpenMS
         }
       }
 
-      void testStringSimilar(const char * /*file*/, int line,
-                             const std::string & string_1,
-                             const char * string_1_stringified,
-                             const std::string & string_2,
-                             const char * string_2_stringified
+      void testStringSimilar(const char* /*file*/, int line,
+                             const std::string& string_1,
+                             const char* string_1_stringified,
+                             const std::string& string_2,
+                             const char* string_2_stringified
                              )
       {
         ++TEST::test_count;
@@ -535,8 +535,8 @@ namespace OpenMS
       }
 
       bool
-      isFileSimilar(const std::string & filename_1,
-                    const std::string & filename_2)
+      isFileSimilar(const std::string& filename_1,
+                    const std::string& filename_2)
       {
         fuzzy_message.clear();
         FuzzyStringComparator fsc;

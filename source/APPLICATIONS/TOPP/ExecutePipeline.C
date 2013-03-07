@@ -119,9 +119,14 @@ protected:
     int num_jobs = getIntOption_("num_jobs");
 
     QApplication a(argc, const_cast<char **>(argv), false);
-    //set & create temporary path
-    QString tmp_path =  File::getTempDirectory().toQString() + QDir::separator() + File::getUniqueName().toQString();
-    QDir qd; qd.mkpath(tmp_path);
+
+    //set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
+    QString new_tmp_dir = File::getUniqueName().toQString();
+    QDir qd(File::getTempDirectory().toQString());
+    qd.mkdir(new_tmp_dir);
+    qd.cd(new_tmp_dir);
+    QString tmp_path = qd.absolutePath();
+
     TOPPASScene ts(0, tmp_path, false);
     if (!a.connect(&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()))) return UNKNOWN_ERROR;
 
@@ -174,6 +179,13 @@ protected:
 
     if (a.exec() == 0)
     {
+      // delete temporary files
+      // safety measure: only delete if subdirectory of Temp path; we do not want to delete / or c:
+      if (String(tmp_path).substitute("\\", "/").hasPrefix(File::getTempDirectory().substitute("\\", "/") + "/"))
+      {
+        File::removeDirRecursively(tmp_path);
+      }
+
       return EXECUTION_OK;
     }
 

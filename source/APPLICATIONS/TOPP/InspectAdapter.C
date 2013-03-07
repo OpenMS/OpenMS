@@ -170,7 +170,7 @@ protected:
     registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0, "the precursor mass tolerance", false);
     registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
     registerFlag_("list_modifications", "show a list of the available modifications");
-    registerStringOption_("modifications", "<mods>", "", "the colon-seperated modifications; may be\n"
+    registerStringOption_("modifications", "<mods>", "", "the colon-separated modifications; may be\n"
                                                          "<name>,<type>, e.g.: Deamidation,opt or\n"
                                                          "<composition>,<residues>,<type>,<name>, e.g.: H2C2O,KCS,opt,Acetyl or\n"
                                                          "<mass>,<residues>,<type>,<name>, e.g.: 42.0367,KCS,opt,Acetyl or\n"
@@ -187,17 +187,17 @@ protected:
     registerIntOption_("tag_count", "<num>", -1, "number of tags to generate", false);
     registerFlag_("no_tmp_dbs", "no temporary databases are used");
     registerDoubleOption_("p_value", "<prob>", 1.0, "annotations with inferior p-value are ignored", false);
-    addEmptyLine_();
-    addText_("Options for blind search");
-    registerFlag_("blind", "perform a blind search (allowing arbitrary modification masses),\n"
+
+    registerTOPPSubsection_("blind", "Options for blind search");
+    registerFlag_("blind:blind", "perform a blind search (allowing arbitrary modification masses),\n"
                            "is preceeded by a normal search to gain a smaller database.\n"
                            "(in full mode only)");
-    registerFlag_("blind_only", "like blind but no prior search is performed to reduce the database size");
-    registerDoubleOption_("p_value_blind", "<prob>", 1.0, "used for generating the minimized database", false);
-    registerIntOption_("min_spp", "<num>", -1, "minimum number of spectra a protein has to annotate\n"
-                                               "to be added to the database", false);
-    registerStringOption_("snd_db", "<file>", "", "name of the minimized trie database generated when using blind mode.", false);
-    registerDoubleOption_("max_ptm_size", "<num>", 250.0, "maximum modification size (in Da) to consider", false);
+    registerFlag_("blind:blind_only", "like blind but no prior search is performed to reduce the database size");
+    registerDoubleOption_("blind:p_value_blind", "<prob>", 1.0, "used for generating the minimized database", false);
+    registerStringOption_("blind:snd_db", "<file>", "", "name of the minimized trie database generated when using blind mode.", false);
+    registerDoubleOption_("blind:max_ptm_size", "<num>", 250.0, "maximum modification size (in Da) to consider", false);
+
+    addEmptyLine_();
     registerStringOption_("contact_name", "<name>", "unknown", "Name of the contact", false);
     registerStringOption_("contact_institution", "<name>", "unknown", "Name of the contact institution", false);
     registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
@@ -213,8 +213,6 @@ protected:
     InspectOutfile inspect_outfile;
 
     vector<String>
-    substrings,
-      substrings2,
       trie_database_filenames,
       sequence_database_filenames,
       index_filenames;
@@ -439,7 +437,7 @@ protected:
     inspect_directory = File::absolutePath(inspect_directory);
     inspect_directory.ensureLastChar(separator);
 
-    blind_only = getFlag_("blind_only");
+    blind_only = getFlag_("blind:blind_only");
 
     contact_person.setName(getStringOption_("contact_name"));
     contact_person.setInstitution(getStringOption_("contact_institution"));
@@ -492,7 +490,7 @@ protected:
       no_tmp_dbs = getFlag_("no_tmp_dbs");
 
       // blind - running inspect in blind mode after running a normal mode to minimize the database
-      blind = getFlag_("blind");
+      blind = getFlag_("blind:blind");
       if (blind && inspect_in && !inspect_out)
       {
         blind = false;
@@ -551,7 +549,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      snd_trie_database = getStringOption_("snd_db");
+      snd_trie_database = getStringOption_("blind:snd_db");
       if (no_tmp_dbs && blind && snd_trie_database.empty())
       {
         writeLog_("No_tmp_dbs and blind flag set but no name for minimized database given. Aborting!");
@@ -643,7 +641,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      inspect_infile.setMaxPTMsize(getDoubleOption_("max_ptm_size"));
+      inspect_infile.setMaxPTMsize(getDoubleOption_("blind:max_ptm_size"));
       if ((inspect_infile.getMaxPTMsize() < 10 || inspect_infile.getMaxPTMsize() > 2000) && inspect_infile.getMaxPTMsize() != -1)
       {
         writeLog_("Illegal maximum modification size (not in [10,2000]). Aborting!");
@@ -666,7 +664,7 @@ protected:
 
     if (blind && inspect_in)
     {
-      cutoff_p_value = getDoubleOption_("p_value_blind");
+      cutoff_p_value = getDoubleOption_("blind:p_value_blind");
       if ((cutoff_p_value < 0) || (cutoff_p_value > 1))
       {
         writeLog_("Illegal p-value for blind search. Aborting!");
@@ -853,7 +851,7 @@ protected:
 
           try
           {
-            vector<Size> corrupted_lines = inspect_outfile.load(inspect_output_filename, peptide_identifications, protein_identification, p_value_threshold, inspect_infile.getDb());
+            inspect_outfile.load(inspect_output_filename, peptide_identifications, protein_identification, p_value_threshold, inspect_infile.getDb());
           }
           catch (Exception::ParseError & pe)
           {

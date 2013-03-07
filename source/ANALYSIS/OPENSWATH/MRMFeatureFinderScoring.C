@@ -139,7 +139,7 @@ namespace OpenMS
     Size nr_chromatograms = input->getNrChromatograms();
     for (Size i = 0; i < input->getNrChromatograms(); i++)
     {
-      chromatogram_map[input->getChromatogramNativeID(i)] = i;
+      chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
     }
 
     // Iterate thorugh all transitions and store the transition with the

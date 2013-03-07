@@ -2,7 +2,7 @@
 
 	@page install_win Building %OpenMS on Windows
 
-  @section install_win_read Read this section first!
+  @section install_win_read Introduction
 
 
   This document addresses %OpenMS users and explains the
@@ -32,13 +32,13 @@
 
 <b>Pre-Requisites (Software)</b>
   <UL>
-    <LI>have a Visual Studio 2005/2008/2010[SP1]/2012[RC] installed (The C++ Express editions should work as well, we tested VSE2008). VS2003 is not supported!
-    <br>64-bit tools are not available on Visual C++ Express Edition by default. To enable 64-bit tools on Visual C++ Express Edition, install the .NET Framework SDK in addition to Visual C++ Express Edition.
-        Note that VS Express does NOT support OpenMP, thus the multithreading capabilities of the TOPP tools and OpenMS-lib are not used.
+    <LI>have a Visual Studio 2005/2008/2010[SP1]/2012 installed (The C++ Express editions should work as well, we tested VSE2008 and VSE2012). VS2003 is not supported!
+    <br>Visual C++ Express 2012 (VS11) supports Win64 and OpenMP by default. For older editions (2010 and below) you can find tutorials on how to enable them on the net.
     <br> If you work with VS 2008, installation of the Service Pack 1 (SP1) is required,
     otherwise VS might crash during the compilation of the contrib package.
-    <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org) 
-		   [VS2010 requires CMake 2.8.2 or later, VS2012 requires CMake 2.8.8 or later].
+    <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)<br>
+		   [VS2010 requires CMake 2.8.2 or later]<br>
+			 [VS2012 requires CMake 2.8.10 or later]
     <LI>If you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
     Installing svnversion.exe allows to include the current svn repository revision into the TOPP binaries' help message, which can ease debugging.
@@ -61,24 +61,31 @@
 
   @subsection install_qt QT installation
 		
-		We require Qt version 4.5 or higher.
+		We require Qt version 4.5 or higher.<br>
+		<b>Qt 5.X IS NOT SUPPORTED YET!</b><br>
+		VS2012 requires at least Qt 4.8.4 with some additional fix (see below).
 	
     Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website
 	Recently (beginning with Qt 4.6) there are binary development versions available for VS2010 and VS2008. We found these to contain only
 	32bit compilations. If you are compiling for 32bit as well, you can download these and save a lot of time. They are incompatible for 64bit builds -
-	compile Qt yourself in this case (or see if you can find 64bit builds on the Qt website).
+	compile Qt yourself in this case (or see if you can find 64bit builds on the Qt website). Make sure NOT to use the MinGW precompiled binaries, since
+	they are incompatible with Visual Studio binaries.
 
 	Follow this procedure if you want to compile Qt yourself:
     <OL>
       <LI>non-commercial:
         <OL>
-          <LI>download Qt source (Qt for Open Source C++ development on Windows - http://qt.nokia.com/downloads/windows-cpp)
+          <LI>download Qt <b>source</b> from http://qt-project.org/downloads as .zip or .tar.gz (or use the prebuild binaries exactly matching your compiler!)
           <LI>extract zip file
+					<LI>[VS2012 only] there is a bug in the latest Qt (4.8.4) preventing compilation. Look at http://stackoverflow.com/questions/12113400/compiling-qt-4-8-x-for-visual-studio-2012 for a fix.
+							Its meant for 4.8.3 though. For 4.8.4 you only need to fix HashSet.h!
           <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <LI>$ cd <path-to-qt>
-          <LI>$ configure.exe -nomake demos -nomake examples -no-script
+					<LI>if you have multiple versions of VS installed you might need to provide the "-platform" param for the next configure command (e.g., -platform win32-msvc2012)
+          <LI>$ configure.exe -opensource -nomake demos -nomake examples -no-script
           <LI>$ nmake
-          <LI>now you should have Link-Libraries and DLL's (debug and release) in your &lt;Qt&gt;/lib directory
+					<LI> or download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
+          <LI>now you should have Link-Libraries and Dll's (debug and release) in your &lt;Qt&gt;/lib directory
         </OL>
       <LI>commercial:
         <OL>
@@ -109,16 +116,16 @@
 
   @b Installation:
 
-		On Vista/Win7 some programs using during contrib creation (e.g. patch.exe) require elevation, otherwise the contrib will not build. 
+		On Vista/Win7/Win8 some programs using during contrib creation (e.g. patch.exe) require elevation, otherwise the contrib will not build. 
     	Thus, you need an admin account with disabled UAC (User Account Control) or alternatively you can start a command line by right-clicking on its link and choosing "Run as administrator", while UAC is still enabled.
 
 		After you got the source code for the contrib package open a VisualStudio Command line (see Start-Menu).
 	
     <OL>
-      <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-      <LI>create a build directory for the %OpenMS contrib <br>
+      <LI>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
+      <LI>Create a build directory for the %OpenMS contrib <br>
           -e.g. $ mkdir contrib_win64_build
-      <LI>call CMake to build the contrib<br>
+      <LI>Call CMake to build the contrib<br>
 				Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
 				able to run 64bit apps in this case.
 				
@@ -136,7 +143,7 @@ cd c:\svn\contrib_win64_build
 cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 @endcode
 
-				<LI>add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
+				<LI>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
       </OL>
     
   @section create_doc Building the documentation (optional)
@@ -146,28 +153,28 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 	In order to build the class documentation (doc & doc_internal targets), TOPP tutorials (doc_tutorials target) and more, you will need to install three programs:
 
   <OL>
-    <LI> Doxygen (version 1.5.8 is tested, others might work as well)
+    <LI> Doxygen (version 1.5.8 and 1.8.2 are tested, others might work as well)
       <UL>
-        <LI> download the installer for Windows (http://www.doxygen.org)
-        <LI> execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
+        <LI> Download the installer for Windows (http://www.doxygen.org)
+        <LI> Execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
       </UL>
-    <LI> MikTeX (version 2.7 is tested, others might work as well) - basic version (for DVIPS, LATEX etc).
+    <LI> MikTeX (version 2.7 and 2.9 are tested, others might work as well) - basic version (for DVIPS, LATEX etc).
       <UL>
-         <LI> download binaries for Windows (http://miktex.org/)
+         <LI> Download binaries for Windows (http://miktex.org/)
          <LI> During installtion tick "install missing packages on the fly = yes"?!
          <LI> The installer SHOULD add the bin directory of MikTeX automatically to the Windows PATH Environment (please recheck)
       </UL>
     <LI> GPL Ghostscript (8.60) for Windows
       <UL>
          <LI> Download binaries for Windows (http://www.ghostscript.com/) and install
-         <LI> add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
+         <LI> Add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
       </UL>
 		<LI>
 			Optional:<br>
 				You can create dependency graphs using a doxygen plug-in called <tt>dot</tt>.
 				<UL>
-					<LI> download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
-					<LI> the installer should have added dot.exe to the Windows PATH Environment (please recheck)
+					<LI> Download binaries for windows from http://www.graphviz.org (we tested: graphviz-2.18.exe)
+					<LI> The installer should have added dot.exe to the Windows PATH Environment (please recheck)
 				</UL>
   </OL>
 	
@@ -191,10 +198,10 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 		After you got the source code open a VisualStudio Command line (see Start-Menu).
     To create Visual Studio Project Files using CMake:
     <OL>
-      <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-      <LI>create a build directory for %OpenMS<br>
+      <LI>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
+      <LI>Create a build directory for %OpenMS<br>
           -e.g. $ mkdir OpenMS_Win64
-      <LI>call CMake to create the BuildSystem there
+      <LI>Call CMake to create the BuildSystem there
 @code
 cd <path_to_OpenMS_build>
 cmake -D CMAKE_FIND_ROOT_PATH="<path_to_contrib_build>" -G "<generator>" "<path_to_OpenMS>"
@@ -225,7 +232,7 @@ cmake -D CMAKE_FIND_ROOT_PATH="C:\svn\contrib_win64_build" -G "Visual Studio 9 2
 		
 		@section install_win_topp Building the TOPP tools
 
-		TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
+		TOPP is a toolset for the analysis of HPLC-MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
 		<BR>
 		<BR>
 		After you have built %OpenMS, you can build the TOPP tools
@@ -243,49 +250,6 @@ cmake -D CMAKE_FIND_ROOT_PATH="C:\svn\contrib_win64_build" -G "Visual Studio 9 2
 		For more syntax on ctest look at the online documentation at http://cmake.org/.
 		
 
-  @section enable_db [deprecated] Enabling database support
-  
-  This information is based on an old %OpenMS version and might not work.
-  
-	%OpenMS accesses databases via QT. This instruction is based on QT 4.3.2. Other versions might differ.
-	We try to install a MySQL driver (installing other db-drivers should work accordingly).
-
-	The open-source version of QT (which is precompiled on windows) does not come with an enabled MySQL driver, so you'll need to recompile QT.
-
-	Before that however, you'll need to build the MySQL-driver itself.
-
-	<OL>
-		<LI>Download MySQLServer4.1 and install it.</LI>
-
-		<LI>
-			Build QT with DB support
-			@code
-cd <path_to_QT>
-configure -L <path_to_MYSQLSERVER>/lib/opt -l libmysql -I <path_to_MYSQLSERVER>/include -qt-sql-mysql -qt-sql-odbc -qt-sql-sqlite -qt-gif -qt-libpng -qt-libjpeg
-			@endcode
-			and wait ...
-		</LI>
-
-		<LI>now build %OpenMS</LI>
-
-		<LI>
-			Now, create a database by opening the mysql command line client (from the start menu) and enter your root password.<br>
-			Now type:<br>
-			@code
-mysql> CREATE DATABASE OPENMS_TEST_DB;
-			@endcode
-			you should see something like:<br>
-			<code>Query OK, 1 row affected (0.14 sec)</code>
-		</LI>
-	</OL>
-
-  @note To enable DB connectivity tests, use the following CMake parameters:
-  - DB_TEST
-  - DB_TEST_HOST
-  - DB_TEST_PORT
-  - DB_TEST_DB
-  - DB_TEST_USER
-  - DB_TEST_PW
 
 */
 

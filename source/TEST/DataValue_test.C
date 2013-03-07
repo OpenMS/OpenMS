@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Marc Sturm $
@@ -395,7 +395,7 @@ START_SECTION((operator long long() const))
 	SignedSize k = d;
 	TEST_EQUAL(k,-55)
 	}
-	
+
 	TEST_EXCEPTION(Exception::ConversionError, (long int)DataValue(55.4))
 END_SECTION
 
@@ -548,6 +548,220 @@ START_SECTION((DataType valueType() const))
 
 	DataValue a8(DoubleList::create("1.2,32.4567"));
 	TEST_EQUAL(a8.valueType(),DataValue::DOUBLE_LIST);
+END_SECTION
+
+START_SECTION((bool hasUnit() const))
+{
+  DataValue a;
+  TEST_EQUAL(a.hasUnit(), false)
+
+	DataValue a1("bla");
+  TEST_EQUAL(a1.hasUnit(), false)
+
+	DataValue a2(1.45);
+  TEST_EQUAL(a2.hasUnit(), false)
+
+  a2.setUnit("millimeters");
+  TEST_EQUAL(a2.hasUnit(), true)
+}
+END_SECTION
+
+START_SECTION((const String& getUnit() const))
+{
+  DataValue a;
+  TEST_EQUAL(a.getUnit(), "")
+
+	DataValue a1(2.2);
+  TEST_EQUAL(a1.getUnit(), "")
+
+  a1.setUnit("ppm");
+  TEST_EQUAL(a1.getUnit(), "ppm")
+}
+END_SECTION
+
+START_SECTION((void setUnit(const String& unit)))
+{
+	DataValue a1(2.2);
+  TEST_EQUAL(a1.getUnit(), "")
+
+  a1.setUnit("ppm");
+  TEST_EQUAL(a1.getUnit(), "ppm")
+
+  a1.setUnit("kg");
+  TEST_EQUAL(a1.getUnit(), "kg")
+
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const char*)))
+{
+  const char * v = "value";
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((String)a, "value")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const std::string&)))
+{
+  std::string v = "value";
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((String)a, "value")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const String&)))
+{
+  String v = "value";
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((String)a, "value")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const QString&)))
+{
+  QString v = "value";
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((String)a, "value")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const StringList&)))
+{
+  StringList v = StringList::create("value,value2");
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL(((StringList)a).size(), 2)
+  ABORT_IF(((StringList)a).size() != 2)
+  TEST_EQUAL(((StringList)a)[0], "value")
+  TEST_EQUAL(((StringList)a)[1], "value2")
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const IntList&)))
+{
+  IntList v = IntList::create("2,-3");
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL(((IntList)a).size(), 2)
+  ABORT_IF(((IntList)a).size() != 2)
+  TEST_EQUAL(((IntList)a)[0], 2)
+  TEST_EQUAL(((IntList)a)[1], -3)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const DoubleList&)))
+{
+  DoubleList v = DoubleList::create("2.14,-3.45");
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL(((DoubleList)a).size(), 2)
+  ABORT_IF(((DoubleList)a).size() != 2)
+  TEST_EQUAL(((DoubleList)a)[0], 2.14)
+  TEST_EQUAL(((DoubleList)a)[1], -3.45)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const long double)))
+{
+  const long double v = 2.44;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((long double)a, 2.44)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const double)))
+{
+  const double v = 2.44;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((double)a, 2.44)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const float)))
+{
+  const float v = 2.44f;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((float)a, 2.44f)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const short int)))
+{
+  const short int v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((short int)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const unsigned short int)))
+{
+  const unsigned short int v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((unsigned short int)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const int)))
+{
+  const int v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((int)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const unsigned)))
+{
+  const unsigned v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((unsigned)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const long int)))
+{
+  const long int v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((long int)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const unsigned long)))
+{
+  const unsigned long v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((unsigned long)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const long long)))
+{
+  const long long v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((long long)a, 2)
+}
+END_SECTION
+
+START_SECTION((DataValue& operator=(const unsigned long long)))
+{
+  const unsigned long long v = 2;
+  DataValue a("v");
+  a = v;
+  TEST_EQUAL((unsigned long long)a, 2)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

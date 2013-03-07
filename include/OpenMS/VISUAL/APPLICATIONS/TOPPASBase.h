@@ -80,7 +80,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    TOPPASBase(QWidget * parent = 0);
+    TOPPASBase(QWidget* parent = 0);
     ///Destructor
     virtual ~TOPPASBase();
 
@@ -93,11 +93,11 @@ If the filename is empty, the application name + ".ini" is used as filename
     /// stores the preferences (used when this window is closed)
     void savePreferences();
     /// loads the files and updates the splash screen
-    void loadFiles(const StringList & list, QSplashScreen * splash_screen);
+    void loadFiles(const StringList& list, QSplashScreen* splash_screen);
 
 public slots:
     /// opens the file in a new window
-    void addTOPPASFile(const String & file_name, bool in_new_window = true);
+    void addTOPPASFile(const String& file_name, bool in_new_window = true);
     /// shows the dialog for opening files
     void openFileDialog();
     /// shows the dialog for opening example files
@@ -123,9 +123,7 @@ public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
     /// brings the tab corresponding to the active window in front
-    void updateTabBar(QWidget * w);
-    /// refreshes the definitions of the TOPP tools
-    void refreshDefinitions();
+    void updateTabBar(QWidget* w);
     /// Shows the 'About' dialog
     void showAboutDialog();
     /// shows the URL stored in the data of the sender QAction
@@ -156,19 +154,21 @@ public slots:
     /// Called when a tool execution fails
     void toolFailed();
     /// Called when a file was successfully written to an output vertex
-    void outputVertexFinished(const String & file);
+    void outputVertexFinished(const String& file);
     /// Called when a TOPP tool produces (error) output.
-    void updateTOPPOutputLog(const QString & out);
+    void updateTOPPOutputLog(const QString& out);
     /// Called by the scene if the pipeline execution finishes successfully
     void showPipelineFinishedLogMessage();
     /// Saves @p scene to the clipboard
-    void saveToClipboard(TOPPASScene * scene);
+    void saveToClipboard(TOPPASScene* scene);
     /// Sends the clipboard content to the sender of the connected signal
     void sendClipboardContent();
     /// Refreshes the parameters of the TOPP tools of the current workflow and stores an updated workflow including the current parameters
     void refreshParameters();
     /// Open files in a new TOPPView instance
     void openFilesInTOPPView(QStringList all_files);
+    /// Opens a toppas file
+    void openToppasFile(QString filename);
 protected slots:
 
     /** @name Tab bar slots
@@ -183,16 +183,16 @@ protected slots:
     /// enable/disable menu entries depending on the current state
     void updateMenu();
     /// Shows the widget as window in the workspace (the special_id is only used for the first untitled widget (to be able to auto-close it later)
-    void showAsWindow_(TOPPASWidget * sw, const String & caption, const int special_id = -1);
+    void showAsWindow_(TOPPASWidget* sw, const String& caption, const int special_id = -1);
     /// Inserts a new TOPP tool in the current window at (x,y)
-    void insertNewVertex_(double x, double y, QTreeWidgetItem * item = 0);
+    void insertNewVertex_(double x, double y, QTreeWidgetItem* item = 0);
     /// Inserts the @p item in the middle of the current window
-    void insertNewVertexInCenter_(QTreeWidgetItem * item);
+    void insertNewVertexInCenter_(QTreeWidgetItem* item);
 
     /// triggered when user clicks a link - if it ends in .TOPPAS we're done
-    void downloadTOPPASfromHomepage_(const QUrl & url);
+    void downloadTOPPASfromHomepage_(const QUrl& url);
     /// triggered when download of .toppas file is finished, so we can store & open it
-    void toppasFileDownloaded_(QNetworkReply * r);
+    void toppasFileDownloaded_(QNetworkReply* r);
 
     /// user edited the workflow description
     void descriptionUpdated_();
@@ -200,41 +200,41 @@ protected slots:
 protected:
 
     /// Log output window
-    TOPPASLogWindow * log_;
+    TOPPASLogWindow* log_;
     /// Workflow Description window
-    QTextEdit * desc_;
+    QTextEdit* desc_;
 
     /** @name Toolbar
     */
     //@{
-    QToolBar * tool_bar_;
+    QToolBar* tool_bar_;
     //@}
 
     /// Main workspace
-    QWorkspace * ws_;
+    QWorkspace* ws_;
 
     /// OpenMS homepage workflow browser
-    QWebView * webview_;
+    QWebView* webview_;
     /// download .toppas files from homepage
-    QNetworkAccessManager * network_manager_;
+    QNetworkAccessManager* network_manager_;
 
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
-    TOPPASTabBar * tab_bar_;
+    TOPPASTabBar* tab_bar_;
 
     /// Tree view of all available TOPP tools
-    QTreeWidget * tools_tree_view_;
+    QTreeWidget* tools_tree_view_;
     /// List of ready analysis pipelines
-    QListWidget * blocks_list_;
+    QListWidget* blocks_list_;
 
     /** @name Status bar
     */
     //@{
     /// Label for messages in the status bar
-    QLabel * message_label_;
+    QLabel* message_label_;
     //@}
 
     ///returns the window with id @p id
-    TOPPASWidget * window_(int id) const;
+    TOPPASWidget* window_(int id) const;
 
 
     /// The current path (used for loading and storing).
@@ -251,26 +251,26 @@ protected:
     static qreal z_value_;
 
     ///returns a pointer to the active TOPPASWidget (0 if none is active)
-    TOPPASWidget * activeWindow_() const;
+    TOPPASWidget* activeWindow_() const;
 
     ///@name reimplemented Qt events
     //@{
-    void closeEvent(QCloseEvent * event);
-    void keyPressEvent(QKeyEvent * e);
+    void closeEvent(QCloseEvent* event);
+    void keyPressEvent(QKeyEvent* e);
     //@}
 
     ///Log message states
     enum LogState
     {
-      LS_NOTICE,             ///< Notice
-      LS_WARNING,            ///< Warning
-      LS_ERROR               ///< Fatal error
+      LS_NOTICE, ///< Notice
+      LS_WARNING, ///< Warning
+      LS_ERROR ///< Fatal error
     };
     /// Shows a log message in the log_ window
-    void showLogMessage_(LogState state, const String & heading, const String & body);
+    void showLogMessage_(LogState state, const String& heading, const String& body);
 
     /// The clipboard
-    TOPPASScene * clipboard_scene_;
+    TOPPASScene* clipboard_scene_;
 
 
 public:
@@ -280,20 +280,20 @@ public:
     /// @name common functions used in TOPPAS and TOPPView
     //@{
     /// Creates and fills a tree widget with all available tools
-    static TOPPASTreeView * createTOPPToolsTreeWidget(QWidget * parent_widget = 0);
+    static TOPPASTreeView* createTOPPToolsTreeWidget(QWidget* parent_widget = 0);
 
     /// Saves the workflow in the provided TOPPASWidget to a user defined location.
     /// Returns the full file name or "" if no valid one is selected.
-    static QString savePipelineAs(TOPPASWidget * w, QString current_path);
+    static QString savePipelineAs(TOPPASWidget* w, QString current_path);
 
     /// Loads and sets the resources of the TOPPASWidget.
-    static QString loadPipelineResourceFile(TOPPASWidget * w, QString current_path);
+    static QString loadPipelineResourceFile(TOPPASWidget* w, QString current_path);
 
     /// Saves the resources of the TOPPASWidget.
-    static QString savePipelineResourceFile(TOPPASWidget * w, QString current_path);
+    static QString savePipelineResourceFile(TOPPASWidget* w, QString current_path);
 
     /// Refreshes the TOPP tools parameters of the pipeline
-    static QString refreshPipelineParameters(TOPPASWidget * tw, QString current_path);
+    static QString refreshPipelineParameters(TOPPASWidget* tw, QString current_path);
     //@}
   }; //class
 

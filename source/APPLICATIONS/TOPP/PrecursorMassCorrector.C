@@ -94,7 +94,7 @@ class TOPPPrecursorMassCorrector :
 {
 public:
   TOPPPrecursorMassCorrector() :
-    TOPPBase("PrecursorMassCorrector", "Corrects the precursor entries of MS/MS spectra, by using MS1 information.", false)
+    TOPPBase("PrecursorMassCorrector", "Corrects the precursor entries of MS/MS spectra, by using MS1 information.")
   {
 
   }

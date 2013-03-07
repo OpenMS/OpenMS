@@ -290,7 +290,7 @@ public:
       {
         std::cerr << "Error: You requested computation via TBB, but OpenMS has not been configured for TBB usage." << std::endl;
         std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-tbb-release\" or \"--enable-tbb-debug\"." << std::endl;
-        std::cerr << "Error: Please note that the multithreaded FeatureFinder needs necessarily the CUDA libary, which must be enabled with \"--enable-cuda\"." << std::endl;
+        std::cerr << "Error: Please note that the multithreaded FeatureFinder needs necessarily the CUDA library, which must be enabled with \"--enable-cuda\"." << std::endl;
       }
 #endif
 

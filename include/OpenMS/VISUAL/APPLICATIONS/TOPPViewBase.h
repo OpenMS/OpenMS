@@ -131,7 +131,7 @@ public:
     //@}
 
     ///Constructor
-    TOPPViewBase(QWidget * parent = 0);
+    TOPPViewBase(QWidget* parent = 0);
     ///Destructor
     ~TOPPViewBase();
 
@@ -147,7 +147,7 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addDataFile(const String & filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
     /**
       @brief Opens and displays a data from a database
 
@@ -175,10 +175,10 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification> & peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String & filename = "", const String & caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    void addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename = "", const String& caption = "", UInt window_id = 0, Size spectrum_id = 0);
 
     /// Opens all the files in the string list
-    void loadFiles(const StringList & list, QSplashScreen * splash_screen);
+    void loadFiles(const StringList& list, QSplashScreen* splash_screen);
 
     /**
       @brief Loads the preferences from the filename given.
@@ -194,36 +194,36 @@ public:
     Param getSpectrumParameters(UInt dim);
 
     /// Returns the active Layer data (0 if no layer is active)
-    const LayerData * getCurrentLayer() const;
+    const LayerData* getCurrentLayer() const;
 
     //@name Accessors for the main gui components.
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
     //@{
     /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets
-    EnhancedWorkspace * getWorkspace() const;
+    EnhancedWorkspace* getWorkspace() const;
 
     /// returns a pointer to the active SpectrumWidget (0 if none is active)
-    SpectrumWidget * getActiveSpectrumWidget() const;
+    SpectrumWidget* getActiveSpectrumWidget() const;
 
     /// returns a pointer to the active Spectrum1DWidget (0 the active window is no Spectrum1DWidget or there is no active window)
-    Spectrum1DWidget * getActive1DWidget() const;
+    Spectrum1DWidget* getActive1DWidget() const;
 
     /// returns a pointer to the active Spectrum2DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-    Spectrum2DWidget * getActive2DWidget() const;
+    Spectrum2DWidget* getActive2DWidget() const;
 
     /// returns a pointer to the active Spectrum3DWidget (0 the active window is no Spectrum2DWidget or there is no active window)
-    Spectrum3DWidget * getActive3DWidget() const;
+    Spectrum3DWidget* getActive3DWidget() const;
     //@}
 
     /// returns a pointer to the active SpectrumCanvas (0 if none is active)
-    SpectrumCanvas * getActiveCanvas() const;
+    SpectrumCanvas* getActiveCanvas() const;
 
 
     /// returns a pointer to the SpectraIdentificationViewWidget
-    SpectraIdentificationViewWidget * getSpectraIdentificationViewWidget();
+    SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
 
     /// Opens the provided spectrum widget in a new window
-    void showSpectrumWidgetInWindow(SpectrumWidget * sw, const String & caption);
+    void showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption);
 
 public slots:
     /// changes the current path according to the currently active window/layer
@@ -273,7 +273,7 @@ public slots:
     /// enabled/disabled menu entries depending on the current state
     void updateMenu();
     /// brings the tab corresponding to the active window in front
-    void updateTabBar(QWidget * w);
+    void updateTabBar(QWidget* w);
     /// tile the open windows vertically
     void tileVertical();
     /// tile the open windows horizontally
@@ -327,11 +327,14 @@ public slots:
     void setDrawMode1D(int);
     void setIntensityMode(int);
     void changeLayerFlag(bool);
-    void changeLabel(QAction *);
-    void changeUnassigned(QAction *);
+    void changeLabel(QAction*);
+    void changeUnassigned(QAction*);
     void resetZoom();
     void toggleProjections();
     //@}
+
+    /// Loads a file given by the passed string
+    void loadFile(QString);
 
 protected slots:
     /** @name Layer manager and filter manager slots
@@ -342,17 +345,17 @@ protected slots:
     /// Enables/disables the data filters for the current layer
     void layerFilterVisibilityChange(bool);
     /// slot for layer manager context menu
-    void layerContextMenu(const QPoint & pos);
+    void layerContextMenu(const QPoint& pos);
     /// slot for log window context menu
-    void logContextMenu(const QPoint & pos);
+    void logContextMenu(const QPoint& pos);
     /// slot for layer manager visibility change (check box)
-    void layerVisibilityChange(QListWidgetItem * item);
+    void layerVisibilityChange(QListWidgetItem* item);
     /// slot for filter manager context menu
-    void filterContextMenu(const QPoint & pos);
+    void filterContextMenu(const QPoint& pos);
     /// slot for editing a filter
-    void filterEdit(QListWidgetItem * item);
+    void filterEdit(QListWidgetItem* item);
     /// slot for editing the preferences of the current layer
-    void layerEdit(QListWidgetItem * /*item*/);
+    void layerEdit(QListWidgetItem* /*item*/);
     //@}
 
     /// slot for the finished signal of the TOPP tools execution
@@ -376,15 +379,14 @@ protected slots:
     /// Opens a file from the recent files menu
     void openRecentFile();
     /// Slot for drag-and-drop of layer manager to tabbar
-    void copyLayer(const QMimeData * data, QWidget * source, int id = -1);
+    void copyLayer(const QMimeData* data, QWidget* source, int id = -1);
     //@}
 
     /// Appends process output to log window
     void updateProcessLog();
 
     /// Called if a data file has been externally changed
-    void fileChanged_(const String &);
-
+    void fileChanged_(const String&);
 protected:
     /// Initializes the default parameters on TOPPView construction.
     void initializeDefaultParameters_();
@@ -393,39 +395,39 @@ protected:
     std::set<String> getFilenamesOfOpenFiles_();
 
     /// Tries to open a db connection (queries the user for the DB password)
-    void connectToDB_(DBConnection & db);
+    void connectToDB_(DBConnection& db);
     /**
         @brief Shows a dialog where the user can select files
     */
-    QStringList getFileList_(const String & path_overwrite = "");
+    QStringList getFileList_(const String& path_overwrite = "");
 
     /// Returns the enhanced tabbar widget with id @p id
-    EnhancedTabBarWidgetInterface * window_(int id) const;
+    EnhancedTabBarWidgetInterface* window_(int id) const;
 
     ///@name dock widgets
     //@{
-    QDockWidget * layer_dock_widget_;
-    QDockWidget * views_dockwidget_;
-    QDockWidget * filter_dock_widget_;
+    QDockWidget* layer_dock_widget_;
+    QDockWidget* views_dockwidget_;
+    QDockWidget* filter_dock_widget_;
     //@}
 
     ///@name Spectrum selection widgets
     //@{
-    SpectraViewWidget * spectra_view_widget_;
-    SpectraIdentificationViewWidget * spectra_identification_view_widget_;
+    SpectraViewWidget* spectra_view_widget_;
+    SpectraIdentificationViewWidget* spectra_identification_view_widget_;
     //@}
 
     /// Layer management widget
-    QListWidget * layer_manager_;
+    QListWidget* layer_manager_;
 
     ///@name Filter widgets
     //@{
-    QListWidget * filters_;
-    QCheckBox * filters_check_box_;
+    QListWidget* filters_;
+    QCheckBox* filters_check_box_;
     //@}
 
     /// Watcher that tracks file changes (in order to update the data in the different views)
-    FileWatcher * watcher_;
+    FileWatcher* watcher_;
 
     /// Holds the messageboxes for each layer that are currently popped up (to avoid popping them up again, if file changes again before the messagebox is closed)
     bool watcher_msgbox_;
@@ -433,67 +435,67 @@ protected:
     /// Stores whether the individual windows should zoom together (be linked) or not
     bool zoom_together_;
 
-    QAction * linkZoom_action_;
+    QAction* linkZoom_action_;
 
     /// Log output window
-    QTextEdit * log_;
+    QTextEdit* log_;
 
     /** @name Toolbar
     */
     //@{
-    QToolBar * tool_bar_;
+    QToolBar* tool_bar_;
     //common intensity modes
 
-    QButtonGroup * intensity_button_group_;
+    QButtonGroup* intensity_button_group_;
     //1D specific stuff
 
-    QToolBar * tool_bar_1d_;
-    QButtonGroup * draw_group_1d_;
+    QToolBar* tool_bar_1d_;
+    QButtonGroup* draw_group_1d_;
 
     //2D specific stuff
-    QToolBar * tool_bar_2d_peak_;
-    QToolBar * tool_bar_2d_feat_;
-    QToolBar * tool_bar_2d_cons_;
-    QToolBar * tool_bar_2d_ident_;
-    QAction * dm_precursors_2d_;
-    QAction * dm_hull_2d_;
-    QAction * dm_hulls_2d_;
-    QToolButton * dm_label_2d_;
-    QActionGroup * group_label_2d_;
-    QToolButton * dm_unassigned_2d_;
-    QActionGroup * group_unassigned_2d_;
-    QAction * dm_elements_2d_;
-    QAction * projections_2d_;
-    QAction * dm_ident_2d_;
+    QToolBar* tool_bar_2d_peak_;
+    QToolBar* tool_bar_2d_feat_;
+    QToolBar* tool_bar_2d_cons_;
+    QToolBar* tool_bar_2d_ident_;
+    QAction* dm_precursors_2d_;
+    QAction* dm_hull_2d_;
+    QAction* dm_hulls_2d_;
+    QToolButton* dm_label_2d_;
+    QActionGroup* group_label_2d_;
+    QToolButton* dm_unassigned_2d_;
+    QActionGroup* group_unassigned_2d_;
+    QAction* dm_elements_2d_;
+    QAction* projections_2d_;
+    QAction* dm_ident_2d_;
     //@}
 
     /// Main workspace
-    EnhancedWorkspace * ws_;
+    EnhancedWorkspace* ws_;
 
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
-    EnhancedTabBar * tab_bar_;
+    EnhancedTabBar* tab_bar_;
 
     /** @name Status bar
     */
     //@{
     /// Label for messages in the status bar
-    QLabel * message_label_;
+    QLabel* message_label_;
     /// m/z label for messages in the status bar
-    QLabel * mz_label_;
+    QLabel* mz_label_;
     /// RT label for messages in the status bar
-    QLabel * rt_label_;
+    QLabel* rt_label_;
     //@}
 
     /// @name Recent files
     //@{
     ///adds a Filename to the recent files
-    void addRecentFile_(const String & filename);
+    void addRecentFile_(const String& filename);
     ///update the recent files menu
     void updateRecentMenu_();
     /// list of the recently opened files
     QStringList recent_files_;
     /// list of the recently opened files actions (menu entries)
-    std::vector<QAction *> recent_actions_;
+    std::vector<QAction*> recent_actions_;
     //@}
 
 
@@ -512,7 +514,7 @@ protected:
       String layer_name;
       UInt window_id;
       Size spectrum_id;
-      QProcess * process;
+      QProcess* process;
       QTime timer;
       bool visible;
     } topp_;
@@ -522,21 +524,21 @@ protected:
     void checkPreferences_();
     ///@name reimplemented Qt events
     //@{
-    void closeEvent(QCloseEvent * event);
+    void closeEvent(QCloseEvent* event);
     //@}
 
     ///Log message states
     enum LogState
     {
-      LS_NOTICE,             ///< Notice
-      LS_WARNING,            ///< Warning
-      LS_ERROR               ///< Fatal error
+      LS_NOTICE, ///< Notice
+      LS_WARNING, ///< Warning
+      LS_ERROR ///< Fatal error
     };
     /// Shows a log message in the log_ window
-    void showLogMessage_(LogState state, const String & heading, const String & body);
+    void showLogMessage_(LogState state, const String& heading, const String& body);
 
     ///Additional context menu for 2D layers
-    QMenu * add_2d_context_;
+    QMenu* add_2d_context_;
 
     /// Apply TOPP tool. If @p visible is true, only the visible data is used, otherwise the whole layer is used.
     void showTOPPDialog_(bool visible);
@@ -546,27 +548,31 @@ protected:
     String current_path_;
 
     /// Tabwidget that hold the different views on the loaded data
-    QTabWidget * views_tabwidget_;
+    QTabWidget* views_tabwidget_;
     /// The current TOPPView view behavior
-    TOPPViewBehaviorInterface * view_behavior_;
+    TOPPViewBehaviorInterface* view_behavior_;
     /// TOPPView behavior for the identification view
-    TOPPViewIdentificationViewBehavior * identificationview_behavior_;
+    TOPPViewIdentificationViewBehavior* identificationview_behavior_;
     /// TOPPView behavior for the spectra view
-    TOPPViewSpectraViewBehavior * spectraview_behavior_;
+    TOPPViewSpectraViewBehavior* spectraview_behavior_;
 
     // static helper functions
 public:
     /// Returns true if @p contains at least one MS1 spectrum
-    static bool containsMS1Scans(const ExperimentType & exp);
+    static bool containsMS1Scans(const ExperimentType& exp);
 
     /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
-    float estimateNoiseFromRandomMS1Scans(const ExperimentType & exp, UInt n_scans = 10);
+    float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
 
     /// Counts the number of exact zero valued intensities in all MS1 spectra
-    static UInt countMS1Zeros(const ExperimentType & exp);
+    static UInt countMS1Zeros(const ExperimentType& exp);
 
     /// Returns true if the experiment map contains peptide identifications
-    static bool hasPeptideIdentifications(const ExperimentType & map);
+    static bool hasPeptideIdentifications(const ExperimentType& map);
+
+private:
+    /// Suffix appended to caption of tabs when layer is shown in 3D
+    static const String CAPTION_3D_SUFFIX_;
   }; //class
 
 } //namespace

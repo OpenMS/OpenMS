@@ -170,7 +170,7 @@ protected:
   */
     void paintDots_(Size layer_index, QPainter & p);
 
-    void paintAllIntensities_(Size layer_index, DoubleReal average_spacing_mz, DoubleReal average_spacing_rt, QPainter & painter);
+    void paintAllIntensities_(Size layer_index, DoubleReal pen_width, QPainter & painter);
 
     /**
     @brief Paints maximum intensity of individual peaks.
@@ -255,7 +255,7 @@ protected:
     @param hulls Reference to convex hull vector.
     @param p The QPainter to paint on.
   */
-    void paintConvexHulls_(const std::vector<ConvexHull2D> & hulls, QPainter & p);
+    void paintConvexHulls_(const std::vector<ConvexHull2D> & hulls, bool hasIdentifications, QPainter & p);
 
     // Docu in base class
     virtual void intensityModeChange_();
@@ -268,35 +268,41 @@ protected:
     ExperimentType projection_rt_;
 
     /**
-    @brief Returns the color associated with @p val for the gradient @p gradient.
+    @brief Returns the position on color @p gradient associated with given intensity @p.
 
     Takes intensity modes into account.
   */
-    inline QRgb heightColor_(Real val, const MultiGradient & gradient, DoubleReal snap_factor)
+    inline Int precalculatedColorIndex_(Real val, const MultiGradient & gradient, DoubleReal snap_factor)
     {
+      Real gradientPos;
       switch (intensity_mode_)
       {
       case IM_NONE:
-        return gradient.precalculatedColorAt(val).rgb();
-
+        gradientPos = val;
         break;
-
       case IM_PERCENTAGE:
-        return gradient.precalculatedColorAt(val * percentage_factor_).rgb();
-
+        gradientPos = val * percentage_factor_;
         break;
-
       case IM_SNAP:
-        return gradient.precalculatedColorAt(val * snap_factor).rgb();
-
+        gradientPos = val * snap_factor;
         break;
-
       case IM_LOG:
-        return gradient.precalculatedColorAt(std::log(val + 1)).rgb();
-
+        gradientPos = std::log(val + 1);
+        break;
       default:
         throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
+      return gradient.precalculatedColorIndex( gradientPos );
+    }
+
+    /**
+    @brief Returns the color associated with @p val for the gradient @p gradient.
+
+    Takes intensity modes into account.
+    */
+    inline QColor heightColor_(Real val, const MultiGradient & gradient, DoubleReal snap_factor)
+    {
+      return gradient.precalculatedColorByIndex( precalculatedColorIndex_( val, gradient, snap_factor ) );
     }
 
     /**
@@ -337,6 +343,9 @@ protected:
     PeakIndex selected_peak_;
     /// start peak/feature of measuring mode
     PeakIndex measurement_start_;
+
+    /// translates the visible area by a given offset specified in fractions of current visible area
+    virtual void translateVisibleArea_( DoubleReal mzShiftRel, DoubleReal rtShiftRel );
 
     //docu in base class
     virtual void translateLeft_();

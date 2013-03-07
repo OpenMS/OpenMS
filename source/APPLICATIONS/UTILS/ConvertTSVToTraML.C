@@ -48,32 +48,40 @@ using namespace OpenMS;
 /**
   @page TOPP_ConvertTSVToTraML ConvertTSVToTraML
 
-  @brief Converts special TSV files to TraML files
+  @brief Converts OpenSWATH transition TSV files to TraML files
 
-  The TSV files needs to have the following headers, all fields need to be separated by tabs:
+  The OpenSWATH transition TSV files need to have the following headers, all fields need to be separated by tabs:
 
-  PrecursorMz (float)
-  ProductMz (float)
-  Tr_calibrated (float)
-  transition_name (free text, needs to be unique for each transition [in this file])
-  CE (float)
-  LibraryIntensity (float)
-  transition_group_id (free text, designates the transition group [e.g. peptide] to which this transition belongs)
-  decoy (1==decoy, 0== no decoy; determines whether the transition is a decoy transition or not)
-  PeptideSequence  (free text, sequence only (no modifications) )
-  ProteinName  (free text)
-  Annotation  (free text, e.g. y7)
-  FullPeptideName  (free text, should contain modifications*)  
-  MissedCleavages
-  Replicates
-  NrModifications
-  Charge (integer)
-  Labelgroup (free text, e.g. heavy or light)
+    <CENTER>
+        <table>
+
+          <tr> PrecursorMz (float) </tr>
+          <tr> ProductMz (float) </tr>
+          <tr> Tr_calibrated (float) </tr>
+          <tr> transition_name (free text, needs to be unique for each transition [in this file]) </tr>
+          <tr> CE (float) </tr>
+          <tr> LibraryIntensity (float) </tr>
+          <tr> transition_group_id (free text, designates the transition group [e.g. peptide] to which this transition belongs) </tr>
+          <tr> decoy (1==decoy, 0== no decoy; determines whether the transition is a decoy transition or not) </tr>
+          <tr> PeptideSequence  (free text, sequence only (no modifications) ) </tr>
+          <tr> ProteinName  (free text) </tr>
+          <tr> Annotation  (free text, e.g. y7) </tr>
+          <tr> FullUniModPeptideName  (free text, should contain modifications*)  </tr>
+          <tr> PrecursorCharge (integer, contains the charge of the precursor) </tr>
+          <tr> Labelgroup (free text, e.g. heavy or light) </tr>
+          <tr> UniprotID (free text) </tr>
+          <tr> FragmentType (free text, contains the type of the fragment, e.g. "b" or "y") </tr>
+          <tr> FragmentCharge (integer, contains the fragment charge) </tr>
+          <tr> FragmentSeriesNumber (integer, e.g. for y7 use "7" here) </tr>
+
+        </table>
+    </CENTER>
+
 
 * modifications should be supplied inside the sequence using UniMod
   identifiers or freetext identifiers that are understood by OpenMS. Please do
-  not use the ambigous bracket notation (e.g. PEPT[+80]IDE or PEPT[181]IDE)
-  since this is ambigous and will NOT be interpreted correctly!
+  not use the ambiguous bracket notation (e.g. PEPT[+80]IDE or PEPT[181]IDE)
+  since this is ambiguous and will NOT be interpreted correctly!
   example: PEPT(Phosphorylation)IDE(UniMod:27)A )
 
 */
@@ -85,7 +93,7 @@ class TOPPConvertTSVToTraML : public TOPPBase
 public:
 
   TOPPConvertTSVToTraML() :
-  TOPPBase("ConvertTSVToTraML", "Converts a csv into a TraML file", false)
+  TOPPBase("ConvertTSVToTraML", "Converts an OpenSWATH transition TSV file to a TraML file")
   {
   }
 
@@ -93,9 +101,10 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "transition file ('csv')");
+    registerInputFile_("in", "<file>", "", "Input OpenSWATH transition TSV file");
+    setValidFormats_("in", StringList::create("csv"));
 
-    registerOutputFile_("out", "<file>", "", "output file");
+    registerOutputFile_("out", "<file>", "", "Output TraML file");
     setValidFormats_("out", StringList::create("TraML"));
 
   }

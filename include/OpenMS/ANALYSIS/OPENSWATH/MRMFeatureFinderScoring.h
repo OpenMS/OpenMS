@@ -226,7 +226,7 @@ public:
 
     // pick features in one experiment containing chromatograms
     void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
-                        TransformationDescription& trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map)
+                        TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map)
     {
       updateMembers_();
 
@@ -355,7 +355,7 @@ private:
         " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
 #endif
 
-        unsigned int group_size = transition_group.size();
+        int group_size = boost::numeric_cast<int>(transition_group.size());
         if (group_size == 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -371,7 +371,7 @@ private:
         // calculate the normalized library intensity (expected value of the intensities)
         std::vector<double> normalized_library_intensity;
         transition_group.getLibraryIntensity(normalized_library_intensity);
-        OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], normalized_library_intensity.size());
+        OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
 
         // calcxcorr -> for each lag do the correlation, normally use lag 0
         // xcorr_matrix  => correlate chromatogram i with chromatogram j
@@ -594,10 +594,10 @@ private:
     OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add)
     {
       std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
-      int closest_idx = indices[0];
+      int closest_idx = boost::numeric_cast<int>(indices[0]);
       if (indices[0] != 0 &&
-          std::fabs(swath_map->getSpectrumMetaById(indices[0] - 1).RT - RT) <
-          std::fabs(swath_map->getSpectrumMetaById(indices[0]).RT - RT))
+          std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
+          std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0])).RT - RT))
       {
         closest_idx--;
       }
@@ -649,12 +649,8 @@ private:
 
       // Presence of b/y series score
       double bseries_score = 0, yseries_score = 0;
-      const PeptideType* pep = PeptideRefMap_[transition_group.getTransitions()[0].getPeptideRef()];
-      OpenMS::AASequence aas = (String)pep->sequence;
-      for (std::vector<ModificationType>::const_iterator it = pep->modifications.begin(); it != pep->modifications.end(); ++it)
-      {
-        aas.setModification(it->location, "UniMod:" + it->unimod_id);
-      }
+      OpenMS::AASequence aas;
+      OpenSwathDataAccessHelper::convertPeptideToAASequence(*PeptideRefMap_[transition_group.getTransitions()[0].getPeptideRef()], aas);
       diascoring_.dia_by_ion_score((*spectrum), aas, by_charge_state, bseries_score, yseries_score);
       mrmfeature->addScore("var_isotope_correlation_score", isotope_corr);
       mrmfeature->addScore("var_isotope_overlap_score", isotope_overlap);

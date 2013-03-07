@@ -7,6 +7,137 @@ INI file - parameter configuration file, holding custom parameter settings for T
 INIFileEditor - graphical parameter editor for INI files
 
 ------------------------------------------------------------------------------------------ 
+----                                  OpenMS 1.10                                      ---- 
+------------------------------------------------------------------------------------------ 
+Release date: March 2013
+
+OpenMS 1.10 is the first release integrated into KNIME (www.knime.org).
+To use OpenMS in KNIME please refer to the www.OpenMS.de for additional information.
+
+File formats:
+- TraML 1.0.0 support
+- Initial mzQuantML, mzIdentML and mzTab support (not fully supported)
+
+TOPPView:
+- Concurrent zoom
+- SRM data visualization
+
+New tools:
+- Superhirn
+- OpenSWATH
+- QCCalculator
+- IDRipper
+- FeatureFinderMetabo
+- IDEvaluation
+- RNPxl
+
+General:
+- Better chromatogram support
+- Decoy strings can now be prepended
+- Filter modified peptides
+- Many memory and speed improvements
+- TMT-6plex support
+- EDTA conversion from feature and consensusXML in FileConverter
+- Filtering of MS2 spectra by identifications
+
+Search engine support:
+- MyriMatch adapter
+
+Changes to the Build System / Package System:
+- Cpplint coding convention check integrated into build system
+- Integration of OMSSA search engine in Windows and Mac installers
+- Integration of X!Tandem search engine in Windows and Mac installers
+- Integration of MyriMatch search engine in Windows and Mac installers
+
+Development:
+- Style corrections of the OpenMS source base using uncrustify
+
+Deprecated:
+- Conversion of Sequest files in IDFileConverter 
+
+Resolved issues:
+	#513	Commented out the functionality of smartFileNames_() (not mature enough for the 1.10 release)
+	#508	allow free columns for TSV
+	#473	change in/out types again to csv
+	#507	TOPPDocumenter now expects the path to the executables and can generate doc for TOPPView/TOPPAS on mac osx
+	#506	added custom info.plist containing the path to OMSSA/XTandem for the GUI tools
+	#505	goto dialogs now act with error tolerance
+	#504	Fixed XTandemXMLFile loading when no encoding is given by XTandemXML file by enforcing ISO-Latin-1 (default would be utf-8, breaking the aminoacid sequence readin). Introduced enforceEncoding(encoding) to XMLFile.
+	#316	SpectraViewWidget is not cleaned up when last layer is deleted
+	#283	TOPPView: Scan view widget does not clear after closing last file
+	#379	MapAlignerPoseClustering: -reference:index has no effect
+	#384	replace zip libraries with The Boost Iostreams Library (already in contrib)
+	#280	IonizationSimulation_test can not be compiled with OpenMP support on Mac OS X	(Unit) Tests
+	#368	Check Example pipelines and tutorials if they still contain the Tools using the type parameters
+	#341	Move IMS Mass Decomposition Code to OpenMS and remove IMS from contrib
+	#330	Remove static references to 10.5 SDK in OpenMS and contrib builds
+	#135	Remove temporary files after completion
+	#301	IDExtractor has no documentation
+	#78		Write generic Nightly Testing Script
+	#355	Adapt documentation to the changes in the contrib handling of the build system
+	#348	Update TOPP tool names in documentation
+	#383	iTRAQ isotope correction & simulation broken for 8plex
+	#333	CMake returning incorrect configurations.
+	#378	Intensity issue for simulation of MS2 signals
+	#264	PrecursorIonSelector crashs (SegFault) with minimal input
+	#322	PeakPicker (wavelet) writes lots of "dataProcessing" junk to mzML file
+	#327	Feature width not stored in featureXML
+	#372	Calculation of rank correlation coefficient buggy
+	#376	Command line parser does not recognize --help and --helphelp
+	#374	IonizationSimulation takes ages to complete on very high abundance peptides
+	#371	FileFilter should support filtering by meta values
+	#359	Remove type argument from SpectrumFilter
+	#346	Implement mechanism to convert pre1.9 toppas workflows to 1.9 workflows
+	#345	Implement mechanism to convert pre1.9 ini files to 1.9 workflows
+	#212	Nicer formatting of parameter listings in documentation
+	#356	PeakPickerWavelet fails for broad peaks
+	#332	TOPPAS: QWebView for downloading pipelines does not work behind proxy
+	#366	SILACLabeler should adjust all channels to have the same RT elution profiles
+	#365	Sampling of RT parameters in RTSimulation can produces abnormal RT parameters
+	#364	Improve handling of user input while downloading workflows from the online repository
+	#363	TOPP test need to define their dependencies to avoid wrong execution
+	#360	Remove type argument from FeatureFinder
+	#357	IDPosteriorError Prob crashes with small number of peptides
+	#354	Adapt documentation to the changes in the contrib handling of the build system
+	#344	remove TOPPBase type argument from MSSimulator
+	#347	Contaminant simulation might produce wrong masses when used in unintended way
+	#41		AndiMS for 32/64bit Windows and 64bit Linux.
+	#326	PepXMLFile: use RT of MS2 spectra for peptide RT
+	#321	Update Seqan to 1.3	Build System
+	#331	TOPPAS: Active tab changes all the time under MacOSX (10.6 and 10.7)
+	#106	Export for Workflows as image
+	#325	No HTML for Internal FAQ
+	#324	DecoyDatabase should support shuffling and contaminants	TOPP
+	#323	MapAligner -apply_given_trafo's "invert" option only works from commandline	TOPP
+	#209	Reading Bruker XMassFile failes with invalid DateTime String
+	#236	TOPP tool API change will crash existing TOPPAS pipelines
+	#282	TOPPAS updateParameters() might create invalid Pipeline
+	#298	"Open in TOPPView" broken for MacOSX
+	#320	TOPPAS Workflows should support a short documentation
+	#318	FuzzyStringComparator::compareLines_ throws exception on gcc-4.6
+	#317	ostream::operator<< for MSSpectrum is not working
+	#314	Crash when selecting empty window
+	#227	TOPPAS tmp directory not multi-user friendly
+	#178	Warn if merger node is followed by a tool for single files, not lists
+	#313	MascotAdapterOnline does not support Mascot 2.3
+	#312	FilterFilter should support filtering by precursor charge
+	#226	Specific isotopes in ElementsDB are generated with wrong masses
+	#308	AASequence(iterator, iterator) constructor is invalid, since it ignores terminal modifications
+	#305	TOPPView fails while opening mzML with intensities stored in an int32 array
+	#234	File forwarding/merging broken
+	#303	TOPPAS, TOPPView and ExecutePipeline: looking for TOPP tools
+	#302	Simulator should support picked peak Ground Truth
+	#300	Allow input node recycling	TOPPAS	closed	fixed
+	#299	Enable automatic static code analysis of OpenMS using cppcheck
+	#205	TOPPAS crashes
+	#210	TOPPAS Merger nodes are buggy
+	#259	Resume button broken
+	#43		Discuss overhaul of OpenMS web site and possible migration to CMS	Website, FAQs, Screencasts
+	#297	Simulation: Ionization does not consider n-term to carry charge
+	#295	Split OpenMS library in two or more parts
+	#296	PeptideIndexer might keep 1 old ProteinAccession
+
+------------------------------------------------------------------------------------------ 
 ----                                  OpenMS 1.9                                      ---- 
 ------------------------------------------------------------------------------------------ 
 Release date: February 2012

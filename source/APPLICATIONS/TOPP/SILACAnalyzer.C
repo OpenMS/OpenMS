@@ -434,7 +434,7 @@ public:
 
 
     //--------------------------------------------------
-    // calculate all possible mass shifts for labelets from section "sample:labels" (concernig missed_cleavage)
+    // calculate all possible mass shifts for labelets from section "sample:labels" (concerning missed_cleavage)
     //--------------------------------------------------
 
     // split string of SILAC labels (selected_labels) and save in a list (SILAClabels)

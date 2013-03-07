@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
-// $Authors: Clemens Groepl, Johannes Junker$
+// $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer$
 // --------------------------------------------------------------------------
 
 #include <numeric>
@@ -116,6 +116,44 @@ namespace OpenMS
         std::advance(it, (size - 1) / 2);
         return *it;
       }
+    }
+
+    /**
+      @brief Calculates the quantile of a range of values
+
+      @param begin Start of range
+      @param end End of range (past-the-end iterator)
+      @param sorted Is the range already sorted? If not, it will be sorted.
+
+      @exception Exception::InvalidRange is thrown if the range is empty or a quantile over 100 is given
+
+      @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static DoubleReal quantile(IteratorType begin, IteratorType end, UInt quantile, bool sorted = FALSE)
+    {
+      Size size = std::distance(begin, end);
+
+      if (size == 0)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      }
+      if (quantile > 100 || quantile < 1) //TODO is 0 quantile a valid request?
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      }
+
+      int l = floor( (double(quantile) * (double(size) / 100)) + 0.5); // will not be negative, so this is round nearest
+
+      if (!sorted)
+      {
+        std::sort(begin, end);
+      }
+
+      IteratorType it = begin;
+      std::advance(it, l - 1);
+      return *it;
+
     }
 
     /**

@@ -82,6 +82,9 @@ using namespace std;
  This tool is used to filter the identifications found by
  a peptide/protein identification tool like Mascot. Different filters can be applied:
 
+ To enable any of the filters, just change their default value.
+ All active filters will be applied in order.
+
  <ul>
 
   <li>
@@ -166,11 +169,8 @@ protected:
     setValidFormats_("in", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", StringList::create("idXML"));
-    addText_("\n");
-    addText_("To enable any of the filters below, just change their default value.\n");
-    addText_("All active filters will be applied in order.\n");
 
-    registerTOPPSubsection_("score", "Filtering by peptide/protein score");
+    registerTOPPSubsection_("score", "Filtering by peptide/protein score. To enable any of the filters below, just change their default value. All active filters will be applied in order.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept. The score is dependent on the most recent(!) preprocessing - it could be Mascot scores (if a MascotAdapter was applied before), or an FDR (if FalseDiscoveryRate was applied before), etc.", false);
     registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept.", false);
     registerTOPPSubsection_("thresh", "Filtering by significance threshold");
@@ -227,7 +227,7 @@ protected:
 
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -263,14 +263,14 @@ protected:
     Int best_n_protein_hits = getIntOption_("best:n_protein_hits");
 
     Int best_n_to_m_peptide_hits_n = 0;
-    Int best_n_to_m_peptide_hits_m = numeric_limits<Size>::max();
+    Int best_n_to_m_peptide_hits_m = numeric_limits<Int>::max();
 
     //convert bounds to numbers
     try
     {
       parseRange_(getStringOption_("best:n_to_m_peptide_hits"), best_n_to_m_peptide_hits_n, best_n_to_m_peptide_hits_m);
     }
-    catch (Exception::ConversionError &)
+    catch (Exception::ConversionError&)
     {
       writeLog_("Invalid boundary '" + getStringOption_("best:n_to_m_peptide_hits") + "' given. Aborting!");
       printUsage_();
@@ -463,7 +463,7 @@ protected:
         filter.filterIdentificationsByBestNHits(temp_identification, best_n_peptide_hits, filtered_identification);
       }
 
-      if (best_n_to_m_peptide_hits_m != numeric_limits<Size>::max() || best_n_to_m_peptide_hits_n != 0)
+      if (best_n_to_m_peptide_hits_m != numeric_limits<Int>::max() || best_n_to_m_peptide_hits_n != 0)
       {
         applied_filters.insert("Filtering by best n to m peptide hits ...\n");
         PeptideIdentification temp_identification = filtered_identification;
@@ -613,7 +613,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDFilter tool;
 

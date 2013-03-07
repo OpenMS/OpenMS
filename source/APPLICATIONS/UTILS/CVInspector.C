@@ -79,21 +79,25 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("cv_files", "<files>", StringList(), "List of ontology files in OBO format.");
-    setValidFormats_("mapping_file", StringList::create("obo"));
+    setValidFormats_("cv_files", StringList::create("obo"));
+
     registerStringList_("cv_names", "<names>", StringList(), "List of identifiers (one for each ontology file).");
-    registerInputFile_("cv_names", "<file>", "", "Mapping file in CVMapping (XML) format.", false);
+
+    registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format.", false);
     setValidFormats_("mapping_file", StringList::create("XML"));
+
     registerStringList_("ignore_cv", "<list>", StringList::create("UO,PATO,BTO"), "A list of CV identifiers which should be ignored.", false);
+
     registerOutputFile_("html", "<file>", "", "Writes an HTML version of the mapping file with annotated CV terms", false);
     setValidFormats_("html", StringList::create("HTML"));
   }
 
-  void writeTermTree_(const String & accession, const ControlledVocabulary & cv, TextFile & file, UInt indent)
+  void writeTermTree_(const String& accession, const ControlledVocabulary& cv, TextFile& file, UInt indent)
   {
-    const ControlledVocabulary::CVTerm & term = cv.getTerm(accession);
+    const ControlledVocabulary::CVTerm& term = cv.getTerm(accession);
     for (set<String>::const_iterator it = term.children.begin(); it != term.children.end(); ++it)
     {
-      const ControlledVocabulary::CVTerm & child_term = cv.getTerm(*it);
+      const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*it);
       String subterm_line;
       for (Size i = 0; i < 4 * indent; ++i) subterm_line += "&nbsp;";
       String description = child_term.description;
@@ -138,7 +142,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     StringList cv_files = getStringList_("cv_files");
     StringList cv_names = getStringList_("cv_names");
@@ -252,7 +256,7 @@ protected:
           //add Term accession, name and description (as popup)
           if (cv.exists(tit->getAccession()))
           {
-            const ControlledVocabulary::CVTerm & child_term = cv.getTerm(tit->getAccession());
+            const ControlledVocabulary::CVTerm& child_term = cv.getTerm(tit->getAccession());
 
             String description = child_term.description;
             if (child_term.synonyms.size() != 0)
@@ -266,7 +270,7 @@ protected:
           {
             term_line += "</span>";
             //check if term accession and term name correspond to the CV
-            const ControlledVocabulary::CVTerm & main_term = cv.getTerm(tit->getAccession());
+            const ControlledVocabulary::CVTerm& main_term = cv.getTerm(tit->getAccession());
             if (main_term.name != tit->getTermName())
             {
               cerr << "Warning: Accession '" << tit->getAccession() << "' and name '" << tit->getTermName() << "' do not match. Name should be '" << main_term.name << "'." << endl;
@@ -284,7 +288,7 @@ protected:
           }
           if (cv.exists(tit->getAccession()))
           {
-            const ControlledVocabulary::CVTerm & term = cv.getTerm(tit->getAccession());
+            const ControlledVocabulary::CVTerm& term = cv.getTerm(tit->getAccession());
             if (term.obsolete)
             {
               tags.push_back("<font color=darkred>obsolete</font>");
@@ -434,7 +438,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPCVInspector tool;
   return tool.main(argc, argv);

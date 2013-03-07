@@ -115,6 +115,7 @@ protected:
     registerFlag_("precursor_error_ppm", "If this flag is used, the precursor mass tolerances are estimated in ppm instead of Da.");
 
     registerOutputFile_("fragment_out", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
+    setValidFormats_("fragment_out", StringList::create("csv"));
     registerStringList_("fragment_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file", false);
     setValidStrings_("fragment_columns", StringList::create("MassDifference"));
     registerFlag_("fragment_error_ppm", "If this flag is used, the fragment mass tolerances are estimated in ppm instead of Da.");
@@ -146,11 +147,17 @@ protected:
     //-------------------------------------------------------------
 
     StringList id_in(getStringList_("id_in"));
-    StringList in(getStringList_("in"));
+    StringList in_raw(getStringList_("in"));
     Size number_of_bins((UInt)getIntOption_("number_of_bins"));
     bool precursor_error_ppm(getFlag_("precursor_error_ppm"));
     bool fragment_error_ppm(getFlag_("fragment_error_ppm"));
     bool generate_gnuplot_scripts(DataValue(getStringOption_("generate_gnuplot_scripts")).toBool());
+
+    if (in_raw.size() != id_in.size())
+    {
+      writeLog_("Number of spectrum files and identification files differs...");
+      return ILLEGAL_PARAMETERS;
+    }
 
     //-------------------------------------------------------------
     // reading input
@@ -169,19 +176,13 @@ protected:
     }
 
     // read mzML files
-    vector<RichPeakMap> maps;
-    maps.resize(in.size());
-
-    if (in.size() != id_in.size())
-    {
-      writeLog_("Number of spectrum files and identification files differs...");
-      return ILLEGAL_PARAMETERS;
-    }
+    vector<RichPeakMap> maps_raw;
+    maps_raw.resize(in_raw.size());
 
     MzMLFile mzml_file;
-    for (Size i = 0; i != in.size(); ++i)
+    for (Size i = 0; i != in_raw.size(); ++i)
     {
-      mzml_file.load(in[i], maps[i]);
+      mzml_file.load(in_raw[i], maps_raw[i]);
     }
 
     //-------------------------------------------------------------
@@ -190,14 +191,14 @@ protected:
 
     // mapping ids
     IDMapper mapper;
-    for (Size i = 0; i != maps.size(); ++i)
+    for (Size i = 0; i != maps_raw.size(); ++i)
     {
-      mapper.annotate(maps[i], pep_ids[i], prot_ids[i]);
+      mapper.annotate(maps_raw[i], pep_ids[i], prot_ids[i]);
     }
 
     // normalize the spectra
     Normalizer normalizer;
-    for (vector<RichPeakMap>::iterator it1 = maps.begin(); it1 != maps.end(); ++it1)
+    for (vector<RichPeakMap>::iterator it1 = maps_raw.begin(); it1 != maps_raw.end(); ++it1)
     {
       for (RichPeakMap::Iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
       {
@@ -209,15 +210,15 @@ protected:
     vector<MassDifference> precursor_diffs;
     if (getStringOption_("precursor_out") != "")
     {
-      for (Size i = 0; i != maps.size(); ++i)
+      for (Size i = 0; i != maps_raw.size(); ++i)
       {
-        for (Size j = 0; j != maps[i].size(); ++j)
+        for (Size j = 0; j != maps_raw[i].size(); ++j)
         {
-          if (maps[i][j].getPeptideIdentifications().empty())
+          if (maps_raw[i][j].getPeptideIdentifications().empty())
           {
             continue;
           }
-          for (vector<PeptideIdentification>::const_iterator it = maps[i][j].getPeptideIdentifications().begin(); it != maps[i][j].getPeptideIdentifications().end(); ++it)
+          for (vector<PeptideIdentification>::const_iterator it = maps_raw[i][j].getPeptideIdentifications().begin(); it != maps_raw[i][j].getPeptideIdentifications().end(); ++it)
           {
             if (it->getHits().size() > 0)
             {
@@ -253,15 +254,15 @@ protected:
 
     if (getStringOption_("fragment_out") != "")
     {
-      for (Size i = 0; i != maps.size(); ++i)
+      for (Size i = 0; i != maps_raw.size(); ++i)
       {
-        for (Size j = 0; j != maps[i].size(); ++j)
+        for (Size j = 0; j != maps_raw[i].size(); ++j)
         {
-          if (maps[i][j].getPeptideIdentifications().empty())
+          if (maps_raw[i][j].getPeptideIdentifications().empty())
           {
             continue;
           }
-          for (vector<PeptideIdentification>::const_iterator it = maps[i][j].getPeptideIdentifications().begin(); it != maps[i][j].getPeptideIdentifications().end(); ++it)
+          for (vector<PeptideIdentification>::const_iterator it = maps_raw[i][j].getPeptideIdentifications().begin(); it != maps_raw[i][j].getPeptideIdentifications().end(); ++it)
           {
             if (it->getHits().size() > 0)
             {
@@ -276,16 +277,16 @@ protected:
               tsg.addPeaks(theo_spec, hit.getSequence(), Residue::BIon);
 
               vector<pair<Size, Size> > pairs;
-              sa.getSpectrumAlignment(pairs, theo_spec, maps[i][j]);
+              sa.getSpectrumAlignment(pairs, theo_spec, maps_raw[i][j]);
               //cerr << hit.getSequence() << " " << hit.getSequence().getSuffix(1).getFormula() << " " << hit.getSequence().getSuffix(1).getFormula().getMonoWeight() << endl;
               for (vector<pair<Size, Size> >::const_iterator pit = pairs.begin(); pit != pairs.end(); ++pit)
               {
                 MassDifference md;
-                md.exp_mz = maps[i][j][pit->second].getMZ();
+                md.exp_mz = maps_raw[i][j][pit->second].getMZ();
                 md.theo_mz = theo_spec[pit->first].getMZ();
                 //cerr.precision(15);
                 //cerr << md.exp_mz << " " << md.theo_mz << " " << md.exp_mz - md.theo_mz << endl;
-                md.intensity = maps[i][j][pit->second].getIntensity();
+                md.intensity = maps_raw[i][j][pit->second].getIntensity();
                 md.charge = hit.getCharge();
                 fragment_diffs.push_back(md);
               }
@@ -308,7 +309,7 @@ protected:
       for (Size i = 0; i != precursor_diffs.size(); ++i)
       {
         DoubleReal diff = getMassDifference(precursor_diffs[i].theo_mz, precursor_diffs[i].exp_mz, precursor_error_ppm);
-        precursor_out << diff << endl;
+        precursor_out << diff << "\n";
         errors.push_back(diff);
 
         if (diff > max_diff)
@@ -322,7 +323,7 @@ protected:
       }
       precursor_out.close();
 
-      // fill histgram with the collected values
+      // fill histogram with the collected values
       DoubleReal bin_size = (max_diff - min_diff) / (DoubleReal)number_of_bins;
       Histogram<DoubleReal, DoubleReal> hist(min_diff, max_diff, bin_size);
       for (Size i = 0; i != errors.size(); ++i)
@@ -397,7 +398,7 @@ protected:
       }
       catch (Exception::UnableToFit)
       {
-        writeLog_("Unable to fit a gaussian distribution to the precursor mass errors");
+        writeLog_("Unable to fit a Gaussian distribution to the precursor mass errors");
       }
     }
 
@@ -424,7 +425,7 @@ protected:
       }
       fragment_out.close();
 
-      // fill histgram with the collected values
+      // fill histogram with the collected values
       // here we use the intensities to scale the error
       // low intensity peaks are likely to be random matches
       DoubleReal bin_size = (max_diff - min_diff) / (DoubleReal)number_of_bins;
@@ -501,7 +502,7 @@ protected:
       }
       catch (Exception::UnableToFit)
       {
-        writeLog_("Unable to fit a gaussian distribution to the fragment mass errors");
+        writeLog_("Unable to fit a Gaussian distribution to the fragment mass errors");
       }
     }
 

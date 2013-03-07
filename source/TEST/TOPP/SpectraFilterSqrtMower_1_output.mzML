@@ -3,6 +3,9 @@
 	<cvList count="2">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
 		<cv id="UO" fullName="Unit Ontology" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+		<cv id="BTO" fullName="BrendaTissue545" version="unknown" URI="http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO"/>
+		<cv id="GO" fullName="Gene Ontology - Slim Versions" version="unknown" URI="http://www.geneontology.org/GO_slims/goslim_goa.obo"/>
+		<cv id="PATO" fullName="Quality ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/quality.obo"/>
 	</cvList>
 	<fileDescription>
 		<fileContent>
@@ -13,7 +16,7 @@
 			<sourceFile id="sf_ru_0" name="MzDataFile_test_1.raw" location="/share/data/">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
-			<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
 			</sourceFile>
 		</sourceFileList>
 		<contact>
@@ -30,7 +33,7 @@
 	<sampleList count="1">
 		<sample id="sa_0" name="MS-Sample">
 			<cvParam cvRef="MS" accession="MS:1000001" name="sample number" value="0-815" />
-			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="1.01"  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="1.01" unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
 			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="2.02" unitAccession="UO:0000098" unitName="milliliter" unitCvRef="UO" />
 			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="3.03" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
 			<cvParam cvRef="MS" accession="MS:1000048" name="gas" />
@@ -53,7 +56,7 @@
 			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
 		</software>
 		<software id="so_dp_sp_0_pm_2" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectraFilterSqrtMower" />
+			<cvParam cvRef="MS" accession="MS:1002144" name="SpectraFilterSqrtMower" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -173,7 +176,7 @@
 						<userParam name="AcqComment" type="xsd:string" value="Acquisition 2"/>
 					</scan>
 				</scanList>
-				<precursorList count="1">
+			<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -184,17 +187,17 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="2.3" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="2.29999995231628" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="3.4" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
-						<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
 						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
 						<userParam name="IonSelectionComment" type="xsd:string" value="selected"/>
 						<userParam name="ActivationComment" type="xsd:string" value="active"/>
-					</activation>
-				</precursor>
+						</activation>
+					</precursor>
 			</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="32">

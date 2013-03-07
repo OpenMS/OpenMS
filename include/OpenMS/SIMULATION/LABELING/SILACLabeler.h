@@ -60,7 +60,7 @@ public:
     virtual ~SILACLabeler();
 
     /// create new object (needed by Factory)
-    static BaseLabeler * create()
+    static BaseLabeler* create()
     {
       return new SILACLabeler();
     }
@@ -72,28 +72,28 @@ public:
     }
 
     // redeclaration of virtual methods
-    void preCheck(Param & /* param */) const;
+    void preCheck(Param& /* param */) const;
 
-    void setUpHook(FeatureMapSimVector & /* channels */);
+    void setUpHook(FeatureMapSimVector& /* channels */);
 
-    void postDigestHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postDigestHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRTHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postRTHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postDetectabilityHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postIonizationHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */);
+    void postRawMSHook(FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */);
+    void postRawTandemMSHook(FeatureMapSimVector& /* features_to_simulate */, MSSimExperiment& /* simulated map */);
 
 protected:
-    void addModificationToPeptideHit_(Feature & feature, const String & modification) const;
+    void addModificationToPeptideHit_(Feature& feature, const String& modification) const;
 
-    Feature mergeFeatures_(Feature & labeled_channel_feature, const String & unmodified_sequence, Map<String, Feature> & unlabeled_features_index, Int index_channel_id, Int labeled_channel_id) const;
+    Feature mergeFeatures_(Feature& labeled_channel_feature, const String& unmodified_sequence, Map<String, Feature>& unlabeled_features_index, Int index_channel_id, Int labeled_channel_id) const;
 
-    Feature mergeAllChannelFeatures_(Feature & heavy_channel_feature, const String & unmodified_feature_sequence, Map<String, Feature> & light_channel_feature_index, Map<String, Feature> & medium_channel_feature_index) const;
+    Feature mergeAllChannelFeatures_(Feature& heavy_channel_feature, const String& unmodified_feature_sequence, Map<String, Feature>& light_channel_feature_index, Map<String, Feature>& medium_channel_feature_index) const;
 
     String medium_channel_lysine_label_;
     String medium_channel_arginine_label_;
@@ -101,13 +101,21 @@ protected:
     String heavy_channel_lysine_label_;
     String heavy_channel_arginine_label_;
 
-    bool canModificationBeApplied_(const String & modification_id, const String & aa) const;
+    bool canModificationBeApplied_(const String& modification_id, const String& aa) const;
 
-    void applyLabelToProteinHit_(FeatureMapSim & protein_hit, const String & arginine_label, const String & lysine_label) const;
+    void applyLabelToProteinHit_(FeatureMapSim& protein_hit, const String& arginine_label, const String& lysine_label) const;
 
     void updateMembers_();
 
-    String getUnmodifiedSequence_(const Feature & feature, const String & arginine_label, const String & lysine_label) const;
+    String getUnmodifiedSequence_(const Feature& feature, const String& arginine_label, const String& lysine_label) const;
+
+private:
+    /// Map ID for the light/unlabeled channel
+    static const int LIGHT_FEATURE_MAPID_;
+    /// Map ID for the medium labeled channel
+    static const int MEDIUM_FEATURE_MAPID_;
+    /// Map ID for the heavy labeled channel
+    static const int HEAVY_FEATURE_MAPID_;
   };
 
 } // namespace OpenMS

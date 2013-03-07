@@ -108,7 +108,6 @@ START_SECTION((void searchModifications(std::set< const ResidueModification * > 
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
 
-  mods.clear();
   ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::C_TERM);
 
   TEST_EQUAL(mods.size(), 1)
@@ -119,7 +118,9 @@ START_SECTION((void searchModifications(std::set< const ResidueModification * > 
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
 
-  mods.clear();
+  // this will find one match
+  ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::C_TERM);
+  // no match, thus mods should be empty
   ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::N_TERM);
 
   TEST_EQUAL(mods.size(), 0)
@@ -139,6 +140,10 @@ START_SECTION((void getTerminalModificationsByDiffMonoMass(std::vector< String >
 	TEST_EQUAL(mods.size(), 16)
 	TEST_EQUAL(uniq_mods.size(), 16)
 	TEST_EQUAL(uniq_mods.find("Acetyl (N-term)") != uniq_mods.end(), true)
+
+  // something exotic.. mods should return empty (without clearing it before)
+  ptr->getTerminalModificationsByDiffMonoMass(mods, 4200000, 0.1, ResidueModification::N_TERM);
+  TEST_EQUAL(mods.size(), 0)
 
 END_SECTION
 
@@ -171,6 +176,10 @@ START_SECTION(void getModificationsByDiffMonoMass(std::vector< String > &mods, D
 	TEST_EQUAL(uniq_mods.find("Phospho (T)") != uniq_mods.end(), true)
 	TEST_EQUAL(uniq_mods.find("Phospho (Y)") != uniq_mods.end(), true)
 	TEST_EQUAL(uniq_mods.find("Sulfo (S)") != uniq_mods.end(), true)
+
+  // something exotic.. mods should return empty (without clearing it before)
+  ptr->getModificationsByDiffMonoMass(mods, 800000000.0, 0.1);
+  TEST_EQUAL(mods.size(), 0)
 END_SECTION
 
 START_SECTION(void readFromOBOFile(const String &filename))
@@ -194,6 +203,10 @@ START_SECTION((void getModificationsByDiffMonoMass(std::vector< String > &mods, 
 	ptr->getModificationsByDiffMonoMass(mods, "S", 80.0, 0.1);
 	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true)
 	TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true)
+  
+  // something exotic.. mods should return empty (without clearing it before)
+  ptr->getModificationsByDiffMonoMass(mods, "S", 800000000.0, 0.1);
+  TEST_EQUAL(mods.size(), 0)
 END_SECTION
 
 START_SECTION((void getAllSearchModifications(std::vector< String > &modifications)))
@@ -204,6 +217,11 @@ START_SECTION((void getAllSearchModifications(std::vector< String > &modificatio
 	TEST_EQUAL(find(mods.begin(), mods.end(), "NIC (N-term)") != mods.end(), true)
 	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho") != mods.end(), false)
 	TEST_EQUAL(find(mods.begin(), mods.end(), "Dehydrated (N-term C)") != mods.end(), true)
+
+  // repeat search .. return size should be the same
+  Size old_size=mods.size();
+  ptr->getAllSearchModifications(mods);
+  TEST_EQUAL(mods.size(), old_size)
 END_SECTION
 
 

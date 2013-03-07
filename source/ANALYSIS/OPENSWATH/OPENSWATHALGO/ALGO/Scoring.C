@@ -34,6 +34,7 @@
 
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
 #include <cmath>
+#include <boost/numeric/conversion/cast.hpp>
 
 #ifdef OPENMS_ASSERTIONS
 #define OPENMS_PRECONDITION(condition, message)\
@@ -133,7 +134,7 @@ namespace OpenSwath
       OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       XCorrArrayType result;
-      int datasize = data1.size();
+      int datasize = boost::numeric_cast<int>(data1.size());
       int i, j, delay;
       double sxy;
 
@@ -157,15 +158,15 @@ namespace OpenSwath
     XCorrArrayType calcxcorr(std::vector<double> & data1,
       std::vector<double> & data2, bool normalize)
     {
-      OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
-      int maxdelay = data1.size();
+      OPENMS_PRECONDITION(!data1.empty() && data1.size() == data2.size(), "Both data vectors need to have the same length");
+      int maxdelay = boost::numeric_cast<int>(data1.size());
       int lag = 1;
 
       XCorrArrayType result;
       double mean1 = std::accumulate(data1.begin(), data1.end(), 0.) / (double)data1.size();
       double mean2 = std::accumulate(data2.begin(), data2.end(), 0.) / (double)data2.size();
-      double denominator = 1;
-      int datasize = data1.size();
+      double denominator = 1.0;
+      int datasize = boost::numeric_cast<int>(data1.size());
       int i, j, delay;
 
       // Normalized cross-correlation = subtract the mean and divide by the standard deviation

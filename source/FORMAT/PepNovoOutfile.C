@@ -196,7 +196,7 @@ namespace OpenMS
             peptide_identification.setMetaValue("MZ", index_to_precursor.find(index)->second.second);
             success = true;
           }
-          else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + index + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
+          else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
         }
         
         if (!success)

@@ -64,12 +64,12 @@ public:
 //  static int sfMaxCharge;
 
     Deisotoper();
-    Deisotoper(CentroidData &);
+    Deisotoper(CentroidData&);
     virtual ~Deisotoper();
 
-    std::list<DeconvPeak> & getDeconvPeaks() {return fDeconvPeaks; }
+    std::list<DeconvPeak>& getDeconvPeaks() {return fDeconvPeaks; }
 
-    void go(CentroidData &);
+    void go(CentroidData&);
     void cleanDeconvPeaks();
 
     inline int getMinPeakGroupSize() {return fMinPeakGroupSize; }
@@ -92,7 +92,7 @@ protected:
     bool    fShortReportFlag;
   };
 
-  std::ostream & operator<<(std::ostream &, Deisotoper &);
+   OPENMS_DLLAPI std::ostream& operator<<(std::ostream&, Deisotoper&);
 
 } // ns
 

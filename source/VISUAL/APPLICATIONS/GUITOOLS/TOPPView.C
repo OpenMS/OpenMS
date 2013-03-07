@@ -48,12 +48,13 @@
 */
 
 //QT
-#include <QtGui/QApplication>
 #include <QtGui/QStyleFactory>
 #include <QtGui/QSplashScreen>
+#include <QMessageBox>
 
 //OpenMS
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 
@@ -75,7 +76,7 @@ using namespace std;
 //-------------------------------------------------------------
 // command line name of this tool
 //-------------------------------------------------------------
-const char * tool_name = "TOPPView";
+const char* tool_name = "TOPPView";
 
 //-------------------------------------------------------------
 // description of the usage of this TOPP tool
@@ -105,7 +106,7 @@ void print_usage()
        << endl;
 }
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   //list of all the valid options
   Map<String, String> valid_options, valid_flags, option_lists;
@@ -138,7 +139,7 @@ int main(int argc, const char ** argv)
 
   try
   {
-    QApplication a(argc, const_cast<char **>(argv));
+    QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 
     //set plastique style unless windows / mac style is available
@@ -155,11 +156,12 @@ int main(int argc, const char ** argv)
       a.setStyle("plastique");
     }
 
-    TOPPViewBase * mw = new TOPPViewBase();
+    TOPPViewBase* mw = new TOPPViewBase();
+    a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(loadFile(QString)));
     mw->show();
 
     // Create the splashscreen that is displayed while the application loads
-    QSplashScreen * splash_screen = new QSplashScreen(QPixmap(":/TOPPView_Splashscreen.png"));
+    QSplashScreen* splash_screen = new QSplashScreen(QPixmap(":/TOPPView_Splashscreen.png"));
     splash_screen->show();
     splash_screen->showMessage("Loading parameters");
     QApplication::processEvents();
@@ -179,7 +181,7 @@ int main(int argc, const char ** argv)
 
     // We are about to show the application.
     // Proper time to  remove the splashscreen, if at least 1.5 seconds have passed...
-    while (stop_watch.getClockTime() < 1.5)   /*wait*/
+    while (stop_watch.getClockTime() < 1.5) /*wait*/
     {
     }
     stop_watch.stop();
@@ -196,31 +198,31 @@ int main(int argc, const char ** argv)
     return result;
   }
   //######################## ERROR HANDLING #################################
-  catch (Exception::UnableToCreateFile & e)
+  catch (Exception::UnableToCreateFile& e)
   {
     cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::FileNotFound & e)
+  catch (Exception::FileNotFound& e)
   {
     cout << String("Error: File not found (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::FileNotReadable & e)
+  catch (Exception::FileNotReadable& e)
   {
     cout << String("Error: File not readable (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::FileEmpty & e)
+  catch (Exception::FileEmpty& e)
   {
     cout << String("Error: File empty (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::ParseError & e)
+  catch (Exception::ParseError& e)
   {
     cout << String("Error: Unable to read file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::InvalidValue & e)
+  catch (Exception::InvalidValue& e)
   {
     cout << String("Error: Invalid value (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }
-  catch (Exception::BaseException & e)
+  catch (Exception::BaseException& e)
   {
     cout << String("Error: Unexpected error (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;
   }

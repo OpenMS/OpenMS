@@ -261,6 +261,13 @@ protected:
     bool peptide_reference_map_dirty_;
 
   };
+
+
+  namespace TargetedExperimentHelper
+  {
+  } // namespace TargetedExperimentHelper
+
+
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENT_H

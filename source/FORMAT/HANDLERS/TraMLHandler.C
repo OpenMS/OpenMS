@@ -179,7 +179,7 @@ namespace OpenMS
         mod.avg_mass_delta = avg_mass_delta;
         mod.mono_mass_delta = mono_mass_delta;
 
-        mod.location = attributeAsInt_(attributes, "location");
+        mod.location = attributeAsInt_(attributes, "location") - 1; // TraML stores location starting with 1
         actual_peptide_.mods.push_back(mod);
       }
       else if (tag_ == "Compound")
@@ -625,7 +625,7 @@ namespace OpenMS
             for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator mit = it->mods.begin(); mit != it->mods.end(); ++mit)
             {
               os << "      <Modification";
-              os << " location=\"" << mit->location << "\""; // location is required
+              os << " location=\"" << mit->location + 1<< "\""; // TraML stores locations starting with 1
               if (mit->mono_mass_delta != 0)
               {
                 os << " monoisotopicMassDelta=\"" << mit->mono_mass_delta << "\"";
@@ -723,27 +723,6 @@ namespace OpenMS
           }
           os << ">" << "\n";
 
-
-          if (it->getLibraryIntensity() > -100)
-          {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001226\" name=\"product ion intensity\" value=\"" <<  it->getLibraryIntensity() << "\"/>\n";
-          }
-          if (it->getDecoyTransitionType() != ReactionMonitoringTransition::UNKNOWN)
-          {
-            if (it->getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
-            {
-              os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002007\" name=\"target SRM transition\"/>\n";
-            }
-            else if (it->getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
-            {
-              os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002008\" name=\"decoy SRM transition\"/>\n";
-            }
-          }
-
-
-          writeCVParams_(os, (CVTermList) * it, 3);
-          writeUserParam_(os, (MetaInfoInterface) * it, 3);
-
           // Precursor is required
           os << "      <Precursor>" << "\n";
           os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
@@ -791,6 +770,25 @@ namespace OpenMS
             writeUserParam_(os, (MetaInfoInterface)it->getPrediction(), 4);
             os << "      </Prediction>" << "\n";
           }
+
+          writeCVParams_(os, (CVTermList) * it, 3);
+          // Special CV Params
+          if (it->getLibraryIntensity() > -100)
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001226\" name=\"product ion intensity\" value=\"" <<  it->getLibraryIntensity() << "\"/>\n";
+          }
+          if (it->getDecoyTransitionType() != ReactionMonitoringTransition::UNKNOWN)
+          {
+            if (it->getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
+            {
+              os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002007\" name=\"target SRM transition\"/>\n";
+            }
+            else if (it->getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+            {
+              os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002008\" name=\"decoy SRM transition\"/>\n";
+            }
+          }
+          writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
           os << "    </Transition>" << "\n";
         }
@@ -872,6 +870,8 @@ namespace OpenMS
         }
         os << "        </ConfigurationList>\n";
       }
+
+      // TODO  : add cv/userparams for Target
       os << "      </Target>" << "\n";
 
     }

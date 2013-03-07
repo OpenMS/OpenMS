@@ -50,6 +50,8 @@
 #include <vector>
 #include <utility> // for pair
 
+// #define DEBUG_MRMDECOY
+
 namespace OpenMS
 {
 /**
@@ -106,7 +108,9 @@ public:
     */
     void generateDecoys(OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
-                        double identity_threshold, int max_attempts, double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, double similarity_threshold);
+                        double identity_threshold, int max_attempts, double mz_threshold, 
+                        bool theoretical, double mz_shift, bool exclude_similar, 
+                        double similarity_threshold, bool remove_CNterm_mods);
 
     /**
       @brief Remove transitions s.t. all peptides have a defined set of transitions.
@@ -169,6 +173,16 @@ public:
     float AASequenceIdentity(const String& sequence, const String& decoy);
 
     /**
+      @brief Check if a peptide has C or N terminal modifications 
+    */
+    bool has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide & peptide);
+
+    /**
+      @brief Correct the masses according to theoretically computed masses
+    */
+    void correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold);
+
+    /**
       @brief Shuffle a peptide (with its modifications) sequence
 
       This function will shuffle the given peptide sequences and its
@@ -192,14 +206,6 @@ public:
     */
     OpenMS::TargetedExperiment::Peptide reversePeptide(
       OpenMS::TargetedExperiment::Peptide peptide);
-
-    /**
-      @brief get AASequence from a peptide
-
-      TODO (georger,hroest): this method should go into a more generic OpenMS
-      class like TargetedExperimentHelper
-    */
-    OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide);
   };
 }
 

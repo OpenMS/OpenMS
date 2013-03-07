@@ -64,6 +64,13 @@ END_SECTION
 START_SECTION(EmpiricalFormula(const String& rhs))
 	e_ptr = new EmpiricalFormula("C4");
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+        EmpiricalFormula e0("C5(13)C4H2");
+        EmpiricalFormula e1("C5(13)C4");
+        EmpiricalFormula e2("(12)C5(13)C4");
+        EmpiricalFormula e3("C9");
+	TEST_REAL_SIMILAR(e1.getMonoWeight(), e2.getMonoWeight())
+	TEST_REAL_SIMILAR(e1.getMonoWeight(), 112.013419)
+	TEST_REAL_SIMILAR(e2.getMonoWeight(), 112.013419)
 END_SECTION
 
 START_SECTION(EmpiricalFormula(const EmpiricalFormula& rhs))
@@ -133,12 +140,21 @@ START_SECTION(EmpiricalFormula& operator += (const EmpiricalFormula& rhs))
 	EmpiricalFormula ef("C3");
 	ef += ef;
 	TEST_EQUAL(ef, "C6")
+	EmpiricalFormula ef2("C-6H2");
+	ef += ef2;
+	TEST_EQUAL(ef, "H2");
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator += (const String& rhs))
 	EmpiricalFormula ef;
 	ef += "C";
 	TEST_EQUAL(ef, "C")
+	ef += "C5";
+	TEST_EQUAL(ef, "C6")
+	ef += "C-5";
+	TEST_EQUAL(ef, "C")
+	ef += "C-1H2";
+	TEST_EQUAL(ef, "H2")
 END_SECTION
 
 START_SECTION(EmpiricalFormula operator + (const EmpiricalFormula& rhs) const)
@@ -146,6 +162,8 @@ START_SECTION(EmpiricalFormula operator + (const EmpiricalFormula& rhs) const)
 	EmpiricalFormula ef2;
 	ef2 = ef + ef;
 	TEST_EQUAL(ef2, "C4")
+	ef2 = ef2 + EmpiricalFormula("C-4H2");
+	TEST_EQUAL(ef2, "H2")
 END_SECTION
 
 START_SECTION(EmpiricalFormula operator + (const String& rhs) const)
@@ -153,18 +171,24 @@ START_SECTION(EmpiricalFormula operator + (const String& rhs) const)
 	EmpiricalFormula ef2;
 	ef2 = ef1 + "C2";
 	TEST_EQUAL(ef2, "C4")
+	ef2 = ef2 + "C-4H2";
+	TEST_EQUAL(ef2, "H2")
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator -= (const EmpiricalFormula& rhs))
 	EmpiricalFormula ef1("C5H12"), ef2("CH12");
 	ef1 -= ef2;
 	TEST_EQUAL(*e_ptr == ef1, true)
+	ef1 -= EmpiricalFormula("C4H-2");
+	TEST_EQUAL(ef1, "H2");
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator -= (const String& rhs))
 	EmpiricalFormula ef1("C5H12");
 	ef1 -= "CH12";
 	TEST_EQUAL(*e_ptr == ef1, true)
+	ef1 -= "C4H-2";
+	TEST_EQUAL(ef1, "H2");
 END_SECTION
 
 START_SECTION(EmpiricalFormula operator - (const EmpiricalFormula& rhs) const)
@@ -173,6 +197,8 @@ START_SECTION(EmpiricalFormula operator - (const EmpiricalFormula& rhs) const)
 	ef3 = ef1 - ef2;
 	cerr << *e_ptr << " " << ef3 << endl;
 	TEST_EQUAL(*e_ptr == ef3, true)
+	ef3 = ef3 - EmpiricalFormula("C4H-2");
+	TEST_EQUAL(ef3, "H2");
 END_SECTION
 
 START_SECTION(EmpiricalFormula operator - (const String& rhs) const)
@@ -180,6 +206,8 @@ START_SECTION(EmpiricalFormula operator - (const String& rhs) const)
 	ef4 = ef1 - "CH12";
 	TEST_EQUAL(*e_ptr == ef4, true)
 	TEST_EXCEPTION(Exception::ParseError, ef1-"BLUBB")
+	ef4 = ef4 - "C4H-2";
+	TEST_EQUAL(ef4, "H2");
 END_SECTION
 
 START_SECTION(bool isEmpty() const)

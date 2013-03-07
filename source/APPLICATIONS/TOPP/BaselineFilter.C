@@ -72,13 +72,17 @@ using namespace std;
     width of the lineament (in our case the maximum width of a mass
     spectrometric peak) to be detected.
 
+    @note The top-hat filter works only on roughly uniform data!
+          To generate equally-spaced data you can use the @ref TOPP_Resampler.
+
+    @note The length (given in Thomson) of the structuring element should be wider than the
+    maximum peak width in the raw data.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_BaselineFilter.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_BaselineFilter.html
 
-    @note The length (given in Thomson) of the structuring element should be wider than the
-    maximum peak width in the raw data.
 */
 
 // We do not want this class to show up in the docu:
@@ -105,8 +109,6 @@ protected:
     setValidStrings_("struc_elem_unit", StringList::create("Thomson,DataPoints"));
     registerStringOption_("method", "<string>", "tophat", "The name of the morphological filter to be applied. If you are unsure, use the default.", false);
     setValidStrings_("method", StringList::create("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
-    addEmptyLine_();
-    addText_("Note: The top-hat filter works only on roughly uniform data (to generate equally-spaced data you can use the Resampler tool!)");
   }
 
   ExitCodes main_(int, const char **)

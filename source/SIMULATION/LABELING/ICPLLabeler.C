@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
-//#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <vector>
@@ -42,6 +41,10 @@ using std::vector;
 
 namespace OpenMS
 {
+  
+  const int ICPLLabeler::LIGHT_FEATURE_MAPID_ = 0;
+  const int ICPLLabeler::MEDIUM_FEATURE_MAPID_ = 1;
+  const int ICPLLabeler::HEAVY_FEATURE_MAPID_ = 2;
 
   ICPLLabeler::ICPLLabeler() :
     BaseLabeler()
@@ -192,8 +195,8 @@ namespace OpenMS
 
             // create consensus feature
             ConsensusFeature cf;
-            cf.insert(0, *medium_labeled_feature_iter);
-            cf.insert(0, light_labeled_feature);
+            cf.insert(MEDIUM_FEATURE_MAPID_, *medium_labeled_feature_iter);
+            cf.insert(LIGHT_FEATURE_MAPID_, light_labeled_feature);
 
             consensus_.push_back(cf);
 
@@ -269,9 +272,9 @@ namespace OpenMS
 
             // create triplet consensus feature
             ConsensusFeature c_triplet;
-            c_triplet.insert(0, heavy_feature);
-            c_triplet.insert(0, light_labeled_features_index[heavy_feature_unmodified_sequence]);
-            c_triplet.insert(0, medium_labeled_features_index[heavy_feature_unmodified_sequence]);
+            c_triplet.insert(HEAVY_FEATURE_MAPID_, heavy_feature);
+            c_triplet.insert(LIGHT_FEATURE_MAPID_, light_labeled_features_index[heavy_feature_unmodified_sequence]);
+            c_triplet.insert(MEDIUM_FEATURE_MAPID_, medium_labeled_features_index[heavy_feature_unmodified_sequence]);
 
             consensus_.push_back(c_triplet);
           }
@@ -297,8 +300,8 @@ namespace OpenMS
             final_feature_map.push_back(light_labeled_features_index[heavy_feature_unmodified_sequence]);
 
             ConsensusFeature c_triplet;
-            c_triplet.insert(0, heavy_feature);
-            c_triplet.insert(0, light_labeled_features_index[heavy_feature_unmodified_sequence]);
+            c_triplet.insert(HEAVY_FEATURE_MAPID_, heavy_feature);
+            c_triplet.insert(LIGHT_FEATURE_MAPID_, light_labeled_features_index[heavy_feature_unmodified_sequence]);
 
             consensus_.push_back(c_triplet);
           }
@@ -321,8 +324,8 @@ namespace OpenMS
             final_feature_map.push_back(medium_labeled_features_index[heavy_feature_unmodified_sequence]);
 
             ConsensusFeature c_triplet;
-            c_triplet.insert(0, heavy_feature);
-            c_triplet.insert(0, medium_labeled_features_index[heavy_feature_unmodified_sequence]);
+            c_triplet.insert(HEAVY_FEATURE_MAPID_, heavy_feature);
+            c_triplet.insert(MEDIUM_FEATURE_MAPID_, medium_labeled_features_index[heavy_feature_unmodified_sequence]);
 
             consensus_.push_back(c_triplet);
           }
@@ -360,8 +363,8 @@ namespace OpenMS
             final_feature_map.push_back(light_labeled_features_index[medium_labeled_feature_unmodified_sequence]);
 
             ConsensusFeature c_triplet;
-            c_triplet.insert(0, medium_labeled_feature);
-            c_triplet.insert(0, light_labeled_features_index[medium_labeled_feature_unmodified_sequence]);
+            c_triplet.insert(MEDIUM_FEATURE_MAPID_, medium_labeled_feature);
+            c_triplet.insert(LIGHT_FEATURE_MAPID_, light_labeled_features_index[medium_labeled_feature_unmodified_sequence]);
 
             consensus_.push_back(c_triplet);
           }

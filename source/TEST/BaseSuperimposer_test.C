@@ -51,7 +51,7 @@ class TestSuperimposer
 		check_defaults_ = false; 
 	}
 
-	virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)
+	virtual void run(const ConsensusMap& , const ConsensusMap& , TransformationDescription& transformation)
 	{
 		Param params;
 		params.setValue("slope",1.1);
