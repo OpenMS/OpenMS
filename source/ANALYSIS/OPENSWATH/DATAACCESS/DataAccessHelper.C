@@ -131,7 +131,6 @@ namespace OpenMS
                                                                aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
             m.location = boost::numeric_cast<int>(i);
             m.unimod_id = rmod.getUniModAccession();
-            std::cout << " unimod accession " << m.unimod_id << std::endl;
             p.modifications.push_back(m);
 
           }
