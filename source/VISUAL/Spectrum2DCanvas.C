@@ -242,6 +242,7 @@ namespace OpenMS
 
       for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
+        if (iter->empty()) {continue;} // ensure that empty chromatograms are not examined (iter->front = segfault)
         MSChromatogram<>::ConstIterator cit = iter->begin();
 
         // for (MSChromatogram<>::ConstIterator cit = iter->begin(); cit != iter->end(); ++cit)
@@ -484,8 +485,11 @@ namespace OpenMS
         if (mz_origin != iter->getPrecursor().getMZ())
         {
           mz_origin = iter->getPrecursor().getMZ();
-          min_rt = iter->front().getRT();
-          max_rt = iter->back().getRT();
+          if (!iter->empty())
+          {
+            min_rt = iter->front().getRT();
+            max_rt = iter->back().getRT();
+          }
         }
 
         QPoint posi;

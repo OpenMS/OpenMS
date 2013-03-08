@@ -667,8 +667,11 @@ namespace OpenMS
             sub_item->setText(2, QString::number(current_chromatogram.getProduct().getMZ()));
             //sub_item->setText(7, QString::number(prod_it->second[0].getProduct().getCharge())); // TODO product charge
             sub_item->setText(3, QString("ion")); // TODO product ion description (e.g.)
-            sub_item->setText(4, QString::number(current_chromatogram.front().getRT()));
-            sub_item->setText(5, QString::number(current_chromatogram.back().getRT()));
+            if (! current_chromatogram.empty())
+            {
+              sub_item->setText(4, QString::number(current_chromatogram.front().getRT()));
+              sub_item->setText(5, QString::number(current_chromatogram.back().getRT()));
+            }
 
 
             switch (current_chromatogram.getChromatogramType())
