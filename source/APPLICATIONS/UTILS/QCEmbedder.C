@@ -88,7 +88,7 @@ protected:
     registerStringOption_("name", "<String>", "", "The name of the target run or set that contains the requested quality parameter.", false);
     registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));
-    registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)");
+    registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)", false);
     setValidFormats_("plot", StringList::create("PNG"));
     registerInputFile_("table", "<file>", "", "Table file that will be added as attachment to the given qc.", false);
     setValidFormats_("table", StringList::create("csv"));
@@ -200,10 +200,10 @@ protected:
       }
       if (tab != "")
       {
+        QcMLFile::Attachment at;
         CsvFile csv_file(tab);
         if (csv_file.size()>1)
         {
-          QcMLFile::Attachment at;
           at.name = target_qp;
           //~ at.unitRef; //TODO MIME type
           //~ at.unitAcc;
@@ -227,6 +227,46 @@ protected:
               v.push_back(li[i]);
             }
             at.tableRows.push_back(v);
+          }
+				}
+					
+				std::vector<String> ids;
+        qcmlfile.existsRunQualityParameter(target_run, target_qp, ids);
+
+        if (!ids.empty())
+        {
+          at.qualityRef = ids.front();
+          qcmlfile.addRunAttachment(target_run, at);
+        }
+        else
+        {
+          qcmlfile.existsSetQualityParameter(target_run, target_qp, ids);
+          if (!ids.empty())
+          {
+            at.qualityRef = ids.front();
+            qcmlfile.addSetAttachment(target_run, at);
+          }
+          else
+          {
+            QcMLFile::QualityParameter qp;
+            if (target_acc != "" && target_qp != "")
+            {
+              qp.name = target_qp; ///< Name
+              qp.id = target_run + "_" + target_acc; ///< Identifier
+              qp.cvRef = "QC"; ///< cv reference
+              qp.cvAcc = target_acc;
+              qp.value = target_run;
+              qcmlfile.addRunQualityParameter(target_run, qp);
+              //TODO check if the qp are in the obo as soon as there is one
+
+              at.qualityRef = qp.id;
+              qcmlfile.addRunAttachment(target_run, at);
+            }
+            else
+            {
+              cerr << "Error: You have to specify a correct cv with accession and name. Aborting!" << endl;
+              return ILLEGAL_PARAMETERS;
+            }
           }
         }
       }

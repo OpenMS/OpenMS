@@ -84,7 +84,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<choice>", "", "Target attachment table.");
-    setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables,set id"));
+    setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables,set id, injection times"));
     registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
     registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));
