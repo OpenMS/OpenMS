@@ -229,9 +229,7 @@ protected:
             at.tableRows.push_back(v);
           }
 				}
-				
-				//target_qp ist name, geschaut wird aber nach ID!!
-					
+									
 				std::vector<String> ids;
         qcmlfile.existsRunQualityParameter(target_run, target_qp, ids);
 
@@ -250,6 +248,7 @@ protected:
           }
           else
           {
+						//if exists set/run TODO
             QcMLFile::QualityParameter qp;
             if (target_acc != "" && target_qp != "")
             {
@@ -258,11 +257,20 @@ protected:
               qp.cvRef = "QC"; ///< cv reference
               qp.cvAcc = target_acc;
               qp.value = target_run;
-              qcmlfile.addRunQualityParameter(target_run, qp);
+              
               //TODO check if the qp are in the obo as soon as there is one
 
               at.qualityRef = qp.id;
-              qcmlfile.addRunAttachment(target_run, at);
+							if (qcmlfile.existsSet(target_run))
+							{
+								qcmlfile.addSetQualityParameter(target_run, qp);
+								qcmlfile.addSetAttachment(target_run, at);
+							}
+							else
+							{
+								qcmlfile.addRunQualityParameter(target_run, qp);
+								qcmlfile.addRunAttachment(target_run, at);
+							}
             }
             else
             {
