@@ -94,6 +94,9 @@ protected:
     setValidFormats_("table", StringList::create("csv"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
     setValidFormats_("out", StringList::create("qcML"));
+		registerStringOption_("set/run", "<choice>", "", "If no in file, decides where to attach.",false);
+    setValidStrings_("set/run", StringList::create("set,run"));
+
   }
 
   ExitCodes main_(int, const char**)
@@ -109,7 +112,8 @@ protected:
     String plot_file            = getStringOption_("plot");
     String target_acc           = getStringOption_("qp_acc");
     String tab                  = getStringOption_("table");
-
+		String setrun            = getStringOption_("set/run");
+		
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
@@ -264,7 +268,7 @@ protected:
               //TODO check if the qp are in the obo as soon as there is one
 
               at.qualityRef = qp.id;
-							if (qcmlfile.existsSet(target_run))
+							if (qcmlfile.existsSet(target_run) || setrun == "set")
 							{
 								qcmlfile.addSetQualityParameter(target_run, qp);
 								qcmlfile.addSetAttachment(target_run, at);

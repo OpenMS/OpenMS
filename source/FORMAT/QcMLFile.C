@@ -965,7 +965,7 @@ namespace OpenMS
     {
       keys.insert(it->first);
     }
-
+				
     if (!keys.empty())
     {
       for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
@@ -975,18 +975,23 @@ namespace OpenMS
 
         //document set members
         std::map<String, std::set<String> >::const_iterator jt = setQualityQPs_members_.find(*it);
-        for (std::set<String>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
+				
+        if (jt != setQualityQPs_members_.end())
         {
-          QcMLFile::QualityParameter qp;
-          qp.name = "mzML file"; ///< Name
-          qp.id = *kt + "_run_name"; ///< Identifier
-          qp.cvRef = "MS"; ///< cv reference
-          qp.cvAcc = "MS:1000584";
-          qp.value = *kt;
-          os << qp.toXMLString(4);
-        }
+					for (std::set<String>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
+					{
+						QcMLFile::QualityParameter qp;
+						qp.name = "mzML file"; ///< Name
+						qp.id = *kt + "_run_name"; ///< Identifier
+						qp.cvRef = "MS"; ///< cv reference
+						qp.cvAcc = "MS:1000584";
+						qp.value = *kt;
+						os << qp.toXMLString(4);
+					}
+				}
 
         std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(*it);
+				
         if (qpsit != setQualityQPs_.end())
         {
           for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
