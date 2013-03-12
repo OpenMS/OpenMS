@@ -30,7 +30,7 @@
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
 		<software id="so_dp_sp_0_pm_1" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="NoiseFilterSGolay" />
+			<cvParam cvRef="MS" accession="MS:1002133" name="NoiseFilterSGolay" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
