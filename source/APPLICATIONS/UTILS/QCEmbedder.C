@@ -229,6 +229,8 @@ protected:
             at.tableRows.push_back(v);
           }
 				}
+				
+				//target_qp ist name, geschaut wird aber nach ID!!
 					
 				std::vector<String> ids;
         qcmlfile.existsRunQualityParameter(target_run, target_qp, ids);
