@@ -81,7 +81,7 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input qcml file");
+    registerInputFile_("in", "<file>", "", "Input qcml file",false);
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<string>", "", "Target attachment table.");
     registerStringOption_("qp_acc", "<string>", "", "The accession number of the given qp, only needed if qp is not yet contained in the run/set.", false);
@@ -119,7 +119,10 @@ protected:
     }
 
     QcMLFile qcmlfile;
-    qcmlfile.load(in);
+		if (in != "")
+		{
+			qcmlfile.load(in);
+		}
 
     if (target_run == "")
     {
