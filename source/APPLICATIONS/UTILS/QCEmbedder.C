@@ -58,7 +58,7 @@ using namespace std;
 /**
     @page UTILS_QCEmbedder QCEmbedder
 
-    @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It is intended to provide tables that can be read into R where QC metrics will be calculated.
+    @brief This application is used embed tables or pictures generated externally as attachments to existing quality parameters in the targeted run/set meant to have attachments. If no quality parameter is present an empty value one will be generated with the name of "default set name"/"default mzML file".
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCEmbedder.cli
@@ -259,6 +259,7 @@ protected:
             QcMLFile::QualityParameter qp;
             if (target_acc != "" && target_qp != "")
             {
+							QcMLFile::QualityParameter def;
               qp.name = target_qp; ///< Name
               qp.id = target_run + "_" + target_acc; ///< Identifier
               qp.cvRef = "QC"; ///< cv reference
@@ -268,13 +269,32 @@ protected:
               //TODO check if the qp are in the obo as soon as there is one
 
               at.qualityRef = qp.id;
-							if (qcmlfile.existsSet(target_run) || setrun == "set")
+							if (qcmlfile.existsSet(target_run) || setrun == "set") //TODO default name-qp  if file created new (no set/run exists)
 							{
+								if (in == "")
+								{
+									QcMLFile::QualityParameter def;
+									def.name = "set name"; ///< Name
+									def.id = "default set name"; ///< Identifier
+									def.cvRef = "QC"; ///< cv reference
+									def.cvAcc = "QC:0000058";
+									def.value = "default set name";
+									qcmlfile.addSetQualityParameter(target_run, def);
+								}
 								qcmlfile.addSetQualityParameter(target_run, qp);
 								qcmlfile.addSetAttachment(target_run, at);
 							}
 							else
 							{
+								if (in == "")
+								{
+									def.name = "mzML file"; ///< Name
+									def.id = "default mzML file"; ///< Identifier
+									def.cvRef = "MS"; ///< cv reference
+									def.cvAcc = "MS:1000584";
+									def.value = "default mzML file";
+									qcmlfile.addSetQualityParameter(target_run, def);
+								}
 								qcmlfile.addRunQualityParameter(target_run, qp);
 								qcmlfile.addRunAttachment(target_run, at);
 							}

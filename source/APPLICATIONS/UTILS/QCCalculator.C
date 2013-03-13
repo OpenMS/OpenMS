@@ -63,7 +63,7 @@ using namespace std;
 /**
     @page UTILS_QCCalculator QCCalculator
 
-    @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It is intended to provide tables that can be read into R where QC metrics will be calculated.
+    @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It will provide the tables that can be read into R to calculate the basic QC metrics.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCCalculator.cli
