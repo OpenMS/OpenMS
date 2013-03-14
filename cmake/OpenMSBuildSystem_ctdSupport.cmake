@@ -133,6 +133,7 @@ add_custom_target(
 add_custom_target(
   prepare_knime_descriptors
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mimetypes.xml ${CTD_PATH}
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mime.types ${CTD_PATH}  
   DEPENDS final_ctds
 )
 
