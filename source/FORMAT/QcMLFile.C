@@ -869,7 +869,7 @@ namespace OpenMS
        << "   <h2>The Quality Parameters</h2>\n"
        << "   <xsl:for-each select=\"MzQualityMLType/RunQuality/QualityParameter\">\n"
        << "    <xsl:value-of select=\"@name\" />: <xsl:value-of select=\"@value\" />\n"
-       << "    <table border=\"1\">\n"
+       << "    <table border=\"0\">\n"
        << "    <tr bgcolor=\"#9acd32\">\n"
        << "     <xsl:call-template name=\"output-header\">\n"
        << "      <xsl:with-param name=\"list\"><xsl:value-of select=\"TableColumnTypes\" /></xsl:with-param>\n"
