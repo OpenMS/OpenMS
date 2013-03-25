@@ -9,9 +9,9 @@
 # <wait 1-2min>
 # defaults write com.apple.Finder AppleShowAllFiles FALSE && killall Finder
 
-DISK_NAME=OpenMS-1.10.0-Darwin
+DISK_NAME=OpenMS-1.11.0-Darwin
 DMG_NAME=${DISK_NAME}.dmg
-OPENMS_NAME=OpenMS-1.10.0
+OPENMS_NAME=OpenMS-1.11.0
 backgroundPictureName=.background.png
 LICENSE=${PWD}/_CPack_Packages/Darwin/DragNDrop/sla.r
 
@@ -38,23 +38,23 @@ echo 'tell application "Finder"
 	tell disk "'${DISK_NAME}'"
     with timeout of 300 seconds
   		open
-      
+
 			set theXOrigin to 400
 			set theYOrigin to 200
 			set theBottomRightX to 1030
 			set theBottomRightY to 785
-      
+
 			tell container window
 				set current view to icon view
 				set toolbar visible to false
 				set statusbar visible to false
 				set the bounds to {theXOrigin, theYOrigin, theBottomRightX, theBottomRightY}
 				set statusbar visible to false
-			end tell      
-      
+			end tell
+
 			update without registering applications
 			delay 1
-      
+
   		set theViewOptions to the icon view options of container window
   		set arrangement of theViewOptions to not arranged
 
@@ -62,10 +62,10 @@ echo 'tell application "Finder"
     	set icon size of theViewOptions to 72
   		set bgimg to "'${OPENMS_NAME}':share:OpenMS:background.png" as text
   		set background picture of theViewOptions to file bgimg
-      
+
   		set the position of item "'${OPENMS_NAME}'" of container window to {470, 140}
   		set the position of item "Applications" of container window to {160, 140}
-      
+
   		--give the finder some time to write the .DS_Store file
   		delay 3
 
@@ -91,7 +91,7 @@ sync
 sync
 hdiutil detach ${device}
 hdiutil convert "temp.dmg" -format UDZO -imagekey zlib-level=9 -o "${DMG_NAME}"
-#rm -f /pack.temp.dmg 
+#rm -f /pack.temp.dmg
 
 # hdiutil convert temp.dmg -format UDZO -imagekey zlib-level=9 -o ${DMG_NAME}
 rm -f temp.dmg

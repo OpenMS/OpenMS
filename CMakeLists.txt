@@ -20,7 +20,7 @@ PROJECT("OpenMS")
 ########################################################
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "1")
-set(OPENMS_PACKAGE_VERSION_MINOR "10")
+set(OPENMS_PACKAGE_VERSION_MINOR "11")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 ########################################################
@@ -453,7 +453,7 @@ foreach(i ${GUI_executables})
 			${ICON_FILE_PATH})
 
 		set_target_properties(${i} PROPERTIES
-      # we want our own info.plist template 
+      # we want our own info.plist template
       MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
 			MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2013 The OpenMS Team."
 			MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
