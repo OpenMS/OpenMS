@@ -961,7 +961,7 @@ protected:
         out_string.substitute(".mzML", ".idXML");
         // Compose argument list and run OMSSA with new ini
         QStringList args;
-        args << "-ini" << in_OMSSA_ini.toQString() << "-in" << in_string.toQString() << "-out" << out_string.toQString() << "-fasta" << in_fasta_file.toQString() << "-no_progress";
+        args << "-ini" << in_OMSSA_ini.toQString() << "-in" << in_string.toQString() << "-out" << out_string.toQString() << "-database" << in_fasta_file.toQString() << "-no_progress";
 
         // forward debug level to adapter
         if (getIntOption_("debug") != 0)
