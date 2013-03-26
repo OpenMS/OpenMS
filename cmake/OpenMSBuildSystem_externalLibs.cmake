@@ -142,7 +142,7 @@ endif()
 ################################
 ## QT
 ################################
-SET(QT_MIN_VERSION "4.6.0")
+SET(QT_MIN_VERSION "4.5.0")
 ## obsolete when CMake MinRequiredVersion becomes >= 2.8.5
 if ("${CMAKE_VERSION}" VERSION_LESS "2.8.5" AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")) ##
 	set(phonon_extra QtPhonon)
