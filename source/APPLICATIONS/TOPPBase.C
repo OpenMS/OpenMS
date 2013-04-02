@@ -968,6 +968,20 @@ namespace OpenMS
     parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required, advanced));
   }
 
+  ParameterInformation& TOPPBase::getParameterByName_(const String& name)
+  {
+    typedef std::vector<ParameterInformation>::iterator TParamInfoIterator;
+    //search the right parameter
+    for (TParamInfoIterator it = parameters_.begin(); it != parameters_.end(); ++it)
+    {
+      if (it->name == name)
+        return *it;
+    }
+
+    //parameter not found
+    throw UnregisteredParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+  }
+
   void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings)
   {
     //check for commas
@@ -978,36 +992,33 @@ namespace OpenMS
         throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Comma characters in Param string restrictions are not allowed!");
       }
     }
-    //search the right parameter
-    for (Size i = 0; i < parameters_.size(); ++i)
-    {
-      if (parameters_[i].name == name)
-      {
-        //check if the type matches
-        if (parameters_[i].type != ParameterInformation::STRING && parameters_[i].type != ParameterInformation::STRINGLIST)
-        {
-          throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
-        }
-        StringList valids = strings;
-        StringList defaults;
-        if (parameters_[i].type == ParameterInformation::STRING)
-          defaults.push_back(String(parameters_[i].default_value));
-        else
-          defaults = parameters_[i].default_value;
-        for (Size j = 0; j < defaults.size(); ++j) // allow the empty string even if not in restrictions
-        {
-          if (defaults[j].size() > 0 && !valids.contains(defaults[j]))
-          {
-            throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(parameters_[i].default_value) + " does not meet restrictions!");
-          }
-        }
 
-        parameters_[i].valid_strings = strings;
-        return;
+    // get the matching parameter
+    ParameterInformation& p = getParameterByName_(name);
+
+    //check if the type matches
+    if (p.type != ParameterInformation::STRING && p.type != ParameterInformation::STRINGLIST)
+    {
+      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    }
+
+    StringList valids = strings;
+    StringList defaults;
+
+    if (p.type == ParameterInformation::STRING)
+      defaults.push_back(String(p.default_value));
+    else
+      defaults = p.default_value;
+
+    for (Size j = 0; j < defaults.size(); ++j) // allow the empty string even if not in restrictions
+    {
+      if (defaults[j].size() > 0 && !valids.contains(defaults[j]))
+      {
+        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
-    //parameter not found
-    throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+
+    p.valid_strings = strings;
   }
 
   void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats, const bool force_OpenMS_format)
@@ -1026,154 +1037,120 @@ namespace OpenMS
         }
       }
     }
-    //search the right parameter
-    for (Size i = 0; i < parameters_.size(); ++i)
+
+    ParameterInformation& p = getParameterByName_(name);
+
+    //check if the type matches
+    if (p.type != ParameterInformation::INPUT_FILE
+       && p.type != ParameterInformation::OUTPUT_FILE
+       && p.type != ParameterInformation::INPUT_FILE_LIST
+       && p.type != ParameterInformation::OUTPUT_FILE_LIST)
     {
-      if (parameters_[i].name == name)
-      {
-        //check if the type matches
-        if (parameters_[i].type != ParameterInformation::INPUT_FILE && parameters_[i].type != ParameterInformation::OUTPUT_FILE && parameters_[i].type != ParameterInformation::INPUT_FILE_LIST && parameters_[i].type != ParameterInformation::OUTPUT_FILE_LIST)
-        {
-          throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
-        }
-        if (parameters_[i].valid_strings.size() > 0)
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Internal error: Valid formats are already set for '" + name + "'. Please check for typos!");
-        }
-        parameters_[i].valid_strings = formats;
-        return;
-      }
+      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    //parameter not found
-    throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+
+    if (p.valid_strings.size() > 0)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Internal error: Valid formats are already set for '" + name + "'. Please check for typos!");
+    }
+    p.valid_strings = formats;
   }
 
   void TOPPBase::setMinInt_(const String& name, Int min)
   {
-    //search the right parameter
-    for (Size i = 0; i < parameters_.size(); ++i)
+    ParameterInformation& p = getParameterByName_(name);
+
+    //check if the type matches
+    if (p.type != ParameterInformation::INT && p.type != ParameterInformation::INTLIST)
     {
-      if (parameters_[i].name == name)
+      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    }
+
+    IntList defaults;
+    if (p.type == ParameterInformation::INT)
+      defaults.push_back(Int(p.default_value));
+    else
+      defaults = p.default_value;
+    for (Size j = 0; j < defaults.size(); ++j)
+    {
+      if (defaults[j] < min)
       {
-        //check if the type matches
-        if (parameters_[i].type != ParameterInformation::INT && parameters_[i].type != ParameterInformation::INTLIST)
-        {
-          throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
-        }
-        IntList defaults;
-        if (parameters_[i].type == ParameterInformation::INT)
-          defaults.push_back(Int(parameters_[i].default_value));
-        else
-          defaults = parameters_[i].default_value;
-        for (Size j = 0; j < defaults.size(); ++j)
-        {
-          if (defaults[j] < min)
-          {
-            throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(parameters_[i].default_value) + " does not meet restrictions!");
-          }
-        }
-        parameters_[i].min_int = min;
-        return;
+        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
-    //parameter not found
-    throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    p.min_int = min;
   }
 
   void TOPPBase::setMaxInt_(const String& name, Int max)
   {
-    //search the right parameter
-    for (Size i = 0; i < parameters_.size(); ++i)
+    ParameterInformation& p = getParameterByName_(name);
+
+    //check if the type matches
+    if (p.type != ParameterInformation::INT && p.type != ParameterInformation::INTLIST)
     {
-      if (parameters_[i].name == name)
+      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    }
+    IntList defaults;
+    if (p.type == ParameterInformation::INT)
+      defaults.push_back(Int(p.default_value));
+    else
+      defaults = p.default_value;
+    for (Size j = 0; j < defaults.size(); ++j)
+    {
+      if (defaults[j] > max)
       {
-        //check if the type matches
-        if (parameters_[i].type != ParameterInformation::INT && parameters_[i].type != ParameterInformation::INTLIST)
-        {
-          throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
-        }
-        IntList defaults;
-        if (parameters_[i].type == ParameterInformation::INT)
-          defaults.push_back(Int(parameters_[i].default_value));
-        else
-          defaults = parameters_[i].default_value;
-        for (Size j = 0; j < defaults.size(); ++j)
-        {
-          if (defaults[j] > max)
-          {
-            throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(parameters_[i].default_value) + " does not meet restrictions!");
-          }
-        }
-        parameters_[i].max_int = max;
-        return;
+        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
-    //parameter not found
-    throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    p.max_int = max;
   }
 
   void TOPPBase::setMinFloat_(const String& name, DoubleReal min)
   {
-    //search the right parameter
-    for (Size i = 0; i < parameters_.size(); ++i)
+    ParameterInformation& p = getParameterByName_(name);
+
+    //check if the type matches
+    if (p.type != ParameterInformation::DOUBLE && p.type != ParameterInformation::DOUBLELIST)
     {
-      if (parameters_[i].name == name)
+      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    }
+    DoubleList defaults;
+    if (p.type == ParameterInformation::DOUBLE)
+      defaults.push_back(DoubleReal(p.default_value));
+    else
+      defaults = p.default_value;
+    for (Size j = 0; j < defaults.size(); ++j)
+    {
+      if (defaults[j] < min)
       {
-        //check if the type matches
-        if (parameters_[i].type != ParameterInformation::DOUBLE && parameters_[i].type != ParameterInformation::DOUBLELIST)
-        {
-          throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
-        }
-        DoubleList defaults;
-        if (parameters_[i].type == ParameterInformation::DOUBLE)
-          defaults.push_back(DoubleReal(parameters_[i].default_value));
-        else
-          defaults = parameters_[i].default_value;
-        for (Size j = 0; j < defaults.size(); ++j)
-        {
-          if (defaults[j] < min)
-          {
-            throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(parameters_[i].default_value) + " does not meet restrictions!");
-          }
-        }
-        parameters_[i].min_float = min;
-        return;
+        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
-    //parameter not found
-    throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    p.min_float = min;
   }
 
   void TOPPBase::setMaxFloat_(const String& name, DoubleReal max)
   {
-    //search the right parameter
-    for (Size i = 0; i < parameters_.size(); ++i)
+    ParameterInformation& p = getParameterByName_(name);
+
+    //check if the type matches
+    if (p.type != ParameterInformation::DOUBLE && p.type != ParameterInformation::DOUBLELIST)
     {
-      if (parameters_[i].name == name)
+      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    }
+    DoubleList defaults;
+    if (p.type == ParameterInformation::DOUBLE)
+      defaults.push_back(DoubleReal(p.default_value));
+    else
+      defaults = p.default_value;
+    for (Size j = 0; j < defaults.size(); ++j)
+    {
+      if (defaults[j] > max)
       {
-        //check if the type matches
-        if (parameters_[i].type != ParameterInformation::DOUBLE && parameters_[i].type != ParameterInformation::DOUBLELIST)
-        {
-          throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
-        }
-        DoubleList defaults;
-        if (parameters_[i].type == ParameterInformation::DOUBLE)
-          defaults.push_back(DoubleReal(parameters_[i].default_value));
-        else
-          defaults = parameters_[i].default_value;
-        for (Size j = 0; j < defaults.size(); ++j)
-        {
-          if (defaults[j] > max)
-          {
-            throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(parameters_[i].default_value) + " does not meet restrictions!");
-          }
-        }
-        parameters_[i].max_float = max;
-        return;
+        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
-    //parameter not found
-    throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    p.max_float = max;
   }
 
   void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced, const StringList& tags)

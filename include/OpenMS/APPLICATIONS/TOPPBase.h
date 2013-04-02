@@ -106,9 +106,11 @@ public:
 
 
   /**
-       @brief Struct that captures all information of a command line parameter
+    @brief Struct that captures all information of a command line parameter
 
-       @note had to move this out of the TOPPBase class scope to use it in Param, because foward declaration of nested classes is not possible and there would be a mutual inclusion problem otherwise
+    @note had to move this out of the TOPPBase class scope to use it in Param, 
+    because foward declaration of nested classes is not possible and there would 
+    be a mutual inclusion problem otherwise
   */
   struct ParameterInformation
   {
@@ -273,7 +275,7 @@ public:
       @param version Optional version of the tools (if empty, the version of OpenMS/TOPP is used).
       @param require_args Require arguments on the command line (GUI tools should disable this)
     */
-    TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true , const String& version = "");
+    TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true, const String& version = "");
 
     /// Destructor
     virtual ~TOPPBase();
@@ -977,6 +979,15 @@ private:
     /// Instead, subdivision of parameters should be achieved using TOPPSubsections with appropriate description
     /// Currently only used for "Common TOPP options" within TOPPBase.C
     void addText_(const String& text);
+
+    /**
+      @brief Returns the parameter identified by the given name.
+
+      @param name The name of the parameter to search.
+      @exception Exception::UnregisteredParameter is thrown if the parameter was not registered     
+      @return A reference to the parameter with the given name.
+    */
+    ParameterInformation& getParameterByName_(const String& name);
 
   };
 
