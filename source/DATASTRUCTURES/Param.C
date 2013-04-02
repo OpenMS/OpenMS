@@ -32,7 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <iostream>

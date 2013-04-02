@@ -53,7 +53,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <OPenMS/APPLICATIONS/ParameterInformation.h>
+#include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <iostream>

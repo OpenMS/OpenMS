@@ -43,6 +43,9 @@
 #undef max
 #endif
 
+#include <stdlib.h>
+#include <stdio.h>
+
 namespace OpenMS
 {
 
