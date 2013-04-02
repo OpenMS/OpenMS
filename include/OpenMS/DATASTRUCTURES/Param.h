@@ -49,8 +49,6 @@
 
 namespace OpenMS
 {
-  struct ParameterInformation;
-
   /**
     @brief Management and storage of parameters / INI files.
 
@@ -525,51 +523,40 @@ protected:
     ///@name Command line parsing
     //@{
     /**
-         @brief Parses command line arguments
+      @brief Parses command line arguments
 
-         This method discriminates three types of arguments:<BR>
-         (1) options (starting with '-') that have a text argument<BR>
-         (2) options (starting with '-') that have no text argument<BR>
-         (3) text arguments (not starting with '-')
+      This method discriminates three types of arguments:<BR>
+      (1) options (starting with '-') that have a text argument<BR>
+      (2) options (starting with '-') that have no text argument<BR>
+      (3) text arguments (not starting with '-')
 
-         Command line arguments '-a avalue -b -c bvalue misc1 misc2' would be stored like this:<BR>
-         "prefix:-a" -> "avalue"<BR>
-         "prefix:-b" -> ""<BR>
-         "prefix:-c" -> "bvalue"<BR>
-         "prefix:misc" -> list("misc1","misc2")<BR>
+      Command line arguments '-a avalue -b -c bvalue misc1 misc2' would be stored like this:<BR>
+      "prefix:-a" -> "avalue"<BR>
+      "prefix:-b" -> ""<BR>
+      "prefix:-c" -> "bvalue"<BR>
+      "prefix:misc" -> list("misc1","misc2")<BR>
 
-         @param argc argc variable from command line
-         @param argv argv varaible from command line
-         @param prefix prefix for all options
+      @param argc argc variable from command line
+      @param argv argv varaible from command line
+      @param prefix prefix for all options
     */
     void parseCommandLine(const int argc, const char** argv, const String& prefix = "");
+
     /**
-         @brief Parses command line arguments to specified key locations.
+      @brief Parses command line arguments to specified key locations.
 
- Parses command line arguments to specified key locations and stores the result internally.
+      Parses command line arguments to specified key locations and stores the result internally.
 
-         @param argc argc variable from command line
-         @param argv argv variable from command line
-         @param options_with_one_argument a map of options that are followed by one argument (with key where they are stored)
-         @param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Options specified on the command line are set to the string 'true'.
-         @param options_with_multiple_argument a map of options that are followed by several arguments (with key where they are stored)
-         @param misc key where a StringList of all non-option arguments are stored
-         @param unknown key where a StringList of all unknown options are stored
+      @param argc argc variable from command line
+      @param argv argv variable from command line
+      @param options_with_one_argument a map of options that are followed by one argument (with key where they are stored)
+      @param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Options specified on the command line are set to the string 'true'.
+      @param options_with_multiple_argument a map of options that are followed by several arguments (with key where they are stored)
+      @param misc key where a StringList of all non-option arguments are stored
+      @param unknown key where a StringList of all unknown options are stored
     */
     void parseCommandLine(const int argc, const char** argv, const Map<String, String>& options_with_one_argument, const Map<String, String>& options_without_argument, const Map<String, String>& options_with_multiple_argument, const String& misc = "misc", const String& unknown = "unknown");
 
-    /**
-         @brief Parses command line arguments using parameter definitions from TOPPBase
-
- Parses command line arguments according to parameter definitions made in TOPPBase (or a derived class) and stores the result internally.
-
-         @param argc @p argc variable from command line
-         @param argv @p argv variable from command line
-         @param parameters Information about registered parameters from TOPPBase
-         @param misc Key to store a StringList of all non-option arguments
-         @param unknown Key to store a StringList of all unknown options
-    */
-    void parseCommandLine(const int argc, const char** argv, const std::vector<ParameterInformation>& parameters, const String& misc = "misc", const String& unknown = "unknown");
     //@}
 
 protected:
@@ -580,16 +567,15 @@ protected:
     */
     ParamEntry& getEntry_(const String& key) const;
 
-    ///Constructor from a node wich is used as root node
+    /// Constructor from a node wich is used as root node
     Param(const Param::ParamNode& node);
 
     /// Invisible root node that stores all the data
     mutable Param::ParamNode root_;
   };
 
-  ///Output of Param to a stream.
+  /// Output of Param to a stream.
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Param& param);
-
 
 } // namespace OpenMS
 

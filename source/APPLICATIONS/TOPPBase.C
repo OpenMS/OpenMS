@@ -178,7 +178,7 @@ namespace OpenMS
     // parse command line parameters:
     try
     {
-      param_cmdline_.parseCommandLine(argc, argv, parameters_);
+      param_cmdline_ = parseCommandLine(argc, argv);
     }
     catch (Exception::BaseException& e)
     {
@@ -2367,6 +2367,139 @@ namespace OpenMS
     }
 
     return EXECUTION_OK;
+  }
+
+  Param TOPPBase::parseCommandLine(const int argc, const char** argv, const String& misc, const String& unknown)
+  {
+    Param cmd_params;
+
+    // prepare map of parameters:
+    typedef map<String, vector<ParameterInformation>::const_iterator> ParamMap;
+    ParamMap param_map;
+    for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
+    {
+      param_map["-" + it->name] = it;
+    }
+
+    // list to store "misc"/"unknown" items:
+    map<String, StringList> misc_unknown;
+
+    list<String> queue; // queue for arguments
+                        // we parse the arguments in reverse order, so that we have arguments already when we encounter the option that uses them!
+    for (int i = argc - 1; i > 0; --i)
+    {
+      String arg = argv[i];
+      // options start with "-" or "--" followed by a letter:
+      bool is_option = (arg.size() >= 2) && (arg[0] == '-') && (isalpha(arg[1]) || ((arg[1] == '-') && (arg.size() >= 3) &&  isalpha(arg[2])));
+      if (is_option) // process content of the queue
+      {
+        ParamMap::iterator pos = param_map.find(arg);
+        if (pos != param_map.end()) // parameter is defined
+        {
+          DataValue value;
+          if (pos->second->type == ParameterInformation::FLAG) // flag
+          {
+            value = String("true");
+          }
+          else // option with argument(s)
+          {
+            switch (pos->second->default_value.valueType())
+            {
+            case DataValue::STRING_VALUE:
+              if (queue.empty())
+                value = String();
+              else
+                value = queue.front();
+              break;
+
+            case DataValue::INT_VALUE:
+              if (!queue.empty())
+                value = queue.front().toInt();
+              break;
+
+            case DataValue::DOUBLE_VALUE:
+              if (!queue.empty())
+                value = queue.front().toDouble();
+              break;
+
+            case DataValue::STRING_LIST:
+            {
+              vector<String> arg_list(queue.begin(), queue.end());
+              value = StringList(arg_list);
+              queue.clear();
+              break;
+            }
+
+            case DataValue::INT_LIST:
+            {
+              IntList arg_list;
+              for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
+              {
+                arg_list << it->toInt();
+              }
+              value = arg_list;
+              queue.clear();
+              break;
+            }
+
+            case DataValue::DOUBLE_LIST:
+            {
+              DoubleList arg_list;
+              for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
+              {
+                arg_list << it->toDouble();
+              }
+              value = arg_list;
+              queue.clear();
+              break;
+            }
+
+            case DataValue::EMPTY_VALUE:
+              break;
+            }
+            if (!queue.empty())
+              queue.pop_front(); // argument was already used
+          }
+          cmd_params.setValue(pos->second->name, value);
+        }
+        else // unknown argument -> append to "unknown" list
+        {
+          misc_unknown[unknown] << arg;
+        }
+        // rest of the queue is just text -> insert into "misc" list:
+        StringList& misc_list = misc_unknown[misc];
+        misc_list.insert(misc_list.begin(), queue.begin(), queue.end());
+        queue.clear();
+      }
+      else // more arguments
+      {
+        queue.push_front(arg); // order in the queue is not reversed!
+      }
+    }
+    // remaining items in the queue are leading text arguments:
+    StringList& misc_list = misc_unknown[misc];
+    misc_list.insert(misc_list.begin(), queue.begin(), queue.end());
+
+    // store "misc"/"unknown" items, if there were any:
+    for (map<String, StringList>::iterator it = misc_unknown.begin();
+         it != misc_unknown.end(); ++it)
+    {
+      if (it->second.empty())
+        continue;
+
+      if (!cmd_params.exists(it->first))
+      {
+        cmd_params.setValue(it->first, it->second);
+      }
+      else
+      {
+        StringList new_value = cmd_params.getValue(it->first);
+        new_value.insert(new_value.end(), it->second.begin(), it->second.end());
+        cmd_params.setValue(it->first, new_value);
+      }
+    }
+
+    return cmd_params;
   }
 
 } // namespace OpenMS

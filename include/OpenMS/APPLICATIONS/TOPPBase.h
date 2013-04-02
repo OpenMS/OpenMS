@@ -261,6 +261,21 @@ private:
     /// Storage location and description for allowed subsections from TOPP tool's command-line parameters
     std::map<String, String> subsections_TOPP_;
 
+
+    /**
+      @brief Parses command line arguments using parameter definitions from TOPPBase
+
+      Parses command line arguments according to the current parameter definitions and returns the result as a Param object.
+
+      @param argc @p argc variable from command line
+      @param argv @p argv variable from command line
+      @param misc Key to store a StringList of all non-option arguments
+      @param unknown Key to store a StringList of all unknown options
+
+      @return A Param object representing the parameters set on the command line.
+    */
+    Param parseCommandLine(const int argc, const char** argv, const String& misc = "misc", const String& unknown = "unknown");
+
     /**
       @name Internal parameter handling
      */
@@ -332,9 +347,9 @@ private:
     const DataValue& getParam_(const String& key) const;
 
     /**
-         @brief Get the part of a parameter name that makes up the subsection
+      @brief Get the part of a parameter name that makes up the subsection
 
-         The subsection extends until the last colon (":"). If there is no subsection, the empty string is returned.
+      The subsection extends until the last colon (":"). If there is no subsection, the empty string is returned.
     */
     String getSubsection_(const String& name) const;
 

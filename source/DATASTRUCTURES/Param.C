@@ -32,7 +32,6 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <iostream>
@@ -292,7 +291,7 @@ namespace OpenMS
       }
       return 0;
     }
-    else     //several subnodes to browse through
+    else //several subnodes to browse through
     {
       String prefix = name.prefix(':');
       //cout << " - Prefix: '" << prefix << "'" << endl;
@@ -336,7 +335,7 @@ namespace OpenMS
       {
         insert_node = &(*it);
       }
-      else       //create it
+      else //create it
       {
         insert_node->nodes.push_back(ParamNode(name, ""));
         insert_node = &(insert_node->nodes.back());
@@ -363,7 +362,7 @@ namespace OpenMS
         it->description = node.description;
       }
     }
-    else     //insert it
+    else //insert it
     {
       Param::ParamNode tmp(node);
       tmp.name = prefix2;
@@ -388,7 +387,7 @@ namespace OpenMS
       {
         insert_node = &(*it);
       }
-      else       //create it
+      else //create it
       {
         insert_node->nodes.push_back(ParamNode(name, ""));
         insert_node = &(insert_node->nodes.back());
@@ -411,7 +410,7 @@ namespace OpenMS
         it->description = entry.description;
       }
     }
-    else     //insert it
+    else //insert it
     {
       Param::ParamEntry tmp(entry);
       tmp.name = prefix2;
@@ -708,7 +707,7 @@ namespace OpenMS
         }
       }
     }
-    else     //we have to delete all entries and nodes starting with the prefix
+    else //we have to delete all entries and nodes starting with the prefix
     {
       ParamNode* node = root_.findParentOf(prefix);
       if (node != 0)
@@ -768,7 +767,7 @@ namespace OpenMS
         out.insert(*node, prefix.chop(node->name.size() + 1));
       }
     }
-    else     //we have to copy all entries and nodes starting with the right suffix
+    else //we have to copy all entries and nodes starting with the right suffix
     {
       String suffix = node->suffix(prefix);
       for (Param::ParamNode::NodeIterator it = node->nodes.begin(); it != node->nodes.end(); ++it)
@@ -985,135 +984,6 @@ namespace OpenMS
     }
   }
 
-  void Param::parseCommandLine(const int argc, const char** argv, const vector<ParameterInformation>& parameters, const String& misc, const String& unknown)
-  {
-    // prepare map of parameters:
-    typedef map<String, vector<ParameterInformation>::const_iterator> ParamMap;
-    ParamMap param_map;
-    for (vector<ParameterInformation>::const_iterator it = parameters.begin(); it != parameters.end(); ++it)
-    {
-      param_map["-" + it->name] = it;
-    }
-
-    // list to store "misc"/"unknown" items:
-    map<String, StringList> misc_unknown;
-
-    list<String> queue; // queue for arguments
-    // we parse the arguments in reverse order, so that we have arguments already when we encounter the option that uses them!
-    for (int i = argc - 1; i > 0; --i)
-    {
-      String arg = argv[i];
-      // options start with "-" or "--" followed by a letter:
-      bool is_option = (arg.size() >= 2) && (arg[0] == '-') && (isalpha(arg[1]) || ((arg[1] == '-') && (arg.size() >= 3) &&  isalpha(arg[2])));
-      if (is_option) // process content of the queue
-      {
-        ParamMap::iterator pos = param_map.find(arg);
-        if (pos != param_map.end()) // parameter is defined
-        {
-          DataValue value;
-          if (pos->second->type == ParameterInformation::FLAG) // flag
-          {
-            value = String("true");
-          }
-          else           // option with argument(s)
-          {
-            switch (pos->second->default_value.valueType())
-            {
-            case DataValue::STRING_VALUE:
-              if (queue.empty())
-                value = String();
-              else
-                value = queue.front();
-              break;
-
-            case DataValue::INT_VALUE:
-              if (!queue.empty())
-                value = queue.front().toInt();
-              break;
-
-            case DataValue::DOUBLE_VALUE:
-              if (!queue.empty())
-                value = queue.front().toDouble();
-              break;
-
-            case DataValue::STRING_LIST:
-            {
-              vector<String> arg_list(queue.begin(), queue.end());
-              value = StringList(arg_list);
-              queue.clear();
-              break;
-            }
-
-            case DataValue::INT_LIST:
-            {
-              IntList arg_list;
-              for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
-              {
-                arg_list << it->toInt();
-              }
-              value = arg_list;
-              queue.clear();
-              break;
-            }
-
-            case DataValue::DOUBLE_LIST:
-            {
-              DoubleList arg_list;
-              for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
-              {
-                arg_list << it->toDouble();
-              }
-              value = arg_list;
-              queue.clear();
-              break;
-            }
-
-            case DataValue::EMPTY_VALUE:
-              break;
-            }
-            if (!queue.empty())
-              queue.pop_front();                               // argument was already used
-          }
-          root_.insert(ParamEntry("", value, ""), pos->second->name);
-        }
-        else         // unknown argument -> append to "unknown" list
-        {
-          misc_unknown[unknown] << arg;
-        }
-        // rest of the queue is just text -> insert into "misc" list:
-        StringList& misc_list = misc_unknown[misc];
-        misc_list.insert(misc_list.begin(), queue.begin(), queue.end());
-        queue.clear();
-      }
-      else       // more arguments
-      {
-        queue.push_front(arg); // order in the queue is not reversed!
-      }
-    }
-    // remaining items in the queue are leading text arguments:
-    StringList& misc_list = misc_unknown[misc];
-    misc_list.insert(misc_list.begin(), queue.begin(), queue.end());
-
-    // store "misc"/"unknown" items, if there were any:
-    for (map<String, StringList>::iterator it = misc_unknown.begin();
-         it != misc_unknown.end(); ++it)
-    {
-      if (it->second.empty())
-        continue;
-      ParamEntry* entry = root_.findEntryRecursive(it->first);
-      if (entry == 0) // create new node
-      {
-        root_.insert(ParamEntry("", it->second, ""), it->first);
-      }
-      else
-      {
-        StringList items = entry->value;
-        items.insert(items.end(), it->second.begin(), it->second.end());
-        entry->value = items;
-      }
-    }
-  }
-
   ostream& operator<<(ostream& os, const Param& param)
   {
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
@@ -1253,7 +1123,7 @@ namespace OpenMS
     {
 
       Param::ParamEntry new_entry; // entry of new location (used to retain new description)
-      String target_name;      // fully qualified name in new param 
+      String target_name; // fully qualified name in new param
 
       if (this->exists(it.getName()))
       {

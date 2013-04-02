@@ -261,6 +261,31 @@ class TOPPBaseTestParam: public TOPPBase
 	  Param test_param_;
 };
 
+//test class with optional parameters
+class TOPPBaseCmdParseTest
+  : public TOPPBase
+{
+
+public:
+  TOPPBaseCmdParseTest()
+    : TOPPBase("TOPPBaseCmdParseTest", "A test class to test parts of the cmd parser functionality", false)
+  {}
+  
+  virtual void registerOptionsAndFlags_()
+  {
+  }
+  
+  ExitCodes run(int argc , const char** argv)
+  {
+    return main(argc, argv);
+  }
+  
+  virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+  {
+    return EXECUTION_OK;
+  }
+};
+
 /////////////////////////////////////////////////////////////
 
   START_TEST(TOPPBase, "$Id$");
@@ -682,6 +707,22 @@ START_SECTION((static void setMaxNumberOfThreads(int num_threads)))
   // due to bugs in the different OpenMP implementations it is not realy
   // testable
   NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION(([EXTRA] misc options on command line))
+{
+  // misc text option
+	const char* string_cl[2] = {a1, a12}; //command line: "TOPPBaseTest commandline"
+	TOPPBaseCmdParseTest tmp1;
+  TOPPBase::ExitCodes ec1 = tmp1.run(2,string_cl);
+  TEST_EQUAL(ec1, TOPPBase::ILLEGAL_PARAMETERS)
+
+  // unknown option
+  TOPPBaseCmdParseTest tmp2;
+	const char* string_cl_2[3] = {a1, a10, a12}; //command line: "TOPPBaseTest -stringoption commandline"
+  TOPPBase::ExitCodes ec2 = tmp1.run(3,string_cl_2);
+  TEST_EQUAL(ec2, TOPPBase::ILLEGAL_PARAMETERS)
 }
 END_SECTION
 
