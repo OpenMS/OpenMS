@@ -1561,6 +1561,40 @@ namespace OpenMS
     modificationStatus_(i, false);
   }
 
+  void Spectrum1DCanvas::zoom(int x, int y, bool zoom_in)
+  {
+    if (!zoom_in)
+    {
+      zoomBack_();
+    } else
+    {
+   
+      const PointType::CoordinateType zoom_factor = 0.8;
+      AreaType new_area;
+      if (isMzToXAxis())
+      {
+        new_area.setMinX(visible_area_.min_[0] + (1.0 - zoom_factor) * (visible_area_.max_[0] - visible_area_.min_[0]) * (PointType::CoordinateType)x / width());
+        new_area.setMaxX(new_area.min_[0] + zoom_factor * (visible_area_.max_[0] - visible_area_.min_[0]));
+        new_area.setMinY(visible_area_.minY());
+        new_area.setMaxY(visible_area_.maxY());
+      } else
+      {
+        new_area.setMinX(visible_area_.min_[0] + (1.0 - zoom_factor) * (visible_area_.max_[0] - visible_area_.min_[0]) * (PointType::CoordinateType)(height() - y) / height());
+        new_area.setMaxX(new_area.min_[0] + zoom_factor * (visible_area_.max_[0] - visible_area_.min_[0]));
+        new_area.setMinY(visible_area_.minY());
+        new_area.setMaxY(visible_area_.maxY());
+      }
+
+      if (new_area != visible_area_)
+      {
+        zoomAdd_(new_area);
+        zoom_pos_ = --zoom_stack_.end(); // set to last position
+        changeVisibleArea_(*zoom_pos_);
+      }
+    }
+    return;
+  }
+
   /// Go forward in zoom history
   void Spectrum1DCanvas::zoomForward_()
   {
@@ -1898,5 +1932,6 @@ namespace OpenMS
   {
     return aligned_peaks_indices_;
   }
+
 
 } //Namespace
