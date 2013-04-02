@@ -35,29 +35,32 @@
 #ifndef OPENMS_APPLICATIONS_TOPPBASE_H
 #define OPENMS_APPLICATIONS_TOPPBASE_H
 
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/DATASTRUCTURES/IntList.h>
 #include <OpenMS/DATASTRUCTURES/DoubleList.h>
+
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/DocumentIDTagger.h>
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <OPenMS/APPLICATIONS/ParameterInformation.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <iostream>
 #include <fstream>
 #include <limits>
 
 class QStringList;
-
 
 namespace OpenMS
 {
@@ -104,141 +107,25 @@ public:
     };
   }
 
-
   /**
-    @brief Struct that captures all information of a command line parameter
-
-    @note had to move this out of the TOPPBase class scope to use it in Param, 
-    because foward declaration of nested classes is not possible and there would 
-    be a mutual inclusion problem otherwise
-  */
-  struct ParameterInformation
-  {
-    /// Parameter types
-    enum ParameterTypes
-    {
-      NONE = 0, ///< Undefined type
-      STRING, ///< String parameter
-      INPUT_FILE, ///< String parameter that denotes an input file
-      OUTPUT_FILE, ///< String parameter that denotes an output file
-      DOUBLE, ///< Floating point number parameter
-      INT, ///< Integer parameter
-      STRINGLIST, ///< More than one String Parameter
-      INTLIST, ///< More than one Integer Parameter
-      DOUBLELIST, ///< More than one String Parameter
-      INPUT_FILE_LIST, ///< More than one String Parameter that denotes input files
-      OUTPUT_FILE_LIST, ///< More than one String Parameter that denotes output files
-      FLAG, ///< Parameter without argument
-      TEXT, ///< Left aligned text, see addText_
-      NEWLINE ///< An empty line, see addEmptyLine_
-    };
-
-    /// name of the parameter (internal and external)
-    String name;
-    /// type of the parameter
-    ParameterTypes type;
-    /// default value of the parameter stored as string
-    DataValue default_value;
-    /// description of the parameter
-    String description;
-    /// argument in the description
-    String argument;
-    /// flag that indicates if this parameter is required i.e. it must differ from the default value
-    bool required;
-    /// flag the indicates that the parameter is advanced (this is used for writing the INI file only)
-    bool advanced;
-    /// StringList for special tags
-    StringList tags;
-
-    ///@name Restrictions for different parameter types
-    //@{
-    std::vector<String> valid_strings;
-    Int min_int;
-    Int max_int;
-    DoubleReal min_float;
-    DoubleReal max_float;
-    //@}
-
-    /// Constructor that takes all members in declaration order
-    ParameterInformation(const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv, const StringList& tag_values = StringList()) :
-      name(n),
-      type(t),
-      default_value(def),
-      description(desc),
-      argument(arg),
-      required(req),
-      advanced(adv),
-      tags(tag_values),
-      valid_strings(),
-      min_int(-std::numeric_limits<Int>::max()),
-      max_int(std::numeric_limits<Int>::max()),
-      min_float(-std::numeric_limits<DoubleReal>::max()),
-      max_float(std::numeric_limits<DoubleReal>::max())
-    {
-    }
-
-    ParameterInformation() :
-      name(),
-      type(NONE),
-      default_value(),
-      description(),
-      argument(),
-      required(true),
-      advanced(false),
-      tags(),
-      valid_strings(),
-      min_int(-std::numeric_limits<Int>::max()),
-      max_int(std::numeric_limits<Int>::max()),
-      min_float(-std::numeric_limits<DoubleReal>::max()),
-      max_float(std::numeric_limits<DoubleReal>::max())
-    {
-    }
-
-    ParameterInformation& operator=(const ParameterInformation& rhs)
-    {
-      if (&rhs == this) return *this;
-
-      name = rhs.name;
-      type = rhs.type;
-      default_value = rhs.default_value;
-      description = rhs.description;
-      argument = rhs.argument;
-      required = rhs.required;
-      advanced = rhs.advanced;
-      tags = rhs.tags;
-      valid_strings = rhs.valid_strings;
-      min_int = rhs.min_int;
-      max_int = rhs.max_int;
-      min_float = rhs.min_float;
-      max_float = rhs.max_float;
-
-      return *this;
-    }
-
-  };
-
-
-  /**
-     @brief Base class for TOPP applications.
+    @brief Base class for TOPP applications.
 
     This base class implements functionality used in most TOPP tools:
-    - parameter handling
-    - file handling
-    - progress logging
+      - parameter handling
+      - file handling
+      - progress logging
 
     If you want to create a new TOPP tool, please take care of the following:
-    - derive a new class from this class
-    - implement the registerOptionsAndFlags_ and main_ methods
-    - add a Doxygen page for the tool and add the page to TOPP.doxygen
-    - hide the derived class in the OpenMS documentation by using Doxygen condition macros.
+      - derive a new class from this class
+      - implement the registerOptionsAndFlags_ and main_ methods
+      - add a Doxygen page for the tool and add the page to TOPP.doxygen
+      - hide the derived class in the OpenMS documentation by using Doxygen condition macros.
 
     @todo: replace writeLog_, writeDebug_ with a logger concept
-           we'd need something like -VLevels [LOGGERS] to specify which loggers shall print something
-           the '-log' flag should clone all output to the log-file (maybe with custom [LOGGERS]), which can either be specified directly or is
-              equal to '-out' (if present) with a ".log" suffix
-           maybe a new LOGGER type (TOPP), which is only usable on TOPP level?
-
-
+      we'd need something like -VLevels [LOGGERS] to specify which loggers shall print something
+      the '-log' flag should clone all output to the log-file (maybe with custom [LOGGERS]), which can either be specified directly or is
+      equal to '-out' (if present) with a ".log" suffix
+      maybe a new LOGGER type (TOPP), which is only usable on TOPP level?
   */
   class OPENMS_DLLAPI TOPPBase
   {
@@ -269,9 +156,11 @@ public:
       @param name Tool name.
       @param description Short description of the tool (one line).
       @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
-                      If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-              @param id_tag_support Does the TOPP tool support unique DocumentIdentifier assignment?! The default is false.
-                           In the default case you cannot use the -id_pool argument when calling the TOPP tool (it will terminate during init)
+      If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
+
+      @param id_tag_support Does the TOPP tool support unique DocumentIdentifier assignment?! The default is false.
+      In the default case you cannot use the -id_pool argument when calling the TOPP tool (it will terminate during init)
+
       @param version Optional version of the tools (if empty, the version of OpenMS/TOPP is used).
       @param require_args Require arguments on the command line (GUI tools should disable this)
     */
@@ -339,15 +228,16 @@ private:
     /// Parameters from common section without tool name.
     Param param_common_;
 
-    ///Log file stream.  Use the writeLog_() and writeDebug_() methods to access it.
+    /// Log file stream.  Use the writeLog_() and writeDebug_() methods to access it.
     mutable std::ofstream log_;
 
-    /** @brief Ensures that at least some default logging destination is
-          opened for writing in append mode.
+    /**
+      @brief Ensures that at least some default logging destination is
+      opened for writing in append mode.
 
-          @note This might be invoked at various places early in the startup
-          process of the TOPP tool.  Thus we cannot consider the ini file here.
-          The final logging destination is determined in main().
+      @note This might be invoked at various places early in the startup
+      process of the TOPP tool.  Thus we cannot consider the ini file here.
+      The final logging destination is determined in main().
     */
     void enableLogging_() const;
 
@@ -376,68 +266,68 @@ private:
      */
     //@{
     /**
-       @brief Return the value of parameter @p key as a string or @p default_value if this value is not set.
+      @brief Return the value of parameter @p key as a string or @p default_value if this value is not set.
 
-       @note See getParam_(const String&) const for the order in which parameters are searched.
+      @note See getParam_(const String&) const for the order in which parameters are searched.
     */
     String getParamAsString_(const String& key, const String& default_value = "") const;
 
     /**
-       @brief Return the value of parameter @p key as an integer or @p default_value if this value is not set.
+      @brief Return the value of parameter @p key as an integer or @p default_value if this value is not set.
 
-       @note See getParam_(const String&) const for the order in which parameters are searched.
+      @note See getParam_(const String&) const for the order in which parameters are searched.
     */
     Int getParamAsInt_(const String& key, Int default_value = 0) const;
 
     /**
-       @brief Return the value of parameter @p key as a double or @p default_value if this value is not set.
+      @brief Return the value of parameter @p key as a double or @p default_value if this value is not set.
 
-       @note See getParam_(const String&) const for the order in which parameters are searched.
+      @note See getParam_(const String&) const for the order in which parameters are searched.
     */
     DoubleReal getParamAsDouble_(const String& key, DoubleReal default_value = 0) const;
 
     /**
-       @brief Return the value of parameter @p key as a StringList or @p default_value if this value is not set
+      @brief Return the value of parameter @p key as a StringList or @p default_value if this value is not set
 
-       @note See getParam_(const String&) const for the order in which parameters are searched.
+      @note See getParam_(const String&) const for the order in which parameters are searched.
     */
     StringList getParamAsStringList_(const String& key, const StringList& default_value) const;
 
     /**
-       @brief Return the value of parameter @p key as a IntList or @p default_value if this value is not set
+      @brief Return the value of parameter @p key as a IntList or @p default_value if this value is not set
 
-       @note See getParam_(const String&) const for the order in which parameters are searched.
+      @note See getParam_(const String&) const for the order in which parameters are searched.
     */
     IntList getParamAsIntList_(const String& key, const IntList& default_value) const;
 
     /**
-       @brief Return the value of parameter @p key as a DoubleList or @p default_value if this value is not set
+      @brief Return the value of parameter @p key as a DoubleList or @p default_value if this value is not set
 
-       @note See getParam_(const String&) const for the order in which parameters are searched.
+      @note See getParam_(const String&) const for the order in which parameters are searched.
     */
     DoubleList getParamAsDoubleList_(const String& key, const DoubleList& default_value) const;
 
     /**
-       @brief Return the value of flag parameter @p key as bool.
+      @brief Return the value of flag parameter @p key as bool.
 
-       Only the string values 'true' and 'false' are interpreted.
+      Only the string values 'true' and 'false' are interpreted.
 
-       @exception Exception::InvalidParameter is thrown for non-string parameters and string parameters with values other than 'true' and 'false'.
+      @exception Exception::InvalidParameter is thrown for non-string parameters and string parameters with values other than 'true' and 'false'.
 
-       @note See getParam_(const String&) const for the order in which parameters are searched.
+      @note See getParam_(const String&) const for the order in which parameters are searched.
     */
     bool getParamAsBool_(const String& key) const;
 
     /**
-       @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
+      @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
 
-       Parameters are searched in this order:
-       -# command line
-       -# instance section, e.g. "TOPPTool:1:some_key", see getIniLocation_().
-       -# common section with tool name,  e.g. "common:ToolName:some_key"
-       -# common section without tool name,  e.g. "common:some_key"
+      Parameters are searched in this order:
+      -# command line
+      -# instance section, e.g. "TOPPTool:1:some_key", see getIniLocation_().
+      -# common section with tool name,  e.g. "common:ToolName:some_key"
+      -# common section without tool name,  e.g. "common:some_key"
 
-       where "some_key" == key in the examples.
+      where "some_key" == key in the examples.
     */
     const DataValue& getParam_(const String& key) const;
 
@@ -489,28 +379,28 @@ protected:
       To access the values of registered parameters in the main_ method use methods
       getStringOption_ (also for input and output files), getDoubleOption_, getIntOption_,getStringList_(also for input and output file lists),getIntList_,getDoubleList_, and getFlag_.
 
-              The values of certain options can be restricted using: setMinInt_, setMaxInt_, setMinFloat_,
-              setMaxFloat_, setValidStrings_ and setValidFormats_.
+      The values of certain options can be restricted using: setMinInt_, setMaxInt_, setMinFloat_,
+      setMaxFloat_, setValidStrings_ and setValidFormats_.
 
       In order to format the help output, the method addEmptyLine_ can be used.
     */
     //@{
     /**
-       @brief Sets the valid command line options (with argument) and flags (without argument).
+      @brief Sets the valid command line options (with argument) and flags (without argument).
 
-       The options '-ini' '-log' '-instance' '-debug' and the flag '--help' are automatically registered.
+      The options '-ini' '-log' '-instance' '-debug' and the flag '--help' are automatically registered.
     */
     virtual void registerOptionsAndFlags_() = 0;
 
     /**
-         @brief Registers a command line parameter derived from a ParamEntry object.
+      @brief Registers a command line parameter derived from a ParamEntry object.
 
-         A ParamEntry of type String is turned into a flag if its default value is "false" and its valid strings are "true" and "false".
+      A ParamEntry of type String is turned into a flag if its default value is "false" and its valid strings are "true" and "false".
 
-         @param entry The ParamEntry that defines name, default value, description, restrictions, and required-/advancedness (via tags) of the parameter.
-         @param argument Argument description text for the help output.
-         @param full_name Full name of the parameter, if different from the name in the ParamEntry (ParamEntry names cannot contain sections)
-     */
+      @param entry The ParamEntry that defines name, default value, description, restrictions, and required-/advancedness (via tags) of the parameter.
+      @param argument Argument description text for the help output.
+      @param full_name Full name of the parameter, if different from the name in the ParamEntry (ParamEntry names cannot contain sections)
+    */
     void registerParamEntry_(const Param::ParamEntry& entry, const String& argument = "", const String& full_name = "");
 
     /// Register command line parameters for all entries in a Param object
@@ -529,18 +419,18 @@ protected:
     void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
-        @brief Sets the valid strings for a string option or a whole string list
+      @brief Sets the valid strings for a string option or a whole string list
 
-        @exception Exception::ElementNotFound is thrown if the parameter is unset or not a string parameter
-        @exception Exception::InvalidParameter is thrown if the valid strings contain comma characters
+      @exception Exception::ElementNotFound is thrown if the parameter is unset or not a string parameter
+      @exception Exception::InvalidParameter is thrown if the valid strings contain comma characters
     */
     void setValidStrings_(const String& name, const std::vector<String>& strings);
 
     /**
       @brief Registers an input file option.
 
-              Input files behave like string options, but are automatically checked with inputFileReadable_()
-              when the option is accessed in the TOPP tool.
+      Input files behave like string options, but are automatically checked with inputFileReadable_()
+      when the option is accessed in the TOPP tool.
 
       @param name Name of the option in the command line and the INI file
       @param argument Argument description text for the help output
@@ -556,8 +446,8 @@ protected:
     /**
       @brief Registers an output file option.
 
-              Output files behave like string options, but are automatically checked with outputFileWritable_()
-              when the option is accessed in the TOPP tool.
+      Output files behave like string options, but are automatically checked with outputFileWritable_()
+      when the option is accessed in the TOPP tool.
 
       @param name Name of the option in the command line and the INI file
       @param argument Argument description text for the help output
@@ -569,14 +459,14 @@ protected:
     void registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
-        @brief Sets the formats for a input/output file option or for all members of an input/output file lists
+      @brief Sets the formats for a input/output file option or for all members of an input/output file lists
 
-        Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
-        This check is performed only, when the option is accessed in the TOPP tool.
-        When @p force_OpenMS_format is set, only formats known to OpenMS internally are allowed (default).
+      Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
+      This check is performed only, when the option is accessed in the TOPP tool.
+      When @p force_OpenMS_format is set, only formats known to OpenMS internally are allowed (default).
 
-        @exception Exception::ElementNotFound is thrown if the parameter is unset or not a file parameter
-        @exception Exception::InvalidParameter is thrown if an unknown format name is used (@see FileHandler::Type)
+      @exception Exception::ElementNotFound is thrown if the parameter is unset or not a file parameter
+      @exception Exception::InvalidParameter is thrown if an unknown format name is used (@see FileHandler::Type)
     */
     void setValidFormats_(const String& name, const std::vector<String>& formats, const bool force_OpenMS_format = true);
 
@@ -594,27 +484,27 @@ protected:
     void registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
-        @brief Sets the minimum value for the integer parameter(can be a list of integers,too) @p name.
+      @brief Sets the minimum value for the integer parameter(can be a list of integers,too) @p name.
 
-        @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
+      @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
     void setMinInt_(const String& name, Int min);
     /**
-        @brief Sets the maximum value for the integer parameter(can be a list of integers,too) @p name.
+      @brief Sets the maximum value for the integer parameter(can be a list of integers,too) @p name.
 
-            @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
-*/
+      @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
+    */
     void setMaxInt_(const String& name, Int max);
     /**
-        @brief Sets the minimum value for the floating point parameter(can be a list of floating points,too) @p name.
+      @brief Sets the minimum value for the floating point parameter(can be a list of floating points,too) @p name.
 
-        @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
+      @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
     void setMinFloat_(const String& name, DoubleReal min);
     /**
-        @brief Sets the maximum value for the floating point parameter(can be a list of floating points,too) @p name.
+      @brief Sets the maximum value for the floating point parameter(can be a list of floating points,too) @p name.
 
-        @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
+      @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
     void setMaxFloat_(const String& name, DoubleReal max);
 
@@ -673,7 +563,7 @@ protected:
        @brief Registers a list of input files option.
 
        A list of input files behaves like a StringList, but are automatically checked with inputFileWritable_()
-               when the option is accessed in the TOPP tool.
+       when the option is accessed in the TOPP tool.
 
        @param name Name of the option in the command line and the INI file
        @param argument Argument description text for the help output
@@ -688,7 +578,7 @@ protected:
        @brief Registers a list of output files option.
 
        A list of output files behaves like a StringList, but are automatically checked with outputFileWritable_()
-               when the option is accessed in the TOPP tool.
+       when the option is accessed in the TOPP tool.
 
        @param name Name of the option in the command line and the INI file
        @param argument Argument description text for the help output
@@ -740,11 +630,11 @@ protected:
     /**
       @brief Returns the value of a previously registered double option
 
-              @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
-              @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
-              @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
-              @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
-          */
+      @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+      @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
+      @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
+      @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
+    */
     DoubleReal getDoubleOption_(const String& name) const;
 
     /**
@@ -830,12 +720,6 @@ protected:
     void checkIfIniParametersAreApplicable_(const Param& ini_params);
     //@}
 
-    /// make a string console friendly
-    String breakString_(const String& input, const Size line_len, const Size indentation, const Size max_lines) const;
-
-    /// read console settings for output shaping
-    void readConsoleSize_();
-
     /// Prints the tool-specific command line options and appends the common options.
     void printUsage_();
 
@@ -860,8 +744,8 @@ protected:
 
       Methods used to check the validity of input and output files in main_.
 
-              Checking input and output files is only necessary, if you did register the file as string option,
-              e.g. when only a file prefix is given which is completed in the program.
+      Checking input and output files is only necessary, if you did register the file as string option,
+      e.g. when only a file prefix is given which is completed in the program.
 
       The exceptions thrown in these methods are catched in the main method of this class.
       They do not have to be handled in the tool itself!
@@ -950,27 +834,23 @@ protected:
     ExitCodes writeWSDL_(const String& filename);
 
     /**
-        @brief Test mode
+      @brief Test mode
 
-        Test mode is enabled using the command line parameter @em -test .
+      Test mode is enabled using the command line parameter @em -test .
 
-        It disables writing of data, which would corrupt tests:
-        - absolute paths (e.g. in consensus maps)
-        - processing parameters (input/output files contain absolute paths as well)
-        - current date
-        - current OpenMS version
+      It disables writing of data, which would corrupt tests:
+      - absolute paths (e.g. in consensus maps)
+      - processing parameters (input/output files contain absolute paths as well)
+      - current date
+      - current OpenMS version
     */
     bool test_mode_;
 
     /// .TOPP.ini file for storing system default parameters
     static String topp_ini_file_;
 
-    /// width of console we are currently in (if not determinable, set to 80 as default)
-    int console_width_;
-
     /// Debug level set by -debug
     Int debug_level_;
-
 private:
 
     /// Adds a left aligned text between registered variables in the documentation e.g. for subdividing the documentation.
@@ -984,7 +864,7 @@ private:
       @brief Returns the parameter identified by the given name.
 
       @param name The name of the parameter to search.
-      @exception Exception::UnregisteredParameter is thrown if the parameter was not registered     
+      @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
       @return A reference to the parameter with the given name.
     */
     ParameterInformation& getParameterByName_(const String& name);

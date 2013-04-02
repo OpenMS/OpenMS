@@ -6,6 +6,8 @@ set(sources_list
 INIUpdater.C
 ToolHandler.C
 TOPPBase.C
+ParameterInformation.C
+ConsoleUtils.C
 )
 
 ### add path to the filenames

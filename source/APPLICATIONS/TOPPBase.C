@@ -46,11 +46,12 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
+#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
+
 #include <iostream>
 
 #include <QDir>
 #include <QFile>
-#include <QTextStream>
 #include <QApplication>
 
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -60,15 +61,13 @@
 #include <omp.h>
 #endif
 
-#include <QtCore/QProcess>
-
-#include <cmath>
-
 #ifdef OPENMS_WINDOWSPLATFORM
-#include <windows.h> // for GetConsoleScreenBufferInfo()
 #undef min
 #undef max
 #endif
+
+#include <cmath>
+
 using namespace std;
 
 namespace OpenMS
@@ -530,135 +529,17 @@ namespace OpenMS
     return result;
   }
 
-  String TOPPBase::breakString_(const String& input, const Size line_len, const Size indentation, const Size max_lines) const
-  {
-    StringList result;
-    Size short_line_len = line_len - indentation;
-    if (short_line_len < 1)
-    {
-      std::cerr << "INTERNAL ERROR: cannot split lines into empty strings! see breakString_()";
-      return input;
-    }
-    for (Size i = 0; i < input.size(); )
-    {
-      String line = input.substr(i, result.size() == 0 ? line_len : short_line_len); // first line has full length
-      Size advance_size = line.size();
-      if (line.hasSubstring("\n"))
-      {
-        advance_size = 0;
-        while (line.hasPrefix("\n"))
-        {
-          line = line.substr(1);
-          ++advance_size;
-        } // advance by # of \n's
-        if (line.hasSubstring("\n")) line = line.prefix('\n');
-        advance_size += line.size(); // + actual chars
-      }
-
-      // check if we are using the full length and split a word at the same time
-      // cut a little earlier in that case for nicer looks
-      //std::cerr << line.size() << " "<< (result.size() == 0 ? line_len : short_line_len) << " " << short_line_len << "\n";
-      if (line.size() ==  (result.size() == 0 ? line_len : short_line_len) && short_line_len > 8)
-      {
-        String last_word = line.suffix(' ');
-        if (last_word.length() < 4)
-        { // shorten by last word (will move to the next line)
-          line = line.prefix(line.size() - last_word.length());
-          advance_size -= last_word.size(); // + actual chars
-        }
-      }
-
-      i += advance_size;
-      String s_intend = (result.size() == 0 ? "" : String(indentation, ' ')); // first line no intendation
-      String r = s_intend + (result.size() == 0 ? line : line.trim()); // intended lines get trimmed
-      result.push_back(r); //(r.fillRight(' ', (UInt) line_len));
-    }
-    if (result.size() > max_lines) // remove lines from end if we get too many (but leave the last one)...
-    {
-      String last = result.back();
-      result.erase(result.begin() + max_lines - 2, result.end());
-      result.push_back((String(indentation, ' ') + String("..."))); //.fillRight(' ',(UInt) line_len));
-      result.push_back(last);
-    }
-    // remove last " " from last line to prevent automatic linebreak
-    //if (result.size()>0 && result[result.size()-1].hasSuffix(" ")) result[result.size()-1] = result[result.size()-1].substr(0,result[result.size()-1].size()-1);
-    return result.concatenate("\n");
-  }
-
-  void TOPPBase::readConsoleSize_()
-  {
-    // avoid calling this function more than once
-    static bool been_here = false;
-    if (been_here)
-      return;
-
-    been_here = true;
-
-    // determine column width of current console (TODO: put that into a dedicated class)
-    try
-    {
-      console_width_ = -1;
-      char* p_env;
-      p_env = getenv("COLUMNS");
-      if (p_env != NULL)
-      {
-        console_width_ = String(p_env).toInt();
-      }
-      else
-      {
-        writeDebug_("output shaping: COLUMNS env does not exist!", 2);
-#ifdef OPENMS_WINDOWSPLATFORM
-        HANDLE hOut;
-        CONSOLE_SCREEN_BUFFER_INFO SBInfo;
-        hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        GetConsoleScreenBufferInfo(hOut, &SBInfo);
-        console_width_ = SBInfo.dwSize.X;
-#else // Linux / MacOS
-      // try "stty size" command
-      // don't use QProcess, as stty will not work there
-        FILE* fp = popen("stty size", "r");
-        if (fp != NULL)
-        {
-          char buff[100];
-          fgets(buff, sizeof(buff), fp);
-          pclose(fp);
-          String output(buff);
-          StringList components;
-          output.split(' ', components);
-          if (components.size() == 2)
-            console_width_ = components[1].toInt();
-        }
-        else
-        {
-          writeDebug_("output shaping: stty size command failed.", 2);
-        }
-#endif
-      }
-      --console_width_; // to add the \n at the end of each line without forcing another line break on windows
-    }
-    catch (...)
-    {
-    }
-    // if console_width_ is still -1, we do not use command line reshaping
-    if (console_width_ < 10)
-    {
-      writeDebug_("Console width could not be determined or is smaller than 10. Not using output shaping!", 2);
-      console_width_ = std::numeric_limits<int>::max();
-    }
-  }
-
   void TOPPBase::printUsage_()
   {
-    readConsoleSize_();
     //common output
     cerr << "\n"
-         << tool_name_ << " -- " << tool_description_ << "\n"
+         << ConsoleUtils::breakString(tool_name_ + " -- " + tool_description_, 0, 10) << "\n"
          << "Version: " << verboseVersion_ << "\n" << "\n"
          << "Usage:" << "\n"
          << "  " << tool_name_ << " <options>" << "\n"
          << "\n"
-         << (subsections_.empty() ? "" : "This tool has algoritm parameters which can only be used "
-                                    "via an INI file and are not accessible from the command line!\n\n")
+         << (subsections_.empty() ? "" :
+        ConsoleUtils::breakString("This tool has algoritm parameters which can only be used via an INI file and are not accessible from the command line!", 0, 10) + "\n\n")
          << "Options (mandatory options marked with '*'):" << "\n";
 
     // show advanced options?
@@ -694,7 +575,7 @@ namespace OpenMS
         if (it == subsections_TOPP_.end())
           throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'" + current_TOPP_subsection + "' (TOPP subsection not registered)");
         cerr << "\n"; // print newline for new subsection
-        cerr << breakString_(it->second, console_width_, 0, 10) << ":\n"; // print subsection description
+        cerr << ConsoleUtils::breakString(it->second, 0, 10) << ":\n"; // print subsection description
       }
       else if (subsection.empty() && !current_TOPP_subsection.empty()) // subsection ended and normal parameters start again
       {
@@ -804,9 +685,9 @@ namespace OpenMS
       }
 
       if (it->type == ParameterInformation::TEXT)
-        cerr << breakString_(tmp + desc_tmp, console_width_, 0, 10); // no intendation for text
+        cerr << ConsoleUtils::breakString(tmp + desc_tmp, 0, 10); // no intendation for text
       else
-        cerr << breakString_(tmp + desc_tmp, console_width_, offset, 10);
+        cerr << ConsoleUtils::breakString(tmp + desc_tmp, offset, 10);
       cerr << "\n";
     }
 
@@ -828,14 +709,13 @@ namespace OpenMS
       {
         String tmp = String(" - ") + it->first;
         tmp.fillRight(' ', indent);
-        cerr << breakString_(tmp  + it->second, console_width_, indent, 10);
+        cerr << ConsoleUtils::breakString(tmp  + it->second, indent, 10);
         cerr << "\n";
       }
       cerr << "\n"
-           << "You can write an example INI file using the '-write_ini' option." << "\n"
-           << "Documentation of subsection parameters can be found in the" << "\n"
-           << "doxygen documentation or the INIFileEditor." << "\n"
-           << "Have a look at OpenMS documentation for more information." << "\n";
+           << ConsoleUtils::breakString("You can write an example INI file using the '-write_ini' option.", 0, 10) << "\n"
+           << ConsoleUtils::breakString("Documentation of subsection parameters can be found in the doxygen documentation or the INIFileEditor.", 0, 10) << "\n"
+           << ConsoleUtils::breakString("Have a look at the OpenMS documentation for more information.", 0, 10) << "\n";
     }
     cerr << endl;
   }

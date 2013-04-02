@@ -149,7 +149,7 @@ set(format_executables_list
   FASTAFile_test
   FeatureXMLFile_test
   FileHandler_test
-  FileTypes_test  
+  FileTypes_test
   GzipIfstream_test
   GzipInputStream_test
   IdXMLFile_test
@@ -231,7 +231,7 @@ set(filtering_executables_list
   ComplementMarker_test
   DataFilters_test
 ElutionPeakDetection_test
-FeatureFindingMetabo_test  
+FeatureFindingMetabo_test
   FilterFunctor_test
   GaussFilter_test
   GoodDiffFilter_test
@@ -245,7 +245,7 @@ FeatureFindingMetabo_test
   LinearResamplerAlign_test
   LowessSmoothing_test
   MarkerMower_test
-MassTraceDetection_test  
+MassTraceDetection_test
   MorphologicalFilter_test
   NLargest_test
   NeutralLossDiffFilter_test
@@ -339,7 +339,7 @@ set(analysis_executables_list
 	AScore_test
 	BaseGroupFinder_test
 	BaseSuperimposer_test
-	CompNovoIdentificationBase_test 
+	CompNovoIdentificationBase_test
 	CompNovoIdentificationCID_test
 	CompNovoIdentification_test
 	CompNovoIonScoringBase_test
@@ -411,9 +411,11 @@ set(analysis_executables_list
 )
 
 set(applications_executables_list
-	INIUpdater_test	
+	INIUpdater_test
   TOPPBase_test
   ToolHandler_test
+  ParameterInformation_test
+  ConsoleUtils_test
 )
 
 set(transformations_executables_list
@@ -531,7 +533,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
     MRMFeatureScoring_test
-    MRMFeatureFinderScoring_test 
+    MRMFeatureFinderScoring_test
     SpectrumHelpers_test
     StatsHelpers_test
   )

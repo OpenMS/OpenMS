@@ -24,6 +24,8 @@ set(sources_list_h
 INIUpdater.h
 ToolHandler.h
 TOPPBase.h
+ParameterInformation.h
+ConsoleUtils.h
 )
 
 ### add path to the filenames
