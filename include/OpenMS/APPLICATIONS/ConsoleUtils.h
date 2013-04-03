@@ -40,7 +40,7 @@
 namespace OpenMS
 {
 
-  class ConsoleUtils
+  class OPENMS_DLLAPI ConsoleUtils
   {
 public:
     /// make a string console friendly

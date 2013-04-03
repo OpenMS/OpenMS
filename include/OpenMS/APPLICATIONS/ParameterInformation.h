@@ -45,7 +45,7 @@ namespace OpenMS
   /**
     @brief Struct that captures all information of a command line parameter
   */
-  struct ParameterInformation
+  struct OPENMS_DLLAPI ParameterInformation
   {
     /// Parameter types
     enum ParameterTypes
