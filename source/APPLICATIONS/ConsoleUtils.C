@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
-// $Authors:  Marc Sturm, Clemens Groepl $
+// $Maintainer: Chris Bielow $
+// $Authors:  Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
@@ -75,7 +75,7 @@ namespace OpenMS
 
     been_here = true;
 
-    // determine column width of current console (TODO: put that into a dedicated class)
+    // determine column width of current console
     try
     {
       console_width_ = -1;
@@ -96,7 +96,7 @@ namespace OpenMS
         console_width_ = SBInfo.dwSize.X;
 #else // Linux / MacOS
       // try "stty size" command
-      // don't use QProcess, as stty will not work there
+      // don't use QProcess, since stty will not work there
         FILE* fp = popen("stty size", "r");
         if (fp != NULL)
         {

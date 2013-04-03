@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
-// $Authors:  Marc Sturm, Clemens Groepl $
+// $Maintainer: Chris Bielow $
+// $Authors:  Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_APPLICATIONS_CONSOLEUTILS_H
@@ -44,6 +44,17 @@ namespace OpenMS
   {
 public:
     /// make a string console friendly
+    /// by breaking it into multiple lines according to the console width
+    /// The 'intendation' gives the number of spaces which is prepended beginning at the second (!)
+    /// line, so one gets a left aligned block which has some space to the left.
+    /// An intendation of 0 results in the native console's default behaviour: just break at the end of
+    /// its width and start a new line.
+    /// but usually one wants nicely intended blocks, which the console does not support
+    /// 'max_lines' gives the upper limit of lines returned after breaking is finished. 
+    /// Excess lines are removed and replaced by '...', BUT the last line will be preserved.
+    /// @param input String to be split
+    /// @param intendation Number of spaces to use for lines 2 until last line.
+    /// @param max_lines Limit of output lines (all others are removed)
     static String breakString(const String& input, const Size indentation, const Size max_lines);
 
 private:
