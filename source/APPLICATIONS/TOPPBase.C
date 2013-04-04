@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl, Johannes Junker $
+// $Maintainer: Stephan Aiche $
+// $Authors: Marc Sturm, Clemens Groepl, Johannes Junker, Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -178,7 +178,7 @@ namespace OpenMS
     // parse command line parameters:
     try
     {
-      param_cmdline_ = parseCommandLine(argc, argv);
+      param_cmdline_ = parseCommandLine_(argc, argv);
     }
     catch (Exception::BaseException& e)
     {
@@ -334,6 +334,7 @@ namespace OpenMS
       Param finalParam;
 
       // 1. the CMD parameters
+      writeDebug_("Initialize final param with cmd line:", param_cmdline_, 2);
       finalParam = param_cmdline_;
 
       // 2. the instance values from the ini-file
@@ -531,19 +532,36 @@ namespace OpenMS
 
   void TOPPBase::printUsage_()
   {
+    // show advanced options?
+    bool verbose = getFlag_("-helphelp");
+
     //common output
     cerr << "\n"
          << ConsoleUtils::breakString(tool_name_ + " -- " + tool_description_, 0, 10) << "\n"
          << "Version: " << verboseVersion_ << "\n" << "\n"
          << "Usage:" << "\n"
          << "  " << tool_name_ << " <options>" << "\n"
-         << "\n"
-         << (subsections_.empty() ? "" :
-        ConsoleUtils::breakString("This tool has algoritm parameters which can only be used via an INI file and are not accessible from the command line!", 0, 10) + "\n\n")
-         << "Options (mandatory options marked with '*'):" << "\n";
+         << "\n";
 
-    // show advanced options?
-    bool verbose = getFlag_("-helphelp");
+    // print warning regarding unshown parameters
+    if (!subsections_.empty() && !verbose)
+      cerr << ConsoleUtils::breakString("This tool has algoritm parameters that are not shown here! Please check the ini file for a detailed description or use the --helphelp option.", 0, 10) + "\n\n";
+
+    if (verbose)
+    {
+      // add all subsection parameters to the command line
+      try
+      {
+        Param p = getSubsectionDefaults_();
+        registerFullParam_(p);
+      }
+      catch (BaseException& e)
+      {
+        writeDebug_("Failed to add subsection parameters", 1);
+      }
+    }
+
+    cerr << "Options (mandatory options marked with '*'):" << "\n";
 
     //determine max length of parameters (including argument) for intendation
     UInt max_size = 0;
@@ -575,7 +593,12 @@ namespace OpenMS
         if (it == subsections_TOPP_.end())
           throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'" + current_TOPP_subsection + "' (TOPP subsection not registered)");
         cerr << "\n"; // print newline for new subsection
-        cerr << ConsoleUtils::breakString(it->second, 0, 10) << ":\n"; // print subsection description
+
+        String subsection_description = it->second;
+        if (subsection_description.length() == 0)
+          subsection_description = current_TOPP_subsection;
+
+        cerr << ConsoleUtils::breakString(subsection_description, 0, 10) << ":\n"; // print subsection description
       }
       else if (subsection.empty() && !current_TOPP_subsection.empty()) // subsection ended and normal parameters start again
       {
@@ -692,7 +715,7 @@ namespace OpenMS
     }
 
     // SUBSECTION's at the end
-    if (subsections_.size() != 0)
+    if (subsections_.size() != 0 && !verbose)
     {
       //determine intendation of description
       UInt indent = 0;
@@ -720,7 +743,7 @@ namespace OpenMS
     cerr << endl;
   }
 
-  void TOPPBase::registerParamEntry_(const Param::ParamEntry& entry, const String& argument, const String& full_name)
+  ParameterInformation TOPPBase::paramEntryToParameterInformation_(const Param::ParamEntry& entry, const String& argument, const String& full_name) const
   {
     String name = full_name.empty() ? entry.name : full_name;
     bool advanced = entry.tags.count("advanced");
@@ -729,8 +752,7 @@ namespace OpenMS
         (entry.value == "false") && (entry.valid_strings.size() == 2) &&
         (entry.valid_strings[0] == "true") && (entry.valid_strings[1] == "false"))
     {
-      parameters_.push_back(ParameterInformation(name, ParameterInformation::FLAG, "", "", entry.description, false, advanced));
-      return;
+      return ParameterInformation(name, ParameterInformation::FLAG, "", "", entry.description, false, advanced);
     }
 
     bool input_file = entry.tags.count("input file");
@@ -788,57 +810,83 @@ namespace OpenMS
     param.max_int = entry.max_int;
     param.min_float = entry.min_float;
     param.max_float = entry.max_float;
-    parameters_.push_back(param);
+    return param;
   }
 
-  void TOPPBase::registerFullParam_(const Param& param)
+  String TOPPBase::getParamArgument_(const Param::ParamEntry& entry) const
+  {
+    String argument = "";
+    switch (entry.value.valueType())
+    {
+    case DataValue::STRING_VALUE:
+      if (entry.valid_strings.empty())
+        argument = "<text>"; // name?
+      else
+        argument = "<choice>";
+      break;
+
+    case DataValue::INT_VALUE:
+      argument = "<number>"; // integer?
+      break;
+
+    case DataValue::DOUBLE_VALUE:
+      argument = "<value>"; // float?
+      break;
+
+    case DataValue::STRING_LIST:
+      argument = "<list>";
+      break;
+
+    case DataValue::INT_LIST:
+      argument = "<numbers>";
+      break;
+
+    case DataValue::DOUBLE_LIST:
+      argument = "<values>";
+      break;
+
+    case DataValue::EMPTY_VALUE:
+      argument = "";
+      break;
+    }
+    return argument;
+  }
+
+  std::vector<ParameterInformation> TOPPBase::paramToParameterInformation_(const Param& param) const
+  {
+    std::vector<ParameterInformation> parameter_information;
+    for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
+    {
+      String full_name = it.getName();
+      // make up a value for "argument":
+      String argument = getParamArgument_(*it);
+      // transform to ParameterInformation and register
+      parameter_information.push_back(paramEntryToParameterInformation_(*it, argument, full_name));
+    }
+    return parameter_information;
+  }
+
+  void TOPPBase::registerParamSubsectionsAsTOPPSubsections_(const Param& param)
   {
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
       String full_name = it.getName();
       String subsection = getSubsection_(full_name);
-      // subsection handling:
       if (!subsection.empty() && (subsections_TOPP_.count(subsection) == 0))
       {
         subsections_TOPP_[subsection] = param.getSectionDescription(subsection);
       }
-      // make up a value for "argument":
-      String argument;
-      switch (it->value.valueType())
-      {
-      case DataValue::STRING_VALUE:
-        if (it->valid_strings.empty())
-          argument = "<text>"; // name?
-        else
-          argument = "<choice>";
-        break;
-
-      case DataValue::INT_VALUE:
-        argument = "<number>"; // integer?
-        break;
-
-      case DataValue::DOUBLE_VALUE:
-        argument = "<value>"; // float?
-        break;
-
-      case DataValue::STRING_LIST:
-        argument = "<list>";
-        break;
-
-      case DataValue::INT_LIST:
-        argument = "<numbers>";
-        break;
-
-      case DataValue::DOUBLE_LIST:
-        argument = "<values>";
-        break;
-
-      case DataValue::EMPTY_VALUE:
-        argument = "";
-        break;
-      }
-      registerParamEntry_(*it, argument, full_name);
     }
+  }
+
+  void TOPPBase::registerFullParam_(const Param& param)
+  {
+    // register subsections
+    registerParamSubsectionsAsTOPPSubsections_(param);
+
+    // add the actual parameters
+    std::vector<ParameterInformation> parameter_information = paramToParameterInformation_(param);
+    parameters_.insert(parameters_.end(), parameter_information.begin(), parameter_information.end());
   }
 
   void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
@@ -2016,14 +2064,10 @@ namespace OpenMS
       tmp.setValue(loc + "type", param_cmdline_.getValue("type"));
 
     // Subsections
-    for (map<String, String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
+    Param sub_sections = getSubsectionDefaults_();
+    if (!sub_sections.empty())
     {
-      Param tmp2 = getSubsectionDefaults_(it->first);
-      if (!tmp2.empty())
-      {
-        tmp.insert(loc + it->first + ":", tmp2);
-        tmp.setSectionDescription(loc + it->first, it->second);
-      }
+      tmp.insert(loc, sub_sections);
     }
 
     // 2nd stage, use TOPP tool defaults from home (if existing)
@@ -2036,6 +2080,24 @@ namespace OpenMS
     //   there should be no section which already contains these params (-> thus a lot of warnings are emitted)
     //   furthermore, entering those params will not allow us to change settings in OpenMS.ini and expect them to be effective, as they will be overridden by the tools' ini file
     //tmp.update(system_defaults);
+
+    return tmp;
+  }
+
+  Param TOPPBase::getSubsectionDefaults_() const
+  {
+    Param tmp;
+
+    // Subsections
+    for (map<String, String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
+    {
+      Param tmp2 = getSubsectionDefaults_(it->first);
+      if (!tmp2.empty())
+      {
+        tmp.insert(it->first + ":", tmp2);
+        tmp.setSectionDescription(it->first, it->second);
+      }
+    }
 
     return tmp;
   }
@@ -2369,7 +2431,7 @@ namespace OpenMS
     return EXECUTION_OK;
   }
 
-  Param TOPPBase::parseCommandLine(const int argc, const char** argv, const String& misc, const String& unknown)
+  Param TOPPBase::parseCommandLine_(const int argc, const char** argv, const String& misc, const String& unknown)
   {
     Param cmd_params;
 
@@ -2379,6 +2441,22 @@ namespace OpenMS
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
       param_map["-" + it->name] = it;
+    }
+
+    vector<ParameterInformation> subsection_param;
+    try
+    {
+      // the parameters from the subsections
+      subsection_param = paramToParameterInformation_(getSubsectionDefaults_());
+      for (vector<ParameterInformation>::const_iterator it = subsection_param.begin(); it != subsection_param.end(); ++it)
+      {
+        param_map["-" + it->name] = it;
+      }
+    }
+    catch (BaseException& e)
+    {
+      writeLog_("Warning: Unable to fetch subsection parameters! Addressing subsection parameters will not work for this tool.");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!", 1);
     }
 
     // list to store "misc"/"unknown" items:
@@ -2403,26 +2481,30 @@ namespace OpenMS
           }
           else // option with argument(s)
           {
-            switch (pos->second->default_value.valueType())
+            switch (pos->second->type)
             {
-            case DataValue::STRING_VALUE:
+            case ParameterInformation::STRING:
+            case ParameterInformation::INPUT_FILE:
+            case ParameterInformation::OUTPUT_FILE:
               if (queue.empty())
                 value = String();
               else
                 value = queue.front();
               break;
 
-            case DataValue::INT_VALUE:
+            case ParameterInformation::INT:
               if (!queue.empty())
                 value = queue.front().toInt();
               break;
 
-            case DataValue::DOUBLE_VALUE:
+            case ParameterInformation::DOUBLE:
               if (!queue.empty())
                 value = queue.front().toDouble();
               break;
 
-            case DataValue::STRING_LIST:
+            case ParameterInformation::INPUT_FILE_LIST:
+            case ParameterInformation::OUTPUT_FILE_LIST:
+            case ParameterInformation::STRINGLIST:
             {
               vector<String> arg_list(queue.begin(), queue.end());
               value = StringList(arg_list);
@@ -2430,7 +2512,7 @@ namespace OpenMS
               break;
             }
 
-            case DataValue::INT_LIST:
+            case ParameterInformation::INTLIST:
             {
               IntList arg_list;
               for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
@@ -2442,7 +2524,7 @@ namespace OpenMS
               break;
             }
 
-            case DataValue::DOUBLE_LIST:
+            case ParameterInformation::DOUBLELIST:
             {
               DoubleList arg_list;
               for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
@@ -2454,12 +2536,13 @@ namespace OpenMS
               break;
             }
 
-            case DataValue::EMPTY_VALUE:
+            default:
               break;
             }
             if (!queue.empty())
               queue.pop_front(); // argument was already used
           }
+          LOG_DEBUG << "Setting parameter value: " << pos->second->name << " to " << value << std::endl;
           cmd_params.setValue(pos->second->name, value);
         }
         else // unknown argument -> append to "unknown" list

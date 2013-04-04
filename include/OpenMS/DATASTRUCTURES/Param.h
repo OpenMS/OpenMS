@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Stephan Aiche $
 // $Authors:  Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -276,15 +276,29 @@ protected:
     */
     const ParamEntry& getEntry(const String& key) const;
 
-    /// Tests if a parameter is set (expecting its fully qualified name, e.g., TextExporter:1:proteins_only)
+    /**
+      @brief Tests if a parameter is set (expecting its fully qualified name, e.g., TextExporter:1:proteins_only)
+
+      @param key The fully qualified name of the parameter to check.
+      @return True if the parameter exists, false otherwise.
+    */
     bool exists(const String& key) const;
 
-    /// find leaf node by name (if it exists)
-    /// @return Returns end() if leaf does not exist
+    /**
+      @brief Find leaf node by name (if it exists).
+
+      @param leaf The name of the parameter to find excluding the path parameter, e.g., given the parameter TextExporter:1:proteins_only the leaf would be named proteins_only.
+      @return Returns end() if leaf does not exist.
+    */
     ParamIterator findFirst(const String& leaf) const;
 
-    /// find next leaf node by name (if it exists), not considering the @p start_leaf
-    /// @return Returns end() if leaf does not exist
+    /**
+      @brief Find next leaf node by name (if it exists), not considering the @p start_leaf
+
+      @param leaf The name of the parameter to find excluding the path parameter, e.g., given the parameter TextExporter:1:proteins_only the leaf would be named proteins_only.
+      @param start_leaf The already found leaf, that should not be considered during this search.
+      @return Returns end() if leaf does not exist.
+    */
     ParamIterator findNext(const String& leaf, const ParamIterator& start_leaf) const;
 
 

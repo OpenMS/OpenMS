@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -1614,6 +1614,52 @@ START_SECTION((void merge(const Param& toMerge)))
 }
 END_SECTION
 
+START_SECTION((ParamIterator findFirst(const String &leaf) const ))
+{
+  Param p;
+  p.setValue("a:b:leaf", "leaf_val1", "leaf 1");
+  p.setValue("b:a:leaf", "leaf_val2", "leaf 2");
+  p.setValue("a:c:leaf", "leaf_val3", "leaf 3");
+  p.setValue("a:c:another-leaf", "leaf_val4", "leaf 3");
+  
+  Param::ParamIterator pI = p.findFirst("leaf");
+  TEST_EQUAL(pI.getName(), "a:b:leaf")
+  
+  p.remove("a:b:leaf");
+  pI = p.findFirst("leaf");
+  TEST_EQUAL(pI.getName(), "a:c:leaf")
+  
+  p.remove("a:c:leaf");
+  pI = p.findFirst("leaf");
+  TEST_EQUAL(pI.getName(), "b:a:leaf")
+  
+  p.remove("b:a:leaf");
+  pI = p.findFirst("leaf");
+  TEST_EQUAL(pI == p.end(), true)
+}
+END_SECTION
+
+START_SECTION((ParamIterator findNext(const String &leaf, const ParamIterator &start_leaf) const))
+{
+  Param p;
+  p.setValue("a:b:leaf", "leaf_val1", "leaf 1");
+  p.setValue("b:a:leaf", "leaf_val2", "leaf 2");
+  p.setValue("a:c:leaf", "leaf_val3", "leaf 3");
+  p.setValue("a:c:another-leaf", "leaf_val4", "leaf 3");
+  
+  Param::ParamIterator pI = p.findFirst("leaf");
+  TEST_EQUAL(pI.getName(), "a:b:leaf")
+  
+  pI = p.findNext("leaf", pI);
+  TEST_EQUAL(pI.getName(), "a:c:leaf")
+  
+  pI = p.findNext("leaf", pI);
+  TEST_EQUAL(pI.getName(), "b:a:leaf")
+  
+  pI = p.findNext("leaf", pI);
+  TEST_EQUAL(pI == p.end(), true)
+}
+END_SECTION
 
 START_SECTION((ParamIterator begin() const))
         NOT_TESTABLE;

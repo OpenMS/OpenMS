@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 

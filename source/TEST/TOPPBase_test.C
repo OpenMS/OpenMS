@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Maintainer: Stephan Aiche $
+// $Authors: Marc Sturm, Clemens Groepl, Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -286,6 +286,60 @@ public:
   }
 };
 
+//test class with optional parameters
+class TOPPBaseCmdParseSubsectionsTest
+: public TOPPBase
+{
+  
+public:
+  TOPPBaseCmdParseSubsectionsTest()
+  : TOPPBase("TOPPBaseCmdParseSubsectionsTest", "A test class to test parts of the cmd parser functionality", false)
+  {}
+  
+  void registerOptionsAndFlags_()
+  {
+    registerStringOption_("stringoption","<string>","","string description");
+    registerSubsection_("algorithm", "Algorithm parameters section");
+    registerSubsection_("other", "Other parameters section");
+  }
+  
+  Param getSubsectionDefaults_(const String & section) const
+  {
+    Param p;
+    if (section == "algorithm")
+    {
+      p.setValue("param1", "param1_value", "param1_description");
+      p.setValue("param2", "param2_value", "param2_description");
+    }
+    else
+    {
+      p.setValue("param3", "param3_value", "param3_description");
+      p.setValue("param4", "param4_value", "param4_description");
+    }
+    return p;
+  }
+  
+  ExitCodes run(int argc , const char** argv)
+  {
+    return main(argc, argv);
+  }
+  
+  virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+  {
+    return EXECUTION_OK;
+  }
+  
+  String getStringOption(String name)
+  {
+    return getStringOption_(name);
+  }
+  
+  Param getParam()
+  {
+    return getParam_();
+  }
+};
+
 /////////////////////////////////////////////////////////////
 
   START_TEST(TOPPBase, "$Id$");
@@ -294,7 +348,7 @@ public:
 
 TOPPBaseTest* ptr = 0;
 TOPPBaseTest* nullPointer = 0;
-START_SECTION((TOPPBase(const String &name, const String &description, bool official=true, bool id_tag_support=false, const String &version="")))
+START_SECTION((TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true, const String& version = "")))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -302,55 +356,6 @@ END_SECTION
 START_SECTION((virtual ~TOPPBase()))
 	delete ptr;
 END_SECTION
-
-START_SECTION((void checkTOPPIniFile(const String &tool_path)))
-  // does this anything? (ek)
-  NOT_TESTABLE
-END_SECTION
-
-START_SECTION((static Map<String,StringList> getToolList()))
-	TEST_EQUAL(ToolHandler::getTOPPToolList().has("FileInfo"),true)
-	TEST_EQUAL(ToolHandler::getTOPPToolList().has("ImaginaryTool"),false)
-	TEST_EQUAL(ToolHandler::getTOPPToolList()["FileInfo"].types.empty(),true)
-END_SECTION
-
-START_SECTION((static Map<String,StringList> getUtilList()))
-	TEST_EQUAL(ToolHandler::getUtilList().has("MapAlignmentEvaluation"),true)
-	TEST_EQUAL(ToolHandler::getUtilList().has("SomeCoolUtil"),false)
-  TEST_EQUAL(ToolHandler::getUtilList()["MSSimulator"].types.empty(),true)
-	TEST_EQUAL(ToolHandler::getUtilList()["ImageCreator"].types.empty(),true)
-END_SECTION
-
-ParameterInformation* pi_ptr = 0;
-ParameterInformation* pi_nullPointer = 0;
-
-START_SECTION(([ParameterInformation] ParameterInformation()))
-    pi_ptr = new ParameterInformation();
-    TEST_NOT_EQUAL(pi_ptr, pi_nullPointer)
-END_SECTION
-
-StringList tags = StringList::create("advanced,useless", ',');
-ParameterInformation pi("Temperatur", ParameterInformation::DOUBLE, "sehr hoch", "ganz hoch", "eine Art Beschreibung", true, false, tags);
-
-START_SECTION(([ParameterInformation] ParameterInformation(const String &n, ParameterTypes t, const String &arg, const DataValue &def, const String &desc, bool req, bool adv, const StringList &tag_values=StringList())))
-  TEST_EQUAL(pi.name, "Temperatur");
-  TEST_EQUAL(pi.type, ParameterInformation::DOUBLE);
-  TEST_EQUAL(pi.default_value, "ganz hoch");
-  TEST_EQUAL(pi.required, true);
-  TEST_EQUAL(pi.tags, tags)
-END_SECTION
-
-START_SECTION(([ParameterInformation] ParameterInformation& operator=(const ParameterInformation &rhs)))
-  ParameterInformation assign_to;
-  assign_to = pi;
-  
-  TEST_EQUAL(assign_to.name, "Temperatur");
-  TEST_EQUAL(assign_to.type, ParameterInformation::DOUBLE);
-  TEST_EQUAL(assign_to.default_value, "ganz hoch");
-  TEST_EQUAL(assign_to.required, true);
-  TEST_EQUAL(assign_to.tags, tags);
-END_SECTION
-
 
 START_SECTION((ExitCodes main(int argc, const char**argv)))
 	NOT_TESTABLE
@@ -723,6 +728,53 @@ START_SECTION(([EXTRA] misc options on command line))
 	const char* string_cl_2[3] = {a1, a10, a12}; //command line: "TOPPBaseTest -stringoption commandline"
   TOPPBase::ExitCodes ec2 = tmp1.run(3,string_cl_2);
   TEST_EQUAL(ec2, TOPPBase::ILLEGAL_PARAMETERS)
+}
+END_SECTION
+
+const char* a22 = "-algorithm:param1";
+const char* a23 = "-algorithm:param2";
+const char* a24 = "-other:param3";
+const char* a25 = "-other:param4";
+const char* a26 = "val1";
+const char* a27 = "val2";
+const char* a28 = "val3";
+const char* a29 = "val4";
+std::string temp_a30(OPENMS_GET_TEST_DATA_PATH("TOPPBaseCmdParseSubsectionsTest.ini"));
+const char* a30 = temp_a30.c_str();
+
+START_SECTION(([EXTRA] test subsection parameters))
+{
+  const char* string_cl_1[3] = {a1, a10, a12}; //command line: "TOPPBaseTest -stringoption commandline"
+	TOPPBaseCmdParseSubsectionsTest tmp1;
+  TOPPBase::ExitCodes ec1 = tmp1.run(3, string_cl_1);
+  TEST_EQUAL(ec1, TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(tmp1.getStringOption("stringoption"), "commandline");
+  TEST_EQUAL(tmp1.getParam().getValue("algorithm:param1"), "param1_value");
+  TEST_EQUAL(tmp1.getParam().getValue("algorithm:param2"), "param2_value");
+  TEST_EQUAL(tmp1.getParam().getValue("other:param3"), "param3_value");
+  TEST_EQUAL(tmp1.getParam().getValue("other:param4"), "param4_value");
+  
+  // overwrite from cmd
+  const char* string_cl_2[11] = {a1, a10, a12, a22, a26, a23, a27, a24, a28, a25, a29}; //command line: "TOPPBaseTest -algorithm:param1 val1 -algorithm:param2 val2 -algorithm:param3 val3 -algorithm:param4 val4 -stringoption commandline"
+	TOPPBaseCmdParseSubsectionsTest tmp2;
+  TOPPBase::ExitCodes ec2 = tmp2.run(11, string_cl_2);
+  TEST_EQUAL(ec2, TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(tmp2.getStringOption("stringoption"), "commandline");
+  TEST_EQUAL(tmp2.getParam().getValue("algorithm:param1"), "val1");
+  TEST_EQUAL(tmp2.getParam().getValue("algorithm:param2"), "val2");
+  TEST_EQUAL(tmp2.getParam().getValue("other:param3"), "val3");
+  TEST_EQUAL(tmp2.getParam().getValue("other:param4"), "val4");
+    
+  // overwrite ini values from cmd
+  const char* string_cl_3[9] = {a1, a3, a30, a22, a26, a25, a29, a10, a12 }; //command line: "TOPPBaseTest -ini TOPPBaseCmdParseSubsectionsTest.ini -algorithm:param1 val1 -algorithm:param4 val4"
+	TOPPBaseCmdParseSubsectionsTest tmp3;
+  TOPPBase::ExitCodes ec3 = tmp3.run(9, string_cl_3);
+  TEST_EQUAL(ec3, TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(tmp3.getStringOption("stringoption"), "commandline");
+  TEST_EQUAL(tmp3.getParam().getValue("algorithm:param1"), "val1");
+  TEST_EQUAL(tmp3.getParam().getValue("algorithm:param2"), "param2_ini_value");
+  TEST_EQUAL(tmp3.getParam().getValue("other:param3"), "param3_ini_value");
+  TEST_EQUAL(tmp3.getParam().getValue("other:param4"), "val4");
 }
 END_SECTION
 
