@@ -95,8 +95,8 @@ private:
 
     DoubleReal min_fwhm_;
     DoubleReal max_fwhm_;
-    DoubleReal min_trace_length_;
-    DoubleReal max_trace_length_;
+    // DoubleReal min_trace_length_;
+    // DoubleReal max_trace_length_;
 
     String pw_filtering_;
     bool mt_snr_filtering_;

@@ -279,6 +279,7 @@ private:
     bool report_summed_ints_;
     bool disable_isotope_filtering_;
     String isotope_model_;
+    String metabo_iso_noisemodel_;
     bool use_smoothed_intensities_;
 
 };
