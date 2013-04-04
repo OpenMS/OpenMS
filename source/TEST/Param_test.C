@@ -1580,6 +1580,37 @@ START_SECTION((void merge(const Param& toMerge)))
   original.merge(toMerge);
   TEST_EQUAL(original, expected)
   TEST_EQUAL(original.getSectionDescription("section"),expected.getSectionDescription("section"))
+  
+  Param p1;
+  p1.setValue("in", "in-value", "in-description");
+  p1.setValue("out", "out-value", "out-description");
+	p1.setValue("reference:index", "reference:index value", "reference:index description");
+  p1.setSectionDescription("reference", "reference description");
+  p1.setValue("algorithm:sub_param", "algorithm:sub_param value", "algorithm:sub_param description");
+  
+  Param p2;
+  p2.setValue("reference:index", "reference:index value", "reference:index description");
+  p2.setSectionDescription("reference", "reference description");
+  p2.setValue("algorithm:sub_param", "algorithm:sub_param value", "algorithm:sub_param description");
+  p2.setValue("algorithm:superimposer:mz_pair_max_distance", "algorithm:superimposer:mz_pair_max_distance value", "algorithm:superimposer:mz_pair_max_distance description");
+	p2.setSectionDescription("algorithm", "algorithm description");
+	p2.setSectionDescription("algorithm:superimposer", "algorithm:superimposer description");
+  
+	Param expected_2;
+  expected_2.setValue("in", "in-value", "in-description");
+  expected_2.setValue("out", "out-value", "out-description");
+  expected_2.setValue("algorithm:sub_param", "algorithm:sub_param value", "algorithm:sub_param description");
+  expected_2.setValue("reference:index", "reference:index value", "reference:index description");
+  expected_2.setSectionDescription("reference", "reference description");
+  expected_2.setValue("algorithm:superimposer:mz_pair_max_distance", "algorithm:superimposer:mz_pair_max_distance value", "algorithm:superimposer:mz_pair_max_distance description");
+	expected_2.setSectionDescription("algorithm", "algorithm description");
+	expected_2.setSectionDescription("algorithm:superimposer", "algorithm:superimposer description");
+  
+  p1.merge(p2);
+	TEST_EQUAL(p1, expected_2)
+  TEST_EQUAL(p1.getSectionDescription("algorithm"),expected_2.getSectionDescription("algorithm"))
+  TEST_EQUAL(p1.getSectionDescription("algorithm:superimposer"),expected_2.getSectionDescription("algorithm:superimposer"))
+  TEST_EQUAL(p1.getSectionDescription("reference"),expected_2.getSectionDescription("reference"))
 }
 END_SECTION
 

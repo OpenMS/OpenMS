@@ -255,6 +255,15 @@ private:
     */
     virtual Param getSubsectionDefaults_(const String& section) const;
 
+    /**
+      @brief Returns a single Param object containing all subsection parameters.
+
+
+      @return A single Param object containing all parameters for all registered subsections.
+      @see getSubsectionDefaults_(String)
+    */
+    Param getSubsectionDefaults_() const;
+
     /// Storage location and description for allowed subsections
     std::map<String, String> subsections_;
 
@@ -274,7 +283,7 @@ private:
 
       @return A Param object representing the parameters set on the command line.
     */
-    Param parseCommandLine(const int argc, const char** argv, const String& misc = "misc", const String& unknown = "unknown");
+    Param parseCommandLine_(const int argc, const char** argv, const String& misc = "misc", const String& unknown = "unknown");
 
     /**
       @name Internal parameter handling
@@ -407,8 +416,14 @@ protected:
     */
     virtual void registerOptionsAndFlags_() = 0;
 
+    /// Utility function that determines a suitable argument value for the given Param::ParamEntry
+    String getParamArgument_(const Param::ParamEntry& entry) const;
+
+    /// Translates the given parameter object into a vector of ParameterInformation, that can be utilized for cl parsing
+    std::vector<ParameterInformation> paramToParameterInformation_(const Param& param) const;
+
     /**
-      @brief Registers a command line parameter derived from a ParamEntry object.
+      @brief Transforms a ParamEntry object to command line parameter (ParameterInformation).
 
       A ParamEntry of type String is turned into a flag if its default value is "false" and its valid strings are "true" and "false".
 
@@ -416,7 +431,9 @@ protected:
       @param argument Argument description text for the help output.
       @param full_name Full name of the parameter, if different from the name in the ParamEntry (ParamEntry names cannot contain sections)
     */
-    void registerParamEntry_(const Param::ParamEntry& entry, const String& argument = "", const String& full_name = "");
+    ParameterInformation paramEntryToParameterInformation_(const Param::ParamEntry& entry, const String& argument = "", const String& full_name = "") const;
+
+    void registerParamSubsectionsAsTOPPSubsections_(const Param& param);
 
     /// Register command line parameters for all entries in a Param object
     void registerFullParam_(const Param& param);

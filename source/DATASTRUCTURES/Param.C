@@ -1231,43 +1231,48 @@ namespace OpenMS
     // augment
     for (Param::ParamIterator it = toMerge.begin(); it != toMerge.end(); ++it)
     {
+      String prefix = "";
+      if (it.getName().has(':'))
+        prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
+
       // we care only about values that do not exist already
       if (!this->exists(it.getName()))
       {
-        Param::ParamEntry entry = toMerge.getEntry(it.getName());
-        String prefix = "";
-        if (it.getName().has(':'))
-          prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
+        Param::ParamEntry entry = *it;
+        LOG_DEBUG << "[Param::merge] merging " << it.getName() << std::endl;
         this->root_.insert(entry, prefix);
+      }
 
-        //copy section descriptions
-        const std::vector<ParamIterator::TraceInfo>& trace = it.getTrace();
-        for (std::vector<ParamIterator::TraceInfo>::const_iterator traceIt = trace.begin(); traceIt != trace.end(); ++traceIt)
+      //copy section descriptions
+      const std::vector<ParamIterator::TraceInfo>& trace = it.getTrace();
+      for (std::vector<ParamIterator::TraceInfo>::const_iterator traceIt = trace.begin(); traceIt != trace.end(); ++traceIt)
+      {
+        if (traceIt->opened)
         {
-          if (traceIt->opened)
-          {
-            pathname += traceIt->name + ":";
-          }
-          else
-          {
-            if (pathname.hasSuffix(traceIt->name + ":"))
-              pathname.resize(pathname.size() - traceIt->name.size() - 1);
-          }
-          String real_pathname = pathname.chop(1); //remove ':' at the end
-          if (real_pathname != "")
-          {
-            String description_old = "";
-            String description_new = "";
+          LOG_DEBUG << "[Param::merge] extending param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
+          pathname += traceIt->name + ":";
+        }
+        else
+        {
+          LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
+          if (pathname.hasSuffix(traceIt->name + ":"))
+            pathname.resize(pathname.size() - traceIt->name.size() - 1);
+        }
+        String real_pathname = pathname.chop(1); //remove ':' at the end
+        if (real_pathname != "")
+        {
+          String description_old = "";
+          String description_new = "";
 
-            description_old = getSectionDescription(prefix + real_pathname);
-            description_new = toMerge.getSectionDescription(real_pathname);
-            if (description_old == "")
-            {
-              setSectionDescription(real_pathname, description_new);
-            }
+          description_old = getSectionDescription(prefix + real_pathname);
+          description_new = toMerge.getSectionDescription(real_pathname);
+          if (description_old == "")
+          {
+            setSectionDescription(real_pathname, description_new);
           }
         }
       }
+
     }
   }
 

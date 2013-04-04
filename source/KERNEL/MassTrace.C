@@ -94,8 +94,8 @@ namespace OpenMS
   MassTrace::MassTrace(const MassTrace& mt) :
     trace_peaks_(mt.trace_peaks_),
     centroid_mz_(mt.centroid_mz_),
-    centroid_rt_(mt.centroid_rt_),
     centroid_sd_(mt.centroid_sd_),
+    centroid_rt_(mt.centroid_rt_),
     label_(mt.label_),
     smoothed_intensities_(mt.smoothed_intensities_),
     fwhm_(mt.fwhm_),
