@@ -189,14 +189,14 @@ namespace OpenMS
     // we need to do some extra work on osx systems
 #if defined(__APPLE__)
     // we need to check if we are in the build or package environment
-    if (File::exists(File::getOpenMSDataPath() + "../../doc/html/index.html"))
+    if (File::exists(File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html"))
     {
-      action->setData(String("file://" + File::getOpenMSDataPath() + "../../doc/html/TOPPAS_tutorial.html").toQString());
+      action->setData(String("file://" + File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html").toQString());
     }
     else
     {
-      action->setData(String("file://" + File::getOpenMSDataPath() + "../../Documentation/html/TOPPAS_tutorial.html").toQString());
-    }
+      action->setData(String("file://" + File::getOpenMSDataPath() + "/../../Documentation/html/TOPPAS_tutorial.html").toQString());
+    } 
 #else
     action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html").toQString());
 #endif
@@ -893,7 +893,15 @@ namespace OpenMS
   void TOPPASBase::showURL()
   {
     QAction* action = qobject_cast<QAction*>(sender());
-    QString target = QString("file:///%1").arg(action->data().toString());
+    QString target = action->data().toString();
+
+    // add protocol handler if non is given
+    if(!(target.startsWith("http://") || target.startsWith("https://") || target.startsWith("file://")))
+    {
+      // we expect all unqualified urls to be file urls
+      target = QString("file://%1").arg(target);
+    }
+    
     if (!QDesktopServices::openUrl(QUrl(target, QUrl::TolerantMode)))
     {
       QMessageBox::warning(this, tr("Error"),

@@ -275,14 +275,14 @@ namespace OpenMS
     // we need to check if we are in the build or package environment
     if (File::exists(File::getOpenMSDataPath() + "../../doc/html/index.html"))
     {
-      action->setData(String("file://" + File::getOpenMSDataPath() + "../../doc/html/index.html").toQString());
+      action->setData(String("file://" + File::getOpenMSDataPath() + "/../../doc/html/index.html").toQString());
     }
     else
     {
-      action->setData(String("file://" + File::getOpenMSDataPath() + "../../Documentation/OpenMSAndTOPPDocumentation.html").toQString());
+      action->setData(String("file://" + File::getOpenMSDataPath() + "/../../Documentation/html/index.html").toQString());
     }
 #else
-    action->setData(String(File::getOpenMSDataPath() + "../../doc/html/index.html").toQString());
+    action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/index.html").toQString());
 #endif
 
     help->addSeparator();
@@ -655,7 +655,15 @@ namespace OpenMS
   void TOPPViewBase::showURL()
   {
     QAction* action = qobject_cast<QAction*>(sender());
-    QString target = QString("file:///%1").arg(action->data().toString());
+    QString target = action->data().toString();
+    
+    // add protocol handler if non is given
+    if(!(target.startsWith("http://") || target.startsWith("https://") || target.startsWith("file://")))
+    {
+      // we expect all unqualified urls to be file urls
+      target = QString("file://%1").arg(target);
+    }
+
     if (!QDesktopServices::openUrl(QUrl(target, QUrl::TolerantMode)))
     {
       QMessageBox::warning(this, tr("Error"),
