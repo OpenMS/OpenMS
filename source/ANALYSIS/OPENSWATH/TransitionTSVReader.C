@@ -159,6 +159,7 @@ namespace OpenMS
 
     getTSVHeader(line, delimiter, header, header_dict);
 
+    int cnt = 0;
     while (std::getline(data, line))
     {
       std::stringstream lineStream(line);
@@ -167,8 +168,16 @@ namespace OpenMS
       {
         tmp_line.push_back(tmp);
       }
+      cnt++;
 
+      if (tmp_line.size() != header_dict.size())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+            "Error reading the file on line " + String(cnt) + ": length of the header and length of the line" + 
+            " do not match: " + String(tmp_line.size()) + " != " + String(header_dict.size()) );
+      }
       TSVTransition mytransition;
+
 
       mytransition.precursor                    =                      String(tmp_line[header_dict["PrecursorMz"]]).toDouble();
       mytransition.product                      =                      String(tmp_line[header_dict["ProductMz"]]).toDouble();
@@ -222,7 +231,10 @@ namespace OpenMS
 
       if (header_dict.find("UniprotID") != header_dict.end())
       {
-        mytransition.uniprot_id                   =                             tmp_line[header_dict["UniprotID"]];
+        if (tmp_line[header_dict["UniprotID"]] != "NA")
+        {
+          mytransition.uniprot_id                   =                             tmp_line[header_dict["UniprotID"]];
+        }
       }
       if (header_dict.find("FragmentType") != header_dict.end())
       {
@@ -608,6 +620,7 @@ namespace OpenMS
       }
       mytransition.PeptideSequence = pep.sequence;
       mytransition.ProteinName = "NA";
+      mytransition.uniprot_id = "NA";
       if (!pep.protein_refs.empty())
       {
         const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(pep.protein_refs[0]);
