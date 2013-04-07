@@ -136,10 +136,14 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Determined your csv/tsv file to have delimiter " + (String)txt_delimiter + ", but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + (String)min_header_size + ". Please check your input file.");
     }
 
-    // TODO check for each header name
-    if (header_dict.find("PrecursorMz") == header_dict.end())
+    int requiredFields[8] = { 0, 1, 2, 3, 5, 6, 7, 8 };
+    for (int i = 0; i < 8; i++)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Determined your csv/tsv file to have delimiter " + (String)txt_delimiter + ", but the parsed header does not have the field \"PrecursorMz\". Please check your input file.");
+      if (header_dict.find(header_names[requiredFields[i]]) == header_dict.end())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "I determined that your your csv/tsv file has the delimiter " + (String)txt_delimiter + 
+            ".\nBut the parsed header does not have the required field \""+ (String)header_names[requiredFields[i]] + "\". Please check your input file.");
+      }
     }
 
   }
