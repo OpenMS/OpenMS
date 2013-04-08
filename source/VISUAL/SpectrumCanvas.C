@@ -404,8 +404,8 @@ namespace OpenMS
       Size num_chrom(0);
       for (Size i = 0; i != layers_.back().getPeakData()->getChromatograms().size(); ++i)
       {
-        if (layers_.back().getPeakData()->getChromatograms()[i].getChromatogramType() == ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM ||
-            layers_.back().getPeakData()->getChromatograms()[i].getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+        // if (layers_.back().getPeakData()->getChromatograms()[i].getChromatogramType() == ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM ||
+        //     layers_.back().getPeakData()->getChromatograms()[i].getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
         {
           ++num_chrom;
         }
