@@ -120,7 +120,7 @@ def create_sources(openms_path, path, clazz, maintainer)
 
 	# write the source file
 	header = "#{path}/#{clazz}.h"
-	template = ERB.new(getTemplate("header"))
+	template = ERB.new(getTemplate("source"))
 
 	doc = template.result(binding)
 	source_file = "#{openms_path}/source/#{path}/#{clazz}.C"
