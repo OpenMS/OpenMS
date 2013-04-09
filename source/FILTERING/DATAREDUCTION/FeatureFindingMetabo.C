@@ -462,8 +462,12 @@ DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace&
     DoubleReal mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
     // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
 
+    // DoubleReal score_sigma_old(std::sqrt(sd*sd + mt_variances));
 
-    DoubleReal score_sigma(std::sqrt(sd * sd + mt_variances));
+    DoubleReal score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
+
+    // std::cout << std::setprecision(15) << "old " << score_sigma_old << " new " << score_sigma << std::endl;
+
     DoubleReal sigma_mult(3.0);
 
     DoubleReal mz_score(0.0);
