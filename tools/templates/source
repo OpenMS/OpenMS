@@ -1,0 +1,21 @@
+<%= license %>
+// --------------------------------------------------------------------------
+// $Maintainer: <%= maintainer %> $
+// $Authors: <%= maintainer %> $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/<%= header %>>
+
+namespace OpenMS
+{
+
+  <%= clazz %>::<%= clazz %>()
+  {}
+
+  <%= clazz %>::<%= clazz %>(const <%= clazz %>& other)
+  {}
+
+  <%= clazz %> & <%= clazz %>::operator=(const <%= clazz %>& rhs)
+  {}
+
+} // namespace

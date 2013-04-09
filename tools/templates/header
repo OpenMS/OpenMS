@@ -1,0 +1,26 @@
+<%= license %>
+// --------------------------------------------------------------------------
+// $Maintainer: <%= maintainer %> $
+// $Authors: <%= maintainer %> $
+// --------------------------------------------------------------------------
+
+#ifndef OPENMS_<%= header_guard %>
+#define OPENMS_<%= header_guard %>
+
+namespace OpenMS
+{
+  class OPENMS_DLLAPI <%= clazz %>
+  {
+public:
+    /// Default c'tor
+    <%= clazz %>();
+
+    /// Copy c'tor
+    <%= clazz %>(const <%= clazz %>& other);
+
+    /// Assignment operator
+    <%= clazz %> & operator=(const <%= clazz %>& rhs);
+  };
+} // namespace
+
+#endif // OPENMS_<%= header_guard %>
