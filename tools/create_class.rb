@@ -139,7 +139,7 @@ def register_file(sources_cmake, filename)
 				break
 			end
 		else
-			if val.chop().strip == "set(sources_list"
+			if val.chop().strip == "set(sources_list" or val.chop().strip == "set(sources_list_h"
 				block = true
 			end
 		end
