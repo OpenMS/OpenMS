@@ -47,77 +47,157 @@ namespace OpenMS
 {
   /**
       @brief Data model of MzTab files.
-      The format specification is in development and subject to change. Use at your own risk.
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO
   */
 
+  // MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
+  enum MzTabCellStateType
+  {
+    MZTAB_CELLSTATE_DEFAULT,         
+    MZTAB_CELLSTATE_NULL,
+    MZTAB_CELLSTATE_NAN,
+    MZTAB_CELLSTATE_INF,
+    SIZE_OF_MZTAB_CELLTYPE
+  };
 
-  // interface for all MzTab datatypes that can be NA
-  class MzTabNAAbleInterface
+  // basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
+  class MzTabNullAbleInterface
   {
   public:
-    virtual bool isNA() const = 0;
-    virtual void setNA(bool na) = 0;
+    virtual bool isNull() const = 0;
+    virtual void setNull(bool b) = 0;
     virtual String toCellString() const = 0;
     virtual void fromCellString(String) = 0;
   };
 
-  // base class for the atomic non-container like MzTab data types (Double, Int)
-  class MzTabNAAbleBase : public MzTabNAAbleInterface
+  // interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
+  class MzTabNullNaNAndInfAbleInterface : public MzTabNullAbleInterface
   {
   public:
-    MzTabNAAbleBase():
-        na_(true)
+    virtual bool isNaN() const = 0;
+    virtual void setNaN() = 0;
+    virtual bool isInf() const = 0;
+    virtual void setInf() = 0;
+  };
+
+  // base class for the atomic non-container like MzTab data types (Double, Int)
+  class MzTabNullAbleBase : public MzTabNullAbleInterface
+  {
+  public:
+    MzTabNullAbleBase():
+        null_(true)
     {
     }
 
-    bool isNA() const
+    bool isNull() const
     {
-      return na_;
+      return null_;
     }
 
-    void setNA(bool na)
+    void setNull(bool b)
     {
-      na_ = na;
+      null_ = b;
     }
 
   protected:
-    bool na_;
+    bool null_;
   };
 
-  class MzTabDouble : public MzTabNAAbleBase
+  // base class for the atomic non-container like MzTab data types (Double, Int)
+  class MzTabNullNaNAndInfAbleBase : public MzTabNullNaNAndInfAbleInterface
+  {
+  public:
+    MzTabNullNaNAndInfAbleBase():
+      state_(MZTAB_CELLSTATE_NULL)
+    {
+    }
+        
+    bool isNull() const
+    {
+      return (state_ == MZTAB_CELLSTATE_NULL);
+    }
+
+    void setNull(bool b)
+    {
+      state_ = b ? MZTAB_CELLSTATE_NULL : MZTAB_CELLSTATE_DEFAULT;
+    }
+
+    bool isNaN() const
+    {
+      return (state_ == MZTAB_CELLSTATE_NAN);
+    }
+
+    void setNaN()
+    {
+      state_ = MZTAB_CELLSTATE_NAN;
+    }
+
+    bool isInf() const
+    {
+      return (state_ == MZTAB_CELLSTATE_INF);
+    }
+
+    void setInf()
+    {
+      state_ = MZTAB_CELLSTATE_INF;
+    }
+
+  protected:
+    MzTabCellStateType state_;
+  };
+
+  class MzTabDouble : public MzTabNullNaNAndInfAbleBase
   {
   public:
     void set(const DoubleReal& value)
     {
+      state_ = MZTAB_CELLSTATE_DEFAULT;
       value_ = value;
     }
 
     DoubleReal get() const
     {
-      return value_;
+      if (state_ == MZTAB_CELLSTATE_DEFAULT)
+      {
+        return value_;
+      } else
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
+        return 0;
+      }
     }
 
     String toCellString() const
     {
-      if (isNA())
+      switch(state_)
       {
-        return "NA";
-      } else
-      {
-        return String(value_);
+        case MZTAB_CELLSTATE_NULL:
+          return String("null");
+        case MZTAB_CELLSTATE_NAN:
+          return String("NaN");
+        case MZTAB_CELLSTATE_INF:
+          return String("Inf");
+        case MZTAB_CELLSTATE_DEFAULT:
+        default:
+          return String(value_);
       }
     }
 
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
-      } else
+        setNull(true);
+      } else if (s.toUpper() == "NaN")
+      {
+        setNaN();
+      } else if (s.toUpper() == "Inf")
+      {
+        setInf();
+      } else // default case
       {
         value_ = s.toDouble();
       }
@@ -127,21 +207,21 @@ namespace OpenMS
     DoubleReal value_;
   };
 
-  class MzTabDoubleList : public MzTabNAAbleBase
+  class MzTabDoubleList : public MzTabNullAbleBase
   {
   public:
     MzTabDoubleList()
     {
     }
 
-    bool isNA() const
+    bool isNull() const
     {
       return entries_.empty();
     }
 
-    void setNA(bool na)
+    void setNull(bool b)
     {
-      if (na)
+      if (b)
       {
         entries_.clear();
       }
@@ -149,9 +229,9 @@ namespace OpenMS
 
     String toCellString() const
     {
-      if (isNA())
+      if (isNull())
       {
-        return "NA";
+        return "null";
       } else
       {
         String ret;
@@ -170,9 +250,9 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
+        setNull(true);
       } else
       {
         std::vector<String> fields;
@@ -200,37 +280,56 @@ namespace OpenMS
     std::vector<MzTabDouble> entries_;
   };
 
-  class MzTabInteger : public MzTabNAAbleBase
+  class MzTabInteger : public MzTabNullNaNAndInfAbleBase
   {
   public:
     void set(const Int& value)
     {
+      state_ = MZTAB_CELLSTATE_DEFAULT;
       value_ = value;
     }
 
     Int get() const
     {
-      return value_;
+      if (state_ == MZTAB_CELLSTATE_DEFAULT)
+      {
+        return value_;
+      } else
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
+        return 0;
+      }
     }
 
     String toCellString() const
     {
-      if (isNA())
+      switch(state_)
       {
-        return "NA";
-      } else
-      {
-        return String(value_);
+        case MZTAB_CELLSTATE_NULL:
+          return String("null");
+        case MZTAB_CELLSTATE_NAN:
+          return String("NaN");
+        case MZTAB_CELLSTATE_INF:
+          return String("Inf");
+        case MZTAB_CELLSTATE_DEFAULT:
+        default:
+          return String(value_);
       }
     }
 
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
-      } else
+        setNull(true);
+      } else if (s.toUpper() == "NaN")
+      {
+        setNaN();
+      } else if (s.toUpper() == "Inf")
+      {
+        setInf();
+      } else // default case
       {
         value_ = s.toInt();
       }
@@ -240,7 +339,7 @@ namespace OpenMS
     Int value_;
   };
 
-  class MzTabBoolean : public MzTabNAAbleBase
+  class MzTabBoolean : public MzTabNullAbleBase
   {
   public:
     void set(const bool& value)
@@ -255,9 +354,9 @@ namespace OpenMS
 
     String toCellString() const
     {
-      if (isNA())
+      if (isNull())
       {
-        return "NA";
+        return "null";
       } else
       {
         if (value_)
@@ -273,9 +372,9 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
+        setNull(true);
       } else
       {
         if (s == "0")
@@ -295,7 +394,7 @@ namespace OpenMS
     bool value_;
   };
 
-  class MzTabString : public MzTabNAAbleInterface
+  class MzTabString : public MzTabNullAbleInterface
   {
   public:
     void set(const String& value)
@@ -308,14 +407,14 @@ namespace OpenMS
       return value_;
     }
 
-    bool isNA() const
+    bool isNull() const
     {
       return value_.empty();
     }
 
-    void setNA(bool na)
+    void setNull(bool b)
     {
-      if (na)
+      if (b)
       {
         value_.clear();
       }
@@ -323,9 +422,9 @@ namespace OpenMS
 
     String toCellString() const
     {
-      if (isNA())
+      if (isNull())
       {
-        return "NA";
+        return "null";
       } else
       {
         return value_;
@@ -335,9 +434,9 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
+        setNull(true);
       } else
       {
         value_ = s;
@@ -348,17 +447,17 @@ namespace OpenMS
     String value_;
   };
 
-  class MzTabParameter : public MzTabNAAbleInterface
+  class MzTabParameter : public MzTabNullAbleInterface
   {
   public:
-    bool isNA() const
+    bool isNull() const
     {
       return (CV_label_.empty() && accession_.empty() && name_.empty() && value_.empty());
     }
 
-    void setNA(bool na)
+    void setNull(bool b)
     {
-      if (na)
+      if (b)
       {
         CV_label_.clear();
         accession_.clear();
@@ -389,33 +488,33 @@ namespace OpenMS
 
     String getCVLabel() const
     {
-      assert(!isNA());
+      assert(!isNull());
       return CV_label_;
     }
 
     String getAccession() const
     {
-      assert(!isNA());
+      assert(!isNull());
       return accession_;
     }
 
     String getName() const
     {
-      assert(!isNA());
+      assert(!isNull());
       return name_;
     }
 
     String getValue() const
     {
-      assert(!isNA());
+      assert(!isNull());
       return value_;
     }
 
     String toCellString() const
     {
-      if (isNA())
+      if (isNull())
       {
-        return "NA";
+        return "null";
       } else
       {
         String ret = "[";
@@ -431,9 +530,9 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
+        setNull(true);
       } else
       {
         std::vector<String> fields;
@@ -458,17 +557,17 @@ namespace OpenMS
     String value_;
   };
 
-  class MzTabParameterList : public MzTabNAAbleInterface
+  class MzTabParameterList : public MzTabNullAbleInterface
   {
   public:
-    bool isNA() const
+    bool isNull() const
     {
       return parameters_.empty();
     }
 
-    void setNA(bool na)
+    void setNull(bool b)
     {
-      if (na)
+      if (b)
       {
         parameters_.clear();
       }
@@ -476,9 +575,9 @@ namespace OpenMS
 
     String toCellString() const
     {
-      if (isNA())
+      if (isNull())
       {
-        return "NA";
+        return "null";
       } else
       {
         String ret;
@@ -497,9 +596,9 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
+        setNull(true);
       } else
       {
         std::vector<String> fields;
@@ -507,9 +606,9 @@ namespace OpenMS
         for (Size i = 0; i != fields.size(); ++i)
         {
           MzTabParameter p;
-          if (fields[i].toUpper() == "NA")
+          if (fields[i].toUpper() == "null")
           {
-            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MzTabParameter in MzTabParameterList must not be NA '") + s);
+            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MzTabParameter in MzTabParameterList must not be null '") + s);
           }
           p.fromCellString(fields[i]);
           parameters_.push_back(p);
@@ -531,7 +630,7 @@ namespace OpenMS
     std::vector<MzTabParameter> parameters_;
   };
 
-  class MzTabStringList : public MzTabNAAbleInterface
+  class MzTabStringList : public MzTabNullAbleInterface
   {
   public:
     MzTabStringList():
@@ -545,14 +644,14 @@ namespace OpenMS
       sep_ = sep;
     }
 
-    bool isNA() const
+    bool isNull() const
     {
       return entries_.empty();
     }
 
-    void setNA(bool na)
+    void setNull(bool b)
     {
-      if (na)
+      if (b)
       {
         entries_.clear();
       }
@@ -560,9 +659,9 @@ namespace OpenMS
 
     String toCellString() const
     {
-      if (isNA())
+      if (isNull())
       {
-        return "NA";
+        return "null";
       } else
       {
         String ret;
@@ -581,9 +680,9 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
+        setNull(true);
       } else
       {
         std::vector<String> fields;
@@ -612,7 +711,7 @@ namespace OpenMS
     char sep_;
   };
 
-  struct MzTabModification : public MzTabNAAbleInterface
+  struct MzTabModification : public MzTabNullAbleInterface
   {
   public:
     MzTabModification():
@@ -621,14 +720,14 @@ namespace OpenMS
     {
     }
 
-    bool isNA() const
+    bool isNull() const
     {
       return ((position_ == -1) && (reliability_score_ == -1) && (mod_identifier_.empty()));
     }
 
-    void setNA(bool na)
+    void setNull(bool b)
     {
-      if (na)
+      if (b)
       {
         position_ = -1;
         reliability_score_ = -1;
@@ -653,27 +752,27 @@ namespace OpenMS
 
     Int getPosition() const
     {
-      assert(!isNA());
+      assert(!isNull());
       return position_;
     }
 
     DoubleReal getReliabilityScore() const
     {
-      assert(!isNA());
+      assert(!isNull());
       return reliability_score_;
     }
 
     String getModIdentifier() const
     {
-      assert(!isNA());
+      assert(!isNull());
       return mod_identifier_;
     }
 
     String toCellString() const
     {
-      if (isNA())
+      if (isNull())
       {
-        return String("NA");
+        return String("null");
       } else
       {
         String position_string;
@@ -703,9 +802,9 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
+        setNull(true);
       } else
       {
         if (!s.hasSubstring("-"))  // no position or reliability fields? simply use s as mod identifier
@@ -759,17 +858,17 @@ namespace OpenMS
     String mod_identifier_;
   };
 
-  class MzTabModificationList : public MzTabNAAbleBase
+  class MzTabModificationList : public MzTabNullAbleBase
   {
   public:
-    bool isNA() const
+    bool isNull() const
     {
       return entries_.empty();
     }
 
-    void setNA(bool na)
+    void setNull(bool b)
     {
-      if (na)
+      if (b)
       {
         entries_.clear();
       }
@@ -777,9 +876,9 @@ namespace OpenMS
 
     String toCellString() const
     {
-      if (isNA())
+      if (isNull())
       {
-        return "NA";
+        return "null";
       } else
       {
         String ret;
@@ -798,9 +897,9 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
+        setNull(true);
       } else
       {
         std::vector<String> fields;
@@ -829,7 +928,7 @@ namespace OpenMS
 
   };
 
-  class MzTabSpectraRef : public MzTabNAAbleInterface
+  class MzTabSpectraRef : public MzTabNullAbleInterface
   {
   public:
     MzTabSpectraRef():
@@ -837,14 +936,14 @@ namespace OpenMS
     {
     }
 
-    bool isNA() const
+    bool isNull() const
     {
       return ((ms_file_ < 1) || (spec_ref_.empty()));
     }
 
-    void setNA(bool na)
+    void setNull(bool b)
     {
-      if (na)
+      if (b)
       {
         ms_file_ = 0;
         spec_ref_.clear();
@@ -871,13 +970,13 @@ namespace OpenMS
 
     String getSpecRef() const
     {
-      assert(!isNA());
+      assert(!isNull());
       return spec_ref_;
     }
 
     Size getMSFile() const
     {
-      assert(!isNA());
+      assert(!isNull());
       return ms_file_;
     }
 
@@ -892,9 +991,9 @@ namespace OpenMS
 
     String toCellString() const
     {
-      if (isNA())
+      if (isNull())
       {
-        return String("NA");
+        return String("null");
       } else
       {
         return String("ms_file[") + String(ms_file_) + "]:" + spec_ref_;
@@ -904,9 +1003,9 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "NA")
+      if (s.toUpper() == "null")
       {
-        setNA(true);
+        setNull(true);
       } else
       {
         std::vector<String> fields;
@@ -946,19 +1045,21 @@ namespace OpenMS
   struct MzTabUnitIdMetaData
   {
     MzTabUnitIdMetaData():
-        title("NA"),
-        description("NA")
+        title("null"),
+        description("null")
     {
     }
 
-    //String unit_id; // the unit id not NA able!
+    //String unit_id; // the unit id not null able!
     String title; // 0..1 The unit’s title
     String description; // 0..1
     std::vector<MzTabParameterList> sample_processing; // 0..* Description of the sample processing.
+    std::vector<MzTabParameter> instrument_name; // 0..* The instrument’s name
     std::vector<MzTabParameter> instrument_source; // 0..* The instrument’s source
     std::vector<MzTabParameter> instrument_analyzer; // 0..* The instrument’s analyzer
     std::vector<MzTabParameter> instrument_detector; // 0..* The instrument’s detector
     std::vector<MzTabParameter> software; // 0..* Analysis software used in the order it was used.
+    std::vector<std::vector<String> > software_setting; // 0..* A sotware setting used. This field MAY occur multiple times for a single software (=same index). 
     std::vector<MzTabParameterList> false_discovery_rate; // 0..* False discovery rate(s)for the experiment.
     std::vector<MzTabStringList> publication; // 0..* Publication ids (pubmed / doi).
     std::vector<MzTabString> contact_name; // 0..* Contact name.
@@ -966,18 +1067,24 @@ namespace OpenMS
     std::vector<MzTabString> contact_email; // 0..* Contact’s e-mail address.
     std::vector<String> uri; // 0..* Points to the unit’s source data.
     MzTabParameterList mod; // 0..1 Modifications reported in the unit.
-    MzTabParameter mod_probability_method; // 0..1 Method used to report modification probabilities.
     MzTabParameter quantification_method; // 0..1 Quantification method used.
     MzTabParameter protein_quantification_unit; // 0..1 Unit of protein quantification results.
     MzTabParameter peptide_quantification_unit; // 0..1 Unit of peptide quantification results.
+    MzTabParameter small_molecule_quantification_unit; // 0..1 Unit of small molecule quantification results.
     std::vector<MzTabParameter> ms_file_format; // // 0..* Data format of the external MS data file.
     std::vector<MzTabParameter> ms_file_location; // 0..* Location of the external MS data file.
     std::vector<MzTabParameter> ms_file_id_format; // 0..* Identifier format of the external MS data file.
     std::vector<MzTabParameter> custom; // 0..*  Additional parameters.
     std::vector<MzTabSubIdMetaData> sub_id_data; // can contain none, one or multiple sub ids
+
+    // Units: The format of the value has to be {column name}={Parameter defining the unit}
+    // This field MUST NOT be used to define a unit for quantification columns. 
+    std::vector<String> colunit_protein; // 0..* Defines the used unit for a column in the protein section.
+    std::vector<String> colunit_peptide; // 0..* Defines the used unit for a column in the peptide section.
+    std::vector<String> colunit_small_molecule; // 0..* Defines the used unit for a column in the small molecule section.
   };
 
-  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //  column name (not NA able), value (NA able)
+  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //  column name (not null able), value (null able)
 
   // PRT - Protein section (Table based)
   struct MzTabProteinSectionRow
@@ -990,7 +1097,7 @@ namespace OpenMS
     }
 
     MzTabString accession; // The protein’s accession.
-    //String unit_id; // The unit’s id. not NA able!
+    //String unit_id; // The unit’s id. not null able!
     MzTabString description; // Human readable description (i.e. the name)
     MzTabInteger taxid; // NEWT taxonomy for the species.
     MzTabString species; // Human readable name of the species
@@ -1019,12 +1126,12 @@ namespace OpenMS
     MzTabString sequence; // The peptide’s sequence.
     MzTabString accession; // The protein’s accession.
     //String unit_id; // The unit’s id.
-    MzTabBoolean unique; // 0=false, 1=true, NA else: Peptide is unique for the protein.
+    MzTabBoolean unique; // 0=false, 1=true, null else: Peptide is unique for the protein.
     MzTabString database; // Name of the sequence database.
     MzTabString database_version; // Version (and optionally # of entries).
     MzTabParameterList search_engine; // Search engine(s) that identified the peptide.
     MzTabParameterList search_engine_score; // Search engine(s) score(s) for the peptide.
-    MzTabInteger reliability; // (1-3) 0=NA Identification reliability for the peptide.
+    MzTabInteger reliability; // (1-3) 0=null Identification reliability for the peptide.
     MzTabModificationList modifications; // Modifications identified in the peptide.
     MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
     MzTabDouble charge; // Precursor ion’s charge.
@@ -1071,13 +1178,15 @@ namespace OpenMS
   typedef std::vector<MzTabSmallMoleculeSectionRow> MzTabSmallMoleculeSectionRows;
 
   typedef std::map<String, MzTabUnitIdMetaData> MzTabMetaData;
+
   typedef std::map<String, MzTabProteinSectionRows> MzTabProteinSectionData;
+
   typedef std::map<String, MzTabPeptideSectionRows> MzTabPeptideSectionData;
+
   typedef std::map<String, MzTabSmallMoleculeSectionRows> MzTabSmallMoleculeSectionData;
 
   /**
       @brief Data model of MzTab files.
-      The format specification is in development and subject to change. Use at your own risk.
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO

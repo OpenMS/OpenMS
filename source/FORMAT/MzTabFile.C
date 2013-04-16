@@ -60,157 +60,174 @@ namespace OpenMS
       const String& unit_id = it->first;
       const MzTabUnitIdMetaData& md = it->second;
 
+      //	{UNIT_ID}-title
       if (!md.title.empty())
       {
-        String s;
-        s += String("MTD\t") + unit_id + "-title\t" + md.title;
+        String s = String("MTD\t") + unit_id + "-title\t" + md.title;
         sl << s;
       }
 
+      // {UNIT_ID}-description
       if (!md.description.empty())
       {
-        String s;
-        s += String("MTD\t") + unit_id + "-description\t" + md.description;
+        String s = String("MTD\t") + unit_id + "-description\t" + md.description;
         sl << s;
       }
 
+      // {UNIT_ID}-sample_processing[1-n]
       for (Size i = 0; i != md.sample_processing.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-sample_processing[" + String(i + 1) + "]\t" + md.sample_processing[i].toCellString();
+        String s = "MTD\t" + unit_id + "-sample_processing[" + String(i + 1) + "]\t" + md.sample_processing[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-instrument[1-n]-name
+      for (Size i = 0; i != md.instrument_name.size(); ++i)
+      {
+        String s = "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-name\t" + md.instrument_name[i].toCellString();
+        sl << s;
+      }
+
+      // {UNIT_ID}-instrument[1-n]-source
       for (Size i = 0; i != md.instrument_source.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-source\t" + md.instrument_source[i].toCellString();
+        String s = "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-source\t" + md.instrument_source[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-instrument[1-n]-analyzer
       for (Size i = 0; i != md.instrument_analyzer.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-analyzer\t" + md.instrument_analyzer[i].toCellString();
+        String s = "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-analyzer\t" + md.instrument_analyzer[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-instrument[1-n]-detector
       for (Size i = 0; i != md.instrument_detector.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-detector\t" + md.instrument_detector[i].toCellString();
+        String s = "MTD\t" + unit_id + "-instrument[" + String(i + 1) + "]-detector\t" + md.instrument_detector[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-software[1-n]
       for (Size i = 0; i != md.software.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-software[" + String(i + 1) + "]\t" + md.software[i].toCellString();
+        String s = "MTD\t" + unit_id + "-software[" + String(i + 1) + "]\t" + md.software[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-software[1-n]-setting. Note that lines for a single software (=index) MAY occur multiple times.
+      for (Size i = 0; i != md.software_setting.size(); ++i)
+      {
+        for (Size j = 0; j != md.software_setting[i].size(); ++j)
+        {
+          String s = "MTD\t" + unit_id + "-software[" + String(i + 1) + "]-setting\t" + md.software_setting[i][j];
+          sl << s;
+        }
+      }
+
+      // {UNIT_ID}-false_discovery_rate
       for (Size i = 0; i != md.false_discovery_rate.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-false_discovery_rate\t" + md.false_discovery_rate[i].toCellString();
+        String s = "MTD\t" + unit_id + "-false_discovery_rate\t" + md.false_discovery_rate[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-publication
       for (Size i = 0; i != md.publication.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-publication\t" + md.publication[i].toCellString();
+        String s = "MTD\t" + unit_id + "-publication\t" + md.publication[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-contact[1-n]-name
       for (Size i = 0; i != md.contact_name.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-contact[" + String(i + 1) + "]-name\t" + md.contact_name[i].toCellString();
+        String s = "MTD\t" + unit_id + "-contact[" + String(i + 1) + "]-name\t" + md.contact_name[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-contact[1-n]-affiliation
       for (Size i = 0; i != md.contact_affiliation.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-contact[" + String(i + 1) + "]-affiliation\t" + md.contact_name[i].toCellString();
+        String s = "MTD\t" + unit_id + "-contact[" + String(i + 1) + "]-affiliation\t" + md.contact_name[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-contact[1-n]-email
       for (Size i = 0; i != md.contact_email.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-contact[" + String(i + 1) + "]-email\t" + md.contact_name[i].toCellString();
+        String s = "MTD\t" + unit_id + "-contact[" + String(i + 1) + "]-email\t" + md.contact_name[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-uri
       for (Size i = 0; i != md.uri.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-uri\t" + md.uri[i];
+        String s = "MTD\t" + unit_id + "-uri\t" + md.uri[i];
         sl << s;
       }
 
-      if (!md.mod.isNA())
+      // {UNIT_ID}-mod
+      if (!md.mod.isNull())
       {
-        String s;
-        s += "MTD\t" + unit_id + "-mod\t" + md.mod.toCellString();
+        String s = "MTD\t" + unit_id + "-mod\t" + md.mod.toCellString();
         sl << s;
       }
 
-      if (!md.mod_probability_method.isNA())
+      // {UNIT_ID}-quantification_method
+      if (!md.quantification_method.isNull())
       {
-        String s;
-        s += "MTD\t" + unit_id + "-mod_probability_method\t" + md.mod_probability_method.toCellString();
+        String s = "MTD\t" + unit_id + "-quantification_method\t" + md.quantification_method.toCellString();
         sl << s;
       }
 
-      if (!md.quantification_method.isNA())
+      // {UNIT_ID}-protein-quantification_unit
+      if (!md.protein_quantification_unit.isNull())
       {
-        String s;
-        s += "MTD\t" + unit_id + "-quantification_method\t" + md.quantification_method.toCellString();
+        String s = "MTD\t" + unit_id + "-protein-quantification_unit\t" + md.protein_quantification_unit.toCellString();
         sl << s;
       }
 
-      if (!md.protein_quantification_unit.isNA())
+      // {UNIT_ID}-peptide-quantification_unit
+      if (!md.peptide_quantification_unit.isNull())
       {
-        String s;
-        s += "MTD\t" + unit_id + "-protein_quantification_unit\t" + md.protein_quantification_unit.toCellString();
+        String s = "MTD\t" + unit_id + "-peptide_quantification-unit\t" + md.peptide_quantification_unit.toCellString();
         sl << s;
       }
 
-      if (!md.peptide_quantification_unit.isNA())
+      // {UNIT_ID}-small_molecule-quantification_unit
+      if (!md.small_molecule_quantification_unit.isNull())
       {
-        String s;
-        s += "MTD\t" + unit_id + "-peptide_quantification_unit\t" + md.peptide_quantification_unit.toCellString();
+        String s = "MTD\t" + unit_id + "-small_molecule-quantification_unit\t" + md.small_molecule_quantification_unit.toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-ms_file[1-n]-format
       for (Size i = 0; i != md.ms_file_format.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-ms_file[" + String(i + 1) + "]-format\t" + md.ms_file_format[i].toCellString();
+        String s = "MTD\t" + unit_id + "-ms_file[" + String(i + 1) + "]-format\t" + md.ms_file_format[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-ms_file[1-n]-location
       for (Size i = 0; i != md.ms_file_location.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-ms_file[" + String(i + 1) + "]-location\t" + md.ms_file_location[i].toCellString();
+        String s = "MTD\t" + unit_id + "-ms_file[" + String(i + 1) + "]-location\t" + md.ms_file_location[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-ms_file[1-n]-id_format
       for (Size i = 0; i != md.ms_file_id_format.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-ms_file[" + String(i + 1) + "]-id_format\t" + md.ms_file_id_format[i].toCellString();
+        String s = "MTD\t" + unit_id + "-ms_file[" + String(i + 1) + "]-id_format\t" + md.ms_file_id_format[i].toCellString();
         sl << s;
       }
 
+      // {UNIT_ID}-custom
       for (Size i = 0; i != md.custom.size(); ++i)
       {
-        String s;
-        s += "MTD\t" + unit_id + "-custom\t" + md.custom[i].toCellString();
+        String s = "MTD\t" + unit_id + "-custom\t" + md.custom[i].toCellString();
         sl << s;
       }
 
@@ -226,54 +243,75 @@ namespace OpenMS
           sub_id = String("-") + sub_id;
         }
 
+        // {UNIT_ID}(-{SUB_ID})-species[1-n]
         for (Size j = 0; j != submd.species.size(); ++j)
         {
-          String s;
-          s += "MTD\t" + unit_id + sub_id + "-species[" + String(j + 1) + "]\t" + submd.species[j].toCellString();
+          String s = "MTD\t" + unit_id + sub_id + "-species[" + String(j + 1) + "]\t" + submd.species[j].toCellString();
           sl << s;
         }
 
+        // {UNIT_ID}(-{SUB_ID})-tissue[1-n]
         for (Size j = 0; j != submd.tissue.size(); ++j)
         {
-          String s;
-          s += "MTD\t" + unit_id + sub_id + "-tissue[" + String(j + 1) + "]\t" + submd.tissue[j].toCellString();
+          String s = "MTD\t" + unit_id + sub_id + "-tissue[" + String(j + 1) + "]\t" + submd.tissue[j].toCellString();
           sl << s;
         }
 
+        // {UNIT_ID}(-{SUB_ID})-cell_type[1-n]
         for (Size j = 0; j != submd.cell_type.size(); ++j)
         {
-          String s;
-          s += "MTD\t" + unit_id + sub_id + "-cell_type[" + String(j + 1) + "]\t" + submd.cell_type[j].toCellString();
+          String s = "MTD\t" + unit_id + sub_id + "-cell_type[" + String(j + 1) + "]\t" + submd.cell_type[j].toCellString();
           sl << s;
         }
 
+        // {UNIT_ID}(-{SUB_ID})-disease[1-n]
         for (Size j = 0; j != submd.disease.size(); ++j)
         {
-          String s;
-          s += "MTD\t" + unit_id + sub_id + "-disease[" + String(j + 1) + "]\t" + submd.disease[j].toCellString();
+          String s = "MTD\t" + unit_id + sub_id + "-disease[" + String(j + 1) + "]\t" + submd.disease[j].toCellString();
           sl << s;
         }
 
+        // {UNIT_ID}(-{SUB_ID})-description[1-n]
         for (Size j = 0; j != submd.description.size(); ++j)
         {
-          String s;
-          s += String("MTD\t") + unit_id + sub_id + "-description\t" + submd.description[j];
+          String s = String("MTD\t") + unit_id + sub_id + "-description\t" + submd.description[j];
           sl << s;
         }
 
+        // {UNIT_ID}-{SUB_ID}-quantification_reagent
         for (Size j = 0; j != submd.quantification_reagent.size(); ++j)
         {
-          String s;
-          s += String("MTD\t") + unit_id + sub_id + "-quantification_reagent\t" + submd.quantification_reagent[j].toCellString();
+          String s = String("MTD\t") + unit_id + sub_id + "-quantification_reagent\t" + submd.quantification_reagent[j].toCellString();
           sl << s;
         }
 
+        // {UNIT_ID}-{SUB_ID}-custom
         for (Size j = 0; j != submd.custom.size(); ++j)
         {
-          String s;
-          s += String("MTD\t") + unit_id + sub_id + "-custom" + submd.custom[j].toCellString();
+          String s = String("MTD\t") + unit_id + sub_id + "-custom" + submd.custom[j].toCellString();
           sl << s;
         }
+      }
+
+      // {UNIT_ID}-colunit-protein
+      for (Size i = 0; i != md.colunit_protein.size(); ++i)
+      {
+        String s = String("MTD\t") + unit_id + "-colunit-protein" + md.colunit_protein[i];
+        sl << s;
+      }
+
+      // {UNIT_ID}-colunit-peptide
+      for (Size i = 0; i != md.colunit_peptide.size(); ++i)
+      {
+        String s = String("MTD\t") + unit_id + "-colunit-peptide" + md.colunit_peptide[i];
+        sl << s;
+      }
+
+      // {UNIT_ID}-colunit-small_molecule
+      for (Size i = 0; i != md.colunit_small_molecule.size(); ++i)
+      {
+        String s = String("MTD\t") + unit_id + "-colunit-small_molecule" + md.colunit_small_molecule[i];
+        sl << s;
       }
     }
   }
