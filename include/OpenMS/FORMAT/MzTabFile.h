@@ -70,6 +70,9 @@ public:
     // store MzTab file
     void store(const String & filename, const MzTab& mz_tab) const;
 
+     // load MzTab file
+    void load(const String & filename, MzTab& mz_tab);
+
 protected:
     void generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const;
 
@@ -90,6 +93,8 @@ protected:
     String generateMzTabSmallMoleculeHeader_(Int n_subsamples, const std::vector<String>& optional_smallmolecule_columns) const;
 
     String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row, const String& unit_id) const;
+
+    // auxiliar functions
 
     static void sortPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end);
 

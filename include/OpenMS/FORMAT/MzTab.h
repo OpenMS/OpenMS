@@ -188,13 +188,13 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
-      } else if (s.toUpper() == "NaN")
+      } else if (s.toLower() == "nan")
       {
         setNaN();
-      } else if (s.toUpper() == "Inf")
+      } else if (s.toLower() == "inf")
       {
         setInf();
       } else // default case
@@ -250,7 +250,7 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
       } else
@@ -320,13 +320,13 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
-      } else if (s.toUpper() == "NaN")
+      } else if (s.toLower() == "nan")
       {
         setNaN();
-      } else if (s.toUpper() == "Inf")
+      } else if (s.toLower() == "inf")
       {
         setInf();
       } else // default case
@@ -372,7 +372,7 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
       } else
@@ -434,7 +434,7 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
       } else
@@ -530,7 +530,7 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
       } else
@@ -596,7 +596,7 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
       } else
@@ -606,7 +606,7 @@ namespace OpenMS
         for (Size i = 0; i != fields.size(); ++i)
         {
           MzTabParameter p;
-          if (fields[i].toUpper() == "null")
+          if (fields[i].toLower() == "null")
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MzTabParameter in MzTabParameterList must not be null '") + s);
           }
@@ -680,7 +680,7 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
       } else
@@ -802,7 +802,7 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
       } else
@@ -897,7 +897,7 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
       } else
@@ -1003,7 +1003,7 @@ namespace OpenMS
     void fromCellString(String s)
     {
       s.trim();
-      if (s.toUpper() == "null")
+      if (s.toLower() == "null")
       {
         setNull(true);
       } else
@@ -1060,12 +1060,12 @@ namespace OpenMS
     std::vector<MzTabParameter> instrument_detector; // 0..* The instrument’s detector
     std::vector<MzTabParameter> software; // 0..* Analysis software used in the order it was used.
     std::vector<std::vector<String> > software_setting; // 0..* A sotware setting used. This field MAY occur multiple times for a single software (=same index). 
-    std::vector<MzTabParameterList> false_discovery_rate; // 0..* False discovery rate(s)for the experiment.
+    MzTabParameterList false_discovery_rate; // 0..1 False discovery rate(s)for the experiment.
     std::vector<MzTabStringList> publication; // 0..* Publication ids (pubmed / doi).
     std::vector<MzTabString> contact_name; // 0..* Contact name.
     std::vector<MzTabString> contact_affiliation; // 0..* Contact affiliation.
     std::vector<MzTabString> contact_email; // 0..* Contact’s e-mail address.
-    std::vector<String> uri; // 0..* Points to the unit’s source data.
+    std::vector<MzTabString> uri; // 0..* Points to the unit’s source data.
     MzTabParameterList mod; // 0..1 Modifications reported in the unit.
     MzTabParameter quantification_method; // 0..1 Quantification method used.
     MzTabParameter protein_quantification_unit; // 0..1 Unit of protein quantification results.
@@ -1114,9 +1114,9 @@ namespace OpenMS
     MzTabString uri; // Location of the protein’s source entry.
     MzTabStringList go_terms; // List of GO terms for the protein.
     MzTabDouble protein_coverage; // (0-1) Amount of protein sequence identified.
-    std::vector<DoubleReal> protein_abundance_sub; // Protein abundance in the subsample.
-    std::vector<DoubleReal> protein_abundance_stdev_sub; // Standard deviation of the protein abundance.
-    std::vector<DoubleReal> protein_abundance_std_error_sub; // Standard error of the protein abundance.
+    std::vector<MzTabDouble> protein_abundance_sub; // Protein abundance in the subsample.
+    std::vector<MzTabDouble> protein_abundance_stdev_sub; // Standard deviation of the protein abundance.
+    std::vector<MzTabDouble> protein_abundance_std_error_sub; // Standard error of the protein abundance.
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
   };
 
@@ -1138,9 +1138,9 @@ namespace OpenMS
     MzTabDouble mass_to_charge; // Precursor ion’s m/z.
     MzTabString uri; // Location of the PSM’s source entry.
     MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.
-    std::vector<DoubleReal> peptide_abundance_sub; // Peptide abundance in the subsample;
-    std::vector<DoubleReal> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
-    std::vector<DoubleReal> peptide_abundance_std_error_sub; // Peptide abundance standard error.
+    std::vector<MzTabDouble> peptide_abundance_sub; // Peptide abundance in the subsample;
+    std::vector<MzTabDouble> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
+    std::vector<MzTabDouble> peptide_abundance_std_error_sub; // Peptide abundance standard error.
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
   };
 
@@ -1205,9 +1205,19 @@ namespace OpenMS
       return map_unitid_to_meta_data_;
     }
 
+    void setMetaData(const MzTabMetaData& md)
+    {
+      map_unitid_to_meta_data_ = md;
+    }
+
     const MzTabProteinSectionData& getProteinSectionData() const
     {
       return map_unitid_to_protein_data_;
+    }
+
+    void setProteinSectionData(const MzTabProteinSectionData& psd)
+    {
+      map_unitid_to_protein_data_ = psd;
     }
 
     const MzTabPeptideSectionData& getPeptideSectionData() const
@@ -1215,9 +1225,19 @@ namespace OpenMS
       return map_unitid_to_peptide_data_;
     }
 
+    void setPeptideSectionData(const MzTabPeptideSectionData& psd)
+    {
+      map_unitid_to_peptide_data_ = psd;
+    }
+
     const MzTabSmallMoleculeSectionData& getSmallMoleculeSectionData() const
     {
       return map_unitid_to_small_molecule_data_;
+    }
+
+    void setSmallMoleculeSectionData(const MzTabSmallMoleculeSectionData& smsd)
+    {
+      map_unitid_to_small_molecule_data_ = smsd;
     }
 
   protected:

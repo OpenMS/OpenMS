@@ -53,6 +53,504 @@ namespace OpenMS
 
   }
 
+  void MzTabFile::load(const String & filename, MzTab& mz_tab)
+  {
+    TextFile tf(filename, true);
+    Size n_protein_sub = 0;
+    Size n_peptide_sub = 0;
+    Size n_small_molecule_sub = 0;
+
+    MzTabMetaData mz_tab_metadata;
+    MzTabProteinSectionData mz_tab_protein_section_data;
+    MzTabPeptideSectionData mz_tab_peptide_section_data;
+    MzTabSmallMoleculeSectionData mz_tab_small_molecule_section_data;
+
+    vector<String> protein_custom_opt_columns;
+    vector<String> peptide_custom_opt_columns;
+    vector<String> small_molecule_custom_opt_columns;
+
+    for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit)
+    {
+      const String& s = *sit;
+
+      // skip empty lines or lines that are too short
+      if (s.size() < 3)
+      {
+        continue;
+      }
+
+      const String prefix = s.prefix(3);
+
+      // discard comments
+      if (prefix == "COM")
+      {
+        continue;
+      }
+      
+      StringList cells;
+      s.split("\t", cells);
+
+      // parse metadata section
+      if (prefix == "MTD")
+      {
+        bool has_sub_id = cells[1].hasSubstring("-sub[");
+          
+        StringList meta_key_fields;   // the "-" separated fields of the metavalue key e.g. 0-th is UNIT_ID
+        cells[1].split("-", meta_key_fields);
+        String unit_id = meta_key_fields[0];
+
+        // check if wrong format
+        if (meta_key_fields.size() <= 1 || meta_key_fields.size() >= 4) // there must be at least: UNIT_ID-SOMENAME and at most: UNIT_ID-SUBID-SOMENAME
+        {
+          //throw FormatE
+        }
+
+        if (!has_sub_id) // UNIT_ID-SOMENAME no sub id
+        {
+          if (meta_key_fields[1] == "title")
+          {
+            mz_tab_metadata[unit_id].title = cells[2];
+          } else if (meta_key_fields[1] == "description")
+          {
+            mz_tab_metadata[unit_id].description = cells[2];
+          } else if (meta_key_fields[1].hasPrefix("sample_processing["))
+          {
+            MzTabParameterList pl;
+            pl.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].sample_processing.push_back(pl);
+          } else if (meta_key_fields[1].hasPrefix("instrument") && meta_key_fields[2] == "name")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].instrument_name.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("instrument") && meta_key_fields[2] == "source")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].instrument_source.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("instrument") && meta_key_fields[2] == "analyzer")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].instrument_analyzer.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("instrument") && meta_key_fields[2] == "detector")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].instrument_detector.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("software["))
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].software.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("software") && meta_key_fields[2] == "setting")
+          {
+            String software_index_string = meta_key_fields[1];
+            software_index_string.substitute("software", "").remove('[').remove(']');
+            Int software_index = software_index_string.toInt() - 1; 
+            if (mz_tab_metadata[unit_id].software_setting.size() < software_index + 1)
+            {
+              mz_tab_metadata[unit_id].software_setting.resize(software_index + 1);
+            }
+            mz_tab_metadata[unit_id].software_setting[software_index].push_back(cells[2]);
+          } else if (meta_key_fields[1] == "false_discovery_rate")
+          {
+             MzTabParameterList pl;
+            pl.fromCellString(cells[2]);            
+            mz_tab_metadata[unit_id].false_discovery_rate = pl;
+          } else if (meta_key_fields[1].hasPrefix("publication"))
+          {
+            MzTabStringList sl;
+            sl.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].publication.push_back(sl);
+          } else if (meta_key_fields[1].hasPrefix("contact") && meta_key_fields[2] == "name")
+          {
+            MzTabString s;
+            s.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].contact_name.push_back(s);
+          } else if (meta_key_fields[1].hasPrefix("contact") && meta_key_fields[2] == "affiliation")
+          {
+            MzTabString s;
+            s.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].contact_affiliation.push_back(s);
+          } else if (meta_key_fields[1].hasPrefix("contact") && meta_key_fields[2] == "email")
+          {
+            MzTabString s;
+            s.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].contact_email.push_back(s);
+          } else if (meta_key_fields[1] == "uri")
+          {
+            MzTabString s;
+            s.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].uri.push_back(s);
+          } else if (meta_key_fields[1] == "mod")
+          {
+            MzTabParameterList pl;
+            pl.fromCellString(cells[2]);            
+            mz_tab_metadata[unit_id].mod = pl;
+          } else if (meta_key_fields[1] == "quantification_method")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);            
+            mz_tab_metadata[unit_id].quantification_method = p;
+          } else if (meta_key_fields[1] == "protein_quantification_unit")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].protein_quantification_unit = p;
+          } else if (meta_key_fields[1] == "peptide_quantification_unit")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].peptide_quantification_unit = p;
+          } else if (meta_key_fields[1] == "small_molecule_quantification_unit")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].small_molecule_quantification_unit = p;
+          } else if (meta_key_fields[1].hasPrefix("ms_file") && meta_key_fields[2] == "format")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].ms_file_format.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("ms_file") && meta_key_fields[2] == "location") 
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);            
+            mz_tab_metadata[unit_id].ms_file_location.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("ms_file") && meta_key_fields[2] == "id_format") 
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].ms_file_id_format.push_back(p);
+          } else if (meta_key_fields[1] == "custom")
+          {
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].custom.push_back(p);
+          } else if (meta_key_fields[1] == "colunit_protein")
+          {
+            String s = cells[2];
+            mz_tab_metadata[unit_id].colunit_protein.push_back(s);
+          } else if (meta_key_fields[1] == "colunit_peptide")
+          {
+            String s = cells[2];
+            mz_tab_metadata[unit_id].colunit_peptide.push_back(s);
+          } else if (meta_key_fields[1] == "colunit_small_molecule")
+          {
+            String s = cells[2];
+            mz_tab_metadata[unit_id].colunit_small_molecule.push_back(s);
+          } else if (meta_key_fields[1].hasPrefix("species"))
+          {            
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].sub_id_data[0].species.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("tissue"))
+          {            
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].sub_id_data[0].tissue.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("cell_type"))
+          {            
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].sub_id_data[0].cell_type.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("disease"))
+          {            
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].sub_id_data[0].disease.push_back(p);
+          }
+        } else  // UNIT_ID-SUBID-SOMENAME
+        {          
+          if (meta_key_fields[1].hasPrefix("species"))
+          {            
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            String sub_id_index_string = meta_key_fields[1];
+            sub_id_index_string.substitute("sub", "").remove('[').remove(']');
+            Int sub_id_index = sub_id_index_string.toInt() - 1; 
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < sub_id_index + 1)
+            {
+              mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
+            }
+            mz_tab_metadata[unit_id].sub_id_data[sub_id_index].species.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("tissue"))
+          {            
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            String sub_id_index_string = meta_key_fields[1];
+            sub_id_index_string.substitute("sub", "").remove('[').remove(']');
+            Int sub_id_index = sub_id_index_string.toInt() - 1;
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < sub_id_index + 1)
+            {
+              mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
+            }
+            mz_tab_metadata[unit_id].sub_id_data[sub_id_index].tissue.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("cell_type"))
+          {            
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            String sub_id_index_string = meta_key_fields[1];
+            sub_id_index_string.substitute("sub", "").remove('[').remove(']');
+            Int sub_id_index = sub_id_index_string.toInt() - 1;
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < sub_id_index + 1)
+            {
+              mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
+            }
+            mz_tab_metadata[unit_id].sub_id_data[sub_id_index].cell_type.push_back(p);
+          } else if (meta_key_fields[1].hasPrefix("disease"))
+          {            
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            String sub_id_index_string = meta_key_fields[1];
+            sub_id_index_string.substitute("sub", "").remove('[').remove(']');
+            Int sub_id_index = sub_id_index_string.toInt() - 1;
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < sub_id_index + 1)
+            {
+              mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
+            }
+            mz_tab_metadata[unit_id].sub_id_data[sub_id_index].disease.push_back(p);
+          }
+        }
+        continue;
+      }
+
+      // parse protein header section
+      if (prefix == "PRH")
+      {
+        // determine number of protein abundance subsample columns
+        n_protein_sub = 0;
+        for (Size i = 0; i != cells.size(); ++i)
+        {
+          if (cells[i].hasPrefix("protein_abundance_sub["))  // this prefix must be present to identify the column as subsample column 
+          {
+            ++n_protein_sub;
+          }
+        } 
+
+        // determine header of custom opt_ columns
+        for (Size i = 0; i != cells.size(); ++i)
+        {
+          if (cells[i].hasPrefix("opt_")) 
+          {
+            protein_custom_opt_columns.push_back(cells[i]);
+          }
+        } 
+
+        continue;
+      }
+
+      // parse protein section
+      if (prefix == "PRT")
+      {
+        MzTabProteinSectionRow row;
+        row.accession.fromCellString(cells[1]);
+        String unit_id = cells[2];
+        row.description.fromCellString(cells[3]);
+        row.taxid.fromCellString(cells[4]);
+        row.species.fromCellString(cells[5]);
+        row.database.fromCellString(cells[6]);
+        row.database_version.fromCellString(cells[7]);
+        row.search_engine.fromCellString(cells[8]);
+        row.search_engine_score.fromCellString(cells[9]);
+        row.reliability.fromCellString(cells[10]);
+        row.num_peptides.fromCellString(cells[11]);
+        row.num_peptides_distinct.fromCellString(cells[12]);
+        row.num_peptides_unambiguous.fromCellString(cells[13]);
+        row.ambiguity_members.fromCellString(cells[14]);
+        row.modifications.fromCellString(cells[15]);
+        row.uri.fromCellString(cells[16]);
+        row.go_terms.fromCellString(cells[17]);
+        row.protein_coverage.fromCellString(cells[18]);
+
+        Size current_index = 19;
+        row.protein_abundance_sub.resize(n_protein_sub);
+        row.protein_abundance_stdev_sub.resize(n_protein_sub);
+        row.protein_abundance_std_error_sub.resize(n_protein_sub);
+
+        // quant
+        for (Size i = 0; i != n_protein_sub; ++i)
+        {
+          row.protein_abundance_sub[i].fromCellString(cells[current_index++]);
+          row.protein_abundance_stdev_sub[i].fromCellString(cells[current_index++]);
+          row.protein_abundance_std_error_sub[i].fromCellString(cells[current_index++]);
+        }
+
+        // custom opt_
+        for (Size i = 0; i != protein_custom_opt_columns.size(); ++i)
+        {
+          MzTabString s;
+          s.fromCellString(cells[current_index++]);
+          row.opt_.push_back(make_pair(protein_custom_opt_columns[i], s));
+        }
+
+        mz_tab_protein_section_data[unit_id].push_back(row);
+        continue;
+      }
+
+      // parse peptide header section
+      if (prefix == "PEH")
+      {
+        // determine number of peptide abundance subsample columns
+        n_peptide_sub = 0;
+        for (Size i = 0; i != cells.size(); ++i)
+        {
+          if (cells[i].hasPrefix("peptide_abundance_sub["))  // this prefix must be present to identify the column as subsample column 
+          {
+            ++n_peptide_sub;
+          }
+        }
+
+        // determine header of custom opt_ columns
+        for (Size i = 0; i != cells.size(); ++i)
+        {
+          if (cells[i].hasPrefix("opt_")) 
+          {
+            peptide_custom_opt_columns.push_back(cells[i]);
+          }
+        } 
+
+        continue;
+      }
+
+      // parse peptide section
+      std::vector<DoubleReal> peptide_abundance_sub; // Peptide abundance in the subsample;
+      std::vector<DoubleReal> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
+      std::vector<DoubleReal> peptide_abundance_std_error_sub; // Peptide abundance standard error.
+      std::vector<MzTabOptionalColumnEntry> pep_opt_; // Optional columns must start with “opt_”.
+
+      if (prefix == "PEP")
+      {
+        MzTabPeptideSectionRow row;
+        row.sequence.fromCellString(cells[1]);
+        row.accession.fromCellString(cells[2]);
+        String unit_id = cells[3];        
+        row.unique.fromCellString(cells[4]);
+        row.database.fromCellString(cells[5]);
+        row.database_version.fromCellString(cells[6]);
+        row.search_engine.fromCellString(cells[7]);
+        row.search_engine_score.fromCellString(cells[8]);
+        row.reliability.fromCellString(cells[9]);
+        row.modifications.fromCellString(cells[10]);
+        row.retention_time.fromCellString(cells[11]);
+        row.charge.fromCellString(cells[12]);
+        row.mass_to_charge.fromCellString(cells[13]);
+        row.uri.fromCellString(cells[14]);
+        row.spectra_ref.fromCellString(cells[15]);
+
+        Size current_index = 16;
+        row.peptide_abundance_sub.resize(n_peptide_sub);
+        row.peptide_abundance_stdev_sub.resize(n_peptide_sub);
+        row.peptide_abundance_std_error_sub.resize(n_peptide_sub);
+
+        for (Size i = 0; i != n_peptide_sub; ++i)
+        {
+          row.peptide_abundance_sub[i].fromCellString(cells[current_index++]);
+          row.peptide_abundance_stdev_sub[i].fromCellString(cells[current_index++]);
+          row.peptide_abundance_std_error_sub[i].fromCellString(cells[current_index++]);
+        }
+
+        // custom opt_
+        for (Size i = 0; i != peptide_custom_opt_columns.size(); ++i)
+        {
+          MzTabString s;
+          s.fromCellString(cells[current_index++]);
+          row.opt_.push_back(make_pair(peptide_custom_opt_columns[i], s));
+        }
+
+        mz_tab_peptide_section_data[unit_id].push_back(row);
+        continue;
+      }
+
+
+      // parse small molecule header section
+      if (prefix == "SMH")
+      {        
+        // determine number of peptide abundance subsample columns
+        n_small_molecule_sub = 0;
+        for (Size i = 0; i != cells.size(); ++i)
+        {
+          if (cells[i].hasPrefix("small_molecule_abundance_sub["))  // this prefix must be present to identify the column as subsample column 
+          {
+            ++n_small_molecule_sub;
+          }
+        }        
+
+        // determine header of custom opt_ columns
+        for (Size i = 0; i != cells.size(); ++i)
+        {
+          if (cells[i].hasPrefix("opt_")) 
+          {
+            small_molecule_custom_opt_columns.push_back(cells[i]);
+          }
+        }
+
+        continue;
+      }
+
+      // parse small molecule section
+      MzTabModificationList modifications; // Modifications identified on the small molecule.
+      std::vector<MzTabDouble>  smallmolecule_abundance_sub; // Abundance in the subsample;
+      std::vector<MzTabDouble> smallmolecule_abundance_stdev_sub; // Standard deviation of the abundance.
+      std::vector<MzTabDouble> smallmolecule_abundance_std_error_sub; // Standard errpr of the abundance.
+      std::vector<MzTabOptionalColumnEntry> small_opt_; // Optional columns must start with “opt_”.
+
+      if (prefix == "SML")
+      {
+        MzTabSmallMoleculeSectionRow row;
+        row.identifier.fromCellString(cells[1]);
+        String unit_id = cells[2];        
+        row.chemical_formula.fromCellString(cells[3]);
+        row.smiles.fromCellString(cells[4]);
+        row.inchi_key.fromCellString(cells[5]);
+        row.description.fromCellString(cells[6]);
+        row.mass_to_charge.fromCellString(cells[7]);
+        row.charge.fromCellString(cells[8]);
+        row.retention_time.fromCellString(cells[9]);
+        row.taxid.fromCellString(cells[10]);
+        row.species.fromCellString(cells[11]);
+        row.database.fromCellString(cells[12]);
+        row.database_version.fromCellString(cells[13]);
+        row.reliability.fromCellString(cells[14]);
+        row.uri.fromCellString(cells[15]);
+        row.spectra_ref.fromCellString(cells[16]);
+        row.search_engine.fromCellString(cells[17]);
+        row.search_engine_score.fromCellString(cells[18]);
+        row.modifications.fromCellString(cells[19]);
+
+        Size current_index = 20;
+        row.smallmolecule_abundance_sub.resize(n_small_molecule_sub);
+        row.smallmolecule_abundance_stdev_sub.resize(n_small_molecule_sub);
+        row.smallmolecule_abundance_std_error_sub.resize(n_small_molecule_sub);
+
+        for (Size i = 0; i != n_small_molecule_sub; ++i)
+        {
+          row.smallmolecule_abundance_sub[i].fromCellString(cells[current_index++]);
+          row.smallmolecule_abundance_stdev_sub[i].fromCellString(cells[current_index++]);
+          row.smallmolecule_abundance_std_error_sub[i].fromCellString(cells[current_index++]);
+        }
+       
+        // custom opt_
+        for (Size i = 0; i != small_molecule_custom_opt_columns.size(); ++i)
+        {
+          MzTabString s;
+          s.fromCellString(cells[current_index++]);
+          row.opt_.push_back(make_pair(small_molecule_custom_opt_columns[i], s));
+        }
+
+        mz_tab_small_molecule_section_data[unit_id].push_back(row);
+
+        continue;
+      }
+    }
+
+    mz_tab.setMetaData(mz_tab_metadata);
+    mz_tab.setProteinSectionData(mz_tab_protein_section_data);
+    mz_tab.setPeptideSectionData(mz_tab_peptide_section_data);
+    mz_tab.setSmallMoleculeSectionData(mz_tab_small_molecule_section_data);
+  }
+
   void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const
   {
     for (MzTabMetaData::const_iterator it = map.begin(); it != map.end(); ++it)
@@ -127,16 +625,13 @@ namespace OpenMS
       }
 
       // {UNIT_ID}-false_discovery_rate
-      for (Size i = 0; i != md.false_discovery_rate.size(); ++i)
-      {
-        String s = "MTD\t" + unit_id + "-false_discovery_rate\t" + md.false_discovery_rate[i].toCellString();
-        sl << s;
-      }
+      String s = "MTD\t" + unit_id + "-false_discovery_rate\t" + md.false_discovery_rate.toCellString();
+      sl << s;
 
-      // {UNIT_ID}-publication
+      // {UNIT_ID}-publication[1-n]
       for (Size i = 0; i != md.publication.size(); ++i)
       {
-        String s = "MTD\t" + unit_id + "-publication\t" + md.publication[i].toCellString();
+        String s = "MTD\t" + unit_id + "-publication[" + String(i + 1) + "]\t" + md.publication[i].toCellString();
         sl << s;
       }
 
@@ -164,7 +659,7 @@ namespace OpenMS
       // {UNIT_ID}-uri
       for (Size i = 0; i != md.uri.size(); ++i)
       {
-        String s = "MTD\t" + unit_id + "-uri\t" + md.uri[i];
+        String s = "MTD\t" + unit_id + "-uri\t" + md.uri[i].toCellString();
         sl << s;
       }
 
@@ -357,9 +852,9 @@ namespace OpenMS
 
     for (Size i = 0; i != nsub; ++i)
     {
-      s << row.protein_abundance_sub[i]
-        << row.protein_abundance_stdev_sub[i]
-        << row.protein_abundance_std_error_sub[i];
+      s << row.protein_abundance_sub[i].toCellString()
+        << row.protein_abundance_stdev_sub[i].toCellString()
+        << row.protein_abundance_std_error_sub[i].toCellString();
     }
 
     // print optional columns
@@ -407,7 +902,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabFile::generateMzTabPeptideHeader_(Int n_subsamples, const vector<String>& optional_protein_columns) const
+  String MzTabFile::generateMzTabPeptideHeader_(Int n_subsamples, const vector<String>& optional_peptide_columns) const
   {
     StringList header;
     header << "PEH"
@@ -424,7 +919,7 @@ namespace OpenMS
           << String("peptide_abundance_std_error_sub[") + String(i) + String("]");
     }
 
-    std::copy(optional_protein_columns.begin(), optional_protein_columns.end(), std::back_inserter(header));
+    std::copy(optional_peptide_columns.begin(), optional_peptide_columns.end(), std::back_inserter(header));
 
     return header.concatenate("\t");
   }
@@ -448,9 +943,9 @@ namespace OpenMS
 
     for (Size i = 0; i != nsub; ++i)
     {
-      s << row.peptide_abundance_sub[i]
-        << row.peptide_abundance_stdev_sub[i]
-        << row.peptide_abundance_std_error_sub[i];
+      s << row.peptide_abundance_sub[i].toCellString()
+        << row.peptide_abundance_stdev_sub[i].toCellString()
+        << row.peptide_abundance_std_error_sub[i].toCellString();
     }
 
     // print optional columns
