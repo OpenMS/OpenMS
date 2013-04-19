@@ -69,7 +69,7 @@ namespace OpenMS
     virtual bool isNull() const = 0;
     virtual void setNull(bool b) = 0;
     virtual String toCellString() const = 0;
-    virtual void fromCellString(String) = 0;
+    virtual void fromCellString(const String&) = 0;
   };
 
   // interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
@@ -185,16 +185,17 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
       {
         setNull(true);
-      } else if (s.toLower() == "nan")
+      } else if (lower == "nan")
       {
         setNaN();
-      } else if (s.toLower() == "inf")
+      } else if (lower == "inf")
       {
         setInf();
       } else // default case
@@ -247,16 +248,18 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
       {
         setNull(true);
       } else
       {
+        String ss = s;
         std::vector<String> fields;
-        s.split(",", fields);
+        ss.split(",", fields);
         for (Size i = 0; i != fields.size(); ++i)
         {
           MzTabDouble ds;
@@ -317,16 +320,17 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
       {
         setNull(true);
-      } else if (s.toLower() == "nan")
+      } else if (lower == "nan")
       {
         setNaN();
-      } else if (s.toLower() == "inf")
+      } else if (lower == "inf")
       {
         setInf();
       } else // default case
@@ -369,10 +373,11 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
       {
         setNull(true);
       } else
@@ -424,17 +429,18 @@ namespace OpenMS
     {
       if (isNull())
       {
-        return "null";
+        return String("null");
       } else
       {
         return value_;
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
       {
         setNull(true);
       } else
@@ -527,16 +533,18 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
       {
         setNull(true);
       } else
       {
+        String ss = s;
         std::vector<String> fields;
-        s.split(',', fields);
+        ss.split(",", fields);
         if (fields.size() != 4)
         {
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
@@ -593,20 +601,25 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+
+      if (lower == "null")
       {
         setNull(true);
       } else
       {
+        String ss = s;
         std::vector<String> fields;
-        s.split('|', fields);
+        ss.split("|", fields);
         for (Size i = 0; i != fields.size(); ++i)
         {
           MzTabParameter p;
-          if (fields[i].toLower() == "null")
+          lower = fields[i];
+          lower.toLower();
+          if (lower == "null")
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MzTabParameter in MzTabParameterList must not be null '") + s);
           }
@@ -677,16 +690,19 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+
+      if (lower == "null")
       {
         setNull(true);
       } else
       {
+        String ss = s;
         std::vector<String> fields;
-        s.split(sep_, fields);
+        ss.split(sep_, fields);
         for (Size i = 0; i != fields.size(); ++i)
         {
           MzTabString ts;
@@ -799,10 +815,11 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
       {
         setNull(true);
       } else
@@ -814,8 +831,10 @@ namespace OpenMS
           mod_identifier_ = s;
         } else
         {
+          String ss = s;
           std::vector<String> fields;
-          s.split("-", fields);
+          ss.split("-", fields);
+
           if (fields.size() != 2)
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Can't convert to MzTabModification from '") + s);
@@ -894,16 +913,18 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
       {
         setNull(true);
       } else
       {
+        String ss = s;
         std::vector<String> fields;
-        s.split(",", fields);
+        ss.split(",", fields);
         for (Size i = 0; i != fields.size(); ++i)
         {
           MzTabModification ms;
@@ -1000,16 +1021,18 @@ namespace OpenMS
       }
     }
 
-    void fromCellString(String s)
+    void fromCellString(const String& s)
     {
-      s.trim();
-      if (s.toLower() == "null")
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
       {
         setNull(true);
       } else
       {
+        String ss = s;
         std::vector<String> fields;
-        s.split(':', fields);
+        ss.split(":", fields);
         if (fields.size() != 2)
         {
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Can not convert to MzTabSpectraRef from '") + s);
@@ -1036,7 +1059,7 @@ namespace OpenMS
     std::vector<MzTabParameter> tissue; // 0..* Tissue of the unit / subsample.
     std::vector<MzTabParameter> cell_type; // 0..* Parameter  Cell type of the unit / subsample.
     std::vector<MzTabParameter> disease; // 0..* Disease state of the unit / subsample.
-    std::vector<String> description; // 0..* Description of the subsample.
+    std::vector<MzTabString> description; // 0..* Description of the subsample.
     std::vector<MzTabParameter> quantification_reagent; // 0..* Quantification reagent used to label the subsample.
     std::vector<MzTabParameter> custom; // 0..* Additional parameters for the subsample.
   };
@@ -1044,15 +1067,9 @@ namespace OpenMS
   // all meta data belonging to one unit id
   struct MzTabUnitIdMetaData
   {
-    MzTabUnitIdMetaData():
-        title("null"),
-        description("null")
-    {
-    }
-
     //String unit_id; // the unit id not null able!
-    String title; // 0..1 The unit’s title
-    String description; // 0..1
+    MzTabString title; // 0..1 The unit’s title
+    MzTabString description; // 0..1
     std::vector<MzTabParameterList> sample_processing; // 0..* Description of the sample processing.
     std::vector<MzTabParameter> instrument_name; // 0..* The instrument’s name
     std::vector<MzTabParameter> instrument_source; // 0..* The instrument’s source
@@ -1195,10 +1212,10 @@ namespace OpenMS
   {
   public:
     /// Default constructor
-    MzTab();
+    MzTab() {};
 
     /// Destructor
-    ~MzTab();
+    ~MzTab() {};
 
     const MzTabMetaData& getMetaData() const
     {
@@ -1239,6 +1256,28 @@ namespace OpenMS
     {
       map_unitid_to_small_molecule_data_ = smsd;
     }
+    
+    std::vector<String> getProteinOptionalColumnNames() const    
+    {
+     std::vector<String> names;
+     // TODO: determine optional column names
+     return names; 
+    }
+
+    std::vector<String> getPeptideOptionalColumnNames() const    
+    {
+     std::vector<String> names;
+     // TODO: determine optional column names
+     return names; 
+    }
+
+    std::vector<String> getSmallMoleculeOptionalColumnNames() const    
+    {
+     std::vector<String> names;
+     // TODO: determine optional column names
+     return names; 
+    }
+
 
   protected:
     MzTabMetaData map_unitid_to_meta_data_;

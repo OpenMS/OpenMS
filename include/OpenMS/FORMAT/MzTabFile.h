@@ -76,7 +76,7 @@ public:
 protected:
     void generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const;
 
-    void generateProteinHeader_(Int n_subsamples, const std::vector<String>& optional_protein_columns, StringList& sl) const;
+    String generateMzTabProteinHeader_(Int n_subsamples, const std::vector<String>& optional_protein_columns) const;
 
     String generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const String& unit_id) const;
 

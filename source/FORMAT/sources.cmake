@@ -35,6 +35,8 @@ MascotRemoteQuery.C
 MascotXMLFile.C
 MsInspectFile.C
 MzDataFile.C
+MzTab.C
+MzTabFile.C
 MzMLFile.C
 MzTabFile.C
 MzXMLFile.C

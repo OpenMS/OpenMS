@@ -170,6 +170,8 @@ set(format_executables_list
   MzIdentMLValidator_test
   MzMLFile_test
   MzMLValidator_test
+  MzTab_test
+  MzTabFile_test
   MzXMLFile_test
   TraMLValidator_test
   OMSSACSVFile_test

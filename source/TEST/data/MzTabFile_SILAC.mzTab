@@ -1,0 +1,34 @@
+MTD	file_1-title	mzTab SILAC test
+MTD	file_1-quantification_method	[MS,MS:1001837,SILAC quantitation analysis,]
+MTD	file_1-protein-quantification_unit	[MS,MS:1001134,protein ratio,]
+MTD	file_1-peptide-quantification_unit	[MS,MS:1001132,peptide ratio,]
+MTD	file_1-sub[1]-description	file_1_heavy
+MTD	file_1-sub[1]-quantification_reagent	[MOD,MOD:00544,6x(13)C labeled residue,]
+MTD	file_1-sub[2]-description	file_1_light
+MTD	file_1-sub[2]-quantification_reagent	[MS,MS:1002038,unlabeled sample,]
+
+PRH	accession	unit_id	description	taxid	species	database	database_version	search_engine	search_engine_score	reliability	num_peptides	num_peptides_distinct	num_peptides_unambiguous	ambiguity_members	modifications	uri	go_terms	protein_coverage	protein_abundance_sub[1]	protein_abundance_stdev_sub[1]	protein_abundance_std_error_sub[1]	protein_abundance_sub[2]	protein_abundance_stdev_sub[2]	protein_abundance_std_error_sub[2]
+PRT	IPI00004942	file_1	Name4	9606	Homo sapiens	IPI	3.11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,30]	null	1	1	null	null	null	null	GO:0005488|GO:0005515|GO:0008270|GO:0043167|GO:0043169|GO:0046872|GO:0046914	0.09	1.0	null	null	5.6789	1.2	null
+PRT	IPI00003501	file_1	Retikulin	9606	Homo sapiens	IPI	3.11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,30]	null	1	1	null	null	null	null	GO:0001619|GO:0004871|GO:0004872|GO:0004888|GO:0004930|GO:0005488|GO:0008289|GO:0045125|GO:0060089	0.027	1.0	null	null	0.3456	0.34	null
+PRT	IPI00218319	file_1	Albumin	9606	Homo sapiens	IPI	3.11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,30]	null	10	1	null	IPI00013991,IPI00220709,CON_00703268,IPI00646748,IPI00910712,IPI00909308,IPI00926427	null	null	GO:0003779|GO:0005198|GO:0005488|GO:0005515|GO:0008092|GO:0008307	0.031	1.0	null	null	1.2345	0.123	null
+PRT	IPI00000980	file_1	Dickkopf1	9606	Homo sapiens	IPI	3.11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,30]	null	1	1	null	IPI00893222	53-MOD:00016	null	GO:0005215|GO:0005488|GO:0005515|GO:0008320|GO:0008565|GO:0015399|GO:0015405|GO:0015450|GO:0022804|GO:0022857|GO:0022884|GO:0022891|GO:0022892	0.042	1.0	null	null	0.5678	0.05	null
+PRT	IPI00002824	file_1	Thyroxin	9606	Homo sapiens	IPI	3.11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,30]	null	1	1	null	IPI00793531,IPI00791139	null	null	GO:0005488|GO:0008270|GO:0043167|GO:0043169|GO:0046872|GO:0046914	0.051	1.0	null	null	2.3456	0.12	null
+
+PEH	sequence	accession	unit_id	unique	database	database_version	search_engine	search_engine_score	reliability	modifications	retention_time	charge	mass_to_charge	uri	spectra_ref	peptide_abundance_sub[1]	peptide_abundance_stdev_sub[1]	peptide_abundance_std_error_sub[1]	peptide_abundance_sub[2]	peptide_abundance_stdev_sub[2]	peptide_abundance_std_error_sub[2]
+PEP	IQLVEEELDR	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,30]	null	null	null	null	null	null	null	1.0	null	null	1.2345	0.123	null
+PEP	IQLVEEELDRAQER	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,35]	null	null	null	null	null	null	null	1.0	null	null	0.5678	0.05	null
+PEP	KLVILEGELER	IPI00010779	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,46]	null	null	null	null	null	null	null	1.0	null	null	2.3456	0.12	null
+PEP	KQAEDRCK	IPI00513698	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,100]	null	null	null	null	null	null	null	1.0	null	null	0.3456	0.34	null
+PEP	LATALQK	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,120]	null	null	null	null	null	null	null	1.0	null	null	5.6789	1.2	null
+PEP	LATALQKLEEAEK	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,30]	null	null	null	null	null	null	null	1.0	null	null	1.2345	0.123	null
+PEP	LEEAEKAADESER	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,35]	null	null	null	null	null	null	null	1.0	null	null	0.5678	0.05	null
+PEP	LVILEGELER	IPI00010779	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,46]	null	null	null	null	null	null	null	1.0	null	null	2.3456	0.12	null
+PEP	RIQLVEEELDR	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,100]	null	null	null	null	null	null	null	1.0	null	null	0.3456	0.34	null
+PEP	RIQLVEEELDRAQER	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,120]	null	6-MOD:00016	null	null	null	null	null	1.0	null	null	5.6789	1.2	null
+PEP	GADPGMPEPTVLSLLWG	IPI00000980	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,30]	null	null	null	null	null	null	null	1.0	null	null	1.2345	0.123	null
+PEP	GFGYGQGAGALVHAQ	IPI00002824	file_1	0	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,35]	null	null	null	null	null	null	null	1.0	null	null	0.5678	0.05	null
+PEP	GMHMPTSPTFLEGNTVV	IPI00003501	file_1	1	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,46]	null	null	null	null	null	null	null	1.0	null	null	2.3456	0.12	null
+PEP	TYASGYAHYEEQEN	IPI00004942	file_1	1	IPI	3,11	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,100]	null	null	null	null	null	null	null	1.0	null	null	0.3456	0.34	null
+
+SMH	identifier	unit_id	chemical_formula	smiles	inchi_key	description	mass_to_charge	charge	retention_time	taxid	species	database	database_version	reliability	uri	spectra_ref	search_engine	search_engine_score	modifications	smallmolecule_abundance_sub[1]	smallmolecule_abundance_stdev_sub[1]	smallmolecule_abundance_std_error_sub[1]	smallmolecule_abundance_sub[2]	smallmolecule_abundance_stdev_sub[2]	smallmolecule_abundance_std_error_sub[2]
+SML	ID_1	file_1	null	null	null	null	254.4	2	20.7	9606	Homo sapiens (Human)	null	null	2	null	null	[,,SpectraSt,]	null	null	null	null	null	null	null	null

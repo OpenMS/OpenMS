@@ -109,10 +109,10 @@ namespace OpenMS
         {
           if (meta_key_fields[1] == "title")
           {
-            mz_tab_metadata[unit_id].title = cells[2];
+            mz_tab_metadata[unit_id].title.set(cells[2]);
           } else if (meta_key_fields[1] == "description")
           {
-            mz_tab_metadata[unit_id].description = cells[2];
+            mz_tab_metadata[unit_id].description.set(cells[2]);
           } else if (meta_key_fields[1].hasPrefix("sample_processing["))
           {
             MzTabParameterList pl;
@@ -558,17 +558,17 @@ namespace OpenMS
       const String& unit_id = it->first;
       const MzTabUnitIdMetaData& md = it->second;
 
-      //	{UNIT_ID}-title
-      if (!md.title.empty())
+      // {UNIT_ID}-title
+      if (!md.title.isNull())
       {
-        String s = String("MTD\t") + unit_id + "-title\t" + md.title;
+        String s = String("MTD\t") + unit_id + "-title\t" + md.title.toCellString();
         sl << s;
       }
 
       // {UNIT_ID}-description
-      if (!md.description.empty())
+      if (!md.description.isNull())
       {
-        String s = String("MTD\t") + unit_id + "-description\t" + md.description;
+        String s = String("MTD\t") + unit_id + "-description\t" + md.description.toCellString();
         sl << s;
       }
 
@@ -625,8 +625,11 @@ namespace OpenMS
       }
 
       // {UNIT_ID}-false_discovery_rate
-      String s = "MTD\t" + unit_id + "-false_discovery_rate\t" + md.false_discovery_rate.toCellString();
-      sl << s;
+      if (!md.false_discovery_rate.isNull())
+      {
+        String s = "MTD\t" + unit_id + "-false_discovery_rate\t" + md.false_discovery_rate.toCellString();
+        sl << s;
+      }
 
       // {UNIT_ID}-publication[1-n]
       for (Size i = 0; i != md.publication.size(); ++i)
@@ -769,8 +772,11 @@ namespace OpenMS
         // {UNIT_ID}(-{SUB_ID})-description[1-n]
         for (Size j = 0; j != submd.description.size(); ++j)
         {
-          String s = String("MTD\t") + unit_id + sub_id + "-description\t" + submd.description[j];
-          sl << s;
+	  if (!submd.description[j].isNull())
+          {
+            String s = String("MTD\t") + unit_id + sub_id + "-description\t" + submd.description[j].toCellString();
+            sl << s;
+	  }
         }
 
         // {UNIT_ID}-{SUB_ID}-quantification_reagent
@@ -808,10 +814,11 @@ namespace OpenMS
         String s = String("MTD\t") + unit_id + "-colunit-small_molecule" + md.colunit_small_molecule[i];
         sl << s;
       }
+      sl << String("\n");
     }
   }
 
-  void MzTabFile::generateProteinHeader_(Int n_subsamples, const vector<String>& optional_protein_columns, StringList& sl) const
+  String MzTabFile::generateMzTabProteinHeader_(Int n_subsamples, const vector<String>& optional_protein_columns) const
   {
     StringList header;
     header << "PRH"
@@ -830,7 +837,7 @@ namespace OpenMS
 
     std::copy(optional_protein_columns.begin(), optional_protein_columns.end(), std::back_inserter(header));
 
-    sl << (header.concatenate("\t"));
+    return (header.concatenate("\t"));
   }
 
   String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const String& unit_id) const
@@ -858,7 +865,7 @@ namespace OpenMS
     }
 
     // print optional columns
-    for (Size i = 0; i <= row.opt_.size(); ++i)
+    for (Size i = 0; i != row.opt_.size(); ++i)
     {
       s << row.opt_[i].second.toCellString();
     }
@@ -876,6 +883,8 @@ namespace OpenMS
         sl << generateMzTabProteinSectionRow_(*jt, unit_id);
       }
     }
+
+   sl << String("\n");
   }
 
   void MzTabFile::generateMzTabPeptideSection_(const MzTabPeptideSectionData& map, StringList& sl) const
@@ -888,6 +897,7 @@ namespace OpenMS
         sl << generateMzTabPeptideSectionRow_(*jt, unit_id);
       }
     }
+   sl << String("\n");
   }
 
   void MzTabFile::generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionData & map, StringList& sl) const
@@ -949,7 +959,7 @@ namespace OpenMS
     }
 
     // print optional columns
-    for (Size i = 0; i <= row.opt_.size(); ++i)
+    for (Size i = 0; i != row.opt_.size(); ++i)
     {
       s << row.opt_[i].second.toCellString();
     }
@@ -1008,7 +1018,7 @@ namespace OpenMS
     }
 
     // print optional columns
-    for (Size i = 0; i <= row.opt_.size(); ++i)
+    for (Size i = 0; i != row.opt_.size(); ++i)
     {
       s << row.opt_[i].second.toCellString();
     }
@@ -1020,8 +1030,11 @@ namespace OpenMS
   {
     TextFile out;
     generateMzTabMetaDataSection_(mz_tab.getMetaData(), out);
+    out.push_back(generateMzTabProteinHeader_(0, mz_tab.getProteinOptionalColumnNames())); // TODO: determine sub cols
     generateMzTabProteinSection_(mz_tab.getProteinSectionData(), out);
+    out.push_back(generateMzTabPeptideHeader_(0, mz_tab.getPeptideOptionalColumnNames())); // TODO: determine sub cols
     generateMzTabPeptideSection_(mz_tab.getPeptideSectionData(), out);
+    out.push_back(generateMzTabSmallMoleculeHeader_(0, mz_tab.getSmallMoleculeOptionalColumnNames())); // TODO: determine sub cols
     generateMzTabSmallMoleculeSection_(mz_tab.getSmallMoleculeSectionData(), out);
     out.store(filename);
   }
