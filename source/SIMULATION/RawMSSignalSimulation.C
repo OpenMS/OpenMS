@@ -267,7 +267,7 @@ namespace OpenMS
       for (Size i = 0; i < tf.size(); ++i)
       {
         if (tf[i].empty() || tf[i].hasPrefix("#"))
-          continue;                                          // skip comments
+          continue; // skip comments
         StringList cols;
         tf[i].removeWhitespaces().split(',', cols, true);
         if (cols.size() != COLS_EXPECTED)
@@ -454,7 +454,7 @@ namespace OpenMS
         for (Size scan = 0; scan < experiment.size(); ++scan)
         {
           if ((*experiments[i])[scan].empty())
-            continue;                                    // we do not care if the spectrum wasn't touched at all
+            continue; // we do not care if the spectrum wasn't touched at all
           // append all points from temp to org
           experiment[scan].insert(experiment[scan].end(), (*experiments[i])[scan].begin(), (*experiments[i])[scan].end());
           // delete from child experiment to save memory (otherwise the merge would double it!)
@@ -693,78 +693,6 @@ namespace OpenMS
     Int q = active_feature.getCharge();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // text output
-    String name = active_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
-    name += "_";
-    name += String(active_feature.getCharge());
-    String fIntensName = name + "_intensity.csv";
-    String fIsotopeName = name + "_isotope.csv";
-    String fIsotopePeaksName = name + "_isotope_peaks.csv";
-    String fElutionProfileName = name + "_elution.csv";
-    String fFullName = name + "_full.csv";
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::ofstream fIntensStream(fIntensName.c_str());
-    SVOutStream fIntens(fIntensStream, ",", "_", String::DOUBLE);
-    fIntens.modifyStrings(false);
-    fIntens << "mz" << "RT" << "Intensity" << std::endl;
-    fIntens << active_feature.getMZ() << active_feature.getRT() << active_feature.getIntensity() << std::endl;
-    fIntensStream.close();
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::ofstream fIsotopeStream(fIsotopeName.c_str());
-    SVOutStream fIsotope(fIsotopeStream, ",", "_", String::DOUBLE);
-    fIsotope.modifyStrings(false);
-    fIsotope << "mz" << "Intensity" << std::endl;
-    std::vector<SimCoordinateType>::const_iterator isoIterGrid = lower_bound(grid_.begin(), grid_.end(), mz_start);
-    for (; isoIterGrid != grid_.end() && (*isoIterGrid) < mz_end; ++isoIterGrid)
-    {
-      fIsotope << *isoIterGrid << isomodel->getIntensity(*isoIterGrid) << std::endl;
-    }
-    fIsotopeStream.close();
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::ofstream fIsotopePeaksStream(fIsotopePeaksName.c_str());
-    SVOutStream fIsotopePeaks(fIsotopePeaksStream, ",", "_", String::DOUBLE);
-    fIsotopePeaks.modifyStrings(false);
-    fIsotopePeaks << "mz" << "Intensity" << std::endl;
-
-    Size debugIso_pos(0);
-    for (IsotopeDistribution::const_iterator iter = iso_dist.begin(); iter != iso_dist.end(); ++iter, ++debugIso_pos)
-    {
-      fIsotopePeaks << (mz_mono + (debugIso_pos * iso_peakdist / q)) << iter->second << std::endl;
-    }
-    fIsotopePeaksStream.close();
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::ofstream fElutionProfileStream(fElutionProfileName.c_str());
-    SVOutStream  fElutionProfile(fElutionProfileStream, ",", "_", String::DOUBLE);
-    fElutionProfile.modifyStrings(false);
-    fElutionProfile << "rt" << "Intensity" << std::endl;
-
-
-
-    SimCoordinateType debugRt(0);
-    MSSimExperiment::iterator debugExp_iter = exp_start;
-    for (; debugRt < rt_end && debugExp_iter != experiment.end(); ++debugExp_iter)
-    {
-      debugRt = debugExp_iter->getRT();
-      fElutionProfile << debugRt << ((EGHModel*)pm.getModel(0))->getIntensity(debugRt) << std::endl;
-    }
-    fElutionProfileStream.close();
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-    std::ofstream fFullStream(fFullName.c_str());
-    SVOutStream  fFull(fFullStream, ",", "_", String::DOUBLE);
-    fFull.modifyStrings(false);
-    fFull << "rt" << "mz" << "Intensity" << std::endl;
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Sample the model ...
     SimCoordinateType rt(0);
     MSSimExperiment::iterator exp_iter = exp_start;
@@ -795,7 +723,7 @@ namespace OpenMS
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity(DPosition<2>(rt, *it_grid)) * distortion;
         if (intensity <= 0.0)
-          continue;                     // intensity cutoff (below that we don't want to see a signal)
+          continue; // intensity cutoff (below that we don't want to see a signal)
 
         point.setMZ(*it_grid);
         point.setIntensity(intensity);
@@ -835,15 +763,12 @@ namespace OpenMS
 #endif
         point.setMZ(fabs(point.getMZ() + mz_err));
         exp_iter->push_back(point);
-        //        if(point.getIntensity() > 100)
-        fFull << rt << point.getMZ() << point.getIntensity() << std::endl;
 
         intensity_sum += point.getIntensity();
       }
       //update last scan affected
       end_scan = exp_iter - experiment.begin();
     }
-    fFullStream.close();
 
     OPENMS_POSTCONDITION(end_scan != std::numeric_limits<Int>::min(), "RawMSSignalSimulation::samplePeptideModel2D_(): setting RT bounds failed!");
 
@@ -875,7 +800,7 @@ namespace OpenMS
         DoubleReal distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
         ProductModel<2>::IntensityType intensity = pm.getIntensity(DPosition<2>(rt, mz)) * distortion;
         if (intensity <= 0.0)
-          continue;                    // intensity cutoff (below that we don't want to see a signal)
+          continue; // intensity cutoff (below that we don't want to see a signal)
 
         // update min&max
         if (rt_min > rt)
@@ -949,7 +874,7 @@ namespace OpenMS
     // find scan in experiment at which our elution starts
     MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
     if (exp_it == experiment.end())
-      --exp_it;                               // we need the last valid RT below, so .end() is not useful
+      --exp_it; // we need the last valid RT below, so .end() is not useful
 
     DoubleList elution_intensities;
     DoubleList elution_bounds;
@@ -1298,7 +1223,7 @@ namespace OpenMS
           }
         }
         if (break_scan)
-          break;               // skip remaining points of the scan (we reached the end of the grid)
+          break; // skip remaining points of the scan (we reached the end of the grid)
 
         int_sum += experiment[i][j].getIntensity();
 
