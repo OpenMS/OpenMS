@@ -148,7 +148,7 @@ namespace OpenMS
             String software_index_string = meta_key_fields[1];
             software_index_string.substitute("software", "").remove('[').remove(']');
             Int software_index = software_index_string.toInt() - 1; 
-            if (mz_tab_metadata[unit_id].software_setting.size() < software_index + 1)
+            if (mz_tab_metadata[unit_id].software_setting.size() < (Size)(software_index + 1))
             {
               mz_tab_metadata[unit_id].software_setting.resize(software_index + 1);
             }
@@ -193,17 +193,17 @@ namespace OpenMS
             MzTabParameter p;
             p.fromCellString(cells[2]);            
             mz_tab_metadata[unit_id].quantification_method = p;
-          } else if (meta_key_fields[1] == "protein_quantification_unit")
+          } else if (meta_key_fields[1] == "protein" && meta_key_fields[2] == "quantification_unit")
           {
             MzTabParameter p;
             p.fromCellString(cells[2]);
             mz_tab_metadata[unit_id].protein_quantification_unit = p;
-          } else if (meta_key_fields[1] == "peptide_quantification_unit")
+          } else if (meta_key_fields[1] == "peptide" && meta_key_fields[2] == "quantification_unit")
           {
             MzTabParameter p;
             p.fromCellString(cells[2]);
             mz_tab_metadata[unit_id].peptide_quantification_unit = p;
-          } else if (meta_key_fields[1] == "small_molecule_quantification_unit")
+          } else if (meta_key_fields[1] == "small_molecule" && meta_key_fields[2] == "quantification_unit")
           {
             MzTabParameter p;
             p.fromCellString(cells[2]);
@@ -228,15 +228,15 @@ namespace OpenMS
             MzTabParameter p;
             p.fromCellString(cells[2]);
             mz_tab_metadata[unit_id].custom.push_back(p);
-          } else if (meta_key_fields[1] == "colunit_protein")
+          } else if (meta_key_fields[1].hasPrefix("colunit") && meta_key_fields[2] == "protein") 
           {
             String s = cells[2];
             mz_tab_metadata[unit_id].colunit_protein.push_back(s);
-          } else if (meta_key_fields[1] == "colunit_peptide")
+          } else if (meta_key_fields[1].hasPrefix("colunit") && meta_key_fields[2] == "peptide") 
           {
             String s = cells[2];
             mz_tab_metadata[unit_id].colunit_peptide.push_back(s);
-          } else if (meta_key_fields[1] == "colunit_small_molecule")
+          } else if (meta_key_fields[1].hasPrefix("colunit") && meta_key_fields[2] == "small_molecule") 
           {
             String s = cells[2];
             mz_tab_metadata[unit_id].colunit_small_molecule.push_back(s);
@@ -263,54 +263,91 @@ namespace OpenMS
           }
         } else  // UNIT_ID-SUBID-SOMENAME
         {          
-          if (meta_key_fields[1].hasPrefix("species"))
+          if (meta_key_fields[2].hasPrefix("species"))
           {            
             MzTabParameter p;
             p.fromCellString(cells[2]);
             String sub_id_index_string = meta_key_fields[1];
             sub_id_index_string.substitute("sub", "").remove('[').remove(']');
             Int sub_id_index = sub_id_index_string.toInt() - 1; 
-            if (mz_tab_metadata[unit_id].sub_id_data.size() < sub_id_index + 1)
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < (Size)(sub_id_index + 1))
             {
               mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
             }
             mz_tab_metadata[unit_id].sub_id_data[sub_id_index].species.push_back(p);
-          } else if (meta_key_fields[1].hasPrefix("tissue"))
+          } else if (meta_key_fields[2].hasPrefix("tissue"))
           {            
             MzTabParameter p;
             p.fromCellString(cells[2]);
             String sub_id_index_string = meta_key_fields[1];
             sub_id_index_string.substitute("sub", "").remove('[').remove(']');
             Int sub_id_index = sub_id_index_string.toInt() - 1;
-            if (mz_tab_metadata[unit_id].sub_id_data.size() < sub_id_index + 1)
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < (Size)(sub_id_index + 1))
             {
               mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
             }
             mz_tab_metadata[unit_id].sub_id_data[sub_id_index].tissue.push_back(p);
-          } else if (meta_key_fields[1].hasPrefix("cell_type"))
+          } else if (meta_key_fields[2].hasPrefix("cell_type"))
           {            
             MzTabParameter p;
             p.fromCellString(cells[2]);
             String sub_id_index_string = meta_key_fields[1];
             sub_id_index_string.substitute("sub", "").remove('[').remove(']');
             Int sub_id_index = sub_id_index_string.toInt() - 1;
-            if (mz_tab_metadata[unit_id].sub_id_data.size() < sub_id_index + 1)
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < (Size)(sub_id_index + 1))
             {
               mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
             }
             mz_tab_metadata[unit_id].sub_id_data[sub_id_index].cell_type.push_back(p);
-          } else if (meta_key_fields[1].hasPrefix("disease"))
+          } else if (meta_key_fields[2].hasPrefix("disease"))
           {            
             MzTabParameter p;
             p.fromCellString(cells[2]);
             String sub_id_index_string = meta_key_fields[1];
             sub_id_index_string.substitute("sub", "").remove('[').remove(']');
             Int sub_id_index = sub_id_index_string.toInt() - 1;
-            if (mz_tab_metadata[unit_id].sub_id_data.size() < sub_id_index + 1)
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < (Size)(sub_id_index + 1))
             {
               mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
             }
             mz_tab_metadata[unit_id].sub_id_data[sub_id_index].disease.push_back(p);
+          } else if (meta_key_fields[2].hasPrefix("description"))
+          {            
+            MzTabString p;
+            p.fromCellString(cells[2]);
+            String sub_id_index_string = meta_key_fields[1];
+            sub_id_index_string.substitute("sub", "").remove('[').remove(']');
+            Int sub_id_index = sub_id_index_string.toInt() - 1;
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < (Size)(sub_id_index + 1))
+            {
+              mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
+            }
+            mz_tab_metadata[unit_id].sub_id_data[sub_id_index].description.push_back(p);
+          }/* 
+	  else if (meta_key_fields[2].hasPrefix("quantification_reagent"))       // TODO: check multiplicity with Juan and Andy
+          {            
+            MzTabString p;
+            p.fromCellString(cells[2]);
+            String sub_id_index_string = meta_key_fields[1];
+            sub_id_index_string.substitute("sub", "").remove('[').remove(']');
+            Int sub_id_index = sub_id_index_string.toInt() - 1;
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < (Size)(sub_id_index + 1))
+            {
+              mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
+            }
+            mz_tab_metadata[unit_id].sub_id_data[sub_id_index].quantification_reagent = p;
+          }*/ else if (meta_key_fields[2].hasPrefix("custom"))
+          {            
+            MzTabParameter p;
+            p.fromCellString(cells[2]);
+            String sub_id_index_string = meta_key_fields[1];
+            sub_id_index_string.substitute("sub", "").remove('[').remove(']');
+            Int sub_id_index = sub_id_index_string.toInt() - 1;
+            if (mz_tab_metadata[unit_id].sub_id_data.size() < (Size)(sub_id_index + 1))
+            {
+              mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
+            }
+            mz_tab_metadata[unit_id].sub_id_data[sub_id_index].custom.push_back(p);
           }
         }
         continue;
@@ -690,7 +727,7 @@ namespace OpenMS
       // {UNIT_ID}-peptide-quantification_unit
       if (!md.peptide_quantification_unit.isNull())
       {
-        String s = "MTD\t" + unit_id + "-peptide_quantification-unit\t" + md.peptide_quantification_unit.toCellString();
+        String s = "MTD\t" + unit_id + "-peptide-quantification_unit\t" + md.peptide_quantification_unit.toCellString();
         sl << s;
       }
 
@@ -733,12 +770,12 @@ namespace OpenMS
       {
         const MzTabSubIdMetaData& submd = md.sub_id_data[i];
 
-        String sub_id = submd.sub_id;
+	String sub_id;
 
-        // format is UNIT_ID-SUB_ID... if SUB_ID is given
-        if (!sub_id.empty())
+        // format is UNIT_ID-SUB_ID... if more than one sub id data given
+        if (md.sub_id_data.size() != 1)
         {
-          sub_id = String("-") + sub_id;
+          sub_id = String("-sub[") + String(i+1) + String("]");
         }
 
         // {UNIT_ID}(-{SUB_ID})-species[1-n]

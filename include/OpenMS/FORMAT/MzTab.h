@@ -550,6 +550,8 @@ namespace OpenMS
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
         } else
         {
+	  fields[0].remove('[');
+	  fields[3].remove(']');
           CV_label_ = fields[0];
           accession_ = fields[1];
           name_ = fields[2];
@@ -1054,7 +1056,6 @@ namespace OpenMS
   struct MzTabSubIdMetaData
   {
     // ranges denote multiplicity as specified in the specification document
-    String sub_id; // 0..1 empty string if no sub samples have been recorded and SUB_ID is optional
     std::vector<MzTabParameter> species; // 0..* Species of the unit / subsample.
     std::vector<MzTabParameter> tissue; // 0..* Tissue of the unit / subsample.
     std::vector<MzTabParameter> cell_type; // 0..* Parameter  Cell type of the unit / subsample.
