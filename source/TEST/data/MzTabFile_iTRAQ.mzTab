@@ -1,0 +1,26 @@
+MTD	PRIDE_1234-title	mzTab iTRAQ test																												
+MTD	PRIDE_1234-contact[1]-name	Johannes																												
+MTD	PRIDE_1234-contact[2]-name	Mathias																												
+MTD	PRIDE_1234-quantification_method	[MS,MS:1001837,iTraq quantitation analysis,]																												
+MTD	PRIDE_1234-protein-quantification_unit	[MS,MS:1001134,protein ratio,]																												
+MTD	PRIDE_1234-peptide-quantification_unit	[MS,MS:1001132,peptide ratio,]																												
+MTD	PRIDE_1234-sub[1]-description	Healthy human liver tissue																												
+MTD	PRIDE_1234-sub[1]-quantification_reagent	[MOD,MOD:01490,iTRAQ4plex-114 reporter+balance reagent O3-acylated serine,]																												
+MTD	PRIDE_1234-sub[2]-description	Human hepatocellular carcinoma sample.																												
+MTD	PRIDE_1234-sub[2]-quantification_reagent	[MOD,MOD:01497,iTRAQ4plex-115 reporter+balance reagent O3-acylated serine,]																												
+MTD	PRIDE_1234-sub[3]-description	Heptitis C infected liver tissue																												
+MTD	PRIDE_1234-sub[3]-quantification_reagent	[MOD,MOD:01499,iTRAQ4plex-116 reporter+balance reagent acylated residue,]																												
+MTD	PRIDE_1234-sub[4]-description	Fatty liver degeneration																												
+MTD	PRIDE_1234-sub[4]-quantification_reagent	[MOD,MOD:01506,iTRAQ4plex-117&#44; mTRAQ heavy&#44; reporter+balance reagent acylated residue,]																												
+																														
+PRH	accession	unit_id	description	taxid	species	database	database_version	search_engine	search_engine_score	reliability	num_peptides	num_peptides_distinct	num_peptides_unambiguous	ambiguity_members	modifications	uri	go_terms	protein_coverage	protein_abundance_sub[1]	protein_abundance_stdev_sub[1]	protein_abundance_std_error_sub[1]	protein_abundance_sub[2]	protein_abundance_stdev_sub[2]	protein_abundance_std_error_sub[2]	protein_abundance_sub[3]	protein_abundance_stdev_sub[3]	protein_abundance_std_error_sub[3]	protein_abundance_sub[4]	protein_abundance_stdev_sub[4]	protein_abundance_std_error_sub[4]
+PRT	gi|10181184	PRIDE_1234	Albumin	9606	Homo sapiens(Human)	NCBI NR	21.06.2011	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,140]	1	4	2	1	null	5-UNIMOD:214,27-UNIMOD:214,13-UNIMOD:35,29|35-UNIMOD:21	http://ebi.ac.uk/pride/experiment/1234/protein/193ttp://ebi.ac.uk/pride/experiment/1234/protein/193	GO:0008299|GO:0016740	0.2	1	null	null	7265.31988	6346.894427	null	7265.31988	6346.894427	null	7265.31988	6346.894427	null
+PRT	gi|1050551	PRIDE_1234	Thyroxin	9606	Homo sapiens(Human)	NCBI NR	21.06.2011	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,70]	3	2	1	1	gi|1049108	0-UNIMOD:214	http://ebi.ac.uk/pride/experiment/1234/protein/193ttp://ebi.ac.uk/pride/experiment/1234/protein/191	null	0.1	1	null	null	3447.020481	1962.7157	null	3447.020481	1962.7157	null	3447.020481	1962.7157	null
+																														
+PEH	sequence	accession	unit_id	unique	database	database_version	search_engine	search_engine_score	reliability	modifications	retention_time	charge	mass_to_charge	uri	spectra_ref	peptide_abundance_sub[1]	peptide_abundance_stdev_sub[1]	peptide_abundance_std_error_sub[1]	peptide_abundance_sub[2]	peptide_abundance_stdev_sub[2]	peptide_abundance_std_error_sub[2]	peptide_abundance_sub[3]	peptide_abundance_stdev_sub[3]	peptide_abundance_std_error_sub[3]	peptide_abundance_sub[4]	peptide_abundance_stdev_sub[4]	peptide_abundance_std_error_sub[4]			
+PEP	NILNELFQR	gi|10181184	PRIDE_1234	1	NCBI NR	21.06.2011	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,35]	1	0-UNIMOD:214,8-UNIMOD:35	20.8	2	500	null	null	1	null	null	4491.221363	null	null	4491.221363	null	null	4491.221363	null	null			
+PEP	NILNELFQR	gi|10181184	PRIDE_1234	1	NCBI NR	21.06.2011	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,30]	2	0-UNIMOD:214	21.5	4	250	null	null	1	null	null	5903.60986	null	null	5903.60986	null	null	5903.60986	null	null			
+PEP	QGIFQVVISR	gi|10181184	PRIDE_1234	0	NCBI NR	21.06.2011	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,40]	1	0-UNIMOD:214,6-UNIMOD:21	10.2	3	200	null	null	1	null	null	16500.75069	null	null	16500.75069	null	null	16500.75069	null	null			
+PEP	QGIFQVVISR	gi|10181184	PRIDE_1234	0	NCBI NR	21.06.2011	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,35]	2	0-UNIMOD:214,2-UNIMOD:21	7.3	2	400	null	null	1	null	null	2165.697588	null	null	2165.697588	null	null	2165.697588	null	null			
+PEP	EDTTSILPK	gi|1050551	PRIDE_1234	1	NCBI NR	21.06.2011	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,50]	1	0-UNIMOD:214	60.2	4	200	null	null	1	null	null	2059.1709	null	null	2059.1709	null	null	2059.1709	null	null			
+PEP	EDTTSILPK	gi|1050551	PRIDE_1234	1	NCBI NR	21.06.2011	[MS,MS:1001207,Mascot,]	[MS,MS:1001171,Mascot:score,20]	3	0-UNIMOD:214	64.1	3	300	null	null	1	null	null	4834.870061	null	null	4834.870061	null	null	4834.870061	null	null			

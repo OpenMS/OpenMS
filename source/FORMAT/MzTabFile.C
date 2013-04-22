@@ -71,6 +71,7 @@ namespace OpenMS
 
     for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit)
     {
+//    std::cout << *sit << std::endl;
       const String& s = *sit;
 
       // skip empty lines or lines that are too short
@@ -323,10 +324,10 @@ namespace OpenMS
               mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
             }
             mz_tab_metadata[unit_id].sub_id_data[sub_id_index].description.push_back(p);
-          }/* 
-	  else if (meta_key_fields[2].hasPrefix("quantification_reagent"))       // TODO: check multiplicity with Juan and Andy
+          } 
+	  else if (meta_key_fields[2].hasPrefix("quantification_reagent")) // may have multiple (e.g. heavy Lys, Arg) quantification reagents per subsample
           {            
-            MzTabString p;
+            MzTabParameter p;
             p.fromCellString(cells[2]);
             String sub_id_index_string = meta_key_fields[1];
             sub_id_index_string.substitute("sub", "").remove('[').remove(']');
@@ -335,8 +336,8 @@ namespace OpenMS
             {
               mz_tab_metadata[unit_id].sub_id_data.resize(sub_id_index + 1);
             }
-            mz_tab_metadata[unit_id].sub_id_data[sub_id_index].quantification_reagent = p;
-          }*/ else if (meta_key_fields[2].hasPrefix("custom"))
+            mz_tab_metadata[unit_id].sub_id_data[sub_id_index].quantification_reagent.push_back(p);
+          } else if (meta_key_fields[2].hasPrefix("custom"))
           {            
             MzTabParameter p;
             p.fromCellString(cells[2]);
@@ -360,11 +361,12 @@ namespace OpenMS
         n_protein_sub = 0;
         for (Size i = 0; i != cells.size(); ++i)
         {
-          if (cells[i].hasPrefix("protein_abundance_sub["))  // this prefix must be present to identify the column as subsample column 
+          //std::cout << cells[i] << "\t";
+	  if (cells[i].hasPrefix("protein_abundance_sub["))  // this prefix must be present to identify the column as subsample column 
           {
             ++n_protein_sub;
           }
-        } 
+        }
 
         // determine header of custom opt_ columns
         for (Size i = 0; i != cells.size(); ++i)
@@ -412,6 +414,8 @@ namespace OpenMS
           row.protein_abundance_sub[i].fromCellString(cells[current_index++]);
           row.protein_abundance_stdev_sub[i].fromCellString(cells[current_index++]);
           row.protein_abundance_std_error_sub[i].fromCellString(cells[current_index++]);
+//        cout << i << ": " << row.protein_abundance_sub[i].toCellString() << " " << row.protein_abundance_stdev_sub[i].toCellString()  << " " << row.protein_abundance_std_error_sub[i].toCellString() << endl;
+
         }
 
         // custom opt_
@@ -508,7 +512,7 @@ namespace OpenMS
         n_small_molecule_sub = 0;
         for (Size i = 0; i != cells.size(); ++i)
         {
-          if (cells[i].hasPrefix("small_molecule_abundance_sub["))  // this prefix must be present to identify the column as subsample column 
+          if (cells[i].hasPrefix("smallmolecule_abundance_sub["))  // this prefix must be present to identify the column as subsample column 
           {
             ++n_small_molecule_sub;
           }
@@ -884,7 +888,7 @@ namespace OpenMS
       << row.accession.toCellString() << unit_id << row.description.toCellString()
       << row.taxid.toCellString() << row.species.toCellString() << row.database.toCellString() << row.database_version.toCellString()
       << row.search_engine.toCellString() << row.search_engine_score.toCellString() << row.reliability.toCellString()
-      << row.num_peptides.toCellString() << row.num_peptides_distinct.toCellString() << row.num_peptides_unambiguous.toCellString()
+      << row.num_peptides.toCellString() << row.num_peptides_distinct.toCellString() << row.num_peptides_unambiguous.toCellString() << row.ambiguity_members.toCellString()
       << row.modifications.toCellString() << row.uri.toCellString() << row.go_terms.toCellString() << row.protein_coverage.toCellString();
 
     // quantification columns
@@ -1019,7 +1023,7 @@ namespace OpenMS
     {
       header << String("smallmolecule_abundance_sub[") + String(i) + String("]")
           << String("smallmolecule_abundance_stdev_sub[") + String(i) + String("]")
-          << String("smallmolecule_std_error_sub[") + String(i) + String("]");
+          << String("smallmolecule_abundance_std_error_sub[") + String(i) + String("]");
     }
 
     // copy optional column names to header
@@ -1066,13 +1070,62 @@ namespace OpenMS
   void MzTabFile::store(const String & filename, const MzTab& mz_tab) const
   {
     TextFile out;
+
+    // standard says that these have to have the same number of subsections so just take from first one
+    Size protein_subsamples = 0;
+    const MzTabProteinSectionData& protein_section = mz_tab.getProteinSectionData(); 
+    if (!protein_section.empty())
+    {
+      const MzTabProteinSectionRows& protein_rows = protein_section.begin()->second;
+      if (!protein_rows.empty())
+      {
+        protein_subsamples = protein_rows[0].protein_abundance_sub.size();
+      }
+    }
+
+    // standard says that these have to have the same number of subsections so just take from first one
+    Size peptide_subsamples = 0;
+    const MzTabPeptideSectionData& peptide_section = mz_tab.getPeptideSectionData(); 
+    if (!peptide_section.empty())
+    {
+      const MzTabPeptideSectionRows& peptide_rows = peptide_section.begin()->second;
+      if (!peptide_rows.empty())
+      {
+        peptide_subsamples = peptide_rows[0].peptide_abundance_sub.size();
+      }
+    }
+   
+    // standard says that these have to have the same number of subsections so just take from first one
+    Size small_molecule_subsamples = 0;
+    const MzTabSmallMoleculeSectionData& small_molecule_section = mz_tab.getSmallMoleculeSectionData(); 
+    if (!small_molecule_section.empty())
+    {
+      const MzTabSmallMoleculeSectionRows& small_molecule_rows = small_molecule_section.begin()->second;
+      if (!small_molecule_rows.empty())
+      {
+        small_molecule_subsamples = small_molecule_rows[0].smallmolecule_abundance_sub.size();
+      }
+    }
+
     generateMzTabMetaDataSection_(mz_tab.getMetaData(), out);
-    out.push_back(generateMzTabProteinHeader_(0, mz_tab.getProteinOptionalColumnNames())); // TODO: determine sub cols
-    generateMzTabProteinSection_(mz_tab.getProteinSectionData(), out);
-    out.push_back(generateMzTabPeptideHeader_(0, mz_tab.getPeptideOptionalColumnNames())); // TODO: determine sub cols
-    generateMzTabPeptideSection_(mz_tab.getPeptideSectionData(), out);
-    out.push_back(generateMzTabSmallMoleculeHeader_(0, mz_tab.getSmallMoleculeOptionalColumnNames())); // TODO: determine sub cols
-    generateMzTabSmallMoleculeSection_(mz_tab.getSmallMoleculeSectionData(), out);
+
+    if (!protein_section.empty())
+    {
+      out.push_back(generateMzTabProteinHeader_(protein_subsamples, mz_tab.getProteinOptionalColumnNames()));
+      generateMzTabProteinSection_(mz_tab.getProteinSectionData(), out);
+    }
+
+    if (!peptide_section.empty())
+    {
+      out.push_back(generateMzTabPeptideHeader_(peptide_subsamples, mz_tab.getPeptideOptionalColumnNames()));
+      generateMzTabPeptideSection_(mz_tab.getPeptideSectionData(), out);
+    }
+
+    if (!small_molecule_section.empty())
+    {
+      out.push_back(generateMzTabSmallMoleculeHeader_(small_molecule_subsamples, mz_tab.getSmallMoleculeOptionalColumnNames()));
+      generateMzTabSmallMoleculeSection_(mz_tab.getSmallMoleculeSectionData(), out);
+    }
     out.store(filename);
   }
 

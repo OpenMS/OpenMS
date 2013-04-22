@@ -200,7 +200,7 @@ namespace OpenMS
         setInf();
       } else // default case
       {
-        value_ = s.toDouble();
+        set(lower.toDouble());
       }
     }
 
@@ -335,7 +335,7 @@ namespace OpenMS
         setInf();
       } else // default case
       {
-        value_ = s.toInt();
+        set(lower.toInt());
       }
     }
 
@@ -348,6 +348,7 @@ namespace OpenMS
   public:
     void set(const bool& value)
     {
+      setNull(false);
       value_ = value;
     }
 
@@ -384,10 +385,10 @@ namespace OpenMS
       {
         if (s == "0")
         {
-          value_ = false;
+          set(false);
         } else if (s == "1")
         {
-          value_ = true;
+          set(true);
         } else
         {
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") +s + "' to MzTabBoolean");
@@ -404,7 +405,15 @@ namespace OpenMS
   public:
     void set(const String& value)
     {
-      value_ = value;
+      String lower = value;
+      lower.toLower().trim();
+      if (lower == "null")
+      {
+        setNull(true);
+      } else
+      {
+        value_ = value;
+      }
     }
 
     String get() const
@@ -438,15 +447,7 @@ namespace OpenMS
 
     void fromCellString(const String& s)
     {
-      String lower = s;
-      lower.toLower().trim();
-      if (lower == "null")
-      {
-        setNull(true);
-      } else
-      {
-        value_ = s;
-      }
+      set(s);
     }
 
   protected:

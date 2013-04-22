@@ -61,12 +61,30 @@ START_SECTION(void load(const String& filename, MzTab& mzTab) )
 END_SECTION
 	
 START_SECTION(void store(const String& filename, MzTab& mzTab) )
-// save and reload mzTab
+        {
+        // save and reload mzTab
 	MzTab mzTab;
 	MzTab mzTab_reload;
 	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"), mzTab);
 	MzTabFile().store(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab_tmp"), mzTab);
 	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab_tmp"), mzTab_reload);
+        }
+        {
+        // save and reload mzTab
+	MzTab mzTab;
+	MzTab mzTab_reload;
+	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab"), mzTab);
+	MzTabFile().store(OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab_tmp"), mzTab);
+	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab_tmp"), mzTab_reload);
+        }
+        {
+        // save and reload mzTab
+	MzTab mzTab;
+	MzTab mzTab_reload;
+	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab"), mzTab);
+	MzTabFile().store(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab_tmp"), mzTab);
+	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab_tmp"), mzTab_reload);
+        }
 END_SECTION
 
 START_SECTION(~MzTabFile())
