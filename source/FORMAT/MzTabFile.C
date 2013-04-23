@@ -108,7 +108,12 @@ namespace OpenMS
 
         if (!has_sub_id) // UNIT_ID-SOMENAME no sub id
         {
-          if (meta_key_fields[1] == "title")
+          if (cells[1].hasPrefix("mzTab-version"))
+          {
+            // so far do nothing with the version information as there is only one version available
+            MzTabString version;
+	    version.fromCellString(cells[2]);	    
+          } else if (meta_key_fields[1] == "title")
           {
             mz_tab_metadata[unit_id].title.set(cells[2]);
           } else if (meta_key_fields[1] == "description")
@@ -1070,6 +1075,7 @@ namespace OpenMS
   void MzTabFile::store(const String & filename, const MzTab& mz_tab) const
   {
     TextFile out;
+    out.push_back("MTD\tmzTab-version\t1.0.0");
 
     // standard says that these have to have the same number of subsections so just take from first one
     Size protein_subsamples = 0;

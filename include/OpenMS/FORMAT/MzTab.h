@@ -110,10 +110,10 @@ namespace OpenMS
   {
   public:
     MzTabNullNaNAndInfAbleBase():
-      state_(MZTAB_CELLSTATE_NULL)
+        state_(MZTAB_CELLSTATE_NULL)
     {
     }
-        
+
     bool isNull() const
     {
       return (state_ == MZTAB_CELLSTATE_NULL);
@@ -173,15 +173,15 @@ namespace OpenMS
     {
       switch(state_)
       {
-        case MZTAB_CELLSTATE_NULL:
-          return String("null");
-        case MZTAB_CELLSTATE_NAN:
-          return String("NaN");
-        case MZTAB_CELLSTATE_INF:
-          return String("Inf");
-        case MZTAB_CELLSTATE_DEFAULT:
-        default:
-          return String(value_);
+      case MZTAB_CELLSTATE_NULL:
+        return String("null");
+      case MZTAB_CELLSTATE_NAN:
+        return String("NaN");
+      case MZTAB_CELLSTATE_INF:
+        return String("Inf");
+      case MZTAB_CELLSTATE_DEFAULT:
+      default:
+        return String(value_);
       }
     }
 
@@ -308,15 +308,15 @@ namespace OpenMS
     {
       switch(state_)
       {
-        case MZTAB_CELLSTATE_NULL:
-          return String("null");
-        case MZTAB_CELLSTATE_NAN:
-          return String("NaN");
-        case MZTAB_CELLSTATE_INF:
-          return String("Inf");
-        case MZTAB_CELLSTATE_DEFAULT:
-        default:
-          return String(value_);
+      case MZTAB_CELLSTATE_NULL:
+        return String("null");
+      case MZTAB_CELLSTATE_NAN:
+        return String("NaN");
+      case MZTAB_CELLSTATE_INF:
+        return String("Inf");
+      case MZTAB_CELLSTATE_DEFAULT:
+      default:
+        return String(value_);
       }
     }
 
@@ -527,7 +527,13 @@ namespace OpenMS
         String ret = "[";
         ret += CV_label_ + ",";
         ret += accession_ + ",";
-        ret += name_ + ",";
+        if (!name_.empty())
+        {
+          ret += String("\"") + name_ + String("\""); // always quote non empty name
+        }
+
+        ret += String(",");
+
         ret += value_;
         ret += "]";
         return ret;
@@ -544,22 +550,57 @@ namespace OpenMS
       } else
       {
         String ss = s;
-        std::vector<String> fields;
-        ss.split(",", fields);
-        if (fields.size() != 4)
+
+        // quotes (around name) so possibly a comma inside the CV name.
+        if (s.hasSubstring("\""))
         {
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
-        } else
+          std::vector<String> quoted_fields;
+          ss.split("\"", quoted_fields);
+
+          if (quoted_fields.size() != 3)
+          {
+            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert quoted fields in '") + s + "' to MzTabParameter");
+          }
+
+          name_ = quoted_fields[1];
+          ss.substitute(String("\"") + name_ + String("\""), ""); // remove CV name that possibly contains comma
+
+          std::vector<String> comma_fields;
+          ss.split(",", comma_fields);
+          if (comma_fields.size() != 4)
+          {
+            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
+          } else
+          {
+
+            comma_fields[0].remove('[');
+            comma_fields[3].remove(']');
+            CV_label_ = comma_fields[0];
+            accession_ = comma_fields[1];
+            value_ = comma_fields[3];
+          }
+        }
+        else // no quotes (around name) => no extra comma expected
         {
-	  fields[0].remove('[');
-	  fields[3].remove(']');
-          CV_label_ = fields[0];
-          accession_ = fields[1];
-          name_ = fields[2];
-          value_ = fields[3];
+          std::vector<String> fields;
+          ss.split(",", fields);
+          if (fields.size() != 4)
+          {
+            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
+          } else
+          {
+
+            fields[0].remove('[');
+            fields[3].remove(']');
+            CV_label_ = fields[0];
+            accession_ = fields[1];
+            name_ = fields[2].remove('"');
+            value_ = fields[3];
+          }
         }
       }
     }
+
 
   protected:
     String CV_label_;
@@ -1069,7 +1110,7 @@ namespace OpenMS
   // all meta data belonging to one unit id
   struct MzTabUnitIdMetaData
   {
-    //String unit_id; // the unit id not null able!
+    // version string is not explicitly modelled but written at top
     MzTabString title; // 0..1 The unit’s title
     MzTabString description; // 0..1
     std::vector<MzTabParameterList> sample_processing; // 0..* Description of the sample processing.
@@ -1078,7 +1119,7 @@ namespace OpenMS
     std::vector<MzTabParameter> instrument_analyzer; // 0..* The instrument’s analyzer
     std::vector<MzTabParameter> instrument_detector; // 0..* The instrument’s detector
     std::vector<MzTabParameter> software; // 0..* Analysis software used in the order it was used.
-    std::vector<std::vector<String> > software_setting; // 0..* A sotware setting used. This field MAY occur multiple times for a single software (=same index). 
+    std::vector<std::vector<String> > software_setting; // 0..* A sotware setting used. This field MAY occur multiple times for a single software (=same index).
     MzTabParameterList false_discovery_rate; // 0..1 False discovery rate(s)for the experiment.
     std::vector<MzTabStringList> publication; // 0..* Publication ids (pubmed / doi).
     std::vector<MzTabString> contact_name; // 0..* Contact name.
@@ -1097,7 +1138,7 @@ namespace OpenMS
     std::vector<MzTabSubIdMetaData> sub_id_data; // can contain none, one or multiple sub ids
 
     // Units: The format of the value has to be {column name}={Parameter defining the unit}
-    // This field MUST NOT be used to define a unit for quantification columns. 
+    // This field MUST NOT be used to define a unit for quantification columns.
     std::vector<String> colunit_protein; // 0..* Defines the used unit for a column in the protein section.
     std::vector<String> colunit_peptide; // 0..* Defines the used unit for a column in the peptide section.
     std::vector<String> colunit_small_molecule; // 0..* Defines the used unit for a column in the small molecule section.
@@ -1258,26 +1299,26 @@ namespace OpenMS
     {
       map_unitid_to_small_molecule_data_ = smsd;
     }
-    
-    std::vector<String> getProteinOptionalColumnNames() const    
+
+    std::vector<String> getProteinOptionalColumnNames() const
     {
-     std::vector<String> names;
-     // TODO: determine optional column names
-     return names; 
+      std::vector<String> names;
+      // TODO: determine optional column names
+      return names;
     }
 
-    std::vector<String> getPeptideOptionalColumnNames() const    
+    std::vector<String> getPeptideOptionalColumnNames() const
     {
-     std::vector<String> names;
-     // TODO: determine optional column names
-     return names; 
+      std::vector<String> names;
+      // TODO: determine optional column names
+      return names;
     }
 
-    std::vector<String> getSmallMoleculeOptionalColumnNames() const    
+    std::vector<String> getSmallMoleculeOptionalColumnNames() const
     {
-     std::vector<String> names;
-     // TODO: determine optional column names
-     return names; 
+      std::vector<String> names;
+      // TODO: determine optional column names
+      return names;
     }
 
 
