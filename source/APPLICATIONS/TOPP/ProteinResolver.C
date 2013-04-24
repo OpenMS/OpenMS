@@ -79,8 +79,19 @@ using namespace OpenMS;
 
   @experimental This tool has not been tested thoroughly and might behave not as expected!
 
-  This application is used to... For further information see
-  Meyer-Arendt et al. IsoformResolver: A Peptide-Centric Algorithm for Protein Inference (2011)
+  This tool is an imlementation of
+  <p>
+  Meyer-Arendt K, Old WM, et al. (2011)<br>
+  IsoformResolver: A peptide-centric algorithm for protein inference<br>
+  Journal of Proteome Research 10 (7): 3060-75,  DOI: 10.1021/pr200039p
+  </p>
+
+  The algorithm tries to assign to each protein its experimentally validated peptide.
+  Proteins are grouped into ISD groups(in-silico derived) and MSD groups(MS/MS derived)
+  if they have in-silico derived or MS/MS derived peptides in common. Proteins and peptides span a bipartite graph.
+  There is an edge between a protein node and a peptide node if and only if the protein contains the peptide.
+  ISD groups are connected graphs in the forementionend bipartite graph. MSD groups are subgraphs of ISD groups.
+  For further information see above paper.
 
   <p><b>Remark:</b>
   If one single input file (through @p in) is provided, the parameters @p in_list and @p in_path are ignored.
@@ -92,7 +103,7 @@ using namespace OpenMS;
 
   <B>Input</B>
 
-Since the ProteinResolver offers three different input parameters, there are some possibilites how to use this TOPP tool.
+  Since the ProteinResolver offers three different input parameters, there are some possibilites how to use this TOPP tool.
   <dl>
       <dt>One single input file (@p in)</dt>
       <dd>The ProteinResolver simply performs the protein inference based on the above mentioned algortihm of Meyer-Arendt et al. (2011) for that specific file.</dd>
@@ -114,7 +125,7 @@ Since the ProteinResolver offers three different input parameters, there are som
 
     <dl>
          <dt>Protein groups</dt>
-         <dd>For each MSD group, the ISD group, the protein indices, the peptide indeces, the number of peptides in MSD group, the number
+         <dd>For each MSD group, the ISD group, the protein indices, the peptide indices, the number of peptides in MSD group, the number
               of proteins in ISD and the number of proteins in ISD are written to the output file</dd>
         <dt>Protein table</dt>
         <dd>The resulting text file contains one protein per line<dd>
@@ -135,7 +146,7 @@ Since the ProteinResolver offers three different input parameters, there are som
   <p>
     The text file has to be column-based and must contain only one additional line as header.
     The header must specify two specific columns that represents the file name and an identifier for the experimental setup.
-    These two header identifier can be defined as parameter and must be unique (default: "File" and "ExperimentalSetting").
+    These two header identifiers can be defined as parameter and must be unique (default: "File" and "ExperimentalSetting").
     There are four options how the columns can be separated: tabulator, comma, semi-colon and whitespace.
 
     <i>Example for text file format:</i>
@@ -197,11 +208,6 @@ Since the ProteinResolver offers three different input parameters, there are som
 /// @cond TOPPCLASSES
 
 /*
-The algorithm tries to assign to each Protein its experimantally validated peptide.
-Proteins are grouped into ISD groups(in silco derived) and MSD groups(MS/MS derived)
-if they have in silco derived or MS/MS derived peptides in common. Proteins and peptides span a bipartite graph.
-There is an edge between a protein node and a peptide node iff the protein contains the peptide.
-ISD groups are connected graphs in the forementionend bipartite graph. MSD groups are subgraphs of ISD groups.
 At the moment pointers are used a lot which might be wise to change for reasons of safety.
 */
 
