@@ -62,7 +62,7 @@ using namespace OpenMS;
   @page TOPP_ProteinResolver ProteinResolver
 
 
-  @brief A peptide-centric algorithm for Protein Inference.
+  @brief A peptide-centric algorithm for protein inference.
 <CENTER>
   <table>
     <tr>
@@ -71,8 +71,8 @@ using namespace OpenMS;
       <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
     </tr>
     <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinResolver</td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> (external) </td>
     </tr>
   </table>
 </CENTER>
@@ -86,7 +86,8 @@ using namespace OpenMS;
   Journal of Proteome Research 10 (7): 3060-75,  DOI: 10.1021/pr200039p
   </p>
 
-  The algorithm tries to assign to each protein its experimentally validated peptide.
+  The algorithm tries to assign to each protein its experimentally validated peptide (meaning you should supply peptides with
+  have undergone FDR filtering or alike).
   Proteins are grouped into ISD groups(in-silico derived) and MSD groups(MS/MS derived)
   if they have in-silico derived or MS/MS derived peptides in common. Proteins and peptides span a bipartite graph.
   There is an edge between a protein node and a peptide node if and only if the protein contains the peptide.
