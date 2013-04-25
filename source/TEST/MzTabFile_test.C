@@ -84,6 +84,13 @@ START_SECTION(void store(const String& filename, MzTab& mzTab) )
 	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab"), mzTab);
 	MzTabFile().store(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab_tmp"), mzTab);
 	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab_tmp"), mzTab_reload);
+	}
+	{
+	MzTab mzTab;
+	MzTab mzTab_reload;
+	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab"), mzTab);
+	MzTabFile().store(OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab_tmp"), mzTab);
+	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab_tmp"), mzTab_reload);
         }
 END_SECTION
 

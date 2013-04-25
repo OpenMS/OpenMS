@@ -1300,24 +1300,63 @@ namespace OpenMS
       map_unitid_to_small_molecule_data_ = smsd;
     }
 
+    // Extract opt_ (custom, optional column names. Note: opt_ column names must be the same for all unitids so just take from first
     std::vector<String> getProteinOptionalColumnNames() const
     {
-      std::vector<String> names;
-      // TODO: determine optional column names
+        std::vector<String> names;
+        const MzTabProteinSectionData& protein_section = map_unitid_to_protein_data_;
+        if (!protein_section.empty())
+        {
+          const MzTabProteinSectionRows& protein_rows = protein_section.begin()->second;
+          if (!protein_rows.empty())
+          {
+            const std::vector<MzTabOptionalColumnEntry>& opt_ = protein_rows[0].opt_;
+            for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
+            {
+              names.push_back(it->first);
+            }
+          }
+        }
       return names;
     }
 
+    // Extract opt_ (custom, optional column names. Note: opt_ column names must be the same for all unitids so just take from first
     std::vector<String> getPeptideOptionalColumnNames() const
     {
-      std::vector<String> names;
-      // TODO: determine optional column names
+        std::vector<String> names;
+        const MzTabPeptideSectionData& peptide_section = map_unitid_to_peptide_data_;
+        if (!peptide_section.empty())
+        {
+          const MzTabPeptideSectionRows& peptide_rows = peptide_section.begin()->second;
+          if (!peptide_rows.empty())
+          {
+            const std::vector<MzTabOptionalColumnEntry>& opt_ = peptide_rows[0].opt_;
+            for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
+            {
+              names.push_back(it->first);
+            }
+          }
+        }
       return names;
     }
 
+    // Extract opt_ (custom, optional column names. Note: opt_ column names must be the same for all unitids so just take from first
     std::vector<String> getSmallMoleculeOptionalColumnNames() const
     {
-      std::vector<String> names;
-      // TODO: determine optional column names
+        std::vector<String> names;
+        const MzTabSmallMoleculeSectionData& small_molecule_section = map_unitid_to_small_molecule_data_;
+        if (!small_molecule_section.empty())
+        {
+          const MzTabSmallMoleculeSectionRows& small_molecule_rows = small_molecule_section.begin()->second;
+          if (!small_molecule_rows.empty())
+          {
+            const std::vector<MzTabOptionalColumnEntry>& opt_ = small_molecule_rows[0].opt_;
+            for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
+            {
+              names.push_back(it->first);
+            }
+          }
+        }
       return names;
     }
 
