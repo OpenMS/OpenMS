@@ -217,9 +217,7 @@ protected:
     setMinInt_("min_charge", 1);
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (fixed modifications from SearchParameters will be ignored).", false);
 
-    registerFlag_("unique", "If a peptide hit occurs more than once, only one instance is kept. This will (for instance) remove "
-                            "redundant identifications from multiple charge states or concurrent CID+HCD spectra."
-                            "If you are aiming towards quantitation, you probably do *not* want to use this flag!");
+    registerFlag_("unique", "If a peptide hit occurs more than once per PSM, only one instance is kept.");
     registerFlag_("unique_per_protein", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the idXML.");
 

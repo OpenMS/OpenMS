@@ -246,7 +246,7 @@ public:
     /// only protein hits in 'identification' which are referenced by a peptide in 'peptide_identifications' are kept
     void removeUnreferencedProteinHits(const ProteinIdentification& identification, const std::vector<PeptideIdentification> peptide_identifications, ProteinIdentification& filtered_identification);
 
-    /// if a peptide hit occurs more than once, only one instance is kept
+    /// if a peptide hit occurs more than once per PSM, only one instance is kept
     void filterIdentificationsUnique(const PeptideIdentification& identification, PeptideIdentification& filtered_identification);
 
     /// filter identifications by deviation to the theoretical mass
