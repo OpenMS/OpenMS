@@ -20,7 +20,7 @@ PEP	IQLVEEELDR	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:10
 PEP	IQLVEEELDRAQER	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",35]	null	null	null	null	null	null	null	1	null	null	0.5678	0.05	null	0.34	1	null					
 PEP	KLVILEGELER	IPI00010779	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",46]	null	null	null	null	null	null	null	1	null	null	2.3456	0.12	null	0.54	2	0.4					
 PEP	KQAEDRCK	IPI00513698	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",100]	null	null	null	null	null	null	null	1	null	null	0.3456	0.34	null	null	3	0.6					
-PEP	LATALQK	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",120]	null	null	null	null	null	null	null	1	null	null	5.6789	1.2	null	0.234	4	null					
+PEP	LATALQK	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",120]	null	3|4|5-MOD:00016,2|7-MOD:00032	null	null	null	null	null	1	null	null	5.6789	1.2	null	0.234	4	null					
 PEP	LATALQKLEEAEK	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",30]	null	null	null	null	null	null	null	1	null	null	1.2345	0.123	null	null	5	0.6					
 PEP	LEEAEKAADESER	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",35]	null	null	null	null	null	null	null	1	null	null	0.5678	0.05	null	0.234	6	0.4					
 PEP	LVILEGELER	IPI00010779	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",46]	null	null	null	null	null	null	null	1	null	null	2.3456	0.12	null	null	7	0.3					
@@ -29,7 +29,7 @@ PEP	RIQLVEEELDRAQER	IPI00218319	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,
 PEP	GADPGMPEPTVLSLLWG	IPI00000980	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",30]	null	null	null	null	null	null	null	1	null	null	1.2345	0.123	null	0.34	10	0.6					
 PEP	GFGYGQGAGALVHAQ	IPI00002824	file_1	0	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",35]	null	null	null	null	null	null	null	1	null	null	0.5678	0.05	null	null	11	0.4					
 PEP	GMHMPTSPTFLEGNTVV	IPI00003501	file_1	1	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",46]	null	null	null	null	null	null	null	1	null	null	2.3456	0.12	null	0.43	0	0.5					
-PEP	TYASGYAHYEEQEN	IPI00004942	file_1	1	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",100]	null	null	null	null	null	null	null	1	null	null	0.3456	0.34	null	0	13	0.4					
+PEP	TYASGYAHYEEQEN	IPI00004942	file_1	1	IPI	3,11	[MS,MS:1001207,"Mascot",]	[MS,MS:1001171,"Mascot:score",100]	null	3|4[MS,MS:1234,"localization probability score",0.4]|5[MS,MS:1234,"localization probability score",0.6]-MOD:00016,2|7-MOD:0003	null	null	null	null	null	1	null	null	0.3456	0.34	null	0	13	0.4					
 																													
 SMH	identifier	unit_id	chemical_formula	smiles	inchi_key	description	mass_to_charge	charge	retention_time	taxid	species	database	database_version	reliability	uri	spectra_ref	search_engine	search_engine_score	modifications	smallmolecule_abundance_sub[1]	smallmolecule_abundance_stdev_sub[1]	smallmolecule_abundance_std_error_sub[1]	smallmolecule_abundance_sub[2]	smallmolecule_abundance_stdev_sub[2]	smallmolecule_abundance_std_error_sub[2]	opt_1	opt_2	opt_3	opt_4
 SML	ID_1	file_1	null	null	null	null	254.4	2	20.7	9606	Homo sapiens (Human)	null	null	2	null	null	[,,"SpectraSt",]	null	null	null	null	null	null	null	null	null	1	-23	null

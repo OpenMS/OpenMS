@@ -774,58 +774,41 @@ namespace OpenMS
   struct MzTabModification : public MzTabNullAbleInterface
   {
   public:
-    MzTabModification():
-        position_(-1),
-        reliability_score_(-1)
-    {
-    }
 
     bool isNull() const
     {
-      return ((position_ == -1) && (reliability_score_ == -1) && (mod_identifier_.empty()));
+      return (pos_param_pairs_.empty() && mod_or_subst_identifier_.isNull());
     }
 
     void setNull(bool b)
     {
       if (b)
       {
-        position_ = -1;
-        reliability_score_ = -1;
-        mod_identifier_.clear();
+        pos_param_pairs_.clear();
+        mod_or_subst_identifier_.setNull(true);
       }
     }
 
-    void setPosition(Int index)
+    // set (potentially ambigous) position(s) with associated parameter (might be null if not set)
+    void setPositionsAndParameters(const std::vector<std::pair<Int, MzTabParameter> >& ppp)
     {
-      position_ = index;
+      pos_param_pairs_ = ppp;
     }
 
-    void setReliabilityScore(DoubleReal score)
+    std::vector<std::pair<Int, MzTabParameter> > getPositionsAndParameters() const
     {
-      reliability_score_ = score;
+      return pos_param_pairs_;
     }
 
-    void setModIdentifier(String mod_id)
+    void setModOrSubstIdentifier(const MzTabString& mod_id)
     {
-      mod_identifier_ = mod_id;
+      mod_or_subst_identifier_ = mod_id;
     }
 
-    Int getPosition() const
+    MzTabString getModOrSubstIdentifier() const
     {
       assert(!isNull());
-      return position_;
-    }
-
-    DoubleReal getReliabilityScore() const
-    {
-      assert(!isNull());
-      return reliability_score_;
-    }
-
-    String getModIdentifier() const
-    {
-      assert(!isNull());
-      return mod_identifier_;
+      return mod_or_subst_identifier_;
     }
 
     String toCellString() const
@@ -835,25 +818,39 @@ namespace OpenMS
         return String("null");
       } else
       {
-        String position_string;
-        if (position_  >= 0)
-        {
-          position_string = String(position_);
-        }
+        String pos_param_string;
 
-        String reliablility_string;
-        if (reliability_score_  >= -1e-10)
+        for (Size i = 0; i != pos_param_pairs_.size(); ++i)
         {
-          reliablility_string = String("[") + String(reliability_score_) + String("]");
+          pos_param_string += pos_param_pairs_[i].first;
+
+          // attach MzTabParameter if available
+          if (!pos_param_pairs_[i].second.isNull())
+          {
+            pos_param_string += pos_param_pairs_[i].second.toCellString();
+          }
+
+          // add | as separator (exept for last one)
+          if (i < pos_param_pairs_.size() - 1)
+          {
+              pos_param_string += String("|");
+          }
+        }
+        
+	// quick sanity check
+	if (mod_or_subst_identifier_.isNull())
+        {
+          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Modification or Substitution identifier MUST NOT be null or empty in MzTabModification"));
         }
 
         String res;
-        if (!(position_string.empty() && reliablility_string.empty()))
+        // only add '-' if we have position information
+        if (!pos_param_string.empty())
         {
-          res = position_string + reliablility_string + "-" + mod_identifier_;
+          res = pos_param_string + "-" + mod_or_subst_identifier_.toCellString();
         } else
         {
-          res = mod_identifier_;
+          res = mod_or_subst_identifier_.toCellString();
         }
         return res;
       }
@@ -868,14 +865,13 @@ namespace OpenMS
         setNull(true);
       } else
       {
-        if (!s.hasSubstring("-"))  // no position or reliability fields? simply use s as mod identifier
+        if (!lower.hasSubstring("-"))  // no positions? simply use s as mod identifier
         {
-          position_ = -1;
-          reliability_score_ = -1;
-          mod_identifier_ = s;
+          mod_or_subst_identifier_.set(String(s).trim());
         } else
         {
           String ss = s;
+          ss.trim();
           std::vector<String> fields;
           ss.split("-", fields);
 
@@ -883,32 +879,27 @@ namespace OpenMS
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Can't convert to MzTabModification from '") + s);
           }
-          mod_identifier_ = fields[1];
+          mod_or_subst_identifier_.fromCellString(fields[1].trim());
 
-          Size spos = fields[0].find_first_of("[");
-          if (spos == std::string::npos)  // only position information
+          std::vector<String> position_fields;
+          fields[0].split("|", position_fields);
+
+          for (Size i = 0; i != position_fields.size(); ++i)
           {
-            position_ = fields[0].toInt();
-          } else
-          {
-            String pos_string(fields[0].begin(), fields[0].begin() + spos);
-            String rel_string(fields[0].begin() + spos, fields[0].end());
+            Size spos = position_fields[i].find_first_of("[");
 
-            if (pos_string.empty())
+            if (spos == std::string::npos)  // only position information and no parameter
             {
-              position_ = -1;
+              pos_param_pairs_.push_back(std::make_pair(position_fields[i].toInt(), MzTabParameter()));
             } else
-            {
-              position_ = pos_string.toInt();
-            }
+            {                
+                // extract position part
+                Int pos = String(position_fields[i].begin(), position_fields[i].begin() + spos).toInt();
 
-            if (rel_string.empty())
-            {
-              reliability_score_ = -1;
-            } else
-            {
-              rel_string.remove('[').remove(']');
-              reliability_score_ = rel_string.toDouble();
+                // extract [,,,] part
+                MzTabParameter param;
+                param.fromCellString(position_fields[i].substr(spos));
+                pos_param_pairs_.push_back(std::make_pair(pos, param));
             }
           }
         }
@@ -916,9 +907,8 @@ namespace OpenMS
     }
 
   protected:
-    Int position_;
-    DoubleReal reliability_score_;
-    String mod_identifier_;
+    std::vector<std::pair<Int, MzTabParameter> > pos_param_pairs_;
+    MzTabString mod_or_subst_identifier_;
   };
 
   class MzTabModificationList : public MzTabNullAbleBase
@@ -968,12 +958,69 @@ namespace OpenMS
       {
         String ss = s;
         std::vector<String> fields;
-        ss.split(",", fields);
-        for (Size i = 0; i != fields.size(); ++i)
+
+        if (!ss.hasSubstring("[")) // no parameters
+	{
+          ss.split(",", fields);
+          for (Size i = 0; i != fields.size(); ++i)
+          {
+            MzTabModification ms;
+            ms.fromCellString(fields[i]);
+            entries_.push_back(ms);
+          }
+	} else
         {
-          MzTabModification ms;
-          ms.fromCellString(fields[i]);
-          entries_.push_back(ms);
+	  // example string: 3|4[a,b,,v]|8[,,"blabla, [bla]",v],1|2|3[a,b,,v]-mod:123 
+	  // we don't want to split at the , inside of [ ]  MzTabParameter brackets.
+	  // Additionally,  and we don't want to recognise quoted brackets inside the MzTabParameter where they can occur in quoted text (see example string)
+	  bool in_param_bracket = false;
+	  bool in_quotes = false;
+
+          for (Size pos = 0; pos != ss.size(); ++pos)
+	  {
+	    // param_bracket state
+	    if (ss[pos] == '[' && !in_quotes)
+	    {
+	      in_param_bracket = true;
+	      continue;
+	    }
+
+	    if (ss[pos] == ']' && !in_quotes)
+	    {
+	      in_param_bracket = false;
+	      continue;
+	    }
+
+	    // quote state
+	    if (ss[pos] == '\"')
+	    {
+	      in_quotes = !in_quotes;
+	      continue;
+	    }
+
+            // comma in param bracket
+	    if (ss[pos] == ',' && !in_quotes && in_param_bracket)
+	    {
+	      ss[pos] = ((char)007);  // use ASCII bell as temporary separator
+	      continue;
+	    }
+          }
+
+	  // now the split at comma is save
+          ss.split(",", fields);
+          /*
+          for (Size i = 0; i != fields.size(); ++i)
+          {
+	    std::cout << "Modification list field[" + String(i) + "]=" << fields[i] << std::endl;
+	  }
+          */
+          for (Size i = 0; i != fields.size(); ++i)
+          {
+	    fields[i].substitute(((char)007), ',');  // resubstitute comma after split
+            MzTabModification ms;
+            ms.fromCellString(fields[i]);
+            entries_.push_back(ms);
+          }
         }
       }
     }
