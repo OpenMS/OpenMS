@@ -485,6 +485,46 @@ DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace&
     return mz_score;
 }
 
+DoubleReal FeatureFindingMetabo::scoreMZ2_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+{
+    DoubleReal mu((1.003355*(DoubleReal)iso_pos)/(DoubleReal)charge);
+    DoubleReal sd(0.01/(DoubleReal)charge);
+
+    DoubleReal mz1(tr1.getCentroidMZ());
+    DoubleReal mz2(tr2.getCentroidMZ());
+
+    // DoubleReal centered_mz(std::fabs(mz2 - mz1) - mu);
+    DoubleReal diff_mz(std::fabs(mz2 - mz1));
+
+    DoubleReal mt_sigma1(tr1.getCentroidSD());
+    DoubleReal mt_sigma2(tr2.getCentroidSD());
+    // DoubleReal mt_variances1(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
+    DoubleReal mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
+    // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
+
+    // DoubleReal score_sigma_old(std::sqrt(sd*sd + mt_variances));
+
+    DoubleReal score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
+
+    // std::cout << std::setprecision(15) << "old " << score_sigma_old << " new " << score_sigma << std::endl;
+
+    DoubleReal sigma_mult(3.0);
+
+    DoubleReal mz_score(0.0);
+
+
+    if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
+    {
+        DoubleReal tmp_exponent((diff_mz - mu) / score_sigma);
+        mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
+
+    }
+
+    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
+
+    return mz_score;
+}
+
 
 //DoubleReal FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
 //{
@@ -716,8 +756,8 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
                 // std::cout << "scoring " << candidates[0]->getLabel() << " " << candidates[0]->getCentroidMZ() << " with " << candidates[mt_idx]->getLabel() << " " << candidates[mt_idx]->getCentroidMZ() << std::endl;
                 DoubleReal rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
 
-                //DoubleReal mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
                 DoubleReal mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
+                // DoubleReal mz_score(scoreMZsimple_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
 
                 // disable intensity scoring for now...
                 DoubleReal int_score(1.0);

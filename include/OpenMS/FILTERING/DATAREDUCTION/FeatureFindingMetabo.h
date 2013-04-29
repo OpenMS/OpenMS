@@ -259,6 +259,7 @@ private:
     DoubleReal total_intensity_;
 
     DoubleReal scoreMZ_(const MassTrace &, const MassTrace &, Size, Size);
+    DoubleReal scoreMZ2_(const MassTrace &, const MassTrace &, Size, Size);
     DoubleReal scoreRT_(const MassTrace &, const MassTrace &);
 
     DoubleReal computeAveragineSimScore_(const std::vector<DoubleReal> &, const DoubleReal &);
