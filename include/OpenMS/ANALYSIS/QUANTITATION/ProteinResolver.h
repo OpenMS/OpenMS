@@ -237,10 +237,10 @@ public:
     const  std::vector<ResolverResult> & getResults();
 
     //overloaded functions -- return a const reference to a PeptideIdentification object or a peptideHit either from a consensusMap or a vector<PeptideIdentification>
-    const PeptideIdentification & getPeptideIdentification(const ConsensusMap & consensus, const PeptideEntry * peptide);
-    const PeptideHit & getPeptideHit(const ConsensusMap & consensus, const PeptideEntry * peptide);
-    const PeptideIdentification & getPeptideIdentification(const std::vector<PeptideIdentification> & peptide_nodes, const PeptideEntry * peptide);
-    const PeptideHit & getPeptideHit(const std::vector<PeptideIdentification> & peptide_nodes, const PeptideEntry * peptide);
+    static const PeptideIdentification & getPeptideIdentification(const ConsensusMap & consensus, const PeptideEntry * peptide);
+    static const PeptideHit & getPeptideHit(const ConsensusMap & consensus, const PeptideEntry * peptide);
+    static const PeptideIdentification & getPeptideIdentification(const std::vector<PeptideIdentification> & peptide_nodes, const PeptideEntry * peptide);
+    static const PeptideHit & getPeptideHit(const std::vector<PeptideIdentification> & peptide_nodes, const PeptideEntry * peptide);
 
 private:
 

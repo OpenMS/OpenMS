@@ -95,8 +95,7 @@ using namespace OpenMS;
   For further information see above paper.
 
   <p><b>Remark:</b>
-  If one single input file (through @p in) is provided, the parameters @p in_list and @p in_path are ignored.
-  If parameter @p in_list is given, @p in_path is ignored. Parameter @p in_path is only considered, if @p in_list and @p in are empty.
+  If parameter @p in is given, @p in_path is ignored. Parameter @p in_path is considered only, if @p in is empty.
   </p>
 
   <B>The command line parameters of this tool are:</B>
@@ -104,12 +103,12 @@ using namespace OpenMS;
 
   <B>Input</B>
 
-  Since the ProteinResolver offers three different input parameters, there are some possibilites how to use this TOPP tool.
+  Since the ProteinResolver offers two different input parameters, there are some possibilites how to use this TOPP tool.
   <dl>
       <dt>One single input file (@p in)</dt>
       <dd>The ProteinResolver simply performs the protein inference based on the above mentioned algortihm of Meyer-Arendt et al. (2011) for that specific file.</dd>
 
-      <dt>Multiple files (@p in_list or @p in_path)</dt>
+      <dt>Multiple files (@p in or @p in_path)</dt>
       <dd>
         <ol>
           <li>If no experimental design file is given, all files are treated as in batch processing.</li>
@@ -156,8 +155,8 @@ using namespace OpenMS;
         <table>
           <tr>
             <td ALIGN="center" BGCOLOR="#EBEBEB">Slice</td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB">FileName</td>
-            <td ALIGN="center" BGCOLOR="#EBEBEB">Experiment</td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB">File</td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB">ExperimentalSetting</td>
           </tr>
           <tr>
             <td ALIGN="center">1</td>
@@ -182,7 +181,9 @@ using namespace OpenMS;
         </table>
       </CENTER>
 
-      In this case the default values of the parameters "experiment" and "file" have to be changed to "Experiment", respectively "FileName".
+      In this case the values of the parameters "experiment" and "file" which are by default set to "ExperimentalSetting" and "File", respectively, are ok.
+      If you use other column headers you need to change these parameters.
+
       The separator should be changed if the file is not tab separated.
       Every other column (here: first column) is just ignored. Not every file mentioned in the design file has to be given as input file;
       and every input file that has no match in the design file is ignored for the computation.<br />
@@ -234,24 +235,21 @@ protected:
     registerInputFile_("fasta", "<file>", "", "Input database file", true, false);
     setValidFormats_("fasta", StringList::create("fasta"));
 
-    registerInputFile_("in", "<file>", "", "Input file holding experimental data", false, false);
+    registerInputFileList_("in", "<file(s)>", StringList(), "Input file(s) holding experimental data", false, false);
     setValidFormats_("in", StringList::create("idXML,consensusXML"));
 
-    registerInputFileList_("in_list", "<files>", StringList(), "Input files holding the experimental data. Ignored if parameter 'in' is given", false, false);
-    setValidFormats_("in_list", StringList::create("idXML,consensusXML"));
-
-    registerStringOption_("in_path", "<file>", "", "Path to idXMLs or consensusXMLs files. Ignored if either 'in' or 'in_list' is given.", false, false);
+    registerStringOption_("in_path", "<file>", "", "Path to idXMLs or consensusXMLs files. Ignored if 'in' is given.", false, false);
 
     registerInputFile_("design", "<file>", "", "Text file containing the experimental design. See documentation for specific format requirements", false, false);
     setValidFormats_("design", StringList::create("txt"));
 
-    registerOutputFile_("protein_groups", "<file>", "", "output file. Contains all protein groups");
+    registerOutputFile_("protein_groups", "<file>", "", "output file. Contains all protein groups", false);
     setValidFormats_("protein_groups", StringList::create("csv"));
 
-    registerOutputFile_("peptide_table", "<file>", "", "output file. Contains one peptide per line and all proteins which contain that peptide");
+    registerOutputFile_("peptide_table", "<file>", "", "output file. Contains one peptide per line and all proteins which contain that peptide", false);
     setValidFormats_("peptide_table", StringList::create("csv"));
 
-    registerOutputFile_("protein_table", "<file>", "", "output file. Contains one protein per line");
+    registerOutputFile_("protein_table", "<file>", "", "output file. Contains one protein per line", false);
     setValidFormats_("protein_table", StringList::create("csv"));
 
     registerOutputFile_("additional_info", "<file>", "", "output file for additional info", false, true);
@@ -322,8 +320,7 @@ protected:
   {
     out << "MSD_group" << "ISD_group" << "Protein_indices" << "Protein_ID" << "Peptide_sequence" << "Var_mods" << "Peptide_MW" << "Score" << "Charge" << "RT" << "MZ" << endl;
 
-    UInt counter = result.size();
-    for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter, --counter)
+    for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter)
     {
       const ProteinResolver::ResolverResult& res = *iter;
       const vector<Size>* reindexed_peptides = res.reindexed_peptides;
@@ -355,8 +352,14 @@ protected:
         if (res.input_type == ProteinResolver::ResolverResult::PeptideIdent)
         {
           const vector<PeptideIdentification>& identifications =  *res.peptide_identification;
-          const PeptideIdentification& pi = ProteinResolver().getPeptideIdentification(identifications, peptide_entry);
-          const PeptideHit& ph = ProteinResolver().getPeptideHit(identifications, peptide_entry);
+          const PeptideIdentification& pi = ProteinResolver::getPeptideIdentification(identifications, peptide_entry);
+          if (pi.getHits().size() == 0)
+          {
+            // this should not happen...
+            std::cerr << "PeptideEntry " << peptide_entry->sequence << " from " << peptide_entry->origin << " with  " << peptide_entry->intensity << " has no hits!\n";
+            exit(1);
+          }
+          const PeptideHit& ph = ProteinResolver::getPeptideHit(identifications, peptide_entry);
           const AASequence& seq = ph.getSequence();
           out << seq.toUnmodifiedString();
           //var mods TODO
@@ -376,8 +379,8 @@ protected:
         else
         {
           const ConsensusMap& consensus = *res.consensus_map;
-          const PeptideIdentification& pi = ProteinResolver().getPeptideIdentification(consensus, peptide_entry);
-          const PeptideHit& ph = ProteinResolver().getPeptideHit(consensus, peptide_entry);
+          const PeptideIdentification& pi = ProteinResolver::getPeptideIdentification(consensus, peptide_entry);
+          const PeptideHit& ph = ProteinResolver::getPeptideHit(consensus, peptide_entry);
           const AASequence& seq = ph.getSequence();
           out << seq.toUnmodifiedString();
           //var mods TODO
@@ -402,8 +405,7 @@ protected:
   {
     out << "MSD_group" << "ISD_group" << "Peptide_indices" << "Protein_index" << "Protein_ID" << "#Peptides_per_Protein" << "Prot_MW" << "Coverage" << endl;
 
-    UInt counter = 0;
-    for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter, ++counter)
+    for (vector<ProteinResolver::ResolverResult>::const_iterator iter = result.begin(); iter != result.end(); ++iter)
     {
       const ProteinResolver::ResolverResult& res = *iter;
       const vector<Size>* reindexed_proteins = res.reindexed_proteins;
@@ -495,8 +497,7 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
     String fastafile_name = getStringOption_("fasta");
-    String input = getStringOption_("in");
-    StringList input_list = getStringList_("in_list");
+    StringList input_list = getStringList_("in");
     String input_path = getStringOption_("in_path");
 
     String design = getStringOption_("design");
@@ -508,7 +509,7 @@ protected:
     //-------------------------------------------------------------
     // check input parameters
     //-------------------------------------------------------------
-    if (input.empty() && input_list.empty() && input_path.empty())
+    if (input_list.empty() && input_path.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                         "All input options are empty.");
@@ -552,35 +553,7 @@ protected:
 
     //-------------------------------------------------------------
     //-------------------------------------------------------------
-    // SINGLE INPUT FILE
-    //-------------------------------------------------------------
-    //-------------------------------------------------------------
-
-    if (!input.empty())
-    {
-      FileTypes::Type in_type = FileHandler::getType(input);
-
-      if (in_type == FileTypes::IDXML)
-      {
-        //read data
-        idXML_file.load(input, protein_identifications, peptide_identifications);
-        //calculation
-        resolver.resolveID(peptide_identifications);
-      }
-      else   //consensusXML
-      {
-        //read data
-        consensusXML_file.load(input, consensus);
-        //calculation
-        resolver.resolveConsensus(consensus);
-      }
-    }
-
-
-
-    //-------------------------------------------------------------
-    //-------------------------------------------------------------
-    // MULTIPLE INPUT FILES
+    // SINGLE/MULTIPLE INPUT FILES
     //-------------------------------------------------------------
     //-------------------------------------------------------------
 
@@ -592,14 +565,42 @@ protected:
     TextFile design_file;
 
     // ensure that no single file is provided
-    if (experimental_design && input.empty())
+    if (experimental_design)
     {
       // false -> do not trim lines; -1 -> read all lines
       design_file.load(design, false, -1);
-
       design_params_ = designer.getParameters();
       design_params_.update(getParam_(), false, nirvana);
       designer.setParameters(design_params_);
+    }
+
+    //-------------------------------------------------------------
+    // multiple files from given path
+    //-------------------------------------------------------------
+    // fill input list from path
+
+    if (!input_path.empty() && input_list.empty())
+    {
+      // read file names in 'in_path'
+      QDir dir(input_path.toQString());
+      QStringList filters;
+      filters << "*.idXML" << "*.idXML" << "*.consensusXML" << ".consensusXML";
+      dir.setNameFilters(filters);
+      dir.setFilter(QDir::Files | QDir::Readable);
+      dir.setSorting(QDir::Name | QDir::IgnoreCase);
+      QFileInfoList list = dir.entryInfoList();
+
+      if (list.size() == 0)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                        String("Input path ('") + input_path + "') does not contain a valid input file. Check file types! Allowed are .idXML and .consensusXML files.");
+      }
+
+      for (int i = 0; i < list.size(); ++i)
+      {
+        QFileInfo fileInfo = list.at(i);
+        input_list.push_back(fileInfo.absoluteFilePath());
+      }
     }
 
 
@@ -611,7 +612,7 @@ protected:
     //                  considered merged before quantitiation
     //-------------------------------------------------------------
 
-    if (!input_list.empty()  && input.empty())
+    if (!input_list.empty())
     {
       // designer merges files that belong to the same experimental setting.
       // quantitation is performed
@@ -619,12 +620,11 @@ protected:
       {
         designer.applyDesign2Resolver(resolver, design_file, input_list);
       }
-      // otherwise batch processing
-      else
+      else // otherwise batch processing
       {
         for (StringList::Iterator iter = input_list.begin(); iter != input_list.end(); ++iter)
         {
-          FileTypes::Type in_type = FileHandler::getType(input);
+          FileTypes::Type in_type = FileHandler::getType(*iter);
           if (in_type == FileTypes::IDXML)
           {
             // load ensures that vector are cleared upon loading
@@ -635,60 +635,6 @@ protected:
           {
             // load ensures that consensus map is cleared upon loading
             consensusXML_file.load(*iter, consensus);
-            resolver.resolveConsensus(consensus);
-          }
-        }
-      }
-    }
-
-    //-------------------------------------------------------------
-    // multiple files from given path
-    //-------------------------------------------------------------
-    //   - without design: batch processing
-    //   - with design: files from same experimental setting are
-    //                  considered merged before quantitiation
-    //-------------------------------------------------------------
-
-    if (!input_path.empty() && input.empty() && input_list.empty())
-    {
-      // read file names in 'in_path'
-      QDir dir(input_path.toQString());
-      QStringList filters;
-      filters << "*.idXML" << "*.idXML" << "*.consensusXML" << ".consensusXML";
-      dir.setNameFilters(filters);
-      dir.setFilter(QDir::Files | QDir::Readable);
-      dir.setSorting(QDir::Name | QDir::IgnoreCase);
-      QFileInfoList list = dir.entryInfoList();
-
-      StringList input_list;
-      for (int i = 0; i < list.size(); ++i)
-      {
-        QFileInfo fileInfo = list.at(i);
-        input_list.push_back(fileInfo.absoluteFilePath());
-      }
-
-      if (experimental_design)
-      {
-        designer.applyDesign2Resolver(resolver, design_file, input_list);
-      }
-      // otherwise batch processing
-      else
-      {
-        for (StringList::Iterator iter = input_list.begin(); iter != input_list.end(); ++iter)
-        {
-          FileTypes::Type in_type = FileHandler::getType(input);
-          if (in_type == FileTypes::IDXML)
-          {
-            // load ensures that vector are cleared upon loading
-            idXML_file.load(*iter, protein_identifications, peptide_identifications);
-            // result is stored in struct and appended to result-vector of the resolver
-            resolver.resolveID(peptide_identifications);
-          }
-          else
-          {
-            //load ensures that consensus map is cleared upon loading
-            consensusXML_file.load(*iter, consensus);
-            // result is stored in struct and appended to result-vector of the resolver
             resolver.resolveConsensus(consensus);
           }
         }
