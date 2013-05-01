@@ -283,7 +283,7 @@ namespace OpenMS
     while (elapsed_useconds < 0L)
     {
       elapsed_useconds += 1000000L;
-      elapsed_seconds--;
+      --elapsed_seconds;
     }
 
     /* convert into floating point number of seconds */
