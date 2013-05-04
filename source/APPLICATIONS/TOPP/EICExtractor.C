@@ -192,6 +192,7 @@ public:
         return INCOMPATIBLE_INPUT_DATA;
       }
 
+      exp.sortSpectra(true);
 
       Map<Size, DoubleReal> quant;
 
