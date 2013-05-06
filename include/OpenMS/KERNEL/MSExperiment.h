@@ -242,6 +242,7 @@ public:
     {
       OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
       OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
+      OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using AreaIterator will give invalid results!")
       //std::cout << "areaBegin: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
       return AreaIterator(this->begin(), RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
     }
@@ -257,6 +258,7 @@ public:
     {
       OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
       OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
+      OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
       //std::cout << "areaBeginConst: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
       return ConstAreaIterator(this->begin(), RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
     }
