@@ -342,12 +342,14 @@ namespace OpenMS
       }
 
       // create iterator on scan in the middle of the visible map
+      Size n_peaks_in_middle_scan(0);
       ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min) + n_ms1_scans / 2;
-
-      Size n_peaks_in_middle_scan = 0;
-      for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min); it2 != it->end() && it2 != it->MZEnd(mz_max); ++it2)
+      if (it != peak_map.end())
       {
-        ++n_peaks_in_middle_scan;
+        for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min); it2 != it->end() && it2 != it->MZEnd(mz_max); ++it2)
+        {
+          ++n_peaks_in_middle_scan;
+        }
       }
 
       // determine spacing for whole data

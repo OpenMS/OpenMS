@@ -555,7 +555,7 @@ namespace OpenMS
         Param p = getSubsectionDefaults_();
         registerFullParam_(p);
       }
-      catch (BaseException& e)
+      catch (BaseException& /*e*/)
       {
         writeDebug_("Failed to add subsection parameters", 1);
       }
