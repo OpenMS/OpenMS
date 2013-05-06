@@ -2018,7 +2018,7 @@ namespace OpenMS
     strange_vertices.clear();
     foreach(TOPPASInputFileListVertex * iflv, input_nodes)
     {
-      if (!iflv->fileNamesValid())
+      if ((iflv->outgoingEdgesCount() > 0) && (!iflv->fileNamesValid()))  // allow disconnected input node with invalid files
       {
         strange_vertices.push_back(QString::number(iflv->getTopoNr()));
       }
