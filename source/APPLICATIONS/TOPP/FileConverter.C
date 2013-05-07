@@ -301,6 +301,7 @@ protected:
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  FORMAT_CONVERSION));
       MascotGenericFile f;
+      f.setLogType(log_type_);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::FEATUREXML)

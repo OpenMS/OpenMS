@@ -292,6 +292,7 @@ namespace OpenMS
 
   void MascotGenericFile::writeMSExperiment_(ostream & os, const String & filename, const PeakMap & experiment)
   {
+
     std::pair<String, String> enc = getHTTPPeakListEnclosure(filename);
     if (param_.getValue("internal:HTTP_format").toBool())
     {
@@ -301,24 +302,25 @@ namespace OpenMS
     QFileInfo fileinfo(filename.c_str());
     QString filtered_filename = fileinfo.completeBaseName();
     filtered_filename.remove(QRegExp("[^a-zA-Z0-9]"));
+    this->startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
     {
-      if (experiment[i].getMSLevel() == 0)
-      {
-        cout << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
-      }
-
+      this->setProgress(i);
       if (experiment[i].getMSLevel() == 2)
       {
         writeSpectrum_(os, experiment[i], filtered_filename);
       }
+      else if (experiment[i].getMSLevel() == 0)
+      {
+        LOG_WARN << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
+      }
     }
-
     // close file
     if (param_.getValue("internal:HTTP_format").toBool())
     {
       os << enc.second;
     }
+    this->endProgress();
   }
 
   bool MascotGenericFile::getNextSpectrum_(istream & is, vector<pair<DoubleReal, DoubleReal> > & spectrum, UInt & charge, DoubleReal & precursor_mz, DoubleReal & precursor_int, DoubleReal & rt, String & title, Size & line_number)
