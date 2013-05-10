@@ -47,13 +47,18 @@ using namespace std;
 /**
     @page UTILS_DecoyDatabase DecoyDatabase
 
-    @brief Create decoy peptide databases from normal ones.
+    @brief Create a decoy peptide database from standard FASTA databases.
 
   Decoy databases are useful to control false discovery rates and thus estimate score cutoffs for identified spectra.
 
   The decoy can either be generated from reversed or shuffled sequences.
 
   To get a 'contaminants' database have a look at http://www.thegpm.org/crap/index.html or find/create your own contaminant database.
+
+  Multiple databases can be provided as input, which will internally be concatenated before being used for decoy generation.
+  This allows you to specify your target database plus a contaminant file and (upon using the @p append flag) obtain a concatenated
+  target-decoy database using a single call, e.g., DecoyDatabase -in human.fasta crap.fasta -out human_TD.fasta -append
+
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_DecoyDatabase.cli
@@ -77,7 +82,7 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input FASTA file containing the database.");
+    registerInputFileList_("in", "<file(s)>", StringList::create(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
     setValidFormats_("in", StringList::create("fasta"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
     setValidFormats_("out", StringList::create("fasta"));
@@ -86,8 +91,6 @@ protected:
     setValidStrings_("decoy_string_position", StringList::create("prefix,suffix"));
     registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
     registerFlag_("shuffle", "If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
-    registerInputFile_("contaminants", "<file>", "", "Input a FASTA file containing contaminants - if given they are included in the database (recommended)", false);
-    setValidFormats_("contaminants", StringList::create("fasta"));
   }
 
   String getIdentifier_(const String & identifier, const String & decoy_string, const bool as_prefix)
@@ -101,8 +104,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in(getStringOption_("in"));
-    String cont(getStringOption_("contaminants"));
+    StringList in(getStringList_("in"));
     String out(getStringOption_("out"));
     bool append = getFlag_("append");
     bool shuffle = getFlag_("shuffle");
@@ -112,21 +114,18 @@ protected:
     //-------------------------------------------------------------
 
     vector<FASTAFile::FASTAEntry> proteins;
-    FASTAFile().load(in, proteins);
-
-    if (!cont.empty())
+    for (Size i=0; i<in.size(); ++i)
     {
-      vector<FASTAFile::FASTAEntry> contaminants;
-      FASTAFile().load(cont, contaminants);
-      Size num_contaminants = contaminants.size();
-      for (Size k = 0; k < num_contaminants; ++k)
-      {
-        proteins.push_back(contaminants[k]);
-      }
+      vector<FASTAFile::FASTAEntry> single_proteins;
+      // this is a little inefficient since it requires copying; appending during load() would be better...
+      FASTAFile().load(in[i], single_proteins);  
+      // append
+      proteins.insert(proteins.end(), single_proteins.begin(), single_proteins.end());
     }
-    else
+
+    if (in.size() == 1)
     {
-      LOG_WARN << "Warning, no contaminant sequences have been included!" << endl;
+      LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
     }
 
     //-------------------------------------------------------------
