@@ -210,7 +210,7 @@ PyOpenMSChecker:
     - OpenMS::Internal::TraMLHandler
     - OpenMS::Internal::TraMLValidator
     - OpenMS::Internal::UnimodXMLHandler
-    - OpenMS::Internal::XMLFile
+    # - OpenMS::Internal::XMLFile
     - OpenMS::Internal::XMLHandler
     - OpenMS::Internal::XMLHandler::EndParsingSoftly
     - OpenMS::Internal::XTandemInfileNote
@@ -246,6 +246,8 @@ PyOpenMSChecker:
     - OpenMS::BaseModel
     - OpenMS::BaseSuperimposer
     - OpenMS::BigString
+    - OpenMS::TOPPBase
+    - OpenMS::TraceFitter
 
     # Internal OpenMS algorithm datastructures that cannot be used in Python
     - OpenMS::TwoDOptimization::Data
@@ -253,13 +255,6 @@ PyOpenMSChecker:
     - OpenMS::PoseClusteringShiftSuperimposer
     - OpenMS::Base64::Reinterpreter32_
     - OpenMS::Base64::Reinterpreter64_
-    - OpenMS::BinnedSharedPeakCount
-    - OpenMS::BinnedSpectralContrastAngle
-    - OpenMS::BinnedSpectrum
-    - OpenMS::BinnedSpectrum::NoSpectrumIntegrated
-    - OpenMS::BinnedSpectrumCompareFunctor
-    - OpenMS::BinnedSpectrumCompareFunctor::IncompatibleBinning
-    - OpenMS::BinnedSumAgreeingIntensities
     - OpenMS::ClusterFunctor
     - OpenMS::ClusterFunctor::InsufficientInput
     - OpenMS::CompNovoIdentificationBase
@@ -275,11 +270,6 @@ PyOpenMSChecker:
     - OpenMS::DBConnection::InvalidQuery
     - OpenMS::DBConnection::NotConnected
     - OpenMS::DBOpenDialog
-    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern
-    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace
-    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces
-    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::Seed
-    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern
     - OpenMS::FuzzyStringComparator
     - OpenMS::FuzzyStringComparator::InputLine
     - OpenMS::FuzzyStringComparator::PrefixInfo_
@@ -380,6 +370,7 @@ PyOpenMSChecker:
     - OpenMS::Exception::UnableToFit
     - OpenMS::Exception::UnregisteredParameter
     - OpenMS::Exception::WrongParameterType
+
 
     # All files in the VISUAL folder
     # for root, subFolders, files in os.walk("./include/OpenMS/VISUAL"):
