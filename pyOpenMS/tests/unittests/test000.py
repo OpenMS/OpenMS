@@ -1165,12 +1165,43 @@ def testSILACAnalyzer():
     """
     @tests:
      SILACAnalyzer.__init__
+     SILACAnalyzer.initialize
+     SILACAnalyzer.run_all
+     SILACAnalyzer.writeConsensus
     """
     ff = pyopenms.SILACAnalyzer()
 
     assert pyopenms.SILACAnalyzer().initialize is not None
     assert pyopenms.SILACAnalyzer().run_all is not None
     assert pyopenms.SILACAnalyzer().writeConsensus is not None
+
+@report
+def testInternalCalibration():
+    """
+    @tests:
+     InternalCalibration.__init__
+     InternalCalibration.calibrateMapGlobally
+     InternalCalibration.calibrateMapSpectrumwise
+    """
+    ff = pyopenms.InternalCalibration()
+
+    assert pyopenms.InternalCalibration().calibrateMapSpectrumwise is not None
+    assert pyopenms.InternalCalibration().calibrateMapGlobally is not None
+
+@report
+def testTransitionTSVReader():
+    """
+    @tests:
+     TransitionTSVReader.__init__
+     TransitionTSVReader.calibrateMapGlobally
+     TransitionTSVReader.calibrateMapSpectrumwise
+    """
+    ff = pyopenms.TransitionTSVReader()
+
+    assert pyopenms.TransitionTSVReader().convertTargetedExperimentToTSV is not None
+    assert pyopenms.TransitionTSVReader().convertTSVToTargetedExperiment is not None
+    assert pyopenms.TransitionTSVReader().validateTargetedExperiment is not None
+
 
 @report
 def testFeatureGrouping():

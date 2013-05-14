@@ -37,15 +37,15 @@ x    GenericWrapper.C
 x    HighResPrecursorMassCorrector.C # PPHiRes is wrapped
 x    IDConflictResolver.C
 x    IDFileConverter.C
-xx   IDFilter.C # TODO
+ok   IDFilter.C 
 ok   IDMapper.C
 x    IDMerger.C
 x    IDPosteriorErrorProbability.C # PosteriorErrorProbabilityModel is wrapped
-     IDRipper.C # TODO
+ok   IDRipper.C # TODO - done on my side, needs fix in autowrap due to nesting
 x    IDRTCalibration.C
 x    InclusionExclusionListCreator.C
 x    InspectAdapter.C
-xx   InternalCalibration.C # TODO 
+ok   InternalCalibration.C 
 ok   ITRAQAnalyzer.C
 ok   MapAlignerIdentification.C
 ok   MapAlignerPoseClustering.C
@@ -107,7 +107,50 @@ ok   TOFCalibration.C
 x    XTandemAdapter.C
 
 
+UTILS
 
+     ConvertTraMLToTSV.C
+     ConvertTSVToTraML.C
+     CVInspector.C
+     DecoyDatabase.C
+     DeMeanderize.C
+     Digestor.C
+     DigestorMotif.C
+     ERPairFinder.C
+     FeatureFinderSuperHirn.C
+     FFEval.C
+     FuzzyDiff.C
+     IDDecoyProbability.C
+     IDEvaluator.C
+     IDExtractor.C
+     IDMassAccuracy.C
+     IDSplitter.C
+     ImageCreator.C
+     INIUpdater.C
+     LabeledEval.C
+     MapAlignmentEvaluation.C
+     MassCalculator.C
+     MRMPairFinder.C
+     MSSimulator.C
+     OpenMSInfo.C
+     OpenSwathDIAPreScoring.C
+     OpenSwathMzMLFileCacher.C
+     OpenSwathRewriteToFeatureXML.C
+     QCCalculator.C
+     QCEmbedder.C
+     QCExporter.C
+     QCMerger.C
+     QCShrinker.C
+     RNPxl.C
+     RNPxlXICFilter.C
+     RTEvaluation.C
+     SemanticValidator.C
+     SequenceCoverageCalculator.C
+     SpecLibCreator.C
+     SvmTheoreticalSpectrumGeneratorTrainer.C
+     TransformationEvaluation.C
+     XMLValidator.C
+ 
 
 The TOPP tools are divided into several subgroups:
 
