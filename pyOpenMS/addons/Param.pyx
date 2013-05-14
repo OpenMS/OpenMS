@@ -1,31 +1,53 @@
 # two empty lines are important !
 
 
-    def asDict(Param self):
+    def asDict(self):
+        return dict(self.items())
 
-
-        cdef list keys = list()
-
+    def keys(self):
+        keys = list()
         cdef _ParamIterator param_it = self.inst.get().begin()
         while param_it != self.inst.get().end():
-            keys.append(param_it.getName().c_str())
+            key = param_it.getName().c_str()
+            keys.append(key)
             inc(param_it)
+        return keys
 
-        result = dict()
+    def items(self):
+        return [(k, self[k]) for k in self.keys()]
 
-        for k in keys:
-            value = self.getValue(k)
-            result[k] = value
+    def values(self):
+        return [self[k] for k in self.keys()]
 
-        return result
+    def update(self, *a):
 
-    def updateFrom(self, dd):
-        assert isinstance(dd, dict)
+        cdef Param p
+        cdef int flag
 
-        for key, v in dd.items():
-            tags = self.getTags(key)
-            desc = self.getDescription(key)
-            self.setValue(key, v, desc, tags)
+        if len(a) == 1 and isinstance(a[0], dict):
+            dd = a[0]
+            for key, v in dd.items():
+                self[key] = v
+
+        elif len(a) == 1 and isinstance(a[0], Param):
+            p = a[0]
+            self.inst.get().update(<_Param>deref(p.inst.get()))
+        elif len(a) == 2 and isinstance(a[0], Param) and isinstance(a[1], int):
+            p = a[0]
+            flag = a[1]
+            self.inst.get().update(<_Param>deref(p.inst.get()), <bool> flag)
+        else:
+            raise Exception("can not handle parameters of type %s" % (map(type, a)))
+
+
+    def __getitem__(self, str key):
+        return self.getValue(key)
+
+    def __setitem__(self, str key, value):
+        tags = self.getTags(key)
+        desc = self.getDescription(key)
+        self.setValue(key, value, desc, tags)
+
 
 
 

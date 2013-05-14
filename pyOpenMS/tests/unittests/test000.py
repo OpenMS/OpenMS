@@ -955,9 +955,11 @@ def _testParam(p):
     assert len(dd) == p.size()
     assert isinstance(dd, dict)
 
-    keys = dd.keys()
-    for k in keys:
-        value = p.getValue(k)
+    for k in p.keys():
+        #value = p.getValue(k)
+        value = p[k]
+        p[k] = value
+        assert p[k] == value
         desc  = p.getDescription(k)
         tags  = p.getTags(k)
         p.setValue(k, value, desc, tags)
@@ -984,6 +986,9 @@ def _testParam(p):
     assert p1 == p
 
     p1.update(p)
+    p1.update(p,0)
+    p1.update(p,1)
+    p1.update(dd)
 
     p.setValidStrings
     p.setMinFloat
