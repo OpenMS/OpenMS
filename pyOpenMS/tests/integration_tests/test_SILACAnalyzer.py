@@ -4,7 +4,7 @@ import env
 import pyopenms
 from collections import defaultdict
 
-class TestMRMRTNormalizer(unittest.TestCase):
+class TestSILACAnalyzer(unittest.TestCase):
     """Emulates the behavior of SILACAnalyzer"""
 
     def setUp(self):
@@ -71,18 +71,20 @@ class TestMRMRTNormalizer(unittest.TestCase):
         # 
         analyzer.run_all(exp, out_map)
 
+        out_map.sortByPosition()
+
         self.assertEqual(out_map.size(), 3)
         self.assertEqual(out_map[0].getQuality(), 8.0)
         self.assertEqual(out_map[1].getQuality(), 8.0)
         self.assertEqual(out_map[2].getQuality(), 8.0)
 
-        self.assertAlmostEqual(out_map[0].getRT(), 6657.56445312)
+        self.assertAlmostEqual(out_map[0].getRT(), 6632.409179688)
         self.assertAlmostEqual(out_map[1].getRT(), 6635.169433594)
-        self.assertAlmostEqual(out_map[2].getRT(), 6632.409179688)
+        self.assertAlmostEqual(out_map[2].getRT(), 6657.56445312)
 
-        self.assertAlmostEqual(out_map[0].getMZ(), 668.8262329102)
+        self.assertAlmostEqual(out_map[0].getMZ(), 668.321350097656)
         self.assertAlmostEqual(out_map[1].getMZ(), 670.894470214844)
-        self.assertAlmostEqual(out_map[2].getMZ(), 668.321350097656)
+        self.assertAlmostEqual(out_map[2].getMZ(), 668.8262329102)
 
 if __name__ == '__main__':
     unittest.main()
