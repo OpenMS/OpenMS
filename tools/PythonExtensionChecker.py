@@ -49,55 +49,6 @@ from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVar
 from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
 import yaml
 
-class CppFunctionDefinition(object):
-    def __init__(self):
-        pass
-
-    def resolve_return_type(self, mdef):
-        res = []
-        for c in mdef.get_type().content_:
-            val = c.getValue()
-            if hasattr(val, "getValueOf_"):
-                res.append(val.getValueOf_())
-            else:
-                res.append(val)
-        return res
-
-    def format_definition_for_cython(self, mdef, replace_nogil=True):
-        c_return_type = self.resolve_return_type(mdef)
-
-        # remove default arguments, Cython doesnt like them
-        arguments = re.sub("\=[^,\)]", "", mdef.get_argsstring())
-        function_name = mdef.name
-
-        # remove returned references
-        return_type = "".join(c_return_type)
-        return_type = return_type.replace("&", "")
-        cpp_def = return_type + " " + function_name + arguments
-        cpp_def = cpp_def.replace("///", "#")    
-        cpp_def = cpp_def.replace("//", "#")    
-        if replace_nogil:
-            cpp_def = cpp_def.replace(";", "nogil except +")    
-            cpp_def = cpp_def.replace("const;", "nogil except +")    
-        else:
-            cpp_def = cpp_def.replace("const;", "")
-            cpp_def = cpp_def.replace(";", "")
-        cpp_def = cpp_def.replace("MSSpectrum<>", "MSSpectrum[Peak1D]")
-        cpp_def = cpp_def.replace("MSChromatogram<>", "MSChromatogram[ChromatogramPeak]")
-        cpp_def = cpp_def.replace("std::vector", "libcpp_vector")
-        cpp_def = cpp_def.replace("std::map", "libcpp_map")
-        cpp_def = cpp_def.replace("std::set", "libcpp_set")
-        cpp_def = cpp_def.replace("<", "[")    
-        cpp_def = cpp_def.replace(">", "]")    
-        cpp_def = cpp_def.replace("const ", "")    
-        cpp_def = cpp_def.replace("libcpp_vector[DoubleReal]", "libcpp_vector[double]")    
-        cpp_def = cpp_def.replace("RichPeakSpectrum", "MSSpectrum[RichPeak1D]")
-        cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
-        # cpp_def = cpp_def.replace("Chromatogram", "MSChromatogram[ChromatogramPeak]")
-        cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum[Peak1D]")
-        cpp_def = cpp_def.replace("PeakMap", "MSExperiment[Peak1D, ChromatogramPeak]")
-        return cpp_def.strip()
-
 class Counter(object):
     def __init__(self):
         self.total = 0
@@ -157,9 +108,13 @@ def handle_member_definition(mdef, cnt, cl):
         for klass in cython_file:
             if hasattr(klass[0], "name") and klass[0].name == mdef.get_name():
                 found = True
+                break
         if not found:
-            print "TODO: Found enum in cpp but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
+            print "TODO: Found enum in C++ but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
             cnt.public_enums_missing += 1
+        elif len(klass[0].items) != len(mdef.get_enumvalue()):
+            print "TODO: Found enum in C++ with %s members but in Cython there are %s members: " % (
+                len(mdef.get_enumvalue()), len(klass[0].items) )
     elif kind == "variable" and protection == "public":
         attrnames = [a.name for a in cl.attributes]
         cnt.public_variables += 1
@@ -192,8 +147,7 @@ def handle_member_definition(mdef, cnt, cl):
                   mdef.name.find("end") != -1):
                 cnt.public_methods_missing_nowrapping += 1
             else:
-                print "TODO: Found function in cpp but not in pxd:", mdef.kind,  mdef.prot, mdef.name
-                print " -- ", CppFunctionDefinition().format_definition_for_cython(mdef)
+                print " -- TODO missing function in PXD: ", CppFunctionDefinition().format_definition_for_cython(mdef)
 
 class OpenMSSourceFile(object):
     def __init__(self, fname):
@@ -219,7 +173,13 @@ class OpenMSSourceFile(object):
             else:
                 return None
 
+
+#
+## Class holding Doxygen XML file and next one function declaration
+# 
 class DoxygenXMLFile(object):
+    """The doxygen XML file
+    """
 
     def __init__(self, fname):
         self.fname = fname
@@ -262,10 +222,7 @@ class DoxygenXMLFile(object):
         #
         # Step 1: print includes
         # 
-        res = ""
-        res += "\n"
-        res += "from libcpp cimport bool\n"
-        res += "from libcpp.vector cimport vector as libcpp_vector\n"
+        includes = ""
         if len(compound.get_includes()) == 1:
             try:
                 reffile = xml_output_path + compound.get_includes()[0].get_refid() + ".xml"
@@ -284,9 +241,9 @@ class DoxygenXMLFile(object):
                 if header_file.endswith(".h"):
                     header_file = header_file[:-2]
                 # We do not import certain headers since we did not wrap them in Python
-                if header_file in ["Exception", "Macros"]:
+                if header_file in ["Exception", "Macros", "config", "StandardTypes"]:
                     continue
-                res += "from %s cimport *\n" % header_file
+                includes += "from %s cimport *\n" % header_file
         # print extern definition
         # print file_location
         if len(file_location.split("/include/OpenMS")) != 2:
@@ -297,10 +254,10 @@ class DoxygenXMLFile(object):
         internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
         namespace = "::".join(comp_name.split("::")[:-1])
         preferred_classname = "_".join(comp_name.split("::")[1:])
-        res += "\n"
-        res += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
-        res += "    \n"
-        res += '    cdef cppclass %s "%s":\n' % (preferred_classname, comp_name)
+        cldef  = "\n"
+        cldef += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
+        cldef += "    \n"
+        cldef += '    cdef cppclass %s "%s":\n' % (preferred_classname, comp_name)
         methods = ""
         #
         # Step 3: methods
@@ -308,6 +265,7 @@ class DoxygenXMLFile(object):
         default_ctor = False
         copy_ctor = False
         enum = ""
+        imports_needed = {}
         for sdef in compound.get_sectiondef():
             # break
             for mdef in sdef.get_memberdef():
@@ -341,10 +299,16 @@ class DoxygenXMLFile(object):
                         continue
                     # res += "do member function/attribute : ", mdef.kind,  mdef.prot, mdef.name
                     declaration = CppFunctionDefinition().format_definition_for_cython(mdef, False)
+                    CppFunctionDefinition().compute_imports(declaration, imports_needed)
                     if declaration.find("operator=(") != -1:
                         # assignment operator, cannot be overriden in Python
                         continue
                     methods += "        %s nogil except +\n" % declaration
+
+        # Add the imports we need
+        res  = CppFunctionDefinition().generate_imports(imports_needed)
+        res += includes
+        res += cldef
         if default_ctor:
             res += "        %s() nogil except +\n" % comp_name.split("::")[-1]
         if not copy_ctor:
@@ -355,6 +319,93 @@ class DoxygenXMLFile(object):
         res += enum
         res += "\n"
         return res
+
+class CppFunctionDefinition(object):
+    """ A Cpp function definition from a doxygen file"""
+    def __init__(self):
+        pass
+
+    def resolve_return_type(self, mdef):
+        res = []
+        for c in mdef.get_type().content_:
+            val = c.getValue()
+            if hasattr(val, "getValueOf_"):
+                res.append(val.getValueOf_())
+            else:
+                res.append(val)
+        return res
+
+    def generate_imports(self, imports):
+        res = ""
+        for k in sorted(imports.keys()):
+            if k == "bool":
+                res += "from libcpp cimport bool\n"
+            else:
+                res += "from libcpp.%s cimport %s as libcpp_%s\n" % (k,k,k)
+        return res
+
+    def compute_imports(self, declaration, imports):
+        if declaration.find("libcpp_vector") != -1:
+            imports["vector"] = 0
+        if declaration.find("libcpp_pair") != -1:
+            imports["pair"] = 0
+        if declaration.find("libcpp_map") != -1:
+            imports["map"] = 0
+        if declaration.find("libcpp_set") != -1:
+            imports["set"] = 0
+        if declaration.find("libcpp_string") != -1:
+            imports["string"] = 0
+        if declaration.find("bool") != -1:
+            imports["bool"] = 0
+
+    def format_definition_for_cython(self, mdef, replace_nogil=True):
+        c_return_type = self.resolve_return_type(mdef)
+
+        # remove default arguments, Cython doesnt like them
+        arguments = re.sub("\=[^,\)]*", "", mdef.get_argsstring())
+        function_name = mdef.name
+
+        # remove returned references
+        return_type = "".join(c_return_type)
+        return_type = return_type.replace("&", "")
+        cpp_def = return_type + " " + function_name + arguments
+        cpp_def = cpp_def.replace("///", "#")    
+        cpp_def = cpp_def.replace("//", "#")    
+        if replace_nogil:
+            cpp_def = cpp_def.replace(";", "nogil except +")    
+            cpp_def = cpp_def.replace("const;", "nogil except +")    
+        else:
+            cpp_def = cpp_def.replace("const;", "")
+            cpp_def = cpp_def.replace(";", "")
+        # TODO 
+        cpp_def = cpp_def.replace("static", "")
+        cpp_def = cpp_def.replace("MSSpectrum<>", "MSSpectrum[Peak1D]")
+        cpp_def = cpp_def.replace("MSChromatogram<>", "MSChromatogram[ChromatogramPeak]")
+        cpp_def = cpp_def.replace("std::vector", "libcpp_vector")
+        cpp_def = cpp_def.replace("std::map", "libcpp_map")
+        cpp_def = cpp_def.replace("std::pair", "libcpp_pair")
+        cpp_def = cpp_def.replace("std::set", "libcpp_set")
+        cpp_def = cpp_def.replace("std::string", "libcpp_string")
+        # TODO operator< ...
+        cpp_def = cpp_def.replace("<", "[")    
+        cpp_def = cpp_def.replace(">", "]")    
+        cpp_def = cpp_def.replace("const ", "")    
+        cpp_def = cpp_def.replace("libcpp_vector[ DoubleReal ]", "libcpp_vector[ double ]")    
+        cpp_def = cpp_def.replace("RichPeakSpectrum", "MSSpectrum[RichPeak1D]")
+        cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
+        # cpp_def = cpp_def.replace("Chromatogram", "MSChromatogram[ChromatogramPeak]")
+        #
+        # TODO replace python keywords: except, type, lamdba, map ...
+        cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum[Peak1D]")
+        cpp_def = cpp_def.replace("PeakMap", "MSExperiment[Peak1D, ChromatogramPeak]")
+
+        # comment out things that have we cannot wrap (raw pointers, iterators)
+        if cpp_def.find("*") != -1 or
+           cpp_def.find("::iterator") != -1:
+            cpp_def = "# " + cpp_def
+
+        return cpp_def.strip()
+
 
 class IgnoreFile(object):
 
@@ -380,7 +431,7 @@ class PXDFile(object):
     def __init__(self):
         pass
 
-    def parse(pxdfile, comp_name):
+    def parse(self, pxdfile, comp_name):
         cython_file = parse_pxd_file(pxdfile)
         found = False
 
@@ -436,7 +487,6 @@ def main(options):
     for f in xml_files:
         dfile = DoxygenXMLFile(f)
         res = dfile.parse()
-        # VersionInfo.pxd
         if dfile.parsing_error:
             # e.g. <computeroutput><bold></computeroutput>
             print "Skip:: No-parse :: could not parse file", f
@@ -447,6 +497,7 @@ def main(options):
             continue
         compound = res.get_compounddef()
         comp_name = compound.get_compoundname()
+
         if ignorefile.isNameIgnored(comp_name):
             print "Skip:: Ignored :: Class %s (file %s)", (comp_name, f)
             continue
@@ -472,6 +523,7 @@ def main(options):
             cnt.skipped_no_pxd_file += 1
             pxd_text = dfile.get_pxd_from_class(compound, file_location, xml_output_path)
             if options.print_pxd: 
+                print ""
                 print pxd_text
             if len(options.pxds_out) > 0 and pxd_text is not None:
                 fname =  os.path.join(options.pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
@@ -485,7 +537,6 @@ def main(options):
             print "Skip:: No-pxd :: " , e.message
             cnt.skipped_no_pxd_match += 1
             continue
-        #     print inc.get_refid
         print "== Start to parse element %s - from Cpp file %s with maintainer %s and corresponding pxd file %s" % (
             comp_name, file_location, maintainer, pxdfile)
         cnt.parsed += 1
