@@ -511,6 +511,10 @@ def testConsensusMap():
     m.sortBySize()
     m.updateRanges()
 
+    m.getIdentifier()
+    m.getLoadedFileType()
+    m.getLoadedFilePath()
+
     assert m == m
     assert not m != m
 
@@ -1607,6 +1611,10 @@ def testFeatureMap():
     fm.clear()
     fm.clearUniqueId()
 
+    fm.getIdentifier()
+    fm.getLoadedFileType()
+    fm.getLoadedFilePath()
+
     f = pyopenms.Feature()
     fm.push_back(f)
 
@@ -2030,6 +2038,10 @@ def testMSExperiment():
     assert isinstance(mse.getLoadedFilePath(), str)
     mse.setLoadedFilePath("")
     assert mse.size() == 0
+
+    mse.getIdentifier()
+    mse.getLoadedFileType()
+    mse.getLoadedFilePath()
 
     mse.push_back(pyopenms.MSSpectrum())
     assert mse.size() == 1

@@ -4,15 +4,17 @@ from UniqueIdInterface cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 from DataProcessing cimport *
+from DocumentIdentifier cimport *
 
 # this class has addons, see the ./addons folder
 
 cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
-    cdef cppclass FeatureMap[FeatureT](UniqueIdInterface):
+    cdef cppclass FeatureMap[FeatureT](UniqueIdInterface, DocumentIdentifier):
 
         # wrap-inherits:
         #   UniqueIdInterface
+        #   DocumentIdentifier
         #
         # wrap-instances:
         #   FeatureMap := FeatureMap[Feature]

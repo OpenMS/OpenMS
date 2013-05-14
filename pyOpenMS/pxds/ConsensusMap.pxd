@@ -8,6 +8,7 @@ from PeptideIdentification cimport *
 from DataProcessing cimport *
 from Types cimport *
 from Map cimport *
+from DocumentIdentifier cimport *
 
 # this class has addons, see the ./addons folder
 
@@ -31,10 +32,11 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
-    cdef cppclass ConsensusMap(UniqueIdInterface):
+    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier):
 
         # wrap-inherits:
         #   UniqueIdInterface
+        #   DocumentIdentifier
 
         ConsensusMap() nogil except +
         ConsensusMap(ConsensusMap) nogil except + # wrap-ignore
