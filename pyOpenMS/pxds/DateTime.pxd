@@ -11,6 +11,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS":
         String getDate() nogil except +
         String getTime() nogil except +
 
+        void set(String date) nogil except +
+
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS::DateTime":
 
