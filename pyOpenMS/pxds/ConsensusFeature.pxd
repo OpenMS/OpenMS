@@ -6,6 +6,7 @@ from RichPeak2D cimport *
 from UniqueIdInterface cimport *
 from FeatureMap cimport *
 from BaseFeature cimport *
+from PeptideIdentification cimport *
 
 cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
 
@@ -42,6 +43,10 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
 
         Size size() nogil except +
 
+        # returns a mutable reference to the PeptideIdentification vector
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
+        # sets the PeptideIdentification vector
+        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except +
 
         bool operator==(ConsensusFeature) nogil except +
         bool operator!=(ConsensusFeature) nogil except +

@@ -2,7 +2,7 @@ from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from DataValue cimport *
 from ConvexHull2D cimport *
-
+from PeptideIdentification cimport *
 
 from UniqueIdInterface cimport *
 
@@ -42,6 +42,10 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         libcpp_vector[ConvexHull2D] getConvexHulls() nogil except +
         void setConvexHulls(libcpp_vector[ConvexHull2D]) nogil except +
 
+        # returns a mutable reference to the PeptideIdentification vector
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
+        # sets the PeptideIdentification vector
+        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except +
 
         bool operator==(Feature) nogil except +
         bool operator!=(Feature) nogil except +

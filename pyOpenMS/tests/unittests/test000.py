@@ -515,6 +515,9 @@ def testConsensusFeature():
      ConsensusFeature.clearMetaInfo
      ConsensusFeature.setUniqueId
      ConsensusFeature.size
+
+     ConsensusFeature.getPeptideIdentifications
+     ConsensusFeature.setPeptideIdentifications
     """
 
 
@@ -538,6 +541,10 @@ def testConsensusFeature():
     f.computeMonoisotopicConsensus()
 
     assert f.size() >= 0
+
+    p = f.getPeptideIdentifications()
+    f.setPeptideIdentifications(p)
+
 
 @report
 def testConsensusMap():
@@ -946,6 +953,9 @@ def testFeature():
      Feature.setConvexHulls
      Feature.setSubordinates
      Feature.setUniqueId
+
+     Feature.getPeptideIdentifications
+     Feature.setPeptideIdentifications
     """
     f = pyopenms.Feature()
     _testMetaInfoInterface(f)
@@ -968,6 +978,9 @@ def testFeature():
     assert f.getRT() == 30.0
     f.setWidth(40.0)
     assert f.getWidth() == 40.0
+
+    p = f.getPeptideIdentifications()
+    f.setPeptideIdentifications(p)
 
 
 @report
@@ -1551,6 +1564,12 @@ def testAScore():
      AScore.__init__
     """
     ff = pyopenms.AScore()
+
+    hit = pyopenms.PeptideHit()
+    richspectrum = pyopenms.RichMSSpectrum()
+
+    ff.compute(hit, richspectrum, 5.0, 1)
+    ff.computeCumulativeScore(1,1,0.5)
 
 @report
 def testIDRipper():
