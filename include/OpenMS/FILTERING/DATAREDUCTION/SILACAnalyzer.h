@@ -111,7 +111,7 @@ namespace OpenMS
 
     typedef SILACClustering Clustering;
 
-    std::vector<std::vector<SILACPattern> > data;
+    // std::vector<std::vector<SILACPattern> > data;
     // std::vector<Clustering *> cluster_data;
 
     MSQuantifications msq;
@@ -122,17 +122,59 @@ namespace OpenMS
     {
     }
 
+    void initialize(
+      // section "sample"
+      String selected_labels_,
+      UInt charge_min_,
+      UInt charge_max_,
+      Int missed_cleavages_,
+      UInt isotopes_per_peptide_min_,
+      UInt isotopes_per_peptide_max_,
+
+      // section "algorithm"
+      DoubleReal rt_threshold_,
+      DoubleReal rt_min_,
+      DoubleReal intensity_cutoff_,
+      DoubleReal intensity_correlation_,
+      DoubleReal model_deviation_,
+      bool allow_missing_peaks_,
+
+      map<String, DoubleReal> label_identifiers_,
+      std::vector<std::vector<String> > SILAClabels_,
+      std::vector<std::vector<DoubleReal> > massShifts_
+    )
+    {
+      selected_labels          = selected_labels_;
+      charge_min               = charge_min_;
+      charge_max               = charge_max_;
+      missed_cleavages         = missed_cleavages_;
+      isotopes_per_peptide_min = isotopes_per_peptide_min_;
+      isotopes_per_peptide_max = isotopes_per_peptide_max_;
+
+      rt_threshold           = rt_threshold_;
+      rt_min                 = rt_min_;
+      intensity_cutoff       = intensity_cutoff_;
+      intensity_correlation  = intensity_correlation_;
+      model_deviation        = model_deviation_;
+      allow_missing_peaks    = allow_missing_peaks_;
+
+      label_identifiers = label_identifiers_;
+      SILAClabels = SILAClabels_;
+      massShifts = massShifts_;
+    }
+
     //--------------------------------------------------
     // filtering
     //--------------------------------------------------
 
-    void filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width);
 
-    void clusterData(const MSExperiment<> &, const PeakWidthEstimator::Result &);
+    void filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width, vector<vector<SILACPattern> > & data);
+
+    void clusterData(const MSExperiment<> &, const PeakWidthEstimator::Result &, vector<Clustering *> &, vector<vector<SILACPattern> > & data);
 
     PeakWidthEstimator::Result estimatePeakWidth(const MSExperiment<Peak1D> & exp);
 
-  private:
+  public:
 
     /**
      * @brief Generate ConsensusMap from clustering result
@@ -149,15 +191,21 @@ namespace OpenMS
      */
     void generateClusterDebug(std::ostream & out, const Clustering & clustering, UInt & cluster_id) const;
 
+  public:
     /**
      * @brief Generate ConsensusMap from filter result
      */
     void generateFilterConsensusByPattern(ConsensusMap &, const std::vector<SILACPattern> &) const;
 
+  private:
+
     /**
      * @brief Generate a consensus entry from a pattern
      */
     ConsensusFeature generateSingleConsensusByPattern(const SILACPattern &) const;
+
+
+  public:
 
     /**
      * @brief Generate FeatureMap from clustering result
@@ -167,7 +215,7 @@ namespace OpenMS
     /**
      * @brief Read filter result from ConsensusMap
      */
-    void readFilterConsensusByPattern(ConsensusMap &);
+    void readFilterConsensusByPattern(ConsensusMap &, vector<vector<SILACPattern> > &);
 
     static const String & selectColor(UInt nr);
 

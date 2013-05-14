@@ -753,6 +753,29 @@ public:
   {
     handleParameters();
 
+    SILACAnalyzer analyzer;
+    analyzer.initialize(
+      // section "sample"
+      selected_labels,
+      charge_min,
+      charge_max,
+      missed_cleavages,
+      isotopes_per_peptide_min,
+      isotopes_per_peptide_max,
+
+      // section "algorithm"
+      rt_threshold,
+      rt_min,
+      intensity_cutoff,
+      intensity_correlation,
+      model_deviation,
+      allow_missing_peaks,
+
+      label_identifiers,
+      SILAClabels,
+      massShifts
+    );
+
     vector<vector<SILACPattern> > data;
     MSQuantifications msq;
     vector<Clustering *> cluster_data;
@@ -800,11 +823,10 @@ public:
     // estimate peak width
     //--------------------------------------------------
 
-    // SILACAnalyzer analyzer;
     PeakWidthEstimator::Result peak_width;
     try
     {
-      peak_width = estimatePeakWidth(exp);
+      peak_width = analyzer.estimatePeakWidth(exp);
     }
     catch (Exception::InvalidSize &)
     {
@@ -819,7 +841,7 @@ public:
       // filter input data
       //--------------------------------------------------
 
-      filterData(exp, peak_width, data); // analyzer
+      analyzer.filterData(exp, peak_width, data); 
 
 
       //--------------------------------------------------
@@ -831,9 +853,9 @@ public:
         ConsensusMap map;
         for (std::vector<std::vector<SILACPattern> >::const_iterator it = data.begin(); it != data.end(); ++it)
         {
-          generateFilterConsensusByPattern(map, *it);
+          analyzer.generateFilterConsensusByPattern(map, *it);
         }
-        writeConsensus(out_filters, map);
+        analyzer.writeConsensus(out_filters, map);
       }
     }
     else
@@ -843,8 +865,8 @@ public:
       //--------------------------------------------------
 
       ConsensusMap map;
-      readConsensus(in_filters, map);
-      readFilterConsensusByPattern(map, data);
+      analyzer.readConsensus(in_filters, map);
+      analyzer.readFilterConsensusByPattern(map, data);
     }
 
 
@@ -852,8 +874,7 @@ public:
     // clustering
     //--------------------------------------------------
 
-
-    clusterData(exp, peak_width, cluster_data, data); // analyzer
+    analyzer.clusterData(exp, peak_width, cluster_data, data); // analyzer
 
     //--------------------------------------------------------------
     // write output
@@ -899,7 +920,7 @@ public:
       UInt cluster_id = 0;
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {
-        generateClusterDebug(out, **it, cluster_id);
+        analyzer.generateClusterDebug(out, **it, cluster_id);
       }
     }
 
@@ -909,7 +930,7 @@ public:
 
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {
-        generateClusterConsensusByCluster(map, **it);
+        analyzer.generateClusterConsensusByCluster(map, **it);
       }
 
       // XXX: Need a map per mass shift
@@ -932,7 +953,7 @@ public:
       addDataProcessing_(map, getProcessingInfo_(actions));
 
 
-      writeConsensus(out, map);
+      analyzer.writeConsensus(out, map);
       if (out_mzq != "")
       {
         ConsensusMap numap(map);
@@ -969,7 +990,7 @@ public:
 
         //~ msq.addFeatureMap();//add SILACAnalyzer evidencetrail as soon as clear what is realy contained in the featuremap
         //~ add AuditCollection - no such concept in TOPPTools yet
-        writeMzQuantML(out_mzq, msq);
+        analyzer.writeMzQuantML(out_mzq, msq);
       }
     }
 
@@ -979,14 +1000,14 @@ public:
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {
         UInt cluster_id = 0;
-        generateClusterConsensusByPattern(map, **it, cluster_id);
+        analyzer.generateClusterConsensusByPattern(map, **it, cluster_id);
       }
 
       ConsensusMap::FileDescription & desc = map.getFileDescriptions()[0];
       desc.filename = in;
       desc.label = "Cluster";
 
-      writeConsensus(out_clusters, map);
+      analyzer.writeConsensus(out_clusters, map);
     }
 
     if (out_features != "")
@@ -994,10 +1015,10 @@ public:
       FeatureMap<> map;
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {
-        generateClusterFeatureByCluster(map, **it);
+        analyzer.generateClusterFeatureByCluster(map, **it);
       }
 
-      writeFeatures(out_features, map);
+      analyzer.writeFeatures(out_features, map);
     }
 
     return EXECUTION_OK;

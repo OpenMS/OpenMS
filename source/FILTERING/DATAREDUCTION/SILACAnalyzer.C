@@ -39,61 +39,159 @@ using namespace std;
 namespace OpenMS 
 {
 
-    void SILACAnalyzer::filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width)
+  void SILACAnalyzer::filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width, vector<vector<SILACPattern> > & data)
+  {
+    list<SILACFilter> filters;
+
+    // create filters for all numbers of isotopes per peptide, charge states and mass shifts
+    // iterate over all number for peaks per peptide (from max to min)
+    for (UInt isotopes_per_peptide = isotopes_per_peptide_max; isotopes_per_peptide >= isotopes_per_peptide_min; isotopes_per_peptide--)
     {
-      list<SILACFilter> filters;
-
-      // create filters for all numbers of isotopes per peptide, charge states and mass shifts
-      // iterate over all number for peaks per peptide (from max to min)
-      for (UInt isotopes_per_peptide = isotopes_per_peptide_max; isotopes_per_peptide >= isotopes_per_peptide_min; isotopes_per_peptide--)
+      // iterate over all charge states (from max to min)
+      for (UInt charge = charge_max; charge >= charge_min; charge--)
       {
-        // iterate over all charge states (from max to min)
-        for (UInt charge = charge_max; charge >= charge_min; charge--)
+        // iterate over all mass shifts
+        for (UInt i = 0; i < massShifts.size(); i++)
         {
-          // iterate over all mass shifts
-          for (UInt i = 0; i < massShifts.size(); i++)
-          {
-            // convert std::vector<DoubleReal> to set<DoubleReal> for SILACFilter
-            std::vector<DoubleReal> massShifts_set = massShifts[i];
+          // convert std::vector<DoubleReal> to set<DoubleReal> for SILACFilter
+          std::vector<DoubleReal> massShifts_set = massShifts[i];
 
-            //copy(massShifts[i].begin(), massShifts[i].end(), inserter(massShifts_set, massShifts_set.end()));
-            filters.push_back(SILACFilter(massShifts_set, charge, model_deviation, isotopes_per_peptide, intensity_cutoff, intensity_correlation, allow_missing_peaks));
-          }
+          //copy(massShifts[i].begin(), massShifts[i].end(), inserter(massShifts_set, massShifts_set.end()));
+          filters.push_back(SILACFilter(massShifts_set, charge, model_deviation, isotopes_per_peptide, intensity_cutoff, intensity_correlation, allow_missing_peaks));
+        }
+      }
+    }
+
+    // create filtering
+    SILACFiltering filtering(exp, peak_width, intensity_cutoff, out_debug);
+    filtering.setLogType(getLogType());
+
+    // register filters to the filtering
+    for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+    {
+      filtering.addFilter(*filter_it);
+    }
+
+    // perform filtering
+    filtering.filterDataPoints();
+
+    // retrieve filtered data points
+    for (SILACFiltering::Filters::iterator filter_it = filtering.filters_.begin(); filter_it != filtering.filters_.end(); ++filter_it)
+    {
+      data.push_back(filter_it->getElements());
+    }
+
+
+    //--------------------------------------------------
+    // combine DataPoints to improve the clustering
+    //--------------------------------------------------
+
+    // DataPoints that originate from filters with same charge state and mass shift(s)
+    // and whose filters only differ in number of isotopes per peptide are combined
+    // to get one cluster for peptides whose elution profile varies in number of isotopes per peptide
+
+    // perform combination only if the user specified a peaks_per_peptide range > 1
+    if (isotopes_per_peptide_min != isotopes_per_peptide_max)
+    {
+      // erase empty filter results from "data"
+      std::vector<std::vector<SILACPattern> > data_temp;
+
+      for (std::vector<std::vector<SILACPattern> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
+      {
+        if (data_it->size() != 0)
+        {
+          data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
         }
       }
 
-      // create filtering
-      SILACFiltering filtering(exp, peak_width, intensity_cutoff, out_debug);
-      filtering.setLogType(getLogType());
+      data.swap(data_temp);     // data = data_temp
+      data_temp.clear();      // clear "data_temp"
 
-      // register filters to the filtering
-      for (list<SILACFilter>::iterator filter_it = filters.begin(); filter_it != filters.end(); ++filter_it)
+      if (data.size() >= 2)
       {
-        filtering.addFilter(*filter_it);
-      }
+        Int temp = 0;
+        // combine corresponding DataPoints
+        std::vector<std::vector<SILACPattern> >::iterator data_it_1 = data.begin();      // first iterator over "data" to get first DataPoint for combining
+        std::vector<std::vector<SILACPattern> >::iterator data_it_2 = data_it_1 + 1;     // second iterator over "data" to get second DataPoint for combining
+        std::vector<std::vector<SILACPattern> >::iterator data_it_end = data.end() - 1;      // pointer to second last elemnt of "data"
+        std::vector<SILACPattern>::iterator it_1;     // first inner iterator over elements of first DataPoint
+        std::vector<SILACPattern>::iterator it_2;     // second inner iterator over elements of second DataPoint
 
-      // perform filtering
-      filtering.filterDataPoints();
+        while (data_it_1 < data_it_end)      // check for combining as long as first DataPoint is not second last elment of "data"
+        {
+          while (data_it_1->size() == 0 && data_it_1 < data_it_end)
+          {
+            ++data_it_1;      // get next first DataPoint
+            data_it_2 = data_it_1 + 1;      // reset second iterator
+          }
 
-      // retrieve filtered data points
-      for (SILACFiltering::Filters::iterator filter_it = filtering.filters_.begin(); filter_it != filtering.filters_.end(); ++filter_it)
-      {
-        data.push_back(filter_it->getElements());
-      }
+          if (data_it_1 == data_it_end && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
+          {
+            break;      // stop combining
+          }
 
+          while (data_it_2 < data.end() && data_it_2->size() == 0)      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
+          {
+            ++data_it_2;      // get next second DataPoint
+          }
 
-      //--------------------------------------------------
-      // combine DataPoints to improve the clustering
-      //--------------------------------------------------
+          if (data_it_2 == data.end())      // if second iterator points to end of "data"
+          {
+            data_it_2 = data_it_1 + 1;      // reset second iterator
+          }
 
-      // DataPoints that originate from filters with same charge state and mass shift(s)
-      // and whose filters only differ in number of isotopes per peptide are combined
-      // to get one cluster for peptides whose elution profile varies in number of isotopes per peptide
+          it_1 = data_it_1->begin();      // set first inner iterator to first element of first DataPoint
+          it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
 
-      // perform combination only if the user specified a peaks_per_peptide range > 1
-      if (isotopes_per_peptide_min != isotopes_per_peptide_max)
-      {
-        // erase empty filter results from "data"
+          // check if DataPoints are not empty
+          if (data_it_1->size() != 0 && data_it_2->size() != 0)
+          {
+            // check if DataPoints have the same charge state and mass shifts
+            if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
+            {
+              if (data_it_2 < data_it_end)     // if DataPpoints differ and second DataPoint is not second last element of "data"
+              {
+                temp++;
+                ++data_it_2;      // get next second DataPoint
+                if (temp > 50000)
+                {
+                  ++data_it_1;
+                  temp = 0;
+                }
+              }
+              else if (data_it_2 == data_it_end && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
+              {
+                ++data_it_1;      // get next first DataPoint
+                data_it_2 = data_it_1 + 1;      // reset second iterator
+              }
+              else
+              {
+                ++data_it_1;      // get next first DataPoint
+              }
+            }
+            else
+            {
+              // perform combining
+              (*data_it_1).insert(data_it_1->end(), data_it_2->begin(), data_it_2->end());      // append second DataPoint to first DataPoint
+              (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
+
+              if (data_it_2 < data_it_end)     // if second DataPoint is not second last element of "data"
+              {
+                ++data_it_2;      // get next second DataPoint
+              }
+              else
+              {
+                data_it_2 = data_it_1 + 1;      // reset second iterator
+              }
+            }
+          }
+          else
+          {
+            ++data_it_1;      // get next first DataPoint
+          }
+        }
+
+        // erase empty DataPoints from "data"
         std::vector<std::vector<SILACPattern> > data_temp;
 
         for (std::vector<std::vector<SILACPattern> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
@@ -106,111 +204,13 @@ namespace OpenMS
 
         data.swap(data_temp);     // data = data_temp
         data_temp.clear();      // clear "data_temp"
-
-        if (data.size() >= 2)
-        {
-          Int temp = 0;
-          // combine corresponding DataPoints
-          std::vector<std::vector<SILACPattern> >::iterator data_it_1 = data.begin();      // first iterator over "data" to get first DataPoint for combining
-          std::vector<std::vector<SILACPattern> >::iterator data_it_2 = data_it_1 + 1;     // second iterator over "data" to get second DataPoint for combining
-          std::vector<std::vector<SILACPattern> >::iterator data_it_end = data.end() - 1;      // pointer to second last elemnt of "data"
-          std::vector<SILACPattern>::iterator it_1;     // first inner iterator over elements of first DataPoint
-          std::vector<SILACPattern>::iterator it_2;     // second inner iterator over elements of second DataPoint
-
-          while (data_it_1 < data_it_end)      // check for combining as long as first DataPoint is not second last elment of "data"
-          {
-            while (data_it_1->size() == 0 && data_it_1 < data_it_end)
-            {
-              ++data_it_1;      // get next first DataPoint
-              data_it_2 = data_it_1 + 1;      // reset second iterator
-            }
-
-            if (data_it_1 == data_it_end && data_it_2 == data.end())     // if first iterator points to last element of "data" and second iterator points to end of "data"
-            {
-              break;      // stop combining
-            }
-
-            while (data_it_2 < data.end() && data_it_2->size() == 0)      // as long as current second DataPoint is empty and second iterator does not point to end of "data"
-            {
-              ++data_it_2;      // get next second DataPoint
-            }
-
-            if (data_it_2 == data.end())      // if second iterator points to end of "data"
-            {
-              data_it_2 = data_it_1 + 1;      // reset second iterator
-            }
-
-            it_1 = data_it_1->begin();      // set first inner iterator to first element of first DataPoint
-            it_2 = data_it_2->begin();      // set second inner iterator to first element of second DataPoint
-
-            // check if DataPoints are not empty
-            if (data_it_1->size() != 0 && data_it_2->size() != 0)
-            {
-              // check if DataPoints have the same charge state and mass shifts
-              if (it_1->charge != it_2->charge || it_1->mass_shifts != it_2->mass_shifts)
-              {
-                if (data_it_2 < data_it_end)     // if DataPpoints differ and second DataPoint is not second last element of "data"
-                {
-                  temp++;
-                  ++data_it_2;      // get next second DataPoint
-                  if (temp > 50000)
-                  {
-                    ++data_it_1;
-                    temp = 0;
-                  }
-                }
-                else if (data_it_2 == data_it_end && data_it_1 < data.end() - 2)     // if DataPpoints differ and second DataPoint is second last element of "data" and first DataPoint is not third last element of "data"
-                {
-                  ++data_it_1;      // get next first DataPoint
-                  data_it_2 = data_it_1 + 1;      // reset second iterator
-                }
-                else
-                {
-                  ++data_it_1;      // get next first DataPoint
-                }
-              }
-              else
-              {
-                // perform combining
-                (*data_it_1).insert(data_it_1->end(), data_it_2->begin(), data_it_2->end());      // append second DataPoint to first DataPoint
-                (*data_it_2).clear();     // clear second Datapoint to keep iterators valid and to keep size of "data"
-
-                if (data_it_2 < data_it_end)     // if second DataPoint is not second last element of "data"
-                {
-                  ++data_it_2;      // get next second DataPoint
-                }
-                else
-                {
-                  data_it_2 = data_it_1 + 1;      // reset second iterator
-                }
-              }
-            }
-            else
-            {
-              ++data_it_1;      // get next first DataPoint
-            }
-          }
-
-          // erase empty DataPoints from "data"
-          std::vector<std::vector<SILACPattern> > data_temp;
-
-          for (std::vector<std::vector<SILACPattern> >::iterator data_it = data.begin(); data_it != data.end(); ++data_it)
-          {
-            if (data_it->size() != 0)
-            {
-              data_temp.push_back(*data_it);     // keep DataPoint if it is not empty
-            }
-          }
-
-          data.swap(data_temp);     // data = data_temp
-          data_temp.clear();      // clear "data_temp"
-        }
       }
-
-
     }
 
-  void SILACAnalyzer::clusterData(const MSExperiment<> & exp, const PeakWidthEstimator::Result & peak_width)
+
+  }
+
+  void SILACAnalyzer::clusterData(const MSExperiment<> & exp, const PeakWidthEstimator::Result & peak_width, vector<Clustering *> & cluster_data, vector<vector<SILACPattern> > & data)
   {
     typedef Clustering::PointCoordinate PointCoordinate;
 
@@ -695,7 +695,7 @@ namespace OpenMS
     }
   }
 
-  void SILACAnalyzer::readFilterConsensusByPattern(ConsensusMap & in)
+  void SILACAnalyzer::readFilterConsensusByPattern(ConsensusMap & in, vector<vector<SILACPattern> > & data)
   {
     std::map<std::pair<Int, Int>, std::vector<SILACPattern> > layers;
 
