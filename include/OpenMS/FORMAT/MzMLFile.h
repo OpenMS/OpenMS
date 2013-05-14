@@ -66,10 +66,10 @@ public:
     ~MzMLFile();
 
     /// Mutable access to the options for loading/storing
-    PeakFileOptions & getOptions();
+    PeakFileOptions& getOptions();
 
     /// Non-mutable access to the options for loading/storing
-    const PeakFileOptions & getOptions() const;
+    const PeakFileOptions& getOptions() const;
 
     /**
         @brief Loads a map from a MzML file.
@@ -80,7 +80,7 @@ public:
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename MapType>
-    void load(const String & filename, MapType & map)
+    void load(const String& filename, MapType& map)
     {
       map.reset();
 
@@ -88,20 +88,20 @@ public:
       map.setLoadedFileType(filename);
       map.setLoadedFilePath(filename);
 
-      Internal::MzMLHandler<MapType> handler(map, filename, schema_version_, *this);
+      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
       handler.setOptions(options_);
       //handler can throw parse error and other errors - catch those here - they are the cause for a parse error - report accordingly
       try
       {
         parse_(filename, &handler);
       }
-      catch (Exception::BaseException & e)
+      catch (Exception::BaseException& e)
       {
         std::string expr;
         expr.append(e.getFile());
         expr.append("@");
         std::stringstream ss;
-        ss << e.getLine();             // we need c++11!! maybe in 2012?
+        ss << e.getLine(); // we need c++11!! maybe in 2012?
         expr.append(ss.str());
         expr.append("-");
         expr.append(e.getFunction());
@@ -120,9 +120,9 @@ public:
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename MapType>
-    void store(const String & filename, const MapType & map) const
+    void store(const String& filename, const MapType& map) const
     {
-      Internal::MzMLHandler<MapType> handler(map, filename, schema_version_, *this);
+      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
       handler.setOptions(options_);
       save_(filename, &handler);
     }
@@ -132,7 +132,7 @@ public:
 
     @exception Exception::FileNotFound is thrown if the file cannot be found.
     */
-    bool isValid(const String & filename, std::ostream & os = std::cerr);
+    bool isValid(const String& filename, std::ostream& os = std::cerr);
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
@@ -143,7 +143,7 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings);
+    bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
 private:
 
