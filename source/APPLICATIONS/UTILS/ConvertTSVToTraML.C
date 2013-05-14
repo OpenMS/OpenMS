@@ -68,7 +68,7 @@ using namespace OpenMS;
           <tr> Annotation  (free text, e.g. y7) </tr>
           <tr> FullUniModPeptideName  (free text, should contain modifications*)  </tr>
           <tr> PrecursorCharge (integer, contains the charge of the precursor) </tr>
-          <tr> Labelgroup (free text, e.g. heavy or light) </tr>
+          <tr> GroupLabel (free text, e.g. heavy or light) </tr>
           <tr> UniprotID (free text) </tr>
           <tr> FragmentType (free text, contains the type of the fragment, e.g. "b" or "y") </tr>
           <tr> FragmentCharge (integer, contains the fragment charge) </tr>

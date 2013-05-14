@@ -89,13 +89,13 @@ public:
     void swap(DocumentIdentifier & from);
 
 
-    /// set the file_name_ according to absolute path of the file loaded from preferrably done whilst loading
+    /// set the file_name_ according to absolute path of the file loaded from preferably done whilst loading
     void setLoadedFilePath(const String & file_name);
 
     /// get the file_name_ which is the absolute path to the file loaded from
     const String & getLoadedFilePath() const;
 
-    /// set the file_type according to the type of the file loaded from (see FileHandler::Type) preferrably done whilst loading
+    /// set the file_type according to the type of the file loaded from (see FileHandler::Type) preferably done whilst loading
     void setLoadedFileType(const String & file_name);
 
     /// get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from

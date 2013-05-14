@@ -121,7 +121,7 @@ public:
     /// sets the resolution (in ns)
     void setResolution(DoubleReal resolution);
 
-    /// retruns the analog-to-digital converter sampling frequency (in Hz)
+    /// returns the analog-to-digital converter sampling frequency (in Hz)
     DoubleReal getADCSamplingFrequency() const;
     /// sets the analog-to-digital converter sampling frequency (in Hz)
     void setADCSamplingFrequency(DoubleReal ADC_sampling_frequency);
@@ -134,7 +134,7 @@ public:
         - one or many mass analyzers
         - one ion detector
 
-        For more complex instuments, the order should be defined.
+        For more complex instruments, the order should be defined.
 */
     Int getOrder() const;
     /// sets the order

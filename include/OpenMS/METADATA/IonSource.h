@@ -56,7 +56,7 @@ public:
       BATCH,                                                                ///< Batch (e.g. in MALDI)
       CHROMATOGRAPHY,                                               ///< Chromatography (liquid)
       PARTICLEBEAM,                                                     ///< Particle beam
-      MEMBRANESEPARATOR,                                        ///< Membrane sparator
+      MEMBRANESEPARATOR,                                        ///< Membrane separator
       OPENSPLIT,                                                        ///< Open split
       JETSEPARATOR,                                                     ///< Jet separator
       SEPTUM,                                                               ///< Septum
@@ -93,8 +93,8 @@ public:
       TI,                               ///< thermal ionization
       API,                              ///< atmospheric pressure ionisation
       ISI,                              ///<
-      CID,                              ///< collsion induced decomposition
-      CAD,                              ///< collsion activated decomposition
+      CID,                              ///< collision induced decomposition
+      CAD,                              ///< collision activated decomposition
       HN,                               ///<
       APCI,                             ///< atmospheric pressure chemical ionization
       APPI,                             ///< atmospheric pressure photo ionization
@@ -133,7 +133,7 @@ public:
       SALDI,                        ///< surface-assisted laser desorption ionization
       SIZE_OF_IONIZATIONMETHOD
     };
-    /// Names of inonization methods
+    /// Names of ionization methods
     static const std::string NamesOfIonizationMethod[SIZE_OF_IONIZATIONMETHOD];
 
     /// Polarity of the ion source
@@ -154,7 +154,7 @@ public:
     /// Destructor
     ~IonSource();
 
-    /// Assignemtn operator
+    /// Assignment operator
     IonSource & operator=(const IonSource & source);
 
     /// Equality operator
@@ -185,7 +185,7 @@ public:
         - one or many mass analyzers
         - one ion detector
 
-        For more complex instuments, the order should be defined.
+        For more complex instruments, the order should be defined.
 */
     Int getOrder() const;
     /// sets the order
