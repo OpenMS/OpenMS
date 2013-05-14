@@ -17,5 +17,7 @@ cdef extern from "<OpenMS/FORMAT/ProtXMLFile.h>" namespace "OpenMS":
         ProtXMLFile(ProtXMLFile) nogil except + # wrap-ignore
 
         void load(String filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids)
+
+        # Not implemented
         void store(String filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids, String document_id)
 

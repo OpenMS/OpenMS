@@ -34,6 +34,10 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
         int findNearest(double) nogil except+
 
+        void assign(libcpp_vector[ChromatogramPeak].iterator, libcpp_vector[ChromatogramPeak].iterator) nogil except + # wrap-ignore
+        libcpp_vector[ChromatogramPeakT].iterator begin() nogil except +  # wrap-iter-begin:__iter__(ChromatogramPeakT)
+        libcpp_vector[ChromatogramPeakT].iterator end()   nogil except +  # wrap-iter-end:__iter__(ChromatogramPeakT)
+
         void getKeys(libcpp_vector[String] & keys)
         void getKeys(libcpp_vector[unsigned int] & keys)
         DataValue getMetaValue(unsigned int) nogil except +
