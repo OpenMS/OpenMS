@@ -9,6 +9,23 @@ from DataProcessing cimport *
 from Types cimport *
 from Map cimport *
 
+cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMap":
+
+    cdef cppclass FileDescription:
+        String filename
+        String label
+        Size size
+        UInt64 unique_id
+
+        FileDescription()
+        FileDescription(FileDescription &)  # wrap-ignore
+
+    # for msvc++ compiler, see addons/ConsensusMap.pyx
+    ctypedef Map[unsigned long int, FileDescription] FileDescriptions "OpenMS::ConsensusMap::FileDescriptions"
+    ctypedef Map[unsigned long int, FileDescription].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::FileDescriptions::iterator"
+
+
+
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
     cdef cppclass ConsensusMap(UniqueIdInterface):
@@ -54,19 +71,10 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
         int size() nogil except +
 
-        Map[long unsigned int,FileDescription] getFileDescriptions()
-        void setFileDescriptions(Map[long unsigned int,FileDescription] fd)
+
+        FileDescriptions getFileDescriptions()       #wrap-ignore
+        void setFileDescriptions(FileDescriptions &)       #wrap-ignore
 
 
-cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMap":
-
-    cdef cppclass FileDescription:
-        String filename
-        String label
-        Size size
-        UInt64 unique_id
-
-        FileDescription()
-        FileDescription(FileDescription &)  # wrap-ignore
 
 

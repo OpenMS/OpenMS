@@ -26,11 +26,12 @@ persisted_data_path = "include_dir.bin"
 if not os.path.exists(persisted_data_path)\
     or any(m > mtime_result for m in mtimes):
 
-    extra_cimports = ["from libc.stdint cimport *",
-                "from libc.stddef cimport *",
-                "from UniqueIdInterface cimport setUniqueId as _setUniqueId",
-                "from Map cimport Map as _Map",
-                "cimport numpy as np"]
+    extra_cimports = [#"from libc.stdint cimport *",
+        "from libc.stddef cimport *",
+        "from UniqueIdInterface cimport setUniqueId as _setUniqueId",
+        "from Map cimport Map as _Map",
+        "from ConsensusMap cimport FileDescriptions, FileDescriptions_iterator",
+        "cimport numpy as np"]
     autowrap_include_dirs = autowrap.Main.run(pxd_files,
                                             addons,
                                             converters,

@@ -1,4 +1,8 @@
+import pdb
 import pyopenms
+
+print "IMPORTED ", pyopenms.__file__
+
 
 from functools import wraps
 
