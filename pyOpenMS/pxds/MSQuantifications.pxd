@@ -10,7 +10,6 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         MSQuantifications(MSQuantifications &) nogil # wrap-ignore
         bool operator==(MSQuantifications &) nogil
         bool operator!=(MSQuantifications &) nogil
-        void load(String filename, bool trim_lines, Int first_n)
 
         libcpp_vector[ConsensusMap] getConsensusMaps() nogil
         void setConsensusMaps(libcpp_vector[ConsensusMap]) nogil

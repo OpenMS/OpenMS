@@ -1,19 +1,53 @@
+import pdb
 import argparse
 import pyopenms as pms
 from common import addDataProcessing, writeParamsIfRequested, updateDefaults
 from  collections import Counter
 
 
-def id_mapper(in_file, id_file, out_file, params):
+def id_mapper(in_file, id_file, out_file, params, use_centroid_rt,
+        use_centroid_mz, use_subelements ):
 
     in_type = pms.FileHandler.getType(in_file)
 
-    if in_types == pms.Type.CONSENSUSXML:
-        link_features = 0
-    elif in_types == pms.Type.FEATUREXML:
-        link_features = 1
-    elif in_types == pms.Type.MZQ:
-        link_features = 2
+    protein_ids = []
+    peptide_ids = []
+
+    pms.IdXMLFile().load(id_file, protein_ids, peptide_ids)
+
+    mapper = pms.IDMapper()
+    mapper.setParameters(params)
+
+    if in_type == pms.Type.CONSENSUSXML:
+        file_ = pms.ConsensusXMLFile()
+        map_ = pms.ConsensusMap()
+        file_.load(in_file, map_)
+        mapper.annotate(map_, peptide_ids, protein_ids, use_subelements)
+        addDataProcessing(map_, params, pms.ProcessingAction.IDENTIFICATION_MAPPING)
+        file_.store(out_file, map_)
+
+    elif in_type == pms.Type.FEATUREXML:
+        file_ = pms.FeatureXMLFile()
+        map_ = pms.FeatureMap()
+        file_.load(in_file, map_)
+        mapper.annotate(map_, peptide_ids, protein_ids, use_centroid_rt,
+                use_centroid_mz)
+        addDataProcessing(map_, params, pms.ProcessingAction.IDENTIFICATION_MAPPING)
+        file_.store(out_file, map_)
+
+    elif in_type == pms.Type.MZQ:
+        file_ = pms.MzQuantMLFile()
+        msq = pms.MSQuantifications()
+        file_.load(in_file, msq)
+        maps = msq.getConsensusMaps()
+        for map_ in maps:
+            mapper.annotate(map_, peptide_ids, protein_ids, use_subelements)
+            addDataProcessing(map_, params, pms.ProcessingAction.IDENTIFICATION_MAPPING)
+        msq.setConsensusMaps(maps)
+        file_.store(out_file, msq)
+
+    else:
+        raise Exception("invalid input file format")
 
 
 def main():
@@ -94,8 +128,6 @@ def main():
 
     args = parser.parse_args()
 
-    print args
-
 
 
     run_mode = (args.in_ and args.id_ and args.out) \
@@ -114,7 +146,25 @@ def main():
     if not write_requested:
         updateDefaults(args, defaults)
 
-        id_mapper(arg.in_, args.id_, args.out, defaults)
+        dd = defaults.asDict()
+        dd["ignore_charge"] = "true" if args.ignore_charge else "false"
+        for att in ["mz_tolerance", "rt_tolerance", "mz_measure",
+                "mz_reference"]:
+            value = getattr(args, att)
+            if value is not None:
+                dd[att] = value
+
+        defaults.updateFrom(dd)
+        feature_use_centroid_rt = getattr(args, "feature:use_centroid_rt")
+        feature_use_centroid_mz = getattr(args, "feature:use_centroid_mz")
+        consenususfeature_use_subelements = getattr(args,
+                "consensusfeature:use_subelements")
+
+        id_mapper(args.in_, args.id_, args.out, defaults,
+                feature_use_centroid_rt,
+                feature_use_centroid_mz,
+                consenususfeature_use_subelements
+                )
 
 
 

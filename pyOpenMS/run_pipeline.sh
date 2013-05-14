@@ -53,6 +53,19 @@ echo
 ls -lh cons.consensusXML
 echo
 
+echo
+echo ============================================================
+echo IDMapper
+echo ============================================================
+echo
+python pyTOPP/IDMapper.py -write_ini mapper.ini
+python pyTOPP/IDMapper.py -ini mapper.ini -in align_1.featureXML -out cons_mapped.consensusXML -id /usr/share/OpenMS/examples/BSA/BSA1_OMSSA.idXML
+python pyTOPP/IDMapper.py -ini mapper.ini -in cons.consensusXML -out cons_mapped.consensusXML -id /usr/share/OpenMS/examples/BSA/BSA1_OMSSA.idXML
+
+echo
+ls -lh cons_mapped.consensusXML
+echo
+
 rm pp.ini
 rm picked_1.mzML
 rm picked_2.mzML
