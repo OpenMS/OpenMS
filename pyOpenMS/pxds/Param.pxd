@@ -16,9 +16,11 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          Param() nogil except +
          Param(Param) nogil except +
          bool operator==(Param) nogil except +
+
          void setValue(String key, DataValue val, String desc, StringList tags) nogil except +
          void setValue(String key, DataValue val, String desc) nogil except +
          DataValue getValue(String key) nogil except +
+         ParamEntry getEntry(String) nogil except +
          int exists(String key) nogil except +
 
          void addTag(String key, String tag) nogil except +
@@ -32,11 +34,27 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          libcpp_string getSectionDescription(String key) nogil except +
 
          Size size() nogil except +
+         bool empty() nogil except +
+
+         void clear() nogil except +
          void insert(String prefix, Param param) nogil except +
-         Param copy(String prefix, bool) except +
-         Param copy(String prefix) except +
+
+         void remove(String key) nogil except +
+         void removeAll(String prefix) nogil except +
+
+         Param copy(String prefix, bool) nogil except +
+         Param copy(String prefix) nogil except +
          void update(Param p_old, bool add_unknow) nogil except +
          void update(Param p_old) nogil except +
+
+         void merge(Param toMerge) nogil except +
+
+         void setDefaults(Param defaults, String previx, bool showMessage) nogil except +
+         void setDefaults(Param defaults, String previx) nogil except +
+         void setDefaults(Param defaults) nogil except +
+
+         void checkDefaults(String name, Param defaults, String prefix) nogil except +
+         void checkDefaults(String name, Param defaults) nogil except +
 
          void setValidStrings(String key, libcpp_vector[String] strings) nogil except +
          void setMinInt(String key, int min) nogil except +
@@ -44,7 +62,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          void setMinFloat(String key, double min) nogil except +
          void setMaxFloat(String key, double max) nogil except +
 
-         ParamEntry getEntry(String) nogil except +
+         #void parseCommandLine(int argc, char ** argv, String prefix) # wrap-ignore
+         #void parseCommandLine(int argc, char ** argv) # wrap-ignore
+
 
          ParamIterator begin() nogil except + # wrap-ignore
          ParamIterator end()   nogil except + # wrap-ignore
