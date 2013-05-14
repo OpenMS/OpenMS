@@ -23,6 +23,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
         FileDescription(FileDescription &)  # wrap-ignore
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
+    # ... forgot why Map[..] did not work
     ctypedef Map[unsigned long int, FileDescription] FileDescriptions "OpenMS::ConsensusMap::FileDescriptions"
     ctypedef Map[unsigned long int, FileDescription].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::FileDescriptions::iterator"
 
@@ -35,9 +36,6 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         # wrap-inherits:
         #   UniqueIdInterface
 
-        #void setFileDescriptions(Map[long unsigned int,FileDescription] fd)
-        #ctypedef Map[long unsigned int, FileDescription] FileDescriptions
-
         ConsensusMap() nogil except +
         ConsensusMap(ConsensusMap) nogil except + # wrap-ignore
 
@@ -49,23 +47,34 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
         void updateRanges()
 
-        libcpp_vector[ProteinIdentification] getProteinIdentifications() nogil except+
-        void setProteinIdentifications(libcpp_vector[ProteinIdentification]) nogil except+
+        libcpp_vector[ProteinIdentification] getProteinIdentifications(
+                ) nogil except+
 
-        libcpp_vector[PeptideIdentification] getUnassignedPeptideIdentifications() nogil except+
-        void setUnassignedPeptideIdentifications(libcpp_vector[PeptideIdentification]) nogil except+
+        void setProteinIdentifications(
+                libcpp_vector[ProteinIdentification]
+                ) nogil except+
+
+        libcpp_vector[PeptideIdentification]\
+                getUnassignedPeptideIdentifications() nogil except+
+
+        void setUnassignedPeptideIdentifications(
+                libcpp_vector[PeptideIdentification]
+                ) nogil except+
 
         libcpp_vector[DataProcessing] getDataProcessing() nogil except +
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +
 
 
-        libcpp_vector[ConsensusFeature].iterator begin() nogil except +    # wrap-iter-begin:__iter__(ConsensusFeature)
-        libcpp_vector[ConsensusFeature].iterator end()   nogil except +    # wrap-iter-end:__iter__(ConsensusFeature)
+        libcpp_vector[ConsensusFeature].iterator begin(
+                ) nogil except +   # wrap-iter-begin:__iter__(ConsensusFeature)
+        libcpp_vector[ConsensusFeature].iterator end(
+                )   nogil except +  # wrap-iter-end:__iter__(ConsensusFeature)
 
         int   size()  nogil except +
-        # wrapped manually:
+
         ConsensusFeature operator[](int)      nogil except +
 
+        # wrapped in ../addons/ConsensusMap.pyx:
         void applyMemberFunction(Size(* fun)())  nogil except + # wrap-ignore
 
         void sortByIntensity(bool reverse) nogil except +
@@ -78,12 +87,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void sortBySize() nogil except +
         void sortByMaps() nogil except +
 
-        #Map[unsigned long int,FileDescription] getFileDescriptions()
-        #void setFileDescriptions(Map[long unsigned int,FileDescription] fd)
-        #void setFileDescriptions(FileDescriptions &)
-
+        # wrapped in ../addons/ConsensusMap.pyx:
+        void setFileDescriptions(FileDescriptions &)   #wrap-ignore
         FileDescriptions & getFileDescriptions()       #wrap-ignore
-        #void setFileDescriptions(FileDescriptions &)       #wrap-ignore
 
 
 

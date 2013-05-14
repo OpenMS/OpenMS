@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS":
     cdef cppclass File:
         pass
 
-
+# File has only static methods, which we wrap as declared below:
 cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
 
     String getExecutablePath()  # wrap-attach:File

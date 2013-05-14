@@ -19,7 +19,6 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
 
     cdef cppclass SpectrumSettings:
 
-
         SpectrumSettings()    nogil except +
         void unify(SpectrumSettings)    nogil except +
         int  getType()    nogil except +

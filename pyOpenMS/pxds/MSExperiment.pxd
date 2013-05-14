@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #   MSExperiment := MSExperiment[Peak1D, ChromatogramPeak]
 
         MSExperiment() nogil except +
-        MSExperiment(MSExperiment[PeakT, ChromoPeakT] &)  nogil except + # wrap-ignore
+        MSExperiment(MSExperiment[PeakT, ChromoPeakT] &)  nogil except +
 
         double getMinMZ() nogil except +
         double getMaxMZ() nogil except +
@@ -30,14 +30,13 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         bool isSorted() nogil except +
 
         int   size() nogil except +
-        # wrapped manually:
+
         MSSpectrum[PeakT] operator[](int)      nogil except + # wrap-upper-limit:size()
 
         void   updateRanges() nogil except +
         void   updateRanges(int msLevel) nogil except +
 
         UInt64 getSize() nogil except +
-        #libcpp_vector[unsigned int] getMSLevels() nogil except +
 
 
         void push_back(MSSpectrum[PeakT] spec) nogil except +

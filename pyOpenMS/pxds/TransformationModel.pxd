@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
 
     cdef cppclass TransformationModel:
         # wrap-ignore
-        
+
         TransformationModel()  nogil except +
         TransformationModel(TransformationModel, Param) nogil except + # wrap-ignore
         void getParameters(Param &)
@@ -17,14 +17,17 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
         # wrap-inherits:
         #   TransformationModel
         pass
+        # static method getParameters() in separate file
 
     cdef cppclass TransformationModelBSpline(TransformationModel):
         # wrap-inherits:
         #   TransformationModel
         pass
-        
+        # static method getParameters() in separate file
+
     cdef cppclass TransformationModelInterpolated(TransformationModel):
         # wrap-inherits:
         #   TransformationModel
         pass
-        
+        # static method getParameters() in separate file
+

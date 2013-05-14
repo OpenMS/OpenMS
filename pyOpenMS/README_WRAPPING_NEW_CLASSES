@@ -34,3 +34,26 @@ Possible Error messages:
 
 means you forgot to add the copy constructor in the class XXX and it is expected somewhere else => go fix it
 
+- inheriting: limitations, see Precursor.pxd
+
+- referenzargument
+
+- operator+=: see AASequence.iadd in AASequence.pxd
+
+- operator==, !=, <=, <, >=, > werden automatisch gewrappd
+
+- einschrünkungen: iterator, referenz
+
+- copycon -> __copy__
+
+-  wrap-ignore: nicht wrappen, aber deklaritoin trotzdem für c++ erzeugug von nöten
+- wrap-as
+- beduetung ":"
+
+- wrap-iter-begin, wrap-iter-end (see ConsensusMap.pxd)
+
+- wrap-instances
+
+- wrap-attach: enums, sttaic methods
+
+- wrap-upper-limit:size oder size()

@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/METADATA/CVTerm.h>" namespace "OpenMS":
          CVTerm(CVTerm)   nogil except +
 
          bool operator==(CVTerm)   nogil except +
-         
+
          void setAccession(String accession) nogil except +
          String getAccession() nogil except +
 

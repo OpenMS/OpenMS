@@ -7,4 +7,7 @@ cdef extern from "<OpenMS/FORMAT/PeakTypeEstimator.h>" namespace "OpenMS":
 
     cdef cppclass PeakTypeEstimator:
         PeakTypeEstimator()
-        int estimateType(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) # wrap-ignore
+
+        # wrpped in ../addons/PeakTypeEstimator.pyx:
+        int estimateType(libcpp_vector[Peak1D].iterator,
+                         libcpp_vector[Peak1D].iterator) # wrap-ignore

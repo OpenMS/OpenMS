@@ -15,8 +15,10 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>" namespa
         # wrap-inherits:
         #    ProgressLogger
         #    DefaultParamHandler
-        #
 
         MassTraceDetection()      nogil except +
-        void run(MSExperiment[Peak1D, ChromatogramPeak] & input_map, libcpp_vector[MassTrace] & traces) nogil except +
+
+        void run(MSExperiment[Peak1D, ChromatogramPeak] & input_map,
+                libcpp_vector[MassTrace] & traces
+                ) nogil except +
 

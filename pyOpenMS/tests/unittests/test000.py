@@ -1359,6 +1359,8 @@ def testFileHandler():
     fh.storeExperiment("test1.mzData", mse)
     fh.loadExperiment("test1.mzData", mse)
 
+    
+
 @report
 def testIDMapper():
     """
@@ -1500,6 +1502,12 @@ def testMSExperiment():
 
     assert mse.getSize() >= 0
     assert int(mse.isSorted()) in (0,1)
+
+    import copy
+    mse2 = copy.copy(mse)
+
+    assert mse.getSize() == mse2.getSize()
+    assert mse2 == mse
 
 
 @report

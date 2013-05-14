@@ -22,6 +22,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff)
         void run()
 
+#
+# static methods are wrapped like this:
+#
+
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS::FeatureFinderAlgorithmPicked<OpenMS::Peak1D,OpenMS::Feature>":
 
     String getProductName()   nogil except + # wrap-attach:FeatureFinderAlgorithmPicked

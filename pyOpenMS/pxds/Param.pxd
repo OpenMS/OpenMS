@@ -10,6 +10,8 @@ from StringList cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
 
+    # pythonic helper functions in ../addons/Param.pyx !!!!
+
     cdef cppclass Param:
          Param() nogil except +
          Param(Param) nogil except +
@@ -42,11 +44,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          void setMinFloat(String key, double min) nogil except +
          void setMaxFloat(String key, double max) nogil except +
 
-         #void store(String filename) nogil except +
-         #void load(String filename) nogil except +
-
          ParamEntry getEntry(String) nogil except +
-
 
          ParamIterator begin() nogil except + # wrap-ignore
          ParamIterator end()   nogil except + # wrap-ignore
@@ -77,17 +75,16 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
 
 cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
 
-         cppclass ParamIterator:
-             # wrap-ignore
-             #ParamEntry& operator*()
-             ParamIterator operator++() nogil except +
-             ParamIterator operator--() nogil except +
-             String getName() nogil except +
-             int operator==(ParamIterator) nogil except +
-             int operator!=(ParamIterator) nogil except +
-             int operator<(ParamIterator) nogil except +
-             int operator>(ParamIterator) nogil except +
-             int operator<=(ParamIterator) nogil except +
-             int operator>=(ParamIterator) nogil except +
+    cdef cppclass ParamIterator:
+        # wrap-ignore
+        ParamIterator operator++() nogil except +
+        ParamIterator operator--() nogil except +
+        String getName() nogil except +
+        int operator==(ParamIterator) nogil except +
+        int operator!=(ParamIterator) nogil except +
+        int operator<(ParamIterator) nogil except +
+        int operator>(ParamIterator) nogil except +
+        int operator<=(ParamIterator) nogil except +
+        int operator>=(ParamIterator) nogil except +
 
 

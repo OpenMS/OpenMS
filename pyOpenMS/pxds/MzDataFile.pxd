@@ -13,8 +13,7 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
         #   ProgressLogger
 
         MzDataFile() nogil except +
-        # cython does not support free template args, so Peak1D has
-        # to be used as a fixed argument
+
         void load(String, MSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
         void store(String, MSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
 

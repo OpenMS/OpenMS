@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
     cdef cppclass DataProcessing(MetaInfoInterface):
         # wrap-inherits:
         #     MetaInfoInterface
-        
+
         DataProcessing()  nogil except +
         DataProcessing(DataProcessing) nogil except + # wrap-ignore
 
@@ -28,6 +28,7 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS":
         # cython has a problem with inheritance of overloaded methods,
         # so we do not declare them here, but separately in each derived
         # class which we want to be wrapped:
+
         void getKeys(libcpp_vector[String] & keys)
         void getKeys(libcpp_vector[unsigned int] & keys)
         DataValue getMetaValue(unsigned int) nogil except +
@@ -49,4 +50,4 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS::DataPro
         PEAK_PICKING, ALIGNMENT, CALIBRATION, NORMALIZATION, FILTERING,
         QUANTITATION, FEATURE_GROUPING, IDENTIFICATION_MAPPING,
         FORMAT_CONVERSION, CONVERSION_MZDATA, CONVERSION_MZML,
-        CONVERSION_MZXML, CONVERSION_DTA, SIZE_OF_PROCESSINGACTION 
+        CONVERSION_MZXML, CONVERSION_DTA, SIZE_OF_PROCESSINGACTION

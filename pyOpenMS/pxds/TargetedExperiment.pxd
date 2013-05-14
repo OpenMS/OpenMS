@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
     cdef cppclass TargetedExperiment:
 
         TargetedExperiment()                  nogil except +
-        TargetedExperiment(TargetedExperiment)   nogil except + #wrap-ignore
+        TargetedExperiment(TargetedExperiment)   nogil except +
         void clear(bool clear_meta_data)  nogil except +
 
         libcpp_vector[ReactionMonitoringTransition] getTransitions()  nogil except +

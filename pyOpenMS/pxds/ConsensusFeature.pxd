@@ -9,7 +9,7 @@ from BaseFeature cimport *
 cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
 
     # do not wrap BaseFeature, due to overloaded base methods
-    # -> see MetaInfoInterface.pxd
+    # -> see Precursor.pxd
 
     cdef cppclass ConsensusFeature(UniqueIdInterface):
         # wrap-inherits:

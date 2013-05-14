@@ -15,7 +15,9 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         void storeExperiment(libcpp_string, MSExperiment[Peak1D, ChromatogramPeak]) nogil except+
         void loadFeatures(libcpp_string, FeatureMap[Feature] &) nogil except +
 
-
+#
+# wrap static method:
+#
 
 cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS::FileHandler":
 

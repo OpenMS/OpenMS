@@ -17,12 +17,20 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>" names
         # wrap-inherits:
         #    ProgressLogger
         #    DefaultParamHandler
-        #
 
         ElutionPeakDetection()      nogil except +
-        void detectPeaks(MassTrace & in_, libcpp_vector[MassTrace] & out) nogil except +
-        void detectPeaks(libcpp_vector[MassTrace] & in_, libcpp_vector[MassTrace] & out) nogil except +
-        void filterByPeakWidth(libcpp_vector[MassTrace] & in_, libcpp_vector[MassTrace] & out) nogil except +
+
+        void detectPeaks(MassTrace & in_,
+                         libcpp_vector[MassTrace] & out
+                         ) nogil except +
+
+        void detectPeaks(libcpp_vector[MassTrace] & in_,
+                         libcpp_vector[MassTrace] & out
+                        ) nogil except +
+
+        void filterByPeakWidth(libcpp_vector[MassTrace] & in_,
+                               libcpp_vector[MassTrace] & out
+                              ) nogil except +
 
         DoubleReal computeMassTraceNoise(MassTrace &) nogil except +
         DoubleReal computeMassTraceSNR(MassTrace &) nogil except +

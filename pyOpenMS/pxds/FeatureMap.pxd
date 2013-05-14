@@ -50,7 +50,6 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         libcpp_vector[DataProcessing] getDataProcessing() nogil except +
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +
 
-
         libcpp_vector[Feature].iterator begin() nogil except +    # wrap-iter-begin:__iter__(Feature)
         libcpp_vector[Feature].iterator end()   nogil except +    # wrap-iter-end:__iter__(Feature)
 

@@ -5,7 +5,6 @@ from Types cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DPosition.h>" namespace "OpenMS":
 
-
     # this is the way to declare a class with a int template parameter.
 
     # it is a bit laborous as one has to declare all methods twice,

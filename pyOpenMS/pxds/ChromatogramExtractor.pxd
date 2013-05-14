@@ -13,11 +13,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
         #    ProgressLogger
 
         ChromatogramExtractor()                  nogil except +
-        ChromatogramExtractor(ChromatogramExtractor)   nogil except + #wrap-ignore
+        ChromatogramExtractor(ChromatogramExtractor)   nogil except + 
 
         void extractChromatograms(MSExperiment[Peak1D, ChromatogramPeak] & input,
                                   MSExperiment[Peak1D, ChromatogramPeak] & output, 
-                                  TargetedExperiment & transition_exp, 
+                                  TargetedExperiment & transition_exp,
                                   double extract_window,
                                   bool ppm,
                                   TransformationDescription trafo,

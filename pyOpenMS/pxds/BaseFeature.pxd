@@ -22,8 +22,8 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +
 
-        bool operator==(BaseFeature) nogil except + # wrap-ignore
-        bool operator!=(BaseFeature) nogil except + # wrap-ignore
+        bool operator==(BaseFeature) nogil except +
+        bool operator!=(BaseFeature) nogil except +
 
         void getKeys(libcpp_vector[String] & keys) nogil except +
         void getKeys(libcpp_vector[unsigned int] & keys) nogil except +

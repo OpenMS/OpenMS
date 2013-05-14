@@ -1,6 +1,5 @@
 from libc.string cimport const_char
 
-
 cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
 
     cdef cppclass String:

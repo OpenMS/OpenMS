@@ -11,7 +11,13 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
 
 
         PeptideHit() nogil except +
-        PeptideHit(DoubleReal score, UInt rank, Int charge, AASequence sequence) nogil except +
+
+        PeptideHit(DoubleReal score,
+                   UInt       rank,
+                   Int        charge,
+                   AASequence sequence
+                   ) nogil except +
+
         PeptideHit(PeptideHit) nogil except + # wrap-ignore
 
         Real getScore() nogil except +

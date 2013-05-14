@@ -4,7 +4,7 @@ from libcpp cimport bool
 cdef extern from "<OpenMS/METADATA/Product.h>" namespace "OpenMS":
 
     cdef cppclass Product:
-        
+
 
         Product()    nogil except +
         Product(Product)    nogil except +

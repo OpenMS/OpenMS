@@ -1,24 +1,57 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.pair cimport pair
-# from libcpp cimport bool as libcpp_pair
-from libcpp cimport bool 
+from libcpp cimport bool
 from String cimport *
+from CVTerm cimport *
+from Map    cimport *
 from DataValue cimport *
 from CVTermList cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper":
 
     cdef cppclass RetentionTime:
+
         RetentionTime() nogil except +
         RetentionTime(RetentionTime) nogil except +
         String software_ref
+
+        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
+        void replaceCVTerm(CVTerm & term)               nogil except +
+
+        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms,
+                            String accession
+                           ) nogil except +
+
+        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
+                           ) nogil except +
+
+        Map[String, libcpp_vector[CVTerm] ] getCVTerms()
+        void addCVTerm(CVTerm & term)                   nogil except +
+
+        bool hasCVTerm(String accession)  nogil except +
+        bool empty()                      nogil except +
 
     cdef cppclass Protein:
 
         Protein() nogil except +
         Protein(Protein) nogil except +
 
-    cdef cppclass Peptide: # TODO add CVTermList
+        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
+        void replaceCVTerm(CVTerm & term)               nogil except +
+
+        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms,
+                            String accession
+                           ) nogil except +
+
+        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
+                           ) nogil except +
+
+        Map[String, libcpp_vector[CVTerm] ] getCVTerms()
+        void addCVTerm(CVTerm & term)                   nogil except +
+
+        bool hasCVTerm(String accession)  nogil except +
+        bool empty()                      nogil except +
+
+    cdef cppclass Peptide:
 
         Peptide() nogil except +
         Peptide(Peptide) nogil except +
@@ -27,7 +60,22 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         libcpp_vector[String] protein_refs
         CVTermList evidence
         String sequence
-        #std::vector<Modification> mods
+
+        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
+        void replaceCVTerm(CVTerm & term)               nogil except +
+
+        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms,
+                            String accession
+                           ) nogil except +
+
+        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
+                           ) nogil except +
+
+        Map[String, libcpp_vector[CVTerm] ] getCVTerms()
+        void addCVTerm(CVTerm & term)                   nogil except +
+
+        bool hasCVTerm(String accession)  nogil except +
+        bool empty()                      nogil except +
 
         void setChargeState(int charge) nogil except +
         int getChargeState() nogil except +

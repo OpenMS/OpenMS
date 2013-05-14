@@ -14,5 +14,5 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DBoundingBox.h>" namespace "OpenMS":
         DPosition2 maxPosition() nogil except +
 
 
-    
+
 

@@ -1,5 +1,7 @@
 from Param cimport *
 
+# class TransformationModelLinear declared in TransformationModel.pxd
+
 # keep TransformationModelInterpolated, TransformationModelLinear and
 # TransformationModelBSpline in separate files. Else autowrap can not
 # distinguish the getDefaultParameters() static methods

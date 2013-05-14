@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
 
     cdef cppclass MSQuantifications:
         MSQuantifications()  nogil
-        MSQuantifications(MSQuantifications &) nogil # wrap-ignore
+        MSQuantifications(MSQuantifications &) nogil
         bool operator==(MSQuantifications &) nogil
         bool operator!=(MSQuantifications &) nogil
 
