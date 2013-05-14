@@ -255,6 +255,17 @@ def testIdentification():
     assert len(f.getSpectrumIdentifications()) == 2
 
 @report
+def testModificationDefinitionsSet():
+    """
+    @tests:
+     ModificationDefinitionsSet.__init__
+    """
+    empty = pyopenms.ModificationDefinitionsSet()
+    fixed = ["Carbamidomethyl"]
+    variable = ["Oxidation"]
+    full = pyopenms.ModificationDefinitionsSet(fixed, variable)
+
+@report
 def test_AcquisitionInfo():
     """
     @tests:
@@ -517,6 +528,37 @@ def testConsensusXMLFile():
     assert f.load is not None
     assert f.store is not None
 
+@report
+def testXTandemXMLFile():
+    """
+    @tests:
+     XTandemXMLFile.__init__
+     XTandemXMLFile.load
+     XTandemXMLFile.setModificationDefinitionsSet
+    """
+    f = pyopenms.XTandemXMLFile()
+    assert f.load is not None
+    assert f.setModificationDefinitionsSet is not None
+
+@report
+def testSignalToNoiseEstimatorMedian():
+    """
+    @tests:
+     SignalToNoiseEstimatorMedian.__init__
+    """
+    f = pyopenms.SignalToNoiseEstimatorMedian()
+    assert f.init is not None
+    assert f.getSignalToNoise is not None
+
+@report
+def testSignalToNoiseEstimatorMedianChrom():
+    """
+    @tests:
+     SignalToNoiseEstimatorMedianChrom.__init__
+    """
+    f = pyopenms.SignalToNoiseEstimatorMedianChrom()
+    assert f.init is not None
+    assert f.getSignalToNoise is not None
 
 @report
 def testConvexHull2D():
