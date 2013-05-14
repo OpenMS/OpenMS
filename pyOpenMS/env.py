@@ -1,0 +1,7 @@
+OPEN_MS_SRC="/home/uschmitt/Release1.10pyopenms"
+OPEN_MS_BUILD_DIR="/home/uschmitt/Release1.10pyopenms"
+OPEN_MS_CONTRIB_BUILD_DIRS="/home/uschmitt/Release1.10pyopenms/contrib;/opt/local;/usr/local;"
+QT_HEADERS_DIR="/usr/include/qt4"
+QT_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"
+QT_QTCORE_INCLUDE_DIR="/usr/include/qt4/QtCore"
+MSVCR90DLL=""

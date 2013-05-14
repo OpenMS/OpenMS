@@ -1,0 +1,14 @@
+- config: set pathes in library_dirs and libraries in setup.py according
+  to local setting
+
+- generating .cpp: run cythonize.sh / cythonize.bat
+
+- generate _pyOpenMS.pyd (python extension module):
+
+      python setup.py build_ext --inplace
+
+
+
+
+- according to redist.txt in the visual studio folder it is allowed
+  to distribute msvcr90.dll with these bindings.

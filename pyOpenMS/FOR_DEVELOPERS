@@ -1,0 +1,79 @@
+one iteration is:
+
+  - adapt files in pyOpenMS/pyopenms/pxds
+
+  - adapt unittests and maybe memoryleaktests
+
+  - run in this directory:
+
+    1) generate_code_and_cythonize.bat
+
+    2) python setup.py build_ext --inplace
+
+    3) run_unittests_with_local_pyopenms.bat
+
+    4) maybe: run_memleak_tests.bat
+
+
+about the unittests / testcoverage:
+
+   the unittests have docstrings with sections
+   """
+      @tested
+      ClassA.method1
+      .method2
+      .mehtod3
+      .__init__
+      ClassB.method_a
+      ....
+      @end 
+   """
+
+   these have to be maintained by the developers and 
+   declare which classes and methods from the wrappings
+   are tested in the corresponding module /class/method.
+
+   the script check_test_coverage.py loads _pyOpenMS.pyd,
+   extracts all wrapped classes and their methods and
+   compares them with the delcared ones.
+
+   at the end the script gives an overview over missing
+   tests.
+   
+
+about the code generator:
+
+    the generator parses .pxd files. that are cython files
+    which describe the signatures of used c++ classes and their
+    methods.
+
+    the generator then builds cython code for python classes,
+    the methods of these classes delegate to the corresponding
+    c++ methods and perform type conversions for input arguments
+    and the return value.
+    
+    if you add an #ignore comment to a class or method in a .pxd
+    file the class or method will be ignored by the code generator
+
+    for template classes you have to specify a comment
+    #inst=<A,...> at the end of "cppclass .." line in the .pxd file.
+    this describes the classes for instatiating the class.
+    at the moment this only works for one instantiation.
+
+    --> see pyOpenMS\cython_code\pxd\MSExperiment.pxd
+
+    the script build_cython_file.py stirs the code generation process
+
+    the generated cython code is in pyOpenMS/_pyOpenMS.pyx
+
+    if you want to extend the code generator:
+
+      - PXDParser.py should be able to parse all pxd statements
+        unless nested declarations (as inner ::iterator types).
+
+      - Most probably you have to extend the conversion functions
+        in DelegateClassGenerator.py
+
+
+        
+    

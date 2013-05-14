@@ -1,0 +1,32 @@
+Python Bindings for open-MS
+
+1) run "python check_system.py" 
+
+2) install missing packages
+
+3) modify paths in setup.py
+
+4) building: run "python setup.py build_ext --inplace"
+
+5) for testing:
+     - you need nosetests test framework
+     - run ".\run_unittests_with_installed_pyopenms.bat"
+
+6) for system wide install: run "python setup.py install"
+
+7) installation to a different target:
+   "python setup.py install --help" helps
+
+build zip incl. own installer:
+
+  python setup.py bdist
+
+  python build_zip_for_install.py
+
+  -> dist\setup_pyOpenMS-*zip
+
+
+    
+
+
+
