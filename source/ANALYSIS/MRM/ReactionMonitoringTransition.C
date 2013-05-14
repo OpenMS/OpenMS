@@ -193,6 +193,10 @@ namespace OpenMS
   {
     try
     {
+      if (!product_.getCVTerms().has("MS:1000827"))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Product mz has never been set");
+      }
       return product_.getCVTerms()["MS:1000827"][0].getValue().toString().toDouble();
     }
     catch (char * /*str*/)

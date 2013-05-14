@@ -318,6 +318,18 @@ public:
         return (*peptide_group_labels_)[peptide_group_label_];
       }
 
+      double getRetentionTime() const
+      {
+        // some guesstimate which would be the retention time that the user
+        // would like to have...
+        if (rts.empty() || rts[0].getCVTerms()["MS:1000896"].empty())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+              "No retention time information (CV term 1000896) available");
+        }
+        return rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+      }
+
       std::vector<RetentionTime> rts;
       String id;
       std::vector<String> protein_refs;
