@@ -53,7 +53,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
         AnalysisSummary() 
         AnalysisSummary(AnalysisSummary)
 
-        # MetaInfo user_params_
+        MetaInfo user_params_
         CVTermList cv_params_
         QUANT_TYPES quant_type_
 

@@ -36,3 +36,15 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         DoubleReal getMaxIntensity(bool)
 
         ConvexHull2D getConvexhull()
+
+        void setCentroidSD(DoubleReal &tmp_sd)
+        void setSmoothedIntensities(libcpp_vector[ double ] &db_vec)
+        void updateSmoothedMaxRT()
+        void updateWeightedMeanRT()
+        void updateSmoothedWeightedMeanRT()
+        void updateMedianRT()
+        void updateMedianMZ()
+        void updateMeanMZ()
+        void updateWeightedMeanMZ()
+        void updateWeightedMZsd()
+

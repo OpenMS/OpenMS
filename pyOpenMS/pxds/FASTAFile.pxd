@@ -18,9 +18,14 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
         void load(String& filename, libcpp_vector[FASTAEntry] & data)
         void store(String& filename, libcpp_vector[FASTAEntry] & data)
 
+
 cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS::FASTAFile":
 
     cdef cppclass FASTAEntry:
         FASTAEntry() nogil except +
         FASTAEntry(FASTAEntry) nogil except +
+
+        String identifier
+        String description
+        String sequence
 

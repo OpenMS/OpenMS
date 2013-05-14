@@ -21,6 +21,7 @@ cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo
         bool operator==(VersionDetails) nogil except +
         bool operator>(VersionDetails) nogil except +
 
+    VersionDetails getVersionStruct() nogil except +  #wrap-attach:VersionInfo
     String getVersion()  nogil except +  #wrap-attach:VersionInfo
     String getTime()     nogil except +  #wrap-attach:VersionInfo
     String getRevision() nogil except +  #wrap-attach:VersionInfo

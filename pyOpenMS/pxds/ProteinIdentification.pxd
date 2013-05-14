@@ -85,10 +85,10 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void setSearchEngineVersion(String search_engine_version) nogil except +
         # Returns the search engine version
         String getSearchEngineVersion() nogil except +
-        ## # Sets the search parameters
-        ## void setSearchParameters(SearchParameters search_parameters) nogil except +
-        ## # Returns the search parameters
-        ## SearchParameters getSearchParameters() nogil except +
+        # Sets the search parameters
+        void setSearchParameters(SearchParameters search_parameters) nogil except +
+        # Returns the search parameters
+        SearchParameters getSearchParameters() nogil except +
         # Returns the identifier
         String getIdentifier() nogil except +
         # Sets the identifier

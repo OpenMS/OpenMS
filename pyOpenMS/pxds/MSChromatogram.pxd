@@ -32,6 +32,9 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
         bool isSorted() nogil except +
 
+        void sortByIntensity(bool reverse)
+        void sortByPosition()
+
         int findNearest(double) nogil except+
 
         void assign(libcpp_vector[ChromatogramPeak].iterator, libcpp_vector[ChromatogramPeak].iterator) nogil except + # wrap-ignore
