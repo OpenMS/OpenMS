@@ -77,6 +77,8 @@ public:
       ParamEntry();
       /// Constructor with name, description, value and advanced flag
       ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t = StringList());
+      /// Copy constructor
+      ParamEntry(const ParamEntry &other);
       /// Destructor
       ~ParamEntry();
 

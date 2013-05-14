@@ -59,4 +59,9 @@ namespace OpenMS
     return options_;
   }
 
+  void MzXMLFile::setOptions(const PeakFileOptions & options)
+  {
+      options_ = options;
+  }
+
 } // namespace OpenMS

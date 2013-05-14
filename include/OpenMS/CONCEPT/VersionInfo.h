@@ -70,6 +70,14 @@ public:
       {
       }
 
+
+      VersionDetails(const VersionDetails & other):
+        version_major(other.version_major),
+        version_minor(other.version_minor),
+        version_patch(other.version_patch)
+      {
+      }
+
       /** @brief parse String and return as proper struct
 
           @returns VersionInfo::empty on failure

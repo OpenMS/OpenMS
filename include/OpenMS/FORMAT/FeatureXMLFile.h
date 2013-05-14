@@ -95,6 +95,9 @@ public:
     /// Non-mutable access to the options for loading/storing
     const FeatureFileOptions & getOptions() const;
 
+    /// setter for options for loading/storing
+    void setOptions(const FeatureFileOptions &);
+
 protected:
 
     // restore default state for next load/store operation

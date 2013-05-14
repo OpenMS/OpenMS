@@ -62,6 +62,19 @@ namespace OpenMS
   {
   }
 
+  Param::ParamEntry::ParamEntry(const ParamEntry & other) :
+    name(other.name),
+    description(other.description),
+    value(other.value),
+    tags(other.tags),
+    min_float(other.min_float),
+    max_float(other.max_float),
+    min_int(other.min_int),
+    max_int(other.max_int),
+    valid_strings(other.valid_strings)
+  {
+  }
+
   Param::ParamEntry::ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t) :
     name(n),
     description(d),

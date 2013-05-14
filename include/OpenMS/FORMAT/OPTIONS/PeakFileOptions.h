@@ -49,6 +49,8 @@ namespace OpenMS
 public:
     ///Default constructor
     PeakFileOptions();
+    ///Copy constructor
+    PeakFileOptions(const PeakFileOptions &);
     ///Destructor
     ~PeakFileOptions();
 

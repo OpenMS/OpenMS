@@ -322,6 +322,11 @@ namespace OpenMS
     return options_;
   }
 
+  void FeatureXMLFile::setOptions(const FeatureFileOptions & options)
+  {
+      options_ = options;
+  }
+
   void FeatureXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
   {
     static const XMLCh * s_dim = xercesc::XMLString::transcode("dim");

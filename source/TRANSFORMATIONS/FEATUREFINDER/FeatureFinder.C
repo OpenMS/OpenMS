@@ -34,6 +34,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
 namespace OpenMS
 {
   FeatureFinder::FeatureFinder() :
@@ -56,5 +59,7 @@ namespace OpenMS
     }
     return tmp;
   }
+
+  OPENMS_DLLAPI template void FeatureFinder::run<Peak1D,Feature>(const String &, MSExperiment<Peak1D> &, FeatureMap<Feature> &, const Param &, const FeatureMap<Feature> &);
 
 }

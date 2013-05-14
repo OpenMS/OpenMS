@@ -59,6 +59,12 @@ namespace OpenMS
     return options_;
   }
 
+  void MzDataFile::setOptions(const PeakFileOptions & options)
+  {
+      options_ = options;
+  }
+
+
   bool MzDataFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
   {
     //load mapping

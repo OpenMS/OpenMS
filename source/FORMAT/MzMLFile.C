@@ -62,6 +62,11 @@ namespace OpenMS
     return options_;
   }
 
+  void MzMLFile::setOptions(const PeakFileOptions & options)
+  {
+      options_ = options;
+  }
+
   //reimplemented in order to handle index MzML
   bool MzMLFile::isValid(const String & filename, std::ostream & os)
   {

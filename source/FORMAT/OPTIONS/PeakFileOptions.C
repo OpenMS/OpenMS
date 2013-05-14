@@ -56,6 +56,22 @@ namespace OpenMS
   {
   }
 
+  PeakFileOptions::PeakFileOptions(const PeakFileOptions & options) :
+    metadata_only_(options.metadata_only_),
+    write_supplemental_data_(options.write_supplemental_data_),
+    has_rt_range_(options.has_rt_range_),
+    has_mz_range_(options.has_mz_range_),
+    has_intensity_range_(options.has_intensity_range_),
+    mz_32_bit_(options.mz_32_bit_),
+    int_32_bit_(options.int_32_bit_),
+    rt_range_(options.rt_range_),
+    mz_range_(options.mz_range_),
+    intensity_range_(options.intensity_range_),
+    ms_levels_(options.ms_levels_),
+    zlib_compression_(options.zlib_compression_)
+  {
+  }
+
   PeakFileOptions::~PeakFileOptions()
   {
   }
