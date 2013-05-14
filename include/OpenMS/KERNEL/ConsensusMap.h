@@ -144,7 +144,7 @@ public:
     OPENMS_DLLAPI FileDescriptions & getFileDescriptions();
 
     /// Mutable access to the file descriptions
-    OPENMS_DLLAPI void setFileDescriptions(FileDescriptions & file_description);
+    OPENMS_DLLAPI void setFileDescriptions(const FileDescriptions & file_description);
 
     /// Non-mutable access to the experiment type
     OPENMS_DLLAPI const String & getExperimentType() const;

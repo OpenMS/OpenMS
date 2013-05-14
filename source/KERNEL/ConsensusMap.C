@@ -236,7 +236,7 @@ namespace OpenMS
     return file_description_;
   }
 
-  void ConsensusMap::setFileDescriptions(ConsensusMap::FileDescriptions & file_description)
+  void ConsensusMap::setFileDescriptions(const ConsensusMap::FileDescriptions & file_description)
   {
       file_description_ = file_description;
   }
