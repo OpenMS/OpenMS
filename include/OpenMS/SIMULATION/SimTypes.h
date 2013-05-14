@@ -68,7 +68,7 @@ namespace OpenMS
   typedef Peak1D SimPointType;
 
   /// Container for FASTAEntry & abundance information
-  typedef std::vector<std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > SampleProteins;
+  class OPENMS_DLLAPI SampleProteins : public std::vector<std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > { }; 
 
   /// Container for multiple channels of SampleProteins
   class OPENMS_DLLAPI SampleChannels : public std::vector<SampleProteins> { }; 
