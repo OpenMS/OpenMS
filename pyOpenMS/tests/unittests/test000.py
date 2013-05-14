@@ -764,6 +764,8 @@ def _testParam(p):
         p.setValue(k, value, desc, tags)
         p.setValue(k, value, desc)
         assert p.exists(k)
+        # only set the section description if there are actully two or more sections
+        if len(k.split(":")) < 2: continue
         f = k.split(":")[0]
         p.setSectionDescription(f, k)
         assert p.getSectionDescription(f) == k
@@ -844,7 +846,7 @@ def testFeatureFinderAlgorithmSH():
     """
     ff = pyopenms.FeatureFinderAlgorithmSH()
     p = ff.getDefaults()
-    # _testParam(p)
+    _testParam(p)
 
     # _testParam(ff.getParameters())
 
@@ -870,7 +872,7 @@ def testFeatureFinderAlgorithmIsotopeWavelet():
     """
     ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
     p = ff.getDefaults()
-    # _testParam(p)
+    _testParam(p)
 
     # _testParam(ff.getParameters())
 
@@ -881,6 +883,284 @@ def testFeatureFinderAlgorithmIsotopeWavelet():
 
     ff.setName("test")
     assert ff.getName() == "test"
+
+@report
+def testCompNovoIdentification():
+    """
+    @tests:
+     CompNovoIdentification.__init__
+    """
+    ff = pyopenms.CompNovoIdentification()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.CompNovoIdentification().getIdentification is not None
+    assert pyopenms.CompNovoIdentification().getIdentifications is not None
+
+@report
+def testCompNovoIdentificationCID():
+    """
+    @tests:
+     CompNovoIdentificationCID.__init__
+    """
+    ff = pyopenms.CompNovoIdentificationCID()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.CompNovoIdentificationCID().getIdentification is not None
+    assert pyopenms.CompNovoIdentificationCID().getIdentifications is not None
+
+@report
+def testExperimentalSettings():
+    """
+    @tests:
+     ExperimentalSettings.__init__
+    """
+    ff = pyopenms.ExperimentalSettings()
+
+@report
+def testFeatureDeconvolution():
+    """
+    @tests:
+     FeatureDeconvolution.__init__
+    """
+    ff = pyopenms.FeatureDeconvolution()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.FeatureDeconvolution().compute is not None
+
+@report
+def testInternalCalibration():
+    """
+    @tests:
+     InternalCalibration.__init__
+    """
+    ff = pyopenms.InternalCalibration()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    # TODO 
+    # assert pyopenms.InternalCalibration().compute is not None
+
+@report
+def testItraqChannelExtractor():
+    """
+    @tests:
+     ItraqChannelExtractor.__init__
+    """
+    ff = pyopenms.ItraqChannelExtractor()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.ItraqChannelExtractor().run is not None
+
+@report
+def testItraqQuantifier():
+    """
+    @tests:
+     ItraqQuantifier.__init__
+    """
+    ff = pyopenms.ItraqQuantifier()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.ItraqQuantifier().run is not None
+
+@report
+def testLinearResampler():
+    """
+    @tests:
+     LinearResampler.__init__
+    """
+    ff = pyopenms.LinearResampler()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.LinearResampler().raster is not None
+    assert pyopenms.LinearResampler().rasterExperiment is not None
+
+@report
+def testPeptideAndProteinQuant():
+    """
+    @tests:
+     PeptideAndProteinQuant.__init__
+    """
+    ff = pyopenms.PeptideAndProteinQuant()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.PeptideAndProteinQuant().quantifyPeptides is not None
+
+@report
+def testSeedListGenerator():
+    """
+    @tests:
+     SeedListGenerator.__init__
+    """
+    ff = pyopenms.SeedListGenerator()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    # TODO 
+    # assert pyopenms.SeedListGenerator().compute is not None
+
+@report
+def testTOFCalibration():
+    """
+    @tests:
+     TOFCalibration.__init__
+    """
+    ff = pyopenms.TOFCalibration()
+    p = ff.getDefaults()
+    # _testParam(p)
+
+    assert pyopenms.TOFCalibration().calibrate is not None
+    assert pyopenms.TOFCalibration().pickAndCalibrate is not None
+
+@report
+def testConsensusID():
+    """
+    @tests:
+     ConsensusID.__init__
+    """
+    ff = pyopenms.ConsensusID()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.ConsensusID().apply is not None
+
+@report
+def testFalseDiscoveryRate():
+    """
+    @tests:
+     ConsensusID.__init__
+    """
+    ff = pyopenms.FalseDiscoveryRate()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.FalseDiscoveryRate().apply is not None
+
+@report
+def testIDFilter():
+    """
+    @tests:
+     IDFilter.__init__
+    """
+    ff = pyopenms.IDFilter()
+
+    # assert pyopenms.IDFilter().apply is not None
+
+@report
+def testPosteriorErrorProbabilityModel():
+    """
+    @tests:
+     PosteriorErrorProbabilityModel.__init__
+    """
+    ff = pyopenms.PosteriorErrorProbabilityModel()
+    p = ff.getDefaults()
+    _testParam(p)
+
+    assert pyopenms.PosteriorErrorProbabilityModel().fit is not None
+    assert pyopenms.PosteriorErrorProbabilityModel().computeProbability is not None
+
+@report
+def testSeedListGenerator():
+    """
+    @tests:
+     SeedListGenerator.__init__
+    """
+    ff = pyopenms.SeedListGenerator()
+
+    # TODO 
+    # assert pyopenms.SeedListGenerator().generateSeedList is not None
+
+@report
+def testConsensusMapNormalizerAlgorithmMedian():
+    """
+    @tests:
+     ConsensusMapNormalizerAlgorithmMedian.__init__
+    """
+    ff = pyopenms.ConsensusMapNormalizerAlgorithmMedian()
+
+    assert pyopenms.ConsensusMapNormalizerAlgorithmMedian().computeNormalizationFactors is not None
+    assert pyopenms.ConsensusMapNormalizerAlgorithmMedian().normalizeMaps is not None
+
+@report
+def testConsensusMapNormalizerAlgorithmQuantile():
+    """
+    @tests:
+     ConsensusMapNormalizerAlgorithmQuantile.__init__
+    """
+    ff = pyopenms.ConsensusMapNormalizerAlgorithmQuantile()
+
+    assert pyopenms.ConsensusMapNormalizerAlgorithmQuantile().normalizeMaps is not None
+
+@report
+def testConsensusMapNormalizerAlgorithmThreshold():
+    """
+    @tests:
+     ConsensusMapNormalizerAlgorithmThreshold.__init__
+    """
+    ff = pyopenms.ConsensusMapNormalizerAlgorithmThreshold()
+
+    assert pyopenms.ConsensusMapNormalizerAlgorithmThreshold().computeCorrelation is not None
+    assert pyopenms.ConsensusMapNormalizerAlgorithmThreshold().normalizeMaps is not None
+
+
+@report
+def testFeatureFinderAlgorithmPicked():
+    """
+    @tests:
+     FeatureFinderAlgorithmPicked.__init__
+    """
+    ff = pyopenms.FeatureFinderAlgorithmPicked()
+
+    assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
+    assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
+
+@report
+def testFeatureFinderAlgorithmSH():
+    """
+    @tests:
+     FeatureFinderAlgorithmSH.__init__
+    """
+    ff = pyopenms.FeatureFinderAlgorithmSH()
+
+    assert pyopenms.FeatureFinderAlgorithmSH().setData is not None
+    assert pyopenms.FeatureFinderAlgorithmSH().run is not None
+
+@report
+def testFeatureFinderAlgorithmIsotopeWavelet():
+    """
+    @tests:
+     FeatureFinderAlgorithmIsotopeWavelet.__init__
+    """
+    ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
+
+    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet().setData is not None
+    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet().run is not None
+
+
+@report
+def testAScore():
+    """
+    @tests:
+     AScore.__init__
+    """
+    ff = pyopenms.AScore()
+
+@report
+def testIDRipper():
+    """
+    @tests:
+     IDRipper.__init__
+    """
+    ff = pyopenms.IDRipper()
+
+
+
 
 @report
 def testFeatureGrouping():
@@ -917,7 +1197,6 @@ def testFeatureGrouping():
     assert qt.setName is not None
     assert qt.setParameters is not None
     assert qt.transferSubelements is not None
-
 
 @report
 def testFeatureMap():

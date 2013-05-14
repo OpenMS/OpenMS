@@ -17,6 +17,10 @@ class TestMorphologicalFilter(unittest.TestCase):
     def test_run(self):
         thisfilter = pyopenms.MorphologicalFilter();
         old_firstspec = self.exp[0]
+        # needs different parameters to have any effect ...
+        params = pyopenms.MorphologicalFilter().getDefaults();
+        params.setValue("struc_elem_length", pyopenms.DataValue(0.05), '')
+        thisfilter.setParameters(params);
         thisfilter.filterExperiment(self.exp)
 
         self.assertNotEqual(self.exp.size(), 0)

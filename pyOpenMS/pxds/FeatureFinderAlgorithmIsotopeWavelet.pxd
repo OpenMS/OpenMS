@@ -19,6 +19,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIs
 
         FeatureFinderAlgorithmIsotopeWavelet()      nogil except +
 
+        void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff)
+        void run()
+
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>" namespace "OpenMS::FeatureFinderAlgorithmIsotopeWavelet<OpenMS::Peak1D,OpenMS::Feature>":
 
     String getProductName()   nogil except + # wrap-attach:FeatureFinderAlgorithmIsotopeWavelet

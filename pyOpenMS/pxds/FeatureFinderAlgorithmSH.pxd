@@ -19,6 +19,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH
 
         FeatureFinderAlgorithmSH()      nogil except +
 
+        void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff)
+        void run()
+
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH.h>" namespace "OpenMS::FeatureFinderAlgorithmSH<OpenMS::Peak1D,OpenMS::Feature>":
 
     String getProductName()   nogil except + # wrap-attach:FeatureFinderAlgorithmSH

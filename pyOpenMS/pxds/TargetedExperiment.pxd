@@ -27,3 +27,6 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
 
         void sortTransitionsByProductMZ()  nogil except +
 
+        TargetedExperiment operator+(TargetedExperiment)    nogil except +
+        TargetedExperiment iadd(TargetedExperiment)   nogil except + # wrap-as:operator+=
+
