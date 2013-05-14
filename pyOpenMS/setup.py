@@ -99,9 +99,9 @@ if iswin:
                     "pyopenms")
 
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
-        libraries=["OpenMSd", "xerces-c_3D", "QtCored4", "gsl_d", "cblas_d"]
+        libraries=["OpenMSd", "OpenSwathAlgod", "xerces-c_3D", "QtCored4", "gsl_d", "cblas_d"]
     else:
-        libraries=["OpenMS", "xerces-c_3", "QtCore4", "gsl", "cblas"]
+        libraries=["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "gsl", "cblas"]
 
 elif sys.platform == "linux2":
 
