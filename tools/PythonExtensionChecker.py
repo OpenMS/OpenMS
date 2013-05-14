@@ -49,60 +49,61 @@ from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVar
 from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
 import yaml
 
-def good_parse_pxd(pxdfile, comp_name):
-    cython_file = parse_pxd_file(pxdfile)
-    found = False
+class CppFunctionDefinition(object):
+    def __init__(self):
+        pass
 
-    def cimport(b, _, __):
-        print "cimport", b.module_name, "as", b.as_name
+    def resolve_return_type(self, mdef):
+        res = []
+        for c in mdef.get_type().content_:
+            val = c.getValue()
+            if hasattr(val, "getValueOf_"):
+                res.append(val.getValueOf_())
+            else:
+                res.append(val)
+        return res
 
-    handlers = { CEnumDefNode : EnumDecl.parseTree,
-                 CppClassNode : CppClassDecl.parseTree,
-                 CTypeDefNode : CTypeDefDecl.parseTree,
-                 CVarDefNode  : MethodOrAttributeDecl.parseTree,
-                 CImportStatNode  : cimport,
-                 }
+    def format_definition_for_cython(self, mdef, replace_nogil=True):
+        c_return_type = self.resolve_return_type(mdef)
 
-    for klass in cython_file:
-        if klass[0].cname == comp_name:
-            found = True
-            break
-    if not found: 
-        error_str = "Could not find a match for class %s in file %s" % (comp_name, pxdfile)
-        raise Exception(error_str)
+        # remove default arguments, Cython doesnt like them
+        arguments = re.sub("\=[^,\)]", "", mdef.get_argsstring())
+        function_name = mdef.name
 
-    # Check if we really have a class, then initialize it
-    if isinstance(klass[0], CppClassNode):
-        cl = CppClassDecl.parseTree(klass[0], klass[1], klass[2])
-    else: 
-        print "Something is wrong, not a class"
-        raise Exception("wrong")
-
-    for klass in cython_file:
-        handler = handlers.get(type(klass[0]))
-        res = handler(klass[0], klass[1], klass[2])
-        if res.annotations.has_key("wrap-attach"):
-            if res.annotations["wrap-attach"] == cl.name:
-                ## attach this to the above class
-                cl.methods[res.name] = res
-
-    return cl
-
-def resolve_type(mdef):
-    res = []
-    for c in mdef.get_type().content_:
-        val = c.getValue()
-        if hasattr(val, "getValueOf_"):
-            res.append(val.getValueOf_())
+        # remove returned references
+        return_type = "".join(c_return_type)
+        return_type = return_type.replace("&", "")
+        cpp_def = return_type + " " + function_name + arguments
+        cpp_def = cpp_def.replace("///", "#")    
+        cpp_def = cpp_def.replace("//", "#")    
+        if replace_nogil:
+            cpp_def = cpp_def.replace(";", "nogil except +")    
+            cpp_def = cpp_def.replace("const;", "nogil except +")    
         else:
-            res.append(val)
-    return res
+            cpp_def = cpp_def.replace("const;", "")
+            cpp_def = cpp_def.replace(";", "")
+        cpp_def = cpp_def.replace("MSSpectrum<>", "MSSpectrum[Peak1D]")
+        cpp_def = cpp_def.replace("MSChromatogram<>", "MSChromatogram[ChromatogramPeak]")
+        cpp_def = cpp_def.replace("std::vector", "libcpp_vector")
+        cpp_def = cpp_def.replace("std::map", "libcpp_map")
+        cpp_def = cpp_def.replace("std::set", "libcpp_set")
+        cpp_def = cpp_def.replace("<", "[")    
+        cpp_def = cpp_def.replace(">", "]")    
+        cpp_def = cpp_def.replace("const ", "")    
+        cpp_def = cpp_def.replace("libcpp_vector[DoubleReal]", "libcpp_vector[double]")    
+        cpp_def = cpp_def.replace("RichPeakSpectrum", "MSSpectrum[RichPeak1D]")
+        cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
+        # cpp_def = cpp_def.replace("Chromatogram", "MSChromatogram[ChromatogramPeak]")
+        cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum[Peak1D]")
+        cpp_def = cpp_def.replace("PeakMap", "MSExperiment[Peak1D, ChromatogramPeak]")
+        return cpp_def.strip()
 
 class Counter(object):
     def __init__(self):
         self.total = 0
         self.skipped = 0
         self.skipped_could_not_parse = 0
+        self.skipped_protected = 0
         self.skipped_no_location = 0
         self.skipped_no_sections = 0
         self.skipped_no_pxd_file = 0
@@ -123,12 +124,13 @@ class Counter(object):
         print "Skipped files: %s" % self.skipped
         print "- Could not parse xml: %s" % self.skipped_could_not_parse
         print "- Could not parse location in xml: %s" % self.skipped_no_location
+        print "- Protected Compound: %s" % self.skipped_protected
         print "- Could not find sections in xml: %s" % self.skipped_no_sections
         print "- Could not find associated pxd file : %s" % self.skipped_no_pxd_file
         print "- Could not find matching class in pxd file : %s" % self.skipped_no_pxd_match
 
     def print_stats(self):
-        self.skipped = self.skipped_could_not_parse + self.skipped_no_location + self.skipped_no_sections + self.skipped_no_pxd_file + self.skipped_no_pxd_match  
+        self.skipped = self.skipped_could_not_parse + self.skipped_no_location + self.skipped_no_sections + self.skipped_no_pxd_file + self.skipped_no_pxd_match + self.skipped_protected
         print "Total files: %s" % self.total
         print "Skipped files: %s" % self.skipped
         print "Parsed files: %s" % self.parsed
@@ -167,13 +169,19 @@ def handle_member_definition(mdef, cnt, cl):
     elif kind == "function" and protection == "public":
         # Wrap of public member functions ... 
         cnt.public_methods += 1
+        c_return_type = CppFunctionDefinition().resolve_return_type(mdef)
         if mdef.name in cl.methods:
             # Found match between C++ method and Python method
-            pass
-            return_type = resolve_type(mdef)
-            if not str(cl.methods[mdef.name].result_type ) in return_type:
+            py_methods = cl.methods[mdef.name]
+            if not isinstance(py_methods, list):
+                py_methods = [py_methods]
+            py_return_type = [str(d.result_type) for d in py_methods]
+            if mdef.definition == mdef.name:
+                # Constructor, no return type
+                assert len(c_return_type) == 0
+            elif "void" in py_return_type and not "void" in c_return_type:
                 print "TODO: Mismatch between C++ return type (%s) and Python return type (%s) in %s %s %s:" % ( 
-                    str(cl.methods[mdef.name].result_type), str(return_type), mdef.kind,  mdef.prot, mdef.name)
+                     str(c_return_type), str(py_return_type), mdef.kind,  mdef.prot, mdef.name)
         else:
             cnt.public_methods_missing += 1
             if mdef.name.find("~") != -1:
@@ -185,6 +193,7 @@ def handle_member_definition(mdef, cnt, cl):
                 cnt.public_methods_missing_nowrapping += 1
             else:
                 print "TODO: Found function in cpp but not in pxd:", mdef.kind,  mdef.prot, mdef.name
+                print " -- ", CppFunctionDefinition().format_definition_for_cython(mdef)
 
 class OpenMSSourceFile(object):
     def __init__(self, fname):
@@ -211,6 +220,7 @@ class OpenMSSourceFile(object):
                 return None
 
 class DoxygenXMLFile(object):
+
     def __init__(self, fname):
         self.fname = fname
         self.parsed_file = None
@@ -247,6 +257,105 @@ class DoxygenXMLFile(object):
             print  "== contains only typedefs etc", self.fname
         return empty
 
+    def get_pxd_from_class(self, compound, file_location, xml_output_path):
+        comp_name = compound.get_compoundname()
+        #
+        # Step 1: print includes
+        # 
+        res = ""
+        res += "\n"
+        res += "from libcpp cimport bool\n"
+        res += "from libcpp.vector cimport vector as libcpp_vector\n"
+        if len(compound.get_includes()) == 1:
+            try:
+                reffile = xml_output_path + compound.get_includes()[0].get_refid() + ".xml"
+                # read includes from ref file
+                dreffile = DoxygenXMLFile(reffile).parse()
+                include_compound = dreffile.get_compounddef()
+            except Exception as e:
+                include_compound = compound
+        else:
+            include_compound = compound
+
+        for inc in include_compound.get_includes():
+            val = inc.getValueOf_()
+            if val.startswith("OpenMS"):
+                header_file = val.split("/")[-1]
+                if header_file.endswith(".h"):
+                    header_file = header_file[:-2]
+                # We do not import certain headers since we did not wrap them in Python
+                if header_file in ["Exception", "Macros"]:
+                    continue
+                res += "from %s cimport *\n" % header_file
+        # print extern definition
+        # print file_location
+        if len(file_location.split("/include/OpenMS")) != 2:
+            return None
+        #
+        # Step 2: class definition
+        # 
+        internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
+        namespace = "::".join(comp_name.split("::")[:-1])
+        preferred_classname = "_".join(comp_name.split("::")[1:])
+        res += "\n"
+        res += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
+        res += "    \n"
+        res += '    cdef cppclass %s "%s":\n' % (preferred_classname, comp_name)
+        methods = ""
+        #
+        # Step 3: methods
+        # 
+        default_ctor = False
+        copy_ctor = False
+        enum = ""
+        for sdef in compound.get_sectiondef():
+            # break
+            for mdef in sdef.get_memberdef():
+                if mdef.kind == "enum" and mdef.prot == "public":
+                    # add enums
+                    enum += '\n'
+                    enum += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, comp_name)
+                    enum += '    cdef enum %s "%s":\n' % (mdef.name, comp_name + "::" + mdef.name)
+                    enum += '        #wrap-attach:\n'
+                    enum += '        #    %s\n' % preferred_classname
+                    for val in mdef.enumvalue:
+                        enum += '        %s\n' % val.get_name()
+
+                if mdef.kind == "variable" and mdef.prot == "public":
+                    # print "var", mdef.name
+                    methods += "        %s\n" % CppFunctionDefinition().format_definition_for_cython(mdef, False)
+                elif mdef.kind == "function" and mdef.prot == "public":
+                    if mdef.definition == mdef.name:
+                        # print "we have a constructor", mdef.name, mdef.get_argsstring()
+                        if mdef.get_argsstring().strip() == "()":
+                            # print "have default"
+                            default_ctor = True
+                            continue
+                        elif mdef.get_argsstring().strip().find(mdef.name) != -1 and \
+                             mdef.get_argsstring().strip().find(",") == -1:
+                            # print "have copy"
+                            copy_ctor = True
+                            continue
+                    if mdef.name.find("~") != -1:
+                        # print "we have a deconstructor", mdef.name
+                        continue
+                    # res += "do member function/attribute : ", mdef.kind,  mdef.prot, mdef.name
+                    declaration = CppFunctionDefinition().format_definition_for_cython(mdef, False)
+                    if declaration.find("operator=(") != -1:
+                        # assignment operator, cannot be overriden in Python
+                        continue
+                    methods += "        %s nogil except +\n" % declaration
+        if default_ctor:
+            res += "        %s() nogil except +\n" % comp_name.split("::")[-1]
+        if not copy_ctor:
+            res += "        %s(%s) nogil except + #wrap-ignore\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
+        else:
+            res += "        %s(%s) nogil except +\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
+        res += methods
+        res += enum
+        res += "\n"
+        return res
+
 class IgnoreFile(object):
 
     def __init__(self):
@@ -265,6 +374,50 @@ class IgnoreFile(object):
     def getIgnoredMethods(self, name):
         return self.data["IgnoreMethods"].get(name, [])
         
+
+class PXDFile(object):
+
+    def __init__(self):
+        pass
+
+    def parse(pxdfile, comp_name):
+        cython_file = parse_pxd_file(pxdfile)
+        found = False
+
+        def cimport(b, _, __):
+            print "cimport", b.module_name, "as", b.as_name
+
+        handlers = { CEnumDefNode : EnumDecl.parseTree,
+                     CppClassNode : CppClassDecl.parseTree,
+                     CTypeDefNode : CTypeDefDecl.parseTree,
+                     CVarDefNode  : MethodOrAttributeDecl.parseTree,
+                     CImportStatNode  : cimport,
+                     }
+
+        for klass in cython_file:
+            if klass[0].cname == comp_name:
+                found = True
+                break
+        if not found: 
+            error_str = "Could not find a match for class %s in file %s" % (comp_name, pxdfile)
+            raise Exception(error_str)
+
+        # Check if we really have a class, then initialize it
+        if isinstance(klass[0], CppClassNode):
+            cl = CppClassDecl.parseTree(klass[0], klass[1], klass[2])
+        else: 
+            print "Something is wrong, not a class"
+            raise Exception("wrong")
+
+        for klass in cython_file:
+            handler = handlers.get(type(klass[0]))
+            res = handler(klass[0], klass[1], klass[2])
+            if res.annotations.has_key("wrap-attach"):
+                if res.annotations["wrap-attach"] == cl.name:
+                    ## attach this to the above class
+                    cl.methods[res.name] = res
+
+        return cl
 
 def main(options):
 
@@ -295,7 +448,12 @@ def main(options):
         compound = res.get_compounddef()
         comp_name = compound.get_compoundname()
         if ignorefile.isNameIgnored(comp_name):
-            print "Skip:: Ignored :: ", f
+            print "Skip:: Ignored :: Class %s (file %s)", (comp_name, f)
+            continue
+        if compound.prot != "public":
+            print "Skip:: Protected :: Compound %s is not public, skip" % (comp_name)
+            cnt.skipped_protected += 1
+            continue
         file_location = dfile.getCompoundFileLocation()
         if file_location is None:
             print "Skip:: No-data :: there is no source file for ", f
@@ -310,11 +468,18 @@ def main(options):
         if file_location in pxd_file_matching:
             pxdfile = pxd_file_matching[file_location]
         else:
-            print "Skip:: No-pxd :: No pxd file exists for file %s (class %s)" % (file_location, comp_name)
+            print "Skip:: No-pxd :: No pxd file exists for Class %s (File %s) %s" % (comp_name, file_location, f)
             cnt.skipped_no_pxd_file += 1
+            pxd_text = dfile.get_pxd_from_class(compound, file_location, xml_output_path)
+            if options.print_pxd: 
+                print pxd_text
+            if len(options.pxds_out) > 0 and pxd_text is not None:
+                fname =  os.path.join(options.pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
+                with open(fname, "w" ) as f:
+                    f.write(pxd_text)
             continue
         try:
-            cl = good_parse_pxd(pxdfile, comp_name)
+            cl = PXDFile().parse(pxdfile, comp_name)
         except Exception as e:
             # TODO specific exception
             print "Skip:: No-pxd :: " , e.message
@@ -336,7 +501,6 @@ def main(options):
     cnt.print_stats()
     cnt.print_skipping_reason()
 
-
 def handle_args():
     usage = "" 
 
@@ -344,6 +508,8 @@ def handle_args():
     parser.add_argument("--bin_path", dest="bin_path", default=".", help="OpenMS build path")
     parser.add_argument("--src_path", dest="src_path", default=".", help="OpenMS source path")
     parser.add_argument("--ignore-file", dest="ignorefile", default="", help="Checker ignore file")
+    parser.add_argument("--pxds-out", dest="pxds_out", default="", help="Folder to write pxd files")
+    parser.add_argument('--print_pxd', action='store_true', default=False)
     #   print "Usage: checker.php <OpenMS src path> <OpenMS build path> [-u \"user name\"] [-t test] [options]\n";
 
     args = parser.parse_args(sys.argv[1:])
