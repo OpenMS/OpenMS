@@ -23,7 +23,7 @@ import os.path
 
 pxd_files = glob.glob("pxds/*.pxd")
 addons = glob.glob("addons/*.pyx")
-converters = glob.glob("converters/*.py")
+converters = ["converters"]
 
 # sometimes I use symlinks for restricting pxd folder and others, so
 # resolve, else os.path.getmtime will not work

@@ -19,8 +19,8 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
         IntensityType getIntensity() nogil except +
         void setIntensity(IntensityType) nogil except +
 
-        #PositionType getPosition() nogil except +
-        #void setPosition(PositionType) nogil except +
+        #DPosition1 PositionType getPosition() nogil except +
+        #void setPosition(DPosition1) nogil except +
 
         CoordinateType getRT() nogil except +
         void setRT(CoordinateType) nogil except +

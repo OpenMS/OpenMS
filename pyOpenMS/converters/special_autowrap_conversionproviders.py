@@ -4,6 +4,116 @@ from autowrap.ConversionProvider import (TypeConverterBase,
                                          StdMapConverter)
 
 
+class OpenMSDPosition2(TypeConverterBase):
+
+    def get_base_types(self):
+        return "DPosition2",
+
+    def matches(self, cpp_type):
+        return  not cpp_type.is_ptr
+
+    def matching_python_type(self, cpp_type):
+        return ""
+
+    def type_check_expression(self, cpp_type, argument_var):
+        return "len(%s) == 2 and isinstance(%s[0], (int, float)) "\
+                "and isinstance(%s[1], (int, float))"\
+                % (argument_var, argument_var, argument_var)
+
+    def input_conversion(self, cpp_type, argument_var, arg_num):
+        dp = "_dp_%s" % arg_num
+        code = Code().add("""
+            |cdef _DPosition2 $dp
+            |$dp[0] = <float>$argument_var[0]
+            |$dp[1] = <float>$argument_var[1]
+        """, locals())
+        cleanup = ""
+        if cpp_type.is_ref:
+            cleanup = Code().add("""
+            |$cpp_type[0] = $dp[0]
+            |$cpp_type[1] = $dp[1]
+            """, locals())
+        call_as = dp
+        return code, call_as, cleanup
+
+    def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
+        # this one is slow as it uses construction of python type DataValue for
+        # delegating conversion to this type, which reduces code below:
+        return Code().add("""
+                    |$output_py_var = [$input_cpp_var[0], $input_cpp_var[1]]
+                """, locals())
+
+
+class OpenMSDPosition2Vector(TypeConverterBase):
+
+    def get_base_types(self):
+        return "libcpp_vector",
+
+    def matches(self, cpp_type):
+        inner_t, = cpp_type.template_args
+        return inner_t == "DPosition2"
+
+    def matching_python_type(self, cpp_type):
+        return "np.ndarray[np.float32_t,ndim=2]"
+
+    def type_check_expression(self, cpp_type, argument_var):
+        return "%s.shape[1] == 2" % argument_var
+
+    def input_conversion(self, cpp_type, argument_var, arg_num):
+        dp = "_dp_%s" % arg_num
+        vec ="_dp_vec_%s" % arg_num
+        ii = "_dp_ii_%s" % arg_num
+        N = "_dp_N_%s" % arg_num
+        code = Code().add("""
+            |cdef libcpp_vector[_DPosition2] $vec
+            |cdef _DPosition2 $dp
+            |cdef int $ii
+            |cdef int $N = $argument_var.shape[0]
+            |for $ii in range($N):
+            |    $dp[0] = $argument_var[$ii,0]
+            |    $dp[1] = $argument_var[$ii,1]
+            |    $vec.push_back($dp)
+        """, locals())
+        cleanup = ""
+        if cpp_type.is_ref:
+            it = "_dp_it_%s" % arg_num
+            n = "_dp_n_%s" % arg_num
+            cleanup = Code().add("""
+            |$n = $vec.size()
+            |$argument_var.resize(($n,2))
+
+            |$n = $vec.size()
+            |cdef libcpp_vector[_DPosition2].iterator $it = $vec.begin()
+            |$ii = 0
+            |while $it != $vec.end():
+            |     $argument_var[$ii, 0] = deref($it)[0]
+            |     $argument_var[$ii, 1] = deref($it)[1]
+            |     inc($it)
+            |     $ii += 1
+
+            """, locals())
+        call_as = vec
+        return code, call_as, cleanup
+
+    def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
+        # this one is slow as it uses construction of python type DataValue for
+        # delegating conversion to this type, which reduces code below:
+        it = "_out_it_dpos_vec"
+        n  = "_out_n_dpos_vec"
+        ii = "_out_ii_dpos_vec"
+        return Code().add("""
+         |cdef int $n = $input_cpp_var.size()
+         |cdef $output_py_var = np.zeros([$n,2], dtype=np.float32)
+         |cdef libcpp_vector[_DPosition2].iterator $it = $input_cpp_var.begin()
+         |cdef int $ii = 0
+         |while $it != $input_cpp_var.end():
+         |     $output_py_var[$ii, 0] = deref($it)[0]
+         |     $output_py_var[$ii, 1] = deref($it)[1]
+         |     inc($it)
+         |     $ii += 1
+         """, locals())
+
+
 class OpenMSDataValue(TypeConverterBase):
 
     def get_base_types(self):
@@ -475,7 +585,7 @@ class CVTermMapConverter(TypeConverterBase):
             inner_values = "inner_values_%d" % arg_num
             cleanup_code = Code().add("""
                 |cdef $replace = dict()
-                |cdef Map[_String, libcpp_vector[_CVTerm]].iterator $outer_it 
+                |cdef Map[_String, libcpp_vector[_CVTerm]].iterator $outer_it
                 + = $map_name.begin()
 
                 |cdef libcpp_vector[_CVTerm].iterator $inner_it
@@ -517,7 +627,7 @@ class CVTermMapConverter(TypeConverterBase):
 
         code = Code().add("""
             |$output_py_var = dict()
-            |cdef Map[_String, libcpp_vector[_CVTerm]].iterator $outer_it 
+            |cdef Map[_String, libcpp_vector[_CVTerm]].iterator $outer_it
             + = $input_cpp_var.begin()
             |cdef libcpp_vector[_CVTerm].iterator $inner_it
             |cdef CVTerm $item
