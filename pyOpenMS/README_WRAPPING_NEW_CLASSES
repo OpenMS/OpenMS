@@ -1,7 +1,25 @@
 Cython 
 
+General concept of how the wrapping is done: 
+  Step 1: The author declares which classes and which functions of these
+  classes s/he wants to wrap (expose to Python). This is done by writing the
+  function declaration in a file in the pxds/ folder.
+  Step 2: The Python tool "autowrap" (developed for this project) creates the
+  wrapping code automatically from the function declaration - see
+  https://github.com/uweschmitt/autowrap for an explanation of the autowrap
+  tool. Since not all code can be wrapped automatically, also manual code can
+  be written in the addons/ folder. Autowrap will create an output file at
+  pyopenms/pyopenms.pyx
+  Step 3: Cython translates the pyopenms/pyopenms.pyx to Cpp code at
+  pyopenms/pyopenms.cpp 
+  Step 4: A compiler compiles the Cpp code to a Python module which is then
+  importable in Python with "import pyopenms"
 
-HOWTO:
+What if you changed an API in C++ and now pyOpenMS is broken? 
+=> find the corresponding file in the pxds/ folder and adjust the function
+   declaration accordingly
+
+How to wrap new classes:
 
 To wrap a new OpenMS class: Create a new "pxd" file in the folder "./pxds". As
 a small example, look at the CVTerm.pxd to get you started. Start with the
@@ -22,7 +40,7 @@ cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
   wrap a class that does not inherit from another class and also remove the two
   comments below that line.
 - always use "cimport" and not Python "import"
-- always add default constructor AND copy constructor  (note that the c++
+- always add default constructor AND copy constructor to the code (note that the C++
   compiler will add a default copy constructur to any class, so there is always
   one if it is not declared, see http://www.cplusplus.com/articles/y8hv0pDG/ "The
   implicit copy constructor does a member-wise copy of the source object.")
@@ -37,26 +55,27 @@ Possible Error messages:
 
 means you forgot to add the copy constructor in the class XXX and it is expected somewhere else => go fix it
 
-- inheriting: limitations, see Precursor.pxd
 
-- referenzargument
+
+- inheriting: some limitations, see Precursor.pxd
+
+- arguments by reference may be copied under some circumstances. For example,
+  if they are in an array then not the original argument is handed back, so
+  comparisons might fail.
 
 - operator+=: see AASequence.iadd in AASequence.pxd
 
-- operator==, !=, <=, <, >=, > werden automatisch gewrappd
+- operator==, !=, <=, <, >=, > are wrapped automatically
 
-- einschrünkungen: iterator, referenz
+- limitations: iterator, reference
 
-- copycon -> __copy__
+- copy-constructor -> __copy__
 
--  wrap-ignore: nicht wrappen, aber deklaritoin trotzdem für c++ erzeugug von nöten
-- wrap-as
-- beduetung ":"
-
+= Hints to autowrap
+- wrap-ignore: is a hint for autowrap to not wrap the function (but the declaration might still be important for Cython to know about) 
+- wrap-as - see for example AASequence ":"
 - wrap-iter-begin, wrap-iter-end (see ConsensusMap.pxd)
+- wrap-instances - for templated classes (see MSSpectrum.pxd)
+- wrap-attach: enums, static methods (see for example VersionInfo.pxd)
+- wrap-upper-limit:size or size() (see MSSpectrum.pxd)
 
-- wrap-instances
-
-- wrap-attach: enums, sttaic methods
-
-- wrap-upper-limit:size oder size()

@@ -7,6 +7,8 @@ objects than Release1.10. So you can not mix an official installation
 of OpenMS 1.10 with the python wrapper. Instead you have to build
 pyopenms from scratch, as described below:
 
+For more information, also read README_WRAPPING_NEW_CLASSES
+
 Note that when using pip without root permissions, you have to add a path
 prefix: --install-option="--prefix=/path/to/local/python/"
 
