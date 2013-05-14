@@ -49,6 +49,68 @@ from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVar
 from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
 import yaml
 
+# Matching function
+def handle_member_definition(mdef, pxd_class, cnt):
+    """ Matches a doxygen member definition (mdef) to a Cython pxd file.
+
+    """
+    protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
+    kind = mdef.get_kind() # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot 
+    if not protection in "public protected private package".split(" "):
+        raise Exception("Error; something is wrong")
+    if not kind in "define property event variable typedef enum function signal prototype friend dcop slot".split(" "):
+        raise Exception("Error; something is wrong")
+    if kind == "enum" and protection == "public":
+        cnt.public_enums_total += 1
+        cython_file = parse_pxd_file(pxd_class.pxd_path)
+        found = False
+        for klass in cython_file:
+            if hasattr(klass[0], "name") and klass[0].name == mdef.get_name():
+                found = True
+                break
+        if not found:
+            print "TODO: Found enum in C++ but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
+            cnt.public_enums_missing += 1
+        elif len(klass[0].items) != len(mdef.get_enumvalue()):
+            print "TODO: Found enum in C++ with %s members but in Cython there are %s members: " % (
+                len(mdef.get_enumvalue()), len(klass[0].items) )
+    elif kind == "variable" and protection == "public":
+        attrnames = [a.name for a in pxd_class.attributes]
+        cnt.public_variables += 1
+        if not mdef.name in attrnames:
+            print "TODO: Found attribute in cpp but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
+            cnt.public_variables_missing += 1
+    elif kind == "function" and protection == "public":
+        # Wrap of public member functions ... 
+        cnt.public_methods += 1
+        c_return_type = mdef.resolve_return_type()
+        if mdef.name in pxd_class.methods:
+            # Found match between C++ method and Python method
+            py_methods = pxd_class.methods[mdef.name]
+            if not isinstance(py_methods, list):
+                py_methods = [py_methods]
+            py_return_type = [str(d.result_type) for d in py_methods]
+            if mdef.definition == mdef.name:
+                # Constructor, no return type
+                assert len(c_return_type) == 0
+            elif "void" in py_return_type and not "void" in c_return_type:
+                print "TODO: Mismatch between C++ return type (%s) and Python return type (%s) in %s %s %s:" % ( 
+                     str(c_return_type), str(py_return_type), mdef.kind,  mdef.prot, mdef.name)
+        else:
+            cnt.public_methods_missing += 1
+            if mdef.name.find("~") != -1:
+                # destructor
+                cnt.public_methods_missing_nowrapping += 1
+            elif (mdef.name.find("operator") != -1 or
+                  mdef.name.find("begin") != -1 or
+                  mdef.name.find("end") != -1):
+                cnt.public_methods_missing_nowrapping += 1
+            else:
+                print " -- TODO missing function in PXD: ", mdef.format_definition_for_cython()
+
+#
+## Class for counting occurances
+# 
 class Counter(object):
     def __init__(self):
         self.total = 0
@@ -94,61 +156,9 @@ class Counter(object):
         print "Note that this script counts each method name only once and only maps from \n"+ \
               "C++ to Python (not the other way around), thus the numbers are slightly inaccurate." 
 
-def handle_member_definition(mdef, cnt, cl):
-    protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
-    kind = mdef.get_kind() # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot 
-    if not protection in "public protected private package".split(" "):
-        raise Exception("Error; something is wrong")
-    if not kind in "define property event variable typedef enum function signal prototype friend dcop slot".split(" "):
-        raise Exception("Error; something is wrong")
-    if kind == "enum" and protection == "public":
-        cnt.public_enums_total += 1
-        cython_file = parse_pxd_file(cl.pxd_path)
-        found = False
-        for klass in cython_file:
-            if hasattr(klass[0], "name") and klass[0].name == mdef.get_name():
-                found = True
-                break
-        if not found:
-            print "TODO: Found enum in C++ but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
-            cnt.public_enums_missing += 1
-        elif len(klass[0].items) != len(mdef.get_enumvalue()):
-            print "TODO: Found enum in C++ with %s members but in Cython there are %s members: " % (
-                len(mdef.get_enumvalue()), len(klass[0].items) )
-    elif kind == "variable" and protection == "public":
-        attrnames = [a.name for a in cl.attributes]
-        cnt.public_variables += 1
-        if not mdef.name in attrnames:
-            print "TODO: Found attribute in cpp but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
-            cnt.public_variables_missing += 1
-    elif kind == "function" and protection == "public":
-        # Wrap of public member functions ... 
-        cnt.public_methods += 1
-        c_return_type = CppFunctionDefinition().resolve_return_type(mdef)
-        if mdef.name in cl.methods:
-            # Found match between C++ method and Python method
-            py_methods = cl.methods[mdef.name]
-            if not isinstance(py_methods, list):
-                py_methods = [py_methods]
-            py_return_type = [str(d.result_type) for d in py_methods]
-            if mdef.definition == mdef.name:
-                # Constructor, no return type
-                assert len(c_return_type) == 0
-            elif "void" in py_return_type and not "void" in c_return_type:
-                print "TODO: Mismatch between C++ return type (%s) and Python return type (%s) in %s %s %s:" % ( 
-                     str(c_return_type), str(py_return_type), mdef.kind,  mdef.prot, mdef.name)
-        else:
-            cnt.public_methods_missing += 1
-            if mdef.name.find("~") != -1:
-                # destructor
-                cnt.public_methods_missing_nowrapping += 1
-            elif (mdef.name.find("operator") != -1 or
-                  mdef.name.find("begin") != -1 or
-                  mdef.name.find("end") != -1):
-                cnt.public_methods_missing_nowrapping += 1
-            else:
-                print " -- TODO missing function in PXD: ", CppFunctionDefinition().format_definition_for_cython(mdef)
-
+#
+## Class for an OpenMS .h file
+# 
 class OpenMSSourceFile(object):
     def __init__(self, fname):
         self.fname = fname
@@ -184,11 +194,13 @@ class DoxygenXMLFile(object):
     def __init__(self, fname):
         self.fname = fname
         self.parsed_file = None
+        self.compound = None
         self.parsing_error = False
 
     def parse(self):
         try:
             self.parsed_file =  doxygen_parse(self.fname)
+            self.compound = self.parsed_file.get_compounddef()
             return self.parsed_file
         except Exception as e:
             print "Error parsing doxygen xml file", e.message
@@ -201,23 +213,24 @@ class DoxygenXMLFile(object):
             return None
         return os.path.realpath(location.get_file())
 
-    def empty(self, discard_defines=False):
-        compound = self.parsed_file.get_compounddef()
+    def isEmpty(self, discard_defines=False):
+        compound = self.compound
         if not discard_defines:
             return len(compound.get_sectiondef()) == 0
 
         # check whether there is more than defines and typdefs
         empty = True
-        for sdef in compound.get_sectiondef():
-            for mdef in sdef.get_memberdef():
-                if not mdef.get_kind() in ["define", "typedef"]:
-                    # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot 
-                    empty = False
+        for mdef in self.iterMemberDef():
+            if not mdef.get_kind() in ["define", "typedef", "slot", "signal"]:
+                # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot 
+                empty = False
         if empty and not len(compound.get_sectiondef()) == 0:
-            print  "== contains only typedefs etc", self.fname
+            # contains only typedefs etc
+            pass
         return empty
 
-    def get_pxd_from_class(self, compound, file_location, xml_output_path):
+    def get_pxd_from_class(self, dfile, file_location, xml_output_path):
+        compound = dfile.compound
         comp_name = compound.get_compoundname()
         #
         # Step 1: print includes
@@ -250,17 +263,24 @@ class DoxygenXMLFile(object):
         # Step 2: class definition
         # 
         internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
+        # for n in compound.get_inheritancegraph().get_node():
+        parent_classes = [n.getValueOf_() for n in compound.basecompoundref]
         namespace = "::".join(comp_name.split("::")[:-1])
         preferred_classname = "_".join(comp_name.split("::")[1:])
         preferred_classname = comp_name.split("::")[-1]
         cldef  = "\n"
         cldef += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
         cldef += "    \n"
+
         if compound.templateparamlist is None:
-            cldef += '    cdef cppclass %s "%s":\n' % (preferred_classname, comp_name)
+            cldef += '    cdef cppclass %s(%s) "%s":\n' % (preferred_classname, ",".join(parent_classes), comp_name)
         else:
             targs = [p.get_declname() for p in compound.templateparamlist.get_param()]
-            cldef += '    cdef cppclass %s[%s]:\n' % (preferred_classname, ",".join(targs))
+            cldef += '    cdef cppclass %s[%s](%s):\n' % (preferred_classname, ",".join(targs), ",".join(parent_classes) )
+        if len(parent_classes) > 0:
+            cldef += '    # wrap-inherits:'
+        for p in parent_classes:
+            cldef += '    #  %s' % (p)
         methods = ""
         #
         # Step 3: methods
@@ -269,47 +289,45 @@ class DoxygenXMLFile(object):
         copy_ctor = False
         enum = ""
         imports_needed = {}
-        for sdef in compound.get_sectiondef():
-            # break
-            for mdef in sdef.get_memberdef():
-                if mdef.kind == "enum" and mdef.prot == "public":
-                    # add enums
-                    enum += '\n'
-                    enum += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, comp_name)
-                    enum += '    cdef enum %s "%s":\n' % (mdef.name, comp_name + "::" + mdef.name)
-                    enum += '        #wrap-attach:\n'
-                    enum += '        #    %s\n' % preferred_classname
-                    for val in mdef.enumvalue:
-                        enum += '        %s\n' % val.get_name()
+        for mdef in dfile.iterMemberDef():
+            if mdef.kind == "enum" and mdef.prot == "public":
+                # add enums
+                enum += '\n'
+                enum += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, comp_name)
+                enum += '    cdef enum %s "%s":\n' % (mdef.name, comp_name + "::" + mdef.name)
+                enum += '        #wrap-attach:\n'
+                enum += '        #    %s\n' % preferred_classname
+                for val in mdef.enumvalue:
+                    enum += '        %s\n' % val.get_name()
 
-                if mdef.kind == "variable" and mdef.prot == "public":
-                    # print "var", mdef.name
-                    methods += "        %s\n" % CppFunctionDefinition().format_definition_for_cython(mdef, False)
-                elif mdef.kind == "function" and mdef.prot == "public":
-                    if mdef.definition == mdef.name:
-                        # print "we have a constructor", mdef.name, mdef.get_argsstring()
-                        if mdef.get_argsstring().strip() == "()":
-                            # print "have default"
-                            default_ctor = True
-                            continue
-                        elif mdef.get_argsstring().strip().find(mdef.name) != -1 and \
-                             mdef.get_argsstring().strip().find(",") == -1:
-                            # print "have copy"
-                            copy_ctor = True
-                            continue
-                    if mdef.name.find("~") != -1:
-                        # print "we have a deconstructor", mdef.name
+            if mdef.kind == "variable" and mdef.prot == "public":
+                # print "var", mdef.name
+                methods += "        %s\n" % mdef.format_definition_for_cython(False)
+            elif mdef.kind == "function" and mdef.prot == "public":
+                if mdef.definition == mdef.name:
+                    # print "we have a constructor", mdef.name, mdef.get_argsstring()
+                    if mdef.get_argsstring().strip() == "()":
+                        # print "have default"
+                        default_ctor = True
                         continue
-                    # res += "do member function/attribute : ", mdef.kind,  mdef.prot, mdef.name
-                    declaration = CppFunctionDefinition().format_definition_for_cython(mdef, False)
-                    CppFunctionDefinition().compute_imports(declaration, imports_needed)
-                    if declaration.find("operator=(") != -1:
-                        # assignment operator, cannot be overriden in Python
+                    elif mdef.get_argsstring().strip().find(mdef.name) != -1 and \
+                         mdef.get_argsstring().strip().find(",") == -1:
+                        # print "have copy"
+                        copy_ctor = True
                         continue
-                    methods += "        %s nogil except +\n" % declaration
+                if mdef.name.find("~") != -1:
+                    # print "we have a deconstructor", mdef.name
+                    continue
+                # res += "do member function/attribute : ", mdef.kind,  mdef.prot, mdef.name
+                declaration = mdef.format_definition_for_cython(False)
+                DoxygenCppFunction.compute_imports(declaration, imports_needed)
+                if declaration.find("operator=(") != -1:
+                    # assignment operator, cannot be overriden in Python
+                    continue
+                methods += "        %s nogil except +\n" % declaration
 
         # Add the imports we need
-        res  = CppFunctionDefinition().generate_imports(imports_needed)
+        res  = DoxygenCppFunction.generate_imports(imports_needed)
         res += includes
         res += cldef
         if default_ctor:
@@ -323,23 +341,41 @@ class DoxygenXMLFile(object):
         res += "\n"
         return res
 
-class CppFunctionDefinition(object):
+    def iterMemberDef(self):
+        """Iterate over all members of this class.
+        
+        We do not care about the sections defined in the documentation here."""
+        for sdef in self.compound.get_sectiondef():
+            for mdef_ in sdef.get_memberdef():
+                mdef = DoxygenCppFunction.generate_from_obj(mdef_)
+                yield mdef
+
+    def isAbstract(self):
+        for mdef in self.iterMemberDef():
+                if mdef.get_argsstring().find("=0"):
+                    return True
+        return False
+
+class DoxygenCppFunction(object):
     """ A Cpp function definition from a doxygen file"""
     def __init__(self):
-        pass
+        # No other code here, below is the real init method!
+        self.initialize_dgencpp()
 
-    def resolve_return_type(self, mdef):
-        res = []
-        for c in mdef.get_type().content_:
-            val = c.getValue()
-            if hasattr(val, "getValueOf_"):
-                res.append(val.getValueOf_())
-            else:
-                res.append(val)
-        return res
+    @staticmethod
+    def generate_from_obj(mdef):
+        """Attaches the functionality of this object to the given input object"""
+        for k,v in DoxygenCppFunction.__dict__.iteritems():
+            if callable(v) and not k == "__init__": 
+                import types
+                mdef.__dict__[k] = types.MethodType(v, mdef)
+        mdef.initialize_dgencpp()
+        return mdef
 
-    def generate_imports(self, imports):
+    @staticmethod
+    def generate_imports(imports):
         res = ""
+        res += "from Types cimport *\n"
         for k in sorted(imports.keys()):
             if k == "bool":
                 res += "from libcpp cimport bool\n"
@@ -347,7 +383,8 @@ class CppFunctionDefinition(object):
                 res += "from libcpp.%s cimport %s as libcpp_%s\n" % (k,k,k)
         return res
 
-    def compute_imports(self, declaration, imports):
+    @staticmethod
+    def compute_imports(declaration, imports):
         if declaration.find("libcpp_vector") != -1:
             imports["vector"] = 0
         if declaration.find("libcpp_pair") != -1:
@@ -361,12 +398,40 @@ class CppFunctionDefinition(object):
         if declaration.find("bool") != -1:
             imports["bool"] = 0
 
-    def format_definition_for_cython(self, mdef, replace_nogil=True):
-        c_return_type = self.resolve_return_type(mdef)
+    def initialize_dgencpp(self):
+        pass
+
+    def resolve_return_type(self):
+        res = []
+        return self._resolve_type(self.get_type().content_)
+
+    def _resolve_type(self, mtype):
+        res = []
+        for c in mtype:
+            val = c.getValue()
+            if hasattr(val, "getValueOf_"):
+                res.append(val.getValueOf_())
+            else:
+                res.append(val)
+        return res
+
+    def format_definition_for_cython(self, replace_nogil=True):
+        """Parse a doxygen function definition and write it in Cython"""
+        c_return_type = self.resolve_return_type()
 
         # remove default arguments, Cython doesnt like them
-        arguments = re.sub("\=[^,\)]*", "", mdef.get_argsstring())
-        function_name = mdef.name
+        arguments = re.sub("\=[^,\)]*", "", self.get_argsstring())
+        function_name = self.name
+
+        arguments = ""
+        for p in self.get_param(): 
+            ptype = self._resolve_type(p.get_type().content_)
+            dname = p.declname
+            # ignore default arguments etc ... Cython cannot use them 
+            # p.defval.content_
+            # replace python keywords in argument name: except, type, lamdba, map ...
+            dname = dname.replace("except", "except_").replace("type", "type_").replace("lambda", "lambda_").replace("map", "map_")
+            arguments += " ".join(ptype) + " " + dname
 
         # remove returned references
         return_type = "".join(c_return_type)
@@ -380,7 +445,7 @@ class CppFunctionDefinition(object):
         else:
             cpp_def = cpp_def.replace("const;", "")
             cpp_def = cpp_def.replace(";", "")
-        # TODO 
+        # TODO handle static ...  
         cpp_def = cpp_def.replace("static", "")
         cpp_def = cpp_def.replace("MSSpectrum<>", "MSSpectrum[Peak1D]")
         cpp_def = cpp_def.replace("MSChromatogram<>", "MSChromatogram[ChromatogramPeak]")
@@ -389,16 +454,16 @@ class CppFunctionDefinition(object):
         cpp_def = cpp_def.replace("std::pair", "libcpp_pair")
         cpp_def = cpp_def.replace("std::set", "libcpp_set")
         cpp_def = cpp_def.replace("std::string", "libcpp_string")
-        # TODO operator< ...
         cpp_def = cpp_def.replace("<", "[")    
         cpp_def = cpp_def.replace(">", "]")    
+        cpp_def = cpp_def.replace("operator]", ">")    
+        cpp_def = cpp_def.replace("operator[", "<")    
         cpp_def = cpp_def.replace("const ", "")    
         cpp_def = cpp_def.replace("libcpp_vector[ DoubleReal ]", "libcpp_vector[ double ]")    
         cpp_def = cpp_def.replace("RichPeakSpectrum", "MSSpectrum[RichPeak1D]")
         cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
         # cpp_def = cpp_def.replace("Chromatogram", "MSChromatogram[ChromatogramPeak]")
         #
-        # TODO replace python keywords: except, type, lamdba, map ...
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum[Peak1D]")
         cpp_def = cpp_def.replace("PeakMap", "MSExperiment[Peak1D, ChromatogramPeak]")
 
@@ -406,10 +471,16 @@ class CppFunctionDefinition(object):
         if cpp_def.find("*") != -1 or \
            cpp_def.find("::iterator") != -1:
             cpp_def = "# " + cpp_def
+        if self.templateparamlist is not None:
+            # targs = [p.get_declname() for p in self.templateparamlist.get_param()]
+            cpp_def = "# TEMPLATE # " + cpp_def
 
         return cpp_def.strip()
 
 
+#
+## Class for the ignore file
+# 
 class IgnoreFile(object):
 
     def __init__(self):
@@ -429,6 +500,9 @@ class IgnoreFile(object):
         return self.data["IgnoreMethods"].get(name, [])
         
 
+#
+## Class for the .pxd file
+# 
 class PXDFile(object):
 
     def __init__(self):
@@ -473,19 +547,32 @@ class PXDFile(object):
 
         return cl
 
-def main(options):
+def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out):
+    """ Checks a set of doxygen xml file against a set of pxd header files
 
-    bin_path = options.bin_path
+    For each C++ class found in the doxygen XML files, it tries to identify the
+    corresponding pxd file. If a pxd file exists, it checks whether
+
+    i)   all public functions, enums and attributes are wrapped in Python
+    ii)  all void return types are correct in Python (these are not checked at
+         compile time)
+    iii) all fields of an enum are accessible from Python
+
+    If it finds a method missing, the script suggests an addition and if a
+    whole class is missing, the script writes suggestion .pxd file to a
+    specified location (pxds_out).
+    """
+
 
     xml_output_path = os.path.join(bin_path, "doc/xml_output/")
     xml_files = glob.glob(xml_output_path + "/*.xml")
-    # also look at /doc/doxygen/doxygen-error.log ?
+    # also look at ./doc/doxygen/doxygen-error.log ?
     pxd_file_matching = create_pxd_file_map(bin_path)
     cnt = Counter()
     cnt.total = len(xml_files)
     ignorefile = IgnoreFile()
-    if len(options.ignorefile) > 0:
-        ignorefile.load(options.ignorefile)
+    if len(ignorefilename) > 0:
+        ignorefile.load(ignorefilename)
 
     for f in xml_files:
         dfile = DoxygenXMLFile(f)
@@ -500,6 +587,13 @@ def main(options):
             continue
         compound = res.get_compounddef()
         comp_name = compound.get_compoundname()
+        # if comp_name == "OpenMS::DeNovoAlgorithm":
+        #     break
+        # if comp_name == "OpenMS::ChromatogramExtractor":
+        #     break
+
+        # if comp_name == "OpenMS::IsotopeWaveletTransform":
+        #     break
 
         if ignorefile.isNameIgnored(comp_name):
             print "Skip:: Ignored :: Class %s (file %s)", (comp_name, f)
@@ -515,7 +609,7 @@ def main(options):
             continue
         openms_file = OpenMSSourceFile(file_location)
         maintainer = openms_file.getMaintainer()
-        if dfile.empty(True):
+        if dfile.isEmpty(True):
             print "Skip:: No-data :: File is empty (no section definitions found or only definitions found) in file", f
             cnt.skipped_no_sections += 1
             continue
@@ -524,17 +618,17 @@ def main(options):
         else:
             print "Skip:: No-pxd :: No pxd file exists for Class %s (File %s) %s" % (comp_name, file_location, f)
             cnt.skipped_no_pxd_file += 1
-            pxd_text = dfile.get_pxd_from_class(compound, file_location, xml_output_path)
-            if options.print_pxd: 
+            pxd_text = dfile.get_pxd_from_class(dfile, file_location, xml_output_path)
+            if print_pxd: 
                 print ""
                 print pxd_text
-            if len(options.pxds_out) > 0 and pxd_text is not None:
-                fname =  os.path.join(options.pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
+            if len(pxds_out) > 0 and pxd_text is not None:
+                fname =  os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
                 with open(fname, "w" ) as f:
                     f.write(pxd_text)
             continue
         try:
-            cl = PXDFile().parse(pxdfile, comp_name)
+            pxd_class = PXDFile().parse(pxdfile, comp_name)
         except Exception as e:
             # TODO specific exception
             print "Skip:: No-pxd :: " , e.message
@@ -545,15 +639,17 @@ def main(options):
         cnt.parsed += 1
         leave = False
         # Loop through all sections (these are doxygen sections, not
-        # interesting for our purposes) and then through all members
-        for sdef in compound.get_sectiondef():
-            for mdef in sdef.get_memberdef():
-                if mdef.get_name() in ignorefile.getIgnoredMethods(comp_name):
-                    print "Ignore member function/attribute : ", mdef.kind,  mdef.prot, mdef.name
-                    continue
-                handle_member_definition(mdef, cnt, cl)
+        # interesting for our purposes) and then through all members.
+        for mdef in dfile.iterMemberDef():
+            if mdef.get_name() in ignorefile.getIgnoredMethods(comp_name):
+                print "Ignore member function/attribute : ", mdef.kind,  mdef.prot, mdef.name
+                continue
+            handle_member_definition(mdef, pxd_class, cnt)
     cnt.print_stats()
     cnt.print_skipping_reason()
+
+def main(options):
+    checkPythonPxdHeader(options.bin_path, options.ignorefile, options.pxds_out)
 
 def handle_args():
     usage = "" 
