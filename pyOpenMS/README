@@ -7,7 +7,10 @@ objects than Release1.10. So you can not mix an official installation
 of OpenMS 1.10 with the python wrapper. Instead you have to build
 pyopenms from scratch, as described below:
 
-1) get python 2.7
+Note that when using pip without root permissions, you have to add a path
+prefix: --install-option="--prefix=/path/to/local/python/"
+
+1) get python 2.7 (it may run with Python 2.6, see below*)
 
 2) on windows: you need the 64 bit c++ compiler from visual studio 2008
    this is important, else you get a different clib than python 2.7 is
@@ -18,6 +21,8 @@ pyopenms from scratch, as described below:
 4) $ easy_install pip
    $ pip install autowrap
    $ pip install nose
+
+4b) If Cython doesn't get installed, install it with "$ easy_install cython"
 
 5) get numpy:
 
@@ -68,5 +73,22 @@ pyopenms from scratch, as described below:
    you find the built installer files in pyOpenMS/dist
 
 
+===================================
 
+* at least on Linux, it is possible to run it with Python 2.6.6. For this, do the following:
+
+i) go to a directory that is in your PYTHONPATH (if autowrap is already
+installed, this directory needs to be before the other one in the PYTHONPATH)
+and get this forked version from github:
+
+git clone https://github.com/hroest/autowrap.git
+mv autowrap/autowrap .
+
+ii) install missing pieces that are present in Python 2.7, while still in the same directory
+
+wget hroest.ch/counter_backport.py
+pip install ordereddict 
+
+When you run your make command, there will be some warnings that it cannot find
+Python 2.7 but you should be fine.
 
