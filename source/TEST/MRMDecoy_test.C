@@ -313,9 +313,9 @@ START_SECTION(void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::Targe
   TEST_EQUAL(targeted_exp.getPeptides().size(), 13)
   TEST_EQUAL(targeted_exp.getTransitions().size(), 33)
   decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods);
-  traml.store(OPENMS_GET_TEST_DATA_PATH(test), targeted_decoy);
+  traml.store(test, targeted_decoy);
   
-  TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH(test), OPENMS_GET_TEST_DATA_PATH(out))
+  TEST_FILE_EQUAL(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }
 END_SECTION
 
