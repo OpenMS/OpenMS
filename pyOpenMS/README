@@ -16,7 +16,7 @@ pyopenms from scratch, as described below:
 3) install setuptools, see:  https://pypi.python.org/pypi/setuptools
 
 4) $ easy_install pip
-   $ pip install autwwrap
+   $ pip install autowrap
    $ pip install nose
 
 5) get numpy:
