@@ -1,6 +1,7 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.pair cimport pair
 from libcpp cimport bool as libcpp_pair
+from String cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper":
 

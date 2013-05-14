@@ -83,7 +83,6 @@ ELSE()
         ERROR_QUIET
         OUTPUT_QUIET
     )
-    MESSAGE(STATUS ${AUTOWRAP_VERSION_OK})
     IF(AUTOWRAP_VERSION_OK)
         MESSAGE(STATUS "Looking for autowrap - version ok")
         SET(AUTOWRAP-VERSION-OK TRUE)
@@ -140,6 +139,7 @@ ENDIF()
 
 
 # copy files
+# MESSAGE(STATUS ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
