@@ -10,6 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
         Residue() nogil except +
         Residue(Residue) nogil except + # wrap-ignore
+
         # detailed constructor
         Residue(String name,
                 String three_letter_code,
