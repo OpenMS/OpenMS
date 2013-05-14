@@ -1,1 +1,36 @@
 Cython 
+
+
+HOWTO:
+
+To wrap a new OpenMS class: Create a new "pxd" file in the folder "./pxds". As
+a small example, look at the CVTerm.pxd to get you started. Start with the
+following structure:
+
+from xxx cimport *
+cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
+
+    cdef cppclass ClassName(DefaultParamHandler):
+        # wrap-inherits:
+        #    DefaultParamHandler
+
+        ClassName() nogil except +
+        ClassName(ClassName) nogil except +
+
+
+- make sure to use "ClassName:" instead of "ClassName(DefaultParamHandler)" to
+  wrap a class that does not inherit from another class and also remove the two
+  comments below that line.
+- always use "cimport" and not Python "import"
+- always add default constructor AND copy constructor 
+- to expose a function to Pyython, copy the signature to your pxd file, e.g.
+  "DataValue getValue()" and make sure you "cimport" all corresponding classes.
+  Replace std::vector with vector from libcpp.vector (see for example PepXMLFile.pxd)
+
+Possible Error messages:
+
+  item0.inst = shared_ptr[_XXX](new _XXX(deref(it_terms)))
+    pyopenms/pyopenms.pyx:7277:55: Call with wrong number of arguments (expected 0, got 1)
+
+means you forgot to add the copy constructor in the class XXX and it is expected somewhere else => go fix it
+
