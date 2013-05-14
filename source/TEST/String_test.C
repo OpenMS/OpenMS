@@ -439,6 +439,8 @@ START_SECTION((Int toInt() const))
 	TEST_EQUAL(s.toInt(),73629);
 	s = "73629.99";
 	TEST_EQUAL(s.toInt(),73629);
+  s = "not an int";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")    
 END_SECTION
 
 START_SECTION((Real toFloat() const))
@@ -453,6 +455,12 @@ START_SECTION((Real toFloat() const))
 	TEST_EQUAL(String(s.toFloat()),"73629.9");
 	s = "47218.8";
 	TEST_EQUAL(String(s.toFloat()),"47218.8");
+  s = "nan";
+  TEST_EQUAL(std::isnan(s.toFloat()),true);  
+  s = "NaN";
+  TEST_EQUAL(std::isnan(s.toFloat()),true);
+  s = "not a number";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toFloat(), String("Could not convert string '") + s + "' to a float value")  
 END_SECTION
 
 START_SECTION((DoubleReal toDouble() const))
@@ -467,6 +475,12 @@ START_SECTION((DoubleReal toDouble() const))
 	TEST_EQUAL(String(s.toDouble()),"73629.980123");
 	s = "47218.890000001";
 	TEST_EQUAL(String(s.toDouble()),"47218.890000001");
+  s = "nan";
+  TEST_EQUAL(std::isnan(s.toDouble()),true);  
+  s = "NaN";
+  TEST_EQUAL(std::isnan(s.toDouble()),true);    
+  s = "not a number";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toDouble(), String("Could not convert string '") + s + "' to a double value")
 END_SECTION
 
 START_SECTION((static String random(UInt length)))

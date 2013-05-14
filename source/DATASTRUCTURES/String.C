@@ -35,15 +35,19 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
+#include <QtCore/QString>
+
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/trim.hpp>
+
+#include <string>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <limits>
 #include <algorithm>
-#include <QtCore/QString>
 
-#include <string>
 using namespace std;
 
 namespace OpenMS
@@ -55,22 +59,22 @@ namespace OpenMS
   {
   }
 
-  String::String(const string & s) :
+  String::String(const string& s) :
     string(s)
   {
   }
 
-  String::String(const char * s) :
+  String::String(const char* s) :
     string(s)
   {
   }
 
-  String::String(const QString & s) :
+  String::String(const QString& s) :
     string(s.toStdString())
   {
   }
 
-  String::String(const char * s, SizeType length)
+  String::String(const char* s, SizeType length)
   {
     SizeType count = 0;
     while (count < length && *(s + count) != 0)
@@ -222,7 +226,7 @@ namespace OpenMS
     return QString::number(d, 'f', n);
   }
 
-  String & String::fillLeft(char c, UInt size)
+  String& String::fillLeft(char c, UInt size)
   {
     if (string::size() < size)
     {
@@ -231,7 +235,7 @@ namespace OpenMS
     return *this;
   }
 
-  String & String::fillRight(char c, UInt size)
+  String& String::fillRight(char c, UInt size)
   {
     if (string::size() < size)
     {
@@ -240,13 +244,13 @@ namespace OpenMS
     return *this;
   }
 
-  String::String(const DataValue & d) :
+  String::String(const DataValue& d) :
     string()
   {
     string::operator=(d.toString());
   }
 
-  bool String::hasPrefix(const String & string) const
+  bool String::hasPrefix(const String& string) const
   {
     if (string.size() > size())
     {
@@ -259,7 +263,7 @@ namespace OpenMS
     return compare(0, string.size(), string) == 0;
   }
 
-  bool String::hasSuffix(const String & string) const
+  bool String::hasSuffix(const String& string) const
   {
     if (string.size() > size())
     {
@@ -272,7 +276,7 @@ namespace OpenMS
     return compare(size() - string.size(), string.size(), string) == 0;
   }
 
-  bool String::hasSubstring(const String & string) const
+  bool String::hasSubstring(const String& string) const
   {
     return string::find(string) != string::npos;
   }
@@ -329,7 +333,7 @@ namespace OpenMS
   String String::prefix(char delim) const
   {
     Size pos = string::find(delim);
-    if (pos == string::npos)     //char not found
+    if (pos == string::npos) //char not found
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                        String(delim));
@@ -340,7 +344,7 @@ namespace OpenMS
   String String::suffix(char delim) const
   {
     Size pos = string::rfind(delim);
-    if (pos == string::npos)     //char not found
+    if (pos == string::npos) //char not found
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                        String(delim));
@@ -365,7 +369,7 @@ namespace OpenMS
     return String(this->begin(), this->begin() + end);
   }
 
-  String & String::trim()
+  String& String::trim()
   {
     //search for the begin of truncated string
     iterator begin = this->begin();
@@ -401,7 +405,7 @@ namespace OpenMS
     return *this;
   }
 
-  String & String::quote(char q, QuotingMethod method)
+  String& String::quote(char q, QuotingMethod method)
   {
     if (method == ESCAPE)
     {
@@ -414,7 +418,7 @@ namespace OpenMS
     return *this;
   }
 
-  String & String::unquote(char q, QuotingMethod method)
+  String& String::unquote(char q, QuotingMethod method)
   {
     // check if input string matches output format of the "quote" method:
     if ((size() < 2) || ((*this)[0] != q) || ((*this)[size() - 1] != q))
@@ -423,7 +427,7 @@ namespace OpenMS
               __FILE__, __LINE__, __PRETTY_FUNCTION__,
               "'" + *this + "' does not have the expected format of a quoted string");
     }
-    string::operator=(string::substr(1, size() - 2));     // remove quotation marks
+    string::operator=(string::substr(1, size() - 2)); // remove quotation marks
     if (method == ESCAPE)
     {
       substitute("\\" + String(q), String(q));
@@ -434,7 +438,7 @@ namespace OpenMS
     return *this;
   }
 
-  String & String::simplify()
+  String& String::simplify()
   {
     String simple;
 
@@ -485,7 +489,7 @@ namespace OpenMS
     return tmp;
   }
 
-  String & String::reverse()
+  String& String::reverse()
   {
     String tmp = *this;
     for (Size i = 0; i != size(); ++i)
@@ -495,7 +499,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool String::split(const char splitter, vector<String> & substrings,
+  bool String::split(const char splitter, vector<String>& substrings,
                      bool quote_protect) const
   {
     substrings.clear();
@@ -532,8 +536,8 @@ namespace OpenMS
           block.trim();
           if ((block.size() >= 2) && ((block.prefix(1) == String("\"")) ^
                                       (block.suffix(1) == String("\""))))
-          {           // block has start or end quote, but not both
-                      // (one quote is somewhere in the middle)
+          { // block has start or end quote, but not both
+            // (one quote is somewhere in the middle)
             throw Exception::ConversionError(
                     __FILE__, __LINE__, __PRETTY_FUNCTION__,
                     String("Could not dequote string '") + block +
@@ -541,7 +545,7 @@ namespace OpenMS
           }
           else if ((block.size() >= 2) && (block.prefix(1) == String("\"")) &&
                    (block.suffix(1) == String("\"")))
-          {           // block has start and end quotes --> remove them
+          { // block has start and end quotes --> remove them
             block = block.substr(1, block.size() - 2);
           }
           substrings.push_back(block);
@@ -559,8 +563,8 @@ namespace OpenMS
       block.trim();
       if ((block.size() >= 2) && ((block.prefix(1) == String("\"")) ^
                                   (block.suffix(1) == String("\""))))
-      {       // block has start or end quote but not both
-              // (one quote is somewhere in the middle)
+      { // block has start or end quote but not both
+        // (one quote is somewhere in the middle)
         throw Exception::ConversionError(
                 __FILE__, __LINE__, __PRETTY_FUNCTION__,
                 String("Could not dequote string '") + block +
@@ -568,12 +572,12 @@ namespace OpenMS
       }
       else if ((block.size() >= 2) && (block.prefix(1) == String("\"")) &&
                (block.suffix(1) == String("\"")))
-      {       // block has start and end quotes --> remove them
+      { // block has start and end quotes --> remove them
         block = block.substr(1, block.size() - 2);
       }
       substrings.push_back(block);
     }
-    else     // do not honor quotes
+    else // do not honor quotes
     {
       for (; end != this->end(); ++end)
       {
@@ -589,7 +593,7 @@ namespace OpenMS
     return true;
   }
 
-  bool String::split(const String & splitter, std::vector<String> & substrings)
+  bool String::split(const String& splitter, std::vector<String>& substrings)
   const
   {
     substrings.clear();
@@ -617,7 +621,7 @@ namespace OpenMS
     return substrings.size() > 1;
   }
 
-  bool String::split_quoted(const String & splitter, vector<String> & substrings,
+  bool String::split_quoted(const String& splitter, vector<String>& substrings,
                             char q, QuotingMethod method) const
   {
     substrings.clear();
@@ -625,7 +629,7 @@ namespace OpenMS
       return false;
 
     bool in_quote = false;
-    char targets[2] = {q, splitter[0]};     // targets for "find_first_of"
+    char targets[2] = {q, splitter[0]}; // targets for "find_first_of"
     std::string rest = splitter.substr(1, splitter.size() - 1);
     Size start = 0;
     for (Size i = 0; i < size(); ++i)
@@ -645,14 +649,14 @@ namespace OpenMS
               embedded = false;
           }
         }
-        else         // method: NONE or DOUBLE
+        else // method: NONE or DOUBLE
         {
           for (; i < size(); ++i)
           {
             if ((*this)[i] == q)
             {
               if (method == NONE)
-                break;                                 // found
+                break; // found
               // next character is also closing quotation mark:
               if ((i < size() - 1) && ((*this)[i + 1] == q))
                 embedded = !embedded;
@@ -665,20 +669,20 @@ namespace OpenMS
             }
           }
         }
-        in_quote = false;         // end of quote reached
+        in_quote = false; // end of quote reached
       }
       else
       {
         i = string::find_first_of(targets, i, 2);
         if (i == string::npos)
-          break;                              // nothing found
+          break; // nothing found
         if ((*this)[i] == q)
           in_quote = true;
         else if (string::compare(i + 1, rest.size(), rest) == 0) // splitter found
         {
           substrings.push_back(string::substr(start, i - start));
           start = i + splitter.size();
-          i = start - 1;           // increased by loop
+          i = start - 1; // increased by loop
         }
       }
     }
@@ -708,35 +712,39 @@ namespace OpenMS
 
   Real String::toFloat() const
   {
-    if (*this == "nan")
-      return std::numeric_limits<Real>::quiet_NaN();
-
-    std::stringstream ss(c_str());
-    Real ret;
-    if (!(ss >> ret))
+    Real ret = 0.0;
+    try
+    {
+      ret = boost::lexical_cast<Real>(boost::trim_copy(*this));
+    }
+    catch (boost::bad_lexical_cast&)
+    {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a float value");
+    }
     return ret;
   }
 
   DoubleReal String::toDouble() const
   {
-    if (*this == "nan")
-      return std::numeric_limits<DoubleReal>::quiet_NaN();
-
-    std::stringstream ss(c_str());
-    DoubleReal ret;
-    if (!(ss >> ret))
+    DoubleReal ret = 0.0;
+    try
+    {
+      ret = boost::lexical_cast<DoubleReal>(boost::trim_copy(*this));
+    }
+    catch (boost::bad_lexical_cast&)
+    {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a double value");
+    }
     return ret;
   }
 
-  String & String::toUpper()
+  String& String::toUpper()
   {
     std::transform(begin(), end(), begin(), (int (*)(int))toupper);
     return *this;
   }
 
-  String & String::firstToUpper()
+  String& String::firstToUpper()
   {
     if (size() != 0)
     {
@@ -745,19 +753,19 @@ namespace OpenMS
     return *this;
   }
 
-  String & String::toLower()
+  String& String::toLower()
   {
     std::transform(begin(), end(), begin(), (int (*)(int))tolower);
     return *this;
   }
 
-  String & String::substitute(char from, char to)
+  String& String::substitute(char from, char to)
   {
     std::replace(this->begin(), this->end(), from, to);
     return *this;
   }
 
-  String & String::substitute(const String & from, const String & to)
+  String& String::substitute(const String& from, const String& to)
   {
     if (!from.empty())
     {
@@ -768,20 +776,20 @@ namespace OpenMS
     return *this;
   }
 
-  String & String::remove(char what)
+  String& String::remove(char what)
   {
     this->erase(std::remove(this->begin(), this->end(), what), this->end());
     return *this;
   }
 
-  String & String::ensureLastChar(char end)
+  String& String::ensureLastChar(char end)
   {
     if (!this->hasSuffix(end))
       this->append(1, end);
     return *this;
   }
 
-  String & String::removeWhitespaces()
+  String& String::removeWhitespaces()
   {
     bool contains_ws = false;
     for (ConstIterator it = this->begin(); it != this->end(); ++it)
@@ -890,106 +898,106 @@ namespace OpenMS
     return tmp;
   }
 
-  String String::operator+(const char * s) const
+  String String::operator+(const char* s) const
   {
     String tmp(*this);
     tmp.append(s);
     return tmp;
   }
 
-  String String::operator+(const String & s) const
+  String String::operator+(const String& s) const
   {
     String tmp(*this);
     tmp.insert(tmp.end(), s.begin(), s.end());
     return tmp;
   }
 
-  String String::operator+(const std::string & s) const
+  String String::operator+(const std::string& s) const
   {
     String tmp(*this);
     tmp.insert(tmp.end(), s.begin(), s.end());
     return tmp;
   }
 
-  String & String::operator+=(int i)
+  String& String::operator+=(int i)
   {
     this->append(String(i));
     return *this;
   }
 
-  String & String::operator+=(unsigned int i)
+  String& String::operator+=(unsigned int i)
   {
     this->append(String(i));
     return *this;
   }
 
-  String & String::operator+=(short int i)
+  String& String::operator+=(short int i)
   {
     this->append(String(i));
     return *this;
   }
 
-  String & String::operator+=(short unsigned int i)
+  String& String::operator+=(short unsigned int i)
   {
     this->append(String(i));
     return *this;
   }
 
-  String & String::operator+=(long int i)
+  String& String::operator+=(long int i)
   {
     this->append(String(i));
     return *this;
   }
 
-  String & String::operator+=(long unsigned int i)
+  String& String::operator+=(long unsigned int i)
   {
     this->append(String(i));
     return *this;
   }
 
-  String & String::operator+=(long long unsigned int i)
+  String& String::operator+=(long long unsigned int i)
   {
     this->append(String(i));
     return *this;
   }
 
-  String & String::operator+=(float f)
+  String& String::operator+=(float f)
   {
     this->append(String(f));
     return *this;
   }
 
-  String & String::operator+=(double d)
+  String& String::operator+=(double d)
   {
     this->append(String(d));
     return *this;
   }
 
-  String & String::operator+=(long double d)
+  String& String::operator+=(long double d)
   {
     this->append(String(d));
     return *this;
   }
 
-  String & String::operator+=(char c)
+  String& String::operator+=(char c)
   {
     this->append(String(c));
     return *this;
   }
 
-  String & String::operator+=(const char * s)
+  String& String::operator+=(const char* s)
   {
     this->append(s);
     return *this;
   }
 
-  String & String::operator+=(const String & s)
+  String& String::operator+=(const String& s)
   {
     this->append(s);
     return *this;
   }
 
-  String & String::operator+=(const std::string & s)
+  String& String::operator+=(const std::string& s)
   {
     this->append(s);
     return *this;
