@@ -126,13 +126,16 @@ if iswin:
         libraries=["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "gsl", "cblas"]
 
 elif sys.platform == "linux2":
-
-    libraries=["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore", "gsl",
-                        "gslcblas",
-              ]
+    libraries=["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore", "gsl", "gslcblas"]
 
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so" ), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.so" ), "pyopenms")
+
+elif sys.platform == "darwin":
+    libraries=["OpenMS", "OpenSwathAlgo", "xerces-c", "gsl", "gslcblas" ]
+
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib" ), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib" ), "pyopenms")
 
 else:
     print
@@ -146,7 +149,6 @@ library_dirs=[ OPEN_MS_BUILD_DIR,
                QT_LIBRARY_DIR,
               ]
 
-
 import numpy
 
 include_dirs=[
@@ -159,7 +161,27 @@ include_dirs=[
     j(numpy.core.__path__[0],"include"),
              ]
 
+extra_link_args = []
 
+if sys.platform == "linux2":
+    extra_link_args = [ "-Wl,-s"]
+elif sys.platform == "darwin":
+    # we need to manually link to the Qt Frameworks
+    extra_link_args = [ "-Wl,-s", 
+                        "-F"+QT_LIBRARY_DIR,
+                        "-framework Carbon",
+                        "-framework AGL",
+                        "-framework OpenGL",
+                        "-framework QtOpenGL",
+                        "-framework QtSvg",
+                        "-framework QtWebKit",
+                        "-framework QtXmlPatterns",
+                        "-framework QtGui",
+                        "-framework QtTest",
+                        "-framework QtXml",
+                        "-framework QtSql",
+                        "-framework QtNetwork",
+                        "-framework QtCore" ]
 
 ext = Extension(
         "pyopenms",
@@ -174,8 +196,7 @@ ext = Extension(
         # such that  boost::throw_excption() is declared but not implemented.
         # The linker does not like that very much ...
         extra_compile_args = iswin and [ "/EHs"] or (IS_DEBUG and ["-g2"] or []),
-        extra_link_args = iswin and [ ] or [ "-Wl,-s"]
-
+        extra_link_args = extra_link_args
     )
 
 
@@ -193,6 +214,10 @@ if iswin:
 
 share_data.append("License.txt")
 
+# enforce 64bit-only build as OpenMS is not available in 32bit on osx
+if sys.platform == "darwin":
+    os.environ['ARCHFLAGS'] = "-arch x86_64"
+    
 setup(
 
     name = "pyopenms",
