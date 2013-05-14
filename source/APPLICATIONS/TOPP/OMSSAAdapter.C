@@ -703,25 +703,26 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    FileHandler fh;
-    FileTypes::Type in_type = fh.getType(inputfile_name);
-    PeakMap map;
-    fh.getOptions().addMSLevel(2);
-    fh.loadExperiment(inputfile_name, map, in_type, log_type_);
+    { // local scope to free memory after conversion to OMSSA format is done
+      FileHandler fh;
+      FileTypes::Type in_type = fh.getType(inputfile_name);
+      PeakMap map;
+      fh.getOptions().addMSLevel(2);
+      fh.loadExperiment(inputfile_name, map, in_type, log_type_);
 
-    ProteinIdentification protein_identification;
-    vector<PeptideIdentification> peptide_ids;
-
-    writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
-
-    vector<ProteinIdentification> protein_identifications;
+      writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
+      writeDebug_("Storing input file: " + unique_input_name, 5);
+      MascotGenericFile omssa_infile;
+      omssa_infile.store(unique_input_name, map);
+    }
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
 
-    writeDebug_("Storing input file: " + unique_input_name, 5);
-    MascotGenericFile omssa_infile;
-    omssa_infile.store(unique_input_name, map);
+
+    ProteinIdentification protein_identification;
+    vector<PeptideIdentification> peptide_ids;
+    vector<ProteinIdentification> protein_identifications;
 
     // @todo find OMSSA if not given
     // executable is stored in OpenMS_bin/share/OpenMS/3rdParty/OMSSA/omssacl(.exe)

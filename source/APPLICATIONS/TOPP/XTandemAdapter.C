@@ -171,7 +171,6 @@ protected:
     String xtandem_executable(getStringOption_("xtandem_executable"));
     String inputfile_name;
     String outputfile_name;
-    PeakMap exp;
 
     //-------------------------------------------------------------
     // parsing parameters
@@ -227,9 +226,10 @@ protected:
       db_name = full_db_name;
     }
 
-    // only load msLevel 2
+
+    PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2);
+    mzml_file.getOptions().addMSLevel(2);     // only load msLevel 2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
