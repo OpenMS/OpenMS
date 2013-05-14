@@ -60,6 +60,6 @@ namespace OpenMS
     return tmp;
   }
 
-  OPENMS_DLLAPI template void FeatureFinder::run<Peak1D,Feature>(const String &, MSExperiment<Peak1D> &, FeatureMap<Feature> &, const Param &, const FeatureMap<Feature> &);
+  template OPENMS_DLLAPI void FeatureFinder::run<Peak1D,Feature>(const String &, MSExperiment<Peak1D> &, FeatureMap<Feature> &, const Param &, const FeatureMap<Feature> &);
 
 }
