@@ -6,6 +6,17 @@
 \setlength{\parindent}{0pt}
 \usepackage[parfill]{parskip}
 
+\usepackage[
+  pdfpagemode=UseOutlines,
+  pdfdisplaydoctitle=true,
+  colorlinks=true,
+  linkcolor=black,
+  filecolor=black,
+  pagecolor=black,
+  urlcolor=black,
+  frenchlinks=true
+]{hyperref}
+
 \usepackage{tocloft}% http://ctan.org/pkg/tocloft
 \setlength{\cftsubsecnumwidth}{3.5em}% Set length of number width in ToC for \subsection
 
@@ -163,7 +174,7 @@ The Param file that is returned can be manipulated through the \texttt{setValue}
 key). Using the \texttt{getDescription} method, it is possible to get a help-text for
 each parameter value in an interactive session without consulting the documentation.
 
-\section{Signal Processing}
+\section{Signal Processing and Filter}
 Most signal processing algorithms follow a similar pattern in OpenMS.  
 
 \begin{verbatim}
@@ -174,7 +185,158 @@ filter.filterExperiment(exp)
 \end{verbatim}
 
 Since they work on a single \texttt{MSExperiment} object, little input is needed to
-execute a filter directly on the data.
+execute a filter directly on the data. Examples of filters that follow this
+pattern are \texttt{GaussFilter, SavitzkyGolayFilter} as well as the spectral
+filters \texttt{BernNorm, MarkerMower, NLargest, Normalizer, ParentPeakMower,
+Scaler, SpectraMerger, SqrtMower, ThresholdMower, WindowMower}.
+
+\section{Complex algorithmic tools}
+
+More complex algorithmic tools require a short explanation and usage:
+
+\subsection{iTRAQ Analyzer}
+
+The iTRAQ Analyzer uses internally two classes, the
+\texttt{ItraqChannelExtractor} and the \texttt{ItraqQuantifier} which are
+described in the following code snippet:
+
+\begin{verbatim}
+
+file = MzMLFile() 
+exp = MSExperiment() 
+file.load(filename_in, exp)
+consensus_map_raw = ConsensusMap()  
+consensus_map_quant = ConsensusMap() 
+
+itraq_type = ITRAQ_TYPES.FOURPLEX # other options: EIGHTPLEX, TMT_SIXPLEX
+extract_param = ItraqChannelExtractor().getDefaults()
+itraq_ce = ItraqChannelExtractor(itraq_type, extract_param)
+
+# extract raw signals
+itraq_ce.run(exp, consensus_map_raw)
+
+# do normalization
+quant_param = ItraqQuantifier().getDefaults()
+itraq_quant = ItraqQuantifier(itraq_type, quant_param)
+
+itraq_quant.run(consensus_map_raw, consensus_map_quant)
+
+outfile = ConsensusXMLFile()
+oufile.store(filename_out, consensus_map_quant)
+\end{verbatim}
+
+\subsection{Centroided FeatureFinder}
+
+The FeatureFinder for centroided data is called
+\texttt{FeatureFinderAlgorithmPicked} in OpenMS.
+
+\begin{verbatim}
+# set input_path and out_path
+seeds = FeatureMap()
+
+fh = MzMLFile()
+options = PeakFileOptions()
+options.setMSLevels([1,1])
+fh.setOptions(options)
+input_map = MSExperiment()
+fh.load(input_path, input_map)
+input_map.updateRanges()
+
+ff = FeatureFinder()
+ff.setLogType(LogType.CMD)
+
+# Run the feature finder
+features = FeatureMap()
+name = FeatureFinderAlgorithmPicked.getProductName()
+params = FeatureFinder().getParameters(name)
+ff.run(name, input_map, features, params, seeds)
+
+features.setUniqueIds()
+fh = FeatureXMLFile()
+fh.store(out_path, features)
+\end{verbatim}
+
+\subsection{SILACAnalyzer}
+
+\begin{verbatim}
+
+exp = pyopenms.MSExperiment()
+# load experiment (raw data)
+out_map = pyopenms.ConsensusMap()
+
+# Options
+selected_labels = "Lys8"
+charge_min = 2
+charge_max = 4
+missed_cleavages = 0
+isotopes_per_peptide_min = 3
+isotopes_per_peptide_max = 5
+# section "algorithm"
+rt_threshold = 30
+rt_min = 0.0
+intensity_cutoff = 10
+intensity_correlation = 0.7
+model_deviation = 3.0
+allow_missing_peaks = True
+# labels
+label_identifiers = { "Lys8" : 8.0141988132}
+
+analyzer = pyopenms.SILACAnalyzer()
+analyzer.initialize(
+      # section sample
+      selected_labels,
+      charge_min,
+      charge_max,
+      missed_cleavages,
+      isotopes_per_peptide_min,
+      isotopes_per_peptide_max,
+      # section "algorithm"
+      rt_threshold,
+      rt_min,
+      intensity_cutoff,
+      intensity_correlation,
+      model_deviation,
+      allow_missing_peaks,
+      # labels
+      label_identifiers)
+
+analyzer.run_all(exp, out_map)
+
+\end{verbatim}
+
+
+\subsection{OpenSwathAnalyzer}
+
+The OpenSwathAnalyzer calls internally an object called
+MRMFeatureFinderScoring (since it does feature finding based on a scoring
+approach). It takes as input the chromatograms and the targeted library
+(transition library) in TraML format. Furthermore, it also takes a
+transformation description and a Swath file as optional arguments.
+
+\begin{verbatim}
+# load chromatograms
+chromatograms = pyopenms.MSExperiment()
+fh = pyopenms.FileHandler()
+fh.loadExperiment("infile.mzML", chromatograms)
+
+# load TraML file
+targeted = pyopenms.TargetedExperiment();
+tramlfile = pyopenms.TraMLFile();
+tramlfile.load("tramlfile.TraML", targeted);
+
+# Create empty files as input and finally as output
+empty_swath = pyopenms.MSExperiment()
+trafo = pyopenms.TransformationDescription()
+output = pyopenms.FeatureMap();
+
+# set up OpenSwath analyzer (featurefinder) and run
+featurefinder = pyopenms.MRMFeatureFinderScoring()
+featurefinder.pickExperiment(chromatograms, output, targeted, trafo, empty_swath)
+
+# Store outfile
+featurexml = pyopenms.FeatureXMLFile()
+featurexml.store("outfile.featureXML", output)
+\end{verbatim}
 
 \section{Appendix}
 In this appendix, a complete list of all wrapped functions is given, ordered
