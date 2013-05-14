@@ -417,13 +417,14 @@ protected:
     }
     else if (in_type == FileTypes::IDXML)     //identifications
     {
-      UInt spectrum_count = 0;
-      Size peptide_hit_count = 0;
-      UInt runs_count = 0;
-      Size protein_hit_count = 0;
+      UInt spectrum_count(0);
+      Size peptide_hit_count(0);
+      UInt runs_count(0);
+      Size protein_hit_count(0);
       set<String> peptides;
       set<String> proteins;
-
+      Size modified_peptide_count(0);
+      Map<String, int> mod_counts;
       // reading input
       IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
 
@@ -440,6 +441,16 @@ protected:
           ++spectrum_count;
           peptide_hit_count += id_data.peptides[i].getHits().size();
           const vector<PeptideHit> & temp_hits = id_data.peptides[i].getHits();
+          // collect stats about modifications from TOP HIT!
+          if (temp_hits[0].getSequence().isModified())
+          {
+            ++modified_peptide_count;
+            AASequence aa = temp_hits[0].getSequence();
+            for (Size ia=0; ia<aa.size(); ++ia)
+            {
+              if (aa[ia].isModified()) ++mod_counts[aa[ia].getModification()];
+            }
+          }
           for (Size j = 0; j < temp_hits.size(); ++j)
           {
             peptides.insert(temp_hits[j].getSequence().toString());
@@ -458,15 +469,21 @@ protected:
       }
 
       os << "Number of:" << "\n";
-      os << "  runs:                " << runs_count << "\n";
-      os << "  protein hits:        " << protein_hit_count << "\n";
-      os << "  non-redundant protein hits : " << proteins.size() << "\n";
+      os << "  runs:                       " << runs_count << "\n";
+      os << "  protein hits:               " << protein_hit_count << "\n";
+      os << "  non-redundant protein hits: " << proteins.size() << "\n";
       os << "  (only hits that differ in the accession)" << "\n";
       os << "\n";
-      os << "  spectra:             " << spectrum_count << "\n";
-      os << "  peptide hits:        " << peptide_hit_count << "\n";
+      os << "  spectra:                    " << spectrum_count << "\n";
+      os << "  peptide hits:               " << peptide_hit_count << "\n";
+      os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << " (" << (modified_peptide_count*100.0 / spectrum_count) << "%)\n";
       os << "  non-redundant peptide hits: " << peptides.size() << "\n";
       os << "  (only hits that differ in sequence and/ or modifications)" << "\n";
+      for (Map<String, int>::ConstIterator it=mod_counts.begin(); it!=mod_counts.end(); ++it)
+      {
+        if (it!=mod_counts.begin()) os << ", "; else os << "  Modifications: ";
+        os << it->first << "(" << it->second << ")";
+      }
 
       os_tsv << "peptide hits" << "\t" << peptide_hit_count << "\n";
       os_tsv << "non-redundant peptide hits (only hits that differ in sequence and/ or modifications): " << "\t" << peptides.size() << "\n";
@@ -556,7 +573,7 @@ protected:
       map<Size, UInt> counts;
       for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
       {
-        counts[it->getMSLevel()]++;
+        ++counts[it->getMSLevel()];
       }
       //output
       if (!counts.empty())
@@ -653,57 +670,8 @@ protected:
         os << "Number of chromatograms per type: " << "\n";
         for (Map<ChromatogramSettings::ChromatogramType, Size>::const_iterator it = chrom_types.begin(); it != chrom_types.end(); ++it)
         {
-          switch (it->first)
-          {
-          case ChromatogramSettings::MASS_CHROMATOGRAM:
-            os << "  mass chromatogram:                         "
-               << it->second << "\n";
-            break;
-
-          case ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM:
-            os << "  total ion current chromatogram:            "
-               << it->second << "\n";
-            break;
-
-          case ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM:
-            os << "  selected ion current chromatogram:         "
-               << it->second << "\n";
-            break;
-
-          case ChromatogramSettings::BASEPEAK_CHROMATOGRAM:
-            os << "  base peak chromatogram:                    "
-               << it->second << "\n";
-            break;
-
-          case ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM:
-            os << "  selected ion monitoring chromatogram:      "
-               << it->second << "\n";
-            break;
-
-          case ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM:
-            os << "  selected reaction monitoring chromatogram: "
-               << it->second << "\n";
-            break;
-
-          case ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM:
-            os << "  electromagnetic radiation chromatogram:    "
-               << it->second << "\n";
-            break;
-
-          case ChromatogramSettings::ABSORPTION_CHROMATOGRAM:
-            os << "  absorption chromatogram:                   "
-               << it->second << "\n";
-            break;
-
-          case ChromatogramSettings::EMISSION_CHROMATOGRAM:
-            os << "  emission chromatogram:                     "
-               << it->second << "\n";
-            break;
-
-          default:
-            os << "  unknown chromatogram:                      "
-               << it->second << "\n";
-          }
+          os << String("  ") + ChromatogramSettings::ChromatogramNames[it->first] + ":                         "
+             << it->second << "\n";
         }
         if (getFlag_("d") && chrom_types.has(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM))
         {

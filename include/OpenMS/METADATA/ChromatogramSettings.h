@@ -62,6 +62,8 @@ namespace OpenMS
 
 public:
 
+    /// List of chromatogram names, e.g., SELECTED_REACTION_MONITORING_CHROMATOGRAM.
+    /// Actual names can be accessed using the ChromatogramNames[] array
     enum ChromatogramType
     {
       MASS_CHROMATOGRAM = 0,
@@ -72,8 +74,12 @@ public:
       SELECTED_REACTION_MONITORING_CHROMATOGRAM,
       ELECTROMAGNETIC_RADIATION_CHROMATOGRAM,
       ABSORPTION_CHROMATOGRAM,
-      EMISSION_CHROMATOGRAM
+      EMISSION_CHROMATOGRAM,
+      SIZE_OF_CHROMATOGRAM_TYPE // last entry!
     };
+
+    /// Names of chromatogram types corresponding to enum ChromatogramType
+    static const char * const ChromatogramNames[SIZE_OF_CHROMATOGRAM_TYPE+1]; // avoid string[], since it gets copied onto heap on initialization
 
     /// Constructor
     ChromatogramSettings();

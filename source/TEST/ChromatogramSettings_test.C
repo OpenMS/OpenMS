@@ -431,6 +431,17 @@ START_SECTION((void setChromatogramType(ChromatogramType type)))
 END_SECTION
 
 
+START_SECTION([EXTRA](ENUMs))
+{
+  // extra stuff tested here:
+  TEST_EQUAL(ChromatogramSettings::SIZE_OF_CHROMATOGRAM_TYPE+1, sizeof( ChromatogramSettings::ChromatogramNames ) / sizeof( char* ))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::MASS_CHROMATOGRAM]), String("mass chromatogram"))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::EMISSION_CHROMATOGRAM]), String("emission chromatogram"))
+  TEST_EQUAL(String(ChromatogramSettings::ChromatogramNames[ChromatogramSettings::SIZE_OF_CHROMATOGRAM_TYPE]), String("unknown chromatogram")) // should be the last entry
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
