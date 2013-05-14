@@ -50,53 +50,73 @@ MzTabFile* ptr = 0;
 MzTabFile* null_ptr = 0;
 START_SECTION(MzTabFile())
 {
-	ptr = new MzTabFile();
-	TEST_NOT_EQUAL(ptr, null_ptr)
+  ptr = new MzTabFile();
+  TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(void load(const String& filename, MzTab& mzTab) )
-	MzTab mzTab;
-	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"), mzTab);
+  MzTab mzTab;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"), mzTab);
 END_SECTION
-	
+  
 START_SECTION(void store(const String& filename, MzTab& mzTab) )
-        {
-        // save and reload mzTab
-	MzTab mzTab;
-	MzTab mzTab_reload;
-	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"), mzTab);
-	MzTabFile().store(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab_tmp"), mzTab);
-	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab_tmp"), mzTab_reload);
-        }
-        {
-        // save and reload mzTab
-	MzTab mzTab;
-	MzTab mzTab_reload;
-	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab"), mzTab);
-	MzTabFile().store(OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab_tmp"), mzTab);
-	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab_tmp"), mzTab_reload);
-        }
-        {
-        // save and reload mzTab
-	MzTab mzTab;
-	MzTab mzTab_reload;
-	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab"), mzTab);
-	MzTabFile().store(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab_tmp"), mzTab);
-	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab_tmp"), mzTab_reload);
-	}
-	{
-	MzTab mzTab;
-	MzTab mzTab_reload;
-	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab"), mzTab);
-	MzTabFile().store(OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab_tmp"), mzTab);
-	MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab_tmp"), mzTab_reload);
-        }
+{
+  // save and reload mzTab
+  MzTab mzTab;
+  MzTab mzTab_reload;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"), mzTab);
+
+  String tmpfile;
+  NEW_TMP_FILE(tmpfile)
+
+  MzTabFile().store(tmpfile, mzTab);
+  TEST_FILE_SIMILAR(tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"))
+  MzTabFile().load(tmpfile, mzTab_reload);
+}
+{
+  // save and reload mzTab
+  MzTab mzTab;
+  MzTab mzTab_reload;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab"), mzTab);
+
+  String tmpfile;
+  NEW_TMP_FILE(tmpfile)
+
+  MzTabFile().store(tmpfile, mzTab);
+  TEST_FILE_SIMILAR(tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab"))
+  MzTabFile().load(tmpfile, mzTab_reload);
+}
+{
+  // save and reload mzTab
+  MzTab mzTab;
+  MzTab mzTab_reload;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab"), mzTab);
+
+  String tmpfile;
+  NEW_TMP_FILE(tmpfile)
+
+  MzTabFile().store(tmpfile, mzTab);
+  TEST_FILE_SIMILAR(tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab"))
+  MzTabFile().load(tmpfile, mzTab_reload);
+}
+{
+  MzTab mzTab;
+  MzTab mzTab_reload;
+  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab"), mzTab);
+
+  String tmpfile;
+  NEW_TMP_FILE(tmpfile)
+
+  MzTabFile().store(tmpfile, mzTab);
+  TEST_FILE_SIMILAR(tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab"))
+  MzTabFile().load(tmpfile, mzTab_reload);
+}
 END_SECTION
 
 START_SECTION(~MzTabFile())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
