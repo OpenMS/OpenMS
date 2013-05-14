@@ -112,6 +112,7 @@
 				<UL>
 				  <LI> @subpage OpenMS_tutorial
 				  <LI> @subpage coding_conventions
+				  <LI> @subpage pyOpenMS
 					<LI> @subpage external_code
 				</UL>
 

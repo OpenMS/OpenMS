@@ -1,0 +1,224 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry               
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// 
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution 
+//    may be used to endorse or promote products derived from this software 
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS. 
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// 
+// --------------------------------------------------------------------------
+// $Maintainer:  $
+// $Authors: Hannes Roest $
+// --------------------------------------------------------------------------
+
+/**
+
+@page pyOpenMS PyOpenMS
+
+<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Introduction</H1>
+
+PyOpenMS offers Python bindings to a large part of the %OpenMS API. 
+
+<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Build Instructions</H1>
+
+In order to configure and build pyOpenMS successfully, you will need to install the following : 
+
+<ol>
+  <li> Install  python (preferably, 2.7 but it may run also run with Python 2.6) </li>
+
+  <li>
+  On windows: you need the 64 bit C++ compiler from Visual Studio 2008.
+   This is important, else you get a different clib than python 2.7 is
+   built with, and pyopenms will crash on import.
+  </li>
+
+  <li>
+   Install setuptools, see: https://pypi.python.org/pypi/setuptools
+  </li>
+
+  <li> Install pip and using it, install other required Python modules
+
+    @code
+    $ easy_install pip
+    $ pip install autowrap
+    $ pip install nose
+    @endcode
+
+    If Cython doesn't get installed, install it with 
+    @code
+    $ easy_install cython
+    @endcode
+
+    Note that when using pip without root permissions, you have to add a path
+    prefix: --install-option="--prefix=/path/to/local/python/"
+  </li>
+
+
+  <li>
+  Install numpy:
+       - on debian/ubuntu, install the package "python-numpy"
+       - on 64 bit win 7: get it from http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
+  </li>
+
+  <li>Configure %OpenMS with pyOpenMS: 
+      execute cmake as usual, but  with parameters "-D PYOPENMS=ON".
+     <p>
+     On windows add: "-D CMAKE_BUILD_TYPE=Release" as the standard python27.dll
+     is built in release mode.
+     </p>
+  </li>
+
+  <li> Build pyOpenMS (now there should be pyopenms specific build targets):
+
+     @code
+     $ make pyopenms
+     @endcode
+
+   on linux: ensure that the libOpenMS.so is in your $LD_LIBRARY_PATH (it needs to be accessible for Python) 
+  </li>
+
+  <li> Run the Python specific tests to make sure that everything went well 
+
+     @code
+     $ cd pyOpenMS
+     $ run_nose.py
+     @endcode
+
+     run mem leak test:
+
+     @code
+     $ run_memleaks.py
+     @endcode
+  </li>
+
+
+  <li> Optionally:
+   if you want to install locally:
+
+     @code
+     $ python setup.py install
+     @endcode
+   If you want to build Python installers:
+
+     @code
+     $ make pyopenms_bdist_egg
+     @endcode
+
+      or
+
+     @code
+     $ make pyopenms_bdist
+     @endcode
+
+     you find the built installer files in pyOpenMS/dist
+  </li>
+
+</ol>
+
+
+<H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Wrapping Workflow and wrapping new Classes</H1>
+
+
+<H2 style="margin-top:40px; border-top:4px solid grey; text-align:left;">How pyOpenMS wraps Python classes</H2>
+General concept of how the wrapping is done: 
+
+- Step 1: The author declares which classes and which functions of these
+  classes s/he wants to wrap (expose to Python). This is done by writing the
+  function declaration in a file in the pxds/ folder.
+- Step 2: The Python tool "autowrap" (developed for this project) creates the
+  wrapping code automatically from the function declaration - see
+  https://github.com/uweschmitt/autowrap for an explanation of the autowrap
+  tool. Since not all code can be wrapped automatically, also manual code can
+  be written in the addons/ folder. Autowrap will create an output file at
+  pyopenms/pyopenms.pyx
+- Step 3: Cython translates the pyopenms/pyopenms.pyx to Cpp code at
+  pyopenms/pyopenms.cpp 
+- Step 4: A compiler compiles the Cpp code to a Python module which is then
+  importable in Python with "import pyopenms"
+
+<p>
+Maintaining existing wrappers: If the C++ API is changed, then pyOpenMS will
+not build any more.  Thus, find the corresponding file in the pyOpenMS/pxds/
+folder and adjust the function declaration accordingly.</p>
+
+<H2 style="margin-top:40px; border-top:4px solid grey; text-align:left;">How to wrap new classes</H2>
+To wrap a new %OpenMS class: Create a new "pxd" file in the folder "./pxds". As
+a small example, look at the CVTerm.pxd to get you started. Start with the
+following structure:
+
+@code
+from xxx cimport *
+cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
+
+    cdef cppclass ClassName(DefaultParamHandler):
+        # wrap-inherits:
+        #    DefaultParamHandler
+
+        ClassName() nogil except +
+        ClassName(ClassName) nogil except +
+
+@endcode
+
+- make sure to use "ClassName:" instead of "ClassName(DefaultParamHandler)" to
+  wrap a class that does not inherit from another class and also remove the two
+  comments below that line.
+- always use "cimport" and not Python "import"
+- always add default constructor AND copy constructor to the code (note that the C++
+  compiler will add a default copy constructur to any class, so there is always
+  one if it is not declared, see http://www.cplusplus.com/articles/y8hv0pDG/ "The
+  implicit copy constructor does a member-wise copy of the source object.")
+- to expose a function to Python, copy the signature to your pxd file, e.g.
+  "DataValue getValue()" and make sure you "cimport" all corresponding classes.
+  Replace std::vector with vector from libcpp.vector (see for example PepXMLFile.pxd)
+- Remember to include a copy constructor (even if none was declared in the C++
+  header file) since Cython will need it for certain oprations. Otherwise you
+  might see error messages like "item0.inst = shared_ptr[_ClassName](new _ClassNAme(deref(it_terms))) Call with wrong number of arguments"
+
+Further considerations and limitations:
+
+- Inheritance: there are some limitations, see for example Precursor.pxd
+
+- Reference: arguments by reference may be copied under some circumstances. For
+  example, if they are in an array then not the original argument is handed
+  back, so comparisons might fail. Also, simple Python types like int, float
+  etc cannot be passed by reference.
+
+- operator+=: see for example AASequence.iadd in AASequence.pxd
+
+- operator==, !=, <=, <, >=, > are wrapped automatically
+
+- Iterators: some limitations apply, see MSExperiment.pxd for an example
+
+- copy-constructor becomes __copy__ in Python
+
+These hints can be given to autowrap (also check the autowrap documentation):
+- wrap-ignore: is a hint for autowrap to not wrap the function (but the declaration might still be important for Cython to know about) 
+- wrap-as - see for example AASequence ":"
+- wrap-iter-begin, wrap-iter-end (see ConsensusMap.pxd)
+- wrap-instances - for templated classes (see MSSpectrum.pxd)
+- wrap-attach: enums, static methods (see for example VersionInfo.pxd)
+- wrap-upper-limit:size or size() (see MSSpectrum.pxd)
+
+
+*/
