@@ -49,8 +49,6 @@ namespace OpenMS
 public:
     ///Default constructor
     FeatureFileOptions();
-    ///Copy constructor
-    FeatureFileOptions(const FeatureFileOptions &);
     ///Destructor
     ~FeatureFileOptions();
 

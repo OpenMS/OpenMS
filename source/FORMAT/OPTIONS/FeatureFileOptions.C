@@ -51,16 +51,6 @@ namespace OpenMS
   {
   }
 
-  FeatureFileOptions::FeatureFileOptions(const FeatureFileOptions & other) :
-    loadConvexhull_(other.loadConvexhull_),
-    loadSubordinates_(other.loadSubordinates_),
-    metadata_only_(other.metadata_only_),
-    has_rt_range_(other.has_rt_range_),
-    has_mz_range_(other.has_mz_range_),
-    has_intensity_range_(other.has_intensity_range_)
-  {
-  }
-
   FeatureFileOptions::~FeatureFileOptions()
   {
   }
