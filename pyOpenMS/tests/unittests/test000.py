@@ -1058,14 +1058,6 @@ def testIdXMLFile():
     assert pyopenms.IdXMLFile().load is not None
     assert pyopenms.IdXMLFile().store is not None
 
-    idxml_file = pyopenms.IdXMLFile()
-    peps = []
-    prots = []
-    idxml_file.load("test.idXML", prots, peps)
-
-    assert len(prots) == 1
-    assert len(peps) == 3
-
 @report
 def testPepXMLFile():
     """
@@ -1076,17 +1068,6 @@ def testPepXMLFile():
     """
     assert pyopenms.PepXMLFile().load is not None
     assert pyopenms.PepXMLFile().store is not None
-
-    pepxml_file = pyopenms.PepXMLFile()
-    peps = []
-    prots = []
-    empty = pyopenms.String("");
-    pepxml_file.load("test.pep.xml", prots, peps, empty)
-
-    assert len(prots) == 1
-    assert len(peps) == 3
-
-    assert peps[0].getHits()[0].getSequence().toString() == "LAPSAAEDGAFR"
 
 @report
 def testInstrumentSettings():
