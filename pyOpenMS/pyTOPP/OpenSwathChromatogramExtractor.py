@@ -14,7 +14,6 @@ python pyTOPP/OpenSwathChromatogramExtractor.py --in ../source/TEST/TOPP/OpenSwa
 
 def main(options):
 
-
     # load TraML file
     targeted = pyopenms.TargetedExperiment();
     pyopenms.TraMLFile().load(options.traml_in, targeted);
@@ -37,7 +36,6 @@ def main(options):
         else:
             transition_exp_used = targeted
 
-
         if do_continue:
             # set up extractor and run
             tmp_out = pyopenms.MSExperiment();
@@ -46,7 +44,6 @@ def main(options):
             # add all chromatograms to the output
             for chrom in tmp_out.getChromatograms():
                 output.addChromatogram(chrom)
-
 
     dp = pyopenms.DataProcessing()
     pa = pyopenms.ProcessingAction().SMOOTHING
