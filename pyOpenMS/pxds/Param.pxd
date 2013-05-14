@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         ParamEntry(String n, DataValue v, String d, StringList t) nogil except +
         ParamEntry(String n, DataValue v, String d) nogil except +
 
-        bool isValid(String) nogil except +
+        bool isValid(String &message) nogil except +
         bool operator==(ParamEntry) nogil except +
 
 

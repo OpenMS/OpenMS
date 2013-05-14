@@ -13,17 +13,20 @@ class OpenMSStringConverter(TypeConverterBase):
         return  not cpp_type.is_ptr
 
     def matching_python_type(self, cpp_type):
-        return "bytes"
+        return "String" if cpp_type.is_ref else "bytes"
 
     def type_check_expression(self, cpp_type, argument_var):
-        assert not cpp_type.is_ref, "can not handle String & a input arg"
+        if cpp_type.is_ref:
+            return "isinstance(%s, String)" % (argument_var,)
         return "isinstance(%s, bytes)" % (argument_var,)
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
-        assert not cpp_type.is_ref, "can not handle String & a input arg"
         # here we inject special behavoir for testing if this converter
         # was called !
-        call_as = "(_String(<char *>%s))" % argument_var
+        if cpp_type.is_ref:
+            call_as = "deref(%s.inst.get())" % argument_var
+        else:
+            call_as = "(_String(<char *>%s))" % argument_var
         code = cleanup = ""
         return code, call_as, cleanup
 

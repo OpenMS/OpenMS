@@ -174,15 +174,11 @@ setup(
 
     version = full_version,
 
-    url="http://github.com/uweschmitt/pyopenms",
+    url = "http://github.com/uweschmitt/pyopenms",
 
-    author="Uwe Schmitt",
-    author_email="uschmitt@mineway.de",
+    author = "Uwe Schmitt",
+    author_email = "uschmitt@mineway.de",
 
     ext_modules = [ext ],
-
-    # setup_requires=["autowrap", "cython"],
-
-    # package_data= { "pyopenms": share_data },
     include_package_data = True # see MANIFEST.in
 )

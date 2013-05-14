@@ -59,6 +59,7 @@ ELSE()
 	MESSAGE(STATUS "Looking for cython - found")
 ENDIF()
 
+###### autwowrap check ########
 
 MESSAGE(STATUS "Looking for autowrap")
 execute_process(
@@ -69,14 +70,26 @@ execute_process(
      OUTPUT_QUIET
 )
 
-SET(AUTOWRAP-MISSING TRUE)
-IF( AUTOWRAP_MISSING EQUAL 0)
-    SET(AUTOWRAP-MISSING FALSE)
-ENDIF()
+SET(AUTOWRAP-VERSION-OK FALSE)
+
 IF(AUTOWRAP_MISSING)
 	MESSAGE(STATUS "Looking for autowrap - not found")
 ELSE()
 	MESSAGE(STATUS "Looking for autowrap - found")
+    execute_process(
+        COMMAND
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,5))"
+        RESULT_VARIABLE AUTOWRAP_VERSION_OK
+        ERROR_QUIET
+        OUTPUT_QUIET
+    )
+    MESSAGE(STATUS ${AUTOWRAP_VERSION_OK})
+    IF(AUTOWRAP_VERSION_OK)
+        MESSAGE(STATUS "Looking for autowrap - version ok")
+        SET(AUTOWRAP-VERSION-OK TRUE)
+    ELSE()
+        MESSAGE(STATUS "Looking for autowrap - version before 0.2.5, please upgrade")
+    ENDIF()
 ENDIF()
 
 MESSAGE(STATUS "Looking for nose testing framework")
@@ -120,8 +133,9 @@ ELSE()
 ENDIF()
 
 
-IF (NUMPY-MISSING OR CYTHON-MISSING)
-   RETURN()
+IF (NUMPY-MISSING OR CYTHON-MISSING OR NOT AUTOWRAP-VERSION-OK OR NOSE-MISSING)
+    MESSAGE(FATAL_ERROR "needed Python modules not found or out of date")
+    RETURN()
 ENDIF()
 
 
