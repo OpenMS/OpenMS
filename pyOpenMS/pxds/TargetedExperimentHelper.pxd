@@ -100,6 +100,17 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
 
+
+    cdef cppclass CV:
+
+        CV(CV) nogil except +
+        CV(String new_id, String new_fullname, String new_version, String new_URI) 
+
+        String id
+        String fullname
+        String version
+        String URI
+
 # no support for nested classes yet in Cython
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::Peptide":
 

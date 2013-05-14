@@ -9,6 +9,8 @@ from DataProcessing cimport *
 from MetaInfo cimport *
 from ConsensusMap cimport *
 from CVTermList cimport *
+from FeatureMap cimport *
+from Feature cimport *
 
 cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
 
@@ -19,14 +21,15 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         bool operator==(MSQuantifications &) nogil
         bool operator!=(MSQuantifications &) nogil
 
-        void load(String filename, bool trim_lines, Int first_n) nogil except +
+        # not yet implemented
+        # void load(String filename, bool trim_lines, Int first_n) nogil except +
 
         libcpp_vector[DataProcessing] getDataProcessingList() nogil except +
         libcpp_vector[Assay] getAssays() nogil except +
-        # libcpp_map[String, ConsensusFeature::Ratio] getRatios() nogil except +
+        # libcpp_map[String, Ratio] getRatios() nogil except +
         libcpp_vector[ConsensusMap] getConsensusMaps() nogil except +
         void setConsensusMaps(libcpp_vector[ConsensusMap]) nogil except +
-        # libcpp_vector[FeatureMap[Feature] ] ] getFeatureMaps() nogil except +
+        libcpp_vector[FeatureMap[Feature] ] getFeatureMaps() nogil except +
         AnalysisSummary getAnalysisSummary() nogil except +
         void setDataProcessingList(libcpp_vector[DataProcessing] dpl) nogil except +
         void setAnalysisSummaryQuantType(QUANT_TYPES r) nogil except +

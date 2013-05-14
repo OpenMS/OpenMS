@@ -58,3 +58,17 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         void removeMetaValue(unsigned int) nogil except +
         void clearMetaInfo() nogil except +
 
+cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::ConsensusFeature":
+
+    # slim struct to feed the need for systematically storing of ratios ( @see MSQuantifications ).
+    cdef cppclass Ratio:
+
+      Ratio()
+      Ratio(Ratio rhs)
+
+      DoubleReal ratio_value_
+      String denominator_ref_
+      String numerator_ref_
+      libcpp_vector[String] description_
+
+

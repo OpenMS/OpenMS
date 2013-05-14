@@ -47,13 +47,3 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
 
         void getLibraryIntensity(libcpp_vector[double] result) nogil except+
 
-"""
-        Size size() nogil except +
-        String getTransitionGroupID() nogil except +
-        void setTransitionGroupID(String id) nogil except +
-
-        libcpp_vector[TransitionT] getTransitions() nogil except +
-        void addTransition(TransitionT transition, String key) nogil except +
-        TransitionT getTransition(String key) nogil except +
-        """
-
