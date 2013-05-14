@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":
         AScore() nogil except +
         AScore(AScore) nogil except +   # wrap-ignore
 
-        # TODO
+        # TODO cannot input RichPeakSpectrum...
         # void compute(PeptideHit & hit, MSSpectrum[RichPeak1D] & real_spectrum,
         #               DoubleReal fmt, int n_sites)
 

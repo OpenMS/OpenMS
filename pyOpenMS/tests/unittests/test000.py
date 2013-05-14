@@ -570,6 +570,34 @@ def testDataValue():
     assert a.valueType() == pyopenms.DataType.STRING_LIST
 
 @report
+def testCVMappings():
+    """
+    @tests:
+     CVMappings.__init__
+    """
+    val = pyopenms.CVMappings()
+
+@report
+def testCVMappingFile():
+    """
+    @tests:
+     CVMappingFile.__init__
+    """
+    val = pyopenms.CVMappingFile()
+
+    assert pyopenms.CVMappingFile().load
+
+@report
+def testControlledVocabulary():
+    """
+    @tests:
+     ControlledVocabulary.__init__
+    """
+    val = pyopenms.ControlledVocabulary()
+
+    assert pyopenms.ControlledVocabulary().loadFromOBO
+
+@report
 def testSemanticValidator():
     """
     @tests:
@@ -577,11 +605,13 @@ def testSemanticValidator():
     """
     m = pyopenms.CVMappings()
     cv = pyopenms.ControlledVocabulary()
+
     val = pyopenms.SemanticValidator(m, cv)
 
     assert val.validate is not None
     assert val.setCheckTermValueTypes is not None
     assert val.setCheckUnits is not None
+
 
 @report
 def testDateTime():
@@ -1004,6 +1034,7 @@ def testPeptideAndProteinQuant():
     _testParam(p)
 
     assert pyopenms.PeptideAndProteinQuant().quantifyPeptides is not None
+    assert pyopenms.PeptideAndProteinQuant().quantifyProteins is not None
 
 @report
 def testSeedListGenerator():
@@ -1064,6 +1095,30 @@ def testIDFilter():
     ff = pyopenms.IDFilter()
 
     # assert pyopenms.IDFilter().apply is not None
+
+@report
+def testProteinResolver():
+    """
+    @tests:
+     ProteinResolver.__init__
+    """
+    ff = pyopenms.ProteinResolver()
+
+    assert pyopenms.ProteinResolver().resolveConsensus is not None
+    assert pyopenms.ProteinResolver().resolveID is not None
+    assert pyopenms.ProteinResolver().setProteinData is not None
+    assert pyopenms.ProteinResolver().getResults is not None
+
+@report
+def testSvmTheoreticalSpectrumGeneratorTrainer():
+    """
+    @tests:
+     SvmTheoreticalSpectrumGeneratorTrainer.__init__
+    """
+    ff = pyopenms.SvmTheoreticalSpectrumGeneratorTrainer()
+
+    assert pyopenms.SvmTheoreticalSpectrumGeneratorTrainer().trainModel is not None
+    assert pyopenms.SvmTheoreticalSpectrumGeneratorTrainer().normalizeIntensity is not None
 
 @report
 def testPosteriorErrorProbabilityModel():
@@ -1169,9 +1224,33 @@ def testIDRipper():
     """
     @tests:
      IDRipper.__init__
+     IDRipper.rip
     """
     ff = pyopenms.IDRipper()
 
+    assert pyopenms.IDRipper().rip is not None
+
+@report
+def testFASTAFile():
+    """
+    @tests:
+     FASTAFile.__init__
+     FASTAFile.load
+     FASTAFile.store
+    """
+    ff = pyopenms.FASTAFile()
+
+    assert pyopenms.FASTAFile().load is not None
+    assert pyopenms.FASTAFile().store is not None
+
+
+@report
+def testFASTAEntry():
+    """
+    @tests:
+     FASTAEntry.__init__
+    """
+    ff = pyopenms.FASTAEntry()
 
 @report
 def testSILACAnalyzer():
@@ -1512,6 +1591,24 @@ def testPepXMLFile():
     assert pyopenms.PepXMLFile().store is not None
 
 @report
+def testMzTabFile():
+    """
+    @tests:
+     MzTabFile.__init__
+    """
+    f = pyopenms.MzTabFile()
+
+    # assert pyopenms.MzTabFile().store is not None
+
+@report
+def testMzTab():
+    """
+    @tests:
+     MzTab.__init__
+    """
+    # f = pyopenms.MzTab()
+
+@report
 def testInstrumentSettings():
     """
     @tests:
@@ -1810,6 +1907,41 @@ def testMapAlignment():
     pyopenms.MapAlignmentTransformer.transformFeatureMaps
     pyopenms.MapAlignmentTransformer.transformSinglePeakMap
     pyopenms.MapAlignmentTransformer.transformSingleFeatureMap
+
+@report
+def testMapAlignmentIdentification():
+
+    """
+    @tests:
+     MapAlignmentAlgorithmIdentification.__init__
+     """
+    ma = pyopenms.MapAlignmentAlgorithmIdentification()
+
+    assert pyopenms.MapAlignmentAlgorithmIdentification().alignPeakMaps is not None
+    assert pyopenms.MapAlignmentAlgorithmIdentification().alignFeatureMaps is not None
+    assert pyopenms.MapAlignmentAlgorithmIdentification().alignConsensusMaps is not None
+    assert pyopenms.MapAlignmentAlgorithmIdentification().alignPeptideIdentifications is not None
+    assert pyopenms.MapAlignmentAlgorithmIdentification().setReference is not None
+    assert pyopenms.MapAlignmentAlgorithmIdentification().fitModel is not None
+
+@report
+def testMapAlignmentTransformer():
+
+    """
+    @tests:
+     MapAlignmentTransformer.__init__
+     """
+    ma = pyopenms.MapAlignmentTransformer()
+
+    assert pyopenms.MapAlignmentTransformer().transformPeakMaps is not None
+    assert pyopenms.MapAlignmentTransformer().transformFeatureMaps is not None
+    assert pyopenms.MapAlignmentTransformer().transformConsensusMaps is not None
+    # assert pyopenms.MapAlignmentTransformer().transformPeptideIdentifications is not None
+    assert pyopenms.MapAlignmentTransformer().transformSinglePeakMap is not None
+    assert pyopenms.MapAlignmentTransformer().transformSingleFeatureMap is not None
+    assert pyopenms.MapAlignmentTransformer().transformSingleConsensusMap is not None
+    assert pyopenms.MapAlignmentTransformer().transformSinglePeptideIdentification is not None
+
 
 @report
 def testMxxxFile():

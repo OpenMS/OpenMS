@@ -7,6 +7,7 @@ from Peak1D cimport *
 from Param cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
+from ProteinIdentification cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" namespace "OpenMS":
 
@@ -19,4 +20,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
         void quantifyPeptides(FeatureMap[Feature] & map_in) nogil except +
         void quantifyPeptides(ConsensusMap & map_in) nogil except +
+        void quantifyProteins(ProteinIdentification & proteins) nogil except +
 
