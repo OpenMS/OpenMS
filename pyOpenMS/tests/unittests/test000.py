@@ -1,8 +1,18 @@
 import pyopenms
 
+from functools import wraps
+
+
+def report(f):
+    @wraps(f)
+    def wrapper(*a, **kw):
+        print "run ", f.__name__
+        f(*a, **kw)
+    return wrapper
 
 
 
+@report
 def _testMetaInfoInterface(what):
 
     #void getKeys(libcpp_vector[String] & keys)
@@ -68,6 +78,7 @@ def _testMetaInfoInterface(what):
     assert len(keys) == 0
 
 
+@report
 def _testUniqueIdInterface(what):
 
     assert what.hasInvalidUniqueId()
@@ -115,7 +126,9 @@ def _testProgressLogger(ff):
 
 
 
-def testAAS():
+
+@report
+def testAASequence():
     """
     @tests:
      AASequence.__init__
@@ -147,6 +160,7 @@ def testAAS():
     assert aas.toUnmodifiedString() == ""
 
 
+@report
 def test_AcquisitionInfo():
     """
     @tests:
@@ -169,6 +183,7 @@ def test_AcquisitionInfo():
     ai.setMethodOfCombination("ABC")
     assert ai.getMethodOfCombination() == "ABC"
 
+@report
 def test_BaseFeature():
     """
     @tests:
@@ -211,6 +226,7 @@ def test_BaseFeature():
     bf.setQuality(0.0)
     bf.setWidth(1.0)
 
+@report
 def testChecksumType():
     """
     @tests:
@@ -225,6 +241,7 @@ def testChecksumType():
     assert isinstance(pyopenms.ChecksumType.UNKNOWN_CHECKSUM, int)
 
 
+@report
 def testChromatogramPeak():
     """
     @tests:
@@ -252,6 +269,7 @@ def testChromatogramPeak():
 
 
 
+@report
 def testChromatogramToosl():
     """
     @tests:
@@ -264,6 +282,7 @@ def testChromatogramToosl():
     pyopenms.ChromatogramTools.convertSpectraToChromatograms
 
 
+@report
 def testConsensusFeature():
     """
     @tests:
@@ -296,6 +315,7 @@ def testConsensusFeature():
      ConsensusFeature.setWidth
      ConsensusFeature.clearMetaInfo
      ConsensusFeature.setUniqueId
+     ConsensusFeature.size
     """
 
 
@@ -318,7 +338,111 @@ def testConsensusFeature():
     f.computeDechargeConsensus
     f.computeMonoisotopicConsensus()
 
+    assert f.size() >= 0
 
+@report
+def testConsensusMap():
+    """
+    @tests:
+     ConsensusMap.__eq__
+     ConsensusMap.__ge__
+     ConsensusMap.__gt__
+     ConsensusMap.__init__
+     ConsensusMap.__iter__
+     ConsensusMap.__le__
+     ConsensusMap.__lt__
+     ConsensusMap.__ne__
+     ConsensusMap.clear
+     ConsensusMap.clearUniqueId
+     ConsensusMap.ensureUniqueId
+     ConsensusMap.getDataProcessing
+     ConsensusMap.getFileDescriptions
+     ConsensusMap.getProteinIdentifications
+     ConsensusMap.getUnassignedPeptideIdentifications
+     ConsensusMap.getUniqueId
+     ConsensusMap.hasInvalidUniqueId
+     ConsensusMap.hasValidUniqueId
+     ConsensusMap.setDataProcessing
+     ConsensusMap.setFileDescriptions
+     ConsensusMap.setProteinIdentifications
+     ConsensusMap.setUnassignedPeptideIdentifications
+     ConsensusMap.setUniqueId
+     ConsensusMap.setUniqueIds
+     ConsensusMap.size
+     ConsensusMap.sortByIntensity
+     ConsensusMap.sortByMZ
+     ConsensusMap.sortByMaps
+     ConsensusMap.sortByPosition
+     ConsensusMap.sortByQuality
+     ConsensusMap.sortByRT
+     ConsensusMap.sortBySize
+     ConsensusMap.updateRanges
+     """
+    m = pyopenms.ConsensusMap()
+
+    m.clear()
+    m.clearUniqueId()
+    m.ensureUniqueId()
+    m.getDataProcessing()
+    m.getFileDescriptions()
+    m.getProteinIdentifications()
+    m.getUnassignedPeptideIdentifications()
+    m.getUniqueId()
+    m.hasInvalidUniqueId()
+    m.hasValidUniqueId()
+    m.setDataProcessing
+    m.setFileDescriptions
+    m.setProteinIdentifications
+    m.setUnassignedPeptideIdentifications
+    m.setUniqueId
+    m.setUniqueIds
+    m.size()
+    m.sortByIntensity()
+    m.sortByMZ()
+    m.sortByMaps()
+    m.sortByPosition()
+    m.sortByQuality()
+    m.sortByRT()
+    m.sortBySize()
+    m.updateRanges()
+
+    assert m == m
+    assert not m != m
+
+@report
+def testConsensusXMLFile():
+    """
+    @tests:
+     ConsensusXMLFile.__init__
+     ConsensusXMLFile.getOptions
+     ConsensusXMLFile.load
+     ConsensusXMLFile.store
+    """
+    f = pyopenms.ConsensusXMLFile()
+    f.getOptions()
+    assert f.load is not None
+    assert f.store is not None
+
+
+@report
+def testConvexHull2D():
+    """
+    @tests:
+     ConvexHull2D.__eq__
+     ConvexHull2D.__ge__
+     ConvexHull2D.__gt__
+     ConvexHull2D.__init__
+     ConvexHull2D.__le__
+     ConvexHull2D.__lt__
+     ConvexHull2D.__ne__
+     ConvexHull2D.clear
+     """
+    ch = pyopenms.ConvexHull2D()
+    ch.clear()
+    assert ch == ch
+
+
+@report
 def testDataProcessing(dp=pyopenms.DataProcessing()):
 
     """
@@ -373,6 +497,7 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     assert dp.getSoftware().getName() == "pyopenms"
 
 
+@report
 def testDataType():
     """
     @tests:
@@ -392,6 +517,7 @@ def testDataType():
     assert isinstance(pyopenms.DataType.STRING_LIST, int)
     assert isinstance(pyopenms.DataType.STRING_VALUE, int)
 
+@report
 def testDataValue():
     """
     @tests:
@@ -440,6 +566,7 @@ def testDataValue():
     assert a.valueType() == pyopenms.DataType.STRING_LIST
 
 
+@report
 def testDateTime():
     """
     @tests:
@@ -455,6 +582,7 @@ def testDateTime():
     assert isinstance( d.getDate(), str)
     assert isinstance( d.getTime(), str)
 
+@report
 def testFeature():
     """
     @tests:
@@ -488,10 +616,20 @@ def testFeature():
      Feature.__lt__
      Feature.__ne__
      Feature.clearMetaInfo
+
+     Feature.getConvexHulls
+     Feature.getSubordinates
+     Feature.setConvexHulls
+     Feature.setSubordinates
+     Feature.setUniqueId
     """
     f = pyopenms.Feature()
     _testMetaInfoInterface(f)
     _testUniqueIdInterface(f)
+
+    f.setConvexHulls(f.getConvexHulls())
+    f.setSubordinates(f.getSubordinates())
+    f.setUniqueId(12345)
 
     assert f == f
     assert not f != f
@@ -508,6 +646,7 @@ def testFeature():
     assert f.getWidth() == 40.0
 
 
+@report
 def testFeatureFinder():
     """
     @tests:
@@ -530,7 +669,31 @@ def testFeatureFinder():
     p = ff.getParameters(name)
     _testParam(p)
 
+@report
+def testFeatureFileOptions():
+    """
+    @tests:
+     FeatureFileOptions.__init__
+     FeatureFileOptions.getLoadConvexHull
+     FeatureFileOptions.getLoadSubordinates
+     FeatureFileOptions.getMetadataOnly
+     FeatureFileOptions.getSizeOnly
+     FeatureFileOptions.setLoadConvexHull
+     FeatureFileOptions.setLoadSubordinates
+     FeatureFileOptions.setMetadataOnly
+     FeatureFileOptions.setSizeOnly
+    """
 
+    fo = pyopenms.FeatureFileOptions()
+    fo.getLoadConvexHull()
+    fo.getLoadSubordinates()
+    fo.getSizeOnly()
+    assert fo.setLoadConvexHull is not None
+    assert fo.setLoadSubordinates is not None
+    assert fo.setMetadataOnly is not None
+    assert fo.setSizeOnly is not None
+
+@report
 def _testParam(p):
     """
     @tests:
@@ -548,7 +711,6 @@ def _testParam(p):
      Param.getValue
      Param.hasTag
      Param.insert
-     Param.load
      Param.setMaxFloat
      Param.setMaxInt
      Param.setMinFloat
@@ -557,7 +719,6 @@ def _testParam(p):
      Param.setValidStrings
      Param.setValue
      Param.size
-     Param.store
      Param.update
      Param.updateFrom
      Param.__eq__
@@ -639,6 +800,7 @@ def _testParam(p):
 
 
 
+@report
 def testFeatureFinderAlgorithmPicked():
     """
     @tests:
@@ -664,7 +826,44 @@ def testFeatureFinderAlgorithmPicked():
     ff.setName("test")
     assert ff.getName() == "test"
 
+@report
+def testFeatureGrouping():
+    """
+    @tests:
+     FeatureGroupingAlgorithm.getDefaults
+     FeatureGroupingAlgorithm.getName
+     FeatureGroupingAlgorithm.getParameters
+     FeatureGroupingAlgorithm.setName
+     FeatureGroupingAlgorithm.setParameters
+     FeatureGroupingAlgorithm.transferSubelements
+     FeatureGroupingAlgorithmQT.__init__
+     FeatureGroupingAlgorithmQT.getDefaults
+     FeatureGroupingAlgorithmQT.getName
+     FeatureGroupingAlgorithmQT.getParameters
+     FeatureGroupingAlgorithmQT.group
+     FeatureGroupingAlgorithmQT.setName
+     FeatureGroupingAlgorithmQT.setParameters
+     FeatureGroupingAlgorithmQT.transferSubelements
+    """
 
+    assert pyopenms.FeatureGroupingAlgorithm.getDefaults is not None
+    assert pyopenms.FeatureGroupingAlgorithm.getName is not None
+    assert pyopenms.FeatureGroupingAlgorithm.getParameters is not None
+    assert pyopenms.FeatureGroupingAlgorithm.setName is not None
+    assert pyopenms.FeatureGroupingAlgorithm.setParameters is not None
+    assert pyopenms.FeatureGroupingAlgorithm.transferSubelements is not None
+
+    qt = pyopenms.FeatureGroupingAlgorithmQT()
+    qt.getDefaults()
+    qt.getParameters()
+    qt.getName()
+    assert qt.group is not None
+    assert qt.setName is not None
+    assert qt.setParameters is not None
+    assert qt.transferSubelements is not None
+
+
+@report
 def testFeatureMap():
     """
     @tests:
@@ -673,6 +872,7 @@ def testFeatureMap():
      FeatureMap.__iadd__
      FeatureMap.__radd__
      FeatureMap.__getitem__
+     FeatureMap.__iter__
      FeatureMap.clear
      FeatureMap.clearUniqueId
      FeatureMap.ensureUniqueId
@@ -680,6 +880,7 @@ def testFeatureMap():
      FeatureMap.getProteinIdentifications
      FeatureMap.getUnassignedPeptideIdentifications
      FeatureMap.getUniqueId
+     FeatureMap.setUniqueId
      FeatureMap.hasInvalidUniqueId
      FeatureMap.hasValidUniqueId
      FeatureMap.push_back
@@ -703,6 +904,8 @@ def testFeatureMap():
 
     f = pyopenms.Feature()
     fm.push_back(f)
+
+    assert len(list(fm)) == 1
 
 
     assert fm.size() == 1
@@ -762,14 +965,19 @@ def testFeatureMap():
     assert fm + fm != fm
 
 
+@report
 def testFeatureXMLFile():
     """
     @tests:
      FeatureXMLFile.__init__
      FeatureXMLFile.load
      FeatureXMLFile.store
+     FeatureXMLFile.getOptions
+     FeatureXMLFile.setOptions
+     FeatureXMLFile.loadSize
+
      FileHandler.__init__
-     FileHandler.loadFeatures
+     FileHandler.loadFeature
     """
 
     fm = pyopenms.FeatureMap()
@@ -781,6 +989,23 @@ def testFeatureXMLFile():
     fh = pyopenms.FileHandler()
     fh.loadFeatures("test.featureXML", fm)
 
+@report
+def testFileDescription():
+    """
+    @tests:
+     FileDescription.__init__
+     FileDescription.filename
+     FileDescription.label
+     FileDescription.size
+     FileDescription.unique_id
+    """
+    fd = pyopenms.FileDescription()
+    assert isinstance(fd.filename, str)
+    assert isinstance(fd.label, str)
+    assert isinstance(fd.size, int)
+    assert isinstance(fd.unique_id, (long, int, str))
+
+@report
 def testFileHandler():
     """
     @tests:
@@ -799,6 +1024,38 @@ def testFileHandler():
     fh.storeExperiment("test1.mzData", mse)
     fh.loadExperiment("test1.mzData", mse)
 
+@report
+def testIDMapper():
+    """
+    @tests:
+     IDMapper.__init__
+     IDMapper.annotate
+     IDMapper.getDefaults
+     IDMapper.getName
+     IDMapper.getParameters
+     IDMapper.setName
+     IDMapper.setParameters
+    """
+    idm = pyopenms.IDMapper()
+    assert idm.annotate is not None
+    idm.getDefaults()
+    idm.setName("x")
+    assert idm.getName() == "x"
+    idm.setParameters(idm.getParameters())
+
+@report
+def testIdXMLFile():
+    """
+    @tests:
+     IdXMLFile.__init__
+     IdXMLFile.load
+     IdXMLFile.store
+    """
+    assert pyopenms.IdXMLFile().load is not None
+    assert pyopenms.IdXMLFile().store is not None
+
+
+@report
 def testInstrumentSettings():
     """
     @tests:
@@ -828,6 +1085,7 @@ def testInstrumentSettings():
     assert not ins != ins
 
 
+@report
 def testLogType():
 
     """
@@ -840,6 +1098,7 @@ def testLogType():
     assert isinstance(pyopenms.LogType.GUI, int)
     assert isinstance(pyopenms.LogType.NONE, int)
 
+@report
 def testMSExperiment():
     """
     @tests:
@@ -869,6 +1128,8 @@ def testMSExperiment():
      MSExperiment.isMetaEmpty
      MSExperiment.metaValueExists
      MSExperiment.removeMetaValue
+     MSExperiment.getSize
+     MSExperiment.isSorted
     """
     mse = pyopenms.MSExperiment()
     _testMetaInfoInterface(mse)
@@ -892,9 +1153,34 @@ def testMSExperiment():
     assert mse == mse
     assert not mse != mse
 
+    assert mse.getSize() >= 0
+    assert int(mse.isSorted()) in (0,1)
+
+
+@report
+def testMSQuantifications():
+    """
+    @tests:
+     MSQuantifications.__eq__
+     MSQuantifications.__ge__
+     MSQuantifications.__gt__
+     MSQuantifications.__init__
+     MSQuantifications.__le__
+     MSQuantifications.__lt__
+     MSQuantifications.__ne__
+     MSQuantifications.getConsensusMaps
+     MSQuantifications.setConsensusMaps
+    """
+    msq = pyopenms.MSQuantifications()
+    assert msq == msq
+    assert not msq != msq
+    msq.setConsensusMaps(msq.getConsensusMaps())
+
+@report
 def testMSSpectrum():
     """
     @tests:
+     MSSpectrum.__init__
      MSSpectrum.clear
      MSSpectrum.clearMetaInfo
      MSSpectrum.findNearest
@@ -916,6 +1202,7 @@ def testMSSpectrum():
      MSSpectrum.get_peaks
      MSSpectrum.intensityInRange
      MSSpectrum.isMetaEmpty
+     MSSpectrum.isSorted
      MSSpectrum.metaValueExists
      MSSpectrum.push_back
      MSSpectrum.removeMetaValue
@@ -973,36 +1260,56 @@ def testMSSpectrum():
 
     assert spec.get_peaks().shape == (1,2), spec.get_peaks().shape
 
+    assert int(spec.isSorted()) in  (0,1)
 
-def testMapAlignerAlgorithmPoseClustering():
+
+@report
+def testMapAlignment():
 
     """
     @tests:
      MapAlignmentAlgorithmPoseClustering.__init__
-     MapAlignmentAlgorithmPoseClustering.alignFeatureMaps
-     MapAlignmentAlgorithmPoseClustering.alignPeakMaps
-     MapAlignmentAlgorithmPoseClustering.fitModel
      MapAlignmentAlgorithmPoseClustering.getDefaults
      MapAlignmentAlgorithmPoseClustering.getName
      MapAlignmentAlgorithmPoseClustering.getParameters
      MapAlignmentAlgorithmPoseClustering.setName
      MapAlignmentAlgorithmPoseClustering.setParameters
      MapAlignmentAlgorithmPoseClustering.setReference
-     MapAlignmentAlgorithmPoseClustering.transformFeatureMaps
-     MapAlignmentAlgorithmPoseClustering.transformPeakMaps
+
+     MapAlignmentAlgorithmPoseClustering.align
+     MapAlignmentAlgorithmPoseClustering.endProgress
+     MapAlignmentAlgorithmPoseClustering.getLogType
+     MapAlignmentAlgorithmPoseClustering.setLogType
+     MapAlignmentAlgorithmPoseClustering.setProgress
+     MapAlignmentAlgorithmPoseClustering.startProgress
+
+     MapAlignmentTransformer.transformFeatureMaps
+     MapAlignmentTransformer.transformPeakMaps
+     MapAlignmentTransformer.transformSingleFeatureMap
+     MapAlignmentTransformer.transformSinglePeakMap
      """
     ma = pyopenms.MapAlignmentAlgorithmPoseClustering()
     assert isinstance(ma.getDefaults(), pyopenms.Param)
     assert isinstance(ma.getParameters(), pyopenms.Param)
     assert isinstance(ma.getName(), str)
 
+    ma.setName(ma.getName())
+
+    ma.getDefaults()
+    ma.getParameters()
+
+    ma.setParameters(ma.getDefaults())
+
     ma.setReference
     ma.align
+
+
     pyopenms.MapAlignmentTransformer.transformPeakMaps
     pyopenms.MapAlignmentTransformer.transformFeatureMaps
     pyopenms.MapAlignmentTransformer.transformSinglePeakMap
     pyopenms.MapAlignmentTransformer.transformSingleFeatureMap
 
+@report
 def testMxxxFile():
     """
     @tests:
@@ -1014,6 +1321,9 @@ def testMxxxFile():
      MzDataFile.setProgress
      MzDataFile.startProgress
      MzDataFile.store
+     MzDataFile.getOptions
+     MzDataFile.setOptions
+
      MzMLFile.__init__
      MzMLFile.endProgress
      MzMLFile.getLogType
@@ -1022,6 +1332,11 @@ def testMxxxFile():
      MzMLFile.setProgress
      MzMLFile.startProgress
      MzMLFile.store
+     MzMLFile.getOptions
+     MzMLFile.setOptions
+
+     MzXMLFile.getOptions
+     MzXMLFile.setOptions
      MzXMLFile.__init__
      MzXMLFile.endProgress
      MzXMLFile.getLogType
@@ -1030,6 +1345,11 @@ def testMxxxFile():
      MzXMLFile.setProgress
      MzXMLFile.startProgress
      MzXMLFile.store
+
+     MzQuantMLFile.__init__
+     MzQuantMLFile.isSemanticallyValid
+     MzQuantMLFile.load
+     MzQuantMLFile.store
     """
     mse = pyopenms.MSExperiment()
 
@@ -1038,17 +1358,45 @@ def testMxxxFile():
     fh.store("test.mzData", mse)
     fh.load("test.mzData", mse)
 
+    fh.setOptions(fh.getOptions())
+
     fh = pyopenms.MzMLFile()
     _testProgressLogger(fh)
     fh.store("test.mzML", mse)
     fh.load("test.mzML", mse)
+    fh.setOptions(fh.getOptions())
 
     fh = pyopenms.MzXMLFile()
     _testProgressLogger(fh)
     fh.store("test.mzXML", mse)
     fh.load("test.mzXML", mse)
+    fh.setOptions(fh.getOptions())
+
+    fh = pyopenms.MzQuantMLFile()
+    fh.isSemanticallyValid
+    fh.load
+    fh.store
 
 
+
+@report
+def testParamXMLFile():
+
+    """
+    @tests:
+     ParamXMLFile.__init__
+     ParamXMLFile.load
+     ParamXMLFile.store
+    """
+
+    fh = pyopenms.ParamXMLFile()
+    p = pyopenms.Param()
+    fh.store("test.ini", p)
+    fh.load("test.ini", p)
+
+
+
+@report
 def testPeak():
 
     """
@@ -1097,6 +1445,43 @@ def testPeak():
     p2.setRT(45.0)
     assert p2.getRT() == 45.0
 
+
+
+@report
+def testPeakFileOptions():
+    """
+    @tests:
+     PeakFileOptions.__init__
+     PeakFileOptions.addMSLevel
+     PeakFileOptions.clearMSLevels
+     PeakFileOptions.containsMSLevel
+     PeakFileOptions.getCompression
+     PeakFileOptions.getMSLevels
+     PeakFileOptions.getMetadataOnly
+     PeakFileOptions.getWriteSupplementalData
+     PeakFileOptions.hasMSLevels
+     PeakFileOptions.setCompression
+     PeakFileOptions.setMSLevels
+     PeakFileOptions.setMetadataOnly
+     PeakFileOptions.setWriteSupplementalData
+    """
+
+    pfo = pyopenms.PeakFileOptions()
+    pfo.addMSLevel
+    pfo.clearMSLevels()
+    pfo.containsMSLevel(1)
+    pfo.getCompression()
+    pfo.getMSLevels()
+    pfo.getMetadataOnly()
+    pfo.getWriteSupplementalData()
+    pfo.hasMSLevels()
+    pfo.setCompression
+    pfo.setMSLevels
+    pfo.setMetadataOnly
+    pfo.setWriteSupplementalData
+
+
+@report
 def testPeakPickerHiRes():
     """
     @tests:
@@ -1115,6 +1500,7 @@ def testPeakPickerHiRes():
      PeakPickerHiRes.startProgress
     """
 
+@report
 def testPeakTypeEstimator():
     """
     @tests:
@@ -1124,6 +1510,7 @@ def testPeakTypeEstimator():
 
     pyopenms.PeakTypeEstimator().estimateType(pyopenms.MSSpectrum())
 
+@report
 def testPeptideHit():
     """
     @tests:
@@ -1185,6 +1572,7 @@ def testPeptideHit():
     assert not ph != ph
 
 
+@report
 def testPeptideIdentification():
     """
     @tests:
@@ -1274,6 +1662,7 @@ def testPeptideIdentification():
     assert hit.getRank() == 1
 
 
+@report
 def testPolarity():
     """
     @tests:
@@ -1287,6 +1676,7 @@ def testPolarity():
     assert isinstance(pyopenms.Polarity.POSITIVE, int)
 
 
+@report
 def testPrecursor():
     """
     @tests:
@@ -1302,6 +1692,7 @@ def testPrecursor():
     assert pc.getMZ() == 123.0
     assert pc.getIntensity() == 12.0
 
+@report
 def testProcessingAction():
     """
     @tests:
@@ -1350,6 +1741,7 @@ def testProcessingAction():
     assert isinstance(pyopenms.ProcessingAction.SMOOTHING, int)
 
 
+@report
 def testProduct():
     """
     @tests:
@@ -1378,6 +1770,7 @@ def testProduct():
     assert p == p
     assert not p != p
 
+@report
 def testProteinHit():
     """
     @tests:
@@ -1421,6 +1814,7 @@ def testProteinHit():
     assert ph.getScore() == (1.5)
     assert ph.getSequence() == ("ABA")
 
+@report
 def testProteinIdentification():
     """
     @tests:
@@ -1474,6 +1868,7 @@ def testProteinIdentification():
             int)
 
 
+@report
 def testRichPeak():
     """
     @tests:
@@ -1544,6 +1939,7 @@ def testRichPeak():
     assert p2.getRT() == (43.0)
 
 
+@report
 def testSoftware():
     """
     @tests:
@@ -1561,9 +1957,10 @@ def testSoftware():
 
 
 
+@report
 def testSourceFile():
     """
-    @test:
+    @tests:
      SourceFile.__init__
      SourceFile.getChecksum
      SourceFile.getChecksumType
@@ -1578,6 +1975,7 @@ def testSourceFile():
      SourceFile.setNameOfFile
      SourceFile.setNativeIDType
      SourceFile.setPathToFile
+
     """
     sf = pyopenms.SourceFile()
     sf.setNameOfFile("file.txt")
@@ -1593,6 +1991,7 @@ def testSourceFile():
                                     pyopenms.ChecksumType.SHA1,
                                     pyopenms.ChecksumType.MD5)
 
+@report
 def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     """
     @tests:
@@ -1646,17 +2045,29 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
         s.unify(s)
 
 
+@report
 def testTransformationDescription():
     """
     @tests:
      TransformationDescription.__init__
      TransformationDescription.apply
      TransformationDescription.getDataPoints
+     TransformationDescription.fitModel
+     TransformationDescription.getModelParameters
+     TransformationDescription.getModelType
+     TransformationDescription.invert
     """
     td = pyopenms.TransformationDescription()
     assert td.getDataPoints() == []
     assert isinstance(td.apply(0.0), float)
 
+    td.fitModel
+    p = pyopenms.Param()
+    td.getModelParameters(p)
+    td.getModelType()
+    td.invert
+
+@report
 def testTransformationModels():
     """
     @tests:
@@ -1674,6 +2085,7 @@ def testTransformationModels():
         p = pyopenms.Param()
         clz.getDefaultParameters(p)
 
+@report
 def testTransformationXMLFile():
     """
     @tests:
@@ -1687,6 +2099,7 @@ def testTransformationXMLFile():
     fh.load("test.transformationXML", td)
     assert td.getDataPoints() == []
 
+@report
 def testType():
     """
     @tests:
@@ -1756,6 +2169,7 @@ def testType():
      ,pyopenms.Type.XMASS]:
         assert isinstance(ti, int)
 
+@report
 def testVersion():
     """
     @tests:
