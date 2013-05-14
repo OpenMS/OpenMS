@@ -638,6 +638,7 @@ endif(NOT DISABLE_OPENSWATH)
 ### NoiseFilter tests
 add_test("TOPP_NoiseFilterGaussian_1" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out NoiseFilterGaussian_1.tmp)
 add_test("TOPP_NoiseFilterGaussian_1_out1" ${DIFF} -in1 NoiseFilterGaussian_1.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_output.mzML )
+set_tests_properties("TOPP_NoiseFilterGaussian_1_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_1")
 add_test("TOPP_NoiseFilterGaussian_2" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_input.chrom.mzML -out NoiseFilterGaussian_2.tmp) 
 add_test("TOPP_NoiseFilterGaussian_2_out1" ${DIFF} -in1 NoiseFilterGaussian_2.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_output.chrom.mzML )
 set_tests_properties("TOPP_NoiseFilterGaussian_2_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_2")
