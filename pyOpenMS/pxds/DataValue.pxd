@@ -1,6 +1,7 @@
 from libcpp.string cimport string as libcpp_string
 from libcpp.vector cimport vector as libcpp_vector
 from StringList cimport *
+from String cimport *
 from IntList cimport *
 from DoubleList cimport *
 
@@ -29,6 +30,13 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
 
          DataType valueType() nogil except +
          int isEmpty() nogil except +
+
+         # QString toQString()
+         String toString()
+         bool toBool()
+         bool hasUnit()
+         String  getUnit()
+         void setUnit(String & unit)
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS::DataValue":
 

@@ -50,6 +50,7 @@
     #         py_ratio.inst = shared_ptr[_Ratio](new _Ratio(myRatio))
 
     #         replace[ <libcpp_string>deref(it_ripped).first ]  = py_ratio
+    #         inc(it_ripped)
 
     #     return replace
 

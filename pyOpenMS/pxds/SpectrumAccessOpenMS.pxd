@@ -15,4 +15,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"
 
         shared_ptr[Chromatogram] getChromatogramById(int id)  #wrap-ignore
         size_t getNrChromatograms()
+        libcpp_string getChromatogramNativeID(int id_)
 

@@ -39,3 +39,4 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
 
         # not implemented
         # bool checkCVTerms(CVMappingRule rule, ControlledVocabulary cv) nogil except +
+

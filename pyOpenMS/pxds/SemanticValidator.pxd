@@ -4,7 +4,6 @@ from libcpp cimport bool
 from String cimport *
 from StringList cimport *
 from CVMappings cimport *
-from CVTerm cimport *
 from ControlledVocabulary cimport *
 
 cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "OpenMS::Internal":
@@ -16,7 +15,8 @@ cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "Ope
         bool validate(String filename, StringList errors, StringList warnings) nogil except +
 
         # Checks if a CVTerm is allowed in a given path
-        # bool locateTerm(String path, CVTerm & parsed_term) nogil except +
+        # TODO yet anothre CV Term
+        # bool locateTerm(String path, SemanticValidator_CVTerm & parsed_term) nogil except +
 
         # Sets the CV parameter tag name (default: 'cvParam')
         void setTag(String tag) nogil except +

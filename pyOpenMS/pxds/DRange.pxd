@@ -6,7 +6,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DRange.h>" namespace "OpenMS":
     
     # TODO write fxn
     cdef cppclass DRange1 "OpenMS::DRange<1>":
-        # wrap-ignore
         DRange1() nogil except +
         DRange1(DRange1) nogil except +
         ## DRange(PositionType & lower, PositionType & upper) nogil except +

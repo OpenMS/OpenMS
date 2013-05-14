@@ -8,10 +8,12 @@ cdef extern from "<OpenMS/FORMAT/Base64.h>" namespace "OpenMS":
     cdef cppclass Base64 "OpenMS::Base64":
         Base64() nogil except +
         Base64(Base64) nogil except + #wrap-ignore
-        # TEMPLATE # void encode(libcpp_vector[ FromType ] &in, ByteOrder to_byte_order, String &out, bool zlib_compression) nogil except +
-        # TEMPLATE # void decode(String &in, ByteOrder from_byte_order, libcpp_vector[ ToType ] &out, bool zlib_compression) nogil except +
-        # TEMPLATE # void encodeIntegers(libcpp_vector[ FromType ] &in, ByteOrder to_byte_order, String &out, bool zlib_compression) nogil except +
-        # TEMPLATE # void decodeIntegers(String &in, ByteOrder from_byte_order, libcpp_vector[ ToType ] &out, bool zlib_compression) nogil except +
+
+        void encode(libcpp_vector[ double ] & in_, ByteOrder to_byte_order, String &out, bool zlib_compression) nogil except +
+        void decode(String & in_, ByteOrder from_byte_order, libcpp_vector[ double ] &out, bool zlib_compression) nogil except +
+        void encodeIntegers(libcpp_vector[ int ] & in_, ByteOrder to_byte_order, String &out, bool zlib_compression) nogil except +
+        void decodeIntegers(String & in_, ByteOrder from_byte_order, libcpp_vector[ int ] &out, bool zlib_compression) nogil except +
+
         void encodeStrings(libcpp_vector[ String ] & in_, String &out, bool zlib_compression) nogil except +
         void decodeStrings(String & in_, libcpp_vector[ String ] &out, bool zlib_compression) nogil except +
 

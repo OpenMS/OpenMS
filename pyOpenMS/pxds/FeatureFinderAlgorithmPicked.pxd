@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         void run()
 
 
-        # virtual void setSeeds(const FeatureMapType& seeds)
+        void setSeeds(FeatureMap[Feature]& seeds)
 
         # static FeatureFinderAlgorithm<PeakType, FeatureType>* create()
 

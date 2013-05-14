@@ -56,7 +56,6 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::Con
 
       #Default constructor
       CVTerm_ControlledVocabulary() nogil except +
-
       CVTerm_ControlledVocabulary(CVTerm_ControlledVocabulary rhs) nogil except +
 
       String toXMLString(String ref, String value) nogil except +

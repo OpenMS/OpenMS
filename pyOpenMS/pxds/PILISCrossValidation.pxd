@@ -25,18 +25,21 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PILISCrossValidation.h>" namespace "OpenMS
     
     cdef cppclass PILIS_Peptide "OpenMS::PILISCrossValidation::Peptide":
 
-      # TODO does not compile as attributes -> getter/setters necessary?
-      # AASequence sequence
-      Int charge
-      # MSSpectrum[RichPeak1D] spec
-      # libcpp_vector[PeptideHit] hits
+        PILIS_Peptide() nogil except +
+        PILIS_Peptide(PILIS_Peptide) nogil except +
+        # TODO does not compile as attributes -> getter/setters necessary?
+        # AASequence sequence
+        Int charge
+        # MSSpectrum[RichPeak1D] spec
+        # libcpp_vector[PeptideHit] hits
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PILISCrossValidation.h>" namespace "OpenMS::PILISCrossValidation":
     
     cdef cppclass PILIS_Option "OpenMS::PILISCrossValidation::Option":
         PILIS_Option() nogil except +
         PILIS_Option(PILIS_Option) nogil except +
-        # PILIS_Option_Type type
+        # TODO type is reserved ... 
+        PILIS_Option_Type type
         Int int_min
         Int int_max
         Int int_stepsize

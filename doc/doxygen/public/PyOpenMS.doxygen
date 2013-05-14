@@ -222,5 +222,29 @@ These hints can be given to autowrap (also check the autowrap documentation):
 - wrap-attach: enums, static methods (see for example VersionInfo.pxd)
 - wrap-upper-limit:size or size() (see MSSpectrum.pxd)
 
+<H3 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Wrapping code yourself in ./addons </H3>
+
+Not all code can be wrapped automatically (yet). Place a file with the same (!)
+name in the addons filder (e.g. myClass.px in pxds/ and myClass.pyx in addons)
+and leave two lines empty on the top (this is important). Start with 4 spaces
+of indent and write your additional wrapper functions, adding a wrap-ignore
+comment to the pxd file. For some examples, look into the addons folder:
+
+
+
+- IDRipper.pyx 
+  - for a reference for both input and output of a complex STL construct 
+    (map< String, pair<vector<>, vector<> > )
+- MSQuantifications.pyx 
+  - for a vector< vector< pair <String,double > > > as input in registerExperiment
+  - for a map< String, Ratio> in getRatios to get returned
+
+- SequestInfile.pyx 
+  - for a map< String, vector<String> > to get returned
+
+Make sure that you _always_ declare your objects (all C++ and all Cython
+objects need to be declared) using cdef Type name. Otherwise you get "Cannot
+convert ... to Python object" errors.
+
 
 */
