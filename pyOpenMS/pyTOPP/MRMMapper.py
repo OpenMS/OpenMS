@@ -10,8 +10,6 @@ python pyTOPP/MRMMapper.py --in ../source/TEST/TOPP/MRMMapping_input.chrom.mzML 
 
 def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance, allow_unmapped=True, allow_double_mappings=False):
 
-    # copy all meta data from old chromatogram
-    # TODO how to copy this! improve this!
     output = pyopenms.MSExperiment();
     output.fromExperiment(chromatogram_map)
     output.clear(False); 
