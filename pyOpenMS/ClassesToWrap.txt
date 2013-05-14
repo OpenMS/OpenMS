@@ -2,7 +2,7 @@
 n = will probably not be wrapped (even though technically possible - most likely deprecated code, abstract base class or some other reason - 10 tools)
 x = cannot / will not be wrapped (all code is in TOPP tool; 43 tools)
 xx = is not yet wrapped, must be done (2 tools)
-ok = is done (41 out of 98 are currently ok)
+ok = is done (41 out of 98 are currently ok) => 48 classes now
 
 In total, 142 classes are wrapped at the current moment.
 
@@ -113,40 +113,40 @@ so far, 3 are wrapped
 
 ok   ConvertTraMLToTSV.C
 ok   ConvertTSVToTraML.C
-     CVInspector.C
-     DecoyDatabase.C
-     DeMeanderize.C
-     Digestor.C
-     DigestorMotif.C
-     ERPairFinder.C
+x    CVInspector.C
+x    DecoyDatabase.C
+x    DeMeanderize.C
+ok   Digestor.C
+ok   DigestorMotif.C
+x    ERPairFinder.C
 ok   FeatureFinderSuperHirn.C
-     FFEval.C
-     FuzzyDiff.C
-     IDDecoyProbability.C
-     IDEvaluator.C
-     IDExtractor.C
-     IDMassAccuracy.C
-     IDSplitter.C
-     ImageCreator.C
-     INIUpdater.C
-     LabeledEval.C
-     MapAlignmentEvaluation.C
-     MassCalculator.C
-     MRMPairFinder.C
-     MSSimulator.C
-     OpenMSInfo.C
-     OpenSwathDIAPreScoring.C
-     OpenSwathMzMLFileCacher.C
-     OpenSwathRewriteToFeatureXML.C
-     QCCalculator.C
-     QCEmbedder.C
-     QCExporter.C
-     QCMerger.C
-     QCShrinker.C
-     RNPxl.C
-     RNPxlXICFilter.C
-     RTEvaluation.C
-     SemanticValidator.C
+n    FFEval.C
+n    FuzzyDiff.C
+ok   IDDecoyProbability.C
+n    IDEvaluator.C # plotting tool
+x    IDExtractor.C
+n    IDMassAccuracy.C
+n    IDSplitter.C
+n    ImageCreator.C
+n    INIUpdater.C
+n    LabeledEval.C
+n    MapAlignmentEvaluation.C 
+n    MassCalculator.C
+n    MRMPairFinder.C
+?    MSSimulator.C
+n    OpenMSInfo.C
+n    OpenSwathDIAPreScoring.C
+?    OpenSwathMzMLFileCacher.C
+n    OpenSwathRewriteToFeatureXML.C
+x    QCCalculator.C
+x    QCEmbedder.C
+x    QCExporter.C
+x    QCMerger.C
+x    QCShrinker.C
+x    RNPxl.C  // 1500 LOC
+x    RNPxlXICFilter.C
+x    RTEvaluation.C
+ok   SemanticValidator.C
      SequenceCoverageCalculator.C
      SpecLibCreator.C
      SvmTheoreticalSpectrumGeneratorTrainer.C

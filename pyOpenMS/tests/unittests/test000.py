@@ -569,6 +569,17 @@ def testDataValue():
     assert a.toStringList() == ["1.0"]
     assert a.valueType() == pyopenms.DataType.STRING_LIST
 
+@report
+def testSemanticValidator():
+    """
+    @tests:
+     SemanticValidator.__init__
+    """
+    val = pyopenms.SemanticValidator()
+
+    assert val.validate is not None
+    assert val.setCheckTermValueTypes is not None
+    assert val.setCheckUnits is not None
 
 @report
 def testDateTime():
@@ -1202,6 +1213,61 @@ def testTransitionTSVReader():
     assert pyopenms.TransitionTSVReader().convertTSVToTargetedExperiment is not None
     assert pyopenms.TransitionTSVReader().validateTargetedExperiment is not None
 
+@report
+def testEnzymaticDigestion():
+    """
+    @tests:
+     EnzymaticDigestion.__init__
+     EnzymaticDigestion.getMissedCleavages()
+     EnzymaticDigestion.setMissedCleavages()
+     EnzymaticDigestion.getEnzyme()
+     EnzymaticDigestion.setEnzyme()
+     EnzymaticDigestion.getEnzymeByName()
+     EnzymaticDigestion.digest()
+     EnzymaticDigestion.peptideCount()
+     EnzymaticDigestion.isLogModelEnabled()
+     EnzymaticDigestion.setLogModelEnabled()
+     EnzymaticDigestion.getLogThreshold()
+     EnzymaticDigestion.setLogThreshold()
+    """
+    ff = pyopenms.EnzymaticDigestion()
+    enz = pyopenms.EnzymaticDigestion().Enzyme()
+
+    assert pyopenms.EnzymaticDigestion().getMissedCleavages is not None
+    assert pyopenms.EnzymaticDigestion().setMissedCleavages is not None
+    assert pyopenms.EnzymaticDigestion().getEnzyme is not None
+    assert pyopenms.EnzymaticDigestion().setEnzyme is not None
+    assert pyopenms.EnzymaticDigestion().getEnzymeByName is not None
+
+    assert pyopenms.EnzymaticDigestion().digest is not None
+    assert pyopenms.EnzymaticDigestion().peptideCount is not None
+
+    assert pyopenms.EnzymaticDigestion().isLogModelEnabled is not None
+    assert pyopenms.EnzymaticDigestion().setLogModelEnabled is not None
+    assert pyopenms.EnzymaticDigestion().getLogThreshold  is not None
+    assert pyopenms.EnzymaticDigestion().setLogThreshold is not None
+
+    ff.setLogThreshold(5) 
+    assert ff.getLogThreshold() == 5 
+
+    ff.setMissedCleavages(5) 
+    assert ff.getMissedCleavages() == 5 
+
+    ff.setEnzyme(enz.TRYPSIN) 
+    assert ff.getEnzyme() == enz.TRYPSIN
+
+    ff.setLogModelEnabled(True) 
+    assert ff.isLogModelEnabled() == True
+
+@report
+def testIDDecoyProbability():
+    """
+    @tests:
+      IDDecoyProbability.__init__
+    """
+    ff = pyopenms.IDDecoyProbability()
+
+    assert pyopenms.IDDecoyProbability().apply is not None
 
 @report
 def testFeatureGrouping():
