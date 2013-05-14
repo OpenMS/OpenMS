@@ -167,6 +167,10 @@ def handle_member_definition(mdef, cnt, cl):
                  mdef.name.find("operator+") != -1 or
                  mdef.name.find("operator*") != -1 or
                  mdef.name.find("operator<<") != -1 or
+                 mdef.name.find("operator<") != -1 or
+                 mdef.name.find("begin") != -1 or
+                 mdef.name.find("end") != -1 or
+                 mdef.name.find("operator[]") != -1 or
                  mdef.name.find("operator+=") != -1):
                 cnt.public_methods_missing_nowrapping += 1
             else:

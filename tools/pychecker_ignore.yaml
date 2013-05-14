@@ -1,0 +1,51 @@
+PyOpenMSChecker:
+  IgnoreMethods: 
+
+    # Attributes of enums that are wrapped already
+    OpenMS::MassAnalyzer:
+        - NamesOfAnalyzerType
+        - NamesOfResolutionMethod
+        - NamesOfResolutionType
+        - NamesOfScanDirection
+        - NamesOfScanLaw
+        - NamesOfReflectronState
+    OpenMS::EnzymaticDigestion:
+        - NamesOfEnzymes
+    OpenMS::Sample:
+        - NamesOfSampleState
+    OpenMS::SourceFile:
+        - NamesOfChecksumType
+    OpenMS::IonDetector:
+        - NamesOfType
+        - AcquisitionMode
+    OpenMS::MSQuantifications:
+        - NamesOfQuantTypes
+
+    # problematic functions
+    OpenMS::MarkerMower:
+        - insertmarker
+
+  IgnoreNames: 
+    # External libraries
+    # -- Seqan
+    - seqan
+    - seqan::EquivalenceClassAA_
+    - seqan::FoundProteinFunctor
+    # -- std
+    - std::allocator
+    - std::auto_ptr
+    - std::deque
+    - std::list
+    - std::map
+    - std::multimap
+    - std::multiset
+    - std::priority_queue
+    - std::queue
+    - std::set
+    - std::smart_ptr
+    - std::stack
+    - std::unique_ptr
+    - std::valarray
+    - std::vector
+    - std::weak_ptr
+
