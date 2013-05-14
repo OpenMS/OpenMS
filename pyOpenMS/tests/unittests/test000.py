@@ -30,40 +30,40 @@ def _testMetaInfoInterface(what):
     #void removeMetaValue(String) nogil except +
     #void removeMetaValue(unsigned int) nogil except +
 
-    what.setMetaValue("key", pyopenms.DataValue(42))
-    what.setMetaValue("key2", pyopenms.DataValue(42))
+    what.setMetaValue("key", 42)
+    what.setMetaValue("key2", 42)
 
     keys = []
     what.getKeys(keys)
     keys = [0]
     what.getKeys(keys)
     assert len(keys) and all(isinstance(k, (long, int)) for k in keys)
-    assert what.getMetaValue(keys[0]).toInt() == 42
+    assert what.getMetaValue(keys[0]) == 42
     keys = [""]
     what.getKeys(keys)
     assert len(keys) and all(isinstance(k, str) for k in keys)
 
-    assert what.getMetaValue(keys[0]).toInt() == 42
+    assert what.getMetaValue(keys[0]) == 42
 
     assert what.metaValueExists("key")
     what.removeMetaValue("key")
 
-    what.setMetaValue(1024, pyopenms.DataValue(42))
+    what.setMetaValue(1024, 42)
 
     keys = []
     what.getKeys(keys)
     keys = [0]
     what.getKeys(keys)
     assert len(keys) and all(isinstance(k, (long, int)) for k in keys)
-    assert what.getMetaValue(keys[0]).toInt() == 42
+    assert what.getMetaValue(keys[0]) == 42
     keys = [""]
     what.getKeys(keys)
     assert len(keys) and all(isinstance(k, str) for k in keys)
 
-    assert what.getMetaValue(keys[0]).toInt() == 42
+    assert what.getMetaValue(keys[0]) == 42
 
-    what.setMetaValue("key", pyopenms.DataValue(42))
-    what.setMetaValue("key2", pyopenms.DataValue(42))
+    what.setMetaValue("key", 42)
+    what.setMetaValue("key2", 42)
 
     assert what.metaValueExists("key")
     what.removeMetaValue("key")

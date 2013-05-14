@@ -14,7 +14,7 @@ python pyTOPP/OpenSwathRTNormalizer.py --in ../source/TEST/TOPP/OpenSwathRTNorma
 def simple_find_best_feature(output, pairs, targeted):
   f_map = {}
   for f in output:
-    key = f.getMetaValue("PeptideRef").toString()
+    key = f.getMetaValue("PeptideRef")
     if f_map.has_key(key):
       f_map[key].append(f)
     else: 
@@ -24,12 +24,12 @@ def simple_find_best_feature(output, pairs, targeted):
   for v in f_map.values():
     bestscore = -10000
     for feature in v:
-      score = feature.getMetaValue("main_var_xx_lda_prelim_score").toDouble()
+      score = feature.getMetaValue("main_var_xx_lda_prelim_score")
       if score > bestscore:
         best = feature
         bestscore = score
     
-    pep = targeted.getPeptideByRef( feature.getMetaValue("PeptideRef").toString()  )
+    pep = targeted.getPeptideByRef( feature.getMetaValue("PeptideRef")  )
     pairs.append( [best.getRT(), pep.getRetentionTime() ] )
 
 def algorithm(chromatograms, targeted):
@@ -42,7 +42,7 @@ def algorithm(chromatograms, targeted):
     featurefinder = pyopenms.MRMFeatureFinderScoring()
     # set the correct rt use values
     scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
-    scoring_params.setValue("Scores:use_rt_score", pyopenms.DataValue('false'), '')
+    scoring_params.setValue("Scores:use_rt_score",'false', '')
     featurefinder.setParameters(scoring_params);
     featurefinder.pickExperiment(chromatograms, output, targeted, trafo, empty_swath)
 
@@ -56,7 +56,7 @@ def algorithm(chromatograms, targeted):
     trafo_out = pyopenms.TransformationDescription()
     trafo_out.setDataPoints(pairs_corrected);
     model_params = pyopenms.Param()
-    model_params.setValue("symmetric_regression", pyopenms.DataValue('false'), '');
+    model_params.setValue("symmetric_regression", 'false', '');
     model_type = "linear";
     trafo_out.fitModel(model_type, model_params);
     return trafo_out

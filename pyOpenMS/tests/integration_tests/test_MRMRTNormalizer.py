@@ -7,17 +7,17 @@ from collections import defaultdict
 def simple_find_best_feature(output, pairs, targeted):
     f_map = defaultdict(list)
     for f in output:
-        key = f.getMetaValue("PeptideRef").toString()
+        key = f.getMetaValue("PeptideRef")
         f_map[key].append(f)
 
-    get_score = lambda f: f.getMetaValue("main_var_xx_lda_prelim_score").toDouble()
+    get_score = lambda f: f.getMetaValue("main_var_xx_lda_prelim_score")
     for fl in f_map.values():
         scores = [(get_score(fi), fi)  for fi in fl]
         best_score, best_feature = max(scores)
         __, feature = scores[-1]
 
         pep = targeted.getPeptideByRef(
-                            feature.getMetaValue("PeptideRef").toString()
+                            feature.getMetaValue("PeptideRef")
                             )
         pairs.append([best_feature.getRT(), pep.getRetentionTime()])
 
@@ -52,7 +52,7 @@ class TestMRMRTNormalizer(unittest.TestCase):
         featurefinder = pyopenms.MRMFeatureFinderScoring()
         # set the correct rt use values
         scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
-        scoring_params.setValue("Scores:use_rt_score", pyopenms.DataValue('false'), '')
+        scoring_params.setValue("Scores:use_rt_score", 'false', '')
         featurefinder.setParameters(scoring_params);
         featurefinder.pickExperiment(chromatograms, output, targeted, trafo, empty_swath)
 

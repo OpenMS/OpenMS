@@ -4,6 +4,46 @@ from autowrap.ConversionProvider import (TypeConverterBase,
                                          StdMapConverter)
 
 
+class OpenMSDataValue(TypeConverterBase):
+
+    def get_base_types(self):
+        return "DataValue",
+
+    def matches(self, cpp_type):
+        return  not cpp_type.is_ptr and not cpp_type.is_ref
+
+    def matching_python_type(self, cpp_type):
+        return ""
+
+    def type_check_expression(self, cpp_type, argument_var):
+        return "isinstance(%s, (int, long, float, list, str))" % argument_var
+
+    def input_conversion(self, cpp_type, argument_var, arg_num):
+        call_as = "deref(DataValue(%s).inst.get())" % argument_var
+        return "", call_as, ""
+
+    def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
+        # this one is slow as it uses construction of python type DataValue for
+        # delegating conversion to this type, which reduces code below:
+        return Code().add("""
+                    |cdef DataValue _vvv = DataValue.__new__(DataValue)
+                    |_vvv.inst = shared_ptr[_DataValue](new _DataValue($input_cpp_var))
+                    |cdef int _value_type_x = $input_cpp_var.valueType()
+                    |if _value_type_x == DataType.STRING_VALUE:
+                    |    $output_py_var = _vvv.toString()
+                    |elif _value_type_x == DataType.INT_VALUE:
+                    |    $output_py_var = _vvv.toInt()
+                    |elif _value_type_x == DataType.DOUBLE_VALUE:
+                    |    $output_py_var = _vvv.toDouble()
+                    |elif _value_type_x == DataType.INT_LIST:
+                    |    $output_py_var = _vvv.toIntList()
+                    |elif _value_type_x == DataType.DOUBLE_LIST:
+                    |    $output_py_var = _vvv.toDoubleList()
+                    |elif _value_type_x == DataType.STRING_LIST:
+                    |    $output_py_var = _vvv.toStringList()
+                """, locals())
+
+
 class OpenMSStringConverter(TypeConverterBase):
 
     def get_base_types(self):

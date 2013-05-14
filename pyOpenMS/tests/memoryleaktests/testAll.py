@@ -54,6 +54,9 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
             with MemTester("specs from experiment"):
                 self.run_extractSpetraFromMSExperiment()
 
+            with MemTester("experiment from experiment"):
+                self.run_MSExperimentFromMSExperiment()
+
             with MemTester("string_conversions1"):
                 self.run_string_conversions1()
 
@@ -185,6 +188,60 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
                 show_mem("spectra list deleted")
                 del p
                 del e
+
+        def run_MSExperimentFromMSExperiment(self):
+                p = pyopenms.FileHandler()
+                e1 = pyopenms.MSExperiment()
+                e2 = pyopenms.MSExperiment()
+                p.loadExperiment("../test.mzXML", e1)
+                show_mem("data loaded")
+
+
+                li = []
+                print "please be patient :",
+		N = 10
+                for k in range(N):
+                    sys.stdout.flush()
+		    e2.fromExperiment(e1)
+		    e1.fromExperiment(e2)
+		    li.append(e1)
+		    li.append(e2)
+		    e2.fromExperiment(e1)
+		    li.append(e1)
+		    li.append(e2)
+		    e1.fromExperiment(e2)
+		    li.append(e1)
+		    li.append(e2)
+		    e2.fromExperiment(e1)
+		    li.append(e1)
+		    li.append(e2)
+		    e1.fromExperiment(e2)
+		    li.append(e1)
+		    li.append(e2)
+		    e2.fromExperiment(e1)
+		    li.append(e1)
+		    li.append(e2)
+		    e1.fromExperiment(e2)
+		    li.append(e1)
+		    li.append(e2)
+		    e2.fromExperiment(e1)
+		    li.append(e1)
+		    li.append(e2)
+		    e1.fromExperiment(e2)
+		    li.append(e1)
+		    li.append(e2)
+		    e2.fromExperiment(e1)
+		    li.append(e1)
+		    li.append(e2)
+		    e1.fromExperiment(e2)
+		    li.append(e1)
+		    li.append(e2)
+                    print int(100.0*(k+1)/N), "%",
+
+                print
+                show_mem("experiment list generated")
+                del li
+                show_mem("experiment list deleted")
 
         def run_fileformats_io(self):
             p = pyopenms.FileHandler()

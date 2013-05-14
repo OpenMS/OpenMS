@@ -1,7 +1,7 @@
 
 import pyopenms
 
-def convert_data_value(dv):
+def _inaktiv_convert_data_value(dv):
     if dv.valueType() == pyopenms.DataType().STRING_VALUE:
         return dv.toString()
     elif dv.valueType() == pyopenms.DataType().INT_VALUE:
@@ -18,11 +18,11 @@ def convert_data_value(dv):
         return None
 
 def convert_to_row(first, targ, run_id, keys, filename):
-    peptide_ref = first.getMetaValue("PeptideRef").toString()
+    peptide_ref = first.getMetaValue("PeptideRef")
     pep = targ.getPeptideByRef(peptide_ref)
     full_peptide_name = "NA"
     if (pep.metaValueExists("full_peptide_name")):
-      full_peptide_name = pep.getMetaValue("full_peptide_name").toString()
+      full_peptide_name = pep.getMetaValue("full_peptide_name")
 
     decoy = "0"
     peptidetransitions = [t for t in targ.getTransitions() if t.getPeptideRef() == peptide_ref]
@@ -37,23 +37,23 @@ def convert_to_row(first, targ, run_id, keys, filename):
       protein_name = pep.protein_refs[0]
 
     row = [
-    first.getMetaValue("PeptideRef").toString(),
+    first.getMetaValue("PeptideRef"),
     run_id,
     filename,
     first.getRT(),
-    first.getMetaValue("PrecursorMZ").toDouble(),
+    first.getMetaValue("PrecursorMZ"),
     first.getUniqueId(),
     pep.sequence,
     full_peptide_name,
     pep.getChargeState(),
-    first.getMetaValue("PrecursorMZ").toDouble(),
+    first.getMetaValue("PrecursorMZ"),
     first.getIntensity(),
     protein_name,
     decoy
     ]
 
     for k in keys:
-        row.append(convert_data_value(first.getMetaValue(k)))
+        row.append(first.getMetaValue(k))
 
     return row
 

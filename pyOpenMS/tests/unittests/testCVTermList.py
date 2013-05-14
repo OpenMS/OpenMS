@@ -13,8 +13,8 @@ def testCVTermList():
     term.setCVIdentifierRef("CVREF")
     assert term.getCVIdentifierRef() == "CVREF"
 
-    term.setValue(pyopenms.DataValue(123))
-    assert term.getValue().toInt() == 123
+    term.setValue(123)
+    assert term.getValue() == 123
 
     li = pyopenms.CVTermList()
 
@@ -25,7 +25,7 @@ def testCVTermList():
     assert name == "ACC"
     assert term.getName() == "NAME"
     assert term.getCVIdentifierRef() == "CVREF"
-    assert term.getValue().toInt() == 123
+    assert term.getValue() == 123
 
     li.replaceCVTerm(term)
     (name, (term,)), =  li.getCVTerms().items()
@@ -33,7 +33,7 @@ def testCVTermList():
     assert name == "ACC"
     assert term.getName() == "NAME"
     assert term.getCVIdentifierRef() == "CVREF"
-    assert term.getValue().toInt() == 123
+    assert term.getValue() == 123
 
     li.replaceCVTerms([term], "ACC2")
 
@@ -43,11 +43,11 @@ def testCVTermList():
     term, = dd["ACC"]
     assert term.getName() == "NAME"
     assert term.getCVIdentifierRef() == "CVREF"
-    assert term.getValue().toInt() == 123
+    assert term.getValue() == 123
     term, = dd["ACC2"]
     assert term.getName() == "NAME"
     assert term.getCVIdentifierRef() == "CVREF"
-    assert term.getValue().toInt() == 123
+    assert term.getValue() == 123
 
     li.replaceCVTerms(li.getCVTerms())
     dd =  li.getCVTerms()
@@ -56,11 +56,11 @@ def testCVTermList():
     term, = dd["ACC"]
     assert term.getName() == "NAME"
     assert term.getCVIdentifierRef() == "CVREF"
-    assert term.getValue().toInt() == 123
+    assert term.getValue() == 123
     term, = dd["ACC2"]
     assert term.getName() == "NAME"
     assert term.getCVIdentifierRef() == "CVREF"
-    assert term.getValue().toInt() == 123
+    assert term.getValue() == 123
 
     li.addCVTerm(term)
     dd = li.getCVTerms()
@@ -71,16 +71,16 @@ def testCVTermList():
     term1, term2, = dd["ACC"]
     assert term1.getName() == "NAME"
     assert term1.getCVIdentifierRef() == "CVREF"
-    assert term1.getValue().toInt() == 123
+    assert term1.getValue() == 123
 
     assert term2.getName() == "NAME"
     assert term2.getCVIdentifierRef() == "CVREF"
-    assert term2.getValue().toInt() == 123
+    assert term2.getValue() == 123
 
     term, = dd["ACC2"]
     assert term.getName() == "NAME"
     assert term.getCVIdentifierRef() == "CVREF"
-    assert term.getValue().toInt() == 123
+    assert term.getValue() == 123
 
     assert li.hasCVTerm("ACC")
     assert not li.hasCVTerm("ABC")

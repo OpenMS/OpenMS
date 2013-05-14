@@ -26,7 +26,7 @@ def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance
                 abs(chrom.getProduct().getMZ()  -  transition.getProductMZ()) < product_tolerance):
                 if mapped_already:
                     this_peptide = targeted.getPeptideByRef(transition.getPeptideRef() ).sequence
-                    other_peptide = chrom.getPrecursor().getMetaValue("peptide_sequence").toString()
+                    other_peptide = chrom.getPrecursor().getMetaValue("peptide_sequence")
                     print "Found mapping of", chrom.getPrecursor().getMZ(), "/", chrom.getProduct().getMZ(), "to", transition.getPrecursorMZ(), "/",transition.getProductMZ()
                     print "Of peptide", this_peptide
                     print "But the chromatogram is already mapped to", other_peptide
@@ -34,7 +34,7 @@ def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance
                 mapped_already = True
                 precursor = chrom.getPrecursor();
                 peptide = targeted.getPeptideByRef(transition.getPeptideRef() )
-                precursor.setMetaValue("peptide_sequence", pyopenms.DataValue(peptide.sequence) )
+                precursor.setMetaValue("peptide_sequence", peptide.sequence)
                 chrom.setPrecursor(precursor)
                 chrom.setNativeID(transition.getNativeID())
         if not mapped_already:

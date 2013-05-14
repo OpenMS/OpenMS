@@ -1,4 +1,4 @@
-
+# two empty lines are important !
 
 
     def asDict(Param self):
@@ -15,19 +15,6 @@
 
         for k in keys:
             value = self.getValue(k)
-            dt = value.valueType()
-            if dt == DataType.STRING_VALUE:
-                value = value.toString()
-            elif dt == DataType.INT_VALUE:
-                value = value.toInt()
-            elif dt == DataType.DOUBLE_VALUE:
-                value = value.toDouble()
-            elif dt == DataType.DOUBLE_LIST:
-                value = value.toDoubleList()
-            elif dt == DataType.STRING_LIST:
-                value = value.toStringList()
-            elif dt == DataType.INT_LIST:
-                value = value.toIntList()
             result[k] = value
 
         return result
@@ -38,7 +25,7 @@
         for key, v in dd.items():
             tags = self.getTags(key)
             desc = self.getDescription(key)
-            self.setValue(key, DataValue(v), desc, tags)
+            self.setValue(key, v, desc, tags)
 
 
 

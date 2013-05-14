@@ -106,7 +106,7 @@ def align(in_files, out_files, out_trafos, reference_index,
 
 def getModelDefaults(default_model):
     params = pms.Param()
-    params.setValue("type", pms.DataValue(default_model), "Type of model")
+    params.setValue("type", default_model, "Type of model")
     model_types = [ "linear", "b_spline", "interpolated"]
     if default_model not in model_types:
         model_types.insert(0, default_model)

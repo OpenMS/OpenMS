@@ -24,7 +24,7 @@ def _addDataProcessing(item, params, action):
     p.setCompletionTime(pms.DateTime.now())
 
     for k, v in params.asDict().items():
-        p.setMetaValue("parameter: "+k, pms.DataValue(v))
+        p.setMetaValue("parameter: "+k, v)
 
     dp.append(p)
     item.setDataProcessing(dp)
