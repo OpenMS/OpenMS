@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          void setSectionDescription(String key, String desc) nogil except +
          libcpp_string getSectionDescription(String key) nogil except +
 
-         int size() nogil except +
+         Size size() nogil except +
          void insert(String prefix, Param param) nogil except +
          Param copy(String prefix, bool) except +
          Param copy(String prefix) except +

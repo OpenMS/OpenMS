@@ -40,7 +40,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +
 
-        int size() nogil except +
+        Size size() nogil except +
 
 
         bool operator==(ConsensusFeature) nogil except +

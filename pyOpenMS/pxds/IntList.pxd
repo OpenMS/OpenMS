@@ -8,5 +8,5 @@ cdef extern from "<OpenMS/DATASTRUCTURES/IntList.h>" namespace "OpenMS":
         IntList()          nogil except +
         IntList(IntList)          nogil except +
         IntList(libcpp_vector[int])          nogil except +
-        size_t size()          nogil except +
+        Size size()          nogil except +
         Int at(int) nogil except +

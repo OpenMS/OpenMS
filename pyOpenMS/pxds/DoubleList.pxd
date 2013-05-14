@@ -8,5 +8,5 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DoubleList.h>" namespace "OpenMS":
         DoubleList() nogil except +
         DoubleList(DoubleList) nogil except +
         DoubleList(libcpp_vector[double]) nogil except +
-        size_t size() nogil except +
+        Size size() nogil except +
         DoubleReal at(int) nogil except +

@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         libcpp_string getName() nogil except +
         void setName(libcpp_string) nogil except +
 
-        int size() nogil except +
+        Size size() nogil except +
         ChromatogramPeakT operator[](int) nogil except +
 
         void updateRanges() nogil except +
