@@ -382,16 +382,120 @@ class OpenMSMapConverter(StdMapConverter):
             return code
 
 
+import time
+
+class CVTermMapConverter(TypeConverterBase):
+
+    def get_base_types(self):
+        return "Map",
+
+    def matches(self, cpp_type):
+        print str(cpp_type), "Map[String,libcpp_vector[CVTerm]]"
+        return str(cpp_type) == "Map[String,libcpp_vector[CVTerm]]" \
+           or  str(cpp_type) == "Map[String,libcpp_vector[CVTerm]] &"
+
+    def matching_python_type(self, cpp_type):
+        return "dict"
+
+    def type_check_expression(self, cpp_type, arg_var):
+        return Code().add("""
+          |isinstance($arg_var, dict)
+          + and all(isinstance(k, str) for k in $arg_var.keys())
+          + and all(isinstance(v, list) for v in $arg_var.values())
+          + and all(isinstance(vi, CVTerm) for v in $arg_var.values() for vi in
+          v)
+          """, locals()).render()
+
+    def input_conversion(self, cpp_type, argument_var, arg_num):
+
+        map_name = "_map_%d" % arg_num
+        v_vec = "_v_vec_%d" % arg_num
+        v_ptr = "_v_ptr_%d" % arg_num
+        v_i = "_v_i_%d" % arg_num
+        k_string = "_k_str_%d" % arg_num
+
+        code = Code().add("""
+                |cdef Map[_String, libcpp_vector[_CVTerm]] $map_name
+                |cdef libcpp_vector[_CVTerm] $v_vec
+                |cdef _String $k_string
+                |cdef CVTerm $v_i
+                |for k, v in $argument_var.items():
+                |    $v_vec.clear()
+                |    for $v_i in v:
+                |        $v_vec.push_back(deref($v_i.inst.get()))
+                |    $map_name[_String(<char *>k)] = $v_vec
+                """, locals())
+
+        if cpp_type.is_ref:
+            replace = "_replace_%d" % arg_num
+            outer_it = "outer_it_%d" % arg_num
+            inner_it = "inner_it_%d" % arg_num
+            item     = "item_%d" % arg_num
+            inner_key = "inner_key_%d" % arg_num
+            inner_values = "inner_values_%d" % arg_num
+            cleanup_code = Code().add("""
+                |cdef $replace = dict()
+                |cdef Map[_String, libcpp_vector[_CVTerm]].iterator $outer_it 
+                + = $map_name.begin()
+
+                |cdef libcpp_vector[_CVTerm].iterator $inner_it
+                |cdef CVTerm $item
+                |cdef str $inner_key
+                |cdef list $inner_values
+
+                |while $outer_it != $map_name.end():
+                |   $inner_key = deref($outer_it).first.c_str()
+                |   $inner_values = []
+                |   $inner_it = deref($outer_it).second.begin()
+                |   while $inner_it != deref($outer_it).second.end():
+                |       $item = CVTerm.__new__(CVTerm)
+                |       $item.inst = shared_ptr[_CVTerm](new _CVTerm(deref($inner_it)))
+                |       $inner_values.append($item)
+                |       inc($inner_it)
+                |   $replace[$inner_key] = $inner_values
+                |   inc($outer_it)
+
+                |$argument_var.clear()
+                |$argument_var.update($replace)
+                """, locals())
+        else:
+            cleanup_code = ""
+        return code, map_name, cleanup_code
 
 
+    def call_method(self, res_type, cy_call_str):
+        return "_r = %s" % (cy_call_str)
 
-def register_all():
-    from autowrap.ConversionProvider import  special_converters
-    special_converters.append(OpenMSStringConverter())
-    special_converters.append(OpenMSStringListConverter())
-    special_converters.append(OpenMSIntListConverter())
-    special_converters.append(OpenMSDoubleListConverter())
-    special_converters.append(OpenMSMapConverter())
-    special_converters.append(StdVectorStringConverter())
-    special_converters.append(StdSetStringConverter())
+    def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
+
+        rnd = hex(id(self))+str(time.time()).split(".")[0]
+        outer_it = "outer_it_%s" % rnd
+        inner_it = "inner_it_%s" % rnd
+        item     = "item_%s" % rnd
+        inner_key = "inner_key_%s" % rnd
+        inner_values = "inner_values_%s" % rnd
+
+        code = Code().add("""
+            |$output_py_var = dict()
+            |cdef Map[_String, libcpp_vector[_CVTerm]].iterator $outer_it 
+            + = $input_cpp_var.begin()
+            |cdef libcpp_vector[_CVTerm].iterator $inner_it
+            |cdef CVTerm $item
+            |cdef str $inner_key
+            |cdef list $inner_values
+            |while $outer_it != $input_cpp_var.end():
+            |   $inner_key = deref($outer_it).first.c_str()
+            |   $inner_values = []
+            |   $inner_it = deref($outer_it).second.begin()
+            |   while $inner_it != deref($outer_it).second.end():
+            |       $item = CVTerm.__new__(CVTerm)
+            |       $item.inst = shared_ptr[_CVTerm](new _CVTerm(deref($inner_it)))
+            |       $inner_values.append($item)
+            |       inc($inner_it)
+            |   $output_py_var[$inner_key] = $inner_values
+            |   inc($outer_it)
+            """, locals())
+
+        return code
+
 

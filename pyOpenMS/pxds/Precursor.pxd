@@ -2,12 +2,12 @@ from libcpp.string cimport string as libcpp_string
 #from InstrumentSettings cimport *
 from CVTermList cimport *
 from Peak1D cimport *
+from Map cimport *
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
-    cdef cppclass Precursor(CVTermList, Peak1D):
+    cdef cppclass Precursor(Peak1D):
         # wrap-inherits:
-        #    CVTermList
         #    Peak1D
         Precursor()           nogil except +
         Precursor(Precursor)           nogil except +
@@ -35,3 +35,25 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         bool metaValueExists(unsigned int) nogil except +
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
+
+        # as cython has problems with inheriting overriden methods
+        # we can not inherit from CVTerm but have to repeat the
+        # methods here:
+        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
+        void replaceCVTerm(CVTerm & term)               nogil except +
+
+        void replaceCVTerms(libcpp_vector[CVTerm] cv_terms,
+                             String accession
+                            ) nogil except +
+
+        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
+                            ) nogil except +
+
+        Map[String, libcpp_vector[CVTerm] ] getCVTerms()
+        void addCVTerm(CVTerm & term)                   nogil except +
+
+        bool operator==(Precursor)  nogil except +
+        bool operator!=(Precursor)  nogil except +
+
+        bool hasCVTerm(String accessoin)  nogil except +
+        bool empty()                      nogil except +

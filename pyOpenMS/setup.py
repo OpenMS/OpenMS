@@ -25,7 +25,10 @@ pxd_files = glob.glob("pxds/*.pxd")
 addons = glob.glob("addons/*.pyx")
 converters = glob.glob("converters/*.py")
 
-mtimes = [os.path.getmtime(f) for f in pxd_files + addons + converters]
+# sometimes I use symlinks for restricting pxd folder and others, so
+# resolve, else os.path.getmtime will not work
+real_pathes = [os.path.realpath(p) for p in pxd_files + addons + converters]
+mtimes = [os.path.getmtime(f) for f in real_pathes]
 
 if os.path.exists("pyopenms/pyopenms.pyx"):
     mtime_result = os.path.getmtime("pyopenms/pyopenms.pyx")
