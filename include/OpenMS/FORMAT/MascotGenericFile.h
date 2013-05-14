@@ -51,6 +51,8 @@ namespace OpenMS
 
       Creates a file that can be used for Mascot search from a peak list or a whole experiment.
 
+      Loading a file supports multi-threading, since conversion from string to double is expensive and takes long using a single thread.
+
       @htmlinclude OpenMS_MascotGenericFile.parameters
 
   @ingroup FileIO
@@ -90,43 +92,68 @@ public:
       exp.reset();
 
       std::ifstream is(filename.c_str());
-      std::vector<std::pair<double, double> > spec;
-      UInt charge(0);
-      double pre_mz(0), pre_int(0), rt(-1);
-      String title;
-      UInt spectrum_number = 0;
-      Size line_number = 0;
-      while (getNextSpectrum_(is, spec, charge, pre_mz, pre_int, rt, title, line_number))
+      bool has_next(true);
+      UInt spectrum_number(0);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
       {
+        std::vector<std::pair<String, String> > spec;
+        UInt charge(0);
+        double pre_mz(0), pre_int(0), rt(-1);
+        String title;
+        Size line_number(0);
+
         typename MapType::SpectrumType spectrum;
-        for (std::vector<std::pair<double, double> >::const_iterator it = spec.begin(); it != spec.end(); ++it)
-        {
-          typename MapType::PeakType p;
-          p.setPosition(it->first);
-          p.setIntensity(it->second);
-          spectrum.push_back(p);
-        }
         spectrum.setMSLevel(2);
         spectrum.getPrecursors().resize(1);
-        spectrum.getPrecursors()[0].setMZ(pre_mz);
-        spectrum.getPrecursors()[0].setIntensity(pre_int);
-        spectrum.getPrecursors()[0].setCharge(charge);
-        spectrum.setRT(rt);
-        if (title != "")
+        typename MapType::PeakType p;
+        UInt thread_spectrum_number(-1);
+        while (has_next)
         {
-          spectrum.setMetaValue("TITLE", title);
-          title = "";
-        }
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+          {
+            has_next = getNextSpectrum_(is, spec, charge, pre_mz, pre_int, rt, title, line_number);
+            ++spectrum_number;
+            thread_spectrum_number = spectrum_number;
+          }
+          if (!has_next) break;
+          spectrum.resize(spec.size());
 
-        spectrum.setNativeID(String("index=") + (spectrum_number++));
-        exp.push_back(spectrum);
+          for (Size i = 0; i < spec.size(); ++i)
+          {
+            p.setPosition(spec[i].first.toDouble());  // toDouble() is expensive (nothing can be done about this - boost::lexical_cast does not help), thats why we do it in threads
+            p.setIntensity(spec[i].second.toDouble());
+            spectrum[i] = p;
+          }
+          spectrum.getPrecursors()[0].setMZ(pre_mz);
+          spectrum.getPrecursors()[0].setIntensity(pre_int);
+          spectrum.getPrecursors()[0].setCharge(charge);
+          spectrum.setRT(rt);
+          if (title != "")
+          {
+            spectrum.setMetaValue("TITLE", title);
+          }
+          else
+          {
+            spectrum.removeMetaValue("TITLE");
+          }
 
-        // clean up
-        spec.clear();
-        charge = 0;
-        pre_mz = 0;
-        pre_int = 0;
-      }
+          spectrum.setNativeID(String("index=") + (thread_spectrum_number));
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+          {
+            exp.push_back(spectrum);
+          }
+        } // next spectrum
+      } // OMP parallel
+
+      // order might be random, depending on which thread finished conversion first
+      exp.sortSpectra(true);
+
     }
 
     /**
@@ -153,7 +180,7 @@ protected:
     void writeMSExperiment_(std::ostream & os, const String & filename, const PeakMap & experiment);
 
     /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a mgf file
-    bool getNextSpectrum_(std::istream & is, std::vector<std::pair<double, double> > & spectrum, UInt & charge, double & precursor_mz, double & precursor_int, double & rt, String & title, Size & line_number);
+    bool getNextSpectrum_(std::istream & is, std::vector<std::pair<String, String> > & spectrum, UInt & charge, double & precursor_mz, double & precursor_int, double & rt, String & title, Size & line_number);
   };
 
 } // namespace OpenMS
