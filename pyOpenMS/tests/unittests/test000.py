@@ -1922,29 +1922,134 @@ def testInstrumentSettings():
 def testContactPerson():
     """
     @tests:
+     ContactPerson.__init__
+     ContactPerson.getFirstName
+     ContactPerson.setFirstName
+     ContactPerson.getLastName
+     ContactPerson.setLastName
+     ContactPerson.setName
+     ContactPerson.getInstitution
+     ContactPerson.setInstitution
+     ContactPerson.getEmail
+     ContactPerson.setEmail
+     ContactPerson.getURL
+     ContactPerson.setURL
+     ContactPerson.getAddress
+     ContactPerson.setAddress
+     ContactPerson.getContactInfo
+     ContactPerson.setContactInfo
      """
     ins = pyopenms.ContactPerson()
+
+    ins.getFirstName()
+    ins.setFirstName("test")
+    ins.getLastName()
+    ins.setLastName("test")
+    ins.setName("Testy Test")
+    ins.getInstitution()
+    ins.setInstitution("test")
+    ins.getEmail()
+    ins.setEmail("test")
+    ins.getURL()
+    ins.setURL("test")
+    ins.getAddress()
+    ins.setAddress("test")
+    ins.getContactInfo()
+    ins.setContactInfo("test")
 
 @report
 def testDocumentIdentifier():
     """
     @tests:
+     DocumentIdentifier.__init__
+     DocumentIdentifier.setIdentifier
+     DocumentIdentifier.getIdentifier
+     DocumentIdentifier.setLoadedFilePath
+     DocumentIdentifier.getLoadedFilePath
+     DocumentIdentifier.setLoadedFileType
+     DocumentIdentifier.getLoadedFileType
      """
     ins = pyopenms.DocumentIdentifier()
+
+    ins.setIdentifier("test")
+    ins.getIdentifier()
+    # ins.setLoadedFilePath("Test")
+    ins.getLoadedFilePath()
+    # ins.setLoadedFileType("test")
+    ins.getLoadedFileType()
 
 @report
 def testGradient():
     """
     @tests:
+     Gradient.__init__
+     Gradient.addEluent
+     Gradient.addEluent
+     Gradient.clearEluents
+     Gradient.getEluents
+     Gradient.addTimepoint
+     Gradient.clearTimepoints
+     Gradient.getTimepoints
+     Gradient.getPercentage
+     Gradient.setPercentage
+     Gradient.clearPercentages
+     Gradient.isValid
      """
     ins = pyopenms.Gradient()
+
+    ins.addEluent("test")
+    ins.clearEluents()
+    assert len(ins.getEluents() ) == 0
+    ins.addEluent("test")
+    assert len(ins.getEluents() ) == 1
+
+    ins.clearTimepoints()
+    ins.addTimepoint(5)
+    ins.getTimepoints()
+
+    ins.setPercentage("test", 5, 20)
+    ins.getPercentage("test", 5)
+    ins.clearPercentages()
+    ins.isValid()
 
 @report
 def testHPLC():
     """
     @tests:
+     HPLC.__init__
+     HPLC.getInstrument
+     HPLC.setInstrument
+     HPLC.getColumn
+     HPLC.setColumn
+     HPLC.getTemperature
+     HPLC.setTemperature
+     HPLC.getPressure
+     HPLC.setPressure
+     HPLC.getFlux
+     HPLC.setFlux
+     HPLC.setComment
+     HPLC.getComment
+     HPLC.setGradient
+     HPLC.getGradient
      """
     ins = pyopenms.HPLC()
+
+    ins.setInstrument("test")
+    ins.getInstrument()
+    ins.setColumn("test")
+    ins.getColumn()
+    ins.setTemperature(6)
+    ins.getTemperature()
+    ins.setPressure(6)
+    ins.getPressure()
+    ins.setFlux(8)
+    ins.getFlux()
+    ins.setComment("test")
+    ins.getComment()
+
+    g = pyopenms.Gradient()
+    ins.setGradient(g)
+    ins.getGradient()
 
 @report
 def testInstrument():
@@ -1953,12 +2058,48 @@ def testInstrument():
      """
     ins = pyopenms.Instrument()
 
+    ins.setName("test")
+    ins.getName()
+    ins.setVendor("test")
+    ins.getVendor()
+    ins.setModel("test")
+    ins.getModel()
+    ins.setCustomizations("test")
+    ins.getCustomizations()
+
+    ion_sources = [ pyopenms.IonSource() for i in range(5)]
+    ins.setIonSources(ion_sources)
+    ins.getIonSources()
+    mass_analyzers = [ pyopenms.MassAnalyzer() for i in range(5)]
+    ins.setMassAnalyzers(mass_analyzers)
+    ins.getMassAnalyzers()
+    ion_detectors = [ pyopenms.IonDetector() for i in range(5)]
+    ins.setIonDetectors(ion_detectors)
+    ins.getIonDetectors()
+
+    s = pyopenms.Software()
+    ins.setSoftware(s)
+    ins.getSoftware()
+
 @report
 def testIonDetector():
     """
     @tests:
      """
     ins = pyopenms.IonDetector()
+
+    m = pyopenms.IonDetector.AcquisitionMode.ACQMODENULL
+    ins.setAcquisitionMode(m)
+    ins.getAcquisitionMode()
+
+    ins.setResolution(8.0)
+    ins.getResolution()
+
+    ins.setADCSamplingFrequency(8.0)
+    ins.getADCSamplingFrequency()
+
+    ins.setOrder(8)
+    ins.getOrder()
 
 @report
 def testIonSource():
