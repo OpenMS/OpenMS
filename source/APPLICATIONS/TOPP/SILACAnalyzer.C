@@ -190,17 +190,7 @@ private:
   DoubleReal model_deviation;
   bool allow_missing_peaks;
 
-  // section "labels"
-  map<String, DoubleReal> label_identifiers;
-  vector<vector<String> > SILAClabels;        // list of SILAC labels, e.g. selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
-  vector<vector<DoubleReal> > massShifts;         // list of mass shifts
-
   typedef SILACClustering Clustering;
-
-  // vector<vector<SILACPattern> > data;
-  // vector<Clustering *> cluster_data;
-
-  // MSQuantifications msq;
 
 public:
   TOPPSILACAnalyzer() :
@@ -331,63 +321,8 @@ public:
   // handle parameters (read in and format given parameters)
   //--------------------------------------------------
 
-  void handleParameters()
+  void handleParameters_sample()
   {
-    // get input file (.mzML)
-    in = getStringOption_("in");
-    // get name of output file (.consensusXML)
-    out = getStringOption_("out");
-    // get name of additional clusters output file (.consensusXML)
-    out_clusters = getStringOption_("out_clusters");
-    out_features = getStringOption_("out_features");
-    out_mzq = getStringOption_("out_mzq");
-
-    // get name of additional filters output file (.consensusXML)
-    out_filters = getStringOption_("out_filters");
-    // get name of additional filters input file (.consensusXML)
-    in_filters = getStringOption_("in_filters");
-    out_debug = getStringOption_("out_debug");
-
-
-    //--------------------------------------------------
-    // section labels
-    //--------------------------------------------------
-
-    // create map of pairs (label as string, mass shift as double)
-    label_identifiers.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
-    label_identifiers.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
-    label_identifiers.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
-    label_identifiers.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
-    label_identifiers.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
-    label_identifiers.insert(make_pair("Methyl4", getParam_().getValue("labels:Methyl4")));
-    label_identifiers.insert(make_pair("Methyl8", getParam_().getValue("labels:Methyl8")));
-    label_identifiers.insert(make_pair("Methyl12", getParam_().getValue("labels:Methyl12")));
-    label_identifiers.insert(make_pair("Methyl16", getParam_().getValue("labels:Methyl16")));
-    label_identifiers.insert(make_pair("Methyl24", getParam_().getValue("labels:Methyl24")));
-    label_identifiers.insert(make_pair("Methyl32", getParam_().getValue("labels:Methyl32")));
-    label_identifiers.insert(make_pair("dICPL4", getParam_().getValue("labels:dICPL4")));
-    label_identifiers.insert(make_pair("dICPL6", getParam_().getValue("labels:dICPL6")));
-    label_identifiers.insert(make_pair("dICPL10", getParam_().getValue("labels:dICPL10")));
-
-    // create iterators for all labels to get corresponding mass shift
-    map<String, DoubleReal>::iterator arg6 = label_identifiers.find("Arg6");
-    map<String, DoubleReal>::iterator arg10 = label_identifiers.find("Arg10");
-    map<String, DoubleReal>::iterator lys4 = label_identifiers.find("Lys4");
-    map<String, DoubleReal>::iterator lys6 = label_identifiers.find("Lys6");
-    map<String, DoubleReal>::iterator lys8 = label_identifiers.find("Lys8");
-    map<String, DoubleReal>::iterator methyl4 = label_identifiers.find("Methyl4");
-    map<String, DoubleReal>::iterator methyl8 = label_identifiers.find("Methyl8");
-    map<String, DoubleReal>::iterator methyl12 = label_identifiers.find("Methyl12");
-    map<String, DoubleReal>::iterator methyl16 = label_identifiers.find("Methyl16");
-    map<String, DoubleReal>::iterator methyl24 = label_identifiers.find("Methyl24");
-    map<String, DoubleReal>::iterator methyl32 = label_identifiers.find("Methyl32");
-    map<String, DoubleReal>::iterator dicpl4 = label_identifiers.find("dICPL4");
-    map<String, DoubleReal>::iterator dicpl6 = label_identifiers.find("dICPL6");
-    map<String, DoubleReal>::iterator dicpl10 = label_identifiers.find("dICPL10");
-
-    // create string of all labels from advanced section "labels"
-    String labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Methyl4 Methyl8 Methyl12 Methyl16 Methyl24 Methyl32 dICPL4 dICPL6 dICPL10";
-
 
     //--------------------------------------------------
     // section sample
@@ -420,8 +355,10 @@ public:
     //check if isotopes_per_peptide_min is smaller than isotopes_per_peptide_max, if not swap
     if (isotopes_per_peptide_min > isotopes_per_peptide_max)
       swap(isotopes_per_peptide_min, isotopes_per_peptide_max);
+  }
 
-
+  void handleParameters_algorithm()
+  {
     //--------------------------------------------------
     // section algorithm
     //--------------------------------------------------
@@ -432,146 +369,49 @@ public:
     intensity_correlation = getParam_().getValue("algorithm:intensity_correlation");
     model_deviation = getParam_().getValue("algorithm:model_deviation");
     allow_missing_peaks = getFlag_("algorithm:allow_missing_peaks");
+  }
 
+  void handleParameters_labels(map<String, DoubleReal> & label_identifiers)
+  {
 
     //--------------------------------------------------
-    // calculate all possible mass shifts for labelets from section "sample:labels" (concerning missed_cleavage)
+    // section labels
     //--------------------------------------------------
 
-    // split string of SILAC labels (selected_labels) and save in a list (SILAClabels)
-    vector<String> tempList; // temporary list of strings for SILAC labelets, e.g. "Lys6,Arg8"
-    boost::split(tempList, selected_labels, boost::is_any_of("[](){}"));   // any bracket allowed to separate labelets
-    for (UInt i = 0; i < tempList.size(); i++)
-    {
-      if (tempList[i] != "")
-      {
-        vector<String> tempLabels;
-        boost::split(tempLabels, tempList[i], boost::is_any_of(",;: "));   // various separators allowed to separate labels
-        SILAClabels.push_back(tempLabels);
-      }
-    }
+    // create map of pairs (label as string, mass shift as double)
+    label_identifiers.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
+    label_identifiers.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
+    label_identifiers.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
+    label_identifiers.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
+    label_identifiers.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
+    label_identifiers.insert(make_pair("Methyl4", getParam_().getValue("labels:Methyl4")));
+    label_identifiers.insert(make_pair("Methyl8", getParam_().getValue("labels:Methyl8")));
+    label_identifiers.insert(make_pair("Methyl12", getParam_().getValue("labels:Methyl12")));
+    label_identifiers.insert(make_pair("Methyl16", getParam_().getValue("labels:Methyl16")));
+    label_identifiers.insert(make_pair("Methyl24", getParam_().getValue("labels:Methyl24")));
+    label_identifiers.insert(make_pair("Methyl32", getParam_().getValue("labels:Methyl32")));
+    label_identifiers.insert(make_pair("dICPL4", getParam_().getValue("labels:dICPL4")));
+    label_identifiers.insert(make_pair("dICPL6", getParam_().getValue("labels:dICPL6")));
+    label_identifiers.insert(make_pair("dICPL10", getParam_().getValue("labels:dICPL10")));
 
-    cout << endl;
-    // print SILAC labels
-    for (UInt i = 0; i < SILAClabels.size(); i++)
-    {
-      cout << "SILAC label " << i + 1 << ":   ";
-      for (UInt j = 0; j < SILAClabels[i].size(); j++)
-      {
-        cout << SILAClabels[i][j] << " ";
-      }
-      cout << endl;
-    }
-    cout << endl;
+  }
 
-    // check if all selected labels are included in advanced section "labels"
-    for (UInt i = 0; i < SILAClabels.size(); i++)
-    {
-      for (UInt j = 0; j < SILAClabels[i].size(); ++j)
-      {
-        Int found = (Int) labels.find(SILAClabels[i][j]);
+  void handleParameters()
+  {
+    // get input file (.mzML)
+    in = getStringOption_("in");
+    // get name of output file (.consensusXML)
+    out = getStringOption_("out");
+    // get name of additional clusters output file (.consensusXML)
+    out_clusters = getStringOption_("out_clusters");
+    out_features = getStringOption_("out_features");
+    out_mzq = getStringOption_("out_mzq");
 
-        if (found < 0)
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, SILAClabels[i][j]);
-        }
-      }
-    }
-
-    // generate list of mass shifts
-    for (Int ArgPerPeptide = 0; ArgPerPeptide <= missed_cleavages + 1; ArgPerPeptide++)
-    {
-      for (Int LysPerPeptide = 0; LysPerPeptide <= missed_cleavages + 1; LysPerPeptide++)
-      {
-        for (Int MethylPerPeptide = 0; MethylPerPeptide <= missed_cleavages + 1; MethylPerPeptide++)
-        {
-          for (Int dICPLPerPeptide = 0; dICPLPerPeptide <= missed_cleavages + 1; dICPLPerPeptide++)
-          {
-            if (ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide > 0 && ArgPerPeptide + LysPerPeptide + MethylPerPeptide + dICPLPerPeptide <= missed_cleavages + 1)
-            {
-              vector<DoubleReal> massShiftVector;
-              for (UInt i = 0; i < SILAClabels.size(); i++)
-              {
-                DoubleReal massShift = 0;
-                // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There + Lys8There == 0) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
-                bool goAhead_Lys = false;
-                bool goAhead_Arg = false;
-                bool goAhead_Methyl = false;
-                bool goAhead_dICPL = false;
-
-                for (UInt j = 0; j < SILAClabels[i].size(); j++)
-                {
-                  Int Arg6There = 0;    // Is Arg6 in the SILAC label?
-                  Int Arg10There = 0;
-                  Int Lys4There = 0;
-                  Int Lys6There = 0;
-                  Int Lys8There = 0;
-                  Int Methyl4There = 0;
-                  Int Methyl8There = 0;
-                  Int Methyl12There = 0;
-                  Int Methyl16There = 0;
-                  Int Methyl24There = 0;
-                  Int Methyl32There = 0;
-                  Int dICPL4There = 0;
-                  Int dICPL6There = 0;
-                  Int dICPL10There = 0;
-
-                  if (SILAClabels[i][j].find("Arg6") == 0) Arg6There = 1;
-                  if (SILAClabels[i][j].find("Arg10") == 0) Arg10There = 1;
-                  if (SILAClabels[i][j].find("Lys4") == 0) Lys4There = 1;
-                  if (SILAClabels[i][j].find("Lys6") == 0) Lys6There = 1;
-                  if (SILAClabels[i][j].find("Lys8") == 0) Lys8There = 1;
-                  if (SILAClabels[i][j].find("Methyl4") == 0) Methyl4There = 1;
-                  if (SILAClabels[i][j].find("Methyl8") == 0) Methyl8There = 1;
-                  if (SILAClabels[i][j].find("Methyl12") == 0) Methyl12There = 1;
-                  if (SILAClabels[i][j].find("Methyl16") == 0) Methyl16There = 1;
-                  if (SILAClabels[i][j].find("Methyl24") == 0) Methyl24There = 1;
-                  if (SILAClabels[i][j].find("Methyl32") == 0) Methyl32There = 1;
-                  if (SILAClabels[i][j].find("dICPL4") == 0) dICPL4There = 1;
-                  if (SILAClabels[i][j].find("dICPL6") == 0) dICPL6There = 1;
-                  if (SILAClabels[i][j].find("dICPL10") == 0) dICPL10There = 1;
-
-                  goAhead_Arg = goAhead_Arg || !((ArgPerPeptide != 0 && Arg6There + Arg10There == 0));
-                  goAhead_Lys = goAhead_Lys || !((LysPerPeptide != 0 && Lys4There + Lys6There + Lys8There == 0));
-                  goAhead_Methyl = goAhead_Methyl || !((MethylPerPeptide != 0 && Methyl4There + Methyl8There + Methyl12There + Methyl16There + Methyl24There + Methyl32There == 0));
-                  goAhead_dICPL = goAhead_dICPL || !((dICPLPerPeptide != 0 && dICPL4There + dICPL6There + dICPL10There == 0));
-
-                  massShift = massShift + ArgPerPeptide * (Arg6There * (arg6->second) + Arg10There * (arg10->second)) + LysPerPeptide * (Lys4There * (lys4->second) + Lys6There * (lys6->second) + Lys8There * (lys8->second)) +  MethylPerPeptide * (Methyl4There * (methyl4->second) + Methyl8There * (methyl8->second) + Methyl12There * (methyl12->second) + Methyl16There * (methyl16->second) + Methyl24There * (methyl24->second) + Methyl32There * (methyl32->second)) + dICPLPerPeptide * (dICPL4There * (dicpl4->second) + dICPL6There * (dicpl6->second) + dICPL10There * (dicpl10->second));
-                }
-
-                if (goAhead_Arg && goAhead_Lys && goAhead_Methyl && goAhead_dICPL)
-                  massShiftVector.push_back(massShift);
-              }
-
-              if (!massShiftVector.empty())
-                massShifts.push_back(massShiftVector);
-            }
-          }
-        }
-      }
-    }
-
-    // create zero-mass-shift to search for peptides if no label is specified
-    if (massShifts.size() == 0)
-    {
-      vector<DoubleReal> mass_shift_vector_peptide(1, 0.0);
-      massShifts.push_back(mass_shift_vector_peptide);
-    }
-
-    // sort the mass shift vector
-    sort(massShifts.begin(), massShifts.end());
-
-    // print mass shifts
-    for (UInt i = 0; i < massShifts.size(); i++)
-    {
-      cout << "mass shift " << i + 1 << ":   ";
-      for (UInt j = 0; j < massShifts[i].size(); j++)
-      {
-        cout << massShifts[i][j] << " ";
-      }
-      cout << endl;
-    }
-    cout << endl;
+    // get name of additional filters output file (.consensusXML)
+    out_filters = getStringOption_("out_filters");
+    // get name of additional filters input file (.consensusXML)
+    in_filters = getStringOption_("in_filters");
+    out_debug = getStringOption_("out_debug");
   }
 
   //--------------------------------------------------
@@ -580,8 +420,23 @@ public:
 
   ExitCodes main_(int, const char **)
   {
+    // data to be passed through the algorithm
+    vector<vector<SILACPattern> > data;
+    MSQuantifications msq;
+    vector<Clustering *> cluster_data;
+
+    // 
+    // Parameter handling
+    // 
+    map<String, DoubleReal> label_identifiers;   // list defining the mass shifts of each label (e.g. "Arg6" => 6.0201290268)
+    handleParameters_sample();
+    handleParameters_algorithm();
+    handleParameters_labels(label_identifiers);
     handleParameters();
 
+    // 
+    // Initializing the SILACAnalzer with our parameters
+    // 
     SILACAnalyzer analyzer;
     analyzer.initialize(
       // section "sample"
@@ -591,7 +446,6 @@ public:
       missed_cleavages,
       isotopes_per_peptide_min,
       isotopes_per_peptide_max,
-
       // section "algorithm"
       rt_threshold,
       rt_min,
@@ -599,15 +453,8 @@ public:
       intensity_correlation,
       model_deviation,
       allow_missing_peaks,
-
-      label_identifiers,
-      SILAClabels,
-      massShifts
-    );
-
-    vector<vector<SILACPattern> > data;
-    MSQuantifications msq;
-    vector<Clustering *> cluster_data;
+      // labels
+      label_identifiers);
 
     //--------------------------------------------------
     // loading input from .mzML
@@ -630,6 +477,8 @@ public:
 
     if (out_mzq != "")
     {
+      vector<vector<String> > SILAClabels = analyzer.getSILAClabels(); // list of SILAC labels, e.g. selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
+
       std::vector<std::vector<std::pair<String, DoubleReal> > > labels;
       //add none label
       labels.push_back(std::vector<std::pair<String, DoubleReal> >(1, std::make_pair<String, DoubleReal>(String("none"), DoubleReal(0))));
@@ -672,7 +521,6 @@ public:
 
       analyzer.filterData(exp, peak_width, data); 
 
-
       //--------------------------------------------------
       // store filter results
       //--------------------------------------------------
@@ -698,7 +546,6 @@ public:
       analyzer.readFilterConsensusByPattern(map, data);
     }
 
-
     //--------------------------------------------------
     // clustering
     //--------------------------------------------------
@@ -712,6 +559,8 @@ public:
     if (out_debug != "")
     {
       std::ofstream out((out_debug + ".clusters.csv").c_str());
+
+      vector<vector<DoubleReal> > massShifts = analyzer.getMassShifts(); // list of mass shifts
 
       // generate header
       out

@@ -32,6 +32,9 @@
 // $Authors: Lars Nilse, Steffen Sass, Holger Plattfaut, Bastian Blank $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_FILTERING_DATAREDUCTION_SILACANALYZER_H
+#define OPENMS_FILTERING_DATAREDUCTION_SILACANALYZER_H
+
 //OpenMS includes
 #include <OpenMS/config.h>
 // #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -72,7 +75,17 @@ using namespace std;
 
 namespace OpenMS
 {
-  class SILACAnalyzer :
+  /**
+   * @brief Algorithm to use for SILACAnalysis
+   *
+   * Please initialize before usage using the initialize function.
+   * Next, one can estimate the peak width before filtering the data. 
+   *
+   * In the final step, clusterData will generate the output data.
+   *
+   * @see SILACFiltering
+   */
+  class OPENMS_DLLAPI SILACAnalyzer :
     ProgressLogger
   {
   private:
@@ -105,14 +118,10 @@ namespace OpenMS
     bool allow_missing_peaks;
 
     // section "labels"
-    map<String, DoubleReal> label_identifiers;
-    std::vector<std::vector<String> > SILAClabels;        // list of SILAC labels, e.g. selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
-    std::vector<std::vector<DoubleReal> > massShifts;         // list of mass shifts
+    std::vector<std::vector<String> > SILAClabels;    // list of SILAC labels, e.g. selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
+    std::vector<std::vector<DoubleReal> > massShifts; // list of mass shifts
 
     typedef SILACClustering Clustering;
-
-    // std::vector<std::vector<SILACPattern> > data;
-    // std::vector<Clustering *> cluster_data;
 
     MSQuantifications msq;
 
@@ -122,6 +131,13 @@ namespace OpenMS
     {
     }
 
+    /**
+     * @brief Initializes the algorithm with parameters
+     *
+     * @param selected_labels_ Labels used for labelling the sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. The used labels must be described in the label_identifiers parameter
+     * @param label_identifiers a map of labels and corresponding mass shits e.g. "Arg6" => 6.0201290268
+     
+     */
     void initialize(
       // section "sample"
       String selected_labels_,
@@ -129,8 +145,7 @@ namespace OpenMS
       UInt charge_max_,
       Int missed_cleavages_,
       UInt isotopes_per_peptide_min_,
-      UInt isotopes_per_peptide_max_,
-
+      UInt isotopes_per_peptide_max_, 
       // section "algorithm"
       DoubleReal rt_threshold_,
       DoubleReal rt_min_,
@@ -138,11 +153,8 @@ namespace OpenMS
       DoubleReal intensity_correlation_,
       DoubleReal model_deviation_,
       bool allow_missing_peaks_,
-
-      map<String, DoubleReal> label_identifiers_,
-      std::vector<std::vector<String> > SILAClabels_,
-      std::vector<std::vector<DoubleReal> > massShifts_
-    )
+      // labels part
+      map<String, DoubleReal> label_identifiers)
     {
       selected_labels          = selected_labels_;
       charge_min               = charge_min_;
@@ -158,21 +170,52 @@ namespace OpenMS
       model_deviation        = model_deviation_;
       allow_missing_peaks    = allow_missing_peaks_;
 
-      label_identifiers = label_identifiers_;
-      SILAClabels = SILAClabels_;
-      massShifts = massShifts_;
+      calculateLabelsAndMassShifts(label_identifiers);
     }
 
-    //--------------------------------------------------
-    // filtering
-    //--------------------------------------------------
+    /**
+     * @brief Calculate the internal massShift and label datastructures from a
+     * map of identifiers and mass shifts (e.g. "Arg6" => 6.0201290268).
+     *
+     * Note that this part is necessary for the algorithm to work and this
+     * function is called from the initialize section.  The algorithm has to be
+     * initialized _first_ with the list of actually used labels
+     * (selected_labels) using the initialize_sample call.
+     */
+    void calculateLabelsAndMassShifts(map<String, DoubleReal> label_identifiers);
 
+    /**
+     * @brief Peak width estimation
+     */
+    PeakWidthEstimator::Result estimatePeakWidth(const MSExperiment<Peak1D> & exp);
 
+    /**
+     * @brief Filtering
+     */
     void filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width, vector<vector<SILACPattern> > & data);
 
+    /**
+     * @brief Clustering
+     */
     void clusterData(const MSExperiment<> &, const PeakWidthEstimator::Result &, vector<Clustering *> &, vector<vector<SILACPattern> > & data);
 
-    PeakWidthEstimator::Result estimatePeakWidth(const MSExperiment<Peak1D> & exp);
+
+    /**
+     * @brief Returns the list of SILAC labels, e.g.
+     * selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
+     */
+    std::vector<std::vector<String> > & getSILAClabels()
+    {
+      return SILAClabels;
+    }
+
+    /**
+     * @brief Returns the list of mass shifts calcualted
+     */
+    std::vector<std::vector<DoubleReal> > & getMassShifts()
+    {
+      return massShifts;
+    }
 
   public:
 
@@ -242,8 +285,8 @@ namespace OpenMS
     }
 
     /**
-  * @brief Write MzQuantML from ConsensusMap to file
-  */
+     * @brief Write MzQuantML from ConsensusMap to file
+     */
     void writeMzQuantML(const String & filename, MSQuantifications & msq) const
     {
       //~ TODO apply above to ConsensusMap befor putting into Msq
@@ -269,3 +312,5 @@ namespace OpenMS
 
   };
 }
+
+#endif /* SILACANALYZER_H_ */
