@@ -14,3 +14,6 @@ cdef extern from "<OpenMS/METADATA/ExperimentalSettings.h>" namespace "OpenMS":
 
         DateTime getDateTime() nogil except +
         void setDateTime(DateTime date_time) nogil except +
+
+        String getLoadedFilePath() nogil except +
+        void   setLoadedFilePath(String from_) nogil except +

@@ -89,7 +89,8 @@ ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
 from version import version
-full_version= "%s_%s" % (version, timestamp)
+import numpy
+full_version= "%s_%s_numpy%s" % (version, timestamp, numpy.__version__)
 
 print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
 print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
@@ -160,7 +161,6 @@ library_dirs=[ OPEN_MS_BUILD_DIR,
                QT_LIBRARY_DIR,
               ]
 
-import numpy
 
 include_dirs=[
     QT_HEADERS_DIR,

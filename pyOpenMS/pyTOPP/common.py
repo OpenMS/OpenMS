@@ -53,4 +53,4 @@ def updateDefaults(args, defaults):
                 dd = eval(fp.read())
             except:
                 raise Exception("could not parse %s" % args.dict_ini)
-        defaults.updateFrom(dd)
+        defaults.update(dd)

@@ -44,8 +44,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
 
          Param copy(String prefix, bool) nogil except +
          Param copy(String prefix) nogil except +
-         void update(Param p_old, bool add_unknow) nogil except +  #wrap-ignore
-         void update(Param p_old) nogil except +  #wrap-ignore
+
+         # wrapped manually for overloading with dict parameter:
+         void update(Param p_old, bool add_unknow) nogil except + # wrap-ignore
+         void update(Param p_old) nogil except + # wrap-ignore
 
          void merge(Param toMerge) nogil except +
 

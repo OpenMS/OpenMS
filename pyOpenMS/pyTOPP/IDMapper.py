@@ -154,7 +154,7 @@ def main():
             if value is not None:
                 dd[att] = value
 
-        defaults.updateFrom(dd)
+        defaults.update(dd)
         feature_use_centroid_rt = getattr(args, "feature:use_centroid_rt")
         feature_use_centroid_mz = getattr(args, "feature:use_centroid_mz")
         consenususfeature_use_subelements = getattr(args,

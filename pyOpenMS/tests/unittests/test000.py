@@ -923,7 +923,6 @@ def _testParam(p):
      Param.setValue
      Param.size
      Param.update
-     Param.updateFrom
      Param.__eq__
      Param.__ge__
      Param.__gt__
@@ -959,6 +958,8 @@ def _testParam(p):
         #value = p.getValue(k)
         value = p[k]
         p[k] = value
+        p.update(p)
+        p.update(p.asDict())
         assert p[k] == value
         desc  = p.getDescription(k)
         tags  = p.getTags(k)
