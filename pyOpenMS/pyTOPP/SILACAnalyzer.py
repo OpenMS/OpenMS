@@ -23,8 +23,7 @@ def main(options):
     # 
     # 1. filter MS1 level (only keep MS1)
     # 
-    tmp = pyopenms.MSExperiment();
-    tmp.fromExperiment(exp)
+    tmp = copy.copy(exp)
     tmp.clear(False); 
     for spectrum in exp:
         if spectrum.getMSLevel() == 1:

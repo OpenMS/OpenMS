@@ -1160,7 +1160,17 @@ def testIDRipper():
     ff = pyopenms.IDRipper()
 
 
+@report
+def testSILACAnalyzer():
+    """
+    @tests:
+     SILACAnalyzer.__init__
+    """
+    ff = pyopenms.SILACAnalyzer()
 
+    assert pyopenms.SILACAnalyzer().initialize is not None
+    assert pyopenms.SILACAnalyzer().run_all is not None
+    assert pyopenms.SILACAnalyzer().writeConsensus is not None
 
 @report
 def testFeatureGrouping():

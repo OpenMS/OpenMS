@@ -10,8 +10,7 @@ python pyTOPP/MRMMapper.py --in ../source/TEST/TOPP/MRMMapping_input.chrom.mzML 
 
 def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance, allow_unmapped=True, allow_double_mappings=False):
 
-    output = pyopenms.MSExperiment();
-    output.fromExperiment(chromatogram_map)
+    output = copy.copy(chromatogram_map)
     output.clear(False); 
     empty_chromats = []
     output.setChromatograms(empty_chromats);
