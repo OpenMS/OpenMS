@@ -1,8 +1,10 @@
-from CVTerm cimport *
+from libcpp cimport bool
 from Map cimport *
 from String cimport *
 from MetaInfoInterface cimport *
-from libcpp cimport bool
+from CVTerm cimport *
+from CVMappingRule cimport *
+from ControlledVocabulary cimport *
 
 cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
 
@@ -35,3 +37,5 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
         bool hasCVTerm(String accession)  nogil except +
         bool empty()                      nogil except +
 
+        # not implemented
+        # bool checkCVTerms(CVMappingRule rule, ControlledVocabulary cv) nogil except +

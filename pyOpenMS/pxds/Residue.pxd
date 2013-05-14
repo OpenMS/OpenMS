@@ -1,4 +1,5 @@
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.set cimport set as libcpp_set
 from libcpp cimport bool
 from Types cimport *
 from String cimport *
@@ -138,15 +139,13 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         String getShortName() nogil except +
 
         # sets the synonyms
-        # TODO
-        ## void setSynonyms(std::set[String] synonyms) nogil except +
+        void setSynonyms(libcpp_set[String] synonyms) nogil except +
 
         # adds a synonym
         void addSynonym(String synonym) nogil except +
 
         # returns the sysnonyms
-        # TODO 
-        ## std::set[String] getSynonyms() nogil except +
+        libcpp_set[String] getSynonyms() nogil except +
 
         # sets the name of the residue as three letter code
         void setThreeLetterCode(String three_letter_code) nogil except +
@@ -227,16 +226,13 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         libcpp_vector[EmpiricalFormula] getLowMassIons() nogil except +
 
         # sets the residue sets the amino acid is contained in
-        # TODO
-        ## void setResidueSets(std::set[String] residues_sets) nogil except +
+        void setResidueSets(libcpp_set[String] residues_sets) nogil except +
 
         # adds a residue set to the residue sets
         void addResidueSet(String residue_sets) nogil except +
 
         # returns the residue sets this residue is contained in
-        # TODO 
-        ## std::set[String] getResidueSets() nogil except +
-        #@}
+        libcpp_set[String] getResidueSets() nogil except +
 
         # true if the residue has neutral loss
         bool hasNeutralLoss() nogil except +
@@ -244,17 +240,17 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         # true if N-terminal neutral losses are set
         bool hasNTermNeutralLosses() nogil except +
 
-        ## # equality operator
-        ## bool operator==(Residue & residue) nogil except +
+        # equality operator
+        bool operator==(Residue & residue) nogil except +
 
-        ## # inequality operator
-        ## bool operator!=(Residue & residue) nogil except +
+        # inequality operator
+        bool operator!=(Residue & residue) nogil except +
 
-        ## # equality operator for one letter code
-        ## bool operator==(char one_letter_code) nogil except +
+        # equality operator for one letter code
+        bool operator==(char one_letter_code) nogil except +
 
-        ## # equality operator for one letter code
-        ## bool operator!=(char one_letter_code) nogil except +
+        # equality operator for one letter code
+        bool operator!=(char one_letter_code) nogil except +
 
         # returns the pka of the residue
         DoubleReal getPka() nogil except +

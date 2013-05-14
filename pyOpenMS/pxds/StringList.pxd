@@ -1,6 +1,7 @@
 from libcpp.string cimport string as libcpp_string
 from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
+from String cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/StringList.h>" namespace "OpenMS":
 

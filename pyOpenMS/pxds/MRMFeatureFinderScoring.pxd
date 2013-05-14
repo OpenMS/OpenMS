@@ -23,4 +23,3 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
                             MSExperiment[Peak1D, ChromatogramPeak] & swath_map) nogil except +
         void setStrictFlag(bool flag) nogil except +
 
-

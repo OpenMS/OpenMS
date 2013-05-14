@@ -108,5 +108,19 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         int operator>(ParamIterator) nogil except +
         int operator<=(ParamIterator) nogil except +
         int operator>=(ParamIterator) nogil except +
+        # Returns the traceback of the opened and closed sections
+        libcpp_vector[TraceInfo] getTrace() nogil except +
 
+cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param::ParamIterator":
 
+    cdef cppclass TraceInfo:
+
+        TraceInfo(String n, String d, bool o)
+        TraceInfo(TraceInfo)
+
+        # name of the node
+        String name
+        # description of the node
+        String description
+        # If it was opened (true) or closed (false)
+        bool opened

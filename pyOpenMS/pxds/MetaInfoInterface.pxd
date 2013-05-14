@@ -7,7 +7,6 @@ from Types cimport *
 cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
 
     cdef cppclass MetaInfoInterface:
-        # wrap-ignore
 
         MetaInfoInterface() nogil except +
         MetaInfoInterface(MetaInfoInterface) nogil except +

@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ConvexHull2D.h>" namespace "OpenMS":
 
         bool operator==(ConvexHull2D) nogil except +
         void clear()       nogil except +
-        void compress()    nogil except +
+        Size compress()    nogil except +
         void expandToBoundingBox() nogil except +
 
         # as cython/autowrap have problems handling integer template args
