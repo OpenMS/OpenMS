@@ -94,5 +94,7 @@ def create_pxd_file_map(bin_path):
         filematch = [o.group(1) for o in filename_rgx.finditer(open(pfile).read()) ]
         filematch = [os.path.realpath( os.path.join(bin_path, o) ) for o in filematch]
         for fm in filematch:
+            if fm in pxd_file_matching and pxd_file_matching[fm] != pfile:
+                print "Error: try to map", pfile, "but", fm, "is already mapped to", pxd_file_matching[fm]
             pxd_file_matching[fm] = pfile
     return pxd_file_matching 

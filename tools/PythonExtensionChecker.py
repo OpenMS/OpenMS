@@ -272,19 +272,31 @@ class DoxygenXMLFile(object):
         cldef += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
         cldef += "    \n"
 
+        inherit_txt = ""
+        true_cppname = '"%s"' % comp_name
+        if len(parent_classes) > 0:
+            inherit_txt = "(%s)" % ",".join(parent_classes)
+            true_cppname = '' # Cython does not accept this if mixed with inheritance
+
         if compound.templateparamlist is None:
-            cldef += '    cdef cppclass %s(%s) "%s":\n' % (preferred_classname, ",".join(parent_classes), comp_name)
+            cldef += '    cdef cppclass %s%s %s:\n' % (preferred_classname, inherit_txt, true_cppname)
         else:
             targs = [p.get_declname() for p in compound.templateparamlist.get_param()]
-            cldef += '    cdef cppclass %s[%s](%s):\n' % (preferred_classname, ",".join(targs), ",".join(parent_classes) )
+            cldef += '    cdef cppclass %s[%s]%s:\n' % (preferred_classname, ",".join(targs), inherit_txt)
         if len(parent_classes) > 0:
-            cldef += '    # wrap-inherits:'
+            cldef += '        # wrap-inherits:\n'
         for p in parent_classes:
-            cldef += '    #  %s' % (p)
-        methods = ""
+            cldef += '        #  %s\n' % (p)
+
+        # check if it is abstract, then do not attempt to wrap it
+        if self.isAbstract():
+            cldef += '        # wrap-ignore\n'
+            cldef += '        # ABSTRACT class\n'
+
         #
         # Step 3: methods
         # 
+        methods = ""
         default_ctor = False
         copy_ctor = False
         enum = ""
@@ -352,7 +364,7 @@ class DoxygenXMLFile(object):
 
     def isAbstract(self):
         for mdef in self.iterMemberDef():
-                if mdef.get_argsstring().find("=0"):
+                if mdef.get_argsstring().endswith("=0"):
                     return True
         return False
 
@@ -423,15 +435,33 @@ class DoxygenCppFunction(object):
         arguments = re.sub("\=[^,\)]*", "", self.get_argsstring())
         function_name = self.name
 
-        arguments = ""
-        for p in self.get_param(): 
+        arguments = "("
+        nested = False
+        for i,p in enumerate(self.get_param()): 
             ptype = self._resolve_type(p.get_type().content_)
             dname = p.declname
             # ignore default arguments etc ... Cython cannot use them 
             # p.defval.content_
             # replace python keywords in argument name: except, type, lamdba, map ...
-            dname = dname.replace("except", "except_").replace("type", "type_").replace("lambda", "lambda_").replace("map", "map_")
-            arguments += " ".join(ptype) + " " + dname
+            import keyword
+            if keyword.iskeyword(dname):
+                dname = dname + "_"
+            if dname in dir(__builtins__):
+                dname = dname + "_"
+            # dname = dname.replace("except", "except_").replace("type", "type_").replace("lambda", "lambda_").replace("map", "map_")
+            tojoin = "".join(ptype) + " " + dname.strip()
+            if tojoin.count("std::") > 2:
+                nested = True
+            if i == 0:
+                arguments += tojoin
+            else:
+                arguments += ", " + "".join(ptype) + " " + dname.strip()
+                
+        arguments += ")"
+        # arguments = (std::vector<  Int  > column_indices, std::vector<  DoubleReal  > column_values, const  String  & name)
+
+        if len(self.get_argsstring()) == 0:
+            arguments = ""
 
         # remove returned references
         return_type = "".join(c_return_type)
@@ -454,26 +484,37 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("std::pair", "libcpp_pair")
         cpp_def = cpp_def.replace("std::set", "libcpp_set")
         cpp_def = cpp_def.replace("std::string", "libcpp_string")
-        cpp_def = cpp_def.replace("<", "[")    
-        cpp_def = cpp_def.replace(">", "]")    
-        cpp_def = cpp_def.replace("operator]", ">")    
-        cpp_def = cpp_def.replace("operator[", "<")    
+        cpp_def = cpp_def.replace("<", "[")
+        cpp_def = cpp_def.replace(">", "]")
+        cpp_def = cpp_def.replace("operator[]", "operator__[]")
+        cpp_def = cpp_def.replace("operator]", "operator>")
+        cpp_def = cpp_def.replace("operator[", "operator<")
+        cpp_def = cpp_def.replace("operator__[]", "operator[]")
         cpp_def = cpp_def.replace("const ", "")    
-        cpp_def = cpp_def.replace("libcpp_vector[ DoubleReal ]", "libcpp_vector[ double ]")    
+        cpp_def = cpp_def.replace("[ DoubleReal ]", "[ double ]")    
+        cpp_def = cpp_def.replace("[ Size ]", "[ size_t ]")    
+        cpp_def = cpp_def.replace("[ Int ]", "[ int ]")    
         cpp_def = cpp_def.replace("RichPeakSpectrum", "MSSpectrum[RichPeak1D]")
         cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
+        cpp_def = cpp_def.replace("FeatureMap[]", "FeatureMap[Feature]")
+        cpp_def = cpp_def.replace("MSSpectrum[]", "MSSpectrum[Peak1D]")
+        cpp_def = cpp_def.replace("MSExperiment[]", "MMSExperiment[Peak1D, ChromatogramPeak]")
         # cpp_def = cpp_def.replace("Chromatogram", "MSChromatogram[ChromatogramPeak]")
         #
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum[Peak1D]")
         cpp_def = cpp_def.replace("PeakMap", "MSExperiment[Peak1D, ChromatogramPeak]")
 
-        # comment out things that have we cannot wrap (raw pointers, iterators)
+        # Alert the user to potential problems and comment out potential
+        # dangerous things (raw pointers, iterators)
         if cpp_def.find("*") != -1 or \
            cpp_def.find("::iterator") != -1:
-            cpp_def = "# " + cpp_def
+            cpp_def = "# POINTER # " + cpp_def
+        if cpp_def.find("::") != -1:
+            cpp_def = "# NAMESPACE # " + cpp_def
         if self.templateparamlist is not None:
-            # targs = [p.get_declname() for p in self.templateparamlist.get_param()]
             cpp_def = "# TEMPLATE # " + cpp_def
+        if nested:
+            cpp_def = "# NESTED STL # " + cpp_def
 
         return cpp_def.strip()
 
@@ -547,7 +588,7 @@ class PXDFile(object):
 
         return cl
 
-def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out):
+def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out, print_pxd):
     """ Checks a set of doxygen xml file against a set of pxd header files
 
     For each C++ class found in the doxygen XML files, it tries to identify the
@@ -567,6 +608,7 @@ def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out):
     xml_output_path = os.path.join(bin_path, "doc/xml_output/")
     xml_files = glob.glob(xml_output_path + "/*.xml")
     # also look at ./doc/doxygen/doxygen-error.log ?
+    print "Creating pxd file map"
     pxd_file_matching = create_pxd_file_map(bin_path)
     cnt = Counter()
     cnt.total = len(xml_files)
@@ -587,6 +629,8 @@ def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out):
             continue
         compound = res.get_compounddef()
         comp_name = compound.get_compoundname()
+        # if comp_name == "OpenMS::LPWrapper":
+        #     break
         # if comp_name == "OpenMS::DeNovoAlgorithm":
         #     break
         # if comp_name == "OpenMS::ChromatogramExtractor":
@@ -649,7 +693,7 @@ def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out):
     cnt.print_skipping_reason()
 
 def main(options):
-    checkPythonPxdHeader(options.bin_path, options.ignorefile, options.pxds_out)
+    checkPythonPxdHeader(options.bin_path, options.ignorefile, options.pxds_out, options.print_pxd)
 
 def handle_args():
     usage = "" 
@@ -670,3 +714,7 @@ if __name__=="__main__":
     main(options)
 
 
+
+# self.compound.get_sectiondef()[0].get_memberdef()[0].name
+ 
+# TODO what if there is an N:M mapping of pyx to cpp
