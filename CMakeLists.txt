@@ -580,6 +580,16 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
 endif("${PACKAGE_TYPE}" STREQUAL "none")
 
 ########################################################
+###              setup python wrapper                ###
+########################################################
+
+OPTION(PYOPENMS "setup build system for pyOpenMS" OFF)
+
+IF (PYOPENMS)
+	include(pyOpenMS/pyopenms.cmake)
+ENDIF()
+
+########################################################
 ###    verbose Post-build messages and help targets  ###
 ########################################################
 
