@@ -4,6 +4,8 @@ import env
 import pyopenms
 from collections import defaultdict
 
+eps = 2
+
 def simple_find_best_feature(output, pairs, targeted):
     f_map = defaultdict(list)
     for f in output:
@@ -73,8 +75,8 @@ class TestMRMRTNormalizer(unittest.TestCase):
              (1397.1541748046875, 1765.0)]
 
         for exp,res in zip(expected, pairs_corrected):
-            self.assertAlmostEqual(exp[0], res[0])
-            self.assertAlmostEqual(exp[1], res[1])
+            self.assertAlmostEqual(exp[0], res[0], eps)
+            self.assertAlmostEqual(exp[1], res[1], eps)
 
 if __name__ == '__main__':
     unittest.main()
