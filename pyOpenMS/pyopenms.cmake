@@ -309,8 +309,7 @@ test_SILACAnalyzer.py
 # Loop through all the test files 
 foreach (t ${pyopenms_unittest_testfiles})
   add_test(NAME "pyopenms_unittest_${t}"
-    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" tests/unittests/${t} -s -v 
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests/${t} -s -v)
   IF(NOT WIN32)
     set_tests_properties("pyopenms_unittest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
   ENDIF()
@@ -318,8 +317,7 @@ endforeach(t)
 
 foreach (t ${pyopenms_integrationtest_testfiles})
   add_test(NAME "pyopenms_integrationtest_${t}"
-    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" tests/integration_tests/${t} -s -v 
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests/${t} -s -v)
   IF(NOT WIN32)
     set_tests_properties("pyopenms_integrationtest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
   ENDIF()
@@ -327,8 +325,7 @@ endforeach(t)
 
 # Finally add the memory leaks test (in folder tests/memoryleaktests/)
 add_test(NAME pyopenms_test_memoryleaktests
-  COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" tests/memoryleaktests/ -s -v 
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+  COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v)
 IF(NOT WIN32)
     set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
 ENDIF()
