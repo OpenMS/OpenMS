@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespac
         # libcpp_vector[ shared_ptr[ SVMWrapper ] ] class_models
         # libcpp_vector[ shared_ptr[ SVMWrapper ] ] reg_models
         # libcpp_map[ ResidueType, double ] _intensities
-        libcpp_vector[ IonType ] ion_types
+        # libcpp_vector[ IonType ] ion_types
         # libcpp_map[ IonType, libcpp_vector[ IonType ] ] secondary_types
         Size number_intensity_levels
         Size number_regions
