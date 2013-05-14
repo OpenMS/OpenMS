@@ -1,4 +1,20 @@
 
+IF (PYOPENMS)
+set(pyopenms_targets 
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms           builds pyOpenMS inplace"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist_egg builds pyOpenMS bdist_egg"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist     builds pyOpenMS bdist as zip file"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_rpm       builds pyOpenMS rpm"
+  
+  )
+ELSE()
+set(pyopenms_targets 
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "The pyopenms targets are not enabled (to enable use -D PYOPENMS=ON)."
+  )
+ENDIF()
+
+
 ##### targets list #####
 if (MSVC)
 	add_custom_target(targets
@@ -19,12 +35,7 @@ if (MSVC)
 										COMMAND ${CMAKE_COMMAND} -E echo "    Tutorials_exec  executes the tutorials in source/EXAMPLES"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc             builds the doxygen documentation and tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials   builds the pdf tutorials"
-										COMMAND ${CMAKE_COMMAND} -E echo ""
-										COMMAND ${CMAKE_COMMAND} -E echo "if you activated pyOpenMS with -D PYOPENMS=ON:"
-										COMMAND ${CMAKE_COMMAND} -E echo ""
-										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms           builds pyOpenMS inplace"
-										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist_egg builds pyOpenMS bdist_egg"
-										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist     builds pyOpenMS bdist as zip file"
+										${pyopenms_targets}
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools and UTILS have their own target, e.g. TOPPView"
 										COMMAND ${CMAKE_COMMAND} -E echo "The class tests have their own project in ./source/TEST (project test_build)."
@@ -52,13 +63,7 @@ else()
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc             builds the doxygen documentation and tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials   builds the pdf tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    help            list all available targets (very long)"
-										COMMAND ${CMAKE_COMMAND} -E echo ""
-										COMMAND ${CMAKE_COMMAND} -E echo "if you activated pyOpenMS with -D PYOPENMS=ON:"
-										COMMAND ${CMAKE_COMMAND} -E echo ""
-										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms           builds pyOpenMS inplace"
-										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist_egg builds pyOpenMS bdist_egg"
-										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist     builds pyOpenMS bdist as zip file"
-										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_rpm       builds pyOpenMS rpm"
+										${pyopenms_targets}
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools and UTILS have their own target, e.g. TOPPView"
 										COMMAND ${CMAKE_COMMAND} -E echo "The class tests have their own project in ./source/TEST."
