@@ -1276,6 +1276,39 @@ def testMSSpectrum():
 
     assert int(spec.isSorted()) in  (0,1)
 
+@report
+def testMRMFeature():
+    """
+    @tests:
+     """
+    mrmfeature = pyopenms.MRMFeature()
+
+    mrmfeature.addScore("testscore", 6)
+    assert mrmfeature.getScore("testscore") == 6.0
+    mrmfeature.addScore("testscore", 7)
+    assert mrmfeature.getScore("testscore") == 7.0
+
+@report
+def testMRMTransitionGroup():
+    """
+    @tests:
+     """
+    mrmgroup = pyopenms.MRMTransitionGroup()
+    assert mrmgroup is not None
+
+    mrmgroup.setTransitionGroupID("this_id")
+    assert mrmgroup.getTransitionGroupID() == "this_id"
+
+    assert len(mrmgroup.getTransitions()) == 0
+    mrmgroup.addTransition(pyopenms.ReactionMonitoringTransition(), "tr1")
+    assert len(mrmgroup.getTransitions()) == 1
+
+@report
+def testReactionMonitoringTransition():
+    """
+    @tests:
+     """
+    tr = pyopenms.ReactionMonitoringTransition()
 
 @report
 def testMapAlignment():
