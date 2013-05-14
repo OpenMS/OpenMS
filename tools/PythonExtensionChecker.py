@@ -244,8 +244,6 @@ class DoxygenXMLFile(object):
                 if header_file in ["Exception", "Macros", "config", "StandardTypes"]:
                     continue
                 includes += "from %s cimport *\n" % header_file
-        # print extern definition
-        # print file_location
         if len(file_location.split("/include/OpenMS")) != 2:
             return None
         #
@@ -254,10 +252,15 @@ class DoxygenXMLFile(object):
         internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
         namespace = "::".join(comp_name.split("::")[:-1])
         preferred_classname = "_".join(comp_name.split("::")[1:])
+        preferred_classname = comp_name.split("::")[-1]
         cldef  = "\n"
         cldef += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
         cldef += "    \n"
-        cldef += '    cdef cppclass %s "%s":\n' % (preferred_classname, comp_name)
+        if compound.templateparamlist is None:
+            cldef += '    cdef cppclass %s "%s":\n' % (preferred_classname, comp_name)
+        else:
+            targs = [p.get_declname() for p in compound.templateparamlist.get_param()]
+            cldef += '    cdef cppclass %s[%s]:\n' % (preferred_classname, ",".join(targs))
         methods = ""
         #
         # Step 3: methods
@@ -400,7 +403,7 @@ class CppFunctionDefinition(object):
         cpp_def = cpp_def.replace("PeakMap", "MSExperiment[Peak1D, ChromatogramPeak]")
 
         # comment out things that have we cannot wrap (raw pointers, iterators)
-        if cpp_def.find("*") != -1 or
+        if cpp_def.find("*") != -1 or \
            cpp_def.find("::iterator") != -1:
             cpp_def = "# " + cpp_def
 
