@@ -586,6 +586,7 @@ endif("${PACKAGE_TYPE}" STREQUAL "none")
 OPTION(PYOPENMS "setup build system for pyOpenMS" OFF)
 
 IF (PYOPENMS)
+        MESSAGE(STATUS "run cmake files for pyopenms")
 	include(pyOpenMS/pyopenms.cmake)
 ENDIF()
 

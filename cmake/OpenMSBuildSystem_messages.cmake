@@ -20,12 +20,12 @@ if (MSVC)
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc             builds the doxygen documentation and tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials   builds the pdf tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
-                                        COMMAND ${CMAKE_COMMAND} -E echo "if you activated pyOpenMS with -D PYOPENMS=ON:"
+										COMMAND ${CMAKE_COMMAND} -E echo "if you activated pyOpenMS with -D PYOPENMS=ON:"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
-                                        COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms           builds pyOpenMS inplace"
-                                        COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist_egg builds pyOpenMS bdist_egg"
-                                        COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist     builds pyOpenMS bdist as zip file"
-                                        COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_rpm       builds pyOpenMS rpm 
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms           builds pyOpenMS inplace"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist_egg builds pyOpenMS bdist_egg"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist     builds pyOpenMS bdist as zip file"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_rpm       builds pyOpenMS rpm "
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools and UTILS have their own target, e.g. TOPPView"
 										COMMAND ${CMAKE_COMMAND} -E echo "The class tests have their own project in ./source/TEST (project test_build)."
@@ -33,8 +33,7 @@ if (MSVC)
 										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMENT "The most important targets for OpenMS"
-										VERBATIM
-		)
+										VERBATIM)
 else()
 	add_custom_target(targets
 										COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -55,13 +54,13 @@ else()
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials   builds the pdf tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    help            list all available targets (very long)"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
-                                        COMMAND ${CMAKE_COMMAND} -E echo "if you activated pyOpenMS with -D PYOPENMS=ON:"
+										COMMAND ${CMAKE_COMMAND} -E echo "if you activated pyOpenMS with -D PYOPENMS=ON:"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
-                                        COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms           builds pyOpenMS inplace"
-                                        COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist_egg builds pyOpenMS bdist_egg"
-                                        COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist     builds pyOpenMS bdist as zip file"
-                                        COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_rpm       builds pyOpenMS rpm 
-                                        COMMAND ${CMAKE_COMMAND} -E echo "    install_pyopenms   global install of pyOpenMS"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms           builds pyOpenMS inplace"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist_egg builds pyOpenMS bdist_egg"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist     builds pyOpenMS bdist as zip file"
+										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_rpm       builds pyOpenMS rpm"
+										COMMAND ${CMAKE_COMMAND} -E echo "    install_pyopenms   global install of pyOpenMS"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools and UTILS have their own target, e.g. TOPPView"
 										COMMAND ${CMAKE_COMMAND} -E echo "The class tests have their own project in ./source/TEST."
@@ -69,8 +68,7 @@ else()
 										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMENT "The most important targets for OpenMS"
-										VERBATIM
-		)
+										VERBATIM)
 endif()
 
 ##### Message after OpenMS has been built #####

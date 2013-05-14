@@ -1,9 +1,9 @@
-IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    IF (WIN32)
-        MESSAGE(STATUS "bulding debug version on Windows not supported yet")
-        RETURN()
-    ENDIF()
-ENDIF()
+#IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    #IF (WIN32)
+        #MESSAGE(STATUS "bulding debug version on Windows not supported yet")
+        #RETURN()
+    #ENDIF()
+#ENDIF()
 
 find_package(PythonInterp REQUIRED)
 
@@ -104,15 +104,16 @@ FILE(GLOB _python_files "pyOpenMS/converters/*.py")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/converters)
 
 FILE(COPY pyOpenMS/setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY pyOpenMS/distribute_setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/run_nose.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 
 IF (WIN32)
-    FILE(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyOpenMS})
+    FILE(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
     SET(FOUND_XERCES FALSE)
     FOREACH(CONTRIB_PATH ${CONTRIB_DIR})
         IF (EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_0.dll)
-            FILE(COPY ${CONTRIB_PATH}/lib/xerces-c_3_0.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyOpenMS)
+            FILE(COPY ${CONTRIB_PATH}/lib/xerces-c_3_0.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
             SET(FOUND_XERCES TRUE)
         ENDIF()
     ENDFOREACH()
@@ -122,24 +123,6 @@ IF (WIN32)
     ENDIF()
 ENDIF()
 
-
-# generate cython wrapper
-
-#MESSAGE(STATUS "Generate cython source file")
-#EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} build_cython_file.py 
-#WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyOpenMS/cython_code
-##ERROR_VARIABLE PYOK OUTPUT_QUIET
-#)
-#MESSAGE(STATUS "Generate cython source file - done")
-
-
-# run cython to generate c++ file
- 
-#MESSAGE(STATUS "run cython to generate c++ file")
-#EXECUTE_PROCESS(COMMAND ${CYTHON_EXECUTABLE} -X boundscheck=False -X wraparound=False --cplus -o ../pyOpenMS.cpp pyOpenMS.pyx
-#WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyOpenMS/cython_code
-#ERROR_VARIABLE CYOK OUTPUT_QUIET)
-#MESSAGE(STATUS "run cython to generate c++ file - done")
 
 # write variables for setup.py as python script
 
