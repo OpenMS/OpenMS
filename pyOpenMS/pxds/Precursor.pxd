@@ -12,17 +12,17 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         Precursor()           nogil except +
         Precursor(Precursor)           nogil except +
 
-        double getActivationEnergy()
-        void setActivationEnergy(double activation_energy)
+        double getActivationEnergy() nogil except +
+        void setActivationEnergy(double activation_energy) nogil except +
 
-        double getIsolationWindowLowerOffset()
-        void setIsolationWindowLowerOffset(double bound)
+        double getIsolationWindowLowerOffset() nogil except +
+        void setIsolationWindowLowerOffset(double bound) nogil except +
 
-        double getIsolationWindowUpperOffset()
-        void setIsolationWindowUpperOffset(double bound)
+        double getIsolationWindowUpperOffset() nogil except +
+        void setIsolationWindowUpperOffset(double bound) nogil except +
 
-        int getCharge()
-        void setCharge(int charge)
+        int getCharge() nogil except +
+        void setCharge(int charge) nogil except +
 
         # Inherited from MetaInfoInterface - copyNpaste
         void getKeys(libcpp_vector[String] & keys)

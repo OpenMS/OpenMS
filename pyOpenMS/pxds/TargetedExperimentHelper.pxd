@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
         Peptide() nogil except +
         Peptide(Peptide) nogil except +
-        double getRetentionTime() except +
+        double getRetentionTime() nogil except +
         String sequence
         libcpp_vector[RetentionTime] rts
 

@@ -6,7 +6,7 @@ python pyTOPP/MRMMapper.py --in ../source/TEST/TOPP/MRMMapping_input.chrom.mzML 
         --tr ../source/TEST/TOPP/MRMMapping_input.TraML --out MRMMapper.tmp.out \
         && diff MRMMapper.tmp.out ../source/TEST/TOPP/MRMMapping_output.chrom.mzML 
 
-""""
+"""
 
 def main(options):
     precursor_tolerance = options.precursor_tolerance
@@ -47,7 +47,7 @@ def main(options):
                     raise Exception("Cannot map twice")
                 mapped_already = True
                 precursor = chrom.getPrecursor();
-                peptide = targeted.getPeptideByRef(pyopenms.String(transition.getPeptideRef() ))
+                peptide = targeted.getPeptideByRef(transition.getPeptideRef() )
                 precursor.setMetaValue("peptide_sequence", pyopenms.DataValue(peptide.sequence) )
                 chrom.setPrecursor(precursor)
                 chrom.setNativeID(transition.getNativeID())

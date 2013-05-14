@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
 
         PepXMLFile() nogil except +
 
-        void load(String & filename,
+        void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   libcpp_vector[PeptideIdentification] & peptide_ids,
                   String experiment_name,

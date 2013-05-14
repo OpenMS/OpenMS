@@ -22,15 +22,13 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
         ChromatogramSettings()    nogil except +
         ChromatogramSettings(ChromatogramSettings)    nogil except +
 
-        Precursor getPrecursor()
-        void setPrecursor(Precursor p)
-        Product getProduct()
-        void setProduct(Product p)
-        String getNativeID()
-        void setNativeID(String native_id)
+        Precursor getPrecursor() nogil except +
+        void setPrecursor(Precursor p) nogil except +
+        Product getProduct() nogil except +
+        void setProduct(Product p) nogil except +
+        String getNativeID() nogil except +
+        void setNativeID(String native_id) nogil except +
 
-        #libcpp_vector[DataProcessing] getDataProcessing
-        #void setDataProcessing(libcpp_vector[DataProcessing data_processing] )
         libcpp_vector[DataProcessing] getDataProcessing() nogil except +
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +
 

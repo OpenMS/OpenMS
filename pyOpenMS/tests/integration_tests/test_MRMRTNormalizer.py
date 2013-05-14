@@ -1,5 +1,4 @@
-import unittest
-import os
+import unittest,os
 
 import pdb
 import pyopenms
@@ -22,7 +21,7 @@ def simple_find_best_feature(output, pairs, targeted):
         best = feature
         bestscore = score
     
-    pep = targeted.getPeptideByRef( pyopenms.String(feature.getMetaValue("PeptideRef").toString() ) )
+    pep = targeted.getPeptideByRef( feature.getMetaValue("PeptideRef").toString()  )
     pairs.append( [best.getRT(), pep.getRetentionTime() ] )
 
 class TestMRMRTNormalizer(unittest.TestCase):
@@ -51,7 +50,6 @@ class TestMRMRTNormalizer(unittest.TestCase):
         empty_swath = pyopenms.MSExperiment()
         trafo = pyopenms.TransformationDescription()
         output = pyopenms.FeatureMap();
-
 
         # set up featurefinder and run
         featurefinder = pyopenms.MRMFeatureFinderScoring()
