@@ -224,7 +224,7 @@ def main():
     ok = run_mode or write_mode
     if not ok:
         parser.error("either specify -in, -(trafo_)out and -(dict)ini for running "
-                     "the peakpicker\nor -write(dict)ini for creating std "
+                     "the map aligner\nor -write(dict)ini for creating std "
                      "ini file")
 
     defaults = getDefaultParameters()

@@ -29,6 +29,7 @@ if not os.path.exists(persisted_data_path)\
     extra_cimports = ["from libc.stdint cimport *",
                 "from libc.stddef cimport *",
                 "from UniqueIdInterface cimport setUniqueId as _setUniqueId",
+                "from Map cimport Map as _Map",
                 "cimport numpy as np"]
     autowrap_include_dirs = autowrap.Main.run(pxd_files,
                                             addons,

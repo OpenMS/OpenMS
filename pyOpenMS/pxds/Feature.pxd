@@ -1,5 +1,7 @@
 from libcpp cimport bool
+from libcpp.vector cimport vector as libcpp_vector
 from DataValue cimport *
+from ConvexHull2D cimport *
 
 
 from UniqueIdInterface cimport *
@@ -30,6 +32,13 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
 
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +
+
+        libcpp_vector[Feature] getSubordinates() nogil except +
+        void setSubordinates(libcpp_vector[Feature]) nogil except +
+
+        libcpp_vector[ConvexHull2D] getConvexHulls() nogil except +
+        void setConvexHulls(libcpp_vector[ConvexHull2D]) nogil except +
+
 
         bool operator==(Feature) nogil except +
         bool operator!=(Feature) nogil except +

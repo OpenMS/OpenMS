@@ -37,16 +37,36 @@ echo
 python pyTOPP/MapAlignerPoseClustering.py -write_ini align.ini
 python pyTOPP/MapAlignerPoseClustering.py -ini align.ini -in feat_1.featureXML,feat_2.featureXML -out align_1.featureXML,align_2.featureXML -trafo_out trafo_1.transformationXML,trafo_2.transformationXML
 
-#rm pp.ini
-#rm picked_1.mzML
-#rm picked_2.mzML
+echo
+ls -lh align_?.featureXML trafo_?.transformationXML
+echo
 
-#rm fd.ini
-#rm feat1.featureXML
-#rm feat2.featureXML
+echo
+echo ============================================================
+echo FeatureLinkerUnlabeledQT
+echo ============================================================
+echo
+python pyTOPP/FeatureLinkerUnlabeledQT.py -write_ini linker.ini
+python pyTOPP/FeatureLinkerUnlabeledQT.py -ini linker.ini -in align_1.featureXML,align_2.featureXML -out cons.consensusXML 
 
-#rm align.ini
-#rm align1.featureXML
-#rm align2.featureXML
-#rm trafo1.featureXML
-#rm trafo2.featureXML
+echo
+ls -lh cons.consensusXML
+echo
+
+rm pp.ini
+rm picked_1.mzML
+rm picked_2.mzML
+
+rm fd.ini
+rm feat_1.featureXML
+rm feat_2.featureXML
+rm feat_3.featureXML
+
+rm align.ini
+rm align_1.featureXML
+rm align_2.featureXML
+rm trafo_1.transformationXML
+rm trafo_2.transformationXML
+
+rm linker.ini
+rm cons.consensusXML
