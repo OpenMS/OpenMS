@@ -78,7 +78,7 @@ ELSE()
 	MESSAGE(STATUS "Looking for autowrap - found")
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,10))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,11))"
         RESULT_VARIABLE AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -87,7 +87,7 @@ ELSE()
         MESSAGE(STATUS "Looking for autowrap - version ok")
         SET(AUTOWRAP-VERSION-OK TRUE)
     ELSE()
-        MESSAGE(STATUS "Looking for autowrap - version before 0.2.10, please upgrade")
+        MESSAGE(STATUS "Looking for autowrap - version before 0.2.11, please upgrade")
     ENDIF()
 ENDIF()
 
@@ -99,6 +99,11 @@ execute_process(
      ERROR_QUIET
      OUTPUT_QUIET
 )
+
+execute_process(
+    COMMAND ${QT_QMAKE_EXECUTABLE} -v
+    OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO
+    )
 
 
 SET(NOSE-MISSING TRUE)
@@ -213,6 +218,7 @@ set(ENVPATH ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
 FILE(WRITE ${ENVPATH} OPEN_MS_SRC="${CMAKE_SOURCE_DIR}" "\n" )
 FILE(APPEND ${ENVPATH} OPEN_MS_BUILD_DIR="${CMAKE_BINARY_DIR}" "\n")
+FILE(APPEND ${ENVPATH} QT_QMAKE_VERSION_INFO="""${QT_QMAKE_VERSION_INFO}""" "\n")
 
 FILE(APPEND ${ENVPATH} OPEN_MS_CONTRIB_BUILD_DIRS=\")
 FOREACH(CONTRIB_PATH ${CONTRIB_DIR})

@@ -19,15 +19,32 @@ try:
     from pyopenms import *
 except Exception, e:
     print
-    print "="*78
-    print 
-    print """maybe you miss some libraries. please run ldd (on linux) or dependency"""
-    print "explorer (on windows) on "
+    print "="*70
+    print
+    print "maybe you miss some libraries. please run ldd (on linux) or"
+    print "dependency walker (on windows) on "
     print
     print os.path.join(here, "pyopenms.so")
     print
-    print "="*78
-    print 
+    try:
+        import PyQt4.QtCore
+    except:
+        pass
+    else:
+        from qt_version_info import info
+
+        info = "\n    ".join(info.split("\n"))
+
+        print """When building pyopenms qmake said:
+
+    %s
+PYQT has version %s
+
+Maybe this causes a conflict.  You can test this by importing pyopenms
+first and then import PyQt4.QtCore.
+        """ % (info, PyQt4.QtCore.PYQT_VERSION_STR)
+    print "="*70
+    print
     raise e
 
 del os, here, sys

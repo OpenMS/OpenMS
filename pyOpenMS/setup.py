@@ -70,6 +70,7 @@ from version import version
 full_version= "%s_%s" % (version, timestamp)
 
 print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
+print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
 
 
 # parse config
