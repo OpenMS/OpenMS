@@ -14,3 +14,4 @@ cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS":
         void setIntensity(Real) nogil except +
         bool operator==(Peak2D) nogil except +
         bool operator!=(Peak2D) nogil except +
+

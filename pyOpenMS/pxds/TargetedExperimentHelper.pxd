@@ -55,11 +55,14 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
         Peptide() nogil except +
         Peptide(Peptide) nogil except +
+
+        # members
         libcpp_vector[RetentionTime] rts
         String id
         libcpp_vector[String] protein_refs
         CVTermList evidence
         String sequence
+        # libcpp_vector[Modification] mods
 
         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
         void replaceCVTerm(CVTerm & term)               nogil except +
@@ -83,7 +86,6 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         String getPeptideGroupLabel() nogil except +
         double getRetentionTime() nogil except +
 
-
         # cython has a problem with inheritance of overloaded methods,
         # so we do not declare them here, but separately in each derived
         # class which we want to be wrapped:
@@ -97,3 +99,17 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         bool metaValueExists(unsigned int) nogil except +
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
+
+# no support for nested classes yet in Cython
+cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::Peptide":
+
+    cdef cppclass Modification:
+
+        Modification() nogil except +
+        Modification(Modification) nogil except +
+
+        # members
+        DoubleReal avg_mass_delta
+        int location
+        DoubleReal mono_mass_delta
+

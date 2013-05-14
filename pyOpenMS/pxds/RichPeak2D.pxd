@@ -1,11 +1,11 @@
-
 from libcpp cimport bool
 from Types cimport *
 from Peak2D cimport *
 from MetaInfoInterface cimport *
 from UniqueIdInterface cimport *
 
-cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/KERNEL/RichPeak2D.h>" namespace "OpenMS":
+
 
     cdef cppclass RichPeak2D(Peak2D, UniqueIdInterface, MetaInfoInterface):
         # wrap-inherits:
