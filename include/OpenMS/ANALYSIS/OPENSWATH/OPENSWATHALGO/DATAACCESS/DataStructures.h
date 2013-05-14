@@ -132,10 +132,20 @@ public:
       return binaryDataArrayPtrs[0];
     }
 
+    void setTimeArray(BinaryDataArrayPtr data)
+    {
+      binaryDataArrayPtrs[0] = data;
+    }
+
     /// get intensity array (may be null)
     BinaryDataArrayPtr getIntensityArray()
     {
       return binaryDataArrayPtrs[1];
+    }
+
+    void setIntensityArray(BinaryDataArrayPtr data)
+    {
+      binaryDataArrayPtrs[1] = data;
     }
 
   };
@@ -208,7 +218,6 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
-    /// get intensity array (may be null)
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;

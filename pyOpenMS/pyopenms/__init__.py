@@ -17,6 +17,7 @@ if sys.platform == "linux2":
 
 try:
     from pyopenms import *
+    from python_extras import *
 except Exception, e:
     print
     print "="*70
@@ -48,4 +49,3 @@ first and then import PyQt4.QtCore.
     raise e
 
 del os, here, sys
-

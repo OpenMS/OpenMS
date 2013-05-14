@@ -17,4 +17,3 @@
         chrom = Chromatogram()
         chrom.inst = _r
         return chrom
-
