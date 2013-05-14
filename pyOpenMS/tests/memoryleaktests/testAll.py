@@ -29,7 +29,7 @@ def MemTester(name):
 
 import os
 
-if int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
+if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
 
     class TestAll(unittest.TestCase):
 
@@ -168,7 +168,7 @@ if int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
         def run_extractSpetraFromMSExperiment(self):
                 p = pyopenms.FileHandler()
                 e = pyopenms.MSExperiment()
-                p.loadExperiment("test.mzXML", e)
+                p.loadExperiment("../test.mzXML", e)
                 show_mem("data loaded")
 
                 li = []
@@ -190,29 +190,29 @@ if int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
             p = pyopenms.FileHandler()
             e = pyopenms.MSExperiment()
 
-            p.loadExperiment("test.mzXML", e)
+            p.loadExperiment("../test.mzXML", e)
             show_mem("after load mzXML")
 
             ct = pyopenms.ChromatogramTools()
             ct.convertChromatogramsToSpectra(e)
-            p.storeExperiment("test.mzXML", e)
+            p.storeExperiment("../test.mzXML", e)
             show_mem("after store mzXML")
 
-            p.loadExperiment("test.mzXML", e)
+            p.loadExperiment("../test.mzXML", e)
             show_mem("after load mzXML")
 
             p = pyopenms.FileHandler()
             ct.convertSpectraToChromatograms(e, True)
-            p.storeExperiment("test.mzML", e)
+            p.storeExperiment("../test.mzML", e)
             show_mem("after store mzML")
-            p.loadExperiment("test.mzML", e)
+            p.loadExperiment("../test.mzML", e)
             show_mem("after load mzML")
 
             p = pyopenms.FileHandler()
             ct.convertChromatogramsToSpectra(e)
-            p.storeExperiment("test.mzData", e)
+            p.storeExperiment("../test.mzData", e)
             show_mem("after store mzData")
-            p.loadExperiment("test.mzData", e)
+            p.loadExperiment("../test.mzData", e)
             show_mem("after load mzData")
 
             del e

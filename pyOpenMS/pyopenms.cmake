@@ -33,7 +33,12 @@ IF (WIN32)
     include(InstallRequiredSystemLibraries)
     SET(MSVCR90DLL ${MSVC90_CRT_DIR}/msvcr90.dll)
     IF (NOT EXISTS ${MSVCR90DLL})
-        MESSAGE(STATUS "need visual c++ 2008 runtime (called vcredist)")
+        MESSAGE(STATUS "missed msvcr90.dll - need visual c++ 2008 runtime (called vcredist)")
+        RETURN()
+    ENDIF()
+    SET(MSVCP90DLL ${MSVC90_CRT_DIR}/msvcp90.dll)
+    IF (NOT EXISTS ${MSVCP90DLL})
+        MESSAGE(STATUS "missed msvcp90.dll - need visual c++ 2008 runtime (called vcredist)")
         RETURN()
     ENDIF()
 
@@ -74,6 +79,26 @@ ELSE()
 	MESSAGE(STATUS "Looking for autowrap - found")
 ENDIF()
 
+MESSAGE(STATUS "Looking for nose testing framework")
+execute_process(
+     COMMAND
+     ${PYTHON_EXECUTABLE} -c "import nose"
+     RESULT_VARIABLE NOSE_MISSING
+     ERROR_QUIET
+     OUTPUT_QUIET
+)
+
+
+SET(NOSE-MISSING TRUE)
+IF( NOSE_MISSING EQUAL 0)
+    SET(NOSE-MISSING FALSE)
+ENDIF()
+IF(NOSE_MISSING)
+	MESSAGE(STATUS "Looking for nose testing framework - not found")
+ELSE()
+	MESSAGE(STATUS "Looking for nose testing framework - found")
+ENDIF()
+
 
 MESSAGE(STATUS "Looking for numpy")
 execute_process(
@@ -104,6 +129,7 @@ ENDIF()
 
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
+FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pxds)
@@ -119,6 +145,12 @@ FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 FILE(GLOB _python_files "pyOpenMS/tests/unittests/*")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 
+FILE(GLOB _python_files "pyOpenMS/tests/*.mzXML")
+FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
+
+FILE(GLOB _python_files "pyOpenMS/tests/memoryleaktests/*")
+FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
+
 FILE(GLOB _files "pyOpenMS/pxds/*.pxd")
 FILE(COPY ${_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pxds)
 
@@ -132,9 +164,11 @@ FILE(COPY pyOpenMS/setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/distribute_setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/run_nose.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY pyOpenMS/run_memleaks.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 
 IF (WIN32)
     FILE(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+    FILE(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
     SET(FOUND_XERCES FALSE)
     FOREACH(CONTRIB_PATH ${CONTRIB_DIR})
         IF (EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_0.dll)
@@ -166,11 +200,15 @@ FILE(APPEND ${ENVPATH} QT_HEADERS_DIR="${QT_HEADERS_DIR}" "\n")
 FILE(APPEND ${ENVPATH} QT_LIBRARY_DIR="${QT_LIBRARY_DIR}" "\n")
 FILE(APPEND ${ENVPATH} QT_QTCORE_INCLUDE_DIR="${QT_QTCORE_INCLUDE_DIR}" "\n")
 FILE(APPEND ${ENVPATH} MSVCR90DLL="${MSVCR90DLL}" "\n")
+FILE(APPEND ${ENVPATH} MSVCP90DLL="${MSVCP90DLL}" "\n")
 IF (WIN32)
+    FILE(APPEND ${ENVPATH} OPEN_MS_BUILD_TYPE="${CMAKE_BUILD_TYPE}" "\n")
     IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
         FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/OpenMSd.dll" "\n")
+        FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/OpenSwathAlgod.dll" "\n")
     ELSE()
         FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/OpenMS.dll" "\n")
+        FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/OpenSwathAlgo.dll" "\n")
     ENDIF()
 ENDIF()
 

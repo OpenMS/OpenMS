@@ -3,6 +3,17 @@
 import distribute_setup
 distribute_setup.use_setuptools()
 
+# windows ?
+import sys
+iswin = sys.platform == "win32"
+
+# import config
+from env import *
+IS_DEBUG =  OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
+
+if iswin and IS_DEBUG:
+    raise Exception("building pyopenms on windows in debug mode not tested yet.")
+
 
 # use autowrap to generate cython  and cpp file for wrapping openms:
 import autowrap.Main
@@ -26,12 +37,11 @@ persisted_data_path = "include_dir.bin"
 if not os.path.exists(persisted_data_path)\
     or any(m > mtime_result for m in mtimes):
 
-    extra_cimports = [#"from libc.stdint cimport *",
-        "from libc.stddef cimport *",
-        "from UniqueIdInterface cimport setUniqueId as _setUniqueId",
-        "from Map cimport Map as _Map",
-        "from ConsensusMap cimport FileDescriptions, FileDescriptions_iterator",
-        "cimport numpy as np"]
+    extra_cimports = [ # "from libc.stdint cimport *",
+                "from libc.stddef cimport *",
+                "from UniqueIdInterface cimport setUniqueId as _setUniqueId",
+                "from Map cimport Map as _Map",
+                "cimport numpy as np"]
     autowrap_include_dirs = autowrap.Main.run(pxd_files,
                                             addons,
                                             converters,
@@ -44,10 +54,7 @@ else:
 
 from setuptools import setup, Extension
 import os, shutil
-import sys
 import time
-
-IS_DEBUG = sys.argv[-1] == "develop"
 
 # create version information
 
@@ -60,9 +67,6 @@ full_version= "%s_%s" % (version, timestamp)
 
 print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
 
-# import config
-
-from env import *
 
 # parse config
 
@@ -80,23 +84,20 @@ j=os.path.join
 # contains share/ data and must be intalled to get access to the openms shared
 # library.
 #
-# windows ?
-
-iswin = sys.platform == "win32"
-
 if iswin:
     shutil.copy(OPEN_MS_LIB, "pyopenms")
+    shutil.copy(OPEN_SWATH_ALGO_LIB, "pyopenms")
 
-    shutil.copy(MSVCRDLL, "pyopenms")
+    shutil.copy(MSVCR90DLL, "pyopenms")
+    shutil.copy(MSVCP90DLL, "pyopenms")
+
     shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_0.dll"),\
                     "pyopenms")
 
-    libraries=["OpenMSd", "xerces-c_3D", "QtCored4", "gsl_d",
-                        "cblas_d",
-              ]
-    libraries=["OpenMS", "xerces-c_3", "QtCore4", "gsl",
-                        "cblas",
-              ]
+    if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
+        libraries=["OpenMSd", "xerces-c_3D", "QtCored4", "gsl_d", "cblas_d"]
+    else:
+        libraries=["OpenMS", "xerces-c_3", "QtCore4", "gsl", "cblas"]
 
 elif sys.platform == "linux2":
 
@@ -153,7 +154,7 @@ ext = Extension(
 share_data = []
 
 if iswin:
-    share_data += [MSVCRDLL, "xerces-c_3_0.dll"]
+    share_data += [MSVCR90DLL, "xerces-c_3_0.dll"]
 else:
     share_data += ["pyopenms/libOpenMS.so" ]
 

@@ -4,7 +4,7 @@
         self.inst.get().applyMemberFunction(address(_setUniqueId))
 
     def getFileDescriptions(self):
-        _r = self.inst.get().getFileDescriptions()
+        cdef FileDescriptions _r = self.inst.get().getFileDescriptions()
         py_result = dict()
         cdef FileDescriptions_iterator it__r = _r.begin()
         cdef FileDescription item_py_result
@@ -22,7 +22,7 @@
            deref(v0)[<unsigned long int> key] = deref((<FileDescription>value).inst.get())
         self.inst.get().setFileDescriptions(deref(v0))
         cdef replace_in_0 = dict()
-        cdef _Map[unsigned long int, _FileDescription].iterator it_in_0 = v0.begin()
+        cdef FileDescriptions_iterator it_in_0 = v0.begin()
         cdef FileDescription item_in_0
         while it_in_0 != v0.end():
            item_in_0 = FileDescription.__new__(FileDescription)

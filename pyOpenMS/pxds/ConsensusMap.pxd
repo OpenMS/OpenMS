@@ -33,6 +33,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         # wrap-inherits:
         #   UniqueIdInterface
 
+        #void setFileDescriptions(Map[long unsigned int,FileDescription] fd)
+        #ctypedef Map[long unsigned int, FileDescription] FileDescriptions
+
         ConsensusMap() nogil except +
         ConsensusMap(ConsensusMap) nogil except + # wrap-ignore
 
@@ -71,6 +74,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
         int size() nogil except +
 
+        #Map[unsigned long int,FileDescription] getFileDescriptions()
+        #void setFileDescriptions(Map[long unsigned int,FileDescription] fd)
+        #void setFileDescriptions(FileDescriptions &)
 
         FileDescriptions getFileDescriptions()       #wrap-ignore
         void setFileDescriptions(FileDescriptions &)       #wrap-ignore
