@@ -15,14 +15,6 @@ if sys.platform == "linux2":
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.so"))
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
 
-if sys.platform == "linux2":
-    # load local shared libries before we import pyopenms.so, else
-    # those are not found. setting LD_LIBRARY_PATH does not work,
-    # see: http://stackoverflow.com/questions/1178094
-    import ctypes
-    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.dylib"))
-    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.dylib"))
-
 try:
     from pyopenms import *
 except Exception, e:
