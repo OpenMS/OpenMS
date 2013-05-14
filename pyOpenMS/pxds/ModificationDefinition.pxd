@@ -1,7 +1,7 @@
 from libcpp cimport bool
 from Types cimport *
 from String cimport *
-# from ResidueModification cimport *
+from ResidueModification cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS":
     
@@ -21,3 +21,5 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
         bool operator!=(ModificationDefinition &rhs) nogil except +
         bool operator<(ModificationDefinition &) nogil except +
 
+        void setTermSpecificity(Term_Specificity pos)
+        Term_Specificity getTermSpecificity()

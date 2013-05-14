@@ -18,3 +18,11 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>" namespace "Op
 
         void calibrate(MSExperiment[Peak1D, ChromatogramPeak] & input, MSExperiment[Peak1D, ChromatogramPeak] & output, libcpp_vector[double] & exp_masses) nogil except +
         void pickAndCalibrate(MSExperiment[Peak1D, ChromatogramPeak] & input, MSExperiment[Peak1D, ChromatogramPeak] & output, libcpp_vector[double] & exp_masses) nogil except +
+
+        libcpp_vector[ double ]  getML1s()
+        void setML1s(libcpp_vector[ double ] & ml1s)
+        libcpp_vector[ double ]  getML2s()
+        void setML2s(libcpp_vector[ double ] & ml2s)
+        libcpp_vector[ double ]  getML3s()
+        void setML3s(libcpp_vector[ double ] & ml3s)
+

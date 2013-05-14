@@ -10,5 +10,6 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>" namespace "Op
         #  DefaultParamHandler
         SpectrumAlignment() nogil except +
         SpectrumAlignment(SpectrumAlignment) nogil except +
+        # TODO nested STL
         # TEMPLATE # void getSpectrumAlignment(libcpp_vector[ libcpp_pair[ Size, Size ] ] & alignment, SpectrumType & s1, SpectrumType & s2) nogil except +
 

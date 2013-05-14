@@ -3,6 +3,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from DataValue cimport *
 from String cimport *
 from Types cimport *
+from MetaInfoRegistry cimport *
 
 cdef extern from "<OpenMS/METADATA/MetaInfo.h>" namespace "OpenMS":
 
@@ -46,3 +47,4 @@ cdef extern from "<OpenMS/METADATA/MetaInfo.h>" namespace "OpenMS":
         # removes all meta values
         void clear() nogil except +
 
+        MetaInfoRegistry  registry() nogil except +

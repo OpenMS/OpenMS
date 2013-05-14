@@ -34,6 +34,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void setChromatograms(libcpp_vector[MSChromatogram[ChromoPeakT]] chromatograms) nogil except +
         void addChromatogram(MSChromatogram[ChromoPeakT] chromatogram) nogil except +
         libcpp_vector[MSChromatogram[ChromoPeakT]] getChromatograms() nogil except +
+        MSChromatogram[ ChromoPeakT ]  getChromatogram(Size id_) nogil except +
 
         MSChromatogram[ChromoPeakT] getTIC() nogil except +
         void clear(bool clear_meta_data)
@@ -82,4 +83,10 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
 
+
+
+#  -- TODO missing function in PXD:  # TEMPLATE # void get2DData(Container & cont)
+#  -- TODO missing function in PXD:  # TEMPLATE # void set2DData(Container & cont)
+#  -- TODO missing function in PXD:  AreaType  getDataRange()
+#  -- TODO missing function in PXD:  MSChromatogram[ ChromatogramPeakType ]  getChromatogram(Size id_)
 

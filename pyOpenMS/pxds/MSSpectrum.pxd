@@ -50,6 +50,16 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         bool operator==(MSSpectrum[PeakT]) nogil except +
         bool operator!=(MSSpectrum[PeakT]) nogil except +
 
+        # FloatDataArrays  getFloatDataArrays()
+        # FloatDataArrays  getFloatDataArrays()
+        # StringDataArrays  getStringDataArrays()
+        # StringDataArrays  getStringDataArrays()
+        # IntegerDataArrays  getIntegerDataArrays()
+        # IntegerDataArrays  getIntegerDataArrays()
+
+        void sortByIntensity(bool reverse)
+        void sortByPosition()
+
         void getKeys(libcpp_vector[String] & keys)
         void getKeys(libcpp_vector[unsigned int] & keys)
         DataValue getMetaValue(unsigned int) nogil except +

@@ -47,7 +47,6 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
         # DoubleReal kernelOligo(svm_node *x, svm_node *y, libcpp_vector[ double ] &gauss_table, DoubleReal sigma_square, Size max_distance0) nogil except +
         void calculateGaussTable(Size border_length, DoubleReal sigma, libcpp_vector[ double ] &gauss_table) nogil except +
 
-
 cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     
     cdef cppclass SVMData "OpenMS::SVMData":

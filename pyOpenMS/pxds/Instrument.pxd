@@ -55,6 +55,9 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS":
         # sets the instrument software
         void setSoftware(Software software) nogil except +
 
+        IonOpticsType getIonOptics()
+        void setIonOptics(IonOpticsType ion_optics)
+
 cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS::Instrument":
 
     cdef enum IonOpticsType:

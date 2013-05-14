@@ -7,7 +7,9 @@ from ISpectrumAccess cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>" namespace "OpenMS":
 
+    # see ./pyOpenMS/pyopenms/python_extras.py file 
     cdef cppclass SimpleOpenMSSpectraFactory(ProgressLogger):
+        # wrap-ignore
 
         SimpleOpenMSSpectraFactory() nogil except +
 

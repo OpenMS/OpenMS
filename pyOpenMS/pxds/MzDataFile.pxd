@@ -3,6 +3,7 @@ from MSExperiment  cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from String cimport *
+from StringList cimport *
 from ProgressLogger cimport *
 from PeakFileOptions cimport *
 
@@ -19,3 +20,6 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
 
         PeakFileOptions getOptions() nogil except +
         void setOptions(PeakFileOptions) nogil except +
+
+        bool isSemanticallyValid(String & filename, StringList & errors, StringList & warnings)
+

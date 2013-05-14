@@ -18,5 +18,5 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>" namespace "
 
         void pick(MSSpectrum[Peak1D] & input, MSSpectrum[Peak1D] & output) nogil except +
         void pickExperiment(MSExperiment[Peak1D, ChromatogramPeak] & input, MSExperiment[Peak1D, ChromatogramPeak] & output) nogil except +
-        void estimatePeakWidth(MSExperiment[Peak1D, ChromatogramPeak] & input) nogil except +
+        DoubleReal estimatePeakWidth(MSExperiment[Peak1D, ChromatogramPeak] & input) nogil except +
 

@@ -7,7 +7,7 @@ from DefaultParamHandler cimport *
 
 from PeptideIdentification cimport *
 from ProteinIdentification cimport *
-# from FASTAFile cimport *
+from FASTAFile cimport *
 
 from MSExperiment cimport *
 from MSSpectrum cimport *
@@ -18,8 +18,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
     cdef cppclass IDFilter:
 
-        IDFilter()                  nogil except +
-        IDFilter(IDFilter)   nogil except + #wrap-ignore
+        IDFilter()           nogil except +
+        IDFilter(IDFilter)   nogil except + # wrap-ignore
 
         void filterIdentificationsByThreshold(PeptideIdentification& identification, DoubleReal threshold_fraction, PeptideIdentification& filtered_identification)
         void filterIdentificationsByScore(PeptideIdentification& identification, DoubleReal threshold_score, PeptideIdentification& filtered_identification)
@@ -33,8 +33,8 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
         void filterIdentificationsByBestHits(PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict)
 
-        # void filterIdentificationsByProteins(PeptideIdentification& identification, std::vector<FASTAFile::FASTAEntry>& proteins, PeptideIdentification& filtered_identification, bool no_protein_identifiers = false)
-        # void filterIdentificationsByProteins(ProteinIdentification& identification, std::vector<FASTAFile::FASTAEntry>& proteins, ProteinIdentification& filtered_identification)
+        void filterIdentificationsByProteins(PeptideIdentification& identification, libcpp_vector[FASTAEntry]& proteins, PeptideIdentification& filtered_identification, bool no_protein_identifiers)
+        void filterIdentificationsByProteins(ProteinIdentification& identification, libcpp_vector[FASTAEntry]& proteins, ProteinIdentification& filtered_identification)
         void filterIdentificationsByExclusionPeptides(PeptideIdentification& identification, libcpp_set[String]& peptides, PeptideIdentification& filtered_identification)
         void filterIdentificationsByLength(PeptideIdentification& identification, PeptideIdentification& filtered_identification, Size min_length, Size max_length)
         void filterIdentificationsByCharge(PeptideIdentification& identification, Int charge, PeptideIdentification& filtered_identification)
@@ -48,4 +48,5 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterIdentificationsByThresholds(MSExperiment[Peak1D,ChromatogramPeak]& experiment, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction)
         void filterIdentificationsByScores(MSExperiment[Peak1D,ChromatogramPeak]& experiment, DoubleReal peptide_threshold_score, DoubleReal protein_threshold_score)
         void filterIdentificationsByBestNHits(MSExperiment[Peak1D,ChromatogramPeak]& experiment, Size n)
-        # void filterIdentificationsByProteins(MSExperiment[Peak1D,ChromatogramPeak]& experiment, std::vector<FASTAFile::FASTAEntry>& proteins)
+        void filterIdentificationsByProteins(MSExperiment[Peak1D,ChromatogramPeak]& experiment, libcpp_vector[FASTAEntry]& proteins)
+

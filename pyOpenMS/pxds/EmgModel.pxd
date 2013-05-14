@@ -12,3 +12,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>" namespace "
         # BaseModel[ 1 ] * create() nogil except +
         String getProductName() nogil except +
 
+        # inherited from parent class - no second definition necessary!
+        # void setOffset(CoordinateType offset) # wrap-ignore
+        # void setSamples() # wrap-ignore
+        # CoordinateType getCenter() # wrap-ignore
+

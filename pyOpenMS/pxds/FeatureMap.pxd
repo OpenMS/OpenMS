@@ -47,7 +47,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         libcpp_vector[PeptideIdentification] getUnassignedPeptideIdentifications() nogil except+
         void setUnassignedPeptideIdentifications(libcpp_vector[PeptideIdentification]) nogil except+
 
-        void applyMemberFunction(Size(* fun)())  nogil except + # wrap-ignore
+        Size applyMemberFunction(Size(* fun)())  nogil except + # wrap-ignore
  
         libcpp_vector[DataProcessing] getDataProcessing() nogil except +
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +

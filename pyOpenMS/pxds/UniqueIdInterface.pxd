@@ -16,6 +16,12 @@ cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS":
         Size hasInvalidUniqueId() nogil except +
         void setUniqueId(UInt64 rhs) nogil except +
         Size ensureUniqueId() nogil except +
+        
+        # overloading Cython Issue
+        # Size setUniqueId() nogil except +
+        # void setUniqueId(String & rhs) nogil except +
+
+        bool isValid(UInt64 unique_id)
 
 cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS::UniqueIdInterface":
 

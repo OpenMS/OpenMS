@@ -1,6 +1,7 @@
-from DataValue cimport *
-from String cimport *
 from libcpp cimport bool
+from Types cimport *
+from String cimport *
+from DataValue cimport *
 
 cdef extern from "<OpenMS/METADATA/CVTerm.h>" namespace "OpenMS":
 
@@ -21,3 +22,21 @@ cdef extern from "<OpenMS/METADATA/CVTerm.h>" namespace "OpenMS":
 
          DataValue getValue()   nogil except +
          void setValue(DataValue value) nogil except +
+
+         void setUnit(Unit & unit) nogil except +
+         Unit  getUnit() nogil except +
+         bool hasValue() nogil except +
+         bool hasUnit() nogil except +
+
+cdef extern from "<OpenMS/METADATA/CVTerm.h>" namespace "OpenMS::CVTerm":
+    
+    cdef cppclass Unit "OpenMS::CVTerm::Unit":
+        Unit() nogil except +
+        Unit(Unit) nogil except +
+        String accession
+        String name
+        String cv_ref
+        Unit(String & p_accession, String & p_name, String & p_cv_ref) nogil except +
+        bool operator==(Unit & rhs) nogil except +
+        bool operator!=(Unit & rhs) nogil except +
+

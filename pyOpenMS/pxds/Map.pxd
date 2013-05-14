@@ -23,3 +23,4 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Map.h>" namespace "OpenMS":
 
         Map.iterator begin() nogil
         Map.iterator end() nogil
+

@@ -13,6 +13,13 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         double library_intensity
         double product_mz
 
+        libcpp_string getNativeID()
+        libcpp_string getPeptideRef()
+        double getLibraryIntensity()
+        void setLibraryIntensity(double l)
+        double getProductMZ()
+        double getPrecursorMZ()
+
     cdef cppclass LightModification:
         LightModification()
         LightModification(LightModification)
@@ -28,6 +35,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         libcpp_string protein_ref
         libcpp_string id
         libcpp_vector[LightModification] modifications
+
+        int getChargeState()
 
     cdef cppclass LightProtein:
         LightProtein()
@@ -45,4 +54,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         libcpp_vector[LightProtein] proteins
         libcpp_vector[LightTransition] getTransitions() 
 
+        libcpp_vector[ LightPeptide ]  getPeptides()
+        libcpp_vector[ LightProtein ]  getProteins()
 

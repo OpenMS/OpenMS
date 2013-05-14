@@ -8,22 +8,19 @@ cdef extern from "<OpenMS/FORMAT/MzTab.h>" namespace "OpenMS":
         MzTabUnitIdMetaData() nogil except +
         MzTabUnitIdMetaData(MzTabUnitIdMetaData) nogil except +
 
-    # TODO 
-    # Something is very broken here, if this is included, there is an undefined
-    # symbol error when importing pyopenms into Python
-    # cdef cppclass MzTab:
+    cdef cppclass MzTab:
 
-    #     MzTab() nogil except +
-    #     MzTab(MzTab) nogil except +
+        MzTab() nogil except +
+        MzTab(MzTab) nogil except + # wrap-ignore
 
-    #     # TODO
-    #     # autowrap cannot handle wrapped classes as keys in std::map<> (this
-    #     # would be std::map<String, ...> and does not work)
-    #     # TODO STL map with wrapped key
-    #     # libcpp_map[libcpp_string, MzTabUnitIdMetaData] getMetaData() const
-    #     # MzTabProteinSectionData getProteinSectionData() const
-    #     # MzTabPeptideSectionData getPeptideSectionData() const
-    #     # MzTabSmallMoleculeSectionData getSmallMoleculeSectionData() const
+        # TODO
+        # autowrap cannot handle wrapped classes as keys in std::map<> (this
+        # would be std::map<String, ...> and does not work)
+        # TODO STL map with wrapped key
+        # libcpp_map[libcpp_string, MzTabUnitIdMetaData] getMetaData() const
+        # MzTabProteinSectionData getProteinSectionData() const
+        # MzTabPeptideSectionData getPeptideSectionData() const
+        # MzTabSmallMoleculeSectionData getSmallMoleculeSectionData() const
 
 
 
