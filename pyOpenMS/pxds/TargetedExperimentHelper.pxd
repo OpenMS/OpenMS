@@ -62,7 +62,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         libcpp_vector[String] protein_refs
         CVTermList evidence
         String sequence
-        # libcpp_vector[Modification] mods
+        libcpp_vector[Modification] mods
 
         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
         void replaceCVTerm(CVTerm & term)               nogil except +
