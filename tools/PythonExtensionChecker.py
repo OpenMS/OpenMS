@@ -88,6 +88,16 @@ def good_parse_pxd(pxdfile, comp_name):
 
     return cl
 
+def resolve_type(mdef):
+    res = []
+    for c in mdef.get_type().content_:
+        val = c.getValue()
+        if hasattr(val, "getValueOf_"):
+            res.append(val.getValueOf_())
+        else:
+            res.append(val)
+    return res
+
 class Counter(object):
     def __init__(self):
         self.total = 0
@@ -160,6 +170,10 @@ def handle_member_definition(mdef, cnt, cl):
         if mdef.name in cl.methods:
             # Found match between C++ method and Python method
             pass
+            return_type = resolve_type(mdef)
+            if not str(cl.methods[mdef.name].result_type ) in return_type:
+                print "TODO: Mismatch between C++ return type (%s) and Python return type (%s) in %s %s %s:" % ( 
+                    str(cl.methods[mdef.name].result_type), str(return_type), mdef.kind,  mdef.prot, mdef.name)
         else:
             cnt.public_methods_missing += 1
             if mdef.name.find("~") != -1:
@@ -310,7 +324,6 @@ def main(options):
         print "== Start to parse element %s - from Cpp file %s with maintainer %s and corresponding pxd file %s" % (
             comp_name, file_location, maintainer, pxdfile)
         cnt.parsed += 1
-
         leave = False
         # Loop through all sections (these are doxygen sections, not
         # interesting for our purposes) and then through all members
@@ -320,35 +333,9 @@ def main(options):
                     print "Ignore member function/attribute : ", mdef.kind,  mdef.prot, mdef.name
                     continue
                 handle_member_definition(mdef, cnt, cl)
-
-                #
-                ### print "TODO: Found ", mdef.kind,  mdef.prot, mdef.name
-                ### protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
-                ### kind = mdef.get_kind() # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot 
-                ### if kind == "enum" and protection == "public":
-                ###     cnt.enums_total += 1
-                ###     cython_file = parse_pxd_file(cl.pxd_path)
-                ###     found = False
-                ###     for klass in cython_file:
-                ###         if klass[0].name == mdef.get_name():
-                ###             found = True
-                ###             break
-                ###     if not found:
-                ###         cnt.enums_missing += 1
-
-                ### if leave:break
-                ### attrnames = [a.name for a in cl.attributes]
-                ### cnt.public_variables += 1
-                ### if not mdef.name in attrnames:
-                ###     # raise Exception("not present here... ")
-                ###     print "TODO: Found attribute in cpp but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
-                ###     cnt.public_variables_missing += 1
-
-
-
-
     cnt.print_stats()
     cnt.print_skipping_reason()
+
 
 def handle_args():
     usage = "" 
