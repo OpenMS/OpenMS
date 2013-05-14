@@ -9,7 +9,6 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
     cdef cppclass CVTermList(MetaInfoInterface):
         # wrap-inherits:
         #    MetaInfoInterface
-
         CVTermList()            nogil except +
         CVTermList(CVTermList)  nogil except +
 
@@ -31,5 +30,4 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
 
         bool hasCVTerm(String accession)  nogil except +
         bool empty()                      nogil except +
-
 

@@ -19,4 +19,13 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
 
         DoubleReal getPrecursorMZ()       nogil except +
         void setPrecursorMZ(DoubleReal)   nogil except +
+      
+        DecoyTransitionType getDecoyTransitionType() nogil except +
+
+
+cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespace "OpenMS::ReactionMonitoringTransition":
+
+    cdef enum DecoyTransitionType:
+
+        UNKNOWN, TARGET, DECOY
 

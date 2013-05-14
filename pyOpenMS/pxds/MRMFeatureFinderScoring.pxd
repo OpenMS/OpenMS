@@ -5,6 +5,7 @@ from TargetedExperiment cimport *
 from TransformationDescription cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
+from libcpp cimport bool
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespace "OpenMS":
 
@@ -20,5 +21,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
                             TargetedExperiment & transition_exp_,
                             TransformationDescription trafo,
                             MSExperiment[Peak1D, ChromatogramPeak] & swath_map) nogil except +
+        void setStrictFlag(bool flag) nogil except +
 
 
