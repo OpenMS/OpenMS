@@ -264,15 +264,72 @@ add_custom_target(pyopenms_rpm
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 add_dependencies(pyopenms_rpm OpenMS)
 
+###########################################################################
+#####                      Testing pyOpenMS                           #####
+###########################################################################
 
+# Original test using the "run_nose.py" script, testing all unittests at once
+# => this is suboptimal for ctest and cdash because we dont see which tests
+# actually have gone wrong. Thus we add additional tests below ... 
 enable_testing()
-add_test(NAME test_pyopenms 
+add_test(NAME test_pyopenms_unittests
          COMMAND ${PYTHON_EXECUTABLE} run_nose.py
          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS 
         )
 IF(NOT WIN32)
-    set_tests_properties(test_pyopenms PROPERTIES ENVIRONMENT 
-                         "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
-                     #set_target_properties(pyopenms PROPERTIES ENVIRONMENT 
-                     #"LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+    set_tests_properties(test_pyopenms_unittests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
 ENDIF()
+
+# Please add your test here when you decide to write a new testfile in the tests/unittests folder
+set(pyopenms_unittest_testfiles
+test000.py
+test_BaselineFiltering.py
+test_ChromatogramExtractor.py
+test_Convexhull.py
+testCVTermList.py
+test_DIAScoring.py
+test_FileIO.py
+testLightTargetedExperiment.py
+test_MRMFeatureFinderScoring.py
+test_MSSpectrumAndRichSpectrum.py
+test_OpenSwathDataStructures.py
+test_Smoothing.py
+testSpecialCases.py
+test_SpectraFilter.py
+test_SpectrumAccessOpenMS.py
+test_TraML.py
+)
+
+# Please add your test here when you decide to write a new testfile in the tests/unittests folder
+set(pyopenms_integrationtest_testfiles
+test_MRMRTNormalizer.py
+test_SILACAnalyzer.py
+)
+
+# Loop through all the test files 
+foreach (t ${pyopenms_unittest_testfiles})
+  add_test(NAME "pyopenms_unittest_${t}"
+    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" tests/unittests/${t} -s -v 
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+  IF(NOT WIN32)
+    set_tests_properties("pyopenms_unittest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+  ENDIF()
+endforeach(t)
+
+foreach (t ${pyopenms_integrationtest_testfiles})
+  add_test(NAME "pyopenms_integrationtest_${t}"
+    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" tests/integration_tests/${t} -s -v 
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+  IF(NOT WIN32)
+    set_tests_properties("pyopenms_integrationtest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+  ENDIF()
+endforeach(t)
+
+# Finally add the memory leaks test (in folder tests/memoryleaktests/)
+add_test(NAME pyopenms_test_memoryleaktests
+  COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" tests/memoryleaktests/ -s -v 
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+IF(NOT WIN32)
+    set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+ENDIF()
+
