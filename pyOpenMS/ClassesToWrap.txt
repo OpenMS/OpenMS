@@ -1,0 +1,228 @@
+
+n = will probably not be wrapped (even though technically possible - most likely deprecated code, abstract base class or some other reason - 10 tools)
+x = cannot / will not be wrapped (all code is in TOPP tool; 43 tools)
+xx = is not yet wrapped, must be done (2 tools)
+ok = is done (41 out of 98 are currently ok)
+
+In total, 142 classes are wrapped at the current moment.
+
+
+x    AdditiveSeries.C
+ok   BaselineFilter.C # morph filter
+ok   CompNovo.C
+ok   CompNovoCID.C
+ok   ConsensusID.C
+ok   ConsensusMapNormalizer.C # all 3 algos
+x    DBExporter.C
+x    DBImporter.C
+ok   Decharger.C
+x    DTAExtractor.C
+x    EICExtractor.C
+x    ExecutePipeline.C
+ok   FalseDiscoveryRate.C
+ok   FeatureFinderCentroided.C
+ok   FeatureFinderIsotopeWavelet.C
+ok   FeatureFinderMetabo.C
+n    FeatureFinderMRM.C
+x    FeatureFinderRaw.C
+n    FeatureLinkerBase.C
+n    FeatureLinkerLabeled.C
+n    FeatureLinkerUnlabeled.C
+ok   FeatureLinkerUnlabeledQT.C
+x    FileConverter.C
+x    FileFilter.C
+x    FileInfo.C
+x    FileMerger.C
+x    GenericWrapper.C
+x    HighResPrecursorMassCorrector.C # PPHiRes is wrapped
+x    IDConflictResolver.C
+x    IDFileConverter.C
+xx   IDFilter.C # TODO
+ok   IDMapper.C
+x    IDMerger.C
+x    IDPosteriorErrorProbability.C # PosteriorErrorProbabilityModel is wrapped
+     IDRipper.C # TODO
+x    IDRTCalibration.C
+x    InclusionExclusionListCreator.C
+x    InspectAdapter.C
+xx   InternalCalibration.C # TODO 
+ok   ITRAQAnalyzer.C
+ok   MapAlignerIdentification.C
+ok   MapAlignerPoseClustering.C
+n    MapAlignerSpectrum.C
+x    MapNormalizer.C
+x    MapRTTransformer.C
+x    MapStatistics.C
+x    MascotAdapter.C
+x    MascotAdapterOnline.C
+ok   MassTraceExtractor.C
+ok   MRMMapper.C
+x    MyriMatchAdapter.C
+x    MzTabExporter.C
+ok   NoiseFilterGaussian.C
+ok   NoiseFilterSGolay.C
+x    OMSSAAdapter.C
+ok   OpenSwathAnalyzer.C
+ok   OpenSwathChromatogramExtractor.C
+ok   OpenSwathConfidenceScoring.C
+     OpenSwathDecoyGenerator.C
+ok   OpenSwathFeatureXMLToTSV.C
+ok   OpenSwathRTNormalizer.C
+ok   PeakPickerHiRes.C
+ok   PeakPickerWavelet.C
+x    PepNovoAdapter.C
+x    PeptideIndexer.C
+     PhosphoScoring.C # AScore.pxd TODO 
+n    PILISIdentification.C
+n    PILISModelCV.C
+n    PILISModelTrainer.C
+n    PILISSpectraGenerator.C
+n    PrecursorIonSelector.C
+x    PrecursorMassCorrector.C #Isotope Wavelet is wrapped
+x    ProteinInference.C
+x    ProteinQuantifier.C # PeptideAndProteinQuant is wrapped
+     ProteinResolver.C
+x    PTModel.C
+x    PTPredict.C
+ok   Resampler.C
+x    RTModel.C
+x    RTPredict.C
+xx    SeedListGenerator.C # TODO more work required overloading methods
+x    SequestAdapter.C
+x    SILACAnalyzer.C # most of the code is in the TOPP tool
+x    SpecLibSearcher.C
+ok   SpectraFilterBernNorm.C
+ok   SpectraFilterMarkerMower.C
+ok   SpectraFilterNLargest.C
+ok   SpectraFilterNormalizer.C
+ok   SpectraFilterParentPeakMower.C
+ok   SpectraFilterScaler.C
+ok   SpectraFilterSqrtMower.C
+ok   SpectraFilterThresholdMower.C
+ok   SpectraFilterWindowMower.C
+ok   SpectraMerger.C
+x    TextExporter.C
+ok   TMTAnalyzer.C # in theory ok, Itraq Extractor and Quantifier are wrapped
+ok   TOFCalibration.C
+x    XTandemAdapter.C
+
+
+
+
+The TOPP tools are divided into several subgroups:
+
+# In general, file handling is wrapped by FORMAT/ file handlers. Currently wrapped are the following formats:
+- ConsensusXML
+- FeatureXML
+- IdXML
+- ParamXML
+- PepXML
+- TransformationXML
+- TraML
+- MzData
+- MzML
+- MzQuantML
+- MzXML
+
+File Handling
+
+x  DTAExtractor - Extracts spectra of an MS run file to several files in DTA format. # all in tool
+x  FileConverter - Converts between different MS file formats. # all in tool
+x  FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files. # all in tool
+x  FileInfo - Shows basic information about the file, such as data ranges and file type. # all in tool
+x  FileMerger - Merges several MS files into one file. # all in tool
+x  IDMerger - Merges several protein/peptide identification files into one file. # all in tool
+x  IDFileConverter - Converts identification engine file formats. # all in tool
+ok SpectraMerger - Merges spectra from an LC/MS map, either by precursor or by RT blocks # done
+x  TextExporter - Exports various XML formats to a text file. # all in tool
+
+
+Signal Processing and Preprocessing
+
+ok  BaselineFilter - Removes the baseline from profile spectra using a top-hat filter. # morphological filter ok
+xx  InternalCalibration - Applies an internal calibration. # TODO overloading fxn
+x   MapNormalizer - Normalizes peak intensities in an MS run.               # all code in TOPP tool
+ok  NoiseFilter - Removes noise from profile spectra by using different smoothing techniques. # both algos wrapped
+ok  PeakPicker - Finds mass spectrometric peaks in profile mass spectra. # both algos wrapped
+x   PrecursorMassCorrector - Correct the precursor entries of tandem MS scans. #mapped the FeatureFinder, rest of the code is in TOPP tool
+ok  Resampler - Transforms an LC/MS map into an equally-spaced (in RT and m/z) map.
+ok  SpectraFilter - Applies a filter to peak spectra. # done all 9...
+ok  TOFCalibration - Applies time of flight calibration.
+
+
+Quantitation
+
+x   AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples. # all in TOPP Tool
+ok  Decharger - Decharges and merges different feature charge variants of the same chemical entity.
+ok  FeatureFinder - Detects two-dimensional features in LC-MS data.
+ok  ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
+ok  ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps # done with PeptideAndProteinQuant
+x   SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data. ## Open TODO , most of it is in the TOPP tool
+x   SeedListGenerator - Generates seed lists for feature detection. # needs more work
+
+
+Protein/Peptide Identification
+
+ok  CompNovo - Performs a peptide/protein identification with the CompNovo engine.
+x   InspectAdapter - Identifies MS/MS spectra using Inspect (external).
+x   MascotAdapter - Identifies MS/MS spectra using Mascot (external).
+x   MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
+x   OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
+x   PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
+x   XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
+x   SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library. # too much code in TOPP tool
+
+
+Protein/Peptide Processing
+
+ok  ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
+ok  FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
+??  IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
+xx  IDFilter - Filters results from protein or peptide identification engines based on different criteria. # TODO
+ok  IDMapper - Assigns protein/peptide identifications to feature or consensus features.
+ok  IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
+x   IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards. # all in TOPP tool
+x   PeptideIndexer - Refreshes the protein references for all peptide hits. # all in TOPP tool
+x   ProteinInference - Infer proteins from a list of (high-confidence) peptides. # all in TOPP tool
+
+
+Targeted Experiments
+
+x   InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments. # most in TOPP tools except OfflinePrecursorSelection
+x   PrecursorIonSelector - A tool for precursor ion selection based on identification results.
+
+
+Peptide Property Prediction
+
+x   PTModel - Trains a model for the prediction of proteotypic peptides from a training set. # most in TOPP tool
+x   PTPredict - Predicts the likelihood of peptides to be proteotypic using a model trained by PTModel. # most in TOPP tool
+x   RTModel - Trains a model for the retention time prediction of peptides from a training set. # most in TOPP tool
+x   RTPredict - Predicts retention times for peptides using a model trained by RTModel. # most in TOPP tool
+
+
+Map Alignment
+
+ok  ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
+ok  MapAligner - Corrects retention time distortions between maps. # got 2 map aligners pose and id
+ok  FeatureLinker - Groups corresponding features in one map or across maps (after alignment). # got featurelinking qt
+
+
+## no wrapping of graphical tools
+Graphical Tools
+
+TOPPView - A viewer for mass spectrometry data.
+TOPPAS - An assistant for GUI-driven TOPP workflow design.
+INIFileEditor - An editor for OpenMS configuration files.
+
+
+## no wrapping of generic tools
+Misc
+
+GenericWrapper - Allows the generic wrapping of external tools.
+ExecutePipeline - Executes workflows created by TOPPAS.
+
+
+
+
+
+
