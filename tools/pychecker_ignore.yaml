@@ -1,4 +1,5 @@
 PyOpenMSChecker:
+  # The following methods will be ignored by the checker
   IgnoreMethods: 
 
     # Attributes of enums that are wrapped already
@@ -22,16 +23,39 @@ PyOpenMSChecker:
         - NamesOfQuantTypes
     OpenMS::Precursor:
         - NamesOfActivationMethod
+    OpenMS::DataProcessing:
+        - NamesOfProcessingAction
+    OpenMS::ProteinIdentificationVisualizer:
+        - NamesOfPeakMassType
+        - NamesOfDigestionEnzyme
 
     # problematic functions
     OpenMS::MarkerMower:
         - insertmarker # raw pointer
+    OpenMS::MSChromatogram:
+        - RTBegin
+        - RTEnd
+
     OpenMS::MorphologicalFilter:
         - filterRange # requires iterator
     OpenMS::Param::ParamIterator:
         - ParamIterator # requires iterator
+    # char pointer
+    OpenMS::Peak2D:
+        - shortDimensionName
+        - shortDimensionNameRT
+        - shortDimensionNameMZ
+        - fullDimensionName
+        - fullDimensionNameRT
+        - fullDimensionNameMZ
+        - shortDimensionUnit
+        - shortDimensionUnitRT
+        - shortDimensionUnitMZ
+        - fullDimensionUnit
+        - fullDimensionUnitRT
+        - fullDimensionUnitMZ
 
-    # not expose all string methods - Python has better ones
+    # Do not expose List and String methods - Python has better ones
     OpenMS::StringList:
         - search
         - search
@@ -216,6 +240,13 @@ PyOpenMSChecker:
     - OpenMS::Math::ROCCurve
     - OpenMS::Math::ROCCurve::simsortdec
 
+    # Base classes
+    - OpenMS::BaseGroupFinder
+    - OpenMS::BaseLabeler
+    - OpenMS::BaseModel
+    - OpenMS::BaseSuperimposer
+    - OpenMS::BigString
+
     # Internal OpenMS algorithm datastructures that cannot be used in Python
     - OpenMS::TwoDOptimization::Data
     - OpenMS::PoseClusteringAffineSuperimposer
@@ -280,6 +311,32 @@ PyOpenMSChecker:
     - OpenMS::ims::MassDecomposer
     - OpenMS::ims::RealMassDecomposer
     - OpenMS::ims::Weights
+    # Internal SuperHirn data structures
+    - OpenMS::BackgroundControl
+    - OpenMS::BackgroundIntensityBin
+    - OpenMS::CentroidData
+    - OpenMS::CentroidPeak
+    - OpenMS::ClusteredMS2ConsensusSpectrum
+    - OpenMS::ConsensusIsotopePattern
+    - OpenMS::Deisotoper
+    - OpenMS::FeatureLCProfile
+    - OpenMS::FTPeakDetectController
+    - OpenMS::IsotopicDist
+    - OpenMS::LCElutionPeak
+    - OpenMS::LCMSCData
+    - OpenMS::LCMS
+    - OpenMS::MS1FeatureMerger
+    - OpenMS::MS2ConsensusSpectrum
+    - OpenMS::MS2Feature
+    - OpenMS::MS2Fragment
+    - OpenMS::MS2Info
+    - OpenMS::MSPeak
+    - OpenMS::ProcessData
+    - OpenMS::RawData
+    - OpenMS::SHFeature
+    - OpenMS::sources.cmake
+    - OpenMS::SuperHirnParameters
+    - OpenMS::SuperHirnUtil
 
     # Exception classes
     - OpenMS::Exception::BaseException
@@ -324,160 +381,135 @@ PyOpenMSChecker:
     - OpenMS::Exception::UnregisteredParameter
     - OpenMS::Exception::WrongParameterType
 
-    # Visual
-    - OpenMS::AxisWidget
-    - OpenMS::DataFilterDialog
-    - OpenMS::EnhancedTabBar
-    - OpenMS::EnhancedTabBarWidgetInterface
-    - OpenMS::FeatureEditDialog
-    - OpenMS::HistogramDialog
-    - OpenMS::HistogramWidget
-    - OpenMS::LayerStatisticsDialog
-    - OpenMS::LayerStatisticsDialog::MetaStatsValue_
-    - OpenMS::SaveImageDialog
-    - OpenMS::SpectraIdentificationViewWidget
-    - OpenMS::SpectraViewWidget
-    - OpenMS::Spectrum1DCanvas
-    - OpenMS::Spectrum1DGoToDialog
-    - OpenMS::Spectrum1DWidget
-    - OpenMS::Spectrum2DCanvas
-    - OpenMS::Spectrum2DGoToDialog
-    - OpenMS::Spectrum2DWidget
-    - OpenMS::Spectrum3DCanvas
-    - OpenMS::Spectrum3DOpenGLCanvas
-    - OpenMS::Spectrum3DWidget
-    - OpenMS::SpectrumCanvas
-    - OpenMS::SpectrumWidget
-    - OpenMS::SpectrumAlignmentDialog
-    - OpenMS::TheoreticalSpectrumGenerationDialog
-    - OpenMS::ToolsDialog
-    #
-    - OpenMS::TOPPASBase
-    - OpenMS::TOPPASEdge
-    - OpenMS::TOPPASIOMappingDialog
-    - OpenMS::TOPPASInputFileDialog
-    - OpenMS::TOPPASInputFileListVertex
-    - OpenMS::TOPPASInputFilesDialog
-    - OpenMS::TOPPASLogWindow
-    - OpenMS::TOPPASMergerVertex
+    # All files in the VISUAL folder
+    # for root, subFolders, files in os.walk("./include/OpenMS/VISUAL"):
+    #     for f in files:
+    #         if f.endswith(".h"):
+    #             print "    - OpenMS::" + f[:-2]
+    # 
+    ## Visuals:
+    - OpenMS::AxisTickCalculator
+    - OpenMS::EnhancedWorkspace
     - OpenMS::TOPPASOutputFileListVertex
-    - OpenMS::TOPPASOutputFilesDialog
-    - OpenMS::TOPPASResource
     - OpenMS::TOPPASResources
-    - OpenMS::TOPPASScene
-    - OpenMS::TOPPASScene::TOPPProcess
-    - OpenMS::TOPPASTabBar
-    - OpenMS::TOPPASToolConfigDialog
-    - OpenMS::TOPPASToolVertex
-    - OpenMS::TOPPASToolVertex::IOInfo
-    - OpenMS::TOPPASTreeView
-    - OpenMS::TOPPASVertex
-    - OpenMS::TOPPASVertex::VertexRoundPackage
-    - OpenMS::TOPPASVertexNameDialog
-    - OpenMS::TOPPASWidget
-    - OpenMS::TOPPBase
-    - OpenMS::TOPPViewBase
+    - OpenMS::SpectraIdentificationViewWidget
+    - OpenMS::Spectrum1DWidget
+    - OpenMS::Spectrum2DWidget
+    - OpenMS::AxisPainter
+    - OpenMS::ColorSelector
+    - OpenMS::TOPPViewSpectraViewBehavior
+    - OpenMS::SpectrumCanvas
+    - OpenMS::TOPPASResource
+    - OpenMS::MetaDataBrowser
+    - OpenMS::Spectrum3DWidget
     - OpenMS::TOPPViewBehaviorInterface
     - OpenMS::TOPPViewIdentificationViewBehavior
+    - OpenMS::HistogramWidget
+    - OpenMS::LayerData
+    - OpenMS::EnhancedTabBar
+    - OpenMS::Spectrum2DCanvas
+    - OpenMS::Spectrum1DCanvas
+    - OpenMS::TOPPASEdge
+    - OpenMS::TOPPASWidget
+    - OpenMS::ListEditor
+    - OpenMS::MultiGradientSelector
+    - OpenMS::MultiGradient
+    - OpenMS::TOPPASTreeView
+    - OpenMS::TOPPASTabBar
+    - OpenMS::SpectrumWidget
+    - OpenMS::Spectrum3DOpenGLCanvas
+    - OpenMS::Spectrum3DCanvas
+    - OpenMS::TOPPASLogWindow
+    - OpenMS::AxisWidget
+    - OpenMS::TOPPASVertex
+    - OpenMS::ParamEditor
+    - OpenMS::EnhancedTabBarWidgetInterface
+    - OpenMS::TOPPASMergerVertex
+    - OpenMS::TOPPASScene
+    - OpenMS::TOPPASToolVertex
+    - OpenMS::TOPPASInputFileListVertex
+    - OpenMS::SpectraViewWidget
+    - OpenMS::DocumentIdentifierVisualizer
+    - OpenMS::MassAnalyzerVisualizer
+    - OpenMS::MetaInfoDescriptionVisualizer
+    - OpenMS::DataProcessingVisualizer
+    - OpenMS::BaseVisualizer
+    - OpenMS::ScanWindowVisualizer
+    - OpenMS::IonDetectorVisualizer
+    - OpenMS::ContactPersonVisualizer
+    - OpenMS::PeptideHitVisualizer
+    - OpenMS::ProteinHitVisualizer
+    - OpenMS::SampleVisualizer
+    - OpenMS::PeptideIdentificationVisualizer
+    - OpenMS::SoftwareVisualizer
+    - OpenMS::GradientVisualizer
+    - OpenMS::ExperimentalSettingsVisualizer
+    - OpenMS::ModificationVisualizer
+    - OpenMS::ProductVisualizer
+    - OpenMS::SourceFileVisualizer
+    - OpenMS::AcquisitionVisualizer
+    - OpenMS::TaggingVisualizer
+    - OpenMS::InstrumentVisualizer
+    - OpenMS::PrecursorVisualizer
+    - OpenMS::HPLCVisualizer
+    - OpenMS::MetaInfoVisualizer
+    - OpenMS::ProteinIdentificationVisualizer
+    - OpenMS::AcquisitionInfoVisualizer
+    - OpenMS::IonSourceVisualizer
+    - OpenMS::SpectrumSettingsVisualizer
+    - OpenMS::InstrumentSettingsVisualizer
+    - OpenMS::BaseVisualizerGUI
+    - OpenMS::DigestionVisualizer
+    - OpenMS::Annotations1DContainer
+    - OpenMS::Annotation1DItem
+    - OpenMS::Annotation1DPeakItem
+    - OpenMS::Annotation1DDistanceItem
+    - OpenMS::Annotation1DTextItem
+    - OpenMS::IDEvaluationBase
+    - OpenMS::TOPPViewBase
+    - OpenMS::INIFileEditorWindow
+    - OpenMS::TOPPASBase
+    - OpenMS::QApplicationTOPP
+    - OpenMS::ui_ParamEditor
+    - OpenMS::SpectrumAlignmentDialog
+    - OpenMS::DBOpenDialog
+    - OpenMS::TOPPASInputFileDialog
+    - OpenMS::TOPPASIOMappingDialog
+    - OpenMS::TOPPASToolConfigDialog
+    - OpenMS::ToolsDialog
+    - OpenMS::TOPPViewPrefDialog
+    - OpenMS::LayerStatisticsDialog
+    - OpenMS::Spectrum3DPrefDialog
+    - OpenMS::TheoreticalSpectrumGenerationDialog
+    - OpenMS::FeatureEditDialog
+    - OpenMS::HistogramDialog
+    - OpenMS::Spectrum2DGoToDialog
+    - OpenMS::Spectrum2DPrefDialog
+    - OpenMS::DataFilterDialog
+    - OpenMS::SaveImageDialog
+    - OpenMS::TOPPASInputFilesDialog
+    - OpenMS::TOPPASVertexNameDialog
+    - OpenMS::TOPPASOutputFilesDialog
+    - OpenMS::Spectrum1DGoToDialog
+    - OpenMS::Spectrum1DPrefDialog
     - OpenMS::TOPPViewOpenDialog
-    - OpenMS::TOPPViewSpectraViewBehavior
-
-    # all files with OPENMS_GUI_DLLAPI
-    - OpenMS::AxisTickCalculator.h
-    - OpenMS::EnhancedWorkspace.h
-    - OpenMS::TOPPASOutputFileListVertex.h
-    - OpenMS::TOPPASResources.h
-    - OpenMS::Spectrum1DWidget.h
-    - OpenMS::Spectrum2DWidget.h
-    - OpenMS::AxisPainter.h
-    - OpenMS::ColorSelector.h
-    - OpenMS::SpectrumCanvas.h
-    - OpenMS::TOPPASResource.h
-    - OpenMS::MetaDataBrowser.h
-    - OpenMS::Spectrum3DWidget.h
-    - OpenMS::HistogramWidget.h
-    - OpenMS::LayerData.h
-    - OpenMS::EnhancedTabBar.h
-    - OpenMS::Spectrum2DCanvas.h
-    - OpenMS::Spectrum1DCanvas.h
-    - OpenMS::TOPPASEdge.h
-    - OpenMS::TOPPASWidget.h
-    - OpenMS::DocumentIdentifierVisualizer.h
-    - OpenMS::MassAnalyzerVisualizer.h
-    - OpenMS::MetaInfoDescriptionVisualizer.h
-    - OpenMS::DataProcessingVisualizer.h
-    - OpenMS::BaseVisualizer.h
-    - OpenMS::ScanWindowVisualizer.h
-    - OpenMS::IonDetectorVisualizer.h
-    - OpenMS::ContactPersonVisualizer.h
-    - OpenMS::PeptideHitVisualizer.h
-    - OpenMS::ProteinHitVisualizer.h
-    - OpenMS::SampleVisualizer.h
-    - OpenMS::PeptideIdentificationVisualizer.h
-    - OpenMS::SoftwareVisualizer.h
-    - OpenMS::GradientVisualizer.h
-    - OpenMS::ExperimentalSettingsVisualizer.h
-    - OpenMS::ModificationVisualizer.h
-    - OpenMS::ProductVisualizer.h
-    - OpenMS::SourceFileVisualizer.h
-    - OpenMS::AcquisitionVisualizer.h
-    - OpenMS::TaggingVisualizer.h
-    - OpenMS::InstrumentVisualizer.h
-    - OpenMS::PrecursorVisualizer.h
-    - OpenMS::HPLCVisualizer.h
-    - OpenMS::MetaInfoVisualizer.h
-    - OpenMS::ProteinIdentificationVisualizer.h
-    - OpenMS::AcquisitionInfoVisualizer.h
-    - OpenMS::IonSourceVisualizer.h
-    - OpenMS::SpectrumSettingsVisualizer.h
-    - OpenMS::InstrumentSettingsVisualizer.h
-    - OpenMS::BaseVisualizerGUI.h
-    - OpenMS::DigestionVisualizer.h
-    - OpenMS::ListEditor.h
-    - OpenMS::ListEditor.h
-    - OpenMS::ListEditor.h
-    - OpenMS::SpectrumCanvas.h.orig
-    - OpenMS::MultiGradientSelector.h
-    - OpenMS::MultiGradient.h
-    - OpenMS::TOPPASTreeView.h
-    - OpenMS::TOPPASTabBar.h
-    - OpenMS::SpectrumWidget.h
-    - OpenMS::APPLICATIONS/IDEvaluationBase.h
-    - OpenMS::APPLICATIONS/TOPPViewBase.h
-    - OpenMS::APPLICATIONS/INIFileEditorWindow.h
-    - OpenMS::APPLICATIONS/TOPPASBase.h
-    - OpenMS::APPLICATIONS/MISC/QApplicationTOPP.h
-    - OpenMS::APPLICATIONS/TOPPViewBase.h.orig
-    - OpenMS::Spectrum3DOpenGLCanvas.h
-    - OpenMS::Spectrum3DCanvas.h
-    - OpenMS::TOPPASLogWindow.h
-    - OpenMS::AxisWidget.h
-    - OpenMS::TOPPASVertex.h
-    - OpenMS::DBOpenDialog.h
-    - OpenMS::TOPPASInputFileDialog.h
-    - OpenMS::TOPPASIOMappingDialog.h
-    - OpenMS::TOPPASToolConfigDialog.h
-    - OpenMS::ToolsDialog.h
-    - OpenMS::TOPPViewPrefDialog.h
-    - OpenMS::LayerStatisticsDialog.h
-    - OpenMS::Spectrum3DPrefDialog.h
-    - OpenMS::FeatureEditDialog.h
-    - OpenMS::HistogramDialog.h
-    - OpenMS::Spectrum2DGoToDialog.h
-    - OpenMS::Spectrum2DPrefDialog.h
-    - OpenMS::DataFilterDialog.h
-    - OpenMS::SaveImageDialog.h
-    - OpenMS::TOPPASInputFilesDialog.h
-    - OpenMS::TOPPASVertexNameDialog.h
-    - OpenMS::TOPPASOutputFilesDialog.h
-    - OpenMS::Spectrum1DGoToDialog.h
-    - OpenMS::Spectrum1DPrefDialog.h
-    - OpenMS::TOPPViewOpenDialog.h
-    - OpenMS::ParamEditor.h
-    - OpenMS::TOPPASMergerVertex.h
-    - OpenMS::TOPPASScene.h
-    - OpenMS::TOPPASToolVertex.h
-    - OpenMS::TOPPASInputFileListVertex.h
+    - OpenMS::ui_LayerStatisticsDialog
+    - OpenMS::ui_TOPPViewPrefDialog
+    - OpenMS::ui_Spectrum3DPrefDialog
+    - OpenMS::ui_SpectrumAlignmentDialog
+    - OpenMS::ui_Spectrum1DPrefDialog
+    - OpenMS::ui_Spectrum1DGoToDialog
+    - OpenMS::ui_FeatureEditDialog
+    - OpenMS::ui_TOPPASInputFilesDialog
+    - OpenMS::ui_Spectrum2DGoToDialog
+    - OpenMS::ui_TOPPASInputFileDialog
+    - OpenMS::ui_TOPPASIOMappingDialog
+    - OpenMS::ui_TOPPViewOpenDialog
+    - OpenMS::ui_TOPPASOutputFilesDialog
+    - OpenMS::ui_DataFilterDialog
+    - OpenMS::ui_TheoreticalSpectrumGenerationDialog
+    - OpenMS::ui_TOPPASVertexNameDialog
+    - OpenMS::ui_Spectrum2DPrefDialog
 
     # rarely used classes
     - OpenMS::WeightWrapper
