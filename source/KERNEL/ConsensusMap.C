@@ -46,6 +46,15 @@ namespace OpenMS
   {
   }
 
+  ConsensusMap::FileDescription::FileDescription(const ConsensusMap::FileDescription & other):
+    MetaInfoInterface(other),
+    filename(other.filename),
+    label(other.label),
+    size(other.size),
+    unique_id(other.unique_id)
+  {
+  }
+
   ConsensusMap::ConsensusMap() :
     Base(),
     MetaInfoInterface(),
@@ -225,6 +234,11 @@ namespace OpenMS
   ConsensusMap::FileDescriptions & ConsensusMap::getFileDescriptions()
   {
     return file_description_;
+  }
+
+  void ConsensusMap::setFileDescriptions(ConsensusMap::FileDescriptions & file_description)
+  {
+      file_description_ = file_description;
   }
 
   const String & ConsensusMap::getExperimentType() const

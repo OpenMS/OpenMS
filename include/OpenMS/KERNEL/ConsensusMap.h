@@ -75,6 +75,9 @@ public:
       /// Default constructor
       FileDescription();
 
+      /// Copy constructor
+      FileDescription(const FileDescription &);
+
       /// File name of the file
       String filename;
       /// Label e.g. 'heavy' and 'light' for ICAT, or 'sample1' and 'sample2' for label-free quantitation
@@ -139,6 +142,9 @@ public:
 
     /// Mutable access to the file descriptions
     OPENMS_DLLAPI FileDescriptions & getFileDescriptions();
+
+    /// Mutable access to the file descriptions
+    OPENMS_DLLAPI void setFileDescriptions(FileDescriptions & file_description);
 
     /// Non-mutable access to the experiment type
     OPENMS_DLLAPI const String & getExperimentType() const;
