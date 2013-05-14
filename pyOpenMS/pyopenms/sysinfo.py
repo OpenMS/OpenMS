@@ -42,4 +42,4 @@ else:
                      " platform, mesauring for memoryleaks will never fail\n")
 
     def free_mem():
-        return -1  # memory will never change !
+        return 0 # memory will never change !

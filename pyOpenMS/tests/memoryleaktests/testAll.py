@@ -26,7 +26,7 @@ def MemTester(name):
         missing = mem_at_start - free_mem()
         show_mem("end with")
         print
-        assert missing < 0.1* mem_at_start, "possible mem leak"
+        assert missing <= 0.1* mem_at_start, "possible mem leak: %s at start, missing %s" % (mem_at_start, missing)
 
 
 
@@ -51,7 +51,7 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
             show_mem("AT THE END ")
             print
             missing = self.mem_at_start - free_mem()
-            assert missing < 0.1* self.mem_at_start, "possible mem leak"
+            assert missing <= 0.1* self.mem_at_start, "possible mem leak: %s at start, missing %s" % (self.mem_at_start, missing)
 
         def testAll(self):
 
