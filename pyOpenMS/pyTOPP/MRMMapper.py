@@ -8,6 +8,60 @@ python pyTOPP/MRMMapper.py --in ../source/TEST/TOPP/MRMMapping_input.chrom.mzML 
 
 """
 
+def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance, allow_unmapped=True, allow_double_mappings=False):
+
+    # copy all meta data from old chromatogram
+    # TODO how to copy this! improve this!
+    output = pyopenms.MSExperiment();
+    output.fromExperiment(chromatogram_map)
+    output.clear(False); 
+    empty_chromats = []
+    output.setChromatograms(empty_chromats);
+
+    notmapped = 0
+    for chrom in chromatogram_map.getChromatograms():
+        mapped_already = False
+        for transition in targeted.getTransitions():
+            if (abs(chrom.getPrecursor().getMZ() - transition.getPrecursorMZ()) < precursor_tolerance and
+                abs(chrom.getProduct().getMZ()  -  transition.getProductMZ()) < product_tolerance):
+                if mapped_already:
+                    this_peptide = targeted.getPeptideByRef(transition.getPeptideRef() ).sequence
+                    other_peptide = chrom.getPrecursor().getMetaValue("peptide_sequence").toString()
+                    print "Found mapping of", chrom.getPrecursor().getMZ(), "/", chrom.getProduct().getMZ(), "to", transition.getPrecursorMZ(), "/",transition.getProductMZ()
+                    print "Of peptide", this_peptide
+                    print "But the chromatogram is already mapped to", other_peptide
+                    if not allow_double_mappings: raise Exception("Cannot map twice")
+                mapped_already = True
+                precursor = chrom.getPrecursor();
+                peptide = targeted.getPeptideByRef(transition.getPeptideRef() )
+                precursor.setMetaValue("peptide_sequence", pyopenms.DataValue(peptide.sequence) )
+                chrom.setPrecursor(precursor)
+                chrom.setNativeID(transition.getNativeID())
+        if not mapped_already:
+            notmapped += 1
+            print "Did not find a mapping for chromatogram", chrom.getNativeID()
+            if not allow_unmapped: raise Exception("No mapping")
+        else:
+            output.addChromatogram(chrom)
+
+    if notmapped > 0:
+        print "Could not find mapping for", notmapped, "chromatogram(s)" 
+
+
+    dp = pyopenms.DataProcessing()
+    # dp.setProcessingActions(ProcessingAction:::FORMAT_CONVERSION)
+    pa = pyopenms.ProcessingAction().FORMAT_CONVERSION
+    dp.setProcessingActions(set([pa]))
+
+    chromatograms = output.getChromatograms();
+    for chrom in chromatograms:
+        this_dp = chrom.getDataProcessing()
+        this_dp.append(dp)
+        chrom.setDataProcessing(this_dp)
+
+    output.setChromatograms(chromatograms);
+    return output
+
 def main(options):
     precursor_tolerance = options.precursor_tolerance
     product_tolerance = options.product_tolerance
@@ -29,51 +83,7 @@ def main(options):
     tramlfile = pyopenms.TraMLFile();
     tramlfile.load(traml_in, targeted);
      
-    # copy all meta data from old chromatogram
-    # TODO how to copy this! improve this!
-    output = pyopenms.MSExperiment();
-    output.fromExperiment(chromatogram_map)
-    output.clear(False); 
-    empty_chromats = []
-    output.setChromatograms(empty_chromats);
-     
-    notmapped = 0
-    for chrom in chromatogram_map.getChromatograms():
-        mapped_already = False
-        for transition in targeted.getTransitions():
-            if (abs(chrom.getPrecursor().getMZ() - transition.getPrecursorMZ()) < precursor_tolerance and
-                abs(chrom.getProduct().getMZ()  -  transition.getProductMZ()) < product_tolerance):
-                if mapped_already:
-                    raise Exception("Cannot map twice")
-                mapped_already = True
-                precursor = chrom.getPrecursor();
-                peptide = targeted.getPeptideByRef(transition.getPeptideRef() )
-                precursor.setMetaValue("peptide_sequence", pyopenms.DataValue(peptide.sequence) )
-                chrom.setPrecursor(precursor)
-                chrom.setNativeID(transition.getNativeID())
-        if not mapped_already:
-            notmapped += 1
-            print "Did not find a mapping for chromatogram", chrom.getNativeID()
-            # if strict: raise Exception("No mapping")
-        else:
-            output.addChromatogram(chrom)
-
-    if notmapped > 0:
-        print "Could not find mapping for", notmapped, "chromatogram(s)" 
-
-
-    dp = pyopenms.DataProcessing()
-    # dp.setProcessingActions(ProcessingAction:::FORMAT_CONVERSION)
-    pa = pyopenms.ProcessingAction().FORMAT_CONVERSION
-    dp.setProcessingActions(set([pa]))
-
-    chromatograms = output.getChromatograms();
-    for chrom in chromatograms:
-        this_dp = chrom.getDataProcessing()
-        this_dp.append(dp)
-        chrom.setDataProcessing(this_dp)
-
-    output.setChromatograms(chromatograms);
+    output = algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance)
 
     pyopenms.MzMLFile().store(out, output);
 

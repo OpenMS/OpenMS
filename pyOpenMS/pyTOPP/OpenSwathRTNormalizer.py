@@ -32,18 +32,7 @@ def simple_find_best_feature(output, pairs, targeted):
     pep = targeted.getPeptideByRef( feature.getMetaValue("PeptideRef").toString()  )
     pairs.append( [best.getRT(), pep.getRetentionTime() ] )
 
-def main(options):
-
-    # load chromatograms
-    chromatograms = pyopenms.MSExperiment()
-    fh = pyopenms.FileHandler()
-    fh.loadExperiment(options.infile, chromatograms)
-
-    # load TraML file
-    targeted = pyopenms.TargetedExperiment();
-    tramlfile = pyopenms.TraMLFile();
-    tramlfile.load(options.traml_in, targeted);
-
+def algorithm(chromatograms, targeted):
     # Create empty files as input and finally as output
     empty_swath = pyopenms.MSExperiment()
     trafo = pyopenms.TransformationDescription()
@@ -70,6 +59,22 @@ def main(options):
     model_params.setValue("symmetric_regression", pyopenms.DataValue('false'), '');
     model_type = "linear";
     trafo_out.fitModel(model_type, model_params);
+    return trafo_out
+
+def main(options):
+
+    # load chromatograms
+    chromatograms = pyopenms.MSExperiment()
+    fh = pyopenms.FileHandler()
+    fh.loadExperiment(options.infile, chromatograms)
+
+    # load TraML file
+    targeted = pyopenms.TargetedExperiment();
+    tramlfile = pyopenms.TraMLFile();
+    tramlfile.load(options.traml_in, targeted);
+
+    trafo_out = algorithm(chromatograms, targeted)
+
     pyopenms.TransformationXMLFile().store(options.outfile, trafo_out);
 
 def handle_args():
