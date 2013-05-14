@@ -14,6 +14,7 @@ DIAHelper.C
 DIAScoring.C
 DIAPrescoring.C
 MRMFeatureFinderScoring.C
+ConfidenceScoring.C
 )
 
 ### add path to the filenames
