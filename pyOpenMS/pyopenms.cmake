@@ -45,7 +45,6 @@ IF (WIN32)
 ENDIF(WIN32)
 
 
-MESSAGE(STATUS "Looking for cython")
 find_program( CYTHON_EXECUTABLE NAMES cython )
 
 SET(CYTHON-MISSING FALSE)
@@ -61,7 +60,6 @@ ENDIF()
 
 ###### autwowrap check ########
 
-MESSAGE(STATUS "Looking for autowrap")
 execute_process(
      COMMAND
      ${PYTHON_EXECUTABLE} -c "import autowrap"
@@ -75,23 +73,27 @@ SET(AUTOWRAP-VERSION-OK FALSE)
 IF(AUTOWRAP_MISSING)
 	MESSAGE(STATUS "Looking for autowrap - not found")
 ELSE()
-	MESSAGE(STATUS "Looking for autowrap - found")
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,11))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,12))"
         RESULT_VARIABLE AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
     )
     IF(AUTOWRAP_VERSION_OK)
-        MESSAGE(STATUS "Looking for autowrap - version ok")
+        MESSAGE(STATUS "Looking for autowrap - found autowrap, version ok")
         SET(AUTOWRAP-VERSION-OK TRUE)
     ELSE()
-        MESSAGE(STATUS "Looking for autowrap - version before 0.2.11, please upgrade")
+        execute_process(
+            COMMAND
+            ${PYTHON_EXECUTABLE} -c "import autowrap; print '%d.%d.%d' % (autowrap.version)"
+            OUTPUT_VARIABLE AUTOWRAP_VERSION
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        MESSAGE(STATUS "Looking for autowrap - version ${AUTOWRAP_VERSION} is to old, please upgrade")
     ENDIF()
 ENDIF()
 
-MESSAGE(STATUS "Looking for nose testing framework")
 execute_process(
      COMMAND
      ${PYTHON_EXECUTABLE} -c "import nose"
@@ -117,7 +119,6 @@ ELSE()
 ENDIF()
 
 
-MESSAGE(STATUS "Looking for numpy")
 execute_process(
      COMMAND
      ${PYTHON_EXECUTABLE} -c "import numpy"

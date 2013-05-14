@@ -9,7 +9,7 @@
         # handled by autowrap automatically. So we have to provide a manual
         # converter here:
         #
-        # (as far as I remember the wrapper works on linux, but msvc complains
+        # (the wrapper works on linux, but msvc complains
         # a lot about the generated code... uwe schmitt)
 
         cdef FileDescriptions _r = self.inst.get().getFileDescriptions()
