@@ -71,7 +71,7 @@ namespace OpenMS
   typedef std::vector<std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > SampleProteins;
 
   /// Container for multiple channels of SampleProteins
-  typedef std::vector<SampleProteins> SampleChannels;
+  class OPENMS_DLLAPI SampleChannels : public std::vector<SampleProteins> { }; 
 
   /// Sim FeatureMap
   typedef FeatureMap<> FeatureMapSim;
