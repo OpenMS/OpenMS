@@ -7,7 +7,6 @@ from ProgressLogger cimport *
 from String cimport *
 from TextFile cimport *
 from File cimport *
-from SVMData cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     
@@ -47,6 +46,22 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
         # DoubleReal kernelOligo(libcpp_vector[ libcpp_pair[ int, double ] ] &x, libcpp_vector[ libcpp_pair[ int, double ] ] &y, libcpp_vector[ double ] &gauss_table, int max_distance1) nogil except +
         # DoubleReal kernelOligo(svm_node *x, svm_node *y, libcpp_vector[ double ] &gauss_table, DoubleReal sigma_square, Size max_distance0) nogil except +
         void calculateGaussTable(Size border_length, DoubleReal sigma, libcpp_vector[ double ] &gauss_table) nogil except +
+
+
+cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
+    
+    cdef cppclass SVMData "OpenMS::SVMData":
+        SVMData() nogil except +
+        SVMData(SVMData) nogil except + #wrap-ignore
+        # TODO nested STL
+        # libcpp_vector[ libcpp_vector[ libcpp_pair[ Int, DoubleReal ] ] ] sequences
+        libcpp_vector[ double ] labels
+        # TODO nested STL
+        # SVMData(libcpp_vector[ libcpp_vector[ libcpp_pair[ Int, DoubleReal ] ] ] &seqs, libcpp_vector[ DoubleReal ] &lbls) nogil except +
+        bool operator==(SVMData &rhs) nogil except +
+        bool store(String &filename) nogil except +
+        bool load(String &filename) nogil except +
+
 
 cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS::SVMWrapper":
     cdef enum SVM_parameter_type "OpenMS::SVMWrapper::SVM_parameter_type":
