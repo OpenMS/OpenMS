@@ -1,4 +1,5 @@
 from MSSpectrum cimport *
+from MSChromatogram cimport *
 from DataValue cimport *
 from String cimport *
 from Peak1D cimport *
@@ -44,6 +45,12 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         libcpp_vector[MSSpectrum[PeakT]].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
         libcpp_vector[MSSpectrum[PeakT]].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
         void  erase(libcpp_vector[MSSpectrum[PeakT]].iterator) nogil except +   # wrap-ignore
+
+        libcpp_vector[MSChromatogram[ChromatogramPeak]] getChromatograms() nogil except +
+        void setChromatograms(libcpp_vector[MSChromatogram[ChromatogramPeak]] chromatograms) nogil except +
+        void addChromatogram(MSChromatogram[ChromatogramPeak] chromatogram) nogil except +
+
+        void clear(bool clear_meta_data)
 
         void getKeys(libcpp_vector[String] & keys) nogil except +
         void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
