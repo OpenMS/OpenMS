@@ -25,6 +25,84 @@ PyOpenMSChecker:
     OpenMS::MarkerMower:
         - insertmarker
 
+    # not expose all string methods - Python has better ones
+    OpenMS::StringList:
+        - search
+        - search
+        - searchSuffix
+        - searchSuffix
+        - search
+        - search
+        - searchSuffix
+        - searchSuffix
+        - contains
+        - toUpper
+        - toLower
+        - concatenate
+        - create
+        - create
+
+    OpenMS::DoubleList:
+        - contains
+        - create
+        - create
+
+    OpenMS::String:
+        - hasPrefix
+        - hasSuffix
+        - hasSubstring
+        - has
+        - prefix
+        - suffix
+        - prefix
+        - suffix
+        - prefix
+        - suffix
+        - substr
+        - chop
+        - reverse
+        - trim
+        - quote
+        - unquote
+        - simplify
+        - fillLeft
+        - fillRight
+        - toUpper
+        - toLower
+        - firstToUpper
+        - substitute
+        - substitute
+        - remove
+        - ensureLastChar
+        - removeWhitespaces
+        - toInt
+        - toFloat
+        - toDouble
+        - toQString
+        - EMPTY
+        - split
+        - split
+        - split_quoted
+        - concatenate
+        - random
+        - number
+        - numberLength
+
+    # Not part of the public interface
+    OpenMS::MRMDecoy:
+        - getDecoyIon
+        - getTargetIon
+        - getIonSeries
+        - find_all_tryptic
+        - AASequenceIdentity
+        - has_CNterminal_mods
+        - correctMasses
+        - shufflePeptide
+        - pseudoreversePeptide
+        - reversePeptide
+
+
+
   IgnoreNames: 
     # External libraries
     # -- Seqan

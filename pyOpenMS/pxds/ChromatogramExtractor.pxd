@@ -24,4 +24,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
                                   double rt_extraction_window,
                                   String filter)
 
-
+        # TODO cannot handle basic types by reference
+        # void extract_value_tophat(MSSpectrum[Peak1D] input, double mz,
+        #  Size peak_idx, double integrated_intensity, double extract_window, bool ppm)
+        # void extract_value_bartlett(MSSpectrum[Peak1D] input, double mz, 
+        #  Size peak_idx, double integrated_intensity, double extract_window, bool ppm)
+    

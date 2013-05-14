@@ -82,7 +82,6 @@ def good_parse_pxd(pxdfile, comp_name):
         handler = handlers.get(type(klass[0]))
         res = handler(klass[0], klass[1], klass[2])
         if res.annotations.has_key("wrap-attach"):
-            print "is true", res.annotations["wrap-attach"]
             if res.annotations["wrap-attach"] == cl.name:
                 ## attach this to the above class
                 cl.methods[res.name] = res
@@ -124,8 +123,13 @@ class Counter(object):
         print "Skipped files: %s" % self.skipped
         print "Parsed files: %s" % self.parsed
         print "Parsed public methods %s (of which were missing %s and %s were operator/destructors) " % (self.public_methods, self.public_methods_missing, self.public_methods_missing_nowrapping)
+        print "  - wrapped %s " % (self.public_methods - self.public_methods_missing)
+        print "  - unwrapped operators/destructors %s " % (self.public_methods_missing_nowrapping)
+        print "  - unwrapped methods %s " % (self.public_methods_missing - self.public_methods_missing_nowrapping)
         print "Parsed public enums %s (of which were missing %s) " % (self.public_enums_total, self.public_enums_missing)
         print "Parsed public attributes %s (of which were missing %s) " % (self.public_variables, self.public_variables_missing)
+        print "Note that this script counts each method name only once and only maps from \n"+ \
+              "C++ to Python (not the other way around), thus the numbers are slightly inaccurate." 
 
 def handle_member_definition(mdef, cnt, cl):
     protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
@@ -161,17 +165,9 @@ def handle_member_definition(mdef, cnt, cl):
             if mdef.name.find("~") != -1:
                 # destructor
                 cnt.public_methods_missing_nowrapping += 1
-            elif (mdef.name.find("operator=") != -1 or
-                 mdef.name.find("operator==") != -1 or
-                 mdef.name.find("operator!=") != -1 or
-                 mdef.name.find("operator+") != -1 or
-                 mdef.name.find("operator*") != -1 or
-                 mdef.name.find("operator<<") != -1 or
-                 mdef.name.find("operator<") != -1 or
-                 mdef.name.find("begin") != -1 or
-                 mdef.name.find("end") != -1 or
-                 mdef.name.find("operator[]") != -1 or
-                 mdef.name.find("operator+=") != -1):
+            elif (mdef.name.find("operator") != -1 or
+                  mdef.name.find("begin") != -1 or
+                  mdef.name.find("end") != -1):
                 cnt.public_methods_missing_nowrapping += 1
             else:
                 print "TODO: Found function in cpp but not in pxd:", mdef.kind,  mdef.prot, mdef.name
@@ -288,7 +284,7 @@ def main(options):
             print "Skip:: Ignored :: ", f
         file_location = dfile.getCompoundFileLocation()
         if file_location is None:
-            print "Skip:: No-data :: get location is None for ", f
+            print "Skip:: No-data :: there is no source file for ", f
             cnt.skipped_no_location += 1
             continue
         openms_file = OpenMSSourceFile(file_location)

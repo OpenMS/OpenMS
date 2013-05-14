@@ -23,6 +23,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         Real getScore() nogil except +
         UInt getRank() nogil except +
         AASequence getSequence() nogil except +
+        Int getCharge() nogil except +
         libcpp_vector[String] getProteinAccessions() nogil except +
         void setProteinAccessions(libcpp_vector[String]) nogil except +
 

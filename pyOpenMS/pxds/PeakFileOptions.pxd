@@ -24,3 +24,9 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
 
         void setCompression(bool) nogil except +
         bool getCompression()     nogil except +
+
+        void setMz32Bit(bool mz_32_bit) nogil except +
+        bool getMz32Bit() nogil except +
+        void setIntensity32Bit(bool int_32_bit) nogil except +
+        bool getIntensity32Bit() nogil except +
+

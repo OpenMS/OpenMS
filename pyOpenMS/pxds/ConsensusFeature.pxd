@@ -63,6 +63,15 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         void removeMetaValue(unsigned int) nogil except +
         void clearMetaInfo() nogil except +
 
+        void addRatio(Ratio r) nogil except +
+        void setRatios(libcpp_vector[Ratio] rs) nogil except +
+        libcpp_vector[Ratio] getRatios() nogil except +
+
+        # # Returns the position range of the contained elements
+        # DRange2 getPositionRange() nogil except +
+        # # Returns the intensity range of the contained elements
+        # DRange1 getIntensityRange() nogil except +
+
 cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::ConsensusFeature":
 
     # slim struct to feed the need for systematically storing of ratios ( @see MSQuantifications ).
