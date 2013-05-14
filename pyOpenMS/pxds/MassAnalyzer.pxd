@@ -99,6 +99,8 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
 
     # analyzer type
     cdef enum AnalyzerType:
+      # wrap-attach:
+      #     MassAnalyzer
       ANALYZERNULL,                                         #< Unknown
       QUADRUPOLE,                                           #< Quadrupole
       PAULIONTRAP,                                          #< Quadrupole ion trap / Paul ion trap
@@ -119,6 +121,8 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
 
     # Which of the available standard measures is used to define whether two peaks are separate
     cdef enum ResolutionMethod:
+      # wrap-attach:
+      #     MassAnalyzer
       RESMETHNULL,                      #< Unknown
       FWHM,                                     #< Full width at half max
       TENPERCENTVALLEY,             #< Ten percent valley
@@ -127,6 +131,8 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
 
     # Resolution type
     cdef enum ResolutionType:
+      # wrap-attach:
+      #     MassAnalyzer
       RESTYPENULL,              #< Unknown
       CONSTANT,                     #< Constant
       PROPORTIONAL,             #< Proportional
@@ -134,6 +140,8 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
 
     # direction of scanning
     cdef enum ScanDirection:
+      # wrap-attach:
+      #     MassAnalyzer
       SCANDIRNULL,              #< Unknown
       UP,                               #< Up
       DOWN,                             #< Down
@@ -141,6 +149,8 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
 
     #Scan law
     cdef enum ScanLaw:
+      # wrap-attach:
+      #     MassAnalyzer
       SCANLAWNULL,              #< Unknown
       EXPONENTIAL,              #< Unknown
       LINEAR,                       #< Linear
@@ -149,6 +159,8 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
 
     #Reflectron state
     cdef enum ReflectronState:
+      # wrap-attach:
+      #     MassAnalyzer
       REFLSTATENULL,            #< Unknown
       ON,                                   #< On
       OFF,                                  #< Off

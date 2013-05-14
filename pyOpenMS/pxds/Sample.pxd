@@ -73,6 +73,8 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS::Sample":
 
     cdef enum SampleState:
+        # wrap-attach:
+        #     Sample
     
-            SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE
+        SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE
 

@@ -40,9 +40,13 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
 
     cdef enum Polarity:
+        # wrap-attach:
+        #     IonSource
         POLNULL, POSITIVE, NEGATIVE, SIZE_OF_POLARITY
 
     cdef enum InletType:
+        # wrap-attach:
+        #     IonSource
         INLETNULL,                                                        #]Unknown
         DIRECT,                                                               #]Direct
         BATCH,                                                                #]Batch (e.g. in MALDI)
@@ -68,6 +72,8 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
 
     # ionization method
     cdef enum IonizationMethod:
+        # wrap-attach:
+        #     IonSource
         IONMETHODNULL,        #]Unknown
         ESI,                              #]electrospray ionisation
         EI,                               #]electron ionization

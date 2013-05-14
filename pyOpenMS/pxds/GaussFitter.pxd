@@ -5,10 +5,10 @@ from String cimport *
 
 cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Math":
 
-    cdef cppclass GaussFilter:
+    cdef cppclass GaussFitter:
 
-        GaussFilter() nogil except +
-        GaussFilter(GaussFilter) nogil except +   # wrap-ignore
+        GaussFitter() nogil except +
+        GaussFitter(GaussFitter) nogil except +   # wrap-ignore
 
         # sets the initial parameters used by the fit method as inital guess for the gaussian
         void setInitialParameters(GaussFitResult & result) nogil except +

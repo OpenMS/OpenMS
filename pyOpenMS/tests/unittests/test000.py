@@ -164,6 +164,100 @@ def testAASequence():
     assert aas.toUnmodifiedString() == ""
 
 @report
+def testElement():
+    """
+    @tests:
+     Element.__init__
+     Element.setAtomicNumber
+     Element.getAtomicNumber
+     Element.setAverageWeight
+     Element.getAverageWeight
+     Element.setMonoWeight
+     Element.getMonoWeight
+     Element.setIsotopeDistribution
+     Element.getIsotopeDistribution
+     Element.setName
+     Element.getName
+     Element.setSymbol
+     Element.getSymbol
+    """
+    ins = pyopenms.Element()
+
+    ins.setAtomicNumber(6)
+    ins.getAtomicNumber()
+    ins.setAverageWeight(12.011)
+    ins.getAverageWeight()
+    ins.setMonoWeight(12)
+    ins.getMonoWeight()
+    iso = pyopenms.IsotopeDistribution()
+    ins.setIsotopeDistribution(iso)
+    ins.getIsotopeDistribution()
+    ins.setName("Carbon")
+    ins.getName()
+    ins.setSymbol("C")
+    ins.getSymbol()
+
+@report
+def testResidue():
+    """
+    @tests:
+     Residue.__init__
+    """
+    ins = pyopenms.Residue()
+
+@report
+def testIsotopeDistribution():
+    """
+    @tests:
+     IsotopeDistribution.__init__
+    """
+    ins = pyopenms.IsotopeDistribution()
+
+    ins.setMaxIsotope(5)
+    ins.getMaxIsotope()
+    ins.getMax()
+    ins.getMin()
+    ins.size()
+    ins.clear()
+    ins.estimateFromPeptideWeight(500)
+    ins.renormalize()
+    ins.trimLeft(6.0)
+    ins.trimRight(8.0)
+
+@report
+def testEmpiricalFormula():
+    """
+    @tests:
+     EmpiricalFormula.__init__
+     EmpiricalFormula.getMonoWeight
+     EmpiricalFormula.getAverageWeight
+     EmpiricalFormula.getIsotopeDistribution
+     EmpiricalFormula.getNumberOfAtoms
+     EmpiricalFormula.setCharge
+     EmpiricalFormula.getCharge
+     EmpiricalFormula.getString
+     EmpiricalFormula.isEmpty
+     EmpiricalFormula.isCharged
+     EmpiricalFormula.hasElement
+     EmpiricalFormula.hasElement
+    """
+    ins = pyopenms.EmpiricalFormula()
+
+    ins.getMonoWeight()
+    ins.getAverageWeight()
+    ins.getIsotopeDistribution(1)
+    # ins.getNumberOf(0)
+    # ins.getNumberOf("test")
+    ins.getNumberOfAtoms()
+    ins.setCharge(2)
+    ins.getCharge()
+    ins.getString()
+    ins.isEmpty()
+    ins.isCharged()
+    ins.hasElement("C")
+    ins.hasElement(6)
+
+@report
 def testIdentificationHit():
     """
     @tests:
@@ -714,6 +808,25 @@ def testAdduct():
     a = pyopenms.Adduct()
 
 @report
+def testGaussFitter():
+    """
+    @tests:
+     GaussFitter.__init__
+    """
+    ins = pyopenms.GaussFitter()
+
+@report
+def testGaussFitResult():
+    """
+    @tests:
+     GaussFitResult.__init__
+    """
+    ins = pyopenms.GaussFitResult()
+    ins.A = 5.0
+    ins.x0 = 5.0
+    ins.sigma = 5.0
+
+@report
 def testChargePair():
     """
     @tests:
@@ -788,6 +901,10 @@ def testDateTime():
     d = pyopenms.DateTime.now()
     assert isinstance( d.getDate(), str)
     assert isinstance( d.getTime(), str)
+
+    d.clear()
+    d.set("01.01.2001 11:11:11")
+    assert d.get() == "2001-01-01 11:11:11"
 
 @report
 def testFeature():
@@ -1312,12 +1429,42 @@ def testPosteriorErrorProbabilityModel():
     @tests:
      PosteriorErrorProbabilityModel.__init__
     """
-    ff = pyopenms.PosteriorErrorProbabilityModel()
-    p = ff.getDefaults()
+    model = pyopenms.PosteriorErrorProbabilityModel()
+    p = model.getDefaults()
     _testParam(p)
 
     assert pyopenms.PosteriorErrorProbabilityModel().fit is not None
     assert pyopenms.PosteriorErrorProbabilityModel().computeProbability is not None
+
+    scores = [float(i) for i in range(10)]
+    model.fit(scores)
+    model.fit(scores, scores)
+
+    model.fillDensities(scores, scores, scores)
+
+    assert model.computeMaxLikelihood is not None
+    assert model.one_minus_sum_post is not None
+    assert model.sum_post is not None
+    assert model.sum_pos_x0 is not None
+    assert model.sum_neg_x0 is not None
+    assert model.sum_pos_sigma is not None
+    assert model.sum_neg_sigma is not None
+
+    GaussFitResult = model.getCorrectlyAssignedFitResult()
+    GaussFitResult = model.getIncorrectlyAssignedFitResult()
+    model.getNegativePrior()
+    model.getGauss(5.0, GaussFitResult)
+    model.getGumbel(5.0, GaussFitResult)
+    model.computeProbability(5.0) 
+
+    # model.InitPlots
+
+    target = [float(i) for i in range(10)]
+    model.getGumbelGnuplotFormula(GaussFitResult) 
+    model.getGaussGnuplotFormula(GaussFitResult) 
+    model.getBothGnuplotFormula(GaussFitResult, GaussFitResult) 
+    model.plotTargetDecoyEstimation(target, target)
+    model.getSmallestScore()
 
 @report
 def testSeedListGenerator():
@@ -1912,8 +2059,8 @@ def testInstrumentSettings():
      """
     ins = pyopenms.InstrumentSettings()
     _testMetaInfoInterface(ins)
-    ins.setPolarity(pyopenms.Polarity.NEGATIVE)
-    assert ins.getPolarity() == pyopenms.Polarity.NEGATIVE
+    ins.setPolarity(pyopenms.IonSource.Polarity.NEGATIVE)
+    assert ins.getPolarity() == pyopenms.IonSource.Polarity.NEGATIVE
 
     assert ins == ins
     assert not ins != ins
@@ -2055,6 +2202,23 @@ def testHPLC():
 def testInstrument():
     """
     @tests:
+     Instrument.__init__
+     Instrument.setName
+     Instrument.getName
+     Instrument.setVendor
+     Instrument.getVendor
+     Instrument.setModel
+     Instrument.getModel
+     Instrument.setCustomizations
+     Instrument.getCustomizations
+     Instrument.setIonSources
+     Instrument.getIonSources
+     Instrument.setMassAnalyzers
+     Instrument.getMassAnalyzers
+     Instrument.setIonDetectors
+     Instrument.getIonDetectors
+     Instrument.setSoftware
+     Instrument.getSoftware
      """
     ins = pyopenms.Instrument()
 
@@ -2085,6 +2249,15 @@ def testInstrument():
 def testIonDetector():
     """
     @tests:
+     IonDetector.__init__
+     IonDetector.setAcquisitionMode
+     IonDetector.getAcquisitionMode
+     IonDetector.setResolution
+     IonDetector.getResolution
+     IonDetector.setADCSamplingFrequency
+     IonDetector.getADCSamplingFrequency
+     IonDetector.setOrder
+     IonDetector.getOrder
      """
     ins = pyopenms.IonDetector()
 
@@ -2105,22 +2278,171 @@ def testIonDetector():
 def testIonSource():
     """
     @tests:
+     IonSource.__init__
+     IonSource.setPolarity
+     IonSource.getPolarity
+     IonSource.setInletType
+     IonSource.getInletType
+     IonSource.setIonizationMethod
+     IonSource.getIonizationMethod
+     IonSource.setOrder
+     IonSource.getOrder
      """
     ins = pyopenms.IonSource()
+
+    p = pyopenms.IonSource.Polarity.POSITIVE
+    ins.setPolarity(p)
+    ins.getPolarity()
+
+    i = pyopenms.IonSource.InletType.INLETNULL
+    ins.setInletType(i)
+    ins.getInletType()
+
+    i = pyopenms.IonSource.IonizationMethod.ESI
+    ins.setIonizationMethod(i)
+    ins.getIonizationMethod()
+
+    ins.setOrder(5)
+    ins.getOrder()
 
 @report
 def testMassAnalyzer():
     """
     @tests:
+     MassAnalyzer.__init__
+     MassAnalyzer.setType
+     MassAnalyzer.getType
+     MassAnalyzer.setResolutionMethod
+     MassAnalyzer.getResolutionMethod
+     MassAnalyzer.setResolutionType
+     MassAnalyzer.getResolutionType
+     MassAnalyzer.setScanDirection
+     MassAnalyzer.getScanDirection
+     MassAnalyzer.setScanLaw
+     MassAnalyzer.getScanLaw
+     MassAnalyzer.setReflectronState
+     MassAnalyzer.getReflectronState
+     MassAnalyzer.setResolution
+     MassAnalyzer.getResolution
+     MassAnalyzer.setAccuracy
+     MassAnalyzer.getAccuracy
+     MassAnalyzer.setScanRate
+     MassAnalyzer.getScanRate
+     MassAnalyzer.setScanTime
+     MassAnalyzer.getScanTime
+     MassAnalyzer.setTOFTotalPathLength
+     MassAnalyzer.getTOFTotalPathLength
+     MassAnalyzer.setIsolationWidth
+     MassAnalyzer.getIsolationWidth
+     MassAnalyzer.setFinalMSExponent
+     MassAnalyzer.getFinalMSExponent
+     MassAnalyzer.setMagneticFieldStrength
+     MassAnalyzer.getMagneticFieldStrength
+     MassAnalyzer.setOrder
+     MassAnalyzer.getOrder
      """
     ins = pyopenms.MassAnalyzer()
+
+    ma = pyopenms.MassAnalyzer.AnalyzerType.QUADRUPOLE
+    ins.setType(ma)
+    ins.getType()
+
+    res = pyopenms.MassAnalyzer.ResolutionMethod.FWHM
+    ins.setResolutionMethod(res)
+    ins.getResolutionMethod()
+
+    res = pyopenms.MassAnalyzer.ResolutionType.CONSTANT
+    ins.setResolutionType(res)
+    ins.getResolutionType()
+
+    res = pyopenms.MassAnalyzer.ScanDirection.UP
+    ins.setScanDirection(res)
+    ins.getScanDirection()
+
+    res = pyopenms.MassAnalyzer.ScanLaw.LINEAR
+    ins.setScanLaw(res)
+    ins.getScanLaw()
+
+    res = pyopenms.MassAnalyzer.ReflectronState.ON
+    ins.setReflectronState(res)
+    ins.getReflectronState()
+
+    ins.setResolution(5.0)
+    ins.getResolution()
+    ins.setAccuracy(5.0)
+    ins.getAccuracy()
+    ins.setScanRate(5.0)
+    ins.getScanRate()
+    ins.setScanTime(5.0)
+    ins.getScanTime()
+    ins.setTOFTotalPathLength(5.0)
+    ins.getTOFTotalPathLength()
+    ins.setIsolationWidth(5.0)
+    ins.getIsolationWidth()
+    ins.setFinalMSExponent(5)
+    ins.getFinalMSExponent()
+    ins.setMagneticFieldStrength(5.0)
+    ins.getMagneticFieldStrength()
+    ins.setOrder(5)
+    ins.getOrder()
 
 @report
 def testSample():
     """
     @tests:
+     Sample.__init__
+     Sample.setName
+     Sample.getName
+     Sample.setOrganism
+     Sample.getOrganism
+     Sample.setNumber
+     Sample.getNumber
+     Sample.setComment
+     Sample.getComment
+     Sample.setState
+     Sample.getState
+     Sample.setMass
+     Sample.getMass
+     Sample.setVolume
+     Sample.getVolume
+     Sample.setConcentration
+     Sample.getConcentration
+     Sample.getSubsamples
+     Sample.setSubsamples
+     Sample.removeTreatment
+     Sample.countTreatments
      """
     ins = pyopenms.Sample()
+
+    ins.setName("test")
+    ins.getName()
+    ins.setOrganism("test")
+    ins.getOrganism()
+    ins.setNumber("test")
+    ins.getNumber()
+    ins.setComment("test")
+    ins.getComment()
+
+    state = pyopenms.Sample.SampleState.LIQUID
+    ins.setState(state)
+    ins.getState()
+    ins.setMass(42.0)
+    ins.getMass()
+    ins.setVolume(42.0)
+    ins.getVolume()
+    ins.setConcentration(42.0)
+    ins.getConcentration()
+
+    a = ins.getSubsamples()
+    ins.setSubsamples(a)
+
+    has_exception = False
+    try:
+        ins.removeTreatment(0)
+    except Exception:
+        has_exception = True
+    assert has_exception
+    assert ins.countTreatments() == 0
 
 @report
 def testLogType():
@@ -2809,9 +3131,9 @@ def testPolarity():
      Polarity.POSITIVE
      Polarity.SIZE_OF_POLARITY
     """
-    assert isinstance(pyopenms.Polarity.NEGATIVE, int)
-    assert isinstance(pyopenms.Polarity.POLNULL, int)
-    assert isinstance(pyopenms.Polarity.POSITIVE, int)
+    assert isinstance(pyopenms.IonSource.Polarity.NEGATIVE, int)
+    assert isinstance(pyopenms.IonSource.Polarity.POLNULL, int)
+    assert isinstance(pyopenms.IonSource.Polarity.POSITIVE, int)
 
 
 @report
