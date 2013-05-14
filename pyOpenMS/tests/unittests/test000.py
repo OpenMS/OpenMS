@@ -575,7 +575,9 @@ def testSemanticValidator():
     @tests:
      SemanticValidator.__init__
     """
-    val = pyopenms.SemanticValidator()
+    m = pyopenms.CVMappings()
+    cv = pyopenms.ControlledVocabulary()
+    val = pyopenms.SemanticValidator(m, cv)
 
     assert val.validate is not None
     assert val.setCheckTermValueTypes is not None
