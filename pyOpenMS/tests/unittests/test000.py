@@ -1289,6 +1289,13 @@ def testMRMFeature():
     assert mrmfeature.getScore("testscore") == 7.0
 
 @report
+def testConfidenceScoring():
+    """
+    @tests:
+     """
+    scoring = pyopenms.ConfidenceScoring()
+
+@report
 def testMRMTransitionGroup():
     """
     @tests:
