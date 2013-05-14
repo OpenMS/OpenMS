@@ -1,5 +1,7 @@
 from libcpp cimport bool
 
+# this class has addons, see the ./addons folder
+
 cdef extern from "<OpenMS/DATASTRUCTURES/Map.h>" namespace "OpenMS":
 
     cdef cppclass Map[U, V]:

@@ -3,6 +3,8 @@ from libcpp.vector cimport vector as libcpp_vector
 from DPosition cimport *
 from DBoundingBox cimport *
 
+# this class has addons, see the ./addons folder
+
 cdef extern from "<OpenMS/DATASTRUCTURES/ConvexHull2D.h>" namespace "OpenMS":
 
     cdef cppclass ConvexHull2D:

@@ -6,6 +6,7 @@ from DataValue cimport *
 from String cimport *
 from StringList cimport *
 
+# this class has addons, see the ./addons folder
 
 cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
 

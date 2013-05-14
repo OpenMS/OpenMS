@@ -9,6 +9,8 @@ from DataProcessing cimport *
 from Types cimport *
 from Map cimport *
 
+# this class has addons, see the ./addons folder
+
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMap":
 
     cdef cppclass FileDescription:

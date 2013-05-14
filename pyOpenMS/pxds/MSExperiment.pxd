@@ -6,6 +6,8 @@ from Peak1D cimport *
 from ChromatogramPeak cimport *
 from MetaInfoInterface cimport *
 
+# this class has addons, see the ./addons folder
+
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
     cdef cppclass MSExperiment[PeakT, ChromoPeakT](MetaInfoInterface):

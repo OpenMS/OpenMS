@@ -1,6 +1,8 @@
 from libcpp cimport bool
 from Types cimport *
 
+# this class has addons, see the ./addons folder
+
 cdef extern from "<OpenMS/DATASTRUCTURES/DPosition.h>" namespace "OpenMS":
 
 

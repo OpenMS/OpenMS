@@ -5,6 +5,8 @@ from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 from DataProcessing cimport *
 
+# this class has addons, see the ./addons folder
+
 cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
     cdef cppclass FeatureMap[FeatureT](UniqueIdInterface):

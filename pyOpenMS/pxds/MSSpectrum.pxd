@@ -5,6 +5,8 @@ from MetaInfoInterface cimport *
 from Peak1D cimport *
 from String cimport *
 
+# this class has addons, see the ./addons folder
+
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
     cdef cppclass MSSpectrum[PeakT](SpectrumSettings, MetaInfoInterface):
