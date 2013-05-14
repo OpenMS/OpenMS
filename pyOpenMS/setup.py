@@ -61,11 +61,11 @@ import os, shutil
 import time
 
 # Due to a bug in Cython when dealing with destructors of typedefs, we have to
-# fix the .cpp file manually (the bug is only triggered with clang, see also 
+# fix the .cpp file manually (the bug is only triggered with clang, see also
 # https://bugzilla.mozilla.org/show_bug.cgi?id=623303 )
-# We thus replace all occurences of 
+# We thus replace all occurences of
 #   p->__pyx_v_it.std::vector<T>::iterator::~iterator();
-# with 
+# with
 #   typedef std::vector<T>::iterator _it;
 #   p->__pyx_v_it.~_it();
 
@@ -92,7 +92,7 @@ from version import version
 full_version= "%s_%s" % (version, timestamp)
 
 print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
-# print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
+print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
 
 
 # parse config
@@ -178,7 +178,7 @@ if sys.platform == "linux2":
     extra_link_args = [ "-Wl,-s"]
 elif sys.platform == "darwin":
     # we need to manually link to the Qt Frameworks
-    extra_link_args = [ "-Wl,-s", 
+    extra_link_args = [ "-Wl,-s",
                         "-F"+QT_LIBRARY_DIR,
                         "-framework Carbon",
                         "-framework AGL",
@@ -228,7 +228,7 @@ share_data.append("License.txt")
 # enforce 64bit-only build as OpenMS is not available in 32bit on osx
 if sys.platform == "darwin":
     os.environ['ARCHFLAGS'] = "-arch x86_64"
-    
+
 setup(
 
     name = "pyopenms",

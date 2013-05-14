@@ -25,16 +25,14 @@
         cdef int flag
 
         if len(a) == 1 and isinstance(a[0], dict):
-            dd = a[0]
+            dd, = a
             for key, v in dd.items():
                 self[key] = v
-
         elif len(a) == 1 and isinstance(a[0], Param):
-            p = a[0]
+            p, = a
             self.inst.get().update(<_Param>deref(p.inst.get()))
         elif len(a) == 2 and isinstance(a[0], Param) and isinstance(a[1], int):
-            p = a[0]
-            flag = a[1]
+            p, flag = a
             self.inst.get().update(<_Param>deref(p.inst.get()), <bool> flag)
         else:
             raise Exception("can not handle parameters of type %s" % (map(type, a)))
