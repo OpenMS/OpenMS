@@ -1,6 +1,5 @@
 from libcpp cimport bool
 from String cimport *
-from Map cimport *
 from CVTerm cimport *
 from MetaInfoInterface cimport *
 from CVMappingTerm cimport *

@@ -66,6 +66,7 @@ cdef extern from "<OpenMS/FORMAT/SequestInfile.h>" namespace "OpenMS":
         bool getResiduesInUpperCase() nogil except +
         void setResiduesInUpperCase(bool residues_in_upper_case) nogil except +
         void addEnzymeInfo(libcpp_vector[ String ] &enzyme_info) nogil except +
+        # TODO STL map with wrapped key
         # libcpp_map[ String, libcpp_vector[ String ] ]  getModifications() nogil except +
         void handlePTMs(String &modification_line, String &modifications_filename, bool monoisotopic) nogil except +
 

@@ -20,6 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
         void alignPeakMaps(libcpp_vector[MSExperiment[Peak1D,ChromatogramPeak]] & maps, libcpp_vector[TransformationDescription] & trafos) nogil except +
         void alignFeatureMaps(libcpp_vector[FeatureMap[Feature]] & features, libcpp_vector[TransformationDescription] & trafos) nogil except +
         void alignConsensusMaps(libcpp_vector[ConsensusMap] & features, libcpp_vector[TransformationDescription] & trafos) nogil except +
+        # TODO nested STL
         void alignPeptideIdentifications(libcpp_vector[libcpp_vector[PeptideIdentification]] & ids, libcpp_vector[TransformationDescription] & trafos) nogil except + #wrap-ignore
 
         void setReference(Size ref, String model_type) nogil except +

@@ -14,8 +14,10 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespac
         SvmModelParameterSet(SvmModelParameterSet) nogil except + #wrap-ignore
         # libcpp_vector[ shared_ptr[ SVMWrapper ] ] class_models
         # libcpp_vector[ shared_ptr[ SVMWrapper ] ] reg_models
+        # TODO STL map with wrapped key
         # libcpp_map[ ResidueType, double ] _intensities
         # libcpp_vector[ IonType ] ion_types
+        # TODO STL map with wrapped key
         # libcpp_map[ IonType, libcpp_vector[ IonType ] ] secondary_types
         Size number_intensity_levels
         Size number_regions
@@ -25,5 +27,6 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespac
         double scaling_upper
         libcpp_vector[ double ] intensity_bin_boarders
         libcpp_vector[ double ] intensity_bin_values
+        # TODO nested STL
         # libcpp_map[ libcpp_pair[ IonType, Size ], libcpp_vector[ libcpp_vector[ double ] ] ] conditional_prob
 

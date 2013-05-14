@@ -1,7 +1,6 @@
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from String cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/CVReference.h>" namespace "OpenMS":
     

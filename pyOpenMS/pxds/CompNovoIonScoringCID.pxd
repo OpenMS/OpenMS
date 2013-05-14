@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>" namespace "O
     cdef cppclass CompNovoIonScoringCID "OpenMS::CompNovoIonScoringCID":
         CompNovoIonScoringCID() nogil except +
         CompNovoIonScoringCID(CompNovoIonScoringCID) nogil except +
+        # TODO OpenMS Map type
         # void scoreSpectrum(Map[ DoubleReal, IonScore ] & CID_ion_scores, 
         #   MSSpectrum[Peak1D] &CID_spec, DoubleReal precursor_weight, Size charge) nogil except +
 

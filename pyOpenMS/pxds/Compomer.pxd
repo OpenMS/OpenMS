@@ -23,8 +23,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         Size getID() nogil except +
 
         # /// left and right adducts of this compomer
-        # TODO 
-        ## libcpp_vector[Map[String, Adduct] ] getComponent() nogil except +
+        # TODO OpenMS Map type
+        libcpp_vector[Map[String, Adduct] ] getComponent() nogil except + # wrap-ignore
     
         # /// net charge of compomer (i.e. difference between left and right side of compomer)
         Int getNetCharge() nogil except +

@@ -17,6 +17,7 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS::QcMLFile":
         String binary
         String qualityRef
         libcpp_vector[ String ] colTypes
+        # TODO nested STL
         # libcpp_vector[ libcpp_vector[ String ] ] tableRows
         bool operator==(Attachment &rhs) nogil except +
         bool operator<(Attachment &rhs) nogil except +

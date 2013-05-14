@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" names
         # /// Applies the <i>given</i> transformations to consensus maps
         void transformConsensusMaps(libcpp_vector[ConsensusMap] & maps, libcpp_vector[TransformationDescription] & given_trafos)
 
-        # NESTED std::vector TODO
+        # TODO nested STL
         # /// Applies the <i>given</i> transformations to peptide identifications
         ## void transformPeptideIdentifications(libcpp_vector[libcpp_vector[PeptideIdentification] ] & maps, libcpp_vector[TransformationDescription] & given_trafos)
 

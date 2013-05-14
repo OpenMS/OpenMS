@@ -24,6 +24,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
         void predict(SVMData &problem, libcpp_vector[ double ] &results) nogil except +
         Int getIntParameter(SVM_parameter_type type_) nogil except +
         DoubleReal getDoubleParameter(SVM_parameter_type type_) nogil except +
+        # TODO STL map with wrapped key
         # void predict(libcpp_vector[ svm_node * ] &vectors, libcpp_vector[ double ] &predicted_rts) nogil except +
         # DoubleReal performCrossValidation(svm_problem *problem_ul, SVMData &problem_l, bool is_labeled, libcpp_map[ SVM_parameter_type, DoubleReal ] &start_values_map, libcpp_map[ SVM_parameter_type, DoubleReal ] &step_sizes_map, libcpp_map[ SVM_parameter_type, DoubleReal ] &end_values_map, Size number_of_partitions, Size number_of_runs, libcpp_map[ SVM_parameter_type, DoubleReal ] &best_parameters, bool additive_step_sizesrue, bool outputalse, String, bool mcc_as_performance_measurealse) nogil except +
         DoubleReal getSVRProbability() nogil except +

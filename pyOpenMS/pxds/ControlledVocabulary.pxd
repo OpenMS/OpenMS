@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS":
         CVTerm_ControlledVocabulary getTermByName(String name, String desc) nogil except +
 
         # returns all the terms stored in the CV
-        # TODO map with String
+        # TODO OpenMS Map type
         # Map[String, CVTerm_ControlledVocabulary] getTerms() nogil except +
 
         void getAllChildTerms(libcpp_set[String] terms, String parent) nogil except +

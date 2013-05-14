@@ -25,6 +25,7 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
                              String accession
                             ) nogil except +
 
+
         void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
                             ) nogil except +
 

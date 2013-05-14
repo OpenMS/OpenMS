@@ -26,6 +26,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
 
         libcpp_vector[DataProcessing] getDataProcessingList() nogil except +
         libcpp_vector[Assay] getAssays() nogil except +
+        # TODO STL map with wrapped key
         # libcpp_map[String, Ratio] getRatios() nogil except +
         libcpp_vector[ConsensusMap] getConsensusMaps() nogil except +
         void setConsensusMaps(libcpp_vector[ConsensusMap]) nogil except +
@@ -35,7 +36,8 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         void setAnalysisSummaryQuantType(QUANT_TYPES r) nogil except +
         void addConsensusMap(ConsensusMap m) nogil except +
         void assignUIDs() nogil except +
-        # void registerExperiment(MSExperiment<Peak1D] exp, libcpp_vector[libcpp_vector[std::pair<String, DoubleReal] ] ] labels) nogil except +
+        # TODO nested STL
+        # void registerExperiment(MSExperiment[Peak1D] exp, libcpp_vector[libcpp_vector[libcpp_pair[String, DoubleReal] ] ] labels) nogil except +
 
 cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQuantifications":
     # derived from processing applied

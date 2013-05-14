@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/FORMAT/MzTab.h>" namespace "OpenMS":
     #     # TODO
     #     # autowrap cannot handle wrapped classes as keys in std::map<> (this
     #     # would be std::map<String, ...> and does not work)
+    #     # TODO STL map with wrapped key
     #     # libcpp_map[libcpp_string, MzTabUnitIdMetaData] getMetaData() const
     #     # MzTabProteinSectionData getProteinSectionData() const
     #     # MzTabPeptideSectionData getPeptideSectionData() const
