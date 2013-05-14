@@ -20,10 +20,16 @@ PyOpenMSChecker:
         - AcquisitionMode
     OpenMS::MSQuantifications:
         - NamesOfQuantTypes
+    OpenMS::Precursor:
+        - NamesOfActivationMethod
 
     # problematic functions
     OpenMS::MarkerMower:
-        - insertmarker
+        - insertmarker # raw pointer
+    OpenMS::MorphologicalFilter:
+        - filterRange # requires iterator
+    OpenMS::Param::ParamIterator:
+        - ParamIterator # requires iterator
 
     # not expose all string methods - Python has better ones
     OpenMS::StringList:
@@ -101,8 +107,6 @@ PyOpenMSChecker:
         - pseudoreversePeptide
         - reversePeptide
 
-
-
   IgnoreNames: 
     # External libraries
     # -- Seqan
@@ -126,4 +130,355 @@ PyOpenMSChecker:
     - std::valarray
     - std::vector
     - std::weak_ptr
+
+    # Internal OpenMS datastructures that cannot be used in Python 
+    - OpenMS::Internal::ClassTest
+    - OpenMS::Bzip2Ifstream
+    - OpenMS::Bzip2InputStream
+    - OpenMS::GzipIfstream
+    - OpenMS::GzipInputStream
+    - OpenMS::LogConfigHandler
+    - OpenMS::Logger::LogStream
+    - OpenMS::Logger::LogStreamBuf
+    - OpenMS::Logger::LogStreamBuf::LogCacheStruct
+    - OpenMS::Logger::LogStreamBuf::StreamStruct
+    - OpenMS::Logger::LogStreamNotifier
+    - OpenMS::Internal
+    - OpenMS::Internal::AcqusHandler
+    - OpenMS::Internal::AreaIterator
+    - OpenMS::Internal::ClassTest
+    - OpenMS::Internal::DIntervalBase
+    - OpenMS::Internal::FidHandler
+    - OpenMS::Internal::FileMapping
+    - OpenMS::Internal::IntensityIterator
+    - OpenMS::Internal::IntensityLess
+    - OpenMS::Internal::ListEditorDelegate
+    - OpenMS::Internal::ListTable
+    - OpenMS::Internal::MappingParam
+    - OpenMS::Internal::MascotXMLHandler
+    - OpenMS::Internal::MzDataHandler
+    - OpenMS::Internal::MzDataValidator
+    - OpenMS::Internal::MzIdentMLHandler
+    - OpenMS::Internal::MzIdentMLValidator
+    - OpenMS::Internal::MzIterator
+    - OpenMS::Internal::MzMLHandler
+    - OpenMS::Internal::MzMLHandler::BinaryData
+    - OpenMS::Internal::MzMLValidator
+    - OpenMS::Internal::MzQuantMLHandler
+    - OpenMS::Internal::MzQuantMLValidator
+    - OpenMS::Internal::MzXMLHandler
+    - OpenMS::Internal::OpenMSOSInfo
+    - OpenMS::Internal::OpenMSXMLFormatTarget
+    - OpenMS::Internal::PTMXMLHandler
+    - OpenMS::Internal::ParamEditorDelegate
+    - OpenMS::Internal::ParamTree
+    - OpenMS::Internal::ParamXMLHandler
+    - OpenMS::Internal::RtIterator
+    - OpenMS::Internal::Spectrum1DPrefDialog
+    - OpenMS::Internal::Spectrum2DPrefDialog
+    - OpenMS::Internal::Spectrum3DPrefDialog
+    - OpenMS::Internal::StringManager
+    - OpenMS::Internal::TOPPViewPrefDialog
+    - OpenMS::Internal::ToolDescription
+    - OpenMS::Internal::ToolDescriptionHandler
+    - OpenMS::Internal::ToolDescriptionInternal
+    - OpenMS::Internal::ToolExternalDetails
+    - OpenMS::Internal::TraMLHandler
+    - OpenMS::Internal::TraMLValidator
+    - OpenMS::Internal::UnimodXMLHandler
+    - OpenMS::Internal::XMLFile
+    - OpenMS::Internal::XMLHandler
+    - OpenMS::Internal::XMLHandler::EndParsingSoftly
+    - OpenMS::Internal::XTandemInfileNote
+    - OpenMS::Internal::XTandemInfileXMLHandler
+    - OpenMS::SparseVector
+    - OpenMS::SparseVector::SparseVectorConstIterator
+    - OpenMS::SparseVector::SparseVectorConstReverseIterator
+    - OpenMS::SparseVector::SparseVectorIterator
+    - OpenMS::SparseVector::SparseVectorReverseIterator
+    - OpenMS::SparseVector::ValueProxy
+
+    # Math - may be wrapped at some point but Python provides also functions for these
+    - OpenMS::Math
+    - OpenMS::Math::AsymmetricStatistics
+    - OpenMS::Math::AveragePosition
+    - OpenMS::Math::BasicStatistics
+    - OpenMS::Math::BilinearInterpolation
+    - OpenMS::Math::GammaDistributionFitter
+    - OpenMS::Math::GammaDistributionFitter::GammaDistributionFitResult
+    - OpenMS::Math::GaussFitter
+    - OpenMS::Math::GaussFitter::GaussFitResult
+    - OpenMS::Math::GumbelDistributionFitter
+    - OpenMS::Math::GumbelDistributionFitter::GumbelDistributionFitResult
+    - OpenMS::Math::Histogram
+    - OpenMS::Math::LinearInterpolation
+    - OpenMS::Math::LinearRegression
+    - OpenMS::Math::ROCCurve
+    - OpenMS::Math::ROCCurve::simsortdec
+
+    # Internal OpenMS algorithm datastructures that cannot be used in Python
+    - OpenMS::TwoDOptimization::Data
+    - OpenMS::PoseClusteringAffineSuperimposer
+    - OpenMS::PoseClusteringShiftSuperimposer
+    - OpenMS::Base64::Reinterpreter32_
+    - OpenMS::Base64::Reinterpreter64_
+    - OpenMS::BinnedSharedPeakCount
+    - OpenMS::BinnedSpectralContrastAngle
+    - OpenMS::BinnedSpectrum
+    - OpenMS::BinnedSpectrum::NoSpectrumIntegrated
+    - OpenMS::BinnedSpectrumCompareFunctor
+    - OpenMS::BinnedSpectrumCompareFunctor::IncompatibleBinning
+    - OpenMS::BinnedSumAgreeingIntensities
+    - OpenMS::ClusterFunctor
+    - OpenMS::ClusterFunctor::InsufficientInput
+    - OpenMS::CompNovoIdentificationBase
+    - OpenMS::CompNovoIdentificationBase::Permut
+    - OpenMS::CompNovoIonScoringBase
+    - OpenMS::CompNovoIonScoringBase::IonScore
+    - OpenMS::ConstRefVector
+    - OpenMS::ConstRefVector::ConstRefVectorConstIterator
+    - OpenMS::ConstRefVector::ConstRefVectorIterator
+    - OpenMS::Constants # maybe we also need constants ?
+    - OpenMS::DBAdapter
+    - OpenMS::DBConnection
+    - OpenMS::DBConnection::InvalidQuery
+    - OpenMS::DBConnection::NotConnected
+    - OpenMS::DBOpenDialog
+    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern
+    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace
+    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces
+    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::Seed
+    - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern
+    - OpenMS::FuzzyStringComparator
+    - OpenMS::FuzzyStringComparator::InputLine
+    - OpenMS::FuzzyStringComparator::PrefixInfo_
+    - OpenMS::FuzzyStringComparator::StreamElement_
+    - OpenMS::HashGrid
+    - OpenMS::HashGrid::ConstIterator
+    - OpenMS::HashGrid::Iterator
+    - OpenMS::SimpleExtender
+    - OpenMS::SimpleExtender::IndexWithPriority
+    - OpenMS::SimpleExtender::IndexWithPriority::PriorityLess
+    - OpenMS::SILACClustering
+    - OpenMS::SILACFilter
+    - OpenMS::SILACFiltering
+    - OpenMS::SILACFiltering::BlacklistEntry
+    - OpenMS::SILACFiltering::SpectrumInterpolation
+    - OpenMS::SILACLabeler
+    - OpenMS::SILACPattern
+    - OpenMS::SILACPoint
+    # IMS
+    - OpenMS::ims
+    - OpenMS::ims::IMSAlphabet
+    - OpenMS::ims::IMSAlphabet::MassSortingCriteria_
+    - OpenMS::ims::IMSAlphabetParser
+    - OpenMS::ims::IMSAlphabetTextParser
+    - OpenMS::ims::IMSElement
+    - OpenMS::ims::IMSIsotopeDistribution
+    - OpenMS::ims::IMSIsotopeDistribution::Peak
+    - OpenMS::ims::IntegerMassDecomposer
+    - OpenMS::ims::MassDecomposer
+    - OpenMS::ims::RealMassDecomposer
+    - OpenMS::ims::Weights
+
+    # Exception classes
+    - OpenMS::Exception::BaseException
+    - OpenMS::Exception::BufferOverflow
+    - OpenMS::Exception::ConversionError
+    - OpenMS::Exception::DepletedIDPool
+    - OpenMS::Exception::DivisionByZero
+    - OpenMS::Exception::ElementNotFound
+    - OpenMS::Exception::FailedAPICall
+    - OpenMS::Exception::FileEmpty
+    - OpenMS::Exception::FileNotFound
+    - OpenMS::Exception::FileNotReadable
+    - OpenMS::Exception::FileNotWritable
+    - OpenMS::Exception::GlobalExceptionHandler
+    - OpenMS::Exception::IOException
+    - OpenMS::Exception::IllegalArgument
+    - OpenMS::Exception::IllegalPosition
+    - OpenMS::Exception::IllegalSelfOperation
+    - OpenMS::Exception::IllegalTreeOperation
+    - OpenMS::Exception::IncompatibleIterators
+    - OpenMS::Exception::IndexOverflow
+    - OpenMS::Exception::IndexUnderflow
+    - OpenMS::Exception::InvalidIterator
+    - OpenMS::Exception::InvalidParameter
+    - OpenMS::Exception::InvalidRange
+    - OpenMS::Exception::InvalidSize
+    - OpenMS::Exception::InvalidValue
+    - OpenMS::Exception::MissingInformation
+    - OpenMS::Exception::NotImplemented
+    - OpenMS::Exception::NullPointer
+    - OpenMS::Exception::OutOfGrid
+    - OpenMS::Exception::OutOfMemory
+    - OpenMS::Exception::OutOfRange
+    - OpenMS::Exception::ParseError
+    - OpenMS::Exception::Postcondition
+    - OpenMS::Exception::Precondition
+    - OpenMS::Exception::RequiredParameterNotGiven
+    - OpenMS::Exception::SizeUnderflow
+    - OpenMS::Exception::UnableToCalibrate
+    - OpenMS::Exception::UnableToCreateFile
+    - OpenMS::Exception::UnableToFit
+    - OpenMS::Exception::UnregisteredParameter
+    - OpenMS::Exception::WrongParameterType
+
+    # Visual
+    - OpenMS::AxisWidget
+    - OpenMS::DataFilterDialog
+    - OpenMS::EnhancedTabBar
+    - OpenMS::EnhancedTabBarWidgetInterface
+    - OpenMS::FeatureEditDialog
+    - OpenMS::HistogramDialog
+    - OpenMS::HistogramWidget
+    - OpenMS::LayerStatisticsDialog
+    - OpenMS::LayerStatisticsDialog::MetaStatsValue_
+    - OpenMS::SaveImageDialog
+    - OpenMS::SpectraIdentificationViewWidget
+    - OpenMS::SpectraViewWidget
+    - OpenMS::Spectrum1DCanvas
+    - OpenMS::Spectrum1DGoToDialog
+    - OpenMS::Spectrum1DWidget
+    - OpenMS::Spectrum2DCanvas
+    - OpenMS::Spectrum2DGoToDialog
+    - OpenMS::Spectrum2DWidget
+    - OpenMS::Spectrum3DCanvas
+    - OpenMS::Spectrum3DOpenGLCanvas
+    - OpenMS::Spectrum3DWidget
+    - OpenMS::SpectrumCanvas
+    - OpenMS::SpectrumWidget
+    - OpenMS::SpectrumAlignmentDialog
+    - OpenMS::TheoreticalSpectrumGenerationDialog
+    - OpenMS::ToolsDialog
+    #
+    - OpenMS::TOPPASBase
+    - OpenMS::TOPPASEdge
+    - OpenMS::TOPPASIOMappingDialog
+    - OpenMS::TOPPASInputFileDialog
+    - OpenMS::TOPPASInputFileListVertex
+    - OpenMS::TOPPASInputFilesDialog
+    - OpenMS::TOPPASLogWindow
+    - OpenMS::TOPPASMergerVertex
+    - OpenMS::TOPPASOutputFileListVertex
+    - OpenMS::TOPPASOutputFilesDialog
+    - OpenMS::TOPPASResource
+    - OpenMS::TOPPASResources
+    - OpenMS::TOPPASScene
+    - OpenMS::TOPPASScene::TOPPProcess
+    - OpenMS::TOPPASTabBar
+    - OpenMS::TOPPASToolConfigDialog
+    - OpenMS::TOPPASToolVertex
+    - OpenMS::TOPPASToolVertex::IOInfo
+    - OpenMS::TOPPASTreeView
+    - OpenMS::TOPPASVertex
+    - OpenMS::TOPPASVertex::VertexRoundPackage
+    - OpenMS::TOPPASVertexNameDialog
+    - OpenMS::TOPPASWidget
+    - OpenMS::TOPPBase
+    - OpenMS::TOPPViewBase
+    - OpenMS::TOPPViewBehaviorInterface
+    - OpenMS::TOPPViewIdentificationViewBehavior
+    - OpenMS::TOPPViewOpenDialog
+    - OpenMS::TOPPViewSpectraViewBehavior
+
+    # all files with OPENMS_GUI_DLLAPI
+    - OpenMS::AxisTickCalculator.h
+    - OpenMS::EnhancedWorkspace.h
+    - OpenMS::TOPPASOutputFileListVertex.h
+    - OpenMS::TOPPASResources.h
+    - OpenMS::Spectrum1DWidget.h
+    - OpenMS::Spectrum2DWidget.h
+    - OpenMS::AxisPainter.h
+    - OpenMS::ColorSelector.h
+    - OpenMS::SpectrumCanvas.h
+    - OpenMS::TOPPASResource.h
+    - OpenMS::MetaDataBrowser.h
+    - OpenMS::Spectrum3DWidget.h
+    - OpenMS::HistogramWidget.h
+    - OpenMS::LayerData.h
+    - OpenMS::EnhancedTabBar.h
+    - OpenMS::Spectrum2DCanvas.h
+    - OpenMS::Spectrum1DCanvas.h
+    - OpenMS::TOPPASEdge.h
+    - OpenMS::TOPPASWidget.h
+    - OpenMS::DocumentIdentifierVisualizer.h
+    - OpenMS::MassAnalyzerVisualizer.h
+    - OpenMS::MetaInfoDescriptionVisualizer.h
+    - OpenMS::DataProcessingVisualizer.h
+    - OpenMS::BaseVisualizer.h
+    - OpenMS::ScanWindowVisualizer.h
+    - OpenMS::IonDetectorVisualizer.h
+    - OpenMS::ContactPersonVisualizer.h
+    - OpenMS::PeptideHitVisualizer.h
+    - OpenMS::ProteinHitVisualizer.h
+    - OpenMS::SampleVisualizer.h
+    - OpenMS::PeptideIdentificationVisualizer.h
+    - OpenMS::SoftwareVisualizer.h
+    - OpenMS::GradientVisualizer.h
+    - OpenMS::ExperimentalSettingsVisualizer.h
+    - OpenMS::ModificationVisualizer.h
+    - OpenMS::ProductVisualizer.h
+    - OpenMS::SourceFileVisualizer.h
+    - OpenMS::AcquisitionVisualizer.h
+    - OpenMS::TaggingVisualizer.h
+    - OpenMS::InstrumentVisualizer.h
+    - OpenMS::PrecursorVisualizer.h
+    - OpenMS::HPLCVisualizer.h
+    - OpenMS::MetaInfoVisualizer.h
+    - OpenMS::ProteinIdentificationVisualizer.h
+    - OpenMS::AcquisitionInfoVisualizer.h
+    - OpenMS::IonSourceVisualizer.h
+    - OpenMS::SpectrumSettingsVisualizer.h
+    - OpenMS::InstrumentSettingsVisualizer.h
+    - OpenMS::BaseVisualizerGUI.h
+    - OpenMS::DigestionVisualizer.h
+    - OpenMS::ListEditor.h
+    - OpenMS::ListEditor.h
+    - OpenMS::ListEditor.h
+    - OpenMS::SpectrumCanvas.h.orig
+    - OpenMS::MultiGradientSelector.h
+    - OpenMS::MultiGradient.h
+    - OpenMS::TOPPASTreeView.h
+    - OpenMS::TOPPASTabBar.h
+    - OpenMS::SpectrumWidget.h
+    - OpenMS::APPLICATIONS/IDEvaluationBase.h
+    - OpenMS::APPLICATIONS/TOPPViewBase.h
+    - OpenMS::APPLICATIONS/INIFileEditorWindow.h
+    - OpenMS::APPLICATIONS/TOPPASBase.h
+    - OpenMS::APPLICATIONS/MISC/QApplicationTOPP.h
+    - OpenMS::APPLICATIONS/TOPPViewBase.h.orig
+    - OpenMS::Spectrum3DOpenGLCanvas.h
+    - OpenMS::Spectrum3DCanvas.h
+    - OpenMS::TOPPASLogWindow.h
+    - OpenMS::AxisWidget.h
+    - OpenMS::TOPPASVertex.h
+    - OpenMS::DBOpenDialog.h
+    - OpenMS::TOPPASInputFileDialog.h
+    - OpenMS::TOPPASIOMappingDialog.h
+    - OpenMS::TOPPASToolConfigDialog.h
+    - OpenMS::ToolsDialog.h
+    - OpenMS::TOPPViewPrefDialog.h
+    - OpenMS::LayerStatisticsDialog.h
+    - OpenMS::Spectrum3DPrefDialog.h
+    - OpenMS::FeatureEditDialog.h
+    - OpenMS::HistogramDialog.h
+    - OpenMS::Spectrum2DGoToDialog.h
+    - OpenMS::Spectrum2DPrefDialog.h
+    - OpenMS::DataFilterDialog.h
+    - OpenMS::SaveImageDialog.h
+    - OpenMS::TOPPASInputFilesDialog.h
+    - OpenMS::TOPPASVertexNameDialog.h
+    - OpenMS::TOPPASOutputFilesDialog.h
+    - OpenMS::Spectrum1DGoToDialog.h
+    - OpenMS::Spectrum1DPrefDialog.h
+    - OpenMS::TOPPViewOpenDialog.h
+    - OpenMS::ParamEditor.h
+    - OpenMS::TOPPASMergerVertex.h
+    - OpenMS::TOPPASScene.h
+    - OpenMS::TOPPASToolVertex.h
+    - OpenMS::TOPPASInputFileListVertex.h
+
+    # rarely used classes
+    - OpenMS::WeightWrapper
 
