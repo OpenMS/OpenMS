@@ -10,6 +10,7 @@ IsotopeDistributionCache.C
 MassTraceDetection.C
 SILACFilter.C
 SILACFiltering.C
+SILACAnalyzer.C
 )
 
 ### add path to the filenames
