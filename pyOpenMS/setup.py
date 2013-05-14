@@ -60,6 +60,27 @@ from setuptools import setup, Extension
 import os, shutil
 import time
 
+# Due to a bug in Cython when dealing with destructors of typedefs, we have to
+# fix the .cpp file manually (the bug is only triggered with clang, see also 
+# https://bugzilla.mozilla.org/show_bug.cgi?id=623303 )
+# We thus replace all occurences of 
+#   p->__pyx_v_it.std::vector<T>::iterator::~iterator();
+# with 
+#   typedef std::vector<T>::iterator _it;
+#   p->__pyx_v_it.~_it();
+
+import re
+f = open("pyopenms/pyopenms.cpp")
+fout = open("pyopenms/pyopenms_out.cpp", "w")
+expr_fix = re.compile(r"(.*).std::vector<(.*)>::iterator::~iterator\(\)")
+for line in f:
+    res = expr_fix.sub('typedef std::vector<\\2>::iterator _it;\n\\1.~_it()', line)
+    fout.write(res)
+
+fout.close()
+f.close()
+os.rename("pyopenms/pyopenms_out.cpp", "pyopenms/pyopenms.cpp")
+
 # create version information
 
 ctime = os.stat("pyopenms").st_mtime
@@ -70,7 +91,7 @@ from version import version
 full_version= "%s_%s" % (version, timestamp)
 
 print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
-print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
+# print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
 
 
 # parse config
