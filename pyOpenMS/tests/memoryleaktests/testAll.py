@@ -41,6 +41,9 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
             show_mem("AT THE BEGINNING ")
             print
 
+            dirname = os.path.dirname(os.path.abspath(__file__))
+            self.testfile = os.path.join(dirname, "../test.mzXML")
+
         def tearDown(self):
 
             time.sleep(3)
@@ -172,7 +175,7 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
         def run_extractSpetraFromMSExperiment(self):
             p = pyopenms.FileHandler()
             e = pyopenms.MSExperiment()
-            p.loadExperiment("../test.mzXML", e)
+            p.loadExperiment(self.testfile, e)
             show_mem("data loaded")
 
             li = []
@@ -193,7 +196,7 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
         def run_MSExperiment_copy(self):
             p = pyopenms.FileHandler()
             e1 = pyopenms.MSExperiment()
-            p.loadExperiment("../test.mzXML", e1)
+            p.loadExperiment(self.testfile, e1)
             show_mem("data loaded")
 
             specs = list(e1)
@@ -225,15 +228,15 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
             p = pyopenms.FileHandler()
             e = pyopenms.MSExperiment()
 
-            p.loadExperiment("../test.mzXML", e)
+            p.loadExperiment(self.testfile, e)
             show_mem("after load mzXML")
 
             ct = pyopenms.ChromatogramTools()
             ct.convertChromatogramsToSpectra(e)
-            p.storeExperiment("../test.mzXML", e)
+            p.storeExperiment(self.testfile, e)
             show_mem("after store mzXML")
 
-            p.loadExperiment("../test.mzXML", e)
+            p.loadExperiment(self.testfile, e)
             show_mem("after load mzXML")
 
             p = pyopenms.FileHandler()
