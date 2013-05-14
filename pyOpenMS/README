@@ -81,8 +81,8 @@ i) go to a directory that is in your PYTHONPATH (if autowrap is already
 installed, this directory needs to be before the other one in the PYTHONPATH)
 and get this forked version from github:
 
-git clone https://github.com/hroest/autowrap.git
-mv autowrap/autowrap .
+git clone https://github.com/hroest/autowrap.git autowrap_git
+mv autowrap_git/autowrap .
 
 ii) install missing pieces that are present in Python 2.7, while still in the same directory
 
