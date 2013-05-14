@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/FORMAT/MzTab.h>" namespace "OpenMS":
         MzTabUnitIdMetaData() nogil except +
         MzTabUnitIdMetaData(MzTabUnitIdMetaData) nogil except +
 
+    # TODO 
     # Something is very broken here, if this is included, there is an undefined
     # symbol error when importing pyopenms into Python
     # cdef cppclass MzTab:

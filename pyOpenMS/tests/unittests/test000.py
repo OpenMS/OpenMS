@@ -163,6 +163,96 @@ def testAASequence():
     assert aas.toString() == ""
     assert aas.toUnmodifiedString() == ""
 
+@report
+def testIdentificationHit():
+    """
+    @tests:
+     IdentificationHit.__init__
+    """
+    f = pyopenms.IdentificationHit()
+    _testMetaInfoInterface(f)
+
+    assert pyopenms.IdentificationHit().setId is not None
+    assert pyopenms.IdentificationHit().getId is not None
+    assert pyopenms.IdentificationHit().setCharge is not None
+    assert pyopenms.IdentificationHit().getCharge is not None
+    assert pyopenms.IdentificationHit().setCalculatedMassToCharge is not None
+    assert pyopenms.IdentificationHit().getCalculatedMassToCharge is not None
+    assert pyopenms.IdentificationHit().setExperimentalMassToCharge is not None
+    assert pyopenms.IdentificationHit().getExperimentalMassToCharge is not None
+    assert pyopenms.IdentificationHit().setName is not None
+    assert pyopenms.IdentificationHit().getName is not None
+    assert pyopenms.IdentificationHit().setPassThreshold is not None
+    assert pyopenms.IdentificationHit().getPassThreshold is not None
+    assert pyopenms.IdentificationHit().setRank is not None
+    assert pyopenms.IdentificationHit().getRank is not None
+
+    f.setId("test_id")
+    assert f.getId() == "test_id"
+
+    f.setCharge(5)
+    assert f.getCharge() == 5
+
+    f.setCalculatedMassToCharge(5.0)
+    assert f.getCalculatedMassToCharge() == 5.0
+
+    f.setExperimentalMassToCharge(5.0)
+    assert f.getExperimentalMassToCharge() == 5.0
+
+    f.setName("test")
+    assert f.getName() == "test"
+
+    f.setPassThreshold(True)
+    assert f.getPassThreshold() == True
+
+    f.setRank(42)
+    assert f.getRank() == 42
+
+@report
+def testSpectrumIdentification():
+    """
+    @tests:
+     SpectrumIdentification.__init__
+    """
+    f = pyopenms.SpectrumIdentification()
+    _testMetaInfoInterface(f)
+
+    assert pyopenms.SpectrumIdentification().setHits is not None
+    assert pyopenms.SpectrumIdentification().addHit is not None
+    assert pyopenms.SpectrumIdentification().getHits is not None
+
+    hit = pyopenms.IdentificationHit()
+    hit.setName("test1")
+    f.addHit(hit)
+    hit = pyopenms.IdentificationHit()
+    hit.setName("test2")
+    f.addHit(hit)
+    all_hits = f.getHits()
+    assert len(all_hits) == 2
+    assert "test1" in [h.getName() for h in all_hits]
+    assert "test2" in [h.getName() for h in all_hits]
+
+@report
+def testIdentification():
+    """
+    @tests:
+     Identification.__init__
+    """
+    f = pyopenms.Identification()
+    _testMetaInfoInterface(f)
+
+    assert pyopenms.Identification().setCreationDate is not None
+    assert pyopenms.Identification().getCreationDate is not None
+    assert pyopenms.Identification().setSpectrumIdentifications is not None
+    assert pyopenms.Identification().addSpectrumIdentification is not None
+    assert pyopenms.Identification().getSpectrumIdentifications is not None
+
+    id1 = pyopenms.SpectrumIdentification()
+    f.addSpectrumIdentification(id1)
+    assert len(f.getSpectrumIdentifications()) == 1
+    id2 = pyopenms.SpectrumIdentification()
+    f.addSpectrumIdentification(id2)
+    assert len(f.getSpectrumIdentifications()) == 2
 
 @report
 def test_AcquisitionInfo():
@@ -1587,8 +1677,99 @@ def testPepXMLFile():
      PepXMLFile.load
      PepXMLFile.store
     """
+    f = pyopenms.PepXMLFile()
+
     assert pyopenms.PepXMLFile().load is not None
     assert pyopenms.PepXMLFile().store is not None
+
+@report
+def testProtXMLFile():
+    """
+    @tests:
+     ProtXMLFile.__init__
+     ProtXMLFile.load
+     ProtXMLFile.store
+    """
+    f = pyopenms.ProtXMLFile()
+
+    assert pyopenms.ProtXMLFile().load is not None
+    assert pyopenms.ProtXMLFile().store is not None
+
+@report
+def testDTA2DFile():
+    """
+    @tests:
+     DTA2DFile.__init__
+     DTA2DFile.load
+     DTA2DFile.store
+    """
+    f = pyopenms.DTA2DFile()
+
+    assert pyopenms.DTA2DFile().load is not None
+    assert pyopenms.DTA2DFile().store is not None
+
+@report
+def testDTAFile():
+    """
+    @tests:
+     DTAFile.__init__
+     DTAFile.load
+     DTAFile.store
+    """
+    f = pyopenms.DTAFile()
+
+    assert pyopenms.DTAFile().load is not None
+    assert pyopenms.DTAFile().store is not None
+
+@report
+def testEDTAFile():
+    """
+    @tests:
+     EDTAFile.__init__
+     EDTAFile.load
+     EDTAFile.store
+    """
+    f = pyopenms.EDTAFile()
+
+    assert pyopenms.EDTAFile().load is not None
+    assert pyopenms.EDTAFile().store is not None
+
+@report
+def testKroenikFile():
+    """
+    @tests:
+     KroenikFile.__init__
+     KroenikFile.load
+     KroenikFile.store
+    """
+    f = pyopenms.KroenikFile()
+
+    assert pyopenms.KroenikFile().load is not None
+    assert pyopenms.KroenikFile().store is not None
+
+@report
+def testMSPFile():
+    """
+    @tests:
+     MSPFile.__init__
+    """
+    f = pyopenms.MSPFile()
+
+    # assert pyopenms.KroenikFile().load is not None
+    # assert pyopenms.KroenikFile().store is not None
+
+@report
+def testMzIdentMLFile():
+    """
+    @tests:
+     MzIdentMLFile.__init__
+    """
+    f = pyopenms.MzIdentMLFile()
+
+    assert pyopenms.MzIdentMLFile().load is not None
+    assert pyopenms.MzIdentMLFile().store is not None
+    assert pyopenms.MzIdentMLFile().isSemanticallyValid is not None
+
 
 @report
 def testMzTabFile():
