@@ -160,9 +160,12 @@ FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/addons)
 FILE(GLOB _python_files "pyOpenMS/converters/*.py")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/converters)
 
+FILE(COPY pyOpenMS/License.txt DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+FILE(COPY pyOpenMS/MANIFEST.in DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
 FILE(COPY pyOpenMS/setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/distribute_setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 FILE(COPY pyOpenMS/run_nose.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/run_memleaks.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 

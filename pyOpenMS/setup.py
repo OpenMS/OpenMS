@@ -101,11 +101,12 @@ if iswin:
 
 elif sys.platform == "linux2":
 
-    # shutil.copy(OPEN_MS_LIB, "pyOpenMS")
-
-    libraries=["OpenMS", "xerces-c", "QtCore", "gsl",
+    libraries=["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore", "gsl",
                         "gslcblas",
               ]
+
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so" ), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.so" ), "pyopenms")
 
 else:
     print
@@ -151,12 +152,16 @@ ext = Extension(
     )
 
 
+source_share = j(OPEN_MS_SRC, "share")
+target_share = "pyopenms/share"
+if os.path.exists(target_share):
+    shutil.rmtree(target_share)
+shutil.copytree(source_share, target_share, ignore=lambda *a: ["examples"])
+
 share_data = []
 
 if iswin:
     share_data += [MSVCR90DLL, "xerces-c_3_0.dll"]
-else:
-    share_data += ["pyopenms/libOpenMS.so" ]
 
 
 share_data.append("License.txt")
@@ -178,5 +183,6 @@ setup(
 
     # setup_requires=["autowrap", "cython"],
 
-    package_data= { "pyopenms": share_data },
+    # package_data= { "pyopenms": share_data },
+    include_package_data = True # see MANIFEST.in
 )

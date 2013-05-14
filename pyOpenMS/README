@@ -1,35 +1,71 @@
+BUILD INSTUCTIONS
+-----------------
+
+The current branch of Release1.10pyopenms is out of sync with
+Release1.10 as the python branch has some more methods on OpenMS
+objects than Release1.10. So you can not mix an official installation
+of OpenMS 1.10 with the python wrapper. Instead you have to build
+pyopenms from scratch, as described below:
+
 1) get python 2.7
 
 2) on windows: you need the 64 bit c++ compiler from visual studio 2008
    this is important, else you get a different clib than python 2.7 is
    built with, and pyopenms will crash on import
 
-1) install setuptools, see:  https://pypi.python.org/pypi/setuptools
+3) install setuptools, see:  https://pypi.python.org/pypi/setuptools
 
-2) "easy_install pip"
-
-3) "pip install git://github.com/uweschmitt/autowrap.git"
-
-4) "pip install nose"
+4) $ easy_install pip
+   $ pip install autwwrap
+   $ pip install nose
 
 5) get numpy:
 
-   a) on debian/ubunut:   "apt-get install python-numpy"
-   b) on 64 bit win 7:    get it from http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
+   a) on debian/ubuntu:
+
+      $ sudo apt-get install python-numpy
+
+   b) on 64 bit win 7:
+      get it from http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
 
 6) cmake as usual, but  with parameters "-D PYOPENMS=ON"
    on windows add: "-D CMAKE_BUILD_TYPE=Release" as the standard python27.dll
    is built in release mode.
-  
-7) build target "pyopenms", eg: make pyopenms on linux
+
+7) $ make targets
+
+   you see some pyopenms specific build targets
+
+7) build target "pyopenms", eg:
+
+   $ make pyopenms
 
 8) on linux: be sure that the libOpenMS.so in /usr/lib is the one
    you built in step 7)
    (openms has no "install" target....)
 
-8) "cd pyOpenMS"
+9) run unit tests
 
-9) "run_nose.py" 
+   $ cd pyOpenMS
+   $ run_nose.py
+
+   run mem leak test:
+
+   $ run_memleaks.py
+
+10) if you want to install locally:
+
+   $ python setup.py install
+
+11) for bulding installers:
+
+   $ make pyopenms_bdist_egg
+
+    or
+
+   $ make pyopenms_bdist
+
+   you find the built installer files in pyOpenMS/dist
 
 
 

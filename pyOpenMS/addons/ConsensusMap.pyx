@@ -17,10 +17,21 @@
     
     def setFileDescriptions(self, dict in_0 ):
         assert isinstance(in_0, dict) and all(isinstance(k, (int, long)) for k in in_0.keys()) and all(isinstance(v, FileDescription) for v in in_0.values()), 'arg in_0 wrong type'
-        cdef FileDescriptions * v0 = new FileDescriptions()
+        cdef FileDescriptions v0
         for key, value in in_0.items():
-           deref(v0)[<unsigned long int> key] = deref((<FileDescription>value).inst.get())
-        self.inst.get().setFileDescriptions(deref(v0))
+           v0[<unsigned long int> key] = deref((<FileDescription>value).inst.get())
+
+        # we have to utilize AutowrapRefHolder here, because cython does neiter
+        # like
+        #     self.inst.get().getFileDescriptions() = v0
+        # nor
+        #     cdef FileDescriptions & ref = self.inst.get().getFileDescriptions()
+        #     ref = v0
+
+        cdef AutowrapRefHolder[FileDescriptions] * refholder
+        refholder = new AutowrapRefHolder[FileDescriptions](self.inst.get().getFileDescriptions())
+        refholder.assign(v0)
+
         cdef replace_in_0 = dict()
         cdef FileDescriptions_iterator it_in_0 = v0.begin()
         cdef FileDescription item_in_0
@@ -31,5 +42,3 @@
            inc(it_in_0)
         in_0.clear()
         in_0.update(replace_in_0)
-        del v0
-    

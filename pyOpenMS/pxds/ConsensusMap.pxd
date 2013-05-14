@@ -78,8 +78,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         #void setFileDescriptions(Map[long unsigned int,FileDescription] fd)
         #void setFileDescriptions(FileDescriptions &)
 
-        FileDescriptions getFileDescriptions()       #wrap-ignore
-        void setFileDescriptions(FileDescriptions &)       #wrap-ignore
+        FileDescriptions & getFileDescriptions()       #wrap-ignore
+        #void setFileDescriptions(FileDescriptions &)       #wrap-ignore
 
 
 

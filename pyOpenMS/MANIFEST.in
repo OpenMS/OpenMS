@@ -1,0 +1,5 @@
+graft pyopenms/share
+include pyopenms/*.dll
+include pyopenms/*.txt
+include pyopenms/libOpenMS.so
+include pyopenms/libOpenSwathAlgo.so
