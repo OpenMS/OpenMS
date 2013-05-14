@@ -1143,6 +1143,17 @@ def testInternalCalibration():
     # assert pyopenms.InternalCalibration().compute is not None
 
 @report
+def testItraqConstants():
+    """
+    @tests:
+    """
+    constants = pyopenms.ITRAQ_TYPES
+
+    assert pyopenms.ITRAQ_TYPES.FOURPLEX is not None
+    assert pyopenms.ITRAQ_TYPES.EIGHTPLEX is not None
+    assert pyopenms.ITRAQ_TYPES.TMT_SIXPLEX is not None
+
+@report
 def testItraqChannelExtractor():
     """
     @tests:
@@ -1152,6 +1163,10 @@ def testItraqChannelExtractor():
     p = ff.getDefaults()
     _testParam(p)
 
+
+    # Note that using TMT_SIXPLEX will not work here
+    p = ff.getDefaults()
+    pyopenms.ItraqChannelExtractor(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
     assert pyopenms.ItraqChannelExtractor().run is not None
 
 @report
@@ -1165,6 +1180,11 @@ def testItraqQuantifier():
     _testParam(p)
 
     assert pyopenms.ItraqQuantifier().run is not None
+
+    # Note that using TMT_SIXPLEX will not work here
+    p = ff.getDefaults()
+    pyopenms.ItraqQuantifier(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
+    assert pyopenms.ItraqChannelExtractor().run is not None
 
 @report
 def testLinearResampler():

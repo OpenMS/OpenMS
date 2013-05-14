@@ -121,9 +121,6 @@ def handle_args():
     for l in args.label_identifiers_.split(","):
         args.label_identifiers[l.split(":")[0]] = float(l.split(":")[1])
 
-    print args.label_identifiers_
-    print args.label_identifiers
-
     return args
 
 if __name__ == '__main__':

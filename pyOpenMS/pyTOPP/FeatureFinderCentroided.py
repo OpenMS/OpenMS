@@ -1,6 +1,6 @@
 import argparse
 import pyopenms as pms
-from   common import addDataProcessing, writeParamsIfRequested, updateDefaults
+from common import addDataProcessing, writeParamsIfRequested, updateDefaults
 
 
 def run_featurefinder_centroided(input_path, params, seeds, out_path):

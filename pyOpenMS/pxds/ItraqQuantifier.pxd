@@ -14,8 +14,9 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>" namespace "O
         # wrap-inherits:
         #    DefaultParamHandler
 
-        ItraqQuantifier()                  nogil except +
-        ItraqQuantifier(ItraqQuantifier)   nogil except + #wrap-ignore
+        ItraqQuantifier() nogil except +
+        ItraqQuantifier(ItraqQuantifier) nogil except + #wrap-ignore
+        ItraqQuantifier(Int itraq_type, Param param) nogil except +
 
         void run(ConsensusMap & map_in, ConsensusMap & map_out) nogil except +
 
