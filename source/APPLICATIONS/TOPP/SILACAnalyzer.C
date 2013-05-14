@@ -50,6 +50,7 @@
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 
+#include <OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SILACClustering.h>
@@ -196,10 +197,10 @@ private:
 
   typedef SILACClustering Clustering;
 
-  vector<vector<SILACPattern> > data;
-  vector<Clustering *> cluster_data;
+  // vector<vector<SILACPattern> > data;
+  // vector<Clustering *> cluster_data;
 
-  MSQuantifications msq;
+  // MSQuantifications msq;
 
 public:
   TOPPSILACAnalyzer() :
@@ -577,7 +578,7 @@ public:
   // filtering
   //--------------------------------------------------
 
-  void filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width)
+  void filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width, vector<vector<SILACPattern> > & data)
   {
     list<SILACFilter> filters;
 
@@ -752,6 +753,9 @@ public:
   {
     handleParameters();
 
+    vector<vector<SILACPattern> > data;
+    MSQuantifications msq;
+    vector<Clustering *> cluster_data;
 
     //--------------------------------------------------
     // loading input from .mzML
@@ -796,6 +800,7 @@ public:
     // estimate peak width
     //--------------------------------------------------
 
+    // SILACAnalyzer analyzer;
     PeakWidthEstimator::Result peak_width;
     try
     {
@@ -814,7 +819,7 @@ public:
       // filter input data
       //--------------------------------------------------
 
-      filterData(exp, peak_width);
+      filterData(exp, peak_width, data); // analyzer
 
 
       //--------------------------------------------------
@@ -839,7 +844,7 @@ public:
 
       ConsensusMap map;
       readConsensus(in_filters, map);
-      readFilterConsensusByPattern(map);
+      readFilterConsensusByPattern(map, data);
     }
 
 
@@ -847,8 +852,8 @@ public:
     // clustering
     //--------------------------------------------------
 
-    clusterData(exp, peak_width);
 
+    clusterData(exp, peak_width, cluster_data, data); // analyzer
 
     //--------------------------------------------------------------
     // write output
@@ -998,7 +1003,7 @@ public:
     return EXECUTION_OK;
   }
 
-  void clusterData(const MSExperiment<> &, const PeakWidthEstimator::Result &);
+  void clusterData(const MSExperiment<> &, const PeakWidthEstimator::Result &, vector<Clustering *> &, vector<vector<SILACPattern> > & data);
 
 private:
   PeakWidthEstimator::Result estimatePeakWidth(const MSExperiment<Peak1D> & exp);
@@ -1036,7 +1041,7 @@ private:
   /**
    * @brief Read filter result from ConsensusMap
    */
-  void readFilterConsensusByPattern(ConsensusMap &);
+  void readFilterConsensusByPattern(ConsensusMap &, vector<vector<SILACPattern> > &);
 
   static const String & selectColor(UInt nr);
 
@@ -1090,7 +1095,7 @@ private:
 
 };
 
-void TOPPSILACAnalyzer::clusterData(const MSExperiment<> & exp, const PeakWidthEstimator::Result & peak_width)
+void TOPPSILACAnalyzer::clusterData(const MSExperiment<> & exp, const PeakWidthEstimator::Result & peak_width, vector<Clustering *> & cluster_data, vector<vector<SILACPattern> > & data)
 {
   typedef Clustering::PointCoordinate PointCoordinate;
 
@@ -1575,7 +1580,7 @@ void TOPPSILACAnalyzer::generateClusterFeatureByCluster(FeatureMap<> & out, cons
   }
 }
 
-void TOPPSILACAnalyzer::readFilterConsensusByPattern(ConsensusMap & in)
+void TOPPSILACAnalyzer::readFilterConsensusByPattern(ConsensusMap & in, vector<vector<SILACPattern> > & data)
 {
   std::map<std::pair<Int, Int>, std::vector<SILACPattern> > layers;
 
