@@ -702,6 +702,30 @@ def testDataValue():
     assert a.valueType() == pyopenms.DataType.STRING_LIST
 
 @report
+def testAdduct():
+    """
+    @tests:
+     Adduct.__init__
+    """
+    a = pyopenms.Adduct()
+
+@report
+def testChargePair():
+    """
+    @tests:
+     ChargePair.__init__
+    """
+    a = pyopenms.ChargePair()
+
+@report
+def testCompomer():
+    """
+    @tests:
+     Compomer.__init__
+    """
+    a = pyopenms.Compomer()
+
+@report
 def testCVMappings():
     """
     @tests:
@@ -2048,6 +2072,9 @@ def testMSSpectrum():
 def testMRMFeature():
     """
     @tests:
+      MRMFeature.__init__
+      MRMFeature.addScore
+      MRMFeature.getScore
      """
     mrmfeature = pyopenms.MRMFeature()
 
@@ -2060,8 +2087,21 @@ def testMRMFeature():
 def testConfidenceScoring():
     """
     @tests:
+      ConfidenceScoring.__init__
      """
     scoring = pyopenms.ConfidenceScoring()
+
+@report
+def testMRMDecoy():
+    """
+    @tests:
+      MRMDecoy.__init__
+     """
+    mrmdecoy = pyopenms.MRMDecoy()
+    assert mrmdecoy is not None
+
+    assert pyopenms.MRMDecoy().restrictTransitions is not None
+    assert pyopenms.MRMDecoy().generateDecoys is not None
 
 @report
 def testMRMTransitionGroup():
