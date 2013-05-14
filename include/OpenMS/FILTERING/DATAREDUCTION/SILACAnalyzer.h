@@ -86,7 +86,7 @@ namespace OpenMS
    * @see SILACFiltering
    */
   class OPENMS_DLLAPI SILACAnalyzer :
-    ProgressLogger
+    public ProgressLogger
   {
   private:
 
@@ -183,6 +183,24 @@ namespace OpenMS
      * (selected_labels) using the initialize_sample call.
      */
     void calculateLabelsAndMassShifts(map<String, DoubleReal> label_identifiers);
+
+    void run_all(MSExperiment<Peak1D> & exp, ConsensusMap & out_map)
+    {
+      PeakWidthEstimator::Result peak_width;
+      vector<vector<SILACPattern> > data;
+      MSQuantifications msq;
+      vector<Clustering *> cluster_data;
+
+      peak_width = estimatePeakWidth(exp);
+      filterData(exp, peak_width, data); 
+      clusterData(exp, peak_width, cluster_data, data);
+
+      // write output to consensus map
+      for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
+      {
+        generateClusterConsensusByCluster(out_map, **it);
+      }
+    }
 
     /**
      * @brief Peak width estimation

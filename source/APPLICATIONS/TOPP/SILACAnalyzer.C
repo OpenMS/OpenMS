@@ -438,6 +438,7 @@ public:
     // Initializing the SILACAnalzer with our parameters
     // 
     SILACAnalyzer analyzer;
+    analyzer.setLogType(log_type_);
     analyzer.initialize(
       // section "sample"
       selected_labels,
@@ -456,6 +457,7 @@ public:
       // labels
       label_identifiers);
 
+
     //--------------------------------------------------
     // loading input from .mzML
     //--------------------------------------------------
@@ -463,6 +465,12 @@ public:
     MzMLFile file;
     MSExperiment<Peak1D> exp;
 
+    // only read MS1 spectra ...
+    /*
+    std::vector<int> levels;
+    levels.push_back(1);
+    file.getOptions().setMSLevels(levels);
+    */
     file.setLogType(log_type_);
     file.load(in, exp);
 
@@ -550,7 +558,7 @@ public:
     // clustering
     //--------------------------------------------------
 
-    analyzer.clusterData(exp, peak_width, cluster_data, data); // analyzer
+    analyzer.clusterData(exp, peak_width, cluster_data, data);
 
     //--------------------------------------------------------------
     // write output
