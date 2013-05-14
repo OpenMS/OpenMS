@@ -1,35 +1,32 @@
 import unittest,os
 
-import pdb
+import env
 import pyopenms
+from collections import defaultdict
 
 def simple_find_best_feature(output, pairs, targeted):
-  f_map = {}
-  for f in output:
-    key = f.getMetaValue("PeptideRef").toString()
-    if f_map.has_key(key):
-      f_map[key].append(f)
-    else: 
-      f_map[key] = [f]
-  
-  
-  for v in f_map.values():
-    bestscore = -10000
-    for feature in v:
-      score = feature.getMetaValue("main_var_xx_lda_prelim_score").toDouble()
-      if score > bestscore:
-        best = feature
-        bestscore = score
-    
-    pep = targeted.getPeptideByRef( feature.getMetaValue("PeptideRef").toString()  )
-    pairs.append( [best.getRT(), pep.getRetentionTime() ] )
+    f_map = defaultdict(list)
+    for f in output:
+        key = f.getMetaValue("PeptideRef").toString()
+        f_map[key].append(f)
+
+    get_score = lambda f: f.getMetaValue("main_var_xx_lda_prelim_score").toDouble()
+    for fl in f_map.values():
+        scores = [(get_score(fi), fi)  for fi in fl]
+        best_score, best_feature = max(scores)
+        __, feature = scores[-1]
+
+        pep = targeted.getPeptideByRef(
+                            feature.getMetaValue("PeptideRef").toString()
+                            )
+        pairs.append([best_feature.getRT(), pep.getRetentionTime()])
+
 
 class TestMRMRTNormalizer(unittest.TestCase):
     """Emulates the behavior of OpenSwathMRMRTNormalizer"""
 
     def setUp(self):
-        self.dirname = os.path.dirname(os.path.abspath(__file__))
-        self.testdirname = os.path.join(self.dirname, "../../../source/TEST/TOPP/")
+        self.testdirname = os.path.join(env.OPEN_MS_SRC, "source/TEST/TOPP")
         # set up files
         self.chromatograms = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.mzML")
         self.tramlfile = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.TraML")
@@ -62,8 +59,8 @@ class TestMRMRTNormalizer(unittest.TestCase):
         # get the pairs
         pairs=[]
         simple_find_best_feature(output, pairs, targeted)
-        pairs_corrected = pyopenms.MRMRTNormalizer().rm_outliers( pairs, 0.95, 0.6) 
-        pairs_corrected = [ list(p) for p in pairs_corrected] 
+        pairs_corrected = pyopenms.MRMRTNormalizer().rm_outliers( pairs, 0.95, 0.6)
+        pairs_corrected = [ list(p) for p in pairs_corrected]
 
         expected = [(1497.56884765625, 1881.0),
              (2045.9776611328125, 2409.0),
@@ -76,8 +73,8 @@ class TestMRMRTNormalizer(unittest.TestCase):
              (1397.1541748046875, 1765.0)]
 
         for exp,res in zip(expected, pairs_corrected):
-            self.assertAlmostEqual(exp[0], res[0]) 
-            self.assertAlmostEqual(exp[1], res[1]) 
+            self.assertAlmostEqual(exp[0], res[0])
+            self.assertAlmostEqual(exp[1], res[1])
 
 if __name__ == '__main__':
     unittest.main()
