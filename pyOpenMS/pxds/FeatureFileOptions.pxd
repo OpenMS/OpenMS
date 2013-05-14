@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>" namespace "OpenM
         void setMetadataOnly(bool) nogil except +
         bool getMetadataOnly()     nogil except +
 
-        #void setSizeOnly(bool) nogil except +
-        #bool getSizeOnly()     nogil except +
+        void setSizeOnly(bool) nogil except +
+        bool getSizeOnly()     nogil except +
 
         void setLoadConvexHull(bool) nogil except +
         bool getLoadConvexHull()     nogil except +

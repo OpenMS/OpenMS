@@ -82,7 +82,7 @@ def main():
     if not write_requested:
         updateDefaults(args, defaults)
 
-        fh = pms.MzXMLFile()
+        fh = pms.MzMLFile()
         fh.setLogType(pms.LogType.CMD)
         input_map = pms.MSExperiment()
         fh.load(args.in_, input_map)

@@ -7,7 +7,7 @@ def run_featurefinder_centroided(input_path, params, seeds, out_path):
 
     fh = pms.MzMLFile()
     options = pms.PeakFileOptions()
-    opions.setMSLevels([1,1])
+    options.setMSLevels([1,1])
     fh.setOptions(options)
     input_map = pms.MSExperiment()
     fh.load(input_path, input_map)

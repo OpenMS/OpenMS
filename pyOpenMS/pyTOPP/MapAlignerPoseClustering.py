@@ -3,122 +3,105 @@ import pyopenms as pms
 from common import addDataProcessing, writeParamsIfRequested, updateDefaults
 
 
-def align(in_files, out_files, trafo_out_files, reference_index,
+def align(in_files, out_files, out_trafos, reference_index,
         reference_file, params):
 
     in_types = set(pms.FileHandler.getType(in_) for in_ in in_files)
-
 
     if in_types <= set((pms.Type.MZML, pms.Type.MZXML, pms.Type.MZDATA)):
         align_features = False
     elif in_types == set((pms.Type.FEATUREXML,)):
         align_features = True
     else:
-        parser.error("different kinds of input files")
+        raise Exception("different kinds of input files")
 
-    algo = pms.MapAlignmentAlgorithmPoseClustering()
-    algo.setReference(reference_index, reference_file)
-
-    model_params = params.copy("model:", True)
-    model_type   = model_params.getValue("type").toString()
+    algorithm = pms.MapAlignmentAlgorithmPoseClustering()
+    alignment_params = params.copy("algorithm:", True)
+    algorithm.setParameters(alignment_params)
+    algorithm.setLogType(pms.LogType.CMD)
 
     plog = pms.ProgressLogger()
     plog.setLogType(pms.LogType.CMD)
 
-    alignment_param = params.copy("algorithm:", True)
-
-    algo.setParameters(alignment_param)
-
-    transformations = []
-
-    in_types = set(pms.FileHandler.getType(in_file) for in_file in in_files)
-    if reference_file is not None:
-        reference_index = in_files.index(reference_file)
+    if reference_file:
+        file_ = reference_file
+    elif reference_index > 0:
+        file_ = in_files[reference_index-1]
     else:
-        if reference_index in (None, 0):
-            sizes = []
-            if align_features:
-                fh = pms.FeatureXMLFile()
-                plog.startProgress(0, len(in_files), "Determine Reference map")
-                for i, in_f in enumerate(in_files):
-                    sizes.append((fh.loadSize(in_f), i))
-                    plog.setProgress(i)
-            else:
-                fh = pms.MzMLFile()
-                mse = pms.MSExperiment()
-                plog.startProgress(0, len(in_files), "Determine Reference map")
-                for i, in_f in enumerate(in_files):
-                    fh.load(in_f, mse)
-                    mse.updateRanges(1)
-                    sizes.append((mse.getSize(), i))
-                    plog.setProgress(i)
-            plog.endProgress()
-            __, reference_index = max(sizes)
+        sizes = []
+        if align_features:
+            fh = pms.FeatureXMLFile()
+            plog.startProgress(0, len(in_files), "Determine Reference map")
+            for i, in_f in enumerate(in_files):
+                sizes.append((fh.loadSize(in_f), in_f))
+                plog.setProgress(i)
+        else:
+            fh = pms.MzMLFile()
+            mse = pms.MSExperiment()
+            plog.startProgress(0, len(in_files), "Determine Reference map")
+            for i, in_f in enumerate(in_files):
+                fh.load(in_f, mse)
+                mse.updateRanges()
+                sizes.append((mse.getSize(), in_f))
+                plog.setProgress(i)
+        plog.endProgress()
+        __, file_ = max(sizes)
 
-    assert reference_index >=0 and reference_index < len(in_files)
-
-    ref_file = in_files[reference_index]
+    f_fmxl = pms.FeatureXMLFile()
+    if not out_files:
+        options = f_fmxl.getOptions()
+        options.setLoadConvexHull(False)
+        options.setLoadSubordinates(False)
+        f_fmxl.setOptions(options)
 
     if align_features:
-        f_fxml = pms.FeatureXMLFile()
-        options = f_fxml.getOptions()
-        fm = pms.FeatureMap()
+        map_ref = pms.FeatureMap()
         f_fxml_tmp = pms.FeatureXMLFile()
-
-
-
-
-
-
-
-
-    in_maps = []
-    if in_types <= set((pms.Type.MZML, pms.Type.MZXML, pms.Type.MZDATA)):
-        fh = pms.FileHandler()
-        pl.startProgress(0, len(in_files), "loading input files")
-        for i, in_file in enumerate(in_files):
-            pl.setProgress(i)
-            pm = pms.MSExperiment()
-            fh.loadExperiment(in_file, pm)
-            in_maps.append(pm)
-        pl.endProgress()
-        algo.alignPeakMaps(in_maps, transformations)
-        if model_type != "none":
-            algo.fitModel(model_type, model_params, transformations)
-        pms.MapAlignmentAlgorithmPoseClustering.transformPeakMaps(in_maps, transformations)
-        pl.startProgress(0, len(out_files), "writing output files")
-        for i, out_file in enumerate(out_files):
-            pl.setProgress(i)
-            in_map = addDataProcessing(in_maps[i], params, pms.ProcessingAction.ALIGNMENT)
-            fh.storeExperiment(out_file, in_map)
-        pl.endProgress()
-
-    elif in_types == set((pms.Type.FEATUREXML,)):
-        fh = pms.FeatureXMLFile()
-        pl.startProgress(0, len(in_files), "loading input files")
-        for i, in_file in enumerate(in_files):
-            pl.setProgress(i)
-            pm = pms.FeatureMap()
-            fh.load(in_file, pm)
-            in_maps.append(pm)
-        pl.endProgress()
-        algo.alignFeatureMaps(in_maps, transformations)
-        if model_type != "none":
-            algo.fitModel(model_type, model_params, transformations)
-        pms.MapAlignmentAlgorithmPoseClustering.transformFeatureMaps(in_maps, transformations)
-        pl.startProgress(0, len(out_files), "writing output files")
-        for i, out_file in enumerate(out_files):
-            pl.setProgress(i)
-            in_map = addDataProcessing(in_maps[i], params, pms.ProcessingAction.ALIGNMENT)
-            fh.store(out_file, in_map)
-        pl.endProgress()
-
+        options = f_fmxl.getOptions()
+        options.setLoadConvexHull(False)
+        options.setLoadSubordinates(False)
+        f_fxml_tmp.setOptions(options)
+        f_fxml_tmp.load(file_, map_ref)
+        algorithm.setReference(map_ref)
     else:
-        raise Exception("can not handle input file format")
+        map_ref = pms.MSExperiment()
+        pms.MzMLFile().load(file_, map_ref)
+        algorithm.setReference(map_ref)
 
-    if trafo_out_files:
-        for name, trafo in zip(trafo_out_files, transformations):
-            pms.TransformationXMLFile().store(name, trafo)
+    plog.startProgress(0, len(in_files), "Align input maps")
+    for i, in_file in enumerate(in_files):
+        trafo = pms.TransformationDescription()
+        if align_features:
+            map_ = pms.FeatureMap()
+            f_fxml_tmp = pms.FeatureXMLFile()
+            f_fxml_tmp.setOptions(f_fmxl.getOptions())
+            f_fxml_tmp.load(in_file, map_)
+            if in_file == file_:
+                trafo.fitModel("identity")
+            else:
+                algorithm.align(map_, trafo)
+            if out_files:
+                pms.MapAlignmentTransformer.transformSingleFeatureMap(map_, trafo)
+                addDataProcessing(map_, params, pms.ProcessingAction.ALIGNMENT)
+                f_fxml_tmp.store(out_files[i], map_)
+        else:
+            map_ = pms.MSExperiment()
+            pms.MzMLFile().load(in_file, map_)
+            if in_file == file_:
+                trafo.fitModel("identity")
+            else:
+                algorithm.align(map_, trafo)
+            if out_files:
+                pms.MapAlignmentTransformer.transformSinglePeakMap(map_, trafo)
+                addDataProcessing(map_, params, pms.ProcessingAction.ALIGNMENT)
+                pms.MzMLFile().store(out_files[i], map_)
+        if out_trafos:
+            pms.TransformationXMLFile().store(out_trafos[i], trafo)
+
+        plog.setProgress(i+1)
+
+    plog.endProgress()
+
 
 
 def getModelDefaults(default_model):
@@ -234,8 +217,9 @@ def main():
     out_files = collect(args.out)
     trafo_out_files = collect(args.trafo_out)
 
-    run_mode = args.in_ is not None and args.out is not None\
+    run_mode = (in_files and (out_files or trafo_out_files))\
                 and (args.ini is not None or args.dict_ini is not None)
+
     write_mode = args.write_ini is not None or args.write_dict_ini is not None
     ok = run_mode or write_mode
     if not ok:

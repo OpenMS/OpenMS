@@ -6,14 +6,16 @@ from String cimport *
 from Param cimport *
 from Feature cimport *
 from FeatureMap cimport *
+from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 from Types cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>" namespace "OpenMS":
 
-    cdef cppclass MapAlignmentAlgorithmPoseClustering(DefaultParamHandler):
+    cdef cppclass MapAlignmentAlgorithmPoseClustering(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
         #    DefaultParamHandler
+        #    ProgressLogger
 
         MapAlignmentAlgorithmPoseClustering() nogil except +
         void align(FeatureMap[Feature], TransformationDescription &) nogil except +
@@ -27,7 +29,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" names
     cdef cppclass MapAlignmentTransformer:
         pass
 
-       
+
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" namespace "OpenMS::MapAlignmentTransformer":
 
     void transformFeatureMaps(libcpp_vector[FeatureMap[Feature]], libcpp_vector[TransformationDescription] &) nogil except + #wrap-attach:MapAlignmentTransformer

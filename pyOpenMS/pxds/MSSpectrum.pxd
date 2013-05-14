@@ -33,6 +33,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void clear(int) nogil except +
         void push_back(PeakT)  nogil except +
 
+        bool isSorted() nogil except +
 
         int findNearest(double) nogil except+
 

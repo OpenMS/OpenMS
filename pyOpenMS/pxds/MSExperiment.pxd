@@ -21,10 +21,21 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         double getMaxMZ() nogil except +
         double getMinRT() nogil except +
         double getMaxRT() nogil except +
+
         void sortSpectra(bool) nogil except +
+        bool isSorted(bool check_mz) nogil except +
+        bool isSorted() nogil except +
+
         int   size() nogil except +
         MSSpectrum[PeakT] operator[](int)      nogil except +
+
         void   updateRanges() nogil except +
+        void   updateRanges(int msLevel) nogil except +
+
+        UInt64 getSize() nogil except +
+        #libcpp_vector[unsigned int] getMSLevels() nogil except +
+
+
         void push_back(MSSpectrum[PeakT] spec) nogil except +
         String getLoadedFilePath() nogil except +
         void setLoadedFilePath(String path) nogil except +
