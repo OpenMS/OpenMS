@@ -1,0 +1,169 @@
+
+\documentclass[10pt]{article}
+% \usepackage{amsmath}
+\usepackage{listings}
+\usepackage{url}
+\setlength{\parindent}{0pt}
+\usepackage[parfill]{parskip}
+
+\usepackage{tocloft}% http://ctan.org/pkg/tocloft
+\setlength{\cftsubsecnumwidth}{3.5em}% Set length of number width in ToC for \subsection
+
+\title{pyOpenMS }
+\author{OpenMS Development Team}
+\date{}
+\begin{document}
+  \maketitle
+
+  pyOpenMS is a set of Python bindings of the C++ OpenMS library. It allows to
+  access a large number of objects (150+) and functions (1400+) of the C++
+  code directly from Python. 
+  The main functions of the library are explained in the first section of this
+  manual. A list of all wrapped functions can be found in the appendix of this
+  manual.
+
+  Since all functions in Python directly call C++ and their function signature
+  usually corresponds to the one in C++, the OpenMS documentation is for most
+  cases the most complete and up-to-date reference also and applies directly
+  to pyOpenMS. In this manual, only differences to the existing documentation
+  will be highlighted and some general usecases will be explained. The link to
+  the documentation of the latest release can be found here:
+  \url{http://open-ms.sourceforge.net/documentation/}.
+
+  \tableofcontents
+
+  \pagebreak
+
+  The following section will explain the most important functions of pyOpenMS
+  in more detail with full examples of Python code that can be directly
+  executed.
+
+  \section{File Input/Output}
+
+  pyOpenMS supports file input and output for various formats. These formats
+  include \texttt{DTA2D, DTA, EDTA, FeatureXML, Kroenik, MzData, MzIdentML, IdXML, mzML,
+  mzXML, PepXML, ProtXML, TraML, XTandemXML}.
+
+\subsection{Common Pattern}
+
+Most file format objects follow the following idiome
+
+\begin{verbatim}
+from pyopenms import *
+file = FileObject() 
+exp = MSExperiment() 
+file.load(filename_in, exp)
+# process data
+file.store(filename_in, exp)
+\end{verbatim}
+
+where FileObject can be any of \texttt{DTA2DFile, DTAFile, mzXML, mzML}.
+
+for \texttt{EDTAFile}, you must load and store a \texttt{ConsensusMap} instead
+of an \texttt{MSExperiment}.
+for \texttt{FeatureXMLFile}, you must load and store a \texttt{FeatureMap} instead
+of an \texttt{MSExperiment}.
+
+
+\subsection{IdXML}
+\begin{verbatim}
+from pyopenms import *
+id_file = IdXMLFile() 
+filename_in = "input.IdXML"
+filename_out = "output.IdXML"
+protein_ids = []
+peptide_ids = []
+id_file.load(filename_in, protein_ids, peptide_ids)
+# process 
+id_file.store(filename_out, protein_ids, peptide_ids)
+\end{verbatim}
+
+\subsection{PepXML}
+\begin{verbatim}
+from pyopenms import *
+id_file = PepXMLFile() 
+filename_in = "input.pep.xml"
+filename_out = "output.pep.xml"
+protein_ids = []
+peptide_ids = []
+id_file.load(filename_in, protein_ids, peptide_ids)
+# process 
+id_file.store(filename_out, protein_ids, peptide_ids)
+\end{verbatim}
+
+\texttt{PepXML} also supports loading with an additional parameter specificing
+an MSExperiment which contains the retention time corresponding to the peptide
+hits (since these may not be stored in a pep.xml file).
+
+\subsection{ProtXML}
+\begin{verbatim}
+from pyopenms import *
+id_file = ProtXMLFile() 
+filename_in = "input.prot.xml"
+protein_id = ProteinIdentification()
+peptide_id = PeptideIdentification()
+id_file.load(filename_in, protein_id, peptide_id)
+# process 
+# storing not supported
+\end{verbatim}
+
+\texttt{ProtXML} currently only supports loading of data.
+
+\subsection{MzIdentML}
+\begin{verbatim}
+from pyopenms import *
+id_file = MzIdentMLFile() 
+filename_in = "input.IdXML"
+filename_out = "output.IdXML"
+identification = Identification()
+id_file.load(filename_in, identification)
+# process 
+id_file.store(filename_out, identification)
+\end{verbatim}
+
+Alternatively, MzIdentMLFile also provides a function to load (but not store)
+data equivalent to IdXML using two empty vectors that will be filled with
+\texttt{ProteinIdentification} and \texttt{PeptideIdentification} objects.
+
+\subsection{TraML}
+\begin{verbatim}
+from pyopenms import *
+tramlfile = TraMLFile() 
+filename_in = "input.TraML"
+targeted_exp = TargetedExperiment()
+idtramlfile.load(filename_in, targeted_exp)
+# process 
+tramlfilefile.store(filename_out, targeted_exp)
+\end{verbatim}
+
+\subsection{MzML}
+\begin{verbatim}
+from pyopenms import *
+file = MzMLFile() 
+exp = MSExperiment() 
+filename_in = "input.mzML"
+filename_out = "output.mzML"
+file.load(filename_in, exp)
+# process 
+file.store(filename_in, exp)
+\end{verbatim}
+
+\pagebreak
+\section{Parameter Handling}
+
+Paramter handling in OpenMS and pyOpenMS is usually implemented through
+inheritance from 
+m \texttt{DefaultParamHandler} and allow access to parameters through
+the \texttt{Param} object. This means, the classes implement the methods
+\texttt{getDefaults}, \texttt{getParameters}, \texttt{setParameters} which
+allows access to the default parameters, the current parameters and allows to
+set the parameters.
+\section{Signal Processing}
+Most signal processing algorithms follow a similar pattern in OpenMS. 
+
+\section{Appendix}
+In this appendix, a complete list of all wrapped functions is given, ordered
+by class.
+\include{appendix}
+
+\end{document}
