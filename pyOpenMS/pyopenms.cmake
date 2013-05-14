@@ -54,6 +54,27 @@ ELSE()
 	MESSAGE(STATUS "Looking for cython - found")
 ENDIF()
 
+
+MESSAGE(STATUS "Looking for autowrap")
+execute_process(
+     COMMAND
+     ${PYTHON_EXECUTABLE} -c "import autowrap"
+     RESULT_VARIABLE AUTOWRAP_MISSING
+     ERROR_QUIET
+     OUTPUT_QUIET
+)
+
+SET(AUTOWRAP-MISSING TRUE)
+IF( AUTOWRAP_MISSING EQUAL 0)
+    SET(AUTOWRAP-MISSING FALSE)
+ENDIF()
+IF(AUTOWRAP_MISSING)
+	MESSAGE(STATUS "Looking for autowrap - not found")
+ELSE()
+	MESSAGE(STATUS "Looking for autowrap - found")
+ENDIF()
+
+
 MESSAGE(STATUS "Looking for numpy")
 execute_process(
      COMMAND
