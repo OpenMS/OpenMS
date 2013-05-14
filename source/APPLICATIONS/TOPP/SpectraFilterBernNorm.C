@@ -157,11 +157,11 @@ protected:
 
 };
 
-/// @endcond
-
-
 int main(int argc, const char ** argv)
 {
   TOPPSpectraFilterBernNorm tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
+

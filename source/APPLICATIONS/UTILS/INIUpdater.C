@@ -427,11 +427,11 @@ protected:
 
 };
 
-
-/// @endcond
-
 int main(int argc, const char** argv)
 {
   TOPPINIUpdater tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
+

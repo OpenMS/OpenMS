@@ -889,13 +889,12 @@ protected:
 
 };
 
-///@endcond
-
-
-
 Int main(Int argc, const char ** argv)
 {
   TOPPInspectAdapter tool;
 
   return tool.main(argc, argv);
 }
+
+///@endcond
+

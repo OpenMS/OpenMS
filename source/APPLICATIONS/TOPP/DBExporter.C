@@ -193,10 +193,11 @@ protected:
 
 };
 
-/// @endcond
-
 int main(int argc, const char ** argv)
 {
   TOPPDBExporter tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
+

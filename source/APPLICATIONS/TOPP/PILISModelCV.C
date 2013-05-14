@@ -521,11 +521,11 @@ protected:
 
 };
 
-/// @endcond
-
-
 int main(int argc, const char ** argv)
 {
   TOPPPILISModelCV tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
+

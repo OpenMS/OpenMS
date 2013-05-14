@@ -395,11 +395,11 @@ protected:
 
 };
 
-/// @endcond
-
-
 int main(int argc, const char ** argv)
 {
   TOPPPILISSpectraGenerator tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
+

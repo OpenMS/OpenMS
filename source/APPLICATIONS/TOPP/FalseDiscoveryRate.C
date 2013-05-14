@@ -234,11 +234,11 @@ protected:
 
 };
 
-/// @endcond
-
-
 int main(int argc, const char ** argv)
 {
   TOPPFalseDiscoveryRate tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
+

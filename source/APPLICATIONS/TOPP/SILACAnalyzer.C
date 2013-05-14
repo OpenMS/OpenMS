@@ -712,10 +712,11 @@ public:
 
 };
 
-//@endcond
-
 int main(int argc, const char ** argv)
 {
   TOPPSILACAnalyzer tool;
   return tool.main(argc, argv);
 }
+
+//@endcond
+

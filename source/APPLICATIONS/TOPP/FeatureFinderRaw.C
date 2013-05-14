@@ -712,10 +712,11 @@ void TOPPFeatureFinderRaw::generateClusterFeatureByCluster(FeatureMap<> & out, c
   }
 }
 
-//@endcond
-
 int main(int argc, const char ** argv)
 {
   TOPPFeatureFinderRaw tool;
   return tool.main(argc, argv);
 }
+
+//@endcond
+

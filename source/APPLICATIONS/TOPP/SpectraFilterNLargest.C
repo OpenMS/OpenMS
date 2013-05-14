@@ -157,11 +157,11 @@ protected:
 
 };
 
-/// @endcond
-
-
 int main(int argc, const char ** argv)
 {
   TOPPSpectraFilterNLargest tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
+

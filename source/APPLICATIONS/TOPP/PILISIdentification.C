@@ -399,11 +399,11 @@ protected:
 
 };
 
-/// @endcond
-
-
 int main(int argc, const char ** argv)
 {
   TOPPPILISIdentification tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
+

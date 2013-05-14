@@ -428,12 +428,10 @@ protected:
 
 };
 
-
-/// @endcond
-
-
 int main(int argc, const char ** argv)
 {
   AdditiveSeries tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

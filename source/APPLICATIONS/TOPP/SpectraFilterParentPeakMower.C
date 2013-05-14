@@ -157,11 +157,11 @@ protected:
 
 };
 
-/// @endcond
-
-
 int main(int argc, const char ** argv)
 {
   TOPPSpectraFilterParentPeakMower tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
+
