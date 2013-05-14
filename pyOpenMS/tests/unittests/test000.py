@@ -2558,11 +2558,28 @@ def testMSQuantifications():
      MSQuantifications.__ne__
      MSQuantifications.getConsensusMaps
      MSQuantifications.setConsensusMaps
+     MSQuantifications.setDataProcessing
+     MSQuantifications.getDataProcessing
+     MSQuantifications.getAssays
+     MSQuantifications.getFeatureMaps
+     MSQuantifications.setAnalysisSummaryQuantType
+     MSQuantifications.getAnalysisSummary
+     MSQuantifications.addConsensusMap
+     MSQuantifications.assignUIDs
     """
     msq = pyopenms.MSQuantifications()
     assert msq == msq
     assert not msq != msq
     msq.setConsensusMaps(msq.getConsensusMaps())
+
+    summary = msq.getAnalysisSummary()
+    msq.setDataProcessingList(msq.getDataProcessingList())
+    msq.getAssays()
+    msq.getFeatureMaps()
+    msq.setAnalysisSummaryQuantType(pyopenms.MSQuantifications.QUANT_TYPES.LABELFREE)
+
+    msq.addConsensusMap(pyopenms.ConsensusMap())
+    msq.assignUIDs()
 
 @report
 def testMSSpectrum():
@@ -3084,6 +3101,7 @@ def testPeptideIdentification():
      PeptideIdentification.__le__
      PeptideIdentification.__lt__
      PeptideIdentification.__ne__
+     PeptideIdentification.setSignificanceThreshold
      """
     pi = pyopenms.PeptideIdentification()
     _testMetaInfoInterface(pi)
@@ -3140,6 +3158,8 @@ def testPeptideIdentification():
     assert hit.getScore() == 1.0
     assert hit.getRank() == 1
 
+    pi.setSignificanceThreshold(6.0)
+
 
 @report
 def testPolarity():
@@ -3164,12 +3184,41 @@ def testPrecursor():
      Precursor.getMZ
      Precursor.setIntensity
      Precursor.setMZ
+     Precursor.setActivationMethods
+     Precursor.getActivationMethods
+     Precursor.setActivationEnergy
+     Precursor.getActivationEnergy
+     Precursor.setIsolationWindowUpperOffset
+     Precursor.getIsolationWindowUpperOffset
+     Precursor.setIsolationWindowLowerOffset
+     Precursor.getIsolationWindowLowerOffset
+     Precursor.setCharge
+     Precursor.getCharge
+     Precursor.setPossibleChargeStates
+     Precursor.getPossibleChargeStates
+     Precursor.getUnchargedMass
     """
     pc = pyopenms.Precursor()
     pc.setMZ(123.0)
     pc.setIntensity(12.0)
     assert pc.getMZ() == 123.0
     assert pc.getIntensity() == 12.0
+
+    pc.setActivationMethods(pc.getActivationMethods())
+    pc.setActivationEnergy(6.0)
+    pc.getActivationEnergy()
+
+    pc.setIsolationWindowUpperOffset(500.0)
+    pc.getIsolationWindowUpperOffset()
+    pc.setIsolationWindowLowerOffset(600.0)
+    pc.getIsolationWindowLowerOffset()
+
+    pc.setCharge(2)
+    pc.getCharge()
+
+    pc.setPossibleChargeStates(pc.getPossibleChargeStates())
+
+    pc.getUnchargedMass()
 
 @report
 def testProcessingAction():
