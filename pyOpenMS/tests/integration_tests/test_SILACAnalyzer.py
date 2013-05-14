@@ -76,5 +76,13 @@ class TestMRMRTNormalizer(unittest.TestCase):
         self.assertEqual(out_map[1].getQuality(), 8.0)
         self.assertEqual(out_map[2].getQuality(), 8.0)
 
+        self.assertAlmostEqual(out_map[0].getRT(), 6657.56445312)
+        self.assertAlmostEqual(out_map[1].getRT(), 6635.169433594)
+        self.assertAlmostEqual(out_map[2].getRT(), 6632.409179688)
+
+        self.assertAlmostEqual(out_map[0].getMZ(), 668.8262329102)
+        self.assertAlmostEqual(out_map[1].getMZ(), 670.894470214844)
+        self.assertAlmostEqual(out_map[2].getMZ(), 668.321350097656)
+
 if __name__ == '__main__':
     unittest.main()

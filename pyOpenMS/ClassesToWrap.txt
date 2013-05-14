@@ -109,15 +109,17 @@ x    XTandemAdapter.C
 
 UTILS
 
-     ConvertTraMLToTSV.C
-     ConvertTSVToTraML.C
+so far, 3 are wrapped
+
+ok   ConvertTraMLToTSV.C
+ok   ConvertTSVToTraML.C
      CVInspector.C
      DecoyDatabase.C
      DeMeanderize.C
      Digestor.C
      DigestorMotif.C
      ERPairFinder.C
-     FeatureFinderSuperHirn.C
+ok   FeatureFinderSuperHirn.C
      FFEval.C
      FuzzyDiff.C
      IDDecoyProbability.C

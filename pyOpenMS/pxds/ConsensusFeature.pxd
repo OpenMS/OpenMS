@@ -2,6 +2,7 @@ from libcpp cimport bool
 from Types cimport *
 from BaseFeature cimport *
 from Peak2D cimport *
+from RichPeak2D cimport *
 from UniqueIdInterface cimport *
 from FeatureMap cimport *
 from BaseFeature cimport *
@@ -11,9 +12,10 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
     # do not wrap BaseFeature, due to overloaded base methods
     # -> see Precursor.pxd
 
-    cdef cppclass ConsensusFeature(UniqueIdInterface):
+    cdef cppclass ConsensusFeature(UniqueIdInterface,Peak2D):
         # wrap-inherits:
         #    UniqueIdInterface
+        #    Peak2D
 
         ConsensusFeature() nogil except +
         ConsensusFeature(ConsensusFeature) nogil except +  #wrap-ignore
