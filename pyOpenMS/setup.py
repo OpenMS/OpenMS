@@ -1,3 +1,4 @@
+import pdb
 #input-encoding: latin-1
 
 import distribute_setup
@@ -20,10 +21,36 @@ import autowrap.Main
 import glob
 import cPickle
 import os.path
+import os, shutil
+
+j=os.path.join
 
 pxd_files = glob.glob("pxds/*.pxd")
 addons = glob.glob("addons/*.pyx")
 converters = ["converters"]
+
+def copy_files_if_updated(src, target, ext):
+    getf = lambda d: [f for f in os.listdir(d) if os.path.splitext(f)[1]==ext]
+    files_target = getf(src)
+    files_src = getf(target)
+
+    for f in files_src:
+        src_f = j(src, f)
+        if f not in files_target:
+            print "COPY NEW", src_f
+            shutil.copy(src_f, target)
+        else:
+            src_time = os.path.getmtime(src_f)
+            target_time = os.path.getmtime(j(target, f))
+            if src_time > target_time:
+                print "UPDATE", src_f
+                shutil.copy(src_f, target)
+
+
+pp = j(OPEN_MS_SRC, "pyOpenMS")
+copy_files_if_updated(j(pp, "pxds"), "pxds", ".pxd")
+copy_files_if_updated(j(pp, "addons"), "addons", ".pyx")
+copy_files_if_updated(j(pp, "converters"), "converters", ".py")
 
 # sometimes I use symlinks for restricting pxd folder and others, so
 # resolve, else os.path.getmtime will not work
@@ -57,7 +84,6 @@ else:
     autowrap_include_dirs = cPickle.load(open(persisted_data_path, "rb"))
 
 from setuptools import setup, Extension
-import os, shutil
 import time
 
 # Due to a bug in Cython when dealing with destructors of typedefs, we have to
@@ -89,8 +115,7 @@ ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
 from version import version
-import numpy
-full_version= "%s_%s_numpy%s" % (version, timestamp, numpy.__version__)
+full_version= "%s_%s" % (version, timestamp)
 
 print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
 print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
@@ -106,7 +131,6 @@ for OPEN_MS_CONTRIB_BUILD_DIR in  OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
         break
 
 
-j=os.path.join
 
 # package data expected to be installed. on linux the debian package
 # contains share/ data and must be intalled to get access to the openms shared
@@ -161,6 +185,7 @@ library_dirs=[ OPEN_MS_BUILD_DIR,
                QT_LIBRARY_DIR,
               ]
 
+import numpy
 
 include_dirs=[
     QT_HEADERS_DIR,
