@@ -78,7 +78,7 @@ ELSE()
 	MESSAGE(STATUS "Looking for autowrap - found")
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,9))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,10))"
         RESULT_VARIABLE AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -87,7 +87,7 @@ ELSE()
         MESSAGE(STATUS "Looking for autowrap - version ok")
         SET(AUTOWRAP-VERSION-OK TRUE)
     ELSE()
-        MESSAGE(STATUS "Looking for autowrap - version before 0.2.9, please upgrade")
+        MESSAGE(STATUS "Looking for autowrap - version before 0.2.10, please upgrade")
     ENDIF()
 ENDIF()
 
