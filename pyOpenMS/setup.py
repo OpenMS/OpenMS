@@ -79,7 +79,8 @@ for line in f:
 
 fout.close()
 f.close()
-os.rename("pyopenms/pyopenms_out.cpp", "pyopenms/pyopenms.cpp")
+shutil.copy("pyopenms/pyopenms_out.cpp", "pyopenms/pyopenms.cpp")
+os.remove("pyopenms/pyopenms_out.cpp")
 
 # create version information
 
