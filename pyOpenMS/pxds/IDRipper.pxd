@@ -25,8 +25,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
         IDRipper() nogil except +
         IDRipper(IDRipper) nogil except +   # wrap-ignore
 
-        # see additional pyx file ...
-        # TODO still get the data back from C
-        # TODO STL map with wrapped key
-        void rip( libcpp_map[String, libcpp_pair[ libcpp_vector[ProteinIdentification], libcpp_vector[PeptideIdentification]]] & ripped, libcpp_vector[ProteinIdentification] & proteins, libcpp_vector[PeptideIdentification] & peptides) # wrap-ignore
+        # see additional pyx file in ./addons
+        void rip( 
+          libcpp_map[String, libcpp_pair[ libcpp_vector[ProteinIdentification], libcpp_vector[PeptideIdentification]]] & ripped,
+          libcpp_vector[ProteinIdentification] & proteins,
+          libcpp_vector[PeptideIdentification] & peptides) # wrap-ignore
 

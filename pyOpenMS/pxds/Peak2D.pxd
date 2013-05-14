@@ -1,5 +1,6 @@
 from libcpp cimport *
 from Types cimport *
+from DPosition cimport *
 
 cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS":
 
@@ -14,4 +15,6 @@ cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS":
         void setIntensity(Real) nogil except +
         bool operator==(Peak2D) nogil except +
         bool operator!=(Peak2D) nogil except +
+        # DPosition2  getPosition()
+        # void setPosition(DPosition2 & position)
 

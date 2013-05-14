@@ -18,6 +18,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         # wrap-instances:
         #   MSSpectrum := MSSpectrum[Peak1D]
         #   RichMSSpectrum := MSSpectrum[RichPeak1D]
+        #   ChromatogramSpectrum := MSSpectrum[ChromatogramPeak]
 
 
         MSSpectrum() nogil except +

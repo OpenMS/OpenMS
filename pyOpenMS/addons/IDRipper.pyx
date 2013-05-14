@@ -1,8 +1,13 @@
 
 
-    def rip(self, ripped, list proteins, list peptides):
+    def rip(self, dict ripped, list proteins, list peptides):
  
-        # TODO assert correct type of ripped
+  
+        # Input types:
+        # ripped   :  libcpp_map[String, libcpp_pair[ libcpp_vector[ProteinIdentification], libcpp_vector[PeptideIdentification]]]
+        # proteins :  libcpp_vector[ProteinIdentification] 
+        # peptides :  libcpp_vector[PeptideIdentification] 
+
         assert isinstance(proteins, list) and all(isinstance(li, ProteinIdentification) for li in proteins), 'arg proteins wrong type'
         cdef libcpp_vector[_ProteinIdentification] * c_protein_vec = new libcpp_vector[_ProteinIdentification]()
         cdef ProteinIdentification item1
@@ -15,8 +20,16 @@
         for item0 in peptides:
            c_peptide_vec.push_back(deref(item0.inst.get()))
  
+        # dict -> pair ( list, list ) )
+        assert isinstance(ripped, dict) and all(isinstance(li, list) and len(li) == 2 and all( 
+                isinstance(pair_element[0], list) and isinstance(pair_element[1], list) and
+                all(isinstance(proteinid, ProteinIdentification) for proteinid in pair_element[0]) and 
+                all(isinstance(peptideid, PeptideIdentification) for peptideid in pair_element[1]) 
+            for pair_element in li) 
+        for li in ripped), 'arg proteins wrong type'
+
         cdef libcpp_map[_String, libcpp_pair[ libcpp_vector[_ProteinIdentification], libcpp_vector[_PeptideIdentification]]] c_ripped
-        # declaration for loop 
+        # declaration for the loop 
         cdef libcpp_vector[_ProteinIdentification] * c_protein_vec_inner = new libcpp_vector[_ProteinIdentification]()
         cdef ProteinIdentification i_item1
         cdef libcpp_vector[_PeptideIdentification] * c_peptide_vec_inner = new libcpp_vector[_PeptideIdentification]()
@@ -45,10 +58,14 @@
  
             del aPair
  
-        # call
+        #
+        ## Make the function call
+        # 
         self.inst.get().rip(c_ripped, deref(c_protein_vec), deref(c_peptide_vec))
 
-        # get the data back from C++
+        #
+        ## Get the data back from C++
+        #
         replace = dict()
         cdef libcpp_map[_String, libcpp_pair[ libcpp_vector[_ProteinIdentification], libcpp_vector[_PeptideIdentification]]].iterator it_ripped = c_ripped.begin()
         cdef libcpp_pair[ libcpp_vector[_ProteinIdentification], libcpp_vector[_PeptideIdentification]] anotherPair

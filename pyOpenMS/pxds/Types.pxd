@@ -1,5 +1,6 @@
 from libc.stddef cimport *
 from ctime cimport *
+from libcpp cimport bool
 
 # include macros
 cdef extern from "<OpenMS/config.h>":

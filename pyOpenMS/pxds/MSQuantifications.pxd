@@ -1,8 +1,9 @@
-from libcpp cimport vector as libcpp_vector
-from libcpp cimport map as libcpp_map
-from libcpp cimport pair as libcpp_pair
+from libcpp.vector cimport vector as libcpp_vector
+from libcpp.map cimport map as libcpp_map
+from libcpp.pair cimport pair as libcpp_pair
 from ConsensusMap cimport *
 from String cimport *
+from Types cimport *
 from StringList cimport *
 from ExperimentalSettings cimport *
 from DataProcessing cimport *
@@ -11,6 +12,9 @@ from ConsensusMap cimport *
 from CVTermList cimport *
 from FeatureMap cimport *
 from Feature cimport *
+from MSExperiment cimport *
+from Peak1D cimport *
+from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
 
@@ -27,7 +31,8 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         libcpp_vector[DataProcessing] getDataProcessingList() nogil except +
         libcpp_vector[Assay] getAssays() nogil except +
         # TODO STL map with wrapped key
-        # libcpp_map[String, Ratio] getRatios() nogil except +
+        # TODO - not implemented, remove from API
+        # libcpp_map[String, Ratio] getRatios() nogil except + # wrap-ignore
         libcpp_vector[ConsensusMap] getConsensusMaps() nogil except +
         void setConsensusMaps(libcpp_vector[ConsensusMap]) nogil except +
         libcpp_vector[FeatureMap[Feature] ] getFeatureMaps() nogil except +
@@ -37,7 +42,9 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         void addConsensusMap(ConsensusMap m) nogil except +
         void assignUIDs() nogil except +
         # TODO nested STL
-        # void registerExperiment(MSExperiment[Peak1D] exp, libcpp_vector[libcpp_vector[libcpp_pair[String, DoubleReal] ] ] labels) nogil except +
+        void registerExperiment(MSExperiment[Peak1D, ChromatogramPeak] exp, 
+                                libcpp_vector[ libcpp_vector[ libcpp_pair[
+                                  String, double] ] ] labels) nogil except + # wrap-ignore
 
 cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQuantifications":
     # derived from processing applied

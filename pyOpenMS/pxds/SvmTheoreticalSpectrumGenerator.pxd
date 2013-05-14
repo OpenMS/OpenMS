@@ -3,7 +3,6 @@ from libcpp.vector cimport vector as libcpp_vector
 from SimTypes cimport *
 from SVMWrapper cimport *
 from AASequence cimport *
-from IonType cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespace "OpenMS":
     
