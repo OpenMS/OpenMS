@@ -21,8 +21,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":
         AScore() nogil except +
         AScore(AScore) nogil except +   # wrap-ignore
 
-        # TODO cannot input RichPeakSpectrum...
-        # void compute(PeptideHit & hit, MSSpectrum[RichPeak1D] & real_spectrum,
-        #               DoubleReal fmt, int n_sites)
+        void compute(PeptideHit & hit, MSSpectrum[RichPeak1D] & real_spectrum,
+                     DoubleReal fmt, int n_sites) nogil except +
 
-
+        # Computes the cumulative binomial probabilities.
+        DoubleReal computeCumulativeScore(UInt N, UInt n, DoubleReal p) nogil except +

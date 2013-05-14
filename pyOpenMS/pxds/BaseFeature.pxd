@@ -3,6 +3,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
 from RichPeak2D cimport *
 from UniqueIdInterface cimport *
+from PeptideIdentification cimport *
 
 cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 
@@ -21,6 +22,12 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +
+
+        # returns a mutable reference to the PeptideIdentification vector
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
+
+        # sets the PeptideIdentification vector
+        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except +
 
         bool operator==(BaseFeature) nogil except +
         bool operator!=(BaseFeature) nogil except +

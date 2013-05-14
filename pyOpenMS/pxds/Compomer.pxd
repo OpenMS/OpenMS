@@ -3,6 +3,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
 from Adduct cimport *
 from StringList cimport *
+from Map cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
 
@@ -16,14 +17,15 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         bool isConflicting(Compomer & cmp, UInt side_this, UInt side_other) nogil except +
 
         # /// set an Id which allows unique identification of a compomer
-        void setID(Size & id) nogil except +
+        void setID(Size id) nogil except +
 
         # /// return Id which allows unique identification of this compomer
         Size getID() nogil except +
 
         # /// left and right adducts of this compomer
-        # CompomerComponents & getComponent() nogil except +
-
+        # TODO 
+        ## libcpp_vector[Map[String, Adduct] ] getComponent() nogil except +
+    
         # /// net charge of compomer (i.e. difference between left and right side of compomer)
         Int getNetCharge() nogil except +
 
@@ -59,3 +61,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         StringList getLabels(UInt side) nogil except +
 
         # void add(CompomerSide & add_side, UInt side) nogil except +
+
+cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS::Compomer":
+    # side of compomer (LEFT ^ substract; RIGHT ^ add)
+    cdef enum SIDE: LEFT, RIGHT, BOTH

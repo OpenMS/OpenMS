@@ -139,14 +139,14 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
         # sets the synonyms
         # TODO
-        ## void setSynonyms(std::set<String] synonyms) nogil except +
+        ## void setSynonyms(std::set[String] synonyms) nogil except +
 
         # adds a synonym
         void addSynonym(String synonym) nogil except +
 
         # returns the sysnonyms
         # TODO 
-        ## std::set<String] getSynonyms() nogil except +
+        ## std::set[String] getSynonyms() nogil except +
 
         # sets the name of the residue as three letter code
         void setThreeLetterCode(String three_letter_code) nogil except +
@@ -228,14 +228,14 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
         # sets the residue sets the amino acid is contained in
         # TODO
-        ## void setResidueSets(std::set<String] residues_sets) nogil except +
+        ## void setResidueSets(std::set[String] residues_sets) nogil except +
 
         # adds a residue set to the residue sets
         void addResidueSet(String residue_sets) nogil except +
 
         # returns the residue sets this residue is contained in
         # TODO 
-        ## std::set<String] getResidueSets() nogil except +
+        ## std::set[String] getResidueSets() nogil except +
         #@}
 
         # true if the residue has neutral loss

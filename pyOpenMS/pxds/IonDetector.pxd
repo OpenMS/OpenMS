@@ -11,10 +11,10 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
         IonDetector() nogil except +
         IonDetector(IonDetector) nogil except + # wrap-ignore
 
-        ## # returns the detector type
-        ## Type getType() nogil except +
-        ## # sets the detector type
-        ## void setType(Type type) nogil except +
+        # returns the detector type
+        # Type_IonDetector getType() nogil except +
+        # sets the detector type
+        # void setType(Type_IonDetector type_) nogil except +
 
         # returns the acquisition mode
         AcquisitionMode getAcquisitionMode() nogil except +
@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetector":
 
-        # # Detector type
+        # Detector type
         # cdef enum Type:
         #   # wrap-attach:
         #   #     IonDetector
@@ -67,6 +67,8 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS::IonDetecto
 
         # Acquisition mode
         cdef enum AcquisitionMode:
+          # wrap-attach:
+          #     IonDetector
           ACQMODENULL,                          #< Unknown
           PULSECOUNTING,                    #< Pulse counting
           ADC,                                          #< Analog-digital converter

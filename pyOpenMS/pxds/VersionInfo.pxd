@@ -13,6 +13,7 @@ cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo
         Int version_major
         Int version_minor
         Int version_patch
+        # VersionDetails EMPTY
 
         VersionDetails() nogil except +
         VersionDetails(VersionDetails) nogil except +   #wrap-ignore

@@ -22,6 +22,9 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         void setHits(libcpp_vector[PeptideHit]) nogil except +
 
         DoubleReal getSignificanceThreshold()   nogil except +
+        # setting of the peptide significance threshold value
+        void setSignificanceThreshold(DoubleReal value) nogil except +
+
         String     getScoreType()
         void       setScoreType(String)
         bool       isHigherScoreBetter()

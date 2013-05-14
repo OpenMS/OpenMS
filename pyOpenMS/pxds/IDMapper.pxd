@@ -34,3 +34,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
         void annotate(MSExperiment[Peak1D, ChromatogramPeak] & map_,
                       libcpp_vector[PeptideIdentification] & ids,
                       libcpp_vector[ProteinIdentification] & protein_ids)
+
+cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS::IDMapper":
+    cdef enum Measure:
+      MEASURE_PPM = 0,
+      MEASURE_DA

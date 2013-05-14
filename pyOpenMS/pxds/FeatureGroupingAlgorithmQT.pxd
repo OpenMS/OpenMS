@@ -12,12 +12,19 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>" na
         #    FeatureGroupingAlgorithm
 
         FeatureGroupingAlgorithmQT()
+
         # not in FeatureGroupingAlgorithm, as cython has a problem with
         # overloaded methods in base classes
         void group(libcpp_vector[FeatureMap[Feature]] & maps,
                    ConsensusMap & out
-                   )
+                  ) nogil except +
 
         void group(libcpp_vector[ConsensusMap] & maps,
                    ConsensusMap & out
-                   )
+                  ) nogil except +
+
+        # Creates a new instance of this class (for Factory)
+        # FeatureGroupingAlgorithm * create() nogil except +
+
+        # Returns the product name (for the Factory)
+        String getProductName() nogil except +

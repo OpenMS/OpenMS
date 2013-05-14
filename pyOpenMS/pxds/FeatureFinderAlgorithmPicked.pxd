@@ -22,6 +22,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff)
         void run()
 
+
+        # virtual void setSeeds(const FeatureMapType& seeds)
+
+        # static FeatureFinderAlgorithm<PeakType, FeatureType>* create()
+
 #
 # static methods are wrapped like this:
 #
