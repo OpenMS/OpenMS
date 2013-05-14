@@ -13,9 +13,8 @@ from DateTime cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment[PeakT, ChromoPeakT](MetaInfoInterface, ExperimentalSettings):
+    cdef cppclass MSExperiment[PeakT, ChromoPeakT](ExperimentalSettings):
         # wrap-inherits:
-        #   MetaInfoInterface
         #   ExperimentalSettings
         #
         # wrap-instances:

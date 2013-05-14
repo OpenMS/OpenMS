@@ -5,7 +5,7 @@ xx = is not yet wrapped, must be done (5 TOPP tools, no Utils)
 ok = is done (42 TOPP tools out of 98 are currently ok, plus 8 utils) 
 ?  = not yet clear (5 TOPP tools, 2 Utils)
 
-Autwrap has wrapped 164 classes, 1454 methods and 11 enums
+Autwrap has wrapped 183 classes, 1812 methods and 24 enums
 
 98 TOPP tools, 41 utils 
 

@@ -1910,6 +1910,68 @@ def testInstrumentSettings():
     assert ins == ins
     assert not ins != ins
 
+@report
+def testContactPerson():
+    """
+    @tests:
+     """
+    ins = pyopenms.ContactPerson()
+
+@report
+def testDocumentIdentifier():
+    """
+    @tests:
+     """
+    ins = pyopenms.DocumentIdentifier()
+
+@report
+def testGradient():
+    """
+    @tests:
+     """
+    ins = pyopenms.Gradient()
+
+@report
+def testHPLC():
+    """
+    @tests:
+     """
+    ins = pyopenms.HPLC()
+
+@report
+def testInstrument():
+    """
+    @tests:
+     """
+    ins = pyopenms.Instrument()
+
+@report
+def testIonDetector():
+    """
+    @tests:
+     """
+    ins = pyopenms.IonDetector()
+
+@report
+def testIonSource():
+    """
+    @tests:
+     """
+    ins = pyopenms.IonSource()
+
+@report
+def testMassAnalyzer():
+    """
+    @tests:
+     """
+    ins = pyopenms.MassAnalyzer()
+
+@report
+def testSample():
+    """
+    @tests:
+     """
+    ins = pyopenms.Sample()
 
 @report
 def testLogType():

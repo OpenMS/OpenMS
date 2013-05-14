@@ -1,4 +1,4 @@
-from IonSource_Polarity cimport *
+from IonSource cimport *
 from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
@@ -9,6 +9,7 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
 
         InstrumentSettings()     nogil except +
         InstrumentSettings(InstrumentSettings)     nogil except +
+
         Polarity getPolarity()     nogil except +
         void setPolarity(Polarity)  nogil except +
 
