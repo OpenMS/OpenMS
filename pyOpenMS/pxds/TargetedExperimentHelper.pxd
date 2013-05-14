@@ -1,6 +1,10 @@
 #from DataValue cimport *
-#from String cimport *
+from String cimport *
 from Types cimport *
+
+from libcpp.vector cimport vector as libcpp_vector
+from libcpp.pair cimport pair
+from libcpp cimport bool
 
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper":
 
@@ -13,4 +17,5 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
         Peptide() nogil except +
         Peptide(Peptide) nogil except +
+        double getRetentionTime() except +
 

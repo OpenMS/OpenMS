@@ -3,10 +3,15 @@ from MSExperiment cimport *
 from FeatureMap cimport *
 from TargetedExperiment cimport *
 from TransformationDescription cimport *
+from DefaultParamHandler cimport *
+from ProgressLogger cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespace "OpenMS":
 
-    cdef cppclass MRMFeatureFinderScoring:
+    cdef cppclass MRMFeatureFinderScoring(DefaultParamHandler, ProgressLogger):
+        # wrap-inherits:
+        #    DefaultParamHandler
+        #    ProgressLogger
 
         MRMFeatureFinderScoring() nogil except +
 
