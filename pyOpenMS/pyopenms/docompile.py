@@ -5,6 +5,7 @@
 # It can be run in the build process of pyopenms when manual changes to the pyx
 # files need to be made (not recommended!).
 # 
+# == taken from autowrap/Main.py run(), lower part
 
 infile  = "pyopenms/pyopenms.pyx"
 

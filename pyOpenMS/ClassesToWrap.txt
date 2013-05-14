@@ -1,95 +1,99 @@
 
-n = will probably not be wrapped (even though technically possible - most likely deprecated code, abstract base class or some other reason - 10 tools)
-x = cannot / will not be wrapped (all code is in TOPP tool; 43 tools)
-xx = is not yet wrapped, must be done (2 tools)
-ok = is done (41 out of 98 are currently ok) => 48 classes now
+n = will probably not be wrapped (even though technically possible - most likely deprecated code, abstract base class or some other reason - 14 TOPP tools, 15 Utils)
+x = cannot not be wrapped (too much code in TOPP tools; 32 TOPP tools, 16 Utils)
+xx = is not yet wrapped, must be done (5 TOPP tools, no Utils)
+ok = is done (42 TOPP tools out of 98 are currently ok, plus 8 utils) 
+?  = not yet clear (5 TOPP tools, 2 Utils)
 
-In total, 142 classes are wrapped at the current moment.
+Autwrap has wrapped 164 classes, 1454 methods and 11 enums
 
+98 TOPP tools, 41 utils 
 
-x    AdditiveSeries.C
+In total, 153 classes are wrapped at the current moment.
+
+x    AdditiveSeries.C # 331 lines
 ok   BaselineFilter.C # morph filter
 ok   CompNovo.C
 ok   CompNovoCID.C
 ok   ConsensusID.C
 ok   ConsensusMapNormalizer.C # all 3 algos
-x    DBExporter.C
-x    DBImporter.C
+n    DBExporter.C
+n    DBImporter.C
 ok   Decharger.C
-x    DTAExtractor.C
-x    EICExtractor.C
-x    ExecutePipeline.C
+x    DTAExtractor.C # 134 lines
+x    EICExtractor.C # 215 lines
+n    ExecutePipeline.C
 ok   FalseDiscoveryRate.C
 ok   FeatureFinderCentroided.C
 ok   FeatureFinderIsotopeWavelet.C
 ok   FeatureFinderMetabo.C
 n    FeatureFinderMRM.C
-x    FeatureFinderRaw.C
+xx   FeatureFinderRaw.C # 700+ lines -- Wrap the whole thing?
 n    FeatureLinkerBase.C
-n    FeatureLinkerLabeled.C
-n    FeatureLinkerUnlabeled.C
+?    FeatureLinkerLabeled.C
+?    FeatureLinkerUnlabeled.C
 ok   FeatureLinkerUnlabeledQT.C
-x    FileConverter.C
-x    FileFilter.C
-x    FileInfo.C
-x    FileMerger.C
-x    GenericWrapper.C
-x    HighResPrecursorMassCorrector.C # PPHiRes is wrapped
-x    IDConflictResolver.C
-x    IDFileConverter.C
+n    FileConverter.C  # probably easier to just write in Python
+n    FileFilter.C     # probably easier to just write in Python
+x    FileInfo.C       # 1000+ lines
+x    FileMerger.C     # 300 lines
+n    GenericWrapper.C # not useful for Python
+x    HighResPrecursorMassCorrector.C # 150 lines.PPHiRes is wrapped
+x    IDConflictResolver.C  # ca 90 lines
+x    IDFileConverter.C  # 300 lines
 ok   IDFilter.C 
 ok   IDMapper.C
-x    IDMerger.C
-x    IDPosteriorErrorProbability.C # PosteriorErrorProbabilityModel is wrapped
-ok   IDRipper.C # TODO - done on my side, needs fix in autowrap due to nesting
-x    IDRTCalibration.C
-x    InclusionExclusionListCreator.C
-x    InspectAdapter.C
+x    IDMerger.C         # 200 lines
+x    IDPosteriorErrorProbability.C # 300 lines PosteriorErrorProbabilityModel is wrapped
+xx   IDRipper.C         # TODO - not yet done on my side, needs hand-wrapping
+x    IDRTCalibration.C # 100 lines
+x    InclusionExclusionListCreator.C # TODO should we wrap this? 347 lines
+x    InspectAdapter.C # 750 lines
 ok   InternalCalibration.C 
 ok   ITRAQAnalyzer.C
 ok   MapAlignerIdentification.C
 ok   MapAlignerPoseClustering.C
 n    MapAlignerSpectrum.C
-x    MapNormalizer.C
-x    MapRTTransformer.C
-x    MapStatistics.C
-x    MascotAdapter.C
-x    MascotAdapterOnline.C
+x    MapNormalizer.C  # 100 lines
+?    MapRTTransformer.C # 150 lines, wrap MapRTTransformer
+x    MapStatistics.C    # 400 lines
+x    MascotAdapter.C  # 400 lines
+x    MascotAdapterOnline.C # 200 lines
 ok   MassTraceExtractor.C
-ok   MRMMapper.C
-x    MyriMatchAdapter.C
-x    MzTabExporter.C
+ok   MRMMapper.C 
+x    MyriMatchAdapter.C  # 400 lines
+?    MzTabExporter.C     # needs wrapping of depracated method in MzTabFile
 ok   NoiseFilterGaussian.C
 ok   NoiseFilterSGolay.C
-x    OMSSAAdapter.C
+x    OMSSAAdapter.C      # 700 lines
 ok   OpenSwathAnalyzer.C
 ok   OpenSwathChromatogramExtractor.C
 ok   OpenSwathConfidenceScoring.C
-     OpenSwathDecoyGenerator.C
+?    OpenSwathDecoyGenerator.C
 ok   OpenSwathFeatureXMLToTSV.C
 ok   OpenSwathRTNormalizer.C
 ok   PeakPickerHiRes.C
 ok   PeakPickerWavelet.C
-x    PepNovoAdapter.C
-x    PeptideIndexer.C
-     PhosphoScoring.C # AScore.pxd TODO 
+x    PepNovoAdapter.C   # 300 lines
+x    PeptideIndexer.C   # 500 lines
+xx   PhosphoScoring.C # AScore.pxd TODO , RichPeakSpectrum doesnt work
 n    PILISIdentification.C
 n    PILISModelCV.C
 n    PILISModelTrainer.C
 n    PILISSpectraGenerator.C
 n    PrecursorIonSelector.C
-x    PrecursorMassCorrector.C #Isotope Wavelet is wrapped
-x    ProteinInference.C
-x    ProteinQuantifier.C # PeptideAndProteinQuant is wrapped
-     ProteinResolver.C
-x    PTModel.C
-x    PTPredict.C
-ok   Resampler.C
-x    RTModel.C
-x    RTPredict.C
-xx    SeedListGenerator.C # TODO more work required overloading methods
-x    SequestAdapter.C
-x    SILACAnalyzer.C # most of the code is in the TOPP tool
+x    PrecursorMassCorrector.C #Isotope Wavelet is wrapped, 200 lines
+x    ProteinInference.C    # 200 lines
+x    ProteinQuantifier.C # PeptideAndProteinQuant is wrapped, 600 lines
+xx   ProteinResolver.C   # 500 lines, has a 
+x    PTModel.C  # 400 lines
+x    PTPredict.C # 200 lines
+ok   Resampler.C 
+x    RTModel.C   # 800 lines
+x    RTPredict.C # 600 lines
+xx   SeedListGenerator.C # TODO more work required overloading methods
+x    SequestAdapter.C   # 1200 lines
+ok   SILACAnalyzer.C    # done, refactored
 x    SpecLibSearcher.C
 ok   SpectraFilterBernNorm.C
 ok   SpectraFilterMarkerMower.C
@@ -101,10 +105,10 @@ ok   SpectraFilterSqrtMower.C
 ok   SpectraFilterThresholdMower.C
 ok   SpectraFilterWindowMower.C
 ok   SpectraMerger.C
-x    TextExporter.C
+x    TextExporter.C   # 1000 lines
 ok   TMTAnalyzer.C # in theory ok, Itraq Extractor and Quantifier are wrapped
 ok   TOFCalibration.C
-x    XTandemAdapter.C
+x    XTandemAdapter.C  # 300 lines
 
 
 UTILS
@@ -113,18 +117,18 @@ so far, 3 are wrapped
 
 ok   ConvertTraMLToTSV.C
 ok   ConvertTSVToTraML.C
-x    CVInspector.C
-x    DecoyDatabase.C
-x    DeMeanderize.C
+x    CVInspector.C   # 400 lines
+x    DecoyDatabase.C # 200 lines
+x    DeMeanderize.C  # 100 lines
 ok   Digestor.C
-ok   DigestorMotif.C
-x    ERPairFinder.C
+ok   DigestorMotif.C 
+x    ERPairFinder.C   # 400 lines
 ok   FeatureFinderSuperHirn.C
 n    FFEval.C
 n    FuzzyDiff.C
 ok   IDDecoyProbability.C
 n    IDEvaluator.C # plotting tool
-x    IDExtractor.C
+x    IDExtractor.C  # 200 lines
 n    IDMassAccuracy.C
 n    IDSplitter.C
 n    ImageCreator.C
@@ -133,25 +137,25 @@ n    LabeledEval.C
 n    MapAlignmentEvaluation.C 
 n    MassCalculator.C
 n    MRMPairFinder.C
-?    MSSimulator.C
+?    MSSimulator.C  # 250 lines => would need some work in gsl rng wrapping
 n    OpenMSInfo.C
 n    OpenSwathDIAPreScoring.C
 ?    OpenSwathMzMLFileCacher.C
 n    OpenSwathRewriteToFeatureXML.C
-x    QCCalculator.C
-x    QCEmbedder.C
-x    QCExporter.C
-x    QCMerger.C
-x    QCShrinker.C
-x    RNPxl.C  // 1500 LOC
-x    RNPxlXICFilter.C
-x    RTEvaluation.C
+x    QCCalculator.C   # 600 lines
+x    QCEmbedder.C     # 200 lines
+x    QCExporter.C     # 100 lines
+x    QCMerger.C       # 200 lines
+x    QCShrinker.C     # 100 lines
+x    RNPxl.C     # 1300 lines
+x    RNPxlXICFilter.C # 200 lines
+x    RTEvaluation.C  # 300 lines
 ok   SemanticValidator.C
-     SequenceCoverageCalculator.C
-     SpecLibCreator.C
-     SvmTheoreticalSpectrumGeneratorTrainer.C
-     TransformationEvaluation.C
-     XMLValidator.C
+x    SequenceCoverageCalculator.C # 200 lines
+x    SpecLibCreator.C # 200 lines
+ok   SvmTheoreticalSpectrumGeneratorTrainer.C
+n    TransformationEvaluation.C
+x    XMLValidator.C # 80 lines
  
 
 The TOPP tools are divided into several subgroups:
@@ -185,7 +189,7 @@ x  TextExporter - Exports various XML formats to a text file. # all in tool
 Signal Processing and Preprocessing
 
 ok  BaselineFilter - Removes the baseline from profile spectra using a top-hat filter. # morphological filter ok
-xx  InternalCalibration - Applies an internal calibration. # TODO overloading fxn
+ok  InternalCalibration - Applies an internal calibration.  # ok 
 x   MapNormalizer - Normalizes peak intensities in an MS run.               # all code in TOPP tool
 ok  NoiseFilter - Removes noise from profile spectra by using different smoothing techniques. # both algos wrapped
 ok  PeakPicker - Finds mass spectrometric peaks in profile mass spectra. # both algos wrapped
@@ -202,7 +206,7 @@ ok  Decharger - Decharges and merges different feature charge variants of the sa
 ok  FeatureFinder - Detects two-dimensional features in LC-MS data.
 ok  ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
 ok  ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps # done with PeptideAndProteinQuant
-x   SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data. ## Open TODO , most of it is in the TOPP tool
+ok  SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data. # done after refactoring
 x   SeedListGenerator - Generates seed lists for feature detection. # needs more work
 
 
@@ -222,8 +226,8 @@ Protein/Peptide Processing
 
 ok  ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
 ok  FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
-??  IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
-xx  IDFilter - Filters results from protein or peptide identification engines based on different criteria. # TODO
+ok  IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. # UTILS tool wrapped
+ok  IDFilter - Filters results from protein or peptide identification engines based on different criteria. # done
 ok  IDMapper - Assigns protein/peptide identifications to feature or consensus features.
 ok  IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
 x   IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards. # all in TOPP tool
