@@ -57,6 +57,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
 // scoring
@@ -223,6 +224,22 @@ public:
 
     /// Destructor
     ~MRMFeatureFinderScoring();
+
+    // pick features in one experiment containing chromatograms
+    // (easy function for wrapping in Python, only uses OpenMS datastructures
+    // and does not return the map)
+    void pickExperiment(MSExperiment<Peak1D> & chromatograms, FeatureMap<Feature>& output, TargetedExperiment& transition_exp_,
+                        TransformationDescription trafo, MSExperiment<Peak1D>& swath_map)
+    {
+      OpenSwath::LightTargetedExperiment transition_exp;
+      OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
+      TransitionGroupMapType transition_group_map;
+
+      OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(chromatograms);
+      OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+
+      pickExperiment(chromatogram_ptr, output, transition_exp, trafo, empty_swath_ptr, transition_group_map);
+    }
 
     // pick features in one experiment containing chromatograms
     void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
