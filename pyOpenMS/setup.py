@@ -117,13 +117,23 @@ if iswin:
     shutil.copy(MSVCR90DLL, "pyopenms")
     shutil.copy(MSVCP90DLL, "pyopenms")
 
-    shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_0.dll"),\
-                    "pyopenms")
 
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
         libraries=["OpenMSd", "OpenSwathAlgod", "xerces-c_3D", "QtCored4", "gsl_d", "cblas_d"]
+        shutil.copy(j(QT_LIBRARY_DIR, "QtCored4.dll"), "pyopenms")
+        shutil.copy(j(QT_LIBRARY_DIR, "QtGuid4.dll"), "pyopenms")
+        shutil.copy(j(QT_LIBRARY_DIR, "QtSqld4.dll"), "pyopenms")
+        shutil.copy(j(QT_LIBRARY_DIR, "QtNetworkd4.dll"), "pyopenms")
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_0D.dll"),\
+                        "pyopenms")
     else:
         libraries=["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "gsl", "cblas"]
+        shutil.copy(j(QT_LIBRARY_DIR, "QtCore4.dll"), "pyopenms")
+        shutil.copy(j(QT_LIBRARY_DIR, "QtGui4.dll"), "pyopenms")
+        shutil.copy(j(QT_LIBRARY_DIR, "QtSql4.dll"), "pyopenms")
+        shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork4.dll"), "pyopenms")
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_0.dll"),\
+                        "pyopenms")
 
 elif sys.platform == "linux2":
     libraries=["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore", "gsl", "gslcblas"]
