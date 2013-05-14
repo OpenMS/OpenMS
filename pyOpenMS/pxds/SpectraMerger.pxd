@@ -5,16 +5,16 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>" namespace "OpenMS":
 
-    cdef cppclass WindowMower(DefaultParamHandler):
+    cdef cppclass SpectraMerger(DefaultParamHandler):
         # wrap-inherits:
         #    DefaultParamHandler
 
-        WindowMower()            nogil except +
-        WindowMower(WindowMower) nogil except + #wrap-ignore
+        SpectraMerger()            nogil except +
+        SpectraMerger(SpectraMerger) nogil except + #wrap-ignore
 
-        void filterSpectrum(MSSpectrum[Peak1D] & spec) nogil except +
-        void filterPeakSpectrum(MSSpectrum[Peak1D] & spec) nogil except +
-        void filterPeakMap(MSExperiment[Peak1D, ChromatogramPeak] & exp) nogil except +
+        void mergeSpectraBlockWise(MSExperiment[Peak1D, ChromatogramPeak] & exp) nogil except +
+        void mergeSpectraPrecursors(MSExperiment[Peak1D, ChromatogramPeak] & exp) nogil except +
+
 
