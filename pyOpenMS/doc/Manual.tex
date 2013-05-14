@@ -38,7 +38,7 @@
   in more detail with full examples of Python code that can be directly
   executed.
 
-  \section{File Input/Output}
+\section{File Input/Output}
 
   pyOpenMS supports file input and output for various formats. These formats
   include \texttt{DTA2D, DTA, EDTA, FeatureXML, Kroenik, MzData, MzIdentML, IdXML, mzML,
@@ -152,14 +152,29 @@ file.store(filename_in, exp)
 \section{Parameter Handling}
 
 Paramter handling in OpenMS and pyOpenMS is usually implemented through
-inheritance from 
-m \texttt{DefaultParamHandler} and allow access to parameters through
-the \texttt{Param} object. This means, the classes implement the methods
-\texttt{getDefaults}, \texttt{getParameters}, \texttt{setParameters} which
-allows access to the default parameters, the current parameters and allows to
-set the parameters.
+inheritance from \texttt{DefaultParamHandler} and allow access to parameters
+through the \texttt{Param} object. This means, the classes implement the
+methods \texttt{getDefaults}, \texttt{getParameters}, \texttt{setParameters}
+which allows access to the default parameters, the current parameters and
+allows to set the parameters.
+
+The Param file that is returned can be manipulated through the \texttt{setValue} and
+\texttt{getValue} methods (the \texttt{existsts} method can be used to check for existance of a
+key). Using the \texttt{getDescription} method, it is possible to get a help-text for
+each parameter value in an interactive session without consulting the documentation.
+
 \section{Signal Processing}
-Most signal processing algorithms follow a similar pattern in OpenMS. 
+Most signal processing algorithms follow a similar pattern in OpenMS.  
+
+\begin{verbatim}
+filter = FilterObject()
+exp = MSExperiment() 
+# populate exp
+filter.filterExperiment(exp)
+\end{verbatim}
+
+Since they work on a single \texttt{MSExperiment} object, little input is needed to
+execute a filter directly on the data.
 
 \section{Appendix}
 In this appendix, a complete list of all wrapped functions is given, ordered
