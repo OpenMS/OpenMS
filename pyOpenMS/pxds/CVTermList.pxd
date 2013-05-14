@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
          CVTermList()
          # fails with ! 'raise Exception("can not handle wrapped classes as keys in map")'
          # Map[String, libcpp_vector[CVTerm] ] getCVTerms()
-         void setCVTerms(libcpp_vector[CVTerm] & terms)
-         void addCVTerm(CVTerm & term)
+         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
+         void addCVTerm(CVTerm & term)                   nogil except +
 
 

@@ -19,8 +19,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
         String getModelType()  nogil except +
         void getModelParameters(Param & params) nogil except +
 
-        void invert()
+        void invert() nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" namespace "OpenMS::TransformationDescription":
 
-    void getModelTypes(StringList result) # wrap-attach: TransformationDescription
+    void getModelTypes(StringList result) nogil except + # wrap-attach: TransformationDescription

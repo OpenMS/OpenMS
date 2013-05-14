@@ -1,10 +1,6 @@
-#from DataValue cimport *
-from String cimport *
-from Types cimport *
-
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.pair cimport pair
-from libcpp cimport bool
+from libcpp cimport bool as libcpp_pair
 
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper":
 

@@ -26,6 +26,8 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
 
         Real getQuality(Size index)  nogil except +
         void setQuality(Size index, Real q) nogil except +
+        Real getOverallQuality()  nogil except +
+        void setOverallQuality(Real q) nogil except +
 
         Real getWidth() nogil except +
         void setWidth(Real q) nogil except +
@@ -36,6 +38,7 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         libcpp_vector[Feature] getSubordinates() nogil except +
         void setSubordinates(libcpp_vector[Feature]) nogil except +
 
+        ConvexHull2D getConvexHull()                 nogil except +
         libcpp_vector[ConvexHull2D] getConvexHulls() nogil except +
         void setConvexHulls(libcpp_vector[ConvexHull2D]) nogil except +
 

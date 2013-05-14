@@ -3,8 +3,13 @@
 	<description>
 		<admin>
 			<sampleName></sampleName>
+			<sourceFile>
+				<nameOfFile></nameOfFile>
+				<pathToFile></pathToFile>
+				<fileType>PSI mzData file</fileType>
+			</sourceFile>
 			<contact>
-				<name></name>
+				<name> </name>
 				<institution></institution>
 			</contact>
 		</admin>
@@ -24,20 +29,29 @@
 				<name></name>
 				<version></version>
 			</software>
+			<processingMethod>
+			</processingMethod>
 		</dataProcessing>
 	</description>
 	<spectrumList count="1">
 		<spectrum id="1">
 			<spectrumDesc>
 				<spectrumSettings>
-					<spectrumInstrument msLevel="1"/>
+					<acqSpecification spectrumType="discrete" methodOfCombination="no combination" count="1">
+						<acquisition acqNumber="0">
+						</acquisition>
+					</acqSpecification>
+					<spectrumInstrument msLevel="1">
+						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1"/>
+					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data length="0" endian="little" precision="32"></data>
+				<data precision="32" endian="little" length="0"></data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data length="0" endian="little" precision="32"></data>
+				<data precision="32" endian="little" length="0"></data>
 			</intenArrayBinary>
 		</spectrum>
 	</spectrumList>

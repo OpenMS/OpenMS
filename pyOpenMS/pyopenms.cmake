@@ -78,7 +78,7 @@ ELSE()
 	MESSAGE(STATUS "Looking for autowrap - found")
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,5))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,7))"
         RESULT_VARIABLE AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -88,7 +88,7 @@ ELSE()
         MESSAGE(STATUS "Looking for autowrap - version ok")
         SET(AUTOWRAP-VERSION-OK TRUE)
     ELSE()
-        MESSAGE(STATUS "Looking for autowrap - version before 0.2.5, please upgrade")
+        MESSAGE(STATUS "Looking for autowrap - version before 0.2.7, please upgrade")
     ENDIF()
 ENDIF()
 
@@ -144,6 +144,7 @@ ENDIF()
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
+FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pxds)
@@ -151,6 +152,9 @@ FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/addons)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/converters)
 
 FILE(GLOB _python_files "pyOpenMS/pyopenms/*.py")
+FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+
+FILE(GLOB _python_files "pyOpenMS/pyopenms/*.sh")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 
 FILE(GLOB _python_files "pyOpenMS/pyTOPP/*.py")
@@ -164,6 +168,9 @@ FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
 
 FILE(GLOB _python_files "pyOpenMS/tests/memoryleaktests/*")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
+
+FILE(GLOB _python_files "pyOpenMS/tests/integration_tests/*")
+FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 
 FILE(GLOB _files "pyOpenMS/pxds/*.pxd")
 FILE(COPY ${_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pxds)

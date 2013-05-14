@@ -1,4 +1,6 @@
-# the following empty line is important
+cimport numpy as np
+import numpy as np
+
 
     def get_peaks(self):
 
@@ -23,8 +25,7 @@
 
         cdef _MSSpectrum[_Peak1D] * spec_ = self.inst.get()
 
-        #cdef int delete_meta = 0
-        spec_.clear(0) # delete_meta) # emtpy vector , keep meta data
+        spec_.clear(0) # emtpy vector , keep meta data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
         cdef float I
@@ -62,5 +63,3 @@
                 I += p.getIntensity()
 
         return I
-
-import numpy as np

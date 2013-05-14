@@ -38,10 +38,11 @@ if not os.path.exists(persisted_data_path)\
     or any(m > mtime_result for m in mtimes):
 
     extra_cimports = [ # "from libc.stdint cimport *",
-                "from libc.stddef cimport *",
-                "from UniqueIdInterface cimport setUniqueId as _setUniqueId",
+                #"from libc.stddef cimport *",
+                #"from UniqueIdInterface cimport setUniqueId as _setUniqueId",
                 "from Map cimport Map as _Map",
-                "cimport numpy as np"]
+                #"cimport numpy as np"
+                ]
     autowrap_include_dirs = autowrap.Main.run(pxd_files,
                                             addons,
                                             converters,
@@ -147,7 +148,8 @@ ext = Extension(
         # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
         # such that  boost::throw_excption() is declared but not implemented.
         # The linker does not like that very much ...
-        extra_compile_args = iswin and [ "/EHs"] or (IS_DEBUG and ["-g2"] or [])
+        extra_compile_args = iswin and [ "/EHs"] or (IS_DEBUG and ["-g2"] or []),
+        extra_link_args = iswin and [ ] or [ "-Wl,-s"]
 
     )
 

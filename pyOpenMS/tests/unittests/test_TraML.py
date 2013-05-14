@@ -1,7 +1,6 @@
 import unittest
 import os
 
-import pdb
 import pyopenms
 
 class TestTraMLFile(unittest.TestCase):

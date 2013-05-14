@@ -9,22 +9,22 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
 
         TargetedExperiment()                  nogil except +
         TargetedExperiment(TargetedExperiment)   nogil except + #wrap-ignore
-        void clear(bool clear_meta_data)
+        void clear(bool clear_meta_data)  nogil except +
 
-        libcpp_vector[ReactionMonitoringTransition] getTransitions()
-        void setTransitions(libcpp_vector[ReactionMonitoringTransition] & transitions)
-        void addTransition(ReactionMonitoringTransition & transition) 
+        libcpp_vector[ReactionMonitoringTransition] getTransitions()  nogil except +
+        void setTransitions(libcpp_vector[ReactionMonitoringTransition] transitions)  nogil except +
+        void addTransition(ReactionMonitoringTransition transition)   nogil except +
 
-        libcpp_vector[Peptide] getPeptides()
-        Peptide getPeptideByRef(String & ref)
-        void setPeptides(libcpp_vector[Peptide] & peptides)
-        void addPeptide(Peptide & peptide)
+        libcpp_vector[Peptide] getPeptides()  nogil except +
+        Peptide getPeptideByRef(String ref)  nogil except +
+        void setPeptides(libcpp_vector[Peptide] peptides)  nogil except +
+        void addPeptide(Peptide peptide)  nogil except +
 
-        libcpp_vector[Protein] getProteins()
-        Protein getProteinByRef(String & ref)
-        void setProteins(libcpp_vector[Protein] & peptides)
-        void addProtein(Protein & peptide)
+        libcpp_vector[Protein] getProteins()  nogil except +
+        Protein getProteinByRef(String ref)  nogil except +
+        void setProteins(libcpp_vector[Protein] peptides)  nogil except +
+        void addProtein(Protein peptide)  nogil except +
 
-        void sortTransitionsByProductMZ()
+        void sortTransitionsByProductMZ()  nogil except +
 
 

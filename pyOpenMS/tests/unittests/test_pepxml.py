@@ -1,7 +1,6 @@
 import unittest
 import os
 
-import pdb
 import pyopenms
 
 class TestPepXML(unittest.TestCase):
@@ -15,8 +14,7 @@ class TestPepXML(unittest.TestCase):
         pepxml_file = pyopenms.PepXMLFile()
         peps = []
         prots = []
-        empty = pyopenms.String("");
-        pepxml_file.load(self.filename, prots, peps, empty)
+        pepxml_file.load(self.filename, prots, peps)
 
 
     def test_readfile_content(self):
@@ -24,8 +22,7 @@ class TestPepXML(unittest.TestCase):
         pepxml_file = pyopenms.PepXMLFile()
         peps = []
         prots = []
-        empty = pyopenms.String("");
-        pepxml_file.load(self.filename, prots, peps, empty)
+        pepxml_file.load(self.filename, prots, peps)
 
         assert len(prots) == 1
         assert len(peps) == 3

@@ -7,16 +7,16 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
 
         ReactionMonitoringTransition()                  nogil except +
         ReactionMonitoringTransition(ReactionMonitoringTransition)   nogil except + #wrap-ignore
-        String getName() 
-        String getNativeID() 
-        String getPeptideRef() 
-        void setName(String & name) 
-        void setNativeID(String & name) 
-        void setPeptideRef(String & peptide_ref) 
+        String getName()                           nogil except +
+        String getNativeID()                       nogil except +
+        String getPeptideRef()                     nogil except +
+        void setName(String name)                  nogil except +
+        void setNativeID(String name)              nogil except +
+        void setPeptideRef(String peptide_ref)     nogil except +
 
-        DoubleReal getProductMZ() except +
-        void setProductMZ(DoubleReal)
+        DoubleReal getProductMZ()         nogil except +
+        void setProductMZ(DoubleReal)     nogil except +
 
-        DoubleReal getPrecursorMZ() except +
-        void setPrecursorMZ(DoubleReal)
+        DoubleReal getPrecursorMZ()       nogil except +
+        void setPrecursorMZ(DoubleReal)   nogil except +
 

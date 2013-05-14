@@ -27,7 +27,8 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         bool isSorted() nogil except +
 
         int   size() nogil except +
-        MSSpectrum[PeakT] operator[](int)      nogil except +
+        # wrapped manually:
+        MSSpectrum[PeakT] operator[](int)      nogil except + # wrap-upper-limit:size()
 
         void   updateRanges() nogil except +
         void   updateRanges(int msLevel) nogil except +

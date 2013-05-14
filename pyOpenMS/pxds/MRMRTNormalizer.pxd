@@ -6,5 +6,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "Open
 
     cdef cppclass MRMRTNormalizer:
 
-        libcpp_vector[libcpp_pair[double,double]] rm_outliers(libcpp_vector[libcpp_pair[double,double]] & pairs, double rsq_limit, double coverage_limit)
+        pass
+
+cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "OpenMS::MRMRTNormalizer":
+
+    libcpp_vector[libcpp_pair[double,double]] rm_outliers( libcpp_vector[libcpp_pair[double,double]] & pairs, double rsq_limit,double coverage_limit) nogil except + # wrap-attach:MRMRTNormalizer
 

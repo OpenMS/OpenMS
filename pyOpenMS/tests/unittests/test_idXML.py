@@ -11,7 +11,6 @@ class TestIdXML(unittest.TestCase):
         self.filename = os.path.join(dirname, "test.idXML")
 
     def test_readfile(self):
-
         idxml_file = pyopenms.IdXMLFile()
         peps = []
         prots = []

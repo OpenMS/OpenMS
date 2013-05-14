@@ -7,6 +7,8 @@ from MSExperiment cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 
+from libcpp cimport bool
+
 cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
 
     cdef cppclass PepXMLFile:
@@ -16,19 +18,24 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
         void load(String & filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   libcpp_vector[PeptideIdentification] & peptide_ids,
-                  String & experiment_name,
+                  String experiment_name,
                   MSExperiment[Peak1D, ChromatogramPeak] & experiment,
                   bool use_precursor_data
-                  )
+                  ) nogil except +
 
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   libcpp_vector[PeptideIdentification] & peptide_ids,
-                  String & experiment_name
-                  )
+                  String experiment_name
+                  ) nogil except +
+
+        void load(String filename,
+                  libcpp_vector[ProteinIdentification] & protein_ids,
+                  libcpp_vector[PeptideIdentification] & peptide_ids
+                  ) nogil except +
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   libcpp_vector[PeptideIdentification] & peptide_ids
-                  )
+                  ) nogil except +
 

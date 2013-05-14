@@ -60,6 +60,10 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         libcpp_vector[ConsensusFeature].iterator begin() nogil except +    # wrap-iter-begin:__iter__(ConsensusFeature)
         libcpp_vector[ConsensusFeature].iterator end()   nogil except +    # wrap-iter-end:__iter__(ConsensusFeature)
 
+        int   size()  nogil except +
+        # wrapped manually:
+        ConsensusFeature operator[](int)      nogil except +
+
         void applyMemberFunction(Size(* fun)())  nogil except + # wrap-ignore
 
         void sortByIntensity(bool reverse) nogil except +
@@ -71,8 +75,6 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void sortByQuality() nogil except +
         void sortBySize() nogil except +
         void sortByMaps() nogil except +
-
-        int size() nogil except +
 
         #Map[unsigned long int,FileDescription] getFileDescriptions()
         #void setFileDescriptions(Map[long unsigned int,FileDescription] fd)
