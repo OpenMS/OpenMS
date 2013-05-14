@@ -831,6 +831,58 @@ def testFeatureFinderAlgorithmPicked():
     assert ff.getName() == "test"
 
 @report
+def testFeatureFinderAlgorithmSH():
+    """
+    @tests:
+     FeatureFinderAlgorithmSH.__init__
+     FeatureFinderAlgorithmSH.getDefaults
+     FeatureFinderAlgorithmSH.getName
+     FeatureFinderAlgorithmSH.getParameters
+     FeatureFinderAlgorithmSH.getProductName
+     FeatureFinderAlgorithmSH.setName
+     FeatureFinderAlgorithmSH.setParameters
+    """
+    ff = pyopenms.FeatureFinderAlgorithmSH()
+    p = ff.getDefaults()
+    # _testParam(p)
+
+    # _testParam(ff.getParameters())
+
+    assert ff.getName() == "FeatureFinderAlgorithm"
+    assert pyopenms.FeatureFinderAlgorithmSH.getProductName() == "superhirn"
+
+    ff.setParameters(pyopenms.Param())
+
+    ff.setName("test")
+    assert ff.getName() == "test"
+
+@report
+def testFeatureFinderAlgorithmIsotopeWavelet():
+    """
+    @tests:
+     FeatureFinderAlgorithmIsotopeWavelet.__init__
+     FeatureFinderAlgorithmIsotopeWavelet.getDefaults
+     FeatureFinderAlgorithmIsotopeWavelet.getName
+     FeatureFinderAlgorithmIsotopeWavelet.getParameters
+     FeatureFinderAlgorithmIsotopeWavelet.getProductName
+     FeatureFinderAlgorithmIsotopeWavelet.setName
+     FeatureFinderAlgorithmIsotopeWavelet.setParameters
+    """
+    ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
+    p = ff.getDefaults()
+    # _testParam(p)
+
+    # _testParam(ff.getParameters())
+
+    assert ff.getName() == "FeatureFinderAlgorithm"
+    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet.getProductName() == "isotope_wavelet"
+
+    ff.setParameters(pyopenms.Param())
+
+    ff.setName("test")
+    assert ff.getName() == "test"
+
+@report
 def testFeatureGrouping():
     """
     @tests:
