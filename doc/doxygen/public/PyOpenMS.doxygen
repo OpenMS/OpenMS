@@ -212,6 +212,8 @@ Further considerations and limitations:
 
 - copy-constructor becomes __copy__ in Python
 
+- shared pointers: is handled automatically, check DataAccessHelper using shared_ptr[Spectrum]. Use "from smart_ptr cimport shared_ptr" as import statement
+
 These hints can be given to autowrap (also check the autowrap documentation):
 - wrap-ignore: is a hint for autowrap to not wrap the function (but the declaration might still be important for Cython to know about) 
 - wrap-as - see for example AASequence ":"
