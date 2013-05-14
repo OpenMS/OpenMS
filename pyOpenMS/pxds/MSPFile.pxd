@@ -1,9 +1,8 @@
+from libcpp.vector cimport vector as libcpp_vector
 from String cimport *
-
-from MSSpectrum cimport *
 from Peak1D cimport *
-from FeatureMap cimport *
-from Feature cimport *
+from RichPeak1D cimport *
+from MSExperiment cimport *
 
 cdef extern from "<OpenMS/FORMAT/MSPFile.h>" namespace "OpenMS":
 
@@ -11,6 +10,5 @@ cdef extern from "<OpenMS/FORMAT/MSPFile.h>" namespace "OpenMS":
 
         MSPFile() nogil except +
 
-        # TODO RichPeakMaps are not really supported ...
-        # void store(String filename, RichPeakMap & exp)
-        # void load(String filename, std::vector<PeptideIdentification> & ids, RichPeakMap & exp)
+        void store(String filename, MSExperiment[RichPeak1D, ChromatogramPeak] & exp)
+        void load(String filename, libcpp_vector[PeptideIdentification] & ids, MSExperiment[RichPeak1D, ChromatogramPeak] & exp)

@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #
         # wrap-instances:
         #   MSExperiment := MSExperiment[Peak1D, ChromatogramPeak]
+        #   RichMSExperiment := MSExperiment[RichPeak1D, ChromatogramPeak]
 
         MSExperiment() nogil except +
         MSExperiment(MSExperiment[PeakT, ChromoPeakT] &)  nogil except +
@@ -28,7 +29,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         bool clearMetaDataArrays() nogil except +
         ExperimentalSettings getExperimentalSettings() nogil except +
 
-        void swap(MSExperiment) nogil except +
+        void swap(MSExperiment[PeakT, ChromoPeakT]) nogil except +
 
         void setChromatograms(libcpp_vector[MSChromatogram[ChromoPeakT]] chromatograms) nogil except +
         void addChromatogram(MSChromatogram[ChromoPeakT] chromatogram) nogil except +
@@ -63,8 +64,8 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSSpectrum[PeakT] operator[](int)      nogil except + # wrap-upper-limit:size()
         void push_back(MSSpectrum[PeakT] spec) nogil except +
 
-        libcpp_vector[MSSpectrum[PeakT]].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
-        libcpp_vector[MSSpectrum[PeakT]].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
+        libcpp_vector[MSSpectrum[PeakT]].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum[PeakT])
+        libcpp_vector[MSSpectrum[PeakT]].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum[PeakT])
         void  erase(libcpp_vector[MSSpectrum[PeakT]].iterator) nogil except +   # wrap-ignore
 
         # from MetaInfoInterface:
