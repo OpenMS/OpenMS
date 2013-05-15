@@ -677,6 +677,14 @@ def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out, print_pxd):
             # TODO specific exception
             print "Skip:: No-pxd :: " , e.message
             cnt.skipped_no_pxd_match += 1
+            pxd_text = dfile.get_pxd_from_class(dfile, file_location, xml_output_path)
+            if print_pxd: 
+                print ""
+                print pxd_text
+            if len(pxds_out) > 0 and pxd_text is not None:
+                fname =  os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
+                with open(fname, "w" ) as f:
+                    f.write(pxd_text)
             continue
         print "== Start to parse element %s - from Cpp file %s with maintainer %s and corresponding pxd file %s" % (
             comp_name, file_location, maintainer, pxdfile)
