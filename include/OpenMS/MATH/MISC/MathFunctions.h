@@ -42,7 +42,7 @@ namespace OpenMS
   /**
       @brief %Math namespace.
 
-      Contains mathemtical auxiliary functions.
+      Contains mathematical auxiliary functions.
 
       @ingroup Concept
   */
