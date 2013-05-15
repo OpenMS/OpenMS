@@ -476,12 +476,12 @@ protected:
       os << "\n";
       os << "  spectra:                    " << spectrum_count << "\n";
       os << "  peptide hits:               " << peptide_hit_count << "\n";
-      os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << " (" << (modified_peptide_count*100.0 / spectrum_count) << "%)\n";
+      os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count>0 ? String(" (") + (modified_peptide_count*100.0 / spectrum_count) + "%)" : "") << "\n";
       os << "  non-redundant peptide hits: " << peptides.size() << "\n";
       os << "  (only hits that differ in sequence and/ or modifications)" << "\n";
       for (Map<String, int>::ConstIterator it=mod_counts.begin(); it!=mod_counts.end(); ++it)
       {
-        if (it!=mod_counts.begin()) os << ", "; else os << "  Modifications: ";
+        if (it!=mod_counts.begin()) os << ", "; else os << "  Modifications (top-hits only): ";
         os << it->first << "(" << it->second << ")";
       }
 

@@ -1,16 +1,17 @@
 
 -- General information --
 
-File name: C:/dev/NIGHTLY/OpenMS/source/TEST/TOPP/FileInfo_10_input.idXML
+File name: C:/dev/OpenMS/source/TEST/TOPP/FileInfo_10_input.idXML
 File type: idXML
 Number of:
-  runs:                1
-  protein hits:        0
-  non-redundant protein hits : 0
+  runs:                       1
+  protein hits:               0
+  non-redundant protein hits: 0
   (only hits that differ in the accession)
 
-  spectra:             0
-  peptide hits:        0
+  spectra:                    0
+  peptide hits:               0
+  modified top-hits:          0/0
   non-redundant peptide hits: 0
   (only hits that differ in sequence and/ or modifications)
 
