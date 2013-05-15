@@ -44,6 +44,8 @@
 
 #include <QtCore/QString>
 
+#include <boost/math/special_functions/fpclassify.hpp>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -456,9 +458,9 @@ START_SECTION((Real toFloat() const))
 	s = "47218.8";
 	TEST_EQUAL(String(s.toFloat()),"47218.8");
   s = "nan";
-  TEST_EQUAL(std::isnan(s.toFloat()),true);  
+  TEST_EQUAL(boost::math::isnan(s.toFloat()),true);  
   s = "NaN";
-  TEST_EQUAL(std::isnan(s.toFloat()),true);
+  TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "not a number";
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toFloat(), String("Could not convert string '") + s + "' to a float value")  
 END_SECTION
@@ -476,9 +478,9 @@ START_SECTION((DoubleReal toDouble() const))
 	s = "47218.890000001";
 	TEST_EQUAL(String(s.toDouble()),"47218.890000001");
   s = "nan";
-  TEST_EQUAL(std::isnan(s.toDouble()),true);  
+  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);  
   s = "NaN";
-  TEST_EQUAL(std::isnan(s.toDouble()),true);    
+  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);    
   s = "not a number";
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toDouble(), String("Could not convert string '") + s + "' to a double value")
 END_SECTION
