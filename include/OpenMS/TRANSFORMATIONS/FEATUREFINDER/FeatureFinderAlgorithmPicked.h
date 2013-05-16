@@ -681,7 +681,7 @@ public:
         // The features are stored in an temporary feature map until it is
         // decided whether they are contained within a seed of higher
         // intensity.
-        std::map<int, std::vector<int> > seeds_in_features;
+        std::map<Size, std::vector<Size> > seeds_in_features;
         typedef std::map<int, OpenMS::Feature> FeatureMapType;
         FeatureMapType tmp_feature_map;
         gl_progress = 0;
@@ -931,7 +931,7 @@ public:
         // features of seeds with higher intensities. Only if the seed is not
         // used in any feature with higher intensity, we can add it to the
         // features_ list.
-        std::vector<int> seeds_contained;
+        std::vector<Size> seeds_contained;
         for (typename std::map<int, FeatureType>::iterator iter = tmp_feature_map.begin(); iter != tmp_feature_map.end(); ++iter)
         {
           int seed_nr = iter->first;
@@ -949,7 +949,7 @@ public:
             ++feature_nr_global;
             features_->push_back(iter->second);
 
-            std::vector<int> curr_seed = seeds_in_features[seed_nr];
+            std::vector<Size> curr_seed = seeds_in_features[seed_nr];
             for (Size k = 0; k < curr_seed.size(); ++k)
             {
               seeds_contained.push_back(curr_seed[k]);
