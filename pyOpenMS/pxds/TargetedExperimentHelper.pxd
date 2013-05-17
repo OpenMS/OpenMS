@@ -275,19 +275,12 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         int getChargeState() nogil except +
         libcpp_vector[ Configuration ]  getConfigurationList() nogil except +
         void addConfiguration(Configuration configuration) nogil except +
-        # TODO some issue here with Map and some issue with replaceCVTerms
-        # void replaceCVTerms(Map[ String, libcpp_vector[ CVTerm ] ] & cv_terms) nogil except +
         libcpp_vector[ CVTermList ]  getInterpretationList() nogil except +
         void addInterpretation(CVTermList interpretation) nogil except +
 
         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
         void replaceCVTerm(CVTerm & term)               nogil except +
-
-        # void replaceCVTerms(libcpp_vector[CVTerm] cv_terms,
-        #                     String accession
-        #                    ) nogil except +
-
-        # void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
 
         Map[String, libcpp_vector[CVTerm] ] getCVTerms()
         void addCVTerm(CVTerm & term)                   nogil except +
