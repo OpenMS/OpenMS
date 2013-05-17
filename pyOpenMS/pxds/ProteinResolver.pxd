@@ -1,7 +1,6 @@
 from libcpp.vector cimport vector as libcpp_vector
-
+from libcpp.list cimport list as libcpp_list
 from DefaultParamHandler cimport *
-
 from ProteinIdentification cimport *
 from ConsensusMap cimport *
 from FASTAFile cimport *
@@ -20,27 +19,29 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         void setProteinData(libcpp_vector[FASTAEntry] & protein_data) nogil except +
         libcpp_vector[ResolverResult] getResults() nogil except +
 
-        # TODO
+        # TODO not defined in OpenMS
         # void writePeptideTable(libcpp_vector[ PeptideEntry ] & peptides, libcpp_vector[ size_t ] & reindexed_peptides, libcpp_vector[ PeptideIdentification ] & identifications, String & output_file)
         # void writePeptideTable(libcpp_vector[ PeptideEntry ] & peptides, libcpp_vector[ size_t ] & reindexed_peptides, ConsensusMap & consensus, String & output_file)
-        # void writeProteinTable(libcpp_vector[ ProteinEntry ] & proteins, libcpp_vector[ size_t ] & reindexed_proteins, String & output_file)
+        # void writeProteinTable(libcpp_vector[ ProteinEntry ] proteins, libcpp_vector[ size_t ] & reindexed_proteins, String & output_file)
         # void writeProteinGroups(libcpp_vector[ ISDGroup ] & isd_groups, libcpp_vector[ MSDGroup ] & msd_groups, String & output_file)
-        # void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, ConsensusMap & consensus)
-        # void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, libcpp_vector[ PeptideIdentification ] & peptide_nodes)
+        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, ConsensusMap & consensus)
+        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, libcpp_vector[ PeptideIdentification ] & peptide_nodes)
         void clearResult()
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass ISDGroup "OpenMS::ProteinResolver::ISDGroup":
+        ISDGroup() nogil except +
         ISDGroup(ISDGroup) nogil except + #wrap-ignore
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         Size index
-        # NAMESPACE # std::list[ size_t ] msd_groups
+        # libcpp_list[ size_t ] msd_groups # TODO no converter for List
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass MSDGroup "OpenMS::ProteinResolver::MSDGroup":
+        MSDGroup() nogil except +
         MSDGroup(MSDGroup) nogil except + #wrap-ignore
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
@@ -60,10 +61,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass PeptideEntry "OpenMS::ProteinResolver::PeptideEntry":
+        PeptideEntry() nogil except +
         PeptideEntry(PeptideEntry) nogil except + #wrap-ignore
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         bool traversed
-        # String sequence
+        String sequence
         Size peptide_identification
         Size peptide_hit
         Size index
@@ -71,7 +73,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         Size isd_group
         bool experimental
         Real intensity
-        # String origin
+        String origin
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver::ResolverResult":
     
@@ -82,11 +84,12 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass ProteinEntry "OpenMS::ProteinResolver::ProteinEntry":
+        ProteinEntry() nogil except +
         ProteinEntry(ProteinEntry) nogil except + #wrap-ignore
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         bool traversed
         # NAMESPACE # # POINTER # FASTAFile::FASTAEntry * fasta_entry
-        # NAMESPACE # enum OpenMS::ProteinResolver::ProteinEntry::type protein_type
+        ProteinEntry_type protein_type
         DoubleReal weight
         Real coverage
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] indis
@@ -96,7 +99,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         Size number_of_experimental_peptides
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver::ProteinEntry":
-    cdef enum type "OpenMS::ProteinResolver::ProteinEntry::type":
+    cdef enum ProteinEntry_type "OpenMS::ProteinResolver::ProteinEntry::type":
         #wrap-attach:
         #    ProteinEntry
         primary
