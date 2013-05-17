@@ -41,6 +41,6 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
         Size variable
         DoubleReal rt_probability
         DoubleReal signal_weight
-        # TODO 
+        # TODO  String attribute
         # String prot_acc
 

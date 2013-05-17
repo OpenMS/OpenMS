@@ -44,8 +44,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
     
     cdef cppclass IsotopePattern "OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern":
         IsotopePattern(IsotopePattern) nogil except + #wrap-ignore
-        # TODO STL attributes
-        # libcpp_vector[ ptrdiff_t ] peak
+        # TODO STL attributes -- Signed size does not work either!
+        # vector.from_py:33:13: 'ptrdiff_t' is not a type identifier
+        # libcpp_vector[ SignedSize ] peak
         # libcpp_vector[ size_t ] spectrum
         # libcpp_vector[ double ] intensity
         # libcpp_vector[ double ] mz_score

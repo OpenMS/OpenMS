@@ -13,7 +13,6 @@ cdef extern from "<OpenMS/FORMAT/MzTab.h>" namespace "OpenMS":
         MzTab() nogil except +
         MzTab(MzTab) nogil except + # wrap-ignore
 
-        # TODO
         # autowrap cannot handle wrapped classes as keys in std::map<> (this
         # would be std::map<String, ...> and does not work)
         # TODO STL map with wrapped key
