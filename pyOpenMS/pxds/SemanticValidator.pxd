@@ -15,7 +15,6 @@ cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "Ope
         bool validate(String filename, StringList errors, StringList warnings) nogil except +
 
         # Checks if a CVTerm is allowed in a given path
-        # TODO yet anothre CV Term
         # bool locateTerm(String path, SemanticValidator_CVTerm & parsed_term) nogil except +
 
         # Sets the CV parameter tag name (default: 'cvParam')
@@ -42,3 +41,16 @@ cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "Ope
         # Sets the name of the unit name attribute (default: 'unitName')
         void setUnitNameAttribute(String name) nogil except +
 
+cdef extern from "<OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>" namespace "OpenMS::Internal::SemanticValidator":
+
+      cdef cppclass SemanticValidator_CVTerm "OpenMS::Internal::SemanticValidator::CVTerm":
+        SemanticValidator_CVTerm() nogil except +
+        SemanticValidator_CVTerm(SemanticValidator_CVTerm) nogil except +
+        String accession
+        String name
+        String value
+        bool has_value
+        String unit_accession
+        bool has_unit_accession
+        String unit_name
+        bool has_unit_name
