@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/MATH/MISC/LinearInterpolation.h>" namespace "OpenMS::M
         void addValue(KeyType arg_pos, ValueType arg_value) nogil except +
         ValueType derivative(KeyType arg_pos) nogil except +
         # TODO does this work ?
-        libcpp_vector[ValueType]  getData() nogil except +
-        void setData(libcpp_vector[ValueType] & data) nogil except +
+        ## libcpp_vector[ValueType]  getData() nogil except +
+        ## void setData(libcpp_vector[ValueType] & data) nogil except +
         bool empty() nogil except +
         KeyType key2index(KeyType pos) nogil except +
         KeyType index2key(KeyType pos) nogil except +
