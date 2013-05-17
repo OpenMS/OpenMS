@@ -18,3 +18,16 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 
         Size size() nogil except +
 
+cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
+    
+    cdef cppclass MassTrace[PeakType]:
+        MassTrace(MassTrace) nogil except + #wrap-ignore
+        # POINTER # PeakType * max_peak
+        DoubleReal max_rt
+        DoubleReal theoretical_int
+        # POINTER # libcpp_vector[ libcpp_pair[ DoubleReal, PeakType * ] ] peaks
+        ConvexHull2D getConvexhull() nogil except +
+        void updateMaximum() nogil except +
+        DoubleReal getAvgMZ() nogil except +
+        bool isValid() nogil except +
+

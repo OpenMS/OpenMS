@@ -47,3 +47,10 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespac
         EmpiricalFormula loss
         Int charge
 
+# cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespace "OpenMS::SvmTheoreticalSpectrumGenerator":
+#     
+#     cdef cppclass DescriptorSet "OpenMS::SvmTheoreticalSpectrumGenerator::DescriptorSet":
+#         DescriptorSet(DescriptorSet) nogil except + #wrap-ignore
+#         libcpp_vector[svm_node] descriptors # we would have to wrap libsvm for this
+# 
+# 

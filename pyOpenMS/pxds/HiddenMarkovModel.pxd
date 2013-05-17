@@ -37,3 +37,20 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         DoubleReal getPseudoCounts() nogil except +
         void setVariableModifications(StringList & modifications) nogil except +
 
+cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
+    
+    cdef cppclass HMMState "OpenMS::HMMState":
+        HMMState() nogil except +
+        HMMState(HMMState) nogil except +
+        HMMState(String & name, bool hidden) nogil except +
+        void setName(String & name) nogil except +
+        String  getName() nogil except +
+        void setHidden(bool hidden) nogil except +
+        bool isHidden() nogil except +
+        # POINTER # void addPredecessorState(HMMState * state) nogil except +
+        # POINTER # void deletePredecessorState(HMMState * state) nogil except +
+        # POINTER # void addSuccessorState(HMMState * state) nogil except +
+        # POINTER # void deleteSuccessorState(HMMState * state) nogil except +
+        # POINTER # libcpp_set[ HMMState * ]  getPredecessorStates() nogil except +
+        # POINTER # libcpp_set[ HMMState * ]  getSuccessorStates() nogil except +
+

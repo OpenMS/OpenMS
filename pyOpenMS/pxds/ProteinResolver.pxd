@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         void setProteinData(libcpp_vector[FASTAEntry] & protein_data) nogil except +
         libcpp_vector[ResolverResult] getResults() nogil except +
 
+        # TODO
         # void writePeptideTable(libcpp_vector[ PeptideEntry ] & peptides, libcpp_vector[ size_t ] & reindexed_peptides, libcpp_vector[ PeptideIdentification ] & identifications, String & output_file)
         # void writePeptideTable(libcpp_vector[ PeptideEntry ] & peptides, libcpp_vector[ size_t ] & reindexed_peptides, ConsensusMap & consensus, String & output_file)
         # void writeProteinTable(libcpp_vector[ ProteinEntry ] & proteins, libcpp_vector[ size_t ] & reindexed_proteins, String & output_file)
@@ -26,6 +27,28 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         # void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, ConsensusMap & consensus)
         # void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, libcpp_vector[ PeptideIdentification ] & peptide_nodes)
         void clearResult()
+
+cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
+    
+    cdef cppclass ISDGroup "OpenMS::ProteinResolver::ISDGroup":
+        ISDGroup(ISDGroup) nogil except + #wrap-ignore
+        # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
+        # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
+        Size index
+        # NAMESPACE # std::list[ size_t ] msd_groups
+
+cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
+    
+    cdef cppclass MSDGroup "OpenMS::ProteinResolver::MSDGroup":
+        MSDGroup(MSDGroup) nogil except + #wrap-ignore
+        # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
+        # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
+        Size index
+        # POINTER # ISDGroup * isd_group
+        Size number_of_decoy
+        Size number_of_target
+        Size number_of_target_plus_decoy
+        Real intensity
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
 
