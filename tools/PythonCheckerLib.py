@@ -87,14 +87,15 @@ def create_pxd_file_map(bin_path):
     # Finds all .pxd files given an OpenMS 
     import glob, os, re
     pxd_path = os.path.join(bin_path, "pyOpenMS/pxds/")
+    include_path = os.path.join(bin_path, "include")
     pxds = glob.glob(pxd_path + "/*.pxd")
     pxd_file_matching = {}
     for pfile in pxds:
         filename_rgx = re.compile("cdef extern from \"<([^\"]*)>\"", re.IGNORECASE)
         filematch = [o.group(1) for o in filename_rgx.finditer(open(pfile).read()) ]
-        filematch = [os.path.realpath( os.path.join(bin_path, o) ) for o in filematch]
+        filematch = [os.path.realpath( os.path.join(include_path, o) ) for o in filematch]
         for fm in filematch:
             if fm in pxd_file_matching and pxd_file_matching[fm] != pfile:
-                print "Error: try to map", pfile, "but", fm, "is already mapped to", pxd_file_matching[fm]
+                print "Warning: try to map", pfile, "but", fm, "is already mapped to", pxd_file_matching[fm]
             pxd_file_matching[fm] = pfile
     return pxd_file_matching 

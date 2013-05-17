@@ -71,6 +71,18 @@ def handle_member_definition(mdef, pxd_class, cnt):
         if not found:
             print "TODO: Found enum in C++ but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
             cnt.public_enums_missing += 1
+            comp_name = mdef.parent_doxy_file.compound.get_compoundname()
+            file_location = mdef.parent_doxy_file.getCompoundFileLocation()
+            internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
+            namespace = comp_name
+            true_cppname = '"%s::%s"' % (comp_name, mdef.get_name())
+            enumr  = "\n"
+            enumr += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
+            enumr += "    \n"
+            enumr += '    cdef enum %s %s:\n' % (mdef.get_name(), true_cppname)
+            for val in mdef.get_enumvalue():
+                enumr += "        %s\n" % val.get_name()
+            print enumr
         elif len(klass[0].items) != len(mdef.get_enumvalue()):
             print "TODO: Found enum in C++ with %s members but in Cython there are %s members: " % (
                 len(mdef.get_enumvalue()), len(klass[0].items) )
@@ -116,6 +128,7 @@ class Counter(object):
         self.total = 0
         self.skipped = 0
         self.skipped_could_not_parse = 0
+        self.skipped_ignored = 0
         self.skipped_protected = 0
         self.skipped_no_location = 0
         self.skipped_no_sections = 0
@@ -132,18 +145,28 @@ class Counter(object):
         self.public_variables = 0
         self.public_variables_missing = 0
 
+    def computed_skipped(self):
+        self.skipped = self.skipped_could_not_parse +\
+            self.skipped_ignored + \
+            self.skipped_protected + \
+            self.skipped_no_location + \
+            self.skipped_no_sections + \
+            self.skipped_no_pxd_file + \
+            self.skipped_no_pxd_match  
+
     def print_skipping_reason(self):
-        self.skipped = self.skipped_could_not_parse + self.skipped_no_location + self.skipped_no_sections + self.skipped_no_pxd_file + self.skipped_no_pxd_match  
+        self.computed_skipped()
         print "Skipped files: %s" % self.skipped
         print "- Could not parse xml: %s" % self.skipped_could_not_parse
         print "- Could not parse location in xml: %s" % self.skipped_no_location
+        print "- Ignored per ignore-file: %s" % self.skipped_ignored
         print "- Protected Compound: %s" % self.skipped_protected
         print "- Could not find sections in xml: %s" % self.skipped_no_sections
         print "- Could not find associated pxd file : %s" % self.skipped_no_pxd_file
         print "- Could not find matching class in pxd file : %s" % self.skipped_no_pxd_match
 
     def print_stats(self):
-        self.skipped = self.skipped_could_not_parse + self.skipped_no_location + self.skipped_no_sections + self.skipped_no_pxd_file + self.skipped_no_pxd_match + self.skipped_protected
+        self.computed_skipped()
         print "Total files: %s" % self.total
         print "Skipped files: %s" % self.skipped
         print "Parsed files: %s" % self.parsed
@@ -360,6 +383,7 @@ class DoxygenXMLFile(object):
         for sdef in self.compound.get_sectiondef():
             for mdef_ in sdef.get_memberdef():
                 mdef = DoxygenCppFunction.generate_from_obj(mdef_)
+                mdef.parent_doxy_file = self
                 yield mdef
 
     def isAbstract(self):
@@ -629,18 +653,9 @@ def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out, print_pxd):
             continue
         compound = res.get_compounddef()
         comp_name = compound.get_compoundname()
-        # if comp_name == "OpenMS::LPWrapper":
-        #     break
-        # if comp_name == "OpenMS::DeNovoAlgorithm":
-        #     break
-        # if comp_name == "OpenMS::ChromatogramExtractor":
-        #     break
-
-        # if comp_name == "OpenMS::IsotopeWaveletTransform":
-        #     break
-
         if ignorefile.isNameIgnored(comp_name):
-            print "Skip:: Ignored :: Class %s (file %s)", (comp_name, f)
+            print "Skip:: Ignored :: Class %s (file %s)" % (comp_name, f)
+            cnt.skipped_ignored += 1
             continue
         if compound.prot != "public":
             print "Skip:: Protected :: Compound %s is not public, skip" % (comp_name)
