@@ -15,8 +15,9 @@ from ChromatogramPeak cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 from GaussFitter cimport *
+from TextFile cimport *
 
-# TODO vector<DoubleReal] doesnt get resolved 
+# TODO vector[DoubleReal] doesnt get resolved 
 
 cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" namespace "OpenMS::Math":
 
@@ -69,7 +70,7 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
 
         #initializes the plots
         # TODO raw ptr
-        ## TextFile * InitPlots(libcpp_vector[double] & x_scores) nogil except +
+        TextFile * InitPlots(libcpp_vector[double] & x_scores) nogil except + #wrap-ignore
 
         # returns the gnuplot formula of the fitted gumbel distribution. Only x0 and sigma are used as local parameter alpha and scale parameter beta, respectively.
         String getGumbelGnuplotFormula(GaussFitResult & params) nogil except +

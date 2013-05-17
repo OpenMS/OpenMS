@@ -24,3 +24,9 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
         void init(MSChromatogram[ChromatogramPeak] & spectrum) nogil except + #wrap-ignore
         void getSignalToNoise(ChromatogramPeak & data_point) nogil except + #wrap-ignore
 
+cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>" namespace "OpenMS::SignalToNoiseEstimatorMedian":
+
+    cdef enum IntensityThresholdCalculation "OpenMS::SignalToNoiseEstimatorMedianChrom::IntensityThresholdCalculation":
+        MANUAL
+        AUTOMAXBYSTDEV
+        AUTOMAXBYPERCENT

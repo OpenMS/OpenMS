@@ -33,3 +33,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         ResolverResult() nogil except +
         ResolverResult(ResolverResult) nogil except +
 
+cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver::ResolverResult":
+    
+    cdef enum ProteinResolverResult_Type "OpenMS::ProteinResolver::ResolverResult::type":
+        PeptideIdent
+        Consensus

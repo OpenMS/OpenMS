@@ -3,6 +3,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
 from DRange cimport *
 
+# TODO typo
 cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
 
     cdef cppclass PeakFileOptions:

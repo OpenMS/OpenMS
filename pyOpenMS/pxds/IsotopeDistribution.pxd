@@ -2,6 +2,8 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 
+# ctypedef std::vector<std::pair<Size, double> > ContainerType;
+
 cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
 
     cdef cppclass IsotopeDistribution:
@@ -15,6 +17,7 @@ cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
         # returns the currently set maximum isotope
         Size getMaxIsotope() nogil except +
 
+        # TODO nested STL
         # overwrites the container which holds the distribution using @p distribution
         # void set(ContainerType & distribution) nogil except +
 

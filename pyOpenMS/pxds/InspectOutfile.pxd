@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
         # void getPrecursorRTandMZ(libcpp_vector[ libcpp_pair[ String, libcpp_vector[ libcpp_pair[ size_t, size_t ] ] ] ] & files_and_peptide_identification_with_scan_number, libcpp_vector[ PeptideIdentification ] & ids) nogil except +
         void getLabels(String & source_database_filename, String & ac_label, String & sequence_start_label, String & sequence_end_label, String & comment_label, String & species_label) nogil except +
         libcpp_vector[ size_t ] getSequences(String & database_filename, libcpp_map[ size_t, size_t ] & wanted_records, libcpp_vector[ String ] & sequences) nogil except +
-        # TEMPLATE # void getExperiment(MSExperiment[ PeakT ] & exp, String & type_, String & in_filename) nogil except +
+        void getExperiment(MSExperiment[ Peak1D, ChromatogramPeak ] & exp, String & type_, String & in_filename) nogil except +
         bool getSearchEngineAndVersion(String & cmd_output, ProteinIdentification & protein_identification) nogil except +
         void readOutHeader(String & filename, String & header_line, Int & spectrum_file_column, Int & scan_column, Int & peptide_column, Int & protein_column, Int & charge_column, Int & MQ_score_column, Int & p_value_column, Int & record_number_column, Int & DB_file_pos_column, Int & spec_file_pos_column, Size & number_of_columns) nogil except +
 

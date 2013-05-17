@@ -19,3 +19,10 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace
 
         void compute(FeatureMap[Feature] & input, FeatureMap[Feature] & output, ConsensusMap & cmap1, ConsensusMap & cmap2) nogil except +
 
+cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace "OpenMS::FeatureDeconvolution":
+    
+    cdef enum CHARGEMODE "OpenMS::FeatureDeconvolution::CHARGEMODE":
+        QFROMFEATURE
+        QHEURISTIC
+        QALL
+

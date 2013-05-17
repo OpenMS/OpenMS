@@ -18,3 +18,9 @@ cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS":
         # DPosition2  getPosition()
         # void setPosition(DPosition2 & position)
 
+cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS::Peak2D":
+    
+    cdef enum DimensionDescription "OpenMS::Peak2D::DimensionDescription":
+        RT
+        MZ
+        DIMENSION

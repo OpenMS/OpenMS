@@ -1,6 +1,7 @@
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
+from DRange cimport *
 
 cdef extern from "<OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>" namespace "OpenMS":
 
@@ -21,3 +22,16 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>" namespace "OpenM
         void setLoadSubordinates(bool) nogil except +
         bool getLoadSubordinates()     nogil except +
 
+        void setRTRange(DRange1 & range_)
+        bool hasRTRange()
+        DRange1 getRTRange()
+        void setMZRange(DRange1 & range_)
+        bool hasMZRange()
+        DRange1 getMZRange()
+        void setIntensityRange(DRange1 & range_)
+        bool hasIntensityRange()
+        DRange1 getIntensityRange()
+
+        # TODO not implemented
+        # bool getCompression()
+        # void setCompression(bool compress)
