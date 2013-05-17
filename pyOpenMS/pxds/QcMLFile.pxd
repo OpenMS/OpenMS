@@ -1,23 +1,20 @@
 from Types cimport *
-from libcpp cimport bool
 from ProgressLogger cimport *
-# from XMLHandler cimport *
+from XMLHandler cimport *
 from XMLFile cimport *
 from String cimport *
-from UniqueIdGenerator cimport *
 from Attachment cimport *
 
 cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
     
-    # TODO inherits from XMLHandler
-    cdef cppclass QcMLFile(XMLFile,ProgressLogger) :
+    cdef cppclass QcMLFile(XMLHandler,XMLFile,ProgressLogger) :
         # wrap-inherits:
+        #  XMLHandler
         #  XMLFile
         #  ProgressLogger
         QcMLFile() nogil except +
         QcMLFile(QcMLFile) nogil except + #wrap-ignore
-        # TODO STL nested
-        # String map2cvs(libcpp_map[ String, libcpp_map[ String, String ] ] & cvs_table, String & separator) nogil except +
+        String map2cvs(libcpp_map[ String, libcpp_map[ String, String ] ] & cvs_table, String & separator) nogil except + # wrap-ignore
         String exportIDstats(String & filename) nogil except +
         void addRunQualityParameter(String r, QualityParameter qp) nogil except +
         void addRunAttachment(String r, Attachment at) nogil except +
