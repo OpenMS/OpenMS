@@ -20,3 +20,12 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
         void setMaxRelError(double eps_rel) nogil except +
         # void optimize(libcpp_vector[ PeakShape ] & peaks, Data & data) nogil except +
 
+cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "OpenMS::OptimizationFunctions":
+    
+    cdef cppclass PenaltyFactors "OpenMS::OptimizationFunctions::PenaltyFactors":
+        PenaltyFactors() nogil except +
+        PenaltyFactors(PenaltyFactors) nogil except +
+        double pos
+        double lWidth
+        double rWidth
+
