@@ -32,23 +32,39 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
         DoubleReal getMinSpacing() nogil except +
         Size getMaxScanSize() nogil except +
 
+# TODO errors
+# cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>" namespace "OpenMS::IsotopeWaveletTransform":
+#     
+#     cdef cppclass TransSpectrum "OpenMS::IsotopeWaveletTransform::TransSpectrum":
+#         TransSpectrum() nogil except +
+#         TransSpectrum(TransSpectrum) nogil except + #wrap-ignore
+#         # POINTER #  TransSpectrum(MSSpectrum[ PeakType ] * reference) nogil except +
+#         void destroy() nogil except +
+#         DoubleReal getRT() nogil except +
+#         DoubleReal getMZ(UInt i) nogil except +
+#         DoubleReal getRefIntensity(UInt i) nogil except +
+#         DoubleReal getTransIntensity(UInt i) nogil except +
+#         void setTransIntensity(UInt i, DoubleReal intens) nogil except +
+#         Size size() nogil except +
+#         # POINTER # MSSpectrum[ PeakType ] * getRefSpectrum() nogil except +
+#         # POINTER # MSSpectrum[ PeakType ] * getRefSpectrum() nogil except +
+#         # NAMESPACE # MSSpectrum[ PeakType ]::const_iterator MZBegin(DoubleReal mz) nogil except +
+#         # NAMESPACE # MSSpectrum[ PeakType ]::const_iterator MZEnd(DoubleReal mz) nogil except +
+#         # NAMESPACE # MSSpectrum[ PeakType ]::const_iterator end() nogil except +
+#         # NAMESPACE # MSSpectrum[ PeakType ]::const_iterator begin() nogil except +
+# 
+
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>" namespace "OpenMS::IsotopeWaveletTransform":
     
-    cdef cppclass TransSpectrum "OpenMS::IsotopeWaveletTransform::TransSpectrum":
-        TransSpectrum() nogil except +
-        TransSpectrum(TransSpectrum) nogil except + #wrap-ignore
-        # POINTER #  TransSpectrum(MSSpectrum[ PeakType ] * reference) nogil except +
-        void destroy() nogil except +
-        DoubleReal getRT() nogil except +
-        DoubleReal getMZ(UInt i) nogil except +
-        DoubleReal getRefIntensity(UInt i) nogil except +
-        DoubleReal getTransIntensity(UInt i) nogil except +
-        void setTransIntensity(UInt i, DoubleReal intens) nogil except +
-        Size size() nogil except +
-        # POINTER # MSSpectrum[ PeakType ] * getRefSpectrum() nogil except +
-        # POINTER # MSSpectrum[ PeakType ] * getRefSpectrum() nogil except +
-        # NAMESPACE # MSSpectrum[ PeakType ]::const_iterator MZBegin(DoubleReal mz) nogil except +
-        # NAMESPACE # MSSpectrum[ PeakType ]::const_iterator MZEnd(DoubleReal mz) nogil except +
-        # NAMESPACE # MSSpectrum[ PeakType ]::const_iterator end() nogil except +
-        # NAMESPACE # MSSpectrum[ PeakType ]::const_iterator begin() nogil except +
+    cdef cppclass BoxElement "OpenMS::IsotopeWaveletTransform::BoxElement":
+        BoxElement(BoxElement) nogil except + #wrap-ignore
+        DoubleReal mz
+        UInt c
+        DoubleReal score
+        DoubleReal intens
+        DoubleReal ref_intens
+        DoubleReal RT
+        UInt RT_index
+        UInt MZ_begin
+        UInt MZ_end
 
