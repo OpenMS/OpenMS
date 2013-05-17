@@ -25,3 +25,4 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIt
 # #        AUTOMAXBYSTDEV
 # #        AUTOMAXBYPERCENT
 # #
+

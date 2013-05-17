@@ -5,12 +5,13 @@ from ProgressLogger cimport *
 from XMLFile cimport *
 from String cimport *
 from UniqueIdGenerator cimport *
+from Attachment cimport *
 
 cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
     
-    cdef cppclass QcMLFile(XMLHandler,XMLFile,ProgressLogger) :
+    # TODO inherits from XMLHandler
+    cdef cppclass QcMLFile(XMLFile,ProgressLogger) :
         # wrap-inherits:
-        #  XMLHandler
         #  XMLFile
         #  ProgressLogger
         QcMLFile() nogil except +
