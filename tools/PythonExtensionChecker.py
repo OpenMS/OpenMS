@@ -690,7 +690,7 @@ def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out, print_pxd):
             pxd_class = PXDFile().parse(pxdfile, comp_name)
         except Exception as e:
             # TODO specific exception
-            print "Skip:: No-pxd :: " , e.message
+            print "Skip:: No-pxd :: " , e.message, "for %s (in pxd file %s)" % (comp_name, pxdfile)
             cnt.skipped_no_pxd_match += 1
             pxd_text = dfile.get_pxd_from_class(dfile, file_location, xml_output_path)
             if print_pxd: 

@@ -29,6 +29,22 @@ PyOpenMSChecker:
         - NamesOfPeakMassType
         - NamesOfDigestionEnzyme
 
+    # renamed enums
+    OpenMS::PeakShape:
+        - Type
+    OpenMS::IonDetector:
+        - Type
+    OpenMS::PILISCrossValidation::Option:
+        - Type
+    OpenMS::LPWrapper:
+        - Type
+    OpenMS::ControlledVocabulary::CVTerm:
+        - XRefType
+    OpenMS::ProteinResolver::ResolverResult:
+        - type
+    OpenMS::PrecursorIonSelection:
+        - Type
+
     # renamed methods
     OpenMS::DeNovoIonScoring::IonScore:
         - IonScore
@@ -36,6 +52,16 @@ PyOpenMSChecker:
         - Instrument
     OpenMS::ControlledVocabulary::CVTerm:
         - CVTerm
+    OpenMS::PeptideAndProteinQuant::PeptideData:
+        - PeptideData
+
+
+    # Static methods that are not seen by the checker script
+    OpenMS::FileHandler:
+        - getType
+        - getTypeByFileName
+        - getTypeByContent
+        - isSupported
     
     # problematic functions
     OpenMS::MarkerMower:
@@ -43,6 +69,21 @@ PyOpenMSChecker:
     OpenMS::MSChromatogram:
         - RTBegin
         - RTEnd
+
+    # std::ifstrem/ofstream
+    OpenMS::CachedmzML:
+        - readSingleSpectrum
+        - readSpectrumFast
+        - readChromatogramFast
+    OpenMS::HiddenMarkovModel:
+        - write
+
+    # iterators
+    OpenMS::IsotopeWaveletTransform:
+        - MZBegin
+        - MZEnd
+        - end
+        - begin
 
     OpenMS::MorphologicalFilter:
         - filterRange # requires iterator
@@ -227,7 +268,7 @@ PyOpenMSChecker:
     - OpenMS::Internal::MzMLValidator
     - OpenMS::Internal::MzQuantMLHandler
     - OpenMS::Internal::MzQuantMLValidator
-    - OpenMS::Internal::MzXMLHandler
+    # - OpenMS::Internal::MzXMLHandler
     - OpenMS::Internal::OpenMSOSInfo
     - OpenMS::Internal::OpenMSXMLFormatTarget
     - OpenMS::Internal::PTMXMLHandler
@@ -469,6 +510,17 @@ PyOpenMSChecker:
     - glp_prob
     - OpenMS::StopWatch
     - OpenMS::StopFileWatcher
+    - OpenMS::FileWatcher
+
+    - OpenMS::FileWatcher
+    - OpenMS::GaussFilterAlgorithm # very new, use GaussFilter for most work!
+
+    - OpenMS::PrecisionWrapper
+    - OpenMS::ChromatogramPeak::PositionLess
+    - OpenMS::Param::ParamIterator::TraceInfo
+
+    # models
+    - OpenMS::TransformationModelBSpline
 
     # Internal OpenMS algorithm datastructures that cannot be used in Python
     - OpenMS::TwoDOptimization::Data
@@ -654,6 +706,7 @@ PyOpenMSChecker:
     - OpenSwath::Peptide
     - OpenSwath::IMRMFeature
     - OpenSwath::MockFeature
+    - OpenMS::OpenSwath_Scores
     - OpenMS::FeatureOpenMS
     - OpenMS::SignalToNoiseOpenMS
     - OpenMS::MRMFeatureOpenMS
@@ -718,6 +771,8 @@ PyOpenMSChecker:
     - OpenMS::PairMatcherSecondElement
     - OpenMS::LexicographicComparator
     - OpenMS::EqualInTolerance
+    - OpenMS::PeptideHit::ScoreMore
+    - OpenMS::PrecursorIonSelection::SeqTotalScoreMore
      
     # FEATUREFINDER internals - maybe we want some of them
     - OpenMS::ExtendedIsotopeModel
@@ -791,9 +846,9 @@ PyOpenMSChecker:
     - OpenMS::SuffixArrayTrypticSeqan
     - OpenMS::GridFeature
     - OpenMS::BinaryTreeNode
-    - OpenMS::Matrix
+    # - OpenMS::Matrix
     - OpenMS::Date
-    - OpenMS::QTCluster
+    # - OpenMS::QTCluster
      
     # COMPARISON - we might want to wrap those
     - OpenMS::BinnedSpectralContrastAngle
@@ -818,3 +873,4 @@ PyOpenMSChecker:
     - OpenMS::HierarchicalClustering
     - OpenMS::SpectrumCheapDPCorr
     - OpenMS::PeakAlignment
+
