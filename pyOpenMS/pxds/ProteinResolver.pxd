@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         PeptideEntry(PeptideEntry) nogil except + #wrap-ignore
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         bool traversed
-        String sequence
+        # String sequence
         Size peptide_identification
         Size peptide_hit
         Size index
@@ -71,7 +71,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         Size isd_group
         bool experimental
         Real intensity
-        String origin
+        # String origin
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver::ResolverResult":
     

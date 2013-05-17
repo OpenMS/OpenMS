@@ -29,13 +29,15 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
         double lWidth
         double rWidth
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "OpenMS::OptimizePick":
-    
-    cdef cppclass Data "OpenMS::OptimizePick::Data":
-        Data(Data) nogil except + #wrap-ignore
-        libcpp_vector[ double ] positions
-        libcpp_vector[ double ] signal
-        # TODO STL attribute
-        # libcpp_vector[ PeakShape ] peaks
-        # NAMESPACE # OptimizationFunctions::PenaltyFactors penalties
-
+# also remove libcpp_double !? TODO
+# cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "OpenMS::OptimizePick":
+#     
+#     cdef cppclass Data "OpenMS::OptimizePick::Data":
+#         Data(Data) nogil except + #wrap-ignore
+#         # remove - hope it helps!
+#         # libcpp_vector[ double ] positions
+#         # libcpp_vector[ double ] signal
+#         # TODO STL attribute
+#         # libcpp_vector[ PeakShape ] peaks
+#         # NAMESPACE # OptimizationFunctions::PenaltyFactors penalties
+# 

@@ -34,7 +34,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
 
     cdef cppclass ChannelInfo "OpenMS::ItraqConstants::ChannelInfo":
         ChannelInfo(ChannelInfo) nogil except + #wrap-ignore
-        String description
+        # TODO string variable
+        # String description
         Int name
         Int id
         # TODO

@@ -44,8 +44,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
     
     cdef cppclass IsotopePattern "OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern":
         IsotopePattern(IsotopePattern) nogil except + #wrap-ignore
-        # TODO 
-        libcpp_vector[ ptrdiff_t ] peak
+        # TODO STL attributes
+        # libcpp_vector[ ptrdiff_t ] peak
         # libcpp_vector[ size_t ] spectrum
         # libcpp_vector[ double ] intensity
         # libcpp_vector[ double ] mz_score
