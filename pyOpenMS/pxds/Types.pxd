@@ -1,6 +1,8 @@
 from libc.stddef cimport *
 from ctime cimport *
 from libcpp cimport bool
+from libcpp.vector cimport vector as libcpp_vector
+from libcpp.map cimport map as libcpp_map
 
 # include macros
 cdef extern from "<OpenMS/config.h>":
