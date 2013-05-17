@@ -238,6 +238,8 @@ comment to the pxd file. For some examples, look into the addons folder:
 - MSQuantifications.pyx 
   - for a vector< vector< pair <String,double > > > as input in registerExperiment
   - for a map< String, Ratio> in getRatios to get returned
+- QcMLFile.pyx 
+  - for a map< String, map< String,String> > as input
 
 - SequestInfile.pyx 
   - for a map< String, vector<String> > to get returned
