@@ -5,6 +5,7 @@ from DefaultParamHandler cimport *
 from ProteinIdentification cimport *
 from ConsensusMap cimport *
 from FASTAFile cimport *
+from String cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS":
     cdef cppclass ProteinResolver(DefaultParamHandler):

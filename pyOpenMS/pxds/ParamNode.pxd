@@ -1,6 +1,5 @@
 from Types cimport *
 from libcpp cimport bool
-from LogStream cimport *
 from Types cimport *
 from DataValue cimport *
 from String cimport *
@@ -18,8 +17,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         libcpp_vector[ ParamNode ] nodes
         ParamNode(String & n, String & d) nogil except +
         bool operator==(ParamNode & rhs) nogil except +
-        EntryIterator findEntry(String & name) nogil except +
-        NodeIterator findNode(String & name) nogil except +
+        # EntryIterator findEntry(String & name) nogil except +
+        # NodeIterator findNode(String & name) nogil except +
         # POINTER # ParamNode * findParentOf(String & name) nogil except +
         # POINTER # ParamEntry * findEntryRecursive(String & name) nogil except +
         void insert(ParamNode & node, String & prefix) nogil except +
