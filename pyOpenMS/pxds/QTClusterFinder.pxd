@@ -2,8 +2,8 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from BaseGroupFinder cimport *
 from ProgressLogger cimport *
-from HashGrid cimport *
-from GridFeature cimport *
+# from HashGrid cimport *
+# from GridFeature cimport *
 from QTCluster cimport *
 from FeatureDistance cimport *
 
