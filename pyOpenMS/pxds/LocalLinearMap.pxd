@@ -1,6 +1,6 @@
 from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
-# from Matrix cimport *
+from Matrix cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS":
     
