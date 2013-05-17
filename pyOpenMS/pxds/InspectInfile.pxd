@@ -34,6 +34,5 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
         void setInstrument(String & instrument) nogil except +
         Int getTagCount() nogil except +
         void setTagCount(Int TagCount) nogil except +
-        # TODO nested map/STL
-        # Map[ String, libcpp_vector[ String ] ]  getModifications() nogil except +
+        Map[ String, libcpp_vector[ String ] ]  getModifications() nogil except + # wrap-ignore
 

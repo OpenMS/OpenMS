@@ -21,7 +21,9 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
         void generateTrieDB(String & source_database_filename, String & database_filename, String & index_filename, bool append, String species) nogil except +
         void getACAndACType(String line, String & accession, String & accession_type) nogil except +
         # TODO mixed, nested STL
-        # void getPrecursorRTandMZ(libcpp_vector[ libcpp_pair[ String, libcpp_vector[ libcpp_pair[ size_t, size_t ] ] ] ] & files_and_peptide_identification_with_scan_number, libcpp_vector[ PeptideIdentification ] & ids) nogil except +
+        void getPrecursorRTandMZ(
+            libcpp_vector[ libcpp_pair[ String, libcpp_vector[ libcpp_pair[ size_t, size_t ] ] ] ] & files_and_peptide_identification_with_scan_number,
+            libcpp_vector[ PeptideIdentification ] & ids) nogil except + # wrap-ignore
         void getLabels(String & source_database_filename, String & ac_label, String & sequence_start_label, String & sequence_end_label, String & comment_label, String & species_label) nogil except +
         libcpp_vector[ size_t ] getSequences(String & database_filename, libcpp_map[ size_t, size_t ] & wanted_records, libcpp_vector[ String ] & sequences) nogil except +
         void getExperiment(MSExperiment[ Peak1D, ChromatogramPeak ] & exp, String & type_, String & in_filename) nogil except +
