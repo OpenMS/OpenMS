@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>" names
 
         FeatureFindingMetabo()      nogil except +
 
-        void run(libcpp_vector[MassTrace] input,
+        void run(libcpp_vector[Kernel_MassTrace] input,
                  FeatureMap[Feature] & result
                  ) nogil except +
 

@@ -20,21 +20,21 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>" names
 
         ElutionPeakDetection()      nogil except +
 
-        void detectPeaks(MassTrace & in_,
-                         libcpp_vector[MassTrace] & out
+        void detectPeaks(Kernel_MassTrace & in_,
+                         libcpp_vector[Kernel_MassTrace] & out
                          ) nogil except +
 
-        void detectPeaks(libcpp_vector[MassTrace] & in_,
-                         libcpp_vector[MassTrace] & out
+        void detectPeaks(libcpp_vector[Kernel_MassTrace] & in_,
+                         libcpp_vector[Kernel_MassTrace] & out
                         ) nogil except +
 
-        void filterByPeakWidth(libcpp_vector[MassTrace] & in_,
-                               libcpp_vector[MassTrace] & out
+        void filterByPeakWidth(libcpp_vector[Kernel_MassTrace] & in_,
+                               libcpp_vector[Kernel_MassTrace] & out
                               ) nogil except +
 
-        DoubleReal computeMassTraceNoise(MassTrace &) nogil except +
-        DoubleReal computeMassTraceSNR(MassTrace &) nogil except +
-        DoubleReal computeApexSNR(MassTrace &) nogil except +
+        DoubleReal computeMassTraceNoise(Kernel_MassTrace &) nogil except +
+        DoubleReal computeMassTraceSNR(Kernel_MassTrace &) nogil except +
+        DoubleReal computeApexSNR(Kernel_MassTrace &) nogil except +
 
-        void findLocalExtrema(MassTrace & , Size & , libcpp_vector[ size_t ] & , libcpp_vector[ size_t ] & )
+        void findLocalExtrema(Kernel_MassTrace & , Size & , libcpp_vector[ size_t ] & , libcpp_vector[ size_t ] & )
 

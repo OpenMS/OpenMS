@@ -1,4 +1,4 @@
-from Types cimport *
+from libcpp.pair cimport pair as libcpp_pair
 from Types cimport *
 from String cimport *
 from StringList cimport *
@@ -20,7 +20,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
     
+    # Since this is a templated class, we cannot tell Cython what the C++
+    # equivalent would be and we need to name it MassTrace
     cdef cppclass MassTrace[PeakType]:
+        # wrap-instances:
+        #   MassTrace := MassTrace[Peak1D]
         MassTrace(MassTrace) nogil except + #wrap-ignore
         # POINTER # PeakType * max_peak
         DoubleReal max_rt
@@ -30,6 +34,21 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         void updateMaximum() nogil except +
         DoubleReal getAvgMZ() nogil except +
         bool isValid() nogil except +
+
+    # Since this is a templated class, we cannot tell Cython what the C++
+    # equivalent would be and we need to name it MassTraces
+    cdef cppclass MassTraces[PeakType]:
+        # wrap-instances:
+        #   MassTraces := MassTraces[Peak1D]
+        MassTraces() nogil except +
+        MassTraces(MassTraces) nogil except + #wrap-ignore
+        Size max_trace
+        DoubleReal baseline
+        Size getPeakCount() nogil except +
+        bool isValid(DoubleReal seed_mz, DoubleReal trace_tolerance) nogil except +
+        Size getTheoreticalmaxPosition() nogil except +
+        void updateBaseline() nogil except +
+        libcpp_pair[ DoubleReal, DoubleReal ] getRTBounds() nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
     
@@ -53,4 +72,5 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         # libcpp_vector[ double ] theoretical_mz
         TheoreticalIsotopePattern theoretical_pattern
         IsotopePattern(Size size) nogil except +
+
 

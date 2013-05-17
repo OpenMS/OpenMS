@@ -19,6 +19,6 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>" namespa
         MassTraceDetection()      nogil except +
 
         void run(MSExperiment[Peak1D, ChromatogramPeak] & input_map,
-                libcpp_vector[MassTrace] & traces
+                libcpp_vector[Kernel_MassTrace] & traces
                 ) nogil except +
 

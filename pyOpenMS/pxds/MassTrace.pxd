@@ -6,10 +6,10 @@ from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
 
-    cdef cppclass MassTrace:
+    cdef cppclass Kernel_MassTrace "OpenMS::MassTrace":
 
-        MassTrace()  nogil except +
-        MassTrace(MassTrace &) nogil except + # wrap-ignore
+        Kernel_MassTrace()  nogil except +
+        Kernel_MassTrace(Kernel_MassTrace &) nogil except + # wrap-ignore
 
         Size getSize()
         String getLabel()
