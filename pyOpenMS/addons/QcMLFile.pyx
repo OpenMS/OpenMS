@@ -14,3 +14,4 @@
         cdef _String _r = self.inst.get().map2cvs(c_dict_outer, deref(separator.inst.get()) )
         py_result = _cast_const_away(<char*>_r.c_str())
         return py_result
+

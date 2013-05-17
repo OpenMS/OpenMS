@@ -13,6 +13,6 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>" namespace "Op
         IsotopeMarker() nogil except +
         IsotopeMarker(IsotopeMarker) nogil except +
         void apply(libcpp_map[ double, bool ] & , MSSpectrum[Peak1D] & ) nogil except +
-        # POINTER # PeakMarker * create() nogil except +
+        PeakMarker * create() nogil except + # wrap-ignore
         # String getProductName() nogil except +
 
