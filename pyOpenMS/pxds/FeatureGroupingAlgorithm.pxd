@@ -1,5 +1,7 @@
 from DefaultParamHandler cimport *
 from ConsensusMap cimport *
+from FeatureMap cimport *
+from Feature cimport *
 from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>" namespace "OpenMS":
