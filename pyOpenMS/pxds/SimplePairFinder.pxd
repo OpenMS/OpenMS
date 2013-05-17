@@ -1,6 +1,6 @@
 from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
-# from BaseGroupFinder cimport *
+from BaseGroupFinder cimport *
 from ConsensusMap cimport *
 from ProgressLogger cimport *
 from DefaultParamHandler cimport *
