@@ -1,5 +1,5 @@
 # from BaseModel cimport *
-# from LinearInterpolation cimport *
+from LinearInterpolation cimport *
 from DPosition cimport *
 
 ctypedef DoubleReal IntensityType
@@ -22,6 +22,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>" n
         void setInterpolationStep(double interpolation_step) nogil except +
         void setScalingFactor(double scaling) nogil except +
 
-        # LinearInterpolation  getInterpolation() nogil except +
+        LinearInterpolation[double,double] getInterpolation() nogil except +
         # void getSamples(SamplesType &cont) nogil except +
 
