@@ -522,7 +522,7 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
         cpp_def = cpp_def.replace("FeatureMap[]", "FeatureMap[Feature]")
         cpp_def = cpp_def.replace("MSSpectrum[]", "MSSpectrum[Peak1D]")
-        cpp_def = cpp_def.replace("MSExperiment[]", "MMSExperiment[Peak1D, ChromatogramPeak]")
+        cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment[Peak1D, ChromatogramPeak]")
         # cpp_def = cpp_def.replace("Chromatogram", "MSChromatogram[ChromatogramPeak]")
         #
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum[Peak1D]")
