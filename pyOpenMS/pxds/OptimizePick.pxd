@@ -22,9 +22,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "OpenMS::OptimizationFunctions":
     
-    cdef cppclass PenaltyFactors "OpenMS::OptimizationFunctions::PenaltyFactors":
-        PenaltyFactors() nogil except +
-        PenaltyFactors(PenaltyFactors) nogil except +
+    cdef cppclass OptimizationFunctions_PenaltyFactors "OpenMS::OptimizationFunctions::PenaltyFactors":
+        OptimizationFunctions_PenaltyFactors() nogil except +
+        OptimizationFunctions_PenaltyFactors(OptimizationFunctions_PenaltyFactors) nogil except +
         double pos
         double lWidth
         double rWidth
