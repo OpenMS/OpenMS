@@ -3731,3 +3731,87 @@ def testVersion():
     assert not vd > vd
 
     assert  isinstance(pyopenms.version.version, str)
+
+
+@report
+def testPILISCrossValidation():
+    """
+    @tests:
+     PILISCrossValidation.__init__
+    """
+    inst = pyopenms.PILISCrossValidation()
+
+    assert inst.apply is not None
+    assert inst.setOption is not None
+
+@report
+def testPILIS_Peptide():
+    """
+    @tests:
+     PILIS_Peptide.__init__
+    """
+    inst = pyopenms.PILIS_Peptide()
+
+    assert inst.sequence is not None
+    assert inst.charge is not None
+    assert inst.spec is not None
+    assert inst.hits is not None
+    
+@report
+def testPILIS_Option():
+    """
+    @tests:
+     PILIS_Option.__init__
+    """
+    inst = pyopenms.PILIS_Option()
+
+    assert inst.type is not None
+    assert inst.int_min is not None
+    assert inst.int_max is not None
+    assert inst.int_stepsize is not None
+    assert inst.dbl_min is not None
+    assert inst.dbl_max is not None
+    assert inst.dbl_stepsize is not None
+
+@report
+def testPILIS_Option_Type():
+    """
+    @tests:
+     PILIS_Option_Type.__init__
+    """
+    inst = pyopenms.PILIS_Option.PILIS_Option_Type()
+
+    assert inst.INT is not None
+    assert inst.DOUBLE is not None
+    assert inst.BOOL is not None
+    assert inst.STRINGLIST is not None
+
+@report
+def testInspectInfile():
+    """
+    @tests:
+     InspectInfile.__init__
+    """
+    inst = pyopenms.InspectInfile()
+
+    assert inst.getModifications is not None
+    mods = inst.getModifications()
+    assert len(mods) == 0
+
+
+@report
+def testIsotopeMarker():
+    """
+    @tests:
+     IsotopeMarker.__init__
+    """
+    inst = pyopenms.IsotopeMarker()
+    ptr = inst.create()
+
+    assert ptr.apply is not None
+
+    res = {}
+    spec = pyopenms.MSSpectrum()
+    ptr.apply(res, spec)
+
+
