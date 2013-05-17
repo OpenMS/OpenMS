@@ -6,6 +6,38 @@ from XMLFile cimport *
 from String cimport *
 from UniqueIdGenerator cimport *
 
+cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
+    
+    cdef cppclass QcMLFile(XMLHandler,XMLFile,ProgressLogger) :
+        # wrap-inherits:
+        #  XMLHandler
+        #  XMLFile
+        #  ProgressLogger
+        QcMLFile() nogil except +
+        QcMLFile(QcMLFile) nogil except + #wrap-ignore
+        # TODO STL nested
+        # String map2cvs(libcpp_map[ String, libcpp_map[ String, String ] ] & cvs_table, String & separator) nogil except +
+        String exportIDstats(String & filename) nogil except +
+        void addRunQualityParameter(String r, QualityParameter qp) nogil except +
+        void addRunAttachment(String r, Attachment at) nogil except +
+        void addSetQualityParameter(String r, QualityParameter qp) nogil except +
+        void addSetAttachment(String r, Attachment at) nogil except +
+        void removeAttachment(String r, libcpp_vector[ String ] & ids, String at) nogil except +
+        void removeAttachment(String r, String at) nogil except +
+        void removeAllAttachments(String at) nogil except +
+        void removeQualityParameter(String r, libcpp_vector[ String ] & ids) nogil except +
+        void merge(QcMLFile & addendum, String setname) nogil except +
+        void collectSetParameter(String setname, String qp, libcpp_vector[ String ] & ret) nogil except +
+        String exportAttachment(String filename, String qpname) nogil except +
+        void getRunNames(libcpp_vector[ String ] & ids) nogil except +
+        bool existsRun(String filename) nogil except +
+        bool existsSet(String filename) nogil except +
+        void existsRunQualityParameter(String filename, String qpname, libcpp_vector[ String ] & ids) nogil except +
+        void existsSetQualityParameter(String filename, String qpname, libcpp_vector[ String ] & ids) nogil except +
+        void store(String & filename) nogil except +
+        void load(String & filename) nogil except +
+
+
 cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS::QcMLFile":
     
     cdef cppclass QualityParameter "OpenMS::QcMLFile::QualityParameter":
