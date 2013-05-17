@@ -10,7 +10,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>" namespace "Op
         # wrap-inherits:
         #  DefaultParamHandler
         FeatureDistance(FeatureDistance) nogil except + #wrap-ignore
-        DoubleReal infinity
+        # TODO  is static const -> no setters please
+        # DoubleReal infinity
         FeatureDistance(DoubleReal max_intensity, bool force_constraints) nogil except +
         # libcpp_pair[ bool, DoubleReal ] operator()(BaseFeature & left, BaseFeature & right) nogil except +
 

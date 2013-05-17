@@ -7,11 +7,11 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>" namespace "OpenMS":
     
     cdef cppclass BaseGroupFinder(DefaultParamHandler,ProgressLogger) :
+        # wrap-ignore
+        # ABSTRACT class
         # wrap-inherits:
         #  DefaultParamHandler
         #  ProgressLogger
-        # wrap-ignore
-        # ABSTRACT class
         BaseGroupFinder() nogil except +
         BaseGroupFinder(BaseGroupFinder) nogil except + #wrap-ignore
         # void run(libcpp_vector[ ConsensusMap ] & input_, ConsensusMap & result) nogil except +
