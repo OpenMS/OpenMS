@@ -21,6 +21,23 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
         ### # TEMPLATE # bool passes(MSSpectrum[ PeakType ] & spectrum, Size peak_index) nogil except +
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
+    
+    cdef cppclass DataFilter "OpenMS::DataFilters::DataFilter":
+        DataFilter() nogil except +
+        DataFilter(DataFilter) nogil except + #wrap-ignore
+        FilterType field
+        FilterOperation op
+        DoubleReal value
+        String value_string
+        String meta_name
+        bool value_is_numerical
+        String toString() nogil except +
+        void fromString(String & filter_) nogil except +
+        bool operator==(DataFilter & rhs) nogil except +
+        bool operator!=(DataFilter & rhs) nogil except +
+
+
+cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
     cdef enum FilterType "OpenMS::DataFilters::FilterType":
         #wrap-attach:
         #    DataFilters
