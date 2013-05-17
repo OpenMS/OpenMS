@@ -18,20 +18,21 @@ from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
 
-    cdef cppclass MSQuantifications:
+    cdef cppclass MSQuantifications(ExperimentalSettings):
+        # wrap-inherits:
+        #  ExperimentalSettings
         MSQuantifications()  nogil
         MSQuantifications(MSQuantifications) nogil
 
         bool operator==(MSQuantifications &) nogil
         bool operator!=(MSQuantifications &) nogil
 
-        # not yet implemented
+        # TODO - not implemented in OpenMS, remove from API
         # void load(String filename, bool trim_lines, Int first_n) nogil except +
 
         libcpp_vector[DataProcessing] getDataProcessingList() nogil except +
         libcpp_vector[Assay] getAssays() nogil except +
-        # TODO STL map with wrapped key
-        # TODO - not implemented, remove from API
+        # TODO - not implemented in OpenMS, remove from API
         # libcpp_map[String, Ratio] getRatios() nogil except + # wrap-ignore
         libcpp_vector[ConsensusMap] getConsensusMaps() nogil except +
         void setConsensusMaps(libcpp_vector[ConsensusMap]) nogil except +
@@ -41,7 +42,6 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         void setAnalysisSummaryQuantType(QUANT_TYPES r) nogil except +
         void addConsensusMap(ConsensusMap m) nogil except +
         void assignUIDs() nogil except +
-        # TODO nested STL
         void registerExperiment(MSExperiment[Peak1D, ChromatogramPeak] exp, 
                                 libcpp_vector[ libcpp_vector[ libcpp_pair[
                                   String, double] ] ] labels) nogil except + # wrap-ignore
@@ -73,7 +73,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
         Assay(Assay)
 
         String uid_ 
-        # libcpp_vector[libcpp_pair[String, double] ] mods_
+        libcpp_vector[libcpp_pair[String, double] ] mods_ # wrap-ignore
         libcpp_vector[ExperimentalSettings] raw_files_
         libcpp_map[size_t, FeatureMap[Feature] ] feature_maps_ 
         # iTRAQ needs no FeatureMaps so ExperimentalSettings are not directly mapped to FeatureMaps
