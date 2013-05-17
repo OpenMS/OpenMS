@@ -2,6 +2,7 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from Residue cimport *
+from EmpiricalFormula cimport *
 from Map cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
@@ -74,7 +75,6 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         Size getNumberOf(String residue) nogil except +
 
         # compute frequency table of amino acids
-        # TODO OpenMS Map type
         void getAAFrequencies(Map[String, size_t]) nogil except + # wrap-ignore
 
         #  return true if the instance is valid
