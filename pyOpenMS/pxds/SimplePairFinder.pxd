@@ -18,5 +18,5 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>" namespace "O
         String getProductName() nogil except +
 
         # From BaseGroupFinder
-        void run(libcpp_vector[ ConsensusMap ] & input_, ConsensusMap & result) nogil except +
+        # void run(libcpp_vector[ ConsensusMap ] & input_, ConsensusMap & result) nogil except +
         void registerChildren() nogil except +
