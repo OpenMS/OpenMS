@@ -242,8 +242,8 @@ public:
       DoubleReal abundance_12C = param_.getValue("isotopic_pattern:abundance_12C");
       DoubleReal abundance_14N = param_.getValue("isotopic_pattern:abundance_14N");
 
-      const Element * carbon_const = ElementDB::getInstance()->getElement("Carbon");
-      Element * carbon = const_cast<Element *>(carbon_const);
+      const Element* carbon_const = ElementDB::getInstance()->getElement("Carbon");
+      Element* carbon = const_cast<Element*>(carbon_const);
 
       if (param_.getValue("isotopic_pattern:abundance_12C") != defaults_.getValue("isotopic_pattern:abundance_12C"))
       {
@@ -253,11 +253,11 @@ public:
         container.push_back(std::make_pair(12, abundance_12C / 100.0));
         container.push_back(std::make_pair(13, 1.0 - (abundance_12C / 100.0)));
         isotopes.set(container);
-        carbon->setIsotopeDistribution(isotopes);        
+        carbon->setIsotopeDistribution(isotopes);
       }
 
-      const Element * nitrogen_const = ElementDB::getInstance()->getElement("Nitrogen");
-      Element * nitrogen = const_cast<Element *>(nitrogen_const);
+      const Element* nitrogen_const = ElementDB::getInstance()->getElement("Nitrogen");
+      Element* nitrogen = const_cast<Element*>(nitrogen_const);
 
       if (param_.getValue("isotopic_pattern:abundance_14N") != defaults_.getValue("isotopic_pattern:abundance_14N"))
       {
@@ -267,7 +267,7 @@ public:
         container.push_back(std::make_pair(14, abundance_14N / 100.0));
         container.push_back(std::make_pair(15, 1.0 - (abundance_14N / 100.0)));
         isotopes.set(container);
-        nitrogen->setIsotopeDistribution(isotopes);    
+        nitrogen->setIsotopeDistribution(isotopes);
       }
 
       // initialize trace fitter parameters here to avoid
@@ -410,7 +410,7 @@ public:
             Real inte = spectrum[p].getIntensity();
 
             //if(debug_) log_ << std::endl << "Peak: " << pos << std::endl;
-            bool is_max_peak = true;                 //checking the maximum intensity peaks -> use them later as feature seeds.
+            bool is_max_peak = true; //checking the maximum intensity peaks -> use them later as feature seeds.
             for (Size i = 1; i <= min_spectra_; ++i)
             {
               try
@@ -420,7 +420,7 @@ public:
                 if (position_score > 0 && map_[s + i][spec_index].getIntensity() > inte) is_max_peak = false;
                 scores.push_back(position_score);
               }
-              catch (...)                  //no peaks in the spectrum
+              catch (...) //no peaks in the spectrum
               {
                 scores.push_back(0.0);
               }
@@ -434,7 +434,7 @@ public:
                 if (position_score > 0 && map_[s - i][spec_index].getIntensity() > inte) is_max_peak = false;
                 scores.push_back(position_score);
               }
-              catch (...)                  //no peaks in the spectrum
+              catch (...) //no peaks in the spectrum
               {
                 scores.push_back(0.0);
               }
@@ -528,8 +528,8 @@ public:
       //Step 3:
       //Charge loop (create seeds and features for each charge separately)
       //-------------------------------------------------------------------------
-      Int plot_nr_global = -1;           //counter for the number of plots (debug info)
-      Int feature_nr_global = 0;           //counter for the number of features (debug info)
+      Int plot_nr_global = -1; //counter for the number of plots (debug info)
+      Int feature_nr_global = 0; //counter for the number of features (debug info)
       for (SignedSize c = charge_low; c <= charge_high; ++c)
       {
         UInt meta_index_isotope = 3 + c - charge_low;
@@ -601,7 +601,7 @@ public:
             meta[meta_index_overall][p] = overall_score;
 
             //add seed to vector if certain conditions are fulfilled
-            if (meta[2][p] != 0.0)               // local maximum of mass trace is prerequisite for all features
+            if (meta[2][p] != 0.0) // local maximum of mass trace is prerequisite for all features
             {
               //automatic seeds: overall score greater than the min seed score
               if (!user_seeds && overall_score >= min_seed_score)
@@ -682,7 +682,7 @@ public:
         // decided whether they are contained within a seed of higher
         // intensity.
         std::map<Size, std::vector<Size> > seeds_in_features;
-        typedef std::map<int, OpenMS::Feature> FeatureMapType;
+        typedef std::map<Size, FeatureType> FeatureMapType;
         FeatureMapType tmp_feature_map;
         gl_progress = 0;
         ff_->startProgress(0, seeds.size(), String("Extending seeds for charge ") + String(c));
@@ -886,7 +886,7 @@ public:
                 // - the model does not include the baseline, so we ignore it here
                 // - as we scaled the isotope distribution to
                 f.setIntensity(
-                  fitter->getFeatureIntensityContribution()           // was 2.5 * fitter->getHeight() * sigma
+                  fitter->getFeatureIntensityContribution() // was 2.5 * fitter->getHeight() * sigma
                   / getIsotopeDistribution_(f.getMZ()).max);
 
                 // we do not need the fitter anymore
@@ -924,17 +924,17 @@ public:
                 }
               }
             }
-          }               // three if/else statements instead of continue (disallowed in OpenMP)
-        }             // end of OPENMP over seeds
+          } // three if/else statements instead of continue (disallowed in OpenMP)
+        } // end of OPENMP over seeds
 
         // Here we have to evaluate which seeds are already contained in
         // features of seeds with higher intensities. Only if the seed is not
         // used in any feature with higher intensity, we can add it to the
         // features_ list.
         std::vector<Size> seeds_contained;
-        for (typename std::map<int, FeatureType>::iterator iter = tmp_feature_map.begin(); iter != tmp_feature_map.end(); ++iter)
+        for (typename std::map<Size, FeatureType>::iterator iter = tmp_feature_map.begin(); iter != tmp_feature_map.end(); ++iter)
         {
-          int seed_nr = iter->first;
+          Size seed_nr = iter->first;
           bool is_used = false;
           for (Size i = 0; i < seeds_contained.size(); ++i)
           {
@@ -1089,7 +1089,7 @@ public:
           f.setMZ(map_[it2->first.spectrum][it2->first.peak].getMZ());
           f.setIntensity(map_[it2->first.spectrum][it2->first.peak].getIntensity());
           f.setMetaValue("label", it2->second);
-          f.setUniqueId(counter);               // ID = index
+          f.setUniqueId(counter); // ID = index
           abort_map.push_back(f);
         }
         abort_map.setUniqueId();
@@ -1131,22 +1131,22 @@ protected:
 
     /// @name Members for parameters often needed in methods
     //@{
-    DoubleReal pattern_tolerance_;         ///< Stores mass_trace:mz_tolerance
-    DoubleReal trace_tolerance_;         ///< Stores isotopic_pattern:mz_tolerance
-    UInt min_spectra_;         ///< Number of spectra that have to show the same mass (for finding a mass trace)
-    UInt max_missing_trace_peaks_;         ///< Stores mass_trace:max_missing
-    DoubleReal slope_bound_;         ///< Max slope of mass trace intensities
-    DoubleReal intensity_percentage_;         ///< Isotope pattern intensity contribution of required peaks
-    DoubleReal intensity_percentage_optional_;         ///< Isotope pattern intensity contribution of optional peaks
-    DoubleReal optional_fit_improvement_;         ///< Minimal imrovment for leaving out optional isotope
-    DoubleReal mass_window_width_;         ///< Width of the isotope pattern mass bins
-    UInt intensity_bins_;         ///< Number of bins (in RT and MZ) for intensity significance estimation
-    DoubleReal min_isotope_fit_;         ///< Mimimum isotope pattern fit for a feature
-    DoubleReal min_trace_score_;         ///< Minimum quality of a traces
-    DoubleReal min_rt_span_;         ///< Minimum RT range that has to be left after the fit
-    DoubleReal max_rt_span_;         ///< Maximum RT range the model is allowed to span
-    DoubleReal max_feature_intersection_;         ///< Maximum allowed feature intersection (if larger, that one of the feature is removed)
-    String reported_mz_;   ///< The mass type that is reported for features. 'maximum' returns the m/z value of the highest mass trace. 'average' returns the intensity-weighted average m/z value of all contained peaks. 'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.
+    DoubleReal pattern_tolerance_; ///< Stores mass_trace:mz_tolerance
+    DoubleReal trace_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
+    UInt min_spectra_; ///< Number of spectra that have to show the same mass (for finding a mass trace)
+    UInt max_missing_trace_peaks_; ///< Stores mass_trace:max_missing
+    DoubleReal slope_bound_; ///< Max slope of mass trace intensities
+    DoubleReal intensity_percentage_; ///< Isotope pattern intensity contribution of required peaks
+    DoubleReal intensity_percentage_optional_; ///< Isotope pattern intensity contribution of optional peaks
+    DoubleReal optional_fit_improvement_; ///< Minimal imrovment for leaving out optional isotope
+    DoubleReal mass_window_width_; ///< Width of the isotope pattern mass bins
+    UInt intensity_bins_; ///< Number of bins (in RT and MZ) for intensity significance estimation
+    DoubleReal min_isotope_fit_; ///< Mimimum isotope pattern fit for a feature
+    DoubleReal min_trace_score_; ///< Minimum quality of a traces
+    DoubleReal min_rt_span_; ///< Minimum RT range that has to be left after the fit
+    DoubleReal max_rt_span_; ///< Maximum RT range the model is allowed to span
+    DoubleReal max_feature_intersection_; ///< Maximum allowed feature intersection (if larger, that one of the feature is removed)
+    String reported_mz_; ///< The mass type that is reported for features. 'maximum' returns the m/z value of the highest mass trace. 'average' returns the intensity-weighted average m/z value of all contained peaks. 'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.
     //@}
 
     /// @name Members for intensity significance estimation
@@ -1376,7 +1376,7 @@ protected:
       Size max_trace_index = 0;
       for (Size p = 0; p < pattern.peak.size(); ++p)
       {
-        if (pattern.peak[p] < 0) continue;           //skip missing and removed traces
+        if (pattern.peak[p] < 0) continue; //skip missing and removed traces
         if (map_[pattern.spectrum[p]][pattern.peak[p]].getIntensity() > max_int)
         {
           max_int = map_[pattern.spectrum[p]][pattern.peak[p]].getIntensity();
@@ -1446,7 +1446,7 @@ protected:
           {
             peak_index = map_[spectrum_index].findNearest(map_[starting_peak.spectrum][starting_peak.peak].getMZ());
           }
-          catch (...)              //no peaks in the spectrum
+          catch (...) //no peaks in the spectrum
           {
             peak_index = -1;
           }
@@ -1481,12 +1481,12 @@ protected:
           //Missing traces in the middle of a pattern are not acceptable => fix this
           if (p < traces.max_trace)
           {
-            traces.clear();                 //remove earlier traces
+            traces.clear(); //remove earlier traces
             continue;
           }
           else if (p > traces.max_trace)
           {
-            break;     //no more traces are possible
+            break; //no more traces are possible
           }
         }
         traces.push_back(trace);
@@ -1561,16 +1561,16 @@ protected:
         {
           peak_index = map_[spectrum_index].findNearest(mz);
         }
-        catch (...)            //no peaks in the spectrum
+        catch (...) //no peaks in the spectrum
         {
           peak_index = -1;
         }
 
         // check if the peak is "missing"
         if (
-          peak_index < 0   // no peak found
-           || map_[spectrum_index].getFloatDataArrays()[meta_index_overall][peak_index] < 0.01  // overall score is to low
-           || positionScore_(mz, map_[spectrum_index][peak_index].getMZ(), trace_tolerance_) == 0.0   // deviation of mz is too big
+          peak_index < 0 // no peak found
+           || map_[spectrum_index].getFloatDataArrays()[meta_index_overall][peak_index] < 0.01 // overall score is to low
+           || positionScore_(mz, map_[spectrum_index][peak_index].getMZ(), trace_tolerance_) == 0.0 // deviation of mz is too big
           )
         {
           ++missing_peaks;
@@ -1755,7 +1755,7 @@ protected:
       //Find best isotope fit
       // - try to leave out optional isotope peaks to improve the fit
       // - do not allow gaps inside the pattern
-      DoubleReal best_int_score = 0.01;           //Not 0 as this would result in problems when checking for the percental improvement
+      DoubleReal best_int_score = 0.01; //Not 0 as this would result in problems when checking for the percental improvement
       Size best_begin = 0;
       for (Size i = isotopes.optional_begin; i > 0; --i)
       {
@@ -1786,7 +1786,7 @@ protected:
           {
             DoubleReal int_score = Math::pearsonCorrelationCoefficient(isotopes.intensity.begin() + b, isotopes.intensity.end() - e, pattern.intensity.begin() + b, pattern.intensity.end() - e);
             if (boost::math::isnan(int_score)) int_score = 0.0;
-            if (isotopes.size() - b - e == 2 && int_score > min_isotope_fit_) int_score = min_isotope_fit_;         //special case for the first loop iteration (otherwise the score is 1)
+            if (isotopes.size() - b - e == 2 && int_score > min_isotope_fit_) int_score = min_isotope_fit_; //special case for the first loop iteration (otherwise the score is 1)
             if (debug_) log_ << "   - fit (" << b << "/" << e << "): " << int_score;
             if (int_score / best_int_score >= 1.0 + optional_fit_improvement_)
             {
@@ -1925,7 +1925,7 @@ protected:
         tau = -1.0;
         return new EGHTraceFitter<PeakType>();
       }
-      else   // if (param_.getValue("feature:rt_shape") == "symmetric")
+      else // if (param_.getValue("feature:rt_shape") == "symmetric")
       {
         LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
         return new GaussTraceFitter<PeakType>();
@@ -2030,7 +2030,7 @@ protected:
           {
             new_traces = MassTraces();
             if (debug_) log_ << "     - removed this and previous traces due to bad fit" << std::endl;
-            new_traces.clear();   //remove earlier traces
+            new_traces.clear(); //remove earlier traces
             continue;
           }
           else if (t == traces.max_trace)
@@ -2042,7 +2042,7 @@ protected:
           else if (t > traces.max_trace)
           {
             if (debug_) log_ << "     - removed due to bad fit => omitting the rest" << std::endl;
-            break;   //no more traces are possible
+            break; //no more traces are possible
           }
         }
         //add new trace
@@ -2199,7 +2199,7 @@ protected:
       {
         for (Size j = 0; j < traces[k].peaks.size(); ++j)
         {
-          tf.push_back(String(pseudo_rt_shift * k + traces[k].peaks[j].first) + "\t"+ traces[k].peaks[j].second->getIntensity());
+          tf.push_back(String(pseudo_rt_shift * k + traces[k].peaks[j].first) + "\t" + traces[k].peaks[j].second->getIntensity());
         }
       }
       tf.store(path + plot_nr + ".dta");
