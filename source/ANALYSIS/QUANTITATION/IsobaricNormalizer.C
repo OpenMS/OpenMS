@@ -1,0 +1,245 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+//
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS.
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Stephan Aiche $
+// $Authors: Stephan Aiche $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>
+
+namespace OpenMS
+{
+
+  IsobaricNormalizer::IsobaricNormalizer(const IsobaricQuantitationMethod* const quant_method) :
+    quant_meth_(quant_method)
+  {
+    reference_channel_name_ = quant_meth_->getChannelInformation()[quant_meth_->getReferenceChannel()].name;
+  }
+
+  IsobaricNormalizer::IsobaricNormalizer(const IsobaricNormalizer& other) :
+    quant_meth_(other.quant_meth_),
+    reference_channel_name_(other.reference_channel_name_)
+  {
+  }
+
+  IsobaricNormalizer& IsobaricNormalizer::operator=(const IsobaricNormalizer& rhs)
+  {
+    if (this == &rhs)
+      return *this;
+
+    quant_meth_ = rhs.quant_meth_;
+    reference_channel_name_ = rhs.reference_channel_name_;
+
+    return *this;
+  }
+
+  ConsensusFeature::HandleSetType::iterator IsobaricNormalizer::findReferenceChannel_(ConsensusFeature& cf, const ConsensusMap& consensus_map) const
+  {
+    for (ConsensusFeature::HandleSetType::iterator it_elements = cf.begin();
+         it_elements != cf.end();
+         ++it_elements)
+    {
+      if ((Int) consensus_map.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name") == reference_channel_name_)
+      {
+        return it_elements;
+      }
+    }
+
+    return cf.end();
+  }
+
+  void IsobaricNormalizer::buildVectorIndex_(const ConsensusMap& consensus_map)
+  {
+    // clear old values
+    ref_map_id_ = 0;
+    map_to_vec_index_.clear();
+
+    Size index = 0;
+    for (ConsensusMap::FileDescriptions::const_iterator file_it = consensus_map.getFileDescriptions().begin();
+         file_it != consensus_map.getFileDescriptions().end();
+         ++file_it)
+    {
+      if ((Int) file_it->second.getMetaValue("channel_name") == reference_channel_name_)
+      {
+        ref_map_id_ = file_it->first;
+      }
+      map_to_vec_index_[file_it->first] = index;
+      ++index;
+    }
+  }
+
+  void IsobaricNormalizer::collectRatios_(const ConsensusFeature& cf, const Peak2D::IntensityType& ref_intensity)
+  {
+    for (ConsensusFeature::HandleSetType::const_iterator it_elements = cf.begin();
+         it_elements != cf.end();
+         ++it_elements)
+    {
+      if (ref_intensity == 0) //avoid nan's and inf's
+      {
+        if (it_elements->getIntensity() == 0) // 0/0 will give 'nan'
+        {
+          //so leave it out completely (there is no information to be gained)
+        }
+        else // x/0 is 'inf' but std::sort() has problems with that
+        {
+          peptide_ratios_[map_to_vec_index_[it_elements->getMapIndex()]].push_back(std::numeric_limits<double>::max());
+        }
+      }
+      else // everything seems fine
+      {
+        peptide_ratios_[map_to_vec_index_[it_elements->getMapIndex()]].push_back(it_elements->getIntensity() / ref_intensity);
+      }
+
+      // control
+      peptide_intensities_[map_to_vec_index_[it_elements->getMapIndex()]].push_back(it_elements->getIntensity());
+    }
+
+  }
+
+  void IsobaricNormalizer::computeNormalizationFactors_(std::vector<Peak2D::IntensityType>& normalization_factors)
+  {
+    // ensure that the ref_(ratios|intensities) are sorted
+    std::sort(peptide_ratios_[ref_map_id_].begin(), peptide_ratios_[ref_map_id_].end());
+    std::sort(peptide_intensities_[ref_map_id_].begin(), peptide_intensities_[ref_map_id_].end());
+
+    // reporting
+    double max_deviation_from_control = 0;
+
+    // find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
+    for (Map<Size, Size>::const_iterator it_map = map_to_vec_index_.begin(); it_map != map_to_vec_index_.end(); ++it_map)
+    {
+      // this is solely for readability reasons, the compiler should optimize this anyway
+      const Size vec_idx = it_map->second;
+
+      // sort vector (partial_sort might improve performance here)
+      std::sort(peptide_ratios_[vec_idx].begin(), peptide_ratios_[vec_idx].end());
+
+      // save median as first element
+      normalization_factors[vec_idx] = peptide_ratios_[vec_idx][peptide_ratios_[vec_idx].size() / 2];
+
+      // sort control (intensities)
+      std::sort(peptide_intensities_[vec_idx].begin(), peptide_intensities_[vec_idx].end());
+
+      // find MEDIAN of control-method (intensities) for each channel
+      peptide_intensities_[vec_idx][0] = peptide_intensities_[vec_idx][peptide_intensities_[vec_idx].size() / 2] /
+                                         peptide_intensities_[ref_map_id_][peptide_intensities_[ref_map_id_].size() / 2];
+
+      LOG_INFO << "IsobaricNormalizer:  map-id " << (it_map->first) << " has factor " << (normalization_factors[vec_idx]) << " (control: " << (peptide_intensities_[vec_idx][0]) << ")" << std::endl;
+
+      double dev = (peptide_ratios_[vec_idx][0] - peptide_intensities_[vec_idx][0]) / normalization_factors[vec_idx];
+      if (fabs(max_deviation_from_control) < fabs(dev))
+      {
+        max_deviation_from_control = dev;
+      }
+    }
+
+    LOG_INFO << "IsobaricNormalizer: max ratio deviation of alternative method is " << (max_deviation_from_control * 100) << "%\n";
+  }
+
+  void IsobaricNormalizer::normalize(ConsensusMap& consensus_map)
+  {
+    // determine reference channel as vector index
+    buildVectorIndex_(consensus_map);
+
+    // build mapping of map_index to ratio_array_index
+    peptide_ratios_.resize(quant_meth_->getNumberOfChannels());
+    peptide_intensities_.resize(quant_meth_->getNumberOfChannels());
+
+    //build up ratios for each peptide of non-reference channels
+    ConsensusFeature::HandleSetType::iterator ref_it;
+
+    for (ConsensusMap::Iterator cm_it = consensus_map.begin(); cm_it != consensus_map.end(); ++cm_it)
+    {
+      // find reference index (this is inefficient to do every time,
+      // but the most robust against anyone who tries to change the internals of ConsensusFeature):
+      ref_it = findReferenceChannel_(*cm_it, consensus_map);
+
+      // reference channel not found in this ConsensusFeature
+      if (ref_it == cm_it->end())
+      {
+        LOG_WARN << "IsobaricNormalizer::normalize() WARNING: ConsensusFeature "
+                 << (cm_it - consensus_map.begin())
+                 << " does not have a reference channel! Skipping"
+                 << std::endl;
+        continue;
+      }
+
+      collectRatios_(*cm_it, ref_it->getIntensity());
+    } // ! collect ratios
+
+    // vector to store the channel wise normalization factors
+    std::vector<Peak2D::IntensityType> normalization_factors;
+    normalization_factors.resize(quant_meth_->getNumberOfChannels());
+
+    // compute the normalization factors based on the medians of the compute ratios
+    computeNormalizationFactors_(normalization_factors);
+
+    // free memory
+    peptide_intensities_.clear();
+    peptide_ratios_.clear();
+
+    // adjust intensity ratios
+    for (size_t i = 0; i < consensus_map.size(); ++i)
+    {
+      // find reference index (this is inefficient to do every time,
+      // but the most robust against anyone who tries to change the
+      // internals of ConsensusFeature):
+      ref_it = findReferenceChannel_(consensus_map[i], consensus_map);
+
+      // reference channel not found in this ConsensusFeature
+      if (ref_it == consensus_map[i].end())
+      {
+        continue;
+      }
+
+      // now adjust the ratios
+      ConsensusFeature cf = consensus_map[i];
+      cf.clear(); // delete its handles
+      for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map[i].begin();
+           it_elements != consensus_map[i].end();
+           ++it_elements)
+      {
+        FeatureHandle hd = *it_elements;
+        if (it_elements == ref_it)
+        {
+          hd.setIntensity(1);
+        }
+        else // divide current intensity by normalization factor (which was stored at position 0)
+        {
+          hd.setIntensity(hd.getIntensity() / normalization_factors[map_to_vec_index_[it_elements->getMapIndex()]]);
+        }
+        cf.insert(hd);
+      }
+      // replace consensusFeature with updated intensity
+      consensus_map[i] = cf;
+    } // ! adjust ratios
+  }
+
+} // namespace

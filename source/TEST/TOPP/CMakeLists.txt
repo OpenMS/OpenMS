@@ -403,6 +403,16 @@ add_test("TOPP_ITRAQAnalyzer_2" ${TOPP_BIN_PATH}/ITRAQAnalyzer -test -in ${DATA_
 add_test("TOPP_ITRAQAnalyzer_2_out1" ${DIFF} -whitelist "<map" "?xml-stylesheet" -in1 ITRAQAnalyzer_output_2.tmp -in2 ${DATA_DIR_TOPP}/ITRAQAnalyzer_output_2.consensusXML )
 set_tests_properties("TOPP_ITRAQAnalyzer_2_out1" PROPERTIES DEPENDS "TOPP_ITRAQAnalyzer_2")
 
+### IsobaricAnalyzer tests
+add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out IsobaricAnalyzer_output_1.tmp)
+add_test("TOPP_IsobaricAnalyzer_1_out1" ${DIFF} -whitelist "<map" "?xml-stylesheet" -in1 IsobaricAnalyzer_output_1.tmp -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_1.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_1")
+# test empty IDs
+add_test("TOPP_IsobaricAnalyzer_2" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_2.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out IsobaricAnalyzer_output_2.tmp)
+add_test("TOPP_IsobaricAnalyzer_2_out1" ${DIFF} -whitelist "<map" "?xml-stylesheet" -in1 IsobaricAnalyzer_output_2.tmp -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_2.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_2_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_2")
+
+
 ### IDConflictResolver tests
 add_test("TOPP_IDConflictResolver_1" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_1_input.featureXML -out IDConflictResolver_1_output.tmp)
 add_test("TOPP_IDConflictResolver_1_out1" ${DIFF} -in1 IDConflictResolver_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDConflictResolver_1_output.featureXML )

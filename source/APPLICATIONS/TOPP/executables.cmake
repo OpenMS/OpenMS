@@ -39,6 +39,7 @@ IDMerger
 IDRipper
 IDRTCalibration
 ITRAQAnalyzer
+IsobaricAnalyzer
 InclusionExclusionListCreator
 InspectAdapter
 InternalCalibration

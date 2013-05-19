@@ -368,8 +368,17 @@ set(analysis_executables_list
   IDRipper_test
   ILPDCWrapper_test
 	InclusionExclusionList_test
+  IsobaricChannelExtractor_test
+  IsobaricIsotopeCorrector_test
+  IsobaricNormalizer_test  
+  IsobaricQuantitationMethod_test
+  IsobaricQuantifier_test
+  IsobaricQuantifierStatistics_test
 	ItraqChannelExtractor_test
 	ItraqConstants_test
+  ItraqFourPlexQuantitationMethod_test
+  ItraqEightPlexQuantitationMethod_test  
+  TMTSixPlexQuantitationMethod_test  
 	ItraqQuantifier_test
 	LabeledPairFinder_test
 	LocalLinearMap_test
