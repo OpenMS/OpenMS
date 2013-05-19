@@ -55,7 +55,7 @@ namespace OpenMS
   // MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
   enum MzTabCellStateType
   {
-    MZTAB_CELLSTATE_DEFAULT,         
+    MZTAB_CELLSTATE_DEFAULT,
     MZTAB_CELLSTATE_NULL,
     MZTAB_CELLSTATE_NAN,
     MZTAB_CELLSTATE_INF,
@@ -65,7 +65,7 @@ namespace OpenMS
   // basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
   class MzTabNullAbleInterface
   {
-  public:
+public:
     virtual bool isNull() const = 0;
     virtual void setNull(bool b) = 0;
     virtual String toCellString() const = 0;
@@ -73,9 +73,10 @@ namespace OpenMS
   };
 
   // interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
-  class MzTabNullNaNAndInfAbleInterface : public MzTabNullAbleInterface
+  class MzTabNullNaNAndInfAbleInterface :
+    public MzTabNullAbleInterface
   {
-  public:
+public:
     virtual bool isNaN() const = 0;
     virtual void setNaN() = 0;
     virtual bool isInf() const = 0;
@@ -83,11 +84,12 @@ namespace OpenMS
   };
 
   // base class for the atomic non-container like MzTab data types (Double, Int)
-  class MzTabNullAbleBase : public MzTabNullAbleInterface
+  class MzTabNullAbleBase :
+    public MzTabNullAbleInterface
   {
-  public:
-    MzTabNullAbleBase():
-        null_(true)
+public:
+    MzTabNullAbleBase() :
+      null_(true)
     {
     }
 
@@ -101,22 +103,23 @@ namespace OpenMS
       null_ = b;
     }
 
-  protected:
+protected:
     bool null_;
   };
 
   // base class for the atomic non-container like MzTab data types (Double, Int)
-  class MzTabNullNaNAndInfAbleBase : public MzTabNullNaNAndInfAbleInterface
+  class MzTabNullNaNAndInfAbleBase :
+    public MzTabNullNaNAndInfAbleInterface
   {
-  public:
-    MzTabNullNaNAndInfAbleBase():
-        state_(MZTAB_CELLSTATE_NULL)
+public:
+    MzTabNullNaNAndInfAbleBase() :
+      state_(MZTAB_CELLSTATE_NULL)
     {
     }
 
     bool isNull() const
     {
-      return (state_ == MZTAB_CELLSTATE_NULL);
+      return state_ == MZTAB_CELLSTATE_NULL;
     }
 
     void setNull(bool b)
@@ -126,7 +129,7 @@ namespace OpenMS
 
     bool isNaN() const
     {
-      return (state_ == MZTAB_CELLSTATE_NAN);
+      return state_ == MZTAB_CELLSTATE_NAN;
     }
 
     void setNaN()
@@ -136,7 +139,7 @@ namespace OpenMS
 
     bool isInf() const
     {
-      return (state_ == MZTAB_CELLSTATE_INF);
+      return state_ == MZTAB_CELLSTATE_INF;
     }
 
     void setInf()
@@ -144,13 +147,14 @@ namespace OpenMS
       state_ = MZTAB_CELLSTATE_INF;
     }
 
-  protected:
+protected:
     MzTabCellStateType state_;
   };
 
-  class MzTabDouble : public MzTabNullNaNAndInfAbleBase
+  class MzTabDouble :
+    public MzTabNullNaNAndInfAbleBase
   {
-  public:
+public:
     void set(const DoubleReal& value)
     {
       state_ = MZTAB_CELLSTATE_DEFAULT;
@@ -162,7 +166,8 @@ namespace OpenMS
       if (state_ == MZTAB_CELLSTATE_DEFAULT)
       {
         return value_;
-      } else
+      }
+      else
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
         return 0;
@@ -171,14 +176,17 @@ namespace OpenMS
 
     String toCellString() const
     {
-      switch(state_)
+      switch (state_)
       {
       case MZTAB_CELLSTATE_NULL:
         return String("null");
+
       case MZTAB_CELLSTATE_NAN:
         return String("NaN");
+
       case MZTAB_CELLSTATE_INF:
         return String("Inf");
+
       case MZTAB_CELLSTATE_DEFAULT:
       default:
         return String(value_);
@@ -192,25 +200,29 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else if (lower == "nan")
+      }
+      else if (lower == "nan")
       {
         setNaN();
-      } else if (lower == "inf")
+      }
+      else if (lower == "inf")
       {
         setInf();
-      } else // default case
+      }
+      else   // default case
       {
         set(lower.toDouble());
       }
     }
 
-  protected:
+protected:
     DoubleReal value_;
   };
 
-  class MzTabDoubleList : public MzTabNullAbleBase
+  class MzTabDoubleList :
+    public MzTabNullAbleBase
   {
-  public:
+public:
     MzTabDoubleList()
     {
     }
@@ -233,7 +245,8 @@ namespace OpenMS
       if (isNull())
       {
         return "null";
-      } else
+      }
+      else
       {
         String ret;
         for (std::vector<MzTabDouble>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
@@ -255,7 +268,8 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else
+      }
+      else
       {
         String ss = s;
         std::vector<String> fields;
@@ -279,13 +293,14 @@ namespace OpenMS
       entries_ = entries;
     }
 
-  protected:
+protected:
     std::vector<MzTabDouble> entries_;
   };
 
-  class MzTabInteger : public MzTabNullNaNAndInfAbleBase
+  class MzTabInteger :
+    public MzTabNullNaNAndInfAbleBase
   {
-  public:
+public:
     void set(const Int& value)
     {
       state_ = MZTAB_CELLSTATE_DEFAULT;
@@ -297,7 +312,8 @@ namespace OpenMS
       if (state_ == MZTAB_CELLSTATE_DEFAULT)
       {
         return value_;
-      } else
+      }
+      else
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
         return 0;
@@ -306,14 +322,17 @@ namespace OpenMS
 
     String toCellString() const
     {
-      switch(state_)
+      switch (state_)
       {
       case MZTAB_CELLSTATE_NULL:
         return String("null");
+
       case MZTAB_CELLSTATE_NAN:
         return String("NaN");
+
       case MZTAB_CELLSTATE_INF:
         return String("Inf");
+
       case MZTAB_CELLSTATE_DEFAULT:
       default:
         return String(value_);
@@ -327,25 +346,29 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else if (lower == "nan")
+      }
+      else if (lower == "nan")
       {
         setNaN();
-      } else if (lower == "inf")
+      }
+      else if (lower == "inf")
       {
         setInf();
-      } else // default case
+      }
+      else   // default case
       {
         set(lower.toInt());
       }
     }
 
-  protected:
+protected:
     Int value_;
   };
 
-  class MzTabBoolean : public MzTabNullAbleBase
+  class MzTabBoolean :
+    public MzTabNullAbleBase
   {
-  public:
+public:
     void set(const bool& value)
     {
       setNull(false);
@@ -362,12 +385,14 @@ namespace OpenMS
       if (isNull())
       {
         return "null";
-      } else
+      }
+      else
       {
         if (value_)
         {
           return "1";
-        } else
+        }
+        else
         {
           return "0";
         }
@@ -381,28 +406,32 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else
+      }
+      else
       {
         if (s == "0")
         {
           set(false);
-        } else if (s == "1")
+        }
+        else if (s == "1")
         {
           set(true);
-        } else
+        }
+        else
         {
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") +s + "' to MzTabBoolean");
+          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabBoolean");
         }
       }
     }
 
-  protected:
+protected:
     bool value_;
   };
 
-  class MzTabString : public MzTabNullAbleInterface
+  class MzTabString :
+    public MzTabNullAbleInterface
   {
-  public:
+public:
     void set(const String& value)
     {
       String lower = value;
@@ -410,7 +439,8 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else
+      }
+      else
       {
         value_ = value;
       }
@@ -439,7 +469,8 @@ namespace OpenMS
       if (isNull())
       {
         return String("null");
-      } else
+      }
+      else
       {
         return value_;
       }
@@ -450,16 +481,17 @@ namespace OpenMS
       set(s);
     }
 
-  protected:
+protected:
     String value_;
   };
 
-  class MzTabParameter : public MzTabNullAbleInterface
+  class MzTabParameter :
+    public MzTabNullAbleInterface
   {
-  public:
+public:
     bool isNull() const
     {
-      return (CV_label_.empty() && accession_.empty() && name_.empty() && value_.empty());
+      return CV_label_.empty() && accession_.empty() && name_.empty() && value_.empty();
     }
 
     void setNull(bool b)
@@ -522,7 +554,8 @@ namespace OpenMS
       if (isNull())
       {
         return "null";
-      } else
+      }
+      else
       {
         String ret = "[";
         ret += CV_label_ + ",";
@@ -547,7 +580,8 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else
+      }
+      else
       {
         String ss = s;
 
@@ -570,7 +604,8 @@ namespace OpenMS
           if (comma_fields.size() != 4)
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
-          } else
+          }
+          else
           {
 
             comma_fields[0].remove('[');
@@ -587,7 +622,8 @@ namespace OpenMS
           if (fields.size() != 4)
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
-          } else
+          }
+          else
           {
 
             fields[0].remove('[');
@@ -601,17 +637,17 @@ namespace OpenMS
       }
     }
 
-
-  protected:
+protected:
     String CV_label_;
     String accession_;
     String name_;
     String value_;
   };
 
-  class MzTabParameterList : public MzTabNullAbleInterface
+  class MzTabParameterList :
+    public MzTabNullAbleInterface
   {
-  public:
+public:
     bool isNull() const
     {
       return parameters_.empty();
@@ -630,7 +666,8 @@ namespace OpenMS
       if (isNull())
       {
         return "null";
-      } else
+      }
+      else
       {
         String ret;
         for (std::vector<MzTabParameter>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
@@ -653,7 +690,8 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else
+      }
+      else
       {
         String ss = s;
         std::vector<String> fields;
@@ -683,15 +721,16 @@ namespace OpenMS
       parameters_ = parameters;
     }
 
-  protected:
+protected:
     std::vector<MzTabParameter> parameters_;
   };
 
-  class MzTabStringList : public MzTabNullAbleInterface
+  class MzTabStringList :
+    public MzTabNullAbleInterface
   {
-  public:
-    MzTabStringList():
-        sep_('|')
+public:
+    MzTabStringList() :
+      sep_('|')
     {
     }
 
@@ -719,7 +758,8 @@ namespace OpenMS
       if (isNull())
       {
         return "null";
-      } else
+      }
+      else
       {
         String ret;
         for (std::vector<MzTabString>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
@@ -742,7 +782,8 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else
+      }
+      else
       {
         String ss = s;
         std::vector<String> fields;
@@ -766,18 +807,19 @@ namespace OpenMS
       entries_ = entries;
     }
 
-  protected:
+protected:
     std::vector<MzTabString> entries_;
     char sep_;
   };
 
-  struct MzTabModification : public MzTabNullAbleInterface
+  struct MzTabModification :
+    public MzTabNullAbleInterface
   {
-  public:
+public:
 
     bool isNull() const
     {
-      return (pos_param_pairs_.empty() && mod_or_subst_identifier_.isNull());
+      return pos_param_pairs_.empty() && mod_or_subst_identifier_.isNull();
     }
 
     void setNull(bool b)
@@ -816,7 +858,8 @@ namespace OpenMS
       if (isNull())
       {
         return String("null");
-      } else
+      }
+      else
       {
         String pos_param_string;
 
@@ -833,12 +876,12 @@ namespace OpenMS
           // add | as separator (exept for last one)
           if (i < pos_param_pairs_.size() - 1)
           {
-              pos_param_string += String("|");
+            pos_param_string += String("|");
           }
         }
-        
-	// quick sanity check
-	if (mod_or_subst_identifier_.isNull())
+
+        // quick sanity check
+        if (mod_or_subst_identifier_.isNull())
         {
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Modification or Substitution identifier MUST NOT be null or empty in MzTabModification"));
         }
@@ -848,7 +891,8 @@ namespace OpenMS
         if (!pos_param_string.empty())
         {
           res = pos_param_string + "-" + mod_or_subst_identifier_.toCellString();
-        } else
+        }
+        else
         {
           res = mod_or_subst_identifier_.toCellString();
         }
@@ -863,12 +907,14 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else
+      }
+      else
       {
-        if (!lower.hasSubstring("-"))  // no positions? simply use s as mod identifier
+        if (!lower.hasSubstring("-")) // no positions? simply use s as mod identifier
         {
           mod_or_subst_identifier_.set(String(s).trim());
-        } else
+        }
+        else
         {
           String ss = s;
           ss.trim();
@@ -888,32 +934,34 @@ namespace OpenMS
           {
             Size spos = position_fields[i].find_first_of("[");
 
-            if (spos == std::string::npos)  // only position information and no parameter
+            if (spos == std::string::npos) // only position information and no parameter
             {
               pos_param_pairs_.push_back(std::make_pair(position_fields[i].toInt(), MzTabParameter()));
-            } else
-            {                
-                // extract position part
-                Int pos = String(position_fields[i].begin(), position_fields[i].begin() + spos).toInt();
+            }
+            else
+            {
+              // extract position part
+              Int pos = String(position_fields[i].begin(), position_fields[i].begin() + spos).toInt();
 
-                // extract [,,,] part
-                MzTabParameter param;
-                param.fromCellString(position_fields[i].substr(spos));
-                pos_param_pairs_.push_back(std::make_pair(pos, param));
+              // extract [,,,] part
+              MzTabParameter param;
+              param.fromCellString(position_fields[i].substr(spos));
+              pos_param_pairs_.push_back(std::make_pair(pos, param));
             }
           }
         }
       }
     }
 
-  protected:
+protected:
     std::vector<std::pair<Int, MzTabParameter> > pos_param_pairs_;
     MzTabString mod_or_subst_identifier_;
   };
 
-  class MzTabModificationList : public MzTabNullAbleBase
+  class MzTabModificationList :
+    public MzTabNullAbleBase
   {
-  public:
+public:
     bool isNull() const
     {
       return entries_.empty();
@@ -932,7 +980,8 @@ namespace OpenMS
       if (isNull())
       {
         return "null";
-      } else
+      }
+      else
       {
         String ret;
         for (std::vector<MzTabModification>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
@@ -954,13 +1003,14 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else
+      }
+      else
       {
         String ss = s;
         std::vector<String> fields;
 
         if (!ss.hasSubstring("[")) // no parameters
-	{
+        {
           ss.split(",", fields);
           for (Size i = 0; i != fields.size(); ++i)
           {
@@ -968,55 +1018,56 @@ namespace OpenMS
             ms.fromCellString(fields[i]);
             entries_.push_back(ms);
           }
-	} else
+        }
+        else
         {
-	  // example string: 3|4[a,b,,v]|8[,,"blabla, [bla]",v],1|2|3[a,b,,v]-mod:123 
-	  // we don't want to split at the , inside of [ ]  MzTabParameter brackets.
-	  // Additionally,  and we don't want to recognise quoted brackets inside the MzTabParameter where they can occur in quoted text (see example string)
-	  bool in_param_bracket = false;
-	  bool in_quotes = false;
+          // example string: 3|4[a,b,,v]|8[,,"blabla, [bla]",v],1|2|3[a,b,,v]-mod:123
+          // we don't want to split at the , inside of [ ]  MzTabParameter brackets.
+          // Additionally,  and we don't want to recognise quoted brackets inside the MzTabParameter where they can occur in quoted text (see example string)
+          bool in_param_bracket = false;
+          bool in_quotes = false;
 
           for (Size pos = 0; pos != ss.size(); ++pos)
-	  {
-	    // param_bracket state
-	    if (ss[pos] == '[' && !in_quotes)
-	    {
-	      in_param_bracket = true;
-	      continue;
-	    }
+          {
+            // param_bracket state
+            if (ss[pos] == '[' && !in_quotes)
+            {
+              in_param_bracket = true;
+              continue;
+            }
 
-	    if (ss[pos] == ']' && !in_quotes)
-	    {
-	      in_param_bracket = false;
-	      continue;
-	    }
+            if (ss[pos] == ']' && !in_quotes)
+            {
+              in_param_bracket = false;
+              continue;
+            }
 
-	    // quote state
-	    if (ss[pos] == '\"')
-	    {
-	      in_quotes = !in_quotes;
-	      continue;
-	    }
+            // quote state
+            if (ss[pos] == '\"')
+            {
+              in_quotes = !in_quotes;
+              continue;
+            }
 
             // comma in param bracket
-	    if (ss[pos] == ',' && !in_quotes && in_param_bracket)
-	    {
-	      ss[pos] = ((char)007);  // use ASCII bell as temporary separator
-	      continue;
-	    }
+            if (ss[pos] == ',' && !in_quotes && in_param_bracket)
+            {
+              ss[pos] = ((char)007); // use ASCII bell as temporary separator
+              continue;
+            }
           }
 
-	  // now the split at comma is save
+          // now the split at comma is save
           ss.split(",", fields);
           /*
           for (Size i = 0; i != fields.size(); ++i)
           {
-	    std::cout << "Modification list field[" + String(i) + "]=" << fields[i] << std::endl;
-	  }
+        std::cout << "Modification list field[" + String(i) + "]=" << fields[i] << std::endl;
+      }
           */
           for (Size i = 0; i != fields.size(); ++i)
           {
-	    fields[i].substitute(((char)007), ',');  // resubstitute comma after split
+            fields[i].substitute(((char)007), ','); // resubstitute comma after split
             MzTabModification ms;
             ms.fromCellString(fields[i]);
             entries_.push_back(ms);
@@ -1035,22 +1086,23 @@ namespace OpenMS
       entries_ = entries;
     }
 
-  protected:
+protected:
     std::vector<MzTabModification> entries_;
 
   };
 
-  class MzTabSpectraRef : public MzTabNullAbleInterface
+  class MzTabSpectraRef :
+    public MzTabNullAbleInterface
   {
-  public:
-    MzTabSpectraRef():
-        ms_file_(0)
+public:
+    MzTabSpectraRef() :
+      ms_file_(0)
     {
     }
 
     bool isNull() const
     {
-      return ((ms_file_ < 1) || (spec_ref_.empty()));
+      return (ms_file_ < 1) || (spec_ref_.empty());
     }
 
     void setNull(bool b)
@@ -1106,7 +1158,8 @@ namespace OpenMS
       if (isNull())
       {
         return String("null");
-      } else
+      }
+      else
       {
         return String("ms_file[") + String(ms_file_) + "]:" + spec_ref_;
       }
@@ -1119,7 +1172,8 @@ namespace OpenMS
       if (lower == "null")
       {
         setNull(true);
-      } else
+      }
+      else
       {
         String ss = s;
         std::vector<String> fields;
@@ -1130,11 +1184,11 @@ namespace OpenMS
         }
 
         spec_ref_ = fields[1];
-        ms_file_= (Size)(fields[0].substitute("ms_file[", "").remove(']').toInt());
+        ms_file_ = (Size)(fields[0].substitute("ms_file[", "").remove(']').toInt());
       }
     }
 
-  protected:
+protected:
     Size ms_file_; // number is specified in the meta data section.
     String spec_ref_;
   };
@@ -1297,15 +1351,15 @@ namespace OpenMS
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO
- */  
+ */
   class OPENMS_DLLAPI MzTab
   {
-  public:
+public:
     /// Default constructor
-    MzTab() {};
+    MzTab() {}
 
     /// Destructor
-    ~MzTab() {};
+    ~MzTab() {}
 
     const MzTabMetaData& getMetaData() const
     {
@@ -1350,65 +1404,64 @@ namespace OpenMS
     // Extract opt_ (custom, optional column names. Note: opt_ column names must be the same for all unitids so just take from first
     std::vector<String> getProteinOptionalColumnNames() const
     {
-        std::vector<String> names;
-        const MzTabProteinSectionData& protein_section = map_unitid_to_protein_data_;
-        if (!protein_section.empty())
+      std::vector<String> names;
+      const MzTabProteinSectionData& protein_section = map_unitid_to_protein_data_;
+      if (!protein_section.empty())
+      {
+        const MzTabProteinSectionRows& protein_rows = protein_section.begin()->second;
+        if (!protein_rows.empty())
         {
-          const MzTabProteinSectionRows& protein_rows = protein_section.begin()->second;
-          if (!protein_rows.empty())
+          const std::vector<MzTabOptionalColumnEntry>& opt_ = protein_rows[0].opt_;
+          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
           {
-            const std::vector<MzTabOptionalColumnEntry>& opt_ = protein_rows[0].opt_;
-            for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
-            {
-              names.push_back(it->first);
-            }
+            names.push_back(it->first);
           }
         }
+      }
       return names;
     }
 
     // Extract opt_ (custom, optional column names. Note: opt_ column names must be the same for all unitids so just take from first
     std::vector<String> getPeptideOptionalColumnNames() const
     {
-        std::vector<String> names;
-        const MzTabPeptideSectionData& peptide_section = map_unitid_to_peptide_data_;
-        if (!peptide_section.empty())
+      std::vector<String> names;
+      const MzTabPeptideSectionData& peptide_section = map_unitid_to_peptide_data_;
+      if (!peptide_section.empty())
+      {
+        const MzTabPeptideSectionRows& peptide_rows = peptide_section.begin()->second;
+        if (!peptide_rows.empty())
         {
-          const MzTabPeptideSectionRows& peptide_rows = peptide_section.begin()->second;
-          if (!peptide_rows.empty())
+          const std::vector<MzTabOptionalColumnEntry>& opt_ = peptide_rows[0].opt_;
+          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
           {
-            const std::vector<MzTabOptionalColumnEntry>& opt_ = peptide_rows[0].opt_;
-            for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
-            {
-              names.push_back(it->first);
-            }
+            names.push_back(it->first);
           }
         }
+      }
       return names;
     }
 
     // Extract opt_ (custom, optional column names. Note: opt_ column names must be the same for all unitids so just take from first
     std::vector<String> getSmallMoleculeOptionalColumnNames() const
     {
-        std::vector<String> names;
-        const MzTabSmallMoleculeSectionData& small_molecule_section = map_unitid_to_small_molecule_data_;
-        if (!small_molecule_section.empty())
+      std::vector<String> names;
+      const MzTabSmallMoleculeSectionData& small_molecule_section = map_unitid_to_small_molecule_data_;
+      if (!small_molecule_section.empty())
+      {
+        const MzTabSmallMoleculeSectionRows& small_molecule_rows = small_molecule_section.begin()->second;
+        if (!small_molecule_rows.empty())
         {
-          const MzTabSmallMoleculeSectionRows& small_molecule_rows = small_molecule_section.begin()->second;
-          if (!small_molecule_rows.empty())
+          const std::vector<MzTabOptionalColumnEntry>& opt_ = small_molecule_rows[0].opt_;
+          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
           {
-            const std::vector<MzTabOptionalColumnEntry>& opt_ = small_molecule_rows[0].opt_;
-            for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
-            {
-              names.push_back(it->first);
-            }
+            names.push_back(it->first);
           }
         }
+      }
       return names;
     }
 
-
-  protected:
+protected:
     MzTabMetaData map_unitid_to_meta_data_;
     MzTabProteinSectionData map_unitid_to_protein_data_;
     MzTabPeptideSectionData map_unitid_to_peptide_data_;

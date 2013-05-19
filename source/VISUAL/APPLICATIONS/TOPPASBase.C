@@ -196,7 +196,7 @@ namespace OpenMS
     else
     {
       action->setData(String("file://" + File::getOpenMSDataPath() + "/../../Documentation/html/TOPPAS_tutorial.html").toQString());
-    } 
+    }
 #else
     action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html").toQString());
 #endif
@@ -896,12 +896,12 @@ namespace OpenMS
     QString target = action->data().toString();
 
     // add protocol handler if non is given
-    if(!(target.startsWith("http://") || target.startsWith("https://") || target.startsWith("file://")))
+    if (!(target.startsWith("http://") || target.startsWith("https://") || target.startsWith("file://")))
     {
       // we expect all unqualified urls to be file urls
       target = QString("file://%1").arg(target);
     }
-    
+
     if (!QDesktopServices::openUrl(QUrl(target, QUrl::TolerantMode)))
     {
       QMessageBox::warning(this, tr("Error"),

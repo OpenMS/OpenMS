@@ -415,7 +415,7 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
 
   // cout << "source sequence: " << sequence_restriction << endl;
 
-  if (map_source_to_targets.size() > 0 && sequence_restriction.empty())
+  if (!map_source_to_targets.empty() && sequence_restriction.empty())
   {
     cout << "WARNING: no restriction on sequence but multiple target nucleotides specified. Will generate huge amount of sequences" << endl;
   }
@@ -937,7 +937,6 @@ protected:
     // perform OMSSA search
     {
       // get names of precursor variants mzml files
-      QProcess* p;
       const String in_OMSSA_ini(getStringOption_("in_OMSSA_ini"));
       for (vector<String>::const_iterator it = file_list_variants_mzML.begin(); it != file_list_variants_mzML.end(); ++it)
       {
@@ -953,8 +952,8 @@ protected:
         {
           args << "-debug" << String(getIntOption_("debug")).toQString();
         }
-
-        p = new QProcess();
+        
+        QProcess* p = new QProcess();
         p->setProcessChannelMode(QProcess::MergedChannels);
         p->start("OMSSAAdapter", args);
         p->waitForFinished(999999999);

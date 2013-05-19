@@ -656,9 +656,9 @@ namespace OpenMS
   {
     QAction* action = qobject_cast<QAction*>(sender());
     QString target = action->data().toString();
-    
+
     // add protocol handler if non is given
-    if(!(target.startsWith("http://") || target.startsWith("https://") || target.startsWith("file://")))
+    if (!(target.startsWith("http://") || target.startsWith("https://") || target.startsWith("file://")))
     {
       // we expect all unqualified urls to be file urls
       target = QString("file://%1").arg(target);
@@ -2054,7 +2054,7 @@ namespace OpenMS
     // after adding a layer i is -1. TODO: check if this is the correct behaviour
     if (i != -1)
     {
-      getActiveCanvas()->activateLayer(i);  // also triggers update of viewBar
+      getActiveCanvas()->activateLayer(i); // also triggers update of viewBar
       updateFilterBar();
     }
   }
