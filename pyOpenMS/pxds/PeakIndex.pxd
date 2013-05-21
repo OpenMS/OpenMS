@@ -1,6 +1,6 @@
 from Types cimport *
-from libcpp cimport bool
-from Types cimport *
+from FeatureMap cimport *
+from MSExperiment cimport *
 
 cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
     
@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
         PeakIndex(Size spectrum, Size peak) nogil except +
         bool isValid() nogil except +
         void clear() nogil except +
-        # TEMPLATE # # NAMESPACE # FeatureMapType::value_type  getFeature(FeatureMapType & map_) nogil except +
-        # TEMPLATE # # NAMESPACE # MSExperiment[Peak1D, ChromatogramPeak]Type::PeakType  getPeak(MSExperiment[Peak1D, ChromatogramPeak]Type & map_) nogil except +
-        # TEMPLATE # # NAMESPACE # MSExperiment[Peak1D, ChromatogramPeak]Type::SpectrumType  getSpectrum(MSExperiment[Peak1D, ChromatogramPeak]Type & map_) nogil except +
+        Feature getFeature(FeatureMap[Feature] & map_) nogil except +
+        Peak1D getPeak(MSExperiment[Peak1D, ChromatogramPeak] & map_) nogil except +
+        MSSpectrum[Peak1D] getSpectrum(MSExperiment[Peak1D, ChromatogramPeak] & map_) nogil except +
         bool operator==(PeakIndex & rhs) nogil except +
         bool operator!=(PeakIndex & rhs) nogil except +
 
