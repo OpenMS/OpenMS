@@ -28,6 +28,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, libcpp_vector[ PeptideIdentification ] & peptide_nodes)
         void clearResult()
 
+        # POINTER # PeptideIdentification  getPeptideIdentification(ConsensusMap & consensus, PeptideEntry * peptide)
+        # POINTER # PeptideHit  getPeptideHit(ConsensusMap & consensus, PeptideEntry * peptide)
+        # POINTER # PeptideIdentification  getPeptideIdentification(libcpp_vector[ PeptideIdentification ] & peptide_nodes, PeptideEntry * peptide)
+        # POINTER # PeptideHit  getPeptideHit(libcpp_vector[ PeptideIdentification ] & peptide_nodes, PeptideEntry * peptide)
+
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass ISDGroup "OpenMS::ProteinResolver::ISDGroup":
@@ -54,9 +59,20 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
 
-    cdef cppclass ResolverResult:
+    cdef cppclass ResolverResult "OpenMS::ProteinResolver::ResolverResult":
         ResolverResult() nogil except +
         ResolverResult(ResolverResult) nogil except +
+
+        String identifier
+        # std::vector<ISDGroup> * isds;
+        # std::vector<MSDGroup> * msds;
+        # std::vector<ProteinEntry> * protein_entries;
+        # std::vector<PeptideEntry> * peptide_entries;
+        # std::vector<Size> * reindexed_peptides;
+        # std::vector<Size> * reindexed_proteins;
+        # enum type  {PeptideIdent, Consensus} input_type;
+        # std::vector<PeptideIdentification> * peptide_identification;
+        # ConsensusMap * consensus_map;
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
