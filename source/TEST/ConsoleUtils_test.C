@@ -46,8 +46,6 @@ START_TEST(ConsoleUtils, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsoleUtils* ptr = 0;
-ConsoleUtils* null_ptr = 0;
 START_SECTION(ConsoleUtils())
 {
 	// this class is a singleton exposing a single function (breakString)
