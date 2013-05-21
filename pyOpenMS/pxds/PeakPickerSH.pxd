@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerSH.h>" namespace "O
         #  ProgressLogger
         PeakPickerSH() nogil except +
         PeakPickerSH(PeakPickerSH) nogil except + #wrap-ignore
-        # TODO even though a template, the funciton is not in the header! -> it cannot be called 
+        # TODO OpenMS API problem: even though a template, the funciton is not in the header! -> it cannot be called 
         # void pick(MSSpectrum[ Peak1D ] & input_, MSSpectrum[ Peak1D ] & output, float fWindowWidth) nogil except +
         void pickExperiment(MSExperiment[Peak1D, ChromatogramPeak] & input_, MSExperiment[Peak1D, ChromatogramPeak] & output) nogil except +
 
