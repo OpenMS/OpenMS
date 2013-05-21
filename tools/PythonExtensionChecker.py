@@ -588,9 +588,10 @@ class PXDFile(object):
                      }
 
         for klass in cython_file:
-            if klass[0].cname == comp_name:
-                found = True
-                break
+            if hasattr(klass[0], "cname"):
+                if klass[0].cname == comp_name:
+                    found = True
+                    break
         if not found: 
             error_str = "Could not find a match for class %s in file %s" % (comp_name, pxdfile)
             raise Exception(error_str)
