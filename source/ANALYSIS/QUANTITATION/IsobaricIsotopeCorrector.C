@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
@@ -114,7 +114,7 @@ namespace OpenMS
     gsl_x_ = gsl_vector_alloc(quant_method_->getNumberOfChannels());
     gsl_allocated_ = true;
 
-    if (!isInvertible_(correction_matrix))
+    if (!isInvertible_())
     {
       // clean up before we leave
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: The given isotope correction matrix is not invertible!");
@@ -175,7 +175,7 @@ namespace OpenMS
     return is_identity;
   }
 
-  bool IsobaricIsotopeCorrector::isInvertible_(Matrix<double>& channel_frequency) const
+  bool IsobaricIsotopeCorrector::isInvertible_() const
   {
     // lets see if the matrix is invertible
     int* gsl_sign = new int(0);

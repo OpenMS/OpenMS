@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICNORMALIZER_H
@@ -42,7 +42,7 @@
 
 namespace OpenMS
 {
-  /** 
+  /**
     @brief Performs median normalization on the extracted ratios of isobaric labeling experiment.
   */
   class OPENMS_DLLAPI IsobaricNormalizer
@@ -81,23 +81,23 @@ private:
 
     /**
       @brief Constructs a mapping from file description to the index in the corresponding ratio/intensity vectors.
-     
+
       @param consensus_map The consensus map for which the mapping should be build.
     */
     void buildVectorIndex_(const ConsensusMap& consensus_map);
 
     /**
       @brief Collects ratios and intensities for a given ConsensusFeature.
-     
+
       @param cf The consensus feature to evaluate.
       @param ref_intensity The intensity of the reference channel.
     */
     void collectRatios_(const ConsensusFeature& cf,
-                         const Peak2D::IntensityType& ref_intensity);
-    
+                        const Peak2D::IntensityType& ref_intensity);
+
     /**
       @brief Computes the normalization factors from the given peptide ratios.
-     
+
       @param normalization_factors The normalization factors to compute.
     */
     void computeNormalizationFactors_(std::vector<Peak2D::IntensityType>& normalization_factors);
@@ -107,11 +107,11 @@ private:
 
     /// The index of the reference channel in the peptide ratio/intensity vectors.
     Size ref_map_id_;
-    
+
     /// Collection containing the collected peptide ratios for the individual channels.
     std::vector<std::vector<Peak2D::IntensityType> > peptide_ratios_;
-    
-    /// Collection containing the collected peptide intensities for the individual channels. 
+
+    /// Collection containing the collected peptide intensities for the individual channels.
     std::vector<std::vector<Peak2D::IntensityType> > peptide_intensities_;
 
   };

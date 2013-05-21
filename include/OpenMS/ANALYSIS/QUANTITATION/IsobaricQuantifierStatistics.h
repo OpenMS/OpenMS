@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -26,10 +26,10 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIERSTATISTICS_H
@@ -50,12 +50,12 @@ namespace OpenMS
      @brief Create stats object.
      */
     IsobaricQuantifierStatistics();
-    
+
     /**
      @brief Reset statistics object.
      */
     void reset();
-    
+
     Size channel_count; //< 4plex, 6plex, or 8 plex?!
     Size iso_number_ms2_negative; //< number of MS2 spectra where one or more channels had negative solution
     Size iso_number_reporter_negative; //< number of channels where naive solution was negative
@@ -65,12 +65,12 @@ namespace OpenMS
     Size number_ms2_total; //< total number of MS2 spectra
     Size number_ms2_empty; //< number of empty MS2 (no reporters at all)
     std::map<Size, Size> empty_channels; //< Channel_ID -> Missing; indicating the number of empty channels from all MS2 scans, i.e., numbers are between number_ms2_empty and number_ms2_total
-    
+
     /// Copy c'tor
     IsobaricQuantifierStatistics(const IsobaricQuantifierStatistics& other);
 
     /// Assignment operator
-    IsobaricQuantifierStatistics & operator=(const IsobaricQuantifierStatistics& rhs);
+    IsobaricQuantifierStatistics& operator=(const IsobaricQuantifierStatistics& rhs);
   };
 } // namespace
 

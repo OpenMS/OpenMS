@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
@@ -43,7 +43,11 @@ namespace OpenMS
     DefaultParamHandler("IsobaricChannelExtractor"),
     quant_method_(quant_method),
     selected_activation_(""),
-    reporter_mass_shift_(0.1)
+    reporter_mass_shift_(0.1),
+    min_precursor_intensity_(1.0),
+    keep_unannotated_precursor_(true),
+    min_reporter_intensity_(0.0),
+    remove_low_intensity_quantifications_(false)
   {
     setDefaultParams_();
   }
@@ -52,7 +56,11 @@ namespace OpenMS
     DefaultParamHandler(other),
     quant_method_(other.quant_method_),
     selected_activation_(other.selected_activation_),
-    reporter_mass_shift_(other.reporter_mass_shift_)
+    reporter_mass_shift_(other.reporter_mass_shift_),
+    min_precursor_intensity_(other.min_precursor_intensity_),
+    keep_unannotated_precursor_(other.keep_unannotated_precursor_),
+    min_reporter_intensity_(other.min_reporter_intensity_),
+    remove_low_intensity_quantifications_(other.remove_low_intensity_quantifications_)
   {
   }
 
@@ -65,6 +73,10 @@ namespace OpenMS
     quant_method_ = rhs.quant_method_;
     selected_activation_ = rhs.selected_activation_;
     reporter_mass_shift_ = rhs.reporter_mass_shift_;
+    min_precursor_intensity_ = rhs.min_precursor_intensity_;
+    keep_unannotated_precursor_ = rhs.keep_unannotated_precursor_;
+    min_reporter_intensity_ = rhs.min_reporter_intensity_;
+    remove_low_intensity_quantifications_ = rhs.remove_low_intensity_quantifications_;
 
     return *this;
   }
@@ -80,13 +92,49 @@ namespace OpenMS
     defaults_.setMinFloat("reporter_mass_shift", 0.00000001);
     defaults_.setMaxFloat("reporter_mass_shift", 0.5);
 
+    defaults_.setValue("min_precursor_intensity", 1.0, "Minimum intensity of the precursor to be extracted. MS/MS scans having a precursor with a lower intensity will not be considered for quantitation.");
+    defaults_.setMinFloat("min_precursor_intensity", 0.0);
+
+    defaults_.setValue("keep_unannotated_precursor", "true", "Flag if precursor with missing intensity value or missing precursor spectrum should be included or not.");
+    defaults_.setValidStrings("keep_unannotated_precursor", StringList::create("true,false"));
+
+    defaults_.setValue("min_reporter_intensity", 0.0, "Minimum intenesity of the individual reporter ions to be used extracted.");
+    defaults_.setMinFloat("min_reporter_intensity", 0.0);
+
+    defaults_.setValue("discard_low_intensity_quantifications", "false", "Remove all reporter intensities if a single reporter is below the threshold given in min_reporter_intensity.");
+    defaults_.setValidStrings("discard_low_intensity_quantifications", StringList::create("true,false"));
+
     defaultsToParam_();
   }
 
   void IsobaricChannelExtractor::updateMembers_()
   {
-    selected_activation_ = param_.getValue("select_activation");
-    reporter_mass_shift_ = param_.getValue("reporter_mass_shift");
+    selected_activation_ = getParameters().getValue("select_activation");
+    reporter_mass_shift_ = getParameters().getValue("reporter_mass_shift");
+    min_precursor_intensity_ = getParameters().getValue("min_precursor_intensity");
+    keep_unannotated_precursor_ = getParameters().getValue("keep_unannotated_precursor") == "true";
+    min_reporter_intensity_ = getParameters().getValue("min_reporter_intensity");
+    remove_low_intensity_quantifications_ = getParameters().getValue("discard_low_intensity_quantifications") == "true";
+  }
+
+  bool IsobaricChannelExtractor::isValidPrecursor_(const Precursor& precursor) const
+  {
+    return (precursor.getIntensity() == 0.0 && keep_unannotated_precursor_) || !(precursor.getIntensity() < min_precursor_intensity_);
+  }
+
+  bool IsobaricChannelExtractor::hasLowIntensityReporter_(const ConsensusFeature& cf) const
+  {
+    for (ConsensusFeature::const_iterator cf_it = cf.begin();
+         cf_it != cf.end();
+         ++cf_it)
+    {
+      if (cf_it->getIntensity() == 0.0)
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   void IsobaricChannelExtractor::extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
@@ -114,18 +162,24 @@ namespace OpenMS
     {
       if (selected_activation_ == "" || activation_predicate(*it))
       {
+        // check if precursor is available
+        if (it->getPrecursors().empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("No precursor information given for scan native ID ") + String(it->getNativeID()) + " with RT " + String(it->getRT()));
+        }
+
+        // check precursor constraints
+        if (!isValidPrecursor_(it->getPrecursors()[0]))
+        {
+          LOG_DEBUG << "Skip spectrum " << String(it->getNativeID()) << ": Precursor doesn't fulfill all constraints." << std::endl;
+          continue;
+        }
+
         // store RT&MZ of parent ion as centroid of ConsensusFeature
         ConsensusFeature cf;
         cf.setUniqueId();
         cf.setRT(it->getRT());
-        if (it->getPrecursors().size() > 0)
-        {
-          cf.setMZ(it->getPrecursors()[0].getMZ());
-        }
-        else
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("No precursor information given for scan native ID ") + String(it->getNativeID()) + " with RT " + String(it->getRT()));
-        }
+        cf.setMZ(it->getPrecursors()[0].getMZ());
 
         Peak2D channel_value;
         channel_value.setRT(it->getRT());
@@ -149,12 +203,22 @@ namespace OpenMS
             channel_value.setIntensity(channel_value.getIntensity() + mz_it->getIntensity());
           }
 
-          overall_intensity += channel_value.getIntensity();
+          // discard contribution of this channel as it is below the required intensity threshold
+          if (channel_value.getIntensity() < min_reporter_intensity_)
+          {
+            channel_value.setIntensity(0);
+          }
 
+          overall_intensity += channel_value.getIntensity();
           // add channel to ConsensusFeature
           cf.insert(map_index++, channel_value, element_index);
         } // ! channel_iterator
 
+        // check if we keep this feature or if it contains low-intensity quantifications
+        if (remove_low_intensity_quantifications_ && hasLowIntensityReporter_(cf))
+        {
+          continue;
+        }
 
         // check featureHandles are not empty
         if (overall_intensity == 0)
@@ -168,7 +232,6 @@ namespace OpenMS
         ++element_index;
       }
     } // ! Experiment iterator
-
 
     /// add meta information to the map
     registerChannelsInOutputMap_(consensus_map);

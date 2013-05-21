@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICCHANNELEXTRACTOR_H
@@ -44,9 +44,9 @@
 
 namespace OpenMS
 {
-  /** 
+  /**
     @brief Extracts individual channels from MS/MS spectra for isobaric labeling experiments.
-   
+
     @htmlinclude OpenMS_IsobaricChannelExtractor.parameters
   */
   class OPENMS_DLLAPI IsobaricChannelExtractor :
@@ -58,7 +58,7 @@ public:
 
       @param quant_method IsobaricQuantitationMethod providing the necessery information which channels should be extracted.
     */
-    IsobaricChannelExtractor(const IsobaricQuantitationMethod * const quant_method);
+    IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method);
 
     /// Copy c'tor
     IsobaricChannelExtractor(const IsobaricChannelExtractor& other);
@@ -76,7 +76,7 @@ public:
 
 private:
     /// The used quantitation method (itraq4plex, tmt6plex,..).
-    const IsobaricQuantitationMethod * quant_method_;
+    const IsobaricQuantitationMethod* quant_method_;
 
     /// Used to select only specific types of spectra for the channel extraction.
     String selected_activation_;
@@ -84,9 +84,36 @@ private:
     /// Allowed deviation between the expected and observed reporter ion m/z.
     Peak2D::CoordinateType reporter_mass_shift_;
 
+    /// Minimum intensity of the precursor to be considered for quantitation.
+    Peak2D::IntensityType min_precursor_intensity_;
+
+    /// Flag if precursor with missing intensity value or missing precursor spectrum should be included or not.
+    bool keep_unannotated_precursor_;
+
+    /// Minimum reporter ion intensity to be considered for quantitation.
+    Peak2D::IntensityType min_reporter_intensity_;
+
+    /// Flag if complete qunatification should be discarded if a single reporter ion has an intensity below the threshold given in IsobaricChannelExtractor::min_reporter_intensity_ .
+    bool remove_low_intensity_quantifications_;
+
     /// add channel information to the map after it has been filled
     void registerChannelsInOutputMap_(ConsensusMap& consensus_map);
 
+    /**
+      @brief Checks if the given precursor fulfills all constraints for extractions.
+
+      @param precursor The precursor to test.
+      @return $true$ if the precursor can be used for extraction, $false$ otherwise.
+    */
+    bool isValidPrecursor_(const Precursor& precursor) const;
+
+    /**
+      @brief Checks wether the given ConsensusFeature contains a channel that is below the given intensity threshold.
+
+      @param cf The ConsensusFeature to check.
+      @return $true$ if a low intensity reporter is contained, $false$ otherwise.
+    */
+    bool hasLowIntensityReporter_(const ConsensusFeature& cf) const;
 protected:
     /// implemented for DefaultParamHandler
     void setDefaultParams_();

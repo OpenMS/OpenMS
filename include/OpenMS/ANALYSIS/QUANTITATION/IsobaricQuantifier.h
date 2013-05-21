@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIER_H
@@ -47,7 +47,7 @@ namespace OpenMS
   /**
     @brief Given the extracted channel intensities the IsobaricQuantifier corrects and normalizes
            the intensities for further processing.
-   
+
     @htminclude OpenMS_IsobaricQuantifier.parameters
   */
   class OPENMS_DLLAPI IsobaricQuantifier :
@@ -88,7 +88,7 @@ protected:
 private:
     /// Stats of current quantitation run.
     IsobaricQuantifierStatistics stats_;
-    
+
     /// The quantification method used for the dataset to be analyzed.
     const IsobaricQuantitationMethod* quant_method_;
 
