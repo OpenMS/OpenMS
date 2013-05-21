@@ -28,6 +28,10 @@ PyOpenMSChecker:
     OpenMS::ProteinIdentificationVisualizer:
         - NamesOfPeakMassType
         - NamesOfDigestionEnzyme
+    OpenMS::IonSource:
+        - NamesOfInletType
+        - NamesOfIonizationMethod
+        - NamesOfPolarity
 
     # renamed enums
     OpenMS::PeakShape:
@@ -54,7 +58,8 @@ PyOpenMSChecker:
         - CVTerm
     OpenMS::PeptideAndProteinQuant::PeptideData:
         - PeptideData
-
+    OpenMS::PILISCrossValidation::Peptide:
+        - Peptide
 
     # Static methods that are not seen by the checker script
     OpenMS::FileHandler:
@@ -84,6 +89,11 @@ PyOpenMSChecker:
         - MZEnd
         - end
         - begin
+    OpenMS::PeakShape:
+        - getLeftEndpoint
+        - setLeftEndpoint
+        - getRightEndpoint
+        - setRightEndpoint
 
     OpenMS::MorphologicalFilter:
         - filterRange # requires iterator
@@ -103,12 +113,19 @@ PyOpenMSChecker:
         - fullDimensionUnit
         - fullDimensionUnitRT
         - fullDimensionUnitMZ
-    # not implemented
+
+    # not implemented = errors in OpenMS API
     OpenMS::CVTermList:
         - checkCVTerms
     OpenMS::MSQuantifications:
         - load
         - getRatios
+    OpenMS::ProteinResolver:
+        - writePeptideTable
+        - writeProteinTable
+
+    OpenMS::PeakPickerSH:
+        - pick
 
     # Do not expose List and String methods - Python has better ones
     OpenMS::StringList:
@@ -268,7 +285,7 @@ PyOpenMSChecker:
     - OpenMS::Internal::MzMLValidator
     - OpenMS::Internal::MzQuantMLHandler
     - OpenMS::Internal::MzQuantMLValidator
-    # - OpenMS::Internal::MzXMLHandler
+    - OpenMS::Internal::MzXMLHandler
     - OpenMS::Internal::OpenMSOSInfo
     - OpenMS::Internal::OpenMSXMLFormatTarget
     - OpenMS::Internal::PTMXMLHandler
@@ -518,6 +535,9 @@ PyOpenMSChecker:
     - OpenMS::PrecisionWrapper
     - OpenMS::ChromatogramPeak::PositionLess
     - OpenMS::Param::ParamIterator::TraceInfo
+    - OpenMS::CmpHypothesesByScore
+    
+    - OpenMS::SvmTheoreticalSpectrumGenerator::DescriptorSet # no public members that we could wrap 
 
     # models
     - OpenMS::TransformationModelBSpline
@@ -773,6 +793,8 @@ PyOpenMSChecker:
     - OpenMS::EqualInTolerance
     - OpenMS::PeptideHit::ScoreMore
     - OpenMS::PrecursorIonSelection::SeqTotalScoreMore
+    - OpenMS::PrecursorIonSelection::TotalScoreMore
+    - OpenMS::ProteinHit::ScoreMore
      
     # FEATUREFINDER internals - maybe we want some of them
     - OpenMS::ExtendedIsotopeModel

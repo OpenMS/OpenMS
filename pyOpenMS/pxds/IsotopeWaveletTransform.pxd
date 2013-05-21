@@ -32,7 +32,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
         DoubleReal getMinSpacing() nogil except +
         Size getMaxScanSize() nogil except +
 
-# TODO errors
+# TODO C++ compiler errors
+# pyopenms/pyopenms.cpp: error: template argument 1 is invalid
+# on boost::shared_ptr<OpenMS::IsotopeWaveletTransform::TransSpectrum> inst;
 # cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>" namespace "OpenMS::IsotopeWaveletTransform":
 #     
 #     cdef cppclass TransSpectrum "OpenMS::IsotopeWaveletTransform::TransSpectrum":

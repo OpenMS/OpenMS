@@ -27,7 +27,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
 
         # see additional pyx file in ./addons
         void rip( 
-          libcpp_map[String, libcpp_pair[ libcpp_vector[ProteinIdentification], libcpp_vector[PeptideIdentification]]] & ripped,
+          libcpp_map[String, libcpp_pair[ libcpp_vector[ProteinIdentification],
+          libcpp_vector[PeptideIdentification]]] & ripped,
           libcpp_vector[ProteinIdentification] & proteins,
           libcpp_vector[PeptideIdentification] & peptides) # wrap-ignore
 
