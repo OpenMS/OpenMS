@@ -12,12 +12,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>"
         #  DefaultParamHandler
         OptimizePeakDeconvolution() nogil except +
         OptimizePeakDeconvolution(OptimizePeakDeconvolution) nogil except +
-        # NAMESPACE # OptimizationFunctions::PenaltyFactorsIntensity  getPenalties() nogil except +
-        # NAMESPACE # void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity & penalties) nogil except +
+        PenaltyFactorsIntensity  getPenalties() nogil except +
+        void setPenalties(PenaltyFactorsIntensity & penalties) nogil except +
         Int getCharge() nogil except +
         void setCharge(Int charge) nogil except +
-        # TODO doesnt work ...
-        # bool optimize(libcpp_vector[ PeakShape ] & peaks, OptimizePeakDeconvolution_Data & data) nogil except +
+        bool optimize(libcpp_vector[ PeakShape ] & peaks, OptimizePeakDeconvolution_Data & data) nogil except +
 
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>" namespace "OpenMS::OptimizationFunctions":
@@ -33,6 +32,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>"
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>" namespace "OpenMS::OptimizePeakDeconvolution":
 
     cdef cppclass OptimizePeakDeconvolution_Data "OpenMS::OptimizePeakDeconvolution::Data":
+      OptimizePeakDeconvolution_Data() nogil except +
+      OptimizePeakDeconvolution_Data(OptimizePeakDeconvolution_Data) nogil except + # no-wrap
+
       # TODO will not work
       # libcpp_vector[PeakShape] peaks
       libcpp_vector[double] positions
