@@ -1225,7 +1225,8 @@ namespace OpenMS
       }
       else
       {
-        // TODO a mzML file may contain both, chromatogram and peak data
+        // a mzML file may contain both, chromatogram and peak data
+        // -> this is handled in SpectrumCanvas::addLayer
         fh.loadExperiment(abs_filename, *peak_map, file_type, ProgressLogger::GUI);
         data_type = LayerData::DT_CHROMATOGRAM;
         if (TOPPViewBase::containsMS1Scans(*peak_map))

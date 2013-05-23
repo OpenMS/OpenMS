@@ -399,26 +399,17 @@ namespace OpenMS
     layers_.back().filename = filename;
     layers_.back().getPeakData() = map;
 
-    if (layers_.back().getPeakData()->getChromatograms().size() != 0)
+    if (layers_.back().getPeakData()->getChromatograms().size() != 0 
+       && layers_.back().getPeakData()->size() != 0)
     {
-      Size num_chrom(0);
-      for (Size i = 0; i != layers_.back().getPeakData()->getChromatograms().size(); ++i)
-      {
-        // if (layers_.back().getPeakData()->getChromatograms()[i].getChromatogramType() == ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM ||
-        //     layers_.back().getPeakData()->getChromatograms()[i].getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
-        {
-          ++num_chrom;
-        }
-      }
+      // TODO : handle this case better
+      LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
+    }
 
-      if (num_chrom > 0)
-      {
-        layers_.back().type = LayerData::DT_CHROMATOGRAM;
-      }
-      else
-      {
-        layers_.back().type = LayerData::DT_PEAK;
-      }
+    if (layers_.back().getPeakData()->getChromatograms().size() != 0 
+        && layers_.back().getPeakData()->size() == 0)
+    {
+      layers_.back().type = LayerData::DT_CHROMATOGRAM;
     }
     else
     {
