@@ -132,7 +132,7 @@ public:
   }
 
 private:
-  static bool checkPeptideIdentification_(BaseFeature & feature, const bool remove_annotated_features, const bool remove_unannotated_features, const StringList & sequences, const StringList & accessions, const bool keep_best_score_id, const bool remove_clashes)
+  static bool checkPeptideIdentification_(BaseFeature& feature, const bool remove_annotated_features, const bool remove_unannotated_features, const StringList& sequences, const StringList& accessions, const bool keep_best_score_id, const bool remove_clashes)
   {
     //flag: remove_annotated_features and non-empty peptideIdentifications
     if (remove_annotated_features && !feature.getPeptideIdentifications().empty())
@@ -292,6 +292,8 @@ protected:
       activation_list.push_back(Precursor::NamesOfActivationMethod[i]);
     }
     setValidStrings_("spectra:remove_activation", activation_list);
+    registerStringOption_("spectra:remove_collision_energy", "[min]:[max]", ":", "Remove MSn scans with a collision energy in the given interval.", false);
+    registerStringOption_("spectra:remove_isolation_window_width", "[min]:[max]", ":", "Remove MSn scans whichs isolation window width is in the given interval.", false);
 
     addEmptyLine_();
     registerFlag_("spectra:select_zoom", "Select zoom (enhanced resolution) scans");
@@ -299,6 +301,8 @@ protected:
     setValidStrings_("spectra:select_mode", mode_list);
     registerStringOption_("spectra:select_activation", "<activation>", "", "Select MSn scans where any of its precursors features a certain activation method\n", false);
     setValidStrings_("spectra:select_activation", activation_list);
+    registerStringOption_("spectra:select_collision_energy", "[min]:[max]", ":", "Select MSn scans with a collision energy in the given interval.", false);
+    registerStringOption_("spectra:select_isolation_window_width", "[min]:[max]", ":", "Select MSn scans whichs isolation window width is in the given interval.", false);
 
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Feature data options");
@@ -340,7 +344,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     SignalToNoiseEstimatorMedian<MapType::SpectrumType> sn;
     Param tmp;
@@ -348,9 +352,9 @@ protected:
     return tmp;
   }
 
-  bool checkMetaOk(const MetaInfoInterface & mi, const StringList & meta_info)
+  bool checkMetaOk(const MetaInfoInterface& mi, const StringList& meta_info)
   {
-    if (!mi.metaValueExists(meta_info[0])) return true;  // not having the meta value means passing the test
+    if (!mi.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test
 
     DataValue v_data = mi.getMetaValue(meta_info[0]);
     DataValue v_user;
@@ -380,7 +384,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -420,10 +424,11 @@ protected:
     bool no_chromatograms(getFlag_("peak_options:no_chromatograms"));
 
     //ranges
-    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, size_l, size_u, q_l, q_u, pc_left, pc_right;
+    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, size_l, size_u, q_l, q_u, pc_left, pc_right, select_collision_l, remove_collision_l, select_collision_u, remove_collision_u, select_isolation_width_l, remove_isolation_width_l, select_isolation_width_u, remove_isolation_width_u;
+
     //initialize ranges
-    mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = -1 * numeric_limits<double>::max();
-    mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = numeric_limits<double>::max();
+    mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = select_collision_l = remove_collision_l = select_isolation_width_l = remove_isolation_width_l = -1 * numeric_limits<double>::max();
+    mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = numeric_limits<double>::max();
 
     String rt = getStringOption_("rt");
     String mz = getStringOption_("mz");
@@ -435,6 +440,11 @@ protected:
     String charge = getStringOption_("f_and_cf:charge");
     String size = getStringOption_("f_and_cf:size");
     String q = getStringOption_("feature:q");
+    String remove_collision_energy = getStringOption_("spectra:remove_collision_energy");
+    String select_collision_energy = getStringOption_("spectra:select_collision_energy");
+    String remove_isolation_width = getStringOption_("spectra:remove_isolation_window_width");
+    String select_isolation_width = getStringOption_("spectra:select_isolation_window_width");
+
 
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
@@ -465,8 +475,16 @@ protected:
       parseRange_(size, size_l, size_u);
       //overall quality (features only)
       parseRange_(q, q_l, q_u);
+      //remove collision energy
+      parseRange_(remove_collision_energy, remove_collision_l, remove_collision_u);
+      //select collision energy
+      parseRange_(select_collision_energy, select_collision_l, select_collision_u);
+      //remove isolation window width
+      parseRange_(remove_isolation_width, remove_isolation_width_l, remove_isolation_width_u);
+      //select isolation window width
+      parseRange_(select_isolation_width, select_isolation_width_l, select_isolation_width_u);
     }
-    catch (Exception::ConversionError &)
+    catch (Exception::ConversionError&)
     {
       String tmp;
       for (IntList::iterator it = levels.begin(); it != levels.end(); ++it)
@@ -554,7 +572,7 @@ protected:
       IntList rm_pc_charge = getIntList_("peak_options:rm_pc_charge");
       if (rm_pc_charge.size() > 0) exp.erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
 
-      
+
       // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
       if (!pc_mz.empty())
       {
@@ -588,8 +606,6 @@ protected:
           }
         }
       }
-
-
 
       //remove by activation mode (might be a lot of spectra)
       String remove_activation = getStringOption_("spectra:remove_activation");
@@ -632,6 +648,30 @@ protected:
         exp.erase(remove_if(exp.begin(), exp.end(), IsZoomSpectrum<MapType::SpectrumType>(true)), exp.end());
       }
 
+      //remove based on collision energy
+      if (remove_collision_l != -1 * numeric_limits<double>::max() || remove_collision_u != numeric_limits<double>::max())
+      {
+        writeDebug_(String("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
+        exp.erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
+      }
+      if (select_collision_l != -1 * numeric_limits<double>::max() || select_collision_u != numeric_limits<double>::max())
+      {
+        writeDebug_(String("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
+        exp.erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
+      }
+
+      //remove based on isolation window size
+      if (remove_isolation_width_l != -1 * numeric_limits<double>::max() || remove_isolation_width_u != numeric_limits<double>::max())
+      {
+        writeDebug_(String("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
+        exp.erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
+      }
+      if (select_isolation_width_l != -1 * numeric_limits<double>::max() || select_isolation_width_u != numeric_limits<double>::max())
+      {
+        writeDebug_(String("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
+        exp.erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
+      }
+
       //remove empty scans
       exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
 
@@ -656,7 +696,7 @@ protected:
       if (sn > 0)
       {
         SignalToNoiseEstimatorMedian<MapType::SpectrumType> snm;
-        Param const & dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
+        Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
         snm.setParameters(dc_param);
         for (MapType::Iterator it = exp.begin(); it != exp.end(); ++it)
         {
@@ -811,7 +851,7 @@ protected:
 
         if (out_type == FileTypes::FEATUREXML)
         {
-          if (maps.size() == 1)         // When extracting a feature map from a consensus map, only one map ID should be specified. Hence 'maps' should contain only one integer.
+          if (maps.size() == 1) // When extracting a feature map from a consensus map, only one map ID should be specified. Hence 'maps' should contain only one integer.
           {
             FeatureMap<> feature_map_filtered;
             FeatureXMLFile ff;
@@ -854,7 +894,7 @@ protected:
         else if (out_type == FileTypes::CONSENSUSXML)
         {
           // generate new consensuses with features that appear in the 'maps' list
-          ConsensusMap cm_new;         // new consensus map
+          ConsensusMap cm_new; // new consensus map
 
           for (IntList::iterator map_it = maps.begin(); map_it != maps.end(); ++map_it)
           {
@@ -865,14 +905,14 @@ protected:
 
           cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());
 
-          for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it)         // iterate over consensuses in the original consensus map
+          for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it) // iterate over consensuses in the original consensus map
           {
-            ConsensusFeature consensus_feature_new(*cm_it);           // new consensus feature
+            ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
             consensus_feature_new.clear();
 
             ConsensusFeature::HandleSetType::const_iterator fh_it = cm_it->getFeatures().begin();
             ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
-            for (; fh_it != fh_it_end; ++fh_it)          // iterate over features in consensus
+            for (; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
             {
               if (maps.contains(fh_it->getMapIndex()))
               {
@@ -880,7 +920,7 @@ protected:
               }
             }
 
-            consensus_feature_new.computeConsensus();           // evaluate position of the consensus
+            consensus_feature_new.computeConsensus(); // evaluate position of the consensus
             bool and_connective = getFlag_("consensusfeature:map_and");
 
             if ((!consensus_feature_new.empty() && !and_connective) || (consensus_feature_new.size() == maps.size() && and_connective)) // add the consensus to the consensus map only if it is non-empty
@@ -929,7 +969,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes filterByBlackList(MapType & exp, const String & id_blacklist, bool blacklist_imperfect, DoubleReal rt_tol, DoubleReal mz_tol)
+  ExitCodes filterByBlackList(MapType& exp, const String& id_blacklist, bool blacklist_imperfect, DoubleReal rt_tol, DoubleReal mz_tol)
   {
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
@@ -1018,7 +1058,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFileFilter tool;
   return tool.main(argc, argv);

@@ -327,6 +327,24 @@ add_test("TOPP_FileFilter_30_out1" ${DIFF} -in1 FileFilter_30.tmp -in2 ${DATA_DI
 set_tests_properties("TOPP_FileFilter_30_out1" PROPERTIES DEPENDS "TOPP_FileFilter_30")
 
 
+
+add_test("TOPP_FileFilter_31" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_31_34_input.mzML -spectra:remove_isolation_window_width :2 -out FileFilter_31.tmp )
+add_test("TOPP_FileFilter_31_out" ${DIFF} -in1 FileFilter_31.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_31_remove_collision_energy.mzML )
+set_tests_properties("TOPP_FileFilter_31_out" PROPERTIES DEPENDS "TOPP_FileFilter_31")
+
+add_test("TOPP_FileFilter_32" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_31_34_input.mzML -spectra:select_isolation_window_width :2 -out FileFilter_32.tmp )
+add_test("TOPP_FileFilter_32_out" ${DIFF} -in1 FileFilter_32.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_32_select_collision_energy.mzML )
+set_tests_properties("TOPP_FileFilter_32_out" PROPERTIES DEPENDS "TOPP_FileFilter_32")
+
+add_test("TOPP_FileFilter_33" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_31_34_input.mzML -spectra:remove_collision_energy :35 -out FileFilter_33.tmp )
+add_test("TOPP_FileFilter_33_out" ${DIFF} -in1 FileFilter_33.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_33_remove_isolation_window.mzML )
+set_tests_properties("TOPP_FileFilter_33_out" PROPERTIES DEPENDS "TOPP_FileFilter_33")
+
+add_test("TOPP_FileFilter_34" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_31_34_input.mzML -spectra:select_collision_energy :35 -out FileFilter_34.tmp )
+add_test("TOPP_FileFilter_34_out" ${DIFF} -in1 FileFilter_34.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_34_select_isolation_window.mzML )
+set_tests_properties("TOPP_FileFilter_34_out" PROPERTIES DEPENDS "TOPP_FileFilter_34")
+
+
 ### FileInfo tests
 add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.dta -in_type dta -no_progress -out FileInfo_1.tmp)
 add_test("TOPP_FileInfo_1_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_1.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_1_output.txt )

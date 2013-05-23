@@ -108,7 +108,7 @@ public:
       reverse_(reverse)
     {}
 
-    inline bool operator()(const MetaContainer & s) const
+    inline bool operator()(const MetaContainer& s) const
     {
       bool has_meta_value = s.metaValueExists(metavalue_key_);
       if (reverse_)
@@ -150,7 +150,7 @@ public:
       reverse_(reverse)
     {}
 
-    inline bool operator()(const SpectrumType & s) const
+    inline bool operator()(const SpectrumType& s) const
     {
       DoubleReal tmp = s.getRT();
       if (reverse_)
@@ -184,12 +184,12 @@ public:
       @param reverse if @p reverse is true, operator() returns true if the spectrum lies outside the
       set
     */
-    InMSLevelRange(const IntList & levels, bool reverse = false) :
+    InMSLevelRange(const IntList& levels, bool reverse = false) :
       levels_(levels),
       reverse_(reverse)
     {}
 
-    inline bool operator()(const SpectrumType & s) const
+    inline bool operator()(const SpectrumType& s) const
     {
       Int tmp = s.getMSLevel();
       if (reverse_)
@@ -228,7 +228,7 @@ public:
       reverse_(reverse)
     {}
 
-    inline bool operator()(const SpectrumType & s) const
+    inline bool operator()(const SpectrumType& s) const
     {
       if (reverse_)
       {
@@ -263,7 +263,7 @@ public:
       reverse_(reverse)
     {}
 
-    inline bool operator()(const SpectrumType & s) const
+    inline bool operator()(const SpectrumType& s) const
     {
       if (reverse_)
       {
@@ -298,7 +298,7 @@ public:
       reverse_(reverse)
     {}
 
-    inline bool operator()(const SpectrumType & s) const
+    inline bool operator()(const SpectrumType& s) const
     {
       if (reverse_)
       {
@@ -332,12 +332,12 @@ public:
       @param reverse if @p reverse is true, operator() returns true if the spectrum is not using one
       of the specified activation methods.
     */
-    HasActivationMethod(const StringList & methods, bool reverse = false) :
+    HasActivationMethod(const StringList& methods, bool reverse = false) :
       methods_(methods),
       reverse_(reverse)
     {}
 
-    inline bool operator()(const SpectrumType & s) const
+    inline bool operator()(const SpectrumType& s) const
     {
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
@@ -390,7 +390,7 @@ public:
       reverse_(reverse)
     {}
 
-    inline bool operator()(const SpectrumType & s) const
+    inline bool operator()(const SpectrumType& s) const
     {
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
@@ -433,17 +433,16 @@ public:
       @param reverse if @p reverse is true, operator() returns true if the spectrum has not one of
       the specified precursor charges.
     */
-    HasPrecursorCharge(const IntList & charges, bool reverse = false) :
+    HasPrecursorCharge(const IntList& charges, bool reverse = false) :
       charges_(charges),
       reverse_(reverse)
     {}
 
-    inline bool operator()(const SpectrumType & s) const
+    inline bool operator()(const SpectrumType& s) const
     {
       bool match = false;
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
-
         Int tmp = it->getCharge();
         match = match || (std::find(charges_.begin(), charges_.end(), tmp) != charges_.end());
       }
@@ -486,7 +485,7 @@ public:
       reverse_(reverse)
     {}
 
-    inline bool operator()(const PeakType & p) const
+    inline bool operator()(const PeakType& p) const
     {
       DoubleReal tmp = p.getPosition()[0];
       if (reverse_)
@@ -526,7 +525,7 @@ public:
       reverse_(reverse)
     {}
 
-    inline bool operator()(const PeakType & p) const
+    inline bool operator()(const PeakType& p) const
     {
       DoubleReal tmp = p.getIntensity();
       if (reverse_)
@@ -538,6 +537,106 @@ public:
 
 protected:
     DoubleReal min_, max_;
+    bool reverse_;
+  };
+
+  /**
+    @brief Predicate that determines if an MSn spectrum was generated with a collision energy in the given range.
+    @note This applies only to CID and HCD spectra. For spectra that do not have a collision energy, the predicate will return true.
+    @note This predicate will return always true for spectra with getMSLevel() = 1.
+
+    @ingroup RangeUtils
+  */
+  template <class SpectrumType>
+  class IsInCollisionEnergyRange :
+    std::unary_function<SpectrumType, bool>
+  {
+public:
+    /**
+      @brief Constructor
+
+      @param min minimum collision energy to be included in the range.
+      @param max maximum collision energy to be included in the range.
+      @param reverse if @p reverse is true, operator() returns true if the collision energy lies outside the range.
+    */
+    IsInCollisionEnergyRange(DoubleReal min, DoubleReal max, bool reverse = false) :
+      min_energy_(min),
+      max_energy_(max),
+      reverse_(reverse)
+    {}
+
+    inline bool operator()(const SpectrumType& s) const
+    {
+      // leave non-fragmentation spectra untouched
+      if (s.getMSLevel() == 1) return false;
+
+      bool isIn = false;
+      bool hasCollisionEnergy = false;
+      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      {
+        if (it->metaValueExists("collision energy"))
+        {
+          hasCollisionEnergy = true;
+          DoubleReal cE = it->getMetaValue("collision energy");
+          isIn |= !(cE > max_energy_ || cE < min_energy_);
+        }
+      }
+
+      // we accept all spectra that have no collision energy value
+      if (!hasCollisionEnergy) return false;
+
+      if (reverse_) return !isIn;
+      else return isIn;
+    }
+
+private:
+    DoubleReal min_energy_, max_energy_;
+    bool reverse_;
+  };
+
+  /**
+    @brief Predicate that determines if the width of the isolation window of an MSn spectrum is in the given range.
+    @note This predicate will return always true for spectra with getMSLevel() = 1.
+
+    @ingroup RangeUtils
+  */
+  template <class SpectrumType>
+  class IsInIsolationWindowSizeRange :
+    std::unary_function<SpectrumType, bool>
+  {
+
+public:
+    /**
+     @brief Constructor
+
+     @param min minimum width of the isolation window.
+     @param max maximum width of the isolation window.
+     @param reverse if @p reverse is true, operator() returns true if the width of the isolation window lies outside the range.
+     */
+    IsInIsolationWindowSizeRange(DoubleReal min_size, DoubleReal max_size, bool reverse = false) :
+      min_size_(min_size),
+      max_size_(max_size),
+      reverse_(reverse)
+    {}
+
+    inline bool operator()(const SpectrumType& s) const
+    {
+      // leave non-fragmentation spectra untouched
+      if (s.getMSLevel() == 1) return false;
+
+      bool isIn = false;
+      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      {
+        const DoubleReal isolationWindowSize = it->getIsolationWindowUpperOffset() + it->getIsolationWindowLowerOffset();
+        isIn |= !(isolationWindowSize > max_size_ || isolationWindowSize < min_size_);
+      }
+
+      if (reverse_) return !isIn;
+      else return isIn;
+    }
+
+private:
+    DoubleReal min_size_, max_size_;
     bool reverse_;
   };
 
