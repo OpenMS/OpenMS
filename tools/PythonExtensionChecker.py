@@ -598,14 +598,16 @@ class IgnoreFile(object):
 #
 ## Class for the .pxd file
 # 
+class PXDFileParseError(Exception):
+    pass
+
 class PXDFile(object):
 
     def __init__(self):
         pass
 
-    def parse(self, pxdfile, comp_name):
-        cython_file = parse_pxd_file(pxdfile)
-        found = False
+    @staticmethod
+    def parse_multiple_files(pxdfiles, comp_name):
 
         def cimport(b, _, __):
             print "cimport", b.module_name, "as", b.as_name
@@ -617,22 +619,30 @@ class PXDFile(object):
                      CImportStatNode  : cimport,
                      }
 
-        for klass in cython_file:
-            if hasattr(klass[0], "cname"):
-                if klass[0].cname == comp_name:
-                    found = True
-                    break
+        found = False
+        # Go through all files and all classes in those files, trying to find
+        # the class whose C/C++ name matches the current compound name
+        for pxdfile in pxdfiles:
+            cython_file = parse_pxd_file(pxdfile)
+            for klass in cython_file:
+                if hasattr(klass[0], "cname"):
+                    if klass[0].cname == comp_name:
+                        found = True
+                if found: break
+            if found: break
+
         if not found: 
             error_str = "Could not find a match for class %s in file %s" % (comp_name, pxdfile)
-            raise Exception(error_str)
+            raise PXDFileParseError(error_str)
 
         # Check if we really have a class, then initialize it
         if isinstance(klass[0], CppClassNode):
             cl = CppClassDecl.parseTree(klass[0], klass[1], klass[2])
         else: 
             print "Something is wrong, not a class"
-            raise Exception("wrong")
+            raise PXDFileParseError("wrong")
 
+        cl.pxdfile = pxdfile
         for klass in cython_file:
             handler = handlers.get(type(klass[0]))
             res = handler(klass[0], klass[1], klass[2])
@@ -642,7 +652,6 @@ class PXDFile(object):
                     cl.methods[res.name] = res
 
         return cl
-
 
 class TestResult:
     """ A Result from a single test which either passed or failed.
@@ -916,7 +925,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             cnt.skipped_no_sections += 1
             continue
         if file_location in pxd_file_matching:
-            pxdfile = pxd_file_matching[file_location]
+            pxdfiles = pxd_file_matching[file_location]
         else:
             msg = "Skip:: No-pxd :: No pxd file exists for Class %s (File %s) %s" % (comp_name, file_location, f)
             tres = TestResult(False, msg,  name="%s_test" % comp_name )
@@ -927,10 +936,11 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             pxd_text_printout(pxd_text, pxds_out, comp_name, print_pxd)
             continue
         try:
-            pxd_class = PXDFile().parse(pxdfile, comp_name)
-        except Exception as e:
+            pxd_class = PXDFile.parse_multiple_files(pxdfiles, comp_name)
+            pxdfile = pxd_class.pxdfile
+        except PXDFileParseError as e:
             # TODO specific exception
-            msg = "Skip:: No-pxd :: "  + e.message + "for %s (in pxd file %s)" % (comp_name, pxdfile)
+            msg = "Skip:: No-pxd :: " + e.message + "for %s (in pxd file %s)" % (comp_name, pxdfiles)
             tres = TestResult(False, msg,  name="%s_test" % comp_name )
             tres.maintainer = maintainer
             testresults.append([ tres ])
@@ -1025,5 +1035,18 @@ if __name__=="__main__":
     main(options)
 
 
-# TODO what if there is an N:M mapping of pyx to cpp
+"""
+offending doxygen lines that fail to parse:
+
+include/source/APPLICATIONS/TOPP/IDRipper.C
+  <B>NOTE: The meta value file origin is removed by the @p IDSplitter!!</B>
+  generates
+  the <computeroutput>IDSplitter!!</bold></computeroutput> 
+
+doc/OpenMS_tutorial/OpenMS_Tutorial.doxygen
+  \arg \c <b>[1]</b>:<A HREF="http://bieson.ub.uni-bielefeld.de/frontdoor.php?source_opus=1370"> 
+  generates
+  <listitem><para><computeroutput><bold></computeroutput>[1]</bold>:
+
+"""
 
