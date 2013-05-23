@@ -39,8 +39,8 @@ $Authors: Hannes Roest$
 # $ sudo pip install breathe
 
 import glob, os, sys
+import re, time
 import argparse
-import re
 from PythonCheckerLib import parse_pxd_file
 from PythonCheckerLib import create_pxd_file_map
 import breathe.parser
@@ -54,6 +54,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
     """ Matches a doxygen member definition (mdef) to a Cython pxd file.
 
     """
+    tres = TestResult()
     protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
     kind = mdef.get_kind() # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot 
     if not protection in "public protected private package".split(" "):
@@ -68,8 +69,10 @@ def handle_member_definition(mdef, pxd_class, cnt):
             if hasattr(klass[0], "name") and klass[0].name == mdef.get_name():
                 found = True
                 break
+
         if not found:
-            print "TODO: Found enum in C++ but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
+            tres.setPassed(False)
+            tres.setMessage("TODO: Found enum in C++ but not in pxd: %s %s %s" % (mdef.kind, mdef.prot, mdef.name))
             cnt.public_enums_missing += 1
             comp_name = mdef.parent_doxy_file.compound.get_compoundname()
             file_location = mdef.parent_doxy_file.getCompoundFileLocation()
@@ -82,16 +85,24 @@ def handle_member_definition(mdef, pxd_class, cnt):
             enumr += '    cdef enum %s %s:\n' % (mdef.get_name(), true_cppname)
             for val in mdef.get_enumvalue():
                 enumr += "        %s\n" % val.get_name()
-            print enumr
+            tres.setMessage(tres.getMessage() + enumr)
         elif len(klass[0].items) != len(mdef.get_enumvalue()):
-            print "TODO: Found enum in C++ with %s members but in Cython there are %s members: " % (
-                len(mdef.get_enumvalue()), len(klass[0].items) )
+            tres.setPassed(False)
+            tres.setMessage("TODO: Found enum in C++ with %s members but in Cython there are %s members: " % (
+                len(mdef.get_enumvalue()), len(klass[0].items) ) )
+        else:
+            tres.setPassed(True)
+
     elif kind == "variable" and protection == "public":
         attrnames = [a.name for a in pxd_class.attributes]
         cnt.public_variables += 1
         if not mdef.name in attrnames:
-            print "TODO: Found attribute in cpp but not in pxd: ", mdef.kind,  mdef.prot, mdef.name
+            tres.setPassed(False)
+            tres.setMessage("TODO: Found attribute in C++ but not in pxd: %s %s %s" % (mdef.kind, mdef.prot, mdef.name) )
             cnt.public_variables_missing += 1
+        else:
+            tres.setPassed(True)
+
     elif kind == "function" and protection == "public":
         # Wrap of public member functions ... 
         cnt.public_methods += 1
@@ -101,25 +112,42 @@ def handle_member_definition(mdef, pxd_class, cnt):
             py_methods = pxd_class.methods[mdef.name]
             if not isinstance(py_methods, list):
                 py_methods = [py_methods]
+
             py_return_type = [str(d.result_type) for d in py_methods]
             if mdef.definition == mdef.name:
-                # Constructor, no return type
+                # Constructor, no return type -> all is good
                 assert len(c_return_type) == 0
+                tres.setPassed(True)
             elif "void" in py_return_type and not "void" in c_return_type:
-                print "TODO: Mismatch between C++ return type (%s) and Python return type (%s) in %s %s %s:" % ( 
-                     str(c_return_type), str(py_return_type), mdef.kind,  mdef.prot, mdef.name)
+                tres.setPassed(False)
+                tres.setMessage( "TODO: Mismatch between C++ return type (%s) and Python return type (%s) in %s %s %s:" % ( 
+                     str(c_return_type), str(py_return_type), mdef.kind,  mdef.prot, mdef.name) )
+            else:
+                tres.setPassed(True)
+
         else:
             cnt.public_methods_missing += 1
             if mdef.name.find("~") != -1:
                 # destructor
                 cnt.public_methods_missing_nowrapping += 1
+                tres.setPassed(True)
+                tres.setMessage("Cannot wrap destructor")
             elif (mdef.name.find("operator") != -1 or
                   mdef.name.find("begin") != -1 or
                   mdef.name.find("end") != -1):
                 cnt.public_methods_missing_nowrapping += 1
+                tres.setPassed(True)
+                tres.setMessage("Cannot wrap method with iterator/operator %s" % mdef.name)
             else:
-                print " -- TODO missing function in PXD: ", mdef.format_definition_for_cython()
+                tres.setPassed(False)
+                tres.setMessage(" -- TODO missing function in PXD: %s " % mdef.format_definition_for_cython())
 
+    else:
+        # It is neither public function/enum/variable
+        tres.setPassed(True)
+
+    # Return the testresult
+    return tres
 #
 ## Class for counting occurances
 # 
@@ -219,6 +247,7 @@ class DoxygenXMLFile(object):
         self.parsed_file = None
         self.compound = None
         self.parsing_error = False
+        self.parsing_error_message = None
 
     def parse(self):
         try:
@@ -227,6 +256,7 @@ class DoxygenXMLFile(object):
             return self.parsed_file
         except Exception as e:
             print "Error parsing doxygen xml file", e.message
+            self.parsing_error_message = e.message
             self.parsing_error = True
             return None
 
@@ -613,7 +643,192 @@ class PXDFile(object):
 
         return cl
 
-def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out, print_pxd):
+
+class TestResult:
+    """ A Result from a single test which either passed or failed.
+
+    In addition, it contains information about the reason why the test failed,
+    who is the maintainer and a unique testname.
+    """
+
+    def __init__(self, passed = None, message=None, log_level=None, name=None):
+        self.message = message
+        self.passed = passed
+        self.name = name
+        self.log_level = log_level
+        self.maintainer = None
+        if log_level is None:
+            self.log_level = 0
+
+    def setMessage(self, message_):
+        self.message = message_
+
+    def getMessage(self):
+        return self.message
+
+    def setPassed(self, passed):
+        self.passed = passed
+
+    def isPassed(self):
+        return self.passed
+
+    def setMaintainer(self, maintainer):
+        self.maintainer = maintainer
+
+    def getMaintainer(self):
+        if self.maintainer is None:
+            return "Nobody"
+        return self.maintainer
+
+class TestResultHandler:
+    """ A Container for all test results.
+
+    """
+
+    def __init__(self):
+        self._list = []
+
+    def append(self, l):
+        self._list.append(l)
+
+    def __iter__(self):
+        for l in self._list:
+            yield l
+
+    def to_cdash_xml(self, template_path, output_path):
+
+        xml_output = []
+        # load template head (everything up to "<Testing>")
+        # -> this assumes a specific format of the xml
+        with open(template_path) as f:
+            for line in f:
+                if line.strip() == "<Testing>":
+                    break
+                xml_output.append(line)
+
+        """
+          # load template head
+          $template = file($ctestReportingPath."/Test.xml");
+          $newTestFile = array();
+          foreach ($template as $line)
+          {
+            array_push($newTestFile, $line);
+            if (trim($line) == "<Testing>")
+            {
+              break;
+            }
+          }
+          """
+
+        # Start writing the xml
+        xml_output.append("  <Testing>\n")
+        xml_output.append("  <StartDateTime>%s</StartDateTime>\n" % (time.strftime('%b %d %H:%M') ) )
+        xml_output.append("  <StartTestTime>%s</StartTestTime>\n" % (time.time()) )
+        xml_output.append("  <TestList>\n")
+        for classtestresults in self:
+            for tres in classtestresults:
+                xml_output.append("    <Test>%s</Test>\n" % tres.name) 
+        xml_output.append("  </TestList>\n")
+        
+        for classtestresults in self:
+            for tres in classtestresults:
+                status = ""
+                if tres.isPassed():
+                    status = "passed"
+                else:
+                    status = "failed"
+
+                xml_output.append(" " * 2 + '<Test Status="%s">\n' % status)
+                xml_output.append(" " * 4 + '<Name>%s</Name>\n' % tres.name)
+                xml_output.append(" " * 4 + '<Path> ./tools/ </Path>\n' )
+                xml_output.append(" " * 4 + '<FullName>%s</FullName>\n' % tres.name)
+                xml_output.append(" " * 4 + '<FullCommandLine>python PythonExtensionChecker.py %s</FullCommandLine>\n' % tres.name)
+                xml_output.append(" " * 4 + '<Results>')
+                xml_output.append("""
+      <NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.001</Value></NamedMeasurement>
+      <NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+      <NamedMeasurement type="text/string" name="Maintainer"><Value>%s</Value></NamedMeasurement>
+      <NamedMeasurement type="text/string" name="Command Line"><Value>python PythonExtensionChecker.py</Value></NamedMeasurement>\n""" % (
+          tres.getMaintainer()
+      ) )
+                xml_output.append(" " * 6 + '<Measurement>\n')
+                xml_output.append(" " * 8 + '<Value>\n')
+                if not tres.getMessage() is None:
+                    xml_output.append(" " * 10 +  tres.getMessage() + "\n")
+                xml_output.append(" " * 8 + '</Value>\n')
+                xml_output.append(" " * 6 + '</Measurement>\n')
+
+                xml_output.append(" " * 4 + '</Results>\n')
+                xml_output.append(" " * 2 + '</Test>\n')
+
+
+        xml_output.append("<EndDateTime>%s</EndDateTime>\n" % (time.strftime('%b %d %H:%M') ) ) 
+        xml_output.append("<EndTestTime>%s</EndTestTime>\n" % (time.time()) )
+        xml_output.append("<ElapsedMinutes></ElapsedMinutes>\n")
+        xml_output.append("</Testing>\n")
+        xml_output.append("</Site>\n")
+
+        with open(output_path, "w") as f:
+            for line in xml_output:
+                f.write(line)
+
+        """
+          /*
+          <?xml version="1.0" encoding="UTF-8"?>
+          <Site BuildName="Darwin-clang++"
+                  BuildStamp="20121021-2300-Nightly"
+                  Name="laphroaig.imp.fu-berlin.de"
+                  Generator="ctest-2.8.9"
+                  CompilerName="/usr/bin/clang++"
+                  OSName="Mac OS X"
+                  Hostname="laphroaig.imp.fu-berlin.de"
+                  OSRelease="10.7.5"
+                  OSVersion="11G63"
+                  OSPlatform="x86_64"
+                  Is64Bits="1"
+                  VendorString="GenuineIntel"
+                  VendorID="Intel Corporation"
+                  FamilyID="6"
+                  ModelID="37"
+                  ProcessorCacheSize="32768"
+                  NumberOfLogicalCPU="4"
+                  NumberOfPhysicalCPU="2"
+                  TotalVirtualMemory="512"
+                  TotalPhysicalMemory="8192"
+                  LogicalProcessorsPerPhysical="8"
+                  ProcessorClockFrequency="2660"
+          >
+          <Testing>
+          <StartDateTime>Oct 22 18:36 CEST</StartDateTime>
+          <StartTestTime>1350923805</StartTestTime>
+          <TestList>
+            <Test>BinaryComposeFunctionAdapter_test</Test>
+          </TestList>
+          <Test Status="passed">
+            <Name>BinaryComposeFunctionAdapter_test</Name>
+            <Path>./source/TEST</Path>
+            <FullName>./source/TEST/BinaryComposeFunctionAdapter_test</FullName>
+            <FullCommandLine>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/BinaryComposeFunctionAdapter_test</FullCommandLine>
+            <Results>
+                    <NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.469694</Value></NamedMeasurement>
+                    <NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+                    <NamedMeasurement type="text/string" name="Command Line"><Value>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/BinaryComposeFunctionAdapter_test</Value></NamedMeasurement>
+                    <Measurement>
+                      <Value>
+                      freier Text
+                      </Value>
+                    </Measurement>
+            </Results>
+          </Test>
+              <EndDateTime>Oct 22 18:43 CEST</EndDateTime>
+              <EndTestTime>1350924239</EndTestTime>
+          <ElapsedMinutes>7.2</ElapsedMinutes></Testing>
+        </Site>      
+          */
+                """
+
+
+def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd, output_format):
     """ Checks a set of doxygen xml file against a set of pxd header files
 
     For each C++ class found in the doxygen XML files, it tries to identify the
@@ -627,97 +842,168 @@ def checkPythonPxdHeader(bin_path, ignorefilename, pxds_out, print_pxd):
     If it finds a method missing, the script suggests an addition and if a
     whole class is missing, the script writes suggestion .pxd file to a
     specified location (pxds_out).
+
+    The output format can either be in text form (human readable) or in xml
+    form which will try to overwrite the cdash Test.xml file to proivide an
+    output to cdash. Please only specify xml output if in your binary
+    you have executed "ctest -D Nightly" or similar.
+
+    TODO also look at ./doc/doxygen/doxygen-error.log ?
     """
 
-
-    xml_output_path = os.path.join(bin_path, "doc/xml_output/")
+    xml_output_path = os.path.join(src_path, "doc/xml_output/")
     xml_files = glob.glob(xml_output_path + "/*.xml")
-    # also look at ./doc/doxygen/doxygen-error.log ?
+
     print "Creating pxd file map"
-    pxd_file_matching = create_pxd_file_map(bin_path)
+    pxd_file_matching = create_pxd_file_map(src_path)
     cnt = Counter()
     cnt.total = len(xml_files)
     ignorefile = IgnoreFile()
     if len(ignorefilename) > 0:
         ignorefile.load(ignorefilename)
 
-    for f in xml_files:
+    def pxd_text_printout(pxd_text, pxds_out, comp_name, print_pxd):
+        if print_pxd: 
+            print ""
+            print pxd_text
+        if len(pxds_out) > 0 and pxd_text is not None:
+            fname =  os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
+            with open(fname, "w" ) as f:
+                f.write(pxd_text)
+
+    testresults = TestResultHandler()
+    for class_cntr, f in enumerate(xml_files):
         dfile = DoxygenXMLFile(f)
         res = dfile.parse()
         if dfile.parsing_error:
             # e.g. <computeroutput><bold></computeroutput>
-            print "Skip:: No-parse :: could not parse file", f
             cnt.skipped_could_not_parse += 1
+            msg = "Skip:: No-parse :: could not parse file %s with error %s" % (f, dfile.parsing_error_message)
+            tres = TestResult(False, msg, name="%s_test" % f )
+            testresults.append([ tres ])
             continue
-        if os.path.basename(f) == "index.xml":
+        elif os.path.basename(f) == "index.xml":
             # Skip the index
             continue
         compound = res.get_compounddef()
         comp_name = compound.get_compoundname()
         if ignorefile.isNameIgnored(comp_name):
-            print "Skip:: Ignored :: Class %s (file %s)" % (comp_name, f)
+            msg = "Skip:: Ignored :: Class %s (file %s)" % (comp_name, f)
+            tres = TestResult(True, msg, log_level=10, name="%s_test" % comp_name)
+            testresults.append([ tres ])
             cnt.skipped_ignored += 1
             continue
         if compound.prot != "public":
-            print "Skip:: Protected :: Compound %s is not public, skip" % (comp_name)
+            msg = "Skip:: Protected :: Compound %s is not public, skip" % (comp_name)
+            tres = TestResult(True, msg, log_level=10, name="%s_test" % comp_name)
+            testresults.append([ tres ])
             cnt.skipped_protected += 1
             continue
         file_location = dfile.getCompoundFileLocation()
         if file_location is None:
-            print "Skip:: No-data :: there is no source file for ", f
+            msg = "Skip:: No-data :: there is no source file for %s" % f
+            tres = TestResult(True, msg, log_level=10, name="%s_test" % comp_name)
+            testresults.append([ tres ])
             cnt.skipped_no_location += 1
             continue
         openms_file = OpenMSSourceFile(file_location)
         maintainer = openms_file.getMaintainer()
         if dfile.isEmpty(True):
-            print "Skip:: No-data :: File is empty (no section definitions found or only definitions found) in file", f
+            msg = "Skip:: No-data :: File is empty (no section definitions found or only definitions found) in file %s" % f 
+            tres = TestResult(True, msg, log_level=10, name="%s_test" % comp_name)
+            tres.maintainer = maintainer
+            testresults.append([ tres ])
             cnt.skipped_no_sections += 1
             continue
         if file_location in pxd_file_matching:
             pxdfile = pxd_file_matching[file_location]
         else:
-            print "Skip:: No-pxd :: No pxd file exists for Class %s (File %s) %s" % (comp_name, file_location, f)
+            msg = "Skip:: No-pxd :: No pxd file exists for Class %s (File %s) %s" % (comp_name, file_location, f)
+            tres = TestResult(False, msg,  name="%s_test" % comp_name )
+            tres.maintainer = maintainer
+            testresults.append([ tres ])
             cnt.skipped_no_pxd_file += 1
             pxd_text = dfile.get_pxd_from_class(dfile, file_location, xml_output_path)
-            if print_pxd: 
-                print ""
-                print pxd_text
-            if len(pxds_out) > 0 and pxd_text is not None:
-                fname =  os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
-                with open(fname, "w" ) as f:
-                    f.write(pxd_text)
+            pxd_text_printout(pxd_text, pxds_out, comp_name, print_pxd)
             continue
         try:
             pxd_class = PXDFile().parse(pxdfile, comp_name)
         except Exception as e:
             # TODO specific exception
-            print "Skip:: No-pxd :: " , e.message, "for %s (in pxd file %s)" % (comp_name, pxdfile)
+            msg = "Skip:: No-pxd :: "  + e.message + "for %s (in pxd file %s)" % (comp_name, pxdfile)
+            tres = TestResult(False, msg,  name="%s_test" % comp_name )
+            tres.maintainer = maintainer
+            testresults.append([ tres ])
             cnt.skipped_no_pxd_match += 1
             pxd_text = dfile.get_pxd_from_class(dfile, file_location, xml_output_path)
-            if print_pxd: 
-                print ""
-                print pxd_text
-            if len(pxds_out) > 0 and pxd_text is not None:
-                fname =  os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
-                with open(fname, "w" ) as f:
-                    f.write(pxd_text)
+            pxd_text_printout(pxd_text, pxds_out, comp_name, print_pxd)
             continue
-        print "== Start to parse element %s - from Cpp file %s with maintainer %s and corresponding pxd file %s" % (
-            comp_name, file_location, maintainer, pxdfile)
+
         cnt.parsed += 1
-        leave = False
-        # Loop through all sections (these are doxygen sections, not
-        # interesting for our purposes) and then through all members.
-        for mdef in dfile.iterMemberDef():
+        # Loop through all methods 
+        classtestresults = []
+        for method_cntr,mdef in enumerate(dfile.iterMemberDef()):
+
             if mdef.get_name() in ignorefile.getIgnoredMethods(comp_name):
-                print "Ignore member function/attribute : ", mdef.kind,  mdef.prot, mdef.name
-                continue
-            handle_member_definition(mdef, pxd_class, cnt)
+                msg = "Ignore member function/attribute : %s %s %s " % (mdef.kind, mdef.prot, mdef.name)
+                tres = TestResult(True, msg, log_level=10)
+            else:
+                tres = handle_member_definition(mdef, pxd_class, cnt)
+
+            testname = "%s_%s_%s::%s" % (class_cntr, method_cntr, comp_name, mdef.name)
+            testname = testname.replace("::", "_")
+            testname = re.sub('[^a-zA-Z0-9_]+', '', testname)
+            tres.comp_name = comp_name
+            tres.file_location = file_location
+            tres.pxdfile = pxdfile
+            tres.maintainer = maintainer
+            tres.name = testname
+            classtestresults.append(tres)
+
+        testresults.append(classtestresults)
+
+    if output_format in ["text", "text-verbose", "text-quiet"]:
+        for classtestresults in testresults:
+            if len(classtestresults) > 1:
+                t = classtestresults[0]
+                lenfailed = len([t for t in classtestresults if not t.isPassed() ] )
+                if lenfailed > 0:
+                    print "== Test results for element %s - from Cpp file %s with maintainer %s and corresponding pxd file %s" % (
+                        t.comp_name, t.file_location, t.maintainer, t.pxdfile)
+            for tres in classtestresults:
+                if not tres.isPassed():
+                    print tres.message
+                elif tres.log_level >= 10 and output_format in ["text", "text-verbose"]:
+                    print tres.message
+                elif tres.log_level >= 0 and output_format in ["text-verbose"]:
+                    print tres.message
+
+    elif output_format == "xml":
+
+        # check if all files required to report in CDash are present
+        tag_file = os.path.join(bin_path, "Testing", "TAG" ) 
+        try: 
+            # read the first line of tagfile (TAG) -> if it does not exist,
+            # an IOError is thrown
+            with open(tag_file) as f:
+                ctestReportingPath = f.readline().strip()
+                ctestReportingPath = os.path.join(bin_path, "Testing", ctestReportingPath)
+                if not os.path.exists( ctestReportingPath ):
+                    raise Exception("Missing directory at %s" % ( ctestReportingPath ) )
+        except IOError:
+            raise Exception("Missing nightly test information at %s" % (tag_file) )
+
+        template_path = os.path.join(ctestReportingPath, "Test.xml" )
+        testresults.to_cdash_xml(template_path, template_path)
+
+    else:
+        raise Exception("Unknown output format %s" % output_format)
+
     cnt.print_stats()
     cnt.print_skipping_reason()
 
 def main(options):
-    checkPythonPxdHeader(options.bin_path, options.ignorefile, options.pxds_out, options.print_pxd)
+    checkPythonPxdHeader(options.src_path, options.bin_path, options.ignorefile, options.pxds_out, options.print_pxd, options.output_format)
 
 def handle_args():
     usage = "" 
@@ -727,6 +1013,7 @@ def handle_args():
     parser.add_argument("--src_path", dest="src_path", default=".", help="OpenMS source path")
     parser.add_argument("--ignore-file", dest="ignorefile", default="", help="Checker ignore file")
     parser.add_argument("--pxds-out", dest="pxds_out", default="", help="Folder to write pxd files")
+    parser.add_argument("--output", dest="output_format", default="text", help="Output format (text or xml for ctest xml)")
     parser.add_argument('--print_pxd', action='store_true', default=False)
     #   print "Usage: checker.php <OpenMS src path> <OpenMS build path> [-u \"user name\"] [-t test] [options]\n";
 
@@ -738,7 +1025,5 @@ if __name__=="__main__":
     main(options)
 
 
-
-# self.compound.get_sectiondef()[0].get_memberdef()[0].name
- 
 # TODO what if there is an N:M mapping of pyx to cpp
+
