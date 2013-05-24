@@ -44,6 +44,10 @@
 #include <vector>
 #include <fstream>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS
 {
   /**
