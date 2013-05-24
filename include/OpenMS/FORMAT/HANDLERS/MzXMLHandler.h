@@ -64,7 +64,7 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a read-only handler
-      MzXMLHandler(MapType & exp, const String & filename, const String & version, ProgressLogger & logger) :
+      MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
         XMLHandler(filename, version),
         exp_(&exp),
         cexp_(0),
@@ -79,7 +79,7 @@ public:
       }
 
       /// Constructor for a write-only handler
-      MzXMLHandler(const MapType & exp, const String & filename, const String & version, const ProgressLogger & logger) :
+      MzXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
         XMLHandler(filename, version),
         exp_(0),
         cexp_(&exp),
@@ -101,19 +101,19 @@ public:
       //@}
 
       // Docu in base class
-      virtual void endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname);
+      virtual void endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname);
 
       // Docu in base class
-      virtual void startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      virtual void startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
       // Docu in base class
-      virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+      virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
       ///Write the contents to a stream
-      void writeTo(std::ostream & os);
+      void writeTo(std::ostream& os);
 
       ///Sets the options
-      void setOptions(const PeakFileOptions & options)
+      void setOptions(const PeakFileOptions& options)
       {
         options_ = options;
       }
@@ -166,9 +166,9 @@ protected:
       typedef typename SpectrumType::Iterator  PeakIterator;
 
       /// map pointer for reading
-      MapType * exp_;
+      MapType* exp_;
       /// map pointer for writing
-      const MapType * cexp_;
+      const MapType* cexp_;
 
       /// Options for loading and storing
       PeakFileOptions options_;
@@ -189,17 +189,17 @@ protected:
       UInt spec_write_counter_;
 
       /// Progress logging class
-      const ProgressLogger & logger_;
+      const ProgressLogger& logger_;
 
       /// write metaInfo to xml (usually in nameValue-tag)
-      inline void writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, int indent = 4, String tag = "nameValue")
+      inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, String tag = "nameValue")
       {
-        std::vector<String> keys;              // Vector to hold keys to meta info
+        std::vector<String> keys; // Vector to hold keys to meta info
         meta.getKeys(keys);
 
         for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
         {
-          if ((*it)[0] != '#')                 // internally used meta info start with '#'
+          if ((*it)[0] != '#') // internally used meta info start with '#'
           {
             os << String(indent, '\t') << "<" << tag << " name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
           }
@@ -213,39 +213,39 @@ private:
       /// Not implemented
       MzXMLHandler();
 
-      static const XMLCh * s_value_;
-      static const XMLCh * s_count_;
-      static const XMLCh * s_type_;
-      static const XMLCh * s_name_;
-      static const XMLCh * s_version_;
-      static const XMLCh * s_filename_;
-      static const XMLCh * s_filetype_;
-      static const XMLCh * s_filesha1_;
-      static const XMLCh * s_completiontime_;
-      static const XMLCh * s_precision_;
-      static const XMLCh * s_byteorder_;
-      static const XMLCh * s_pairorder_;
-      static const XMLCh * s_compressionType_;
-      static const XMLCh * s_precursorintensity_;
-      static const XMLCh * s_precursorcharge_;
-      static const XMLCh * s_windowwideness_;
-      static const XMLCh * s_mslevel_;
-      static const XMLCh * s_peakscount_;
-      static const XMLCh * s_polarity_;
-      static const XMLCh * s_scantype_;
-      static const XMLCh * s_retentiontime_;
-      static const XMLCh * s_startmz_;
-      static const XMLCh * s_endmz_;
-      static const XMLCh * s_first_;
-      static const XMLCh * s_last_;
-      static const XMLCh * s_phone_;
-      static const XMLCh * s_email_;
-      static const XMLCh * s_uri_;
-      static const XMLCh * s_num_;
-      static const XMLCh * s_intensitycutoff_;
-      static const XMLCh * s_centroided_;
-      static const XMLCh * s_deisotoped_;
-      static const XMLCh * s_chargedeconvoluted_;
+      static const XMLCh* s_value_;
+      static const XMLCh* s_count_;
+      static const XMLCh* s_type_;
+      static const XMLCh* s_name_;
+      static const XMLCh* s_version_;
+      static const XMLCh* s_filename_;
+      static const XMLCh* s_filetype_;
+      static const XMLCh* s_filesha1_;
+      static const XMLCh* s_completiontime_;
+      static const XMLCh* s_precision_;
+      static const XMLCh* s_byteorder_;
+      static const XMLCh* s_pairorder_;
+      static const XMLCh* s_compressionType_;
+      static const XMLCh* s_precursorintensity_;
+      static const XMLCh* s_precursorcharge_;
+      static const XMLCh* s_windowwideness_;
+      static const XMLCh* s_mslevel_;
+      static const XMLCh* s_peakscount_;
+      static const XMLCh* s_polarity_;
+      static const XMLCh* s_scantype_;
+      static const XMLCh* s_retentiontime_;
+      static const XMLCh* s_startmz_;
+      static const XMLCh* s_endmz_;
+      static const XMLCh* s_first_;
+      static const XMLCh* s_last_;
+      static const XMLCh* s_phone_;
+      static const XMLCh* s_email_;
+      static const XMLCh* s_uri_;
+      static const XMLCh* s_num_;
+      static const XMLCh* s_intensitycutoff_;
+      static const XMLCh* s_centroided_;
+      static const XMLCh* s_deisotoped_;
+      static const XMLCh* s_chargedeconvoluted_;
 
       // init all the static members, which is necessary because otherwise the undefined order will cause problems
       void initStaticMembers_()
@@ -365,7 +365,7 @@ private:
     const XMLCh * MzXMLHandler<MapType>::s_chargedeconvoluted_ = 0;
 
     template <typename MapType>
-    void MzXMLHandler<MapType>::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+    void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
       static bool init_static_members(false);
       if (!init_static_members)
@@ -403,7 +403,7 @@ private:
       }
       else if (tag == "software")
       {
-        String & parent_tag = *(open_tags_.end() - 2);
+        String& parent_tag = *(open_tags_.end() - 2);
         if (parent_tag == "dataProcessing")
         {
           data_processing_.back().getSoftware().setVersion(attributeAsString_(attributes, s_version_));
@@ -460,7 +460,7 @@ private:
         {
           exp_->back().getPrecursors().back().setIntensity(attributeAsDouble_(attributes, s_precursorintensity_));
         }
-        catch (Exception::ParseError & /*e*/)
+        catch (Exception::ParseError& /*e*/)
         {
           error(LOAD, "Mandatory attribute 'precursorIntensity' of tag 'precursorMz' not found! Setting precursor intensity to zero!");
         }
@@ -593,16 +593,16 @@ private:
         {
           exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
-        else if (type == "EMS")      //Non-standard type: Enhanced MS (ABI - Sashimi converter)
+        else if (type == "EMS") //Non-standard type: Enhanced MS (ABI - Sashimi converter)
         {
           exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
-        else if (type == "EPI")      //Non-standard type: Enhanced Product Ion (ABI - Sashimi converter)
+        else if (type == "EPI") //Non-standard type: Enhanced Product Ion (ABI - Sashimi converter)
         {
           exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
           exp_->back().setMSLevel(2);
         }
-        else if (type == "ER")       // Non-standard type: Enhanced Resolution (ABI - Sashimi converter)
+        else if (type == "ER") // Non-standard type: Enhanced Resolution (ABI - Sashimi converter)
         {
           exp_->back().getInstrumentSettings().setZoomScan(true);
           exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
@@ -705,7 +705,7 @@ private:
         String value = "";
         optionalAttributeAsString_(value, attributes, s_value_);
 
-        String & parent_tag = *(open_tags_.end() - 2);
+        String& parent_tag = *(open_tags_.end() - 2);
 
         if (parent_tag == "msInstrument")
         {
@@ -737,12 +737,12 @@ private:
     }
 
     template <typename MapType>
-    void MzXMLHandler<MapType>::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void MzXMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
-      static const XMLCh * s_mzxml = xercesc::XMLString::transcode("mzXML");
-      static const XMLCh * s_peaks = xercesc::XMLString::transcode("peaks");
+      static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
+      static const XMLCh* s_peaks = xercesc::XMLString::transcode("peaks");
 
       open_tags_.pop_back();
 
@@ -757,7 +757,7 @@ private:
       else if (equal_(qname, s_peaks))
       {
         //std::cout << "reading scan" << "\n";
-        if (char_rest_ == "")       // no peaks
+        if (char_rest_ == "") // no peaks
         {
           return;
         }
@@ -792,7 +792,7 @@ private:
             }
           }
         }
-        else            //precision 32
+        else //precision 32
         {
           std::vector<Real> data;
           if (compressionType_ == "zlib")
@@ -823,13 +823,13 @@ private:
     }
 
     template <typename MapType>
-    void MzXMLHandler<MapType>::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void MzXMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
       //Abort if this spectrum should be skipped
       if (skip_spectrum_)
         return;
 
-      char * transcoded_chars = sm_.convert(chars);
+      char* transcoded_chars = sm_.convert(chars);
 
       if (open_tags_.back() == "peaks")
       {
@@ -882,13 +882,13 @@ private:
     }
 
     template <typename MapType>
-    void MzXMLHandler<MapType>::writeTo(std::ostream & os)
+    void MzXMLHandler<MapType>::writeTo(std::ostream& os)
     {
       //determine how many spectra there are (count only those with peaks)
       UInt count_tmp_  = 0;
       for (Size s = 0; s < cexp_->size(); s++)
       {
-        const SpectrumType & spec = (*cexp_)[s];
+        const SpectrumType& spec = (*cexp_)[s];
         if (spec.size() != 0)
           ++count_tmp_;
       }
@@ -913,7 +913,7 @@ private:
       {
         for (Size i = 0; i < cexp_->getSourceFiles().size(); ++i)
         {
-          const SourceFile & sf = cexp_->getSourceFiles()[i];
+          const SourceFile& sf = cexp_->getSourceFiles()[i];
           os << "\t\t<parentFile fileName=\"" << sf.getNameOfFile() << "\" fileType=\"";
           //file type is an enum in mzXML => search for 'raw' string
           String tmp_string = sf.getFileType();
@@ -946,7 +946,7 @@ private:
       //----------------------------------------------------------------------------------------
       if (cexp_->getInstrument() != Instrument() || cexp_->getContacts().size() != 0)
       {
-        const Instrument & inst = cexp_->getInstrument();
+        const Instrument& inst = cexp_->getInstrument();
         os << "\t\t<msInstrument>\n"
            << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << inst.getVendor() << "\"/>\n" << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
         if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod())
@@ -957,7 +957,7 @@ private:
         {
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
         }
-        const std::vector<MassAnalyzer> & analyzers = inst.getMassAnalyzers();
+        const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
         if (analyzers.empty() || !analyzers[0].getResolutionMethod())
         {
           os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"\"/>\n";
@@ -986,7 +986,7 @@ private:
 
         if (cexp_->getContacts().size() > 0)
         {
-          const ContactPerson & cont = cexp_->getContacts()[0];
+          const ContactPerson& cont = cexp_->getContacts()[0];
 
           os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName() <<  "\"";
 
@@ -1030,7 +1030,7 @@ private:
       {
         for (Size i = 0; i < (*cexp_)[0].getDataProcessing().size(); ++i)
         {
-          const DataProcessing & data_processing = (*cexp_)[0].getDataProcessing()[i];
+          const DataProcessing& data_processing = (*cexp_)[0].getDataProcessing()[i];
           os << "\t\t<dataProcessing deisotoped=\""
              << data_processing.getProcessingActions().count(DataProcessing::DEISOTOPING)
              << "\" chargeDeconvoluted=\""
@@ -1087,7 +1087,7 @@ private:
         {
           native_id.toInt();
         }
-        catch (Exception::ConversionError &)
+        catch (Exception::ConversionError&)
         {
           all_numbers = false;
           all_prefixed_numbers = false;
@@ -1108,7 +1108,7 @@ private:
       for (Size s = 0; s < cexp_->size(); s++)
       {
         logger_.setProgress(s);
-        const SpectrumType & spec = (*cexp_)[s];
+        const SpectrumType& spec = (*cexp_)[s];
 
         UInt ms_level = spec.getMSLevel();
         open_scans.push(ms_level);
@@ -1193,7 +1193,7 @@ private:
 
         for (Size i = 0; i < spec.getPrecursors().size(); ++i)
         {
-          const Precursor & precursor = spec.getPrecursors()[i];
+          const Precursor& precursor = spec.getPrecursors()[i];
           //intensity
           os << String(ms_level + 2, '\t') << "<precursorMz precursorIntensity=\"" << precursor.getIntensity();
           //charge
@@ -1224,7 +1224,7 @@ private:
         }
         else
         {
-          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"1\"/>\n";
+          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"true\"/>\n";
         }
 
         writeUserParam_(os, spec, ms_level + 2);
@@ -1258,7 +1258,7 @@ private:
       spec_write_counter_ = 1;
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 
 } // namespace OpenMS
 
