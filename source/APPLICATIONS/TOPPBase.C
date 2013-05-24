@@ -202,6 +202,16 @@ namespace OpenMS
     debug_level_ = getParamAsInt_("debug", 0);
     writeDebug_(String("Debug level: ") + String(debug_level_), 1);
 
+    // print command line to console
+    StringList args;
+    for (int i = 0; i < argc; ++i)
+    {
+      if (String(argv[i]).has(' ')) args.push_back(String("\"") + argv[i] + String("\"")); // surround with quotes if argument contains a space
+      else args.push_back(argv[i]);
+    }
+    writeDebug_(String(" >> ") + args.concatenate(" "), 1);
+
+
     // test if no options were given
     if (require_args_ && argc == 1)
     {
