@@ -109,7 +109,7 @@ namespace OpenMS
         }
         else // x/0 is 'inf' but std::sort() has problems with that
         {
-          peptide_ratios_[map_to_vec_index_[it_elements->getMapIndex()]].push_back(std::numeric_limits<double>::max());
+          peptide_ratios_[map_to_vec_index_[it_elements->getMapIndex()]].push_back(std::numeric_limits<Peak2D::IntensityType>::max());
         }
       }
       else // everything seems fine
@@ -130,7 +130,7 @@ namespace OpenMS
     std::sort(peptide_intensities_[ref_map_id_].begin(), peptide_intensities_[ref_map_id_].end());
 
     // reporting
-    double max_deviation_from_control = 0;
+    Peak2D::IntensityType max_deviation_from_control = 0;
 
     // find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
     for (Map<Size, Size>::const_iterator it_map = map_to_vec_index_.begin(); it_map != map_to_vec_index_.end(); ++it_map)
@@ -153,7 +153,7 @@ namespace OpenMS
 
       LOG_INFO << "IsobaricNormalizer:  map-id " << (it_map->first) << " has factor " << (normalization_factors[vec_idx]) << " (control: " << (peptide_intensities_[vec_idx][0]) << ")" << std::endl;
 
-      double dev = (peptide_ratios_[vec_idx][0] - peptide_intensities_[vec_idx][0]) / normalization_factors[vec_idx];
+      Peak2D::IntensityType dev = (peptide_ratios_[vec_idx][0] - peptide_intensities_[vec_idx][0]) / normalization_factors[vec_idx];
       if (fabs(max_deviation_from_control) < fabs(dev))
       {
         max_deviation_from_control = dev;
