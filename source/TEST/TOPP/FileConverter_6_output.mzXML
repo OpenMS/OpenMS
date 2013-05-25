@@ -83,7 +83,7 @@
 			<nameValue name="preset scan configuration" value="3"/>
 		</scan>
 		<scan num="4" msLevel="1" peaksCount="0" polarity="+" scanType="zoom" retentionTime="PT5.4S" startMz="110" endMz="905">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int" xsi:nil="1"/>
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int" xsi:nil="true"/>
 			<nameValue name="sdname" value="spectrumdescription4"/>
 			<scan num="5" msLevel="2" peaksCount="1" polarity="any" retentionTime="PT0S">
 				<precursorMz precursorIntensity="0">0</precursorMz>
