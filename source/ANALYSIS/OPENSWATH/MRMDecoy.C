@@ -526,7 +526,7 @@ namespace OpenMS
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 String method, String decoy_tag, double identity_threshold, int max_attempts, 
                                 double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, 
-                                double similarity_threshold, bool remove_CNterminal_mods)
+                                double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift)
   {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
@@ -617,7 +617,7 @@ namespace OpenMS
 
         decoy_tr.setNativeID(decoy_tag + tr.getNativeID());
         decoy_tr.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
-        decoy_tr.setPrecursorMZ(tr.getPrecursorMZ() + 0.1); // fix for TOPPView: Duplicate precursor MZ is not displayed.
+        decoy_tr.setPrecursorMZ(tr.getPrecursorMZ() + precursor_mass_shift); // fix for TOPPView: Duplicate precursor MZ is not displayed.
 
         // determine the current annotation for the target ion and then select
         // the appropriate decoy ion for this target transition

@@ -122,6 +122,7 @@ protected:
     registerDoubleOption_("identity_threshold", "<double>", 0.7, "shuffle: identity threshold for the shuffle algorithm", false);
     registerIntOption_("max_attempts", "<int>", 10, "shuffle: maximum attempts to lower the sequence identity between target and decoy for the shuffle algorithm", false);
     registerDoubleOption_("mz_shift", "<double>", 20, "shift: MZ shift in Thomson for shift decoy method", false);
+    registerDoubleOption_("precursor_mass_shift", "<double>", 0.0, "Mass shift to apply to the precursor ion", false);
   }
 
   ExitCodes main_(int, const char **)
@@ -141,6 +142,7 @@ protected:
     DoubleReal identity_threshold = getDoubleOption_("identity_threshold");
     Int max_attempts = getIntOption_("max_attempts");
     DoubleReal mz_shift = getDoubleOption_("mz_shift");
+    DoubleReal precursor_mass_shift = getDoubleOption_("precursor_mass_shift");
 
     if (method != "shuffle" && method != "pseudo-reverse" && method != "reverse" && method != "shift")
     {
@@ -159,7 +161,7 @@ protected:
     std::cout << "Restricting transitions" << std::endl;
     decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
     std::cout << "Generate decoys" << std::endl;
-    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterm_mods);
+    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterm_mods, precursor_mass_shift);
 
     if (append)
     {

@@ -104,13 +104,12 @@ public:
 
       mz_threshold is used for the matching of theoretical ion series to the observed one
 
-
     */
     void generateDecoys(OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
                         double identity_threshold, int max_attempts, double mz_threshold, 
                         bool theoretical, double mz_shift, bool exclude_similar, 
-                        double similarity_threshold, bool remove_CNterm_mods);
+                        double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift);
 
     /**
       @brief Remove transitions s.t. all peptides have a defined set of transitions.
