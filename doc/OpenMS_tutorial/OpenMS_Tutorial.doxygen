@@ -1223,12 +1223,12 @@ corresponding distance matrix).
 
 	@section References References
 		<A NAME="References"></a>
-		\arg \c <b>[1]</b>:<A HREF="http://bieson.ub.uni-bielefeld.de/frontdoor.php?source_opus=1370">
+		<tt> <b>[1]</b> </tt>:<A HREF="http://bieson.ub.uni-bielefeld.de/frontdoor.php?source_opus=1370">
 		Wiebke Timm:  <em>Peak Intensity Prediction in Mass Spectra using Machine Learning Methods</em>,
 		PhD Thesis (2008)</A>
-		\arg \c <b>[2]</b>:Helge Ritter: <em>Learning with Self-Organizing Map, Artificial Neural Networks</em>, 
+		<tt> <b>[2]</b> </tt>:Helge Ritter: <em>Learning with Self-Organizing Map, Artificial Neural Networks</em>, 
 				In T. Kohonen et al., eds.: Artificial Neural Networks, Elsevier Science Publishers (1991), 379-384
-		\arg \c <b>[3]</b>:<A HREF="http://www.biomedcentral.com/1471-2105/9/443">
+		<tt> <b>[3]</b> </tt>:<A HREF="http://www.biomedcentral.com/1471-2105/9/443">
 		W. Timm, A. Scherbart, S. B&ouml;cker, O. Kohlbacher, T.W. Nattkemper: <em>Peak Intensity Prediction in 
 		MALDI-TOF Mass Spectrometry: A Machine Learning Study to support Quantitative Proteomics</em>, 
 		BMC Bioinformatics (2008)</A>

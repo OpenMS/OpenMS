@@ -104,7 +104,7 @@ using namespace OpenMS;
 
   <p>In theory, merging files with @p IDMerger and rip the resulting file with @p IDSplitter will result in the original input files.
 
-  <B>NOTE: The meta value file origin is removed by the @p IDSplitter!!</B>
+  <B>NOTE: The meta value file origin is removed by the <tt>IDSplitter!!</tt></B>
 
 */
 
