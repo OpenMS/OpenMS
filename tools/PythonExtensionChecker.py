@@ -249,7 +249,7 @@ class DoxygenXMLFile(object):
         self.parsing_error = False
         self.parsing_error_message = None
 
-    def parse(self):
+    def parse_doxygen(self):
         try:
             self.parsed_file =  doxygen_parse(self.fname)
             self.compound = self.parsed_file.get_compounddef()
@@ -291,11 +291,12 @@ class DoxygenXMLFile(object):
         includes = ""
         if len(compound.get_includes()) == 1:
             try:
-                reffile = xml_output_path + compound.get_includes()[0].get_refid() + ".xml"
+                reffile = os.path.join(xml_output_path, compound.get_includes()[0].get_refid() + ".xml")
                 # read includes from ref file
-                dreffile = DoxygenXMLFile(reffile).parse()
+                dreffile = DoxygenXMLFile(reffile).parse_doxygen()
                 include_compound = dreffile.get_compounddef()
             except Exception as e:
+                print "Error: Could not read includes from file for compound %s with error %s" % (comp_name, e.message)
                 include_compound = compound
         else:
             include_compound = compound
@@ -858,10 +859,19 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
     you have executed "ctest -D Nightly" or similar.
 
     TODO also look at ./doc/doxygen/doxygen-error.log ?
+
+    Make sure to build the doxygen xmls first with 
+    $ make doc_xml
+
     """
 
-    xml_output_path = os.path.join(src_path, "doc/xml_output/")
+    xml_output_path = os.path.join(bin_path, "doc", "xml_output")
     xml_files = glob.glob(xml_output_path + "/*.xml")
+    print "Found %s doxygen xml files" % (len(xml_files))
+    if len(xml_files) == 0:
+        raise Exception("No doxygen files found in directory:\n%s,\n" % xml_output_path + \
+                        "Please make sure you build the doxygen xmls (make dox_xml)\n" +\
+                        "and that you specified the correct directory." )
 
     print "Creating pxd file map"
     pxd_file_matching = create_pxd_file_map(src_path)
@@ -883,7 +893,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
     testresults = TestResultHandler()
     for class_cntr, f in enumerate(xml_files):
         dfile = DoxygenXMLFile(f)
-        res = dfile.parse()
+        res = dfile.parse_doxygen()
         if dfile.parsing_error:
             # e.g. <computeroutput><bold></computeroutput>
             cnt.skipped_could_not_parse += 1
