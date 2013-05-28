@@ -3,7 +3,7 @@ set(directory include/OpenMS/ANALYSIS/ID)
 
 ### list all header files of the directory here
 set(sources_list_h
-# AccurateMassSearchEngine.h
+AccurateMassSearchEngine.h
 AScore.h
 ConsensusID.h
 FalseDiscoveryRate.h
