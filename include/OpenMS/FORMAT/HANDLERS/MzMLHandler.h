@@ -3643,7 +3643,7 @@ protected:
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
-      os << "\t<cvList count=\"2\">\n"
+      os << "\t<cvList count=\"5\">\n"
          << "\t\t<cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>\n"
          << "\t\t<cv id=\"UO\" fullName=\"Unit Ontology\" URI=\"http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo\"/>\n"
          << "\t\t<cv id=\"BTO\" fullName=\"BrendaTissue545\" version=\"unknown\" URI=\"http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO\"/>\n"
@@ -4758,6 +4758,7 @@ protected:
             os << "\t\t\t\t\t</scan>\n";
           }
           os << "\t\t\t\t</scanList>\n";
+
           //--------------------------------------------------------------------------------------------
           //precursor list
           //--------------------------------------------------------------------------------------------
@@ -4770,109 +4771,7 @@ protected:
             }
             os << "\t\t\t</precursorList>\n";
           }
-/*
-                    if (spec.getPrecursors().size()!=0)
-                    {
-                        os\t<< "\t\t\t\t<precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
-                        for (Size p=0; p<spec.getPrecursors().size(); ++p)
-                        {
-                            const Precursor& precursor = spec.getPrecursors()[p];
-                            os\t<< "\t\t\t\t\t<precursor>\n";
-                            //--------------------------------------------------------------------------------------------
-                            //isolation window
-                            //--------------------------------------------------------------------------------------------
-                            os\t<< "\t\t\t\t\t\t<isolationWindow>\n";
-                            os  << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-                            os  << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-                            os  << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << precursor.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-                            os\t<< "\t\t\t\t\t\t</isolationWindow>\n";
-                            //userParam: no extra object for it => no user paramters
 
-                            //--------------------------------------------------------------------------------------------
-                            //selected ion list
-                            //--------------------------------------------------------------------------------------------
-                            os\t<< "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
-                            os\t<< "\t\t\t\t\t\t\t<selectedIon>\n";
-                            os  << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-                            os  << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
-                            os  << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" value=\"" << precursor.getIntensity() << "\" unitAccession=\"MS:1000132\" unitName=\"percent of base peak\" unitCvRef=\"MS\" />\n";
-                            for (Size j=0; j<precursor.getPossibleChargeStates().size(); ++j)
-                            {
-                                os  << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
-                            }
-                            //userParam: no extra object for it => no user paramters
-                            os\t<< "\t\t\t\t\t\t\t</selectedIon>\n";
-                            os\t<< "\t\t\t\t\t\t</selectedIonList>\n";
-
-                            //--------------------------------------------------------------------------------------------
-                            //activation
-                            //--------------------------------------------------------------------------------------------
-                            os\t<< "\t\t\t\t\t\t<activation>\n";
-                            os  << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
-                            if (precursor.getActivationMethods().count(Precursor::CID)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::PD)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::PSD)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::SID)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::BIRD)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::ECD)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::IMD)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::SORI)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::HCID)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"high-energy collision-induced dissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::LCID)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::PHD)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::ETD)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().count(Precursor::PQD)!=0)
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
-                            }
-                            if (precursor.getActivationMethods().empty())
-                            {
-                                os  << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
-                            }
-                            //as "precursor" has no own user param its userParam is stored here
-                            writeUserParam_(os, precursor, 6);
-                            os\t<< "\t\t\t\t\t</activation>\n";
-                            os\t<< "\t\t\t\t</precursor>\n";
-                        }
-                        os\t<< "\t\t\t</precursorList>\n";
-                    }
-*/
           //--------------------------------------------------------------------------------------------
           //product list
           //--------------------------------------------------------------------------------------------
@@ -4885,24 +4784,6 @@ protected:
             }
             os << "\t\t\t\t</productList>\n";
           }
-/*
-                    if (spec.getProducts().size()!=0)
-                    {
-                        os\t<< "\t\t\t\t<productList count=\"" << spec.getProducts().size() << "\">\n";
-                        for (Size p=0; p<spec.getProducts().size(); ++p)
-                        {
-                            os\t<< "\t\t\t\t\t<product>\n";
-                            os\t<< "\t\t\t\t\t\t<isolationWindow>\n";
-                            os  << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << spec.getProducts()[p].getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-                            os  << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << spec.getProducts()[p].getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-                            os  << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << spec.getProducts()[p].getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-                            writeUserParam_(os, spec.getProducts()[p], 7);
-                            os\t<< "\t\t\t\t\t\t</isolationWindow>\n";
-                            os\t<< "\t\t\t\t</product>\n";
-                        }
-                        os\t<< "\t\t\t</productList>\n";
-                    }
-*/
 
           //--------------------------------------------------------------------------------------------
           //binary data array list
@@ -5277,7 +5158,7 @@ protected:
         }
 
 
-        os << "    </chromatogramList>" << "\n";
+        os << "\t\t</chromatogramList>" << "\n";
       }
 
 
