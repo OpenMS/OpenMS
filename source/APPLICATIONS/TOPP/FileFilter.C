@@ -122,12 +122,12 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileFilter :
-  public TOPPBase
+    public TOPPBase
 {
 public:
 
   TOPPFileFilter() :
-    TOPPBase("FileFilter", "Extracts or manipulates portions of data from peak, feature or consensus-feature files.")
+      TOPPBase("FileFilter", "Extracts or manipulates portions of data from peak, feature or consensus-feature files.")
   {
   }
 
@@ -200,8 +200,8 @@ private:
           for (StringList::ConstIterator seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
           {
             if (pep_hit_it->getSequence().toString().hasSubstring(*seq_it)
-               || pep_hit_it->getSequence().toUnmodifiedString().hasSubstring(*seq_it))
-            {
+              || pep_hit_it->getSequence().toUnmodifiedString().hasSubstring(*seq_it))
+              {
               sequen = true;
             }
           }
@@ -313,6 +313,28 @@ protected:
     registerIntList_("consensusfeature:map", "i j ...", IntList::create(""), "maps to be extracted from a consensus", false);
     registerFlag_("consensusfeature:map_and", "AND connective of map selection instead of OR.");
 
+    // black and white listing
+    registerTOPPSubsection_("consensusfeature:blackorwhitelist", "Black or white listing of of MS2 spectra by consensus features.");
+    registerInputFile_("consensusfeature:blackorwhitelist:file", "<file>", "", "Input file containing consensus features whose corresponding MS2 spectra should be removed from the mzML file!\n"
+                       "Matching tolerances are taken from 'consensusfeature:blackorwhitelist:rt' and 'consensusfeature:blackorwhitelist:mz' options.\n"
+                       "If consensusfeature:blackorwhitelist:maps is specified, only these will be used.\n", false);
+    setValidFormats_("consensusfeature:blackorwhitelist:file", StringList::create("consensusXML"));
+    registerIntList_("consensusfeature:blackorwhitelist:maps", "i j ...", IntList::create(""), "maps used for black/white list filtering.", false);
+
+    registerDoubleOption_("consensusfeature:blackorwhitelist:rt", "tolerance", 60.0, "retention tolerance [s] for precursor to consensus feature position", false);
+    registerDoubleOption_("consensusfeature:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] for precursor to consensus feature position", false);
+    registerStringOption_("consensusfeature:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
+
+    StringList truefalse;
+    truefalse << "false" << "true";
+    setValidStrings_("consensusfeature:blackorwhitelist:use_ppm_tolerance", truefalse);
+
+    registerStringOption_("consensusfeature:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept.", false, false);
+    setValidStrings_("consensusfeature:blackorwhitelist:blacklist", truefalse);
+
+    setMinFloat_("consensusfeature:blackorwhitelist:rt", 0);
+    setMinFloat_("consensusfeature:blackorwhitelist:mz", 0);
+
     addEmptyLine_();
     registerTOPPSubsection_("f_and_cf", "Feature & Consensus data options");
     registerStringOption_("f_and_cf:charge", "[min]:[max]", ":", "charge range to extract", false);
@@ -329,8 +351,8 @@ protected:
     registerFlag_("id:remove_unannotated_features", "remove features without annotations");
     registerFlag_("id:remove_unassigned_ids", "remove unassigned peptide identifications");
     registerInputFile_("id:blacklist", "<file>", "", "Input file containing MS2 identifications whose corresponding MS2 spectra should be removed from the mzML file!\n"
-                                                     "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
-                                                     "This tool will require all IDs to be matched to an MS2 spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
+                       "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
+                       "This tool will require all IDs to be matched to an MS2 spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
     setValidFormats_("id:blacklist", StringList::create("idXML"));
     registerDoubleOption_("id:rt", "tolerance", 0.1, "retention tolerance [s] for precursor to id position", false);
     registerDoubleOption_("id:mz", "tolerance", 0.001, "m/z tolerance [Th] for precursor to id position", false);
@@ -720,6 +742,24 @@ protected:
         if (ret != EXECUTION_OK) return (ExitCodes)ret;
       }
 
+      // check if filtering by consensus feature is enabled
+      String consensus_blackorwhitelist = getStringOption_("consensusfeature:blackorwhitelist:file");
+
+      if (!consensus_blackorwhitelist.empty())
+      {
+        LOG_INFO << "Filtering out MS2 spectra from raw file using consensus features ..." << std::endl;
+        IntList il = getIntList_("consensusfeature:blackorwhitelist:maps");
+        set<UInt64> maps(il.begin(), il.end());
+        DoubleReal rt_tol = getDoubleOption_("consensusfeature:blackorwhitelist:rt");
+        DoubleReal mz_tol = getDoubleOption_("consensusfeature:blackorwhitelist:mz");
+        bool is_ppm = getStringOption_("consensusfeature:blackorwhitelist:use_ppm_tolerance") == "false" ? false : true;
+        bool is_blacklist = getStringOption_("consensusfeature:blackorwhitelist:blacklist") == "true" ? true : false;
+        int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_blackorwhitelist, rt_tol, mz_tol, is_ppm, maps);
+        if (ret != EXECUTION_OK)
+        {
+          return (ExitCodes)ret;
+        }
+      }
 
       //-------------------------------------------------------------
       // writing output
@@ -1028,13 +1068,13 @@ protected:
       if (!blacklist_imperfect)
       {
         LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
-                  << "If you are sure unmatched ids are ok, set the 'id:blacklist_imperfect' flag!" << std::endl;
+            << "If you are sure unmatched ids are ok, set the 'id:blacklist_imperfect' flag!" << std::endl;
         return UNEXPECTED_RESULT;
       }
       else
       {
         LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
-                 << "Remove the 'id:blacklist_imperfect' flag of you want this to be an error!" << std::endl;
+            << "Remove the 'id:blacklist_imperfect' flag of you want this to be an error!" << std::endl;
       }
     }
 
@@ -1048,6 +1088,88 @@ protected:
           blacklist_idx.end())
       {
         exp2.push_back(exp[i]);
+      }
+    }
+
+    exp = exp2;
+    return EXECUTION_OK;
+  }
+
+  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, MapType& exp, const String& consensus_blacklist, DoubleReal rt_tol, DoubleReal mz_tol, bool unit_ppm, std::set<UInt64> map_ids)
+  {
+    ConsensusMap consensus_map;
+    ConsensusXMLFile cxml_file;
+    cxml_file.load(consensus_blacklist, consensus_map);
+    consensus_map.sortByMZ();
+
+    std::vector<Peak2D> feature_pos;
+    // if map_id are specified, only use these for blacklisting
+    for (ConsensusMap::const_iterator c_it = consensus_map.begin(); c_it != consensus_map.end(); ++c_it)
+    {
+      for (ConsensusFeature::const_iterator f_it = c_it->begin(); f_it != c_it->end(); ++f_it)
+      {
+        UInt64 map_index = f_it->getMapIndex();
+        if (map_ids.empty() || map_ids.find(map_index) != map_ids.end())
+        {
+          Peak2D p;
+          p.setMZ(f_it->getMZ());
+          p.setRT(f_it->getRT());
+          feature_pos.push_back(p);
+        }
+      }
+    }
+
+    // sort by rt to use binary search
+    std::sort(feature_pos.begin(), feature_pos.end(), Peak2D::RTLess());
+    set<Size> list_idx;
+    for ( Size i = 0; i != exp.size(); ++i )
+    {
+      if ( exp[i].getMSLevel() == 2 )
+      {
+        if ( !exp[i].getPrecursors().empty() )
+        {
+          DoubleReal pc_mz = exp[i].getPrecursors()[0].getMZ();
+          DoubleReal pc_rt = exp[i].getRT(); // use rt of MS2
+
+          std::vector<Peak2D>::iterator p_low = std::lower_bound(feature_pos.begin(), feature_pos.end(), pc_rt - rt_tol, Peak2D::RTLess());
+          std::vector<Peak2D>::iterator p_high = std::lower_bound(feature_pos.begin(), feature_pos.end(), pc_rt + rt_tol, Peak2D::RTLess());
+
+          DoubleReal mz_tol_da = unit_ppm ? pc_mz * 1e-6 * mz_tol : mz_tol;
+
+          // if precursor is out of the whole range, then p_low==p_high == (begin()||end())
+          // , thus the following loop will not run
+          for (std::vector<Peak2D>::iterator f_it = p_low; f_it != p_high; ++f_it) // RT already checked.. now check m/z
+          {
+            if (pc_mz - mz_tol_da < f_it->getMZ() && f_it->getMZ() < pc_mz + mz_tol_da)
+            {
+              list_idx.insert(i);
+              // no break, since we might cover more features here
+            }
+          }
+        }
+      }
+    }
+
+    // create new experiment
+    MSExperiment<> exp2 = exp;  // copy meta data
+    exp2.clear(false);   // clear spectra
+
+    for (Size i = 0; i != exp.size(); ++i)
+    {
+      // don't need to sort list as it is increasing
+      if (is_blacklist)
+      {
+        // blacklist: add all spectra not contained in list
+        if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
+        {
+          exp2.push_back(exp[i]);
+        }
+      } else // whitelist: add all non MS2 spectra, and MS2 only if in list
+      {
+        if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
+        {
+          exp2.push_back(exp[i]);
+        }
       }
     }
 
