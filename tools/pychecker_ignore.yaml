@@ -514,6 +514,7 @@ PyOpenMSChecker:
     - OpenMS::TOPPASToolVertex::IOInfo
     - OpenMS::TOPPASScene::TOPPProcess
     - OpenMS::TOPPASVertex::VertexRoundPackage
+    - TOPPPCV
 
     ######################################################################## 
     #        Manually cureated list of classes we do not want to wrap
@@ -528,6 +529,9 @@ PyOpenMSChecker:
     - OpenMS::StopWatch
     - OpenMS::StopFileWatcher
     - OpenMS::FileWatcher
+
+    # prduces compile error
+    - OpenMS::IsotopeWaveletTransform::TransSpectrum
 
     - OpenMS::FileWatcher
     - OpenMS::GaussFilterAlgorithm # very new, use GaussFilter for most work!
@@ -573,27 +577,8 @@ PyOpenMSChecker:
     - OpenMS::SimpleExtender
     - OpenMS::SimpleExtender::IndexWithPriority
     - OpenMS::SimpleExtender::IndexWithPriority::PriorityLess
-    - OpenMS::SILACClustering
-    - OpenMS::SILACFilter
-    - OpenMS::SILACFiltering
-    - OpenMS::SILACFiltering::BlacklistEntry
-    - OpenMS::SILACFiltering::SpectrumInterpolation
-    - OpenMS::SILACLabeler
-    - OpenMS::SILACPattern
-    - OpenMS::SILACPoint
-    # IMS
-    - OpenMS::ims
-    - OpenMS::ims::IMSAlphabet
-    - OpenMS::ims::IMSAlphabet::MassSortingCriteria_
     - OpenMS::ims::IMSAlphabetParser
     - OpenMS::ims::IMSAlphabetTextParser
-    - OpenMS::ims::IMSElement
-    - OpenMS::ims::IMSIsotopeDistribution
-    - OpenMS::ims::IMSIsotopeDistribution::Peak
-    - OpenMS::ims::IntegerMassDecomposer
-    - OpenMS::ims::MassDecomposer
-    - OpenMS::ims::RealMassDecomposer
-    - OpenMS::ims::Weights
 
     # Is wrapped but under different name
     - OpenMS::DPosition
@@ -650,7 +635,9 @@ PyOpenMSChecker:
     - OpenMS::ReactionMonitoringTransition::ProductMZLess
     - OpenMS::PeptideHit::ScoreLess
     - OpenMS::MSSpectrum::RTLess
+    - OpenMS::ChromatogramPeak::RTLess
     - OpenMS::Peak2D::RTLess
+    - OpenMS::ChromatogramPeak::IntensityLess
 
     #  RangeUtils - we probably cannot use them in Python
     - OpenMS::InIntensityRange
@@ -664,6 +651,8 @@ PyOpenMSChecker:
     - OpenMS::IsEmptySpectrum
     - OpenMS::InRTRange
     - OpenMS::HasMetaValue
+    - OpenMS::IsInCollisionEnergyRange
+    - OpenMS::IsInIsolationWindowSizeRange
 
     # CONCEPT 
     - OpenMS::SingletonRegistry
@@ -684,7 +673,6 @@ PyOpenMSChecker:
     - OpenMS::DocumentIDTagger
 
     # FORMAT: helpers, old or not supported file formats
-    - OpenMS::MsInspectFile
     - OpenMS::SpecArrayFile
     - OpenMS::PersistentObject
     - OpenMS::FastaIterator
@@ -694,10 +682,8 @@ PyOpenMSChecker:
     - OpenMS::CsvFile
     - OpenMS::PepNovoOutfile
     - OpenMS::ToolDescriptionFile
-    - OpenMS::MascotGenericFile
     - OpenMS::PTMXMLFile
     - OpenMS::UnimodXMLFile
-    - OpenMS::MS2File
     - OpenMS::FastaIteratorIntern
     - OpenMS::XMassFile
     - OpenMS::PepNovoInfile
@@ -733,6 +719,9 @@ PyOpenMSChecker:
     - OpenMS::TransitionGroupOpenMS
     - OpenMS::DiaPrescore
     - OpenMS::SpectrumAddition
+    - OpenSwath::ChromatogramMeta
+    - OpenSwath::ISpectrumAccess
+    - OpenSwath::SpectrumMeta
      
     # SuperHirn classes
     - OpenMS::DeconvPeak
@@ -823,11 +812,6 @@ PyOpenMSChecker:
     - OpenMS::ExtendedIsotopeFitter1D
     - OpenMS::LmaIsotopeModel
     - OpenMS::FeatureFinderAlgorithmSHCtrl
-    # - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace
-    # - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern
-    # - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces
-    # - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::Seed
-    # - OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern
     
     # Interfaces - they are not ready yet
     - OpenMS::Interfaces::ISpectraWriter
@@ -860,39 +844,36 @@ PyOpenMSChecker:
     - OpenMS::O18Labeler
     - OpenMS::DetectabilitySimulation
 
-    # DATASTRUCTURES -- not sure whether these make sense to wrap
+    # DATASTRUCTURES
+    - OpenMS::SuffixArray
     - OpenMS::SuffixArraySeqan
     - OpenMS::SuffixArrayPeptideFinder
-    - OpenMS::SuffixArray
     - OpenMS::SuffixArrayTrypticCompressed
     - OpenMS::SuffixArrayTrypticSeqan
     - OpenMS::GridFeature
     - OpenMS::BinaryTreeNode
-    # - OpenMS::Matrix
     - OpenMS::Date
-    # - OpenMS::QTCluster
      
-    # COMPARISON - we might want to wrap those
-    - OpenMS::BinnedSpectralContrastAngle
-    - OpenMS::ZhangSimilarityScore
-    - OpenMS::BinnedSharedPeakCount
-    - OpenMS::SingleLinkage
+    # COMPARISON - mostly functors
     - OpenMS::PeakSpectrumCompareFunctor
-    - OpenMS::SteinScottImproveScore
-    - OpenMS::CompareFouriertransform
-    - OpenMS::BinnedSpectrum::NoSpectrumIntegrated
-    - OpenMS::HierarchicalClustering::Cluster
-    - OpenMS::ClusterHierarchical
-    - OpenMS::BinnedSumAgreeingIntensities
     - OpenMS::BinnedSpectrumCompareFunctor::IncompatibleBinning
-    - OpenMS::HierarchicalClustering::BoundingBox
-    - OpenMS::ClusterAnalyzer
     - OpenMS::BinnedSpectrumCompareFunctor
+    - OpenMS::CompareFouriertransform
+
+    - OpenMS::BinnedSpectralContrastAngle
+    - OpenMS::BinnedSharedPeakCount
+    - OpenMS::BinnedSpectrum::NoSpectrumIntegrated
+    - OpenMS::BinnedSumAgreeingIntensities
+    - OpenMS::ZhangSimilarityScore
+    - OpenMS::SingleLinkage
+    - OpenMS::SteinScottImproveScore
+    - OpenMS::ClusterHierarchical
+    - OpenMS::ClusterAnalyzer
     - OpenMS::EuclideanSimilarity
-    - OpenMS::BinnedSpectrum
     - OpenMS::CompleteLinkage
     - OpenMS::SpectrumAlignmentScore
-    - OpenMS::HierarchicalClustering
     - OpenMS::SpectrumCheapDPCorr
     - OpenMS::PeakAlignment
 
+    - OpenMS::HierarchicalClustering::Cluster
+    - OpenMS::HierarchicalClustering::BoundingBox
