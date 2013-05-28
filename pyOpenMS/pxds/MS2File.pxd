@@ -1,5 +1,6 @@
 from Types cimport *
 from String cimport *
+from ProgressLogger cimport *
 from MSExperiment cimport *
 
 cdef extern from "<OpenMS/FORMAT/MS2File.h>" namespace "OpenMS":

@@ -286,6 +286,7 @@ test_Convexhull.py
 testCVTermList.py
 test_DIAScoring.py
 test_FileIO.py
+test_Isobaric_Quantitation.py
 testLightTargetedExperiment.py
 test_MRMFeatureFinderScoring.py
 test_MSSpectrumAndRichSpectrum.py
