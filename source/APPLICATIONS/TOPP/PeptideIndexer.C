@@ -125,15 +125,17 @@ namespace seqan
     }
 
     template <typename TIter1, typename TIter2>
-    void operator()(TIter1& iter_pep, TIter2& iter_prot)
+    void operator()(const TIter1& iter_pep, const TIter2& iter_prot)
     {
       // remember mapping of proteins to peptides and vice versa
-      for (unsigned i_pep = 0; i_pep < countOccurrences(iter_pep); ++i_pep)
+      const unsigned count_occ = countOccurrences(iter_pep);
+      for (unsigned i_pep = 0; i_pep < count_occ; ++i_pep)
       {
-        OpenMS::Size idx_pep = getOccurrences(iter_pep)[i_pep].i1;
-        for (unsigned i_prot = 0; i_prot < countOccurrences(iter_prot); ++i_prot)
+        const OpenMS::Size idx_pep = getOccurrences(iter_pep)[i_pep].i1;
+        const unsigned count_occ_prot = countOccurrences(iter_prot);
+        for (unsigned i_prot = 0; i_prot < count_occ_prot; ++i_prot)
         {
-          OpenMS::Size idx_prot = getOccurrences(iter_prot)[i_prot].i1;
+          const OpenMS::Size idx_prot = getOccurrences(iter_prot)[i_prot].i1;
           pep_to_prot[idx_pep].insert(idx_prot);
         }
       }
@@ -333,8 +335,8 @@ namespace seqan
     AminoAcid charB,
     TEquivalenceTable equivalence)
   {
-    unsigned a_index = ordValue(charA);
-    unsigned b_index = ordValue(charB);
+    const unsigned a_index = ordValue(charA);
+    const unsigned b_index = ordValue(charB);
     return (equivalence[a_index] & equivalence[b_index]) != 0;
   }
 
@@ -453,7 +455,7 @@ protected:
       seqan::StringSet<seqan::Peptide> pep_DB;
       for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
       {
-        String run_id = it1->getIdentifier();
+        //String run_id = it1->getIdentifier();
         vector<PeptideHit> hits = it1->getHits();
         for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
         {
@@ -470,6 +472,7 @@ protected:
         Size hits(0);
         StopWatch sw;
         sw.start();
+        SignedSize protDB_length = (SignedSize) length(prot_DB);
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -481,7 +484,7 @@ protected:
           Size hits_threads(0);
 
 #pragma omp for
-          for (SignedSize i = 0; i < length(prot_DB); ++i)
+          for (SignedSize i = 0; i < protDB_length; ++i)
           {
             seqan::Finder<seqan::Peptide> finder(prot_DB[i]);
             while (find(finder, pattern))
@@ -504,7 +507,7 @@ protected:
             }
 
           }
-        }
+        } // end parallel
 
         sw.stop();
 
@@ -538,8 +541,9 @@ protected:
         TIndex pep_Index(pep_DB_SA);
 
         // use only full peptides in Suffix Array
-        resize(indexSA(pep_Index), length(pep_DB_SA));
-        for (unsigned i = 0; i < length(pep_DB_SA); ++i)
+        const unsigned length_SA = length(pep_DB_SA);
+        resize(indexSA(pep_Index), length_SA);
+        for (unsigned i = 0; i < length_SA; ++i)
         {
           indexSA(pep_Index)[i].i1 = i;
           indexSA(pep_Index)[i].i2 = 0;
@@ -754,7 +758,7 @@ runidx_to_accessions[run_idx].insert(p_hit->getAccession());
     /// exit if no peptides were matched to decoy
     if (stats_count_m_d + stats_count_m_td == 0)
     {
-      String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct a concatenated database? Are your 'decoy_string' (=" + getStringOption_("decoy_string") + ") and 'prefix' (=" + String(getFlag_("prefix")) + ") settings correct?");
+      String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + getStringOption_("decoy_string") + ") and 'prefix' (=" + String(getFlag_("prefix")) + ") settings correct?");
       if (getStringOption_("missing_decoy_action") == "error")
       {
         LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nQuitting..." << std::endl;
