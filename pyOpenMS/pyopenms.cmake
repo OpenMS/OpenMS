@@ -19,13 +19,9 @@ MESSAGE(STATUS "found python ${PY_VERSION}")
 
 # windows support restrecited to pyhton2.7 at the moment !
 IF (WIN32)
-    IF (NOT PY_VERSION STREQUAL "2.7")
-        MESSAGE(STATUS "need python 2.7 on windows")
-        RETURN()
-    ENDIF()
 
     IF (NOT MSVC90)
-        MESSAGE(STATUS "need visual c++ 2008 compiler for building python 2.7 extensions")
+        MESSAGE(STATUS "need visual c++ 2008 compiler for building python 2.[67] extensions")
         RETURN()
     ENDIF()
 
@@ -75,21 +71,21 @@ IF(AUTOWRAP_MISSING)
 ELSE()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,12))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0,2,16))"
         RESULT_VARIABLE AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
     )
+    execute_process(
+        COMMAND
+        ${PYTHON_EXECUTABLE} -c "import autowrap; print '%d.%d.%d' % (autowrap.version)"
+        OUTPUT_VARIABLE AUTOWRAP_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
     IF(AUTOWRAP_VERSION_OK)
-        MESSAGE(STATUS "Looking for autowrap - found autowrap, version ok")
+        MESSAGE(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         SET(AUTOWRAP-VERSION-OK TRUE)
     ELSE()
-        execute_process(
-            COMMAND
-            ${PYTHON_EXECUTABLE} -c "import autowrap; print '%d.%d.%d' % (autowrap.version)"
-            OUTPUT_VARIABLE AUTOWRAP_VERSION
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
         MESSAGE(STATUS "Looking for autowrap - version ${AUTOWRAP_VERSION} is to old, please upgrade")
     ENDIF()
 ENDIF()
@@ -189,6 +185,7 @@ FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/converters)
 
 FILE(COPY pyOpenMS/License.txt DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 FILE(COPY pyOpenMS/MANIFEST.in DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
+FILE(COPY pyOpenMS/README.rst DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
 FILE(COPY pyOpenMS/setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/distribute_setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
@@ -201,13 +198,13 @@ IF (WIN32)
     FILE(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
     SET(FOUND_XERCES FALSE)
     FOREACH(CONTRIB_PATH ${CONTRIB_DIR})
-        IF (EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_0.dll)
-            FILE(COPY ${CONTRIB_PATH}/lib/xerces-c_3_0.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+        IF (EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
+            FILE(COPY ${CONTRIB_PATH}/lib/xerces-c_3_1.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
             SET(FOUND_XERCES TRUE)
         ENDIF()
     ENDFOREACH()
     IF (NOT FOUND_XERCES)
-        MESSAGE(STATUS "cound not find xerces dll in contrib dir")
+        MESSAGE(STATUS "could not find xerces dll in contrib dir")
         RETURN()
     ENDIF()
 ENDIF()
@@ -235,11 +232,11 @@ FILE(APPEND ${ENVPATH} MSVCP90DLL="${MSVCP90DLL}" "\n")
 FILE(APPEND ${ENVPATH} OPEN_MS_BUILD_TYPE="${CMAKE_BUILD_TYPE}" "\n")
 IF (WIN32)
     IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/OpenMSd.dll" "\n")
-        FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/OpenSwathAlgod.dll" "\n")
+        FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/Debug/OpenMSd.dll" "\n")
+        FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/Debug/OpenSwathAlgod.dll" "\n")
     ELSE()
-        FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/OpenMS.dll" "\n")
-        FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/OpenSwathAlgo.dll" "\n")
+        FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenMS.dll" "\n")
+        FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenSwathAlgo.dll" "\n")
     ENDIF()
 ENDIF()
 

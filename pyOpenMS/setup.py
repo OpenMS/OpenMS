@@ -1,4 +1,3 @@
-import pdb
 #input-encoding: latin-1
 
 import distribute_setup
@@ -115,7 +114,6 @@ ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
 from version import version
-full_version= "%s_%s" % (version, timestamp)
 
 print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
 print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
@@ -150,7 +148,7 @@ if iswin:
         shutil.copy(j(QT_LIBRARY_DIR, "QtGuid4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtSqld4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtNetworkd4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_0D.dll"),\
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1D.dll"),\
                         "pyopenms")
     else:
         libraries=["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "gsl", "cblas"]
@@ -158,7 +156,7 @@ if iswin:
         shutil.copy(j(QT_LIBRARY_DIR, "QtGui4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtSql4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_0.dll"),\
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"),\
                         "pyopenms")
 
 elif sys.platform == "linux2":
@@ -181,6 +179,9 @@ else:
 
 library_dirs=[ OPEN_MS_BUILD_DIR,
                j(OPEN_MS_BUILD_DIR,"lib"),
+               j(OPEN_MS_BUILD_DIR,"bin"),
+               j(OPEN_MS_BUILD_DIR,"bin", "Release"),
+               j(OPEN_MS_BUILD_DIR,"Release"),
                j(OPEN_MS_CONTRIB_BUILD_DIR,"lib"),
                QT_LIBRARY_DIR,
               ]
@@ -231,7 +232,7 @@ ext = Extension(
         # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
         # such that  boost::throw_excption() is declared but not implemented.
         # The linker does not like that very much ...
-        extra_compile_args = iswin and [ "/EHs"] or (IS_DEBUG and ["-g2"] or []),
+        extra_compile_args = iswin and [ "/EHs", "/bigobj"] or (IS_DEBUG and ["-g2"] or []),
         extra_link_args = extra_link_args
     )
 
@@ -245,7 +246,7 @@ shutil.copytree(source_share, target_share, ignore=lambda *a: ["examples"])
 share_data = []
 
 if iswin:
-    share_data += [MSVCR90DLL, "xerces-c_3_0.dll"]
+    share_data += [MSVCR90DLL, "xerces-c_3_1.dll"]
 
 
 share_data.append("License.txt")
@@ -260,9 +261,24 @@ setup(
     packages = ["pyopenms"],
     ext_package = "pyopenms",
 
-    version = full_version,
+    version = version,
 
-    url = "http://github.com/uweschmitt/pyopenms",
+    maintainer="Uwe Schmitt",
+    maintainer_email="uschmitt@mineway.de",
+    license="http://opensource.org/licenses/BSD-3-Clause",
+    platforms=["any"],
+    description="Python wrapper for C++ LCMS library OpenMS",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: BSD License",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "Topic :: Scientific/Engineering :: Chemistry",
+    ],
+    long_description=open("README.rst").read(),
+    zip_safe=False,
+
+    url = "http://open-ms.de",
 
     author = "Uwe Schmitt",
     author_email = "uschmitt@mineway.de",
