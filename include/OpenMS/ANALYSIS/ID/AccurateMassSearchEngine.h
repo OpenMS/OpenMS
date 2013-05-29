@@ -69,6 +69,11 @@ namespace OpenMS
             return adduct_mass_;
         }
 
+        DoubleReal getAdductMass() const
+        {
+            return adduct_mass_;
+        }
+
         void setAdductMass(const DoubleReal& m)
         {
             adduct_mass_ = m;
@@ -99,6 +104,11 @@ namespace OpenMS
             return charge_;
         }
 
+        DoubleReal getCharge() const
+        {
+            return charge_;
+        }
+
         void setCharge(const DoubleReal& ch)
         {
             charge_ = ch;
@@ -114,6 +124,36 @@ namespace OpenMS
             error_ppm_ = ppm;
         }
 
+        DoubleReal getObservedRT()
+        {
+            return observed_rt_;
+        }
+
+        DoubleReal getObservedRT() const
+        {
+            return observed_rt_;
+        }
+
+        void setObservedRT(const DoubleReal& rt)
+        {
+            observed_rt_ = rt;
+        }
+
+        DoubleReal getObservedIntensity()
+        {
+            return observed_intensity_;
+        }
+
+        DoubleReal getObservedIntensity() const
+        {
+            return observed_intensity_;
+        }
+
+        void setObservedIntensity(const DoubleReal& intensity)
+        {
+            observed_intensity_ = intensity;
+        }
+
         DoubleReal getMatchingIndex()
         {
             return matching_index_;
@@ -125,6 +165,11 @@ namespace OpenMS
         }
 
         String getFoundAdduct()
+        {
+            return found_adduct_;
+        }
+
+        String getFoundAdduct() const
         {
             return found_adduct_;
         }
@@ -169,6 +214,11 @@ namespace OpenMS
             return isotopes_sim_score_;
         }
 
+        DoubleReal getIsotopesSimScore() const
+        {
+            return isotopes_sim_score_;
+        }
+
         void setIsotopesSimScore(const DoubleReal& sim_score)
         {
             isotopes_sim_score_ = sim_score;
@@ -185,6 +235,8 @@ namespace OpenMS
         DoubleReal found_mass_;
         DoubleReal charge_;
         DoubleReal error_ppm_;
+        DoubleReal observed_rt_;
+        DoubleReal observed_intensity_;
         Size matching_index_;
 
         String found_adduct_;
@@ -223,6 +275,7 @@ private:
     /// private member functions
     void parseMappingFile_(const String&);
     void parseStructMappingFile_(const String&);
+    void parseAdductsFile_(const String&);
     void searchMass_(const DoubleReal&, std::vector<Size>& hit_indices);
 
     void parseAdductString_(const String&, std::vector<String>&);
@@ -246,6 +299,9 @@ private:
     String mass_error_unit_;
     String ion_mode_;
     bool iso_similarity_;
+
+    String pos_adducts_fname_;
+    String neg_adducts_fname_;
 
     StringList pos_adducts_;
     StringList neg_adducts_;

@@ -100,8 +100,8 @@ protected:
     {
         registerInputFile_("in", "<file>", "", "featureXML file");
         setValidFormats_("in", StringList::create("featureXML"));
-        registerOutputFile_("out", "<file>", "", "???");
-        setValidFormats_("out", StringList::create("featureXML"));
+        registerOutputFile_("out", "<file>", "", "mzTab file");
+        setValidFormats_("out", StringList::create("csv"));
 
         // addEmptyLine_();
         // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
@@ -145,6 +145,7 @@ protected:
         MzTab mztab_output;
 
         FeatureXMLFile().load(in, ms_feat_map);
+        MzTabFile mztab_outfile;
 
         //-------------------------------------------------------------
         // get parameters
@@ -173,6 +174,8 @@ protected:
 
         // annotate output with data processing info
         //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+
+        mztab_outfile.store(out, mztab_output);
 
         //FeatureXMLFile().store(out, ms_feat_map);
 
