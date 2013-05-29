@@ -48,7 +48,7 @@
 #include <numeric>
 #include <sstream>
 #include <fstream>
-
+#include <locale>
 
 #include <boost/dynamic_bitset.hpp>
 
