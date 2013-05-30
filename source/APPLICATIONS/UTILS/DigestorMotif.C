@@ -137,7 +137,7 @@ protected:
     //-------------------------------------------------------------
 
     // This should be updated if more cleavage enzymes are available
-    digestor.setEnzyme(EnzymaticDigestion::TRYPSIN);
+    digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
     search_parameters.enzyme = ProteinIdentification::TRYPSIN;
     digestor.setMissedCleavages(missed_cleavages);
 

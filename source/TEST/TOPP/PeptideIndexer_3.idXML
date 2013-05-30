@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2005-01-27T17:47:41" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="test" score="0" sequence="MBCDEFGKABCRAAAKAARPBBBB" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="40" sequence="DFIANGER" charge="2" protein_refs="PH_0" > // some decoy hit..
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="40" sequence="MBCDEFGK" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="40" sequence="MBCDEFGKABCR" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="40" sequence="MBCDEFGKABCRA" charge="2" protein_refs="PH_0" >	// not a hit --> C-term false
+			</PeptideHit>
+			<PeptideHit score="40" sequence="MBCDEFGKABCRAAAKAAR" charge="2" protein_refs="" >  // not a hit --> proline follows
+			</PeptideHit>
+			<PeptideHit score="40" sequence="MBCDEFGKABCRAAAKAARPBBBB" charge="2" protein_refs="" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >		// same as above, just without leading meth (which indexer should ignore anyways)
+			<PeptideHit score="40" sequence="BCDEFGK" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="40" sequence="BCDEFGKABCR" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="40" sequence="BCDEFGKABCRA" charge="2" protein_refs="PH_0" >	// not a hit --> C-term false
+			</PeptideHit>
+			<PeptideHit score="40" sequence="BCDEFGKABCRAAAKAAR" charge="2" protein_refs="" >  // not a hit --> proline follows
+			</PeptideHit>
+			<PeptideHit score="40" sequence="BCDEFGKABCRAAAKAARPBBBB" charge="2" protein_refs="" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="0.0001" sequence="ABCR" charge="2" protein_refs="" >				// fully tryptic
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="ABCRAAAK" charge="2" protein_refs="" >			// fully tryptic
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="DEFGK" charge="2" protein_refs="" >			// semi tryptic
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="GKABCRAA" charge="2" protein_refs="" >			// invalid infix
+			</PeptideHit>
+		</PeptideIdentification>
+     
+	</IdentificationRun>
+</IdXML>

@@ -165,7 +165,7 @@ protected:
     EnzymaticDigestion digestor;
     if (enzyme == "Trypsin")
     {
-      digestor.setEnzyme(EnzymaticDigestion::TRYPSIN);
+      digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
       digestor.setMissedCleavages(missed_cleavages);
       search_parameters.enzyme = ProteinIdentification::TRYPSIN;
     }

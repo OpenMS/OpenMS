@@ -58,12 +58,48 @@ START_SECTION([EXTRA] ~EnzymaticDigestion())
 	delete e_ptr;
 END_SECTION
 
+START_SECTION((EnzymaticDigestion(const EnzymaticDigestion& rhs) ))
+  EnzymaticDigestion ed;
+  ed.setMissedCleavages(1234);
+  ed.setEnzyme(EnzymaticDigestion::SIZE_OF_ENZYMES);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+  ed.setLogModelEnabled(true);
+  ed.setLogThreshold(81231);
+  
+  EnzymaticDigestion ed2(ed);
+
+  TEST_EQUAL(ed.getMissedCleavages(), ed2.getMissedCleavages());
+  TEST_EQUAL(ed.getEnzyme(), ed2.getEnzyme());
+  TEST_EQUAL(ed.getSpecificity(), ed2.getSpecificity());
+  TEST_EQUAL(ed.isLogModelEnabled(), ed2.isLogModelEnabled());
+  TEST_EQUAL(ed.getLogThreshold(), ed2.getLogThreshold());
+
+END_SECTION
+
+START_SECTION((EnzymaticDigestion& operator=(const EnzymaticDigestion& rhs) ))
+  EnzymaticDigestion ed;
+  ed.setMissedCleavages(1234);
+  ed.setEnzyme(EnzymaticDigestion::SIZE_OF_ENZYMES);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+  ed.setLogModelEnabled(true);
+  ed.setLogThreshold(81231);
+  
+  EnzymaticDigestion ed2=ed;
+
+  TEST_EQUAL(ed.getMissedCleavages(), ed2.getMissedCleavages());
+  TEST_EQUAL(ed.getEnzyme(), ed2.getEnzyme());
+  TEST_EQUAL(ed.getSpecificity(), ed2.getSpecificity());
+  TEST_EQUAL(ed.isLogModelEnabled(), ed2.isLogModelEnabled());
+  TEST_EQUAL(ed.getLogThreshold(), ed2.getLogThreshold());
+
+END_SECTION
+
 START_SECTION((SignedSize getMissedCleavages() const ))
 	TEST_EQUAL(EnzymaticDigestion().getMissedCleavages(),0)
 END_SECTION
 
 START_SECTION((Enzyme getEnzyme() const))
-	TEST_EQUAL(EnzymaticDigestion().getEnzyme(),EnzymaticDigestion::TRYPSIN)
+	TEST_EQUAL(EnzymaticDigestion().getEnzyme(),EnzymaticDigestion::ENZYME_TRYPSIN)
 END_SECTION
 
 START_SECTION((void setMissedCleavages(SignedSize missed_cleavages)))
@@ -74,16 +110,37 @@ END_SECTION
 
 START_SECTION((void setEnzyme(Enzyme enzyme)))
 	EnzymaticDigestion ed;
-  ed.setEnzyme(EnzymaticDigestion::TRYPSIN);
-  TEST_EQUAL(ed.getEnzyme(), EnzymaticDigestion::TRYPSIN);
+  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
+  TEST_EQUAL(ed.getEnzyme(), EnzymaticDigestion::ENZYME_TRYPSIN);
   ed.setEnzyme(EnzymaticDigestion::SIZE_OF_ENZYMES);
   TEST_EQUAL(ed.getEnzyme(), EnzymaticDigestion::SIZE_OF_ENZYMES);
 END_SECTION
 
-START_SECTION((Enzyme getEnzymeByName(const String& name)))
-	EnzymaticDigestion ed;
-	TEST_EQUAL(ed.getEnzymeByName("Trypsin"), EnzymaticDigestion::TRYPSIN);
-	TEST_EQUAL(ed.getEnzymeByName("DoesNotExist"), EnzymaticDigestion::SIZE_OF_ENZYMES);
+START_SECTION((static Enzyme getEnzymeByName(const String& name)))
+	TEST_EQUAL(EnzymaticDigestion::getEnzymeByName("Trypsin"), EnzymaticDigestion::ENZYME_TRYPSIN);
+	TEST_EQUAL(EnzymaticDigestion::getEnzymeByName("DoesNotExist"), EnzymaticDigestion::SIZE_OF_ENZYMES);
+END_SECTION
+
+START_SECTION(( Specificity getSpecificity() const ))
+  EnzymaticDigestion ed;
+  
+  TEST_EQUAL(ed.getSpecificity(), EnzymaticDigestion::SPEC_FULL);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_NONE);
+  TEST_EQUAL(ed.getSpecificity(), EnzymaticDigestion::SPEC_NONE);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+  TEST_EQUAL(ed.getSpecificity(), EnzymaticDigestion::SPEC_SEMI);
+
+END_SECTION
+
+START_SECTION(( void setSpecificity(Specificity spec) ))
+  NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION(( static Specificity getSpecificityByName(const String & name) ))
+	TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[0]), EnzymaticDigestion::SPEC_FULL);
+	TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[1]), EnzymaticDigestion::SPEC_SEMI);
+	TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[2]), EnzymaticDigestion::SPEC_NONE);
+	TEST_EQUAL(EnzymaticDigestion::getSpecificityByName("DoesNotExist"), EnzymaticDigestion::SIZE_OF_SPECIFICITY);
 END_SECTION
 
 START_SECTION((bool isLogModelEnabled() const))
@@ -243,6 +300,82 @@ START_SECTION((void digest(const AASequence& protein, std::vector<AASequence>& o
 	TEST_EQUAL(out[8].toString(),"PESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRR")
 	TEST_EQUAL(out[9].toString(),"PCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHK")
 	TEST_EQUAL(out[10].toString(),"PKATEEQLKTVMENFVAFDKCCAADDKEACFAVEGPKLVVSTQTALA")
+
+END_SECTION
+
+
+START_SECTION(( bool isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length) ))
+  EnzymaticDigestion ed;
+  ed.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
+
+  AASequence prot = "ABCDEFGKABCRAAAKAARPBBBB";
+  TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false);  // invalid position
+  TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false);  // invalid length
+  TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false);  // invalid size
+  TEST_EQUAL(ed.isValidProduct("", 10, 0), false);  // invalid size
+
+  TEST_EQUAL(ed.isValidProduct(prot, 0, 3), false);  // invalid N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true);   //   valid N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true);   //   valid fully-tryptic 
+  TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true);   //   valid fully-tryptic 
+  TEST_EQUAL(ed.isValidProduct(prot, 0, 19), false);  // invalid C-term - followed by proline
+  TEST_EQUAL(ed.isValidProduct(prot, 8, 3), false);  // invalid C-term
+  TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false);  // invalid C+N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 1, 7), false);  // invalid N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);  // the whole thing
+
+  prot = "MBCDEFGKABCRAAAKAA"; // starts with Met - we assume the cleaved form without Met occurs in vivo
+  TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);  // valid N-term (since protein starts with Met)
+  TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);  // the whole thing
+
+  //################################################
+  // same as above, just with other specificity
+
+  ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI); // require one special cleavage site
+  prot = "ABCDEFGKABCRAAAKAARPBBBB";
+  TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false);  // invalid position
+  TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false);  // invalid length
+  TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false);  // invalid size
+  TEST_EQUAL(ed.isValidProduct("", 10, 0), false);  // invalid size
+
+  TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true);   // invalid N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true);   //   valid N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true);   //   valid fully-tryptic 
+  TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true);   //   valid fully-tryptic 
+  TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true);  // invalid C-term - followed by proline
+  TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true);  // invalid C-term
+  TEST_EQUAL(ed.isValidProduct(prot, 3, 6), false);  // invalid C+N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);  // invalid N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);  // the whole thing
+
+  prot = "MBCDEFGKABCRAAAKAA"; // starts with Met - we assume the cleaved form without Met occurs in vivo
+  TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);  // valid N-term (since protein starts with Met)
+  TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);  // the whole thing
+
+  //################################################
+  // same as above, just with other specificity
+
+  ed.setSpecificity(EnzymaticDigestion::SPEC_NONE); // require no special cleavage site
+  prot = "ABCDEFGKABCRAAAKAARPBBBB";
+  TEST_EQUAL(ed.isValidProduct(prot, 100, 3), false);  // invalid position
+  TEST_EQUAL(ed.isValidProduct(prot, 10, 300), false);  // invalid length
+  TEST_EQUAL(ed.isValidProduct(prot, 10, 0), false);  // invalid size
+  TEST_EQUAL(ed.isValidProduct("", 10, 0), false);  // invalid size
+
+  TEST_EQUAL(ed.isValidProduct(prot, 0, 3), true);   // invalid N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 0, 8), true);   //   valid N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 8, 4), true);   //   valid fully-tryptic 
+  TEST_EQUAL(ed.isValidProduct(prot, 8, 8), true);   //   valid fully-tryptic 
+  TEST_EQUAL(ed.isValidProduct(prot, 0, 19), true);  // invalid C-term - followed by proline
+  TEST_EQUAL(ed.isValidProduct(prot, 8, 3), true);  // invalid C-term
+  TEST_EQUAL(ed.isValidProduct(prot, 3, 6), true);  // invalid C+N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);  // invalid N-term
+  TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);  // the whole thing
+
+  prot = "MBCDEFGKABCRAAAKAA"; // starts with Met - we assume the cleaved form without Met occurs in vivo
+  TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true);  // valid N-term (since protein starts with Met)
+  TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true);  // the whole thing
 
 END_SECTION
 

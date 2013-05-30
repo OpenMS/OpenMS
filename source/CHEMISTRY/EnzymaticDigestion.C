@@ -42,10 +42,13 @@ using namespace std;
 namespace OpenMS
 {
   const std::string EnzymaticDigestion::NamesOfEnzymes[] = {"Trypsin"};
+  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
+
 
   EnzymaticDigestion::EnzymaticDigestion() :
     missed_cleavages_(0),
-    enzyme_(TRYPSIN),
+    enzyme_(ENZYME_TRYPSIN),
+    specificity_(SPEC_FULL),
     use_log_model_(false),
     log_model_threshold_(0.25),
     model_data_()
@@ -65,6 +68,33 @@ namespace OpenMS
       CleavageModel cl(components[2].toDouble(), components[3].toDouble());
       model_data_[bs] = cl;
     }
+  }
+  
+  EnzymaticDigestion::EnzymaticDigestion(const EnzymaticDigestion& rhs)
+    :
+    missed_cleavages_(rhs.missed_cleavages_),
+    enzyme_(rhs.enzyme_),
+    specificity_(rhs.specificity_),
+    use_log_model_(rhs.use_log_model_),
+    log_model_threshold_(rhs.log_model_threshold_),
+    model_data_(rhs.model_data_)
+  {
+
+  }
+
+  /// Assignment operator
+  EnzymaticDigestion& EnzymaticDigestion::operator=(const EnzymaticDigestion& rhs)
+  {
+    if (this != &rhs)
+    {
+      missed_cleavages_ = rhs.missed_cleavages_;
+      enzyme_ = rhs.enzyme_;
+      specificity_ = rhs.specificity_;
+      use_log_model_ = rhs.use_log_model_;
+      log_model_threshold_ = rhs.log_model_threshold_;
+      model_data_ = rhs.model_data_;
+    }
+    return *this;
   }
 
   SignedSize EnzymaticDigestion::getMissedCleavages() const
@@ -92,10 +122,30 @@ namespace OpenMS
 
   EnzymaticDigestion::Enzyme EnzymaticDigestion::getEnzymeByName(const String & name)
   {
-    if (name == "Trypsin")
-      return TRYPSIN;
-    else
-      return SIZE_OF_ENZYMES;
+    for (Size i=0; i<SIZE_OF_ENZYMES; ++i)
+    {
+      if (name == NamesOfEnzymes[i]) return Enzyme(i);
+    }
+    return SIZE_OF_ENZYMES;
+  }
+
+  EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificityByName(const String & name)
+  {
+    for (Size i=0; i<SIZE_OF_SPECIFICITY; ++i)
+    {
+      if (name == NamesOfSpecificity[i]) return Specificity(i);
+    }
+    return SIZE_OF_SPECIFICITY;
+  }
+
+  EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificity() const
+  {
+    return specificity_;
+  }
+
+  void EnzymaticDigestion::setSpecificity(Specificity spec)
+  {
+    specificity_ = spec;
   }
 
   bool EnzymaticDigestion::isLogModelEnabled() const
@@ -118,57 +168,91 @@ namespace OpenMS
     log_model_threshold_ = threshold;
   }
 
-  void EnzymaticDigestion::nextCleavageSite_(const AASequence & protein, AASequence::ConstIterator & iterator)
+  bool EnzymaticDigestion::isCleavageSite_(const AASequence & protein, const AASequence::ConstIterator & iterator) const
   {
     switch (enzyme_)
     {
-    case TRYPSIN:
+    case ENZYME_TRYPSIN:
       if (use_log_model_)
       {
-        SignedSize pos = std::distance(AASequence::ConstIterator(protein.begin()), iterator) - 4;   // start position in sequence
-        while (iterator != protein.end())
+        if (*iterator != 'R' && *iterator != 'K')   // wait for R or K
         {
-          if (*iterator != 'R' && *iterator != 'K')   // wait for R or K
-          {
-            ++iterator;
-            ++pos;
-            continue;
-          }
-          DoubleReal score_cleave = 0, score_missed = 0;
-          for (SignedSize i = 0; i < 9; ++i)
-          {
-            if ((pos + i >= 0) && (pos + i < (SignedSize)protein.size()))
-            {
-              CleavageModel p = model_data_[BindingSite(i, protein[pos + i].getOneLetterCode())]; // might not exists, but then its 0 by default
-              score_cleave += p.p_cleave;
-              score_missed += p.p_miss;
-            }
-          }
-          ++iterator;
-          ++pos;
-          if (score_missed - score_cleave > log_model_threshold_)
-            return;
+          return false;
         }
-
+        SignedSize pos = std::distance(AASequence::ConstIterator(protein.begin()), iterator) - 4;   // start position in sequence
+        DoubleReal score_cleave = 0, score_missed = 0;
+        for (SignedSize i = 0; i < 9; ++i)
+        {
+          if ((pos + i >= 0) && (pos + i < (SignedSize)protein.size()))
+          {
+            CleavageModel p = model_data_[BindingSite(i, protein[pos + i].getOneLetterCode())]; // might not exist, but then its 0 by default
+            score_cleave += p.p_cleave;
+            score_missed += p.p_miss;
+          }
+        }
+        if (score_missed - score_cleave > log_model_threshold_) return true;
+        return false;
       }
       else   // naive digestion
       {
-        while (iterator != protein.end())
-        {
-          //R or K at the end and not P afterwards
-          if ((*iterator == 'R' || *iterator == 'K') && ((iterator + 1) == protein.end() || *(iterator + 1) != 'P'))
-          {
-            ++iterator;
-            return;
-          }
-          ++iterator;
-        }
+        //R or K at the end and not P afterwards
+        if ((*iterator == 'R' || *iterator == 'K') && ((iterator + 1) == protein.end() || *(iterator + 1) != 'P')) return true;
+        else return false;
       }
       break;
-
     default:
-      return;
+      return false;
     }
+
+  }
+
+  void EnzymaticDigestion::nextCleavageSite_(const AASequence & protein, AASequence::ConstIterator & iterator) const
+  {
+    while (iterator != protein.end())
+    {
+      if (isCleavageSite_(protein, iterator))
+      {
+        ++iterator;
+        return;
+      }
+      ++iterator;
+    }
+    return;
+  }
+
+  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length)
+  {
+    if (pep_pos >= protein.size())
+    {
+      LOG_WARN << "Error: start of peptide is beyond end of protein!" << std::endl;
+      return false;
+    }
+    else if (pep_pos + pep_length > protein.size())
+    {
+      LOG_WARN << "Error: end of peptide is beyond end of protein!" << std::endl;
+      return false;
+    }
+    else if (pep_length == 0 || protein.size() == 0)
+    {
+      LOG_WARN << "Error: peptide or protein must not be empty!" << std::endl;
+      return false;
+    }
+
+    if (specificity_ == SPEC_NONE) return true; // we don't care about terminal ends
+    else
+    { // either SPEC_SEMI or SPEC_FULL
+      bool spec_c = false, spec_n = false;
+      // test each end
+      if (pep_pos == 0 || (pep_pos==1 && protein.getResidue((Size)0).getOneLetterCode()=="M") || isCleavageSite_(protein, protein.begin() + (pep_pos - 1))) spec_n = true;
+      if (pep_pos+pep_length == protein.size() || isCleavageSite_(protein, protein.begin() + (pep_pos + pep_length - 1))) spec_c = true;
+      
+      if (spec_n && spec_c) return true; // if both are fine, its definitely valid
+      else if ((specificity_ == SPEC_SEMI) && (spec_n || spec_c)) return true; // one only for SEMI
+      else return false;
+    }
+
+    return false;
+
   }
 
   Size EnzymaticDigestion::peptideCount(const AASequence & protein)
@@ -194,18 +278,20 @@ namespace OpenMS
     return sum;
   }
 
-  void EnzymaticDigestion::digest(const AASequence & protein, std::vector<AASequence> & output)
+  void EnzymaticDigestion::digest(const AASequence & protein, std::vector<AASequence> & output) const
   {
     //initialization
     SignedSize count = 1;
     output.clear();
 
+    SignedSize missed_cleavages = missed_cleavages_;
+
     if (use_log_model_)
-      missed_cleavages_ = 0;                 // log model has missed cleavages build-in
+      missed_cleavages = 0;                 // log model has missed cleavages build-in
 
     //missed cleavage iterators
     vector<AASequence::ConstIterator> mc_iterators;
-    if (missed_cleavages_ != 0)
+    if (missed_cleavages != 0)
       mc_iterators.push_back(protein.begin());
 
     AASequence::ConstIterator begin = protein.begin();
@@ -213,7 +299,7 @@ namespace OpenMS
     while (nextCleavageSite_(protein, end), end != protein.end())
     {
       ++count;
-      if (missed_cleavages_ != 0)
+      if (missed_cleavages != 0)
       {
         mc_iterators.push_back(end);
       }
@@ -222,7 +308,7 @@ namespace OpenMS
       begin = end;
     }
     output.push_back(protein.getSubsequence(begin - protein.begin(), end - begin));
-    if (missed_cleavages_ != 0)
+    if (missed_cleavages != 0)
     {
       mc_iterators.push_back(end);
     }
