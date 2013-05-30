@@ -906,6 +906,9 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             continue
         compound = res.get_compounddef()
         comp_name = compound.get_compoundname()
+        if not (comp_name.startswith("OpenMS") or comp_name.startswith("OpenSwath") ):
+            # Continue without checking or generating a testreport
+            continue
         if ignorefile.isNameIgnored(comp_name):
             msg = "Skip:: Ignored :: Class %s (file %s)" % (comp_name, f)
             tres = TestResult(True, msg, log_level=10, name="%s_test" % comp_name)
