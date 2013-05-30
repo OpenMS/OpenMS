@@ -48,6 +48,7 @@ from breathe.parser.doxygen.compound import parse as doxygen_parse
 from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
 from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
 import yaml
+from xml.sax.saxutils import escape as xml_escape
 
 # Matching function
 def handle_member_definition(mdef, pxd_class, cnt):
@@ -676,6 +677,13 @@ class TestResult:
     def getMessage(self):
         return self.message
 
+    def getXMLName(self):
+        xmlname = self.name
+        xmlname = xmlname.replace("::", "_")
+        xmlname = re.sub('[^0-9A-Za-z_]', '', xmlname)
+        xmlname = xml_escape(xmlname) # still escape, just to be sure
+        return xmlname
+
     def setPassed(self, passed):
         self.passed = passed
 
@@ -737,7 +745,7 @@ class TestResultHandler:
         xml_output.append("  <TestList>\n")
         for classtestresults in self:
             for tres in classtestresults:
-                xml_output.append("    <Test>%s</Test>\n" % tres.name) 
+                xml_output.append("    <Test>%s</Test>\n" % xml_escape(tres.getXMLName() )  )
         xml_output.append("  </TestList>\n")
         
         for classtestresults in self:
@@ -749,22 +757,22 @@ class TestResultHandler:
                     status = "failed"
 
                 xml_output.append(" " * 2 + '<Test Status="%s">\n' % status)
-                xml_output.append(" " * 4 + '<Name>%s</Name>\n' % tres.name)
+                xml_output.append(" " * 4 + '<Name>%s</Name>\n' % xml_escape(tres.getXMLName() ) )
                 xml_output.append(" " * 4 + '<Path> ./tools/ </Path>\n' )
-                xml_output.append(" " * 4 + '<FullName>%s</FullName>\n' % tres.name)
-                xml_output.append(" " * 4 + '<FullCommandLine>python PythonExtensionChecker.py %s</FullCommandLine>\n' % tres.name)
+                xml_output.append(" " * 4 + '<FullName>%s</FullName>\n' % xml_escape(tres.name) )
+                xml_output.append(" " * 4 + '<FullCommandLine>python PythonExtensionChecker.py %s</FullCommandLine>\n' % xml_escape(tres.name) )
                 xml_output.append(" " * 4 + '<Results>')
                 xml_output.append("""
       <NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.001</Value></NamedMeasurement>
       <NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
       <NamedMeasurement type="text/string" name="Maintainer"><Value>%s</Value></NamedMeasurement>
       <NamedMeasurement type="text/string" name="Command Line"><Value>python PythonExtensionChecker.py</Value></NamedMeasurement>\n""" % (
-          tres.getMaintainer()
+          xml_escape(tres.getMaintainer() )
       ) )
                 xml_output.append(" " * 6 + '<Measurement>\n')
                 xml_output.append(" " * 8 + '<Value>\n')
                 if not tres.getMessage() is None:
-                    xml_output.append(" " * 10 +  tres.getMessage() + "\n")
+                    xml_output.append(" " * 10 +  xml_escape(tres.getMessage() ) + "\n")
                 xml_output.append(" " * 8 + '</Value>\n')
                 xml_output.append(" " * 6 + '</Measurement>\n')
 
@@ -973,7 +981,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             else:
                 tres = handle_member_definition(mdef, pxd_class, cnt)
 
-            testname = "%s_%s_%s::%s" % (class_cntr, method_cntr, comp_name, mdef.name)
+            testname = "%s_%s::%s" % (comp_name, method_cntr, mdef.name)
             testname = testname.replace("::", "_")
             testname = re.sub('[^a-zA-Z0-9_]+', '', testname)
             tres.comp_name = comp_name
