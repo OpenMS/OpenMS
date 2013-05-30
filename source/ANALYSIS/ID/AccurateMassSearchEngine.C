@@ -48,7 +48,6 @@
 #include <numeric>
 #include <sstream>
 #include <fstream>
-#include <locale>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -1000,11 +999,11 @@ void AccurateMassSearchEngine::computeNeutralMassFromAdduct_(const DoubleReal& a
 
         // check if formula has got a stoichometry factor in front
         String formula_str(tmpvec2[part_idx]);
-        char first_char = formula_str[0];
+        const char first_char = formula_str[0];
 
         DoubleReal stoichio_factor(1.0);
 
-        if (std::isdigit(first_char))
+        if (isdigit(first_char))
         {
             String tmp_factor(first_char);
             stoichio_factor = tmp_factor.toDouble();
