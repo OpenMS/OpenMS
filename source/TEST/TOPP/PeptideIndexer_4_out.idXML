@@ -24,11 +24,11 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="EDQSCPSERRRAFSRLRFGPS" charge="2" protein_refs="PH_2" >
+			<PeptideHit score="40" sequence="EDQSC(Carboxymethyl)PSERRRAFSRLRFGPS" charge="2" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" protein_refs="PH_1 PH_3 PH_4" >
+			<PeptideHit score="40" sequence="EWATYTC(Carboxymethyl)VLGFHVYVPVR" charge="2" protein_refs="PH_1 PH_3 PH_4" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
@@ -38,13 +38,13 @@
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
-			<PeptideHit score="0.0001" sequence="UNMATCHED" charge="2" >
+			<PeptideHit score="0.0001" sequence="UN(Deamidated)M(Oxidation)ATCHED" charge="2" >
 				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="0.0001" sequence="FIANGE" charge="2" protein_refs="PH_5" >
+			<PeptideHit score="0.0001" sequence="FIAN(Deamidated)GE" charge="2" protein_refs="PH_5" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
