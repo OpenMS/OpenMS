@@ -777,59 +777,52 @@ namespace OpenMS
     // split the peptide in its residues
     vector<String> split;
     Size pos(0);
-    bool mod_open(false) /*, tag_open(false)*/;
-    /*
-        if (peptide[0] == '[')
-        {
-            tag_open = true;
-        }
-    */
+    bool mod_open(false);
+
     if (peptide[0] == '(')
     {
       mod_open = true;
     }
     Size num_brackets(0);
-    for (Size i = 1; i < peptide.size(); ++i)
+    const Size& size_peptide = peptide.size();
+    for (Size i = 1; i < size_peptide; ++i)
     {
       if ((isalpha(peptide[i]) && isupper(peptide[i]) && !mod_open) ||
           (peptide[i] == '[' && !mod_open))
       {
         split.push_back(peptide.substr(pos, i - pos));
         pos = i;
-        if (mod_open)
+        //if (mod_open)
         {
           mod_open = false;
         }
       }
-      if (peptide[i] == '(')
+      switch (peptide[i])
       {
-        if (mod_open)
-        {
-          ++num_brackets;
-          continue;
-        }
-        mod_open = true;
-        continue;
-      }
-      if (peptide[i] == ')')
-      {
-        if (num_brackets != 0)
-        {
-          --num_brackets;
-          continue;
-        }
-        mod_open = false;
-        continue;
-      }
-      if (peptide[i] == '[')
-      {
-        // tag_open = true;
-        continue;
-      }
-      if (peptide[i] == ']')
-      {
-        // tag_open = false;
-        continue;
+        case '(':
+          if (mod_open)
+          {
+            ++num_brackets;
+            continue;
+          }
+          mod_open = true;
+          break;
+        case ')':
+          if (num_brackets != 0)
+          {
+            --num_brackets;
+            continue;
+          }
+          mod_open = false;
+          break;
+        case '[':
+          // tag_open = true;
+          break;
+        case ']':
+          // tag_open = false;
+          break;
+        default:
+          break;
       }
     }
 
@@ -853,7 +846,7 @@ namespace OpenMS
     }
 
     // test the last split if there is a C-terminal modification
-    String c_term = *(split.end() - 1);
+    const String c_term = *(split.end() - 1);
     Size c_term_mods = count(c_term.begin(), c_term.end(), '(');
     if (c_term_mods > 0)
     {
@@ -864,7 +857,7 @@ namespace OpenMS
       // correctly by prefix/suffix search
       Size brackets = 0;
       // we start at (end - 1) to skip trailing ')'
-      for (String::ReverseIterator rIt = (c_term.rbegin() + 1); rIt != c_term.rend(); ++rIt)
+      for (String::ConstReverseIterator rIt = (c_term.rbegin() + 1); rIt != c_term.rend(); ++rIt)
       {
         if (*rIt == '(' && brackets == 0)
         {
@@ -897,7 +890,7 @@ namespace OpenMS
     // parse the residues
     for (Size i = 0; i != split.size(); ++i)
     {
-      String res = split[i];
+      const String& res = split[i];
       String name, mod, tag;
       for (Size j = 0; j != res.size(); ++j)
       {
@@ -947,8 +940,7 @@ namespace OpenMS
               valid_ = false;
               sequence_string_.concatenate(split.begin(), split.end());
               sequence.clear();
-              cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, residue '" << res << "' unknown at position " << j << "!" << endl;
-              return;
+              cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, residue '" << res << "' unknown at position " << j << ", residue #" << i << "!" << endl;
             }
           }
         }
