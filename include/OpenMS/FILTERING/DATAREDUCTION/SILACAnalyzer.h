@@ -71,8 +71,6 @@
 #include <locale>
 #include <iomanip>
 
-using namespace std;
-
 namespace OpenMS
 {
   /**
@@ -154,7 +152,7 @@ namespace OpenMS
       DoubleReal model_deviation_,
       bool allow_missing_peaks_,
       // labels part
-      map<String, DoubleReal> label_identifiers)
+      std::map<String, DoubleReal> label_identifiers)
     {
       selected_labels          = selected_labels_;
       charge_min               = charge_min_;
@@ -182,21 +180,21 @@ namespace OpenMS
      * initialized _first_ with the list of actually used labels
      * (selected_labels) using the initialize_sample call.
      */
-    void calculateLabelsAndMassShifts(map<String, DoubleReal> label_identifiers);
+    void calculateLabelsAndMassShifts(std::map<String, DoubleReal> label_identifiers);
 
     void run_all(MSExperiment<Peak1D> & exp, ConsensusMap & out_map)
     {
       PeakWidthEstimator::Result peak_width;
-      vector<vector<SILACPattern> > data;
+      std::vector<std::vector<SILACPattern> > data;
       MSQuantifications msq;
-      vector<Clustering *> cluster_data;
+      std::vector<Clustering *> cluster_data;
 
       peak_width = estimatePeakWidth(exp);
       filterData(exp, peak_width, data); 
       clusterData(exp, peak_width, cluster_data, data);
 
       // write output to consensus map
-      for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
+      for (std::vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {
         generateClusterConsensusByCluster(out_map, **it);
       }
@@ -210,12 +208,12 @@ namespace OpenMS
     /**
      * @brief Filtering
      */
-    void filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width, vector<vector<SILACPattern> > & data);
+    void filterData(MSExperiment<Peak1D> & exp, const PeakWidthEstimator::Result & peak_width, std::vector<std::vector<SILACPattern> > & data);
 
     /**
      * @brief Clustering
      */
-    void clusterData(const MSExperiment<> &, const PeakWidthEstimator::Result &, vector<Clustering *> &, vector<vector<SILACPattern> > & data);
+    void clusterData(const MSExperiment<> &, const PeakWidthEstimator::Result &, std::vector<Clustering *> &, std::vector<std::vector<SILACPattern> > & data);
 
 
     /**
@@ -276,7 +274,7 @@ namespace OpenMS
     /**
      * @brief Read filter result from ConsensusMap
      */
-    void readFilterConsensusByPattern(ConsensusMap &, vector<vector<SILACPattern> > &);
+    void readFilterConsensusByPattern(ConsensusMap &, std::vector<std::vector<SILACPattern> > &);
 
     static const String & selectColor(UInt nr);
 

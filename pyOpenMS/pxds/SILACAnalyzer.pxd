@@ -15,7 +15,6 @@ from MSExperiment cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
-# TODO remove using namespace std from this!
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>" namespace "OpenMS":
 
     cdef cppclass SILACAnalyzer(ProgressLogger):
