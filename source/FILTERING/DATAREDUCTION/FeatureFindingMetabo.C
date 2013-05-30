@@ -412,6 +412,10 @@ void FeatureFindingMetabo::loadIsotopeModel_(const String& model_name)
     std::string scale_filename = File::find(search_name + ".scale");
 
     isotope_filt_svm_ = svm_load_model(model_filename.c_str());
+    if (isotope_filt_svm_ == NULL)
+    {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Loading "+model_filename+" failed", model_filename);
+    }
 
     std::ifstream ifs(scale_filename.c_str());
 
