@@ -124,13 +124,24 @@ namespace seqan
   {
   public:
     typedef OpenMS::Map<OpenMS::Size, std::set<OpenMS::Size> > MapType;
-    MapType pep_to_prot; // peptide index --> protein indices
+    
+    /// peptide index --> protein indices
+    MapType pep_to_prot; 
+
+    /// number of accepted hits (passing addHit() constraints)
+    OpenMS::Size filter_passed;
+
+    /// number of rejected hits (not passing addHit())
+    OpenMS::Size filter_rejected;
+
   private:
     EnzymaticDigestion enzyme_;
 
   public:
     FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
       pep_to_prot(),
+      filter_passed(0),
+      filter_rejected(0),
       enzyme_(enzyme)
     {
     }
@@ -142,12 +153,12 @@ namespace seqan
       const OpenMS::String tmp_pep(begin(representative(iter_pep)), end(representative(iter_pep)));
 
       // remember mapping of proteins to peptides and vice versa
-      const unsigned count_occ = countOccurrences(iter_pep);
-      for (unsigned i_pep = 0; i_pep < count_occ; ++i_pep)
+      const OpenMS::Size count_occ = countOccurrences(iter_pep);
+      for (OpenMS::Size i_pep = 0; i_pep < count_occ; ++i_pep)
       {
         const OpenMS::Size idx_pep = getOccurrences(iter_pep)[i_pep].i1;
-        const unsigned count_occ_prot = countOccurrences(iter_prot);
-        for (unsigned i_prot = 0; i_prot < count_occ_prot; ++i_prot)
+        const OpenMS::Size count_occ_prot = countOccurrences(iter_prot);
+        for (OpenMS::Size i_prot = 0; i_prot < count_occ_prot; ++i_prot)
         {
           const seqan::Pair<int> prot_occ = getOccurrences(iter_prot)[i_prot];
           // the protein sequence (will change for every Occurrence -- hitting multiple proteins)
@@ -163,10 +174,12 @@ namespace seqan
       if (enzyme_.isValidProduct(AASequence(protein), position, seq_pep.length()))
       {
         pep_to_prot[idx_pep].insert(idx_prot);
+        ++filter_passed;
       }
       else
       {
-        LOG_WARN << "Peptide " << seq_pep << " is not a valid hit to protein " << protein << " @ " << position << std::endl;
+        //LOG_WARN << "Peptide " << seq_pep << " is not a valid hit to protein " << protein << " @ " << position << std::endl;
+        ++filter_rejected;
       }
     }
 
@@ -519,7 +532,6 @@ protected:
       bool SA_only = getFlag_("full_tolerant_search");
       if (!SA_only)
       {
-        Size hits(0);
         StopWatch sw;
         sw.start();
         SignedSize protDB_length = (SignedSize) length(prot_DB);
@@ -548,7 +560,6 @@ protected:
               const seqan::Peptide& tmp_prot = prot_DB[i];
               
               func_threads.addHit(position(pattern), i, String(begin(tmp_pep), end(tmp_pep)), String(begin(tmp_prot), end(tmp_prot)), position(finder));
-              ++hits_threads;
             }
           }
 
@@ -557,7 +568,8 @@ protected:
 #pragma omp critical(PeptideIndexer_joinAC)
 #endif
           {
-            hits += hits_threads;
+            func.filter_passed += func_threads.filter_passed;
+            func.filter_rejected += func_threads.filter_rejected;
             for (seqan::FoundProteinFunctor::MapType::const_iterator it = func_threads.pep_to_prot.begin(); it != func_threads.pep_to_prot.end(); ++it)
             {
               func.pep_to_prot[it->first].insert(func_threads.pep_to_prot[it->first].begin(), func_threads.pep_to_prot[it->first].end());
@@ -568,7 +580,7 @@ protected:
 
         sw.stop();
 
-        writeLog_(String("Aho-Corasick done. Found ") + hits + " hits in " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides (time: " + sw.getClockTime() + " (wall) " + sw.getCPUTime() + " (CPU)).");
+        writeLog_(String("Aho-Corasick done. Found ") + func.filter_passed + " hits in " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides (time: " + sw.getClockTime() + " (wall) " + sw.getCPUTime() + " (CPU)).");
       }
 
       /// check if every peptide was found:
@@ -621,6 +633,8 @@ protected:
         //seqan::save(indexDir(prot_Index), "c:\\tmp\\prot_Index.dir");
 
         // augment results with SA hits
+        func.filter_passed += func_SA.filter_passed;
+        func.filter_rejected += func_SA.filter_rejected;
         for (seqan::FoundProteinFunctor::MapType::const_iterator it = func_SA.pep_to_prot.begin(); it != func_SA.pep_to_prot.end(); ++it)
         {
           func.pep_to_prot[missed_pep[it->first]] = it->second;
@@ -630,6 +644,11 @@ protected:
       }
 
     } // end local scope
+
+
+    // write some stats
+    LOG_INFO << "Peptide hits which passed enzyme filter: " << func.filter_passed << "\n"
+             << "                   rejected  by  filter: " << func.filter_rejected << std::endl;
 
     /* do mapping */
 
@@ -755,8 +774,8 @@ protected:
 
 
     LOG_INFO << "Statistics of peptides (to protein mapping):\n";
-    LOG_INFO << "  no match (to 0 protein): " << stats_unmatched << "\n";
-    LOG_INFO << "  unique match (to 1 protein): " << stats_matched_unique << "\n";
+    LOG_INFO << "  no match (to 0 protein)         : " << stats_unmatched << "\n";
+    LOG_INFO << "  unique match (to 1 protein)     : " << stats_matched_unique << "\n";
     LOG_INFO << "  non-unique match (to >1 protein): " << stats_matched_multi << std::endl;
 
 
