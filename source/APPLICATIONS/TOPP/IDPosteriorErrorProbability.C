@@ -200,7 +200,6 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    bool return_value;
     IdXMLFile file;
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
@@ -345,17 +344,18 @@ protected:
         PEP_model.setParameters(fit_algorithm);
       }
 
-      return_value = PEP_model.fit(it->second[0]);
+      const bool return_value = PEP_model.fit(it->second[0]);
       if (!return_value) writeLog_("unable to fit data. Algorithm did not run through for the following search engine: " + engine);
       if (!return_value && !ignore_bad_data) return UNEXPECTED_RESULT;
 
-      //plot target_decoy
-      if (target_decoy_available && it->second[0].size() > 0 && return_value)
-      {
-        PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]); //target, decoy
-      }
       if (return_value)
       {
+        //plot target_decoy
+        if (target_decoy_available && it->second[0].size() > 0)
+        {
+          PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]); //target, decoy
+        }
+
         bool unable_to_fit_data = true;
         bool data_might_not_be_well_fit = true;
         for (vector<ProteinIdentification>::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)

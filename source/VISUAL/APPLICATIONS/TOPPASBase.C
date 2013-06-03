@@ -457,12 +457,11 @@ namespace OpenMS
       category_map[category] = item;
     }
 
-    QTreeWidgetItem* parent_item;
     for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
       item = new QTreeWidgetItem(category_map[it->second.category.toQString()]);
       item->setText(0, it->first.toQString());
-      parent_item = item;
+      QTreeWidgetItem* parent_item = item;
       StringList types = ToolHandler::getTypes(it->first);
       for (StringList::iterator types_it = types.begin(); types_it != types.end(); ++types_it)
       {

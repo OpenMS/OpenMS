@@ -436,7 +436,6 @@ protected:
     writeDebug_("Reading output of MyriMatch", 5);
     String exp_name = File::basename(inputfile_name);
     String pep_file = tmp_dir + File::removeExtension(exp_name) + ".pepXML";
-    bool use_precursor_data = false;
 
     FileHandler fh;
     MSExperiment<> exp;
@@ -446,6 +445,7 @@ protected:
     vector<PeptideIdentification> peptide_identifications;
     if (File::exists(pep_file))
     {
+      const bool use_precursor_data = false;
       PepXMLFile().load(pep_file, protein_identifications, peptide_identifications,
                         exp_name, exp, use_precursor_data);
     }

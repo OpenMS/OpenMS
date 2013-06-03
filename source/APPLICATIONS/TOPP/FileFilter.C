@@ -524,7 +524,6 @@ protected:
     writeDebug_("Sorting output data: " + String(sort), 3);
 
     // handle remove_meta
-    bool meta_ok = true; // assume true by default (as meta might not be checked below)
     StringList meta_info = getStringList_("f_and_cf:remove_meta");
     bool remove_meta_enabled = (meta_info.size() > 0);
     if (remove_meta_enabled && meta_info.size() != 3)
@@ -771,6 +770,8 @@ protected:
     }
     else if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::CONSENSUSXML)
     {
+      bool meta_ok;
+
       if (in_type == FileTypes::FEATUREXML)
       {
         //-------------------------------------------------------------
@@ -796,18 +797,16 @@ protected:
         //.. but delete feature information
         map_sm.clear(false);
 
-        bool rt_ok, mz_ok, int_ok, charge_ok, size_ok, q_ok, annotation_ok;
-
         // only keep charge ch_l:ch_u   (WARNING: feature files without charge information have charge=0, see Ctor of KERNEL/Feature.h)
         for (FeatureMap<>::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
         {
-          rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm_it->getRT()));
-          mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm_it->getMZ()));
-          int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm_it->getIntensity()));
-          charge_ok = ((charge_l <= fm_it->getCharge()) && (fm_it->getCharge() <= charge_u));
-          size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
-          q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
-          annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+          bool const rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm_it->getRT()));
+          bool const mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm_it->getMZ()));
+          bool const int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm_it->getIntensity()));
+          bool const charge_ok = ((charge_l <= fm_it->getCharge()) && (fm_it->getCharge() <= charge_u));
+          bool const size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
+          bool const q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
+          bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
           if (remove_meta_enabled) meta_ok = checkMetaOk(*fm_it, meta_info);
 
           if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok && annotation_ok && meta_ok)

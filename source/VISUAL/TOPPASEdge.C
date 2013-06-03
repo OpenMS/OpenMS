@@ -429,10 +429,9 @@ namespace OpenMS
     }
 
     // check file type compatibility
-    bool type_mismatch = false;
     foreach(const QString &q_file_name, file_names)
     {
-      type_mismatch = true;
+      bool type_mismatch = true;
       const String & file_name = String(q_file_name);
       String::SizeType extension_start_index = file_name.rfind(".");
       if (extension_start_index != String::npos)

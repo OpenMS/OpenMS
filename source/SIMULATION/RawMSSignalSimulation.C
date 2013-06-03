@@ -419,14 +419,16 @@ namespace OpenMS
 
       Size compress_size_intermediate = 20000 / thread_count; // compress map every X features, (10.000 feature are ~ 2 GB at 0.002 sampling rate)
       Size compress_count = 0; // feature count (for each thread)
-      int current_thread(0);
+
 #ifdef _OPENMP
-#pragma omp parallel for private(current_thread) firstprivate(compress_count)
+#pragma omp parallel for firstprivate(compress_count)
 #endif
       for (SignedSize f = 0; f < (SignedSize)features.size(); ++f)
       {
 #ifdef _OPENMP // update experiment index if necessary
-        current_thread = omp_get_thread_num();
+        const int current_thread = omp_get_thread_num();
+#else
+        const int current_thread(0);  
 #endif
         add2DSignal_(features[f], *(experiments[current_thread]), *(experiments_ct[current_thread]));
 
@@ -436,7 +438,9 @@ namespace OpenMS
 #endif
         ++progress;
         if (current_thread == 0)
+        {
           this->setProgress(progress);
+        }
 
         // intermediate compress to avoid memory problems
         ++compress_count;
@@ -731,7 +735,6 @@ namespace OpenMS
         //LOG_ERROR << "Sampling " << rt << " , " << mz << " -> " << point.getIntensity() << std::endl;
 
         // add Gaussian distributed m/z error
-        double mz_err = 0.0;
 #ifdef _OPENMP
         int CURRENT_THREAD = omp_get_thread_num();
         // check if we need to refill the random number pool for this thread
@@ -756,10 +759,10 @@ namespace OpenMS
           threaded_random_numbers_index_[CURRENT_THREAD] = 0;
         }
 
-        mz_err = threaded_random_numbers_[CURRENT_THREAD][threaded_random_numbers_index_[CURRENT_THREAD]++];
+        const double mz_err = threaded_random_numbers_[CURRENT_THREAD][threaded_random_numbers_index_[CURRENT_THREAD]++];
 #else
         // we can use the normal Gaussian ran-gen if we do not use OPENMP
-        mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+        const double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
 #endif
         point.setMZ(fabs(point.getMZ() + mz_err));
         exp_iter->push_back(point);
