@@ -402,10 +402,10 @@ namespace OpenMS
     }
 
     bool ParamTree::edit(const QModelIndex & index, EditTrigger trigger, QEvent * event)
-    {
-      if (trigger == QAbstractItemView::EditKeyPressed)
-      {
-        return QAbstractItemView::edit(index.sibling(index.row(), 1), trigger, event);
+    { // allow F2 or double click on any column in the current row
+      if (trigger == QAbstractItemView::EditKeyPressed || trigger == QAbstractItemView::DoubleClicked)
+      { // --> re-route to actual value column
+        return QAbstractItemView::edit(index.sibling(index.row(), 1), trigger, event); 
       }
       return QAbstractItemView::edit(index, trigger, event);
     }

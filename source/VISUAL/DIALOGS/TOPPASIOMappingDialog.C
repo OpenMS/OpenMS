@@ -165,7 +165,7 @@ namespace OpenMS
       int param_counter = -1;
       foreach(TOPPASToolVertex::IOInfo info, target_input_files)
       {
-        param_counter++;
+        ++param_counter;
         // check if parameter occupied by another edge already
         bool occupied = false;
         for (TOPPASVertex::ConstEdgeIterator it = target->inEdgesBegin(); it != target->inEdgesEnd(); ++it)
