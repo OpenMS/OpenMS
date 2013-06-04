@@ -146,10 +146,10 @@ namespace OpenMS
     }
 
     /// Initialize the RNGs
-    void initialize(bool random_)
+    void initialize(bool biological_random, bool technical_random)
     {
       biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
-      if (random_)
+      if (biological_random)
       {
         gsl_rng_set(biological_rng, time(0));
       }
@@ -159,7 +159,7 @@ namespace OpenMS
       }
 
       technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
-      if (random_)
+      if (technical_random)
       {
         gsl_rng_set(technical_rng, time(0));
       }

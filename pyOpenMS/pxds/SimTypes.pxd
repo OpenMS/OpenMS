@@ -13,7 +13,8 @@ cdef extern from "<OpenMS/SIMULATION/SimTypes.h>" namespace "OpenMS":
 
         SimRandomNumberGenerator() nogil except +
         SimRandomNumberGeneratorSimTypes(SimRandomNumberGeneratorSimTypes) nogil except + # wrap-ignore
-        void initialize(bool random_) nogil except +
+        void initialize(bool biological_random, bool technical_random) nogil except +
+        
 
     # /// Container for FASTAEntry & abundance information
     # class OPENMS_DLLAPI SampleProteins : public std::vector<std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > { }; 

@@ -265,27 +265,10 @@ protected:
     }
 
     // initialize the random number generators
+    bool biological_random = getParam_().getValue("algorithm:RandomNumberGenerators:biological") == "random";
+    bool technical_random = getParam_().getValue("algorithm:RandomNumberGenerators:technical") == "random";
     SimRandomNumberGenerator rnd_gen;
-
-    rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
-    if (getParam_().getValue("algorithm:RandomNumberGenerators:biological") == "random")
-    {
-      gsl_rng_set(rnd_gen.biological_rng, time(0));
-    }
-    else // use gsl default seed to get reproducible experiments
-    {
-      gsl_rng_set(rnd_gen.biological_rng, 0);
-    }
-
-    rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
-    if (getParam_().getValue("algorithm:RandomNumberGenerators:technical") == "random")
-    {
-      gsl_rng_set(rnd_gen.technical_rng, time(0));
-    }
-    else // use gsl default seed to get reproducible experiments
-    {
-      gsl_rng_set(rnd_gen.technical_rng, 0);
-    }
+    rnd_gen.initialize(biological_random, technical_random);
 
     ms_simulation.setLogType(this->log_type_);
 
