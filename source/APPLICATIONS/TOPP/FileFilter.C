@@ -770,7 +770,7 @@ protected:
     }
     else if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::CONSENSUSXML)
     {
-      bool meta_ok;
+      bool meta_ok = true; // assume true by default (as meta might not be checked below)
 
       if (in_type == FileTypes::FEATUREXML)
       {
@@ -807,7 +807,10 @@ protected:
           bool const size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
           bool const q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
           bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
-          if (remove_meta_enabled) meta_ok = checkMetaOk(*fm_it, meta_info);
+          if (remove_meta_enabled)
+          {
+            meta_ok = checkMetaOk(*fm_it, meta_info);
+          }
 
           if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok && annotation_ok && meta_ok)
           {
@@ -867,7 +870,10 @@ protected:
           charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
           size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
           annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
-          if (remove_meta_enabled) meta_ok = checkMetaOk(*cm_it, meta_info);
+          if (remove_meta_enabled)
+          {
+            meta_ok = checkMetaOk(*cm_it, meta_info);
+          }
 
           if (charge_ok && size_ok && annotation_ok && meta_ok)
           {
