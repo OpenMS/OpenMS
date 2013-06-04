@@ -7,6 +7,8 @@ from String cimport *
 
 from PeakWidthEstimator cimport *
 from MSQuantifications cimport *
+from SILACClustering cimport *
+from SILACPattern cimport *
 
 from ConsensusMap cimport *
 from FeatureMap cimport *
@@ -41,15 +43,16 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>" namespace "O
         # NAMESPACE # void filterData(MSExperiment[ Peak1D, ChromatogramPeak ] & exp, PeakWidthEstimator::Result & peak_width, vector[ vector[ SILACPattern ] ] & data)
         # TODO nested STL
         # libcpp_vector[ libcpp_vector[ String ] ]  getSILAClabels()
-        # libcpp_vector[ libcpp_vector[ double ] ]  getMassShifts()
-        # void generateClusterConsensusByCluster(ConsensusMap & , Clustering & )
-        # void generateClusterConsensusByPattern(ConsensusMap & , Clustering & , UInt & cluster_id)
+        libcpp_vector[ libcpp_vector[ double ] ]  getMassShifts()
+
+        void generateClusterConsensusByCluster(ConsensusMap & , SILACClustering & )
+        void generateClusterConsensusByPattern(ConsensusMap & , SILACClustering & , UInt & cluster_id)
         # void generateClusterDebug(std::ostream & out, Clustering & clustering, UInt & cluster_id)
-        # void generateFilterConsensusByPattern(ConsensusMap & , libcpp_vector[ SILACPattern ] & )
-        # void generateClusterFeatureByCluster(FeatureMap[Feature] & , Clustering & )
-        # void readFilterConsensusByPattern(ConsensusMap & , vector[ vector[ SILACPattern ] ] & )
+        void generateFilterConsensusByPattern(ConsensusMap & , libcpp_vector[ SILACPattern ] & )
+        void generateClusterFeatureByCluster(FeatureMap[Feature] & , SILACClustering & )
+        # void readFilterConsensusByPattern(ConsensusMap & , libcpp_vector[ libcpp_vector[ SILACPattern ] ] & )
         void readConsensus(String & filename, ConsensusMap & in_)
         void writeMzQuantML(String & filename, MSQuantifications & msq)
         void writeFeatures(String & filename, FeatureMap[Feature] & out)
-        String  selectColor(UInt nr)
+        String selectColor(UInt nr)
         
