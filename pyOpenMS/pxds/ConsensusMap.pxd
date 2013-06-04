@@ -3,6 +3,9 @@ from libcpp.vector cimport vector as libcpp_vector
 from libcpp.map cimport map as libcpp_map
 from UniqueIdInterface cimport *
 from ConsensusFeature cimport *
+from FeatureMap cimport *
+from MSExperiment cimport *
+from Feature cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 from DataProcessing cimport *
@@ -94,5 +97,22 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         FileDescriptions & getFileDescriptions()       #wrap-ignore
 
 
-
-
+        void convert(UInt64 input_map_index,
+                     FeatureMap[Feature] input_map,
+                     ConsensusMap & output_map,
+                     Size n) nogil except +
+  
+        void convert(UInt64 input_map_index,
+                     MSExperiment[Peak1D, ChromatogramPeak] & input_map,
+                     ConsensusMap & output_map,
+                     Size n) nogil except +
+  
+        void convert(UInt64 input_map_index,
+                     libcpp_vector[Peak2D] & input_map,
+                     ConsensusMap & output_map,
+                     Size n) nogil except +
+  
+        void convert(ConsensusMap input_map,
+                     bool keep_uids,
+                     FeatureMap[Feature] & output_map) nogil except +
+  

@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         libcpp_string peptide_ref
         double library_intensity
         double product_mz
+        double precursor_mz
 
         libcpp_string getNativeID()
         libcpp_string getPeptideRef()
