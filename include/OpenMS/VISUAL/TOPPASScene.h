@@ -121,9 +121,10 @@ public:
     /// Pipeline status after refreshParameters() was called
     enum RefreshStatus
     {
-      ST_REFRESH_NOCHANGE,
-      ST_REFRESH_CHANGED,
-      ST_REFRESH_CHANGEINVALID
+      ST_REFRESH_NOCHANGE,        //< no updates required
+      ST_REFRESH_CHANGED,         //< some parameters were updated, but pipeline is ok
+      ST_REFRESH_CHANGEINVALID,   //< updating made pipeline invalid
+      ST_REFRESH_REMAINSINVALID   //< pipeline was not valid before and is invalid afterwards
     };
 
 

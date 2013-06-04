@@ -2252,6 +2252,7 @@ namespace OpenMS
 
   TOPPASScene::RefreshStatus TOPPASScene::refreshParameters()
   {
+    bool sane_before = sanityCheck_(false);
     bool change = false;
     for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
     {
@@ -2263,9 +2264,13 @@ namespace OpenMS
     }
 
     TOPPASScene::RefreshStatus result;
-    if (!sanityCheck_(false)) result = ST_REFRESH_CHANGEINVALID;
-    else if (change) result = ST_REFRESH_CHANGED;
-    else result = ST_REFRESH_NOCHANGE;
+    if (!change) result = ST_REFRESH_NOCHANGE;
+    else if (!sanityCheck_(false)) 
+    {
+      if (sane_before) result = ST_REFRESH_CHANGEINVALID;
+      else result = ST_REFRESH_REMAINSINVALID;
+    }
+    else result = ST_REFRESH_CHANGED;
     
     return result;
   }

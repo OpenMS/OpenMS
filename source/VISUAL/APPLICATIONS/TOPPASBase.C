@@ -1518,10 +1518,18 @@ namespace OpenMS
     if (st == TOPPASScene::ST_REFRESH_CHANGEINVALID)
     {
       QMessageBox::information(tw, "Parameters updated!",
-                               "The resulting pipeline is invalid. Probably some input or output parameters were removed or added. Please repair!",
+                               "The resulting pipeline is now invalid. Probably some input or output parameters were removed or added. Please repair!",
                                QMessageBox::Ok);
       return "";
     }
+    else if (st == TOPPASScene::ST_REFRESH_REMAINSINVALID)
+    {
+      QMessageBox::information(tw, "Parameters updated!",
+                               "The resulting pipeline remains invalid (not runnable). Maybe some input files or even edges are missing. Please repair!",
+                               QMessageBox::Ok);
+      return "";
+    }
+
     int ret = QMessageBox::information(tw, "Parameters updated!",
                                        "The parameters of some tools in this workflow have changed. Do you want to save these changes now?",
                                        QMessageBox::Save | QMessageBox::Cancel);
