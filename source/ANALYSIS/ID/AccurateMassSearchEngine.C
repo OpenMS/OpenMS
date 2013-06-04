@@ -287,6 +287,58 @@ void AccurateMassSearchEngine::queryByMass(const DoubleReal& adduct_mass, const 
     else
     {
         // same for negative mode
+        parseAdductsFile_(neg_adducts_fname_);
+
+        for (Size adduct_idx = 0; adduct_idx < neg_adducts_.size(); ++adduct_idx)
+        {
+            std::vector<Size> hit_idx;
+            DoubleReal query_mass, charge;
+            String neg_adduct_name(neg_adducts_[adduct_idx]);
+
+            computeNeutralMassFromAdduct_(adduct_mass, neg_adduct_name, query_mass, charge);
+
+            // std::cout << "looking for " << pos_adducts_[adduct_idx] << std::endl;
+            if ((adduct_charge < 0) && (charge != adduct_charge))
+            {
+                continue;
+            }
+
+            // get potential hits as indices in masskey_table
+            searchMass_(query_mass, hit_idx);
+
+            // store information from query hits in AccurateMassSearchResult objects
+            for (Size i = 0; i < hit_idx.size(); ++i)
+            {
+                DoubleReal found_mass(*(masskey_table_.begin() + hit_idx[i]));
+                DoubleReal found_error_ppm(((query_mass - found_mass)/query_mass)*1000000);
+                String found_formula(mass_formula_mapping_[hit_idx[i]]);
+
+                AccurateMassSearchResult ams_result;
+                ams_result.setAdductMass(adduct_mass);
+                ams_result.setQueryMass(query_mass);
+                ams_result.setFoundMass(found_mass);
+                ams_result.setCharge(adduct_charge);
+                ams_result.setErrorPPM(found_error_ppm);
+                ams_result.setMatchingIndex(hit_idx[i]);
+                ams_result.setFoundAdduct(neg_adduct_name);
+                ams_result.setEmpiricalFormula(found_formula);
+
+                std::vector<String> matching_hmdb_ids;
+
+                for (Size j = 0; j < mass_id_mapping_[hit_idx[i]].size(); ++j)
+                {
+                    matching_hmdb_ids.push_back(mass_id_mapping_[hit_idx[i]][j]);
+                }
+                ams_result.setMatchingHMDBids(matching_hmdb_ids);
+
+                results.push_back(ams_result);
+
+                // ams_result.outputResults();
+                // std::cout << "****************************************************" << std::endl;
+            }
+
+        }
+
 
     }
     return ;
