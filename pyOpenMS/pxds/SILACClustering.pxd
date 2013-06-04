@@ -1,5 +1,5 @@
 from Types cimport *
-# from HierarchicalClustering cimport *
+from HierarchicalClustering cimport *
 from SILACPattern cimport *
 
 cdef extern from "<OpenMS/COMPARISON/CLUSTERING/SILACClustering.h>" namespace "OpenMS":

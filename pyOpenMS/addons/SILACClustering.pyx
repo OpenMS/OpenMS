@@ -13,3 +13,4 @@
             cdef double _r = self.inst.get().rt_max_spacing
             py_result = <double>_r
             return py_result
+

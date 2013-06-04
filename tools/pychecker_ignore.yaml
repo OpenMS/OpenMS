@@ -203,15 +203,69 @@ PyOpenMSChecker:
         - pseudoreversePeptide
         - reversePeptide
 
+    OpenMS::MRMFeatureFinderScoring:
+        - mapExperimentToTransitionList
+
+    OpenMS::SpectrumAccessOpenMS:
+        - getSpectraMetaInfo
+        - getChromatogramMetaInfo
+        - getSpectrumMetaById
+
+    OpenMS::Spectrum:
+        - defaultArrayLength
+
+    OpenMS::MRMScoring:
+        - getXCorrMatrix() 
+        - initializeXCorrMatrix
+        - calcLibraryScore
+        - calcSNScore
+
+    OpenMS::MRMTransitionGroupPicker:
+        - pickTransitionGroup
+        - createMRMFeature
+        - remove_overlapping_features
+
+    OpenMS::ChromatogramExtractor:
+        - extract_value_tophat
+        - extract_value_bartlett
+
+    OpenMS::LinearResamplerAlign:
+        - void raster
+        - void raster_align
+        - void raster_interpolate
+
+    OpenMS::MRMFeature:
+        - getScores
+        - setScores
+
+    OpenMS::OpenSwathHelper:
+        - selectSwathTransitions
+        - checkSwathMap
+        - selectSwathTransitions
+    OpenMS::EmgScoring:
+        - calcElutionFitScore
+
+    OpenSwath::Chromatogram:
+        - defaultArrayLength
+        - binaryDataArrayPtrs
+
+    OpenSwath::SpectrumAccessOpenMSCached:
+        - getSpectrumMetaById
+        - getSpectraMetaInfo
+        - getChromatogramMetaInfo
+
     # Not callable:
     OpenMS::HiddenMarkovModel:
         - write #(std::ostream & out)
 
     # Base class problem : 
     # Cython cannot handle overloaded functions in the base class, consequently
-    # they will show up as missing
+    # they will show up as missing. Thus ignore the inherited methods here
     OpenMS::FeatureGroupingAlgorithm:
         - group
+
+    OpenMS::NeutralLossMarker:
+        - getProductName() 
 
     OpenMS::MetaInfoInterface:
 
@@ -852,7 +906,6 @@ PyOpenMSChecker:
     - OpenMS::SuffixArrayTrypticSeqan
     - OpenMS::GridFeature
     - OpenMS::BinaryTreeNode
-    - OpenMS::Date
      
     # COMPARISON - mostly functors
     - OpenMS::PeakSpectrumCompareFunctor
@@ -877,3 +930,6 @@ PyOpenMSChecker:
 
     - OpenMS::HierarchicalClustering::Cluster
     - OpenMS::HierarchicalClustering::BoundingBox
+
+
+

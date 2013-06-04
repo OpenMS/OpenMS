@@ -122,7 +122,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
             elif "void" in py_return_type and not "void" in c_return_type:
                 tres.setPassed(False)
                 tres.setMessage( "TODO: Mismatch between C++ return type (%s) and Python return type (%s) in %s %s %s:" % ( 
-                     str(c_return_type), str(py_return_type), mdef.kind,  mdef.prot, mdef.name) )
+                     str(c_return_type), str(py_return_type), mdef.kind, mdef.prot, mdef.name) )
             else:
                 tres.setPassed(True)
 
@@ -949,7 +949,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             pxdfiles = pxd_file_matching[file_location]
         else:
             msg = "Skip:: No-pxd :: No pxd file exists for Class %s (File %s) %s" % (comp_name, file_location, f)
-            tres = TestResult(False, msg,  name="%s_test" % comp_name )
+            tres = TestResult(False, msg,  name="Missing_%s_test" % comp_name )
             tres.maintainer = maintainer
             testresults.append([ tres ])
             cnt.skipped_no_pxd_file += 1
@@ -962,7 +962,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         except PXDFileParseError as e:
             # TODO specific exception
             msg = "Skip:: No-pxd :: " + e.message + "for %s (in pxd file %s)" % (comp_name, pxdfiles)
-            tres = TestResult(False, msg,  name="%s_test" % comp_name )
+            tres = TestResult(False, msg,  name="Missing_%s_test" % comp_name )
             tres.maintainer = maintainer
             testresults.append([ tres ])
             cnt.skipped_no_pxd_match += 1
