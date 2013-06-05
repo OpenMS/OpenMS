@@ -568,7 +568,7 @@ protected:
           if (checkMetaOk(*it, meta_info)) exp_tmp.push_back(*it);
         }
         exp.clear(false);
-        exp.insert(exp.begin(), exp_tmp.begin(), exp_tmp.end());
+        exp.getSpectra().insert(exp.begin(), exp_tmp.begin(), exp_tmp.end());
       }
 
 
@@ -591,13 +591,13 @@ protected:
 
       // remove forbidden precursor charges
       IntList rm_pc_charge = getIntList_("peak_options:rm_pc_charge");
-      if (rm_pc_charge.size() > 0) exp.erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
+      if (rm_pc_charge.size() > 0) exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
 
 
       // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
       if (!pc_mz.empty())
       {
-        exp.erase(remove_if(exp.begin(), exp.end(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true)), exp.end());
       }
 
       // remove by scan mode (might be a lot of spectra)
@@ -609,7 +609,7 @@ protected:
         {
           if (InstrumentSettings::NamesOfScanMode[i] == remove_mode)
           {
-            exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i)), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i)), exp.end());
           }
         }
       }
@@ -623,7 +623,7 @@ protected:
         {
           if (InstrumentSettings::NamesOfScanMode[i] == select_mode)
           {
-            exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true)), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true)), exp.end());
           }
         }
       }
@@ -637,7 +637,7 @@ protected:
         {
           if (Precursor::NamesOfActivationMethod[i] == remove_activation)
           {
-            exp.erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(remove_activation))), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(remove_activation))), exp.end());
           }
         }
       }
@@ -651,7 +651,7 @@ protected:
         {
           if (Precursor::NamesOfActivationMethod[i] == select_activation)
           {
-            exp.erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(select_activation), true)), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(select_activation), true)), exp.end());
           }
         }
       }
@@ -660,41 +660,41 @@ protected:
       if (getFlag_("spectra:remove_zoom"))
       {
         writeDebug_("Removing zoom scans", 3);
-        exp.erase(remove_if(exp.begin(), exp.end(), IsZoomSpectrum<MapType::SpectrumType>()), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsZoomSpectrum<MapType::SpectrumType>()), exp.end());
       }
 
       if (getFlag_("spectra:select_zoom"))
       {
         writeDebug_("Selecting zoom scans", 3);
-        exp.erase(remove_if(exp.begin(), exp.end(), IsZoomSpectrum<MapType::SpectrumType>(true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsZoomSpectrum<MapType::SpectrumType>(true)), exp.end());
       }
 
       //remove based on collision energy
       if (remove_collision_l != -1 * numeric_limits<double>::max() || remove_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
-        exp.erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
       }
       if (select_collision_l != -1 * numeric_limits<double>::max() || select_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
-        exp.erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
       }
 
       //remove based on isolation window size
       if (remove_isolation_width_l != -1 * numeric_limits<double>::max() || remove_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
-        exp.erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
       }
       if (select_isolation_width_l != -1 * numeric_limits<double>::max() || select_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
-        exp.erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
       }
 
       //remove empty scans
-      exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
+      exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
 
       //sort
       if (sort)

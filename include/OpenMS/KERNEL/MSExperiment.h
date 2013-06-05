@@ -115,23 +115,6 @@ public:
 
     // implemented functions 
 
-    // only used in ../source/SIMULATION/RawTandemMSSignalSimulation.C:377 and OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h:421/426
-    // iterator insert ( iterator position, const T& x );
-    //     void insert ( iterator position, size_type n, const T& x );
-    // template <class InputIterator>
-    //     void insert ( iterator position, InputIterator first, InputIterator last );
-    void insert ( Iterator position, Iterator first, Iterator last )
-    {
-      spectra_.insert(position, first, last);
-    }
-
-     // only used in OpenMS/KERNEL/ChromatogramTools.h:203
-     // iterator erase ( iterator first, iterator last );
-     Iterator erase(Iterator first, Iterator last)
-     {
-       return spectra_.erase(first, last);
-     }
-     
      // size_type size() const;
      Size size() const
      {

@@ -211,7 +211,7 @@ public:
 
       if (remove_spectra)
       {
-        exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<SpectrumType>(InstrumentSettings::SRM)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<SpectrumType>(InstrumentSettings::SRM)), exp.end());
       }
     }
 

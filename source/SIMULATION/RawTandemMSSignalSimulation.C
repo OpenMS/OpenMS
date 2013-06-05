@@ -391,9 +391,9 @@ namespace OpenMS
     }
 
     // append MS2 to experiment
-    experiment.insert(experiment.end(), ms2.begin(), ms2.end());
+    experiment.getSpectra().insert(experiment.end(), ms2.begin(), ms2.end());
     // .. and to picked experiment (if we ever simulate MS2 data with raw peaks, this needs to be adapted)
-    experiment_ct.insert(experiment_ct.end(), ms2.begin(), ms2.end());
+    experiment_ct.getSpectra().insert(experiment_ct.end(), ms2.begin(), ms2.end());
 
   }
 

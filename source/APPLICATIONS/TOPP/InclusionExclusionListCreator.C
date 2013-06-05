@@ -225,7 +225,7 @@ protected:
           MzMLFile().load(raw_data_path, exp);
           IntList levels;
           levels << 1;
-          exp.erase(remove_if(exp.begin(), exp.end(),
+          exp.getSpectra().erase(remove_if(exp.begin(), exp.end(),
                               InMSLevelRange<MSSpectrum<> >(levels, true)), exp.end());
           exp.sortSpectra(true);
           OfflinePrecursorIonSelection opis;

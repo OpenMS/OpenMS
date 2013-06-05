@@ -426,12 +426,12 @@ protected:
       //typedef std::vector<typename MapType::SpectrumType> Base;
       //exp.Base::operator=(exp_tmp);
       exp.clear(false);
-			exp.insert(exp.end(), exp_tmp.begin(), exp_tmp.end());
+      exp.getSpectra().insert(exp.end(), exp_tmp.begin(), exp_tmp.end());
 
       // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
 
       // ... and add consensus spectra
-      exp.insert(exp.end(), merged_spectra.begin(), merged_spectra.end());
+      exp.getSpectra().insert(exp.end(), merged_spectra.begin(), merged_spectra.end());
 
     }
 

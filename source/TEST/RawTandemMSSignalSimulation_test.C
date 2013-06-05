@@ -114,8 +114,8 @@ START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperim
     sim.generateRawTandemSignals(features, exp_no_ms2, peak_map);
     IntList levels;
     levels.push_back(1);
-    exp_no_ms2.erase(remove_if(exp_no_ms2.begin(), exp_no_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_no_ms2.end());
-    exp_with_ms2.erase(remove_if(exp_with_ms2.begin(), exp_with_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_with_ms2.end());
+    exp_no_ms2.getSpectra().erase(remove_if(exp_no_ms2.begin(), exp_no_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_no_ms2.end());
+    exp_with_ms2.getSpectra().erase(remove_if(exp_with_ms2.begin(), exp_with_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_with_ms2.end());
 
     TEST_EQUAL(exp_with_ms2.size(), exp_no_ms2.size());
     TEST_EQUAL(exp_with_ms2[0].size(), exp_no_ms2[0].size());

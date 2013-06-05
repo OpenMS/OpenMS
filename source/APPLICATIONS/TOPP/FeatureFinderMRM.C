@@ -142,9 +142,9 @@ protected:
     FeatureMap<> seeds;
 
     //prevent loading of everything except MRM MS/MS spectra
-    //exp.erase(remove_if(exp.begin(), exp.end(), HasScanMode<PeakMap::SpectrumType>(InstrumentSettings::SRM, true)), exp.end());
+    //exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<PeakMap::SpectrumType>(InstrumentSettings::SRM, true)), exp.end());
     // erase the spectra, we just need the chromatograms for the feature finder
-    exp.erase(exp.begin(), exp.end());
+    exp.getSpectra().erase(exp.begin(), exp.end());
 
     // A map for the resulting features
     FeatureMap<> features;

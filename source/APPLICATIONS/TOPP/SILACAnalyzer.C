@@ -478,7 +478,7 @@ public:
     exp.updateRanges();
 
     // extract level 1 spectra
-    exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(IntList::create("1"), true)), exp.end());
+    exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(IntList::create("1"), true)), exp.end());
 
     // sort according to RT and MZ
     exp.sortSpectra();
