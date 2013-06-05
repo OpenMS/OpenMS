@@ -348,11 +348,11 @@ protected:
           }
 
           out.push_back(*it2);
-          out.back().setRT(rt_final);
-          out.back().setNativeID(native_id);
+          out.getSpectra().back().setRT(rt_final);
+          out.getSpectra().back().setNativeID(native_id);
           if (user_ms_level)
           {
-            out.back().setMSLevel((int)getIntOption_("raw:ms_level"));
+            out.getSpectra().back().setMSLevel((int)getIntOption_("raw:ms_level"));
           }
           ++native_id;
         }

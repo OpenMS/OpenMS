@@ -1370,7 +1370,7 @@ protected:
           {
             if (spec_.getMSLevel() >= 2)
             {
-              exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+              exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
             }
             else
             {

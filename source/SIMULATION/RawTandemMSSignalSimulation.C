@@ -249,7 +249,7 @@ namespace OpenMS
         for (Size ii = 0; ii < MS2_spectra.size(); ++ii)
         {
           ms2.push_back(MS2_spectra[ii]); // DEBUG
-          ms2.back().setMetaValue("MSE_DebugSpectrum", "true");
+          ms2.getSpectra().back().setMetaValue("MSE_DebugSpectrum", "true");
         }
       }
 

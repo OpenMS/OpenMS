@@ -353,7 +353,7 @@ END_SECTION
       mss.push_back(p);
     }
     mse.push_back(mss);
-    mse.back().setRT(m*5);
+    mse.getSpectra().back().setRT(m*5);
   }
 
 

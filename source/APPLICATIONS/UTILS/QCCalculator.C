@@ -232,7 +232,7 @@ protected:
     qp.id = base_name + "_aquisition"; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000005"; ///< cv accession for "aquisition results"
-    qp.value = String(exp.back().getRT());
+    qp.value = String(exp.getSpectra().back().getRT());
     qcmlfile.addRunQualityParameter(base_name, qp);
 
     qp = QcMLFile::QualityParameter();

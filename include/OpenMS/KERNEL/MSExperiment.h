@@ -108,107 +108,66 @@ public:
     //@}
 
     /// @name Delegations of calls to the vector of MSSpectra
+    // Attention: these refer to the spectra vector only!
     //@{
     typedef typename Base::value_type value_type; 
     typedef typename Base::iterator iterator; 
     typedef typename Base::const_iterator const_iterator; 
 
-    // implemented functions 
+    Size size() const
+    {
+      return spectra_.size(); 
+    }
 
-     // size_type size() const;
-     Size size() const
-     {
-       return spectra_.size(); 
-     }
+    void resize(Size s)
+    {
+      spectra_.resize(s); 
+    }
 
-     // void resize ( size_type sz, T c = T() );
-     void resize(Size s)
-     {
-       spectra_.resize(s); 
-     }
+    bool empty() const
+    {
+      return spectra_.empty(); 
+    }
 
-     // bool empty () const;
-     bool empty() const
-     {
-       return spectra_.empty(); 
-     }
+    void reserve(Size s)
+    {
+      spectra_.reserve(s); 
+    }
 
-     // void reserve ( size_type n );
-     void reserve(Size s)
-     {
-       spectra_.reserve(s); 
-     }
+    SpectrumType& operator[] (Size n)
+    {
+      return spectra_[n];
+    }
 
-     //reference front ( );
-     SpectrumType& front()
-     {
-       return spectra_.front();
-     }
+    const SpectrumType& operator[] (Size n) const
+    {
+      return spectra_[n];
+    }
 
-     const SpectrumType& front() const
-     {
-       return spectra_.front();
-     }
+    Iterator begin() 
+    {
+      return spectra_.begin();
+    }
 
-     SpectrumType& back()
-     {
-       return spectra_.back();
-     }
+    ConstIterator begin() const
+    {
+      return spectra_.begin();
+    }
 
-     const SpectrumType& back() const
-     {
-       return spectra_.back();
-     }
+    Iterator end() 
+    {
+      return spectra_.end();
+    }
 
-     SpectrumType& at(Size n)
-     {
-       //return spectra_.at(n);
-       return spectra_.at(n);
-     }
+    ConstIterator end() const
+    {
+      return spectra_.end();
+    }
 
-     const SpectrumType& at(Size n) const
-     {
-       //return spectra_.at(n);
-       return spectra_.at(n);
-     }
-
-     SpectrumType& operator[] (Size n)
-     {
-       //return spectra_.operator[](n);
-       return spectra_[n];
-     }
-
-     const SpectrumType& operator[] (Size n) const
-     {
-       //return spectra_.operator[](n);
-       return spectra_[n];
-     }
-
-     Iterator begin() 
-     {
-       return spectra_.begin();
-     }
-
-     ConstIterator begin() const
-     {
-       return spectra_.begin();
-     }
-
-     Iterator end() 
-     {
-       return spectra_.end();
-     }
-
-     ConstIterator end() const
-     {
-       return spectra_.end();
-     }
-
-     // void push_back ( const T& x );
-     void push_back( const SpectrumType& x )
-     {
-       spectra_.push_back(x);
-     }
+    void push_back( const SpectrumType& x )
+    {
+      spectra_.push_back(x);
+    }
 
     //@}
 
@@ -880,6 +839,7 @@ protected:
     /// spectra
     std::vector<SpectrumType> spectra_;
   };
+
 
   /// Print the contents to a stream.
   template <typename PeakT, typename ChromatogramPeakT>

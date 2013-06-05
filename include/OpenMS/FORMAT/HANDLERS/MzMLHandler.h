@@ -779,16 +779,16 @@ protected:
           exp_->push_back(spec_);
 
           // catch errors stemming from confusion about elution time and scan time
-          if (exp_->back().getRT() == -1.0 && exp_->back().metaValueExists("elution time (seconds)"))
+          if (exp_->getSpectra().back().getRT() == -1.0 && exp_->getSpectra().back().metaValueExists("elution time (seconds)"))
           {
-            exp_->back().setRT(exp_->back().getMetaValue("elution time (seconds)"));
+            exp_->getSpectra().back().setRT(exp_->getSpectra().back().getMetaValue("elution time (seconds)"));
           }
           /* this is too hot (could be SRM as well? -- check!):
                     // correct spectrum type if possible (i.e., make it more specific)
-          if (exp_->back().getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
+          if (exp_->getSpectra().back().getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
           {
-            if (exp_->back().getMSLevel() <= 1) exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-            else                                exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+            if (exp_->getSpectra().back().getMSLevel() <= 1) exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
+            else                                exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
           }
                     */
         }

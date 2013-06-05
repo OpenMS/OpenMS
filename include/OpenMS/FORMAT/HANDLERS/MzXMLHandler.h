@@ -454,11 +454,11 @@ private:
       else if (tag == "precursorMz")
       {
         //add new precursor
-        exp_->back().getPrecursors().push_back(Precursor());
+        exp_->getSpectra().back().getPrecursors().push_back(Precursor());
         //intensity
         try
         {
-          exp_->back().getPrecursors().back().setIntensity(attributeAsDouble_(attributes, s_precursorintensity_));
+          exp_->getSpectra().back().getPrecursors().back().setIntensity(attributeAsDouble_(attributes, s_precursorintensity_));
         }
         catch (Exception::ParseError& /*e*/)
         {
@@ -468,13 +468,13 @@ private:
         Int charge = 0;
         if (optionalAttributeAsInt_(charge, attributes, s_precursorcharge_))
         {
-          exp_->back().getPrecursors().back().setCharge(charge);
+          exp_->getSpectra().back().getPrecursors().back().setCharge(charge);
         }
         //window bounds (here only the width is stored in both fields - this is corrected when we parse the m/z position)
         DoubleReal window = 0.0;
         if (optionalAttributeAsDouble_(window, attributes, s_windowwideness_))
         {
-          exp_->back().getPrecursors().back().setIsolationWindowLowerOffset(window);
+          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowLowerOffset(window);
         }
       }
       else if (tag == "scan")
@@ -532,13 +532,13 @@ private:
 
         //Add a new spectrum and set MS level and RT
         exp_->resize(exp_->size() + 1);
-        exp_->back().setMSLevel(ms_level);
-        exp_->back().setRT(retention_time);
-        exp_->back().setNativeID(String("scan=") + attributeAsString_(attributes, s_num_));
+        exp_->getSpectra().back().setMSLevel(ms_level);
+        exp_->getSpectra().back().setRT(retention_time);
+        exp_->getSpectra().back().setNativeID(String("scan=") + attributeAsString_(attributes, s_num_));
         //peak count == twice the scan size
         peak_count_ = attributeAsInt_(attributes, s_peakscount_);
-        exp_->back().reserve(peak_count_ / 2 + 1);
-        exp_->back().setDataProcessing(data_processing_);
+        exp_->getSpectra().back().reserve(peak_count_ / 2 + 1);
+        exp_->getSpectra().back().setDataProcessing(data_processing_);
 
         //centroided, chargeDeconvoluted, deisotoped, collisionEnergy are ignored
 
@@ -548,12 +548,12 @@ private:
         optionalAttributeAsDouble_(window.end, attributes, s_endmz_);
         if (window.begin != 0.0 || window.end != 0.0)
         {
-          exp_->back().getInstrumentSettings().getScanWindows().push_back(window);
+          exp_->getSpectra().back().getInstrumentSettings().getScanWindows().push_back(window);
         }
 
         String polarity = "any";
         optionalAttributeAsString_(polarity, attributes, s_polarity_);
-        exp_->back().getInstrumentSettings().setPolarity((IonSource::Polarity) cvStringToEnum_(0, polarity, "polarity"));
+        exp_->getSpectra().back().getInstrumentSettings().setPolarity((IonSource::Polarity) cvStringToEnum_(0, polarity, "polarity"));
 
         String type = "";
         optionalAttributeAsString_(type, attributes, s_scantype_);
@@ -563,53 +563,53 @@ private:
         }
         else if (type == "zoom")
         {
-          exp_->back().getInstrumentSettings().setZoomScan(true);
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          exp_->getSpectra().back().getInstrumentSettings().setZoomScan(true);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "Full")
         {
           if (ms_level > 1)
-            exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+            exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
           else
-            exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+            exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "SIM")
         {
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
         }
         else if (type == "SRM" || type == "MRM")
         {
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
         }
         else if (type == "CRM")
         {
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
         }
         else if (type == "Q1")
         {
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "Q3")
         {
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "EMS") //Non-standard type: Enhanced MS (ABI - Sashimi converter)
         {
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "EPI") //Non-standard type: Enhanced Product Ion (ABI - Sashimi converter)
         {
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
-          exp_->back().setMSLevel(2);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          exp_->getSpectra().back().setMSLevel(2);
         }
         else if (type == "ER") // Non-standard type: Enhanced Resolution (ABI - Sashimi converter)
         {
-          exp_->back().getInstrumentSettings().setZoomScan(true);
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          exp_->getSpectra().back().getInstrumentSettings().setZoomScan(true);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else
         {
-          exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
           warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
         }
 
@@ -713,7 +713,7 @@ private:
         }
         else if (parent_tag == "scan")
         {
-          exp_->back().setMetaValue(name, value);
+          exp_->getSpectra().back().setMetaValue(name, value);
         }
         else
         {
@@ -788,7 +788,7 @@ private:
             {
               peak.setMZ(data[n]);
               peak.setIntensity(data[n + 1]);
-              exp_->back().push_back(peak);
+              exp_->getSpectra().back().push_back(peak);
             }
           }
         }
@@ -813,7 +813,7 @@ private:
             {
               peak.setMZ(data[n]);
               peak.setIntensity(data[n + 1]);
-              exp_->back().push_back(peak);
+              exp_->getSpectra().back().push_back(peak);
             }
           }
         }
@@ -844,13 +844,13 @@ private:
       {
         DoubleReal mz_pos = asDouble_(transcoded_chars);
         //precursor m/z
-        exp_->back().getPrecursors().back().setMZ(mz_pos);
+        exp_->getSpectra().back().getPrecursors().back().setMZ(mz_pos);
         //update window bounds - center them around the m/z pos
-        DoubleReal window_width = exp_->back().getPrecursors().back().getIsolationWindowLowerOffset();
+        DoubleReal window_width = exp_->getSpectra().back().getPrecursors().back().getIsolationWindowLowerOffset();
         if (window_width != 0.0)
         {
-          exp_->back().getPrecursors().back().setIsolationWindowLowerOffset(mz_pos - 0.5 * window_width);
-          exp_->back().getPrecursors().back().setIsolationWindowUpperOffset(mz_pos + 0.5 * window_width);
+          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowLowerOffset(mz_pos - 0.5 * window_width);
+          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowUpperOffset(mz_pos + 0.5 * window_width);
         }
       }
       else if (open_tags_.back() == "comment")
@@ -868,7 +868,7 @@ private:
         }
         else if (parent_tag == "scan")
         {
-          exp_->back().setComment(transcoded_chars);
+          exp_->getSpectra().back().setComment(transcoded_chars);
         }
         else if (String(transcoded_chars).trim() != "")
         {
