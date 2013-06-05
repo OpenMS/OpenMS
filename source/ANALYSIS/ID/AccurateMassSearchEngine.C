@@ -207,12 +207,6 @@ AccurateMassSearchEngine::AccurateMassSearchEngine() :
     defaultsToParam_();
 
     this->setLogType(CMD);
-
-    // The default constructor loads the default mapping file (chemical formulas -> HMDB IDs)
-    parseMappingFile_("");
-
-    // This loads additional properties like common name, smiles, and inchi key for each HMDB id
-    parseStructMappingFile_("");
 }
 
 AccurateMassSearchEngine::~AccurateMassSearchEngine()
@@ -232,7 +226,7 @@ void AccurateMassSearchEngine::queryByMass(const DoubleReal& adduct_mass, const 
 
     if (ion_mode_ == "positive")
     {
-        parseAdductsFile_(pos_adducts_fname_);
+        // parseAdductsFile_(pos_adducts_fname_);
 
         for (Size adduct_idx = 0; adduct_idx < pos_adducts_.size(); ++adduct_idx)
         {
@@ -287,7 +281,7 @@ void AccurateMassSearchEngine::queryByMass(const DoubleReal& adduct_mass, const 
     else
     {
         // same for negative mode
-        parseAdductsFile_(neg_adducts_fname_);
+        // parseAdductsFile_(neg_adducts_fname_);
 
         for (Size adduct_idx = 0; adduct_idx < neg_adducts_.size(); ++adduct_idx)
         {
@@ -305,6 +299,7 @@ void AccurateMassSearchEngine::queryByMass(const DoubleReal& adduct_mass, const 
 
             // get potential hits as indices in masskey_table
             searchMass_(query_mass, hit_idx);
+
 
             // store information from query hits in AccurateMassSearchResult objects
             for (Size i = 0; i < hit_idx.size(); ++i)
@@ -328,6 +323,7 @@ void AccurateMassSearchEngine::queryByMass(const DoubleReal& adduct_mass, const 
                 for (Size j = 0; j < mass_id_mapping_[hit_idx[i]].size(); ++j)
                 {
                     matching_hmdb_ids.push_back(mass_id_mapping_[hit_idx[i]][j]);
+
                 }
                 ams_result.setMatchingHMDBids(matching_hmdb_ids);
 
@@ -369,7 +365,22 @@ void AccurateMassSearchEngine::run(const FeatureMap<> & fmap, MzTab& mztab_out)
     //        std::cout << i << " : " << mass_formula_mapping_[i] << std::endl;
     //    }
 
+    // Loads the default mapping file (chemical formulas -> HMDB IDs)
+    parseMappingFile_("");
+
+    // This loads additional properties like common name, smiles, and inchi key for each HMDB id
+    parseStructMappingFile_("");
+
     typedef std::map<String, std::vector<AccurateMassSearchResult> > QueryResultsTable;
+
+    if (ion_mode_ == "positive")
+    {
+        parseAdductsFile_(pos_adducts_fname_);
+    }
+    else
+    {
+        parseAdductsFile_(neg_adducts_fname_);
+    }
 
     // map for storing overall results
     QueryResultsTable overall_results;
@@ -379,7 +390,7 @@ void AccurateMassSearchEngine::run(const FeatureMap<> & fmap, MzTab& mztab_out)
         // Feature().getMetaValue(3)
         std::vector<AccurateMassSearchResult> query_results;
 
-        // std::cout << fmap[i].getMetaValue(3) << " mass: " << fmap[i].getMZ() << " num_traces: " << fmap[i].getMetaValue("num_of_masstraces") << " charge: " << fmap[i].getCharge() << std::endl;
+        // std::cout << i << ": " << fmap[i].getMetaValue(3) << " mass: " << fmap[i].getMZ() << " num_traces: " << fmap[i].getMetaValue("num_of_masstraces") << " charge: " << fmap[i].getCharge() << std::endl;
         queryByFeature(fmap[i], query_results);
 
         if (iso_similarity_ && (Size)fmap[i].getMetaValue("num_of_masstraces") > 1 && query_results.size() > 0)
@@ -653,6 +664,10 @@ void AccurateMassSearchEngine::updateMembers_()
 
 void AccurateMassSearchEngine::parseMappingFile_(const String& map_fname)
 {
+    masskey_table_.clear();
+    mass_formula_mapping_.clear();
+    mass_id_mapping_.clear();
+
     // load map_fname mapping file
     String fname;
 
@@ -677,6 +692,7 @@ void AccurateMassSearchEngine::parseMappingFile_(const String& map_fname)
     {
         str_buf.clear();
         str_buf << line;
+        // std::cout << line << std::endl;
         std::istream_iterator<String> istr_it(str_buf);
 
         Size word_count(0);
@@ -714,7 +730,7 @@ void AccurateMassSearchEngine::parseMappingFile_(const String& map_fname)
     }
 
     if (masskey_table_.size() != mass_id_mapping_.size()
-            && masskey_table_.size() != mass_formula_mapping_.size())
+            || masskey_table_.size() != mass_formula_mapping_.size())
     {
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Parsing of mass-to-HMDB-IDs mapping failed... Sizes of masskey_table_ and mass_id_mapping_ differ!" + String(masskey_table_.size()), String(mass_id_mapping_.size()));
     }
@@ -726,6 +742,8 @@ void AccurateMassSearchEngine::parseMappingFile_(const String& map_fname)
 
 void AccurateMassSearchEngine::parseStructMappingFile_(const String& map_fname)
 {
+    hmdb_properties_mapping_.clear();
+
     // load map_fname mapping file
     String fname;
 
@@ -778,6 +796,9 @@ void AccurateMassSearchEngine::parseStructMappingFile_(const String& map_fname)
 
 void AccurateMassSearchEngine::parseAdductsFile_(const String& map_fname)
 {
+    pos_adducts_.clear();
+    neg_adducts_.clear();
+
     // load map_fname mapping file
     String fname;
 
