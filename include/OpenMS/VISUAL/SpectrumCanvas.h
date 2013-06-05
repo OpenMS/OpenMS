@@ -239,6 +239,12 @@ public:
       return layers_[current_layer_];
     }
 
+    /// returns the index of the active layer
+    inline Size getCurrentLayerIndex() const
+    {
+      return current_layer_;
+    }
+
     /// returns the layer data of the active layer
     inline LayerData & getCurrentLayer()
     {

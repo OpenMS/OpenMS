@@ -3431,14 +3431,43 @@ namespace OpenMS
 
   void TOPPViewBase::showCurrentPeaksAs3D()
   {
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+
+    // we first pick the layer with 3D support which is closest (or ideally identical) to the currently active layer
+    // we might find that there is no compatible layer though...
+    // if some day more than one type of data is supported, we need to adapt the code below accordingly
+
+    const int BIGINDEX = 10000; // some large number which is never reached
+    const int target_layer = (int) getActiveCanvas()->getCurrentLayerIndex();
+    int best_candidate = BIGINDEX;
+    for (int i = 0; i < (int) getActiveCanvas()->getLayerCount(); ++i)
+    {
+      if ((LayerData::DT_PEAK == getActiveCanvas()->getLayer(i).type) &&        // supported type
+          (std::abs(i - target_layer) < std::abs(best_candidate-target_layer))) // & smallest distance to active layer
+      {
+        best_candidate = i;
+      }
+    }
+
+    if (best_candidate == BIGINDEX)
+    {
+      showLogMessage_(LS_NOTICE, "No compatible layer", "No layer found which is supported by the 3D view.");
+      return;
+    }
+    
+    
+    if (best_candidate != target_layer)
+    {
+      showLogMessage_(LS_NOTICE, "Auto-selected compatible layer", "The currently active layer cannot be viewed in 3D view. The closest layer which is supported by the 3D view was selected!");
+    }
+
+    const LayerData& layer = getActiveCanvas()->getLayer(best_candidate);
 
     if (layer.type == LayerData::DT_PEAK)
     {
       //open new 3D widget
       Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
 
-      ExperimentSharedPtrType exp_sptr = getActiveCanvas()->getCurrentLayer().getPeakData();
+      ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
       if (!w->canvas()->addLayer(exp_sptr, layer.filename))
       {
@@ -3473,7 +3502,7 @@ namespace OpenMS
     }
     else
     {
-      showLogMessage_(LS_NOTICE, "Wrong layer type", "You cannot open feature data in 3D mode.");
+      showLogMessage_(LS_NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
     }
   }
 
