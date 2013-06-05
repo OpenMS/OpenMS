@@ -158,7 +158,7 @@ protected:
     {
       if (it->size() != 0)
       {
-        exp2.push_back(*it);
+        exp2.addSpectrum(*it);
       }
     }
 
@@ -223,7 +223,7 @@ protected:
             zoom_spec.push_back(*pit);
           }
         }
-        new_exp.push_back(zoom_spec);
+        new_exp.addSpectrum(zoom_spec);
         new_exp.updateRanges();
         FeatureMap<> features, seeds;
         ff.run("isotope_wavelet", new_exp, features, ff_param, seeds);

@@ -866,7 +866,7 @@ protected:
       {
         cout << orig_rt << "\t" << prec_pos << "\t" << "added with ";
       }
-      new_exp.push_back(new_spec);
+      new_exp.addSpectrum(new_spec);
 
       // add a new spec with each of the modifications
       int valid_mod_count = 0;
@@ -896,7 +896,7 @@ protected:
           continue;
         }
         valid_mod_count++;
-        new_exp.push_back(spec);
+        new_exp.addSpectrum(spec);
       }
 
       if (debug_level >= 1)

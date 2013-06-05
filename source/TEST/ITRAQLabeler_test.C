@@ -201,7 +201,7 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
   spec.setMetaValue("parent_feature_ids",  il);
   spec.setRT(600);
   spec.setMSLevel(2);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
 
   MSSimExperiment exp2=exp;
   
@@ -285,7 +285,6 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
     ++count;
   }
   TEST_EQUAL(count, 8)
-
 }
 END_SECTION
 

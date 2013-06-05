@@ -352,7 +352,7 @@ END_SECTION
       p.setIntensity( 900 + 7*m + 5*i );
       mss.push_back(p);
     }
-    mse.push_back(mss);
+    mse.addSpectrum(mss);
     mse.getSpectra().back().setRT(m*5);
   }
 

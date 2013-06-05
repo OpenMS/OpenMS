@@ -116,7 +116,7 @@ public:
           peak.setMZ(it->getMZ());
           peak.setIntensity(pit->getIntensity());
           spec.push_back(peak);
-          exp.push_back(spec);
+          exp.addSpectrum(spec);
         }
       }
 

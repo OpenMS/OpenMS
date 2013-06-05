@@ -150,7 +150,7 @@ public:
 #pragma omp critical
 #endif
           {
-            exp.push_back(spectrum);
+            exp.addSpectrum(spectrum);
           }
         } // next spectrum
       } // OMP parallel

@@ -670,9 +670,9 @@ START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment<
 	for ( DoubleReal struc_size = .5; struc_size <= 2; struc_size += .1 )
 	{
 		MSExperiment<Peak1D> mse_raw;
-		mse_raw.push_back(raw);
-		mse_raw.push_back(raw);
-		mse_raw.push_back(raw);
+		mse_raw.addSpectrum(raw);
+		mse_raw.addSpectrum(raw);
+		mse_raw.addSpectrum(raw);
 
 		Param parameters;
 		parameters.setValue("method","dilation");

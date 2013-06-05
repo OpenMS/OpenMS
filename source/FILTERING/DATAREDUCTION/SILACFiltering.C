@@ -162,7 +162,7 @@ namespace OpenMS
           }
         }
 
-        exp_debug.push_back(debug);
+        exp_debug.addSpectrum(debug);
       }
 
       if (debug_filebase_ != "")
@@ -425,7 +425,7 @@ namespace OpenMS
           }
         }
 
-        exp_debug.push_back(debug);
+        exp_debug.addSpectrum(debug);
       }
 
       if (debug_filebase_ != "")

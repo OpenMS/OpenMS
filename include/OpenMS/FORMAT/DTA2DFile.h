@@ -223,7 +223,7 @@ public:
              &&
               (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT()))))                // RT restriction fulfilled
           {
-            map.push_back(spec);
+            map.addSpectrum(spec);
           }
           setProgress(0);
           spec.clear(true);
@@ -250,7 +250,7 @@ public:
         (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT())))             // RT restriction fulfilled
         )
       {
-        map.push_back(spec);
+        map.addSpectrum(spec);
       }
 
       is.close();

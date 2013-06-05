@@ -684,12 +684,12 @@ mda2.push_back(-2.5f);
 spec.setRT(500.0);
 spec.getFloatDataArrays().push_back(mda1);
 spec.getFloatDataArrays()[0].setName("MDA1");
-exp.push_back(spec);
+exp.addSpectrum(spec);
 
 //spectrum 2 (zero meta data array)
 spec.setRT(600.0);
 spec.getFloatDataArrays().clear();
-exp.push_back(spec);
+exp.addSpectrum(spec);
 
 //spectrum 3 (two meta data array)
 spec.setRT(700.0);
@@ -697,7 +697,7 @@ spec.getFloatDataArrays().push_back(mda1);
 spec.getFloatDataArrays().push_back(mda2);
 spec.getFloatDataArrays()[0].setName("MDA1");
 spec.getFloatDataArrays()[1].setName("MDA2");
-exp.push_back(spec);
+exp.addSpectrum(spec);
 
 //*******************************************
 //store file

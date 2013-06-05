@@ -369,7 +369,7 @@ namespace OpenMS
       }
 
       PeakMap new_exp;
-      new_exp.push_back(new_spec);
+      new_exp.addSpectrum(new_spec);
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
       FeatureMapSharedPtrType f_dummy(new FeatureMapType());
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());

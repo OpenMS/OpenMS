@@ -347,7 +347,7 @@ protected:
             writeLog_(String("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
           }
 
-          out.push_back(*it2);
+          out.addSpectrum(*it2);
           out.getSpectra().back().setRT(rt_final);
           out.getSpectra().back().setNativeID(native_id);
           if (user_ms_level)

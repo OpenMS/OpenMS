@@ -144,8 +144,8 @@ START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment
   spec[4].setIntensity(1.0f);
 
   MSExperiment< RichPeak1D > exp;
-  exp.push_back(spec);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
+  exp.addSpectrum(spec);
 
   LinearResampler lr;
   Param param;

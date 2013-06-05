@@ -250,7 +250,7 @@ namespace OpenMS
     for (Size c = 0; c != ms1_indices_size; ++c)
     {
       MSSpectrum<Peak1D> spectrum = input[ms1_indices[c]];
-      exp.push_back(spectrum);
+      exp.addSpectrum(spectrum);
     }
 
     // set of (intensity, mz, peak-width)

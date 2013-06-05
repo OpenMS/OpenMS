@@ -698,7 +698,7 @@ protected:
         if (!skip_spectrum_)
         {
           fillData_();
-          exp_->push_back(spec_);
+          exp_->addSpectrum(spec_);
         }
         skip_spectrum_ = false;
         logger_.setProgress(++scan_count);

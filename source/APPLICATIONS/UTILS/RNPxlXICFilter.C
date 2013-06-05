@@ -244,7 +244,7 @@ protected:
 
       if (ms_level == 1)
       {
-        exp_out.push_back(exp_treatment[i]);
+        exp_out.addSpectrum(exp_treatment[i]);
         continue;
       }
       else if (ms_level == 2)
@@ -255,7 +255,7 @@ protected:
         {
           if (fabs(rt - treatment_XIC_larger_rts[j]) <= 0.001)
           {
-            exp_out.push_back(exp_treatment[i]);
+            exp_out.addSpectrum(exp_treatment[i]);
             break;
           }
         }

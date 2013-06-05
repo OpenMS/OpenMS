@@ -191,7 +191,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	peaks.push_back(peak);
 
   MSExperiment<> ms_exp;
-	ms_exp.push_back(peaks);
+	ms_exp.addSpectrum(peaks);
 	ms_exp.begin()->setRT(100);
 			
   float origin = 499;
@@ -225,7 +225,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	peaks2.push_back(peak);
 
 
-	ms_exp.push_back(peaks2);
+	ms_exp.addSpectrum(peaks2);
  (ms_exp.begin()+1)->setRT(101);
 
   MSSpectrum<Peak1D >	 raw_spec2;
@@ -238,8 +238,8 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   }
 
   MSExperiment<Peak1D > raw_exp;
-  raw_exp.push_back(raw_spec);
-  raw_exp.push_back(raw_spec2);
+  raw_exp.addSpectrum(raw_spec);
+  raw_exp.addSpectrum(raw_spec2);
 	raw_exp.begin()->setRT(100);
   (raw_exp.begin()+1)->setRT(101);
   String file = OPENMS_GET_TEST_DATA_PATH("TwoDOptimization.xml");	
@@ -297,7 +297,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   peak_shape2.height = 700;
   peak_shape2.type = PeakShape::LORENTZ_PEAK;  
 	peaks2.push_back(peak);
-	ms_exp.push_back(peaks2);
+	ms_exp.addSpectrum(peaks2);
   (ms_exp.begin()+2)->setRT(102);
 
   raw_spec2.clear(true);
@@ -311,7 +311,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   }
 
 
-  raw_exp.push_back(raw_spec2);
+  raw_exp.addSpectrum(raw_spec2);
   (raw_exp.begin()+2)->setRT(102);
   first = raw_exp.begin();
   last = raw_exp.end();

@@ -275,7 +275,7 @@ namespace OpenMS
             spec.push_back(peak);
           }
           spec.setNativeID(String("index=") + spectrum_number);
-          exp.push_back(spec);
+          exp.addSpectrum(spec);
           spec.clear(true);
         }
         spectrum_number++;

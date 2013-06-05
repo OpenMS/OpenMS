@@ -565,7 +565,7 @@ protected:
         MapType exp_tmp;
         for (MapType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
         {
-          if (checkMetaOk(*it, meta_info)) exp_tmp.push_back(*it);
+          if (checkMetaOk(*it, meta_info)) exp_tmp.addSpectrum(*it);
         }
         exp.clear(false);
         exp.getSpectra().insert(exp.begin(), exp_tmp.begin(), exp_tmp.end());
@@ -1092,7 +1092,7 @@ protected:
       if (find(blacklist_idx.begin(), blacklist_idx.end(), i) ==
           blacklist_idx.end())
       {
-        exp2.push_back(exp[i]);
+        exp2.addSpectrum(exp[i]);
       }
     }
 
@@ -1167,13 +1167,13 @@ protected:
         // blacklist: add all spectra not contained in list
         if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
         {
-          exp2.push_back(exp[i]);
+          exp2.addSpectrum(exp[i]);
         }
       } else // whitelist: add all non MS2 spectra, and MS2 only if in list
       {
         if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
         {
-          exp2.push_back(exp[i]);
+          exp2.addSpectrum(exp[i]);
         }
       }
     }

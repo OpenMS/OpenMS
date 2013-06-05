@@ -251,7 +251,7 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	spec.push_back(peak);
 	peak.getPosition()[0] = 15;
 	spec.push_back(peak);
-	exp.push_back(spec);
+	exp.addSpectrum(spec);
 
 	// second spectrum (MS/MS)
 	spec.clear(true);
@@ -263,7 +263,7 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	spec.push_back(peak);
 	peak.getPosition()[0] = 11;
 	spec.push_back(peak);
-	exp.push_back(spec);	
+	exp.addSpectrum(spec);	
 
 	// third spectrum (MS)
 	spec.clear(true);
@@ -273,7 +273,7 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	spec.push_back(peak);
 	peak.getPosition()[0] = 25;
 	spec.push_back(peak);
-	exp.push_back(spec);	
+	exp.addSpectrum(spec);	
 
 	// forth spectrum (MS/MS)
 	spec.clear(true);
@@ -287,7 +287,7 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	spec.push_back(peak);
 	peak.getPosition()[0] = 31;
 	spec.push_back(peak);
-	exp.push_back(spec);	
+	exp.addSpectrum(spec);	
 
 	file.store("MascotInfile_test.txt", exp, "Experiment");
 	TEST_FILE_EQUAL("MascotInfile_test.txt", OPENMS_GET_TEST_DATA_PATH("MascotInfile_test_template3.txt"));

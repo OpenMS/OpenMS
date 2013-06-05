@@ -3288,7 +3288,7 @@ namespace OpenMS
         }
 
         PeakMap new_exp;
-        new_exp.push_back(new_spec);
+        new_exp.addSpectrum(new_spec);
         ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
         FeatureMapSharedPtrType f_dummy(new FeatureMapType());
         ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
@@ -3907,7 +3907,7 @@ namespace OpenMS
           Size index = (Size)(item->text(3).toInt());
           const ExperimentType::SpectrumType spectrum = (*layer.getPeakData())[index];
           ExperimentType new_exp;
-          new_exp.push_back(spectrum);
+          new_exp.addSpectrum(spectrum);
           ExperimentSharedPtrType new_exp_sptr(new ExperimentType(new_exp));
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());

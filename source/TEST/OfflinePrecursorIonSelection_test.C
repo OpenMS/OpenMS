@@ -137,11 +137,11 @@ START_SECTION((template < typename InputPeakType > void getMassRanges(const Feat
   p.setMZ(478.2);
   spec.push_back(p);
   spec.setRT(44.);
-  empty_map.push_back(spec);
+  empty_map.addSpectrum(spec);
   spec.setRT(45.);
-  empty_map.push_back(spec);
+  empty_map.addSpectrum(spec);
   spec.setRT(46.);
-  empty_map.push_back(spec);
+  empty_map.addSpectrum(spec);
   ptr->getMassRanges(map,empty_map,indices);  // led to a memory leak before
   indices.clear();
 	ptr->getMassRanges(map,raw_data,indices);

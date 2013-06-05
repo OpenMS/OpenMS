@@ -397,7 +397,7 @@ protected:
         }
 
         if (consensus_spec.empty()) continue;
-        else merged_spectra.push_back(consensus_spec);
+        else merged_spectra.addSpectrum(consensus_spec);
       }
 
       LOG_INFO << "Cluster sizes:\n";
@@ -418,7 +418,7 @@ protected:
       {
         if (merged_indices.count(i) == 0) // save unclustered ones
         {
-          exp_tmp.push_back(exp[i]);
+          exp_tmp.addSpectrum(exp[i]);
           exp[i] = empty_spec;
         }
       }

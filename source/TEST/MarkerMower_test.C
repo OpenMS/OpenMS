@@ -99,7 +99,7 @@ START_SECTION((void filterPeakMap(PeakMap& exp)))
   dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
 	PeakMap pm;
-	pm.push_back(spec);
+	pm.addSpectrum(spec);
 
   TEST_EQUAL(pm.begin()->size(), 121)
 

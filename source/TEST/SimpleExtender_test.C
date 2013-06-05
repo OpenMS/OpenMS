@@ -109,7 +109,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 
 		spec.push_back(p);
 	}
-	input.push_back(spec);
+	input.addSpectrum(spec);
 
 	spec.clear(true);
 	spec.setRT(2);
@@ -124,7 +124,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 
 		spec.push_back(p);
 	}
-	input.push_back(spec);
+	input.addSpectrum(spec);
 
 	spec.clear(true);
 	spec.setRT(3);
@@ -139,7 +139,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 
 		spec.push_back(p);
 	}
-	input.push_back(spec);
+	input.addSpectrum(spec);
 
 	spec.clear(true);
 	spec.setRT(4);
@@ -155,7 +155,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 
 		spec.push_back(p);
 	}
-	input.push_back(spec);
+	input.addSpectrum(spec);
 
 	input.updateRanges();
 

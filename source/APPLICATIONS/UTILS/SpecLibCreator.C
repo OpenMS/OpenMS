@@ -268,7 +268,7 @@ protected:
           pepi.push_back(pep);
           speci.setPeptideIdentifications(pepi);
           //it->getPeptideIdentifications().begin()->setHits(hits);
-          library.push_back(speci);
+          library.addSpectrum(speci);
         }
       }
       if (no_peptide)

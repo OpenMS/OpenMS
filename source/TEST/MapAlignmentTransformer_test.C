@@ -87,25 +87,25 @@ START_SECTION((static void transformPeakMaps(std::vector< MSExperiment<> > &maps
   // first spectrum (MS)
   spec.setRT(11.1);
   spec.setMSLevel(1);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
 
   // second spectrum (MS/MS)
   spec.clear(true);
   spec.setRT(11.5);
   spec.setMSLevel(2);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
 
   // third spectrum (MS)
   spec.clear(true);
   spec.setRT(12.2);
   spec.setMSLevel(1);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
 
   // forth spectrum (MS/MS)
   spec.clear(true);
   spec.setRT(12.5);
   spec.setMSLevel(2);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
 
   std::vector<MSExperiment<> > maps;
   maps.push_back(exp);
@@ -270,25 +270,25 @@ START_SECTION((static void transformSinglePeakMap(MSExperiment<> &msexp, const T
   // first spectrum (MS)
   spec.setRT(11.1);
   spec.setMSLevel(1);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
 
   // second spectrum (MS/MS)
   spec.clear(true);
   spec.setRT(11.5);
   spec.setMSLevel(2);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
 
   // third spectrum (MS)
   spec.clear(true);
   spec.setRT(12.2);
   spec.setMSLevel(1);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
 
   // forth spectrum (MS/MS)
   spec.clear(true);
   spec.setRT(12.5);
   spec.setMSLevel(2);
-  exp.push_back(spec);
+  exp.addSpectrum(spec);
 
   MapAlignmentTransformer::transformSinglePeakMap(exp, td);
 

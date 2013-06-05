@@ -125,7 +125,7 @@ public:
           {
             spec.setMSLevel(2);
             spec.setNativeID(String("index=") + (spectrum_number++));
-            exp.push_back(spec);
+            exp.addSpectrum(spec);
           }
           else
           {
@@ -187,7 +187,7 @@ public:
       {
         spec.setMSLevel(2);
         spec.setNativeID(String("index=") + (spectrum_number++));
-        exp.push_back(spec);
+        exp.addSpectrum(spec);
       }
     }
 

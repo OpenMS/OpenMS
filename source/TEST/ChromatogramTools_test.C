@@ -157,11 +157,11 @@ START_SECTION(template <typename ExperimentType> void convertSpectraToChromatogr
 	spec4.getPrecursors().push_back(prec2);
 
 	PeakMap exp;
-	exp.push_back(spec1);
-	exp.push_back(spec2);
-	exp.push_back(spec3);
-	exp.push_back(spec4);
-	exp.push_back(spec5);
+	exp.addSpectrum(spec1);
+	exp.addSpectrum(spec2);
+	exp.addSpectrum(spec3);
+	exp.addSpectrum(spec4);
+	exp.addSpectrum(spec5);
 
 	PeakMap exp2 = exp;
 

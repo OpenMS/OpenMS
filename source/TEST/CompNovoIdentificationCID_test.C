@@ -113,7 +113,7 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   cni_param.setValue("precursor_mass_tolerance", 0.3);
   cni.setParameters(cni_param);
 	PeakMap exp;
-	exp.push_back(spec);
+	exp.addSpectrum(spec);
   cni.getIdentifications(ids, exp);
   TEST_EQUAL(ids.size(), 1)
   TEST_EQUAL(ids.begin()->getHits().size() > 0, true)

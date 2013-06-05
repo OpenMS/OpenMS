@@ -145,7 +145,7 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	spec.push_back(peak);
 	peak.getPosition()[0] = 15;
 	spec.push_back(peak);
-	exp.push_back(spec);
+	exp.addSpectrum(spec);
 
 	// second spectrum (MS/MS)
 	spec.clear(true);
@@ -155,7 +155,7 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	spec.push_back(peak);
 	peak.getPosition()[0] = 11;
 	spec.push_back(peak);
-	exp.push_back(spec);
+	exp.addSpectrum(spec);
 
 	// third spectrum (MS)
 	spec.clear(true);
@@ -165,7 +165,7 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	spec.push_back(peak);
 	peak.getPosition()[0] = 25;
 	spec.push_back(peak);
-	exp.push_back(spec);
+	exp.addSpectrum(spec);
 
 	// forth spectrum (MS/MS)
 	spec.clear(true);
@@ -177,7 +177,7 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	spec.push_back(peak);
 	peak.getPosition()[0] = 31;
 	spec.push_back(peak);
-	exp.push_back(spec);
+	exp.addSpectrum(spec);
 
 	//Convert
 	std::vector<Peak2D> a;
@@ -317,7 +317,7 @@ START_SECTION((virtual void updateRanges()))
 	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0f);
 	s.push_back(p);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	s.clear(true);
 	s.setMSLevel(1);
@@ -325,7 +325,7 @@ START_SECTION((virtual void updateRanges()))
 	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0f);
 	s.push_back(p);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	s.clear(true);
 	s.setMSLevel(3);
@@ -333,7 +333,7 @@ START_SECTION((virtual void updateRanges()))
 	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0f);
 	s.push_back(p);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	s.clear(true);
 	s.setMSLevel(3);
@@ -341,7 +341,7 @@ START_SECTION((virtual void updateRanges()))
 	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0f);
 	s.push_back(p);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	tmp.updateRanges();
 	tmp.updateRanges(); //second time to check the initialization
@@ -409,7 +409,7 @@ START_SECTION((virtual void updateRanges()))
 	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0f);
 	s2.push_back(p2);
-	tmp2.push_back(s2);
+	tmp2.addSpectrum(s2);
 
 	tmp2.updateRanges();
 	TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
@@ -439,7 +439,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0f);
 	s.push_back(p);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	s.clear(true);
 	s.setMSLevel(1);
@@ -447,7 +447,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0f);
 	s.push_back(p);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	s.clear(true);
 	s.setMSLevel(3);
@@ -455,7 +455,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0f);
 	s.push_back(p);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	s.clear(true);
 	s.setMSLevel(3);
@@ -463,7 +463,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0f);
 	s.push_back(p);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	//Update for MS level 1
 
@@ -499,7 +499,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0f);
 	s2.push_back(p2);
-	tmp2.push_back(s2);
+	tmp2.addSpectrum(s2);
 
 	tmp2.updateRanges(1);
 	TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
@@ -603,13 +603,13 @@ START_SECTION((Iterator RTBegin(CoordinateType rt)))
 	Peak1D p;
 
 	s.setRT(30.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(40.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(45.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(50.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	MSExperiment< Peak1D >::Iterator it;
 
@@ -628,13 +628,13 @@ START_SECTION((Iterator RTEnd(CoordinateType rt)))
 	Peak1D p;
 
 	s.setRT(30.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(40.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(45.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(50.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	MSExperiment< Peak1D >::Iterator it;
 
@@ -653,13 +653,13 @@ START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
 	Peak1D p;
 
 	s.setRT(30.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(40.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(45.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(50.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	MSExperiment< Peak1D >::Iterator it;
 
@@ -678,13 +678,13 @@ START_SECTION((ConstIterator RTEnd(CoordinateType rt) const))
 	Peak1D p;
 
 	s.setRT(30.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(40.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(45.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 	s.setRT(50.0);
-	tmp.push_back(s);
+	tmp.addSpectrum(s);
 
 	MSExperiment< Peak1D >::Iterator it;
 

@@ -1698,7 +1698,7 @@ namespace OpenMS
 
         std::cout << spec.size() << "\t" << fwhm << std::endl;
 #endif
-        exp.push_back(spec);
+        exp.addSpectrum(spec);
       }
 
       // determine slope

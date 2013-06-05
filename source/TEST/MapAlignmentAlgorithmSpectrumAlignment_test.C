@@ -89,7 +89,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 				peak.setIntensity(mz+i);
 				spectrum.push_back(peak);  
 		    }
-		    map1.push_back(spectrum);
+		    map1.addSpectrum(spectrum);
 		}
 	}
 	for (UInt i= 0; i< 15; ++i)
@@ -107,7 +107,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 					peak.setIntensity(mz+i);
 					spectrum.push_back(peak);  
 			    }
-			    map2.push_back(spectrum);
+			    map2.addSpectrum(spectrum);
 			}
 		}
 	

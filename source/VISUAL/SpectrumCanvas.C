@@ -781,7 +781,7 @@ namespace OpenMS
           if (it->getPrecursors()[0].getMZ() >= area.minPosition()[0] && it->getPrecursors()[0].getMZ() <= area.maxPosition()[0])
           {
             spectrum.insert(spectrum.begin(), it->begin(), it->end());
-            map.push_back(spectrum);
+            map.addSpectrum(spectrum);
           }
         }
         else         // MS1(0) spectra are cropped to the m/z range
@@ -793,9 +793,9 @@ namespace OpenMS
               spectrum.push_back(*it2);
             }
           }
-          map.push_back(spectrum);
+          map.addSpectrum(spectrum);
         }
-        // do not use map.push_back() here, otherwise empty spectra which did not pass the filters above will be added
+        // do not use map.addSpectrum() here, otherwise empty spectra which did not pass the filters above will be added
       }
     }
     else if (layer.type == LayerData::DT_CHROMATOGRAM)

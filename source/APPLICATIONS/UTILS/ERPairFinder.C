@@ -330,8 +330,8 @@ protected:
 
         // create experiments for feature finding
         PeakMap new_exp_light, new_exp_heavy;
-        new_exp_light.push_back(light_spec);
-        new_exp_heavy.push_back(heavy_spec);
+        new_exp_light.addSpectrum(light_spec);
+        new_exp_heavy.addSpectrum(heavy_spec);
 
         if (debug > 9)
         {

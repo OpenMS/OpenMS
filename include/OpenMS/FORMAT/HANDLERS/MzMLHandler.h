@@ -776,7 +776,7 @@ protected:
         if (!skip_spectrum_)
         {
           fillData_();
-          exp_->push_back(spec_);
+          exp_->addSpectrum(spec_);
 
           // catch errors stemming from confusion about elution time and scan time
           if (exp_->getSpectra().back().getRT() == -1.0 && exp_->getSpectra().back().metaValueExists("elution time (seconds)"))

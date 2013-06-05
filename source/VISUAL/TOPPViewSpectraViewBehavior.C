@@ -81,7 +81,7 @@ namespace OpenMS
         peak1d.setIntensity(cpeak.getIntensity());
         spectrum.push_back(peak1d);
       }
-      chrom_exp_sptr->push_back(spectrum);
+      chrom_exp_sptr->addSpectrum(spectrum);
 
       caption = layer.name + "[" + index + "]";
       //add chromatogram data as peak spectrum
@@ -183,7 +183,7 @@ namespace OpenMS
           peak1d.setIntensity(cpeak.getIntensity());
           spectrum.push_back(peak1d);
         }
-        chrom_exp_sptr->push_back(spectrum);
+        chrom_exp_sptr->addSpectrum(spectrum);
 
         caption = caption + " [" + indices[index] + "];";
         chromatogram_caption = layer.name + "[" + indices[index] + "]";
@@ -258,7 +258,7 @@ namespace OpenMS
         peak1d.setIntensity(cpeak.getIntensity());
         spectrum.push_back(peak1d);
       }
-      chrom_exp_sptr->push_back(spectrum);
+      chrom_exp_sptr->addSpectrum(spectrum);
       caption = lname + "[" + index + "]";
       //add chromatogram data as peak spectrum
       if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, fname))
@@ -318,7 +318,7 @@ namespace OpenMS
           peak1d.setIntensity(cpeak.getIntensity());
           spectrum.push_back(peak1d);
         }
-        chrom_exp_sptr->push_back(spectrum);
+        chrom_exp_sptr->addSpectrum(spectrum);
         caption = fname + "[" + indices[index] + "]";
         if (current_chrom.getPrecursor().metaValueExists("peptide_sequence"))
         {

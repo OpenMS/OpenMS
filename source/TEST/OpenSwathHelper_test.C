@@ -136,7 +136,7 @@ START_SECTION(static void checkSwathMap(const OpenMS::MSExperiment< Peak1D > &sw
   prec.setIsolationWindowUpperOffset(300);
   precursors.push_back(prec);
   spectrum.setPrecursors(precursors);
-  swath_map.push_back(spectrum);
+  swath_map.addSpectrum(spectrum);
 
   double lower, upper;
   OpenSwathHelper::checkSwathMap(swath_map, lower, upper);

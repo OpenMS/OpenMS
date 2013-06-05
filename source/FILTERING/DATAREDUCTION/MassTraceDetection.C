@@ -106,14 +106,14 @@ void MassTraceDetection::run(MSExperiment<Peak1D>::ConstAreaIterator & begin, MS
             // save new spectrum in map
             if (current_spectrum.getRT() != -1)
             {
-                map.push_back(current_spectrum);
+                map.addSpectrum(current_spectrum);
             }
             current_spectrum.clear(false);
             current_spectrum.setRT(begin.getRT());
         }
         current_spectrum.push_back(*begin);
     }
-    map.push_back(current_spectrum);
+    map.addSpectrum(current_spectrum);
 
     run(map, found_masstraces);
 }
@@ -252,7 +252,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                 }
             }
 
-            work_exp.push_back(tmp_spec);
+            work_exp.addSpectrum(tmp_spec);
             spec_offsets.push_back(spec_offsets[spec_offsets.size() - 1] + tmp_spec.size());
 
             ++spectra_count;

@@ -113,8 +113,8 @@ START_SECTION((void getIdentifications(std::vector< PeptideIdentification > &ids
   spec_ETD.setPrecursors(precs);
 
 	PeakMap exp;
-	exp.push_back(spec);
-	exp.push_back(spec_ETD);
+	exp.addSpectrum(spec);
+	exp.addSpectrum(spec_ETD);
 
   vector<PeptideIdentification> ids;
   CompNovoIdentification cni;

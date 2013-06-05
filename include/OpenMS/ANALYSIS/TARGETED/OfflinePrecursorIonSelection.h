@@ -375,31 +375,31 @@ private:
 #ifdef DEBUG_OPS
       std::cout << "best_solution " << std::endl;
 #endif
-      // print best solution
-      // create inclusion list
-      for (Size i = 0; i < solution_indices.size(); ++i)
-      {
-        Size feature_index = variable_indices[solution_indices[i]].feature;
-        Size feature_scan_idx = variable_indices[solution_indices[i]].scan;
-        typename MSExperiment<InputPeakType>::ConstIterator scan = experiment.begin() + feature_scan_idx;
-        typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
-        Precursor p;
-        std::vector<Precursor> pcs;
-        p.setIntensity(features[feature_index].getIntensity());
-        p.setMZ(features[feature_index].getMZ());
-        p.setCharge(features[feature_index].getCharge());
-        pcs.push_back(p);
-        ms2_spec.setPrecursors(pcs);
-        ms2_spec.setRT(scan->getRT() + rt_dist / 2.0);
-        ms2_spec.setMSLevel(2);
-        // link ms2 spectrum with features overlapping its precursor
-        // Warning: this depends on the current order of features in the map
-        // Attention: make sure to name ALL features that overlap, not only one!
-        ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String(feature_index)));
-        ms2.push_back(ms2_spec);
-        std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
+			// print best solution
+			// create inclusion list
+			for(Size i = 0; i < solution_indices.size();++i)
+			{
+				Size feature_index = variable_indices[solution_indices[i]].feature;
+				Size feature_scan_idx = variable_indices[solution_indices[i]].scan;
+				typename MSExperiment<InputPeakType>::ConstIterator scan = experiment.begin()+feature_scan_idx;
+				typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
+				Precursor p;
+				std::vector< Precursor > pcs;
+				p.setIntensity(features[feature_index].getIntensity());
+				p.setMZ(features[feature_index].getMZ());
+				p.setCharge(features[feature_index].getCharge());
+				pcs.push_back(p);
+				ms2_spec.setPrecursors(pcs);
+				ms2_spec.setRT(scan->getRT()+rt_dist/2.0);
+				ms2_spec.setMSLevel(2);
+				// link ms2 spectrum with features overlapping its precursor
+				// Warning: this depends on the current order of features in the map
+				// Attention: make sure to name ALL features that overlap, not only one!
+				ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String(feature_index)));
+				ms2.addSpectrum(ms2_spec);
+				std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
 
-      }
+			}
 #ifdef DEBUG_OPS
       std::cout << solution_indices.size() << " out of " << features.size()
                 << " precursors are in best solution.\n";
@@ -556,7 +556,7 @@ private:
             ms2_spec.setMSLevel(2);
             ms2_spec.setRT(experiment[i].getRT() + rt_dist / 2.0);           //(selected_peaks+1)*rt_dist/(max_spec+1) );
             ms2_spec.setMetaValue("parent_feature_ids", parent_feature_ids);
-            ms2.push_back(ms2_spec);
+            ms2.addSpectrum(ms2_spec);
           }
 
           //add m/z window to exclusion list

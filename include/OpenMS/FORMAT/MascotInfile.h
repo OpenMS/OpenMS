@@ -115,7 +115,7 @@ public:
           title = "";
         }
 
-        exp.push_back(spectrum);
+        exp.addSpectrum(spectrum);
 
         // clean up
         spec.clear();

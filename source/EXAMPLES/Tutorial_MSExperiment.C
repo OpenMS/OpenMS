@@ -49,7 +49,7 @@ Int main()
       peak.setMZ(mz + i);
       spectrum.push_back(peak);
     }
-    exp.push_back(spectrum);
+    exp.addSpectrum(spectrum);
   } //end of creation
 
   for (PeakMap::AreaIterator it = exp.areaBegin(2.0, 3.0, 603.0, 802.0); it != exp.areaEnd(); ++it)

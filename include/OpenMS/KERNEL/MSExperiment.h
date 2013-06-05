@@ -164,11 +164,6 @@ public:
       return spectra_.end();
     }
 
-    void push_back( const SpectrumType& x )
-    {
-      spectra_.push_back(x);
-    }
-
     //@}
 
     /// Constructor

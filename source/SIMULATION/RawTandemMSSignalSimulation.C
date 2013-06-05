@@ -248,7 +248,7 @@ namespace OpenMS
       {
         for (Size ii = 0; ii < MS2_spectra.size(); ++ii)
         {
-          ms2.push_back(MS2_spectra[ii]); // DEBUG
+          ms2.addSpectrum(MS2_spectra[ii]); // DEBUG
           ms2.getSpectra().back().setMetaValue("MSE_DebugSpectrum", "true");
         }
       }
@@ -261,7 +261,7 @@ namespace OpenMS
       MS2_spectra[0].setMetaValue("MSE_Spectrum", "true");
       MS2_spectra[0].setMetaValue("MSE_sequences", feature_seq);
       MS2_spectra[0].setMetaValue("MSE_intensities", feature_intensities);
-      ms2.push_back(MS2_spectra[0]);
+      ms2.addSpectrum(MS2_spectra[0]);
 
     }
 

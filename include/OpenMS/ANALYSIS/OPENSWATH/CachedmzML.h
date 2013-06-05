@@ -159,7 +159,7 @@ public:
         setProgress(i);
         SpectrumType spectrum;
         readSpectrum_(spectrum, ifs);
-        exp_reading.push_back(spectrum);
+        exp_reading.addSpectrum(spectrum);
       }
       std::vector<ChromatogramType> chromatograms;
       for (Size i = 0; i < chrom_size; i++)

@@ -372,10 +372,10 @@ namespace OpenMS
     MSSpectrum<> points;
     if (!loadCurve(file_name, points)) return false;
 
-    data_.push_back(points);
+    data_.addSpectrum(points);
 
     MSExperiment<>* exp = new MSExperiment<>();
-    exp->push_back(points);
+    exp->addSpectrum(points);
     spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp));
     spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, points.getMetaValue("search_engine"));
     // set intensity mode (after spectrum has been added!)

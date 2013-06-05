@@ -123,7 +123,7 @@ namespace OpenMS
         if (mode == "" || activation_predicate(ms_exp_data[idx]))
         {
           // copy only MS² scans
-          ms_exp_MS2.push_back(ms_exp_data[idx]);
+          ms_exp_MS2.addSpectrum(ms_exp_data[idx]);
         }
         else
         {
