@@ -114,56 +114,55 @@ public:
     typedef typename Base::iterator iterator; 
     typedef typename Base::const_iterator const_iterator; 
 
-    Size size() const
+    inline Size size() const
     {
       return spectra_.size(); 
     }
 
-    void resize(Size s)
+    inline void resize(Size s)
     {
       spectra_.resize(s); 
     }
 
-    bool empty() const
+    inline bool empty() const
     {
       return spectra_.empty(); 
     }
 
-    void reserve(Size s)
+    inline void reserve(Size s)
     {
       spectra_.reserve(s); 
     }
 
-    SpectrumType& operator[] (Size n)
+    inline SpectrumType& operator[] (Size n)
     {
       return spectra_[n];
     }
 
-    const SpectrumType& operator[] (Size n) const
+    inline const SpectrumType& operator[] (Size n) const
     {
       return spectra_[n];
     }
 
-    Iterator begin() 
+    inline Iterator begin() 
     {
       return spectra_.begin();
     }
 
-    ConstIterator begin() const
+    inline ConstIterator begin() const
     {
       return spectra_.begin();
     }
 
-    Iterator end() 
+    inline Iterator end() 
     {
       return spectra_.end();
     }
 
-    ConstIterator end() const
+    inline ConstIterator end() const
     {
       return spectra_.end();
     }
-
     //@}
 
     /// Constructor
