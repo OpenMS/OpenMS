@@ -422,8 +422,11 @@ protected:
           exp[i] = empty_spec;
         }
       }
-      typedef std::vector<typename MapType::SpectrumType> Base;
-      exp.Base::operator=(exp_tmp);
+
+      //typedef std::vector<typename MapType::SpectrumType> Base;
+      //exp.Base::operator=(exp_tmp);
+      exp.clear(false);
+			exp.insert(exp.end(), exp_tmp.begin(), exp_tmp.end());
 
       // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
 

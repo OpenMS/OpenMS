@@ -66,12 +66,13 @@ namespace OpenMS
   */
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class MSExperiment :
-    public std::vector<MSSpectrum<PeakT> >,
     public RangeManager<2>,
     public ExperimentalSettings,
     public PersistentObject
   {
+
 public:
+
     /// @name Base type definitions
     //@{
     /// Peak type
@@ -106,9 +107,130 @@ public:
     typedef Internal::AreaIterator<const PeakT, const PeakT &, const PeakT *, ConstIterator, typename SpectrumType::ConstIterator> ConstAreaIterator;
     //@}
 
+    /// @name Delegations of calls to the vector of MSSpectra
+    //@{
+    typedef typename Base::value_type value_type; 
+    typedef typename Base::iterator iterator; 
+    typedef typename Base::const_iterator const_iterator; 
+
+    // implemented functions 
+
+    // only used in ../source/SIMULATION/RawTandemMSSignalSimulation.C:377 and OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h:421/426
+    // iterator insert ( iterator position, const T& x );
+    //     void insert ( iterator position, size_type n, const T& x );
+    // template <class InputIterator>
+    //     void insert ( iterator position, InputIterator first, InputIterator last );
+    void insert ( Iterator position, Iterator first, Iterator last )
+    {
+      spectra_.insert(position, first, last);
+    }
+
+     // only used in OpenMS/KERNEL/ChromatogramTools.h:203
+     // iterator erase ( iterator first, iterator last );
+     Iterator erase(Iterator first, Iterator last)
+     {
+       return spectra_.erase(first, last);
+     }
+     
+     // size_type size() const;
+     Size size() const
+     {
+       return spectra_.size(); 
+     }
+
+     // void resize ( size_type sz, T c = T() );
+     void resize(Size s)
+     {
+       spectra_.resize(s); 
+     }
+
+     // bool empty () const;
+     bool empty() const
+     {
+       return spectra_.empty(); 
+     }
+
+     // void reserve ( size_type n );
+     void reserve(Size s)
+     {
+       spectra_.reserve(s); 
+     }
+
+     //reference front ( );
+     SpectrumType& front()
+     {
+       return spectra_.front();
+     }
+
+     const SpectrumType& front() const
+     {
+       return spectra_.front();
+     }
+
+     SpectrumType& back()
+     {
+       return spectra_.back();
+     }
+
+     const SpectrumType& back() const
+     {
+       return spectra_.back();
+     }
+
+     SpectrumType& at(Size n)
+     {
+       //return spectra_.at(n);
+       return spectra_.at(n);
+     }
+
+     const SpectrumType& at(Size n) const
+     {
+       //return spectra_.at(n);
+       return spectra_.at(n);
+     }
+
+     SpectrumType& operator[] (Size n)
+     {
+       //return spectra_.operator[](n);
+       return spectra_[n];
+     }
+
+     const SpectrumType& operator[] (Size n) const
+     {
+       //return spectra_.operator[](n);
+       return spectra_[n];
+     }
+
+     Iterator begin() 
+     {
+       return spectra_.begin();
+     }
+
+     ConstIterator begin() const
+     {
+       return spectra_.begin();
+     }
+
+     Iterator end() 
+     {
+       return spectra_.end();
+     }
+
+     ConstIterator end() const
+     {
+       return spectra_.end();
+     }
+
+     // void push_back ( const T& x );
+     void push_back( const SpectrumType& x )
+     {
+       spectra_.push_back(x);
+     }
+
+    //@}
+
     /// Constructor
     MSExperiment() :
-      Base(),
       RangeManagerType(),
       ExperimentalSettings(),
       PersistentObject(),
@@ -118,13 +240,13 @@ public:
 
     /// Copy constructor
     MSExperiment(const MSExperiment & source) :
-      std::vector<MSSpectrum<PeakT> >(source),
       RangeManagerType(source),
       ExperimentalSettings(source),
       PersistentObject(source),
       ms_levels_(source.ms_levels_),
       total_size_(source.total_size_),
-      chromatograms_(source.chromatograms_)
+      chromatograms_(source.chromatograms_),
+      spectra_(source.spectra_)
     {}
 
     /// Assignment operator
@@ -132,7 +254,6 @@ public:
     {
       if (&source == this) return *this;
 
-      Base::operator=(source);
       RangeManagerType::operator=(source);
       ExperimentalSettings::operator=(source);
       PersistentObject::operator=(source);
@@ -140,6 +261,7 @@ public:
       ms_levels_     = source.ms_levels_;
       total_size_    = source.total_size_;
       chromatograms_ = source.chromatograms_;
+      spectra_ = source.spectra_;
 
       //no need to copy the alloc?!
       //alloc_
@@ -157,7 +279,9 @@ public:
     /// Equality operator
     bool operator==(const MSExperiment & rhs) const
     {
-      return ExperimentalSettings::operator==(rhs) && std::operator==(rhs, *this) && chromatograms_ == rhs.chromatograms_;
+      return ExperimentalSettings::operator==(rhs) &&
+          chromatograms_ == rhs.chromatograms_ && 
+          spectra_ == rhs.spectra_;
     }
 
     /// Equality operator
@@ -177,7 +301,7 @@ public:
     template <class Container>
     void get2DData(Container & cont) const
     {
-      for (typename Base::const_iterator spec = Base::begin(); spec != Base::end(); ++spec)
+      for (typename Base::const_iterator spec = spectra_.begin(); spec != spectra_.end(); ++spec)
       {
         if (spec->getMSLevel() != 1)
         {
@@ -220,8 +344,8 @@ public:
             throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input container is not sorted!");
           }
           current_rt =  iter->getRT();
-          Base::insert(Base::end(), SpectrumType());
-          spectrum = &(Base::back());
+          spectra_.insert(spectra_.end(), SpectrumType());
+          spectrum = &(spectra_.back());
           spectrum->setRT(current_rt);
           spectrum->setMSLevel(1);
         }
@@ -244,7 +368,7 @@ public:
       OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
       OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using AreaIterator will give invalid results!")
       //std::cout << "areaBegin: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
-      return AreaIterator(this->begin(), RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
+      return AreaIterator(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
     }
 
     /// Returns an invalid area iterator marking the end of an area
@@ -260,7 +384,7 @@ public:
       OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
       OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
       //std::cout << "areaBeginConst: " << min_rt << " " << max_rt << " " << min_mz << " " << max_mz << std::endl;
-      return ConstAreaIterator(this->begin(), RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
+      return ConstAreaIterator(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), min_mz, max_mz);
     }
 
     /// Returns an non-mutable invalid area iterator marking the end of an area
@@ -280,7 +404,7 @@ public:
     {
       SpectrumType s;
       s.setRT(rt);
-      return lower_bound(Base::begin(), Base::end(), s, typename SpectrumType::RTLess());
+      return lower_bound(spectra_.begin(), spectra_.end(), s, typename SpectrumType::RTLess());
     }
 
     /**
@@ -294,7 +418,7 @@ public:
     {
       SpectrumType s;
       s.setRT(rt);
-      return upper_bound(Base::begin(), Base::end(), s, typename SpectrumType::RTLess());
+      return upper_bound(spectra_.begin(), spectra_.end(), s, typename SpectrumType::RTLess());
     }
 
     /**
@@ -306,7 +430,7 @@ public:
     {
       SpectrumType s;
       s.setRT(rt);
-      return lower_bound(Base::begin(), Base::end(), s, typename SpectrumType::RTLess());
+      return lower_bound(spectra_.begin(), spectra_.end(), s, typename SpectrumType::RTLess());
     }
 
     /**
@@ -318,7 +442,7 @@ public:
     {
       SpectrumType s;
       s.setRT(rt);
-      return upper_bound(Base::begin(), Base::end(), s, typename SpectrumType::RTLess());
+      return upper_bound(spectra_.begin(), spectra_.end(), s, typename SpectrumType::RTLess());
     }
 
     //@}
@@ -351,13 +475,13 @@ public:
       total_size_ = 0;
 
       //empty
-      if (this->size() == 0 && chromatograms_.empty())
+      if (spectra_.empty() && chromatograms_.empty())
       {
         return;
       }
 
       //update
-      for (typename Base::iterator it = this->begin(); it != this->end(); ++it)
+      for (typename Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
       {
         if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
         {
@@ -504,12 +628,12 @@ public:
     */
     void sortSpectra(bool sort_mz = true)
     {
-      std::sort(this->begin(), this->end(), typename SpectrumType::RTLess());
+      std::sort(spectra_.begin(), spectra_.end(), typename SpectrumType::RTLess());
 
       if (sort_mz)
       {
         // sort each spectrum by m/z
-        for (Iterator iter = this->begin(); iter != this->end(); ++iter)
+        for (Iterator iter = spectra_.begin(); iter != spectra_.end(); ++iter)
         {
           iter->sortByPosition();
         }
@@ -543,16 +667,16 @@ public:
     bool isSorted(bool check_mz = true) const
     {
       //check RT positions
-      for (Size i = 1; i < this->size(); ++i)
+      for (Size i = 1; i < spectra_.size(); ++i)
       {
-        if (this->operator[](i - 1).getRT() > this->operator[](i).getRT()) return false;
+        if (spectra_[i - 1].getRT() > spectra_[i].getRT()) return false;
       }
       //check spectra
       if (check_mz)
       {
-        for (Size i = 0; i < this->size(); ++i)
+        for (Size i = 0; i < spectra_.size(); ++i)
         {
-          if (!this->operator[](i).isSorted()) return false;
+          if (!spectra_[i].isSorted()) return false;
         }
       }
       // TODO CHROM
@@ -564,7 +688,7 @@ public:
     /// Resets all internal values
     void reset()
     {
-      Base::clear();           //remove data
+      spectra_.clear();           //remove data
       RangeManagerType::clearRanges();           //reset range manager
       ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
     }
@@ -577,15 +701,15 @@ public:
     bool clearMetaDataArrays()
     {
       bool meta_present = false;
-      for (Size i = 0; i < this->size(); ++i)
+      for (Size i = 0; i < spectra_.size(); ++i)
       {
-        if (this->operator[](i).getFloatDataArrays().size() != 0 || this->operator[](i).getIntegerDataArrays().size() != 0 || this->operator[](i).getStringDataArrays().size() != 0)
+        if (spectra_[i].getFloatDataArrays().size() != 0 || spectra_[i].getIntegerDataArrays().size() != 0 || spectra_[i].getStringDataArrays().size() != 0)
         {
           meta_present = true;
         }
-        this->operator[](i).getStringDataArrays().clear();
-        this->operator[](i).getIntegerDataArrays().clear();
-        this->operator[](i).getFloatDataArrays().clear();
+        spectra_[i].getStringDataArrays().clear();
+        spectra_[i].getIntegerDataArrays().clear();
+        spectra_[i].getFloatDataArrays().clear();
       }
       return meta_present;
     }
@@ -609,9 +733,9 @@ public:
     */
     ConstIterator getPrecursorSpectrum(ConstIterator iterator) const
     {
-      if (iterator == this->end() || iterator == this->begin())
+      if (iterator == spectra_.end() || iterator == spectra_.begin())
       {
-        return this->end();
+        return spectra_.end();
       }
       UInt ms_level = iterator->getMSLevel();
       do
@@ -622,9 +746,9 @@ public:
           return iterator;
         }
       }
-      while (iterator != this->begin());
+      while (iterator != spectra_.begin());
 
-      return this->end();
+      return spectra_.end();
     }
 
     /// Swaps the content of this map with the content of @p from
@@ -651,11 +775,35 @@ public:
       std::swap(chromatograms_, from.chromatograms_);
 
       //swap peaks
-      Base::swap(from);
+      spectra_.swap(from.getSpectra());
 
       //swap remaining members
       ms_levels_.swap(from.ms_levels_);
       std::swap(total_size_, from.total_size_);
+    }
+
+    /// sets the spectra list
+    void setSpectra(const std::vector<MSSpectrum<PeakT> > & spectra)
+    {
+      spectra_ = spectra;
+    }
+
+    /// adds a spectra to the list
+    void addSpectrum(const MSSpectrum<PeakT> & spectrum)
+    {
+      spectra_.push_back(spectrum);
+    }
+
+    /// returns the spectra list
+    const std::vector<MSSpectrum<PeakT> > & getSpectra() const
+    {
+      return spectra_;
+    }
+
+    /// returns the spectra list
+    std::vector<MSSpectrum<PeakT> > & getSpectra() 
+    {
+      return spectra_;
     }
 
     /// sets the chromatogram list
@@ -687,7 +835,7 @@ public:
     {
       // The TIC is (re)calculated from the MS1 spectra. Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
       MSChromatogram<ChromatogramPeakType> TIC;
-      for (typename Base::const_iterator spec_it = this->begin(); spec_it != this->end(); ++spec_it)
+      for (typename Base::const_iterator spec_it = spectra_.begin(); spec_it != spectra_.end(); ++spec_it)
       {
         if (spec_it->getMSLevel() == 1)
         {
@@ -714,7 +862,7 @@ public:
     */
     void clear(bool clear_meta_data)
     {
-      Base::clear();
+      spectra_.clear();
 
       if (clear_meta_data)
       {
@@ -732,9 +880,9 @@ protected:
     // Docu in base class
     virtual void clearChildIds_()
     {
-      for (Size i = 0; i < this->size(); ++i)
+      for (Size i = 0; i < spectra_.size(); ++i)
       {
-        this->operator[](i).clearId(true);
+        spectra_[i].clearId(true);
       }
     }
 
@@ -745,6 +893,9 @@ protected:
 
     /// chromatograms
     std::vector<MSChromatogram<ChromatogramPeakType> > chromatograms_;
+
+    /// spectra
+    std::vector<SpectrumType> spectra_;
   };
 
   /// Print the contents to a stream.
