@@ -1,7 +1,7 @@
 import pyopenms
 import numpy
 
-def _test_container(c, i):
+def _test_container(c, i, append_method="push_back"):
     # did raise segfault because of missing index check in __getitem__
     # should be resolved by implementing a proper iterator:
     s = c()
@@ -13,7 +13,7 @@ def _test_container(c, i):
     else:
         assert False, "no exception risen"
 
-    s.push_back(i())
+    exec("s.%s(i())" % append_method)
     (item,) = s # test iterator
 
     s[0]  # test getattr
@@ -27,7 +27,8 @@ def _test_container(c, i):
 
 def testContainers():
     _test_container(pyopenms.MSSpectrum, pyopenms.Peak1D)
-    _test_container(pyopenms.MSExperiment, pyopenms.MSSpectrum)
+    _test_container(pyopenms.MSExperiment, pyopenms.MSSpectrum, "addSpectrum")
+    _test_container(pyopenms.MSExperiment, pyopenms.MSChromatogram, "addChromatogram")
     _test_container(pyopenms.FeatureMap, pyopenms.Feature)
 
 

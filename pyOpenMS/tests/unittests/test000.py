@@ -2525,7 +2525,7 @@ def testMSExperiment():
     mse.getLoadedFileType()
     mse.getLoadedFilePath()
 
-    mse.push_back(pyopenms.MSSpectrum())
+    mse.addSpectrum(pyopenms.MSSpectrum())
     assert mse.size() == 1
 
     assert mse[0] is not None

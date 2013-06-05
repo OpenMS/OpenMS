@@ -202,7 +202,7 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
             specs = list(e1)
             for s in specs:
                 for _ in range(10):
-                    e1.push_back(s)
+                    e1.addSpectrum(s)
 
             li = []
             print "please be patient :",

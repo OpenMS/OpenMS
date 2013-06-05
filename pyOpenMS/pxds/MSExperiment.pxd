@@ -63,11 +63,11 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         # from inheriting libcpp_vector[PeakT]:
         int   size() nogil except +
         MSSpectrum[PeakT] operator[](int)      nogil except + # wrap-upper-limit:size()
-        void push_back(MSSpectrum[PeakT] spec) nogil except +
+        void addSpectrum(MSSpectrum[PeakT] spec) nogil except +
 
         libcpp_vector[MSSpectrum[PeakT]].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum[PeakT])
         libcpp_vector[MSSpectrum[PeakT]].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum[PeakT])
-        void  erase(libcpp_vector[MSSpectrum[PeakT]].iterator) nogil except +   # wrap-ignore
+        libcpp_vector[MSSpectrum[PeakT]] getSpectra() nogil except +
 
         # from MetaInfoInterface:
 

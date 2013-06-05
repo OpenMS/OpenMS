@@ -27,7 +27,7 @@ class TestSILACAnalyzer(unittest.TestCase):
         tmp = copy.copy(exp)
         for spectrum in exp:
             if spectrum.getMSLevel() == 1:
-                tmp.push_back(spectrum)
+                tmp.addSpectrum(spectrum)
         exp = tmp
         exp.sortSpectra(True)
 
