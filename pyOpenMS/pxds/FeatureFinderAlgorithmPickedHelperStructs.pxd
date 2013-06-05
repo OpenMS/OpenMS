@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         TheoreticalIsotopePattern() nogil except + # wrap-ignore
         TheoreticalIsotopePattern(TheoreticalIsotopePattern) nogil except + #wrap-ignore
 
-        # libcpp_vector[ double ] intensity
+        libcpp_vector[ double ] intensity
         Size optional_begin
         Size optional_end
         DoubleReal max

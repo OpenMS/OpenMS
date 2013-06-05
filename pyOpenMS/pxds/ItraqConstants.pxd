@@ -39,7 +39,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
         # String description
         Int name
         Int id
-        # TODO
-        # NAMESPACE # Peak2D::CoordinateType center
+        DoubleReal center
         bool active
 

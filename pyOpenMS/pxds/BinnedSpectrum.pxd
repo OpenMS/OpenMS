@@ -5,8 +5,7 @@ from MSSpectrum cimport *
 
 cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenMS":
     
-    cdef cppclass BinnedSpectrum[PeakT](MetaInfoInterface):
-        ## 
+    cdef cppclass BinnedSpectrum(MetaInfoInterface):
         BinnedSpectrum() nogil except +
         BinnedSpectrum(BinnedSpectrum) nogil except +
         BinnedSpectrum(Real size, UInt spread, MSSpectrum[Peak1D] ps) nogil except +

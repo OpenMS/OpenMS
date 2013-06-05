@@ -1,6 +1,5 @@
 from InterpolationModel cimport *
 from String cimport *
-# from BasicStatistics cimport *
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>" namespace "OpenMS":
     

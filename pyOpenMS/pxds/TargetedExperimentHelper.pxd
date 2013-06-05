@@ -51,6 +51,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         bool hasCVTerm(String accession)  nogil except +
         bool empty()                      nogil except +
 
+        String id
+        String sequence
+
     cdef cppclass Peptide:
 
         Peptide() nogil except +
