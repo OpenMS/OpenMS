@@ -594,8 +594,10 @@ class IgnoreFile(object):
         return name in self.data["IgnoreNames"]
 
     def getIgnoredMethods(self, name):
-        return self.data["IgnoreMethods"].get(name, [])
-        
+        res = self.data["IgnoreMethods"].get(name, [])
+        if res is None: 
+            return []
+        return res
 
 #
 ## Class for the .pxd file
@@ -993,6 +995,9 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
         testresults.append(classtestresults)
 
+    ###################################
+    #   Output
+    ###################################
     if output_format in ["text", "text-verbose", "text-quiet"]:
         for classtestresults in testresults:
             if len(classtestresults) > 1:

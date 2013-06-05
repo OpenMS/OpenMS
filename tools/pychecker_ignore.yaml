@@ -1,8 +1,68 @@
 PyOpenMSChecker:
+
   # The following methods will be ignored by the checker
   IgnoreMethods: 
 
-    # Attributes of enums that are wrapped already
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    #  Manual
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    OpenMS::Sample:
+        - NamesOfSampleState
+        - addTreatment
+        - getTreatment
+        - getTreatment
+    OpenSwath::Spectrum:
+        - defaultArrayLength
+    OpenMS::VersionInfo::VersionDetails:
+        - EMPTY
+
+    # static elements
+    OpenMS::ChromatogramSettings:
+        - ChromatogramNames 
+    OpenMS::ims::IMSElement:
+        - ELECTRON_MASS_IN_U
+    OpenMS::ItraqConstants:
+        - initChannelMap
+        - updateChannelMap
+        # static arrays
+        - CHANNEL_COUNT
+        - CHANNELS_FOURPLEX
+        - CHANNELS_EIGHTPLEX
+        - CHANNELS_TMT_SIXPLEX
+        - ISOTOPECORRECTIONS_FOURPLEX
+        - ISOTOPECORRECTIONS_EIGHTPLEX
+        - ISOTOPECORRECTIONS_TMT_SIXPLEX
+
+    # immutable types by reference
+    OpenMS::SequestOutfile:
+        - readOutHeader
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Not implemented = errors in OpenMS API
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    OpenMS::CVTermList:
+        - checkCVTerms
+    OpenMS::MSQuantifications:
+        - load
+        - getRatios
+        - NamesOfQuantTypes # renamed
+    OpenMS::ProteinResolver:
+        # not implemented
+        - writePeptideTable
+        - writeProteinTable
+        - writeProteinGroups
+        # pointers
+        - getPeptideIdentification
+        - getPeptideHit
+    OpenMS::PeakPickerSH:
+        - pick
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    #  Renamed enums / Attributes of enums that are wrapped already
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    OpenMS::PeakShape:
+        - Type
     OpenMS::MassAnalyzer:
         - NamesOfAnalyzerType
         - NamesOfResolutionMethod
@@ -12,15 +72,8 @@ PyOpenMSChecker:
         - NamesOfReflectronState
     OpenMS::EnzymaticDigestion:
         - NamesOfEnzymes
-    OpenMS::Sample:
-        - NamesOfSampleState
     OpenMS::SourceFile:
         - NamesOfChecksumType
-    OpenMS::IonDetector:
-        - NamesOfType
-        - AcquisitionMode
-    OpenMS::MSQuantifications:
-        - NamesOfQuantTypes
     OpenMS::Precursor:
         - NamesOfActivationMethod
     OpenMS::DataProcessing:
@@ -32,13 +85,19 @@ PyOpenMSChecker:
         - NamesOfInletType
         - NamesOfIonizationMethod
         - NamesOfPolarity
-
-    # renamed enums
+    OpenMS::PrecursorIonSelection:
+        - Type
+        - getNextPrecursorsSeq # immutable types by reference
+        - getPeptideProteinCounter # not implemented
     OpenMS::PeakShape:
         - Type
     OpenMS::IonDetector:
         - Type
+        - AcquisitionMode
+        - NamesOfType
+        - NamesOfAcquisitionMode
     OpenMS::PILISCrossValidation::Option:
+        - Option # renamed constructor
         - Type
     OpenMS::LPWrapper:
         - Type
@@ -46,10 +105,25 @@ PyOpenMSChecker:
         - XRefType
     OpenMS::ProteinResolver::ResolverResult:
         - type
-    OpenMS::PrecursorIonSelection:
-        - Type
+        # attributes
+        - isds
+        - msds
+        - protein_entries
+        - peptide_entries
+        - reindexed_peptides
+        - reindexed_proteins
+        - input_type
+        - peptide_identification
+        - consensus_map
+    OpenMS::ims::Weights:
+        - Weights
+    OpenMS::Instrument:
+        - NamesOfIonOpticsType
 
-    # renamed methods
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    #  Renamed methods
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::DeNovoIonScoring::IonScore:
         - IonScore
     OpenMS::TargetedExperimentHelper::Instrument:
@@ -58,8 +132,13 @@ PyOpenMSChecker:
         - CVTerm
     OpenMS::PeptideAndProteinQuant::PeptideData:
         - PeptideData
+        # attributes
+        - abundances
+        - total_abundances
     OpenMS::PILISCrossValidation::Peptide:
         - Peptide
+    OpenMS::MassTrace:
+        - MassTrace
 
     # Static methods that are not seen by the checker script
     OpenMS::FileHandler:
@@ -69,126 +148,44 @@ PyOpenMSChecker:
         - isSupported
     
     # problematic functions
-    OpenMS::MarkerMower:
-        - insertmarker # raw pointer
     OpenMS::MSChromatogram:
         - RTBegin
         - RTEnd
+        - getFloatDataArrays
+        - getFloatDataArrays
+        - getStringDataArrays
+        - getStringDataArrays
+        - getIntegerDataArrays
+        - getIntegerDataArrays
 
-    # std::ifstrem/ofstream
+    # std::ifstream/ofstream
     OpenMS::CachedmzML:
         - readSingleSpectrum
         - readSpectrumFast
         - readChromatogramFast
-    OpenMS::HiddenMarkovModel:
-        - write
 
-    # iterators
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Iterators
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::IsotopeWaveletTransform:
         - MZBegin
         - MZEnd
         - end
         - begin
+        # others (pointer / multimap)
+        - mergeFeatures
+        - getClosedBoxes
     OpenMS::PeakShape:
         - getLeftEndpoint
         - setLeftEndpoint
         - getRightEndpoint
         - setRightEndpoint
-
     OpenMS::MorphologicalFilter:
         - filterRange # requires iterator
     OpenMS::Param::ParamIterator:
         - ParamIterator # requires iterator
-    # char pointer
-    OpenMS::Peak2D:
-        - shortDimensionName
-        - shortDimensionNameRT
-        - shortDimensionNameMZ
-        - fullDimensionName
-        - fullDimensionNameRT
-        - fullDimensionNameMZ
-        - shortDimensionUnit
-        - shortDimensionUnitRT
-        - shortDimensionUnitMZ
-        - fullDimensionUnit
-        - fullDimensionUnitRT
-        - fullDimensionUnitMZ
-
-    # not implemented = errors in OpenMS API
-    OpenMS::CVTermList:
-        - checkCVTerms
-    OpenMS::MSQuantifications:
-        - load
-        - getRatios
-    OpenMS::ProteinResolver:
-        - writePeptideTable
-        - writeProteinTable
-
-    OpenMS::PeakPickerSH:
-        - pick
-
-    # Do not expose List and String methods - Python has better ones
-    OpenMS::StringList:
-        - search
-        - search
-        - searchSuffix
-        - searchSuffix
-        - search
-        - search
-        - searchSuffix
-        - searchSuffix
-        - contains
-        - toUpper
-        - toLower
-        - concatenate
-        - create
-        - create
-
-    OpenMS::DoubleList:
-        - contains
-        - create
-        - create
-
-    OpenMS::String:
-        - hasPrefix
-        - hasSuffix
-        - hasSubstring
-        - has
-        - prefix
-        - suffix
-        - prefix
-        - suffix
-        - prefix
-        - suffix
-        - substr
-        - chop
-        - reverse
-        - trim
-        - quote
-        - unquote
-        - simplify
-        - fillLeft
-        - fillRight
-        - toUpper
-        - toLower
-        - firstToUpper
-        - substitute
-        - substitute
-        - remove
-        - ensureLastChar
-        - removeWhitespaces
-        - toInt
-        - toFloat
-        - toDouble
-        - toQString
-        - EMPTY
-        - split
-        - split
-        - split_quoted
-        - concatenate
-        - random
-        - number
-        - numberLength
+    OpenMS::MassExplainer:
+        - query # iterator passed
 
     # Not part of the public interface
     OpenMS::MRMDecoy:
@@ -214,8 +211,8 @@ PyOpenMSChecker:
     OpenMS::Spectrum:
         - defaultArrayLength
 
-    OpenMS::MRMScoring:
-        - getXCorrMatrix() 
+    OpenSwath::MRMScoring:
+        - getXCorrMatrix
         - initializeXCorrMatrix
         - calcLibraryScore
         - calcSNScore
@@ -230,9 +227,9 @@ PyOpenMSChecker:
         - extract_value_bartlett
 
     OpenMS::LinearResamplerAlign:
-        - void raster
-        - void raster_align
-        - void raster_interpolate
+        - raster
+        - raster_align
+        - raster_interpolate
 
     OpenMS::MRMFeature:
         - getScores
@@ -242,6 +239,7 @@ PyOpenMSChecker:
         - selectSwathTransitions
         - checkSwathMap
         - selectSwathTransitions
+
     OpenMS::EmgScoring:
         - calcElutionFitScore
 
@@ -249,38 +247,178 @@ PyOpenMSChecker:
         - defaultArrayLength
         - binaryDataArrayPtrs
 
-    OpenSwath::SpectrumAccessOpenMSCached:
+    OpenMS::SpectrumAccessOpenMSCached:
         - getSpectrumMetaById
         - getSpectraMetaInfo
         - getChromatogramMetaInfo
 
-    # Not callable:
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Raw pointers
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    OpenMS::EmpiricalFormula:
+        - getElement
+        - getElement
+        - getElementDB
+    OpenMS::ElementDB:
+        - getInstance
+        - getNames
+        - getSymbols
+        - getAtomicNumbers
+        - getElement
+        - getElement
+        - getElement
+        - getElement
     OpenMS::HiddenMarkovModel:
-        - write #(std::ostream & out)
+        - write # stream
+        - calculateEmissionProbabilities
+        - getState 
+    OpenMS::MarkerMower:
+        - insertmarker 
+    OpenMS::ProteinResolver::ProteinEntry:
+        - peptides
+        - fasta_entry
+        - indis
+        - type
+    OpenMS::ResidueDB:
+        - getResidue
+        - getModifiedResidue
+        - getModifiedResidue
+        - getResidues
+        - getInstance
+    # char pointer
+    OpenMS::Peak2D:
+        - shortDimensionName
+        - shortDimensionNameRT
+        - shortDimensionNameMZ
+        - fullDimensionName
+        - fullDimensionNameRT
+        - fullDimensionNameMZ
+        - shortDimensionUnit
+        - shortDimensionUnitRT
+        - shortDimensionUnitMZ
+        - fullDimensionUnit
+        - fullDimensionUnitRT
+        - fullDimensionUnitMZ
 
-    # Base class problem : 
-    # Cython cannot handle overloaded functions in the base class, consequently
-    # they will show up as missing. Thus ignore the inherited methods here
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    #  Factory pattern / create methods
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    OpenMS::FeatureGroupingAlgorithmUnlabeled:
+        - create
+    OpenMS::SimplePairFinder:
+        - create
+    OpenMS::NeutralLossDiffFilter:
+        - create
+    OpenMS::FeatureGroupingAlgorithmIdentification:
+        - create
+    OpenMS::FeatureFinderAlgorithmPicked:
+        - create
+    OpenMS::MapAlignmentEvaluationAlgorithmPrecision:
+        - evaluate
+        - create
+    OpenMS::FeatureGroupingAlgorithmQT:
+        - create
+    OpenMS::MapAlignmentAlgorithmSpectrumAlignment:
+        - alignPeakMaps
+        - create
+    OpenMS::StablePairFinder:
+        - create
+    OpenMS::IsotopeDiffFilter:
+        - create
+    OpenMS::TICFilter:
+        - create
+    OpenMS::EdwardsLippertIteratorTryptic:
+        - isDigestingEnd # inherited
+        - getProductName # inherited
+        - create
+    OpenMS::IsotopeModel:
+        - create
+    OpenMS::LabeledPairFinder:
+        - create
+    OpenMS::BiGaussModel:
+        - create
+    OpenMS::MapAlignmentAlgorithmPoseClustering:
+        - create
+    OpenMS::MapAlignmentEvaluationAlgorithmRecall:
+        - evaluate
+        - create
+    OpenMS::FeatureGroupingAlgorithmLabeled:
+        - create
+    OpenMS::SpectraSTSimilarityScore:
+        #- transform
+        #- dot_bias
+        - create
+    OpenMS::IntensityBalanceFilter:
+        - create
+    OpenMS::GoodDiffFilter:
+        - create
+    OpenMS::MapAlignmentAlgorithmIdentification:
+        - create
+    OpenMS::BiGaussFitter1D:
+        - fit1d # needs pointer
+        - create
+    OpenMS::IsotopeFitter1D:
+        - fit1d # needs pointer
+        - create
+    OpenMS::EmgFitter1D:
+        - fit1d # needs pointer
+        - create
+    OpenMS::AverageLinkage:
+        - create
+    OpenMS::ComplementFilter:
+        - create
+    OpenMS::FeatureFinderAlgorithmSH:
+        - create
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    #  Base class problem : 
+    #  Cython cannot handle overloaded functions in the base class, consequently
+    #  they will show up as missing. Thus ignore the inherited methods here
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    
     OpenMS::FeatureGroupingAlgorithm:
         - group
-
+        - FeatureGroupingAlgorithm # abstract class
     OpenMS::NeutralLossMarker:
-        - getProductName() 
-
+        - getProductName 
     OpenMS::MetaInfoInterface:
-
-        - getMetaValue
         - getMetaValue
         - metaValueExists
-        - metaValueExists
-        - setMetaValue
         - setMetaValue
         - removeMetaValue
-        - removeMetaValue
         - getKeys
-        - getKeys
+    OpenMS::EmgModel:
+        - setOffset
+        - setSamples
+        - getCenter
+        - create
+    OpenMS::ItraqFourPlexQuantitationMethod:
+        - getName
+        - getChannelInformation
+        - getNumberOfChannels
+        - getIsotopeCorrectionMatrix
+        - getReferenceChannel
+    OpenMS::ItraqEightPlexQuantitationMethod:
+        - getName
+        - getChannelInformation
+        - getNumberOfChannels
+        - getIsotopeCorrectionMatrix
+        - getReferenceChannel
+    OpenMS::TMTSixPlexQuantitationMethod:
+        - getName
+        - getChannelInformation
+        - getNumberOfChannels
+        - getIsotopeCorrectionMatrix
+        - getReferenceChannel
 
+  # The following classes are ignore completely
   IgnoreNames: 
+
+    # Do not expose List and String methods - Python has better ones
+    - OpenMS::StringList
+    - OpenMS::DoubleList
+    - OpenMS::String
+
     # External libraries
     # -- Seqan
     - seqan
@@ -693,7 +831,7 @@ PyOpenMSChecker:
     - OpenMS::Peak2D::RTLess
     - OpenMS::ChromatogramPeak::IntensityLess
 
-    #  RangeUtils - we probably cannot use them in Python
+    # RangeUtils - we probably cannot use them in Python
     - OpenMS::InIntensityRange
     - OpenMS::InPrecursorMZRange
     - OpenMS::HasScanMode
@@ -721,7 +859,7 @@ PyOpenMSChecker:
     - OpenMS::Tagging
     - OpenMS::Modification
     - OpenMS::MetaInfoDescription
-    - OpenMS::SampleTreatment
+    - OpenMS::SampleTreatment # abstract class
     - OpenMS::ScanWindow
     - OpenMS::MetaInfoRegistry
     - OpenMS::DocumentIDTagger
