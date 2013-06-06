@@ -1,5 +1,3 @@
-from libcpp cimport bool
-from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
 from String cimport *
 from AASequence cimport *
@@ -27,6 +25,17 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
       DoubleReal getLogThreshold() nogil except +
       void setLogThreshold(DoubleReal threshold) nogil except +
 
+      # Returns the specificity for the digestion
+      Specificity getSpecificity() nogil except +
+
+      # Sets the specificity for the digestion (default is SPEC_FULL).
+      void setSpecificity(Specificity spec) nogil except +
+
+      # convert spec string name to enum
+      Specificity getSpecificityByName(String name)nogil except +
+
+      bool isValidProduct(AASequence protein, Size pep_pos, Size pep_length) nogil except +
+
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::EnzymaticDigestion":
 
     # protected
@@ -45,4 +54,12 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::En
         #    EnzymaticDigestion
         TRYPSIN,
         SIZE_OF_TRYPSIN
+
+    cdef enum Specificity:
+        # wrap-attach:
+        #    EnzymaticDigestion
+      SPEC_FULL,    # fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
+      SPEC_SEMI,    # semi specific, i.e., one of the two cleavage sites must fulfill requirements
+      SPEC_NONE,    # no requirements on start / end
+      SIZE_OF_SPECIFICITY
 

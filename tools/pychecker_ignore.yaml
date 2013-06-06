@@ -38,6 +38,7 @@ PyOpenMSChecker:
     OpenMS::SequestOutfile:
         - readOutHeader
 
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Not implemented = errors in OpenMS API
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -151,12 +152,6 @@ PyOpenMSChecker:
     OpenMS::MSChromatogram:
         - RTBegin
         - RTEnd
-        - getFloatDataArrays
-        - getFloatDataArrays
-        - getStringDataArrays
-        - getStringDataArrays
-        - getIntegerDataArrays
-        - getIntegerDataArrays
 
     # std::ifstream/ofstream
     OpenMS::CachedmzML:
@@ -186,6 +181,30 @@ PyOpenMSChecker:
         - ParamIterator # requires iterator
     OpenMS::MassExplainer:
         - query # iterator passed
+
+    OpenMS::MSExperiment:
+        - get2DData
+        - set2DData
+        - areaBegin
+        - areaEnd
+        - areaBeginConst
+        - areaEndConst
+        - RTBegin
+        - RTEnd
+        - RTBegin
+        - RTEnd
+        - getDataRange
+        - getPrecursorSpectrum
+
+    OpenMS::MSSpectrum:
+        - MZBegin
+        - MZBegin
+        - MZEnd
+        - MZEnd
+        - MZBegin
+        - MZBegin
+        - MZEnd
+        - MZEnd
 
     # Not part of the public interface
     OpenMS::MRMDecoy:
@@ -300,6 +319,14 @@ PyOpenMSChecker:
         - fullDimensionUnitRT
         - fullDimensionUnitMZ
 
+    OpenMS::HMMState:
+        addPredecessorState
+        deletePredecessorState
+        addSuccessorState
+        deleteSuccessorState
+        getPredecessorStates
+        getSuccessorStates
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Factory pattern / create methods
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -410,6 +437,40 @@ PyOpenMSChecker:
         - getNumberOfChannels
         - getIsotopeCorrectionMatrix
         - getReferenceChannel
+    OpenMS::EdwardsLippertIterator:
+        - setFastaFile
+        - getFastaFile
+        - setSpectrum
+        - getSpectrum
+        - setTolerance
+        - getTolerance
+        - isAtEnd
+        - create # factory pattern
+    OpenMS::TrypticIterator:
+        - setFastaFile
+        - getFastaFile
+        - setSpectrum
+        - getSpectrum
+        - setTolerance
+        - getTolerance
+        - isAtEnd
+        - create # factory pattern
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    #  Special classes
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    OpenMS::DataValue:
+        - toChar
+        - toQString
+        # attributes
+        - EMPTY
+        - ssize_
+        - dou_
+        - str_
+        - str_list_
+        - int_list_
+        - dou_list_
+
 
   # The following classes are ignore completely
   IgnoreNames: 

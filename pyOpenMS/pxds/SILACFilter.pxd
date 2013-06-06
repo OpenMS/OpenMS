@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>" namespace "Ope
         SILACFilter(libcpp_vector[ double ] mass_separations, Int charge, DoubleReal model_deviation, Int isotopes_per_peptide, DoubleReal intensity_cutoff, DoubleReal intensity_correlation, bool allow_missing_peaks) nogil except +
         libcpp_vector[ double ] getPeakPositions() nogil except +
         libcpp_vector[ double ]  getExpectedMzShifts() nogil except + 
-        # libcpp_vector[ SILACPattern ]  getElements() nogil except +
+        libcpp_vector[ SILACPattern ]  getElements() nogil except +
         Int getCharge() nogil except +
         libcpp_vector[ double ]  getMassSeparations() nogil except +
 

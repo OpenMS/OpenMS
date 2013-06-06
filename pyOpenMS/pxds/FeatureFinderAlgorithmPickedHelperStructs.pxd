@@ -66,10 +66,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         # TODO STL attributes -- Signed size does not work either!
         # vector.from_py:33:13: 'ptrdiff_t' is not a type identifier
         # libcpp_vector[ SignedSize ] peak
-        # libcpp_vector[ size_t ] spectrum
-        # libcpp_vector[ double ] intensity
-        # libcpp_vector[ double ] mz_score
-        # libcpp_vector[ double ] theoretical_mz
+        libcpp_vector[ size_t ] spectrum
+        libcpp_vector[ double ] intensity
+        libcpp_vector[ double ] mz_score
+        libcpp_vector[ double ] theoretical_mz
         TheoreticalIsotopePattern theoretical_pattern
         IsotopePattern(Size size) nogil except +
 
