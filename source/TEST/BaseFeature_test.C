@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -369,12 +369,38 @@ END_SECTION
 
 START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
 	BaseFeature tmp;
-	vector<PeptideIdentification> vec;
 
 	tmp.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getPeptideIdentifications().size(), 1);
 END_SECTION
 
+START_SECTION((AnnotationState getAnnotationState() const))
+  BaseFeature tmp;
+	vector<PeptideIdentification> vec;
+
+
+  vector<PeptideIdentification>& ids = tmp.getPeptideIdentifications();
+
+  TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_NONE);
+	ids.resize(1);
+	TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_NONE);
+
+  PeptideHit hit;
+  hit.setSequence("ABCDE");
+  ids[0].setHits(std::vector<PeptideHit>(1, hit));
+	TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_SINGLE);
+
+  ids.resize(2);
+  ids[1].setHits(std::vector<PeptideHit>(1, hit)); // same as first hit
+  //tmp.setPeptideIdentifications(ids);
+	TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_SAME);
+  
+  hit.setSequence("KRGH");
+  ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
+	TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT);
+
+
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

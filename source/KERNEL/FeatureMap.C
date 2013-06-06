@@ -37,4 +37,16 @@
 namespace OpenMS
 {
   FeatureMap<Feature> default_dfeaturemap_2;
+
+  std::ostream & operator<<(std::ostream & os, const AnnotationStatistics& ann)
+  {
+    os << "Feature annotation with identifications:" << "\n";
+    for (Size i=0; i<ann.states.size(); ++i)
+    {
+      os << "    " << BaseFeature::NamesOfAnnotationState[i] << ": " << ann.states[i] << "\n";
+    }
+    os << std::endl;
+    return os;
+  }
+
 }

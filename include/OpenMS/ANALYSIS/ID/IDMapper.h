@@ -352,10 +352,10 @@ public:
 
       // some statistics output
       LOG_INFO << "Unassigned peptides: " << matches_none << "\n"
-               << "Peptides assigned to exactly one feature: "
-               << matches_single << "\n"
-               << "Peptides assigned to multiple features: "
-               << matches_multi << std::endl;
+               << "Peptides assigned to exactly one feature: " << matches_single << "\n"
+               << "Peptides assigned to multiple features: " << matches_multi << "\n"
+               << map.getAnnotationStatistics()
+               << std::endl;
 
     }
 

@@ -71,20 +71,32 @@ START_SECTION((virtual ~FeatureMap()))
 	delete pl_ptr;
 END_SECTION
 
+std::vector<PeptideIdentification> ids(1);
+PeptideHit hit;
+hit.setSequence("ABCDE");
+ids[0].setHits(std::vector<PeptideHit>(1, hit));
+
 Feature feature1;
 feature1.getPosition()[0] = 2.0;
 feature1.getPosition()[1] = 3.0;
 feature1.setIntensity(1.0f);
+feature1.setPeptideIdentifications(ids);  // single hit
 
 Feature feature2;
 feature2.getPosition()[0] = 0.0;
 feature2.getPosition()[1] = 2.5;
 feature2.setIntensity(0.5f);
+ids.resize(2);
+ids[1].setHits(std::vector<PeptideHit>(1, hit)); // same as first hit
+feature2.setPeptideIdentifications(ids);
 
 Feature feature3;
 feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
 feature3.setIntensity(0.01f);
+hit.setSequence("KRGH");
+ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
+feature3.setPeptideIdentifications(ids);
 
 //feature with convex hulls
 Feature feature4;
@@ -642,6 +654,45 @@ START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*m
 }
 END_SECTION
 
+START_SECTION((  AnnotationStatistics getAnnotationStatistics() const ))
+  FeatureMap<> fm;
+
+  AnnotationStatistics stats, res;
+  stats = fm.getAnnotationStatistics();
+  TEST_EQUAL(stats == res, true)
+
+  fm.push_back(feature1); // single hit
+  stats = fm.getAnnotationStatistics();
+  ++res.states[BaseFeature::FEATURE_ID_SINGLE];
+  std::cout << res;
+  TEST_EQUAL(stats == res, true)
+
+  fm.push_back(feature4); // single hit + no hit
+  stats = fm.getAnnotationStatistics();
+  ++res.states[BaseFeature::FEATURE_ID_NONE];
+  std::cout << res;
+  TEST_EQUAL(stats == res, true)
+
+  fm.push_back(feature4); // single hit + 2x no hit
+  stats = fm.getAnnotationStatistics();
+  ++res.states[BaseFeature::FEATURE_ID_NONE];
+  std::cout << res;
+  TEST_EQUAL(stats == res, true)
+
+  fm.push_back(feature2); // single hit + 2x no hit + multi-hit (same)
+  stats = fm.getAnnotationStatistics();
+  ++res.states[BaseFeature::FEATURE_ID_MULTIPLE_SAME];
+  std::cout << res;
+  TEST_EQUAL(stats == res, true)
+
+  fm.push_back(feature3); // single hit + 2x no hit + multi-hit (same) + multi (divergent)
+  stats = fm.getAnnotationStatistics();
+  ++res.states[BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT];
+  std::cout << res;
+  std::cout << stats;
+  TEST_EQUAL(stats == res, true)
+
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

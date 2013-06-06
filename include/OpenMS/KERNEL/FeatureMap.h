@@ -50,6 +50,49 @@
 namespace OpenMS
 {
 
+
+
+  /// summary of the peptide identification assigned to each feature of this map.
+  /// Each feature contributes one vote (=state)
+  struct AnnotationStatistics
+  {
+    std::vector<Size> states; //< count each state, indexing by BaseFeature::AnnotationState
+
+    AnnotationStatistics()
+      : states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0) // initialize all with 0
+    {
+    }
+
+    AnnotationStatistics(const AnnotationStatistics& rhs)
+      : states(rhs.states)
+    {
+    }
+
+    AnnotationStatistics& operator=(const AnnotationStatistics& rhs)
+    {
+      if (this == &rhs) return *this;
+
+      states = rhs.states;
+      return *this;
+    }
+
+    bool operator==(const AnnotationStatistics& rhs) const
+    {
+      return states == rhs.states;
+    }
+
+    AnnotationStatistics& operator+=(BaseFeature::AnnotationState state)
+    {
+      ++states[(Size)state];
+      return *this;
+    }
+
+  };
+
+  
+  /// Print content of an AnnotationStatistics object to a stream
+  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const AnnotationStatistics& ann);
+
   /**
     @brief A container for features.
 
@@ -441,6 +484,16 @@ public:
       return assignments;
     }
 
+    AnnotationStatistics getAnnotationStatistics() const
+    {
+      AnnotationStatistics result;
+      for (ConstIterator iter = this->begin(); iter != this->end(); ++iter)
+      {
+        result += iter->getAnnotationState();
+      }
+      return result;
+    }
+
 protected:
 
     /// protein identifications
@@ -459,7 +512,7 @@ protected:
   {
     os << "# -- DFEATUREMAP BEGIN --" << "\n";
     os << "# POS \tINTENS\tOVALLQ\tCHARGE\tUniqueID" << "\n";
-    for (typename FeatureMap<FeatureType>::const_iterator iter = map.begin(); iter != map.end(); iter++)
+    for (typename FeatureMap<FeatureType>::const_iterator iter = map.begin(); iter != map.end(); ++iter)
     {
       os << iter->getPosition() << '\t'
       << iter->getIntensity() << '\t'
@@ -470,6 +523,7 @@ protected:
     os << "# -- DFEATUREMAP END --" << std::endl;
     return os;
   }
+
 
 } // namespace OpenMS
 

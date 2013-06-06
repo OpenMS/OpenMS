@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_BASEFEATURE_H
@@ -64,6 +64,19 @@ public:
     typedef Int ChargeType;
     /// Type of feature width/FWHM (RT)
     typedef Real WidthType;
+
+    /// state of identification, use getIDState() to query it
+    enum AnnotationState
+    {
+      FEATURE_ID_NONE,
+      FEATURE_ID_SINGLE,
+      FEATURE_ID_MULTIPLE_SAME,
+      FEATURE_ID_MULTIPLE_DIVERGENT,
+      SIZE_OF_ANNOTATIONSTATE
+    };
+
+    static const std::string NamesOfAnnotationState[SIZE_OF_ANNOTATIONSTATE];
+
     //@}
 
     /** @name Constructors and Destructor
@@ -146,6 +159,9 @@ public:
 
     /// sets the PeptideIdentification vector
     void setPeptideIdentifications(const std::vector<PeptideIdentification> & peptides);
+
+    /// state of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
+    AnnotationState getAnnotationState() const;
 
 protected:
 
