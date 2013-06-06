@@ -28,7 +28,6 @@ def _test_container(c, i, append_method="push_back"):
 def testContainers():
     _test_container(pyopenms.MSSpectrum, pyopenms.Peak1D)
     _test_container(pyopenms.MSExperiment, pyopenms.MSSpectrum, "addSpectrum")
-    _test_container(pyopenms.MSExperiment, pyopenms.MSChromatogram, "addChromatogram")
     _test_container(pyopenms.FeatureMap, pyopenms.Feature)
 
 
