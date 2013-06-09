@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ParamEditor.h>
@@ -69,6 +69,17 @@ namespace OpenMS
 {
   namespace Internal
   {
+    void 	OpenMSLineEdit::focusInEvent ( QFocusEvent * e )
+    {
+      //std::cerr << "got focus";
+    }
+
+    void 	OpenMSLineEdit::focusOutEvent ( QFocusEvent * e )
+    {
+      //std::cerr << "lost focus";
+      emit lostFocus();
+    }
+
     ParamEditorDelegate::ParamEditorDelegate(QObject * parent) :
       QItemDelegate(parent)
     {
@@ -128,8 +139,11 @@ namespace OpenMS
         }
         else         //LineEditor for rest
         {
-          QLineEdit * editor = new QLineEdit(parent);
+          OpenMSLineEdit * editor = new OpenMSLineEdit(parent);
           editor->setFocusPolicy(Qt::StrongFocus);
+          connect(editor, SIGNAL(lostFocus()), this, SLOT(commitAndCloseLineEdit_()));
+          //std::cerr << "created ... \n";
+          has_uncommited_data_ = true;
           return editor;
         }
       }
@@ -372,6 +386,13 @@ namespace OpenMS
       emit commitData(editor);
       emit closeEditor(editor);
     }
+    void ParamEditorDelegate::commitAndCloseLineEdit_()
+    {
+      has_uncommited_data_ = false;
+      OpenMSLineEdit * editor = qobject_cast<OpenMSLineEdit *>(sender());
+      emit commitData(editor);
+      emit closeEditor(editor);
+    }
 
     void ParamEditorDelegate::commitAndCloseComboBox_()
     {
@@ -384,6 +405,11 @@ namespace OpenMS
     {
       ListEditor * editor = qobject_cast<ListEditor *>(sender());
       emit closeEditor(editor);
+    }
+
+    bool ParamEditorDelegate::hasUncommittedData() const
+    {
+      return has_uncommited_data_;
     }
 
     ///////////////////ParamTree/////////////////////////////////
@@ -704,8 +730,10 @@ namespace OpenMS
 
   void ParamEditor::store()
   {
-    if (param_ != NULL)
+//    std::cerr << "store entered ...\n";
+    if (param_ != NULL && !static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate())->hasUncommittedData())
     {
+//      std::cerr << "and done!...\n";
       QTreeWidgetItem * parent = tree_->invisibleRootItem();
       //param_->clear();
 
@@ -714,9 +742,10 @@ namespace OpenMS
         map<String, String> section_descriptions;
         storeRecursive_(parent->child(i), "", section_descriptions);        //whole tree recursively
       }
+
+      setModified(false);
     }
 
-    setModified(false);
   }
 
   void ParamEditor::clear()

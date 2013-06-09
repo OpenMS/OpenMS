@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_PARAMEDITOR_H
@@ -38,7 +38,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <OpenMS/VISUAL/UIC/ui_ParamEditor.h>
-
+#include <QtGui/QLineEdit>
 
 #include <QtGui/QItemDelegate>
 #include <QtGui/QTreeWidget>
@@ -60,6 +60,29 @@ namespace OpenMS
   */
   namespace Internal
   {
+
+    /**
+      @brief Custom QLineEdit which emits a signal when losing focus (such that we can commit its data)
+
+     */
+    class OPENMS_GUI_DLLAPI OpenMSLineEdit
+      : public QLineEdit
+    {
+      Q_OBJECT
+  public:
+      OpenMSLineEdit(QWidget * w)
+        :QLineEdit(w)
+      {}
+
+signals:
+      /// emitted on focusOutEvent
+      void lostFocus();
+
+
+    protected:
+        virtual void 	focusOutEvent ( QFocusEvent * e );
+        virtual void 	focusInEvent ( QFocusEvent * e );
+    };
     /**
         @brief Internal delegate class for QTreeWidget
 
@@ -82,6 +105,8 @@ public:
       /// Updates the editor for the item specified by index according to the style option given.
       void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
+      /// true if the underlying tree has an open QLineEdit which has uncommitted data
+      bool hasUncommittedData() const;
 signals:
       /// signal for showing ParamEditor if the Model data changed
       void modified(bool) const;
@@ -97,11 +122,15 @@ private slots:
       void commitAndCloseComboBox_();
       ///if cancel in ListEditor is clicked Dialog is closed and changes are rejected
       void closeListEditor_();
+      /// ...
+      void commitAndCloseLineEdit_();
 private:
       /// Not implemented
       ParamEditorDelegate();
-      ///used to modify value of output and input files( not for output and input lists)
+      /// used to modify value of output and input files( not for output and input lists)
       mutable QString fileName_;
+      /// true if a QLineEdit is still open and has not committed its data yet (so storing the current param is a bad idea)
+      mutable bool has_uncommited_data_;
     };
 
     /// QTreeWidget that emits a signal whenever a new row is selected

@@ -192,6 +192,7 @@ public:
         return INCOMPATIBLE_INPUT_DATA;
       }
 
+      // important, since AreaIterator below depends on sorted data
       exp.sortSpectra(true);
 
       Map<Size, DoubleReal> quant;

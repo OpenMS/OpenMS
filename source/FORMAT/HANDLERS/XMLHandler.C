@@ -85,7 +85,7 @@ namespace OpenMS
     {
       if (mode == LOAD)
         error_message_ =  String("While loading '") + file_ + "': " + msg;
-      if (mode == STORE)
+      else if (mode == STORE)
         error_message_ =  String("While storing '") + file_ + "': " + msg;
       if (line != 0 || column != 0)
         error_message_ += String("( in line ") + line + " column " + column + ")";
@@ -108,7 +108,7 @@ namespace OpenMS
     {
       if (mode == LOAD)
         error_message_ =  String("Non-fatal error while loading '") + file_ + "': " + msg;
-      if (mode == STORE)
+      else if (mode == STORE)
         error_message_ =  String("Non-fatal error while storing '") + file_ + "': " + msg;
       if (line != 0 || column != 0)
         error_message_ += String("( in line ") + line + " column " + column + ")";
@@ -119,7 +119,7 @@ namespace OpenMS
     {
       if (mode == LOAD)
         error_message_ =  String("While loading '") + file_ + "': " + msg;
-      if (mode == STORE)
+      else if (mode == STORE)
         error_message_ =  String("While storing '") + file_ + "': " + msg;
       if (line != 0 || column != 0)
         error_message_ += String("( in line ") + line + " column " + column + ")";
