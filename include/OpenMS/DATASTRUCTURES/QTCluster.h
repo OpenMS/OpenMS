@@ -38,6 +38,7 @@
 
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <boost/unordered_map.hpp>
 
 namespace OpenMS
 {
@@ -68,7 +69,7 @@ private:
      * @brief Mapping: input map -> distance to center -> neighboring point
      * @note There should never be an empty sub-map! (When a sub-map becomes empty, it should be removed from the overall map.)
      */
-    typedef std::map<Size, std::multimap<DoubleReal, GridFeature *> >
+    typedef boost::unordered::unordered_map<Size, std::multimap<DoubleReal, GridFeature *> >
     NeighborMap;
 
     /// Pointer to the cluster center
@@ -153,13 +154,13 @@ public:
     void add(GridFeature * element, DoubleReal distance);
 
     /// Gets the clustered elements
-    void getElements(std::map<Size, GridFeature *> & elements);
+    void getElements(boost::unordered::unordered_map<Size, GridFeature *> & elements);
 
     /**
      * @brief Updates the cluster after data points were removed
      * @return Whether the cluster is still valid (it's not if the cluster center is among the removed points).
      */
-    bool update(const std::map<Size, GridFeature *> & removed);
+    bool update(const boost::unordered::unordered_map<Size, GridFeature *> & removed);
 
     /// Returns the cluster quality
     DoubleReal getQuality();

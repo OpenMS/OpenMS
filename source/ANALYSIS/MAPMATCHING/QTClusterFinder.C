@@ -57,6 +57,11 @@ namespace OpenMS
   void QTClusterFinder::setParameters_(DoubleReal max_intensity,
                                        DoubleReal max_mz)
   {
+    if (max_mz < 1e-16 || max_mz > 1e16 || max_intensity < 1e-16 || max_intensity > 1e16)
+    {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                         "Maximum mz or intensity out of range (mz,intensity): " + String(max_mz) + ", " + String(max_intensity));
+    }
     use_IDs_ = String(param_.getValue("use_identifications")) == "true";
     max_diff_rt_ = param_.getValue("distance_RT:max_difference");
     max_diff_mz_ = param_.getValue("distance_MZ:max_difference");
@@ -90,10 +95,11 @@ namespace OpenMS
       max_intensity = max(max_intensity, input_maps[map_index].getMaxInt());
       max_mz = max(max_mz, input_maps[map_index].getMax()[0]);
     }
+
     setParameters_(max_intensity, max_mz);
 
     // create the hash grid and fill it with features:
-    // cout << "Hashing..." << endl;
+    //cout << "Hashing..." << endl;
     list<GridFeature> grid_features;
     Grid grid(Grid::ClusterCenter(max_diff_rt_, max_diff_mz_));
     for (Size map_index = 0; map_index < num_maps_; ++map_index)
@@ -119,7 +125,7 @@ namespace OpenMS
     }
 
     // compute QT clustering:
-    // cout << "Clustering..." << endl;
+    //cout << "Clustering..." << endl;
     list<QTCluster> clustering;
     computeClustering_(grid, clustering);
     // number of clusters == number of data points:
@@ -148,13 +154,13 @@ namespace OpenMS
     // find the best cluster:
     clustering.sort();
     list<QTCluster>::reverse_iterator best = clustering.rbegin();
-    map<Size, GridFeature *> elements;
+    boost::unordered::unordered_map<Size, GridFeature *> elements;
     best->getElements(elements);
     // cout << "Elements: " << elements.size() << endl;
 
     // create consensus feature:
     feature.setQuality(best->getQuality());
-    for (map<Size, GridFeature *>::const_iterator it = elements.begin();
+    for (boost::unordered::unordered_map<Size, GridFeature *>::const_iterator it = elements.begin();
          it != elements.end(); ++it)
     {
       feature.insert(it->first, it->second->getFeature());
@@ -200,6 +206,7 @@ namespace OpenMS
     {
       const Grid::CellIndex & act_coords = it.index();
       const Int x = act_coords[0], y = act_coords[1];
+      //cout << x << " " << y << endl;
 
       GridFeature * center_feature = it->second;
       QTCluster cluster(center_feature, num_maps_, max_distance, use_IDs_);
@@ -247,7 +254,7 @@ namespace OpenMS
                                            GridFeature * right)
   {
     // look-up in the distance map:
-    pair<GridFeature *, GridFeature *> key = make_pair(min(left, right),
+    const pair<GridFeature *, GridFeature *> key = make_pair(min(left, right),
                                                        max(left, right));
     PairDistances::const_iterator pos = distances_.find(key);
     if (pos != distances_.end())     // distance computed before
@@ -256,8 +263,7 @@ namespace OpenMS
     }
     else     // compute distance now and store it for later
     {
-      DoubleReal dist = feature_distance_(left->getFeature(),
-                                          right->getFeature()).second;
+      DoubleReal dist = feature_distance_(left->getFeature(), right->getFeature()).second;
       distances_[key] = dist;
       return dist;
     }

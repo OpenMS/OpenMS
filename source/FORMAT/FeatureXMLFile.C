@@ -124,6 +124,8 @@ namespace OpenMS
     // reset members
     resetMembers_();
 
+    // put ranges into defined state
+    feature_map.updateRanges();
     return;
   }
 

@@ -65,7 +65,7 @@ namespace OpenMS
 
     QTClusterFinder cluster_finder;
     cluster_finder.setParameters(param_.copy("", true));
-    ConsensusMap result;
+
     cluster_finder.run(maps, out);
 
     // add protein IDs and unassigned peptide IDs to the result map here,

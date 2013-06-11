@@ -353,6 +353,8 @@ public:
         f.BaseFeature::operator=(c);
         if (!keep_uids) f.setUniqueId();
       }
+
+      output_map.updateRanges();
     }
 
     // Docu in base class

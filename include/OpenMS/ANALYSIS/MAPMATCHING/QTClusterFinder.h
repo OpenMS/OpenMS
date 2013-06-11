@@ -43,6 +43,8 @@
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 
+#include <boost/unordered_map.hpp>
+
 namespace OpenMS
 {
 
@@ -83,7 +85,7 @@ namespace OpenMS
   {
 private:
     /// Distances between pairs of grid features
-    typedef std::map<std::pair<GridFeature *, GridFeature *>, DoubleReal>
+    typedef boost::unordered::unordered_map<std::pair<GridFeature *, GridFeature *>, DoubleReal>
     PairDistances;
 
     typedef HashGrid<GridFeature *> Grid;

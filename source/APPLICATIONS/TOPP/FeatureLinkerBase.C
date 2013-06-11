@@ -140,6 +140,8 @@ protected:
         out_map.getFileDescriptions()[0].label = "light";
         out_map.getFileDescriptions()[1].label = "heavy";
       }
+
+      out_map.updateRanges();
       // group
       algorithm->group(maps, out_map);
     }
