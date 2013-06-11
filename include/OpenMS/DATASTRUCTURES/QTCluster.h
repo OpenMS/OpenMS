@@ -69,7 +69,7 @@ private:
      * @brief Mapping: input map -> distance to center -> neighboring point
      * @note There should never be an empty sub-map! (When a sub-map becomes empty, it should be removed from the overall map.)
      */
-    typedef boost::unordered::unordered_map<Size, std::multimap<DoubleReal, GridFeature *> >
+    typedef boost::unordered::unordered_map<Size, boost::unordered::unordered_multimap<DoubleReal, GridFeature *> >
     NeighborMap;
 
     /// Pointer to the cluster center

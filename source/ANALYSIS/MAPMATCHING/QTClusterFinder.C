@@ -136,6 +136,7 @@ namespace OpenMS
     logger.startProgress(0, size, "linking features");
 
     result_map.clear(false);
+
     while (!clustering.empty())
     {
       // cout << "Clusters: " << clustering.size() << endl;

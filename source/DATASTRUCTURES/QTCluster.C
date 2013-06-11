@@ -97,14 +97,18 @@ namespace OpenMS
   {
     elements.clear();
     elements[center_point_->getMapIndex()] = center_point_;
+
     if (neighbors_.empty())
+    {
       return;
+    }
 
     // if necessary, compute the optimal annotation for the cluster first:
     if (changed_ && use_IDs_ && center_point_->getAnnotations().empty())
     {
       optimizeAnnotations_();
     }
+
     if (annotations_.empty() || !center_point_->getAnnotations().empty())
     {
       // no need to take annotations into account:
@@ -119,7 +123,7 @@ namespace OpenMS
       for (NeighborMap::const_iterator n_it = neighbors_.begin();
            n_it != neighbors_.end(); ++n_it)
       {
-        for (multimap<DoubleReal, GridFeature *>::const_iterator df_it =
+        for (boost::unordered::unordered_multimap<DoubleReal, GridFeature *>::const_iterator df_it =
                n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
         {
           const set<AASequence> & current = df_it->second->getAnnotations();
@@ -149,7 +153,7 @@ namespace OpenMS
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
         continue;                                  // no points from this map
-      for (multimap<DoubleReal, GridFeature *>::iterator feat_it =
+      for (boost::unordered::unordered_multimap<DoubleReal, GridFeature *>::iterator feat_it =
              pos->second.begin(); feat_it != pos->second.end(); ++feat_it)
       {
         if (feat_it->second == rm_it->second)         // remove this neighbor
@@ -229,7 +233,7 @@ namespace OpenMS
          n_it != neighbors_.end(); ++n_it)
     {
       Size map_index = n_it->first;
-      for (multimap<DoubleReal, GridFeature *>::iterator df_it =
+      for (boost::unordered::unordered_multimap<DoubleReal, GridFeature *>::iterator df_it =
              n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
       {
         DoubleReal dist = df_it->first;

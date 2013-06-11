@@ -112,9 +112,9 @@ START_SECTION((bool operator<(QTCluster& cluster)))
 }
 END_SECTION
 
-START_SECTION((void getElements(std::map<Size, GridFeature*>& elements)))
+START_SECTION((void getElements(boost::unordered::unordered_map<Size, GridFeature*>& elements)))
 {
-	map<Size, GridFeature*> elements;
+	boost::unordered::unordered_map<Size, GridFeature*> elements;
 	cluster.getElements(elements);
 	TEST_EQUAL(elements.size(), 2);
 	TEST_EQUAL(elements[123], &gf);
@@ -122,9 +122,9 @@ START_SECTION((void getElements(std::map<Size, GridFeature*>& elements)))
 }
 END_SECTION
 
-START_SECTION((bool update(const std::map<Size, GridFeature*>& removed)))
+START_SECTION((bool update(const boost::unordered::unordered_map<Size, GridFeature*>& removed)))
 {
-	map<Size, GridFeature*> removed;
+	boost::unordered::unordered_map<Size, GridFeature*> removed;
 	removed[789] = &gf2;
 	TEST_EQUAL(cluster.update(removed), true);
 	TEST_EQUAL(cluster.size(), 1);
