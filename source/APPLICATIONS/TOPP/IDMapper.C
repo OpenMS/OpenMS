@@ -89,7 +89,7 @@ using namespace std;
     if @p feature:use_centroid_rt or @p feature:use_centroid_mz are true.
 
     <B>Annotation of consensus maps (consensusXML input):</B>\n
-    Peptide positions are always matched against centroid positions. By default, the consensus centroids are used. However, if @p consensusfeature:use_subelements is set, the centroids of sub-features are considered instead.
+    Peptide positions are always matched against centroid positions. By default, the consensus centroids are used. However, if @p consensus:use_subelements is set, the centroids of sub-features are considered instead.
     In this case, a peptide identification is mapped to a consensus feature if any of its sub-features matches.
 
     <B>The command line parameters of this tool are:</B>
@@ -154,8 +154,8 @@ protected:
     registerFlag_("feature:use_centroid_mz", "Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.\n(If you choose 'peptide' as 'mz_reference', you should usually set this flag to avoid false-positive matches.)");
 
     addEmptyLine_();
-    registerTOPPSubsection_("consensusfeature", "Additional options for consensusXML input");
-    registerFlag_("consensusfeature:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
+    registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
+    registerFlag_("consensus:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
   }
 
   ExitCodes main_(int, const char **)
@@ -197,7 +197,7 @@ protected:
       ConsensusMap map;
       file.load(in, map);
 
-      bool measure_from_subelements = getFlag_("consensusfeature:use_subelements");
+      bool measure_from_subelements = getFlag_("consensus:use_subelements");
 
       mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements);
 
@@ -237,7 +237,7 @@ protected:
       MzQuantMLFile file;
       file.load(in, msq);
 
-      bool measure_from_subelements = getFlag_("consensusfeature:use_subelements");
+      bool measure_from_subelements = getFlag_("consensus:use_subelements");
       for (std::vector<ConsensusMap>::iterator it = msq.getConsensusMaps().begin(); it != msq.getConsensusMaps().end(); ++it)
       {
         mapper.annotate(*it, peptide_ids, protein_ids, measure_from_subelements);

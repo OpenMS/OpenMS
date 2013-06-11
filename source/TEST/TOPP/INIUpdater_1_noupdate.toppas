@@ -121,7 +121,7 @@
           <ITEM name="use_centroid_rt" value="false" type="string" description="Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces." restrictions="true,false" />
           <ITEM name="use_centroid_mz" value="false" type="string" description="Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.#br#(If you choose &apos;peptide&apos; as &apos;mz_reference&apos;, you should usually set this flag to avoid false-positive matches.)" restrictions="true,false" />
         </NODE>
-        <NODE name="consensusfeature" description="Additional options for consensusXML input">
+        <NODE name="consensus" description="Additional options for consensusXML input">
           <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." restrictions="true,false" />
         </NODE>
       </NODE>

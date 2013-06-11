@@ -185,11 +185,11 @@
 				<userParam name="parameter: spectra:select_collision_energy" type="xsd:string" value=":"/>
 				<userParam name="parameter: spectra:select_isolation_window_width" type="xsd:string" value=":"/>
 				<userParam name="parameter: feature:q" type="xsd:string" value=":"/>
-				<userParam name="parameter: consensusfeature:map" type="xsd:string" value="[]"/>
-				<userParam name="parameter: consensusfeature:map_and" type="xsd:string" value="false"/>
-				<userParam name="parameter: f_and_cf:charge" type="xsd:string" value=":"/>
-				<userParam name="parameter: f_and_cf:size" type="xsd:string" value=":"/>
-				<userParam name="parameter: f_and_cf:remove_meta" type="xsd:string" value="[]"/>
+				<userParam name="parameter: consensus:map" type="xsd:string" value="[]"/>
+				<userParam name="parameter: consensus:map_and" type="xsd:string" value="false"/>
+				<userParam name="parameter: f_and_c:charge" type="xsd:string" value=":"/>
+				<userParam name="parameter: f_and_c:size" type="xsd:string" value=":"/>
+				<userParam name="parameter: f_and_c:remove_meta" type="xsd:string" value="[]"/>
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>

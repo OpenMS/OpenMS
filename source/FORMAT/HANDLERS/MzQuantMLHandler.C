@@ -269,7 +269,7 @@ namespace OpenMS
         //~ }
         //~ }
 
-        String f_ref = attributeAsString_(attributes, "feature_ref"); // models which features will be included in this consensusfeature - idependent from id(is optional)
+        String f_ref = attributeAsString_(attributes, "feature_ref"); // models which features will be included in this consensus feature - idependent from id(is optional)
         f_cf_ids_.insert(std::make_pair(f_ref, current_cf_id_));
 
         //~ StringList a_refs = attributeAsStringList_(attributes,"assay_refs"); // what to do with these??
@@ -481,13 +481,13 @@ namespace OpenMS
       //~ assemble consensusmap MS1LABEL
       else if (tag_ == "FeatureList") // TODO what if there are more than one FeatureQuantLayer?
       {
-        //~ assemble consensusfeatures
+        //~ assemble consensus features
         for (std::map<String, String>::iterator it = f_cf_ids_.begin(); it != f_cf_ids_.end(); ++it)
         {
           cf_cf_obj_[it->second].insert(f_f_obj_[it->first]);
         }
 
-        //~ assemble consensusfeaturemaps
+        //~ assemble consensus maps
         ConsensusMap cm;
         std::multimap<String, String>::const_iterator last = cm_cf_ids_.begin();
         for (std::multimap<String, String>::const_iterator it = cm_cf_ids_.begin(); it != cm_cf_ids_.end(); ++it)

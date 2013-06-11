@@ -309,37 +309,37 @@ protected:
     registerStringOption_("feature:q", "[min]:[max]", ":", "Overall quality range to extract [0:1]", false);
 
     addEmptyLine_();
-    registerTOPPSubsection_("consensusfeature", "Consensus feature data options");
-    registerIntList_("consensusfeature:map", "i j ...", IntList::create(""), "maps to be extracted from a consensus", false);
-    registerFlag_("consensusfeature:map_and", "AND connective of map selection instead of OR.");
+    registerTOPPSubsection_("consensus", "Consensus feature data options");
+    registerIntList_("consensus:map", "i j ...", IntList::create(""), "maps to be extracted from a consensus", false);
+    registerFlag_("consensus:map_and", "AND connective of map selection instead of OR.");
 
     // black and white listing
-    registerTOPPSubsection_("consensusfeature:blackorwhitelist", "Black or white listing of of MS2 spectra by consensus features.");
-    registerInputFile_("consensusfeature:blackorwhitelist:file", "<file>", "", "Input file containing consensus features whose corresponding MS2 spectra should be removed from the mzML file!\n"
-                       "Matching tolerances are taken from 'consensusfeature:blackorwhitelist:rt' and 'consensusfeature:blackorwhitelist:mz' options.\n"
-                       "If consensusfeature:blackorwhitelist:maps is specified, only these will be used.\n", false);
-    setValidFormats_("consensusfeature:blackorwhitelist:file", StringList::create("consensusXML"));
-    registerIntList_("consensusfeature:blackorwhitelist:maps", "i j ...", IntList::create(""), "maps used for black/white list filtering.", false);
+    registerTOPPSubsection_("consensus:blackorwhitelist", "Black or white listing of of MS2 spectra by consensus features.");
+    registerInputFile_("consensus:blackorwhitelist:file", "<file>", "", "Input file containing consensus features whose corresponding MS2 spectra should be removed from the mzML file!\n"
+                       "Matching tolerances are taken from 'consensus:blackorwhitelist:rt' and 'consensus:blackorwhitelist:mz' options.\n"
+                       "If consensus:blackorwhitelist:maps is specified, only these will be used.\n", false);
+    setValidFormats_("consensus:blackorwhitelist:file", StringList::create("consensusXML"));
+    registerIntList_("consensus:blackorwhitelist:maps", "i j ...", IntList::create(""), "maps used for black/white list filtering.", false);
 
-    registerDoubleOption_("consensusfeature:blackorwhitelist:rt", "tolerance", 60.0, "retention tolerance [s] for precursor to consensus feature position", false);
-    registerDoubleOption_("consensusfeature:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] for precursor to consensus feature position", false);
-    registerStringOption_("consensusfeature:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
+    registerDoubleOption_("consensus:blackorwhitelist:rt", "tolerance", 60.0, "retention tolerance [s] for precursor to consensus feature position", false);
+    registerDoubleOption_("consensus:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] for precursor to consensus feature position", false);
+    registerStringOption_("consensus:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
 
     StringList truefalse;
     truefalse << "false" << "true";
-    setValidStrings_("consensusfeature:blackorwhitelist:use_ppm_tolerance", truefalse);
+    setValidStrings_("consensus:blackorwhitelist:use_ppm_tolerance", truefalse);
 
-    registerStringOption_("consensusfeature:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept.", false, false);
-    setValidStrings_("consensusfeature:blackorwhitelist:blacklist", truefalse);
+    registerStringOption_("consensus:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept.", false, false);
+    setValidStrings_("consensus:blackorwhitelist:blacklist", truefalse);
 
-    setMinFloat_("consensusfeature:blackorwhitelist:rt", 0);
-    setMinFloat_("consensusfeature:blackorwhitelist:mz", 0);
+    setMinFloat_("consensus:blackorwhitelist:rt", 0);
+    setMinFloat_("consensus:blackorwhitelist:mz", 0);
 
     addEmptyLine_();
-    registerTOPPSubsection_("f_and_cf", "Feature & Consensus data options");
-    registerStringOption_("f_and_cf:charge", "[min]:[max]", ":", "charge range to extract", false);
-    registerStringOption_("f_and_cf:size", "[min]:[max]", ":", "size range to extract", false);
-    registerStringList_("f_and_cf:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+    registerTOPPSubsection_("f_and_c", "Feature & Consensus data options");
+    registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "charge range to extract", false);
+    registerStringOption_("f_and_c:size", "[min]:[max]", ":", "size range to extract", false);
+    registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
 
     addEmptyLine_();
     registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist.");
@@ -457,10 +457,10 @@ protected:
     String pc_mz = getStringOption_("pc_mz");
     String it = getStringOption_("int");
     IntList levels = getIntList_("peak_options:level");
-    IntList maps = getIntList_("consensusfeature:map");
+    IntList maps = getIntList_("consensus:map");
     double sn = getDoubleOption_("peak_options:sn");
-    String charge = getStringOption_("f_and_cf:charge");
-    String size = getStringOption_("f_and_cf:size");
+    String charge = getStringOption_("f_and_c:charge");
+    String size = getStringOption_("f_and_c:size");
     String q = getStringOption_("feature:q");
     String remove_collision_energy = getStringOption_("spectra:remove_collision_energy");
     String select_collision_energy = getStringOption_("spectra:select_collision_energy");
@@ -524,17 +524,17 @@ protected:
     writeDebug_("Sorting output data: " + String(sort), 3);
 
     // handle remove_meta
-    StringList meta_info = getStringList_("f_and_cf:remove_meta");
+    StringList meta_info = getStringList_("f_and_c:remove_meta");
     bool remove_meta_enabled = (meta_info.size() > 0);
     if (remove_meta_enabled && meta_info.size() != 3)
     {
-      writeLog_("Param 'f_and_cf:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      writeLog_("Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
     if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt"))
     {
-      writeLog_("Param 'f_and_cf:remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+      writeLog_("Param 'f_and_c:remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -742,17 +742,17 @@ protected:
       }
 
       // check if filtering by consensus feature is enabled
-      String consensus_blackorwhitelist = getStringOption_("consensusfeature:blackorwhitelist:file");
+      String consensus_blackorwhitelist = getStringOption_("consensus:blackorwhitelist:file");
 
       if (!consensus_blackorwhitelist.empty())
       {
         LOG_INFO << "Filtering out MS2 spectra from raw file using consensus features ..." << std::endl;
-        IntList il = getIntList_("consensusfeature:blackorwhitelist:maps");
+        IntList il = getIntList_("consensus:blackorwhitelist:maps");
         set<UInt64> maps(il.begin(), il.end());
-        DoubleReal rt_tol = getDoubleOption_("consensusfeature:blackorwhitelist:rt");
-        DoubleReal mz_tol = getDoubleOption_("consensusfeature:blackorwhitelist:mz");
-        bool is_ppm = getStringOption_("consensusfeature:blackorwhitelist:use_ppm_tolerance") == "false" ? false : true;
-        bool is_blacklist = getStringOption_("consensusfeature:blackorwhitelist:blacklist") == "true" ? true : false;
+        DoubleReal rt_tol = getDoubleOption_("consensus:blackorwhitelist:rt");
+        DoubleReal mz_tol = getDoubleOption_("consensus:blackorwhitelist:mz");
+        bool is_ppm = getStringOption_("consensus:blackorwhitelist:use_ppm_tolerance") == "false" ? false : true;
+        bool is_blacklist = getStringOption_("consensus:blackorwhitelist:blacklist") == "true" ? true : false;
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_blackorwhitelist, rt_tol, mz_tol, is_ppm, maps);
         if (ret != EXECUTION_OK)
         {
@@ -966,7 +966,7 @@ protected:
             }
 
             consensus_feature_new.computeConsensus(); // evaluate position of the consensus
-            bool and_connective = getFlag_("consensusfeature:map_and");
+            bool and_connective = getFlag_("consensus:map_and");
 
             if ((!consensus_feature_new.empty() && !and_connective) || (consensus_feature_new.size() == maps.size() && and_connective)) // add the consensus to the consensus map only if it is non-empty
             {

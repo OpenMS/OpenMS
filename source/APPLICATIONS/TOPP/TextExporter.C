@@ -426,31 +426,23 @@ protected:
       registerFlag_("feature:minimal", "Set this flag to write only three attributes: RT, m/z, and intensity.");
       addEmptyLine_();
 
-      registerTOPPSubsection_("id", "Options for idXML files");
-      registerFlag_("id:proteins_only",
-                    "Set this flag if you want only protein information from an idXML file");
-      registerFlag_("id:peptides_only",
-                    "Set this flag if you want only peptide information from an idXML file");
-      registerFlag_(
-        "id:first_dim_rt",
-        "If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
+      registerTOPPSubsection_("id", "Options for idXML input files");
+      registerFlag_("id:proteins_only", "Set this flag if you want only protein information from an idXML file");
+      registerFlag_("id:peptides_only", "Set this flag if you want only peptide information from an idXML file");
+      registerFlag_("id:first_dim_rt", "If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
       addEmptyLine_();
 
-      registerTOPPSubsection_("consensusfeature", "Options for consensusXML files");
-      registerOutputFile_("consensusfeature:consensus_centroids", "<file>", "",
-                          "Output file for centroids of consensus features", false);
-      setValidFormats_("consensusfeature:consensus_centroids", StringList::create("csv"));
-      registerOutputFile_("consensusfeature:consensus_elements", "<file>", "",
-                          "Output file for elements of consensus features", false);
-      setValidFormats_("consensusfeature:consensus_elements", StringList::create("csv"));
-      registerOutputFile_("consensusfeature:consensus_features", "<file>", "", "Output file for consensus features and contained elements from all maps (writes 'nan's if elements are missing)", false);
-      setValidFormats_("consensusfeature:consensus_features", StringList::create("csv"));
-      registerStringOption_("consensusfeature:sorting_method", "<method>", "none",
-                            "Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method", false);
-      setValidStrings_("consensusfeature:sorting_method", StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
-      registerFlag_("consensusfeature:sort_by_maps",
-                    "Apply a stable sort by the covered maps, lexicographically", false);
-      registerFlag_("consensusfeature:sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
+      registerTOPPSubsection_("consensus", "Options for consensusXML input files");
+      registerOutputFile_("consensus:centroids", "<file>", "", "Output file for centroids of consensus features", false);
+      setValidFormats_("consensus:centroids", StringList::create("csv"));
+      registerOutputFile_("consensus:elements", "<file>", "", "Output file for elements of consensus features", false);
+      setValidFormats_("consensus:elements", StringList::create("csv"));
+      registerOutputFile_("consensus:features", "<file>", "", "Output file for consensus features and contained elements from all maps (writes 'nan's if elements are missing)", false);
+      setValidFormats_("consensus:features", StringList::create("csv"));
+      registerStringOption_("consensus:sorting_method", "<method>", "none", "Sorting options can be combined. The precedence is: sort_by_size, sort_by_maps, sorting_method", false);
+      setValidStrings_("consensus:sorting_method", StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
+      registerFlag_("consensus:sort_by_maps", "Apply a stable sort by the covered maps, lexicographically", false);
+      registerFlag_("consensus:sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
     }
 
     ExitCodes main_(int, const char **)
@@ -608,12 +600,12 @@ protected:
       }
       else if (in_type == FileTypes::CONSENSUSXML)
       {
-        String consensus_centroids = getStringOption_("consensusfeature:consensus_centroids");
-        String consensus_elements = getStringOption_("consensusfeature:consensus_elements");
-        String consensus_features = getStringOption_("consensusfeature:consensus_features");
-        String sorting_method = getStringOption_("consensusfeature:sorting_method");
-        bool sort_by_maps = getFlag_("consensusfeature:sort_by_maps");
-        bool sort_by_size = getFlag_("consensusfeature:sort_by_size");
+        String consensus_centroids = getStringOption_("consensus:centroids");
+        String consensus_elements = getStringOption_("consensus:elements");
+        String consensus_features = getStringOption_("consensus:features");
+        String sorting_method = getStringOption_("consensus:sorting_method");
+        bool sort_by_maps = getFlag_("consensus:sort_by_maps");
+        bool sort_by_size = getFlag_("consensus:sort_by_size");
 
         ConsensusMap consensus_map;
         ConsensusXMLFile consensus_xml_file;

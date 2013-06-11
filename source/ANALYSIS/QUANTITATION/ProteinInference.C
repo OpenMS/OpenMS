@@ -77,10 +77,10 @@ namespace OpenMS
       // Protein Accession
       String accession = protein_ident.getHits()[i].getAccession();
 
-      // consensusfeature -> peptideHit
+      // consensus feature -> peptide hit
       Map<size_t, PeptideHit> consensus_to_peptide;
 
-      // search for it in consensusElements:
+      // search for it in consensus elements:
       for (size_t i_cm = 0; i_cm < consensus_map.size(); ++i_cm)
       {
         std::vector<PeptideHit> peptide_hits;
