@@ -1991,7 +1991,7 @@ namespace OpenMS
     /// warn about empty input nodes
     foreach(TOPPASInputFileListVertex * iflv, input_nodes)
     {
-      if (iflv->getFileNames().empty())
+      if ((iflv->outgoingEdgesCount() > 0) && (iflv->getFileNames().empty()))  // allow disconnected input node with empty file list
       {
         strange_vertices.push_back(QString::number(iflv->getTopoNr()));
       }

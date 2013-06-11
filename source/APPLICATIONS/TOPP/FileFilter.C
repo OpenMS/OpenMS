@@ -806,15 +806,16 @@ protected:
           bool const charge_ok = ((charge_l <= fm_it->getCharge()) && (fm_it->getCharge() <= charge_u));
           bool const size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
           bool const q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
-          bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
-          if (remove_meta_enabled)
-          {
-            meta_ok = checkMetaOk(*fm_it, meta_info);
-          }
 
-          if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok && annotation_ok && meta_ok)
+
+          if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok)
           {
-            map_sm.push_back(*fm_it);
+            if (remove_meta_enabled)
+            {
+              meta_ok = checkMetaOk(*fm_it, meta_info);
+            }
+            bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+            if (annotation_ok && meta_ok) map_sm.push_back(*fm_it);
           }
         }
         //delete unassignedPeptideIdentifications
@@ -863,21 +864,20 @@ protected:
         //.. but delete feature information
         consensus_map_filtered.resize(0);
 
-        bool charge_ok, size_ok, annotation_ok;
-
         for (ConsensusMap::Iterator cm_it = consensus_map.begin(); cm_it != consensus_map.end(); ++cm_it)
         {
-          charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
-          size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
-          annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
-          if (remove_meta_enabled)
-          {
-            meta_ok = checkMetaOk(*cm_it, meta_info);
-          }
+          const bool charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
+          const bool size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
 
-          if (charge_ok && size_ok && annotation_ok && meta_ok)
+          if (charge_ok && size_ok && meta_ok)
           {
-            consensus_map_filtered.push_back(*cm_it);
+            // this is expensive, so evaluate after everything else passes the test
+            if (remove_meta_enabled)
+            {
+              meta_ok = checkMetaOk(*cm_it, meta_info);
+            }
+            const bool annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+            if (annotation_ok && meta_ok) consensus_map_filtered.push_back(*cm_it);
           }
         }
         //delete unassignedPeptideIdentifications
