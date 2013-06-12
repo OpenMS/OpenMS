@@ -173,9 +173,7 @@ namespace OpenMS
 
     painter->setPen(pen);
 
-    painter->drawLine(startPos(), endPos());
-
-    // draw arrow head
+    // angle of line
     QPointF delta = endPos() - startPos();
     qreal angle;
     if (delta.x() == 0.0)
@@ -193,16 +191,51 @@ namespace OpenMS
       }
     }
 
+    QPainterPath path_line(startPos());
+    path_line.lineTo(endPos());
+    painter->drawPath(path_line);
+
+    const qreal arrow_width = 10; // required multiple times, so defined here to avoid inconsistencies
+
+    // print names
+    QPainterPath path_line_short(borderPoint_(false));
+    path_line_short.lineTo(endPos());
+    QString str = getSourceOutParamName();
+    if (!str.isEmpty())
+    {
+      painter->save();
+      QPointF point = path_line_short.pointAtPercent(0.05);
+      painter->translate(point);
+      painter->rotate(angle);
+      painter->drawText(QPoint(0, -pen.width()), str);
+      painter->restore();
+    }
+    str = getTargetInParamName();
+    if (!str.isEmpty())
+    {
+      painter->save();
+      qreal pc = path_line_short.percentAtLength(10);
+      QPointF point = path_line_short.pointAtPercent(0.95);
+      painter->translate(point);
+      painter->rotate(angle);
+      QFontMetrics fm(painter->fontMetrics());
+      int width=fm.width(str);
+      painter->drawText(QPoint(-width - arrow_width, -pen.width()), str); // for text length and arrow
+      painter->restore();
+    }
+
+    // draw arrow head
     painter->save();
     painter->translate(endPos());
     painter->rotate(angle);
     QPainterPath path;
     path.moveTo(QPointF(0, 0));
-    path.lineTo(QPointF(-10, 4));
-    path.lineTo(QPointF(-10, -4));
+    path.lineTo(QPointF(-arrow_width, 4));
+    path.lineTo(QPointF(-arrow_width, -4));
     path.closeSubpath();
     painter->drawPath(path);
     painter->restore();
+
   }
 
   QPointF TOPPASEdge::startPos() const
@@ -224,56 +257,66 @@ namespace OpenMS
     if (!to_)
     {
       // we do not have a target vertex yet
-      position = hover_pos_;
+      return (hover_pos_);
     }
     else
     {
       // we have a target node --> line should end at its border
+      return (borderPoint_());
+    }
+  }
 
-      QList<QPointF> point_list;
+  QPointF TOPPASEdge::borderPoint_(bool atTargetVertex) const
+  {
+    if (!to_ || !from_) return QPointF(); // both ends need to be fixed; otherwise we have no input/output slots assigned anyways
 
-      QPointF target_pos = mapFromScene(to_->scenePos());
-      QRectF target_boundings = mapFromItem(to_, to_->shape()).boundingRect();
-      QPointF delta = target_pos - startPos();
-      qreal slope;
-      if (delta.x() == 0)
-      {
-        slope = std::numeric_limits<double>::infinity();
-      }
-      else
-      {
-        slope = delta.y() / delta.x();
-      }
+    QPointF position;
+    const TOPPASVertex* to = (atTargetVertex ? to_ : from_);
+    const TOPPASVertex* from = (!atTargetVertex ? to_ : from_);
 
-      qreal y_1 = startPos().y() + slope * (target_boundings.left() - startPos().x());
-      qreal y_2 = startPos().y() + slope * (target_boundings.right() - startPos().x());
+    const QPointF toP =  mapFromScene(to->scenePos());
+    const QPointF fromP = mapFromScene(from->scenePos());
 
-      slope = 1.0 / slope;
-
-      qreal x_3 = startPos().x() + slope * (target_boundings.top() - startPos().y());
-      qreal x_4 = startPos().x() + slope * (target_boundings.bottom() - startPos().y());
-
-      if (y_1 <= target_boundings.bottom() && y_1 >= target_boundings.top())
-      {
-        point_list.push_back(QPointF(target_boundings.left(), y_1));
-      }
-      if (y_2 <= target_boundings.bottom() && y_2 >= target_boundings.top())
-      {
-        point_list.push_back(QPointF(target_boundings.right(), y_2));
-      }
-      if (x_3 <= target_boundings.right() && x_3 >= target_boundings.left())
-      {
-        point_list.push_back(QPointF(x_3, target_boundings.top()));
-      }
-      if (x_4 <= target_boundings.right() && x_4 >= target_boundings.left())
-      {
-        point_list.push_back(QPointF(x_4, target_boundings.bottom()));
-      }
-
-      position = nearestPoint_(startPos(), point_list);
+    QPointF delta = toP - fromP;
+    qreal slope;
+    if (delta.x() == 0)
+    {
+      slope = std::numeric_limits<double>::infinity();
+    }
+    else
+    {
+      slope = delta.y() / delta.x();
     }
 
-    return position;
+    QRectF target_boundings = mapFromItem(to, to->shape()).boundingRect();
+    qreal y_1 = fromP.y() + slope * (target_boundings.left() - fromP.x());
+    qreal y_2 = fromP.y() + slope * (target_boundings.right() - fromP.x());
+
+    slope = 1.0 / slope;
+
+    qreal x_3 = fromP.x() + slope * (target_boundings.top() - fromP.y());
+    qreal x_4 = fromP.x() + slope * (target_boundings.bottom() - fromP.y());
+
+    QList<QPointF> point_list;
+    if (y_1 <= target_boundings.bottom() && y_1 >= target_boundings.top())
+    {
+      point_list.push_back(QPointF(target_boundings.left(), y_1));
+    }
+    if (y_2 <= target_boundings.bottom() && y_2 >= target_boundings.top())
+    {
+      point_list.push_back(QPointF(target_boundings.right(), y_2));
+    }
+    if (x_3 <= target_boundings.right() && x_3 >= target_boundings.left())
+    {
+      point_list.push_back(QPointF(x_3, target_boundings.top()));
+    }
+    if (x_4 <= target_boundings.right() && x_4 >= target_boundings.left())
+    {
+      point_list.push_back(QPointF(x_4, target_boundings.bottom()));
+    }
+
+    return (nearestPoint_(fromP, point_list));
+
   }
 
   void TOPPASEdge::setHoverPos(const QPointF & pos)
@@ -596,6 +639,35 @@ namespace OpenMS
   int TOPPASEdge::getTargetInParam()
   {
     return target_in_param_;
+  }
+
+  QString TOPPASEdge::getTargetInParamName()
+  {
+    TOPPASVertex* target_o = getTargetVertex();
+    const TOPPASToolVertex* target = qobject_cast<TOPPASToolVertex*>(target_o);
+    if (target && target_in_param_>=0)
+    {
+       QVector<TOPPASToolVertex::IOInfo> docks;
+       target->getInputParameters(docks);
+       const TOPPASToolVertex::IOInfo& param = docks[this->target_in_param_]; 
+       return param.param_name.toQString();
+    }
+    return "";    
+  }
+
+
+  QString TOPPASEdge::getSourceOutParamName()
+  {
+    TOPPASVertex* source_o = getSourceVertex();
+    const TOPPASToolVertex* source = qobject_cast<TOPPASToolVertex*>(source_o);
+    if (source && source_out_param_>=0)
+    {
+       QVector<TOPPASToolVertex::IOInfo> docks;
+       source->getOutputParameters(docks);
+       const TOPPASToolVertex::IOInfo& param = docks[this->source_out_param_]; 
+       return param.param_name.toQString();
+    }
+    return "";    
   }
 
   void TOPPASEdge::updateColor()

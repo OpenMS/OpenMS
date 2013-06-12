@@ -281,17 +281,17 @@ namespace OpenMS
     return allow_output_recycling_;
   }
 
-  void TOPPASToolVertex::getInputParameters(QVector<IOInfo>& input_infos)
+  void TOPPASToolVertex::getInputParameters(QVector<IOInfo>& input_infos) const
   {
     getParameters_(input_infos, true);
   }
 
-  void TOPPASToolVertex::getOutputParameters(QVector<IOInfo>& output_infos)
+  void TOPPASToolVertex::getOutputParameters(QVector<IOInfo>& output_infos) const
   {
     getParameters_(output_infos, false);
   }
 
-  void TOPPASToolVertex::getParameters_(QVector<IOInfo>& io_infos, bool input_params)
+  void TOPPASToolVertex::getParameters_(QVector<IOInfo>& io_infos, bool input_params) const
   {
     String search_tag = input_params ? "input file" : "output file";
 

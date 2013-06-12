@@ -134,9 +134,9 @@ public:
     /// Returns the type of the tool
     const String & getType() const;
     /// Fills @p input_infos with the required input file/list parameters together with their valid types.
-    void getInputParameters(QVector<IOInfo> & input_infos);
+    void getInputParameters(QVector<IOInfo> & input_infos) const;
     /// Fills @p output_infos with the required output file/list parameters together with their valid types.
-    void getOutputParameters(QVector<IOInfo> & output_infos);
+    void getOutputParameters(QVector<IOInfo> & output_infos) const;
     // documented in base class
     virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget);
     // documented in base class
@@ -232,7 +232,7 @@ protected:
     /// Initializes the parameters with standard values (from -write_ini), uses the parameters from the old_ini_file if given, returns if parameters have changed (if old_ini_file was given)
     bool initParam_(const QString & old_ini_file = "");
     /// Fills @p io_infos with the required input/output file/list parameters. If @p input_params is true, input params are returned, otherwise output params.
-    void getParameters_(QVector<IOInfo> & io_infos, bool input_params);
+    void getParameters_(QVector<IOInfo> & io_infos, bool input_params) const;
     /// Writes @p param to the @p ini_file
     void writeParam_(const Param & param, const QString & ini_file);
     /// Helper method for finding good boundaries for wrapping the tool name. Returns a string with whitespaces at the preferred boundaries.

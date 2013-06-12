@@ -118,10 +118,14 @@ public:
     void setSourceOutParam(int out);
     /// Returns the source output parameter index
     int getSourceOutParam();
+    /// Returns the source output parameter name
+    QString getSourceOutParamName();
     /// Sets the target input parameter index
     void setTargetInParam(int in);
     /// Returns the target input parameter index
     int getTargetInParam();
+    /// Returns the target input parameter index
+    QString getTargetInParamName();
     /// Updates the edge color
     void updateColor();
     /// Emits the somethingHasChanged() signal
@@ -152,6 +156,9 @@ protected:
     EdgeStatus getToolToolStatus_(TOPPASToolVertex * source, int source_param_index, TOPPASToolVertex * target, int target_param_index);
     EdgeStatus getListToolStatus_(TOPPASInputFileListVertex * source, TOPPASToolVertex * target, int target_param_index);
     //@}
+
+    /// point where the current edge touches the source or target (default) vertex
+    QPointF borderPoint_(bool atTargetVertex = true) const;
 
     /// Returns the point in the @p list that is nearest to @p origin
     QPointF nearestPoint_(const QPointF & origin, const QList<QPointF> & list) const;
