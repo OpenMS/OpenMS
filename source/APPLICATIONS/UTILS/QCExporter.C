@@ -58,7 +58,7 @@ using namespace std;
 /**
     @page UTILS_QCExporter QCExporter
 
-    @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It is intended to provide tables that can be read into R where QC metrics will be calculated.
+    @brief This application is used to provide data export from quality control files (qcml). It is intended to provide tables that have been embedded previously to external toos such as R where QC metrics and plots wil be generated. If there are no tables for the given run/set and qp, output will be empty.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCExporter.cli
@@ -83,8 +83,8 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringOption_("qp", "<choice>", "", "Target attachment table.");
-    setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables,set id"));
+    registerStringOption_("qp", "<string>", "", "Target attachment table.");
+    //~ setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables,set id, injection times"));
     registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
     registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));

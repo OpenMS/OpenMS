@@ -310,13 +310,7 @@ namespace OpenMS
 
       try
       {
-        Int max_charge = (Int)tv_params.getValue("preferences:idview:charge");
-
-        // restrict max charge ladder to charge of precursor ion
-        if (ph.getCharge() >= 1)
-        {
-          max_charge = std::max(max_charge, ph.getCharge());
-        }
+        Int max_charge = std::max(1, ph.getCharge()); // at least generate charge 1 if no charge (0) is annotated
 
         // generate mass ladder for each charge state
         for (Int charge = 1; charge <= max_charge; ++charge)
@@ -433,11 +427,8 @@ namespace OpenMS
         Param param;
 
         DoubleReal tolerance = tv_params.getValue("preferences:idview:tolerance");
-        bool unit_is_ppm = tv_params.getValue("preferences:idview:is_relative_tolerance").toBool();
 
         param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
-        String sunit_is_ppm = unit_is_ppm ? "true" : "false";
-        param.setValue("is_relative_tolerance", sunit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value otherwise in Dalton");
         tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
 
         std::vector<std::pair<Size, Size> > aligned_peak_indices = tv_->getActive1DWidget()->canvas()->getAlignedPeaksIndices();

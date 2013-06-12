@@ -58,7 +58,7 @@ using namespace std;
 /**
     @page UTILS_QCShrinker QCShrinker
 
-    @brief This application is used to remove the verbose table attachments from a qcml file.
+    @brief This application is used to remove the verbose table attachments from a qcml file that are not needed anymore, e.g. for a final report.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCShrinker.cli

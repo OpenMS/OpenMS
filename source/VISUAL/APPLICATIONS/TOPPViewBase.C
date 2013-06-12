@@ -866,10 +866,8 @@ namespace OpenMS
     QDoubleSpinBox* z_intensity = dlg.findChild<QDoubleSpinBox*>("z_intensity");
 
     QDoubleSpinBox* tolerance = dlg.findChild<QDoubleSpinBox*>("tolerance");
-    QCheckBox* is_relative_tolerance = dlg.findChild<QCheckBox*>("unit_is_ppm");
 
     QDoubleSpinBox* relative_loss_intensity = dlg.findChild<QDoubleSpinBox*>("relative_loss_intensity");
-    QSpinBox* max_isotopes = dlg.findChild<QSpinBox*>("max_isotopes");
     QSpinBox* charge = dlg.findChild<QSpinBox*>("charge");
 
     QList<QListWidgetItem*> a_ions = id_view_ions->findItems("A-ions", Qt::MatchFixedString);
@@ -934,8 +932,6 @@ namespace OpenMS
     tolerance->setValue((DoubleReal)param_.getValue("preferences:idview:tolerance"));
 
     relative_loss_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:relative_loss_intensity"));
-    max_isotopes->setValue((Int)param_.getValue("preferences:idview:max_isotope"));
-    charge->setValue((Int)param_.getValue("preferences:idview:charge"));
 
     if (a_ions.empty())
     {
@@ -1037,16 +1033,6 @@ namespace OpenMS
       ai_ions[0]->setCheckState(state);
     }
 
-    if (is_relative_tolerance == 0)
-    {
-      showLogMessage_(LS_ERROR, "", "String 'unit is ppm' doesn't exist in identification dialog.");
-    }
-    else
-    {
-      Qt::CheckState state = param_.getValue("preferences:idview:is_relative_tolerance").toBool() == true ? Qt::Checked : Qt::Unchecked;
-      is_relative_tolerance->setCheckState(state);
-    }
-
     // --------------------------------------------------------------------
     // Execute dialog and update parameter object with user modified values
     if (dlg.exec())
@@ -1093,8 +1079,6 @@ namespace OpenMS
       param_.setValue("preferences:idview:y_intensity", y_intensity->value(), "Default intensity of y-ions");
       param_.setValue("preferences:idview:z_intensity", z_intensity->value(), "Default intensity of z-ions");
       param_.setValue("preferences:idview:relative_loss_intensity", relative_loss_intensity->value(), "Relativ loss in percent");
-      param_.setValue("preferences:idview:max_isotope", max_isotopes->value(), "Maximum number of isotopes");
-      param_.setValue("preferences:idview:charge", charge->value(), "Maximum charge state");
       param_.setValue("preferences:idview:tolerance", tolerance->value(), "Alignment tolerance");
 
       String checked;
@@ -1128,8 +1112,6 @@ namespace OpenMS
       ai_ions[0]->checkState() == Qt::Checked ? checked = "true" : checked = "false";
       param_.setValue("preferences:idview:add_abundant_immonium_ions", checked, "Show abundant immonium ions");
 
-      is_relative_tolerance->checkState() == Qt::Checked ? checked = "true" : checked = "false";
-      param_.setValue("preferences:idview:is_relative_tolerance", checked, "Use ppm instead of Da for the automatic alignment");
       savePreferences();
     }
   }

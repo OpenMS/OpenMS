@@ -63,7 +63,7 @@ using namespace std;
 /**
     @page UTILS_QCCalculator QCCalculator
 
-    @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It is intended to provide tables that can be read into R where QC metrics will be calculated.
+    @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It will provide the tables that can be read into R to calculate the basic QC metrics.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCCalculator.cli
@@ -97,8 +97,8 @@ protected:
     registerInputFile_("consensus", "<file>", "", "consensus input file (this is only used for charge state deconvoluted output. Use the consensusXML output form the DeCharger)", false);
     setValidFormats_("consensus", StringList::create("consensusXML"));
     registerFlag_("remove_duplicate_features", "This flag should be set, if you work with a set of merged features.");
-    registerFlag_("MS1", "This flag should be set, if you want to work with MS1 stats.");
-    registerFlag_("MS2", "This flag should be set, if you want to work with MS2 stats.");
+    //~ registerFlag_("MS1", "This flag should be set, if you want to work with MS1 stats.");
+    //~ registerFlag_("MS2", "This flag should be set, if you want to work with MS2 stats.");
   }
 
   DoubleReal getMassDifference(DoubleReal theo_mz, DoubleReal exp_mz, bool use_ppm)
@@ -127,8 +127,8 @@ protected:
     String inputfile_raw        = getStringOption_("in");
     String outputfile_name      = getStringOption_("out");
 
-    bool Ms1(getFlag_("MS1"));
-    bool Ms2(getFlag_("MS2"));
+    //~ bool Ms1(getFlag_("MS1"));
+    //~ bool Ms2(getFlag_("MS2"));
     bool remove_duplicate_features(getFlag_("remove_duplicate_features"));
     //-------------------------------------------------------------
     // reading input
@@ -657,68 +657,68 @@ protected:
       }
       qcmlfile.addRunAttachment(base_name, at);
     }
-    if (Ms1)
-    {
-      QcMLFile::Attachment at;
-      at.name = "ms1stats tables"; ///< Name
-      //~ at.id = base_name + "_ms1" ; ///< Identifier
-      at.cvRef = "QC"; ///< cv reference
-      at.cvAcc = "QC:xxxxxxx";
+    //~ if (Ms1)
+    //~ {
+      //~ QcMLFile::Attachment at;
+      //~ at.name = "ms1stats tables"; ///< Name
+      //~ // at.id = base_name + "_ms1" ; ///< Identifier
+      //~ at.cvRef = "QC"; ///< cv reference
+      //~ at.cvAcc = "QC:xxxxxxx";
 
-      at.colTypes.push_back("Native_ID");
-      at.colTypes.push_back("RT_(sec)");
-      at.colTypes.push_back("MZ_(Th)");
-      at.colTypes.push_back("Intensity");
-      for (Size i = 0; i < exp.size(); ++i)
-      {
-        if (exp[i].getMSLevel() == 1)
-        {
-          for (Size j = 0; j < exp[i].size(); ++j)
-          {
-            std::vector<String> row;
-            String nid = exp[i].getNativeID();
-            row.push_back(nid.removeWhitespaces());
-            row.push_back(exp[i].getRT());
-            row.push_back(exp[i][j].getMZ());
-            row.push_back(exp[i][j].getIntensity());
-            at.tableRows.push_back(row);
-          }
-        }
-      }
-      qcmlfile.addRunAttachment(base_name, at);
-    }
-    if (Ms2)
-    {
-      QcMLFile::Attachment at;
-      at.name = "ms2stats tables"; ///< Name
-      //~ at.id = base_name + "_ms1" ; ///< Identifier
-      at.cvRef = "QC"; ///< cv reference
-      at.cvAcc = "QC:xxxxxxx";
+      //~ at.colTypes.push_back("Native_ID");
+      //~ at.colTypes.push_back("RT_(sec)");
+      //~ at.colTypes.push_back("MZ_(Th)");
+      //~ at.colTypes.push_back("Intensity");
+      //~ for (Size i = 0; i < exp.size(); ++i)
+      //~ {
+        //~ if (exp[i].getMSLevel() == 1)
+        //~ {
+          //~ for (Size j = 0; j < exp[i].size(); ++j)
+          //~ {
+            //~ std::vector<String> row;
+            //~ String nid = exp[i].getNativeID();
+            //~ row.push_back(nid.removeWhitespaces());
+            //~ row.push_back(exp[i].getRT());
+            //~ row.push_back(exp[i][j].getMZ());
+            //~ row.push_back(exp[i][j].getIntensity());
+            //~ at.tableRows.push_back(row);
+          //~ }
+        //~ }
+      //~ }
+      //~ qcmlfile.addRunAttachment(base_name, at);
+    //~ }
+    //~ if (Ms2)
+    //~ {
+      //~ QcMLFile::Attachment at;
+      //~ at.name = "ms2stats tables"; ///< Name
+      //~ //at.id = base_name + "_ms1" ; ///< Identifier
+      //~ at.cvRef = "QC"; ///< cv reference
+      //~ at.cvAcc = "QC:xxxxxxx";
 
-      at.colTypes.push_back("Native_ID");
-      at.colTypes.push_back("RT_(sec)");
-      at.colTypes.push_back("MZ_(Th)");
-      at.colTypes.push_back("Intensity");
-      at.colTypes.push_back("Precursor");
-      for (Size i = 0; i < exp.size(); ++i)
-      {
-        if (exp[i].getMSLevel() == 2)
-        {
-          for (Size j = 0; j < exp[i].size(); ++j)
-          {
-            std::vector<String> row;
-            String nid = exp[i].getNativeID();
-            row.push_back(nid.removeWhitespaces());
-            row.push_back(exp[i].getRT());
-            row.push_back(exp[i][j].getMZ());
-            row.push_back(exp[i][j].getIntensity());
-            row.push_back(exp[i].getPrecursors()[0].getMZ());
-            at.tableRows.push_back(row);
-          }
-        }
-      }
-      qcmlfile.addRunAttachment(base_name, at);
-    }
+      //~ at.colTypes.push_back("Native_ID");
+      //~ at.colTypes.push_back("RT_(sec)");
+      //~ at.colTypes.push_back("MZ_(Th)");
+      //~ at.colTypes.push_back("Intensity");
+      //~ at.colTypes.push_back("Precursor");
+      //~ for (Size i = 0; i < exp.size(); ++i)
+      //~ {
+        //~ if (exp[i].getMSLevel() == 2)
+        //~ {
+          //~ for (Size j = 0; j < exp[i].size(); ++j)
+          //~ {
+            //~ std::vector<String> row;
+            //~ String nid = exp[i].getNativeID();
+            //~ row.push_back(nid.removeWhitespaces());
+            //~ row.push_back(exp[i].getRT());
+            //~ row.push_back(exp[i][j].getMZ());
+            //~ row.push_back(exp[i][j].getIntensity());
+            //~ row.push_back(exp[i].getPrecursors()[0].getMZ());
+            //~ at.tableRows.push_back(row);
+          //~ }
+        //~ }
+      //~ }
+      //~ qcmlfile.addRunAttachment(base_name, at);
+    //~ }
     qcmlfile.store(outputfile_name);
     return EXECUTION_OK;
   }

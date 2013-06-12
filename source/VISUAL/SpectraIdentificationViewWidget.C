@@ -84,8 +84,7 @@ namespace OpenMS
     defaults_.setValue("add_losses", "false", "Show neutral losses");
     defaults_.setValue("add_isotopes", "false", "Show isotopes");
     defaults_.setValue("add_abundant_immonium_ions", "false", "Show abundant immonium ions");
-    defaults_.setValue("is_relative_tolerance", "true", "If true, the mass tolerance is interpreted as ppm otherwise in Dalton");
-    defaults_.setValue("tolerance", 10.0, "Mass tolerance used in the automatic alignment. Unit depends on 'is_relative_tolerance.");
+    defaults_.setValue("tolerance", 0.5, "Mass tolerance used in the automatic alignment."); // unfortunatly we don't support alignment with ppm error
 
     QVBoxLayout * spectra_widget_layout = new QVBoxLayout(this);
     table_widget_ = new QTableWidget(this);

@@ -58,7 +58,7 @@ using namespace std;
 /**
     @page UTILS_QCEmbedder QCEmbedder
 
-    @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It is intended to provide tables that can be read into R where QC metrics will be calculated.
+    @brief This application is used embed tables or pictures generated externally as attachments to existing quality parameters in the targeted run/set meant to have attachments. If no quality parameter is present an empty value one will be generated with the name of "default set name"/"default mzML file".
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCEmbedder.cli
@@ -81,19 +81,22 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input qcml file");
+    registerInputFile_("in", "<file>", "", "Input qcml file",false);
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<string>", "", "Target attachment table.");
     registerStringOption_("qp_acc", "<string>", "", "The accession number of the given qp, only needed if qp is not yet contained in the run/set.", false);
     registerStringOption_("name", "<String>", "", "The name of the target run or set that contains the requested quality parameter.", false);
     registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));
-    registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)");
+    registerInputFile_("plot", "<file>", "", "Plot file to be added to target quality parameter. (Plot file generated from csv output.)", false);
     setValidFormats_("plot", StringList::create("PNG"));
     registerInputFile_("table", "<file>", "", "Table file that will be added as attachment to the given qc.", false);
     setValidFormats_("table", StringList::create("csv"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
     setValidFormats_("out", StringList::create("qcML"));
+		registerStringOption_("set/run", "<choice>", "", "If no in file, decides where to attach.",false);
+    setValidStrings_("set/run", StringList::create("set,run"));
+
   }
 
   ExitCodes main_(int, const char**)
@@ -109,7 +112,8 @@ protected:
     String plot_file            = getStringOption_("plot");
     String target_acc           = getStringOption_("qp_acc");
     String tab                  = getStringOption_("table");
-
+		String setrun            = getStringOption_("set/run");
+		
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
@@ -119,7 +123,10 @@ protected:
     }
 
     QcMLFile qcmlfile;
-    qcmlfile.load(in);
+		if (in != "")
+		{
+			qcmlfile.load(in);
+		}
 
     if (target_run == "")
     {
@@ -200,10 +207,10 @@ protected:
       }
       if (tab != "")
       {
+        QcMLFile::Attachment at;
         CsvFile csv_file(tab);
         if (csv_file.size()>1)
         {
-          QcMLFile::Attachment at;
           at.name = target_qp;
           //~ at.unitRef; //TODO MIME type
           //~ at.unitAcc;
@@ -227,6 +234,76 @@ protected:
               v.push_back(li[i]);
             }
             at.tableRows.push_back(v);
+          }
+				}
+									
+				std::vector<String> ids;
+        qcmlfile.existsRunQualityParameter(target_run, target_qp, ids);
+
+        if (!ids.empty())
+        {
+          at.qualityRef = ids.front();
+          qcmlfile.addRunAttachment(target_run, at);
+        }
+        else
+        {
+          qcmlfile.existsSetQualityParameter(target_run, target_qp, ids);
+          if (!ids.empty())
+          {
+            at.qualityRef = ids.front();
+            qcmlfile.addSetAttachment(target_run, at);
+          }
+          else
+          {
+						//if exists set/run TODO
+            QcMLFile::QualityParameter qp;
+            if (target_acc != "" && target_qp != "")
+            {
+							QcMLFile::QualityParameter def;
+              qp.name = target_qp; ///< Name
+              qp.id = target_run + "_" + target_acc; ///< Identifier
+              qp.cvRef = "QC"; ///< cv reference
+              qp.cvAcc = target_acc;
+              qp.value = target_run;
+              
+              //TODO check if the qp are in the obo as soon as there is one
+
+              at.qualityRef = qp.id;
+							if (qcmlfile.existsSet(target_run) || setrun == "set") //TODO default name-qp  if file created new (no set/run exists)
+							{
+								if (in == "")
+								{
+									QcMLFile::QualityParameter def;
+									def.name = "set name"; ///< Name
+									def.id = "default set name"; ///< Identifier
+									def.cvRef = "QC"; ///< cv reference
+									def.cvAcc = "QC:0000058";
+									def.value = "default set name";
+									qcmlfile.addSetQualityParameter(target_run, def);
+								}
+								qcmlfile.addSetQualityParameter(target_run, qp);
+								qcmlfile.addSetAttachment(target_run, at);
+							}
+							else
+							{
+								if (in == "")
+								{
+									def.name = "mzML file"; ///< Name
+									def.id = "default mzML file"; ///< Identifier
+									def.cvRef = "MS"; ///< cv reference
+									def.cvAcc = "MS:1000584";
+									def.value = "default mzML file";
+									qcmlfile.addSetQualityParameter(target_run, def);
+								}
+								qcmlfile.addRunQualityParameter(target_run, qp);
+								qcmlfile.addRunAttachment(target_run, at);
+							}
+            }
+            else
+            {
+              cerr << "Error: You have to specify a correct cv with accession and name. Aborting!" << endl;
+              return ILLEGAL_PARAMETERS;
+            }
           }
         }
       }

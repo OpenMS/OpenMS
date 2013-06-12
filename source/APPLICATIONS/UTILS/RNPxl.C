@@ -679,6 +679,19 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
   return result;
 }
 
+/**
+    @page UTILS_RNPxl RNPxl
+
+    @brief Perform preotein-RNA cross-linking experiments.
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_RNPxl.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_RNPxl.html
+*/
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
 class TOPPRNPxl :
   public TOPPBase
 {
@@ -763,6 +776,8 @@ protected:
     DoubleReal small_peptide_mass_filter_threshold = getDoubleOption_("peptide_mass_threshold");
 
     DoubleReal precursor_variant_mz_threshold = getDoubleOption_("precursor_variant_mz_threshold");
+    
+    const String in_fasta_file(getStringOption_("in_fasta"));
 
     ModificationMassesResult mm = initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_length);
 
@@ -945,7 +960,7 @@ protected:
         out_string.substitute(".mzML", ".idXML");
         // Compose argument list and run OMSSA with new ini
         QStringList args;
-        args << "-ini" << in_OMSSA_ini.toQString() << "-in" << in_string.toQString() << "-out" << out_string.toQString() << "-no_progress";
+        args << "-ini" << in_OMSSA_ini.toQString() << "-in" << in_string.toQString() << "-out" << out_string.toQString() << "-database" << in_fasta_file.toQString() << "-no_progress";
 
         // forward debug level to adapter
         if (getIntOption_("debug") != 0)
@@ -1200,7 +1215,6 @@ protected:
 
     IdXMLFile().store(out_idXML, pr_tmp, pt_tmp, "summary");
 
-    const String in_fasta_file(getStringOption_("in_fasta"));
 
     QProcess* p;
 
