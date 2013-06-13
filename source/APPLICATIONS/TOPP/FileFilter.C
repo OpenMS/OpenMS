@@ -869,7 +869,7 @@ protected:
           const bool charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
           const bool size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
 
-          if (charge_ok && size_ok && meta_ok)
+          if (charge_ok && size_ok)
           {
             // this is expensive, so evaluate after everything else passes the test
             if (remove_meta_enabled)
