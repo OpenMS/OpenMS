@@ -311,10 +311,15 @@ protected:
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Consensus feature data options");
     registerIntList_("consensus:map", "i j ...", IntList::create(""), "maps to be extracted from a consensus", false);
-    registerFlag_("consensus:map_and", "AND connective of map selection instead of OR.");
+    registerFlag_("consensus:map_and", "Consensus features are kept only if they contain exactly one feature from each map (as given above in 'map').");
 
     // black and white listing
     registerTOPPSubsection_("consensus:blackorwhitelist", "Black or white listing of of MS2 spectra by consensus features.");
+    StringList truefalse;
+    truefalse << "false" << "true";
+    registerStringOption_("consensus:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept.", false, false);
+    setValidStrings_("consensus:blackorwhitelist:blacklist", truefalse);
+
     registerInputFile_("consensus:blackorwhitelist:file", "<file>", "", "Input file containing consensus features whose corresponding MS2 spectra should be removed from the mzML file!\n"
                        "Matching tolerances are taken from 'consensus:blackorwhitelist:rt' and 'consensus:blackorwhitelist:mz' options.\n"
                        "If consensus:blackorwhitelist:maps is specified, only these will be used.\n", false);
@@ -325,12 +330,7 @@ protected:
     registerDoubleOption_("consensus:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] for precursor to consensus feature position", false);
     registerStringOption_("consensus:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
 
-    StringList truefalse;
-    truefalse << "false" << "true";
     setValidStrings_("consensus:blackorwhitelist:use_ppm_tolerance", truefalse);
-
-    registerStringOption_("consensus:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept.", false, false);
-    setValidStrings_("consensus:blackorwhitelist:blacklist", truefalse);
 
     setMinFloat_("consensus:blackorwhitelist:rt", 0);
     setMinFloat_("consensus:blackorwhitelist:mz", 0);
@@ -950,6 +950,7 @@ protected:
 
           cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());
 
+          const bool and_connective = getFlag_("consensus:map_and");
           for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it) // iterate over consensuses in the original consensus map
           {
             ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
@@ -965,11 +966,9 @@ protected:
               }
             }
 
-            consensus_feature_new.computeConsensus(); // evaluate position of the consensus
-            bool and_connective = getFlag_("consensus:map_and");
-
             if ((!consensus_feature_new.empty() && !and_connective) || (consensus_feature_new.size() == maps.size() && and_connective)) // add the consensus to the consensus map only if it is non-empty
             {
+              consensus_feature_new.computeConsensus(); // evaluate position of the consensus
               cm_new.push_back(consensus_feature_new);
             }
           }
