@@ -224,6 +224,7 @@ FeatureXMLFile f;
 
 f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), map);
 f.store(tmp_filename, map);
+f.store("/raid/sachsenb/open-ms/OpenMS/FeatureXMLFile_1.featureXML", map);
 f.load(tmp_filename, map2);
 TEST_EQUAL(map == map2, true)
 END_SECTION
