@@ -70,7 +70,7 @@ START_SECTION((static VersionDetails getVersionStruct()))
 	VersionInfo::VersionDetails detail;
 	detail.version_major = 1;
   detail.version_minor = 11;
-  detail.version_patch = 1;
+  detail.version_patch = 0;
 	TEST_EQUAL(VersionInfo::getVersionStruct() == detail, true);
 }
 END_SECTION
