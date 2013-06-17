@@ -844,6 +844,7 @@ namespace OpenMS
     id_identifier_.clear();
     search_param_ = ProteinIdentification::SearchParameters();
     progress_ = 0;
+    map.updateRanges();
   }
 
   void
