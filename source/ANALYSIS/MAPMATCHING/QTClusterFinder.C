@@ -57,7 +57,7 @@ namespace OpenMS
   void QTClusterFinder::setParameters_(DoubleReal max_intensity,
                                        DoubleReal max_mz)
   {
-    if (max_mz < 1e-16 || max_mz > 1e16 || max_intensity < 1e-16 || max_intensity > 1e16)
+    if (max_mz < 1e-16 || max_mz > 1e16 || max_intensity < -1e16 || max_intensity > 1e16)
     {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                          "Maximum mz or intensity out of range (mz,intensity): " + String(max_mz) + ", " + String(max_intensity));

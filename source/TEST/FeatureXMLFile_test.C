@@ -196,6 +196,8 @@ TEST_REAL_SIMILAR(e[0].getIntensity(), 500)
   std::vector<ConvexHull2D> empty_hull;
   for (Size ic = 0; ic < e_full.size(); ++ic)
     e_full[ic].setConvexHulls(empty_hull);
+  e_full.updateRanges();
+  e.updateRanges();
   TEST_EQUAL(e_full, e)
 }
 

@@ -122,6 +122,9 @@ START_SECTION((void run(const std::vector<FeatureMap<> >& input_maps, ConsensusM
   input[1].push_back(feat4);
   input[1].push_back(feat5);
 
+  input[0].updateRanges();
+  input[1].updateRanges();
+
   QTClusterFinder finder;
 	Param param = finder.getDefaults();
 	param.setValue("distance_RT:max_difference", 5.1);
