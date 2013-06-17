@@ -652,7 +652,7 @@ namespace OpenMS
   QString TOPPASEdge::getTargetInParamName()
   {
     const EdgeStatus& es = getEdgeStatus();
-    if (es != EdgeStatus::ES_TOOL_API_CHANGED)
+    if (es != ES_TOOL_API_CHANGED)
     {
       TOPPASVertex* target_o = getTargetVertex();
       const TOPPASToolVertex* target = qobject_cast<TOPPASToolVertex*>(target_o);
@@ -671,7 +671,7 @@ namespace OpenMS
   QString TOPPASEdge::getSourceOutParamName()
   {
     const EdgeStatus& es = getEdgeStatus();
-    if (es != EdgeStatus::ES_TOOL_API_CHANGED)
+    if (es != ES_TOOL_API_CHANGED)
     {
       TOPPASVertex* source_o = getSourceVertex();
       const TOPPASToolVertex* source = qobject_cast<TOPPASToolVertex*>(source_o);
