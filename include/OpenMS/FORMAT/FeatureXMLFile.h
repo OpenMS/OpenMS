@@ -73,7 +73,7 @@ public:
     //@}
 
     /**
-        @brief loads the file with name @p filename into @p map.
+        @brief loads the file with name @p filename into @p map and calls updateRanges().
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing

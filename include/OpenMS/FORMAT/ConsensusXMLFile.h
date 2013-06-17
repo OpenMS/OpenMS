@@ -69,7 +69,7 @@ public:
 
 
     /**
-    @brief Loads a consensus map from file
+    @brief Loads a consensus map from file and calls updateRanges
 
     @exception Exception::FileNotFound is thrown if the file could not be opened
     @exception Exception::ParseError is thrown if an error occurs during parsing
