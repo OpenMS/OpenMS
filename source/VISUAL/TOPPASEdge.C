@@ -396,18 +396,21 @@ namespace OpenMS
   TOPPASEdge::EdgeStatus TOPPASEdge::getToolToolStatus_(TOPPASToolVertex * source_tool, int source_param_index, TOPPASToolVertex * target_tool, int target_param_index)
   {
     QVector<TOPPASToolVertex::IOInfo> source_output_files;
-    QVector<TOPPASToolVertex::IOInfo> target_input_files;
     source_tool->getOutputParameters(source_output_files);
     if (source_param_index >= source_output_files.size())
     {
       return ES_TOOL_API_CHANGED;
     }
 
-    const TOPPASToolVertex::IOInfo & source_param = source_output_files[source_param_index];
-    StringList source_param_types = source_param.valid_types;
+    QVector<TOPPASToolVertex::IOInfo> target_input_files;
     target_tool->getInputParameters(target_input_files);
     if (target_param_index >= target_input_files.size())
+    {
       return ES_TOOL_API_CHANGED;
+    }
+
+    const TOPPASToolVertex::IOInfo & source_param = source_output_files[source_param_index];
+    StringList source_param_types = source_param.valid_types;
 
     const TOPPASToolVertex::IOInfo & target_param = target_input_files[target_param_index];
     StringList target_param_types = target_param.valid_types;
@@ -453,6 +456,13 @@ namespace OpenMS
 
   TOPPASEdge::EdgeStatus TOPPASEdge::getListToolStatus_(TOPPASInputFileListVertex * source_input_list, TOPPASToolVertex * target_tool, int target_param_index)
   {
+    QVector<TOPPASToolVertex::IOInfo> target_input_files;
+    target_tool->getInputParameters(target_input_files);
+    if (target_param_index >= target_input_files.size())
+    {
+      return ES_TOOL_API_CHANGED;
+    }
+
     const QStringList & file_names = source_input_list->getFileNames();
     if (file_names.empty())
     {
@@ -460,8 +470,6 @@ namespace OpenMS
       return ES_NOT_READY_YET;
     }
 
-    QVector<TOPPASToolVertex::IOInfo> target_input_files;
-    target_tool->getInputParameters(target_input_files);
     const TOPPASToolVertex::IOInfo & target_param = target_input_files[target_param_index];
     StringList target_param_types = target_param.valid_types;
 
@@ -643,14 +651,18 @@ namespace OpenMS
 
   QString TOPPASEdge::getTargetInParamName()
   {
-    TOPPASVertex* target_o = getTargetVertex();
-    const TOPPASToolVertex* target = qobject_cast<TOPPASToolVertex*>(target_o);
-    if (target && target_in_param_>=0)
+    const EdgeStatus& es = getEdgeStatus();
+    if (es != EdgeStatus::ES_TOOL_API_CHANGED)
     {
-       QVector<TOPPASToolVertex::IOInfo> docks;
-       target->getInputParameters(docks);
-       const TOPPASToolVertex::IOInfo& param = docks[this->target_in_param_]; 
-       return param.param_name.toQString();
+      TOPPASVertex* target_o = getTargetVertex();
+      const TOPPASToolVertex* target = qobject_cast<TOPPASToolVertex*>(target_o);
+      if (target && target_in_param_>=0)
+      {
+         QVector<TOPPASToolVertex::IOInfo> docks;
+         target->getInputParameters(docks);
+         const TOPPASToolVertex::IOInfo& param = docks[this->target_in_param_]; 
+         return param.param_name.toQString();
+      }
     }
     return "";    
   }
@@ -658,21 +670,25 @@ namespace OpenMS
 
   QString TOPPASEdge::getSourceOutParamName()
   {
-    TOPPASVertex* source_o = getSourceVertex();
-    const TOPPASToolVertex* source = qobject_cast<TOPPASToolVertex*>(source_o);
-    if (source && source_out_param_>=0)
+    const EdgeStatus& es = getEdgeStatus();
+    if (es != EdgeStatus::ES_TOOL_API_CHANGED)
     {
-       QVector<TOPPASToolVertex::IOInfo> docks;
-       source->getOutputParameters(docks);
-       const TOPPASToolVertex::IOInfo& param = docks[this->source_out_param_]; 
-       return param.param_name.toQString();
+      TOPPASVertex* source_o = getSourceVertex();
+      const TOPPASToolVertex* source = qobject_cast<TOPPASToolVertex*>(source_o);
+      if (source && source_out_param_>=0)
+      {
+         QVector<TOPPASToolVertex::IOInfo> docks;
+         source->getOutputParameters(docks);
+         const TOPPASToolVertex::IOInfo& param = docks[this->source_out_param_]; 
+         return param.param_name.toQString();
+      }
     }
     return "";    
   }
 
   void TOPPASEdge::updateColor()
   {
-    EdgeStatus es = getEdgeStatus();
+    const EdgeStatus& es = getEdgeStatus();
     if (es == ES_VALID)
     {
       setColor(Qt::darkGreen);
