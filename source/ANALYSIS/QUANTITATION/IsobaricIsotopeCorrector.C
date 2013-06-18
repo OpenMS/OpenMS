@@ -58,8 +58,13 @@ namespace OpenMS
   }
 
   IsobaricIsotopeCorrector::IsobaricIsotopeCorrector(const IsobaricIsotopeCorrector& other)
+    : quant_method_(other.quant_method_),
+      gsl_m_(0),
+      gsl_p_(0),
+      gsl_b_(0),
+      gsl_x_(0),
+      gsl_allocated_(false)
   {
-    quant_method_ = other.quant_method_;
   }
 
   IsobaricIsotopeCorrector& IsobaricIsotopeCorrector::operator=(const IsobaricIsotopeCorrector& rhs)
