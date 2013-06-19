@@ -17,6 +17,38 @@ PyOpenMSChecker:
     OpenMS::VersionInfo::VersionDetails:
         - EMPTY
 
+    # SILAC
+    OpenMS::SILACAnalyzer:
+        - calculateLabelsAndMassShifts
+        - filterData
+        - clusterData
+        - getSILAClabels
+        - getMassShifts
+        - generateClusterConsensusByCluster
+        - generateClusterConsensusByPattern
+        - generateClusterDebug
+        - generateFilterConsensusByPattern
+        - generateClusterFeatureByCluster
+        - readFilterConsensusByPattern
+    OpenMS::SILACFiltering:
+        - peak_width
+        - blacklist
+    OpenMS::SILACFiltering::BlacklistEntry:
+        - range
+    OpenMS::SILACPoint:
+        - mz_positions
+        - intensities
+    OpenMS::SILACLabeler:
+        - setUpHook
+        - postDigestHook
+        - postRTHook
+        - postDetectabilityHook
+        - postIonizationHook
+        - postRawMSHook
+        - postRawTandemMSHook
+        - create
+
+
     # static elements
     OpenMS::ChromatogramSettings:
         - ChromatogramNames 
@@ -181,6 +213,9 @@ PyOpenMSChecker:
         - ParamIterator # requires iterator
     OpenMS::MassExplainer:
         - query # iterator passed
+    OpenMS::SignalToNoiseEstimator:
+        - init
+        - getSignalToNoise
 
     OpenMS::MSExperiment:
         - get2DData
@@ -274,6 +309,9 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Raw pointers
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
+        - max_peak
+        - peaks
     OpenMS::EmpiricalFormula:
         - getElement
         - getElement
@@ -676,6 +714,7 @@ PyOpenMSChecker:
     - OpenMS::AxisWidget
     - OpenMS::TOPPASVertex
     - OpenMS::ParamEditor
+    - OpenMS::Internal::OpenMSLineEdit
     - OpenMS::EnhancedTabBarWidgetInterface
     - OpenMS::TOPPASMergerVertex
     - OpenMS::TOPPASScene
