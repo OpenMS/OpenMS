@@ -195,7 +195,7 @@ endif()
 #	     Useful third party libs (optional)       #
 #########################################################
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 ## CUDA checking
 set(MT_ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled (version <= 2.1 currently supported).")
@@ -364,7 +364,16 @@ if (ENABLE_SVN)
 endif()
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
-set(OPENMS_DEP_LIBRARIES ${CONTRIB_CBC} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${DEP_LIBSVM_LIBRARY} ${CONTRIB_XERCESC} ${Boost_LIBRARIES} ${CONTRIB_BZIP2} ${CONTRIB_ZLIB} ${CONTRIB_GLPK})
+set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC} 
+                          ${GSL_LIBRARIES} 
+                          ${GSL_CBLAS_LIBRARIES} 
+                          ${DEP_LIBSVM_LIBRARY} 
+                          ${CONTRIB_XERCESC} 
+                          ${Boost_LIBRARIES} 
+                          ${BZIP2_LIBRARIES} 
+                          ${ZLIB_LIBRARIES} 
+                          ${GLPK_LIBRARIES})
+                          
 if (TBB_FOUND)
 	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()
@@ -563,7 +572,7 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
     if(NOT CMAKE_COMPILER_IS_CLANG) ## cppcheck does not support clang output
       find_package(cppcheck)
       if( CPPCHECK_FOUND )
-        include( cmake/cppcheck.cmake )
+        include( cmake/modules/cppcheck.cmake )
       endif(CPPCHECK_FOUND)
     endif(NOT CMAKE_COMPILER_IS_CLANG)
 

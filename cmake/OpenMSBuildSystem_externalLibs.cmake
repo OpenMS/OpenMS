@@ -47,19 +47,24 @@ message(STATUS "Contrib include directories: ${CONTRIB_INCLUDE_DIR}")
 ## On Windows: never mix Release/Debug versions of libraries. Leads to strange segfaults, stack corruption etc, due to different runtime libs ...
 ##             compiler-wise: use the same compiler for contrib and OpenMS!
 
-#set which library extensions are preferred (we want static libraries)
+#set which library extensions are preferred (we prefer shared libraries)
 if(NOT MSVC)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
 endif()
 if (APPLE)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.dylib")
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".dylib;.a")
 endif()
 
 OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
 
-OPENMS_CHECKLIB(CONTRIB_GSL "gsl" "gsl_d;gsl" "GSL")
-
-OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "cblas;gslcblas" "cblas_d;gslcblas" "GSL-CBLAS")
+# GSL and GSL-CBLAS
+FIND_PACKAGE(GSL)
+if (GSL_FOUND)
+	include_directories(${GSL_INCLUDE_DIRS})
+  message(STATUS "Found GSL version " ${GSL_VERSION_STRING})
+else()
+  message(FATAL_ERROR "GSL not found!")
+endif()
 
 ## BOOST
 set(Boost_USE_STATIC_LIBS  ON)
@@ -119,10 +124,35 @@ else()
 	set(CONTRIB_CBC)	
 endif()
 
-OPENMS_CHECKLIB(CONTRIB_GLPK "glpk" "glpkd;glpk" "GLPK")
-	
-OPENMS_CHECKLIB(CONTRIB_ZLIB "zlib;z" "zlib_d;zlib;z" "ZLIB")
-OPENMS_CHECKLIB(CONTRIB_BZIP2 "libbz2;bz2" "libbz2d;libbz2;bz2" "BZIP2")
+## Find GLPK
+FIND_PACKAGE(GLPK REQUIRED)
+if (GLPK_FOUND)
+	INCLUDE_DIRECTORIES(${GLPK_INCLUDE_DIRS})
+	message(STATUS "Found GLPK version " ${GLPK_VERSION_STRING})
+	set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
+	set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
+	set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
+else()
+	message(FATAL_ERROR "GLPK not found!")
+endif()
+
+# Find zlib
+FIND_PACKAGE(ZLIB REQUIRED)
+if (ZLIB_FOUND)
+  include_directories(${ZLIB_INCLUDE_DIRS})
+  message(STATUS "Found zlib version ${ZLIB_VERSION_STRING}")
+else()
+  message(FATAL_ERROR "zlib not found!")
+endif()
+
+# Find bzip2
+FIND_PACKAGE(BZIP2 REQUIRED)
+if (BZIP2_FOUND)
+  include_directories(${BZIP2_INCLUDE_DIR})
+  message(STATUS "Found bzip2 version ${BZIP2_VERSION_STRING}")
+else()
+  message(FATAL_ERROR "bzip2 not found!")
+endif()
 
 if(MSVC)
 	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)
@@ -137,7 +167,6 @@ INCLUDE_DIRECTORIES(${CONTRIB_INCLUDE_DIR})
 if(NOT MSVC AND NOT APPLE)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")
 endif()
-
 
 ################################
 ## QT
