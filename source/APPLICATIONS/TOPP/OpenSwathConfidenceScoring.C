@@ -149,8 +149,6 @@ public:
   /// Docu in base class
   ExitCodes main_(int, const char**)
   {
-    if (debug_level_ > 0) Log_debug.insert(cout);
-
     TargetedExperiment library_; // assay library
     Size n_decoys_; // number of decoys to use (per feature/true assay)
     Size n_transitions_; // number of transitions to consider

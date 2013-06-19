@@ -293,7 +293,7 @@ protected:
         - LOG_ERROR (non-fatal error are reported (processing continues))
         - LOG_WARN  (warning, a piece of information which should be read by the user, should be logged)
         - LOG_INFO (information, e.g. a status should be reported)
-        - LOG_DEBUG (general debugging information)
+        - LOG_DEBUG (general debugging information -  output be written to cout if debug_level > 0)
 
       To use a specific logger of a log level simply use it as cerr or cout: <br>
       <code> LOG_ERROR << " A bad error occured ..."  </code>

@@ -406,6 +406,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     debug_level_ = getParamAsInt_("debug", 0);
     writeDebug_(String("Debug level (after ini file): ") + String(debug_level_), 1);
+    if (debug_level_ > 0) Log_debug.insert(cout); // allows to use LOG_DEBUG << "something" << std::endl;
 
     //-------------------------------------------------------------
     //progress logging
