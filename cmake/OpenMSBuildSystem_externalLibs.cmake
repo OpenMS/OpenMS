@@ -146,7 +146,7 @@ else()
 endif()
 
 # Find bzip2
-FIND_PACKAGE(BZIP2 REQUIRED)
+FIND_PACKAGE(BZip2 REQUIRED)
 if (BZIP2_FOUND)
   include_directories(${BZIP2_INCLUDE_DIR})
   message(STATUS "Found bzip2 version ${BZIP2_VERSION_STRING}")
