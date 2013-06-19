@@ -26,8 +26,8 @@
   <ul>
    <li>Xcode (version 4.0 or higher) is required to build %OpenMS (the current version can be obtained from the Mac App Store). More details can be found on the <a href="https://developer.apple.com/xcode/" target="_new" title="Xcode 4 Downloads and Resources.">Apple Developer Site</a>.</li>
    @note Since Xcode 4.3 you also need to install the "Command Line Tools" to access the compilers shipped with Xcode from the command line. An explanation on how to install the Command Line Tools can be found <a href="http://developer.apple.com/library/ios/#documentation/DeveloperTools/Conceptual/WhatsNewXcode/Articles/xcode_4_3.html#//apple_ref/doc/uid/1006-SW1" target="_new" title="Install Command Line Tools for Xcode">here</a>.
-   <li>CMake (version 2.8.1 or higher) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
-	 <li>Qt4 (version 4.5. or higher) containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://qt-project.org" target="_new" title="Get Qt">http://qt-project.org/</a>) 
+   <li>CMake (version 2.8.3 or higher) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
+	 <li>Qt4 (version 4.5 or higher) containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://qt-project.org" target="_new" title="Get Qt">http://qt-project.org/</a>) 
    @note Qt 5 is not yet supported by %OpenMS.</li>
   </ul>
   

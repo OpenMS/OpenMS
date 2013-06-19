@@ -21,7 +21,7 @@
   
   In order to compile %OpenMS, several applications need to be installed:
    - Compiler: An ANSI-compatible C++ compiler is required. <BR>Currently g++ 4.0 or higher is supported.  <BR>Older versions might still work, but are not actively maintained. <BR>g++ is part of the GNU Compiler Collection (GCC).
-   - CMake (version 2.6 or higher) is required to configure and build the package.
+   - CMake (version 2.8.3 or higher) is required to configure and build the package.
 	 - Qt4 (version 4.5 or higher; development package containing qmake and headers)
    - GNU make is required
 	 - patch

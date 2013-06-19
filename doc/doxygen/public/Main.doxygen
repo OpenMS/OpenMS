@@ -122,7 +122,7 @@
 					<LI> @subpage Contributing
 				</UL>
 
-				@if(INTERNAL_INFO)
+				@if INTERNAL_INFO
 				Internal:
 				<UL>
 				  <LI> @subpage CPP

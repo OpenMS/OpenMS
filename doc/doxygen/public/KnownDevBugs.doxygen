@@ -1,15 +1,13 @@
 /**
-  
   @page known_dev_bugs Known Issues
   
   Have look at the Internal FAQ, if you cannot find your answer here. Write to the %OpenMS mailing list, if the problem persists.
   
-	@section known_issues_windows ... on Windows
+	@section known_issues_windows Known Issues on Windows
 
-    <UL>
-        <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinderCentroided) gives "The application was unable to start correctly (0xc0000005). Click OK to close the application"</B><BR>
-          When you run the tool in Debug mode and look where it crashes, you might acutally find it to be a very weird place - e.g.
-          when creating a perfectly legal String from a QString:
+<ul>
+  <li><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinderCentroided) gives "The application was unable to start correctly (0xc0000005). Click OK to close the application"</B><BR>
+          When you run the tool in Debug mode and look where it crashes, you might actually find it to be a very weird place - e.g. when creating a perfectly legal String from a QString:
 @code
   QFileInfo fi(file.toQString());
   return fi.path()
@@ -24,46 +22,32 @@
 'MSSimulator.exe': Loaded 'C:\Windows\winsxs\amd64_microsoft.vc90.debugcrt_1fc8b3b9a1e18e3b_9.0.21022.8_none_4ec74c6b3093419c\msvcr90d.dll', Symbols loaded.
 'MSSimulator.exe': Loaded 'C:\dev\qt-everywhere-opensource-src-4.7.1\bin\QtSqld4.dll', Symbols loaded.
 @endcode
-          As this was a VS10 build, the vc90 DLL's have no place here, but got loaded from the Qt4 DLL's.
-          <b>Fix</b> is easy: recompile Qt (in this case) using VS10 and link against the new Qt.
-          
-          
-        <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinderCentroided) gives "Entry point not found"</B><BR>
-          This usually happens when your %PATH% contains multiple versions of DLL's on which TOPP/%OpenMS depends.
+          As this was a VS10 build, the vc90 DLL's have no place here, but got loaded from the Qt4 DLL's.<br>
+          <b>Solution</b>: recompile Qt (in this case) using VS10 and link against the new Qt.</li>
+  <LI><B>Starting a (GUI) TOPP executable (like TOPPView or FeatureFinderCentroided) gives "Entry point not found"</B><BR>
+          This usually happens when your PATH contains multiple versions of DLL's on which TOPP/%OpenMS depends.
           Candidates are all QT (QtGui4.dll, QtCore4.dll, ...) or Xerces-C (xerces-c_3_0) libraries.
           Usually other external programms (Miktex, Mendeley etc) put their own binary directory (which contains these incompatible DLL's) before 
           the contrib directory in your %PATH%.<br>
-          Solution: put the contrib directory at the very beginning of your %PATH%. The other tools should be unaffected as DLL's are first searched in the path of the executable (where their DLL's should be as well). We do that for %OpenMS as well, but only in the binary installer packages, not for the developer version.
-
-        <LI><B>Compiling the contrib or %OpenMS, the windows.h header file seems to be missing!</B><BR>
+          <b>Solution</b>: put the contrib directory at the very beginning of your %PATH%. The other tools should be unaffected as DLL's are first searched in the path of the executable (where their DLL's should be as well). We do that for %OpenMS as well, but only in the binary installer packages, not for the developer version.</li>
+  <LI><B>Compiling the contrib or %OpenMS, the windows.h header file seems to be missing!</B><BR>
         Your error message might look like this:
 @code
 c:\dev\contrib_build\src\bzip2-1.0.5\bzlib.h(79) : fatal error C1083:
 Cannot open include file: 'windows.h': No such file or directory
 @endcode
-
         This can happen if you are using the VS Express Edition or VS2008 on Win7 (other cases might be possible as well).
-        The reason is that your @em INCLUDE environment path does not contain the system header @em windows.h, which is required by the contrib and %OpenMS.<BR>
-        Solution: You need to download the Microsoft SDK for Windows 7 (or whatever your OS is). Make sure to select "Header Files" Section during install and make sure that the SDK's include path is in your @em INCLUDE environment.
+        The reason is that your <em>INCLUDE</em> environment path does not contain the system header <em>windows.h</em>, which is required by the contrib and %OpenMS.<BR>
+        <b>Solution</b>: You need to download the Microsoft SDK for Windows 7 (or whatever your OS is). Make sure to select "Header Files" Section during install and make sure that the SDK's include path is in your <em>INCLUDE</em> environment.</li>
+</ul>
 
+  @section known_issues_linux Known Issues on Windows  
 
-          </UL>
-
-
-    
-	@section known_issues_linux ... on Linux/MacOS
-  
-    <UL>
-        <LI><B>Contrib fails to compile on Ubuntu 10.04</B><BR>
-        Your error message might look like:
-	@code
-	gzip: stdin: invalid compressed data--crc error 
-	@endcode
-        This happens with a buggy version of gzip in Ubuntu 10.04. <BR>>
-        To solve this issue update gzip using lucid-proposed (see https://wiki.ubuntu.com/Testing/EnableProposed)
-    </UL>
-  
-
-
-
+<ul>
+        <li><B>Contrib fails to compile on Ubuntu 10.04</B> Your error message might look like:
+@code
+gzip: stdin: invalid compressed data--crc error 
+@endcode
+        This happens with a buggy version of gzip in Ubuntu 10.04. <BR>
+        <b>Solution</b>: To solve this issue update gzip using lucid-proposed (see https://wiki.ubuntu.com/Testing/EnableProposed)
 */

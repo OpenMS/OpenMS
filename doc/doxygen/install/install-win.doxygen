@@ -23,7 +23,7 @@
 <b>Notation of this tutorial</b>
  <UL>
     <LI>whenever there is a $ this implies entering everything that follows the $ into a command prompt (usually the Visual Studio Command Prompt)
-    <LI>A string in <> is something the user needs to choose e.g. &lt;path_to_contrib&gt; means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
+    <LI>A string in &lt;&gt; is something the user needs to choose e.g. &lt;path_to_contrib&gt; means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
     <LI>Whenever you added a path to your Windows PATH Environment variable, the <tt>Command Prompt</tt> which are already open are not refreshed. You will need a to open a new one.
   </UL>
 
@@ -36,8 +36,7 @@
     <br>Visual C++ Express 2012 (VS11) supports Win64 and OpenMP by default. For older editions (2010 and below) you can find tutorials on how to enable them on the net.
     <br> If you work with VS 2008, installation of the Service Pack 1 (SP1) is required,
     otherwise VS might crash during the compilation of the contrib package.
-    <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)<br>
-		   [VS2010 requires CMake 2.8.2 or later]<br>
+    <LI>Have CMake 2.8.3 or greater installed (see http://www.cmake.org)<br>
 			 [VS2012 requires CMake 2.8.10 or later]
     <LI>If you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
