@@ -243,6 +243,8 @@ comment to the pxd file. For some examples, look into the addons folder:
 
 - SequestInfile.pyx 
   - for a map< String, vector<String> > to get returned
+- Attachment.pyx 
+  - for a vector< vector<String> > to get returned
 
 Make sure that you _always_ declare your objects (all C++ and all Cython
 objects need to be declared) using cdef Type name. Otherwise you get "Cannot

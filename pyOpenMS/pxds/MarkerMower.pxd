@@ -4,6 +4,7 @@ from MSExperiment cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
+from PeakMarker cimport *
 
 cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>" namespace "OpenMS":
 
@@ -21,5 +22,5 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>" namespace "Open
         String getProductName() nogil except +
 
         # Pointer handling, still TODO 
-        # void insertmarker(PeakMarker * peak_marker);
+        void insertmarker(PeakMarker * peak_marker)
 

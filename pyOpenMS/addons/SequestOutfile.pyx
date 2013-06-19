@@ -41,6 +41,7 @@
         # Get arguments back from C++
         #
 
+        # libcpp_map[ String, Size ] &ac_position_map,
         replace_2 = dict()
         cdef libcpp_map[_String, size_t].iterator it_dict2 = c_dict_ac_position.begin()
         while it_dict2 != c_dict_ac_position.end():
@@ -48,6 +49,7 @@
             inc(it_dict2)
         ac_position_map.update(replace_2)
 
+        # libcpp_vector[ String ] &sequences,
         cdef replace = []
         cdef libcpp_vector[_String].iterator it = v1.begin()
         while it != v1.end():
@@ -55,6 +57,7 @@
            inc(it)
         sequences[:] = replace
 
+        # libcpp_vector[ libcpp_pair[ String, Size ] ] &found,
         replace_4 = list()
         cdef libcpp_vector[ libcpp_pair[_String, size_t] ].iterator it_list4 = deref(v4).begin()
         cdef libcpp_pair[_String, size_t] anotherPair
@@ -65,6 +68,7 @@
             inc(it_list4)
         found[:] = replace_4
 
+        # libcpp_map[ String, Size ] &not_found
         replace_5 = dict()
         cdef libcpp_map[_String, size_t].iterator it_dict5 = c_dict_not_found.begin()
         while it_dict5 != c_dict_not_found.end():

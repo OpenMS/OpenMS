@@ -1,5 +1,4 @@
 from AASequence cimport *
-# TODO missing import
 
 cdef extern from "<OpenMS/CHEMISTRY/AAIndex.h>" namespace "OpenMS":
     

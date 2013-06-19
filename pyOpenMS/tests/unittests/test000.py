@@ -3826,4 +3826,65 @@ def testIsotopeMarker():
     spec = pyopenms.MSSpectrum()
     ptr.apply(res, spec)
 
+@report
+def testAttachment():
+    """
+    @tests:
+     Attachment.__init__
+    """
+    inst = pyopenms.Attachment()
+
+    assert inst.name is not None
+    assert inst.value is not None
+    assert inst.cvRef is not None
+    assert inst.cvAcc is not None
+    assert inst.unitRef is not None
+    assert inst.unitAcc is not None
+    assert inst.binary is not None
+    assert inst.qualityRef is not None
+    assert inst.colTypes is not None
+    assert inst.tableRows  is not None
+
+    assert inst.toXMLString is not None
+    assert inst.toCSVString is not None
+
+    inst.name = "test"
+    inst.value = "test"
+    inst.cvRef = "test"
+    inst.cvAcc = "test"
+    inst.unitRef = "test"
+    inst.unitAcc = "test"
+    inst.binary = "test"
+    inst.qualityRef = "test"
+    inst.colTypes = [ "test", "test2"]
+    inst.tableRows = [ ["test", "test2"], ["otherTest"] ]
+
+    assert inst.tableRows[1][0] == "otherTest"
+
+def testOptimizePeakDeconvolution():
+    """
+    @tests:
+     OptimizePeakDeconvolution.__init__
+    """
+    inst = pyopenms.OptimizePeakDeconvolution()
+    assert inst.getParameters
+
+    assert inst.getPenalties is not None
+    assert inst.setPenalties is not None
+    assert inst.getCharge is not None
+    assert inst.setCharge is not None
+    assert inst.optimize is not None
+
+
+    inst = pyopenms.PenaltyFactorsIntensity()
+    assert inst.height is not None
+
+    inst = pyopenms.OptimizePeakDeconvolution_Data()
+    assert inst.peaks is not None
+    assert inst.peaks is not None
+    assert inst.signal is not None
+    assert inst.penalties is not None
+    assert inst.charge is not None
+
+
 
