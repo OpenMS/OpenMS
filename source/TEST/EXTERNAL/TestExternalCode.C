@@ -33,7 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include "ExampleLibraryFile.h"
 
 using namespace OpenMS;
@@ -47,7 +49,16 @@ int main(int argc, char * argv[])
   fm.push_back(feature);
   std::string s = ExampleLibraryFile::printSomething();
   std::cout << "From external lib: " << s << "\n";
-  std::cout << "All good and well!\n";
 
+  MSExperiment<Peak1D,ChromatogramPeak> exp;
+  MzMLFile f;
+  String tmpfilename = "tmpfile.mzML";
+
+  f.store(tmpfilename,exp); 
+  f.load(tmpfilename,exp);
+
+  std::cout << "Loading and storing of mzML worked!\n";
+
+  std::cout << "All good and well!\n";
   return 0;
 }
