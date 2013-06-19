@@ -1287,11 +1287,15 @@ def testItraqConstants():
     """
     @tests:
     """
-    constants = pyopenms.ITRAQ_TYPES
+    constants = pyopenms.ItraqConstants()
 
     assert pyopenms.ITRAQ_TYPES.FOURPLEX is not None
     assert pyopenms.ITRAQ_TYPES.EIGHTPLEX is not None
     assert pyopenms.ITRAQ_TYPES.TMT_SIXPLEX is not None
+
+    assert constants.getIsotopeMatrixAsStringList is not None
+    assert constants.updateIsotopeMatrixFromStringList is not None
+    assert constants.translateIsotopeMatrix is not None
 
 @report
 def testItraqChannelExtractor():
@@ -1299,15 +1303,19 @@ def testItraqChannelExtractor():
     @tests:
      ItraqChannelExtractor.__init__
     """
-    ff = pyopenms.ItraqChannelExtractor()
-    p = ff.getDefaults()
+    extractor = pyopenms.ItraqChannelExtractor()
+    p = extractor.getDefaults()
     _testParam(p)
 
 
     # Note that using TMT_SIXPLEX will not work here
-    p = ff.getDefaults()
+    p = extractor.getDefaults()
     pyopenms.ItraqChannelExtractor(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
     assert pyopenms.ItraqChannelExtractor().run is not None
+
+    assert extractor.getIsotopeMatrixAsStringList is not None
+    assert extractor.updateIsotopeMatrixFromStringList is not None
+    assert extractor.translateIsotopeMatrix is not None
 
 @report
 def testItraqQuantifier():
@@ -1325,6 +1333,10 @@ def testItraqQuantifier():
     p = ff.getDefaults()
     pyopenms.ItraqQuantifier(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
     assert pyopenms.ItraqChannelExtractor().run is not None
+
+    assert ff.getIsotopeMatrixAsStringList is not None
+    assert ff.updateIsotopeMatrixFromStringList is not None
+    assert ff.translateIsotopeMatrix is not None
 
 @report
 def testLinearResampler():

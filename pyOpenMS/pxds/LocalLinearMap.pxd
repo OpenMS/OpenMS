@@ -9,13 +9,12 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS":
         LocalLinearMap(LocalLinearMap) nogil except + #wrap-ignore
         # TODO doesnt work
         # LLMParam getLLMParam() nogil except +
-        # TODO wrap Matrix
-        # Matrix[ double ]  getCodebooks() nogil except +
-        # Matrix[ double ]  getMatrixA() nogil except +
+        Matrix[ double ]  getCodebooks() nogil except +
+        Matrix[ double ]  getMatrixA() nogil except +
         libcpp_vector[ double ]  getVectorWout() nogil except +
         # Matrix[ UInt ]  getCord() nogil except +
         void normalizeVector(libcpp_vector[ double ] & aaIndexVariables) nogil except +
-        # libcpp_vector[ double ] neigh(Matrix[ UInt ] & cord, Size win, DoubleReal radius) nogil except +
+        # libcpp_vector[ double ] neigh(Matrix[ unsigned int ] & cord, Size win, DoubleReal radius) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS::LocalLinearMap":

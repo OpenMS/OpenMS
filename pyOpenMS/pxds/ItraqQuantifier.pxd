@@ -16,9 +16,10 @@ from PeptideIdentification cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>" namespace "OpenMS":
 
-    cdef cppclass ItraqQuantifier(DefaultParamHandler):
+    cdef cppclass ItraqQuantifier(ItraqConstants,DefaultParamHandler):
         # wrap-inherits:
         #    DefaultParamHandler
+        #    ItraqConstants
 
         ItraqQuantifier() nogil except +
         ItraqQuantifier(ItraqQuantifier) nogil except + #wrap-ignore

@@ -19,17 +19,14 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
         # wrap-inherits:
         #    DefaultParamHandler
 
-        PeptideAndProteinQuant()                  nogil except +
-        PeptideAndProteinQuant(PeptideAndProteinQuant)   nogil except + #wrap-ignore
+        PeptideAndProteinQuant() nogil except +
+        PeptideAndProteinQuant(PeptideAndProteinQuant) nogil except + #wrap-ignore
 
         void quantifyPeptides(FeatureMap[Feature] & map_in) nogil except +
         void quantifyPeptides(ConsensusMap & map_in) nogil except +
         void quantifyProteins(ProteinIdentification & proteins) nogil except +
 
         PeptideAndProteinQuant_Statistics getStatistics()
-
-#  -- TODO missing function in PXD:  PeptideQuant  getPeptideResults()
-#  -- TODO missing function in PXD:  ProteinQuant  getProteinResults()
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" namespace "OpenMS::PeptideAndProteinQuant":
 
@@ -57,10 +54,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
     cdef cppclass PeptideAndProteinQuant_PeptideData "OpenMS::PeptideAndProteinQuant::PeptideData":
 
-      # mapping: charge -] sample -] abundance
       # libcpp_map[Int, SampleAbundances] abundances 
-
-      # mapping: sample -] total abundance
       # SampleAbundances total_abundances 
 
       # protein accessions for this peptide
@@ -75,10 +69,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
     # Quantitative and associated data for a protein
     cdef cppclass PeptideAndProteinQuant_ProteinData "OpenMS::PeptideAndProteinQuant::ProteinData":
-      # mapping: peptide (unmodified) -] sample -] abundance
-      # libcpp_map<String, SampleAbundances] abundances nogil except +
 
-      # mapping: sample -] total abundance
+      # libcpp_map[String, SampleAbundances] abundances
       # SampleAbundances total_abundances
 
       # total number of identifications (of peptides mapping to this protein)

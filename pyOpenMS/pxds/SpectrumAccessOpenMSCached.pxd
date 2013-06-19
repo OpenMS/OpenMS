@@ -5,9 +5,9 @@ from MSExperiment cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>" namespace "OpenMS":
 
+  # TODO missing functions
   cdef cppclass SpectrumAccessOpenMSCached:
         SpectrumAccessOpenMSCached(String filename)
-        # SpectrumAccessOpenMSCached(SpectrumAccessOpenMSCached)
 
         shared_ptr[Spectrum] getSpectrumById(int id) nogil except + # wrap-ignore
         libcpp_vector[size_t] getSpectraByRT(double RT, double deltaRT) nogil except +
@@ -17,8 +17,3 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCach
         size_t getNrChromatograms() nogil except +
 
         libcpp_string getChromatogramNativeID(int id_) nogil except +
-
-#  -- TODO missing function in PXD:  # NAMESPACE # OpenSwath::SpectrumMeta getSpectrumMetaById(int id_)
-#  -- TODO missing function in PXD:  SpectrumSettings getSpectraMetaInfo(int id_)
-#  -- TODO missing function in PXD:  ChromatogramSettings getChromatogramMetaInfo(int id_)
-#  -- TODO missing function in PXD:  libcpp_string getChromatogramNativeID(int id_)

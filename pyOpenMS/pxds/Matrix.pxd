@@ -36,34 +36,5 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
         # TEMPLATE # void setMatrix(ValueType matrix) nogil except +
         # POINTER # gsl_matrix * toGslMatrix() nogil except +
         # TEMPLATE # # NAMESPACE # std::ostream  operator<[(std::ostream & os, Matrix[ Value ] & matrix) nogil except +
-
-
-    # cdef cppclass Matrix[Value](std::vector< Value >):
-    #     # wrap-inherits:
-    #     #  std::vector< Value >
-    #     Matrix() nogil except +
-    #     Matrix(Matrix) nogil except +
-    #     Matrix(SizeType rows, SizeType cols, ValueType value) nogil except +
-    #     const_reference operator()(size_type i, size_type j) nogil except +
-    #     reference operator()(size_type i, size_type j) nogil except +
-    #     const_reference getValue(size_type i, size_type j) nogil except +
-    #     reference getValue(size_type i, size_type j) nogil except +
-    #     void setValue(size_type i, size_type j, value_type value) nogil except +
-    #     container_type row(size_type i) nogil except +
-    #     container_type col(size_type i) nogil except +
-    #     void clear() nogil except +
-    #     void resize(size_type i, size_type j, value_type value) nogil except +
-    #     void resize(libcpp_pair[ Size, Size ] & size_pair, value_type value) nogil except +
-    #     SizeType rows() nogil except +
-    #     SizeType cols() nogil except +
-    #     libcpp_pair[ Size, Size ] sizePair() nogil except +
-    #     SizeType index(SizeType row, SizeType col) nogil except +
-    #     libcpp_pair[ Size, Size ] indexPair(Size index) nogil except +
-    #     SizeType colIndex(SizeType index) nogil except +
-    #     SizeType rowIndex(SizeType index) nogil except +
-    #     bool operator==(Matrix & rhs) nogil except +
-    #     bool operator<(Matrix & rhs) nogil except +
-    #     # TEMPLATE # void setMatrix(ValueType matrix) nogil except +
-    #     # POINTER # gsl_matrix * toGslMatrix() nogil except +
-    #     # TEMPLATE # # NAMESPACE # std::ostream  operator<[(std::ostream & os, Matrix[ Value ] & matrix) nogil except +
+        #   MatrixUnsignedInt := Matrix[unsigned int]
 
