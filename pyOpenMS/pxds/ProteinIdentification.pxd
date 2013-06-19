@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         # Sets the protein hits
         void setHits(libcpp_vector[ProteinHit] hits) nogil except +
         # Finds a protein hit by accession (returns past-the-end iterator if not found)
-        # # libcpp_vector[ProteinHit].iterator findHit(String accession) nogil except +
+        # libcpp_vector[ProteinHit].iterator findHit(String accession) nogil except +
 
         # Returns the protein groups (mutable)
         libcpp_vector[ProteinGroup] getProteinGroups() nogil except +

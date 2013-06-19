@@ -23,6 +23,7 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +
+        AnnotationState getAnnotationState() nogil except +
 
         # returns a mutable reference to the PeptideIdentification vector
         libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
@@ -44,3 +45,11 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
         void removeMetaValue(unsigned int) nogil except +
         void clearMetaInfo() nogil except +
 
+cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS::BaseFeature":
+    
+    cdef enum AnnotationState "OpenMS::BaseFeature::AnnotationState":
+        FEATURE_ID_NONE
+        FEATURE_ID_SINGLE
+        FEATURE_ID_MULTIPLE_SAME
+        FEATURE_ID_MULTIPLE_DIVERGENT
+        SIZE_OF_ANNOTATIONSTATE

@@ -8,4 +8,6 @@ cdef extern from "<OpenMS/FORMAT/MzTabFile.h>" namespace "OpenMS":
 
         MzTabFile() nogil except +
 
-        # void store(String filename, MzTab & mz_tab) nogil except +
+        void store(String filename, MzTab & mz_tab) nogil except +
+        void load(String filename, MzTab & mz_tab) nogil except +
+

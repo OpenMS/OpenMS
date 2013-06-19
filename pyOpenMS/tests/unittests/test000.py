@@ -426,6 +426,20 @@ def test_BaseFeature():
     bf.setWidth(1.0)
 
 @report
+def test_AnnotationState():
+    """
+    @tests:
+     AnnotationState.__init__
+    """
+    state = pyopenms.AnnotationState()
+
+    assert state.FEATURE_ID_NONE is not None
+    assert state.FEATURE_ID_SINGLE is not None
+    assert state.FEATURE_ID_MULTIPLE_SAME is not None
+    assert state.FEATURE_ID_MULTIPLE_DIVERGENT is not None
+    assert state.SIZE_OF_ANNOTATIONSTATE is not None
+
+@report
 def testChecksumType():
     """
     @tests:

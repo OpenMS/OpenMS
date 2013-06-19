@@ -8,5 +8,5 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SILACPattern.h>" namespace "Op
         #  SILACPoint
         SILACPattern() nogil except +
         SILACPattern(SILACPattern) nogil except + #wrap-ignore
-        # libcpp_vector[ SILACPoint ] points
+        libcpp_vector[ SILACPoint ] points
 
