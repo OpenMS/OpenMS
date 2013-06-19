@@ -17,6 +17,42 @@ PyOpenMSChecker:
     OpenMS::VersionInfo::VersionDetails:
         - EMPTY
 
+    OpenMS::SimRandomNumberGenerator:
+        # unwrappable type
+        - biological_rng
+        - technical_rng
+    OpenMS::ProteinResolver::PeptideEntry:
+        - proteins # std::list
+    OpenMS::MzTabUnitIdMetaData:
+        - title
+        - description
+        - sample_processing
+        - instrument_name
+        - instrument_source
+        - instrument_analyzer
+        - instrument_detector
+        - software
+        - software_setting
+        - false_discovery_rate
+        - publication
+        - contact_name
+        - contact_affiliation
+        - contact_email
+        - uri
+        - mod
+        - quantification_method
+        - protein_quantification_unit
+        - peptide_quantification_unit
+        - small_molecule_quantification_unit
+        - ms_file_format
+        - ms_file_location
+        - ms_file_id_format
+        - custom
+        - sub_id_data
+        - colunit_protein
+        - colunit_peptide
+        - colunit_small_molecule
+
     # SILAC
     OpenMS::SILACAnalyzer:
         - calculateLabelsAndMassShifts
@@ -96,6 +132,11 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::PeakShape:
         - Type
+    OpenMS::ProteinIdentification:
+        - findHit
+        # names
+        - NamesOfPeakMassType
+        - NamesOfDigestionEnzyme
     OpenMS::MassAnalyzer:
         - NamesOfAnalyzerType
         - NamesOfResolutionMethod
@@ -118,6 +159,10 @@ PyOpenMSChecker:
         - NamesOfInletType
         - NamesOfIonizationMethod
         - NamesOfPolarity
+    OpenMS::InstrumentSettings:
+        - NamesOfScanMode
+    OpenMS::SpectrumSettings:
+        - NamesOfSpectrumType
     OpenMS::PrecursorIonSelection:
         - Type
         - getNextPrecursorsSeq # immutable types by reference
