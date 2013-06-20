@@ -236,6 +236,7 @@ ElutionPeakDetection_test
 FeatureFindingMetabo_test
   FilterFunctor_test
   GaussFilter_test
+  GaussFilterAlgorithm_test
   GoodDiffFilter_test
   IDFilter_test
   IntensityBalanceFilter_test
