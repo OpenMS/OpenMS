@@ -116,7 +116,7 @@ protected:
       setValidFormats_("out",StringList::create("mzML"));
 
       addEmptyLine_();
-      addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
+      //addText_("Parameters for the peak picker algorithm can be given in the 'algorithm' part of INI file.");
       registerSubsection_("algorithm","Algorithm parameters section");
     }
 

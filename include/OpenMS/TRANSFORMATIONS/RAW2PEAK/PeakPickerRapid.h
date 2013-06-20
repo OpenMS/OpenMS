@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -84,32 +85,38 @@ public:
     */
 
     template <typename PeakType>
-    bool computeTPG(const PeakType& p1, const PeakType& p2, const PeakType& p3, DoubleReal& mu, DoubleReal& sigma, DoubleReal& area) const
-    {
-        DoubleReal x1(p1.getMZ()), y1(p1.getIntensity());
-        DoubleReal x2(p2.getMZ()), y2(p2.getIntensity());
-        DoubleReal x3(p3.getMZ()), y3(p3.getIntensity());
+    bool computeTPG(const PeakType& p1, const PeakType& p2, const PeakType& p3, DoubleReal& mu, DoubleReal& sigma, DoubleReal& area, DoubleReal& height) const
+    {						
+        const DoubleReal x1(p1.getMZ());
+				const DoubleReal y1(std::log(p1.getIntensity()));
+        const DoubleReal x2(p2.getMZ());
+				const DoubleReal y2(std::log(p2.getIntensity()));
+        const DoubleReal x3(p3.getMZ());
+				const DoubleReal y3(std::log(p3.getIntensity()));
 
-        DoubleReal denom(std::log(std::pow(y1, x3 - x2)*std::pow(y2, x1 - x3)*std::pow(y3, x2 - x1)));
+        DoubleReal D = (x1-x2)*(x1-x3)*(x2-x3);
+				DoubleReal alpha = (x3*(y2-y1) + x2*(y1-y3) + x1*(y3-y2)) / D;
+				DoubleReal beta = (x3*x3*(y1-y2) + x2*x2*(y3-y1) + x1*x1*(y2-y3)) / D;
+				DoubleReal gamma = (y1*x2*x3*(x2-x3) + y2*x3*x1*(x3-x1) + y3*x1*x2*(x1-x2)) / D;
 
-        mu = 0.5 * (std::log(std::pow(y1, x3*x3 - x2*x2)*std::pow(y2, x1*x1 - x3*x3)*std::pow(y3, x2*x2 - x1*x1))/denom);
+				mu = -beta/(2.0*alpha);
+		  	DoubleReal c_square = -1.0 / alpha;
+				DoubleReal sigma_square = c_square / 2.0;
+				height = std::exp(gamma + mu * mu / c_square);
+				area = height / std::sqrt(2.0 * M_PI * sigma_square);
+				sigma = std::sqrt(sigma_square);
 
-        sigma = std::sqrt(0.5 * ((x1 - x3)*(x2 - x1)*(x3 - x2))/denom);
-
-        area = std::sqrt(2*M_PI*sigma*sigma)*std::pow(y1*y2*y3, 1.0/3.0) * std::exp(((x1 - mu)*(x1 - mu) + (x2 - mu)*(x2 - mu) + (x3 - mu)*(x3 - mu))/(6*sigma*sigma));
-				
         return (area != std::numeric_limits<DoubleReal>::infinity());
-    }
-
-    DoubleReal computeScaledGaussian(const DoubleReal& x, const DoubleReal& mu, const DoubleReal& sigma, const DoubleReal& area) const
-    {
-        return (area/std::sqrt(2*M_PI*sigma*sigma))*std::exp(-((x-mu)*(x-mu))/(2*sigma*sigma));
     }
 
 
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output) const
+    void pick(const MSSpectrum<PeakType>& cinput, MSSpectrum<PeakType>& output) 
     {
+        MSSpectrum<PeakType> input = cinput;
+				threshold_mower_.filterPeakSpectrum(input);
+				input.sortByPosition();
+
         // copy meta data of the input spectrum
         output.clear(true);
         output.SpectrumSettings::operator=(input);
@@ -134,7 +141,6 @@ public:
             DoubleReal l2_neighbor_mz = input[i-2].getMZ(), l2_neighbor_int = input[i-2].getIntensity();
             DoubleReal r2_neighbor_mz = input[i+2].getMZ(), r2_neighbor_int = input[i+2].getIntensity();
 
-
             // MZ spacing sanity checks
             DoubleReal l1_to_central = std::fabs(central_peak_mz - l1_neighbor_mz);
             DoubleReal l2_to_l1 = std::fabs(l1_neighbor_mz - l2_neighbor_mz);
@@ -142,53 +148,22 @@ public:
             DoubleReal central_to_r1 = std::fabs(r1_neighbor_mz - central_peak_mz);
             DoubleReal r1_to_r2 = std::fabs(r2_neighbor_mz - r1_neighbor_mz);
 
-            DoubleReal min_spacing = (l1_to_central < central_to_r1)? l1_to_central : central_to_r1;
-
-
+            DoubleReal min_spacing = (l1_to_central < central_to_r1) ? l1_to_central : central_to_r1;
+                
             // look for peak cores meeting MZ and intensity/SNT criteria
             if (central_peak_int > 1.0 && l1_neighbor_int > 1.0 && l2_neighbor_int > 1.0 && r1_neighbor_int > 1.0 && r2_neighbor_int > 1.0
                     && l1_to_central < 1.5*min_spacing
                     && l2_to_l1 < 1.5*min_spacing
                     && (l2_neighbor_int < l1_neighbor_int && l1_neighbor_int < central_peak_int)
-                    // && central_peak_int > l1_neighbor_int
                     && central_to_r1 < 1.5*min_spacing
                     && r1_to_r2 < 1.5*min_spacing
                     && (r2_neighbor_int < r1_neighbor_int && r1_neighbor_int < central_peak_int)
-                    /* && central_peak_int > r1_neighbor_int */
                     )
             {
                 // potential triple
-                DoubleReal mu(0.0), sigma(0.0), area(0.0);
+                DoubleReal mu(0.0), sigma(0.0), area(0.0), height(0.0);
 
-
-                // std::cout << input[i-1].getMZ() << " " << input[i-1].getIntensity() << " " << input[i].getMZ() << " " << input[i].getIntensity()
-                //          << input[i+1].getMZ() << " " << input[i+1].getIntensity() << std::endl;
-
-                bool compOK = computeTPG(input[i - 1], input[i], input[i + 1], mu, sigma, area);
-
-               //  std::cout << mu << " " << sigma << " " << area << std::endl;
-
-
-                //                std::map<DoubleReal, DoubleReal> peak_raw_data;
-
-                //                peak_raw_data[central_peak_mz] = central_peak_int;
-                //                peak_raw_data[left_neighbor_mz] = left_neighbor_int;
-                //                peak_raw_data[right_neighbor_mz] = right_neighbor_int;
-
-
-                Size k(2);
-
-                // Visualize peak shapes for debugging purposes
-
-
-                //                                for (DoubleReal mz_it = mu - 3*sigma; mz_it < mu + 3*sigma; mz_it += 0.0001)
-                //                                {
-                //                                    PeakType peak;
-                //                                    peak.setMZ(mz_it);
-                //                                    peak.setIntensity(computeScaledGaussian(mz_it, mu, sigma, area));
-                //                                    output.push_back(peak);
-                //                                }
-
+                bool compOK = computeTPG(input[i - 1], input[i], input[i + 1], mu, sigma, area, height);
 
                 // save picked pick into output spectrum
                 if (compOK)
@@ -196,14 +171,14 @@ public:
 									PeakType peak;
                 	peak.setMZ(mu);
 
-                	DoubleReal output_intensity = intensity_type_area ? area : computeScaledGaussian(mu, mu, sigma, area);
+                	DoubleReal output_intensity = intensity_type_area ? area : height;
 
                 	peak.setIntensity(output_intensity);
                 	output.push_back(peak);
 								}
 
                 // jump over raw data points that have been considered already
-                i = i + k - 1;
+                i = i + 1;
             }
         }
 
@@ -214,7 +189,7 @@ public:
     @brief Applies the peak-picking algorithm to a map (MSExperiment). This method picks peaks for each scan in the map consecutively. The resulting picked peaks are written to the output map.
     */
     template <typename PeakType>
-    void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output) const
+    void pickExperiment(MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
     {
         // make sure that output is clear
         output.clear(true);
@@ -253,6 +228,7 @@ protected:
     //docu in base class
     void updateMembers_();
 
+		ThresholdMower threshold_mower_;
 }; // end PeakPickerRapid
 
 }// namespace OpenMS

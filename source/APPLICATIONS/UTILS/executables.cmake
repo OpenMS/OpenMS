@@ -27,6 +27,7 @@ MRMPairFinder
 MSSimulator
 MapAlignmentEvaluation
 OpenMSInfo
+PeakPickerRapid
 SemanticValidator
 SequenceCoverageCalculator
 SpecLibCreator
