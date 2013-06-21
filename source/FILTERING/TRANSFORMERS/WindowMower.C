@@ -67,7 +67,8 @@ namespace OpenMS
 
   void WindowMower::filterPeakSpectrum(PeakSpectrum & spectrum)
   {
-    bool sliding = (String)param_.getValue("movetype") == "sliding" ? true : false;
+    bool sliding = (String)param_.getValue("movetype") == "slide" ? true : false;
+
     if (sliding)
     {
       filterPeakSpectrumForTopNInSlidingWindow(spectrum);
@@ -79,7 +80,7 @@ namespace OpenMS
 
   void WindowMower::filterPeakMap(PeakMap & exp)
   {
-    bool sliding = (String)param_.getValue("movetype") == "sliding" ? true : false;
+    bool sliding = (String)param_.getValue("movetype") == "slide" ? true : false;
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (sliding)
