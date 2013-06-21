@@ -62,7 +62,7 @@ public:
     bool getMetadataOnly() const;
     //@}
 
-    ///@name Suplemental data option
+    ///@name Supplemental data option
     //@{
     ///sets whether or not to write supplemental peak data in MzData files
     void setWriteSupplementalData(bool write);

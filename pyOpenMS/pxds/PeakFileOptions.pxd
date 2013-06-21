@@ -3,7 +3,6 @@ from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
 from DRange cimport *
 
-# TODO typo
 cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
 
     cdef cppclass PeakFileOptions:
@@ -35,10 +34,10 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         void setRTRange(DRange1 & range_)
         bool hasRTRange()
         DRange1 getRTRange()
-        # void setMZRange(DRange[ 1 ] & range_)
-        # bool hasMZRange()
-        # DRange[ 1 ]  getMZRange()
-        # void setIntensityRange(DRange[ 1 ] & range_)
-        # bool hasIntensityRange()
-        # DRange[ 1 ]  getIntensityRange()
+        void setMZRange(DRange1 & range_)
+        bool hasMZRange()
+        DRange1 getMZRange()
+        void setIntensityRange(DRange1 & range_)
+        bool hasIntensityRange()
+        DRange1 getIntensityRange()
 
