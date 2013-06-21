@@ -367,7 +367,7 @@ protected:
     /// copy constructor from a String
     AASequence(const String & rhs);
 
-    /// copy consturctor from char* string
+    /// copy constructor from char* string
     AASequence(const char * rhs);
 
     /// destructor
@@ -483,7 +483,7 @@ protected:
     */
     bool isValid() const;
 
-    /// returns true if the peptude contains the given residue
+    /// returns true if the peptide contains the given residue
     bool has(const Residue & residue) const;
 
     /// returns true if the peptide contains the given residue

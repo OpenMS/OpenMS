@@ -81,7 +81,7 @@ public:
 
     /** @brief set the offset of the model
 
-        The whole model will be shifted to the new offset without being computing all over.
+        The whole model will be shifted to the new offset without being computing all over
         and without any discrepancy.
     */
     void setOffset(CoordinateType offset);

@@ -84,7 +84,7 @@ public:
 
         You can specify the byte order of the output and if it is zlib-compressed.
 
-        @note @p in will be emtpy after this method
+        @note @p in will be empty after this method
     */
     template <typename FromType>
     void encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression = false);
@@ -94,7 +94,7 @@ public:
 
         You have to specify the byte order of the input and if it is zlib-compressed.
 
-        @note @p in will be emtpy after this method
+        @note @p in will be empty after this method
     */
     template <typename ToType>
     void decode(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
@@ -104,7 +104,7 @@ public:
 
         You can specify the byte order of the output and if it is zlib-compressed.
 
-        @note @p in will be emtpy after this method
+        @note @p in will be empty after this method
     */
     template <typename FromType>
     void encodeIntegers(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression = false);
@@ -114,7 +114,7 @@ public:
 
         You have to specify the byte order of the input and if it is zlib-compressed.
 
-        @note @p in will be emtpy after this method
+        @note @p in will be empty after this method
     */
     template <typename ToType>
     void decodeIntegers(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
@@ -122,9 +122,9 @@ public:
     /**
         @brief Encodes a vector of strings to a Base64 string
 
-        You can specify  zlib-compression.
+        You can specify zlib-compression.
 
-        @note @p in will be emtpy after this method
+        @note @p in will be empty after this method
     */
     void encodeStrings(std::vector<String> & in, String & out, bool zlib_compression = false);
 
@@ -133,7 +133,7 @@ public:
 
         You have to specify whether the Base64 string is zlib-compressed.
 
-        @note @p in will be emtpy after this method
+        @note @p in will be empty after this method
     */
     void decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression = false);
 
@@ -172,13 +172,13 @@ private:
     void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
   };
 
-  ///Endianizes a 32 bit type from big endian to litte endian and vice versa
+  ///Endianizes a 32 bit type from big endian to little endian and vice versa
   inline Int32 endianize32(Int32 & n)
   {
     return ((n & 0xff) << 24) | ((n & 0xff00) << 8) | ((n & 0xff0000) >> 8) | ((n & 0xff000000) >> 24);
   }
 
-  ///Endianizes a 64 bit type from  big endian to litte endian and vice versa
+  ///Endianizes a 64 bit type from  big endian to little endian and vice versa
   inline Int64 endianize64(Int64 & n)
   {
     return ((n & 0x00000000000000ffll) << 56) |

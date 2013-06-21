@@ -241,7 +241,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -365,7 +365,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -492,7 +492,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -616,7 +616,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -741,7 +741,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -864,7 +864,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -878,7 +878,7 @@ public:
         LIT:1207075b<br>
         Oobatake, M., Kubota, Y. and Ooi, T.<br>
         Optimization of amino acid parameters for correspondence of sequence to
-        tertiary structures of proteuins<br>
+        tertiary structures of proteins<br>
         Bull. Inst. Chem. Res., Kyoto Univ. 63, 82-94 (1985)
 
         @exception InvalidValue is thrown if an undefined one-letter-code is used
@@ -988,7 +988,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -1113,7 +1113,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -1240,7 +1240,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -1364,7 +1364,7 @@ public:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
     }
 
@@ -1538,10 +1538,10 @@ protected:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
 
-      return 0.0;           //this should never be reached, but is necessary to suppress compiler warngins on older compilers
+      return 0.0;           //this should never be reached, but is necessary to suppress compiler warnings on older compilers
     }
 
     /**
@@ -1661,11 +1661,11 @@ protected:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
 
       }
 
-      return 0.0;           //this should never be reached, but is necessary to suppress compiler warngins on older compilers
+      return 0.0;           //this should never be reached, but is necessary to suppress compiler warnings on older compilers
     }
 
     /**
@@ -1785,10 +1785,10 @@ protected:
         break;
 
       default:
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unkown amino acid one-letter-code", String(aa));
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
 
-      return 0.0;           //this should never be reached, but is necessary to suppress compiler warngins on older compilers
+      return 0.0;           //this should never be reached, but is necessary to suppress compiler warnings on older compilers
     }
 
 private:

@@ -54,7 +54,7 @@ namespace OpenMS
   };
   /**
       @brief Implementation of the Ascore
-      For a given Peptidesequence and its MS^2 spectrum it is tried to identify the most probable phosphorylation-site(s).
+      For a given peptide sequence and its MS^2 spectrum it is tried to identify the most probable phosphorylation-site(s).
       For each phosphorylation site a score is calculated, which is an indicator for the probability that this site is phosphorylated.
       The algorithm is implemented according to Beausoleil et al.
 
@@ -68,14 +68,14 @@ public:
     ~AScore();
 
     /**
-        @brief Computes the AScore and returns all computed phospho-sites. The safed sequences contain only phospho informations. All other modifications are dropped due to simplicity.
+        @brief Computes the AScore and returns all computed phospho-sites. The saved sequences contain only phospho informations. All other modifications are dropped due to simplicity.
 
         @param	hit a PeptideHit
         @param real_spectrum spectrum mapped to hit
-        @param fmt fragment_mass_tolarence, when comparing real_spectrum to a theoretical spectrum of the amino acid seqeunce of hit.
+        @param fmt fragment_mass_tolerance, when comparing real_spectrum to a theoretical spectrum of the amino acid sequence of hit.
         @param number_of_phospho_sites which directs the method to search for this number of phosphorylated sites.
 
-        @note the original sequence is safed in the PeptideHits as MetaValue Search_engine_sequence.
+        @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
     PeptideHit compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, DoubleReal fmt, Int number_of_phospho_sites);
 
@@ -87,7 +87,7 @@ public:
         @note This function assumes that there are more permutations than the assumed number of phosphorylations!
     */
     void computeHighestPeptides(std::vector<std::vector<DoubleReal> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, std::vector<std::vector<Size> > & permutations);
-    ///Computes the site determing_ions for the given AS and sequences in candidates
+    ///Computes the site determining_ions for the given AS and sequences in candidates
     void compute_site_determining_ions(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, std::vector<RichPeakSpectrum> & site_determining_ions);
 private:
     ///computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by Position!
