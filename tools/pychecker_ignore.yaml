@@ -105,7 +105,8 @@ PyOpenMSChecker:
     # immutable types by reference
     OpenMS::SequestOutfile:
         - readOutHeader
-
+    OpenMS::PeakPickerRapid:
+        - computeTPG
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Not implemented = errors in OpenMS API
@@ -1121,6 +1122,7 @@ PyOpenMSChecker:
     - OpenMS::PrecursorIonSelection::SeqTotalScoreMore
     - OpenMS::PrecursorIonSelection::TotalScoreMore
     - OpenMS::ProteinHit::ScoreMore
+    - OpenMS::CmpPeakByIntensity
      
     # FEATUREFINDER internals - maybe we want some of them
     - OpenMS::ExtendedIsotopeModel
