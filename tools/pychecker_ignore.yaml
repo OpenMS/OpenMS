@@ -11,7 +11,6 @@ PyOpenMSChecker:
         - NamesOfSampleState
         - addTreatment
         - getTreatment
-        - getTreatment
     OpenSwath::Spectrum:
         - defaultArrayLength
     OpenMS::VersionInfo::VersionDetails:
@@ -111,6 +110,9 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Not implemented = errors in OpenMS API
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    OpenMS::FeatureFileOptions:
+        - getCompression
+        - setCompression
     OpenMS::CVTermList:
         - checkCVTerms
     OpenMS::MSQuantifications:
@@ -127,6 +129,8 @@ PyOpenMSChecker:
         - getPeptideHit
     OpenMS::PeakPickerSH:
         - pick
+    OpenMS::AccurateMassSearchResult:
+        - computeCombinedScore() nogil except +
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed enums / Attributes of enums that are wrapped already
@@ -198,6 +202,12 @@ PyOpenMSChecker:
         - Weights
     OpenMS::Instrument:
         - NamesOfIonOpticsType
+    OpenMS::PeptideAndProteinQuant::PeptideData:
+        - PeptideData # renamed constructor
+    OpenMS::PeptideAndProteinQuant::ProteinData:
+        - ProteinData # renamed constructor
+    OpenMS::PeptideAndProteinQuant::Statistics:
+        - Statistics # renamed constructor
 
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -236,6 +246,8 @@ PyOpenMSChecker:
         - readSingleSpectrum
         - readSpectrumFast
         - readChromatogramFast
+    OpenMS::ParamXMLFile:
+        - writeXMLToStream
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Iterators
@@ -263,9 +275,14 @@ PyOpenMSChecker:
         - init
         - getSignalToNoise
 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # Others
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    ## KERNEL classes
     OpenMS::MSExperiment:
         - get2DData
         - set2DData
+        # iterators
         - areaBegin
         - areaEnd
         - areaBeginConst
@@ -278,6 +295,7 @@ PyOpenMSChecker:
         - getPrecursorSpectrum
 
     OpenMS::MSSpectrum:
+        # iterators
         - MZBegin
         - MZBegin
         - MZEnd
@@ -287,7 +305,19 @@ PyOpenMSChecker:
         - MZEnd
         - MZEnd
 
+    OpenMS::ConsensusMap:
+        - swap
+        - applyMemberFunction
+    OpenMS::Feature:
+        - applyMemberFunction
+        - getModelDescription
+        - setModelDescription
+
     # Not part of the public interface
+    OpenMS::FeatureDistance:
+        - infinity
+    OpenMS::Digestion:
+        - clone
     OpenMS::MRMDecoy:
         - getDecoyIon
         - getTargetIon
@@ -558,6 +588,7 @@ PyOpenMSChecker:
 
   # The following classes are ignore completely
   IgnoreNames: 
+    - OpenMS::SimpleOpenMSSpectraFactory
 
     # Do not expose List and String methods - Python has better ones
     - OpenMS::StringList

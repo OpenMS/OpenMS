@@ -142,7 +142,6 @@ def handle_member_definition(mdef, pxd_class, cnt):
             else:
                 tres.setPassed(False)
                 tres.setMessage(" -- TODO missing function in PXD: %s " % mdef.format_definition_for_cython())
-
     else:
         # It is neither public function/enum/variable
         tres.setPassed(True)
@@ -848,7 +847,7 @@ class TestResultHandler:
                 """
 
 
-def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd, output_format):
+def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd, output_format, generate_pxd):
     """ Checks a set of doxygen xml file against a set of pxd header files
 
     For each C++ class found in the doxygen XML files, it tries to identify the
@@ -902,6 +901,9 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
     testresults = TestResultHandler()
     for class_cntr, f in enumerate(xml_files):
+        if len(generate_pxd) > 0:
+            if f.find(generate_pxd) == -1:
+                continue
         dfile = DoxygenXMLFile(f)
         res = dfile.parse_doxygen()
         if dfile.parsing_error:
@@ -1039,7 +1041,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
     cnt.print_skipping_reason()
 
 def main(options):
-    checkPythonPxdHeader(options.src_path, options.bin_path, options.ignorefile, options.pxds_out, options.print_pxd, options.output_format)
+    checkPythonPxdHeader(options.src_path, options.bin_path, options.ignorefile, options.pxds_out, options.print_pxd, options.output_format, options.generate_pxd)
 
 def handle_args():
     usage = "" 
@@ -1049,6 +1051,7 @@ def handle_args():
     parser.add_argument("--src_path", dest="src_path", default=".", help="OpenMS source path")
     parser.add_argument("--ignore-file", dest="ignorefile", default="", help="Checker ignore file")
     parser.add_argument("--pxds-out", dest="pxds_out", default="", help="Folder to write pxd files")
+    parser.add_argument("--generate_pxd_for", dest="generate_pxd", default="", help="Generate pxd file onyl for this class, then exit")
     parser.add_argument("--output", dest="output_format", default="text", help="Output format (text or xml for ctest xml)")
     parser.add_argument('--print_pxd', action='store_true', default=False)
     #   print "Usage: checker.php <OpenMS src path> <OpenMS build path> [-u \"user name\"] [-t test] [options]\n";

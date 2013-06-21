@@ -9,8 +9,6 @@ from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from ProteinIdentification cimport *
 
-# ctypedef libcpp_map<String, ProteinData] ProteinQuant
-# ctypedef libcpp_map<AASequence, PeptideData] PeptideQuant
 # ctypedef libcpp_map<UInt64, DoubleReal> SampleAbundances;
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" namespace "OpenMS":
@@ -27,6 +25,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
         void quantifyProteins(ProteinIdentification & proteins) nogil except +
 
         PeptideAndProteinQuant_Statistics getStatistics()
+
+        # ctypedef libcpp_map<String, ProteinData] ProteinQuant
+        # ctypedef libcpp_map<AASequence, PeptideData] PeptideQuant
+        # PeptideQuant getPeptideResults() nogil except +
+        # ProteinQuant getProteinResults() nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" namespace "OpenMS::PeptideAndProteinQuant":
 
@@ -79,3 +82,4 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       # constructor
       PeptideAndProteinQuant_ProteinData() 
       PeptideAndProteinQuant_ProteinData(PeptideAndProteinQuant_ProteinData) # wrap-ignore
+
