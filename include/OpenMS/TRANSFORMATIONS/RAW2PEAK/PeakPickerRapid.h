@@ -89,25 +89,25 @@ public:
 
     template <typename PeakType>
     bool computeTPG(const PeakType& p1, const PeakType& p2, const PeakType& p3, DoubleReal& mu, DoubleReal& sigma, DoubleReal& area, DoubleReal& height) const
-    {						
+    {            
         const DoubleReal x1(p1.getMZ());
-				const DoubleReal y1(std::log(p1.getIntensity()));
+        const DoubleReal y1(std::log(p1.getIntensity()));
         const DoubleReal x2(p2.getMZ());
-				const DoubleReal y2(std::log(p2.getIntensity()));
+        const DoubleReal y2(std::log(p2.getIntensity()));
         const DoubleReal x3(p3.getMZ());
-				const DoubleReal y3(std::log(p3.getIntensity()));
+        const DoubleReal y3(std::log(p3.getIntensity()));
 
         DoubleReal D = (x1-x2)*(x1-x3)*(x2-x3);
-				DoubleReal alpha = (x3*(y2-y1) + x2*(y1-y3) + x1*(y3-y2)) / D;
-				DoubleReal beta = (x3*x3*(y1-y2) + x2*x2*(y3-y1) + x1*x1*(y2-y3)) / D;
-				DoubleReal gamma = (y1*x2*x3*(x2-x3) + y2*x3*x1*(x3-x1) + y3*x1*x2*(x1-x2)) / D;
+        DoubleReal alpha = (x3*(y2-y1) + x2*(y1-y3) + x1*(y3-y2)) / D;
+        DoubleReal beta = (x3*x3*(y1-y2) + x2*x2*(y3-y1) + x1*x1*(y2-y3)) / D;
+        DoubleReal gamma = (y1*x2*x3*(x2-x3) + y2*x3*x1*(x3-x1) + y3*x1*x2*(x1-x2)) / D;
 
-				mu = -beta/(2.0*alpha);
-		  	DoubleReal c_square = -1.0 / alpha;
-				DoubleReal sigma_square = c_square / 2.0;
-				height = std::exp(gamma + mu * mu / c_square);
-				area = height / std::sqrt(2.0 * M_PI * sigma_square);
-				sigma = std::sqrt(sigma_square);
+        mu = -beta/(2.0*alpha);
+        DoubleReal c_square = -1.0 / alpha;
+        DoubleReal sigma_square = c_square / 2.0;
+        height = std::exp(gamma + mu * mu / c_square);
+        area = height / std::sqrt(2.0 * M_PI * sigma_square);
+        sigma = std::sqrt(sigma_square);
 
         return (area != std::numeric_limits<DoubleReal>::infinity());
     }
@@ -119,8 +119,8 @@ public:
     void pick(const MSSpectrum<PeakType>& cinput, MSSpectrum<PeakType>& output) 
     {
         MSSpectrum<PeakType> input = cinput;
-				threshold_mower_.filterPeakSpectrum(input);
-				input.sortByPosition();
+        threshold_mower_.filterPeakSpectrum(input);
+        input.sortByPosition();
 
         // copy meta data of the input spectrum
         output.clear(true);
@@ -172,22 +172,22 @@ public:
 
                 // save picked pick into output spectrum
                 if (compOK)
-								{
-									PeakType peak;
-                	peak.setMZ(mu);
+                {
+                  PeakType peak;
+                  peak.setMZ(mu);
 
-                	DoubleReal output_intensity = intensity_type_area ? area : height;
+                  DoubleReal output_intensity = intensity_type_area ? area : height;
 
-                	peak.setIntensity(output_intensity);
-                	output.push_back(peak);
-								}
+                  peak.setIntensity(output_intensity);
+                  output.push_back(peak);
+                }
 
                 // jump over raw data points that have been considered already
                 i = i + 1;
             }
         }
 
-        return ;
+        return;
     }
 
     /**
@@ -226,7 +226,7 @@ public:
         }
         endProgress();
 
-        return ;
+        return;
     }
 
 protected:
@@ -236,7 +236,7 @@ protected:
     //docu in base class
     void updateMembers_();
 
-		ThresholdMower threshold_mower_;
+    ThresholdMower threshold_mower_;
 }; // end PeakPickerRapid
 
 }// namespace OpenMS

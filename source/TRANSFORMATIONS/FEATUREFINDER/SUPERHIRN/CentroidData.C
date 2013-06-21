@@ -209,7 +209,6 @@ namespace OpenMS
                                       list<CentroidPeak>::iterator & pEnd) // end position of peak group
   {
     list<CentroidPeak>::iterator pi, prev;
-    double eps;
 
     pi = fPeakGroupStart;
     prev = fPeakGroupStart;
@@ -219,6 +218,7 @@ namespace OpenMS
     }
     for (; pi != fCentroidPeaks.end(); ++pi, ++prev)
     {
+      double eps;
       eps = SuperHirnParameters::instance()->getMassTolPpm() * pi->getMass() / 1.0e6
             + SuperHirnParameters::instance()->getMassTolDa();
       if (abs(pi->getMass() - prev->getMass()) > 1.0 + eps)

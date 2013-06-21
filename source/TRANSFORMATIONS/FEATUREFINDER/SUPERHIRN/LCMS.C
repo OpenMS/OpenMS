@@ -170,7 +170,7 @@ namespace OpenMS
     while (C != get_raw_spec_name_end())
     {
       printf("\t\t\t - Child LC-MS: %s [ID=%d]\n", (*C).second.c_str(), (*C).first);
-      C++;
+      ++C;
     }
     vector<SHFeature>::iterator p = feature_list.begin();
     while (p != feature_list.end())
@@ -178,7 +178,7 @@ namespace OpenMS
       // if((*p).get_MS2_info()){
       //(*p).show_info();
       //}
-      p++;
+      ++p;
     }
   }
 
@@ -196,7 +196,7 @@ namespace OpenMS
         return &(*p);
       }
 
-      p++;
+      ++p;
     }
 
     return NULL;
@@ -211,11 +211,11 @@ namespace OpenMS
     // search for the others:
     int common_count = 0;
 
-    SHFeature * PEAK = NULL;
     vector<SHFeature>::iterator p = feature_list.begin();
     while (p != feature_list.end())
     {
 
+      SHFeature * PEAK = NULL;
       // get the peak at a charge state:
       PEAK = &(*p);
 
@@ -227,7 +227,7 @@ namespace OpenMS
         }
       }
       // next feature
-      p++;
+      ++p;
     }
 
     return common_count;
@@ -265,7 +265,7 @@ namespace OpenMS
         break;
       }
 
-      P++;
+      ++P;
 
     }
   }
@@ -289,7 +289,7 @@ namespace OpenMS
       // is bigger than any element:
       else if (P == ALIGNMENT_ERROR.end())
       {
-        P--;
+        --P;
         *UP = (*P).second.first;
         *DOWN = (*P).second.second;
       }
@@ -307,7 +307,7 @@ namespace OpenMS
         double down_E_u = (*P).second.second;
         double TR_u = (*P).first;
 
-        P--;
+        --P;
 
         double up_E_d = (*P).second.first;
         double down_E_d = (*P).second.second;
@@ -356,7 +356,7 @@ namespace OpenMS
       {
         return true;
       }
-      F++;
+      ++F;
     }
 
     return false;
@@ -371,7 +371,7 @@ namespace OpenMS
     while (p != feature_list.end())
     {
       (*p).set_spectrum_ID(get_spectrum_ID());
-      p++;
+      ++p;
     }
   }
 

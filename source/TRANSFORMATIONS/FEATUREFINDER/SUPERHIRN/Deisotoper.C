@@ -193,11 +193,11 @@ namespace OpenMS
 // removes spooky or very small monoisotopic peaks
   void Deisotoper::cleanDeconvPeaks()
   {
-    double tol, mass;
     list<DeconvPeak>::iterator pi, beg, end, most_intense;
 
     for (pi = fDeconvPeaks.begin(); pi != fDeconvPeaks.end(); ++pi)
     {
+      double tol, mass;
       beg = pi;
       mass = pi->getMass();
       most_intense = pi;

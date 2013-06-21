@@ -694,13 +694,13 @@ namespace OpenMS
     }
 
     int i, j;
-    double max_intens, fact;
+    double fact;
 
     fact = SuperHirnParameters::instance()->getDetectableIsotopeFactor();
 
     for (i = 0; i <= sfMaxMassIndex; i++)
     {
-      max_intens = 0.0;
+      double max_intens = 0.0;
       for (j = 0; j <= sfMaxIsotopeIndex; j++)
       {
         max_intens = (max_intens > sfIsoDist50[i][j]) ? max_intens : sfIsoDist50[i][j];
@@ -742,7 +742,7 @@ namespace OpenMS
     init();
 
     int idx, i, cnt;
-    double m_low, m_high, tol, m, alpha, max_alpha, min_alpha, mono_alpha, mono, theta, dm, dist, dist_min;
+    double tol, m, alpha, min_alpha, mono_alpha, mono, dist;
     bool matched;
     list<CentroidPeak>::iterator piter, match_peak;
     list<double> alpha_values;
@@ -801,6 +801,7 @@ namespace OpenMS
 
     for (i = 0; i < maxMaxNbIsotopes; i++) // find matching isotopes
     {
+      double m_low, m_high, max_alpha, theta, dm,dist_min;
       theta = (sfIsoDist50Local[i] < SuperHirnParameters::instance()->getDetectableIsotopeFactor()) ? pTheta : 0.0;       // this only requires intense isotpic peaks to match exp. peaks
 
       //m_low = mono + sfIsoDist10Local[i]/pCharge - tol;
@@ -935,7 +936,7 @@ namespace OpenMS
   {
     init();
     list<list<CentroidPeak>::iterator>::iterator mpi;
-    int idx, i, cnt;
+    int idx, cnt;
     double mono, h_tot, dmC13;
     vector<CentroidPeak> isotopicDist;
 
@@ -947,7 +948,7 @@ namespace OpenMS
     dmC13 = 0.0;
     for (mpi = pMatchedPeaks.begin(); mpi != pMatchedPeaks.end(); ++mpi) // go through list of all matched peaks
     {
-      i = (*mpi)->getIsotopIdx();
+      int i = (*mpi)->getIsotopIdx();
       h_tot += pAlpha * sfIsoDist50[idx][i];       // sum up fitted intensities
       cnt++;
 

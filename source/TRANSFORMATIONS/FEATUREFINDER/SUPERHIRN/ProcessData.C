@@ -631,7 +631,6 @@ namespace OpenMS
     //backgroundController->plotIntensityMaps();
     // backgroundController->writeIntensityMaps();
 
-    double this_MZ = 0;
     // progress_bar bar(get_LC_elution_peak_counter(),"processed");
 
     //////////////////////////////////
@@ -640,6 +639,7 @@ namespace OpenMS
     while (P_MZ != get_MZ_LIST_end())
     {
 
+      double this_MZ = 0;
       this_MZ = (*P_MZ).first;
 
       //////////////////////////////////
