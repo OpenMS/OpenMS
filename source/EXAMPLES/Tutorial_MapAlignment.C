@@ -38,18 +38,28 @@ using namespace std;
 
 Int main()
 {
-  vector<FeatureMap<> > maps;
-  maps.resize(2);
+  FeatureMap<> reference;
+  FeatureMap<> toAlign;
 
   FeatureXMLFile xml_file;
-  xml_file.load("data/Tutorial_MapAlignment_1.featureXML", maps[0]);
-  xml_file.load("data/Tutorial_MapAlignment_2.featureXML", maps[1]);
+  xml_file.load("data/Tutorial_MapAlignment_1.featureXML", reference);
+  xml_file.load("data/Tutorial_MapAlignment_2.featureXML", toAlign);
+
+  // create map alignment algorithm
   MapAlignmentAlgorithmPoseClustering algorithm;
+  
   // ... set parameters
-  vector<TransformationDescription> transformations;
-  algorithm.alignFeatureMaps(maps, transformations);
-  xml_file.store("output/Tutorial_MapAlignment_1.featureXML", maps[0]);
-  xml_file.store("output/Tutorial_MapAlignment_2.featureXML", maps[1]);
+  algorithm.setReference(reference);
+
+  // create object for the computed transformation
+  TransformationDescription transformation;
+
+  // align
+  algorithm.align(toAlign, transformation);
+
+  // store results
+  xml_file.store("output/Tutorial_MapAlignment_1.featureXML", reference);
+  xml_file.store("output/Tutorial_MapAlignment_2.featureXML", toAlign);
 
   return 0;
 } //end of main
