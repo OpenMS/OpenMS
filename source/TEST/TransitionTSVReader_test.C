@@ -82,6 +82,7 @@ END_SECTION
 
 START_SECTION( void validateTargetedExperiment(OpenMS::TargetedExperiment & targeted_exp))
 {
+  NOT_TESTABLE
 }
 END_SECTION
 

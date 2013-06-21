@@ -144,7 +144,7 @@ START_SECTION (void addScore(const String & score_name, double score))
 }
 END_SECTION
 
-START_SECTION (void addFeature(Feature & feature, String key))
+START_SECTION (void addFeature(Feature & feature, const String key))
 {
   // tested in getFeature
   NOT_TESTABLE

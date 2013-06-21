@@ -109,13 +109,6 @@ START_SECTION(~MRMTransitionGroupPicker())
 }
 END_SECTION
 
-START_SECTION(operator=(const MRMTransitionGroupPicker& rhs))
-{
-  MRMTransitionGroupPicker p;
-  MRMTransitionGroupPicker other = p;
-}
-END_SECTION
-
 START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTransitionGroup(MRMTransitionGroup< SpectrumT, TransitionT > &transition_group)))
 { 
   MRMTransitionGroupType transition_group;

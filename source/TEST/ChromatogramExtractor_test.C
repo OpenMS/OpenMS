@@ -61,7 +61,7 @@ START_SECTION(~ChromatogramExtractor())
 }
 END_SECTION
 
-START_SECTION( (template < typename ExperimentT > void extractChromatograms(const ExperimentT &input, ExperimentT &output, OpenMS::TargetedExperiment &transition_exp, double extract_window, bool ppm, TransformationDescription &trafo, double rt_extraction_window, String filter)))
+START_SECTION( (template < typename ExperimentT > void extractChromatograms(const ExperimentT &input, ExperimentT &output, OpenMS::TargetedExperiment &transition_exp, double extract_window, bool ppm, TransformationDescription trafo, double rt_extraction_window, String filter)))
 {
   double extract_window = 0.05;
   PeakMap exp;
