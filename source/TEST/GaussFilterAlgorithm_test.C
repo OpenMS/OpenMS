@@ -59,6 +59,16 @@ START_SECTION((virtual ~GaussFilterAlgorithm()))
     delete dgauss_ptr;
 END_SECTION
 
+START_SECTION((void initialize(DoubleReal gaussian_width, DoubleReal spacing, DoubleReal ppm_tolerance, bool use_ppm_tolerance);))
+  // We cannot really test that the variables are correctly set since we dont
+  // have access to them.
+  dgauss_ptr = new GaussFilterAlgorithm;
+  dgauss_ptr->initialize(0.5, 0.5, 10, false);
+  dgauss_ptr->initialize(0.5, 0.5, 10, true);
+  TEST_NOT_EQUAL(dgauss_ptr, dgauss_nullPointer)
+  delete dgauss_ptr;
+END_SECTION
+
 START_SECTION((template <typename ConstIterT, typename IterT> bool filter(ConstIterT mz_in_start, ConstIterT mz_in_end, ConstIterT int_in_start, IterT mz_out, IterT int_out)))
   std::vector<double> mz;
   std::vector<double> intensities;
