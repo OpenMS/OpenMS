@@ -135,6 +135,8 @@ public:
             return;
         }
 
+        spectrum.sortByPosition();
+
         windowsize_ = (DoubleReal)param_.getValue("windowsize");
         peakcount_ = (UInt)param_.getValue("peakcount");
 
