@@ -131,8 +131,6 @@ public:
         output.setName(input.getName());
         output.setType(SpectrumSettings::PEAKS);
 
-        boost::dynamic_bitset<> occupied(input.size());
-
         bool intensity_type_area = param_.getValue("intensity_type") == "peakarea" ? true : false;
 
         // find local maxima in raw data
@@ -230,9 +228,6 @@ public:
     }
 
 protected:
-    // signal-to-noise parameter
-    // DoubleReal signal_to_noise_;
-
     //docu in base class
     void updateMembers_();
 
