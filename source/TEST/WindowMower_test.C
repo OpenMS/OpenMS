@@ -84,13 +84,29 @@ START_SECTION((template<typename SpectrumType> void filterPeakSpectrumForTopNInS
 
 	Param p(e_ptr->getParameters());
 	p.setValue("windowsize", 50.0); // default
-	p.setValue("peakcount", 2);
+	p.setValue("peakcount", 2);  // default
+	p.setValue("movetype", "slide"); // default and not needed as we directly call sliding window function
 	e_ptr->setParameters(p);
 	
-	e_ptr->filterSpectrum(spec);
+	e_ptr->filterPeakSpectrumForTopNInSlidingWindow(spec);
 	
 	TEST_EQUAL(spec.size(), 56)
 	
+END_SECTION
+
+START_SECTION((template<typename SpectrumType> void filterPeakSpectrumForTopNInJumpingWindow(SpectrumType& spectrum)))
+	DTAFile dta_file;
+	PeakSpectrum spec;
+	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
+	TEST_EQUAL(spec.size(), 121)
+
+	Param p(e_ptr->getParameters());
+	p.setValue("windowsize", 50.0); // default
+	p.setValue("peakcount", 2); // default
+	p.setValue("movetype", "jump");  // actually not needed as we directly call jumping window function
+	e_ptr->setParameters(p);
+	e_ptr->filterPeakSpectrumForTopNInJumpingWindow(spec);
+	TEST_EQUAL(spec.size(), 32)	
 END_SECTION
 
 START_SECTION((void filterPeakMap(PeakMap& exp)))
@@ -98,14 +114,15 @@ START_SECTION((void filterPeakMap(PeakMap& exp)))
   PeakSpectrum spec;
   dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
-	PeakMap pm;
-	pm.addSpectrum(spec);
+  PeakMap pm;
+  pm.addSpectrum(spec);
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
   Param p(e_ptr->getParameters());
   p.setValue("windowsize", 50.0); // default
   p.setValue("peakcount", 2);
+  p.setValue("movetype", "slide"); // default
   e_ptr->setParameters(p);
 
   e_ptr->filterPeakMap(pm);
@@ -122,6 +139,8 @@ START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   Param p(e_ptr->getParameters());
   p.setValue("windowsize", 50.0); // default
   p.setValue("peakcount", 2);
+  p.setValue("movetype", "slide");
+
   e_ptr->setParameters(p);
 
   e_ptr->filterPeakSpectrum(spec);
