@@ -521,41 +521,6 @@ if (ENABLE_PREPARE_KNIME_PACKAGE)
 	include(cmake/OpenMSBuildSystem_ctdSupport.cmake)
 endif()
 
-##### Examples #####
-if ("${PACKAGE_TYPE}" STREQUAL "none")
-	set(EXAMPLES_executables)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-	include(source/EXAMPLES/executables.cmake)
-	foreach(i ${EXAMPLES_executables})
-	  add_executable(${i} source/EXAMPLES/${i}.C)
-	  target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-	endforeach(i)
-	add_custom_target(Tutorials_build)
-	add_dependencies(Tutorials_build ${EXAMPLES_executables})
-
-	if (MSVC_IDE)
-		set(EXAMPLES_EXE_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(OutDir))
-	else()
-		set(EXAMPLES_EXE_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-	endif()
-
-
-	## Create single target for each example, add it as a dependency to the main target
-	foreach(i ${EXAMPLES_executables})
-		list(APPEND EX_LIST COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_SOURCE_DIR}/source/EXAMPLES ${EXAMPLES_EXE_DIR}/${i})
-	endforeach(i)
-	list(APPEND EX_LIST "echo all done")
-	add_custom_target(Tutorials_exec
-		COMMENT "Executes the examples"
-	)
-	separate_arguments(EX_LIST)
-	add_custom_command(TARGET Tutorials_exec
-                    POST_BUILD
-										${EX_LIST}
-										)
-
-endif()
-
 ########################################################
 ###                      Tests                       ###
 ########################################################
@@ -589,20 +554,26 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
 endif("${PACKAGE_TYPE}" STREQUAL "none")
 
 ########################################################
+###                   Examples                       ###
+########################################################
+option(BUILD_EXAMPLES "Compile OpenMS code examples" ON)
+if(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
+  add_subdirectory(doc/code_examples)
+endif(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
+
+
+########################################################
 ###              setup python wrapper                ###
 ########################################################
-
 OPTION(PYOPENMS "setup build system for pyOpenMS" OFF)
-
 IF (PYOPENMS)
-        MESSAGE(STATUS "run cmake files for pyopenms")
+  MESSAGE(STATUS "run cmake files for pyopenms")
 	include(pyOpenMS/pyopenms.cmake)
 ENDIF()
 
 ########################################################
 ###    verbose Post-build messages and help targets  ###
 ########################################################
-
 include(cmake/OpenMSBuildSystem_messages.cmake)
 
 ######################################################

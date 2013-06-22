@@ -21,18 +21,18 @@ Tutorial_MSSpectrum
 Tutorial_MapAlignment
 Tutorial_MetaInfo
 Tutorial_Param
-Tutorial_ParamEditor
+Tutorial_GUI_ParamEditor
 Tutorial_PeakPickerCWT
 Tutorial_RangeManager
 Tutorial_Residue
 Tutorial_SavitzkyGolayFilter
-Tutorial_Spectrum1D
+Tutorial_GUI_Spectrum1D
 Tutorial_TOFCalibration
 Tutorial_TheoreticalSpectrumGenerator
 Tutorial_MorphologicalFilter
 Tutorial_Unlabeled
 Tutorial_typeAsString
-Tutorial_ListEditor
+Tutorial_GUI_ListEditor
 Tutorial_PeakIntensityPredictor
 )
 
