@@ -29,32 +29,29 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
-// $Authors: Erhan Kenar $
+// $Authors: Erhan Kenar, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERRAPID_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERRAPID_H
+
+#define M_PI 3.14159265358979323846
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 
-#include <boost/dynamic_bitset.hpp>
-
 #include <map>
 #include <algorithm>
 #include <limits>
 
-#define DEBUG_PEAK_PICKING
-#undef DEBUG_PEAK_PICKING
-//#undef DEBUG_DECONV
 namespace OpenMS
 {
 /**
    @brief This class implements a fast peak-picking algorithm best suited for high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals tend to show well-defined peak shapes with narrow peak width.
 
-   This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by cubic spline interpolation. Signal detection depends on the signal-to-noise ratio which is adjustable by the user (see parameter signal_to_noise). A picked peak's m/z and intensity value is given by the maximum of the underlying peak spline.
+   This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by analytically fitting a scaled gaussian. A picked peak's m/z and intensity value is given by the height of the gaussian or alternativly the area under the gaussian.
 
    So far, this peak picker was mainly tested on high resolution data. With appropriate preprocessing steps (e.g. noise reduction and baseline subtraction), it might be also applied to low resolution data.
 
@@ -65,16 +62,6 @@ namespace OpenMS
    @ingroup PeakPicking
   */
 
-
-class OPENMS_DLLAPI CmpPeakByIntensity
-{
-public:
-    template <typename PeakType>
-    bool operator()(PeakType x, PeakType y) const
-    {
-        return x.getIntensity() > y.getIntensity();
-    }
-};
 
 class OPENMS_DLLAPI PeakPickerRapid
         : public DefaultParamHandler,
@@ -87,6 +74,7 @@ public:
     /// Destructor
     virtual ~PeakPickerRapid();
 
+    /// Compute scaled gaussian from three points
     template <typename PeakType>
     bool computeTPG(const PeakType& p1, const PeakType& p2, const PeakType& p3, DoubleReal& mu, DoubleReal& sigma, DoubleReal& area, DoubleReal& height) const
     {            
@@ -113,7 +101,7 @@ public:
     }
 
     /**
-    @brief Applies the peak-picking algorithm to a single spectrum (MSSpectrum). The resulting picked peaks are written to the output spectrum.
+    @brief Applies the peak-picking algorithm to a single spectrum. The resulting picked peaks are written to the output spectrum. Very low intensity peaks (< 0.5) are discarded by application of ThresholdMower.
     */
     template <typename PeakType>
     void pick(const MSSpectrum<PeakType>& cinput, MSSpectrum<PeakType>& output) 
