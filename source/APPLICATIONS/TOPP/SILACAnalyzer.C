@@ -42,7 +42,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -618,15 +617,16 @@ public:
       {
         analyzer.generateClusterConsensusByCluster(map, **it);
       }
-
       // XXX: Need a map per mass shift
       ConsensusMap::FileDescriptions & desc = map.getFileDescriptions();
-      UInt id = 0;
-      for (ConsensusMap::FileDescriptions::iterator it = desc.begin(); it != desc.end(); ++it, ++id)
+      Size id = 0;
+      for (ConsensusMap::FileDescriptions::iterator it = desc.begin(); it != desc.end(); ++it)
       {
-        if (!test_mode_) it->second.filename = in;
-        // XXX: Write correct label
-        // it->second.label = id;
+        if (test_mode_) it->second.filename = in; // skip path, since its not cross platform and complicates verification
+        else it->second.filename = File::basename(in);
+        // Write correct label
+        if (id>0) it->second.label = StringList(analyzer.getSILAClabels()[id-1]).concatenate(""); // skip first round (empty label is not listed)
+        ++id;
       }
 
 
