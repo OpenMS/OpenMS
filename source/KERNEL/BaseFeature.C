@@ -164,7 +164,7 @@ namespace OpenMS
        }
        if (seqs.size()==1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
        else if (seqs.size()>1) return FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
-       else if (seqs.size()==0)  return FEATURE_ID_NONE; // very rare case of empty hits
+       else /*if (seqs.size()==0)*/  return FEATURE_ID_NONE; // very rare case of empty hits
      }
    }
 

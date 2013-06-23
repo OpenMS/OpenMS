@@ -48,8 +48,8 @@ void getMRMFeatureTest(MockMRMFeature * imrmfeature_test)
 {
   boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
   boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
-  f1_ptr->m_intensity = 0.3;
-  f2_ptr->m_intensity = 0.7;
+  f1_ptr->m_intensity = 0.3f;
+  f2_ptr->m_intensity = 0.7f;
   std::map<std::string, boost::shared_ptr<MockFeature> > features;
   features["group1"] = f1_ptr;
   features["group2"] = f2_ptr;
@@ -184,7 +184,7 @@ START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<Transiti
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
-  imrmfeature_test->m_intensity = 0.7;
+  imrmfeature_test->m_intensity = 0.7f;
   std::vector<OpenSwath::LightTransition> transitions;
   transitions.push_back(mock_tr2);
 
@@ -245,7 +245,7 @@ START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<Transit
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
-  imrmfeature_test->m_intensity = 0.3;
+  imrmfeature_test->m_intensity = 0.3f;
   std::vector<OpenSwath::LightTransition> transitions;
   transitions.push_back(mock_tr1);
 
