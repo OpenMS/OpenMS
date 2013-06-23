@@ -424,7 +424,7 @@ namespace OpenMS
     clearRanges();
     updateRanges_(begin(), end());
 
-    //enlarge the range by the internal points of each feature
+    // enlarge the range by the internal points of each feature
     for (Size i = 0; i < size(); ++i)
     {
       for (ConsensusFeature::HandleSetType::const_iterator it = operator[](i).begin(); it != operator[](i).end(); ++it)
@@ -433,7 +433,7 @@ namespace OpenMS
         DoubleReal mz = it->getMZ();
         DoubleReal intensity = it->getIntensity();
 
-        //update RT
+        // update RT
         if (rt < pos_range_.minPosition()[Peak2D::RT])
         {
           pos_range_.setMinX(rt);
@@ -442,7 +442,7 @@ namespace OpenMS
         {
           pos_range_.setMaxX(rt);
         }
-        //update m/z
+        // update m/z
         if (mz < pos_range_.minPosition()[Peak2D::MZ])
         {
           pos_range_.setMinY(mz);
@@ -451,7 +451,7 @@ namespace OpenMS
         {
           pos_range_.setMaxY(mz);
         }
-        //update intensity
+        // update intensity
         if (intensity <  int_range_.minX())
         {
           int_range_.setMinX(intensity);
@@ -462,6 +462,63 @@ namespace OpenMS
         }
       }
     }
+  }
+
+
+  bool ConsensusMap::isValid(Logger::LogStream* stream) const
+  {
+    Size stats_wrongMID(0); // invalid map ID references by a feature handle
+    Map<Size,Size> wrong_ID_count; // which IDs were given which are not valid
+
+    // check file descriptions
+    std::set<String> maps;
+    String all_maps; // for output later
+    for (FileDescriptions::ConstIterator it=file_description_.begin();  it!=file_description_.end(); ++it)
+    {
+      String s = String("  file: ") + it->second.filename + " label: " + it->second.label;
+      maps.insert(s);
+      all_maps += s;
+    }
+
+    if (maps.size() != file_description_.size())
+    {
+      if (stream != 0)
+      {
+        *stream << "ConsensusMap file descriptions are not unique:\n" << all_maps << std::endl;
+      }
+      return false;
+    }
+
+
+    // check map IDs
+    for (Size i = 0; i < size(); ++i)
+    {
+      const ConsensusFeature& elem = (*this)[i];
+      for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
+      {
+        if (!file_description_.has(it->getMapIndex()))
+        {
+          ++stats_wrongMID;
+          ++wrong_ID_count[it->getMapIndex()];
+        }
+      }
+    }
+
+    if (stats_wrongMID > 0)
+    {
+      if (stream != 0)
+      {
+        *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
+        for (Map<Size,Size>::ConstIterator it=wrong_ID_count.begin(); it!=wrong_ID_count.end(); ++it)
+        {
+           *stream << "  wrong id="<< it->first << " (occurred " << it->second << "x)\n";
+        }
+        *stream << std::endl;
+      }
+      return false;
+    }
+
+    return true;
   }
 
 } // namespace OpenMS

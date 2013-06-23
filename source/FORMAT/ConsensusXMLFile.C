@@ -137,25 +137,25 @@ namespace OpenMS
     if (tag == "map")
     {
       setProgress(++progress_);
-      last_map_ = attributeAsInt_(attributes, "id");
-      last_meta_ = &consensus_map_->getFileDescriptions()[last_map_];
-      consensus_map_->getFileDescriptions()[last_map_].filename = attributeAsString_(attributes, "name");
+      Size last_map = attributeAsInt_(attributes, "id");
+      last_meta_ = &consensus_map_->getFileDescriptions()[last_map];
+      consensus_map_->getFileDescriptions()[last_map].filename = attributeAsString_(attributes, "name");
       String unique_id;
       if (XMLHandler::optionalAttributeAsString_(unique_id, attributes, "unique_id"))
       {
         UniqueIdInterface tmp;
         tmp.setUniqueId(unique_id);
-        consensus_map_->getFileDescriptions()[last_map_].unique_id = tmp.getUniqueId();
+        consensus_map_->getFileDescriptions()[last_map].unique_id = tmp.getUniqueId();
       }
       String label;
       if (XMLHandler::optionalAttributeAsString_(label, attributes, "label"))
       {
-        consensus_map_->getFileDescriptions()[last_map_].label = label;
+        consensus_map_->getFileDescriptions()[last_map].label = label;
       }
       UInt size;
       if (XMLHandler::optionalAttributeAsUInt_(size, attributes, "size"))
       {
-        consensus_map_->getFileDescriptions()[last_map_].size = size;
+        consensus_map_->getFileDescriptions()[last_map].size = size;
       }
     }
     else if (tag == "consensusElement")
@@ -548,8 +548,13 @@ namespace OpenMS
   }
 
   void
-  ConsensusXMLFile::store(const String & filename, const ConsensusMap & consensus_map)
+  ConsensusXMLFile::store(const String& filename, const ConsensusMap& consensus_map)
   {
+    if (!consensus_map.isValid(&LOG_WARN))
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. No data was written! Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file!");
+    }
+
     startProgress(0, 0, "storing consensusXML file");
     progress_ = 0;
     setProgress(++progress_);
@@ -615,11 +620,11 @@ namespace OpenMS
     os
     << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
-    //user param
+    // user param
     writeUserParam_("userParam", os, consensus_map, 1);
     setProgress(++progress_);
 
-    //write data processing
+    // write data processing
     for (Size i = 0; i < consensus_map.getDataProcessing().size(); ++i)
     {
       const DataProcessing & processing = consensus_map.getDataProcessing()[i];
@@ -827,12 +832,18 @@ namespace OpenMS
 
     parse_(filename, this);
 
+    if (!map.isValid(&LOG_WARN))  // a warning is printed to LOG_WARN during isValid()
+    {
+      // don't throw exception for now, since this would prevent us from reading old files...
+      // throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");
+
+    }
+
     //reset members
     consensus_map_ = 0;
     act_cons_element_ = ConsensusFeature();
     pos_.clear();
     it_ = 0;
-    last_map_ = 0;
     last_meta_ = 0;
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();

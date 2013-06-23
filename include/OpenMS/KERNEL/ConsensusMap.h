@@ -434,6 +434,20 @@ public:
       return assignments;
     }
 
+    /**
+      @brief checks if the given maps are unique and all FeatureHandles actually refer to a registered map
+
+      To avoid inconsistencies in map IDs and make sure the maps are unique in terms of name+label
+
+      If you want some verbose output, provide a stream.
+
+      @hint: alternative to this method we could check the features while they are added to the map directly, but
+              - currently we can't because the interface is not designed for this (derived from std::vector, no encapsulation)
+              - we should restrict the user to first fill the list of maps, before any datapoints can be inserted
+
+    */
+    bool isValid(Logger::LogStream* stream = 0) const;
+
 protected:
 
     /// Map from index to file description

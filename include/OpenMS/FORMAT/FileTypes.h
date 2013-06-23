@@ -104,15 +104,25 @@ namespace OpenMS
     /// Returns the name/extension of the type.
     static String typeToName(Type type);
 
+    /// Returns the mzML name (TODO: switch to accession since they are more stable!)
+    static String typeToMZML(Type type);
+
     /// Converts a file type name into a Type
     static Type nameToType(const String& name);
 
 private:
     /// Maps the FileType::Type to the preferred extension.
     static const std::map<Type, String> name_of_types_;
+    
+    /// Maps the FileType::Type to the preferred mzML CV name.
+    static const std::map<Type, String> name_of_MZMLtypes_;
 
     /// Initializer for the file extension map.
     static std::map<Type, String> initializeMap_();
+
+    /// Initializer for the file extension map.
+    static std::map<Type, String> initializeMZMLMap_();
+
   };
 
 } //namespace OpenMS

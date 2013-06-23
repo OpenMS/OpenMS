@@ -53,10 +53,18 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
-	<mapList count="2">
+	<mapList count="6">
 		<map id="0" name="test1.realligned.annotated.featureXML" unique_id="16747478305373140212" label="" size="6006">
 		</map>
 		<map id="1" name="test2.realligned.annotated.featureXML" unique_id="8088574951645756580" label="" size="5909">
+		</map>
+		<map id="2" name="test3.realligned.annotated.featureXML" unique_id="8088574951645756580" label="" size="5909">
+		</map>
+		<map id="3" name="test4.realligned.annotated.featureXML" unique_id="8088574951645756580" label="" size="5909">
+		</map>
+		<map id="4" name="test5.realligned.annotated.featureXML" unique_id="8088574951645756580" label="" size="5909">
+		</map>
+		<map id="5" name="test6.realligned.annotated.featureXML" unique_id="8088574951645756580" label="" size="5909">
 		</map>
 	</mapList>
 	<consensusElementList>

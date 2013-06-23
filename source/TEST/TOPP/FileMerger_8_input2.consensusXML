@@ -67,7 +67,7 @@
 	<mapList count="2">
 		<map id="0" name="SILAC_1_2.mzML" label="" size="2">
 		</map>
-		<map id="1" name="SILAC_1_2.mzML" label="" size="2">
+		<map id="1" name="SILAC_1_2.mzML" label="Arg8" size="2">
 		</map>
 	</mapList>
 

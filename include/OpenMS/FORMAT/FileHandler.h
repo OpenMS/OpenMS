@@ -144,81 +144,89 @@ public:
         exp.reset();
         exp.resize(1);
         DTAFile().load(filename, exp[0]);
-        return true;
-
         break;
 
       case FileTypes::DTA2D:
-      {
-        DTA2DFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-        return true;
-      }
-      break;
+        {
+          DTA2DFile f;
+          f.getOptions() = options_;
+          f.setLogType(log);
+          f.load(filename, exp); 
+        }
+
+        break;
 
       case FileTypes::MZXML:
-      {
-        MzXMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-        return true;
-      }
-      break;
+        {
+          MzXMLFile f;
+          f.getOptions() = options_;
+          f.setLogType(log);
+          f.load(filename, exp); 
+        }
+
+        break;
 
       case FileTypes::MZDATA:
-      {
-        MzDataFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-        return true;
-      }
-      break;
+        {
+          MzDataFile f;
+          f.getOptions() = options_;
+          f.setLogType(log);
+          f.load(filename, exp);
+        }
+        break;
 
       case FileTypes::MZML:
-      {
-        MzMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-        ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp, true);
-        return true;
-      }
-      break;
+        {
+          MzMLFile f;
+          f.getOptions() = options_;
+          f.setLogType(log);
+          f.load(filename, exp);
+          ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp, true); 
+        }
+        break;
 
       case FileTypes::MGF:
-      {
-        MascotGenericFile f;
-        f.setLogType(log);
-        f.load(filename, exp);
-        return true;
-      }
+        {
+          MascotGenericFile f;
+          f.setLogType(log);
+          f.load(filename, exp); 
+        }
+
+        break;
 
       case FileTypes::MS2:
-      {
-        MS2File f;
-        f.setLogType(log);
-        f.load(filename, exp);
-        return true;
-      }
+        {
+          MS2File f;
+          f.setLogType(log);
+          f.load(filename, exp); 
+        }
+
+        break;
 
       case FileTypes::XMASS:
-      {
-        exp.reset();
-        exp.resize(1);
-        XMassFile().load(filename, exp[0]);
-        XMassFile().importExperimentalSettings(filename, exp);
-        return true;
-      }
+          exp.reset();
+          exp.resize(1);
+          XMassFile().load(filename, exp[0]);
+          XMassFile().importExperimentalSettings(filename, exp); 
+
+        break;
 
       default:
+        return false;
         break;
       }
 
-      return false;
+      SourceFile src_file;
+      src_file.setNameOfFile(File::basename(filename));
+      src_file.setPathToFile(String("file:///") + File::path(filename));
+      // this is more complicated since the data formats allowed by mzML are very verbose.
+      // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
+      src_file.setFileType(FileTypes::typeToMZML(type));
+      
+      exp.getSourceFiles().clear();
+      exp.getSourceFiles().push_back(src_file);
+      
+      return true;
     }
 
     /**

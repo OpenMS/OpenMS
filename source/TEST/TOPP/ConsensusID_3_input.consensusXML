@@ -14,9 +14,9 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<mapList count="2">
-		<map id="0" name="FeatureLinker_2_input1.featureXML" label="" size="2">
+		<map id="1" name="FeatureLinker_2_input1.featureXML" label="" size="2">
 		</map>
-		<map id="1" name="FeatureLinker_2_input2.featureXML" label="" size="2">
+		<map id="2" name="FeatureLinker_2_input2.featureXML" label="" size="2">
 		</map>
 	</mapList>
 	<consensusElementList>

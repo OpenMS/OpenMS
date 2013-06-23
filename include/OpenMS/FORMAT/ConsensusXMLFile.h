@@ -73,6 +73,7 @@ public:
 
     @exception Exception::FileNotFound is thrown if the file could not be opened
     @exception Exception::ParseError is thrown if an error occurs during parsing
+    @exception Exception::MissingInformation is thrown if source files are missing/duplicated or map-IDs are referencing non-existing maps
     */
     void load(const String & filename, ConsensusMap & map);
 
@@ -81,6 +82,7 @@ public:
 
     @exception Exception::UnableToCreateFile is thrown if the file name is not writable
     @exception Exception::IllegalArgument is thrown if the consensus map is not valid
+    @exception Exception::MissingInformation is thrown if source files are missing/duplicated or map-IDs are referencing non-existing maps
     */
     void store(const String & filename, const ConsensusMap & consensus_map);
 
@@ -115,7 +117,6 @@ protected:
     ConsensusFeature act_cons_element_;
     DPosition<2> pos_;
     DoubleReal it_;
-    UInt last_map_;
     //@}
 
     /// Pointer to last read object as a MetaInfoInterface, or null.

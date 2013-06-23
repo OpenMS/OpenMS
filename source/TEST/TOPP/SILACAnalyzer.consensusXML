@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////Users/lars/Software/OpenMS_release1.9/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.5" id="cm_16627578304933075941" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <dataProcessing completion_time="1999-12-31T23:59:59">
-    <software name="SILACAnalyzer" version="version_string" />
-    <processingAction name="Data processing action" />
-    <processingAction name="Peak picking" />
-    <processingAction name="Data filtering" />
-    <processingAction name="Quantitation" />
-    <userParam type="string" name="parameter: mode" value="test_mode"/>
-  </dataProcessing>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="SILACAnalyzer" version="version_string" />
+		<processingAction name="Data processing action" />
+		<processingAction name="Peak picking" />
+		<processingAction name="Data filtering" />
+		<processingAction name="Quantitation" />
+		<userParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
 	<mapList count="2">
-		<map id="0" name="" label="" size="3">
+		<map id="0" name="SILACAnalyzer.mzML" label="" size="3">
 		</map>
-		<map id="1" name="" label="" size="3">
+		<map id="1" name="SILACAnalyzer.mzML" label="Lys8" size="3">
 		</map>
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_13229490167902618598" quality="8" charge="2">
-			<centroid rt="6632.409" mz="668.32420994068" it="1.00231e+06"/>
+			<centroid rt="6632.409" mz="668.321376400932" it="1.00231e+006"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="6632.409" mz="668.32420994068" it="1.00231e+06" charge="2"/>
-				<element map="1" id="0" rt="6632.409" mz="672.33130934728" it="2.47309e+06" charge="2"/>
+				<element map="0" id="0" rt="6632.409" mz="668.321376400932" it="1.00231e+006" charge="2"/>
+				<element map="1" id="0" rt="6632.409" mz="672.330197205526" it="2.47309e+006" charge="2"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_5024549519481199379" quality="8" charge="2">
-			<centroid rt="6637.8146" mz="670.894241350385" it="1.77616e+08"/>
+			<centroid rt="6635.16919064238" mz="670.894442126775" it="1.77616e+008"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="6637.8146" mz="670.894241350385" it="1.77616e+08" charge="2"/>
-				<element map="1" id="0" rt="6635.2151" mz="674.901340756983" it="4.04058e+08" charge="2"/>
+				<element map="0" id="0" rt="6635.16919064238" mz="670.894442126775" it="1.77616e+008" charge="2"/>
+				<element map="1" id="0" rt="6635.01267743227" mz="674.901515439438" it="4.04058e+008" charge="2"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_6211693768620736135" quality="8" charge="2">
-			<centroid rt="6660.1986" mz="668.826220450772" it="6.54134e+07"/>
+			<centroid rt="6657.5643894513" mz="668.826220856026" it="6.54134e+007"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="6660.1986" mz="668.826220450772" it="6.54134e+07" charge="2"/>
-				<element map="1" id="0" rt="6662.3176" mz="672.833319857372" it="1.50153e+08" charge="2"/>
+				<element map="0" id="0" rt="6657.5643894513" mz="668.826220856026" it="6.54134e+007" charge="2"/>
+				<element map="1" id="0" rt="6657.08160821906" mz="672.833438724216" it="1.50153e+008" charge="2"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>
