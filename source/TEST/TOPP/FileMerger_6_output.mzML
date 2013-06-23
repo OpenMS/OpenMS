@@ -12,11 +12,16 @@
 			<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
-		<sourceFileList count="2">
-			<sourceFile id="sf_ru_0" name="tiny1.RAW" location="file:///F:/data/Exp01">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1" />
-				<cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" />
-				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
+		<sourceFileList count="3">
+			<sourceFile id="sf_ru_0" name="FileMerger_6_input2.mzML" location="<TEST_DATA_PATH>">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000584" name="mzML file" />
+				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+			</sourceFile>
+			<sourceFile id="sf_sp_0" name="FileMerger_6_input1.mzML" location="<TEST_DATA_PATH>">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000584" name="mzML file" />
+				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_2" name="tiny1.dta" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
@@ -124,7 +129,7 @@
 		<userParam name="flag" type="xsd:string" value=""/>
 		<userParam name="float" type="xsd:double" value="5.11"/>
 		<spectrumList count="3" defaultDataProcessingRef="dp_sp_0">
-			<spectrum id="spectrum=0" index="0" defaultArrayLength="15" dataProcessingRef="dp_sp_0">
+			<spectrum id="spectrum=0" index="0" defaultArrayLength="15" sourceFileRef="sf_sp_0" dataProcessingRef="dp_sp_0">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />

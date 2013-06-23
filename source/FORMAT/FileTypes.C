@@ -48,6 +48,19 @@ namespace OpenMS
     }
   }
 
+  String FileTypes::typeToMZML(FileTypes::Type type)
+  {
+    if (name_of_MZMLtypes_.find(type) != name_of_MZMLtypes_.end())
+    {
+      //std::cerr << "found type: " << name_of_MZMLtypes_.find(type)->second << "\n";
+      return name_of_MZMLtypes_.find(type)->second;
+    }
+    else
+    {
+      return "";
+    }
+  }
+
   FileTypes::Type FileTypes::nameToType(const String& name)
   {
     String tmp = name;
@@ -68,6 +81,7 @@ namespace OpenMS
   }
 
   const std::map<FileTypes::Type, String> FileTypes::name_of_types_ = FileTypes::initializeMap_();
+  const std::map<FileTypes::Type, String> FileTypes::name_of_MZMLtypes_ = FileTypes::initializeMZMLMap_();
 
   std::map<FileTypes::Type, String> FileTypes::initializeMap_()
   {
@@ -116,4 +130,17 @@ namespace OpenMS
     return targetMap;
   }
 
+  std::map<FileTypes::Type, String> FileTypes::initializeMZMLMap_()
+  {
+    std::map<Type, String> targetMap;
+    targetMap[FileTypes::DTA] = "DTA file";
+    targetMap[FileTypes::DTA2D] = "DTA file";   // technically not correct, but closer than just a random CV term (currently mzData) - entry cannot be left empty
+    targetMap[FileTypes::MZML] = "mzML file";
+    targetMap[FileTypes::MZDATA] = "PSI mzData file";
+    targetMap[FileTypes::MZXML] = "ISB mzXML file";
+    targetMap[FileTypes::MGF] = "Mascot MGF file";
+    targetMap[FileTypes::XMASS] = "Bruker FID file";
+
+    return targetMap;
+  }
 }

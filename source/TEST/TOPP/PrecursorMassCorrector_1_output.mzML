@@ -12,9 +12,9 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="file://U-096-CPC14/E/mzWiff-4.1.1/DeNovo QStar/QStar_BSA_500fmol_2.wiff" location="">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a0193bfb3701b50465b30c167c515d8b184c5e6e" />
-				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
+			<sourceFile id="sf_ru_0" name="PrecursorMassCorrector_1_input.mzML" location="file:///C:/dev/OpenMS/source/TEST/TOPP">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000584" name="mzML file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>

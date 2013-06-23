@@ -3736,20 +3736,20 @@ protected:
       {
         os << "\t\t<sourceFileList count=\"" << exp.getSourceFiles().size() + sf_sp_count << "\">\n";
         //write source file of run
-        if (exp.getSourceFiles().size() > 0)
+        for (Size i=0; i<exp.getSourceFiles().size(); ++i)
         {
-          writeSourceFile_(os, String("sf_ru_0"), exp.getSourceFiles()[0], validator);
+          writeSourceFile_(os, String("sf_ru_") + String(i), exp.getSourceFiles()[i], validator);
         }
-        if (exp.getSourceFiles().size() > 1)
+        // write source files of spectra
+        if (sf_sp_count > 0 )
         {
-          warning(STORE, "The MzML format can store only one source file per run. Only the first one is stored!");
-        }
-        //write source files of spectra
-        for (Size i = 0; i < exp.size(); ++i)
-        {
-          if (exp[i].getSourceFile() != SourceFile())
+          const SourceFile sf_default;
+          for (Size i = 0; i < exp.size(); ++i)
           {
-            writeSourceFile_(os, String("sf_sp_") + i, exp[i].getSourceFile(), validator);
+            if (exp[i].getSourceFile() != sf_default)
+            {
+              writeSourceFile_(os, String("sf_sp_") + i, exp[i].getSourceFile(), validator);
+            }
           }
         }
         os << "\t\t</sourceFileList>\n";

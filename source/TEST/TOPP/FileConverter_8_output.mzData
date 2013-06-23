@@ -16,9 +16,9 @@
 				<userParam name="cellular quality" value="11.11"/>
 			</sampleDescription>
 			<sourceFile>
-				<nameOfFile>tiny1.RAW</nameOfFile>
-				<pathToFile>file:///F:/data/Exp01</pathToFile>
-				<fileType>Thermo RAW file</fileType>
+				<nameOfFile>FileConverter_8_input.mzML</nameOfFile>
+				<pathToFile><TEST_DATA_PATH></pathToFile>
+				<fileType>mzML file</fileType>
 			</sourceFile>
 			<contact>
 				<name>William Pennington</name>

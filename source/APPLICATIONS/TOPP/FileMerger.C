@@ -110,7 +110,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", StringList::create("mzML,featureXML,consensusXML,traML"));
 
-    registerFlag_("annotate_file_origin", "Store the original filename in each feature (MetaValue: file_origin).");
+    registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
 
     addEmptyLine_();
     registerTOPPSubsection_("raw", "Flags for non-featureXML input/output");
@@ -350,6 +350,7 @@ protected:
           out.addSpectrum(*it2);
           out.getSpectra().back().setRT(rt_final);
           out.getSpectra().back().setNativeID(native_id);
+
           if (user_ms_level)
           {
             out.getSpectra().back().setMSLevel((int)getIntOption_("raw:ms_level"));
@@ -357,17 +358,31 @@ protected:
           ++native_id;
         }
 
+        if (test_mode_)  in.getSourceFiles()[0].setPathToFile("<TEST_DATA_PATH>"); // this is not platform independent, and we want the same result everywhere (in test mode)
+
+        // if we had only one spectrum, we can annotate it directly, for more spectra, we just name the source file leaving the spectra unannotated (to avoid a long and redundant list of sourceFiles)
+        if (in.size()==1)
+        {
+            out.getSpectra().back().setSourceFile(in.getSourceFiles()[0]);
+            in.getSourceFiles().clear(); // delete source file annotated from source file (its in the spectrum anyways)
+        }
+        // copy experimental settings from first file
+        if (i == 0)
+        {
+          out.ExperimentalSettings::operator=(in);
+        }
+        else  // otherwise append
+        {
+          out.getSourceFiles().insert(out.getSourceFiles().end(), in.getSourceFiles().begin(), in.getSourceFiles().end()); // could be emtpty if spectrum was annotated above, but that's ok then
+        }
+
+
         // also add the chromatograms
         for (std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator it2 = in.getChromatograms().begin(); it2 != in.getChromatograms().end(); ++it2)
         {
           all_chromatograms.push_back(*it2);
         }
 
-        // copy experimental settings from first file
-        if (i == 0)
-        {
-          out.ExperimentalSettings::operator=(in);
-        }
       }
       // set the chromatograms
       out.setChromatograms(all_chromatograms);

@@ -11,6 +11,13 @@
 		<fileContent>
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
+		<sourceFileList count="1">
+			<sourceFile id="sf_ru_0" name="FileConverter_2_input.someInputDTA2D" location="<TEST_DATA_PATH>">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+			</sourceFile>
+		</sourceFileList>
 	</fileDescription>
 	<sampleList count="1">
 		<sample id="sa_0" name="">
@@ -45,7 +52,7 @@
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
-	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
 		<spectrumList count="8" defaultDataProcessingRef="dp_sp_0">
 			<spectrum id="index=0" index="0" defaultArrayLength="1" dataProcessingRef="dp_sp_0">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
