@@ -71,43 +71,43 @@ PeakType tmp_peak0, tmp_peak1, tmp_peak2, tmp_peak3, tmp_peak4, tmp_peak5, tmp_p
 
 tmp_peak0.setRT(152.22);
 tmp_peak0.setMZ(230.10223);
-tmp_peak0.setIntensity(542.0);
+tmp_peak0.setIntensity((OpenMS::Peak2D::IntensityType)542.0);
 peak_vec.push_back(tmp_peak0);
 peak_lst.push_back(tmp_peak0);
 
 tmp_peak1.setRT(153.23);
 tmp_peak1.setMZ(230.10235);
-tmp_peak1.setIntensity(542293.0);
+tmp_peak1.setIntensity((OpenMS::Peak2D::IntensityType)542293.0);
 peak_vec.push_back(tmp_peak1);
 peak_lst.push_back(tmp_peak1);
 
 tmp_peak2.setRT(154.21);
 tmp_peak2.setMZ(230.10181);
-tmp_peak2.setIntensity(18282393.0);
+tmp_peak2.setIntensity((OpenMS::Peak2D::IntensityType)18282393.0);
 peak_vec.push_back(tmp_peak2);
 peak_lst.push_back(tmp_peak2);
 
 tmp_peak3.setRT(155.24);
 tmp_peak3.setMZ(230.10229);
-tmp_peak3.setIntensity(33329535.0);
+tmp_peak3.setIntensity((OpenMS::Peak2D::IntensityType)33329535.0);
 peak_vec.push_back(tmp_peak3);
 peak_lst.push_back(tmp_peak3);
 
 tmp_peak4.setRT(156.233);
 tmp_peak4.setMZ(230.10116);
-tmp_peak4.setIntensity(17342933.0);
+tmp_peak4.setIntensity((OpenMS::Peak2D::IntensityType)17342933.0);
 peak_vec.push_back(tmp_peak4);
 peak_lst.push_back(tmp_peak4);
 
 tmp_peak5.setRT(157.24);
 tmp_peak5.setMZ(230.10198);
-tmp_peak5.setIntensity(333291.0);
+tmp_peak5.setIntensity((OpenMS::Peak2D::IntensityType)333291.0);
 peak_vec.push_back(tmp_peak5);
 peak_lst.push_back(tmp_peak5);
 
 tmp_peak6.setRT(158.238);
 tmp_peak6.setMZ(230.10254);
-tmp_peak6.setIntensity(339.0);
+tmp_peak6.setIntensity((OpenMS::Peak2D::IntensityType)339.0);
 peak_vec.push_back(tmp_peak5);
 peak_lst.push_back(tmp_peak5);
 
@@ -175,11 +175,11 @@ START_SECTION((PeakType& operator[](const Size &mt_idx)))
 {
     TEST_REAL_SIMILAR(test_mt[1].getRT(), 153.23);
     TEST_REAL_SIMILAR(test_mt[1].getMZ(), 230.10235);
-    TEST_REAL_SIMILAR(test_mt[1].getIntensity(), 542293.0);
+    TEST_REAL_SIMILAR(test_mt[1].getIntensity(), (OpenMS::Peak2D::IntensityType)542293.0);
 
     TEST_REAL_SIMILAR(test_mt[4].getRT(), 156.233);
     TEST_REAL_SIMILAR(test_mt[4].getMZ(), 230.10116);
-    TEST_REAL_SIMILAR(test_mt[4].getIntensity(), 17342933.0);
+    TEST_REAL_SIMILAR(test_mt[4].getIntensity(), (OpenMS::Peak2D::IntensityType)17342933.0);
 }
 END_SECTION
 
