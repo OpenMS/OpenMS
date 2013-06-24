@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -120,7 +120,7 @@ TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("pepnovo.txt")), FileTypes::TXT
 TEST_EXCEPTION(Exception::FileNotFound, tmp.getType("/bli/bla/bluff"))
 END_SECTION
 
-START_SECTION((template <class PeakType> bool loadExperiment(const String &filename, MSExperiment<PeakType>&exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE)))
+START_SECTION((template <class PeakType> bool loadExperiment(const String &filename, MSExperiment<PeakType>&exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool compute_hash = false)))
 FileHandler tmp;
 MSExperiment<> exp;
 TEST_EQUAL(tmp.loadExperiment("test.bla", exp), false)
@@ -152,6 +152,8 @@ TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 140)
 tmp.getOptions() = PeakFileOptions();
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp), true)
 TEST_EQUAL(exp.size(), 4)
+TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "1bba4248ffd9231a39d431e10512e34ac5917f50")
+TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)  
 
 tmp.getOptions() = PeakFileOptions();
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp), true)
@@ -163,8 +165,15 @@ tmp.getOptions().setMZRange(DRange<1>(300, 1000));
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp), true)
 TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
+TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
+TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
 
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("XMassFile_test/fid"), exp), true)
+
+// disable hash computation
+TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, FileTypes::UNKNOWN, ProgressLogger::NONE, false), true)
+TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "")
+TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM)
 
 TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp, FileTypes::DTA2D))
 END_SECTION

@@ -13,7 +13,7 @@
 		</fileContent>
 		<sourceFileList count="1">
 			<sourceFile id="sf_ru_0" name="FileConverter_4_input.mzXML" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="be7f20d880b84b22b47267097d43bd07d64e4b87" />
 				<cvParam cvRef="MS" accession="MS:1000566" name="ISB mzXML file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>

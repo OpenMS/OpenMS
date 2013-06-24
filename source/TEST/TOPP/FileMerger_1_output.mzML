@@ -13,17 +13,17 @@
 		</fileContent>
 		<sourceFileList count="3">
 			<sourceFile id="sf_sp_0" name="FileMerger_1_input1.dta2d" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="47361b9c3807929755a552eb5633eb789c29e93a" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_1" name="FileMerger_1_input2.dta" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="bbee73d177ce92065984b078309de6dcd0db4a2c" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_2" name="FileMerger_1_input3.dta2d" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0502bbc772a9a4029fff26594ecf85c4e2c16b3c" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>

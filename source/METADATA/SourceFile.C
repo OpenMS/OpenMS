@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -49,13 +49,13 @@ namespace OpenMS
     file_size_(),
     file_type_(),
     checksum_(),
-    checksum_type_(),
+    checksum_type_(SourceFile::UNKNOWN_CHECKSUM),
     native_id_type_("")
   {
 
   }
 
-  SourceFile::SourceFile(const SourceFile & source) :
+  SourceFile::SourceFile(const SourceFile& source) :
     CVTermList(source),
     name_of_file_(source.name_of_file_),
     path_to_file_(source.path_to_file_),
@@ -71,7 +71,7 @@ namespace OpenMS
   {
   }
 
-  SourceFile & SourceFile::operator=(const SourceFile & source)
+  SourceFile& SourceFile::operator=(const SourceFile& source)
   {
     if (&source == this)
       return *this;
@@ -88,7 +88,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool SourceFile::operator==(const SourceFile & rhs) const
+  bool SourceFile::operator==(const SourceFile& rhs) const
   {
     return CVTermList::operator==(rhs) &&
            name_of_file_ == rhs.name_of_file_ &&
@@ -100,27 +100,27 @@ namespace OpenMS
            native_id_type_ == rhs.native_id_type_;
   }
 
-  bool SourceFile::operator!=(const SourceFile & rhs) const
+  bool SourceFile::operator!=(const SourceFile& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & SourceFile::getNameOfFile() const
+  const String& SourceFile::getNameOfFile() const
   {
     return name_of_file_;
   }
 
-  void SourceFile::setNameOfFile(const String & name_of_file)
+  void SourceFile::setNameOfFile(const String& name_of_file)
   {
     name_of_file_ = name_of_file;
   }
 
-  const String & SourceFile::getPathToFile() const
+  const String& SourceFile::getPathToFile() const
   {
     return path_to_file_;
   }
 
-  void SourceFile::setPathToFile(const String & path_to_file)
+  void SourceFile::setPathToFile(const String& path_to_file)
   {
     path_to_file_ = path_to_file;
   }
@@ -135,17 +135,17 @@ namespace OpenMS
     file_size_ = file_size;
   }
 
-  const String & SourceFile::getFileType() const
+  const String& SourceFile::getFileType() const
   {
     return file_type_;
   }
 
-  void SourceFile::setFileType(const String & file_type)
+  void SourceFile::setFileType(const String& file_type)
   {
     file_type_ = file_type;
   }
 
-  const String & SourceFile::getChecksum() const
+  const String& SourceFile::getChecksum() const
   {
     return checksum_;
   }
@@ -155,18 +155,18 @@ namespace OpenMS
     return checksum_type_;
   }
 
-  void SourceFile::setChecksum(const String & checksum, ChecksumType type)
+  void SourceFile::setChecksum(const String& checksum, ChecksumType type)
   {
     checksum_ = checksum;
     checksum_type_ = type;
   }
 
-  const String & SourceFile::getNativeIDType() const
+  const String& SourceFile::getNativeIDType() const
   {
     return native_id_type_;
   }
 
-  void SourceFile::setNativeIDType(const String & type)
+  void SourceFile::setNativeIDType(const String& type)
   {
     native_id_type_ = type;
   }

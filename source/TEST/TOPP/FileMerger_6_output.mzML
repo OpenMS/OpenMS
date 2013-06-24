@@ -14,12 +14,12 @@
 		</fileContent>
 		<sourceFileList count="3">
 			<sourceFile id="sf_ru_0" name="FileMerger_6_input2.mzML" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="6f3fd90af903c910d81d5d90088f805c33643ea5" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_0" name="FileMerger_6_input1.mzML" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="9caaed25a86b1e7306259612b4f74e461af7968e" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>

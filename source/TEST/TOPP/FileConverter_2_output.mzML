@@ -13,7 +13,7 @@
 		</fileContent>
 		<sourceFileList count="1">
 			<sourceFile id="sf_ru_0" name="FileConverter_2_input.someInputDTA2D" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="ceb081c5241c5cc9aedf0dd9f705b7620a7c2267" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>

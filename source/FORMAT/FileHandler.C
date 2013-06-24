@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -37,13 +37,16 @@
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 
+#include <QFile>
+#include <QCryptographicHash>
+
 #include <fstream>
 
 using namespace std;
 
 namespace OpenMS
 {
-  FileTypes::Type FileHandler::getType(const String & filename)
+  FileTypes::Type FileHandler::getType(const String& filename)
   {
     FileTypes::Type type = getTypeByFileName(filename);
     if (type == FileTypes::UNKNOWN)
@@ -53,7 +56,7 @@ namespace OpenMS
     return type;
   }
 
-  FileTypes::Type FileHandler::getTypeByFileName(const String & filename)
+  FileTypes::Type FileHandler::getTypeByFileName(const String& filename)
   {
     String basename = File::basename(filename), tmp;
     // special rules for "double extensions":
@@ -68,7 +71,7 @@ namespace OpenMS
       tmp = basename.suffix('.');
     }
     // no '.' => unknown type
-    catch (Exception::ElementNotFound &)
+    catch (Exception::ElementNotFound&)
     {
       // last chance, Bruker fid file
       if (basename == "fid")
@@ -99,7 +102,7 @@ namespace OpenMS
     }
   }
 
-  FileTypes::Type FileHandler::getTypeByContent(const String & filename)
+  FileTypes::Type FileHandler::getTypeByContent(const String& filename)
   {
     String first_line;
     String two_five;
@@ -134,7 +137,7 @@ namespace OpenMS
       all_simple = first_line + ' ' + two_five;
       complete_file = split;
     }
-    else if (bz[0] == g1 && bz[1] == g2)     // gzip
+    else if (bz[0] == g1 && bz[1] == g2) // gzip
     {
       GzipIfstream gzip_file(filename.c_str());
       char buffer[1024];
@@ -149,11 +152,11 @@ namespace OpenMS
       complete_file = split;
     }
     //else {} // TODO: ZIP
-    else     // uncompressed
+    else // uncompressed
     {
       //load first 5 lines
       TextFile file(filename, true, 5);
-      file.resize(5);   // in case not enough lines are in the file
+      file.resize(5); // in case not enough lines are in the file
       two_five = file[1] + ' ' + file[2] + ' ' + file[3] + ' ' + file[4];
       two_five.substitute('\t', ' ');
       all_simple = file[0] + ' ' + two_five;
@@ -377,14 +380,26 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return FileTypes::UNKNOWN;
   }
 
-  PeakFileOptions & FileHandler::getOptions()
+  PeakFileOptions& FileHandler::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions & FileHandler::getOptions() const
+  const PeakFileOptions& FileHandler::getOptions() const
   {
     return options_;
+  }
+
+  String FileHandler::computeFileHash_(const String& filename) const
+  {
+    QCryptographicHash crypto(QCryptographicHash::Sha1);
+    QFile file(filename.toQString());
+    file.open(QFile::ReadOnly);
+    while (!file.atEnd())
+    {
+      crypto.addData(file.read(8192));
+    }
+    return String((QString)crypto.result().toHex());
   }
 
 } // namespace OpenMS

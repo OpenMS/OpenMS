@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -58,17 +58,17 @@
 namespace OpenMS
 {
   /**
-      @brief Facilitates file handling by file type recognition.
+    @brief Facilitates file handling by file type recognition.
 
-      This class provides file type recognition from the file name and
-      from the file content.
+    This class provides file type recognition from the file name and
+    from the file content.
 
-      It also offer a common interface to load MSExperiment data
-      and allows querying for supported file types.
+    It also offer a common interface to load MSExperiment data
+    and allows querying for supported file types.
 
-      @see FileTypes
+    @see FileTypes
 
-      @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI FileHandler
   {
@@ -81,43 +81,44 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
-    static FileTypes::Type getType(const String & filename);
+    static FileTypes::Type getType(const String& filename);
 
 
     /// Determines the file type from a file name
-    static FileTypes::Type getTypeByFileName(const String & filename);
+    static FileTypes::Type getTypeByFileName(const String& filename);
 
     /**
       @brief Determines the file type of a file by parsing the first few lines
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
-    static FileTypes::Type getTypeByContent(const String & filename);
+    static FileTypes::Type getTypeByContent(const String& filename);
 
     /// Returns if the file type is supported in this build of the library
     static bool isSupported(FileTypes::Type type);
 
     /// Mutable access to the options for loading/storing
-    PeakFileOptions & getOptions();
+    PeakFileOptions& getOptions();
 
     /// Non-mutable access to the options for loading/storing
-    const PeakFileOptions & getOptions() const;
+    const PeakFileOptions& getOptions() const;
 
     /**
-        @brief Loads a file into an MSExperiment
+      @brief Loads a file into an MSExperiment
 
-        @param filename The file name of the file to load.
-        @param exp The experiment to load the data into.
-        @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
-        @param log Progress logging mode
+      @param filename The file name of the file to load.
+      @param exp The experiment to load the data into.
+      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
+      @param log Progress logging mode
+      @param compute_hash Computes a hash value for the loaded file and stores it in the SourceFile
 
-        @return true if the file could be loaded, false otherwise
+      @return true if the file could be loaded, false otherwise
 
-        @exception Exception::FileNotFound is thrown if the file could not be opened
-        @exception Exception::ParseError is thrown if an error occurs during parsing
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <class PeakType>
-    bool loadExperiment(const String & filename, MSExperiment<PeakType> & exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE)
+    bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool compute_hash = true)
     {
       //determine file type
       FileTypes::Type type;
@@ -147,72 +148,73 @@ public:
         break;
 
       case FileTypes::DTA2D:
-        {
-          DTA2DFile f;
-          f.getOptions() = options_;
-          f.setLogType(log);
-          f.load(filename, exp); 
-        }
+      {
+        DTA2DFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
 
-        break;
+      break;
 
       case FileTypes::MZXML:
-        {
-          MzXMLFile f;
-          f.getOptions() = options_;
-          f.setLogType(log);
-          f.load(filename, exp); 
-        }
+      {
+        MzXMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
 
-        break;
+      break;
 
       case FileTypes::MZDATA:
-        {
-          MzDataFile f;
-          f.getOptions() = options_;
-          f.setLogType(log);
-          f.load(filename, exp);
-        }
-        break;
+      {
+        MzDataFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
 
       case FileTypes::MZML:
-        {
-          MzMLFile f;
-          f.getOptions() = options_;
-          f.setLogType(log);
-          f.load(filename, exp);
-          ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp, true); 
-        }
-        break;
+      {
+        MzMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.load(filename, exp);
+        ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp, true);
+      }
+      break;
 
       case FileTypes::MGF:
-        {
-          MascotGenericFile f;
-          f.setLogType(log);
-          f.load(filename, exp); 
-        }
+      {
+        MascotGenericFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
 
-        break;
+      break;
 
       case FileTypes::MS2:
-        {
-          MS2File f;
-          f.setLogType(log);
-          f.load(filename, exp); 
-        }
+      {
+        MS2File f;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
 
-        break;
+      break;
 
       case FileTypes::XMASS:
-          exp.reset();
-          exp.resize(1);
-          XMassFile().load(filename, exp[0]);
-          XMassFile().importExperimentalSettings(filename, exp); 
+        exp.reset();
+        exp.resize(1);
+        XMassFile().load(filename, exp[0]);
+        XMassFile().importExperimentalSettings(filename, exp);
 
         break;
 
       default:
         return false;
+
         break;
       }
 
@@ -222,26 +224,31 @@ public:
       // this is more complicated since the data formats allowed by mzML are very verbose.
       // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
       src_file.setFileType(FileTypes::typeToMZML(type));
-      
+
+      if (compute_hash)
+      {
+        src_file.setChecksum(computeFileHash_(filename), SourceFile::SHA1);
+      }
+
       exp.getSourceFiles().clear();
       exp.getSourceFiles().push_back(src_file);
-      
+
       return true;
     }
 
     /**
-        @brief Stores an MSExperiment to a file
+      @brief Stores an MSExperiment to a file
 
-        The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used.
+      The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used.
 
-        @param filename The name of the file to store the data in.
-        @param exp The experiment to store.
-        @param log Progress logging mode
+      @param filename The name of the file to store the data in.
+      @param exp The experiment to store.
+      @param log Progress logging mode
 
-        @exception Exception::UnableToCreateFile is thrown if the file could not be written
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     template <class PeakType>
-    void storeExperiment(const String & filename, const MSExperiment<PeakType> & exp, ProgressLogger::LogType log = ProgressLogger::NONE)
+    void storeExperiment(const String& filename, const MSExperiment<PeakType>& exp, ProgressLogger::LogType log = ProgressLogger::NONE)
     {
       //load right file
       switch (getTypeByFileName(filename))
@@ -303,19 +310,19 @@ public:
     }
 
     /**
-        @brief Loads a file into a FeatureMap
+      @brief Loads a file into a FeatureMap
 
-        @param filename the file name of the file to load.
-        @param map The FeatureMap to load the data into.
-        @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
+      @param filename the file name of the file to load.
+      @param map The FeatureMap to load the data into.
+      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention (or from the content if that fails).
 
-        @return true if the file could be loaded, false otherwise
+      @return true if the file could be loaded, false otherwise
 
-        @exception Exception::FileNotFound is thrown if the file could not be opened
-        @exception Exception::ParseError is thrown if an error occurs during parsing
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <class FeatureType>
-    bool loadFeatures(const String & filename, FeatureMap<FeatureType> & map, FileTypes::Type force_type = FileTypes::UNKNOWN)
+    bool loadFeatures(const String& filename, FeatureMap<FeatureType>& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
     {
       //determine file type
       FileTypes::Type type;
@@ -362,6 +369,13 @@ public:
 
 private:
     PeakFileOptions options_;
+
+    /**
+      @brief Computes a SHA-1 hash value for the content of the given file.
+
+      @return The SHA-1 hash of the given file.
+    */
+    String computeFileHash_(const String& filename) const;
   };
 
 } //namespace

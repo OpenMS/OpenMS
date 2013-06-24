@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -51,9 +51,9 @@ public:
     ///Type of the checksum
     enum ChecksumType
     {
-      UNKNOWN_CHECKSUM,       ///< Unknown checksum type
-      SHA1,          ///< Secure Hash Algorithm-1
-      MD5,               ///< Message-Digest algorithm 5
+      UNKNOWN_CHECKSUM, ///< Unknown checksum type
+      SHA1, ///< Secure Hash Algorithm-1
+      MD5, ///< Message-Digest algorithm 5
       SIZE_OF_CHECKSUMTYPE
     };
     /// Names of checksum types
@@ -62,26 +62,26 @@ public:
     /// Constructor
     SourceFile();
     /// Copy constructor
-    SourceFile(const SourceFile & source);
+    SourceFile(const SourceFile& source);
     /// Destructor
     ~SourceFile();
     /// Assignment operator
-    SourceFile & operator=(const SourceFile & source);
+    SourceFile& operator=(const SourceFile& source);
 
     /// Equality operator
-    bool operator==(const SourceFile & rhs) const;
+    bool operator==(const SourceFile& rhs) const;
     /// Equality operator
-    bool operator!=(const SourceFile & rhs) const;
+    bool operator!=(const SourceFile& rhs) const;
 
     /// returns the file name
-    const String & getNameOfFile() const;
+    const String& getNameOfFile() const;
     /// sets the file name
-    void setNameOfFile(const String & name_of_file);
+    void setNameOfFile(const String& name_of_file);
 
     /// returns the file path
-    const String & getPathToFile() const;
+    const String& getPathToFile() const;
     /// sets the file path
-    void setPathToFile(const String & path_path_to_file);
+    void setPathToFile(const String& path_path_to_file);
 
     /// returns the file size in MB
     Real getFileSize() const;
@@ -89,21 +89,21 @@ public:
     void setFileSize(Real file_size);
 
     /// returns the file type
-    const String & getFileType() const;
+    const String& getFileType() const;
     /// sets the file type
-    void setFileType(const String & file_type);
+    void setFileType(const String& file_type);
 
     /// returns the file's checksum
-    const String & getChecksum() const;
+    const String& getChecksum() const;
     /// sets the file's checksum
-    void setChecksum(const String & checksum, ChecksumType type);
+    void setChecksum(const String& checksum, ChecksumType type);
     /// returns the checksum type
     ChecksumType getChecksumType() const;
 
     /// Returns the native ID type of the spectra
-    const String & getNativeIDType() const;
+    const String& getNativeIDType() const;
     /// Sets the native ID type of the spectra
-    void setNativeIDType(const String & type);
+    void setNativeIDType(const String& type);
 
 protected:
     String name_of_file_;

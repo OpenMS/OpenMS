@@ -13,7 +13,7 @@
 		</fileContent>
 		<sourceFileList count="1">
 			<sourceFile id="sf_ru_0" name="FileConverter_1_input.mzData" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="2a779076ac167ae0a3be6b479f8d29601532b142" />
 				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
