@@ -109,7 +109,7 @@ namespace OpenMS
   */
   template <typename FeatureT = Feature>
   class FeatureMap :
-    public std::vector<FeatureT>,
+    private std::vector<FeatureT>,
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,
@@ -119,6 +119,36 @@ public:
     /**
       @name Type definitions
     */
+    typedef std::vector<FeatureT> privvec;
+
+    using privvec::value_type; 
+    using privvec::iterator; 
+    using privvec::const_iterator; 
+    using privvec::size_type; 
+    using privvec::pointer;          // ConstRefVector
+    using privvec::reference;        // ConstRefVector
+    using privvec::const_reference;  // ConstRefVector
+    using privvec::difference_type;  // ConstRefVector
+ 
+    // functions
+    using privvec::begin; 
+    using privvec::end; 
+    using privvec::rbegin;  // MapStatistics.C (rbegin 422)
+
+    using privvec::size; 
+    using privvec::resize; 
+    using privvec::empty; 
+    using privvec::reserve; 
+    using privvec::operator[]; 
+    using privvec::at;    // UniqueIdIndexer
+    using privvec::front; // FeatureMap_test.C
+    using privvec::back;  // FeatureXMLFile
+
+    using privvec::push_back; 
+    using privvec::pop_back;  // FeatureXMLFile
+    using privvec::insert; 
+    using privvec::erase; 
+
     //@{
     typedef FeatureT FeatureType;
     typedef RangeManager<2> RangeManagerType;
@@ -346,6 +376,12 @@ public:
     }
 
     /// Swaps the content of this map with the content of @p from
+    void swap_features_only(FeatureMap & from)
+    {
+      // TODO used by FeatureFinderAlgorithmPicked -- could it also use regular swap?
+      Base::swap(from);
+    }
+
     void swap(FeatureMap & from)
     {
       FeatureMap tmp;

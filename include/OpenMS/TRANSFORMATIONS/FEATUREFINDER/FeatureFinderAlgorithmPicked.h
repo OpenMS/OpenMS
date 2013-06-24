@@ -1063,7 +1063,7 @@ public:
           tmp.push_back(features_->operator[](i));
         }
       }
-      tmp.Base::swap(*features_);
+      tmp.swap_features_only(*features_);
       //sort features by intensity
       features_->sortByIntensity(true);
       ff_->endProgress();
