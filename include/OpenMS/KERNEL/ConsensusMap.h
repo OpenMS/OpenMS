@@ -58,7 +58,7 @@ namespace OpenMS
     @ingroup Kernel
   */
   class ConsensusMap : // no OPENMS_DLLAPI here, since the class is derived from an STL class - we do not want parts of the STL lib in OpenMS.lib, since it will cause linker errors
-    public std::vector<ConsensusFeature>,
+    private std::vector<ConsensusFeature>,
     public MetaInfoInterface,
     public RangeManager<2>,
     public DocumentIdentifier,
@@ -67,6 +67,35 @@ namespace OpenMS
   {
 
 public:
+    typedef std::vector<ConsensusFeature> privvec;
+
+    // types
+    using privvec::value_type; 
+    using privvec::iterator; 
+    using privvec::const_iterator; 
+    using privvec::size_type; 
+    using privvec::pointer;          // ConstRefVector
+    using privvec::reference;        // ConstRefVector
+    using privvec::const_reference;  // ConstRefVector
+    using privvec::difference_type;  // ConstRefVector
+ 
+    // functions
+    using privvec::begin; 
+    using privvec::end; 
+
+    using privvec::size; 
+    using privvec::resize;
+    using privvec::empty; 
+    using privvec::reserve; 
+    using privvec::operator[]; 
+    using privvec::at;    // UniqueIdIndexer
+    using privvec::front;
+    using privvec::back;
+
+    using privvec::push_back; 
+    using privvec::insert; 
+    using privvec::erase; 
+
 
     /// Source file description for input files
     struct OPENMS_DLLAPI FileDescription :
