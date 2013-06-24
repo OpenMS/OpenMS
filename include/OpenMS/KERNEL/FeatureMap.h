@@ -122,14 +122,14 @@ public:
     typedef std::vector<FeatureT> privvec;
 
     // types
-    using privvec::value_type; 
-    using privvec::iterator; 
-    using privvec::const_iterator; 
-    using privvec::size_type; 
-    using privvec::pointer;          // ConstRefVector
-    using privvec::reference;        // ConstRefVector
-    using privvec::const_reference;  // ConstRefVector
-    using privvec::difference_type;  // ConstRefVector
+    using typename privvec::value_type;
+    using typename privvec::iterator;
+    using typename privvec::const_iterator;
+    using typename privvec::size_type;
+    using typename privvec::pointer;          // ConstRefVector
+    using typename privvec::reference;        // ConstRefVector
+    using typename privvec::const_reference;  // ConstRefVector
+    using typename privvec::difference_type;  // ConstRefVector
  
     // functions
     using privvec::begin; 
