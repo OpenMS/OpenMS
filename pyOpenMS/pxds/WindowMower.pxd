@@ -14,7 +14,11 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>" namespace "Open
         WindowMower()            nogil except +
         WindowMower(WindowMower) nogil except + #wrap-ignore
 
-        void filterSpectrum(MSSpectrum[Peak1D] & spec) nogil except +
+        # sliding window version (slower)
+        void filterPeakSpectrumForTopNInSlidingWindow(MSSpectrum[Peak1D] & spectrum) nogil except +
+        # jumping window version (faster)
+        void filterPeakSpectrumForTopNInJumpingWindow(MSSpectrum[Peak1D] & spectrum) nogil except +
+
         void filterPeakSpectrum(MSSpectrum[Peak1D] & spec) nogil except +
         void filterPeakMap(MSExperiment[Peak1D, ChromatogramPeak] & exp) nogil except +
 

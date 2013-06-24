@@ -233,7 +233,7 @@ class TestSpectraFilter(unittest.TestCase):
         thisfilter = pyopenms.WindowMower();
 
         new_firstspec = self.exp[0]
-        thisfilter.filterSpectrum(new_firstspec)
+        thisfilter.filterPeakSpectrumForTopNInSlidingWindow(new_firstspec)
 
         self.assertNotEqual(new_firstspec.size(), 0)
         self.assertNotEqual(new_firstspec, self.exp[0])
