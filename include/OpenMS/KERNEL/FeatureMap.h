@@ -121,6 +121,7 @@ public:
     */
     typedef std::vector<FeatureT> privvec;
 
+    // types
     using privvec::value_type; 
     using privvec::iterator; 
     using privvec::const_iterator; 
@@ -133,10 +134,9 @@ public:
     // functions
     using privvec::begin; 
     using privvec::end; 
-    using privvec::rbegin;  // MapStatistics.C (rbegin 422)
 
     using privvec::size; 
-    using privvec::resize; 
+    using privvec::resize;  // ConsensusMap, FeatureXMLFile
     using privvec::empty; 
     using privvec::reserve; 
     using privvec::operator[]; 
@@ -146,8 +146,7 @@ public:
 
     using privvec::push_back; 
     using privvec::pop_back;  // FeatureXMLFile
-    using privvec::insert; 
-    using privvec::erase; 
+    using privvec::erase;     // source/VISUAL/Spectrum2DCanvas.C 2871, FeatureMap_test 599
 
     //@{
     typedef FeatureT FeatureType;
