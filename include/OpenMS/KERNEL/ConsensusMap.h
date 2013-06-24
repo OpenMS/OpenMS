@@ -88,14 +88,10 @@ public:
     using privvec::empty; 
     using privvec::reserve; 
     using privvec::operator[]; 
-    using privvec::at;    // UniqueIdIndexer
-    using privvec::front;
-    using privvec::back;
+    using privvec::at;          // UniqueIdIndexer
+    using privvec::back;     // source/ANALYSIS/DECHARGING/FeatureDeconvolution.C:977:
 
     using privvec::push_back; 
-    using privvec::insert; 
-    using privvec::erase; 
-
 
     /// Source file description for input files
     struct OPENMS_DLLAPI FileDescription :
