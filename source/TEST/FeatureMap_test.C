@@ -628,7 +628,7 @@ START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*m
   fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
   TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
   TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
-  fm.front().clearUniqueId();
+  fm.begin()->clearUniqueId();
   TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
   TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
 }
@@ -648,7 +648,7 @@ START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*m
   fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
   TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
   TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
-  fm.front().clearUniqueId();
+  fm.begin()->clearUniqueId();
   TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
   TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
 }

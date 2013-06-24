@@ -141,7 +141,6 @@ public:
     using privvec::reserve; 
     using privvec::operator[]; 
     using privvec::at;    // UniqueIdIndexer
-    using privvec::front; // FeatureMap_test.C
     using privvec::back;  // FeatureXMLFile
 
     using privvec::push_back; 
