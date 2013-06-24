@@ -550,7 +550,7 @@ namespace OpenMS
   void
   ConsensusXMLFile::store(const String& filename, const ConsensusMap& consensus_map)
   {
-    if (!consensus_map.isValid(&LOG_WARN))
+    if (!consensus_map.isMapConsistent(&LOG_WARN))
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. No data was written! Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file!");
     }
@@ -832,7 +832,7 @@ namespace OpenMS
 
     parse_(filename, this);
 
-    if (!map.isValid(&LOG_WARN))  // a warning is printed to LOG_WARN during isValid()
+    if (!map.isMapConsistent(&LOG_WARN))  // a warning is printed to LOG_WARN during isMapConsistent()
     {
       // don't throw exception for now, since this would prevent us from reading old files...
       // throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");

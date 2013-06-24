@@ -465,7 +465,7 @@ namespace OpenMS
   }
 
 
-  bool ConsensusMap::isValid(Logger::LogStream* stream) const
+  bool ConsensusMap::isMapConsistent(Logger::LogStream* stream) const
   {
     Size stats_wrongMID(0); // invalid map ID references by a feature handle
     Map<Size,Size> wrong_ID_count; // which IDs were given which are not valid
