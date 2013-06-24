@@ -52,9 +52,8 @@ foreach(i ${EXAMPLES_executables})
   
   # if not GUI -> add as test
   if(NOT ${i} MATCHES "_GUI_")
-  	add_test(NAME ${i}
-             WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-             COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+  	add_test(${i}
+             ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_LIST_DIR}  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
   endif()
 endforeach(i)
 
