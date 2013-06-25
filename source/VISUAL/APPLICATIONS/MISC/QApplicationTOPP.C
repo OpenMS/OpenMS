@@ -70,9 +70,9 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      String msg = String("Catched Exception: '") + e.getName() + "' with message '" + e.getMessage() + "'";
+      String msg = String("Caught exception: '") + e.getName() + "' with message '" + e.getMessage() + "'";
       LOG_ERROR << msg << "\n";
-      QMessageBox::warning(0, QString("Unexpected exception occurred"), msg.toQString());
+      QMessageBox::warning(0, QString("Unexpected error occurred"), msg.toQString());
       return false;
       // we could also exit() here... but no for now
     }
