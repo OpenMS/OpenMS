@@ -81,7 +81,7 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input qcml file",false);
+    registerInputFile_("in", "<file>", "", "Input qcml file", false);
     setValidFormats_("in", StringList::create("qcML"));
     registerStringOption_("qp", "<string>", "", "Target attachment table.");
     registerStringOption_("qp_acc", "<string>", "", "The accession number of the given qp, only needed if qp is not yet contained in the run/set.", false);
@@ -94,7 +94,7 @@ protected:
     setValidFormats_("table", StringList::create("csv"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
     setValidFormats_("out", StringList::create("qcML"));
-		registerStringOption_("set/run", "<choice>", "", "If no in file, decides where to attach.",false);
+    registerStringOption_("set/run", "<choice>", "", "If no in file, decides where to attach.", false);
     setValidStrings_("set/run", StringList::create("set,run"));
 
   }
@@ -112,8 +112,8 @@ protected:
     String plot_file            = getStringOption_("plot");
     String target_acc           = getStringOption_("qp_acc");
     String tab                  = getStringOption_("table");
-		String setrun            = getStringOption_("set/run");
-		
+    String setrun            = getStringOption_("set/run");
+
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
@@ -123,10 +123,10 @@ protected:
     }
 
     QcMLFile qcmlfile;
-		if (in != "")
-		{
-			qcmlfile.load(in);
-		}
+    if (in != "")
+    {
+      qcmlfile.load(in);
+    }
 
     if (target_run == "")
     {
@@ -209,7 +209,7 @@ protected:
       {
         QcMLFile::Attachment at;
         CsvFile csv_file(tab);
-        if (csv_file.size()>1)
+        if (csv_file.size() > 1)
         {
           at.name = target_qp;
           //~ at.unitRef; //TODO MIME type
@@ -235,9 +235,9 @@ protected:
             }
             at.tableRows.push_back(v);
           }
-				}
-									
-				std::vector<String> ids;
+        }
+
+        std::vector<String> ids;
         qcmlfile.existsRunQualityParameter(target_run, target_qp, ids);
 
         if (!ids.empty())
@@ -255,49 +255,49 @@ protected:
           }
           else
           {
-						//if exists set/run TODO
+            //if exists set/run TODO
             QcMLFile::QualityParameter qp;
             if (target_acc != "" && target_qp != "")
             {
-							QcMLFile::QualityParameter def;
+              QcMLFile::QualityParameter def;
               qp.name = target_qp; ///< Name
               qp.id = target_run + "_" + target_acc; ///< Identifier
               qp.cvRef = "QC"; ///< cv reference
               qp.cvAcc = target_acc;
               qp.value = target_run;
-              
+
               //TODO check if the qp are in the obo as soon as there is one
 
               at.qualityRef = qp.id;
-							if (qcmlfile.existsSet(target_run) || setrun == "set") //TODO default name-qp  if file created new (no set/run exists)
-							{
-								if (in == "")
-								{
-									QcMLFile::QualityParameter def;
-									def.name = "set name"; ///< Name
-									def.id = "default set name"; ///< Identifier
-									def.cvRef = "QC"; ///< cv reference
-									def.cvAcc = "QC:0000058";
-									def.value = "default set name";
-									qcmlfile.addSetQualityParameter(target_run, def);
-								}
-								qcmlfile.addSetQualityParameter(target_run, qp);
-								qcmlfile.addSetAttachment(target_run, at);
-							}
-							else
-							{
-								if (in == "")
-								{
-									def.name = "mzML file"; ///< Name
-									def.id = "default mzML file"; ///< Identifier
-									def.cvRef = "MS"; ///< cv reference
-									def.cvAcc = "MS:1000584";
-									def.value = "default mzML file";
-									qcmlfile.addSetQualityParameter(target_run, def);
-								}
-								qcmlfile.addRunQualityParameter(target_run, qp);
-								qcmlfile.addRunAttachment(target_run, at);
-							}
+              if (qcmlfile.existsSet(target_run) || setrun == "set")               //TODO default name-qp  if file created new (no set/run exists)
+              {
+                if (in == "")
+                {
+                  QcMLFile::QualityParameter def;
+                  def.name = "set name";                   ///< Name
+                  def.id = "default set name";                   ///< Identifier
+                  def.cvRef = "QC";                   ///< cv reference
+                  def.cvAcc = "QC:0000058";
+                  def.value = "default set name";
+                  qcmlfile.addSetQualityParameter(target_run, def);
+                }
+                qcmlfile.addSetQualityParameter(target_run, qp);
+                qcmlfile.addSetAttachment(target_run, at);
+              }
+              else
+              {
+                if (in == "")
+                {
+                  def.name = "mzML file";                   ///< Name
+                  def.id = "default mzML file";                   ///< Identifier
+                  def.cvRef = "MS";                   ///< cv reference
+                  def.cvAcc = "MS:1000584";
+                  def.value = "default mzML file";
+                  qcmlfile.addSetQualityParameter(target_run, def);
+                }
+                qcmlfile.addRunQualityParameter(target_run, qp);
+                qcmlfile.addRunAttachment(target_run, at);
+              }
             }
             else
             {

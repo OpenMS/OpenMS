@@ -50,8 +50,8 @@ foreach(i ${EXAMPLES_executables})
   add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.C)
   target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
   
-  # if not GUI -> add as test
-  if(NOT ${i} MATCHES "_GUI_")
+  # if not GUI and no style tests requested -> add as test
+  if(NOT ${i} MATCHES "_GUI_" AND NOT ENABLE_STYLE_TESTING)
   	add_test(${i}
              ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_LIST_DIR}  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
   endif()

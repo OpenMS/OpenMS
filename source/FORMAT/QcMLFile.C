@@ -273,13 +273,13 @@ namespace OpenMS
   {
     //~ if (setQualityQPs_[r].empty())
     //~ {
-      //~ QualityParameter q;
-      //~ q.name = "set name"; ///< Name
-      //~ q.id = r + "_set_name"; ///< Identifier
-      //~ q.cvRef = "QC"; ///< cv reference
-      //~ q.cvAcc = "QC:0000058";
-      //~ q.value = r;
-      //~ setQualityQPs_[r].push_back(q);
+    //~ QualityParameter q;
+    //~ q.name = "set name"; ///< Name
+    //~ q.id = r + "_set_name"; ///< Identifier
+    //~ q.cvRef = "QC"; ///< cv reference
+    //~ q.cvAcc = "QC:0000058";
+    //~ q.value = r;
+    //~ setQualityQPs_[r].push_back(q);
     //~ }
     setQualityQPs_[r].push_back(qp);
   }
@@ -339,14 +339,14 @@ namespace OpenMS
   void QcMLFile::existsSetQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const
   {
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
-		//~ std::cout << filename << "filename" << std::endl;
+    //~ std::cout << filename << "filename" << std::endl;
     ids.clear();
     if (qpsit != setQualityQPs_.end())
     {
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
-				//~ std::cout << qit->name << "setexists" << std::endl;
-				//~ std::cout << qpname << "qpname" << std::endl;
+        //~ std::cout << qit->name << "setexists" << std::endl;
+        //~ std::cout << qpname << "qpname" << std::endl;
         if (qpname == qit->name)
         {
           ids.push_back(qit->id);
@@ -965,7 +965,7 @@ namespace OpenMS
     {
       keys.insert(it->first);
     }
-				
+
     if (!keys.empty())
     {
       for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
@@ -975,23 +975,23 @@ namespace OpenMS
 
         //document set members
         std::map<String, std::set<String> >::const_iterator jt = setQualityQPs_members_.find(*it);
-				
+
         if (jt != setQualityQPs_members_.end())
         {
-					for (std::set<String>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
-					{
-						QcMLFile::QualityParameter qp;
-						qp.name = "mzML file"; ///< Name
-						qp.id = *kt + "_run_name"; ///< Identifier
-						qp.cvRef = "MS"; ///< cv reference
-						qp.cvAcc = "MS:1000584";
-						qp.value = *kt;
-						os << qp.toXMLString(4);
-					}
-				}
+          for (std::set<String>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
+          {
+            QcMLFile::QualityParameter qp;
+            qp.name = "mzML file";             ///< Name
+            qp.id = *kt + "_run_name";             ///< Identifier
+            qp.cvRef = "MS";             ///< cv reference
+            qp.cvAcc = "MS:1000584";
+            qp.value = *kt;
+            os << qp.toXMLString(4);
+          }
+        }
 
         std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(*it);
-				
+
         if (qpsit != setQualityQPs_.end())
         {
           for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
