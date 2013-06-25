@@ -400,7 +400,7 @@ namespace OpenMS
     layers_.back().getPeakData() = map;
 
     if (layers_.back().getPeakData()->getChromatograms().size() != 0 
-       && layers_.back().getPeakData()->size() != 0)
+				&& layers_.back().getPeakData()->size() != 0)
     {
       // TODO : handle this case better
       LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
@@ -451,10 +451,12 @@ namespace OpenMS
 
   void SpectrumCanvas::setLayerName(Size i, const String & name)
   {
-    OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i,name) index overflow");
+    OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i, name) index overflow");
     getLayer_(i).name = name;
-    if (i == 0 && spectrum_widget_)
-      spectrum_widget_->setWindowTitle(name.toQString());
+    if (i == 0 && spectrum_widget_) 
+		{
+			spectrum_widget_->setWindowTitle(name.toQString());
+		}
   }
 
   String SpectrumCanvas::getLayerName(const Size i)
@@ -465,7 +467,7 @@ namespace OpenMS
 
   void SpectrumCanvas::changeVisibility(Size i, bool b)
   {
-    OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
+    OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i, b) index overflow");
     LayerData & layer = getLayer_(i);
     if (layer.visible != b)
     {
@@ -503,72 +505,46 @@ namespace OpenMS
       if (getLayer(layer_index).type == LayerData::DT_PEAK || getLayer(layer_index).type == LayerData::DT_CHROMATOGRAM)
       {
         const ExperimentType & map = *getLayer(layer_index).getPeakData();
-        if (map.getMinMZ() < m_min[mz_dim])
-          m_min[mz_dim] = map.getMinMZ();
-        if (map.getMaxMZ() > m_max[mz_dim])
-          m_max[mz_dim] = map.getMaxMZ();
-        if (map.getMinRT() < m_min[rt_dim])
-          m_min[rt_dim] = map.getMinRT();
-        if (map.getMaxRT() > m_max[rt_dim])
-          m_max[rt_dim] = map.getMaxRT();
-        if (map.getMinInt() < m_min[it_dim])
-          m_min[it_dim] = map.getMinInt();
-        if (map.getMaxInt() > m_max[it_dim])
-          m_max[it_dim] = map.getMaxInt();
+        if (map.getMinMZ() < m_min[mz_dim]) m_min[mz_dim] = map.getMinMZ();
+        if (map.getMaxMZ() > m_max[mz_dim]) m_max[mz_dim] = map.getMaxMZ();
+        if (map.getMinRT() < m_min[rt_dim]) m_min[rt_dim] = map.getMinRT();
+        if (map.getMaxRT() > m_max[rt_dim]) m_max[rt_dim] = map.getMaxRT();
+        if (map.getMinInt() < m_min[it_dim]) m_min[it_dim] = map.getMinInt();
+        if (map.getMaxInt() > m_max[it_dim]) m_max[it_dim] = map.getMaxInt();
       }
       else if (getLayer(layer_index).type == LayerData::DT_FEATURE)
       {
         const FeatureMapType & map = *getLayer(layer_index).getFeatureMap();
-        if (map.getMin()[1] < m_min[mz_dim])
-          m_min[mz_dim] = map.getMin()[1];
-        if (map.getMax()[1] > m_max[mz_dim])
-          m_max[mz_dim] = map.getMax()[1];
-        if (map.getMin()[0] < m_min[rt_dim])
-          m_min[rt_dim] = map.getMin()[0];
-        if (map.getMax()[0] > m_max[rt_dim])
-          m_max[rt_dim] = map.getMax()[0];
-        if (map.getMinInt() < m_min[it_dim])
-          m_min[it_dim] = map.getMinInt();
-        if (map.getMaxInt() > m_max[it_dim])
-          m_max[it_dim] = map.getMaxInt();
+        if (map.getMin()[1] < m_min[mz_dim]) m_min[mz_dim] = map.getMin()[1];
+        if (map.getMax()[1] > m_max[mz_dim]) m_max[mz_dim] = map.getMax()[1];
+        if (map.getMin()[0] < m_min[rt_dim]) m_min[rt_dim] = map.getMin()[0];
+        if (map.getMax()[0] > m_max[rt_dim]) m_max[rt_dim] = map.getMax()[0];
+        if (map.getMinInt() < m_min[it_dim]) m_min[it_dim] = map.getMinInt();
+        if (map.getMaxInt() > m_max[it_dim]) m_max[it_dim] = map.getMaxInt();
       }
       else if (getLayer(layer_index).type == LayerData::DT_CONSENSUS)
       {
         const ConsensusMapType & map = *getLayer(layer_index).getConsensusMap();
-        if (map.getMin()[1] < m_min[mz_dim])
-          m_min[mz_dim] = map.getMin()[1];
-        if (map.getMax()[1] > m_max[mz_dim])
-          m_max[mz_dim] = map.getMax()[1];
-        if (map.getMin()[0] < m_min[rt_dim])
-          m_min[rt_dim] = map.getMin()[0];
-        if (map.getMax()[0] > m_max[rt_dim])
-          m_max[rt_dim] = map.getMax()[0];
-        if (map.getMinInt() < m_min[it_dim])
-          m_min[it_dim] = map.getMinInt();
-        if (map.getMaxInt() > m_max[it_dim])
-          m_max[it_dim] = map.getMaxInt();
+        if (map.getMin()[1] < m_min[mz_dim]) m_min[mz_dim] = map.getMin()[1];
+        if (map.getMax()[1] > m_max[mz_dim]) m_max[mz_dim] = map.getMax()[1];
+        if (map.getMin()[0] < m_min[rt_dim]) m_min[rt_dim] = map.getMin()[0];
+        if (map.getMax()[0] > m_max[rt_dim]) m_max[rt_dim] = map.getMax()[0];
+        if (map.getMinInt() < m_min[it_dim]) m_min[it_dim] = map.getMinInt();
+        if (map.getMaxInt() > m_max[it_dim]) m_max[it_dim] = map.getMaxInt();
       }
       else if (getLayer(layer_index).type == LayerData::DT_IDENT)
       {
-        // cout << "recalculateRanges_" << endl;
         const vector<PeptideIdentification> & peptides =
           getLayer(layer_index).peptides;
         for (vector<PeptideIdentification>::const_iterator it =
                peptides.begin(); it != peptides.end(); ++it)
         {
-          if (!it->getHits().empty())
-          {
-            DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
-            DoubleReal mz = getIdentificationMZ_(layer_index, *it);
-            if (mz < m_min[mz_dim])
-              m_min[mz_dim] = mz;
-            if (mz > m_max[mz_dim])
-              m_max[mz_dim] = mz;
-            if (rt < m_min[rt_dim])
-              m_min[rt_dim] = rt;
-            if (rt > m_max[rt_dim])
-              m_max[rt_dim] = rt;
-          }
+					DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
+					DoubleReal mz = getIdentificationMZ_(layer_index, *it);
+					if (mz < m_min[mz_dim]) m_min[mz_dim] = mz;
+					if (mz > m_max[mz_dim]) m_max[mz_dim] = mz;
+					if (rt < m_min[rt_dim]) m_min[rt_dim] = rt;
+					if (rt > m_max[rt_dim]) m_max[rt_dim] = rt;
         }
       }
     }

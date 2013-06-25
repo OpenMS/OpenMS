@@ -669,7 +669,7 @@ namespace OpenMS
       QMessageBox::warning(this, tr("Error"),
                            tr("Unable to open\n") +
                            action->data().toString() +
-                           tr("\n\nPossible reason: security settings or misconfigured Operating System"));
+                           tr("\n\nPossible reasons: security settings or misconfigured operating system"));
     }
   }
 
@@ -935,7 +935,7 @@ namespace OpenMS
 
     if (a_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'A-ions' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'A-ions' does not exist in identification dialog.");
     }
     else
     {
@@ -945,7 +945,7 @@ namespace OpenMS
 
     if (b_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'B-ions' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'B-ions' does not exist in identification dialog.");
     }
     else
     {
@@ -955,7 +955,7 @@ namespace OpenMS
 
     if (c_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'C-ions' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'C-ions' does not exist in identification dialog.");
     }
     else
     {
@@ -965,7 +965,7 @@ namespace OpenMS
 
     if (x_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'X-ions' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'X-ions' does not exist in identification dialog.");
     }
     else
     {
@@ -975,7 +975,7 @@ namespace OpenMS
 
     if (y_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'Y-ions' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'Y-ions' does not exist in identification dialog.");
     }
     else
     {
@@ -985,7 +985,7 @@ namespace OpenMS
 
     if (z_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'Z-ions' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'Z-ions' does not exist in identification dialog.");
     }
     else
     {
@@ -995,7 +995,7 @@ namespace OpenMS
 
     if (pc_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'Precursor' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'Precursor' does not exist in identification dialog.");
     }
     else
     {
@@ -1005,7 +1005,7 @@ namespace OpenMS
 
     if (nl_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'Neutral losses' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'Neutral losses' does not exist in identification dialog.");
     }
     else
     {
@@ -1015,7 +1015,7 @@ namespace OpenMS
 
     if (ic_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'Isotope clusters' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'Isotope clusters' does not exist in identification dialog.");
     }
     else
     {
@@ -1025,7 +1025,7 @@ namespace OpenMS
 
     if (ai_ions.empty())
     {
-      showLogMessage_(LS_ERROR, "", "String 'Abundant immonium-ions' doesn't exist in identification dialog.");
+      showLogMessage_(LS_ERROR, "", "String 'Abundant immonium-ions' does not exist in identification dialog.");
     }
     else
     {
@@ -1203,6 +1203,33 @@ namespace OpenMS
       {
         vector<ProteinIdentification> proteins; // not needed later
         IdXMLFile().load(abs_filename, proteins, peptides);
+				if (peptides.empty())
+				{
+					throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications found");
+				}
+				// check if RT (and sequence) information is present:
+				vector<PeptideIdentification> peptides_with_rt;
+        for (vector<PeptideIdentification>::const_iterator it =
+               peptides.begin(); it != peptides.end(); ++it)
+        {
+          if (!it->getHits().empty() && it->metaValueExists("RT"))
+          {
+						peptides_with_rt.push_back(*it);
+					}
+				}
+				Int diff = peptides.size() - peptides_with_rt.size();
+				if (diff)
+				{
+					String msg = String(diff) + " peptide identification(s) without "
+						"sequence and/or retention time information were removed.\n" + 
+						peptides_with_rt.size() + " peptide identification(s) remaining.";
+					showLogMessage_(LS_WARNING, "While loading file:", msg);
+				}
+				if (peptides_with_rt.empty())
+				{
+					throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications with sufficient information remaining.");
+				}
+				peptides.swap(peptides_with_rt);
         data_type = LayerData::DT_IDENT;
       }
       else
@@ -1219,7 +1246,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      showLogMessage_(LS_ERROR, "Error while loading file", e.what());
+      showLogMessage_(LS_ERROR, "Error while loading file:", e.what());
       setCursor(Qt::ArrowCursor);
       return;
     }
@@ -1801,7 +1828,7 @@ namespace OpenMS
       }
       else
       {
-        showLogMessage_(LS_ERROR, __PRETTY_FUNCTION__, "Button for intensity mode doesn't exist");
+        showLogMessage_(LS_ERROR, __PRETTY_FUNCTION__, "Button for intensity mode does not exist");
       }
     }
 
