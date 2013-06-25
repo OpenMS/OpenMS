@@ -134,6 +134,10 @@ protected:
 
     PeakMap exp;
     fh.loadExperiment(in, exp, in_type, log_type_);
+    if (test_mode_)
+    {
+      exp.getSourceFiles()[0].setPathToFile("<TEST_DATA_PATH>"); // this is not platform independent, and we want the same result everywhere (in test mode)
+    }
     exp.sortSpectra();
 
     FeatureMap<> feature_map;

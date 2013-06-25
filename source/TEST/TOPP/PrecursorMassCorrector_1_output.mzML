@@ -12,7 +12,7 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="PrecursorMassCorrector_1_input.mzML" location="file:///C:/dev/OpenMS/source/TEST/TOPP">
+			<sourceFile id="sf_ru_0" name="PrecursorMassCorrector_1_input.mzML" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="d0e35496d22b8a858c0eeca90a15a53369229b33" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />

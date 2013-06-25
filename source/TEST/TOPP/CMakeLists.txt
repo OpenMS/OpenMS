@@ -969,7 +969,7 @@ add_test("TOPP_CompNovoCID_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "Identif
 set_tests_properties("TOPP_CompNovoCID_1_out1" PROPERTIES DEPENDS "TOPP_CompNovoCID_1")
 
 ### PrecursorMassCorrector tests
-add_test("TOPP_PrecursorMassCorrector_1" ${TOPP_BIN_PATH}/PrecursorMassCorrector -in ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_input.mzML -ini ${DATA_DIR_TOPP}/PrecursorMassCorrector_1.ini -out PrecursorMassCorrector_1_output.tmp)
+add_test("TOPP_PrecursorMassCorrector_1" ${TOPP_BIN_PATH}/PrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_input.mzML -ini ${DATA_DIR_TOPP}/PrecursorMassCorrector_1.ini -out PrecursorMassCorrector_1_output.tmp)
 add_test("TOPP_PrecursorMassCorrector_1_out1" ${DIFF} -in1 PrecursorMassCorrector_1_output.tmp -in2 ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_output.mzML )
 set_tests_properties("TOPP_PrecursorMassCorrector_1_out1" PROPERTIES DEPENDS "TOPP_PrecursorMassCorrector_1")
 
