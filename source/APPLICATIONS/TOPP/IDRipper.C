@@ -50,62 +50,44 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDRipper IDRipper
+  @page TOPP_IDRipper IDRipper
 
-    @brief IDRipper splits the protein/peptide identification of an idXML file into several idXML files according their annotated file origin.
-
-    <CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDRipper\f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDFilter</td>
-            <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDMapper</td>
-        </tr>
-    </table>
-    </CENTER>
-  <CENTER>
+  @brief IDRipper splits the protein/peptide identification of an idXML file into several idXML files according their annotated file origin.
+ 
+  <center>
   <table>
-    <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDMerger \f$ \longrightarrow \f$</td>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
-    </tr>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDRipper\f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDFilter</td>
+  <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDMapper</td>
+  </tr>
   </table>
-  </CENTER>
+  </center>
+ 
+  <B>Example</B>
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDRipper.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDRipper.html
+  <p>Assuming each peptide identification in a given idXML-file is annotated with its file origin (e.g. IDRipper_test.idXML) :</p>
 
-   <B>Example</B>
+  @p <tt><userParam type="string" name="file_origin" value="IDMerger1_test.idXML"/></tt> or <br />
+  @p <tt><userParam type="string" name="file_origin" value="IDMerger2_test.idXML"/></tt>
 
-   <p>Assuming each peptide identification in a given idXML-file is annotated with its file origin (e.g. IDRipper_test.idXML) :</p>
+  <p>Obviously the file contains protein/peptide identifications of IDMerger1_test.idXML and IDMerger2_test.idXML.</p>
 
-   @p <UserParam type="string" name="file_origin" value="IDMerger1_test.idXML"/> or <br />
-   @p <UserParam type="string" name="file_origin" value="IDMerger2_test.idXML"/>
-
-   <p>Obviously the file contains protein/peptide identifications of IDMerger1_test.idXML and IDMerger2_test.idXML.</p>
-
-   <p>Calling IDRipper with an input file (here: @p -in IDRipper_test.idXML) and an output directory (via @p out or @p out_path) will
-   result in two idXML-files stored in the specified directory and named according their file origin.</p>
+  <p>Calling IDRipper with an input file (here: @p -in IDRipper_test.idXML) and an output directory (via @p out or @p out_path) will
+  result in two idXML-files stored in the specified directory and named according their file origin.</p>
 
   <p>In theory, merging files with @p IDMerger and rip the resulting file with @p IDSplitter will result in the original input files.
 
-  <B>NOTE: The meta value file origin is removed by the <tt>IDSplitter!!</tt></B>
+  <B>NOTE: The meta value file origin is removed by the <tt>IDSplitter</tt>!!</B>
 
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_IDRipper.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_IDRipper.html
 */
 
 // We do not want this class to show up in the docu:

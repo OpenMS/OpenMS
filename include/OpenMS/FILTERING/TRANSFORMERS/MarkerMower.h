@@ -47,7 +47,7 @@ namespace OpenMS
   /**
     @brief MarkerMower uses PeakMarker to find peaks, those that are not marked get removed
 
-        @ingroup SpectraPreprocessers
+    @ingroup SpectraPreprocessers
   */
   class OPENMS_DLLAPI MarkerMower :
     public DefaultParamHandler

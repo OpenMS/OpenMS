@@ -48,36 +48,34 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_SpectraMerger SpectraMerger
+  @page TOPP_SpectraMerger SpectraMerger
 
-    @brief Allows to add up several spectra.
+  @brief Allows to add up several spectra.
+ 
+  <center>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraMerger \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+  </tr>
+  </table>
+  </center>
+ 
+  @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraMerger \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
-        </tr>
-    </table>
-</CENTER>
-
-    @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
-
-  This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above)<br>
-  or<br>
-  merge scans which stem from similar precursors (for MS2 and above).
+  This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above) or merge scans which stem from similar precursors (for MS2 and above).
 
   In any case, the number of scans will be reduced.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SpectraMerger.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SpectraMerger.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_SpectraMerger.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_SpectraMerger.html
 */
 
 // We do not want this class to show up in the docu:

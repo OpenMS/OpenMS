@@ -57,92 +57,91 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-     @page TOPP_TextExporter TextExporter
+  @page TOPP_TextExporter TextExporter
 
-     @brief This application converts several %OpenMS XML formats (featureXML, consensusXML, and idXML) to text files.
+  @brief This application converts several %OpenMS XML formats (featureXML, consensusXML, and idXML) to text files.
 
-     <CENTER>
-       <table>
-           <tr>
-               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-               <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ TextExporter \f$ \longrightarrow \f$</td>
-                 <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-             </tr>
-             <tr>
-               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> almost any TOPP tool </td>
-               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools (MS Excel, OpenOffice, Notepad)</td>
-             </tr>
-         </table>
-     </CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ TextExporter \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> almost any TOPP tool </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> external tools (MS Excel, OpenOffice, Notepad)</td>
+  </tr>
+  </table>
+  </CENTER>
 
-     The goal of this tool is to create output in a table format that is easily readable in Excel or OpenOffice. Lines in the output correspond to rows in the table; the individual columns are delineated by a separator, e.g. tab (default, TSV format) or comma (CSV format).
+  The goal of this tool is to create output in a table format that is easily readable in Excel or OpenOffice. Lines in the output correspond to rows in the table; the individual columns are delineated by a separator, e.g. tab (default, TSV format) or comma (CSV format).
 
-     Output files begin with comment lines, starting with the special character "#". The last such line(s) will be a header with column names, but this may be preceded by more general comments.
+  Output files begin with comment lines, starting with the special character "#". The last such line(s) will be a header with column names, but this may be preceded by more general comments.
 
-     Because the OpenMS XML formats contain different kinds of data in a hierarchical structure, TextExporter produces somewhat unusual TSV/CSV files for many inputs: Different lines in the output may belong to different types of data, and the number of columns and the meanings of the individual fields depend on the type. In such cases, the first column always contains an indicator (in capital letters) for the data type of the current line. In addition, some lines have to be understood relative to a previous line, if there is a hierarchical relationship in the data. (See below for details and examples.)
+  Because the OpenMS XML formats contain different kinds of data in a hierarchical structure, TextExporter produces somewhat unusual TSV/CSV files for many inputs: Different lines in the output may belong to different types of data, and the number of columns and the meanings of the individual fields depend on the type. In such cases, the first column always contains an indicator (in capital letters) for the data type of the current line. In addition, some lines have to be understood relative to a previous line, if there is a hierarchical relationship in the data. (See below for details and examples.)
 
-     Missing values are represented by "-1" or "nan" in numeric fields and by blanks in character/text fields.
+  Missing values are represented by "-1" or "nan" in numeric fields and by blanks in character/text fields.
 
-     Depending on the input and the parameters, the output contains the following columns:
+  Depending on the input and the parameters, the output contains the following columns:
 
-     <B>featureXML input:</B>
-     - first column: @p RUN / @p PROTEIN / @p UNASSIGNEDPEPTIDE / @p FEATURE / @p PEPTIDE (indicator for the type of data in the current row)
-     - a @p RUN line contains information about a protein identification run; further columns: @p run_id, @p score_type, @p score_direction, @p data_time, @p search_engine_version, @p parameters
-     - a @p PROTEIN line contains data of a protein identified in the previously listed run; further columns: @p score, @p rank, @p accession, @p coverage, @p sequence
-     - an @p UNASSIGNEDPEPTIDE line contains data of peptide hit that was not assigned to any feature; further columns: @p rt, @p mz, @p score, @p rank, @p sequence, @p charge, @p aa_before, @p aa_after, @p score_type, @p search_identifier, @p accessions
-     - a @p FEATURE line contains data of a single feature; further columns: @p rt, @p mz, @p intensity, @p charge, @p width, @p quality, @p rt_quality, @p mz_quality, @p rt_start, @p rt_end
-     - a @p PEPTIDE line contains data of a peptide hit annotated to the previous feature; further columns: same as for @p UNASSIGNEDPEPTIDE
+  <B>featureXML input:</B>
+  - first column: @p RUN / @p PROTEIN / @p UNASSIGNEDPEPTIDE / @p FEATURE / @p PEPTIDE (indicator for the type of data in the current row)
+  - a @p RUN line contains information about a protein identification run; further columns: @p run_id, @p score_type, @p score_direction, @p data_time, @p search_engine_version, @p parameters
+  - a @p PROTEIN line contains data of a protein identified in the previously listed run; further columns: @p score, @p rank, @p accession, @p coverage, @p sequence
+  - an @p UNASSIGNEDPEPTIDE line contains data of peptide hit that was not assigned to any feature; further columns: @p rt, @p mz, @p score, @p rank, @p sequence, @p charge, @p aa_before, @p aa_after, @p score_type, @p search_identifier, @p accessions
+  - a @p FEATURE line contains data of a single feature; further columns: @p rt, @p mz, @p intensity, @p charge, @p width, @p quality, @p rt_quality, @p mz_quality, @p rt_start, @p rt_end
+  - a @p PEPTIDE line contains data of a peptide hit annotated to the previous feature; further columns: same as for @p UNASSIGNEDPEPTIDE
 
-     With the @p no_ids flag, only @p FEATURE lines (without the @p FEATURE indicator) are written.
+  With the @p no_ids flag, only @p FEATURE lines (without the @p FEATURE indicator) are written.
 
-     With the @p feature:minimal flag, only the @p rt, @p mz, and @p intensity columns of @p FEATURE lines are written.
+  With the @p feature:minimal flag, only the @p rt, @p mz, and @p intensity columns of @p FEATURE lines are written.
 
-     <B>consensusXML input:</B>
+  <B>consensusXML input:</B>
 
-     Output format produced for the @p out parameter:
-     - first column: @p MAP / @p RUN / @p PROTEIN / @p UNASSIGNEDPEPTIDE / @p CONSENSUS / @p PEPTIDE (indicator for the type of data in the current row)
-     - a @p MAP line contains information about a sub-map; further columns: @p id, @p filename, @p label, @p size (potentially followed by further columns containing meta data, depending on the input)
-     - a @p CONSENSUS line contains data of a single consensus feature; further columns: @p rt_cf, @p mz_cf, @p intensity_cf, @p charge_cf, @p width_cf, @p quality_cf, @p rt_X0, @p mz_X0, ..., rt_X1, mz_X1, ...
-     - @p "..._cf" columns refer to the consensus feature itself, @p "..._Xi" columns refer to a sub-feature from the map with ID "Xi" (no @p quality column in this case); missing sub-features are indicated by "nan" values
-     - see above for the formats of @p RUN, @p PROTEIN, @p UNASSIGNEDPEPTIDE, @p PEPTIDE lines
+  Output format produced for the @p out parameter:
+  - first column: @p MAP / @p RUN / @p PROTEIN / @p UNASSIGNEDPEPTIDE / @p CONSENSUS / @p PEPTIDE (indicator for the type of data in the current row)
+  - a @p MAP line contains information about a sub-map; further columns: @p id, @p filename, @p label, @p size (potentially followed by further columns containing meta data, depending on the input)
+  - a @p CONSENSUS line contains data of a single consensus feature; further columns: @p rt_cf, @p mz_cf, @p intensity_cf, @p charge_cf, @p width_cf, @p quality_cf, @p rt_X0, @p mz_X0, ..., rt_X1, mz_X1, ...
+  - @p "..._cf" columns refer to the consensus feature itself, @p "..._Xi" columns refer to a sub-feature from the map with ID "Xi" (no @p quality column in this case); missing sub-features are indicated by "nan" values
+  - see above for the formats of @p RUN, @p PROTEIN, @p UNASSIGNEDPEPTIDE, @p PEPTIDE lines
 
-     With the @p no_ids flag, only @p MAP and @p CONSENSUS lines are written.
+  With the @p no_ids flag, only @p MAP and @p CONSENSUS lines are written.
 
-     Output format produced for the @p consensus_centroids parameter:
-     - one line per consensus centroid
-     - columns: @p rt, @p mz, @p intensity, @p charge, @p width, @p quality
+  Output format produced for the @p consensus_centroids parameter:
+  - one line per consensus centroid
+  - columns: @p rt, @p mz, @p intensity, @p charge, @p width, @p quality
 
-     Output format produced for the @p consensus_elements parameter:
-     - one line per sub-feature (element) of a consensus feature
-     - first column: @p H / @p L (indicator for new/repeated element)
-     - @p H indicates a new element, @p L indicates the replication of the first element of the current consensus feature (for plotting)
-     - further columns: @p rt, @p mz, @p intensity, @p charge, @p width, @p rt_cf, @p mz_cf, @p intensity_cf, @p charge_cf, @p width_cf, @p quality_cf
-     - @p "..._cf" columns refer to the consensus feature, the other columns refer to the sub-feature
+  Output format produced for the @p consensus_elements parameter:
+  - one line per sub-feature (element) of a consensus feature
+  - first column: @p H / @p L (indicator for new/repeated element)
+  - @p H indicates a new element, @p L indicates the replication of the first element of the current consensus feature (for plotting)
+  - further columns: @p rt, @p mz, @p intensity, @p charge, @p width, @p rt_cf, @p mz_cf, @p intensity_cf, @p charge_cf, @p width_cf, @p quality_cf
+  - @p "..._cf" columns refer to the consensus feature, the other columns refer to the sub-feature
 
-     Output format produced for the @p consensus_features parameter:
-   - one line per consensus feature (suitable for processing with e.g. <a href="http://www.r-project.org">R</a>)
-     - columns: same as for a @p CONSENSUS line above, followed by additional columns for identification data
-     - additional columns: @p peptide_N0, @p n_diff_peptides_N0, @p protein_N0, @p n_diff_proteins_N0, @p peptide_N1, ...
-     - @p "..._Ni" columns refer to the identification run with index "Ni", @p n_diff_... stands for "number of different ..."; different peptides/proteins in one column are separated by "/"
+  Output format produced for the @p consensus_features parameter:
+  - one line per consensus feature (suitable for processing with e.g. <a href="http://www.r-project.org">R</a>)
+  - columns: same as for a @p CONSENSUS line above, followed by additional columns for identification data
+  - additional columns: @p peptide_N0, @p n_diff_peptides_N0, @p protein_N0, @p n_diff_proteins_N0, @p peptide_N1, ...
+  - @p "..._Ni" columns refer to the identification run with index "Ni", @p n_diff_... stands for "number of different ..."; different peptides/proteins in one column are separated by "/"
 
-     With the @p no_ids flag, the additional columns are not included.
+  With the @p no_ids flag, the additional columns are not included.
 
-     <B>idXML input:</B>
-     - first column: @p RUN / @p PROTEIN / @p PEPTIDE (indicator for the type of data in the current row)
-     - see above for the formats of @p RUN, @p PROTEIN, @p PEPTIDE lines
-     - additional column for @p PEPTIDE lines: @p predicted_rt
+  <B>idXML input:</B>
+  - first column: @p RUN / @p PROTEIN / @p PEPTIDE (indicator for the type of data in the current row)
+  - see above for the formats of @p RUN, @p PROTEIN, @p PEPTIDE lines
+  - additional column for @p PEPTIDE lines: @p predicted_rt
 
-     With the @p id:proteins_only flag, only @p RUN and @p PROTEIN lines are written.
+  With the @p id:proteins_only flag, only @p RUN and @p PROTEIN lines are written.
 
-     With the @p id:peptides_only flag, only @p PEPTIDE lines (without the @p PEPTIDE indicator) are written.
+  With the @p id:peptides_only flag, only @p PEPTIDE lines (without the @p PEPTIDE indicator) are written.
 
-     With the @p id:first_dim_rt flag, the additional columns @p rt_first_dim and @p predicted_rt_first_dim are included for @p PEPTIDE lines.
+  With the @p id:first_dim_rt flag, the additional columns @p rt_first_dim and @p predicted_rt_first_dim are included for @p PEPTIDE lines.
 
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_TextExporter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_TextExporter.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_TextExporter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_TextExporter.html
  */
 
 // We do not want this class to show up in the docu:

@@ -48,47 +48,43 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_NoiseFilterSGolay NoiseFilterSGolay
+  @page TOPP_NoiseFilterSGolay NoiseFilterSGolay
 
-    @brief  Executes a Savitzky Golay filter to reduce the noise in an MS experiment.
+  @brief  Executes a Savitzky Golay filter to reduce the noise in an MS experiment.
+ 
+  <center>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ NoiseFilterSGolay \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
+  </tr>
+  </table>
+  </center>
+ 
+  The idea of the Savitzky Golay filter is to find filter-coefficients
+  that preserve higher moments, which means to approximate the underlying
+  function within the moving window by a polynomial of higher order
+  (typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
+  ''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ NoiseFilterSGolay \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet</td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
-    </tr>
-    <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
-        </tr>
-    </table>
-</CENTER>
+  @note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
 
-
-    The idea of the Savitzky Golay filter is to find filter-coefficients
-    that preserve higher moments, which means to approximate the underlying
-    function within the moving window by a polynomial of higher order
-    (typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
-    ''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
-
-    @note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
-
-    <B>The command line parameters of this tool are:</B>
+  <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_NoiseFilterSGolay.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_NoiseFilterSGolay.html
-
-    <B>The algorithm parameters for the Savitzky Golay filter are:</B>
-@htmlinclude OpenMS_SavitzkyGolayFilter.parameters
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_NoiseFilterSGolay.html
 */
 
 // We do not want this class to show up in the docu:

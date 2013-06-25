@@ -50,40 +50,40 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_PrecursorMassCorrector PrecursorMassCorrector
+  @page TOPP_PrecursorMassCorrector PrecursorMassCorrector
 
-    @brief Corrects the precursor entries of MS/MS spectra, by using MS1 information.
+  @brief Corrects the precursor entries of MS/MS spectra, by using MS1 information.
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PrecursorMassCorrector \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-        </tr>
-    </table>
-</CENTER>
+  <center>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PrecursorMassCorrector \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+  </tr>
+  </table>
+  </center>
 
-    @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
+  @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-    This tool corrects the m/z entries of MS/MS spectra by using MS1 information. Therefore,
-    MS1 spectra must be supplied as profile mode spectra. The isotope distribution of the
-    peptide in the MS1 level information are then used to determine the exact position
-    of the monoisotopic peak. If no isotope distribution can be found the original
-    entry is kept. As a side effect of determining the exact position of the monoisotopic
-    peak is that the charge state is also annotated.
+  This tool corrects the m/z entries of MS/MS spectra by using MS1 information. Therefore,
+  MS1 spectra must be supplied as profile mode spectra. The isotope distribution of the
+  peptide in the MS1 level information are then used to determine the exact position
+  of the monoisotopic peak. If no isotope distribution can be found the original
+  entry is kept. As a side effect of determining the exact position of the monoisotopic
+  peak is that the charge state is also annotated.
 
-    This implementation uses the isotopewavelet featurefinder and sets the monoisotopic
-    peak (and the charge) to the nearest feature.
+  This implementation uses the isotopewavelet featurefinder and sets the monoisotopic
+  peak (and the charge) to the nearest feature.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_PrecursorMassCorrector.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_PrecursorMassCorrector.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_PrecursorMassCorrector.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_PrecursorMassCorrector.html
 */
 
 // We do not want this class to show up in the docu:

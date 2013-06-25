@@ -54,36 +54,34 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MapStatistics MapStatistics
-    @brief Extract extended statistics on the features of a map for quality control.
+  @page TOPP_MapStatistics MapStatistics
+  @brief Extract extended statistics on the features of a map for quality control.
+  <center>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileInfo \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> FeatureFinder, FeatureMatcher</td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+  </tr>
+  </table>
+  </center>
+  This tool computes some basic statistics on the features of a map
+  that are frequently used for quality control. In contrast to FileInfo
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileInfo \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> FeatureFinder, FeatureMatcher</td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-        </tr>
-    </table>
-</CENTER>
-
-    This tool computes some basic statistics on the features of a map
-    that are frequently used for quality control. In contrast to FileInfo
-
-    Information displayed includes:
-    - show information about the data range of a file (m/z, RT, intensity)
-    - show a statistical summary for intensities, qualities, feature widths
-    - break down the statistics for fractions of the map
+  Information displayed includes:
+  - show information about the data range of a file (m/z, RT, intensity)
+  - show a statistical summary for intensities, qualities, feature widths
+  - break down the statistics for fractions of the map
   - total ion current included in the features as a function of RT
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_FileInfo.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FileInfo.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_FileInfo.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_FileInfo.html
 */
 
 // We do not want this class to show up in the docu:

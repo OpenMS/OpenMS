@@ -51,31 +51,31 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_Resampler Resampler
+  @page TOPP_Resampler Resampler
 
-    @brief Resampler can be used to transform an LC/MS map into a resampled map.
+  @brief Resampler can be used to transform an LC/MS map into a resampled map.
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ Resampler \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay  </td>
-        </tr>
-    </table>
-</CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ Resampler \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay  </td>
+  </tr>
+  </table>
+  </CENTER>
 
-    When writing an peak file, all spectra are resampled with a new sampling
-    rate. The number of spectra does not change.
+  When writing an peak file, all spectra are resampled with a new sampling
+  rate. The number of spectra does not change.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_Resampler.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_Resampler.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_Resampler.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_Resampler.html
 */
 
 // We do not want this class to show up in the docu:

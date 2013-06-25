@@ -58,8 +58,7 @@ using namespace std;
     @page TOPP_FileFilter FileFilter
 
     @brief Extracts portions of the data from an mzML, featureXML or consensusXML file.
-
-<CENTER>
+<center>
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
@@ -72,8 +71,7 @@ using namespace std;
         </tr>
 
     </table>
-</CENTER>
-
+</center>
     With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
     and to write all data that lies within the given ranges to an output file.
 

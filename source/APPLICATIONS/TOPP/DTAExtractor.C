@@ -48,7 +48,7 @@ using namespace std;
     @page TOPP_DTAExtractor DTAExtractor
 
     @brief Extracts scans of an mzML file to several files in DTA format.
-<CENTER>
+<center>
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
@@ -60,8 +60,7 @@ using namespace std;
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
         </tr>
     </table>
-</CENTER>
-
+</center>
     The retention time, the m/z ratio (for MS level > 1) and the file extension are appended to the output file name.
     You can limit the exported spectra by m/z range, retention time range or MS level.
 

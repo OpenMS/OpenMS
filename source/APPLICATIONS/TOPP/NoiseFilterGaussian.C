@@ -48,44 +48,40 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_NoiseFilterGaussian NoiseFilterGaussian
+  @page TOPP_NoiseFilterGaussian NoiseFilterGaussian
 
-    @brief  Executes a Gaussian filter to reduce the noise in an MS experiment.
+  @brief  Executes a Gaussian filter to reduce the noise in an MS experiment.
+ 
+  <center>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ NoiseFilterGaussian \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
+  </tr>
+  </table>
+  </center>
+ 
+  The Gaussian filter is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
+  sharp cutoffs, and low passband ripple.
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ NoiseFilterGaussian \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet</td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_Resampler </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes</td>
-    </tr>
-    <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter</td>
-        </tr>
-    </table>
-</CENTER>
+  @note The Gaussian filter works for uniform as well as for non-uniform data.
 
-    The Gaussian filter is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
-    sharp cutoffs, and low passband ripple.
-
-    @note The Gaussian filter works for uniform as well as for non-uniform data.
-
-    <B>The command line parameters of this tool are:</B>
+  <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_NoiseFilterGaussian.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_NoiseFilterGaussian.html
-
-    <B>The algorithm parameters for the Gaussian filter are:</B>
-@htmlinclude OpenMS_GaussFilter.parameters
-
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_NoiseFilterGaussian.html
 */
 
 // We do not want this class to show up in the docu:

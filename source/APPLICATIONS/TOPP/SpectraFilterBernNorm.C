@@ -45,33 +45,28 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page TOPP_SpectraFilterBernNorm SpectraFilterBernNorm
+  @page TOPP_SpectraFilterBernNorm SpectraFilterBernNorm
 
-    @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
+  @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraFilter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
-        </tr>
-    </table>
-</CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraFilter \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+  </tr>
+  </table>
+  </CENTER>
 
-
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SpectraFilterBernNorm.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SpectraFilterBernNorm.html
-
-    For the parameters of the algorithm section see the class documentation: @n
-        @ref OpenMS::BernNorm @n
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_SpectraFilterBernNorm.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_SpectraFilterBernNorm.html
 */
 
 

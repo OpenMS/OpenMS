@@ -44,28 +44,27 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MapNormalizer MapNormalizer
+  @page TOPP_MapNormalizer MapNormalizer
 
-    @brief Normalizes peak intensities to the percentage of the maximum intensity in the HPLC-MS map.
+  @brief Normalizes peak intensities to the percentage of the maximum intensity in the HPLC-MS map.
+  <center>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapNormalizer \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+  </tr>
+  </table>
+  </center>
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapNormalizer \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
-        </tr>
-    </table>
-</CENTER>
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MapNormalizer.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MapNormalizer.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_MapNormalizer.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MapNormalizer.html
 */
 
 // We do not want this class to show up in the docu:

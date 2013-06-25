@@ -45,65 +45,64 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_PeakPickerHiRes PeakPickerHiRes
+  @page TOPP_PeakPickerHiRes PeakPickerHiRes
 
-    @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ PeakPickerHiRes \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> any tool operating on MS peak data @n (in mzML format)</td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterGaussian </td>
-        </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
-    </tr>
-    </table>
-</CENTER>
+  @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
+ 
+  <center>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ PeakPickerHiRes \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> any tool operating on MS peak data @n (in mzML format)</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterGaussian </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
+  </tr>
+  </table>
+  </center>
 
-    Reference:\n
-		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+  Reference:\n
+  Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
-    The conversion of the "raw" ion count data acquired
-    by the machine into peak lists for further processing
-    is usually called peak picking or centroiding. The choice of the algorithm
-    should mainly depend on the resolution of the data.
-    As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
-    algorithm is fit for high resolution (orbitrap or FTICR) data.
+  The conversion of the "raw" ion count data acquired
+  by the machine into peak lists for further processing
+  is usually called peak picking or centroiding. The choice of the algorithm
+  should mainly depend on the resolution of the data.
+  As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
+  algorithm is fit for high resolution (orbitrap or FTICR) data.
 
-    @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
+  @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
-    <B>The command line parameters of this tool are:</B>
+  <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PeakPickerHiRes.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_PeakPickerHiRes.html
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_PeakPickerHiRes.html
 
-    For the parameters of the algorithm section see the algorithm documentation: @n
-    @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes" @n
+  For the parameters of the algorithm section see the algorithm documentation: @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes"
 
-    In the following table you, can find example values of the most important algorithm parameters for
-    different instrument types. @n These parameters are not valid for all instruments of that type,
-    but can be used as a starting point for finding suitable parameters.
-    <table>
-        <tr BGCOLOR="#EBEBEB">
-            <td>&nbsp;</td>
-            <td><b>Q-TOF</b></td>
-            <td><b>LTQ Orbitrap</b></td>
-        </tr>
-        <tr>
-            <td BGCOLOR="#EBEBEB"><b>signal_to_noise</b></td>
-            <td>2</td>
-            <td>0</td>
-        </tr>
-    </table>
-
+  In the following table you, can find example values of the most important algorithm parameters for
+  different instrument types. @n These parameters are not valid for all instruments of that type,
+  but can be used as a starting point for finding suitable parameters.
+  <table>
+  <tr BGCOLOR="#EBEBEB">
+  <td>&nbsp;</td>
+  <td><b>Q-TOF</b></td>
+  <td><b>LTQ Orbitrap</b></td>
+  </tr>
+  <tr>
+  <td BGCOLOR="#EBEBEB"><b>signal_to_noise</b></td>
+  <td>2</td>
+  <td>0</td>
+  </tr>
+  </table>
 */
 
 // We do not want this class to show up in the docu:

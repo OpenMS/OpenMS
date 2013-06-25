@@ -40,49 +40,45 @@
 using namespace OpenMS;
 using namespace std;
 
-
-
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_TOFCalibration TOFCalibration
+  @page TOPP_TOFCalibration TOFCalibration
 
-    @brief Performs an external calibration for tof spectra.
+  @brief Performs an external calibration for tof spectra.
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ TOFCalibration \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_InternalCalibration </td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-        </tr>
-    </table>
-</CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ TOFCalibration \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_InternalCalibration </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+  </tr>
+  </table>
+  </CENTER>
 
+  Given one or more calibrant spectra containing flight times, the instrument's calibration constants and the
+  expected masses the quadratic function \f$y_i = a + bx_i + cx_i^2\f$ is fitted, where \f$x_i\f$ is the ith flight time.
+  If there are more than one calibrant spectra the coefficients \f$a\f$, \f$b\f$ and \f$c\f$ are averaged. The fitted function is
+  then used to convert the flight times of the given experiment to m/z-values.
 
-    Given one or more calibrant spectra containing flight times, the instrument's calibration constants and the
-    expected masses the quadratic function y_i = a + b*x_i + c*x_i^2 is fitted, where x_i is the ith flight time.
-    If there are more than one calibrant spectra the coefficients a, b and c are averaged. The fitted function is
-    then used to convert the flight times of the given experiment to m/z-values.
+  You can choose to calibrate picked or raw data. If you use picked data, set the flag peak_data. If you have
+  raw data an additional peak picking step for the calibrant spectra is needed, the parameters for the
+  peak picker can be set in the ini-file.
 
-    You can choose to calibrate picked or raw data. If you use picked data, set the flag peak_data. If you have
-    raw data an additional peak picking step for the calibrant spectra is needed, the parameters for the
-    peak picker can be set in the ini-file.
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_TOFCalibration.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_TOFCalibration.html
-
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_TOFCalibration.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_TOFCalibration.html
 */
 
 // We do not want this class to show up in the docu:

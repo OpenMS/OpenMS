@@ -45,33 +45,28 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page TOPP_SpectraFilterNormalizer SpectraFilterNormalizer
+  @page TOPP_SpectraFilterNormalizer SpectraFilterNormalizer
 
-    @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
+  @brief Filters the top Peaks in the given spectra according to a given schema/thresholdset
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraFilter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
-        </tr>
-    </table>
-</CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraFilter \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format)</td>
+  </tr>
+  </table>
+  </CENTER>
 
-
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SpectraFilterNormalizer.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SpectraFilterNormalizer.html
-
-    For the parameters of the algorithm section see the class documentation: @n
-        @ref OpenMS::Normalizer @n
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_SpectraFilterNormalizer.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_SpectraFilterNormalizer.html
 */
 
 

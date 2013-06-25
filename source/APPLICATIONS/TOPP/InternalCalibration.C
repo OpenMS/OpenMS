@@ -47,46 +47,42 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_InternalCalibration InternalCalibration
+  @page TOPP_InternalCalibration InternalCalibration
 
-    @brief Performs an internal calibration on an MS experiment.
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ InternalCalibration \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format) or feature data </td>
-        </tr>
-        <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
-        </tr>
-    </table>
-</CENTER>
+  @brief Performs an internal calibration on an MS experiment.
+ 
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ InternalCalibration \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on MS peak data @n (in mzML format) or feature data </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
+  </tr>
+  </table>
+  </CENTER>
+ 
+  This a simple calibration method: given a list of reference masses and an MS experiment or a feature map,
+  the relative errors of the peaks in the data are approximated by linear regression and
+  subtracted from the data. The user can choose whether the calibration function shall be
+  calculated for each spectrum separately or once for the whole map.
+  If this is done scanwise, at least two reference masses need to
+  be present in each scan to calculate the calibration function,
+  otherwise the spectrum can't be calibrated.
+  For the global calibration it is also possible to use a list of (significant) peptide identifications.
 
-    This a simple calibration method: given a list of reference masses and an MS experiment or a feature map,
-    the relative errors of the peaks in the data are approximated by linear regression and
-    subtracted from the data. The user can choose whether the calibration function shall be
-    calculated for each spectrum separately or once for the whole map.
-    If this is done scanwise, at least two reference masses need to
-    be present in each scan to calculate the calibration function,
-    otherwise the spectrum can't be calibrated.
-    For the global calibration it is also possible to use a list of (significant) peptide identifications.
+  @note The tool assumes the input data is already picked or feature maps.
 
-
-    @note The tool assumes the input data is already picked or feature maps.
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_InternalCalibration.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_InternalCalibration.html
-
-    <B>The algorithm parameters of this tool are:</B>
-@htmlinclude OpenMS_InternalCalibration.parameters
-
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_InternalCalibration.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_InternalCalibration.html
 */
 
 // We do not want this class to show up in the docu:
