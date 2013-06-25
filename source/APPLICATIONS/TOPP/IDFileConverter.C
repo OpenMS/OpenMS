@@ -81,8 +81,8 @@ In contrast, support for converting from idXML to pepXML is limited. The purpose
 information for the use of ProteinProphet.
 
 Details on using 'mz_file':
-Some search engine output file (like Sequest .out files) do not contain retention times, only scan numbers, thus the raw file is used to reconstruct actual RT values.
-For pepXML and mascotXML this file can additionally be used to define what parts to extract (some pepXMLs contain results from multiple experiments).
+Some search engine output files (like pepXML, mascotXML, Sequest .out files) do not contain retention times, only scan numbers, thus the raw file is used to reconstruct actual RT values.
+For pepXML this file can additionally be used to define what parts to extract (some pepXMLs contain results from multiple experiments).
 
 Some information about the supported input types:
   @ref OpenMS::MzIdentMLFile "mzIdentML"
@@ -121,8 +121,8 @@ protected:
                                                 "Sequest: Directory containing the .out files\n"
                                                 "pepXML: Single pepXML file.\n"
                                                 "protXML: Single protXML file.\n"
-                                                "mascotXML: Single Mascot xml file.\n"
-                                                "omssaXML: Single OMSSA xml file.\n"
+                                                "mascotXML: Single Mascot XML file.\n"
+                                                "omssaXML: Single OMSSA XML file.\n"
                                                 "idXML: Single idXML file.\n", true);
     setValidFormats_("in", StringList::create("pepXML,protXML,mascotXML,omssaXML,idXML"));
 
@@ -137,10 +137,8 @@ protected:
     addEmptyLine_();
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
-
-    addEmptyLine_();
-    registerStringOption_("mz_name", "<file>", "", "[pepXML, mascotXML only] Experiment filename/path to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
-    registerFlag_("use_precursor_data", "[pepXML, mascotXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
+    registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
+    registerFlag_("use_precursor_data", "[pepXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
   }
 
   ExitCodes
@@ -320,7 +318,7 @@ protected:
           fh.loadExperiment(exp_name, exp);
           for (Size i = 0; i < exp.size(); ++i)
           {
-            rt_mapping[exp[i].getNativeID()] = exp[i].getRT();
+						if (exp[i].getMSLevel() > 1) rt_mapping[i] = exp[i].getRT();
           }
         }
         protein_identifications.resize(1);

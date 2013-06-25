@@ -49,14 +49,13 @@ namespace OpenMS
   {
     /**
       @brief Handler that is used for parsing MascotXML data
-
     */
     class OPENMS_DLLAPI MascotXMLHandler :
       public XMLHandler
     {
 public:
 
-      typedef Map<String, Real> RTMapping;
+      typedef Map<Size, Real> RTMapping;
 
       /// Constructor
       MascotXMLHandler(ProteinIdentification & protein_identification,
@@ -78,9 +77,12 @@ public:
       virtual void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
 
 private:
+			
+			/// Extract scan number of MS2 spectrum from "pep_scan_title" element
+			Size extractScanNumber_(const String& title);
 
-      ProteinIdentification & protein_identification_;  ///< the protein identifications
-      std::vector<PeptideIdentification> & id_data_;     ///< the identifications (storing the peptide hits)
+      ProteinIdentification & protein_identification_; ///< the protein identifications
+      std::vector<PeptideIdentification> & id_data_; ///< the identifications (storing the peptide hits)
       ProteinHit actual_protein_hit_;
       PeptideHit actual_peptide_hit_;
       UInt peptide_identification_index_;
@@ -94,11 +96,11 @@ private:
       std::map<String, std::vector<AASequence> > & modified_peptides_;
       String warning_msg_;
 
-      StringList tags_open_;       ///< tracking the current XML tree
+      StringList tags_open_; ///< tracking the current XML tree
       String major_version_;
       String minor_version_;
 
-      const RTMapping & rt_mapping_; ///< optional mapping of scan indices to RT's if scan numbers are given;
+      const RTMapping & rt_mapping_; ///< optional mapping of scan indices to RTs if scan numbers are given;
                                      ///< without this mapping, other sources of RT information are used (if available);
                                      ///< if all fails, there will be no RT information for peptide hits
     };

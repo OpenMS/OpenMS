@@ -204,14 +204,14 @@ namespace OpenMS
       {
         id_data_[peptide_identification_index_].setMetaValue("MZ", ((String) sm_.convert(chars)).trim().toDouble());
       }
-      else if (tag_ == "pep_scan_title") // extract mz and RT from title (if not already set)
-      { // in Mascot 2.3 it might look like this: <pep_scan_title>scan=818</pep_scan_title>
-       // where "scan=818" is the nativeSpectrumID directly taken from the mzML (if mzML or similar was used for submission)
-       //  (when manual submission was used and mascotXML was retrieved manually)
+      else if (tag_ == "pep_scan_title") // extract RT (and possibly m/z) from title (if not already set)
+      { 
         String title = ((String) sm_.convert(chars)).trim();
-        if (rt_mapping_.has(title))
+				Size scan_no = extractScanNumber_(title);
+
+        if (scan_no && rt_mapping_.has(scan_no - 1))
         {
-          id_data_[peptide_identification_index_].setMetaValue("RT", rt_mapping_[title]);
+          id_data_[peptide_identification_index_].setMetaValue("RT", rt_mapping_[scan_no - 1]);
         }
         else if (title.hasSubstring("_"))
         {
@@ -238,7 +238,7 @@ namespace OpenMS
           if (!id_data_[peptide_identification_index_].metaValueExists("RT"))
             id_data_[peptide_identification_index_].setMetaValue("RT", rt);
           if (!id_data_[peptide_identification_index_].metaValueExists("MZ") && (mz != 0))
-            id_data_[peptide_identification_index_].setMetaValue("MZ", mz);                                                                                      // overwrite value if available
+            id_data_[peptide_identification_index_].setMetaValue("MZ", mz); // overwrite value if available
         }
       }
       else if (tag_ == "pep_exp_z")
@@ -589,6 +589,50 @@ namespace OpenMS
         }
       }
     }
+
+
+		Size MascotXMLHandler::extractScanNumber_(const String& title)
+		{
+			// possible formats and resulting scan numbers (1-based!):
+			// - Mascot 2.3 (?):
+			// <pep_scan_title>scan=818</pep_scan_title> -> 818
+			// - ProteomeDiscoverer/Mascot 2.3 or 2.4:
+			// <pep_scan_title>Spectrum136 scans:712,</pep_scan_title> -> 712
+			// - with .dta input to Mascot:
+			// <pep_scan_title>/path/to/FTAC05_13.673.673.2.dta</pep_scan_title> -> 673
+			// - other variants:
+			// <pep_scan_title>Spectrum3411 scans: 2975,</pep_scan_title> -> 2975
+			// <pep_scan_title>File773 Spectrum198145 scans: 6094</pep_scan_title> -> 6094
+			// <pep_scan_title>6860: Scan 10668 (rt=5380.57)</pep_scan_title> -> 10668
+			// <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
+			
+			string patterns[] = {"scan=", "scans:", "Scan Number:", "Scan "};
+			Size scan_no = 0;
+
+			// if a pattern is found, extract the next number from the string:
+			for (size_t i = 0; i < 4; ++i)
+			{
+				size_t pos = title.find(patterns[i]);
+				if (pos != string::npos)
+				{
+					stringstream ss(title.substr(pos + patterns[i].size()));
+					ss >> scan_no;
+					if (scan_no) return scan_no;
+				}
+			}
+			// .dta case:
+			if (title.hasSuffix(".dta"))
+			{
+				// format: [filename].[scan_begin].[scan_end].[charge].dta
+				StringList parts = StringList::create(title, '.');
+				try
+				{
+					scan_no = parts[parts.size() - 4].toInt();
+				}
+				catch (...) {}
+			}
+			return scan_no;
+		}
 
   }   // namespace Internal
 } // namespace OpenMS

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mascot_search_results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.matrixscience.com/xmlns/schema/mascot_search_results_2" xsi:schemaLocation="http://www.matrixscience.com/xmlns/schema/mascot_search_results_2 http://mascotsrv2.internal.sanger.ac.uk/mascot/xmlns/schema/mascot_search_results_2/mascot_search_results_2.xsd"  majorVersion="2" minorVersion="2">
+<header>
+<COM>FT500651_Node:3</COM>
+<Date>2013-06-06T13:59:50Z</Date>
+<USERNAME>Discoverer_hw5</USERNAME>
+<USEREMAIL/>
+<URI>http://www.example.com/mascot/cgi/master_results.pl?file=../data/20130606/F025589.dat</URI>
+<FILENAME>File Name: R:\Hendrik\DESeq\e_coli\FT500651.RAW</FILENAME>
+<FORMAT>Mascot generic</FORMAT>
+<SEARCH>MIS</SEARCH>
+<MascotVer>2.4.0</MascotVer>
+<DB>UPEcoli_SpikeIn</DB>
+<FastaVer>UPEcoli_SpikeIn_Jun13.fasta</FastaVer>
+<NumSeqs>12614</NumSeqs>
+<NumResidues>4054596</NumResidues>
+<NumSeqsAfterTax>12614</NumSeqsAfterTax>
+<NumQueries>8661</NumQueries>
+</header>
+<decoy>
+<NumHitsAboveIdentity>3</NumHitsAboveIdentity>
+<NumDecoyHitsAboveIdentity>0</NumDecoyHitsAboveIdentity>
+<NumHitsAboveHomology>3</NumHitsAboveHomology>
+<NumDecoyHitsAboveHomology>0</NumDecoyHitsAboveHomology>
+</decoy>
+<fixed_mods>
+<modification identifier="1">
+<name>Carbamidomethyl (C)</name>
+<delta>57.021464</delta>
+</modification>
+</fixed_mods>
+<variable_mods>
+<modification identifier="1">
+<name>Deamidated (NQ)</name>
+<delta>0.984016</delta>
+</modification>
+<modification identifier="2">
+<name>Oxidation (M)</name>
+<delta>15.994915</delta>
+<neutral_loss identifier="1">0</neutral_loss>
+<neutral_loss identifier="2">63.998285</neutral_loss>
+</modification>
+</variable_mods>
+<search_parameters>
+<TAXONOMY>All entries</TAXONOMY>
+<CLE>Trypsin</CLE>
+<PFA>1</PFA>
+<MODS>Carbamidomethyl (C)</MODS>
+<IT_MODS>Deamidated (NQ),Oxidation (M)</IT_MODS>
+<TOL>10</TOL>
+<TOLU>ppm</TOLU>
+<ITOL>0.5</ITOL>
+<ITOLU>Da</ITOLU>
+<MASS>Monoisotopic</MASS>
+<INSTRUMENT>ESI-TRAP</INSTRUMENT>
+<DECOY>1</DECOY>
+</search_parameters>
+<format_parameters>
+<sigthreshold>0.05</sigthreshold>
+<REPORT>0</REPORT>
+<mudpit>0</mudpit>
+<ignoreionsscorebelow>20</ignoreionsscorebelow>
+<show_same_sets>0</show_same_sets>
+<showsubsets>1</showsubsets>
+<show_unassigned>0</show_unassigned>
+<requireboldred>0</requireboldred>
+<use_homology>1</use_homology>
+<group_family>1</group_family>
+<percolate>0</percolate>
+</format_parameters>
+<hits>
+<hit number="1">
+<protein accession="P00489" member="1">
+<prot_desc>P00489 PYGM_RABIT Glycogen phosphorylase, muscle form - Oryctolagus cuniculus (Rabbit)</prot_desc>
+<prot_score>1792</prot_score>
+<prot_mass>97741</prot_mass>
+<prot_matches>96</prot_matches>
+<prot_matches_sig>96</prot_matches_sig>
+<prot_sequences>37</prot_sequences>
+<prot_sequences_sig>37</prot_sequences_sig>
+<peptide query="872" rank="1" isbold="1" isunique="1">
+<pep_exp_mz>484.30484</pep_exp_mz>
+<pep_exp_mr>966.59513</pep_exp_mr>
+<pep_exp_z>2</pep_exp_z>
+<pep_calc_mr>966.58618</pep_calc_mr>
+<pep_delta>0.00895</pep_delta>
+<pep_miss>1</pep_miss>
+<pep_score>20.24</pep_score>
+<pep_expect>0.0095</pep_expect>
+<pep_res_before>R</pep_res_before>
+<pep_seq>IHSEILKK</pep_seq>
+<pep_res_after>T</pep_res_after>
+<pep_var_mod/>
+<pep_var_mod_pos/>
+<pep_summed_mod_pos/>
+<pep_scan_title>Spectrum6 scans:303,</pep_scan_title>
+</peptide>
+</protein>
+</hit>
+<hit number="2">
+<protein accession="sp|P0A858|TPIS_ECOLI" member="1">
+<prot_desc>sp|P0A858|TPIS_ECOLI Triosephosphate isomerase OS=Escherichia coli (strain K12) GN=tpiA PE=1 SV=1</prot_desc>
+<prot_score>226</prot_score>
+<prot_mass>27126</prot_mass>
+<prot_matches>6</prot_matches>
+<prot_matches_sig>6</prot_matches_sig>
+<prot_sequences>6</prot_sequences>
+<prot_sequences_sig>6</prot_sequences_sig>
+<peptide query="2405" rank="1" isbold="1" isunique="1">
+<pep_exp_mz>403.55432</pep_exp_mz>
+<pep_exp_mr>1207.64113</pep_exp_mr>
+<pep_exp_z>3</pep_exp_z>
+<pep_calc_mr>1207.63092</pep_calc_mr>
+<pep_delta>0.01021</pep_delta>
+<pep_miss>0</pep_miss>
+<pep_score>25.14</pep_score>
+<pep_expect>0.0069</pep_expect>
+<pep_res_before>K</pep_res_before>
+<pep_seq>SATPAQAQAVHK</pep_seq>
+<pep_res_after>F</pep_res_after>
+<pep_var_mod/>
+<pep_var_mod_pos/>
+<pep_summed_mod_pos/>
+<pep_scan_title>Spectrum11 scans:311,</pep_scan_title>
+</peptide>
+</protein>
+</hit>
+<hit number="3">
+<protein accession="sp|B1XEA5|LSRF_ECODH" member="1">
+<prot_desc>sp|B1XEA5|LSRF_ECODH Uncharacterized aldolase LsrF OS=Escherichia coli (strain K12 / DH10B) GN=lsrF PE=3 SV=1</prot_desc>
+<prot_score>24</prot_score>
+<prot_mass>32157</prot_mass>
+<prot_matches>1</prot_matches>
+<prot_matches_sig>1</prot_matches_sig>
+<prot_sequences>1</prot_sequences>
+<prot_sequences_sig>1</prot_sequences_sig>
+<peptide query="4700" rank="1" isbold="1" isunique="1">
+<pep_exp_mz>516.26715</pep_exp_mz>
+<pep_exp_mr>1545.77962</pep_exp_mr>
+<pep_exp_z>3</pep_exp_z>
+<pep_calc_mr>1545.76480</pep_calc_mr>
+<pep_delta>0.01482</pep_delta>
+<pep_miss>0</pep_miss>
+<pep_score>23.67</pep_score>
+<pep_expect>0.013</pep_expect>
+<pep_res_before>K</pep_res_before>
+<pep_seq>AVQAVVHHNETADR</pep_seq>
+<pep_res_after>A</pep_res_after>
+<pep_var_mod/>
+<pep_var_mod_pos/>
+<pep_summed_mod_pos/>
+<pep_scan_title>Spectrum17 scans:321,</pep_scan_title>
+</peptide>
+</protein>
+</hit>
+</hits>
+</mascot_search_results>

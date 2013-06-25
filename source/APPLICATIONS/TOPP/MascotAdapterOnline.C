@@ -239,7 +239,7 @@ protected:
     MascotXMLFile::RTMapping rt_mapping;
     for (Size i = 0; i < exp.size(); ++i)
     {
-      rt_mapping[exp[i].getNativeID()] = exp[i].getRT();
+			if (exp[i].getMSLevel() > 1) rt_mapping[i] = exp[i].getRT();
     }
     // read the response
     MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);
