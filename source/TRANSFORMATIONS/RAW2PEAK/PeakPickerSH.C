@@ -50,60 +50,6 @@ namespace OpenMS
     // FLO: Do not care at the moment
   }
 
-  template <typename PeakType>
-  void PeakPickerSH::pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, float fWindowWidth)
-  {
-    int i, hw, j;
-    double cm, toti, min_dh;
-
-    // Hack: Prepare data structures for Lukas' algorithm
-    std::vector<double> masses, intens;
-    // TODO: Probably we could save some time when we resize the vectors... # PeakPickerSH.C
-    //masses.resize(input.size());
-    //intens.resize(input.size());
-    for (Size k = 0; k < input.size() - 1; ++k)
-    {
-      // Lukas requires a minimum of intensity (=50). His vectors do not contain
-      // other data, so I strip the low ones out right here.
-      // TODO: Read 50.0 from parameters  # PeakPickerSH.C
-      if (input[k].getIntensity() >= 50.0)
-      {
-        masses.push_back(input[k].getMZ());
-        intens.push_back(input[k].getIntensity());
-      }
-    }
-
-    min_dh = 50.0;              // min height
-    hw = fWindowWidth / 2;
-
-    for (i = 2; i < (int)masses.size() - 2; i++)
-    {
-
-      // Peak must be concave in the interval [i-2 .. i+2]
-      if (intens[i] > min_dh && intens[i] > intens[i - 1] + min_dh && intens[i] >= intens[i + 1] && intens[i - 1] > intens[i - 2] + min_dh && intens[i + 1] >= intens[i + 2])
-      {
-
-        cm = 0.0;                   // centroid mass:
-        toti = 0.0;             // total intensity:
-
-        for (j = -hw; j <= hw; j++)
-        {
-          double inte = intens[i - j];
-          double mz = masses[i - j];
-
-          cm += inte * mz;
-          toti += (double) intens[i - j];
-        }
-        cm = cm / toti;           // Centre of gravity = centroid
-
-        PeakType peak;
-        peak.setMZ(cm);
-        peak.setIntensity(intens[i]);
-        output.push_back(peak);
-      }
-    }
-  }
-
   void PeakPickerSH::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
   {
     // make sure that output is clear
