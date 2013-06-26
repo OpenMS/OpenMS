@@ -224,7 +224,7 @@ namespace OpenMS
             isotopes_sim_score_ = sim_score;
         }
 
-        DoubleReal computeCombinedScore();
+        // DoubleReal computeCombinedScore(); // not implemented
         // debug/output functions
         void outputResults() const;
 

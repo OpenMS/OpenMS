@@ -208,13 +208,15 @@ public:
         @note this function uses unix-style linebreaks
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
+
+        TODO : implement
     */
-    void load(const String & filename, bool trim_lines = false, Int first_n = -1);
+    // void load(const String & filename, bool trim_lines = false, Int first_n = -1);
 
     const std::vector<DataProcessing> getDataProcessingList() const;
     const std::vector<Assay> & getAssays() const;
     std::vector<Assay> & getAssays();
-    std::map<String, ConsensusFeature::Ratio> & getRatios();
+    // std::map<String, ConsensusFeature::Ratio> & getRatios(); // TODO : implement
     const std::vector<ConsensusMap> & getConsensusMaps() const;
     std::vector<ConsensusMap> & getConsensusMaps();
     void setConsensusMaps(const std::vector<ConsensusMap> & );

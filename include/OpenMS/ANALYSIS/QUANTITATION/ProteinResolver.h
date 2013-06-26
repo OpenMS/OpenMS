@@ -186,7 +186,7 @@ public:
       @param identifications
       @param output_file
     */
-    void writePeptideTable(std::vector<PeptideEntry> & peptides, std::vector<Size> & reindexed_peptides, std::vector<PeptideIdentification> & identifications, String & output_file);
+    // void writePeptideTable(std::vector<PeptideEntry> & peptides, std::vector<Size> & reindexed_peptides, std::vector<PeptideIdentification> & identifications, String & output_file); // not implemented
     /**
       @brief Writing peptide table into text file
 
@@ -195,7 +195,7 @@ public:
       @param consensus
       @param output
     */
-    void writePeptideTable(std::vector<PeptideEntry> & peptides, std::vector<Size> & reindexed_peptides, ConsensusMap & consensus, String & output_file);
+    // void writePeptideTable(std::vector<PeptideEntry> & peptides, std::vector<Size> & reindexed_peptides, ConsensusMap & consensus, String & output_file); // not implemented
     /**
       @brief Writing protein table into text file
 
@@ -203,7 +203,7 @@ public:
       @param reindexed_proteins
       @param output_file
     */
-    void writeProteinTable(std::vector<ProteinEntry> & proteins, std::vector<Size> & reindexed_proteins, String & output_file);
+    // void writeProteinTable(std::vector<ProteinEntry> & proteins, std::vector<Size> & reindexed_proteins, String & output_file); // not implemented
     /**
       @brief Writing protein groups into text file
 
@@ -211,7 +211,7 @@ public:
       @param msd_groups MSD groups
       @param output_file Path of output file
     */
-    void writeProteinGroups(std::vector<ISDGroup> & isd_groups, std::vector<MSDGroup> & msd_groups, String & output_file);
+    // void writeProteinGroups(std::vector<ISDGroup> & isd_groups, std::vector<MSDGroup> & msd_groups, String & output_file); // not implemented
 
     /**
       @brief brief

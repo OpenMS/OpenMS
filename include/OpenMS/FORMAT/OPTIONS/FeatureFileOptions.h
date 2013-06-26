@@ -100,16 +100,6 @@ public:
     ///returns the intensity range
     const DRange<1> & getIntensityRange() const;
 
-    /**
-      @name Compression options
-
-      @note This option is ignored if the format does not support compression
-    */
-    //Sets if data should be compressed when writing
-    void setCompression(bool compress);
-    //returns @c true, if data should be compressed when writing
-    bool getCompression() const;
-
 private:
     bool loadConvexhull_;
     bool loadSubordinates_;

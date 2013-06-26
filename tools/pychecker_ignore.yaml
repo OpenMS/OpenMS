@@ -106,31 +106,18 @@ PyOpenMSChecker:
         - readOutHeader
     OpenMS::PeakPickerRapid:
         - computeTPG
+    OpenMS::MSQuantifications:
+        - NamesOfQuantTypes # renamed
+    OpenMS::ProteinResolver:
+        # pointers
+        - getPeptideIdentification
+        - getPeptideHit
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Not implemented = errors in OpenMS API
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    OpenMS::FeatureFileOptions:
-        - getCompression
-        - setCompression
-    OpenMS::CVTermList:
-        - checkCVTerms
-    OpenMS::MSQuantifications:
-        - load
-        - getRatios
-        - NamesOfQuantTypes # renamed
-    OpenMS::ProteinResolver:
-        # not implemented
-        - writePeptideTable
-        - writeProteinTable
-        - writeProteinGroups
-        # pointers
-        - getPeptideIdentification
-        - getPeptideHit
     OpenMS::PeakPickerSH:
         - pick
-    OpenMS::AccurateMassSearchResult:
-        - computeCombinedScore() nogil except +
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed enums / Attributes of enums that are wrapped already

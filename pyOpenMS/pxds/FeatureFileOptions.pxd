@@ -32,6 +32,3 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>" namespace "OpenM
         bool hasIntensityRange()
         DRange1 getIntensityRange()
 
-        # TODO not implemented
-        # bool getCompression()
-        # void setCompression(bool compress)

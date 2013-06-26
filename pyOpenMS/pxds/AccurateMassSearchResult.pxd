@@ -36,7 +36,5 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         void setMatchingHMDBids(libcpp_vector[ String ] & match_ids) nogil except +
         DoubleReal getIsotopesSimScore() nogil except +
         void setIsotopesSimScore(DoubleReal & sim_score) nogil except +
-        # TODO : not implemented
-        # DoubleReal computeCombinedScore() nogil except +
         void outputResults() nogil except +
 
