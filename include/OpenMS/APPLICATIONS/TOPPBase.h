@@ -779,7 +779,7 @@ protected:
       Checking input and output files is only necessary, if you did register the file as string option,
       e.g. when only a file prefix is given which is completed in the program.
 
-      The exceptions thrown in these methods are catched in the main method of this class.
+      The exceptions thrown in these methods are caught in the main method of this class.
       They do not have to be handled in the tool itself!
     */
     //@{

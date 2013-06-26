@@ -200,7 +200,7 @@ protected:
     }
     catch (Exception::BaseException & e)
     {
-      LOG_ERROR << "Exception catched: " << e.what() << "\n";
+      LOG_ERROR << "Exception caught: " << e.what() << "\n";
       return INTERNAL_ERROR;
     }
     if (!write_meta_data_arrays)

@@ -399,7 +399,7 @@ protected:
     }
     else
     {
-      writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been catched before! Aborting!");
+      writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Illegal meta value filtering operator!");
     }
   }
