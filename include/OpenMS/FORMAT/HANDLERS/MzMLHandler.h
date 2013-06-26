@@ -775,22 +775,24 @@ protected:
       {
         if (!skip_spectrum_)
         {
+
+          // catch errors stemming from confusion about elution time and scan time
+          if (spec_.getRT() == -1.0 && spec_.metaValueExists("elution time (seconds)"))
+          {
+            spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
+          }
+          /* this is too hot (could be SRM as well? -- check!):
+             // correct spectrum type if possible (i.e., make it more specific)
+          if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
+          {
+            if (spec_.getMSLevel() <= 1) spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
+            else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+          }
+          */
+
           fillData_();
           exp_->addSpectrum(spec_);
 
-          // catch errors stemming from confusion about elution time and scan time
-          if (exp_->getSpectra().back().getRT() == -1.0 && exp_->getSpectra().back().metaValueExists("elution time (seconds)"))
-          {
-            exp_->getSpectra().back().setRT(exp_->getSpectra().back().getMetaValue("elution time (seconds)"));
-          }
-          /* this is too hot (could be SRM as well? -- check!):
-                    // correct spectrum type if possible (i.e., make it more specific)
-          if (exp_->getSpectra().back().getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
-          {
-            if (exp_->getSpectra().back().getMSLevel() <= 1) exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-            else                                exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
-          }
-                    */
         }
         skip_spectrum_ = false;
         logger_.setProgress(++scan_count);
