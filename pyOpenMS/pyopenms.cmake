@@ -1,6 +1,6 @@
 #IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
     #IF (WIN32)
-        #MESSAGE(STATUS "bulding debug version on Windows not supported yet")
+        #MESSAGE(STATUS "building debug version on Windows not supported yet")
         #RETURN()
     #ENDIF()
 #ENDIF()
@@ -17,11 +17,11 @@ execute_process(
 
 MESSAGE(STATUS "found python ${PY_VERSION}")
 
-# windows support restrecited to pyhton2.7 at the moment !
+# Windows support restricted to Python 2.7 at the moment!
 IF (WIN32)
 
     IF (NOT MSVC90)
-        MESSAGE(STATUS "need visual c++ 2008 compiler for building python 2.[67] extensions")
+        MESSAGE(STATUS "Need visual C++ 2008 compiler for building Python 2.[67] extensions")
         RETURN()
     ENDIF()
 
@@ -41,6 +41,7 @@ IF (WIN32)
 ENDIF(WIN32)
 
 
+# Find Cython
 find_program( CYTHON_EXECUTABLE NAMES cython )
 
 SET(CYTHON-MISSING FALSE)
@@ -54,8 +55,7 @@ ELSE()
 	MESSAGE(STATUS "Looking for cython - found")
 ENDIF()
 
-###### autwowrap check ########
-
+# Check for autowrap Cython
 execute_process(
      COMMAND
      ${PYTHON_EXECUTABLE} -c "import autowrap"
@@ -90,6 +90,7 @@ ELSE()
     ENDIF()
 ENDIF()
 
+# Check for Nose Test Framework
 execute_process(
      COMMAND
      ${PYTHON_EXECUTABLE} -c "import nose"
@@ -115,6 +116,7 @@ ELSE()
 ENDIF()
 
 
+# Check for Numpy
 execute_process(
      COMMAND
      ${PYTHON_EXECUTABLE} -c "import numpy"
@@ -135,8 +137,8 @@ ENDIF()
 
 
 IF (NUMPY-MISSING OR CYTHON-MISSING OR NOT AUTOWRAP-VERSION-OK OR NOSE-MISSING)
-    MESSAGE(FATAL_ERROR "needed Python modules not found or out of date")
-    RETURN()
+  MESSAGE(FATAL_ERROR "Required Python modules not found or out of date")
+  RETURN()
 ENDIF()
 
 
@@ -210,7 +212,7 @@ IF (WIN32)
 ENDIF()
 
 
-# write variables for setup.py as python script
+# write variables for setup.py as Python script into pyOpenMS/env.py
 
 set(ENVPATH ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
