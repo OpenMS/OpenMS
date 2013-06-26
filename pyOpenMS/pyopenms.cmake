@@ -241,6 +241,11 @@ IF (WIN32)
 ENDIF()
 
 # create targets in makefile 
+add_custom_target(Name ALL
+  COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+  DEPENDS OpenMS
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+
 add_custom_target(pyopenms
 	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
