@@ -120,7 +120,7 @@ protected:
     registerDoubleOption_("intensity_threshold", "<threshold>", -1.0, "Intensity threshold value for isotope wavelet feature finder, please look at the documentation of the class for details.", false, true);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     // parsing parameters
     String in(getStringOption_("in"));
@@ -134,10 +134,6 @@ protected:
 
     PeakMap exp;
     fh.loadExperiment(in, exp, in_type, log_type_);
-    if (test_mode_)
-    {
-      exp.getSourceFiles()[0].setPathToFile("<TEST_DATA_PATH>"); // this is not platform independent, and we want the same result everywhere (in test mode)
-    }
     exp.sortSpectra();
 
     FeatureMap<> feature_map;
@@ -279,8 +275,7 @@ protected:
 
 };
 
-
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPrecursorMassCorrector tool;
   return tool.main(argc, argv);

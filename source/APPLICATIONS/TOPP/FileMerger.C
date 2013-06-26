@@ -54,7 +54,7 @@ using namespace std;
   @page TOPP_FileMerger FileMerger
 
   @brief Merges several files. Multiple output format supported, depending on input format.
-  
+
   <center>
   <table>
   <tr>
@@ -68,7 +68,7 @@ using namespace std;
   </tr>
   </table>
   </center>
-  
+
   The meta information that is valid for the whole experiment (e.g. MS instrument and sample)
   is taken from the first file.
 
@@ -118,14 +118,14 @@ protected:
     registerFlag_("raw:rt_auto", "Assign retention times automatically (integers starting at 1)");
     registerDoubleList_("raw:rt_custom", "<rt>", DoubleList(), "List of custom retention times that are assigned to the files. The number of given retention times must be equal to the number of given input file.", false);
     registerFlag_("raw:rt_filename", "If this flag is set FileMerger tries to guess the rt of the file name.\n"
-                                 "This option is useful for merging DTA file, which should contain the string\n"
-                                 "'rt' directly followed by a floating point number:\n"
-                                 "i.e. my_spectrum_rt2795.15.dta");
+                                     "This option is useful for merging DTA file, which should contain the string\n"
+                                     "'rt' directly followed by a floating point number:\n"
+                                     "i.e. my_spectrum_rt2795.15.dta");
     registerIntOption_("raw:ms_level", "<num>", 2, "This option is useful for use with DTA files which does not contain MS level information. The given level is assigned to the spectra.", false);
     registerFlag_("raw:user_ms_level", "If this flag is set, the MS level given above is used");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -359,24 +359,21 @@ protected:
           ++native_id;
         }
 
-        if (test_mode_)  in.getSourceFiles()[0].setPathToFile("<TEST_DATA_PATH>"); // this is not platform independent, and we want the same result everywhere (in test mode)
-
         // if we had only one spectrum, we can annotate it directly, for more spectra, we just name the source file leaving the spectra unannotated (to avoid a long and redundant list of sourceFiles)
-        if (in.size()==1)
+        if (in.size() == 1)
         {
-            out.getSpectra().back().setSourceFile(in.getSourceFiles()[0]);
-            in.getSourceFiles().clear(); // delete source file annotated from source file (its in the spectrum anyways)
+          out.getSpectra().back().setSourceFile(in.getSourceFiles()[0]);
+          in.getSourceFiles().clear();   // delete source file annotated from source file (its in the spectrum anyways)
         }
         // copy experimental settings from first file
         if (i == 0)
         {
           out.ExperimentalSettings::operator=(in);
         }
-        else  // otherwise append
+        else // otherwise append
         {
           out.getSourceFiles().insert(out.getSourceFiles().end(), in.getSourceFiles().begin(), in.getSourceFiles().end()); // could be emtpty if spectrum was annotated above, but that's ok then
         }
-
 
         // also add the chromatograms
         for (std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator it2 = in.getChromatograms().begin(); it2 != in.getChromatograms().end(); ++it2)
@@ -406,7 +403,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFileMerger tool;
   return tool.main(argc, argv);

@@ -50,34 +50,42 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FileConverter FileConverter
+  @page TOPP_FileConverter FileConverter
 
-    @brief Converts between different MS file formats.
+  @brief Converts between different MS file formats.
 
-    <CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FileConverter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_GenericWrapper (e.g. for calling external converters) </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on the output format</td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any vendor software exporting supported formats (e.g. mzXML) </td>
-        </tr>
-    </table>
-    </CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FileConverter \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_GenericWrapper (e.g. for calling external converters) </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on the output format</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any vendor software exporting supported formats (e.g. mzXML) </td>
+  </tr>
+  </table>
+  </CENTER>
 
-  The main use of this tool is to convert data from external sources to the formats used by OpenMS/TOPP. Maybe most importantly, data from MS experiments in a number of different formats can be converted to mzML, the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and supports traceability of analysis steps.)
+  The main use of this tool is to convert data from external sources to the formats used by OpenMS/TOPP. 
+  Maybe most importantly, data from MS experiments in a number of different formats can be converted to mzML, 
+  the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and 
+  supports traceability of analysis steps.)
 
-    Many different format conversions are supported, and some may be more useful than others. Depending on the file formats involved, information can be lost during conversion, e.g. when converting	featureXML to mzData. In such cases a warning is shown.
+  Many different format conversions are supported, and some may be more useful than others. Depending on the
+  file formats involved, information can be lost during conversion, e.g. when converting	featureXML to mzData. 
+  In such cases a warning is shown.
 
-    The input and output file types are determined from	the file extensions or from the first few lines of the files. If file type determination is not possible, the input or output file type has to be given explicitly.
+  The input and output file types are determined from	the file extensions or from the first few lines of the 
+  files. If file type determination is not possible, the input or output file type has to be given explicitly.
 
-    Conversion with the same output as input format is supported. In some cases, this can be helpful to remove errors from files, to update file formats to new versions, or to check whether information is lost upon reading or writing.
+  Conversion with the same output as input format is supported. In some cases, this can be helpful to remove
+  errors from files, to update file formats to new versions, or to check whether information is lost upon 
+  reading or writing.
 
   Some information about the supported input types:
   @ref OpenMS::MzMLFile "mzML"
@@ -95,12 +103,12 @@ using namespace std;
   @ref OpenMS::KroenikFile "kroenik"
   @ref OpenMS::EDTAFile "edta"
 
-    See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
+  See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_FileConverter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FileConverter.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_FileConverter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_FileConverter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -134,7 +142,7 @@ protected:
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -236,10 +244,6 @@ protected:
     else
     {
       fh.loadExperiment(in, exp, in_type, log_type_);
-      if (test_mode_)
-      {
-        exp.getSourceFiles()[0].setPathToFile("<TEST_DATA_PATH>"); // this is not platform independent, and we want the same result everywhere (in test mode)
-      }
     }
 
     //-------------------------------------------------------------
@@ -319,7 +323,7 @@ protected:
       {
         ConsensusMap::convert(cm, true, fm);
       }
-      else     // not loaded as feature map or consensus map
+      else // not loaded as feature map or consensus map
       {
         // The feature specific information is only defaulted. Enough reasons to issue a warning!
         writeLog_("Warning: Converting peaks to features will lead to incomplete features!");
@@ -366,7 +370,7 @@ protected:
       else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
       {
       }
-      else     // experimental data
+      else // experimental data
       {
         ConsensusMap::convert(0, exp, cm, exp.size());
       }
@@ -397,7 +401,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFileConverter tool;
   return tool.main(argc, argv);
