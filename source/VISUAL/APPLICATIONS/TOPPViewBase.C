@@ -3037,13 +3037,14 @@ namespace OpenMS
     topp_.process->setProcessChannelMode(QProcess::MergedChannels);
     connect(topp_.process, SIGNAL(readyReadStandardOutput()), this, SLOT(updateProcessLog()));
     topp_.timer.restart();
-    topp_.process->start(topp_.tool.toQString(), args);
 
     //connect the finished slot
     connect(topp_.process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finishTOPPToolExecution(int, QProcess::ExitStatus)));
 
     //start process
+    topp_.process->start(topp_.tool.toQString(), args);
     topp_.process->waitForStarted();
+
     updateMenu();
   }
 
