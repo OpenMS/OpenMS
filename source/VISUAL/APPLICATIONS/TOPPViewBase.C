@@ -1203,33 +1203,33 @@ namespace OpenMS
       {
         vector<ProteinIdentification> proteins; // not needed later
         IdXMLFile().load(abs_filename, proteins, peptides);
-				if (peptides.empty())
-				{
-					throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications found");
-				}
-				// check if RT (and sequence) information is present:
-				vector<PeptideIdentification> peptides_with_rt;
+        if (peptides.empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications found");
+        }
+        // check if RT (and sequence) information is present:
+        vector<PeptideIdentification> peptides_with_rt;
         for (vector<PeptideIdentification>::const_iterator it =
                peptides.begin(); it != peptides.end(); ++it)
         {
           if (!it->getHits().empty() && it->metaValueExists("RT"))
           {
-						peptides_with_rt.push_back(*it);
-					}
-				}
-				Int diff = peptides.size() - peptides_with_rt.size();
-				if (diff)
-				{
-					String msg = String(diff) + " peptide identification(s) without "
-						"sequence and/or retention time information were removed.\n" + 
-						peptides_with_rt.size() + " peptide identification(s) remaining.";
-					showLogMessage_(LS_WARNING, "While loading file:", msg);
-				}
-				if (peptides_with_rt.empty())
-				{
-					throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications with sufficient information remaining.");
-				}
-				peptides.swap(peptides_with_rt);
+            peptides_with_rt.push_back(*it);
+          }
+        }
+        Int diff = peptides.size() - peptides_with_rt.size();
+        if (diff)
+        {
+          String msg = String(diff) + " peptide identification(s) without "
+                                      "sequence and/or retention time information were removed.\n" +
+                       peptides_with_rt.size() + " peptide identification(s) remaining.";
+          showLogMessage_(LS_WARNING, "While loading file:", msg);
+        }
+        if (peptides_with_rt.empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications with sufficient information remaining.");
+        }
+        peptides.swap(peptides_with_rt);
         data_type = LayerData::DT_IDENT;
       }
       else
@@ -2963,6 +2963,7 @@ namespace OpenMS
       }
       else
       {
+
         f.store(topp_.file_name + "_in", *layer.getPeakData());
       }
     }
@@ -3016,7 +3017,7 @@ namespace OpenMS
       }
     }
 
-    //compose argument list
+    // compose argument list
     QStringList args;
     args << "-ini"
          << (topp_.file_name + "_ini").toQString()
@@ -3029,23 +3030,51 @@ namespace OpenMS
            << (topp_.file_name + "_out").toQString();
     }
 
-    //start log and show it
+    // start log and show it
     showLogMessage_(LS_NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), ""); // tool + args.join(" "));
 
-    //start process
+    // initialize process
     topp_.process = new QProcess();
     topp_.process->setProcessChannelMode(QProcess::MergedChannels);
-    connect(topp_.process, SIGNAL(readyReadStandardOutput()), this, SLOT(updateProcessLog()));
-    topp_.timer.restart();
 
-    //connect the finished slot
+    // connect slots
+    connect(topp_.process, SIGNAL(readyReadStandardOutput()), this, SLOT(updateProcessLog()));
     connect(topp_.process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finishTOPPToolExecution(int, QProcess::ExitStatus)));
 
-    //start process
-    topp_.process->start(topp_.tool.toQString(), args);
+    QString tool_executable;
+    try
+    {
+      // find correct location of TOPP tool
+      tool_executable = File::findExecutable(topp_.tool).toQString();
+    }
+    catch (Exception::FileNotFound ex)
+    {
+      showLogMessage_(LS_ERROR, "Could not locate executable!", QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(topp_.tool.toQString()));
+      return;
+    }
+
+    // update menu entries according to new state
+    updateMenu();
+
+    // start the actual process
+    topp_.timer.restart();
+    topp_.process->start(tool_executable, args);
     topp_.process->waitForStarted();
 
-    updateMenu();
+    if (topp_.process->error() == QProcess::FailedToStart)
+    {
+      showLogMessage_(LS_ERROR, QString("Failed to execute '%1'").arg(topp_.tool.toQString()), QString("Execution of TOPP tool '%1' failed with error: %2").arg(topp_.tool.toQString(), topp_.process->errorString()));
+
+      // ensure that all tool output is emitted into log screen
+      updateProcessLog();
+
+      // re-enable Apply TOPP tool menues
+      delete topp_.process;
+      topp_.process = 0;
+      updateMenu();
+
+      return;
+    }
   }
 
   void TOPPViewBase::finishTOPPToolExecution(int, QProcess::ExitStatus)
@@ -3451,8 +3480,8 @@ namespace OpenMS
     int best_candidate = BIGINDEX;
     for (int i = 0; i < (int) getActiveCanvas()->getLayerCount(); ++i)
     {
-      if ((LayerData::DT_PEAK == getActiveCanvas()->getLayer(i).type) &&        // supported type
-          (std::abs(i - target_layer) < std::abs(best_candidate-target_layer))) // & smallest distance to active layer
+      if ((LayerData::DT_PEAK == getActiveCanvas()->getLayer(i).type) && // supported type
+          (std::abs(i - target_layer) < std::abs(best_candidate - target_layer))) // & smallest distance to active layer
       {
         best_candidate = i;
       }
@@ -3463,8 +3492,8 @@ namespace OpenMS
       showLogMessage_(LS_NOTICE, "No compatible layer", "No layer found which is supported by the 3D view.");
       return;
     }
-    
-    
+
+
     if (best_candidate != target_layer)
     {
       showLogMessage_(LS_NOTICE, "Auto-selected compatible layer", "The currently active layer cannot be viewed in 3D view. The closest layer which is supported by the 3D view was selected!");
