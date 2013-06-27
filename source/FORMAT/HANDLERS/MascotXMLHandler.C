@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
-// $Authors: Nico Pfeifer, Chris Bielow $
+// $Authors: Nico Pfeifer, Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
@@ -44,11 +44,12 @@ namespace OpenMS
   namespace Internal
   {
 
-    MascotXMLHandler::MascotXMLHandler(ProteinIdentification & protein_identification,
-                                       vector<PeptideIdentification> & id_data,
-                                       const String & filename,
-                                       map<String, vector<AASequence> > & modified_peptides,
-                                       const RTMapping & rt_mapping) :
+    MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
+                                       vector<PeptideIdentification>& id_data,
+                                       const String& filename,
+                                       map<String, vector<AASequence> >& modified_peptides,
+                                       const RTMapping& rt_mapping, 
+																			 const String& scan_regex) :
       XMLHandler(filename, ""),
       protein_identification_(protein_identification),
       id_data_(id_data),
@@ -60,22 +61,52 @@ namespace OpenMS
       actual_title_(""),
       modified_peptides_(modified_peptides),
       warning_msg_(""),
-      rt_mapping_(rt_mapping)
+      rt_mapping_(rt_mapping),
+			scan_regex_(),
+			no_rt_error_(false)
     {
-
+			// user-supplied regex -> use only this one
+			if (!scan_regex.empty()) scan_regex_.push_back(boost::regex(scan_regex));
+			else // try different default regexes (more probable ones first)
+			{
+				boost::regex re;
+				// if we have a mapping, we can look for the scan number:
+				if (!rt_mapping_.empty())
+				{
+					// possible formats and resulting scan numbers (1-based!):
+					// - Mascot 2.3 (?):
+					// <pep_scan_title>scan=818</pep_scan_title> -> 818
+					// - ProteomeDiscoverer/Mascot 2.3 or 2.4:
+					// <pep_scan_title>Spectrum136 scans:712,</pep_scan_title> -> 712
+					// - other variants:
+					// <pep_scan_title>Spectrum3411 scans: 2975,</pep_scan_title> -> 2975
+					// <...>File773 Spectrum198145 scans: 6094</...> -> 6094
+					// <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
+					// <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
+					re.assign("scan( number)?s?[=:]? *(?<SCAN>\\d+)",
+										boost::regex::perl|boost::regex::icase);
+					scan_regex_.push_back(re);
+					// - with .dta input to Mascot:
+					// <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
+					re.assign("\\.(?<SCAN>\\d+)\\.\\d+.\\d+.dta");
+					scan_regex_.push_back(re);
+				}
+				// title containing RT and MZ instead of scan number:
+				// <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
+				re.assign("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
+				scan_regex_.push_back(re);
+			}
     }
 
     MascotXMLHandler::~MascotXMLHandler()
     {
-
     }
 
-    void MascotXMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+    void MascotXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
-      static const XMLCh * s_protein_accession = xercesc::XMLString::transcode("accession");
-      static const XMLCh * s_queries_query_number = xercesc::XMLString::transcode("number");
-      static const XMLCh * s_peptide_query = xercesc::XMLString::transcode("query");
-
+      static const XMLCh* s_protein_accession = xercesc::XMLString::transcode("accession");
+      static const XMLCh* s_queries_query_number = xercesc::XMLString::transcode("number");
+      static const XMLCh* s_peptide_query = xercesc::XMLString::transcode("query");
 
       tag_ = String(sm_.convert(qname));
 
@@ -85,6 +116,7 @@ namespace OpenMS
       {
         major_version_ = this->attributeAsString_(attributes, "majorVersion");
         minor_version_ = this->attributeAsString_(attributes, "minorVersion");
+				no_rt_error_ = false; // reset for every new file
       }
       else if (tag_ == "warning")
       {
@@ -106,12 +138,12 @@ namespace OpenMS
 
         if (peptide_identification_index_ > id_data_.size())
         {
-          fatalError(LOAD, "No header information present: use  the show_header=1 option in the ./export_dat.pl script");
+          fatalError(LOAD, "No or conflicting header information present (make sure to use the show_header=1 option in the ./export_dat.pl script)");
         }
       }
     }
 
-    void MascotXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void MascotXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       tag_ = String(sm_.convert(qname)).trim();
 
@@ -178,13 +210,12 @@ namespace OpenMS
 
     void MascotXMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
     {
-      if (tag_.empty())
-        return;               // do not care about chars after internal tags, e.g.
-
+			// do not care about chars after internal tags, e.g.
       // <header>
       //   <COM>OpenMS_search</COM>
       //   <Date>
       // will trigger a characters() between </COM> and <Date>, which should be ignored
+      if (tag_.empty()) return;
 
       if (tag_ == "NumQueries")
       {
@@ -204,42 +235,65 @@ namespace OpenMS
       {
         id_data_[peptide_identification_index_].setMetaValue("MZ", ((String) sm_.convert(chars)).trim().toDouble());
       }
-      else if (tag_ == "pep_scan_title") // extract RT (and possibly m/z) from title (if not already set)
+      else if (tag_ == "pep_scan_title")
       { 
+				// extract RT (and possibly m/z, if not already set) from title:
         String title = ((String) sm_.convert(chars)).trim();
-				Size scan_no = extractScanNumber_(title);
 
-        if (scan_no && rt_mapping_.has(scan_no - 1))
-        {
-          id_data_[peptide_identification_index_].setMetaValue("RT", rt_mapping_[scan_no - 1]);
-        }
-        else if (title.hasSubstring("_"))
-        {
-          DoubleReal rt(0), mz(0);
-          try
-          {
-            // e.g. <pep_scan_title>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</pep_scan_title>
-            StringList tmp_parts;
-            title.split("_", tmp_parts);
-            if (tmp_parts.size() > 1)
-            {
-              mz = tmp_parts[0].toDouble();
-              rt = tmp_parts[1].toDouble();
-            }
-            else
-            {
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "<pep_scan_title> has unexpected format", "check mascot tmp file");
-            }
-          }
-          catch (Exception::BaseException & /*e*/)
-          {
-          }
-
-          if (!id_data_[peptide_identification_index_].metaValueExists("RT"))
-            id_data_[peptide_identification_index_].setMetaValue("RT", rt);
-          if (!id_data_[peptide_identification_index_].metaValueExists("MZ") && (mz != 0))
-            id_data_[peptide_identification_index_].setMetaValue("MZ", mz); // overwrite value if available
-        }
+				vector<boost::regex>::const_iterator re_it = scan_regex_.begin();
+				try
+				{
+					for (; re_it != scan_regex_.end(); ++re_it)
+					{
+						boost::smatch match;
+						bool found = boost::regex_search(title, match, *re_it);
+						if (found)
+						{
+							if (match["RT"].matched)
+							{
+								DoubleReal rt = String(match["RT"].str()).toDouble();
+								id_data_[peptide_identification_index_].setMetaValue("RT", rt);
+							}
+							else if (match["SCAN"].matched)
+							{
+								Size scan_no = String(match["SCAN"].str()).toInt();
+								if (scan_no && rt_mapping_.has(scan_no - 1))
+								{
+									id_data_[peptide_identification_index_].setMetaValue(
+										"RT", rt_mapping_[scan_no - 1]);
+								}
+							}
+							if (match["MZ"].matched && 
+									!id_data_[peptide_identification_index_].metaValueExists(
+										"MZ"))
+							{
+								DoubleReal mz = String(match["MZ"].str()).toDouble();
+								id_data_[peptide_identification_index_].setMetaValue("MZ", mz);
+							}
+							break;
+						}
+					}
+				}
+				catch (Exception::ConversionError&)
+				{
+					String msg = "<pep_scan_title> element has unexpected format '" +
+						title + "'. The regular expression '" + re_it->str() + "' matched, "
+						"but the extracted information could not be converted to a number.";
+					error(LOAD, msg);
+				}
+				// did it work?
+				if (!id_data_[peptide_identification_index_].metaValueExists("RT"))
+				{
+					if (!no_rt_error_) // report the error only the first time
+					{
+						String msg = "Could not extract RT value ";
+						if (!rt_mapping_.empty()) msg += "or a matching scan number ";
+						msg += "from <pep_scan_title> element with format '" + title + 
+							"'. Try adjusting the 'scan_regex' parameter.";
+						error(LOAD, msg);
+					}
+					no_rt_error_ = true;
+				}
       }
       else if (tag_ == "pep_exp_z")
       {
@@ -589,50 +643,6 @@ namespace OpenMS
         }
       }
     }
-
-
-		Size MascotXMLHandler::extractScanNumber_(const String& title)
-		{
-			// possible formats and resulting scan numbers (1-based!):
-			// - Mascot 2.3 (?):
-			// <pep_scan_title>scan=818</pep_scan_title> -> 818
-			// - ProteomeDiscoverer/Mascot 2.3 or 2.4:
-			// <pep_scan_title>Spectrum136 scans:712,</pep_scan_title> -> 712
-			// - with .dta input to Mascot:
-			// <pep_scan_title>/path/to/FTAC05_13.673.673.2.dta</pep_scan_title> -> 673
-			// - other variants:
-			// <pep_scan_title>Spectrum3411 scans: 2975,</pep_scan_title> -> 2975
-			// <pep_scan_title>File773 Spectrum198145 scans: 6094</pep_scan_title> -> 6094
-			// <pep_scan_title>6860: Scan 10668 (rt=5380.57)</pep_scan_title> -> 10668
-			// <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
-			
-			string patterns[] = {"scan=", "scans:", "Scan Number:", "Scan "};
-			Size scan_no = 0;
-
-			// if a pattern is found, extract the next number from the string:
-			for (size_t i = 0; i < 4; ++i)
-			{
-				size_t pos = title.find(patterns[i]);
-				if (pos != string::npos)
-				{
-					stringstream ss(title.substr(pos + patterns[i].size()));
-					ss >> scan_no;
-					if (scan_no) return scan_no;
-				}
-			}
-			// .dta case:
-			if (title.hasSuffix(".dta"))
-			{
-				// format: [filename].[scan_begin].[scan_end].[charge].dta
-				StringList parts = StringList::create(title, '.');
-				try
-				{
-					scan_no = parts[parts.size() - 4].toInt();
-				}
-				catch (...) {}
-			}
-			return scan_no;
-		}
 
   }   // namespace Internal
 } // namespace OpenMS

@@ -6,7 +6,7 @@
 <USERNAME>Discoverer_hw5</USERNAME>
 <USEREMAIL/>
 <URI>http://www.example.com/mascot/cgi/master_results.pl?file=../data/20130606/F025589.dat</URI>
-<FILENAME>File Name: R:\Hendrik\DESeq\e_coli\FT500651.RAW</FILENAME>
+<FILENAME>File Name: X:\path\to\FT500651.RAW</FILENAME>
 <FORMAT>Mascot generic</FORMAT>
 <SEARCH>MIS</SEARCH>
 <MascotVer>2.4.0</MascotVer>
@@ -15,7 +15,7 @@
 <NumSeqs>12614</NumSeqs>
 <NumResidues>4054596</NumResidues>
 <NumSeqsAfterTax>12614</NumSeqsAfterTax>
-<NumQueries>8661</NumQueries>
+<NumQueries>3</NumQueries>
 </header>
 <decoy>
 <NumHitsAboveIdentity>3</NumHitsAboveIdentity>
@@ -78,7 +78,7 @@
 <prot_matches_sig>96</prot_matches_sig>
 <prot_sequences>37</prot_sequences>
 <prot_sequences_sig>37</prot_sequences_sig>
-<peptide query="872" rank="1" isbold="1" isunique="1">
+<peptide query="2" rank="1" isbold="1" isunique="1">
 <pep_exp_mz>484.30484</pep_exp_mz>
 <pep_exp_mr>966.59513</pep_exp_mr>
 <pep_exp_z>2</pep_exp_z>
@@ -106,7 +106,7 @@
 <prot_matches_sig>6</prot_matches_sig>
 <prot_sequences>6</prot_sequences>
 <prot_sequences_sig>6</prot_sequences_sig>
-<peptide query="2405" rank="1" isbold="1" isunique="1">
+<peptide query="3" rank="1" isbold="1" isunique="1">
 <pep_exp_mz>403.55432</pep_exp_mz>
 <pep_exp_mr>1207.64113</pep_exp_mr>
 <pep_exp_z>3</pep_exp_z>
@@ -121,7 +121,7 @@
 <pep_var_mod/>
 <pep_var_mod_pos/>
 <pep_summed_mod_pos/>
-<pep_scan_title>Spectrum11 scans:311,</pep_scan_title>
+<pep_scan_title>scan=311</pep_scan_title>
 </peptide>
 </protein>
 </hit>
@@ -134,7 +134,7 @@
 <prot_matches_sig>1</prot_matches_sig>
 <prot_sequences>1</prot_sequences>
 <prot_sequences_sig>1</prot_sequences_sig>
-<peptide query="4700" rank="1" isbold="1" isunique="1">
+<peptide query="1" rank="1" isbold="1" isunique="1">
 <pep_exp_mz>516.26715</pep_exp_mz>
 <pep_exp_mr>1545.77962</pep_exp_mr>
 <pep_exp_z>3</pep_exp_z>
@@ -149,7 +149,7 @@
 <pep_var_mod/>
 <pep_var_mod_pos/>
 <pep_summed_mod_pos/>
-<pep_scan_title>Spectrum17 scans:321,</pep_scan_title>
+<pep_scan_title>/path/to/FT500651.321.321.3.dta</pep_scan_title>
 </peptide>
 </protein>
 </hit>

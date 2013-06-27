@@ -80,18 +80,26 @@ represented in the simpler idXML format.
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant
 information for the use of ProteinProphet.
 
-Details on using 'mz_file':
-Some search engine output files (like pepXML, mascotXML, Sequest .out files) do not contain retention times, only scan numbers, thus the raw file is used to reconstruct actual RT values.
-For pepXML this file can additionally be used to define what parts to extract (some pepXMLs contain results from multiple experiments).
+<B>Details on additional parameters:</B>
+
+@p mz_file: \n
+Some search engine output files (like pepXML, mascotXML, Sequest .out files) may not contain retention times, only scan numbers. To be able to look up the actual RT values, the raw file has to be provided using the parameter @p mz_file. (If the identification results should be used later to annotate feature maps or consensus maps, it is critical that they contain RT values. See also @ref TOPP_IDMapper.)
+
+@p mz_name: \n
+PepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
+
+@p scan_regex: \n
+For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time. For example, if the format of the "pep_scan_title" elements is "scan=123", where 123 is the scan number, the expression "scan=(?<SCAN>\\d+)" can be used to extract the number. (However, the format in this example is actually covered by the defaults.)
+
 
 Some information about the supported input types:
   @ref OpenMS::MzIdentMLFile "mzIdentML"
   @ref OpenMS::PepXMLFile "pepXML"
   @ref OpenMS::ProtXMLFile "protXML"
   @ref OpenMS::IdXMLFile "idXML"
-  @ref OpenMS::MascotXML "mascotXML"
-  @ref OpenMS::OMSSAFile "omssaXML"
-  @ref OpenMS::SequestOutfile ".out" directory
+  @ref OpenMS::MascotXMLFile "mascotXML"
+  @ref OpenMS::OMSSAXMLFile "omssaXML"
+  @ref OpenMS::SequestOutfile "Sequest .out directory"
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDFileConverter.cli
@@ -139,6 +147,7 @@ protected:
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("use_precursor_data", "[pepXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
+		registerStringOption_("scan_regex", "<expression>", "", "[mascotXML only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
   }
 
   ExitCodes
@@ -278,8 +287,8 @@ protected:
 
         if (exp_name.empty())
         {
-          PepXMLFile().load(in, protein_identifications, peptide_identifications,
-                            orig_name);
+          PepXMLFile().load(in, protein_identifications, 
+														peptide_identifications, orig_name);
         }
         else
         {
@@ -289,8 +298,9 @@ protected:
           {
             exp_name = orig_name;
           }
-          PepXMLFile().load(in, protein_identifications, peptide_identifications,
-                            exp_name, exp, use_precursor_data);
+          PepXMLFile().load(in, protein_identifications, 
+														peptide_identifications, exp_name, exp, 
+														use_precursor_data);
         }
       }
       else if (in_type == FileTypes::IDXML)
@@ -301,15 +311,18 @@ protected:
       {
         protein_identifications.resize(1);
         peptide_identifications.resize(1);
-        ProtXMLFile().load(in, protein_identifications[0], peptide_identifications[0]);
+        ProtXMLFile().load(in, protein_identifications[0], 
+													 peptide_identifications[0]);
       }
       else if (in_type == FileTypes::OMSSAXML)
       {
         protein_identifications.resize(1);
-        OMSSAXMLFile().load(in, protein_identifications[0], peptide_identifications, true);
+        OMSSAXMLFile().load(in, protein_identifications[0], 
+														peptide_identifications, true);
       }
       else if (in_type == FileTypes::MASCOTXML)
       {
+				String scan_regex = getStringOption_("scan_regex");
         String exp_name = getStringOption_("mz_file");
         MascotXMLFile::RTMapping rt_mapping;
         if (!exp_name.empty())
@@ -322,7 +335,8 @@ protected:
           }
         }
         protein_identifications.resize(1);
-        MascotXMLFile().load(in, protein_identifications[0], peptide_identifications, rt_mapping);
+        MascotXMLFile().load(in, protein_identifications[0],
+														 peptide_identifications, rt_mapping, scan_regex);
       }
       else
       {

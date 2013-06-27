@@ -69,17 +69,20 @@ public:
       @param filename the file to be loaded
       @param protein_identification protein identifications belonging to the whole experiment
       @param id_data the identifications with m/z and RT
-  @param An optional mapping of scan indices to RT, in case that the MascotXML file only has scan=XY values present
-          @exception Exception::FileNotFound is thrown if the file does not exists.
-          @exception Exception::ParseError is thrown if the file does not suit to the standard.
+			@param An optional mapping of scan indices to RT, in case the file only contains scan numbers
+			@param An optional regular expression used to extract the scan numbers
+
+			@exception Exception::FileNotFound is thrown if the file does not exists.
+			@exception Exception::ParseError is thrown if the file does not suit to the standard.
 
       This method serves to read in a MascotXML file. The information can be
       retrieved via the load function.
     */
-    void load(const String & filename,
-              ProteinIdentification & protein_identification,
-              std::vector<PeptideIdentification> & id_data,
-              const RTMapping & rt_mapping = RTMapping());
+    void load(const String& filename,
+              ProteinIdentification& protein_identification,
+              std::vector<PeptideIdentification>& id_data,
+              const RTMapping& rt_mapping = RTMapping(),
+							const String& scan_regex = "");
 
     /**
       @brief loads data from a MascotXML file
@@ -88,14 +91,21 @@ public:
       @param protein_identification protein identifications belonging to the whole experiment
       @param id_data the identifications with m/z and RT
       @param peptides a map of modified peptides identified by the String title
-  @param An optional mapping of scan indices to RT, in case that the MascotXML file only has scan=XY values present
-          @exception Exception::FileNotFound is thrown if the file does not exists.
-          @exception Exception::ParseError is thrown if the file does not suit to the standard.
+			@param An optional mapping of scan indices to RT, in case the file only contains scan numbers
+			@param An optional regular expression used to extract the scan numbers
+
+			@exception Exception::FileNotFound is thrown if the file does not exists.
+			@exception Exception::ParseError is thrown if the file does not suit to the standard.
 
       This method serves to read in a MascotXML file. The information can be
       retrieved via the load function.
     */
-    void load(const String & filename, ProteinIdentification & protein_identification, std::vector<PeptideIdentification> & id_data, std::map<String, std::vector<AASequence> > & peptides, const RTMapping & rt_mapping = RTMapping());
+    void load(const String& filename,
+							ProteinIdentification& protein_identification,
+							std::vector<PeptideIdentification>& id_data, 
+							std::map<String, std::vector<AASequence> >& peptides, 
+							const RTMapping& rt_mapping = RTMapping(),
+							const String& scan_regex = "");
 
   };
 
