@@ -95,6 +95,7 @@ private:
 
     DoubleReal min_sample_rate_;
     DoubleReal min_trace_length_;
+    DoubleReal max_trace_length_;
 
     bool reestimate_mt_sd_;
   };

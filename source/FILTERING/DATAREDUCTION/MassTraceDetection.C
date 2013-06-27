@@ -61,6 +61,8 @@ MassTraceDetection::MassTraceDetection() :
     // advanced parameters
     defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
     defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
+    defaults_.setValue("max_trace_length", 300.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
+
 
 
 
@@ -513,7 +515,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         DoubleReal rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
 
         // check if minimum length and quality of mass trace criteria are met
-        if (rt_range >= min_trace_length_ && mt_quality >= min_sample_rate_)
+        if (rt_range >= min_trace_length_ && rt_range < max_trace_length_ && mt_quality >= min_sample_rate_)
         {
             // std::cout << "T" << trace_number << "\t" << mt_quality << std::endl;
 
@@ -558,6 +560,7 @@ void MassTraceDetection::updateMembers_()
 
     min_sample_rate_ = (DoubleReal)param_.getValue("min_sample_rate");
     min_trace_length_ = (DoubleReal)param_.getValue("min_trace_length");
+    max_trace_length_ = (DoubleReal)param_.getValue("max_trace_length");
     reestimate_mt_sd_ = param_.getValue("reestimate_mt_sd").toBool();
 }
 
