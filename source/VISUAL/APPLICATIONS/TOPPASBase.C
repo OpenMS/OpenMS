@@ -1104,7 +1104,7 @@ namespace OpenMS
                            "Version: %1<BR>"
                            "<BR>"
                            "OpenMS and TOPP is free software available under the<BR>"
-                           "Lesser GNU Public License (LGPL)<BR>"
+                           "BSD 3-Clause Licence (BSD-new)<BR>"
                            "<BR>"
                            "<BR>"
                            "<BR>"
