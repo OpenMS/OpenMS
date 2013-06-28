@@ -115,8 +115,187 @@ protected:
 
   ExitCodes main_(int, const char **)
   {
-    FeatureGroupingAlgorithmUnlabeled algo;
-    return TOPPFeatureLinkerBase::common_main_(&algo);
+    FeatureGroupingAlgorithmUnlabeled * algorithm = new FeatureGroupingAlgorithmUnlabeled();
+
+    //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
+    StringList ins;
+    ins = getStringList_("in");
+    String out = getStringOption_("out");
+
+    //-------------------------------------------------------------
+    // check for valid input
+    //-------------------------------------------------------------
+    // check if all input files have the correct type
+    FileTypes::Type file_type = FileHandler::getType(ins[0]);
+    for (Size i = 0; i < ins.size(); ++i)
+    {
+      if (FileHandler::getType(ins[i]) != file_type)
+      {
+        writeLog_("Error: All input files must be of the same type!");
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+
+    //-------------------------------------------------------------
+    // set up algorithm
+    //-------------------------------------------------------------
+    Param algorithm_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Used algorithm parameters", algorithm_param, 3);
+    algorithm->setParameters(algorithm_param);
+
+    Size reference_index(0);
+    //-------------------------------------------------------------
+    // perform grouping
+    //-------------------------------------------------------------
+    // load input
+    ConsensusMap out_map;
+    if (file_type == FileTypes::FEATUREXML)
+    {
+      // use map with highest number of features as reference:
+      Size max_count(0);
+      FeatureXMLFile f;
+      for (Size i = 0; i < ins.size(); ++i)
+      {
+        Size s = f.loadSize(ins[i]);
+        if (s > max_count)
+        {
+          max_count = s;
+          reference_index = i;
+        }
+      }
+
+      // Load reference map and input it to the algorithm
+      {
+        FeatureMap<> map_ref;
+        FeatureXMLFile f_fxml_tmp;
+        f_fxml_tmp.getOptions().setLoadConvexHull(false);
+        f_fxml_tmp.getOptions().setLoadSubordinates(false);
+        f_fxml_tmp.load(ins[reference_index], map_ref);
+        algorithm->setReference(reference_index, map_ref);
+      }
+
+      ConsensusMap dummy;
+      // go through all input files and add them to the result one by one
+      for (Size i = 0; i < ins.size(); ++i)
+      {
+
+        FeatureXMLFile f_fxml_tmp;
+        FeatureMap<> tmp_map;
+        f_fxml_tmp.getOptions().setLoadConvexHull(false);
+        f_fxml_tmp.getOptions().setLoadSubordinates(false);
+        f_fxml_tmp.load(ins[i], tmp_map);
+        // TODO we currently load the reference map twice
+        if (i != reference_index)
+        {
+          algorithm->addToGroup(i, tmp_map);
+        }
+
+        // store some meta-data about the maps in the "dummy" object -> try to
+        // keep the same order as they were given in the input independent of
+        // which map is the reference.
+        
+        dummy.getFileDescriptions()[i].filename = ins[i];
+        dummy.getFileDescriptions()[i].size = tmp_map.size();
+        dummy.getFileDescriptions()[i].unique_id = tmp_map.getUniqueId();
+
+        // add protein identifications to result map
+        dummy.getProteinIdentifications().insert(
+          dummy.getProteinIdentifications().end(),
+          tmp_map.getProteinIdentifications().begin(),
+          tmp_map.getProteinIdentifications().end());
+
+        // add unassigned peptide identifications to result map
+        dummy.getUnassignedPeptideIdentifications().insert(
+          dummy.getUnassignedPeptideIdentifications().end(),
+          tmp_map.getUnassignedPeptideIdentifications().begin(),
+          tmp_map.getUnassignedPeptideIdentifications().end());
+      }
+
+      // get the resulting map 
+      out_map = algorithm->getResultMap();
+
+      // 
+      // Copy back meta-data (Protein / Peptide ids / File descriptions)
+      // 
+
+      // add protein identifications to result map
+      out_map.getProteinIdentifications().insert(
+        out_map.getProteinIdentifications().end(),
+        dummy.getProteinIdentifications().begin(),
+        dummy.getProteinIdentifications().end());
+
+      // add unassigned peptide identifications to result map
+      out_map.getUnassignedPeptideIdentifications().insert(
+        out_map.getUnassignedPeptideIdentifications().end(),
+        dummy.getUnassignedPeptideIdentifications().begin(),
+        dummy.getUnassignedPeptideIdentifications().end());
+
+      out_map.setFileDescriptions(dummy.getFileDescriptions());
+
+      // canonical ordering for checking the results, and the ids have no real meaning anyway
+      // the way this was done in DelaunayPairFinder and StablePairFinder
+      // -> the same ordering as FeatureGroupingAlgorithmUnlabeled::group applies!
+      out_map.sortByMZ();
+      out_map.updateRanges();
+    }
+    else
+    {
+      vector<ConsensusMap> maps(ins.size());
+      ConsensusXMLFile f;
+      for (Size i = 0; i < ins.size(); ++i)
+      {
+        f.load(ins[i], maps[i]);
+      }
+      // group
+      algorithm->FeatureGroupingAlgorithm::group(maps, out_map);
+
+      // set file descriptions:
+      bool keep_subelements = getFlag_("keep_subelements");
+      if (!keep_subelements)
+      {
+        for (Size i = 0; i < ins.size(); ++i)
+        {
+          out_map.getFileDescriptions()[i].filename = ins[i];
+          out_map.getFileDescriptions()[i].size = maps[i].size();
+          out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
+        }
+      }
+      else
+      {
+        // components of the output map are not the input maps themselves, but
+        // the components of the input maps:
+        algorithm->transferSubelements(maps, out_map);
+      }
+    }
+
+    // assign unique ids
+    out_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    // annotate output with data processing info
+    addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+
+    // write output
+    ConsensusXMLFile().store(out, out_map);
+
+    // some statistics
+    map<Size, UInt> num_consfeat_of_size;
+    for (ConsensusMap::const_iterator cmit = out_map.begin(); cmit != out_map.end(); ++cmit)
+    {
+      ++num_consfeat_of_size[cmit->size()];
+    }
+
+    LOG_INFO << "Number of consensus features:" << endl;
+    for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
+    {
+      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
+    }
+    LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
+
+    delete algorithm;
+
+    return EXECUTION_OK;
   }
 
 };

@@ -45,6 +45,8 @@ namespace OpenMS
     setName("FeatureGroupingAlgorithmUnlabeled");
     defaults_.insert("", StablePairFinder().getParameters());
     defaultsToParam_();
+    // The input for the pairfinder is a vector of FeatureMaps of size 2
+    pairfinder_input_.resize(2);
   }
 
   FeatureGroupingAlgorithmUnlabeled::~FeatureGroupingAlgorithmUnlabeled()
@@ -126,6 +128,22 @@ namespace OpenMS
 #endif
 
     return;
+  }
+
+  void FeatureGroupingAlgorithmUnlabeled::addToGroup(int map_id, const FeatureMap<> & feature_map)
+  {
+    // create new PairFinder
+    StablePairFinder pair_finder;
+    pair_finder.setParameters(param_.copy("", true));
+
+    // Convert the input map to a consensus map (using the given map_id) and
+    // replace the second element in the pairfinder_input_ vector.
+    ConsensusMap::convert(map_id, feature_map, pairfinder_input_[1]);
+
+    // compute the consensus of the reference map and map map_id
+    ConsensusMap result;
+    pair_finder.run(pairfinder_input_, result);
+    pairfinder_input_[0].swap(result);
   }
 
 } // namespace OpenMS
