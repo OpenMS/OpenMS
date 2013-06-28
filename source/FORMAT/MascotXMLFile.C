@@ -47,65 +47,88 @@ namespace OpenMS
   {
   }
 
-  void MascotXMLFile::load(const String & filename,
-                           ProteinIdentification & protein_identification,
-                           vector<PeptideIdentification> & id_data,
-                           const RTMapping & rt_mapping)
+  void MascotXMLFile::load(const String& filename,
+                           ProteinIdentification& protein_identification,
+                           vector<PeptideIdentification>& id_data,
+                           const RTMapping& rt_mapping,
+													 const String& scan_regex)
   {
     map<String, vector<AASequence> > peptides;
 
-    load(filename, protein_identification, id_data, peptides, rt_mapping);
+    load(filename, protein_identification, id_data, peptides, rt_mapping, 
+				 scan_regex);
   }
 
-  void MascotXMLFile::load(const String & filename,
-                           ProteinIdentification & protein_identification,
-                           vector<PeptideIdentification> & id_data,
-                           map<String, vector<AASequence> > & peptides,
-                           const RTMapping & rt_mapping)
+  void MascotXMLFile::load(const String& filename,
+                           ProteinIdentification& protein_identification,
+                           vector<PeptideIdentification>& id_data,
+                           map<String, vector<AASequence> >& peptides,
+                           const RTMapping& rt_mapping, 
+													 const String& scan_regex)
   {
     //clear
     protein_identification = ProteinIdentification();
     id_data.clear();
 
-    Internal::MascotXMLHandler handler(protein_identification, id_data, filename, peptides, rt_mapping);
+    Internal::MascotXMLHandler handler(protein_identification, id_data, 
+																			 filename, peptides, rt_mapping,
+																			 scan_regex);
     parse_(filename, &handler);
 
-    // Since the mascot xml can contain "peptides" without sequences the identifications
-    // without any real peptide hit are removed
-    {
-      vector<PeptideIdentification> filtered_hits;
-      filtered_hits.reserve(id_data.size());
-      vector<PeptideIdentification>::iterator id_it = id_data.begin();
+    // since the mascotXML can contain "peptides" without sequences,
+		// the identifications without any real peptide hit are removed
+		vector<PeptideIdentification> filtered_hits;
+		filtered_hits.reserve(id_data.size());
 
-      while (id_it != id_data.end())
-      {
-        const vector<PeptideHit> & peptide_hits = id_it->getHits();
-        if (peptide_hits.empty() || (peptide_hits.size() == 1 && peptide_hits[0].getSequence() == ""))
-        {
-          //std::cerr << "removing ID: " << std::distance(id_data.begin(), id_it) << "\n";
-        }
-        else
-        {
-          filtered_hits.push_back(*id_it);
-        }
-        ++id_it;
-      }
-      id_data.swap(filtered_hits);
-    }
+		for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
+				 id_it != id_data.end(); ++id_it)
+		{
+			const vector<PeptideHit>& peptide_hits = id_it->getHits();
+			if (!peptide_hits.empty() && 
+					(peptide_hits.size() > 1 || !peptide_hits[0].getSequence().empty()))
+			{
+				filtered_hits.push_back(*id_it);
+			}
+		}
+		Size diff = id_data.size() - filtered_hits.size();
+		if (diff) 
+		{
+			LOG_WARN << "Warning: Removed " << diff 
+							 << " peptide identifications without sequence." << endl;
+		}
+		id_data.swap(filtered_hits);
 
-    // argh!
-    // since Mascot xml 2.2 tends to repeat the first hit (yes it appears twice, we delete one of them)
-    for (vector<PeptideIdentification>::iterator it = id_data.begin(); it != id_data.end(); ++it)
+		// check if we have (some) RT information:
+		Size no_rt_count = 0;
+		for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
+				 id_it != id_data.end(); ++id_it)
+		{
+			if (!id_it->metaValueExists("RT")) no_rt_count++;
+		}
+		if (no_rt_count)
+		{
+			LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
+							 << ") peptide identifications have no retention time value.";
+		}
+		// if we have a mapping, but couldn't find any RT values, that's an error:
+		if (!rt_mapping.empty() && (no_rt_count == id_data.size()))
+		{
+			throw Exception::MissingInformation(
+				__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+				"No retention time information for peptide identifications found");
+		}
+
+    // argh! Mascot 2.2 tends to repeat the first hit (yes it appears twice),
+    // so we delete one of them
+    for (vector<PeptideIdentification>::iterator it = id_data.begin(); 
+				 it != id_data.end(); ++it)
     {
       vector<PeptideHit> peptide_hits = it->getHits();
       // check if equal, except for rank
       if (peptide_hits.size() > 1 &&
           peptide_hits[0].getScore() == peptide_hits[1].getScore() &&
           peptide_hits[0].getSequence() == peptide_hits[1].getSequence() &&
-          peptide_hits[0].getCharge() == peptide_hits[1].getCharge() /* &&
-                  peptide_hits[0].getProteinAccessions() == peptide_hits[1].getProteinAccessions() &&
-                    peptide_hits[0].getAABefore() == peptide_hits[1].getAABefore() &&
-                    peptide_hits[0].getAAAfter() == peptide_hits[1].getAAAfter()*/)
+          peptide_hits[0].getCharge() == peptide_hits[1].getCharge())
       {
         // erase first hit
         peptide_hits.erase(peptide_hits.begin() + 1);

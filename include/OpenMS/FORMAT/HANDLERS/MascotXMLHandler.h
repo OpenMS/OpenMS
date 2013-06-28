@@ -42,6 +42,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
+#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -58,11 +59,12 @@ public:
       typedef Map<Size, Real> RTMapping;
 
       /// Constructor
-      MascotXMLHandler(ProteinIdentification & protein_identification,
-                       std::vector<PeptideIdentification> & identifications,
-                       const String & filename,
-                       std::map<String, std::vector<AASequence> > & peptides,
-                       const RTMapping & rt_mapping = RTMapping());
+      MascotXMLHandler(ProteinIdentification& protein_identification,
+                       std::vector<PeptideIdentification>& identifications,
+                       const String& filename,
+                       std::map<String, std::vector<AASequence> >& peptides,
+                       const RTMapping& rt_mapping = RTMapping(),
+											 const String& scan_regex = "");
 
       /// Destructor
       virtual ~MascotXMLHandler();
@@ -77,9 +79,6 @@ public:
       virtual void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
 
 private:
-			
-			/// Extract scan number of MS2 spectrum from "pep_scan_title" element
-			Size extractScanNumber_(const String& title);
 
       ProteinIdentification & protein_identification_; ///< the protein identifications
       std::vector<PeptideIdentification> & id_data_; ///< the identifications (storing the peptide hits)
@@ -103,6 +102,12 @@ private:
       const RTMapping & rt_mapping_; ///< optional mapping of scan indices to RTs if scan numbers are given;
                                      ///< without this mapping, other sources of RT information are used (if available);
                                      ///< if all fails, there will be no RT information for peptide hits
+
+			/// List of possible Perl-style regular expressions used to extract the scan number (named group "SCAN") or retention time (named group "RT"), and possibly precursor m/z (named group "MZ") from the "pep_scan_title" element
+			std::vector<boost::regex> scan_regex_;
+
+			/// Error for missing RT information already reported?
+			bool no_rt_error_;
     };
 
   }   // namespace Internal
