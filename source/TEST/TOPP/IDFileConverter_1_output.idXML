@@ -15,11 +15,6 @@
 			<ProteinHit id="PH_2" accession="sp|B1XEA5|LSRF_ECODH" score="24" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="516.26715" RT="687.714599609375" >
-			<PeptideHit score="23.67" sequence="AVQAVVHHNETADR" charge="3" aa_before="K" aa_after="A" protein_refs="PH_2" >
-				<UserParam type="float" name="EValue" value="0.013"/>
-			</PeptideHit>
-		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="484.30484" RT="673.395874023438" >
 			<PeptideHit score="20.24" sequence="IHSEILKK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_0" >
 				<UserParam type="float" name="EValue" value="0.0095"/>
@@ -28,6 +23,11 @@
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="403.55432" RT="679.558776855469" >
 			<PeptideHit score="25.14" sequence="SATPAQAQAVHK" charge="3" aa_before="K" aa_after="F" protein_refs="PH_1" >
 				<UserParam type="float" name="EValue" value="0.0069"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="516.26715" RT="687.714599609375" >
+			<PeptideHit score="23.67" sequence="AVQAVVHHNETADR" charge="3" aa_before="K" aa_after="A" protein_refs="PH_2" >
+				<UserParam type="float" name="EValue" value="0.013"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
