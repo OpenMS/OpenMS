@@ -315,7 +315,7 @@ public:
       ifs.read((char*) &(data2->data)[0], spec_size * sizeof(double));
     }
 
-private:
+protected:
 
     // read a single spectrum directly into a datavector (assuming file is already at the correct position)
     void readSpectrum_(Datavector& data1, Datavector& data2, std::ifstream& ifs, int& ms_level, double& rt) const
@@ -384,7 +384,7 @@ private:
     }
 
     // write a single spectrum to filestream
-    void writeSpectrum_(SpectrumType& spectrum, std::ofstream& ofs)
+    void writeSpectrum_(const SpectrumType& spectrum, std::ofstream& ofs)
     {
       Size exp_size = spectrum.size();
       ofs.write((char*)&exp_size, sizeof(exp_size));
