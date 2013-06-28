@@ -448,7 +448,7 @@ protected:
           throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 
         UInt count = attributeAsInt_(attributes, s_count);
-        exp_->reserve(count);
+        exp_->reserveSpaceSpectra(count);
         logger_.startProgress(0, count, "loading mzML file");
         in_spectrum_list_ = true;
       }
@@ -462,7 +462,7 @@ protected:
           throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 
         UInt count = attributeAsInt_(attributes, s_count);
-        // do not reserve vector, simply do push_back
+        exp_->reserveSpaceChromatograms(count);
         logger_.startProgress(0, count, "loading chromatograms");
         in_spectrum_list_ = false;
       }

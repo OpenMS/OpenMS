@@ -165,6 +165,16 @@ public:
     }
     //@}
 
+    // Aliases / chromatograms
+    inline void reserveSpaceSpectra(Size s)
+    {
+      spectra_.reserve(s); 
+    }
+    inline void reserveSpaceChromatograms(Size s)
+    {
+      chromatograms_.reserve(s); 
+    }
+
     /// Constructor
     MSExperiment() :
       RangeManagerType(),
