@@ -96,7 +96,7 @@ endif()
 
 ## libsvm
 if (WIN32) ## find manually on Windows, as find_package() does not know about debug lib
-	OPENMS_CHECKLIB(LIBSVM_LIBRARY "svm" "svmd;svm" "libSVM")
+	OPENMS_CHECKLIB(LIBSVM_LIBRARY "libsvm;svm" "libsvmd;svmd;libsvm;svm" "libSVM")
 endif()
 FIND_PACKAGE(libSVM 2.91) ## will not overwrite LIBSVM_LIBRARY if defined already
 if (LIBSVM_FOUND)
