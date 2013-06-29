@@ -38,10 +38,12 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h> // for "primary_scan_regex"
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 #include <iostream>
+#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -58,7 +60,7 @@ namespace OpenMS
     rt_tol_(10.0),
     mz_tol_(10.0)
   {
-    const ElementDB * db = ElementDB::getInstance();
+    const ElementDB* db = ElementDB::getInstance();
     hydrogen_ = *db->getElement("Hydrogen");
   }
 
@@ -66,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  void PepXMLFile::store(const String & filename, std::vector<ProteinIdentification> & protein_ids, std::vector<PeptideIdentification> & peptide_ids)
+  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids)
   {
     ofstream f(filename.c_str());
     if (!f)
@@ -293,10 +295,10 @@ namespace OpenMS
     f << "</msms_pipeline_analysis>" << "\n";
 
     f.close();
-
   }
 
-  void PepXMLFile::matchModification_(const DoubleReal mass, const String & origin, String & modification_description)
+
+  void PepXMLFile::matchModification_(const DoubleReal mass, const String& origin, String& modification_description)
   {
     DoubleReal mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;
@@ -320,6 +322,7 @@ namespace OpenMS
       }
     }
   }
+
 
   void PepXMLFile::makeScanMap_()
   {
@@ -354,6 +357,7 @@ namespace OpenMS
     }
   }
 
+
   void PepXMLFile::readRTMZCharge_(const xercesc::Attributes & attributes)
   {
     DoubleReal mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
@@ -373,8 +377,19 @@ namespace OpenMS
 
       // assume only one scan, i.e. ignore "end_scan":
       Size scan = attributeAsInt_(attributes, "start_scan");
-      if (!scan_map_.empty())
-        scan = scan_map_[scan];
+			if (scan == 0) // work-around for pepXMLs exported from Mascot
+			{
+				String spectrum = attributeAsString_(attributes, "spectrum");
+				boost::regex re(Internal::MascotXMLHandler::primary_scan_regex,
+												boost::regex::perl|boost::regex::icase);
+				boost::smatch match;
+				if (boost::regex_search(spectrum, match, re))
+				{
+					scan = String(match["SCAN"].str()).toInt();
+				}
+			}
+
+      if (!scan_map_.empty()) scan = scan_map_[scan];
       const MSSpectrum<> & spec = (*experiment_)[scan];
       bool success = false;
       if (spec.getMSLevel() == 2)
@@ -422,17 +437,22 @@ namespace OpenMS
     }
   }
 
-  void PepXMLFile::load(const String & filename, vector<ProteinIdentification> &
-                        proteins, vector<PeptideIdentification> & peptides,
-                        const String & experiment_name)
+
+  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
+                        proteins, vector<PeptideIdentification>& peptides,
+                        const String& experiment_name)
   {
     MSExperiment<> exp;
     load(filename, proteins, peptides, experiment_name, exp, false);
   }
 
-  void PepXMLFile::load(const String & filename, vector<ProteinIdentification> & proteins, vector<PeptideIdentification> & peptides, const String & experiment_name, const MSExperiment<> & experiment, bool use_precursor_data)
+
+  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>& 
+												proteins, vector<PeptideIdentification>& peptides,
+												const String& experiment_name, const MSExperiment<>&
+												experiment, bool use_precursor_data)
   {
-    // initialize, "load" could be called several times
+    // initialize here, since "load" could be called several times:
     exp_name_ = "";
     experiment_ = 0;
     use_precursor_data_ = use_precursor_data;
@@ -444,16 +464,16 @@ namespace OpenMS
     peptides_ = &peptides;
     proteins.clear();
     proteins_ = &proteins;
-    // assume mass type "average" (in case element "search_summary" is missing)
+    // assume mass type "average" (in case element "search_summary" is missing):
     hydrogen_mass_ = hydrogen_.getAverageWeight();
 
-    file_ = filename;   // filename for error messages in XMLHandler
+    file_ = filename; // filename for error messages in XMLHandler
 
     if (experiment_name != "")
     {
       exp_name_ = File::removeExtension(experiment_name);
 
-      if (!experiment.empty())       // use experiment only if we know the name
+      if (!experiment.empty()) // use experiment only if we know the name
       {
         experiment_ = &experiment;
         MSExperiment<>::AreaType area = experiment_->getDataRange();
@@ -465,7 +485,10 @@ namespace OpenMS
     }
 
     wrong_experiment_ = false;
-    seen_experiment_ = exp_name_.empty();     // without experiment name, don't care
+		// without experiment name, don't care about these two:
+    seen_experiment_ = exp_name_.empty();
+		checked_base_name_ = exp_name_.empty();
+   
     parse_(filename, this);
 
     if (!seen_experiment_)
@@ -503,6 +526,7 @@ namespace OpenMS
     scan_map_.clear();
   }
 
+
   void PepXMLFile::startElement(const XMLCh * const /*uri*/,
                                 const XMLCh * const /*local_name*/,
                                 const XMLCh * const qname,
@@ -517,23 +541,32 @@ namespace OpenMS
       if (!exp_name_.empty())
       {
         String base_name = attributeAsString_(attributes, "base_name");
-        wrong_experiment_ = !base_name.hasSuffix(exp_name_);
+				if (!base_name.empty())
+				{
+					wrong_experiment_ = !base_name.hasSuffix(exp_name_);
+					seen_experiment_ = !wrong_experiment_;
+					checked_base_name_ = true;
+				}
+				else // really shouldn't happen, but does for Mascot export to pepXML
+				{
+					error(LOAD, "'base_name' attribute of 'msms_run_summary' element is empty");
+					// continue for now, but check later in 'search_summary':
+					wrong_experiment_ = false;
+					checked_base_name_ = false;
+				}
       }
-      if (wrong_experiment_)
-        return;
-
-      seen_experiment_ = true;
+      if (wrong_experiment_) return;
 
       // create a ProteinIdentification in case "search_summary" is missing:
       ProteinIdentification protein;
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
+			enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       proteins_->push_back(protein);
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
-      hydrogen_mass_ = hydrogen_.getAverageWeight();
     }
     else if (wrong_experiment_)
     {
@@ -582,7 +615,6 @@ namespace OpenMS
         current_peptide_.setScoreType(name);
         current_peptide_.setHigherScoreBetter(true);
       }
-
     }
     else if (element == "search_hit")     // parent: "search_result"
     {     // creates a new PeptideHit
@@ -724,16 +756,16 @@ namespace OpenMS
       hit.setAccession(protein);
       current_proteins_[search_id_ - 1]->insertHit(hit);
     }
-    else if (element == "mod_aminoacid_mass")     // parent: "modification_info" (in "search_hit")
+    else if (element == "mod_aminoacid_mass") // parent: "modification_info" (in "search_hit")
     {
       DoubleReal modification_mass = attributeAsDouble_(attributes, "mass");
-      Size           modification_position = attributeAsInt_(attributes, "position");
-      String     origin = String(current_sequence_[modification_position - 1]);
-      String       temp_description = "";
+      Size modification_position = attributeAsInt_(attributes, "position");
+      String origin = String(current_sequence_[modification_position - 1]);
+      String temp_description = "";
 
       matchModification_(modification_mass, origin, temp_description);
 
-      if (temp_description.size() > 0)
+      if (!temp_description.empty())
       {
         // the modification position is 1-based
         current_modifications_.push_back(make_pair(temp_description, modification_position));
@@ -743,7 +775,7 @@ namespace OpenMS
         error(LOAD, String("Cannot find modification '") + String(modification_mass) + " " + String(origin) + "' @" + String(modification_position));
       }
     }
-    else if (element == "aminoacid_modification")     // parent: "search_summary"
+    else if (element == "aminoacid_modification") // parent: "search_summary"
     {
       AminoAcidModification aa_mod;
       optionalAttributeAsString_(aa_mod.description, attributes, "description");
@@ -755,7 +787,7 @@ namespace OpenMS
       {
         if (aa_mod.description != "")
         {
-          params_.variable_modifications.push_back(aa_mod.description);           // TODO
+          params_.variable_modifications.push_back(aa_mod.description); // TODO
         }
         else
         {
@@ -776,7 +808,7 @@ namespace OpenMS
         fixed_modifications_.push_back(aa_mod);
         if (aa_mod.description != "")
         {
-          params_.fixed_modifications.push_back(aa_mod.description);           // TODO
+          params_.fixed_modifications.push_back(aa_mod.description); // TODO
         }
         else
         {
@@ -793,7 +825,7 @@ namespace OpenMS
         }
       }
     }
-    else if (element == "terminal_modification")     // parent: "search_summary"
+    else if (element == "terminal_modification") // parent: "search_summary"
     {
       // <terminal_modification terminus="n" massdiff="+108.05" mass="109.06" variable="N" protein_terminus="" description="dNIC (N-term)"/>
       AminoAcidModification aa_mod;
@@ -850,6 +882,23 @@ namespace OpenMS
     }
     else if (element == "search_summary")     // parent: "msms_run_summary"
     {     // creates a new ProteinIdentification (usually)
+			if (!checked_base_name_) // work-around for files exported by Mascot
+			{
+				String base_name = "";
+				optionalAttributeAsString_(base_name, attributes, "base_name");
+				if (base_name.hasSuffix(exp_name_))
+				{
+					seen_experiment_ = true;
+				}
+				else // wrong experiment after all - roll back changes that were made
+				{
+					proteins_->pop_back();
+					current_proteins_.clear();
+					wrong_experiment_ = true;
+					return;
+				}
+			}
+
       fixed_modifications_.clear();
       variable_modifications_.clear();
       params_ = ProteinIdentification::SearchParameters();
@@ -945,6 +994,7 @@ namespace OpenMS
       date_ = asDateTime_(date);
     }
   }
+
 
   void PepXMLFile::endElement(const XMLCh * const /*uri*/,
                               const XMLCh * const /*local_name*/,

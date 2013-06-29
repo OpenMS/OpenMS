@@ -145,7 +145,7 @@ protected:
     addEmptyLine_();
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
-    registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
+    registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("use_precursor_data", "[pepXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
 		registerStringOption_("scan_regex", "<expression>", "", "[mascotXML only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
   }

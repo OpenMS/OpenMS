@@ -82,7 +82,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, std::vector<ProteinIdentification> & proteins, std::vector<PeptideIdentification> & peptides, const String & experiment_name, const MSExperiment<> & experiment, bool use_precursor_data = false);
+    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name, const MSExperiment<>& experiment, bool use_precursor_data = false);
 
     /**
         @brief @a load function with empty defaults for some parameters (see above)
@@ -90,22 +90,22 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, std::vector<ProteinIdentification> & proteins, std::vector<PeptideIdentification> & peptides, const String & experiment_name = "");
+    void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name = "");
 
     /**
         @brief Stores idXML as PepXML file
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
-    void store(const String & filename, std::vector<ProteinIdentification> & protein_ids, std::vector<PeptideIdentification> & peptide_ids);
+    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
 
 protected:
 
     /// Docu in base class
-    virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
     /// Docu in base class
-    virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
 private:
 
@@ -113,7 +113,7 @@ private:
     void makeScanMap_();
 
     /// Read RT, m/z, charge information from attributes of "spectrum_query"
-    void readRTMZCharge_(const xercesc::Attributes & attributes);
+    void readRTMZCharge_(const xercesc::Attributes& attributes);
 
     /**
         @brief find modification name given a modified AA mass
@@ -127,7 +127,7 @@ private:
         @param origin AA one letter code
         @param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
     */
-    void matchModification_(const DoubleReal mass, const String & origin, String & modification_description);
+    void matchModification_(const DoubleReal mass, const String& origin, String& modification_description);
 
     struct AminoAcidModification
     {
@@ -144,7 +144,7 @@ private:
       {
       }
 
-      AminoAcidModification(const AminoAcidModification & rhs) :
+      AminoAcidModification(const AminoAcidModification& rhs) :
         aminoacid(rhs.aminoacid),
         massdiff(rhs.massdiff),
         mass(rhs.mass),
@@ -158,7 +158,7 @@ private:
       {
       }
 
-      AminoAcidModification & operator=(const AminoAcidModification & rhs)
+      AminoAcidModification& operator=(const AminoAcidModification& rhs)
       {
         if (this != &rhs)
         {
@@ -175,13 +175,13 @@ private:
     };
 
     /// Pointer to the list of identified proteins
-    std::vector<ProteinIdentification> * proteins_;
+    std::vector<ProteinIdentification>* proteins_;
 
     /// Pointer to the list of identified peptides
-    std::vector<PeptideIdentification> * peptides_;
+    std::vector<PeptideIdentification>* peptides_;
 
     /// Pointer to the experiment from which the pepXML file was generated
-    const MSExperiment<> * experiment_;
+    const MSExperiment<>* experiment_;
 
     /// Name of the associated experiment (filename of the data file, extension will be removed)
     String exp_name_;
@@ -206,6 +206,9 @@ private:
 
     /// Have we seen the experiment of interest at all?
     bool seen_experiment_;
+
+		/// Have we checked the "base_name" attribute in the "msms_run_summary" element?
+		bool checked_base_name_;
 
     /// References to currently active ProteinIdentifications
     std::vector<std::vector<ProteinIdentification>::iterator> current_proteins_;

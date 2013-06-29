@@ -43,6 +43,8 @@ namespace OpenMS
 {
   namespace Internal
   {
+		const String MascotXMLHandler::primary_scan_regex = 
+			"scan( number)?s?[=:]? *(?<SCAN>\\d+)";
 
     MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
                                        vector<PeptideIdentification>& id_data,
@@ -83,8 +85,7 @@ namespace OpenMS
 					// <...>File773 Spectrum198145 scans: 6094</...> -> 6094
 					// <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
 					// <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
-					re.assign("scan( number)?s?[=:]? *(?<SCAN>\\d+)",
-										boost::regex::perl|boost::regex::icase);
+					re.assign(primary_scan_regex, boost::regex::perl|boost::regex::icase);
 					scan_regex_.push_back(re);
 					// - with .dta input to Mascot:
 					// <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673

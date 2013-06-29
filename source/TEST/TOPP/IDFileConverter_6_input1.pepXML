@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd" date="2013-06-24T09:49:04Z" summary_xml="F025589.xml">
+<msms_run_summary base_name="" raw_data_type="" raw_data="">
+<sample_enzyme name="Trypsin" description="" fidelity="specific" independent="0">
+<specificity sense="C" min_spacing="1" cut="KR" no_cut="P"/>
+</sample_enzyme>
+<search_summary base_name="../cgi/master_results.pl?file=../data/20130606/F025589.dat" search_engine="MASCOT" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+<search_database local_path="/nfs/mascot/mascot-2.4/sequence/UPEcoli_SpikeIn/current/UPEcoli_SpikeIn_Jun13.fasta" database_name="UPEcoli_SpikeIn" database_release_identifier="UPEcoli_SpikeIn_Jun13.fasta" size_in_db_entries="12614" size_of_residues="4054596" type="AA"/>
+<enzymatic_search_constraint enzyme="Trypsin" max_num_internal_cleavages="1" min_number_termini="2"/>
+<aminoacid_modification aminoacid="C" massdiff="+57.02146" mass="160.030649" variable="N" binary="N" description="Carbamidomethyl (C)"/>
+<aminoacid_modification aminoacid="N" massdiff="+0.98402" mass="115.026943" variable="Y" binary="N" description="Deamidated (NQ)"/>
+<aminoacid_modification aminoacid="Q" massdiff="+0.98402" mass="129.042594" variable="Y" binary="N" description="Deamidated (NQ)"/>
+<aminoacid_modification aminoacid="M" massdiff="+15.99492" mass="147.0354" variable="Y" binary="N" description="Oxidation (M)"/>
+<parameter name="LICENSE" value="redacted"/>
+<parameter name="COM" value="FT500651_Node:3"/>
+<parameter name="TOL" value="10"/>
+<parameter name="TOLU" value="ppm"/>
+<parameter name="ITOL" value="0.5"/>
+<parameter name="ITOLU" value="Da"/>
+<parameter name="PFA" value="1"/>
+<parameter name="DB" value="UPEcoli_SpikeIn"/>
+<parameter name="MODS" value="Carbamidomethyl (C)"/>
+<parameter name="MASS" value="Monoisotopic"/>
+<parameter name="CLE" value="Trypsin"/>
+<parameter name="FILE" value="File Name: X:\path\to\FT500651.RAW"/>
+<parameter name="SEARCH" value="MIS"/>
+<parameter name="USERNAME" value="Discoverer_hw5"/>
+<parameter name="REPORT" value="AUTO"/>
+<parameter name="FORMAT" value="Mascot generic"/>
+<parameter name="FORMVER" value="1.01"/>
+<parameter name="IT_MODS" value="Deamidated (NQ),Oxidation (M)"/>
+<parameter name="TAXONOMY" value="All entries"/>
+<parameter name="INSTRUMENT" value="ESI-TRAP"/>
+<parameter name="DECOY" value="1"/>
+<parameter name="RULES" value="1,2,8,9,10,13,14,15"/>
+<parameter name="INTERNALS" value="0.0,700.0"/>
+</search_summary>
+<spectrum_query spectrum="Spectrum6 scans:303," start_scan="0" end_scan="0" precursor_neutral_mass="966.595128" assumed_charge="2" search_specification="index(5)" index="872">
+<search_result search_id="1">
+<search_hit hit_rank="1" peptide="IHSEILKK" peptide_prev_aa="R" peptide_next_aa="T" protein="P00489" num_tot_proteins="1" num_matched_ions="5" calc_neutral_pep_mass="966.586182" massdiff="+0.00895" num_missed_cleavages="1" is_rejected="0" protein_descr="P00489 PYGM_RABIT Glycogen phosphorylase, muscle form - Oryctolagus cuniculus (Rabbit)" protein_mw="97741">
+<search_score name="ionscore" value="20.24"/>
+<search_score name="identityscore" value="13"/>
+<search_score name="expect" value="0.0095"/>
+</search_hit>
+<search_hit hit_rank="2" peptide="VPIGVANVAK" peptide_prev_aa="K" peptide_next_aa="K" protein="sp|P23524|GLXK1_ECOLI" num_tot_proteins="3" num_matched_ions="4" calc_neutral_pep_mass="966.586212" massdiff="+0.00892" num_missed_cleavages="0" is_rejected="0" protein_descr="sp|P23524|GLXK1_ECOLI Glycerate 2-kinase OS=Escherichia coli (strain K12) GN=garK PE=1 SV=2" protein_mw="39365">
+<alternative_protein protein="tr|C4ZR36|C4ZR36_ECOBW"/>
+<alternative_protein protein="tr|B1XGT7|B1XGT7_ECODH"/>
+<search_score name="ionscore" value="0.51"/>
+<search_score name="identityscore" value="13"/>
+<search_score name="expect" value="0.89"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="Spectrum11 scans:311," start_scan="0" end_scan="0" precursor_neutral_mass="1207.641132" assumed_charge="3" search_specification="index(10)" index="2405">
+<search_result search_id="1">
+<search_hit hit_rank="1" peptide="SATPAQAQAVHK" peptide_prev_aa="K" peptide_next_aa="F" protein="sp|B1XB85|TPIS_ECODH" num_tot_proteins="3" num_matched_ions="8" calc_neutral_pep_mass="1207.63092" massdiff="+0.01021" num_missed_cleavages="0" is_rejected="0" protein_descr="sp|B1XB85|TPIS_ECODH Triosephosphate isomerase OS=Escherichia coli (strain K12 / DH10B) GN=tpiA PE=3 SV=1" protein_mw="27126">
+<alternative_protein protein="sp|P0A858|TPIS_ECOLI" protein_descr="sp|P0A858|TPIS_ECOLI Triosephosphate isomerase OS=Escherichia coli (strain K12) GN=tpiA PE=1 SV=1" protein_mw="27126"/>
+<alternative_protein protein="tr|C5A086|C5A086_ECOBW" protein_descr="tr|C5A086|C5A086_ECOBW Triosephosphate isomerase OS=Escherichia coli (strain K12 / MC4100 / BW2952) GN=tpiA PE=3 SV=1" protein_mw="27126"/>
+<search_score name="ionscore" value="25.14"/>
+<search_score name="identityscore" value="16"/>
+<search_score name="expect" value="0.0069"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="Spectrum17 scans:321," start_scan="0" end_scan="0" precursor_neutral_mass="1545.779622" assumed_charge="3" search_specification="index(16)" index="4700">
+<search_result search_id="1">
+<search_hit hit_rank="1" peptide="AVQAVVHHNETADR" peptide_prev_aa="K" peptide_next_aa="A" protein="sp|B1XEA5|LSRF_ECODH" num_tot_proteins="3" num_matched_ions="7" calc_neutral_pep_mass="1545.764801" massdiff="+0.01482" num_missed_cleavages="0" is_rejected="0" protein_descr="sp|B1XEA5|LSRF_ECODH Uncharacterized aldolase LsrF OS=Escherichia coli (strain K12 / DH10B) GN=lsrF PE=3 SV=1" protein_mw="32157">
+<alternative_protein protein="sp|P76143|LSRF_ECOLI" protein_descr="sp|P76143|LSRF_ECOLI Uncharacterized aldolase LsrF OS=Escherichia coli (strain K12) GN=lsrF PE=1 SV=1" protein_mw="32157"/>
+<alternative_protein protein="tr|C4ZWT4|C4ZWT4_ECOBW" protein_descr="tr|C4ZWT4|C4ZWT4_ECOBW Putative autoinducer-2 (AI-2) aldolase OS=Escherichia coli (strain K12 / MC4100 / BW2952) GN=lsrF PE=4 SV=1" protein_mw="32157"/>
+<search_score name="ionscore" value="23.67"/>
+<search_score name="identityscore" value="21"/>
+<search_score name="homologyscore" value="17"/>
+<search_score name="expect" value="0.013"/>
+</search_hit>
+<search_hit hit_rank="2" peptide="GKGVVTISVAECGNR" peptide_prev_aa="K" peptide_next_aa="V" protein="sp|P0AA93|YPDA_ECOLI" num_tot_proteins="3" num_matched_ions="5" calc_neutral_pep_mass="1545.793335" massdiff="-0.01371" num_missed_cleavages="1" is_rejected="0" protein_descr="sp|P0AA93|YPDA_ECOLI Inner membrane protein YpdA OS=Escherichia coli (strain K12) GN=ypdA PE=1 SV=1" protein_mw="63245">
+<alternative_protein protein="tr|C4ZVR7|C4ZVR7_ECOBW"/>
+<alternative_protein protein="tr|B1X9Q2|B1X9Q2_ECODH"/>
+<search_score name="ionscore" value="3.43"/>
+<search_score name="identityscore" value="21"/>
+<search_score name="homologyscore" value="17"/>
+<search_score name="expect" value="1.4"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

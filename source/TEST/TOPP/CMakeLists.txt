@@ -430,7 +430,6 @@ add_test("TOPP_IsobaricAnalyzer_2" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in $
 add_test("TOPP_IsobaricAnalyzer_2_out1" ${DIFF} -whitelist "<map" "?xml-stylesheet" -in1 IsobaricAnalyzer_output_2.tmp -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_2.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_2_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_2")
 
-
 ### IDConflictResolver tests
 add_test("TOPP_IDConflictResolver_1" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_1_input.featureXML -out IDConflictResolver_1_output.tmp)
 add_test("TOPP_IDConflictResolver_1_out1" ${DIFF} -in1 IDConflictResolver_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDConflictResolver_1_output.featureXML )
@@ -456,11 +455,14 @@ set_tests_properties("TOPP_IDFileConverter_3_out1" PROPERTIES DEPENDS "TOPP_IDFi
 add_test("TOPP_IDFileConverter_4" ${TOPP_BIN_PATH}/IDFileConverter -in ${PROJECT_SOURCE_DIR}/data/PepXMLFile_test.pepxml -mz_file ${PROJECT_SOURCE_DIR}/data/PepXMLFile_test.mzML -mz_name PepXMLFile_test -out IDFileConverter_4_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_4_out1" ${DIFF} -in1 IDFileConverter_4_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_4_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_4_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_4")
-# Mascot XML to idXML again, with user-defined regular expression:
+# Mascot XML to idXML (with user-defined regular expression):
 add_test("TOPP_IDFileConverter_5" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/IDFileConverter_1_input1.mascotXML -mz_file ${DATA_DIR_TOPP}/IDFileConverter_1_input2.mzML -out IDFileConverter_5_output.tmp -ini ${DATA_DIR_TOPP}/IDFileConverter_5_parameters.ini)
 add_test("TOPP_IDFileConverter_5_out1" ${DIFF} -in1 IDFileConverter_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_5_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_5_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_5")
-
+# pepXML (exported from Mascot) to idXML:
+add_test("TOPP_IDFileConverter_6" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_6_input1.pepXML -mz_file ${DATA_DIR_TOPP}/IDFileConverter_1_input2.mzML -mz_name F025589.dat.mzML -out IDFileConverter_6_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_6_out1" ${DIFF} -in1 IDFileConverter_6_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_6_output.idXML )
+set_tests_properties("TOPP_IDFileConverter_6_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_6")
 
 ### IDFilter tests
 add_test("TOPP_IDFilter_1" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_1_input.idXML -out IDFilter_1_output.tmp -whitelist:proteins ${DATA_DIR_TOPP}/IDFilter_1_input.fas)

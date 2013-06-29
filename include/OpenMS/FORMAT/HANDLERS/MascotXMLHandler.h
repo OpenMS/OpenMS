@@ -78,6 +78,9 @@ public:
       // Docu in base class
       virtual void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
 
+			// Primary regex used to extract a scan number (for use by PepXMLFile)
+			static const String primary_scan_regex;
+
 private:
 
       ProteinIdentification & protein_identification_; ///< the protein identifications
