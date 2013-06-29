@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
 // #include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -103,6 +104,9 @@ protected:
     registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
     setValidFormats_("out", StringList::create("featureXML"));
 
+    registerFlag_("write_consensusXML","Write a consensusXML in addition to the featureXML containing also intensities of the masstraces.");
+
+
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
 
@@ -145,6 +149,7 @@ protected:
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+    bool write_consensusXML = getFlag_("write_consensusXML");
 
     //-------------------------------------------------------------
     // loading input
@@ -218,6 +223,47 @@ protected:
       {
         m_traces_final = splitted_mtraces;
       }
+    }
+
+    //-------------------------------------------------------------
+    // writing consensus map output
+    //-------------------------------------------------------------
+    if(write_consensusXML)
+    {
+      ConsensusMap consensus_map;
+      for (Size i = 0; i < m_traces_final.size(); ++i)
+      {
+        if (m_traces_final[i].getSize() == 0) continue;
+
+        ConsensusFeature fcons;
+        int k = 0;
+        for(MassTrace::const_iterator it = m_traces_final[i].begin(); it != m_traces_final[i].end(); ++it)
+        {
+          FeatureHandle fhandle;
+          fhandle.setRT(it->getRT());
+          fhandle.setMZ(it->getMZ());
+          fhandle.setIntensity(it->getIntensity());
+          fhandle.setUniqueId(++k);
+          fcons.insert(fhandle);
+        }
+
+        fcons.setMetaValue(3, m_traces_final[i].getLabel());
+        fcons.setCharge(0);
+        fcons.setWidth(m_traces_final[i].estimateFWHM(use_epd));
+        fcons.setQuality(1 - (1.0/m_traces_final[i].getSize()));
+
+        fcons.setRT(m_traces_final[i].getCentroidRT());
+        fcons.setMZ(m_traces_final[i].getCentroidMZ());
+        fcons.setIntensity(m_traces_final[i].computePeakArea());
+        consensus_map.push_back(fcons);
+      }
+      consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+      addDataProcessing_(consensus_map, getProcessingInfo_(DataProcessing::QUANTITATION));
+      consensus_map.setUniqueId();
+
+      String out_consensus = out;
+      ConsensusXMLFile().store(out_consensus.substitute("featureXML", "consensusXML"), consensus_map);
+
     }
 
     //-----------------------------------------------------------
