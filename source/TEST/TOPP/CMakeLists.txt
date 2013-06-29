@@ -457,7 +457,7 @@ add_test("TOPP_IDFileConverter_4" ${TOPP_BIN_PATH}/IDFileConverter -in ${PROJECT
 add_test("TOPP_IDFileConverter_4_out1" ${DIFF} -in1 IDFileConverter_4_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_4_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_4_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_4")
 # Mascot XML to idXML again, with user-defined regular expression:
-add_test("TOPP_IDFileConverter_5" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_1_input1.mascotXML -mz_file ${DATA_DIR_TOPP}/IDFileConverter_1_input2.mzML -out IDFileConverter_5_output.tmp -out_type idXML -scan_regex "scan=(?<SCAN>\\d+)")
+add_test("TOPP_IDFileConverter_5" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/IDFileConverter_1_input1.mascotXML -mz_file ${DATA_DIR_TOPP}/IDFileConverter_1_input2.mzML -out IDFileConverter_5_output.tmp -ini ${DATA_DIR_TOPP}/IDFileConverter_5_parameters.ini)
 add_test("TOPP_IDFileConverter_5_out1" ${DIFF} -in1 IDFileConverter_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_5_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_5_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_5")
 
