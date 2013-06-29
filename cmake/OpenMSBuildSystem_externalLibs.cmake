@@ -67,7 +67,8 @@ else()
 endif()
 
 ## BOOST
-set(Boost_USE_STATIC_LIBS  ON)
+option(BOOST_USE_STATIC "Use Boost static libraries." ON)
+set(Boost_USE_STATIC_LIBS ${BOOST_USE_STATIC})
 set(Boost_USE_MULTITHREADED  ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 #set(Boost_DEBUG TRUE)
