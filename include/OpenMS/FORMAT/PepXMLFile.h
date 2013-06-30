@@ -207,8 +207,8 @@ private:
     /// Have we seen the experiment of interest at all?
     bool seen_experiment_;
 
-		/// Have we checked the "base_name" attribute in the "msms_run_summary" element?
-		bool checked_base_name_;
+    /// Have we checked the "base_name" attribute in the "msms_run_summary" element?
+    bool checked_base_name_;
 
     /// References to currently active ProteinIdentifications
     std::vector<std::vector<ProteinIdentification>::iterator> current_proteins_;

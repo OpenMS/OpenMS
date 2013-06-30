@@ -400,7 +400,7 @@ namespace OpenMS
     layers_.back().getPeakData() = map;
 
     if (layers_.back().getPeakData()->getChromatograms().size() != 0 
-				&& layers_.back().getPeakData()->size() != 0)
+        && layers_.back().getPeakData()->size() != 0)
     {
       // TODO : handle this case better
       LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
@@ -454,9 +454,9 @@ namespace OpenMS
     OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i, name) index overflow");
     getLayer_(i).name = name;
     if (i == 0 && spectrum_widget_) 
-		{
-			spectrum_widget_->setWindowTitle(name.toQString());
-		}
+    {
+      spectrum_widget_->setWindowTitle(name.toQString());
+    }
   }
 
   String SpectrumCanvas::getLayerName(const Size i)
@@ -539,12 +539,12 @@ namespace OpenMS
         for (vector<PeptideIdentification>::const_iterator it =
                peptides.begin(); it != peptides.end(); ++it)
         {
-					DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
-					DoubleReal mz = getIdentificationMZ_(layer_index, *it);
-					if (mz < m_min[mz_dim]) m_min[mz_dim] = mz;
-					if (mz > m_max[mz_dim]) m_max[mz_dim] = mz;
-					if (rt < m_min[rt_dim]) m_min[rt_dim] = rt;
-					if (rt > m_max[rt_dim]) m_max[rt_dim] = rt;
+          DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
+          DoubleReal mz = getIdentificationMZ_(layer_index, *it);
+          if (mz < m_min[mz_dim]) m_min[mz_dim] = mz;
+          if (mz > m_max[mz_dim]) m_max[mz_dim] = mz;
+          if (rt < m_min[rt_dim]) m_min[rt_dim] = rt;
+          if (rt > m_max[rt_dim]) m_max[rt_dim] = rt;
         }
       }
     }

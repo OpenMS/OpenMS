@@ -377,17 +377,17 @@ namespace OpenMS
 
       // assume only one scan, i.e. ignore "end_scan":
       Size scan = attributeAsInt_(attributes, "start_scan");
-			if (scan == 0) // work-around for pepXMLs exported from Mascot
-			{
-				String spectrum = attributeAsString_(attributes, "spectrum");
-				boost::regex re(Internal::MascotXMLHandler::primary_scan_regex,
-												boost::regex::perl|boost::regex::icase);
-				boost::smatch match;
-				if (boost::regex_search(spectrum, match, re))
-				{
-					scan = String(match["SCAN"].str()).toInt();
-				}
-			}
+      if (scan == 0) // work-around for pepXMLs exported from Mascot
+      {
+        String spectrum = attributeAsString_(attributes, "spectrum");
+        boost::regex re(Internal::MascotXMLHandler::primary_scan_regex,
+                        boost::regex::perl|boost::regex::icase);
+        boost::smatch match;
+        if (boost::regex_search(spectrum, match, re))
+        {
+          scan = String(match["SCAN"].str()).toInt();
+        }
+      }
 
       if (!scan_map_.empty()) scan = scan_map_[scan];
       const MSSpectrum<> & spec = (*experiment_)[scan];
@@ -448,9 +448,9 @@ namespace OpenMS
 
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>& 
-												proteins, vector<PeptideIdentification>& peptides,
-												const String& experiment_name, const MSExperiment<>&
-												experiment, bool use_precursor_data)
+                        proteins, vector<PeptideIdentification>& peptides,
+                        const String& experiment_name, const MSExperiment<>&
+                        experiment, bool use_precursor_data)
   {
     // initialize here, since "load" could be called several times:
     exp_name_ = "";
@@ -485,9 +485,9 @@ namespace OpenMS
     }
 
     wrong_experiment_ = false;
-		// without experiment name, don't care about these two:
+    // without experiment name, don't care about these two:
     seen_experiment_ = exp_name_.empty();
-		checked_base_name_ = exp_name_.empty();
+    checked_base_name_ = exp_name_.empty();
    
     parse_(filename, this);
 
@@ -541,19 +541,19 @@ namespace OpenMS
       if (!exp_name_.empty())
       {
         String base_name = attributeAsString_(attributes, "base_name");
-				if (!base_name.empty())
-				{
-					wrong_experiment_ = !base_name.hasSuffix(exp_name_);
-					seen_experiment_ = !wrong_experiment_;
-					checked_base_name_ = true;
-				}
-				else // really shouldn't happen, but does for Mascot export to pepXML
-				{
-					error(LOAD, "'base_name' attribute of 'msms_run_summary' element is empty");
-					// continue for now, but check later in 'search_summary':
-					wrong_experiment_ = false;
-					checked_base_name_ = false;
-				}
+        if (!base_name.empty())
+        {
+          wrong_experiment_ = !base_name.hasSuffix(exp_name_);
+          seen_experiment_ = !wrong_experiment_;
+          checked_base_name_ = true;
+        }
+        else // really shouldn't happen, but does for Mascot export to pepXML
+        {
+          error(LOAD, "'base_name' attribute of 'msms_run_summary' element is empty");
+          // continue for now, but check later in 'search_summary':
+          wrong_experiment_ = false;
+          checked_base_name_ = false;
+        }
       }
       if (wrong_experiment_) return;
 
@@ -561,7 +561,7 @@ namespace OpenMS
       ProteinIdentification protein;
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
-			enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
+      enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       proteins_->push_back(protein);
@@ -882,22 +882,22 @@ namespace OpenMS
     }
     else if (element == "search_summary")     // parent: "msms_run_summary"
     {     // creates a new ProteinIdentification (usually)
-			if (!checked_base_name_) // work-around for files exported by Mascot
-			{
-				String base_name = "";
-				optionalAttributeAsString_(base_name, attributes, "base_name");
-				if (base_name.hasSuffix(exp_name_))
-				{
-					seen_experiment_ = true;
-				}
-				else // wrong experiment after all - roll back changes that were made
-				{
-					proteins_->pop_back();
-					current_proteins_.clear();
-					wrong_experiment_ = true;
-					return;
-				}
-			}
+      if (!checked_base_name_) // work-around for files exported by Mascot
+      {
+        String base_name = "";
+        optionalAttributeAsString_(base_name, attributes, "base_name");
+        if (base_name.hasSuffix(exp_name_))
+        {
+          seen_experiment_ = true;
+        }
+        else // wrong experiment after all - roll back changes that were made
+        {
+          proteins_->pop_back();
+          current_proteins_.clear();
+          wrong_experiment_ = true;
+          return;
+        }
+      }
 
       fixed_modifications_.clear();
       variable_modifications_.clear();

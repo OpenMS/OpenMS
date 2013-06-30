@@ -64,7 +64,7 @@ public:
                        const String& filename,
                        std::map<String, std::vector<AASequence> >& peptides,
                        const RTMapping& rt_mapping = RTMapping(),
-											 const String& scan_regex = "");
+                       const String& scan_regex = "");
 
       /// Destructor
       virtual ~MascotXMLHandler();
@@ -78,8 +78,8 @@ public:
       // Docu in base class
       virtual void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
 
-			// Primary regex used to extract a scan number (for use by PepXMLFile)
-			static const String primary_scan_regex;
+      // Primary regex used to extract a scan number (for use by PepXMLFile)
+      static const String primary_scan_regex;
 
 private:
 
@@ -106,11 +106,11 @@ private:
                                      ///< without this mapping, other sources of RT information are used (if available);
                                      ///< if all fails, there will be no RT information for peptide hits
 
-			/// List of possible Perl-style regular expressions used to extract the scan number (named group "SCAN") or retention time (named group "RT"), and possibly precursor m/z (named group "MZ") from the "pep_scan_title" element
-			std::vector<boost::regex> scan_regex_;
+      /// List of possible Perl-style regular expressions used to extract the scan number (named group "SCAN") or retention time (named group "RT"), and possibly precursor m/z (named group "MZ") from the "pep_scan_title" element
+      std::vector<boost::regex> scan_regex_;
 
-			/// Error for missing RT information already reported?
-			bool no_rt_error_;
+      /// Error for missing RT information already reported?
+      bool no_rt_error_;
     };
 
   }   // namespace Internal

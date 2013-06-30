@@ -69,12 +69,12 @@ namespace OpenMS
 {
   namespace Internal
   {
-    void 	OpenMSLineEdit::focusInEvent ( QFocusEvent * e )
+    void OpenMSLineEdit::focusInEvent ( QFocusEvent * e )
     {
       //std::cerr << "got focus";
     }
 
-    void 	OpenMSLineEdit::focusOutEvent ( QFocusEvent * e )
+    void OpenMSLineEdit::focusOutEvent ( QFocusEvent * e )
     {
       //std::cerr << "lost focus";
       emit lostFocus();

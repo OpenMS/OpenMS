@@ -142,13 +142,13 @@ protected:
 
     addEmptyLine_();
     registerInputFile_("mz_file", "<file>", "", "[Sequest, pepXML, mascotXML only] Retention times will be looked up in this file", false);
-		setValidFormats_("mz_file", StringList::create("mzML,mzXML,mzData"));
+    setValidFormats_("mz_file", StringList::create("mzML,mzXML,mzData"));
     addEmptyLine_();
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("use_precursor_data", "[pepXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
-		registerStringOption_("scan_regex", "<expression>", "", "[mascotXML only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
+    registerStringOption_("scan_regex", "<expression>", "", "[mascotXML only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
   }
 
   ExitCodes
@@ -289,7 +289,7 @@ protected:
         if (exp_name.empty())
         {
           PepXMLFile().load(in, protein_identifications, 
-														peptide_identifications, orig_name);
+                            peptide_identifications, orig_name);
         }
         else
         {
@@ -300,8 +300,8 @@ protected:
             exp_name = orig_name;
           }
           PepXMLFile().load(in, protein_identifications, 
-														peptide_identifications, exp_name, exp, 
-														use_precursor_data);
+                            peptide_identifications, exp_name, exp, 
+                            use_precursor_data);
         }
       }
       else if (in_type == FileTypes::IDXML)
@@ -313,17 +313,17 @@ protected:
         protein_identifications.resize(1);
         peptide_identifications.resize(1);
         ProtXMLFile().load(in, protein_identifications[0], 
-													 peptide_identifications[0]);
+                           peptide_identifications[0]);
       }
       else if (in_type == FileTypes::OMSSAXML)
       {
         protein_identifications.resize(1);
         OMSSAXMLFile().load(in, protein_identifications[0], 
-														peptide_identifications, true);
+                            peptide_identifications, true);
       }
       else if (in_type == FileTypes::MASCOTXML)
       {
-				String scan_regex = getStringOption_("scan_regex");
+        String scan_regex = getStringOption_("scan_regex");
         String exp_name = getStringOption_("mz_file");
         MascotXMLFile::RTMapping rt_mapping;
         if (!exp_name.empty())
@@ -332,12 +332,12 @@ protected:
           fh.loadExperiment(exp_name, exp);
           for (Size i = 0; i < exp.size(); ++i)
           {
-						if (exp[i].getMSLevel() > 1) rt_mapping[i] = exp[i].getRT();
+            if (exp[i].getMSLevel() > 1) rt_mapping[i] = exp[i].getRT();
           }
         }
         protein_identifications.resize(1);
         MascotXMLFile().load(in, protein_identifications[0],
-														 peptide_identifications, rt_mapping, scan_regex);
+                             peptide_identifications, rt_mapping, scan_regex);
       }
       else
       {

@@ -228,7 +228,7 @@ protected:
     //-------------------------------------------------------------
     // writing consensus map output
     //-------------------------------------------------------------
-    if(write_consensusXML)
+    if (write_consensusXML)
     {
       ConsensusMap consensus_map;
       for (Size i = 0; i < m_traces_final.size(); ++i)
@@ -237,7 +237,7 @@ protected:
 
         ConsensusFeature fcons;
         int k = 0;
-        for(MassTrace::const_iterator it = m_traces_final[i].begin(); it != m_traces_final[i].end(); ++it)
+        for (MassTrace::const_iterator it = m_traces_final[i].begin(); it != m_traces_final[i].end(); ++it)
         {
           FeatureHandle fhandle;
           fhandle.setRT(it->getRT());

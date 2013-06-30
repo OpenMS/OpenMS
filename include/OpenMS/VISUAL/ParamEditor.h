@@ -80,8 +80,8 @@ signals:
 
 
     protected:
-        virtual void 	focusOutEvent ( QFocusEvent * e );
-        virtual void 	focusInEvent ( QFocusEvent * e );
+        virtual void   focusOutEvent ( QFocusEvent * e );
+        virtual void   focusInEvent ( QFocusEvent * e );
     };
     /**
         @brief Internal delegate class for QTreeWidget

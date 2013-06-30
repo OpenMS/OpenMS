@@ -51,12 +51,12 @@ namespace OpenMS
                            ProteinIdentification& protein_identification,
                            vector<PeptideIdentification>& id_data,
                            const RTMapping& rt_mapping,
-													 const String& scan_regex)
+                           const String& scan_regex)
   {
     map<String, vector<AASequence> > peptides;
 
     load(filename, protein_identification, id_data, peptides, rt_mapping, 
-				 scan_regex);
+         scan_regex);
   }
 
   void MascotXMLFile::load(const String& filename,
@@ -64,64 +64,64 @@ namespace OpenMS
                            vector<PeptideIdentification>& id_data,
                            map<String, vector<AASequence> >& peptides,
                            const RTMapping& rt_mapping, 
-													 const String& scan_regex)
+                           const String& scan_regex)
   {
     //clear
     protein_identification = ProteinIdentification();
     id_data.clear();
 
     Internal::MascotXMLHandler handler(protein_identification, id_data, 
-																			 filename, peptides, rt_mapping,
-																			 scan_regex);
+                                       filename, peptides, rt_mapping,
+                                       scan_regex);
     parse_(filename, &handler);
 
     // since the mascotXML can contain "peptides" without sequences,
-		// the identifications without any real peptide hit are removed
-		vector<PeptideIdentification> filtered_hits;
-		filtered_hits.reserve(id_data.size());
+    // the identifications without any real peptide hit are removed
+    vector<PeptideIdentification> filtered_hits;
+    filtered_hits.reserve(id_data.size());
 
-		for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
-				 id_it != id_data.end(); ++id_it)
-		{
-			const vector<PeptideHit>& peptide_hits = id_it->getHits();
-			if (!peptide_hits.empty() && 
-					(peptide_hits.size() > 1 || !peptide_hits[0].getSequence().empty()))
-			{
-				filtered_hits.push_back(*id_it);
-			}
-		}
-		Size diff = id_data.size() - filtered_hits.size();
-		if (diff) 
-		{
-			LOG_WARN << "Warning: Removed " << diff 
-							 << " peptide identifications without sequence." << endl;
-		}
-		id_data.swap(filtered_hits);
+    for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
+         id_it != id_data.end(); ++id_it)
+    {
+      const vector<PeptideHit>& peptide_hits = id_it->getHits();
+      if (!peptide_hits.empty() && 
+          (peptide_hits.size() > 1 || !peptide_hits[0].getSequence().empty()))
+      {
+        filtered_hits.push_back(*id_it);
+      }
+    }
+    Size diff = id_data.size() - filtered_hits.size();
+    if (diff) 
+    {
+      LOG_WARN << "Warning: Removed " << diff 
+               << " peptide identifications without sequence." << endl;
+    }
+    id_data.swap(filtered_hits);
 
-		// check if we have (some) RT information:
-		Size no_rt_count = 0;
-		for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
-				 id_it != id_data.end(); ++id_it)
-		{
-			if (!id_it->metaValueExists("RT")) no_rt_count++;
-		}
-		if (no_rt_count)
-		{
-			LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
-							 << ") peptide identifications have no retention time value.";
-		}
-		// if we have a mapping, but couldn't find any RT values, that's an error:
-		if (!rt_mapping.empty() && (no_rt_count == id_data.size()))
-		{
-			throw Exception::MissingInformation(
-				__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-				"No retention time information for peptide identifications found");
-		}
+    // check if we have (some) RT information:
+    Size no_rt_count = 0;
+    for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
+         id_it != id_data.end(); ++id_it)
+    {
+      if (!id_it->metaValueExists("RT")) no_rt_count++;
+    }
+    if (no_rt_count)
+    {
+      LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
+               << ") peptide identifications have no retention time value.";
+    }
+    // if we have a mapping, but couldn't find any RT values, that's an error:
+    if (!rt_mapping.empty() && (no_rt_count == id_data.size()))
+    {
+      throw Exception::MissingInformation(
+        __FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        "No retention time information for peptide identifications found");
+    }
 
     // argh! Mascot 2.2 tends to repeat the first hit (yes it appears twice),
     // so we delete one of them
     for (vector<PeptideIdentification>::iterator it = id_data.begin(); 
-				 it != id_data.end(); ++it)
+         it != id_data.end(); ++it)
     {
       vector<PeptideHit> peptide_hits = it->getHits();
       // check if equal, except for rank

@@ -43,15 +43,15 @@ namespace OpenMS
 {
   namespace Internal
   {
-		const String MascotXMLHandler::primary_scan_regex = 
-			"scan( number)?s?[=:]? *(?<SCAN>\\d+)";
+    const String MascotXMLHandler::primary_scan_regex = 
+      "scan( number)?s?[=:]? *(?<SCAN>\\d+)";
 
     MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
                                        vector<PeptideIdentification>& id_data,
                                        const String& filename,
                                        map<String, vector<AASequence> >& modified_peptides,
                                        const RTMapping& rt_mapping, 
-																			 const String& scan_regex) :
+                                       const String& scan_regex) :
       XMLHandler(filename, ""),
       protein_identification_(protein_identification),
       id_data_(id_data),
@@ -64,39 +64,39 @@ namespace OpenMS
       modified_peptides_(modified_peptides),
       warning_msg_(""),
       rt_mapping_(rt_mapping),
-			scan_regex_(),
-			no_rt_error_(false)
+      scan_regex_(),
+      no_rt_error_(false)
     {
-			// user-supplied regex -> use only this one
-			if (!scan_regex.empty()) scan_regex_.push_back(boost::regex(scan_regex));
-			else // try different default regexes (more probable ones first)
-			{
-				boost::regex re;
-				// if we have a mapping, we can look for the scan number:
-				if (!rt_mapping_.empty())
-				{
-					// possible formats and resulting scan numbers (1-based!):
-					// - Mascot 2.3 (?):
-					// <pep_scan_title>scan=818</pep_scan_title> -> 818
-					// - ProteomeDiscoverer/Mascot 2.3 or 2.4:
-					// <pep_scan_title>Spectrum136 scans:712,</pep_scan_title> -> 712
-					// - other variants:
-					// <pep_scan_title>Spectrum3411 scans: 2975,</pep_scan_title> -> 2975
-					// <...>File773 Spectrum198145 scans: 6094</...> -> 6094
-					// <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
-					// <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
-					re.assign(primary_scan_regex, boost::regex::perl|boost::regex::icase);
-					scan_regex_.push_back(re);
-					// - with .dta input to Mascot:
-					// <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
-					re.assign("\\.(?<SCAN>\\d+)\\.\\d+.\\d+.dta");
-					scan_regex_.push_back(re);
-				}
-				// title containing RT and MZ instead of scan number:
-				// <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
-				re.assign("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
-				scan_regex_.push_back(re);
-			}
+      // user-supplied regex -> use only this one
+      if (!scan_regex.empty()) scan_regex_.push_back(boost::regex(scan_regex));
+      else // try different default regexes (more probable ones first)
+      {
+        boost::regex re;
+        // if we have a mapping, we can look for the scan number:
+        if (!rt_mapping_.empty())
+        {
+          // possible formats and resulting scan numbers (1-based!):
+          // - Mascot 2.3 (?):
+          // <pep_scan_title>scan=818</pep_scan_title> -> 818
+          // - ProteomeDiscoverer/Mascot 2.3 or 2.4:
+          // <pep_scan_title>Spectrum136 scans:712,</pep_scan_title> -> 712
+          // - other variants:
+          // <pep_scan_title>Spectrum3411 scans: 2975,</pep_scan_title> -> 2975
+          // <...>File773 Spectrum198145 scans: 6094</...> -> 6094
+          // <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
+          // <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
+          re.assign(primary_scan_regex, boost::regex::perl|boost::regex::icase);
+          scan_regex_.push_back(re);
+          // - with .dta input to Mascot:
+          // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
+          re.assign("\\.(?<SCAN>\\d+)\\.\\d+.\\d+.dta");
+          scan_regex_.push_back(re);
+        }
+        // title containing RT and MZ instead of scan number:
+        // <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
+        re.assign("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
+        scan_regex_.push_back(re);
+      }
     }
 
     MascotXMLHandler::~MascotXMLHandler()
@@ -117,7 +117,7 @@ namespace OpenMS
       {
         major_version_ = this->attributeAsString_(attributes, "majorVersion");
         minor_version_ = this->attributeAsString_(attributes, "minorVersion");
-				no_rt_error_ = false; // reset for every new file
+        no_rt_error_ = false; // reset for every new file
       }
       else if (tag_ == "warning")
       {
@@ -211,7 +211,7 @@ namespace OpenMS
 
     void MascotXMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
     {
-			// do not care about chars after internal tags, e.g.
+      // do not care about chars after internal tags, e.g.
       // <header>
       //   <COM>OpenMS_search</COM>
       //   <Date>
@@ -238,63 +238,63 @@ namespace OpenMS
       }
       else if (tag_ == "pep_scan_title")
       { 
-				// extract RT (and possibly m/z, if not already set) from title:
+        // extract RT (and possibly m/z, if not already set) from title:
         String title = ((String) sm_.convert(chars)).trim();
 
-				vector<boost::regex>::const_iterator re_it = scan_regex_.begin();
-				try
-				{
-					for (; re_it != scan_regex_.end(); ++re_it)
-					{
-						boost::smatch match;
-						bool found = boost::regex_search(title, match, *re_it);
-						if (found)
-						{
-							if (match["RT"].matched)
-							{
-								DoubleReal rt = String(match["RT"].str()).toDouble();
-								id_data_[peptide_identification_index_].setMetaValue("RT", rt);
-							}
-							else if (match["SCAN"].matched)
-							{
-								Size scan_no = String(match["SCAN"].str()).toInt();
-								if (scan_no && rt_mapping_.has(scan_no - 1))
-								{
-									id_data_[peptide_identification_index_].setMetaValue(
-										"RT", rt_mapping_[scan_no - 1]);
-								}
-							}
-							if (match["MZ"].matched && 
-									!id_data_[peptide_identification_index_].metaValueExists(
-										"MZ"))
-							{
-								DoubleReal mz = String(match["MZ"].str()).toDouble();
-								id_data_[peptide_identification_index_].setMetaValue("MZ", mz);
-							}
-							break;
-						}
-					}
-				}
-				catch (Exception::ConversionError&)
-				{
-					String msg = "<pep_scan_title> element has unexpected format '" +
-						title + "'. The regular expression '" + re_it->str() + "' matched, "
-						"but the extracted information could not be converted to a number.";
-					error(LOAD, msg);
-				}
-				// did it work?
-				if (!id_data_[peptide_identification_index_].metaValueExists("RT"))
-				{
-					if (!no_rt_error_) // report the error only the first time
-					{
-						String msg = "Could not extract RT value ";
-						if (!rt_mapping_.empty()) msg += "or a matching scan number ";
-						msg += "from <pep_scan_title> element with format '" + title + 
-							"'. Try adjusting the 'scan_regex' parameter.";
-						error(LOAD, msg);
-					}
-					no_rt_error_ = true;
-				}
+        vector<boost::regex>::const_iterator re_it = scan_regex_.begin();
+        try
+        {
+          for (; re_it != scan_regex_.end(); ++re_it)
+          {
+            boost::smatch match;
+            bool found = boost::regex_search(title, match, *re_it);
+            if (found)
+            {
+              if (match["RT"].matched)
+              {
+                DoubleReal rt = String(match["RT"].str()).toDouble();
+                id_data_[peptide_identification_index_].setMetaValue("RT", rt);
+              }
+              else if (match["SCAN"].matched)
+              {
+                Size scan_no = String(match["SCAN"].str()).toInt();
+                if (scan_no && rt_mapping_.has(scan_no - 1))
+                {
+                  id_data_[peptide_identification_index_].setMetaValue(
+                    "RT", rt_mapping_[scan_no - 1]);
+                }
+              }
+              if (match["MZ"].matched && 
+                  !id_data_[peptide_identification_index_].metaValueExists(
+                    "MZ"))
+              {
+                DoubleReal mz = String(match["MZ"].str()).toDouble();
+                id_data_[peptide_identification_index_].setMetaValue("MZ", mz);
+              }
+              break;
+            }
+          }
+        }
+        catch (Exception::ConversionError&)
+        {
+          String msg = "<pep_scan_title> element has unexpected format '" +
+            title + "'. The regular expression '" + re_it->str() + "' matched, "
+            "but the extracted information could not be converted to a number.";
+          error(LOAD, msg);
+        }
+        // did it work?
+        if (!id_data_[peptide_identification_index_].metaValueExists("RT"))
+        {
+          if (!no_rt_error_) // report the error only the first time
+          {
+            String msg = "Could not extract RT value ";
+            if (!rt_mapping_.empty()) msg += "or a matching scan number ";
+            msg += "from <pep_scan_title> element with format '" + title + 
+              "'. Try adjusting the 'scan_regex' parameter.";
+            error(LOAD, msg);
+          }
+          no_rt_error_ = true;
+        }
       }
       else if (tag_ == "pep_exp_z")
       {
