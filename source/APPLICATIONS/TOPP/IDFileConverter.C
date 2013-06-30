@@ -141,7 +141,8 @@ protected:
     setValidStrings_("out_type", StringList::create(formats));
 
     addEmptyLine_();
-    registerStringOption_("mz_file", "<file>", "", "[Sequest, pepXML, mascotXML only] Retention times will be looked up in this file", false);
+    registerInputFile_("mz_file", "<file>", "", "[Sequest, pepXML, mascotXML only] Retention times will be looked up in this file", false);
+		setValidFormats_("mz_file", StringList::create("mzML,mzXML,mzData"));
     addEmptyLine_();
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
