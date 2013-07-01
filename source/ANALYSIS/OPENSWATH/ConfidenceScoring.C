@@ -76,6 +76,8 @@ namespace OpenMS
     DoubleReal ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay,
                            const String& cv_accession)
     {
+      OPENMS_PRECONDITION(assay.rts.size() > 0, "More than zero RTs needed")
+      OPENMS_PRECONDITION(assay.rts[0].getCVTerms()[cv_accession].size() >  0, "More than zero cv terms of retention time needed")
       String value = assay.rts[0].getCVTerms()[cv_accession][0].getValue();
       return value.toDouble();
     }
@@ -190,6 +192,11 @@ namespace OpenMS
       // compare to "true" assay:
       String true_id = feature.getMetaValue("PeptideRef");
       LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
+      if (true_id.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                         "Feature does not contain meta value 'PeptideRef' (reference to assay)");
+      }
       scores << scoreAssay_(library_.getPeptideByRef(true_id), feature_rt, 
                             feature_intensities, transition_ids);
 

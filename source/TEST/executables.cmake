@@ -348,6 +348,7 @@ set(analysis_executables_list
 	CompNovoIonScoringBase_test
 	CompNovoIonScoringCID_test
 	CompNovoIonScoring_test
+  ConfidenceScoring_test
 	ConsensusID_test
 	ConsensusMapNormalizerAlgorithmThreshold_test
 	#ConsensusMapNormalizerAlgorithmMedian_test
