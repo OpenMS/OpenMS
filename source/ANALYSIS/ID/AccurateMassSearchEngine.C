@@ -369,7 +369,8 @@ namespace OpenMS
     // This loads additional properties like common name, smiles, and inchi key for each HMDB id
     parseStructMappingFile_("");
 
-    typedef std::map<String, std::vector<AccurateMassSearchResult> > QueryResultsTable;
+    // typedef std::map<String, std::vector<AccurateMassSearchResult> > QueryResultsTable;
+    typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
     if (ion_mode_ == "positive")
     {
@@ -424,7 +425,7 @@ namespace OpenMS
       //        }
 
       String feat_label(fmap[i].getMetaValue(3));
-      overall_results[feat_label] = query_results;
+      overall_results.push_back(query_results);
     }
 
     // iterate the overall results table
@@ -437,13 +438,13 @@ namespace OpenMS
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
-      std::cout << tab_it->first << std::endl;
+      // std::cout << tab_it->first << std::endl;
 
-      for (Size hit_idx = 0; hit_idx < tab_it->second.size(); ++hit_idx)
+      for (Size hit_idx = 0; hit_idx < tab_it->size(); ++hit_idx)
       {
         // tab_it->second[hit_idx].outputResults();
 
-        std::vector<String> matching_ids = tab_it->second[hit_idx].getMatchingHMDBids();
+        std::vector<String> matching_ids = tab_it->at(hit_idx).getMatchingHMDBids();
 
         // iterate over multiple IDs, generate a new row for each one
 
@@ -464,7 +465,7 @@ namespace OpenMS
 
           // set the chemical formula field
           MzTabString chem_form;
-          String form_temp = tab_it->second[hit_idx].getFormulaString();
+          String form_temp = tab_it->at(hit_idx).getFormulaString();
           chem_form.set(form_temp);
 
           mztab_row_record.chemical_formula = chem_form;
@@ -492,7 +493,7 @@ namespace OpenMS
 
 
           // set mass_to_charge field
-          DoubleReal mz_temp = tab_it->second[hit_idx].getAdductMass();
+          DoubleReal mz_temp = tab_it->at(hit_idx).getAdductMass();
           MzTabDouble mass_to_charge;
           mass_to_charge.set(mz_temp);
 
@@ -500,7 +501,7 @@ namespace OpenMS
 
 
           // set charge field
-          DoubleReal ch_temp = tab_it->second[hit_idx].getCharge();
+          DoubleReal ch_temp = tab_it->at(hit_idx).getCharge();
           MzTabDouble charge;
           charge.set(ch_temp);
 
@@ -508,7 +509,7 @@ namespace OpenMS
 
 
           // set RT field
-          DoubleReal rt_temp(tab_it->second[hit_idx].getObservedRT());
+          DoubleReal rt_temp(tab_it->at(hit_idx).getObservedRT());
           MzTabDouble rt_temp2;
           rt_temp2.set(rt_temp);
           std::vector<MzTabDouble> rt_temp3;
@@ -536,7 +537,7 @@ namespace OpenMS
 
 
           // set smallmolecule_abundance_sub
-          DoubleReal int_temp(tab_it->second[hit_idx].getObservedIntensity());
+          DoubleReal int_temp(tab_it->at(hit_idx).getObservedIntensity());
           MzTabDouble int_temp2;
           int_temp2.set(int_temp);
           std::vector<MzTabDouble> int_temp3;
@@ -569,7 +570,7 @@ namespace OpenMS
           std::vector<MzTabOptionalColumnEntry> optionals;
 
           // set found adduct ion
-          String addion_temp(tab_it->second[hit_idx].getFoundAdduct());
+          String addion_temp(tab_it->at(hit_idx).getFoundAdduct());
           MzTabString addion;
           addion.set(addion_temp);
           MzTabOptionalColumnEntry col1;
@@ -579,7 +580,7 @@ namespace OpenMS
 
 
           // set isotope similarity score
-          DoubleReal sim_score_temp(tab_it->second[hit_idx].getIsotopesSimScore());
+          DoubleReal sim_score_temp(tab_it->at(hit_idx).getIsotopesSimScore());
           std::stringstream read_in;
           read_in << sim_score_temp;
           String sim_score_temp2(read_in.str());
@@ -643,6 +644,16 @@ namespace OpenMS
     mztab_out.setSmallMoleculeSectionData(sm_data_section);
 
   }
+
+
+//AccurateMassSearchEngine::run(const ConsensusMap<>& cm, MzTab& mztab_out)
+//{
+//    for (Size i = 0; i < cm.size(); ++i)
+//    {
+
+//    }
+//}
+
 
 /// protected methods
 
