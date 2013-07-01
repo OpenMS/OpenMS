@@ -131,32 +131,73 @@ namespace OpenMS
     // number of clusters == number of data points:
     Size size = clustering.size();
 
+    // Create a temporary map where we store which GridFeatures are next to which Clusters
+    boost::unordered::unordered_map<GridFeature *, std::vector< QTCluster * > > element_mapping;
+    for (list<QTCluster>::iterator it = clustering.begin(); it != clustering.end(); ++it)
+    {
+      boost::unordered::unordered_map<Size, GridFeature *> elements; // = it->getNeighbors();
+      typedef boost::unordered::unordered_multimap<DoubleReal, GridFeature *> InnerNeighborMap;
+      typedef boost::unordered::unordered_map<Size, boost::unordered::unordered_multimap<DoubleReal, GridFeature *> > NeighborMap;
+      NeighborMap neigh = it->getNeighbors();
+      for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); n_it++)
+      {
+        for (InnerNeighborMap::iterator i_it = n_it->second.begin(); i_it != n_it->second.end(); i_it++)
+        {
+          element_mapping[i_it->second].push_back( &(*it) );
+        }
+      }
+    }
+
     ProgressLogger logger;
     logger.setLogType(ProgressLogger::CMD);
     logger.startProgress(0, size, "linking features");
-
+    Size progress = 0;
     result_map.clear(false);
 
     while (!clustering.empty())
     {
       // cout << "Clusters: " << clustering.size() << endl;
       ConsensusFeature consensus_feature;
-      makeConsensusFeature_(clustering, consensus_feature);
-      result_map.push_back(consensus_feature);
-      logger.setProgress(size - clustering.size());
+      makeConsensusFeature_(clustering, consensus_feature, element_mapping);
+      if (!clustering.empty())
+      {
+        result_map.push_back(consensus_feature);
+      }
+      logger.setProgress(progress++);
     }
 
     logger.endProgress();
   }
 
   void QTClusterFinder::makeConsensusFeature_(list<QTCluster> & clustering,
-                                              ConsensusFeature & feature)
+           ConsensusFeature & feature, boost::unordered::unordered_map<GridFeature *,
+             std::vector< QTCluster * > > & element_mapping)
   {
-    // find the best cluster:
-    list<QTCluster>::iterator best = std::max_element(clustering.begin(), clustering.end());
+    // find the best cluster (a valid cluster with the highest score)
+    list<QTCluster>::iterator best = clustering.begin();
+    while (best->isInvalid() && best != clustering.end()) {best++;}
+    for (list<QTCluster>::iterator it = best;
+         it != clustering.end(); ++it)
+    {
+      if (!it->isInvalid())
+      {
+        if (it->getQuality() > best->getQuality())
+        {
+          best = it;
+        }
+      }
+    }
+
+    // no more clusters to process -> clear clustering and return
+    if (best == clustering.end())
+    {
+      clustering.clear();
+      return;
+    }
+
     boost::unordered::unordered_map<Size, GridFeature *> elements;
     best->getElements(elements);
-    // cout << "Elements: " << elements.size() << endl;
+    // cout << "Elements: " << elements.size() << " with best " << best->getQuality() << " invalid " << best->isInvalid() << endl;
 
     // create consensus feature from best cluster:
     feature.setQuality(best->getQuality());
@@ -167,22 +208,29 @@ namespace OpenMS
     }
     feature.computeConsensus();
 
+
+ 
     // update the clustering:
     // 1. remove current "best" cluster
-    // 2. remove all elements contained in this cluster from all elements in
-    //    the list
-    clustering.erase(best);
-
-    for (list<QTCluster>::iterator it = clustering.begin();
-         it != clustering.end(); )
+    // 2. update all clusters accordingly and invalidate elements whose central
+    //    element is removed
+    best->setInvalid();
+    for (boost::unordered::unordered_map<Size, GridFeature *>::const_iterator it = elements.begin();
+         it != elements.end(); ++it)
     {
-      if (!it->update(elements))       // cluster is invalid (center point removed):
+      for (std::vector< QTCluster* >::iterator 
+            cluster  = element_mapping[&(*it->second)].begin();
+            cluster != element_mapping[&(*it->second)].end(); ++cluster)
       {
-        it = clustering.erase(it);
-      }
-      else
-      {
-        ++it;
+        // we do not want to update invalid features (saves time and does not
+        // recompute the quality)
+        if (!(*cluster)->isInvalid())
+        {
+          if (!(*cluster)->update(elements))       // cluster is invalid (center point removed):
+          {
+            (*cluster)->setInvalid();
+          }
+        }
       }
     }
   }

@@ -50,7 +50,8 @@ namespace OpenMS
                        DoubleReal max_distance, bool use_IDs) :
     center_point_(center_point), neighbors_(), max_distance_(max_distance),
     num_maps_(num_maps), quality_(0.0), changed_(false), use_IDs_(use_IDs),
-    annotations_()
+    annotations_(),
+    valid_(true)
   {
     if (use_IDs)
       annotations_ = center_point->getAnnotations();
