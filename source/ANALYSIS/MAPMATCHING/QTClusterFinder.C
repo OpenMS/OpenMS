@@ -153,10 +153,7 @@ namespace OpenMS
                                               ConsensusFeature & feature)
   {
     // find the best cluster:
-    // 1. sort by quality
-    // 2. best (highest quality) will be at the back
-    clustering.sort();
-    list<QTCluster>::reverse_iterator best = clustering.rbegin();
+    list<QTCluster>::iterator best = std::max_element(clustering.begin(), clustering.end());
     boost::unordered::unordered_map<Size, GridFeature *> elements;
     best->getElements(elements);
     // cout << "Elements: " << elements.size() << endl;
@@ -174,7 +171,7 @@ namespace OpenMS
     // 1. remove current "best" cluster
     // 2. remove all elements contained in this cluster from all elements in
     //    the list
-    clustering.pop_back();
+    clustering.erase(best);
 
     for (list<QTCluster>::iterator it = clustering.begin();
          it != clustering.end(); )
