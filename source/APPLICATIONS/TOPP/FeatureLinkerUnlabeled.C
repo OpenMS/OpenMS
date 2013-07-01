@@ -167,6 +167,10 @@ protected:
       }
 
       // Load reference map and input it to the algorithm
+      UInt64 ref_id;
+      Size ref_size;
+      std::vector<PeptideIdentification> ref_pepids;
+      std::vector<ProteinIdentification> ref_protids;
       {
         FeatureMap<> map_ref;
         FeatureXMLFile f_fxml_tmp;
@@ -174,6 +178,10 @@ protected:
         f_fxml_tmp.getOptions().setLoadSubordinates(false);
         f_fxml_tmp.load(ins[reference_index], map_ref);
         algorithm->setReference(reference_index, map_ref);
+        ref_id = map_ref.getUniqueId();
+        ref_size = map_ref.size();
+        ref_pepids = map_ref.getUnassignedPeptideIdentifications();
+        ref_protids = map_ref.getProteinIdentifications();
       }
 
       ConsensusMap dummy;
@@ -186,31 +194,50 @@ protected:
         f_fxml_tmp.getOptions().setLoadConvexHull(false);
         f_fxml_tmp.getOptions().setLoadSubordinates(false);
         f_fxml_tmp.load(ins[i], tmp_map);
-        // TODO we currently load the reference map twice
+
         if (i != reference_index)
         {
           algorithm->addToGroup(i, tmp_map);
+
+          // store some meta-data about the maps in the "dummy" object -> try to
+          // keep the same order as they were given in the input independent of
+          // which map is the reference.
+          
+          dummy.getFileDescriptions()[i].filename = ins[i];
+          dummy.getFileDescriptions()[i].size = tmp_map.size();
+          dummy.getFileDescriptions()[i].unique_id = tmp_map.getUniqueId();
+
+          // add protein identifications to result map
+          dummy.getProteinIdentifications().insert(
+            dummy.getProteinIdentifications().end(),
+            tmp_map.getProteinIdentifications().begin(),
+            tmp_map.getProteinIdentifications().end());
+
+          // add unassigned peptide identifications to result map
+          dummy.getUnassignedPeptideIdentifications().insert(
+            dummy.getUnassignedPeptideIdentifications().end(),
+            tmp_map.getUnassignedPeptideIdentifications().begin(),
+            tmp_map.getUnassignedPeptideIdentifications().end());
         }
+        else
+        {
+          // copy the meta-data from the refernce map
+          dummy.getFileDescriptions()[i].filename = ins[i];
+          dummy.getFileDescriptions()[i].size = ref_size;
+          dummy.getFileDescriptions()[i].unique_id = ref_id;
 
-        // store some meta-data about the maps in the "dummy" object -> try to
-        // keep the same order as they were given in the input independent of
-        // which map is the reference.
-        
-        dummy.getFileDescriptions()[i].filename = ins[i];
-        dummy.getFileDescriptions()[i].size = tmp_map.size();
-        dummy.getFileDescriptions()[i].unique_id = tmp_map.getUniqueId();
+          // add protein identifications to result map
+          dummy.getProteinIdentifications().insert(
+            dummy.getProteinIdentifications().end(),
+            ref_protids.begin(),
+            ref_protids.end());
 
-        // add protein identifications to result map
-        dummy.getProteinIdentifications().insert(
-          dummy.getProteinIdentifications().end(),
-          tmp_map.getProteinIdentifications().begin(),
-          tmp_map.getProteinIdentifications().end());
-
-        // add unassigned peptide identifications to result map
-        dummy.getUnassignedPeptideIdentifications().insert(
-          dummy.getUnassignedPeptideIdentifications().end(),
-          tmp_map.getUnassignedPeptideIdentifications().begin(),
-          tmp_map.getUnassignedPeptideIdentifications().end());
+          // add unassigned peptide identifications to result map
+          dummy.getUnassignedPeptideIdentifications().insert(
+            dummy.getUnassignedPeptideIdentifications().end(),
+            ref_pepids.begin(),
+            ref_pepids.end());
+        }
       }
 
       // get the resulting map 
