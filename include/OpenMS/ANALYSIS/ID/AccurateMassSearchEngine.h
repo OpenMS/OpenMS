@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -284,6 +285,10 @@ private:
     DoubleReal computeCosineSim_(const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y);
     DoubleReal computeEuclideanDist_(const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y);
     DoubleReal computeIsotopePatternSimilarity_(const Feature&, const EmpiricalFormula&);
+
+    typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
+
+    void exportMzTab_(const QueryResultsTable&, MzTab&);
 
     /// private member variables
     typedef std::vector<std::vector<String> > MassIDMapping;
