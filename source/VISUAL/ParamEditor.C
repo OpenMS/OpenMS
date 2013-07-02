@@ -92,6 +92,8 @@ namespace OpenMS
       // only create editor for first column (value column)
       if (index.column() == 1 && type != ParamEditor::NODE)
       {
+        has_uncommited_data_ = false; // by default all data is committed
+
         QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
         QString restrictions = index.sibling(index.row(), 2).data(Qt::UserRole).toString();
         QString value = index.sibling(index.row(), 1).data(Qt::DisplayRole).toString();
@@ -730,10 +732,14 @@ namespace OpenMS
 
   void ParamEditor::store()
   {
-//    std::cerr << "store entered ...\n";
-    if (param_ != NULL && !static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate())->hasUncommittedData())
-    {
-//      std::cerr << "and done!...\n";
+    //std::cerr << "store entered ...\n";
+    
+    // store only if no line-edit is opened (in which case data is uncommitted and will not be saved)
+    // this applies only to INIFileEditor, where pressing Ctrl-s results in saving the current (but outdated) param
+    if (param_ != NULL &&
+        !static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate())->hasUncommittedData())
+    { 
+      //std::cerr << "and done!...\n";
       QTreeWidgetItem * parent = tree_->invisibleRootItem();
       //param_->clear();
 
@@ -745,6 +751,7 @@ namespace OpenMS
 
       setModified(false);
     }
+    //else std::cerr << "store aborted!\n";
 
   }
 
