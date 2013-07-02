@@ -535,8 +535,48 @@ namespace OpenMS
 
     return "";
   }
+  
+  String QcMLFile::exportQP(const String filename, const String qpname) const
+  {
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
+    if (qpsit != runQualityQPs_.end())
+    {
+      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      {
+        if (qpname == qit->name)
+        {
+          return "\""+qit->value+"\"";
+        }
+      }
+    }
 
-  String QcMLFile::map2cvs(const std::map<String, std::map<String, String> >& cvs_table, const String& separator) const
+    // if the return statement wasn't hit from runs maybe it is from sets?
+    qpsit = setQualityQPs_.find(filename);
+    if (qpsit != setQualityQPs_.end())
+    {	    
+      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      {
+        if (qpname == qit->name)
+        {
+          return "\""+qit->value+"\"";
+        }
+      }
+    }
+
+    return "\"N/A\"";
+  }
+  
+   String QcMLFile::exportQPs(const String filename, const StringList qpnames) const
+  {
+	String ret = "";
+	for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
+	{
+		ret += exportQP(filename,*qit);
+		ret += ",";
+	}  
+  }
+  
+  String QcMLFile::map2csv(const std::map<String, std::map<String, String> >& cvs_table, const String& separator) const
   {
     String ret = "";
     std::vector<String> cols;
@@ -592,7 +632,7 @@ namespace OpenMS
       }
       if (!cvs_table.empty())
       {
-        return map2cvs(cvs_table, "\t");
+        return map2csv(cvs_table, "\t");
       }
     }
 

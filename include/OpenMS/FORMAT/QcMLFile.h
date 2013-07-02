@@ -119,7 +119,7 @@ public:
     ///Destructor
     ~QcMLFile();
 
-    String map2cvs(const std::map< String, std::map<String, String> >& cvs_table, const String& separator) const;
+    String map2csv(const std::map< String, std::map<String, String> >& cvs_table, const String& separator) const;
     String exportIDstats(const String& filename) const;
 
     ///Just adds a qualityparameter to run by the name r
@@ -143,7 +143,11 @@ public:
     ///collects the values of given QPs (as CVid) of the given set
     void/* std::vector<String>& */ collectSetParameter(const String setname, const String qp, std::vector<String>& ret);
     ///Returns a String of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname
-    String exportAttachment(const String filename, const String qpname) const;
+    String exportAttachment(const String filename, const String qpname) const; 
+    ///Returns a String value in qutation of a qualityparameter by the name qpname in run/set by the name filename
+    String exportQP(const String filename, const String qpname) const;
+    ///Returns a String of a tab separated qualityparameter by the name qpname in run/set by the name filename
+    String exportQPs(const String filename, const StringList qpnames) const;
     ///Gives the names of the registered runs in the vector ids.
     void getRunNames (std::vector<String>& ids) const;
     ///Returns true if the given run name is present in this file

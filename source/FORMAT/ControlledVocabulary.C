@@ -528,7 +528,7 @@ namespace OpenMS
   bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
   {
     if (!exists(id))
-      return true;
+      return true; //what?!
 
     String parent_name = name;
     String real_parent_name = getTerm(id).name;

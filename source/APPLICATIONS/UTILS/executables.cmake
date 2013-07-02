@@ -35,10 +35,12 @@ SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
 XMLValidator
 QCCalculator
+QCImporter
+QCEmbedder
 QCExporter
+QCExtractor
 QCMerger
 QCShrinker
-QCEmbedder
 RNPxl
 RNPxlXICFilter
 )

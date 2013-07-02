@@ -37,8 +37,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <QByteArray>
 #include <QFile>
@@ -85,10 +83,11 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringList_("qps", "<qps>", StringList(), "QualityParameter to be exported.");
-    registerStringList_("names", "<names>", StringList(), "The name of the target runs or sets to be exported from. If empty, from all will be exported.");
-    registerInputFile_("mapping", "<file>", "", "Mapping table of which column in the export will be represented as which qc.", true);
-    setValidFormats_("mapping", StringList::create("csv"));
+    registerStringOption_("qp", "<string>", "", "Target attachment table.");
+    //~ setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables,set id, injection times"));
+    registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
+    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
+    setValidFormats_("run", StringList::create("mzML"));
     registerOutputFile_("out_csv", "<file>", "", "Output csv formated quality parameter or extended qcML file");
     setValidFormats_("out_csv", StringList::create("csv"));
   }
@@ -98,97 +97,58 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                   	= getStringOption_("in");
-    String csv                  	= getStringOption_("out_csv");
-    StringList qps           	= getStringList_("qps");
-    StringList names      	= getStringList_("names");
-    String mappi          	= getStringOption_("mapping");
-		
-    ControlledVocabulary cv;
-    cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-    cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
+    String in                   = getStringOption_("in");
+    String csv                  = getStringOption_("out_csv");
+    String target_qp            = getStringOption_("qp");
+    String target_run           = getStringOption_("name");
+    String target_file          = getStringOption_("run");
+
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
+    if (target_file != "")
+    {
+      target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
+    }
+
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
-    if (mappi != "")
+    if (target_run == "")
     {
-			CsvFile map_file(mappi);
-			
-			if (map_file.size()<2) //assumed that first row is the header of table and second row is the according qc
-			{
-        cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
+      //~ check if only one run in file
+      std::vector<String> nas;
+      qcmlfile.getRunNames(nas);
+      if (nas.size() == 1)
+      {
+        target_run = nas.front();
+      }
+      else
+      {
+        cerr << "Error: You have to give at least one of the following parameter (in ascending precedence): name, run. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
-			}
-			StringList header,according;
-			map_file.getRow(0, header);
-			map_file.getRow(1, according);
-			if (header.size() != according.size())
-			{
-        cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
-        return ILLEGAL_PARAMETERS;
-			}
-			//~ std::map<String,String> mapping;
-			//~ std::transform( header.begin(), header.end(), according.begin(), std::inserter(mapping, mapping.end() ), std::make_pair<String,String> );
-			Size runset_col;
-      for (Size i = 0; i < according.size(); ++i)
-			{
-				if (!cv.exists(according[i]))
-				{
-					try
-					{
-						const ControlledVocabulary::CVTerm& term = cv.getTermByName(according[i]);
-						header[i] = term.name;
-						according[i] = term.id;
-					}						
-					catch (...)
-					{
-						cerr << "Error: You have to specify a correct cv with accession or name in col "<< String(i) <<". Aborting!" << endl;
-						return ILLEGAL_PARAMETERS;
-					}
-				}
-				else
-				{
-					const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
-					header[i] = term.name;
-				}
-				if (header[i] == "raw file name")
-				{
-					runset_col = i;
-				}
-			}
-
-
-		
-		if (names.size() < 1)
-		{
-			std::vector<String> ns;
-			qcmlfile.getRunNames(ns);
-			names = StringList(ns); //TODO also  sets
-		} 
-		
-    String csv_str = header.concatenate(",");
-		csv_str += '\n';
-		for (Size i = 0; i < names.size(); ++i)
-		{
-      //~ if (qcmlfile.existsRun(names[i]))
-      //~ {
-			csv_str += qcmlfile.exportQPs(names[i],according);
-			csv_str += '\n';
-      //~ }
-			//~ else if (qcmlfile.existsSet(names[i]))
-			//~ {
-				//~ csv_str += qcmlfile.exportSetQP(names[i],according);
-			//~ }
-      //~ else
-      //~ {
-        //~ cerr << "Error: You have to specify a existing set for this qp. " << names[i] << " seems not to exist. Aborting!" << endl;
-        //~ return ILLEGAL_PARAMETERS;
-      //~ }
+      }
     }
-   
+
+    String csv_str = "";
+    if (target_qp == "set id")
+    {
+      if (qcmlfile.existsSet(target_run))
+      {
+        csv_str = qcmlfile.exportIDstats(target_run);
+      }
+      else
+      {
+        cerr << "Error: You have to specify a existing set for this qp. " << target_run << " seems not to exist. Aborting!" << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+    }
+    else
+    {
+      //TODO warn when target_run is empty or not present in qcml
+      csv_str = qcmlfile.exportAttachment(target_run, target_qp);
+    }
+
     ofstream fout(csv.c_str());
     fout << csv_str << endl;
     fout.close();
@@ -196,7 +156,7 @@ protected:
 
     return EXECUTION_OK;
 		//~ TODO export table containing all given qp
-  }}
+  }
 
 };
 int main(int argc, const char** argv)
