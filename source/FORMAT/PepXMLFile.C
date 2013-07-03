@@ -304,9 +304,9 @@ namespace OpenMS
     vector<String> mods;
     ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, 0.001);
 
-		// no notification about ambiguities here - that was done when the
-		// modification definitions were parsed ("aminoacid_modification" and
-		// "terminal_modification" elements)
+    // no notification about ambiguities here - that was done when the
+    // modification definitions were parsed ("aminoacid_modification" and
+    // "terminal_modification" elements)
     if (!mods.empty()) modification_description = mods[0];
   }
 
@@ -523,7 +523,7 @@ namespace OpenMS
 
     // cout << "Start: " << element << "\n";
 
-    if (element == "msms_run_summary")     // parent: "msms_pipeline_analysis"
+    if (element == "msms_run_summary") // parent: "msms_pipeline_analysis"
     {
       if (!exp_name_.empty())
       {
@@ -561,7 +561,7 @@ namespace OpenMS
       // experiments we're not interested in)
     }
     // now, elements occurring more frequently are generally closer to the top
-    else if (element == "search_score")     // parent: "search_hit"
+    else if (element == "search_score") // parent: "search_hit"
     {
       String name = attributeAsString_(attributes, "name");
       DoubleReal value;
@@ -592,7 +592,7 @@ namespace OpenMS
       { // and use the mvh
         value = attributeAsDouble_(attributes, "value");
         peptide_hit_.setScore(value);
-        current_peptide_.setScoreType(name);         // add "Sequest" to name?
+        current_peptide_.setScoreType(name); // add "Sequest" to name?
         current_peptide_.setHigherScoreBetter(true);
       }
       else if (name == "fval") // SpectraST score
@@ -603,13 +603,13 @@ namespace OpenMS
         current_peptide_.setHigherScoreBetter(true);
       }
     }
-    else if (element == "search_hit")     // parent: "search_result"
+    else if (element == "search_hit") // parent: "search_result"
     {     // creates a new PeptideHit
       current_sequence_ = attributeAsString_(attributes, "peptide");
       current_modifications_.clear();
       peptide_hit_ = PeptideHit();
       peptide_hit_.setRank(attributeAsInt_(attributes, "hit_rank"));
-      peptide_hit_.setCharge(charge_);       // from parent "spectrum_query" tag
+      peptide_hit_.setCharge(charge_); // from parent "spectrum_query" tag
       String prev_aa, next_aa;
       if (optionalAttributeAsString_(prev_aa, attributes, "peptide_prev_aa"))
         peptide_hit_.setAABefore(prev_aa[0]);
@@ -621,20 +621,20 @@ namespace OpenMS
       hit.setAccession(protein);
       current_proteins_[search_id_ - 1]->insertHit(hit);
     }
-    else if (element == "search_result")     // parent: "spectrum_query"
+    else if (element == "search_result") // parent: "spectrum_query"
     {     // creates a new PeptideIdentification
       current_peptide_ = PeptideIdentification();
       current_peptide_.setMetaValue("RT", rt_);
       current_peptide_.setMetaValue("MZ", mz_);
-      search_id_ = 1;       // references "search_summary"
+      search_id_ = 1; // references "search_summary"
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
       current_peptide_.setIdentifier(current_proteins_[search_id_ - 1]->getIdentifier());
     }
-    else if (element == "spectrum_query")     // parent: "msms_run_summary"
+    else if (element == "spectrum_query") // parent: "msms_run_summary"
     {
-      readRTMZCharge_(attributes);       // sets "rt_", "mz_", "charge_"
+      readRTMZCharge_(attributes); // sets "rt_", "mz_", "charge_"
     }
-    else if (element == "peptideprophet_result")     // parent: "analysis_result" (in "search_hit")
+    else if (element == "peptideprophet_result") // parent: "analysis_result" (in "search_hit")
     {
       // PeptideProphet probability overwrites original search score
       // maybe TODO: deal with meta data associated with PeptideProphet search
@@ -646,7 +646,7 @@ namespace OpenMS
         current_peptide_.setHigherScoreBetter(true);
       }
     }
-    else if (element == "interprophet_result")     // parent: "analysis_result" (in "search_hit")
+    else if (element == "interprophet_result") // parent: "analysis_result" (in "search_hit")
     {
       // InterProphet probability overwrites PeptideProphet probability and
       // original search score
@@ -676,7 +676,7 @@ namespace OpenMS
             }
             else
             {
-							error(LOAD, String("Cannot find N-terminal modification with mass " + String(mod_nterm_mass) + "."));
+              error(LOAD, String("Cannot find N-terminal modification with mass " + String(mod_nterm_mass) + "."));
             }
             break; // only one modification should match, so we can stop the loop here
           }
@@ -701,7 +701,7 @@ namespace OpenMS
             }
             else
             {
-							error(LOAD, String("Cannot find C-terminal modification with mass " + String(mod_cterm_mass) + "."));
+              error(LOAD, String("Cannot find C-terminal modification with mass " + String(mod_cterm_mass) + "."));
             }
             break; // only one modification should match, so we can stop the loop here
           }
@@ -709,7 +709,7 @@ namespace OpenMS
       }
     }
     ////NEW_END
-    else if (element == "alternative_protein")     // parent: "search_hit"
+    else if (element == "alternative_protein") // parent: "search_hit"
     {
       String protein = attributeAsString_(attributes, "protein");
       peptide_hit_.addProteinAccession(protein);
@@ -785,19 +785,19 @@ namespace OpenMS
           params_.fixed_modifications.push_back(desc);
         }
       }
-			// check if the modification is uniquely defined:
-			vector<String> mods;
-			ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
-				mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
-			if (mods.size() > 1)
-			{
+      // check if the modification is uniquely defined:
+      vector<String> mods;
+      ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
+        mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
+      if (mods.size() > 1)
+      {
         String mod_str = mods[0];
         for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
         {
           mod_str += ", " + *mit;
         }
-				error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
-			}
+        error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
+      }
     }
     else if (element == "terminal_modification") // parent: "search_summary"
     {
@@ -852,22 +852,22 @@ namespace OpenMS
           params_.fixed_modifications.push_back(desc);
         }
       }
-			// check if the modification is uniquely defined:
-			vector<String> mods;
-			ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
-				mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
-			if (mods.size() > 1)
-			{
-				String mod_str = mods[0];
+      // check if the modification is uniquely defined:
+      vector<String> mods;
+      ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
+        mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
+      if (mods.size() > 1)
+      {
+        String mod_str = mods[0];
         for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
         {
           mod_str += ", " + *mit;
         }
-				error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
-			}
+        error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
+      }
     }
-    else if (element == "search_summary")     // parent: "msms_run_summary"
-    {     // creates a new ProteinIdentification (usually)
+    else if (element == "search_summary") // parent: "msms_run_summary"
+    { // creates a new ProteinIdentification (usually)
       if (!checked_base_name_) // work-around for files exported by Mascot
       {
         String base_name = "";
@@ -931,19 +931,19 @@ namespace OpenMS
       {
         prot_it = current_proteins_.front();
       }
-      else    // create a new ProteinIdentification
+      else // create a new ProteinIdentification
       {
         ProteinIdentification protein;
         protein.setDateTime(date_);
         proteins_->push_back(protein);
         prot_it = --proteins_->end();
-        prot_id_ = prot_id_ + "_" + search_id_;         // make sure the ID is unique
+        prot_id_ = prot_id_ + "_" + search_id_; // make sure the ID is unique
       }
       prot_it->setSearchEngine(search_engine_);
       prot_it->setIdentifier(prot_id_);
     }
-    else if (element == "sample_enzyme")     // parent: "msms_run_summary"
-    {       // special case: search parameter that occurs *before* "search_summary"!
+    else if (element == "sample_enzyme") // parent: "msms_run_summary"
+    { // special case: search parameter that occurs *before* "search_summary"!
       String name = attributeAsString_(attributes, "name");
       name.toLower();
       // spelling of enzyme names in pepXML?
@@ -962,11 +962,11 @@ namespace OpenMS
       params.enzyme = enzyme_;
       current_proteins_.front()->setSearchParameters(params);
     }
-    else if (element == "search_database")     // parent: "search_summary"
+    else if (element == "search_database") // parent: "search_summary"
     {
       params_.db = attributeAsString_(attributes, "local_path");
     }
-    else if (element == "msms_pipeline_analysis")     // root
+    else if (element == "msms_pipeline_analysis") // root
     {
       String date = attributeAsString_(attributes, "date");
       // fix for corrupted xs:dateTime format:
