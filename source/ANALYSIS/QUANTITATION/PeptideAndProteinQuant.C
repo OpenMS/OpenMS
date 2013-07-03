@@ -259,7 +259,7 @@ namespace OpenMS
       if (leaders.empty()) return "";
 
       bool all_equal = equal(leaders.begin(), --leaders.end(), 
-														 ++leaders.begin());
+                             ++leaders.begin());
       if (all_equal) return leaders[0];
     }
     return "";
@@ -462,39 +462,39 @@ namespace OpenMS
     quantifyPeptides_();
   }
 
-	void PeptideAndProteinQuant::quantifyPeptides(
-		vector<ProteinIdentification>& proteins,
-		vector<PeptideIdentification>& peptides)
-	{
-		updateMembers_(); // clear data
-		stats_.n_samples = proteins.size();
-		stats_.total_features = peptides.size();
+  void PeptideAndProteinQuant::quantifyPeptides(
+    vector<ProteinIdentification>& proteins,
+    vector<PeptideIdentification>& peptides)
+  {
+    updateMembers_(); // clear data
+    stats_.n_samples = proteins.size();
+    stats_.total_features = peptides.size();
 
-		countPeptides_(peptides);
+    countPeptides_(peptides);
 
-		// treat identification runs as different samples - otherwise we could just
-		// use the "id_count" element of PeptideData (filled by "countPeptides_") to
-		// get the total spectral count for each peptide:
-		map<String, Size> identifiers;
-		for (Size i = 0; i < proteins.size(); ++i)
-		{
-			identifiers[proteins[i].getIdentifier()] = i;
-		}
+    // treat identification runs as different samples - otherwise we could just
+    // use the "id_count" element of PeptideData (filled by "countPeptides_") to
+    // get the total spectral count for each peptide:
+    map<String, Size> identifiers;
+    for (Size i = 0; i < proteins.size(); ++i)
+    {
+      identifiers[proteins[i].getIdentifier()] = i;
+    }
 
-		for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-				 pep_it != peptides.end(); ++pep_it)
-		{
-			if (pep_it->getHits().empty()) continue;
-			const PeptideHit& hit = pep_it->getHits()[0];
-			stats_.quant_features++;
-			const AASequence& seq = hit.getSequence();
-			Size sample = identifiers[pep_it->getIdentifier()];
-			pep_quant_[seq].abundances[hit.getCharge()][sample] += 1;
-		}
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+         pep_it != peptides.end(); ++pep_it)
+    {
+      if (pep_it->getHits().empty()) continue;
+      const PeptideHit& hit = pep_it->getHits()[0];
+      stats_.quant_features++;
+      const AASequence& seq = hit.getSequence();
+      Size sample = identifiers[pep_it->getIdentifier()];
+      pep_quant_[seq].abundances[hit.getCharge()][sample] += 1;
+    }
     stats_.total_peptides = pep_quant_.size();
 
-		quantifyPeptides_();
-	}
+    quantifyPeptides_();
+  }
 
   void PeptideAndProteinQuant::updateMembers_()
   {
