@@ -304,23 +304,10 @@ namespace OpenMS
     vector<String> mods;
     ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, 0.001);
 
-    if (mods.size() == 1)
-    {
-      modification_description = mods[0];
-    }
-    else
-    {
-      if (!mods.empty())
-      {
-        String mod_str = mods[0];
-        for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
-        {
-          mod_str += ", " + *mit;
-        }
-        error(LOAD, "Modification '" + String(mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
-        modification_description = mods[0];
-      }
-    }
+		// no notification about ambiguities here - that was done when the
+		// modification definitions were parsed ("aminoacid_modification" and
+		// "terminal_modification" elements)
+    if (!mods.empty()) modification_description = mods[0];
   }
 
 
@@ -683,26 +670,13 @@ namespace OpenMS
             DoubleReal massdiff = (it->massdiff).toDouble();
             vector<String> mods;
             ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, 0.001, ResidueModification::N_TERM);
-            if (mods.size() == 1)
+            if (!mods.empty())
             {
               current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
             }
             else
             {
-              if (!mods.empty())
-              {
-                String mod_str = mods[0];
-                for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
-                {
-                  mod_str += ", " + *mit;
-                }
-                error(LOAD, "Modification '" + String(massdiff) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
-                current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
-              }
-              else
-              {
-                error(LOAD, String("Cannot find N-term modification with mass " + String(mod_nterm_mass) + "."));
-              }
+							error(LOAD, String("Cannot find N-terminal modification with mass " + String(mod_nterm_mass) + "."));
             }
             break; // only one modification should match, so we can stop the loop here
           }
@@ -721,26 +695,13 @@ namespace OpenMS
             DoubleReal massdiff = (it->massdiff).toDouble();
             vector<String> mods;
             ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, 0.001, ResidueModification::C_TERM);
-            if (mods.size() == 1)
+            if (!mods.empty())
             {
               current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
             }
             else
             {
-              if (!mods.empty())
-              {
-                String mod_str = mods[0];
-                for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
-                {
-                  mod_str += ", " + *mit;
-                }
-                error(LOAD, "Modification '" + String(massdiff) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
-                current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
-              }
-              else
-              {
-                error(LOAD, String("Cannot find C-term modification with mass " + String(mod_cterm_mass) + "."));
-              }
+							error(LOAD, String("Cannot find C-terminal modification with mass " + String(mod_cterm_mass) + "."));
             }
             break; // only one modification should match, so we can stop the loop here
           }
@@ -772,7 +733,7 @@ namespace OpenMS
       }
       else
       {
-        error(LOAD, String("Cannot find modification '") + String(modification_mass) + " " + String(origin) + "' @" + String(modification_position));
+        error(LOAD, String("Cannot find modification '") + String(modification_mass) + " " + String(origin) + "' at position " + String(modification_position));
       }
     }
     else if (element == "aminoacid_modification") // parent: "search_summary"
@@ -824,6 +785,19 @@ namespace OpenMS
           params_.fixed_modifications.push_back(desc);
         }
       }
+			// check if the modification is uniquely defined:
+			vector<String> mods;
+			ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
+				mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
+			if (mods.size() > 1)
+			{
+        String mod_str = mods[0];
+        for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+        {
+          mod_str += ", " + *mit;
+        }
+				error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
+			}
     }
     else if (element == "terminal_modification") // parent: "search_summary"
     {
@@ -877,8 +851,20 @@ namespace OpenMS
           }
           params_.fixed_modifications.push_back(desc);
         }
-
       }
+			// check if the modification is uniquely defined:
+			vector<String> mods;
+			ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
+				mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), 0.001);
+			if (mods.size() > 1)
+			{
+				String mod_str = mods[0];
+        for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+        {
+          mod_str += ", " + *mit;
+        }
+				error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
+			}
     }
     else if (element == "search_summary")     // parent: "msms_run_summary"
     {     // creates a new ProteinIdentification (usually)
@@ -1039,7 +1025,7 @@ namespace OpenMS
       // fixed modifications
       for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
       {
-        const Residue * residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
+        const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
         if (residue == 0)
         {
           error(LOAD, String("Cannot parse modification of unknown amino acid '") + it->aminoacid + "'");
@@ -1049,7 +1035,7 @@ namespace OpenMS
           DoubleReal new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
           vector<String> mods;
           ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, it->aminoacid, new_mass, 0.001);
-          if (mods.size() == 1)
+          if (!mods.empty())
           {
             for (Size i = 0; i < temp_aa_sequence.size(); ++i)
             {
@@ -1058,29 +1044,12 @@ namespace OpenMS
                 temp_aa_sequence.setModification(i, mods[0]);
               }
             }
-          }
-          else if (mods.empty())
-          {
-            error(LOAD, String("Cannot parse modification of amino acid '") + it->aminoacid + "'");
           }
           else
           {
-            String mod_str = mods[0];
-            for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
-            {
-              mod_str += ", " + *mit;
-            }
-            error(LOAD, "Modification '" + String(it->mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'!");
-            for (Size i = 0; i < temp_aa_sequence.size(); ++i)
-            {
-              if (it->aminoacid.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
-              {
-                temp_aa_sequence.setModification(i, mods[0]);
-              }
-            }
+            error(LOAD, String("Cannot parse modification of amino acid '") + it->aminoacid + "'");
           }
         }
-        //}
       }
 
       peptide_hit_.setSequence(temp_aa_sequence);
