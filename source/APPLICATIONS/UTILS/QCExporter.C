@@ -103,7 +103,7 @@ protected:
     StringList qps           	= getStringList_("qps");
     StringList names      	= getStringList_("names");
     String mappi          	= getStringOption_("mapping");
-		
+    
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
@@ -115,89 +115,87 @@ protected:
 
     if (mappi != "")
     {
-			CsvFile map_file(mappi);
-			
-			if (map_file.size()<2) //assumed that first row is the header of table and second row is the according qc
-			{
+      CsvFile map_file(mappi);
+      
+      if (map_file.size()<2) //assumed that first row is the header of table and second row is the according qc
+      {
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
-			}
-			StringList header,according;
-			map_file.getRow(0, header);
-			map_file.getRow(1, according);
-			if (header.size() != according.size())
-			{
+      }
+      StringList header,according;
+      map_file.getRow(0, header);
+      map_file.getRow(1, according);
+      if (header.size() != according.size())
+      {
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
-			}
-			//~ std::map<String,String> mapping;
-			//~ std::transform( header.begin(), header.end(), according.begin(), std::inserter(mapping, mapping.end() ), std::make_pair<String,String> );
-			Size runset_col;
+      }
+      //~ std::map<String,String> mapping;
+      //~ std::transform( header.begin(), header.end(), according.begin(), std::inserter(mapping, mapping.end() ), std::make_pair<String,String> );
+      Size runset_col;
       for (Size i = 0; i < according.size(); ++i)
-			{
-				if (!cv.exists(according[i]))
-				{
-					try
-					{
-						const ControlledVocabulary::CVTerm& term = cv.getTermByName(according[i]);
-						header[i] = term.name;
-						according[i] = term.id;
-					}						
-					catch (...)
-					{
-						cerr << "Error: You have to specify a correct cv with accession or name in col "<< String(i) <<". Aborting!" << endl;
-						return ILLEGAL_PARAMETERS;
-					}
-				}
-				else
-				{
-					const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
-					header[i] = term.name;
-				}
-				if (header[i] == "raw file name")
-				{
-					runset_col = i;
-				}
-			}
+      {
+        if (!cv.exists(according[i]))
+        {
+          try
+          {
+            const ControlledVocabulary::CVTerm& term = cv.getTermByName(according[i]);
+            header[i] = term.name;
+            according[i] = term.id;
+          }						
+          catch (...)
+          {
+            cerr << "Error: You have to specify a correct cv with accession or name in col "<< String(i) <<". Aborting!" << endl;
+            return ILLEGAL_PARAMETERS;
+          }
+        }
+        else
+        {
+          const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
+          header[i] = term.name;
+        }
+        if (header[i] == "raw file name")
+        {
+          runset_col = i;
+        }
+      }
 
-
-		
-		if (names.size() < 1)
-		{
-			std::vector<String> ns;
-			qcmlfile.getRunNames(ns);
-			names = StringList(ns); //TODO also  sets
-		} 
-		
-    String csv_str = header.concatenate(",");
-		csv_str += '\n';
-		for (Size i = 0; i < names.size(); ++i)
-		{
-      //~ if (qcmlfile.existsRun(names[i]))
-      //~ {
-			csv_str += qcmlfile.exportQPs(names[i],according);
-			csv_str += '\n';
-      //~ }
-			//~ else if (qcmlfile.existsSet(names[i]))
-			//~ {
-				//~ csv_str += qcmlfile.exportSetQP(names[i],according);
-			//~ }
-      //~ else
-      //~ {
-        //~ cerr << "Error: You have to specify a existing set for this qp. " << names[i] << " seems not to exist. Aborting!" << endl;
-        //~ return ILLEGAL_PARAMETERS;
-      //~ }
-    }
+      if (names.size() < 1)
+      {
+        std::vector<String> ns;
+        qcmlfile.getRunNames(ns);
+        names = StringList(ns); //TODO also  sets
+      } 
+    
+      String csv_str = header.concatenate(",");
+      csv_str += '\n';
+      for (Size i = 0; i < names.size(); ++i)
+      {
+        //~ if (qcmlfile.existsRun(names[i]))
+        //~ {
+        csv_str += qcmlfile.exportQPs(names[i],according);
+        csv_str += '\n';
+        //~ }
+        //~ else if (qcmlfile.existsSet(names[i]))
+        //~ {
+          //~ csv_str += qcmlfile.exportSetQP(names[i],according);
+        //~ }
+        //~ else
+        //~ {
+          //~ cerr << "Error: You have to specify a existing set for this qp. " << names[i] << " seems not to exist. Aborting!" << endl;
+          //~ return ILLEGAL_PARAMETERS;
+        //~ }
+      }
    
-    ofstream fout(csv.c_str());
-    fout << csv_str << endl;
-    fout.close();
-    //~ qcmlfile.store(out);
+      ofstream fout(csv.c_str());
+      fout << csv_str << endl;
+      fout.close();
+      //~ qcmlfile.store(out);
 
-    return EXECUTION_OK;
-		//~ TODO export table containing all given qp
-  }}
-
+      return EXECUTION_OK;
+      //~ TODO export table containing all given qp
+    }
+  }
 };
 int main(int argc, const char** argv)
 {
