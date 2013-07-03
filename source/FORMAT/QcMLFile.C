@@ -568,12 +568,13 @@ namespace OpenMS
   
    String QcMLFile::exportQPs(const String filename, const StringList qpnames) const
   {
-	String ret = "";
-	for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
-	{
-		ret += exportQP(filename,*qit);
-		ret += ",";
-	}  
+	  String ret = "";
+	  for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
+	  {
+		  ret += exportQP(filename,*qit);
+		  ret += ",";
+	  }
+    return ret;
   }
   
   String QcMLFile::map2csv(const std::map<String, std::map<String, String> >& cvs_table, const String& separator) const
