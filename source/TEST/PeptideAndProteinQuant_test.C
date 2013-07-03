@@ -35,6 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 
 using namespace OpenMS;
@@ -59,10 +60,12 @@ END_SECTION
 
 PeptideAndProteinQuant quantifier_features;
 PeptideAndProteinQuant quantifier_consensus;
+PeptideAndProteinQuant quantifier_identifications;
 Param params;
 params.setValue("include_all", "true");
 quantifier_features.setParameters(params);
 quantifier_consensus.setParameters(params);
+quantifier_identifications.setParameters(params);
 
 START_SECTION((void quantifyPeptides(FeatureMap<>& features)))
 {
@@ -84,6 +87,17 @@ START_SECTION((void quantifyPeptides(ConsensusMap& consensus)))
 }
 END_SECTION
 
+START_SECTION((void quantifyPeptides(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides)))
+{
+	vector<ProteinIdentification> proteins;
+	vector<PeptideIdentification> peptides;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("../TOPP/ProteinQuantifier_input.idXML"), proteins, peptides);
+	TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), true);
+	quantifier_identifications.quantifyPeptides(proteins, peptides);
+	TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), false);
+}
+END_SECTION
+
 START_SECTION((void quantifyProteins(const ProteinIdentification& proteins=ProteinIdentification())))
 {
 	TEST_EQUAL(quantifier_features.getProteinResults().empty(), true);
@@ -93,6 +107,10 @@ START_SECTION((void quantifyProteins(const ProteinIdentification& proteins=Prote
 	TEST_EQUAL(quantifier_consensus.getProteinResults().empty(), true);
 	quantifier_consensus.quantifyProteins();
 	TEST_EQUAL(quantifier_consensus.getProteinResults().empty(), false);
+
+	TEST_EQUAL(quantifier_identifications.getProteinResults().empty(), true);
+	quantifier_identifications.quantifyProteins();
+	TEST_EQUAL(quantifier_identifications.getProteinResults().empty(), false);
 }
 END_SECTION
 
@@ -119,6 +137,17 @@ START_SECTION((const Statistics& getStatistics()))
 	TEST_EQUAL(stats.total_peptides, 4);
 	TEST_EQUAL(stats.quant_features, 9);
 	TEST_EQUAL(stats.total_features, 9);
+	TEST_EQUAL(stats.blank_features, 0);
+	TEST_EQUAL(stats.ambig_features, 0);
+
+	stats = quantifier_identifications.getStatistics();
+	TEST_EQUAL(stats.n_samples, 2);
+	TEST_EQUAL(stats.quant_proteins, 10);
+	TEST_EQUAL(stats.too_few_peptides, 10);
+	TEST_EQUAL(stats.quant_peptides, 13);
+	TEST_EQUAL(stats.total_peptides, 13);
+	TEST_EQUAL(stats.quant_features, 18);
+	TEST_EQUAL(stats.total_features, 18);
 	TEST_EQUAL(stats.blank_features, 0);
 	TEST_EQUAL(stats.ambig_features, 0);
 }

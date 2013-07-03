@@ -1,10 +1,13 @@
-# Protein abundances computed from file 'IDFileConverter_2_output.idXML'
+# Protein abundances computed from file 'ProteinQuantifier_input.idXML'
 # Parameters (relevant only): top=0, average=sum
 # Files/samples associated with abundance values below: 1: 'X! Tandem (k-score)_2009-05-25T12:33:22', 2: 'SEQUEST_2009-05-25T12:33:22'
 "protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_1"	"abundance_2"
 "IPI00006803"	1	0	1	0	1
+"IPI00010790"	1	0	2	3	2
 "IPI00014592"	1	0	1	0	1
 "IPI00020987"	1	0	1	0	1
+"IPI00027377"	1	0	1	1	1
+"IPI00028030"	1	0	1	1	1
 "IPI00294556"	1	0	1	0	1
 "IPI00480049"	1	0	1	0	1
 "ddb000014286"	1	0	1	1	0
