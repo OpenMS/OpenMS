@@ -1182,8 +1182,6 @@ namespace OpenMS
     ofstream txt_out(filename.c_str());
     SVOutStream output(txt_out, "\t", "_", String::NONE);
 
-    Size num_runs = 0;
-
     // pre-filter for best PSM
     sortPSM_(pep_ids.begin(), pep_ids.end());
     keepFirstPSM_(pep_ids.begin(), pep_ids.end());
@@ -1207,8 +1205,7 @@ namespace OpenMS
     map<String, vector<PeptideIdentification> > map_run_to_pepids;
     map<String, vector<ProteinIdentification> > map_run_to_proids;
     partitionIntoRuns(pep_ids, prot_ids, map_run_to_pepids, map_run_to_proids);
-    num_runs = map_run_to_pepids.size();
-    cout << "idXML contains: " << num_runs << " runs." << endl;
+    // cout << "idXML contains: " << map_run_to_pepids.size() << " runs." << endl;
 
     MapAccPepType map_run_accesion_to_peptides;
     createProteinToPeptideLinks(map_run_to_pepids, map_run_accesion_to_peptides);
