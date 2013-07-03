@@ -67,12 +67,12 @@ namespace OpenMS
     defaults_.setValue("consensus:fix_peptides", "false", "Use the same peptides for protein quantification across all samples.\nWith 'top 0', all peptides that occur in every sample are considered.\nOtherwise ('top N'), the N peptides that occur in the most samples (independently of each other) are selected,\nbreaking ties by total abundance (there is no guarantee that the best co-ocurring peptides are chosen!).");
     defaults_.setValidStrings("consensus:fix_peptides", true_false);
 
-    defaults_.setSectionDescription("consensus", "Additional options for consensus maps");
+    defaults_.setSectionDescription("consensus", "Additional options for consensus maps (and identification results comprising multiple runs)");
 
     defaultsToParam_();
   }
 
-  void PeptideAndProteinQuant::countPeptides_(vector<PeptideIdentification> &
+  void PeptideAndProteinQuant::countPeptides_(vector<PeptideIdentification>&
                                               peptides)
   {
     for (vector<PeptideIdentification>::iterator pep_it =
@@ -81,10 +81,10 @@ namespace OpenMS
       if (!pep_it->getHits().empty())
       {
         pep_it->sort();
-        const PeptideHit & hit = pep_it->getHits()[0];
-        PeptideData & data = pep_quant_[hit.getSequence()];
+        const PeptideHit& hit = pep_it->getHits()[0];
+        PeptideData& data = pep_quant_[hit.getSequence()];
         data.id_count++;
-        data.abundances[hit.getCharge()];         // insert empty element for charge
+        data.abundances[hit.getCharge()]; // insert empty element for charge
         // add protein accessions:
         data.accessions.insert(hit.getProteinAccessions().begin(),
                                hit.getProteinAccessions().end());
@@ -93,17 +93,16 @@ namespace OpenMS
   }
 
   PeptideHit PeptideAndProteinQuant::getAnnotation_(
-    vector<PeptideIdentification> & peptides)
+    vector<PeptideIdentification>& peptides)
   {
     // hits in IDs must already be sorted by score! (done in "countPeptides_")
-    if (peptides.empty())
-      return PeptideHit();
+    if (peptides.empty()) return PeptideHit();
 
-    const PeptideHit & hit = peptides[0].getHits()[0];
+    const PeptideHit& hit = peptides[0].getHits()[0];
     for (vector<PeptideIdentification>::iterator pep_it = ++peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
-      const PeptideHit & current = pep_it->getHits()[0];
+      const PeptideHit& current = pep_it->getHits()[0];
       if (current.getSequence() != hit.getSequence())
       {
         return PeptideHit();
@@ -112,17 +111,17 @@ namespace OpenMS
     return hit;
   }
 
-  void PeptideAndProteinQuant::quantifyFeature_(const FeatureHandle & feature,
-                                                const PeptideHit & hit)
+  void PeptideAndProteinQuant::quantifyFeature_(const FeatureHandle& feature,
+                                                const PeptideHit& hit)
   {
     if (hit == PeptideHit())
     {
-      return;       // annotation for the feature is ambiguous or missing
+      return; // annotation for the feature is ambiguous or missing
     }
     stats_.quant_features++;
-    const AASequence & seq = hit.getSequence();
+    const AASequence& seq = hit.getSequence();
     pep_quant_[seq].abundances[hit.getCharge()][feature.getMapIndex()] +=
-      feature.getIntensity();       // new map element is initialized with 0
+      feature.getIntensity(); // new map element is initialized with 0
   }
 
   void PeptideAndProteinQuant::quantifyPeptides_()
@@ -134,10 +133,9 @@ namespace OpenMS
       {
         // find charge state with abundances for highest number of samples
         // (break ties by total abundance):
-        IntList charges;         // sorted charge states (best first)
+        IntList charges; // sorted charge states (best first)
         orderBest_(q_it->second.abundances, charges);
-        if (charges.empty())
-          continue;                            // only identified, not quantified
+        if (charges.empty()) continue; // only identified, not quantified
         Int best_charge = charges[0];
 
         // quantify according to the best charge state only:
@@ -176,7 +174,7 @@ namespace OpenMS
   void PeptideAndProteinQuant::normalizePeptides_()
   {
     // gather data:
-    map<UInt64, DoubleList> abundances;     // all peptide abundances by sample
+    map<UInt64, DoubleList> abundances; // all peptide abundances by sample
     for (PeptideQuant::iterator q_it = pep_quant_.begin();
          q_it != pep_quant_.end(); ++q_it)
     {
@@ -188,11 +186,10 @@ namespace OpenMS
         abundances[samp_it->first] << samp_it->second;
       }
     }
-    if (abundances.size() <= 1)
-      return;
+    if (abundances.size() <= 1) return;
 
     // compute scale factors for all samples:
-    SampleAbundances medians;     // median abundance by sample
+    SampleAbundances medians; // median abundance by sample
     for (map<UInt64, DoubleList>::iterator ab_it = abundances.begin();
          ab_it != abundances.end(); ++ab_it)
     {
@@ -238,13 +235,12 @@ namespace OpenMS
   }
 
   String PeptideAndProteinQuant::getAccession_(
-    const set<String> & pep_accessions, map<String, String> & accession_to_leader)
+    const set<String>& pep_accessions, map<String, String>& accession_to_leader)
   {
     if (accession_to_leader.empty())
     {
       // no info about indistinguishable proteins available
-      if (pep_accessions.size() == 1)
-        return *pep_accessions.begin();
+      if (pep_accessions.size() == 1) return *pep_accessions.begin();
     }
     else
     {
@@ -255,24 +251,21 @@ namespace OpenMS
            it != pep_accessions.end(); ++it)
       {
         map<String, String>::const_iterator pos = accession_to_leader.find(*it);
-        if (pos != accession_to_leader.end())
-          leaders << pos->second;
+        if (pos != accession_to_leader.end()) leaders << pos->second;
         // if the protein accession was not found, this is not an error:
         // if there's not enough evidence for a protein, it won't occur in
         // the protXML - so we also won't quantify it
       }
-      if (leaders.empty())
-        return "";
+      if (leaders.empty()) return "";
 
-      bool all_equal = equal(leaders.begin(), --leaders.end(),
-                             ++leaders.begin());
-      if (all_equal)
-        return leaders[0];
+      bool all_equal = equal(leaders.begin(), --leaders.end(), 
+														 ++leaders.begin());
+      if (all_equal) return leaders[0];
     }
     return "";
   }
 
-  void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification &
+  void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification&
                                                 proteins)
   {
     // if information about indistinguishable proteins is available, map each
@@ -301,7 +294,7 @@ namespace OpenMS
                                        accession_to_leader);
       // cout << "pep: " << pep_it->first << ", acc: " << accession << ", ids: "
       //         << pep_it->second.id_count << endl;
-      if (!accession.empty())       // proteotypic peptide
+      if (!accession.empty()) // proteotypic peptide
       {
         prot_quant_[accession].id_count += pep_it->second.id_count;
         for (SampleAbundances::const_iterator tot_it =
@@ -328,10 +321,10 @@ namespace OpenMS
       {
         stats_.too_few_peptides++;
         if (!include_all)
-          continue;                         // not enough proteotypic peptides
+          continue; // not enough proteotypic peptides
       }
 
-      vector<String> peptides;       // peptides selected for quantification
+      vector<String> peptides; // peptides selected for quantification
       if (fix_peptides && (top == 0))
       {
         // consider all peptides that occur in every sample:
@@ -362,12 +355,12 @@ namespace OpenMS
         }
       }
 
-      map<UInt64, DoubleList> abundances;       // all peptide abundances by sample
+      map<UInt64, DoubleList> abundances; // all peptide abundances by sample
       // consider only the peptides selected above for quantification:
       for (vector<String>::iterator pep_it = peptides.begin();
            pep_it != peptides.end(); ++pep_it)
       {
-        SampleAbundances & current_ab = prot_it->second.abundances[*pep_it];
+        SampleAbundances& current_ab = prot_it->second.abundances[*pep_it];
         for (SampleAbundances::iterator samp_it = current_ab.begin();
              samp_it != current_ab.end(); ++samp_it)
         {
@@ -380,13 +373,13 @@ namespace OpenMS
       {
         if (!include_all && (top > 0) && (ab_it->second.size() < top))
         {
-          continue;           // not enough peptide abundances for this sample
+          continue; // not enough peptide abundances for this sample
         }
         if ((top > 0) && (ab_it->second.size() > top))
         {
           // sort descending:
           sort(ab_it->second.begin(), ab_it->second.end(), greater<double>());
-          ab_it->second.resize(top);           // remove all but best "top" values
+          ab_it->second.resize(top); // remove all but best "top" values
         }
 
         DoubleReal result;
@@ -398,7 +391,7 @@ namespace OpenMS
         {
           result = Math::mean(ab_it->second.begin(), ab_it->second.end());
         }
-        else         // "sum"
+        else // "sum"
         {
           result = Math::sum(ab_it->second.begin(), ab_it->second.end());
         }
@@ -406,16 +399,14 @@ namespace OpenMS
       }
 
       // update statistics:
-      if (prot_it->second.total_abundances.empty())
-        stats_.too_few_peptides++;
-      else
-        stats_.quant_proteins++;
+      if (prot_it->second.total_abundances.empty()) stats_.too_few_peptides++;
+      else stats_.quant_proteins++;
     }
   }
 
-  void PeptideAndProteinQuant::quantifyPeptides(FeatureMap<> & features)
+  void PeptideAndProteinQuant::quantifyPeptides(FeatureMap<>& features)
   {
-    updateMembers_();     // clear data
+    updateMembers_(); // clear data
     stats_.n_samples = 1;
     stats_.total_features = features.size();
 
@@ -430,7 +421,7 @@ namespace OpenMS
       countPeptides_(feat_it->getPeptideIdentifications());
       PeptideHit hit = getAnnotation_(feat_it->getPeptideIdentifications());
       FeatureHandle handle(0, *feat_it);
-      quantifyFeature_(handle, hit);       // updates "stats_.quant_features"
+      quantifyFeature_(handle, hit); // updates "stats_.quant_features"
     }
     countPeptides_(features.getUnassignedPeptideIdentifications());
     stats_.total_peptides = pep_quant_.size();
@@ -440,9 +431,9 @@ namespace OpenMS
     quantifyPeptides_();
   }
 
-  void PeptideAndProteinQuant::quantifyPeptides(ConsensusMap & consensus)
+  void PeptideAndProteinQuant::quantifyPeptides(ConsensusMap& consensus)
   {
-    updateMembers_();     // clear data
+    updateMembers_(); // clear data
     stats_.n_samples = consensus.getFileDescriptions().size();
 
     for (ConsensusMap::Iterator cons_it = consensus.begin();
@@ -460,7 +451,7 @@ namespace OpenMS
              cons_it->getFeatures().begin(); feat_it !=
            cons_it->getFeatures().end(); ++feat_it)
       {
-        quantifyFeature_(*feat_it, hit);         // updates "stats_.quant_features"
+        quantifyFeature_(*feat_it, hit); // updates "stats_.quant_features"
       }
     }
     countPeptides_(consensus.getUnassignedPeptideIdentifications());
@@ -471,6 +462,40 @@ namespace OpenMS
     quantifyPeptides_();
   }
 
+	void PeptideAndProteinQuant::quantifyPeptides(
+		vector<ProteinIdentification>& proteins,
+		vector<PeptideIdentification>& peptides)
+	{
+		updateMembers_(); // clear data
+		stats_.n_samples = proteins.size();
+		stats_.total_features = peptides.size();
+
+		countPeptides_(peptides);
+
+		// treat identification runs as different samples - otherwise we could just
+		// use the "id_count" element of PeptideData (filled by "countPeptides_") to
+		// get the total spectral count for each peptide:
+		map<String, Size> identifiers;
+		for (Size i = 0; i < proteins.size(); ++i)
+		{
+			identifiers[proteins[i].getIdentifier()] = i;
+		}
+
+		for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+				 pep_it != peptides.end(); ++pep_it)
+		{
+			if (pep_it->getHits().empty()) continue;
+			const PeptideHit& hit = pep_it->getHits()[0];
+			stats_.quant_features++;
+			const AASequence& seq = hit.getSequence();
+			Size sample = identifiers[pep_it->getIdentifier()];
+			pep_quant_[seq].abundances[hit.getCharge()][sample] += 1;
+		}
+    stats_.total_peptides = pep_quant_.size();
+
+		quantifyPeptides_();
+	}
+
   void PeptideAndProteinQuant::updateMembers_()
   {
     // reset everything:
@@ -479,19 +504,19 @@ namespace OpenMS
     prot_quant_.clear();
   }
 
-  const PeptideAndProteinQuant::Statistics &
+  const PeptideAndProteinQuant::Statistics&
   PeptideAndProteinQuant::getStatistics()
   {
     return stats_;
   }
 
-  const PeptideAndProteinQuant::PeptideQuant &
+  const PeptideAndProteinQuant::PeptideQuant&
   PeptideAndProteinQuant::getPeptideResults()
   {
     return pep_quant_;
   }
 
-  const PeptideAndProteinQuant::ProteinQuant &
+  const PeptideAndProteinQuant::ProteinQuant&
   PeptideAndProteinQuant::getProteinResults()
   {
     return prot_quant_;

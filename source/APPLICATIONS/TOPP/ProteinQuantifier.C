@@ -55,7 +55,7 @@ using namespace std;
 /**
     @page TOPP_ProteinQuantifier ProteinQuantifier
 
-    @brief Compute peptide and protein abundances from annotated feature/consensus maps.
+    @brief Compute peptide and protein abundances from annotated feature/consensus maps or from identification results.
 
 <CENTER>
     <table>
@@ -77,7 +77,9 @@ using namespace std;
     Reference:\n
 		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
-    Quantification is based on the intensity values of the features in the input. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.
+		<B>Input: featureXML or consensusXML</B>
+
+    Quantification is based on the intensity values of the features in the input files. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.
 
     The peptide-to-protein step uses the (e.g. 3) most abundant proteotypic peptides per protein to compute the protein abundances. This is a general version of the "top 3 approach" (but only for relative quantification) described in:\n
     Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006, PMID: 16219938).
@@ -87,6 +89,13 @@ using namespace std;
     Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs).
 
     Peptides with the same sequence, but with different modifications are quantified separately on the peptide level, but treated as one peptide for the protein quantification (i.e. the contributions of differently-modified variants of the same peptide are accumulated).
+
+		<B>Input: idXML</B>
+
+		Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
+
+		The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p average @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
+
 
     More information below the parameter specification.
 
@@ -310,7 +319,8 @@ public:
 
   TOPPProteinQuantifier() :
     TOPPBase("ProteinQuantifier", "Compute peptide and protein abundances"),
-    algo_params_(), proteins_(), peptides_(), files_() {}
+    algo_params_(), proteins_(), peptides_(), files_(), 
+		spectral_counting_(false) {}
 
 protected:
 
@@ -322,12 +332,13 @@ protected:
   Param algo_params_; // parameters for PeptideAndProteinQuant algorithm
   ProteinIdentification proteins_; // ProteinProphet results (proteins)
   PeptideIdentification peptides_; // ProteinProphet results (peptides)
-  ConsensusMap::FileDescriptions files_; // Information about files involved
+  ConsensusMap::FileDescriptions files_; // information about files involved
+	bool spectral_counting_; // quantification based on spectral counting?
 
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", StringList::create("featureXML,consensusXML"));
+    setValidFormats_("in", StringList::create("featureXML,consensusXML,idXML"));
     registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protxml", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
@@ -342,8 +353,8 @@ protected:
     Param temp = PeptideAndProteinQuant().getParameters();
     registerFullParam_(temp);
 
-    registerFlag_("ratios", "Prints the log2 ratios of the abundance value to the output file. (log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ....)", false);
-    registerFlag_("ratiosSILAC", "Prints the SILAC log2 ratios for a triple SILAC experiment to the output file. Only performed if three maps are given, otherwise nothing will be seen in the output file. (log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)", false);
+    registerFlag_("ratios", "Add the log2 ratios of the abundance values to the output. Format: log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ...", false);
+    registerFlag_("ratiosSILAC", "Add the log2 ratios for a triple SILAC experiment to the output. Only applicable to consensus maps of exactly three sub-maps. Format: log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)", false);
     registerTOPPSubsection_("format", "Output formatting options");
     registerStringOption_("format:separator", "<sep>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
     registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
@@ -447,7 +458,7 @@ protected:
       {
         out << "abundance_" + String(i);
       }
-      // if ratios-flag is set to true, print log2-ratios. ratio_1 <sep> ratio_x ....
+      // if ratios-flag is set, print log2-ratios. ratio_1 <sep> ratio_x ....
       if (print_ratios)
       {
         for (Size i = 1; i <= files_.size(); ++i)
@@ -455,7 +466,7 @@ protected:
           out << "ratio_" + String(i);
         }
       }
-      // if ratiosSILAC-flag is set to true, print SILAC log2-ratios, only if three
+      // if ratiosSILAC-flag is set, print SILAC log2-ratios, only if three
       if (print_SILACratios && files_.size() == 3)
       {
         for (Size i = 1; i <= files_.size(); ++i)
@@ -488,7 +499,7 @@ protected:
     for (ProteinQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
          ++q_it)
     {
-      if (q_it->second.total_abundances.empty()) continue;  // not quantified
+      if (q_it->second.total_abundances.empty()) continue; // not quantified
 
       if (leader_to_accessions.empty())
       {
@@ -517,7 +528,7 @@ protected:
       {
         out << total_abundances[file_it->first];
       }
-      // if ratios-flag is set to true, print log2-ratios. ab1/ab0, ab2/ab0, .. , ab'n/ab0
+      // if ratios-flag is set, print log2-ratios. ab1/ab0, ab2/ab0, ... , ab'n/ab0
       if (print_ratios)
       {
         DoubleReal log2 = log(2.0);
@@ -528,7 +539,7 @@ protected:
           out << log(total_abundances[file_it->first] / ref_abundance) / log2;
         }
       }
-      // if ratiosSILAC-flag is set to true, print log2-SILACratios. Only if three maps are provided (triple SILAC).
+      // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
       if (print_SILACratios && files_.size() == 3)
       {
         ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
@@ -571,7 +582,7 @@ protected:
       if (value != "false") params += *it + "=" + value + ", ";
     }
     if (params.empty()) params = "(none)";
-    else params.resize(params.size() - 2);  // remove trailing ", "
+    else params.resize(params.size() - 2); // remove trailing ", "
     out << "# Parameters (relevant only): " + params << endl;
 
     if (files_.size() > 1)
@@ -594,15 +605,25 @@ protected:
   /// Write processing statistics.
   void writeStatistics_(const Statistics& stats)
   {
-    LOG_INFO << "\nProcessing summary - number of..."
-             << "\n...features: " << stats.quant_features
-             << " used for quantification, " << stats.total_features
-             << " total (" << stats.blank_features << " no annotation, "
-             << stats.ambig_features << " ambiguous annotation)"
-             << "\n...peptides: "  << stats.quant_peptides
-             << " quantified, " << stats.total_peptides
-             << " identified (considering best hits only)";
-    if (!getStringOption_("out").empty() || !getStringOption_("mzTab_out").empty())
+    LOG_INFO << "\nProcessing summary - number of...";
+		if (spectral_counting_)
+		{
+			LOG_INFO << "\n...spectra: " << stats.total_features << " identified"
+							 << "\n...peptides: " << stats.quant_peptides
+							 << " identified and quantified (considering best hits only)";
+		}
+		else
+		{
+			LOG_INFO << "\n...features: " << stats.quant_features
+							 << " used for quantification, " << stats.total_features
+							 << " total (" << stats.blank_features << " no annotation, "
+							 << stats.ambig_features << " ambiguous annotation)"
+							 << "\n...peptides: "  << stats.quant_peptides
+							 << " quantified, " << stats.total_peptides
+							 << " identified (considering best hits only)";
+		}
+    if (!getStringOption_("out").empty() || 
+				!getStringOption_("mzTab_out").empty())
     {
       bool include_all = algo_params_.getValue("include_all") == "true";
       Size top = algo_params_.getValue("top");
@@ -681,10 +702,10 @@ protected:
         hit.setAccession(q_it->first); // no further data
         quantified_prot.push_back(hit);
       }
-      else       // copy existing hit
+      else // copy existing hit
       {
         AccessionMap::iterator pos = accession_map.find(q_it->first);
-        if (pos == accession_map.end()) continue;  // not in list, skip
+        if (pos == accession_map.end()) continue; // not in list, skip
         quantified_prot.push_back(*(pos->second));
         // annotate with indistinguishable proteins:
         map<String, StringList>::iterator la_it =
@@ -757,7 +778,7 @@ protected:
         PeptideHit hit;
         quantified_pep.push_back(hit);
       }
-      else       // copy existing hit
+      else // copy existing hit
       {
         SequenceMap::iterator pos =
           sequence_map.find(q_it->first.toUnmodifiedString());
@@ -773,7 +794,7 @@ protected:
         quantified_pep.back().setProteinAccessions(vector<String>());
         quantified_pep.back().setMetaValue("mzTab:unique", "false");
       }
-      else       // proteotypic (therefore used for quantification)
+      else // proteotypic (therefore used for quantification)
       {
         vector<String> accessions(1, pos->second);
         quantified_pep.back().setProteinAccessions(accessions);
@@ -784,7 +805,7 @@ protected:
         SampleAbundances total_abundances = q_it->second.total_abundances;
         storeAbundances_(quantified_pep.back(), total_abundances, "peptide");
       }
-      else       // generate hits for individual charge states
+      else // generate hits for individual charge states
       {
         for (map<Int, SampleAbundances>::const_iterator ab_it =
                q_it->second.abundances.begin(); ab_it !=
@@ -858,7 +879,25 @@ protected:
       }
       quantifier.quantifyPeptides(features);
     }
-    else     // consensusXML
+		else if (in_type == FileTypes::IDXML)
+		{
+			spectral_counting_ = true;
+			vector<ProteinIdentification> proteins;
+			vector<PeptideIdentification> peptides;
+			IdXMLFile().load(in, proteins, peptides);
+			for (Size i = 0; i < proteins.size(); ++i)
+			{
+				files_[i].filename = proteins[i].getIdentifier();
+			}
+      // ProteinProphet results in the idXML?
+      if (protxml.empty() && (proteins.size() == 1) && 
+					(!proteins[0].getHits().empty()))
+      {
+        proteins_ = proteins[0];
+      }
+			quantifier.quantifyPeptides(proteins, peptides);
+		}
+    else // consensusXML
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);

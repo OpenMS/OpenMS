@@ -134,14 +134,22 @@ public:
 
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
-    void quantifyPeptides(FeatureMap<> & features);
+    void quantifyPeptides(FeatureMap<>& features);
 
     /**
          @brief Compute peptide abundances from data in a consensus map
 
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
-    void quantifyPeptides(ConsensusMap & consensus);
+    void quantifyPeptides(ConsensusMap& consensus);
+
+    /**
+         @brief Compute peptide abundances from identification data (spectral counting)
+
+         Parameters should be set before using this method, as setting parameters will clear all results.
+    */
+    void quantifyPeptides(std::vector<ProteinIdentification>& proteins,
+													std::vector<PeptideIdentification>& peptides);
 
     /**
          @brief Compute protein abundances.
