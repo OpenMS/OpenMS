@@ -868,7 +868,6 @@ namespace OpenMS
     QDoubleSpinBox* tolerance = dlg.findChild<QDoubleSpinBox*>("tolerance");
 
     QDoubleSpinBox* relative_loss_intensity = dlg.findChild<QDoubleSpinBox*>("relative_loss_intensity");
-    QSpinBox* charge = dlg.findChild<QSpinBox*>("charge");
 
     QList<QListWidgetItem*> a_ions = id_view_ions->findItems("A-ions", Qt::MatchFixedString);
     QList<QListWidgetItem*> b_ions = id_view_ions->findItems("B-ions", Qt::MatchFixedString);
@@ -1923,13 +1922,12 @@ namespace OpenMS
       is_1d_view = true;
 
     layer_manager_->blockSignals(true);
-    QListWidgetItem* item = 0;
     QString name;
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
       const LayerData& layer = cc->getLayer(i);
       //add item
-      item = new QListWidgetItem(layer_manager_);
+      QListWidgetItem* item = new QListWidgetItem(layer_manager_);
       name = layer.name.toQString();
       if (layer.flipped)
       {
@@ -3047,7 +3045,7 @@ namespace OpenMS
       // find correct location of TOPP tool
       tool_executable = File::findExecutable(topp_.tool).toQString();
     }
-    catch (Exception::FileNotFound ex)
+    catch (Exception::FileNotFound& ex)
     {
       showLogMessage_(LS_ERROR, "Could not locate executable!", QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(topp_.tool.toQString()));
       return;

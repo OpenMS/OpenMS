@@ -478,13 +478,12 @@ namespace OpenMS
         {
           const ExperimentType::PeakType & peak_1 = measurement_start_.getPeak(*getCurrentLayer().getPeakData());
           const ExperimentType::PeakType & peak_2 = selected_peak_.getPeak(*getCurrentLayer().getPeakData());
-          DoubleReal distance = peak_2.getMZ() - peak_1.getMZ();
           updatePercentageFactor_(current_layer_);
           PointType p = widgetToData(measurement_start_point_, true);
           bool peak_1_less = peak_1.getMZ() < peak_2.getMZ();
           DoubleReal start_mz = peak_1_less ? peak_1.getMZ() : peak_2.getMZ();
           DoubleReal end_mz = peak_1_less ? peak_2.getMZ() : peak_1.getMZ();
-          distance = end_mz - start_mz;
+          DoubleReal distance = end_mz - start_mz;
           PointType start_p(start_mz, p.getY());
           PointType end_p(end_mz, p.getY());
 
