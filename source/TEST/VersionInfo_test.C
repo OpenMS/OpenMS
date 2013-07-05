@@ -93,6 +93,16 @@ START_SECTION(([VersionInfo::VersionDetails] VersionDetails()))
 }
 END_SECTION
 
+START_SECTION(([VersionInfo::VersionDetails] VersionDetails(const VersionDetails &other)))
+{
+	VersionInfo::VersionDetails detail = VersionInfo::VersionDetails::create("1.9.2");
+	VersionInfo::VersionDetails c(detail);
+	TEST_EQUAL(c.version_major, detail.version_major)
+	TEST_EQUAL(c.version_minor, detail.version_minor)
+	TEST_EQUAL(c.version_patch, detail.version_patch)
+}
+END_SECTION
+
 START_SECTION(([VersionInfo::VersionDetails] bool operator<(const VersionDetails &rhs) const))
 {
   VersionInfo::VersionDetails detail = VersionInfo::VersionDetails::create("1.9.2");

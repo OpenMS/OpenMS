@@ -477,7 +477,8 @@ START_SECTION((void sortByRT()))
 END_SECTION
 
 START_SECTION((void swap(FeatureMap& from)))
-	FeatureMap<> map1, map2;
+{
+  FeatureMap<> map1, map2;
 	map1.setIdentifier("stupid comment");
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -501,7 +502,36 @@ START_SECTION((void swap(FeatureMap& from)))
   TEST_EQUAL(map2.getDataProcessing().size(),1)
 	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
 	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+}
+END_SECTION
 
+START_SECTION((void swapFeaturesOnly(FeatureMap& from)))
+{
+  FeatureMap<> map1, map2;
+	map1.setIdentifier("stupid comment");
+	map1.push_back(feature1);
+	map1.push_back(feature2);
+	map1.updateRanges();
+	map1.getDataProcessing().resize(1);
+	map1.getProteinIdentifications().resize(1);
+	map1.getUnassignedPeptideIdentifications().resize(1);
+
+	map1.swapFeaturesOnly(map2);
+
+	TEST_EQUAL(map1.getIdentifier(),"stupid comment")
+	TEST_EQUAL(map1.size(),0)
+	TEST_REAL_SIMILAR(map1.getMinInt(),DRange<1>().minPosition()[0])
+  TEST_EQUAL(map1.getDataProcessing().size(),1)
+	TEST_EQUAL(map1.getProteinIdentifications().size(),1);
+	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),1);
+
+	TEST_EQUAL(map2.getIdentifier(),"")
+	TEST_EQUAL(map2.size(),2)
+	TEST_REAL_SIMILAR(map2.getMinInt(),0.5)
+  TEST_EQUAL(map2.getDataProcessing().size(),0)
+	TEST_EQUAL(map2.getProteinIdentifications().size(),0);
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0);
+}
 END_SECTION
 
 START_SECTION((void sortByOverallQuality(bool reverse=false)))

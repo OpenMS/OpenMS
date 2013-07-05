@@ -373,24 +373,23 @@ public:
       }
     }
 
-    /// Swaps the content of this map with the content of @p from
-    void swap_features_only(FeatureMap & from)
+    /// Swaps the feature content (plus its range information) of this map with the content of @p from
+    void swapFeaturesOnly(FeatureMap& from)
     {
       // TODO used by FeatureFinderAlgorithmPicked -- could it also use regular swap?
       Base::swap(from);
-    }
-
-    void swap(FeatureMap & from)
-    {
+      
+      // swap range information (otherwise its false in both maps)
       FeatureMap tmp;
-
-      // swap the actual features
-      Base::swap(from);
-
-      // swap range information
       tmp.RangeManagerType::operator=(* this);
       this->RangeManagerType::operator=(from);
       from.RangeManagerType::operator=(tmp);
+    }
+
+    void swap(FeatureMap& from)
+    {
+      // swap features and ranges
+      swapFeaturesOnly(from);
 
       // swap DocumentIdentifier
       DocumentIdentifier::swap(from);

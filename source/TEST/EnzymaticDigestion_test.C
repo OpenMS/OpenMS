@@ -201,7 +201,7 @@ START_SECTION((Size peptideCount(const AASequence &protein)))
 
 END_SECTION
 
-START_SECTION((void digest(const AASequence& protein, std::vector<AASequence>& output)))
+START_SECTION((void digest(const AASequence& protein, std::vector< AASequence >& output) const))
 	EnzymaticDigestion ed;
 	vector<AASequence> out;
 	
