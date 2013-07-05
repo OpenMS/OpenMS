@@ -4,17 +4,18 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH)
 ### list all header files of the directory here
 set(sources_list_h
   CachedmzML.h
-  DIAHelper.h
-  MRMDecoy.h
-  MRMTransitionGroupPicker.h
-  SpectrumAddition.h
   ChromatogramExtractor.h
+  ConfidenceScoring.h
+  DIAHelper.h
   DIAPrescoring.h
-  MRMFeatureFinderScoring.h
-  TransitionTSVReader.h
   DIAScoring.h
+  MRMDecoy.h
+  MRMFeatureFinderScoring.h
   MRMRTNormalizer.h
+  MRMTransitionGroupPicker.h
   OpenSwathHelper.h
+  SpectrumAddition.h
+  TransitionTSVReader.h
 )
 
 ### add path to the filenames
