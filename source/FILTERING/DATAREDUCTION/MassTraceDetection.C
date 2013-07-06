@@ -223,6 +223,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
     Size spectra_count(0);
 
+
     // this->startProgress(0, input_exp.size(), "Detect potential chromatographic apeces...");
     for (Size scan_idx = 0; scan_idx < input_exp.size(); ++scan_idx)
     {
@@ -253,6 +254,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     ++spec_peak_idx;
                 }
             }
+
 
             work_exp.addSpectrum(tmp_spec);
             spec_offsets.push_back(spec_offsets[spec_offsets.size() - 1] + tmp_spec.size());
@@ -358,7 +360,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     right_bound = centroid_mz + 3 * ftl_sd;
                     left_bound = centroid_mz - 3 * ftl_sd;
 
-                    // std::cout << "down: " << centroid_mz << " "<<  ftl_sd << std::endl;
+//                  std::cout << "down: " << centroid_mz << " "<<  ftl_sd << std::endl;
 
                     Size left_next_idx = work_exp[trace_down_idx - 1].findNearest(left_bound);
                     Size right_next_idx = work_exp[trace_down_idx - 1].findNearest(right_bound);
@@ -366,6 +368,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     DoubleReal left_mz(work_exp[trace_down_idx - 1][left_next_idx].getMZ());
                     DoubleReal right_mz(work_exp[trace_down_idx - 1][right_next_idx].getMZ());
 
+// std::cout << "next: " << next_down_peak_mz << std::endl;
 
                     if ((next_down_peak_mz <= right_bound) && (next_down_peak_mz >= left_bound) && !peak_visited[spec_offsets[trace_down_idx - 1] + next_down_peak_idx])
                     {
@@ -514,6 +517,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         DoubleReal mt_quality((DoubleReal)current_trace.size() / (DoubleReal)num_scans);
         DoubleReal rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
 
+//	std::cout << num_scans << " " << mt_quality << " " << rt_range << std::endl;
         // check if minimum length and quality of mass trace criteria are met
         if (rt_range >= min_trace_length_ && rt_range < max_trace_length_ && mt_quality >= min_sample_rate_)
         {

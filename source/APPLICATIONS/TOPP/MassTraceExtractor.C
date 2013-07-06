@@ -160,6 +160,14 @@ protected:
     (mz_data_file.getOptions()).setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);
 
+// make sure that the spectra are sorted by m/z
+
+    for (Size scan_idx = 0; scan_idx < ms_peakmap.size(); ++scan_idx)
+    {
+    	ms_peakmap[scan_idx].sortByPosition();
+    }
+
+
     if (ms_peakmap.size() == 0)
     {
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
